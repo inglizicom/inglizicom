@@ -1,0 +1,292 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== Base Reset & RTL Setup ===== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  direction: rtl;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Cairo', sans-serif;
+  color: #1e293b;
+  background-color: #ffffff;
+  line-height: 1.8;
+  overflow-x: hidden;
+}
+
+/* ===== Custom Scrollbar ===== */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #1d4ed8; }
+
+/* ===== Utility Classes ===== */
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(135deg, #1e40af, #3b82f6, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-hero {
+    background: linear-gradient(135deg, #0f2157 0%, #1e3a8a 40%, #1d4ed8 70%, #3b82f6 100%);
+  }
+
+  .card-hover {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 60px rgba(30, 64, 175, 0.15);
+  }
+
+  .section-padding {
+    padding: 80px 0;
+  }
+
+  .btn-primary {
+    @apply bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 px-8 rounded-xl
+           transition-all duration-300 shadow-lg hover:shadow-brand-600/40 hover:shadow-xl
+           active:scale-95 inline-flex items-center gap-2;
+  }
+
+  .btn-secondary {
+    @apply border-2 border-white text-white font-bold py-3 px-8 rounded-xl
+           hover:bg-white hover:text-brand-700 transition-all duration-300 inline-flex items-center gap-2;
+  }
+
+  .btn-orange {
+    @apply bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-8 rounded-xl
+           transition-all duration-300 shadow-lg hover:shadow-orange-500/40 hover:shadow-xl
+           active:scale-95 inline-flex items-center gap-2;
+  }
+}
+
+/* ===== Section Divider ===== */
+.wave-divider svg {
+  display: block;
+}
+
+/* ===== Animations ===== */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+.animate-float { animation: float 4s ease-in-out infinite; }
+
+/* ===== WhatsApp Button ===== */
+.whatsapp-btn {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;          /* ← bottom-right corner */
+  z-index: 999;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 24px rgba(37, 211, 102, 0.55);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-decoration: none;
+}
+
+.whatsapp-btn:hover {
+  transform: scale(1.12);
+  box-shadow: 0 10px 36px rgba(37, 211, 102, 0.75);
+}
+
+/* Outer pulse ring */
+.whatsapp-btn::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(37, 211, 102, 0.35);
+  animation: wa-pulse 2.2s ease-out infinite;
+}
+
+/* Second (slower) ring */
+.whatsapp-btn::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(37, 211, 102, 0.2);
+  animation: wa-pulse 2.2s ease-out 0.7s infinite;
+}
+
+@keyframes wa-pulse {
+  0%   { transform: scale(1); opacity: 0.9; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+/* Tooltip label */
+.whatsapp-tooltip {
+  position: fixed;
+  bottom: 38px;
+  right: 104px;
+  background: #111827;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 10px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  transform: translateX(8px);
+  z-index: 999;
+}
+
+.whatsapp-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -6px;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-left-color: #111827;
+  border-right: 0;
+}
+
+.whatsapp-wrapper:hover .whatsapp-tooltip,
+.whatsapp-wrapper:focus-within .whatsapp-tooltip {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ===== Hero Blob Shapes ===== */
+.blob {
+  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+}
+
+/* ===== Star Rating ===== */
+.stars { color: #f59e0b; }
+
+/* ===== Form Inputs ===== */
+.form-input {
+  @apply w-full border border-gray-200 rounded-xl px-4 py-3 text-right
+         focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100
+         transition-all duration-200 bg-white font-arabic;
+}
+
+/* ===== Testimonial Card ===== */
+.testimonial-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
+  border: 1px solid rgba(59, 130, 246, 0.12);
+}
+
+/* ===== Social Platform Cards ===== */
+.social-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.social-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.12);
+}
+
+/* ===== Avatar stack ===== */
+.avatar-stack .avatar-item {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 3px solid white;
+  margin-left: -14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 15px;
+  color: white;
+  position: relative;
+}
+.avatar-stack .avatar-item:first-child { margin-left: 0; }
+
+/* ===== Before/After Badge ===== */
+.before-after-badge {
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  border: 1px solid #86efac;
+}
+
+/* ===== Gradient text for hero ===== */
+.hero-gradient-text {
+  background: linear-gradient(90deg, #fbbf24 0%, #fb923c 50%, #f87171 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== Highlighted keyword ===== */
+.highlight-underline {
+  position: relative;
+  display: inline-block;
+}
+.highlight-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  right: 0;
+  left: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #f97316, #fbbf24);
+  border-radius: 2px;
+}
+
+/* ===== Course card gradient border ===== */
+.course-card-featured {
+  position: relative;
+  background: white;
+  border-radius: 24px;
+}
+.course-card-featured::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 26px;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6, #06b6d4);
+  z-index: -1;
+}
+
+/* ===== Country pill ===== */
+.country-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* ===== Number counter animation ===== */
+@keyframes count-up {
+  from { opacity: 0; transform: scale(0.5); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.animate-count { animation: count-up 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
