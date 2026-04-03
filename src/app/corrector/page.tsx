@@ -466,7 +466,7 @@ function CorrectionCard({ result }: { result: CorrectionResult }) {
       </div>
 
       {/* ── Mistakes ── */}
-      {result.mistakes.length > 0 && (
+      {(result?.mistakes?.length || 0) > 0 && (
         <div className="p-5 border-b border-gray-100">
           <p className="text-xs font-bold text-red-500 uppercase tracking-wider mb-3 flex items-center gap-1">
             <XCircle size={13} /> الأخطاء وشرحها
@@ -512,7 +512,7 @@ function CorrectionCard({ result }: { result: CorrectionResult }) {
       )}
 
       {/* ── Suggestions ── */}
-      {result.suggestions.length > 0 && (
+      {(result?.suggestions?.length || 0) > 0 && (
         <div className="p-5 border-b border-gray-100">
           <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-3 flex items-center gap-1">
             <Lightbulb size={13} /> اقتراحات للتحسين
