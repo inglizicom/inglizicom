@@ -20,17 +20,36 @@ const WHATSAPP_NUMBER = '212707902091'
 export default function LiveClassesPage() {
   const [showModal, setShowModal] = useState(false)
 
-  const [liveConfig, setLiveConfig] = useState({
-    isLive: true,
-    liveLink: '',
-    youtubeLink: '',
-    sessionTitle: 'محادثة يومية — Daily Conversation Practice',
-    sessionSubtitle: 'تدرب على المحادثة الحقيقية مع المعلم مباشرةً',
-    scheduledAt: null as Date | null,
-    hostName: 'حمزة القصراوي',
-    hostTitle: 'مدرب الإنجليزية المعتمد',
-    attendees: 42,
-  })
+  const [LIVE_CONFIG, setLiveConfig] = useState({
+  isLive: true,
+  liveLink: '',
+  sessionTitle: 'محادثة يومية — Daily Conversation Practice',
+  sessionSubtitle: 'تدرب على المحادثة الحقيقية مع المعلم مباشرةً',
+  scheduledAt: null as Date | null,
+  hostName: 'حمزة القصراوي',
+  hostTitle: 'مدرب الإنجليزية المعتمد',
+  attendees: 42,
+})
+
+  useEffect(() => {
+  const fetchData = async () => {
+    const { data } = await supabase
+      .from('content')
+      .select('*')
+      .eq('id', 1)
+      .single()
+
+    if (data) {
+      setLiveConfig(prev => ({
+        ...prev,
+        liveLink: data.live_link,
+      }))
+    }
+  }
+
+  fetchData()
+}, [])
+  
 
   // 🔥 Fetch from Supabase
   useEffect(() => {
