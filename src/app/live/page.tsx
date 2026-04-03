@@ -1,144 +1,195 @@
-'use client'
+"use client";
 
-import { useState, useEffect, useRef } from 'react'
-import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { supabase } from "../../lib/supabase";
 import {
-  Radio, Lock, Crown, Send, MessageCircle, Clock,
-  Calendar, ChevronRight, PlayCircle, Users, Star,
-  CheckCircle2, X, ExternalLink, Bell, WifiOff,
-  Play, Video, TrendingUp,
-} from 'lucide-react'
-
-// ─── Dynamic Live Config ─────────────────────────────────────
-
-const IS_PAID_USER = false
-const WHATSAPP_NUMBER = '212707902091'
-
-// ─── Page ───────────────────────────────────────────────────
+  Radio,
+  Users,
+  Crown,
+  Lock,
+} from "lucide-react";
 
 export default function LiveClassesPage() {
-  const [showModal, setShowModal] = useState(false)
+  const [liveConfig, setLiveConfig] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const [LIVE_CONFIG, setLiveConfig] = useState({
-  isLive: true,
-  liveLink: '',
-  sessionTitle: 'محادثة يومية — Daily Conversation Practice',
-  sessionSubtitle: 'تدرب على المحادثة الحقيقية مع المعلم مباشرةً',
-  scheduledAt: null as Date | null,
-  hostName: 'حمزة القصراوي',
-  hostTitle: 'مدرب الإنجليزية المعتمد',
-  attendees: 42,
-})
+  const WHATSAPP_NUMBER = "212707902091";
 
-  useEffect(() => {
-  const fetchData = async () => {
-    const { data } = await supabase
-      .from('content')
-      .select('*')
-      .eq('id', 1)
-      .single()
-
-    if (data) {
-      setLiveConfig(prev => ({
-        ...prev,
-        liveLink: data.live_link,
-      }))
-    }
-  }
-
-  fetchData()
-}, [])
-  
-
-  // 🔥 Fetch from Supabase
   useEffect(() => {
     const fetchData = async () => {
-      const { data } = await supabase
-        .from('content')
-        .select('*')
-        .eq('id', 1)
-        .single()
+      const { data, error } = await supabase
+        .from("content")
+        .select("*")
+        .eq("id", 1)
+        .single();
+
+      if (error) {
+        console.error("Supabase error:", error);
+      }
 
       if (data) {
-        setLiveConfig(prev => ({
-          ...prev,
-          liveLink: data.live_link,
-          youtubeLink: data.youtube_link,
-        }))
+        setLiveConfig(data);
       }
-    }
 
-    fetchData()
-  }, [])
+      setLoading(false);
+    };
 
-  const { isLive, liveLink, youtubeLink } = liveConfig
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div style={{ padding: "40px", textAlign: "center" }}>
+        Loading...
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-16">
-
+    <div style={{ padding: "20px" }}>
       {/* HERO */}
-      <section className="rounded-3xl bg-blue-900 text-white p-10 text-center max-w-4xl mx-auto mt-10">
+      <div
+        style={{
+          background: "linear-gradient(135deg, #1e3a8a, #2563eb)",
+          borderRadius: "20px",
+          padding: "40px",
+          color: "white",
+          textAlign: "center",
+        }}
+      >
+        {/* LIVE BADGE */}
+        <div
+          style={{
+            display: "inline-block",
+            padding: "8px 16px",
+            borderRadius: "999px",
+            background: "rgba(255,255,255,0.1)",
+            marginBottom: "20px",
+          }}
+        >
+          <Radio size={16} style={{ display: "inline" }} /> Live Now — بث مباشر الآن 🔴
+        </div>
 
-        <h1 className="text-3xl font-extrabold mb-4">
-          {liveConfig.sessionTitle}
+        {/* TITLE */}
+        <h1 style={{ fontSize: "32px", marginBottom: "10px" }}>
+          Daily Conversation — محادثة يومية
         </h1>
 
-        <p className="text-blue-200 mb-6">
-          {liveConfig.sessionSubtitle}
+        <p style={{ opacity: 0.8, marginBottom: "20px" }}>
+          تدرب على المحادثة الحقيقية مع المعلم مباشرة
         </p>
 
-        {/* 🔥 JOIN LIVE BUTTON */}
-        {isLive && (
-          <>
-            {IS_PAID_USER ? (
-              <a
-                href={liveLink}
-                target="_blank"
-                className="bg-white text-blue-800 px-6 py-3 rounded-xl font-bold inline-block"
-              >
-                🔴 Join Live
-              </a>
-            ) : (
-              <button
-                onClick={() => setShowModal(true)}
-                className="bg-white/20 border px-6 py-3 rounded-xl"
-              >
-                🔒 للمشتركين فقط
-              </button>
-            )}
-          </>
-        )}
-      </section>
+        {/* HOST */}
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "10px",
+            padding: "10px 20px",
+            borderRadius: "999px",
+            background: "rgba(255,255,255,0.1)",
+            marginBottom: "20px",
+          }}
+        >
+          <Users size={16} />
+          42 مشارك — حمزة القصراوي
+        </div>
 
-      {/* 🎥 VIDEO FROM SUPABASE */}
-      {youtubeLink && (
-        <div className="max-w-4xl mx-auto mt-10 px-4">
-          <iframe
-            src={youtubeLink}
-            className="w-full h-[400px] rounded-2xl"
-            allowFullScreen
-          />
+        {/* JOIN BUTTON */}
+        {liveConfig?.live_link && (
+          <a
+            href={liveConfig.live_link}
+            target="_blank"
+            style={{
+              display: "inline-block",
+              padding: "14px 30px",
+              borderRadius: "12px",
+              background: "#22c55e",
+              color: "white",
+              fontWeight: "bold",
+              marginTop: "20px",
+            }}
+          >
+            🔴 Join Live Class
+          </a>
+        )}
+
+        {/* LOCK CTA */}
+        {!liveConfig?.live_link && (
+          <div
+            style={{
+              marginTop: "20px",
+              padding: "14px",
+              borderRadius: "12px",
+              background: "rgba(255,255,255,0.1)",
+            }}
+          >
+            <Lock size={16} /> انضم للحصة — للمشتركين فقط
+          </div>
+        )}
+
+        {/* PRICING */}
+        <p style={{ marginTop: "15px", color: "#facc15" }}>
+          اشتراك الآن — 3,000 درهم/سنة
+        </p>
+      </div>
+
+      {/* YOUTUBE SECTION */}
+      {liveConfig?.youtube_link && (
+        <div style={{ marginTop: "40px" }}>
+          <h2 style={{ marginBottom: "20px" }}>
+            📺 Last Session
+          </h2>
+
+          <div
+            style={{
+              position: "relative",
+              paddingBottom: "56.25%",
+              height: 0,
+            }}
+          >
+            <iframe
+              src={liveConfig.youtube_link}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                borderRadius: "12px",
+              }}
+              allowFullScreen
+            />
+          </div>
         </div>
       )}
 
       {/* COMMENTS */}
-      <div className="max-w-4xl mx-auto mt-10 bg-white p-6 rounded-2xl shadow">
-        <h2 className="font-bold mb-4">التعليقات</h2>
-        <textarea className="w-full border p-3 rounded-xl" />
+      <div style={{ marginTop: "40px" }}>
+        <h2>💬 Comments</h2>
+        <p style={{ opacity: 0.6 }}>
+          Students will comment here later...
+        </p>
       </div>
 
-      {/* WHATSAPP */}
-      <div className="text-center mt-10 mb-20">
-        <a
-          href={`https://wa.me/${WHATSAPP_NUMBER}`}
-          target="_blank"
-          className="bg-green-500 text-white px-6 py-3 rounded-xl"
-        >
-          WhatsApp
-        </a>
-      </div>
-
+      {/* WHATSAPP BUTTON */}
+      <a
+        href={`https://wa.me/${WHATSAPP_NUMBER}`}
+        target="_blank"
+        style={{
+          position: "fixed",
+          bottom: "20px",
+          right: "20px",
+          background: "#25D366",
+          color: "white",
+          padding: "15px",
+          borderRadius: "50%",
+          fontSize: "20px",
+        }}
+      >
+        💬
+      </a>
     </div>
-  )
+  );
 }
