@@ -4,126 +4,37 @@ import { useState, useRef } from 'react'
 import {
   PenLine, Mic, MicOff, CheckCircle2,
   XCircle, Lightbulb, ArrowRight, Loader2, RotateCcw,
-  MessageCircle, Volume2, AlertCircle, Sparkles,
+  MessageCircle, Volume2, AlertCircle, Sparkles, Wand2,
 } from 'lucide-react'
+import type { CorrectionAPIResponse } from '@/app/api/correct/route'
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
 const WHATSAPP_NUMBER = '212707902091'
+const waUrl = (msg: string) =>
+  `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface Mistake {
-  original: string
-  corrected: string
-  explanation: string
+// Extend the API response with an optional transcript (audio tab only)
+type CorrectionResult = CorrectionAPIResponse & { transcript?: string }
+
+// ─── API call ─────────────────────────────────────────────────────────────────
+
+async function fetchCorrection(sentence: string): Promise<CorrectionResult> {
+  const res = await fetch('/api/correct', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sentence }),
+  })
+
+  if (!res.ok) {
+    const { error } = await res.json().catch(() => ({ error: 'Unknown error' }))
+    throw new Error(error ?? 'حدث خطأ، حاول مرة أخرى')
+  }
+
+  return res.json()
 }
-
-interface CorrectionResult {
-  corrected: string
-  mistakes: Mistake[]
-  suggestions: string[]
-  transcript?: string // for audio
-}
-
-// ─── Simulated AI Engine ──────────────────────────────────────────────────────
-// Replace simulateCorrection() with a real OpenAI/Claude API call when ready.
-
-async function simulateCorrection(text: string): Promise<CorrectionResult> {
-  // Simulate network delay
-  await new Promise(r => setTimeout(r, 1800))
-
-  const lower = text.trim().toLowerCase()
-
-  // Example correction patterns
-  if (lower.includes('i go yesterday') || lower.includes('go yesterday')) {
-    return {
-      corrected: 'I went to school yesterday.',
-      mistakes: [
-        {
-          original: 'go',
-          corrected: 'went',
-          explanation: 'استخدم الماضي (went) للأفعال التي حدثت في الماضي. الفعل "go" هو المضارع.',
-        },
-        {
-          original: 'I go yesterday to school',
-          corrected: 'I went to school yesterday',
-          explanation: 'ترتيب الجملة: الفاعل + الفعل + المكان + الزمن.',
-        },
-      ],
-      suggestions: [
-        'Try to always place time expressions like "yesterday" at the end of the sentence.',
-        'Practice irregular verbs: go → went, see → saw, eat → ate.',
-      ],
-    }
-  }
-
-  if (lower.includes('she don\'t') || lower.includes('he don\'t')) {
-    return {
-      corrected: text.replace(/she don't/gi, "she doesn't").replace(/he don't/gi, "he doesn't"),
-      mistakes: [
-        {
-          original: "don't",
-          corrected: "doesn't",
-          explanation: 'مع الضمائر he / she / it نستخدم "doesn\'t" وليس "don\'t".',
-        },
-      ],
-      suggestions: [
-        'Remember: I/You/We/They → don\'t | He/She/It → doesn\'t',
-      ],
-    }
-  }
-
-  if (lower.includes('more better') || lower.includes('more faster') || lower.includes('more bigger')) {
-    return {
-      corrected: text
-        .replace(/more better/gi, 'better')
-        .replace(/more faster/gi, 'faster')
-        .replace(/more bigger/gi, 'bigger'),
-      mistakes: [
-        {
-          original: 'more better / more faster',
-          corrected: 'better / faster',
-          explanation: 'لا تضف "more" مع الصفات القصيرة التي تنتهي بـ -er. استخدم إما "more" أو "-er" وليس كليهما.',
-        },
-      ],
-      suggestions: [
-        'Short adjectives (1–2 syllables): add -er → faster, bigger, better.',
-        'Long adjectives (3+ syllables): use more → more beautiful, more intelligent.',
-      ],
-    }
-  }
-
-  // Generic improvement for any input
-  const words = text.trim().split(/\s+/)
-  const capitalized = words[0][0].toUpperCase() + words[0].slice(1)
-  const correctedText =
-    capitalized + ' ' + words.slice(1).join(' ') + (text.endsWith('.') ? '' : '.')
-
-  return {
-    corrected: correctedText,
-    mistakes:
-      text === correctedText
-        ? []
-        : [
-            {
-              original: words[0],
-              corrected: capitalized,
-              explanation: 'دائماً ابدأ الجملة بحرف كبير (Capital Letter).',
-            },
-          ],
-    suggestions: [
-      'Your sentence structure looks good! Keep practicing.',
-      'Try to vary your vocabulary — use synonyms to sound more natural.',
-      'Read English daily to absorb natural sentence patterns.',
-    ],
-  }
-}
-
-// ─── WhatsApp URL ─────────────────────────────────────────────────────────────
-
-const waUrl = (msg: string) =>
-  `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`
 
 // ─── Page Component ───────────────────────────────────────────────────────────
 
@@ -131,23 +42,23 @@ export default function CorrectorPage() {
   const [activeTab, setActiveTab] = useState<'writing' | 'speaking'>('writing')
 
   // ── Text tab state
-  const [inputText, setInputText] = useState('')
+  const [inputText, setInputText]   = useState('')
   const [textResult, setTextResult] = useState<CorrectionResult | null>(null)
   const [textLoading, setTextLoading] = useState(false)
-  const [textError, setTextError] = useState('')
+  const [textError, setTextError]   = useState('')
 
   // ── Audio tab state
-  const [isRecording, setIsRecording] = useState(false)
-  const [audioResult, setAudioResult] = useState<CorrectionResult | null>(null)
+  const [isRecording, setIsRecording]   = useState(false)
+  const [audioResult, setAudioResult]   = useState<CorrectionResult | null>(null)
   const [audioLoading, setAudioLoading] = useState(false)
-  const [audioError, setAudioError] = useState('')
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
+  const [audioError, setAudioError]     = useState('')
+  const [audioBlob, setAudioBlob]       = useState<Blob | null>(null)
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
-  const chunksRef = useRef<Blob[]>([])
+  const chunksRef        = useRef<Blob[]>([])
 
-  // ── Handle text correction
-  // → Replace simulateCorrection() body with a real API call when ready.
+  // ── Text correction ───────────────────────────────────────────────────────
+
   const handleTextCorrection = async () => {
     if (!inputText.trim()) {
       setTextError('الرجاء كتابة جملة أولاً.')
@@ -157,16 +68,23 @@ export default function CorrectorPage() {
     setTextLoading(true)
     setTextResult(null)
     try {
-      const result = await simulateCorrection(inputText)
+      const result = await fetchCorrection(inputText.trim())
       setTextResult(result)
-    } catch {
-      setTextError('حدث خطأ. حاول مجدداً.')
+    } catch (err) {
+      setTextError(err instanceof Error ? err.message : 'حدث خطأ، حاول مرة أخرى')
     } finally {
       setTextLoading(false)
     }
   }
 
-  // ── Handle recording
+  const resetText = () => {
+    setInputText('')
+    setTextResult(null)
+    setTextError('')
+  }
+
+  // ── Audio correction ──────────────────────────────────────────────────────
+
   const startRecording = async () => {
     setAudioError('')
     setAudioResult(null)
@@ -195,38 +113,30 @@ export default function CorrectorPage() {
     setIsRecording(false)
   }
 
-  // Speech-to-text + correction.
-  // TODO: replace the simulated transcript with a real Whisper API call:
-  //   const { text } = await openai.audio.transcriptions.create({ file: blob, model: 'whisper-1' })
-  //   then pass `text` into simulateCorrection() (or a real correction API).
-  // Show "لم أتمكن من فهم الصوت" only when the API returns an empty/null transcript.
+  // Audio pipeline:
+  //   1. Use Web Speech API for in-browser STT (Chrome/Edge).
+  //   2. Pass the transcript to /api/correct for AI correction.
+  // TODO: for production, send `blob` directly to a /api/transcribe route
+  //       that calls openai.audio.transcriptions.create({ model: 'whisper-1' }),
+  //       then forward the transcript to /api/correct.
   const handleAudioCorrection = async (_blob: Blob) => {
     setAudioLoading(true)
     try {
-      await new Promise(r => setTimeout(r, 2200))
+      const transcript = await transcribeWithWebSpeech()
 
-      // Simulated transcript — replace with real STT result when API is connected.
-      const simulatedTranscript = 'I go yesterday to school'
-
-      if (!simulatedTranscript.trim()) {
+      if (!transcript) {
         setAudioError('لم أتمكن من فهم الصوت جيداً')
         return
       }
 
-      const result = await simulateCorrection(simulatedTranscript)
-      result.transcript = simulatedTranscript
-      setAudioResult(result)
-    } catch {
-      setAudioError('لم أتمكن من فهم الصوت جيداً')
+      const result = await fetchCorrection(transcript)
+      setAudioResult({ ...result, transcript })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : ''
+      setAudioError(msg || 'لم أتمكن من فهم الصوت جيداً')
     } finally {
       setAudioLoading(false)
     }
-  }
-
-  const resetText = () => {
-    setInputText('')
-    setTextResult(null)
-    setTextError('')
   }
 
   const resetAudio = () => {
@@ -235,9 +145,12 @@ export default function CorrectorPage() {
     setAudioBlob(null)
   }
 
+  // ── Render ────────────────────────────────────────────────────────────────
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900" dir="rtl">
-      {/* ── Hero Header ──────────────────────────────────────────────────────── */}
+
+      {/* ── Hero Header ────────────────────────────────────────────────────── */}
       <div className="pt-24 pb-12 px-4 text-center">
         <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-5 py-2 mb-6 text-sm text-blue-100 backdrop-blur-sm">
           <Sparkles size={15} className="text-amber-400" />
@@ -257,11 +170,11 @@ export default function CorrectorPage() {
         </p>
       </div>
 
-      {/* ── Main Card ────────────────────────────────────────────────────────── */}
+      {/* ── Main Card ──────────────────────────────────────────────────────── */}
       <div className="max-w-3xl mx-auto px-4 pb-24">
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
 
-          {/* ── Tabs ─────────────────────────────────────────────────────────── */}
+          {/* ── Tabs ─────────────────────────────────────────────────────── */}
           <div className="flex border-b border-gray-100">
             <button
               onClick={() => setActiveTab('writing')}
@@ -287,18 +200,19 @@ export default function CorrectorPage() {
             </button>
           </div>
 
-          {/* ── Tab Content ──────────────────────────────────────────────────── */}
+          {/* ── Tab Content ──────────────────────────────────────────────── */}
           <div className="p-6 md:p-8">
 
-            {/* ══════════════ WRITING TAB ══════════════ */}
+            {/* ════════════ WRITING TAB ════════════ */}
             {activeTab === 'writing' && (
               <div className="space-y-5">
-                {/* Free tool notice */}
+                {/* Free notice */}
                 <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-2xl px-4 py-3 text-sm text-green-700 font-medium">
                   <CheckCircle2 size={16} className="text-green-500 shrink-0" />
                   This tool is completely FREE. Practice as much as you want 🚀
                 </div>
 
+                {/* Textarea */}
                 <div>
                   <label className="block text-sm font-semibold text-gray-600 mb-2">
                     اكتب جملة أو فقرة بالإنجليزية
@@ -306,6 +220,9 @@ export default function CorrectorPage() {
                   <textarea
                     value={inputText}
                     onChange={e => setInputText(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleTextCorrection()
+                    }}
                     placeholder="Example: I go yesterday to school..."
                     rows={5}
                     dir="ltr"
@@ -318,6 +235,7 @@ export default function CorrectorPage() {
                   )}
                 </div>
 
+                {/* Actions */}
                 <div className="flex gap-3">
                   <button
                     onClick={handleTextCorrection}
@@ -359,7 +277,7 @@ export default function CorrectorPage() {
               </div>
             )}
 
-            {/* ══════════════ SPEAKING TAB ══════════════ */}
+            {/* ════════════ SPEAKING TAB ════════════ */}
             {activeTab === 'speaking' && (
               <div className="space-y-5">
                 <p className="text-sm text-gray-500 text-center">
@@ -404,7 +322,7 @@ export default function CorrectorPage() {
                 {audioError && (
                   <div className="bg-orange-50 border border-orange-200 rounded-2xl p-5 text-center space-y-3">
                     <p className="text-orange-700 font-bold text-lg">
-                      لم أستطع فهم الصوت جيداً
+                      لم أتمكن من فهم الصوت جيداً
                     </p>
                     <p className="text-orange-600 text-sm">
                       تأكد من التحدث بوضوح وقرب المايكروفون
@@ -438,8 +356,8 @@ export default function CorrectorPage() {
                         <Volume2 size={16} className="text-gray-400 mt-0.5 shrink-0" />
                         <div>
                           <p className="text-xs text-gray-400 mb-0.5">ما فهمته من كلامك:</p>
-                          <p className="text-gray-700 text-sm font-medium dir-ltr text-left" dir="ltr">
-                            "{audioResult.transcript}"
+                          <p className="text-gray-700 text-sm font-medium" dir="ltr">
+                            &ldquo;{audioResult.transcript}&rdquo;
                           </p>
                         </div>
                       </div>
@@ -455,13 +373,13 @@ export default function CorrectorPage() {
           </div>
         </div>
 
-        {/* ── Tip Strip ────────────────────────────────────────────────────── */}
+        {/* ── Tip Strip ──────────────────────────────────────────────────── */}
         <p className="text-center text-blue-200/70 text-sm mt-6">
           💡 كلما تدربت يومياً، كلما تحسنت بسرعة أكبر
         </p>
       </div>
 
-      {/* ── Fixed WhatsApp Button ─────────────────────────────────────────────── */}
+      {/* ── Fixed WhatsApp Button ──────────────────────────────────────────── */}
       <a
         href={waUrl('Hello, I need help correcting my English')}
         target="_blank"
@@ -480,13 +398,64 @@ export default function CorrectorPage() {
   )
 }
 
+// ─── Web Speech API helper ────────────────────────────────────────────────────
+// Returns the recognised transcript, or '' if unsupported / no speech detected.
+// TODO: replace with a call to /api/transcribe (Whisper) for production.
+
+// Minimal types for the Web Speech API (not in TS's default lib).
+type SpeechRecognitionCtor = new () => {
+  lang: string
+  interimResults: boolean
+  maxAlternatives: number
+  onresult: ((e: { results: { [i: number]: { [i: number]: { transcript: string } } } }) => void) | null
+  onerror: (() => void) | null
+  onend: (() => void) | null
+  start: () => void
+}
+
+function transcribeWithWebSpeech(): Promise<string> {
+  return new Promise(resolve => {
+    const win = window as unknown as Record<string, unknown>
+    const Ctor = (win.SpeechRecognition ?? win.webkitSpeechRecognition) as
+      SpeechRecognitionCtor | undefined
+
+    if (!Ctor) {
+      resolve('')
+      return
+    }
+
+    const recognition = new Ctor()
+    recognition.lang = 'en-US'
+    recognition.interimResults = false
+    recognition.maxAlternatives = 1
+
+    recognition.onresult = e => {
+      resolve(e.results[0]?.[0]?.transcript ?? '')
+    }
+    recognition.onerror = () => resolve('')
+    recognition.onend   = null
+
+    recognition.start()
+  })
+}
+
 // ─── Correction Result Card ───────────────────────────────────────────────────
 
 function CorrectionCard({ result }: { result: CorrectionResult }) {
   return (
     <div className="rounded-2xl border border-gray-100 overflow-hidden">
 
-      {/* ── Corrected Sentence ── */}
+      {/* ── Original ── */}
+      <div className="p-5 border-b border-gray-100 bg-red-50/60">
+        <p className="text-xs font-bold text-red-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+          <XCircle size={13} /> الجملة الأصلية
+        </p>
+        <p className="text-red-800 text-base" dir="ltr">
+          ❌ {result.original}
+        </p>
+      </div>
+
+      {/* ── Corrected ── */}
       <div className="p-5 border-b border-gray-100 bg-green-50">
         <p className="text-xs font-bold text-green-600 uppercase tracking-wider mb-2 flex items-center gap-1">
           <CheckCircle2 size={13} /> الجملة الصحيحة
@@ -521,9 +490,30 @@ function CorrectionCard({ result }: { result: CorrectionResult }) {
         </div>
       )}
 
+      {result.mistakes.length === 0 && (
+        <div className="p-5 flex items-center gap-3 text-green-700 bg-green-50 border-b border-gray-100">
+          <CheckCircle2 size={20} className="text-green-500 shrink-0" />
+          <p className="text-sm font-semibold">
+            لم أجد أخطاء واضحة — جملتك جيدة! 🎉
+          </p>
+        </div>
+      )}
+
+      {/* ── Improved version ── */}
+      {result.improved && (
+        <div className="p-5 border-b border-gray-100 bg-indigo-50/40">
+          <p className="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2 flex items-center gap-1">
+            <Wand2 size={13} /> نسخة أفضل
+          </p>
+          <p className="text-indigo-800 font-medium text-base" dir="ltr">
+            ✨ {result.improved}
+          </p>
+        </div>
+      )}
+
       {/* ── Suggestions ── */}
       {result.suggestions.length > 0 && (
-        <div className="p-5">
+        <div className="p-5 border-b border-gray-100">
           <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-3 flex items-center gap-1">
             <Lightbulb size={13} /> اقتراحات للتحسين
           </p>
@@ -540,22 +530,13 @@ function CorrectionCard({ result }: { result: CorrectionResult }) {
         </div>
       )}
 
-      {result.mistakes.length === 0 && (
-        <div className="p-5 flex items-center gap-3 text-green-700 bg-green-50 border-b border-gray-100">
-          <CheckCircle2 size={20} className="text-green-500 shrink-0" />
-          <p className="text-sm font-semibold">
-            لم أجد أخطاء واضحة — جملتك جيدة! 🎉
-          </p>
-        </div>
-      )}
-
       {/* ── WhatsApp CTA ── */}
       <div className="p-4 bg-gray-50 flex flex-col sm:flex-row items-center justify-between gap-3">
         <p className="text-xs text-gray-500">
           هل تريد مساعدة أعمق من المعلم؟
         </p>
         <a
-          href={`https://wa.me/212707902091?text=${encodeURIComponent('Hello, I need help correcting my English')}`}
+          href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hello, I need help correcting my English')}`}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 bg-[#25d366] hover:bg-[#1ebe5d] text-white font-bold py-2 px-4 rounded-xl transition-all text-sm shrink-0"
