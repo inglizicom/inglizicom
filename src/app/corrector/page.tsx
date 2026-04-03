@@ -1,16 +1,14 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import Link from 'next/link'
+import { useState, useRef } from 'react'
 import {
-  PenLine, Mic, MicOff, Crown, Lock, CheckCircle2,
+  PenLine, Mic, MicOff, CheckCircle2,
   XCircle, Lightbulb, ArrowRight, Loader2, RotateCcw,
   MessageCircle, Volume2, AlertCircle, Sparkles,
 } from 'lucide-react'
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
-const IS_PAID_USER = false // ← flip to true to simulate paid access
 const WHATSAPP_NUMBER = '212707902091'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -149,7 +147,8 @@ export default function CorrectorPage() {
   const chunksRef = useRef<Blob[]>([])
 
   // ── Handle text correction
-  const handleTextCorrect = async () => {
+  // → Replace simulateCorrection() body with a real API call when ready.
+  const handleTextCorrection = async () => {
     if (!inputText.trim()) {
       setTextError('الرجاء كتابة جملة أولاً.')
       return
@@ -181,7 +180,7 @@ export default function CorrectorPage() {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
         setAudioBlob(blob)
         stream.getTracks().forEach(t => t.stop())
-        processAudio(blob)
+        handleAudioCorrection(blob)
       }
       mediaRecorderRef.current = mr
       mr.start()
@@ -196,31 +195,32 @@ export default function CorrectorPage() {
     setIsRecording(false)
   }
 
-  // Simulated speech-to-text + correction
-  // Replace with Whisper API or Web Speech API when ready.
-  const processAudio = async (_blob: Blob) => {
+  // Speech-to-text + correction.
+  // TODO: replace the simulated transcript with a real Whisper API call:
+  //   const { text } = await openai.audio.transcriptions.create({ file: blob, model: 'whisper-1' })
+  //   then pass `text` into simulateCorrection() (or a real correction API).
+  // Show "لم أتمكن من فهم الصوت" only when the API returns an empty/null transcript.
+  const handleAudioCorrection = async (_blob: Blob) => {
     setAudioLoading(true)
-    await new Promise(r => setTimeout(r, 2200))
+    try {
+      await new Promise(r => setTimeout(r, 2200))
 
-    // Web Speech API fallback (Chrome only) — placeholder for real STT
-    const SpeechRecognition =
-      (window as unknown as Record<string, unknown>).SpeechRecognition ||
-      (window as unknown as Record<string, unknown>).webkitSpeechRecognition
+      // Simulated transcript — replace with real STT result when API is connected.
+      const simulatedTranscript = 'I go yesterday to school'
 
-    if (!SpeechRecognition) {
-      // Simulate unclear audio scenario
-      setAudioError('لم أستطع فهم الصوت جيداً')
+      if (!simulatedTranscript.trim()) {
+        setAudioError('لم أتمكن من فهم الصوت جيداً')
+        return
+      }
+
+      const result = await simulateCorrection(simulatedTranscript)
+      result.transcript = simulatedTranscript
+      setAudioResult(result)
+    } catch {
+      setAudioError('لم أتمكن من فهم الصوت جيداً')
+    } finally {
       setAudioLoading(false)
-      return
     }
-
-    // In a real integration: send _blob to Whisper API, get transcript, then correct it.
-    // For now we simulate a recognized transcript.
-    const simulatedTranscript = 'I go yesterday to school'
-    const result = await simulateCorrection(simulatedTranscript)
-    result.transcript = simulatedTranscript
-    setAudioResult(result)
-    setAudioLoading(false)
   }
 
   const resetText = () => {
@@ -241,7 +241,7 @@ export default function CorrectorPage() {
       <div className="pt-24 pb-12 px-4 text-center">
         <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-5 py-2 mb-6 text-sm text-blue-100 backdrop-blur-sm">
           <Sparkles size={15} className="text-amber-400" />
-          ميزة متميزة — Premium Feature
+          مجاني 100% — Completely Free
         </div>
         <h1 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight">
           مصحح الإنجليزية{' '}
@@ -293,6 +293,12 @@ export default function CorrectorPage() {
             {/* ══════════════ WRITING TAB ══════════════ */}
             {activeTab === 'writing' && (
               <div className="space-y-5">
+                {/* Free tool notice */}
+                <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-2xl px-4 py-3 text-sm text-green-700 font-medium">
+                  <CheckCircle2 size={16} className="text-green-500 shrink-0" />
+                  This tool is completely FREE. Practice as much as you want 🚀
+                </div>
+
                 <div>
                   <label className="block text-sm font-semibold text-gray-600 mb-2">
                     اكتب جملة أو فقرة بالإنجليزية
@@ -314,7 +320,7 @@ export default function CorrectorPage() {
 
                 <div className="flex gap-3">
                   <button
-                    onClick={handleTextCorrect}
+                    onClick={handleTextCorrection}
                     disabled={textLoading || !inputText.trim()}
                     className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3.5 rounded-2xl transition-all duration-200 shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 active:scale-95"
                   >
@@ -343,7 +349,12 @@ export default function CorrectorPage() {
 
                 {/* Result */}
                 {textResult && (
-                  <CorrectionCard result={textResult} isPaid={IS_PAID_USER} />
+                  <>
+                    <CorrectionCard result={textResult} />
+                    <p className="text-center text-gray-400 text-xs pt-1">
+                      💪 Consistency beats perfection. Keep going.
+                    </p>
+                  </>
                 )}
               </div>
             )}
@@ -433,7 +444,10 @@ export default function CorrectorPage() {
                         </div>
                       </div>
                     )}
-                    <CorrectionCard result={audioResult} isPaid={IS_PAID_USER} />
+                    <CorrectionCard result={audioResult} />
+                    <p className="text-center text-gray-400 text-xs">
+                      💪 Consistency beats perfection. Keep going.
+                    </p>
                   </div>
                 )}
               </div>
@@ -468,38 +482,9 @@ export default function CorrectorPage() {
 
 // ─── Correction Result Card ───────────────────────────────────────────────────
 
-function CorrectionCard({
-  result,
-  isPaid,
-}: {
-  result: CorrectionResult
-  isPaid: boolean
-}) {
+function CorrectionCard({ result }: { result: CorrectionResult }) {
   return (
-    <div className="relative rounded-2xl border border-gray-100 overflow-hidden">
-      {/* Blur gate for non-paid users */}
-      {!isPaid && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/70 backdrop-blur-sm rounded-2xl p-6 text-center">
-          <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mb-3">
-            <Lock size={24} className="text-amber-600" />
-          </div>
-          <p className="text-gray-800 font-black text-lg mb-1">متاح فقط للمشتركين</p>
-          <p className="text-gray-500 text-sm mb-4">
-            اشترك للحصول على تصحيح فوري غير محدود
-          </p>
-          <div className="flex flex-col sm:flex-row gap-2 w-full max-w-xs">
-            <a
-              href="https://wa.me/212707902091?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D8%8C%20%D8%A3%D8%B1%D9%8A%D8%AF%20%D8%A7%D9%84%D8%A7%D8%B4%D8%AA%D8%B1%D8%A7%D9%83%20%D9%81%D9%8A%20%D9%85%D8%B5%D8%AD%D8%AD%20%D8%A7%D9%84%D8%A5%D9%86%D8%AC%D9%84%D9%8A%D8%B2%D9%8A%D8%A9"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-orange-400/30 text-sm"
-            >
-              <Crown size={15} />
-              اشترك — 3000 درهم/سنة
-            </a>
-          </div>
-        </div>
-      )}
+    <div className="rounded-2xl border border-gray-100 overflow-hidden">
 
       {/* ── Corrected Sentence ── */}
       <div className="p-5 border-b border-gray-100 bg-green-50">
@@ -556,13 +541,29 @@ function CorrectionCard({
       )}
 
       {result.mistakes.length === 0 && (
-        <div className="p-5 flex items-center gap-3 text-green-700 bg-green-50">
+        <div className="p-5 flex items-center gap-3 text-green-700 bg-green-50 border-b border-gray-100">
           <CheckCircle2 size={20} className="text-green-500 shrink-0" />
           <p className="text-sm font-semibold">
             لم أجد أخطاء واضحة — جملتك جيدة! 🎉
           </p>
         </div>
       )}
+
+      {/* ── WhatsApp CTA ── */}
+      <div className="p-4 bg-gray-50 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <p className="text-xs text-gray-500">
+          هل تريد مساعدة أعمق من المعلم؟
+        </p>
+        <a
+          href={`https://wa.me/212707902091?text=${encodeURIComponent('Hello, I need help correcting my English')}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 bg-[#25d366] hover:bg-[#1ebe5d] text-white font-bold py-2 px-4 rounded-xl transition-all text-sm shrink-0"
+        >
+          <MessageCircle size={15} />
+          Need deeper help? Contact your teacher
+        </a>
+      </div>
     </div>
   )
 }
