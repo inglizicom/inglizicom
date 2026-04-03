@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import './globals.css'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { Analytics } from '@vercel/analytics/react'
@@ -35,7 +34,6 @@ export default function RootLayout({
         />
       </head>
       <body style={{ fontFamily: "'Cairo', sans-serif" }}>
-         {children}
     <Analytics />
         <Header />
         <main>{children}</main>
