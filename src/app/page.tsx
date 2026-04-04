@@ -5,10 +5,11 @@ import Link from 'next/link'
 import FadeIn from '@/components/FadeIn'
 import TestimonialsCarousel from '@/components/TestimonialsCarousel'
 import CountdownTimer from '@/components/CountdownTimer'
+import NewsTicker from '@/components/NewsTicker'
+import AudioRadio from '@/components/AudioRadio'
 import {
   Pencil, Target, BookOpen, CheckCircle2, ArrowLeft,
-  Play, TrendingUp, Zap, Star,
-  Headphones,
+  TrendingUp, Zap, Star,
 } from 'lucide-react'
 
 /* ─── Icons ─────────────────────────────────────────────── */
@@ -142,33 +143,6 @@ const COURSES = [
   },
 ]
 
-const RADIO_EPISODES = [
-  {
-    title: 'كيف تتكلم في مقابلة عمل بثقة',
-    level: 'B1',
-    duration: '12 دق',
-    gradient: 'from-emerald-600 to-teal-500',
-    icon: '💼',
-    listens: '1.2k',
-  },
-  {
-    title: 'أشهر 50 جملة في الحياة اليومية',
-    level: 'A2',
-    duration: '8 دق',
-    gradient: 'from-blue-600 to-indigo-500',
-    icon: '🗣️',
-    listens: '3.4k',
-  },
-  {
-    title: 'أسرار النطق الاحترافي',
-    level: 'B2',
-    duration: '15 دق',
-    gradient: 'from-purple-600 to-pink-500',
-    icon: '🎤',
-    listens: '2.1k',
-  },
-]
-
 const AVATARS = [
   { letter: 'أ', bg: '#3b82f6' },
   { letter: 'س', bg: '#ec4899' },
@@ -176,22 +150,6 @@ const AVATARS = [
   { letter: 'ن', bg: '#f97316' },
   { letter: 'ي', bg: '#8b5cf6' },
 ]
-
-/* ─── PlayButton component ─────────────────────────────── */
-function PlayButton() {
-  const [playing, setPlaying] = useState(false)
-  return (
-    <button
-      onClick={() => setPlaying(p => !p)}
-      className="play-btn w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-xl flex-shrink-0 hover:scale-110 transition-transform"
-    >
-      {playing
-        ? <span className="w-3 h-3 bg-gray-800 rounded-sm" />
-        : <Play size={18} className="text-gray-800 mr-[-2px]" fill="currentColor" />
-      }
-    </button>
-  )
-}
 
 /* ─── Main Page ─────────────────────────────────────────── */
 export default function HomePage() {
@@ -386,6 +344,11 @@ export default function HomePage() {
           </svg>
         </div>
       </section>
+
+      {/* ══════════════════════════════════════════════════
+          1.5 NEWS TICKER — English tips + corrections
+      ══════════════════════════════════════════════════ */}
+      <NewsTicker />
 
       {/* ══════════════════════════════════════════════════
           2. TRUST / SOCIAL PROOF STATS
@@ -710,64 +673,9 @@ export default function HomePage() {
       </section>
 
       {/* ══════════════════════════════════════════════════
-          8. LEARNING RADIO PREVIEW
+          8. LEARNING RADIO — real audio player
       ══════════════════════════════════════════════════ */}
-      <section className="py-20 bg-gray-950">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <FadeIn>
-            <div className="text-center mb-14">
-              <span className="inline-flex items-center gap-2 bg-white/10 border border-white/15 text-blue-300 font-bold text-sm px-5 py-2 rounded-full mb-4">
-                <span className="animate-pulse w-2 h-2 bg-red-400 rounded-full inline-block" />
-                راديو التعلم المجاني
-              </span>
-              <h2 className="text-4xl sm:text-5xl font-black text-white mb-3">
-                استمع وتعلم
-              </h2>
-              <p className="text-gray-400 text-xl">
-                حلقات صوتية قصيرة ومفيدة — في أي وقت، من أي مكان
-              </p>
-            </div>
-          </FadeIn>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {RADIO_EPISODES.map((ep, i) => (
-              <FadeIn key={ep.title} delay={i * 100}>
-                <div className={`radio-card bg-gradient-to-br ${ep.gradient} rounded-3xl p-6 relative overflow-hidden shimmer-card`}>
-                  {/* Background decoration */}
-                  <div className="absolute top-4 left-4 text-7xl opacity-10 select-none pointer-events-none">{ep.icon}</div>
-
-                  {/* Level + duration badges */}
-                  <div className="flex items-center gap-2 mb-6">
-                    <span className="bg-white/20 text-white text-xs font-black px-3 py-1.5 rounded-full">{ep.level}</span>
-                    <span className="bg-white/15 text-white/80 text-xs font-semibold px-3 py-1.5 rounded-full">⏱️ {ep.duration}</span>
-                    <span className="bg-white/15 text-white/80 text-xs font-semibold px-3 py-1.5 rounded-full">👂 {ep.listens}</span>
-                  </div>
-
-                  {/* Title */}
-                  <h3 className="text-white font-black text-xl leading-snug mb-6">{ep.title}</h3>
-
-                  {/* Progress bar */}
-                  <div className="h-1.5 bg-white/20 rounded-full mb-5">
-                    <div className="h-full bg-white/60 rounded-full" style={{ width: `${30 + i * 20}%` }} />
-                  </div>
-
-                  {/* Play controls */}
-                  <div className="flex items-center gap-4">
-                    <PlayButton />
-                    <div>
-                      <p className="text-white/60 text-xs font-semibold">الحلقة {i + 1}</p>
-                      <p className="text-white font-bold text-sm">اضغط للاستماع</p>
-                    </div>
-                    <div className="mr-auto">
-                      <Headphones size={22} className="text-white/60" />
-                    </div>
-                  </div>
-                </div>
-              </FadeIn>
-            ))}
-          </div>
-        </div>
-      </section>
+      <AudioRadio />
 
       {/* ══════════════════════════════════════════════════
           9. BEFORE / AFTER — Transformation Section
