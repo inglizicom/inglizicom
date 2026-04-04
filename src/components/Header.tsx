@@ -17,6 +17,7 @@ function TikTokIcon({ size = 18 }: { size?: number }) {
 const navLinks = [
   { href: '/',           label: 'الرئيسية' },
   { href: '/courses',    label: 'الدورات' },
+  { href: '/practice',   label: '🎯 تدرب الآن' },
   { href: '/corrector',  label: 'المصحح' },
   { href: '/live',       label: '🔴 مباشر' },
   { href: '/level-test', label: 'اختبر مستواك' },
