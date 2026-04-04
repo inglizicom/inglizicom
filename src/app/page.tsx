@@ -6,7 +6,7 @@ import FadeIn from '@/components/FadeIn'
 import TestimonialsCarousel from '@/components/TestimonialsCarousel'
 import CountdownTimer from '@/components/CountdownTimer'
 import NewsTicker from '@/components/NewsTicker'
-import AudioRadio from '@/components/AudioRadio'
+import LatestArticles from '@/components/LatestArticles'
 import {
   Pencil, Target, BookOpen, CheckCircle2, ArrowLeft,
   TrendingUp, Zap, Star,
@@ -673,9 +673,9 @@ export default function HomePage() {
       </section>
 
       {/* ══════════════════════════════════════════════════
-          8. LEARNING RADIO — real audio player
+          8. LATEST ARTICLES
       ══════════════════════════════════════════════════ */}
-      <AudioRadio />
+      <LatestArticles />
 
       {/* ══════════════════════════════════════════════════
           9. BEFORE / AFTER — Transformation Section
