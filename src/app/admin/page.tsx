@@ -1,11 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { Shield, Users, Zap, Flame, Crown, UserCheck, Search, Loader2, AlertCircle, RefreshCw } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-
-const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? ''
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -45,26 +42,12 @@ function StatCard({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AdminPage() {
-  const router = useRouter()
-  const [authChecked, setAuthChecked] = useState(false)
-  const [users, setUsers]     = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState<string | null>(null)
-  const [search, setSearch]   = useState('')
-  const [toast, setToast]     = useState<string | null>(null)
+  const [users, setUsers]       = useState<User[]>([])
+  const [loading, setLoading]   = useState(true)
+  const [error, setError]       = useState<string | null>(null)
+  const [search, setSearch]     = useState('')
+  const [toast, setToast]       = useState<string | null>(null)
   const [updating, setUpdating] = useState<string | null>(null)
-
-  // ── Auth guard ─────────────────────────────────────────────────────────────
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user?.email === ADMIN_EMAIL) {
-        setAuthChecked(true)
-      } else {
-        router.replace('/')
-      }
-    })
-  }, [router])
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
 
@@ -120,14 +103,6 @@ export default function AdminPage() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
-  if (!authChecked) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center" dir="ltr">
-        <Loader2 size={28} className="animate-spin text-indigo-400" />
-      </div>
-    )
-  }
-<h1> ADMIN PLEASE TLA3</h1>
   return (
     <div className="min-h-screen bg-gray-50" dir="ltr">
 
