@@ -93,16 +93,49 @@ function randomFrom<T>(arr: T[]): T {
 // TTS HELPER
 // ═══════════════════════════════════════════════════════════════════
 
-function speakEnglish(text: string) {
+// In-memory cache: text → blob URL (persists for session, avoids re-fetching)
+const ttsCache = new Map<string, string>()
+
+async function fetchTTS(text: string): Promise<string> {
+  if (ttsCache.has(text)) return ttsCache.get(text)!
+  const res = await fetch('/api/tts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+  })
+  if (!res.ok) throw new Error('TTS API failed')
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  ttsCache.set(text, url)
+  return url
+}
+
+// Fallback: best available browser voice (neural/natural voices prioritised)
+function speakBrowserFallback(text: string) {
   if (typeof window === 'undefined' || !window.speechSynthesis) return
   window.speechSynthesis.cancel()
   const utt = new SpeechSynthesisUtterance(text)
   utt.lang = 'en-US'
-  utt.rate = 0.9
+  utt.rate = 0.88
+  utt.pitch = 1.0
   const voices = window.speechSynthesis.getVoices()
-  const v = voices.find(v => v.lang.startsWith('en') && /google/i.test(v.name))
-    ?? voices.find(v => v.lang.startsWith('en'))
-  if (v) utt.voice = v
+  const PREFERRED = [
+    /Microsoft.*Natural/i,
+    /Microsoft Aria/i,
+    /Microsoft Jenny/i,
+    /Google US English/i,
+    /Google.*English/i,
+    /Samantha/i,
+    /Karen/i,
+    /Moira/i,
+  ]
+  let chosen: SpeechSynthesisVoice | undefined
+  for (const pat of PREFERRED) {
+    chosen = voices.find(v => v.lang.startsWith('en') && pat.test(v.name))
+    if (chosen) break
+  }
+  chosen ??= voices.find(v => v.lang.startsWith('en-US')) ?? voices.find(v => v.lang.startsWith('en'))
+  if (chosen) utt.voice = chosen
   window.speechSynthesis.speak(utt)
 }
 
@@ -110,20 +143,48 @@ function speakEnglish(text: string) {
 // SHARED UI COMPONENTS
 // ═══════════════════════════════════════════════════════════════════
 
+type SpeakState = 'idle' | 'loading' | 'playing'
+
 function SpeakBtn({ text, size = 'md' }: { text: string; size?: 'sm' | 'md' }) {
-  const [active, setActive] = useState(false)
-  const handleClick = () => {
-    setActive(true)
-    speakEnglish(text)
-    setTimeout(() => setActive(false), 2000)
+  const [state, setState] = useState<SpeakState>('idle')
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  const handleClick = async () => {
+    // Stop if already playing
+    if (state === 'playing') {
+      audioRef.current?.pause()
+      setState('idle')
+      return
+    }
+    if (state === 'loading') return
+
+    setState('loading')
+    try {
+      const url = await fetchTTS(text)
+      const audio = new Audio(url)
+      audioRef.current = audio
+      audio.onended = () => setState('idle')
+      audio.onerror = () => { setState('idle'); speakBrowserFallback(text) }
+      setState('playing')
+      await audio.play()
+    } catch {
+      setState('idle')
+      speakBrowserFallback(text)
+    }
   }
+
+  const active = state !== 'idle'
+  const loading = state === 'loading'
+
   if (size === 'sm') {
     return (
       <button onClick={handleClick} title="استمع"
         className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg font-semibold transition-all
           ${active ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500 hover:bg-blue-50 hover:text-blue-600'}`}>
-        <Volume2 size={11} className={active ? 'animate-pulse' : ''} />
-        {active ? '...' : '🔊'}
+        {loading
+          ? <Loader2 size={11} className="animate-spin" />
+          : <Volume2 size={11} className={state === 'playing' ? 'animate-pulse' : ''} />}
+        {loading ? '...' : '🔊'}
       </button>
     )
   }
@@ -134,8 +195,10 @@ function SpeakBtn({ text, size = 'md' }: { text: string; size?: 'sm' | 'md' }) {
           ? 'bg-blue-100 text-blue-700 scale-95'
           : 'bg-blue-50 hover:bg-blue-100 text-blue-600 hover:scale-105'
         }`}>
-      <Volume2 size={15} className={active ? 'animate-pulse' : ''} />
-      استمع
+      {loading
+        ? <Loader2 size={15} className="animate-spin" />
+        : <Volume2 size={15} className={state === 'playing' ? 'animate-pulse' : ''} />}
+      {loading ? 'جاري...' : 'استمع'}
     </button>
   )
 }
@@ -324,7 +387,6 @@ function ReadingScreen({
 
   useEffect(() => {
     setSeen(new Set([0] as number[]))
-    if (typeof window !== 'undefined') window.speechSynthesis?.getVoices()
   }, [])
 
   return (
@@ -475,10 +537,12 @@ function WritingScreen({
           level,
         }),
       })
-      const data: EvaluateResponse = await res.json()
+      const raw = await res.json()
+      const data: EvaluateResponse = res.ok && raw.score !== undefined ? raw : null
+      if (!data) throw new Error('bad response')
       setResult(data)
-      addFloat(data.xpAwarded)
-      setStepXP(x => x + data.xpAwarded)
+      addFloat(data.xpAwarded ?? 0)
+      setStepXP(x => x + (data.xpAwarded ?? 0))
       if (data.isGood) setCorrect(c => c + 1)
     } catch {
       setResult({
@@ -602,9 +666,9 @@ function WritingScreen({
             </div>
 
             {/* Corrections */}
-            {result.corrections.length > 0 && (
+            {(result?.corrections?.length ?? 0) > 0 && (
               <div className="mt-3 space-y-1.5">
-                {result.corrections.map((c, i) => (
+                {result.corrections?.map((c, i) => (
                   <div key={i} className="flex items-start gap-2 text-sm text-gray-600 bg-orange-50 rounded-xl px-3 py-2">
                     <span className="text-orange-400 mt-0.5">⚠</span>
                     <span dir="ltr">{c}</span>
@@ -659,6 +723,7 @@ function TranslationScreen({
   const handleSubmit = async () => {
     if (!input.trim() || loading) return
     setLoading(true)
+    setResult(null)
     try {
       const res = await fetch('/api/practice', {
         method: 'POST',
@@ -671,10 +736,12 @@ function TranslationScreen({
           level,
         }),
       })
-      const data: EvaluateResponse = await res.json()
+      const raw = await res.json()
+      const data: EvaluateResponse = res.ok && raw.score !== undefined ? raw : null
+      if (!data) throw new Error('bad response')
       setResult(data)
-      addFloat(data.xpAwarded)
-      setStepXP(x => x + data.xpAwarded)
+      addFloat(data.xpAwarded ?? 0)
+      setStepXP(x => x + (data.xpAwarded ?? 0))
       if (data.isGood) setCorrect(c => c + 1)
     } catch {
       const fallback: EvaluateResponse = { score: 65, isGood: true, feedback: 'أحسنت!', corrections: [], betterVersion: sentence.english, xpAwarded: 6 }
@@ -775,9 +842,9 @@ function TranslationScreen({
               </div>
               <SpeakBtn text={result.betterVersion} size="sm" />
             </div>
-            {result.corrections.length > 0 && (
+            {(result?.corrections?.length ?? 0) > 0 && (
               <div className="mt-3 space-y-1.5">
-                {result.corrections.map((c, i) => (
+                {result.corrections?.map((c, i) => (
                   <div key={i} className="flex items-start gap-2 text-sm text-gray-600 bg-orange-50 rounded-xl px-3 py-2">
                     <span className="text-orange-400 mt-0.5">⚠</span>
                     <span dir="ltr">{c}</span>
@@ -1188,11 +1255,6 @@ export default function PracticePage() {
   const [progress, setProgress] = useState<UserProgress>(() => getProgress())
   const [globalXPFloats, setGlobalXPFloats] = useState<XpFloat[]>([])
   const [levelUp, setLevelUp] = useState<Level | null>(null)
-
-  // Preload voices on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined') window.speechSynthesis?.getVoices()
-  }, [])
 
   // Animated transition helper
   const transitionTo = useCallback((next: Screen) => {
