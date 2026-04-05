@@ -14,17 +14,19 @@ function TikTokIcon({ size = 18 }: { size?: number }) {
   )
 }
 
+// Regular nav links (no CTA)
 const navLinks = [
-  { href: '/',           label: 'الرئيسية' },
-  { href: '/courses',    label: 'الدورات' },
-  { href: '/practice',   label: '🎯 تدرب الآن' },
-  { href: '/corrector',  label: 'المصحح' },
-  { href: '/live',       label: '🔴 مباشر' },
-  { href: '/level-test', label: 'اختبر مستواك' },
-  { href: '/blog',       label: 'المدونة' },
-  { href: '/about',      label: 'عن المعلم' },
-  { href: '/contact',    label: 'تواصل معنا' },
+  { href: '/',          label: 'الرئيسية' },
+  { href: '/courses',   label: 'الدورات' },
+  { href: '/blog',      label: 'المدونة' },
+  { href: '/corrector', label: 'المصحح' },
 ]
+
+// Highlighted CTA link
+const ctaLink = { href: '/practice', label: 'تدرب الآن' }
+
+// Secondary highlighted link
+const liveLink = { href: '/live', label: '🔴 مباشر' }
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -81,6 +83,32 @@ export default function Header() {
               </Link>
             )
           })}
+
+          {/* CTA — تدرب الآن */}
+          <Link
+            href={ctaLink.href}
+            className={`px-4 py-2 rounded-xl text-sm font-black transition-all duration-200 shadow-md active:scale-95 ${
+              pathname === ctaLink.href
+                ? 'bg-blue-700 text-white'
+                : 'bg-blue-600 hover:bg-blue-700 text-white hover:shadow-blue-500/40'
+            }`}
+          >
+            {ctaLink.label}
+          </Link>
+
+          {/* مباشر */}
+          <Link
+            href={liveLink.href}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+              pathname === liveLink.href
+                ? 'bg-brand-600/15 text-brand-600'
+                : scrolled
+                ? 'text-gray-700 hover:bg-brand-600/10 hover:text-brand-600'
+                : 'text-white/90 hover:text-white hover:bg-white/10'
+            }`}
+          >
+            {liveLink.label}
+          </Link>
         </nav>
 
         {/* ── Right side: Social + CTA ── */}
@@ -154,6 +182,28 @@ export default function Header() {
               </Link>
             )
           })}
+
+          {/* CTA — تدرب الآن */}
+          <Link
+            href={ctaLink.href}
+            onClick={() => setMenuOpen(false)}
+            className="block px-4 py-3 rounded-xl font-black text-blue-600 hover:bg-blue-50 transition-colors"
+          >
+            🎯 {ctaLink.label}
+          </Link>
+
+          {/* مباشر */}
+          <Link
+            href={liveLink.href}
+            onClick={() => setMenuOpen(false)}
+            className={`block px-4 py-3 rounded-xl font-semibold transition-colors ${
+              pathname === liveLink.href
+                ? 'bg-brand-50 text-brand-700'
+                : 'text-gray-700 hover:bg-brand-50 hover:text-brand-700'
+            }`}
+          >
+            {liveLink.label}
+          </Link>
           <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-100 px-4">
             <a href="https://www.instagram.com/elqasraouihamza/" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-pink-500">
               <Instagram size={20} />
