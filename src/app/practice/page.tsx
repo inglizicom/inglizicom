@@ -2,27 +2,45 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import {
-  Sparkles, Volume2, Send, RotateCcw, ChevronDown,
-  MessageCircle, Zap, Star, BookOpen, Mic, ArrowLeft,
-  CheckCircle2, XCircle, Loader2, Trophy, Flame,
+  Volume2, Send, ChevronRight, ChevronLeft,
+  MessageCircle, Zap, Star, BookOpen, Eye, EyeOff,
+  CheckCircle2, XCircle, Loader2, Trophy,
+  Sparkles, Lock, ArrowRight, RefreshCw,
 } from 'lucide-react'
-import type { TranslateResponse, ChatResponse } from '@/app/api/practice/route'
+import type { EvaluateResponse, ChatResponse } from '@/app/api/practice/route'
+import {
+  getSessionSentences, type Sentence, type Level,
+} from '@/lib/sentences'
+import {
+  getProgress, saveProgress, updateStreak, applyXP,
+  markSentencesUsed, levelProgress, nextLevelInfo,
+  type UserProgress,
+} from '@/lib/practice-store'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+// TYPES
+// ═══════════════════════════════════════════════════════════════════
 
-type Level = 'A1' | 'A2' | 'B1'
-type Mode = 'translate' | 'chat'
+type Screen = 'select' | 'reading' | 'writing' | 'translation' | 'chat' | 'results'
 
-interface TranslationEntry {
-  id: string
-  arabic: string
-  english: string
-  similarSentences: string[]
-  explanation: string
-  tips: string[]
+interface StepResult {
+  xpEarned: number
+  correct: number
+  total: number
 }
 
-interface ChatMessage {
+interface SessionState {
+  level: Level
+  sentences: Sentence[]
+  results: {
+    reading: StepResult
+    writing: StepResult
+    translation: StepResult
+    chat: StepResult
+  }
+}
+
+interface ChatMsg {
   id: string
   role: 'user' | 'ai'
   content: string
@@ -33,41 +51,47 @@ interface ChatMessage {
   points: number
 }
 
-interface ApiHistory {
-  role: 'user' | 'assistant'
-  content: string
-}
+interface XpFloat { id: string; points: number }
 
-interface XpFloat {
-  id: string
-  points: number
-}
+// ═══════════════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════════════
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const LEVEL_META: Record<Level, { label: string; color: string; bg: string; border: string; desc: string; emoji: string }> = {
+const LEVEL_CONFIG: Record<Level, {
+  emoji: string; label: string; desc: string
+  gradient: string; border: string; xpRequired: number
+}> = {
   A1: {
-    label: 'A1', color: 'text-emerald-700', bg: 'bg-emerald-500',
-    border: 'border-emerald-400', desc: 'مبتدئ', emoji: '🌱',
+    emoji: '🌱', label: 'A1', desc: 'مبتدئ',
+    gradient: 'from-emerald-500 to-teal-500',
+    border: 'border-emerald-400', xpRequired: 0,
   },
   A2: {
-    label: 'A2', color: 'text-amber-700', bg: 'bg-amber-500',
-    border: 'border-amber-400', desc: 'أساسي', emoji: '⚡',
+    emoji: '⚡', label: 'A2', desc: 'أساسي',
+    gradient: 'from-amber-500 to-orange-500',
+    border: 'border-amber-400', xpRequired: 250,
   },
   B1: {
-    label: 'B1', color: 'text-violet-700', bg: 'bg-violet-500',
-    border: 'border-violet-400', desc: 'متوسط', emoji: '🚀',
+    emoji: '🚀', label: 'B1', desc: 'متوسط',
+    gradient: 'from-violet-500 to-purple-600',
+    border: 'border-violet-400', xpRequired: 600,
   },
 }
 
-const PLACEHOLDER_ARABIC = [
-  'أريد تعلم اللغة الإنجليزية...',
-  'ذهبت إلى المدرسة اليوم...',
-  'أحب ممارسة رياضة كرة القدم...',
-  'أنا طالب جامعي أدرس الهندسة...',
-]
+const FEEDBACK_MESSAGES = {
+  perfect:  ['ممتاز جداً! 🎉', 'رائع! أنت محترف! 🌟', 'مثالي تماماً! 👑'],
+  good:     ['جيد جداً! 💪', 'عمل ممتاز! 🎯', 'أنت تتحسن بسرعة! 📈'],
+  ok:       ['ليس بأس، واصل! 🔥', 'التدريب يصنع الفرق! 💡', 'كل يوم تتحسن أكثر! ⭐'],
+  tryAgain: ['حاول مرة أخرى! 🔄', 'الأخطاء طريق التعلم! 📚', 'لا تستسلم! 🎯'],
+}
 
-// ─── TTS helper ───────────────────────────────────────────────────────────────
+function randomFrom<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)]
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TTS HELPER
+// ═══════════════════════════════════════════════════════════════════
 
 function speakEnglish(text: string) {
   if (typeof window === 'undefined' || !window.speechSynthesis) return
@@ -75,792 +99,1321 @@ function speakEnglish(text: string) {
   const utt = new SpeechSynthesisUtterance(text)
   utt.lang = 'en-US'
   utt.rate = 0.9
-  utt.pitch = 1
   const voices = window.speechSynthesis.getVoices()
-  const engVoice = voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('google'))
+  const v = voices.find(v => v.lang.startsWith('en') && /google/i.test(v.name))
     ?? voices.find(v => v.lang.startsWith('en'))
-  if (engVoice) utt.voice = engVoice
+  if (v) utt.voice = v
   window.speechSynthesis.speak(utt)
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+// SHARED UI COMPONENTS
+// ═══════════════════════════════════════════════════════════════════
 
-function LevelPill({
-  level, selected, onClick,
-}: {
-  level: Level
-  selected: boolean
-  onClick: () => void
-}) {
-  const m = LEVEL_META[level]
-  return (
-    <button
-      onClick={onClick}
-      className={`relative flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-sm transition-all duration-300 border-2
-        ${selected
-          ? `${m.bg} text-white border-transparent shadow-lg scale-105`
-          : `bg-white/10 text-white/70 border-white/20 hover:bg-white/20 hover:text-white hover:scale-105`
-        }`}
-    >
-      <span>{m.emoji}</span>
-      <span>{m.label}</span>
-      <span className="text-xs opacity-80">{m.desc}</span>
-      {selected && (
-        <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-white animate-ping opacity-60" />
-      )}
-    </button>
-  )
-}
-
-function SpeakButton({ text, small = false }: { text: string; small?: boolean }) {
-  const [speaking, setSpeaking] = useState(false)
-  const handle = () => {
-    setSpeaking(true)
+function SpeakBtn({ text, size = 'md' }: { text: string; size?: 'sm' | 'md' }) {
+  const [active, setActive] = useState(false)
+  const handleClick = () => {
+    setActive(true)
     speakEnglish(text)
-    setTimeout(() => setSpeaking(false), 2500)
+    setTimeout(() => setActive(false), 2000)
+  }
+  if (size === 'sm') {
+    return (
+      <button onClick={handleClick} title="استمع"
+        className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg font-semibold transition-all
+          ${active ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500 hover:bg-blue-50 hover:text-blue-600'}`}>
+        <Volume2 size={11} className={active ? 'animate-pulse' : ''} />
+        {active ? '...' : '🔊'}
+      </button>
+    )
   }
   return (
-    <button
-      onClick={handle}
-      title="استمع"
-      className={`flex items-center gap-1.5 rounded-xl transition-all duration-200 font-semibold
-        ${small
-          ? 'text-xs px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600'
-          : 'text-sm px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-md shadow-blue-400/30'
-        }
-        ${speaking ? 'scale-95 opacity-80' : 'hover:scale-105'}`}
-    >
-      <Volume2 size={small ? 12 : 15} className={speaking ? 'animate-pulse' : ''} />
-      {!small && 'استمع'}
+    <button onClick={handleClick} title="استمع"
+      className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all duration-200
+        ${active
+          ? 'bg-blue-100 text-blue-700 scale-95'
+          : 'bg-blue-50 hover:bg-blue-100 text-blue-600 hover:scale-105'
+        }`}>
+      <Volume2 size={15} className={active ? 'animate-pulse' : ''} />
+      استمع
     </button>
   )
 }
 
-function TranslationCard({ entry, index }: { entry: TranslationEntry; index: number }) {
-  const [expanded, setExpanded] = useState(index === 0)
+function ProgressBar({ screen, totalXP }: { screen: Screen; totalXP: number }) {
+  const steps: Screen[] = ['reading', 'writing', 'translation', 'chat']
+  const idx = steps.indexOf(screen)
+  if (idx === -1 && screen !== 'results') return null
 
   return (
-    <div
-      className="bg-white rounded-3xl shadow-xl overflow-hidden transition-all duration-500"
-      style={{ animationDelay: `${index * 80}ms` }}
-    >
-      {/* Header bar */}
-      <button
-        onClick={() => setExpanded(e => !e)}
-        className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors"
-      >
-        <div className="flex items-center gap-3 text-right">
-          <div className="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center text-sm font-black text-blue-600">
-            {index + 1}
-          </div>
-          <span className="font-bold text-gray-700 text-sm truncate max-w-[200px] sm:max-w-xs">{entry.arabic}</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="hidden sm:block text-sm text-blue-600 font-semibold dir-ltr truncate max-w-[180px]" dir="ltr">
-            {entry.english}
-          </span>
-          <ChevronDown
-            size={18}
-            className={`text-gray-400 transition-transform duration-300 ${expanded ? 'rotate-180' : ''}`}
-          />
-        </div>
-      </button>
-
-      {expanded && (
-        <div className="px-6 pb-6 space-y-5 border-t border-gray-100">
-          {/* Translation */}
-          <div className="pt-4">
-            <p className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-              <BookOpen size={12} /> الترجمة الإنجليزية
-            </p>
-            <div className="flex items-center gap-3 flex-wrap">
-              <p className="text-2xl font-black text-gray-800 flex-1" dir="ltr">{entry.english}</p>
-              <SpeakButton text={entry.english} />
-            </div>
-          </div>
-
-          {/* Similar sentences */}
-          {entry.similarSentences.length > 0 && (
-            <div>
-              <p className="text-xs font-bold text-violet-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                <Sparkles size={12} /> جمل مشابهة
-              </p>
-              <div className="space-y-2">
-                {entry.similarSentences.map((s, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-3 bg-violet-50 rounded-2xl px-4 py-3"
-                  >
-                    <span className="w-5 h-5 rounded-full bg-violet-200 text-violet-700 text-xs font-black flex items-center justify-center shrink-0">
-                      {i + 1}
-                    </span>
-                    <span className="text-gray-700 text-sm flex-1 font-medium" dir="ltr">{s}</span>
-                    <SpeakButton text={s} small />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Explanation */}
-          {entry.explanation && (
-            <div className="bg-amber-50 border border-amber-100 rounded-2xl px-5 py-4">
-              <p className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <Star size={12} /> شرح بالعربية
-              </p>
-              <p className="text-gray-700 text-sm leading-relaxed">{entry.explanation}</p>
-            </div>
-          )}
-
-          {/* Tips */}
-          {entry.tips.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {entry.tips.map((t, i) => (
-                <span
-                  key={i}
-                  className="inline-flex items-center gap-1 bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full"
-                  dir="ltr"
-                >
-                  <Zap size={10} className="text-blue-400" /> {t}
-                </span>
-              ))}
-            </div>
+    <div className="flex items-center gap-2 px-4 py-3 bg-white/5 border-b border-white/10">
+      {steps.map((s, i) => (
+        <div key={s} className="flex items-center gap-1.5 flex-1">
+          <div className={`h-2 flex-1 rounded-full transition-all duration-500 ${
+            i < idx || screen === 'results' ? 'bg-emerald-400' :
+            i === idx ? 'bg-blue-400' : 'bg-white/15'
+          }`} />
+          {i < steps.length - 1 && (
+            <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+              i < idx || screen === 'results' ? 'bg-emerald-400' : 'bg-white/20'
+            }`} />
           )}
         </div>
-      )}
+      ))}
+      <span className="text-white/60 text-xs font-bold shrink-0 ml-1">
+        ⚡{totalXP}
+      </span>
     </div>
   )
 }
 
-function ChatBubble({ msg }: { msg: ChatMessage }) {
-  const isAi = msg.role === 'ai'
+function XpToast({ floats }: { floats: XpFloat[] }) {
+  return (
+    <div className="fixed top-20 left-1/2 -translate-x-1/2 pointer-events-none z-50 flex flex-col items-center gap-1">
+      {floats.map(f => (
+        <div key={f.id} className="animate-xpFloat bg-amber-400 text-amber-900 font-black text-sm px-4 py-1.5 rounded-full shadow-lg">
+          +{f.points} XP ⚡
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SCREEN 0: LEVEL SELECT
+// ═══════════════════════════════════════════════════════════════════
+
+function LevelSelectScreen({
+  progress, onStart,
+}: {
+  progress: UserProgress
+  onStart: (level: Level) => void
+}) {
+  const [selected, setSelected] = useState<Level>('A1')
+  const pct = levelProgress(progress.xp)
+  const nextInfo = nextLevelInfo(progress.xp)
 
   return (
-    <div
-      className={`flex flex-col gap-1.5 animate-fadeUp ${isAi ? 'items-end' : 'items-start'}`}
-    >
-      {/* Role label */}
-      <span className={`text-xs font-bold px-2 ${isAi ? 'text-blue-300' : 'text-white/50'}`}>
-        {isAi ? '🤖 AI Coach' : '👤 أنت'}
-      </span>
+    <div className="flex flex-col items-center px-4 pt-8 pb-24 max-w-lg mx-auto">
+      {/* Hero */}
+      <div className="text-center mb-8">
+        <div className="text-6xl mb-4">🎯</div>
+        <h1 className="text-3xl font-black text-white mb-2">تدرب على الإنجليزية</h1>
+        <p className="text-blue-200/70">اختر مستواك وابدأ جلسة تعلم كاملة</p>
+      </div>
 
-      {/* Bubble */}
-      <div
-        className={`max-w-[85%] sm:max-w-[75%] rounded-3xl px-5 py-4 shadow-lg
-          ${isAi
-            ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-tl-lg'
-            : 'bg-white text-gray-800 rounded-tr-lg'
-          }`}
+      {/* Stats */}
+      <div className="w-full flex gap-3 mb-8">
+        <div className="flex-1 bg-white/10 border border-white/15 rounded-2xl p-4 text-center">
+          <div className="text-2xl font-black text-amber-300">⚡ {progress.xp}</div>
+          <div className="text-white/50 text-xs mt-0.5">نقاط XP</div>
+        </div>
+        <div className="flex-1 bg-white/10 border border-white/15 rounded-2xl p-4 text-center">
+          <div className="text-2xl font-black text-orange-300">🔥 {progress.streak}</div>
+          <div className="text-white/50 text-xs mt-0.5">أيام متتالية</div>
+        </div>
+        <div className="flex-1 bg-white/10 border border-white/15 rounded-2xl p-4 text-center">
+          <div className="text-2xl font-black text-blue-300">📚 {progress.totalSessions}</div>
+          <div className="text-white/50 text-xs mt-0.5">جلسة</div>
+        </div>
+      </div>
+
+      {/* XP Progress */}
+      {nextInfo && (
+        <div className="w-full bg-white/10 border border-white/15 rounded-2xl p-4 mb-6">
+          <div className="flex justify-between text-sm mb-2">
+            <span className="text-white/70 font-semibold">التقدم نحو {nextInfo.label}</span>
+            <span className="text-amber-300 font-bold">{nextInfo.xpNeeded} XP متبقية</span>
+          </div>
+          <div className="h-2.5 bg-white/15 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-amber-400 to-orange-400 rounded-full transition-all duration-700"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Level Cards */}
+      <div className="w-full space-y-3 mb-8">
+        {(['A1', 'A2', 'B1'] as Level[]).map(lvl => {
+          const cfg = LEVEL_CONFIG[lvl]
+          const locked = progress.xp < cfg.xpRequired
+          const isSelected = selected === lvl
+          return (
+            <button
+              key={lvl}
+              onClick={() => !locked && setSelected(lvl)}
+              disabled={locked}
+              className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all duration-300 text-right
+                ${isSelected && !locked
+                  ? `bg-gradient-to-r ${cfg.gradient} ${cfg.border} shadow-lg scale-[1.02]`
+                  : locked
+                  ? 'bg-white/5 border-white/10 opacity-50 cursor-not-allowed'
+                  : 'bg-white/10 border-white/20 hover:bg-white/15 hover:scale-[1.01]'
+                }`}
+            >
+              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${cfg.gradient} flex items-center justify-center text-2xl shadow-md shrink-0 ${locked ? 'grayscale' : ''}`}>
+                {locked ? '🔒' : cfg.emoji}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-black text-white text-lg">{cfg.label}</span>
+                  <span className="text-white/70 text-sm font-semibold">{cfg.desc}</span>
+                  {locked && <span className="text-xs bg-white/10 text-white/50 px-2 py-0.5 rounded-full">{cfg.xpRequired} XP</span>}
+                </div>
+                <p className="text-white/50 text-xs mt-0.5">
+                  {lvl === 'A1' && '6 جمل يومية بسيطة ومفيدة'}
+                  {lvl === 'A2' && 'مواقف حياتية، ماضي ومستقبل'}
+                  {lvl === 'B1' && 'آراء، فرضيات، مواضيع متقدمة'}
+                </p>
+              </div>
+              {isSelected && !locked && (
+                <CheckCircle2 size={22} className="text-white shrink-0" />
+              )}
+              {locked && <Lock size={18} className="text-white/30 shrink-0" />}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Session Info */}
+      <div className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 mb-6 text-sm text-white/60 space-y-1.5">
+        <div className="flex items-center gap-2"><BookOpen size={14} className="text-blue-400" /> قراءة 6 جمل + استماع</div>
+        <div className="flex items-center gap-2"><Star size={14} className="text-amber-400" /> إعادة الكتابة من الذاكرة</div>
+        <div className="flex items-center gap-2"><Sparkles size={14} className="text-violet-400" /> ترجمة مع تقييم AI</div>
+        <div className="flex items-center gap-2"><MessageCircle size={14} className="text-emerald-400" /> محادثة مع AI Coach</div>
+      </div>
+
+      <button
+        onClick={() => onStart(selected)}
+        disabled={progress.xp < LEVEL_CONFIG[selected].xpRequired}
+        className={`w-full py-4 rounded-2xl font-black text-lg text-white transition-all duration-200 shadow-xl active:scale-95
+          bg-gradient-to-r ${LEVEL_CONFIG[selected].gradient} hover:opacity-90`}
       >
-        <p className="text-sm sm:text-base leading-relaxed" dir={isAi ? 'ltr' : 'ltr'}>
-          {msg.content}
+        ابدأ الجلسة 🚀
+      </button>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SCREEN 1: READING
+// ═══════════════════════════════════════════════════════════════════
+
+function ReadingScreen({
+  sentences, onComplete,
+}: {
+  sentences: Sentence[]
+  onComplete: () => void
+}) {
+  const [idx, setIdx] = useState(0)
+  const [showArabic, setShowArabic] = useState(false)
+  const [seen, setSeen] = useState<Set<number>>(new Set())
+  const [dir, setDir] = useState<'next' | 'prev'>('next')
+
+  const sentence = sentences[idx]
+  const allSeen  = seen.size >= sentences.length
+
+  const goTo = (next: number, d: 'next' | 'prev') => {
+    setDir(d)
+    setShowArabic(false)
+    setIdx(next)
+    setSeen(s => new Set(Array.from(s).concat(next)))
+  }
+
+  useEffect(() => {
+    setSeen(new Set([0] as number[]))
+    if (typeof window !== 'undefined') window.speechSynthesis?.getVoices()
+  }, [])
+
+  return (
+    <div className="flex flex-col items-center px-4 pt-6 pb-24 max-w-lg mx-auto">
+      {/* Header */}
+      <div className="w-full flex items-center justify-between mb-6">
+        <div className="text-white/70 text-sm font-semibold">
+          <BookOpen size={14} className="inline ml-1" />
+          اقرأ وتذكّر
+        </div>
+        <div className="flex gap-1.5">
+          {sentences.map((_, i) => (
+            <div
+              key={i}
+              onClick={() => goTo(i, i > idx ? 'next' : 'prev')}
+              className={`w-2.5 h-2.5 rounded-full cursor-pointer transition-all duration-300 ${
+                i === idx ? 'bg-blue-400 scale-125' :
+                seen.has(i) ? 'bg-emerald-400' : 'bg-white/20'
+              }`}
+            />
+          ))}
+        </div>
+        <span className="text-white/50 text-sm">{idx + 1} / {sentences.length}</span>
+      </div>
+
+      {/* Card */}
+      <div
+        key={`${idx}-${dir}`}
+        className="w-full bg-white rounded-3xl shadow-2xl p-8 mb-6 animate-cardIn"
+      >
+        {/* Level badge */}
+        <div className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full mb-4
+          bg-gradient-to-r ${LEVEL_CONFIG[sentence.level].gradient} text-white`}>
+          {LEVEL_CONFIG[sentence.level].emoji} {sentence.level} · {sentence.topic}
+        </div>
+
+        {/* English sentence */}
+        <p className="text-2xl sm:text-3xl font-black text-gray-800 leading-relaxed mb-6" dir="ltr">
+          {sentence.english}
         </p>
-        {isAi && (
-          <div className="mt-2.5 pt-2.5 border-t border-white/20 flex items-center justify-between gap-2">
-            <SpeakButton text={msg.content} small />
+
+        {/* Controls */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <SpeakBtn text={sentence.english} />
+          <button
+            onClick={() => setShowArabic(v => !v)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold text-sm transition-all hover:scale-105"
+          >
+            {showArabic ? <EyeOff size={15} /> : <Eye size={15} />}
+            {showArabic ? 'أخفِ العربية' : 'أظهر العربية'}
+          </button>
+        </div>
+
+        {/* Arabic */}
+        {showArabic && (
+          <div className="mt-5 pt-5 border-t border-gray-100 animate-fadeUp">
+            <p className="text-gray-600 text-lg leading-relaxed">{sentence.arabic}</p>
           </div>
         )}
       </div>
 
-      {/* Correction card */}
-      {isAi && msg.correction && (
-        <div className="max-w-[85%] sm:max-w-[75%] bg-white rounded-2xl rounded-tl-md px-4 py-3 shadow-md border border-gray-100 space-y-2">
-          <div className="flex items-center gap-1.5">
-            {msg.isCorrect ? (
-              <CheckCircle2 size={14} className="text-emerald-500" />
-            ) : (
-              <XCircle size={14} className="text-red-400" />
-            )}
-            <span className={`text-xs font-bold ${msg.isCorrect ? 'text-emerald-600' : 'text-red-500'}`}>
-              {msg.isCorrect ? 'صحيح تماماً' : 'تصحيح'}
-            </span>
-          </div>
-          <p className="text-gray-600 text-xs leading-relaxed" dir="ltr">{msg.correction}</p>
-          {msg.correctedVersion && (
-            <div className="flex items-center gap-2 bg-emerald-50 rounded-xl px-3 py-2" dir="ltr">
-              <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
-              <span className="text-emerald-700 text-sm font-semibold">{msg.correctedVersion}</span>
-              <SpeakButton text={msg.correctedVersion} small />
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Encouragement + points */}
-      {isAi && msg.encouragement && (
-        <div className="flex items-center gap-2">
-          <span className="text-amber-300 text-sm font-bold">{msg.encouragement}</span>
-          <span className="flex items-center gap-1 bg-white/10 border border-white/20 text-white text-xs font-bold px-2 py-1 rounded-full">
-            <Zap size={10} className="text-amber-400" /> +{msg.points} XP
-          </span>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function TypingIndicator() {
-  return (
-    <div className="flex items-end gap-1.5">
-      <span className="text-xs font-bold text-blue-300 mb-1">🤖 AI Coach</span>
-      <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl rounded-tl-lg px-5 py-4 shadow-lg">
-        <div className="flex items-center gap-1.5">
-          {[0, 1, 2].map(i => (
-            <span
-              key={i}
-              className="w-2 h-2 bg-white rounded-full inline-block"
-              style={{ animation: `typingBounce 1.2s ${i * 0.2}s ease-in-out infinite` }}
-            />
-          ))}
-        </div>
+      {/* Navigation */}
+      <div className="w-full flex gap-3 mb-6">
+        <button
+          onClick={() => idx > 0 && goTo(idx - 1, 'prev')}
+          disabled={idx === 0}
+          className="w-12 h-12 rounded-xl bg-white/10 hover:bg-white/20 disabled:opacity-20 text-white flex items-center justify-center transition-all"
+        >
+          <ChevronRight size={20} />
+        </button>
+        <button
+          onClick={() => {
+            if (idx < sentences.length - 1) goTo(idx + 1, 'next')
+          }}
+          disabled={idx === sentences.length - 1}
+          className="flex-1 h-12 rounded-xl bg-white/10 hover:bg-white/20 disabled:opacity-20 text-white font-bold flex items-center justify-center gap-2 transition-all"
+        >
+          التالي <ChevronLeft size={18} />
+        </button>
       </div>
+
+      {/* Tip */}
+      <div className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white/50 text-sm text-center mb-6">
+        💡 استمع للجملة وحاول أن تحفظها — ستكتبها لاحقاً من الذاكرة
+      </div>
+
+      {/* Start button — shown after seeing all */}
+      {allSeen && (
+        <button
+          onClick={onComplete}
+          className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 text-white font-black text-lg shadow-xl active:scale-95 transition-all animate-fadeUp flex items-center justify-center gap-2"
+        >
+          جاهز للكتابة <ArrowRight size={20} />
+        </button>
+      )}
+      {!allSeen && (
+        <p className="text-white/30 text-sm text-center">
+          اقرأ جميع الجمل لتستمر ({seen.size}/{sentences.length})
+        </p>
+      )}
     </div>
   )
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════
+// SCREEN 2: WRITING (recall from memory)
+// ═══════════════════════════════════════════════════════════════════
 
-export default function PracticePage() {
-  const [level, setLevel] = useState<Level>('A1')
-  const [mode, setMode] = useState<Mode>('translate')
-
-  // XP / gamification
-  const [xp, setXp] = useState(0)
-  const [streak, setStreak] = useState(0)
+function WritingScreen({
+  sentences, level, onComplete,
+}: {
+  sentences: Sentence[]
+  level: Level
+  onComplete: (result: StepResult) => void
+}) {
+  const [idx, setIdx]       = useState(0)
+  const [input, setInput]   = useState('')
+  const [result, setResult] = useState<EvaluateResponse | null>(null)
+  const [loading, setLoading] = useState(false)
   const [xpFloats, setXpFloats] = useState<XpFloat[]>([])
+  const [stepXP, setStepXP]   = useState(0)
+  const [correct, setCorrect] = useState(0)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  // Translation mode
-  const [arabicInput, setArabicInput] = useState('')
-  const [translationHistory, setTranslationHistory] = useState<TranslationEntry[]>([])
-  const [isTranslating, setIsTranslating] = useState(false)
-  const [translateError, setTranslateError] = useState('')
-  const [placeholderIndex] = useState(() => Math.floor(Math.random() * PLACEHOLDER_ARABIC.length))
+  const sentence = sentences[idx]
+  const isLast   = idx === sentences.length - 1
 
-  // Chat mode
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
-  const [apiHistory, setApiHistory] = useState<ApiHistory[]>([])
-  const [chatInput, setChatInput] = useState('')
-  const [isChatLoading, setIsChatLoading] = useState(false)
-  const [chatError, setChatError] = useState('')
-  const [chatStarted, setChatStarted] = useState(false)
-
-  const chatEndRef = useRef<HTMLDivElement>(null)
-  const chatInputRef = useRef<HTMLTextAreaElement>(null)
-  const translateInputRef = useRef<HTMLTextAreaElement>(null)
-
-  // Load streak from localStorage
-  useEffect(() => {
-    const saved = parseInt(localStorage.getItem('inglizi_streak') ?? '0', 10)
-    setStreak(isNaN(saved) ? 0 : saved)
-    // Preload voices
-    if (typeof window !== 'undefined') window.speechSynthesis?.getVoices()
-  }, [])
-
-  // Auto-scroll chat
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [chatMessages, isChatLoading])
-
-  const addXp = useCallback((points: number) => {
-    setXp(prev => prev + points)
-    setStreak(prev => {
-      const next = prev + 1
-      localStorage.setItem('inglizi_streak', String(next))
-      return next
-    })
+  const addFloat = (pts: number) => {
     const id = Math.random().toString(36).slice(2)
-    setXpFloats(prev => [...prev, { id, points }])
+    setXpFloats(prev => [...prev, { id, points: pts }])
     setTimeout(() => setXpFloats(prev => prev.filter(f => f.id !== id)), 1800)
-  }, [])
-
-  // ── Translation ──────────────────────────────────────────────────────────
-
-  const handleTranslate = async () => {
-    const text = arabicInput.trim()
-    if (!text) { setTranslateError('اكتب نصاً بالعربية أولاً'); return }
-    setTranslateError('')
-    setIsTranslating(true)
-
-    try {
-      const res = await fetch('/api/practice', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'translate', text, level }),
-      })
-      if (!res.ok) throw new Error('فشل الاتصال')
-      const data: TranslateResponse = await res.json()
-
-      const entry: TranslationEntry = {
-        id: Math.random().toString(36).slice(2),
-        arabic: text,
-        english: data.translation,
-        similarSentences: data.similarSentences,
-        explanation: data.explanation,
-        tips: data.tips,
-      }
-
-      setTranslationHistory(prev => [entry, ...prev])
-      setArabicInput('')
-      addXp(5)
-    } catch {
-      setTranslateError('حدث خطأ، حاول مرة أخرى')
-    } finally {
-      setIsTranslating(false)
-    }
   }
 
-  // ── Chat ─────────────────────────────────────────────────────────────────
-
-  const startChat = useCallback(async (lvl: Level) => {
-    setChatMessages([])
-    setApiHistory([])
-    setChatStarted(true)
-    setIsChatLoading(true)
-    setChatError('')
-
-    try {
-      const res = await fetch('/api/practice', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'chat', messages: [], level: lvl }),
-      })
-      if (!res.ok) throw new Error('فشل الاتصال')
-      const data: ChatResponse = await res.json()
-
-      const aiMsg: ChatMessage = {
-        id: Math.random().toString(36).slice(2),
-        role: 'ai',
-        content: data.aiMessage,
-        correction: null,
-        correctedVersion: null,
-        encouragement: null,
-        isCorrect: true,
-        points: 0,
-      }
-
-      setChatMessages([aiMsg])
-      setApiHistory([{ role: 'assistant', content: data.aiMessage }])
-    } catch {
-      setChatError('تعذر البدء. حاول مرة أخرى.')
-      setChatStarted(false)
-    } finally {
-      setIsChatLoading(false)
-    }
-  }, [])
-
-  const handleChatSend = async () => {
-    const text = chatInput.trim()
-    if (!text || isChatLoading) return
-    setChatInput('')
-    setChatError('')
-
-    const userMsg: ChatMessage = {
-      id: Math.random().toString(36).slice(2),
-      role: 'user',
-      content: text,
-      correction: null,
-      correctedVersion: null,
-      encouragement: null,
-      isCorrect: true,
-      points: 0,
-    }
-
-    const newHistory: ApiHistory[] = [...apiHistory, { role: 'user', content: text }]
-    setChatMessages(prev => [...prev, userMsg])
-    setApiHistory(newHistory)
-    setIsChatLoading(true)
+  const handleSubmit = async () => {
+    if (!input.trim() || loading) return
+    setLoading(true)
+    setResult(null)
 
     try {
       const res = await fetch('/api/practice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          type: 'chat',
-          messages: newHistory.slice(0, -1), // history before this reply
+          type: 'evaluate',
+          userAnswer: input.trim(),
+          reference: sentence.english,
+          mode: 'recall',
           level,
-          userReply: text,
         }),
       })
-      if (!res.ok) throw new Error('فشل الاتصال')
-      const data: ChatResponse = await res.json()
-
-      const aiMsg: ChatMessage = {
-        id: Math.random().toString(36).slice(2),
-        role: 'ai',
-        content: data.aiMessage,
-        correction: data.correction,
-        correctedVersion: data.correctedVersion,
-        encouragement: data.encouragement,
-        isCorrect: data.isCorrect,
-        points: data.points,
-      }
-
-      setChatMessages(prev => [...prev, aiMsg])
-      setApiHistory(prev => [...prev, { role: 'assistant', content: data.aiMessage }])
-      addXp(data.points)
+      const data: EvaluateResponse = await res.json()
+      setResult(data)
+      addFloat(data.xpAwarded)
+      setStepXP(x => x + data.xpAwarded)
+      if (data.isGood) setCorrect(c => c + 1)
     } catch {
-      setChatError('حدث خطأ، حاول مرة أخرى')
+      setResult({
+        score: 60, isGood: true,
+        feedback: 'أحسنت! واصل.',
+        corrections: [], betterVersion: sentence.english, xpAwarded: 5,
+      })
     } finally {
-      setIsChatLoading(false)
-      setTimeout(() => chatInputRef.current?.focus(), 50)
+      setLoading(false)
     }
   }
 
-  // Switch to chat and auto-start
-  const handleModeSwitch = (m: Mode) => {
-    setMode(m)
-    if (m === 'chat' && !chatStarted) {
-      startChat(level)
+  const handleNext = () => {
+    if (isLast) {
+      onComplete({ xpEarned: stepXP, correct, total: sentences.length })
+    } else {
+      setIdx(i => i + 1)
+      setInput('')
+      setResult(null)
+      setTimeout(() => textareaRef.current?.focus(), 50)
     }
   }
-
-  // Level change — reset chat if in chat mode
-  const handleLevelChange = (lvl: Level) => {
-    setLevel(lvl)
-    if (mode === 'chat') {
-      startChat(lvl)
-    }
-  }
-
-  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <>
-      {/* ── Keyframes ── */}
-      <style>{`
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes typingBounce {
-          0%, 100% { transform: translateY(0); opacity: 0.4; }
-          50%       { transform: translateY(-6px); opacity: 1; }
-        }
-        @keyframes xpFloat {
-          0%   { opacity: 1; transform: translateY(0) scale(1); }
-          100% { opacity: 0; transform: translateY(-60px) scale(1.3); }
-        }
-        @keyframes glowPulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.4); }
-          50%       { box-shadow: 0 0 0 10px rgba(59,130,246,0); }
-        }
-        .animate-fadeUp { animation: fadeUp 0.4s ease-out both; }
-        .animate-xpFloat { animation: xpFloat 1.8s ease-out both; }
-        .glow-pulse { animation: glowPulse 2s infinite; }
-        .dir-ltr { direction: ltr; }
-      `}</style>
+    <div className="flex flex-col items-center px-4 pt-6 pb-24 max-w-lg mx-auto">
+      <XpToast floats={xpFloats} />
 
-      <div
-        className="min-h-screen pb-24"
-        style={{
-          background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 35%, #1e3a8a 70%, #1d4ed8 100%)',
-        }}
-        dir="rtl"
-      >
-        {/* ── Floating XP badges ── */}
-        <div className="fixed top-24 left-1/2 -translate-x-1/2 pointer-events-none z-50 flex flex-col items-center gap-1">
-          {xpFloats.map(f => (
-            <div
-              key={f.id}
-              className="animate-xpFloat bg-amber-400 text-amber-900 font-black text-sm px-4 py-1.5 rounded-full shadow-lg"
-            >
-              +{f.points} XP ⚡
-            </div>
-          ))}
+      {/* Header */}
+      <div className="w-full flex items-center justify-between mb-4">
+        <div className="text-white/70 text-sm font-semibold flex items-center gap-1.5">
+          ✍️ اكتب من الذاكرة
         </div>
+        <span className="text-white/50 text-sm">{idx + 1} / {sentences.length}</span>
+      </div>
 
-        {/* ── Hero ── */}
-        <div className="pt-24 pb-10 px-4 text-center relative overflow-hidden">
-          {/* Background decoration */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute -top-20 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
-            <div className="absolute top-10 right-1/4 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl" />
-          </div>
+      {/* Progress dots */}
+      <div className="flex gap-1.5 mb-6">
+        {sentences.map((_, i) => (
+          <div key={i} className={`h-2 rounded-full transition-all duration-300 ${
+            i < idx ? 'w-6 bg-emerald-400' :
+            i === idx ? 'w-8 bg-blue-400' : 'w-6 bg-white/15'
+          }`} />
+        ))}
+      </div>
 
-          <div className="relative">
-            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-5 py-2 mb-6 text-sm text-blue-100 backdrop-blur-sm">
-              <Sparkles size={14} className="text-amber-400" />
-              مجاني 100% — Powered by AI
-            </div>
+      {/* Arabic prompt */}
+      <div className="w-full bg-white rounded-3xl shadow-xl p-6 mb-5">
+        <p className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+          <Star size={12} /> الجملة بالعربية
+        </p>
+        <p className="text-xl font-bold text-gray-800 leading-relaxed">{sentence.arabic}</p>
+        <p className="text-gray-400 text-sm mt-3 flex items-center gap-1">
+          <BookOpen size={12} />
+          اكتب هذه الجملة بالإنجليزية من الذاكرة
+        </p>
+      </div>
 
-            <h1 className="text-4xl md:text-6xl font-black text-white mb-4 leading-tight">
-              تدرب على
-              <span className="block bg-gradient-to-r from-blue-300 via-cyan-300 to-emerald-300 bg-clip-text text-transparent">
-                الإنجليزية
-              </span>
-            </h1>
-            <p className="text-blue-100 text-lg max-w-md mx-auto mb-8">
-              اكتب • ترجم • استمع • تحادث — لا تتوقف أبداً
-            </p>
-
-            {/* Stats bar */}
-            <div className="inline-flex items-center gap-1 bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl px-6 py-3 gap-4">
-              <div className="flex items-center gap-1.5 text-amber-300 font-black">
-                <Zap size={16} />
-                <span className="text-lg">{xp}</span>
-                <span className="text-xs font-medium opacity-80">XP</span>
-              </div>
-              <div className="w-px h-6 bg-white/20" />
-              <div className="flex items-center gap-1.5 text-orange-300 font-black">
-                <Flame size={16} />
-                <span className="text-lg">{streak}</span>
-                <span className="text-xs font-medium opacity-80">streak</span>
-              </div>
-              <div className="w-px h-6 bg-white/20" />
-              <div className="flex items-center gap-1.5 text-blue-200 font-black">
-                <Trophy size={16} className="text-yellow-400" />
-                <span className="text-sm">{LEVEL_META[level].emoji} {level}</span>
-              </div>
-            </div>
-          </div>
+      {/* Answer input */}
+      {!result && (
+        <div className="w-full space-y-3">
+          <textarea
+            ref={textareaRef}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit() } }}
+            placeholder="Write the English sentence here..."
+            rows={3}
+            dir="ltr"
+            autoFocus
+            className="w-full bg-white/10 border-2 border-white/20 focus:border-blue-400 focus:outline-none rounded-2xl px-4 py-3 text-white text-base resize-none placeholder:text-white/30 transition-colors leading-relaxed"
+          />
+          <button
+            onClick={handleSubmit}
+            disabled={loading || !input.trim()}
+            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-base shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            {loading ? <><Loader2 size={18} className="animate-spin" /> تقييم...</> : <><Send size={16} /> تحقق من إجابتي</>}
+          </button>
         </div>
+      )}
 
-        {/* ── Level selector ── */}
-        <div className="max-w-2xl mx-auto px-4 mb-8">
-          <p className="text-blue-200/70 text-xs text-center mb-3 font-medium uppercase tracking-wider">
-            اختر مستواك
-          </p>
-          <div className="flex items-center justify-center gap-3 flex-wrap">
-            {(['A1', 'A2', 'B1'] as Level[]).map(lvl => (
-              <LevelPill
-                key={lvl}
-                level={lvl}
-                selected={level === lvl}
-                onClick={() => handleLevelChange(lvl)}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* ── Mode tabs ── */}
-        <div className="max-w-2xl mx-auto px-4 mb-6">
-          <div className="flex bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl p-1.5 gap-1.5">
-            <button
-              onClick={() => handleModeSwitch('translate')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all duration-300
-                ${mode === 'translate'
-                  ? 'bg-white text-blue-700 shadow-lg'
-                  : 'text-white/70 hover:text-white hover:bg-white/10'
-                }`}
-            >
-              <BookOpen size={16} />
-              ترجمة وتعلم
-            </button>
-            <button
-              onClick={() => handleModeSwitch('chat')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all duration-300
-                ${mode === 'chat'
-                  ? 'bg-white text-blue-700 shadow-lg'
-                  : 'text-white/70 hover:text-white hover:bg-white/10'
-                }`}
-            >
-              <MessageCircle size={16} />
-              محادثة
-            </button>
-          </div>
-        </div>
-
-        {/* ══════════════ TRANSLATION MODE ══════════════ */}
-        {mode === 'translate' && (
-          <div className="max-w-2xl mx-auto px-4 space-y-4">
-            {/* Input card */}
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-5 shadow-2xl">
-              <p className="text-blue-200 text-sm font-semibold mb-3 flex items-center gap-2">
-                <Mic size={14} /> اكتب بالعربية وسيترجم الذكاء الاصطناعي
-              </p>
-              <textarea
-                ref={translateInputRef}
-                value={arabicInput}
-                onChange={e => { setArabicInput(e.target.value); setTranslateError('') }}
-                onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleTranslate() }}
-                placeholder={PLACEHOLDER_ARABIC[placeholderIndex]}
-                rows={4}
-                className="w-full bg-white/15 border border-white/20 focus:border-blue-400 focus:outline-none rounded-2xl px-4 py-3 text-white text-base resize-none placeholder:text-white/30 transition-colors leading-relaxed"
-              />
-              {translateError && (
-                <p className="text-red-300 text-sm mt-2 flex items-center gap-1.5">
-                  <XCircle size={14} /> {translateError}
-                </p>
-              )}
-              <div className="flex items-center justify-between mt-4 gap-3">
-                <span className="text-white/30 text-xs">
-                  {arabicInput.length}/500
+      {/* Result card */}
+      {result && (
+        <div className="w-full space-y-4 animate-fadeUp">
+          {/* Score */}
+          <div className={`rounded-2xl p-5 border-2 ${
+            result.isGood
+              ? 'bg-emerald-50 border-emerald-200'
+              : 'bg-red-50 border-red-200'
+          }`}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                {result.isGood
+                  ? <CheckCircle2 size={20} className="text-emerald-500" />
+                  : <XCircle size={20} className="text-red-400" />
+                }
+                <span className={`font-black text-lg ${result.isGood ? 'text-emerald-700' : 'text-red-600'}`}>
+                  {result.score}%
                 </span>
-                <div className="flex items-center gap-2">
-                  {arabicInput && (
-                    <button
-                      onClick={() => { setArabicInput(''); setTranslateError('') }}
-                      className="p-2 rounded-xl text-white/40 hover:text-white/70 hover:bg-white/10 transition-all"
-                    >
-                      <RotateCcw size={15} />
-                    </button>
-                  )}
-                  <button
-                    onClick={handleTranslate}
-                    disabled={isTranslating || !arabicInput.trim()}
-                    className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-400 hover:to-indigo-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold px-6 py-3 rounded-2xl transition-all duration-200 shadow-lg shadow-blue-500/30 active:scale-95 glow-pulse"
-                  >
-                    {isTranslating ? (
-                      <><Loader2 size={16} className="animate-spin" /> جارٍ الترجمة...</>
-                    ) : (
-                      <><Sparkles size={16} /> ترجم وتعلم</>
-                    )}
-                  </button>
-                </div>
               </div>
+              <span className="text-amber-600 font-bold text-sm bg-amber-50 px-3 py-1 rounded-full">
+                +{result.xpAwarded} XP
+              </span>
+            </div>
+            <p className="text-gray-700 font-semibold mb-3">{result.feedback}</p>
+
+            {/* Your answer */}
+            <div className="bg-white rounded-xl px-4 py-3 mb-2" dir="ltr">
+              <p className="text-xs text-gray-400 mb-1">إجابتك:</p>
+              <p className="text-gray-700">{input}</p>
             </div>
 
-            {/* Hint */}
-            {translationHistory.length === 0 && !isTranslating && (
-              <div className="text-center py-8">
-                <div className="text-5xl mb-4">✍️</div>
-                <p className="text-white/40 text-sm">اكتب أي جملة بالعربية وستحصل على:</p>
-                <div className="flex flex-wrap justify-center gap-2 mt-3">
-                  {['الترجمة الإنجليزية', '3 جمل مشابهة', 'شرح القواعد', 'صوت النطق'].map(t => (
-                    <span key={t} className="bg-white/10 text-white/60 text-xs px-3 py-1.5 rounded-full">
-                      {t}
-                    </span>
-                  ))}
-                </div>
+            {/* Correct version */}
+            <div className="bg-white rounded-xl px-4 py-3 flex items-center gap-2" dir="ltr">
+              <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+              <div className="flex-1">
+                <p className="text-xs text-gray-400 mb-1">الجملة الصحيحة:</p>
+                <p className="text-gray-800 font-semibold">{result.betterVersion}</p>
               </div>
-            )}
+              <SpeakBtn text={result.betterVersion} size="sm" />
+            </div>
 
-            {/* History */}
-            {translationHistory.length > 0 && (
-              <div className="space-y-3">
-                {translationHistory.map((entry, i) => (
-                  <div key={entry.id} className="animate-fadeUp">
-                    <TranslationCard entry={entry} index={i} />
+            {/* Corrections */}
+            {result.corrections.length > 0 && (
+              <div className="mt-3 space-y-1.5">
+                {result.corrections.map((c, i) => (
+                  <div key={i} className="flex items-start gap-2 text-sm text-gray-600 bg-orange-50 rounded-xl px-3 py-2">
+                    <span className="text-orange-400 mt-0.5">⚠</span>
+                    <span dir="ltr">{c}</span>
                   </div>
                 ))}
               </div>
             )}
+          </div>
 
-            {/* Loading skeleton */}
-            {isTranslating && (
-              <div className="bg-white rounded-3xl shadow-xl p-6 animate-pulse space-y-4">
-                <div className="h-4 bg-gray-200 rounded-full w-3/4" />
-                <div className="h-8 bg-gray-100 rounded-full w-full" />
-                <div className="space-y-2">
-                  <div className="h-3 bg-gray-100 rounded-full w-full" />
-                  <div className="h-3 bg-gray-100 rounded-full w-5/6" />
-                  <div className="h-3 bg-gray-100 rounded-full w-4/6" />
-                </div>
+          <button
+            onClick={handleNext}
+            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 text-white font-black text-base shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            {isLast ? '🎯 انتقل للترجمة' : <>التالي <ArrowRight size={18} /></>}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SCREEN 3: TRANSLATION
+// ═══════════════════════════════════════════════════════════════════
+
+function TranslationScreen({
+  sentences, level, onComplete,
+}: {
+  sentences: Sentence[]
+  level: Level
+  onComplete: (result: StepResult) => void
+}) {
+  // Use first 5 sentences (or all if fewer), pick different subset via slice
+  const pool = sentences.slice(0, Math.min(sentences.length, 5))
+  const [idx, setIdx]       = useState(0)
+  const [input, setInput]   = useState('')
+  const [result, setResult] = useState<EvaluateResponse | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [xpFloats, setXpFloats] = useState<XpFloat[]>([])
+  const [stepXP, setStepXP]   = useState(0)
+  const [correct, setCorrect] = useState(0)
+
+  const sentence = pool[idx]
+  const isLast   = idx === pool.length - 1
+
+  const addFloat = (pts: number) => {
+    const id = Math.random().toString(36).slice(2)
+    setXpFloats(prev => [...prev, { id, points: pts }])
+    setTimeout(() => setXpFloats(prev => prev.filter(f => f.id !== id)), 1800)
+  }
+
+  const handleSubmit = async () => {
+    if (!input.trim() || loading) return
+    setLoading(true)
+    try {
+      const res = await fetch('/api/practice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'evaluate',
+          userAnswer: input.trim(),
+          reference: sentence.english,
+          mode: 'translate',
+          level,
+        }),
+      })
+      const data: EvaluateResponse = await res.json()
+      setResult(data)
+      addFloat(data.xpAwarded)
+      setStepXP(x => x + data.xpAwarded)
+      if (data.isGood) setCorrect(c => c + 1)
+    } catch {
+      const fallback: EvaluateResponse = { score: 65, isGood: true, feedback: 'أحسنت!', corrections: [], betterVersion: sentence.english, xpAwarded: 6 }
+      setResult(fallback)
+      addFloat(fallback.xpAwarded)
+      setStepXP(x => x + fallback.xpAwarded)
+      setCorrect(c => c + 1)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleNext = () => {
+    if (isLast) {
+      onComplete({ xpEarned: stepXP, correct, total: pool.length })
+    } else {
+      setIdx(i => i + 1)
+      setInput('')
+      setResult(null)
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-center px-4 pt-6 pb-24 max-w-lg mx-auto">
+      <XpToast floats={xpFloats} />
+
+      {/* Header */}
+      <div className="w-full flex items-center justify-between mb-4">
+        <div className="text-white/70 text-sm font-semibold flex items-center gap-1.5">
+          <Sparkles size={14} /> الترجمة
+        </div>
+        <span className="text-white/50 text-sm">{idx + 1} / {pool.length}</span>
+      </div>
+
+      {/* Progress */}
+      <div className="flex gap-1.5 mb-6">
+        {pool.map((_, i) => (
+          <div key={i} className={`h-2 rounded-full transition-all duration-300 ${
+            i < idx ? 'w-6 bg-violet-400' :
+            i === idx ? 'w-8 bg-blue-400' : 'w-6 bg-white/15'
+          }`} />
+        ))}
+      </div>
+
+      {/* Arabic prompt */}
+      <div className="w-full bg-white rounded-3xl shadow-xl p-6 mb-5">
+        <p className="text-xs font-bold text-violet-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+          <Sparkles size={12} /> ترجم إلى الإنجليزية
+        </p>
+        <p className="text-2xl font-bold text-gray-800 leading-relaxed mb-1">{sentence.arabic}</p>
+        <p className="text-gray-400 text-sm mt-2">اكتب ما تعنيه هذه الجملة بالإنجليزية</p>
+      </div>
+
+      {/* Answer input */}
+      {!result && (
+        <div className="w-full space-y-3">
+          <textarea
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit() } }}
+            placeholder="Translate to English..."
+            rows={3}
+            dir="ltr"
+            autoFocus
+            className="w-full bg-white/10 border-2 border-white/20 focus:border-violet-400 focus:outline-none rounded-2xl px-4 py-3 text-white text-base resize-none placeholder:text-white/30 transition-colors leading-relaxed"
+          />
+          <button
+            onClick={handleSubmit}
+            disabled={loading || !input.trim()}
+            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-violet-500 to-purple-600 hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-base shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            {loading ? <><Loader2 size={18} className="animate-spin" /> تقييم...</> : <><Sparkles size={16} /> قيّم ترجمتي</>}
+          </button>
+        </div>
+      )}
+
+      {/* Result */}
+      {result && (
+        <div className="w-full space-y-4 animate-fadeUp">
+          <div className={`rounded-2xl p-5 border-2 ${result.isGood ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                {result.isGood ? <CheckCircle2 size={20} className="text-emerald-500" /> : <XCircle size={20} className="text-red-400" />}
+                <span className={`font-black text-lg ${result.isGood ? 'text-emerald-700' : 'text-red-600'}`}>{result.score}%</span>
+              </div>
+              <span className="text-amber-600 font-bold text-sm bg-amber-50 px-3 py-1 rounded-full">+{result.xpAwarded} XP</span>
+            </div>
+            <p className="text-gray-700 font-semibold mb-3">{result.feedback}</p>
+            <div className="bg-white rounded-xl px-4 py-3 mb-2" dir="ltr">
+              <p className="text-xs text-gray-400 mb-1">إجابتك:</p>
+              <p className="text-gray-700">{input}</p>
+            </div>
+            <div className="bg-white rounded-xl px-4 py-3 flex items-center gap-2" dir="ltr">
+              <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+              <div className="flex-1">
+                <p className="text-xs text-gray-400 mb-1">الجملة الصحيحة:</p>
+                <p className="text-gray-800 font-semibold">{result.betterVersion}</p>
+              </div>
+              <SpeakBtn text={result.betterVersion} size="sm" />
+            </div>
+            {result.corrections.length > 0 && (
+              <div className="mt-3 space-y-1.5">
+                {result.corrections.map((c, i) => (
+                  <div key={i} className="flex items-start gap-2 text-sm text-gray-600 bg-orange-50 rounded-xl px-3 py-2">
+                    <span className="text-orange-400 mt-0.5">⚠</span>
+                    <span dir="ltr">{c}</span>
+                  </div>
+                ))}
               </div>
             )}
           </div>
-        )}
+          <button
+            onClick={handleNext}
+            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-violet-500 to-purple-600 hover:opacity-90 text-white font-black text-base shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            {isLast ? '💬 انتقل للمحادثة' : <>التالي <ArrowRight size={18} /></>}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
 
-        {/* ══════════════ CHAT MODE ══════════════ */}
-        {mode === 'chat' && (
-          <div className="max-w-2xl mx-auto px-4 flex flex-col" style={{ height: 'calc(100vh - 380px)', minHeight: 420 }}>
+// ═══════════════════════════════════════════════════════════════════
+// SCREEN 4: CHAT
+// ═══════════════════════════════════════════════════════════════════
 
-            {/* Chat header */}
-            <div className="flex items-center justify-between bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl px-5 py-3 mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-xl flex items-center justify-center text-lg">
-                  🤖
-                </div>
-                <div>
-                  <p className="text-white font-bold text-sm">AI Coach</p>
-                  <p className="text-blue-200/60 text-xs flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full inline-block" />
-                    متاح دائماً • مستوى {LEVEL_META[level].emoji} {level}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => startChat(level)}
-                title="محادثة جديدة"
-                className="p-2 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-all"
-              >
-                <RotateCcw size={15} />
-              </button>
-            </div>
+function ChatScreen({
+  sentences, level, onComplete,
+}: {
+  sentences: Sentence[]
+  level: Level
+  onComplete: (result: StepResult) => void
+}) {
+  const [messages, setMessages] = useState<ChatMsg[]>([])
+  const [apiHistory, setApiHistory] = useState<{ role: string; content: string }[]>([])
+  const [input, setInput]       = useState('')
+  const [loading, setLoading]   = useState(false)
+  const [replyCount, setReplyCount] = useState(0)
+  const [chatXP, setChatXP]     = useState(0)
+  const [chatCorrect, setChatCorrect] = useState(0)
+  const [xpFloats, setXpFloats] = useState<XpFloat[]>([])
+  const [done, setDone]         = useState(false)
+  const endRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
-            {/* Messages area */}
-            <div className="flex-1 overflow-y-auto space-y-5 pb-4 pr-1 scrollbar-thin">
-              {/* Empty state */}
-              {!chatStarted && !isChatLoading && (
-                <div className="text-center py-12">
-                  <div className="text-5xl mb-4">💬</div>
-                  <p className="text-white/50 text-sm">جارٍ بدء المحادثة...</p>
+  const addFloat = (pts: number) => {
+    const id = Math.random().toString(36).slice(2)
+    setXpFloats(prev => [...prev, { id, points: pts }])
+    setTimeout(() => setXpFloats(prev => prev.filter(f => f.id !== id)), 1800)
+  }
+
+  const addAiMsg = useCallback((data: ChatResponse) => {
+    const msg: ChatMsg = {
+      id: Math.random().toString(36).slice(2),
+      role: 'ai',
+      content: data.aiMessage,
+      correction: data.correction,
+      correctedVersion: data.correctedVersion,
+      encouragement: data.encouragement,
+      isCorrect: data.isCorrect,
+      points: data.points,
+    }
+    setMessages(prev => [...prev, msg])
+    setApiHistory(prev => [...prev, { role: 'assistant', content: data.aiMessage }])
+    if (data.isLastMessage) setDone(true)
+  }, [])
+
+  // Start chat on mount
+  useEffect(() => {
+    setLoading(true)
+    fetch('/api/practice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'chat-practice',
+        sentences: sentences.map(s => ({ english: s.english, arabic: s.arabic })),
+        messages: [],
+        level,
+        replyCount: 0,
+      }),
+    })
+      .then(r => r.json())
+      .then((data: ChatResponse) => { addAiMsg(data); setLoading(false) })
+      .catch(() => {
+        addAiMsg({ aiMessage: 'Hello! Let\'s practice the sentences you just studied. Tell me which one you liked the most!', correction: null, isCorrect: true, correctedVersion: null, encouragement: 'أحسنت!', points: 0, isLastMessage: false })
+        setLoading(false)
+      })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, loading])
+
+  const handleSend = async () => {
+    const text = input.trim()
+    if (!text || loading || done) return
+    setInput('')
+
+    const userMsg: ChatMsg = {
+      id: Math.random().toString(36).slice(2),
+      role: 'user', content: text,
+      correction: null, correctedVersion: null, encouragement: null,
+      isCorrect: true, points: 0,
+    }
+    const newHistory = [...apiHistory, { role: 'user', content: text }]
+    setMessages(prev => [...prev, userMsg])
+    setApiHistory(newHistory)
+    setLoading(true)
+
+    const newReplyCount = replyCount + 1
+    setReplyCount(newReplyCount)
+
+    try {
+      const res = await fetch('/api/practice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'chat-practice',
+          sentences: sentences.map(s => ({ english: s.english, arabic: s.arabic })),
+          messages: newHistory.slice(0, -1),
+          level,
+          userReply: text,
+          replyCount: newReplyCount,
+        }),
+      })
+      const data: ChatResponse = await res.json()
+      addAiMsg(data)
+      addFloat(data.points)
+      setChatXP(x => x + data.points)
+      if (data.isCorrect) setChatCorrect(c => c + 1)
+    } catch {
+      addAiMsg({ aiMessage: 'Great effort! Keep practicing every day.', correction: null, isCorrect: true, correctedVersion: null, encouragement: 'ممتاز!', points: 7, isLastMessage: newReplyCount >= 3 })
+      addFloat(7)
+      setChatXP(x => x + 7)
+      setChatCorrect(c => c + 1)
+    } finally {
+      setLoading(false)
+      setTimeout(() => inputRef.current?.focus(), 50)
+    }
+  }
+
+  return (
+    <div className="flex flex-col h-[calc(100dvh-140px)] max-w-lg mx-auto px-4 pt-6">
+      <XpToast floats={xpFloats} />
+
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-4 shrink-0">
+        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center text-xl shadow-md">
+          🤖
+        </div>
+        <div>
+          <p className="text-white font-bold text-sm">AI Coach</p>
+          <p className="text-blue-200/60 text-xs flex items-center gap-1">
+            <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full inline-block" />
+            محادثة تفاعلية · {3 - replyCount > 0 ? `${3 - replyCount} أسئلة متبقية` : 'انتهت الجلسة'}
+          </p>
+        </div>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto space-y-4 pb-4">
+        {messages.map(msg => (
+          <div key={msg.id} className={`flex flex-col gap-1.5 animate-fadeUp ${msg.role === 'ai' ? 'items-end' : 'items-start'}`}>
+            <span className={`text-xs font-bold px-2 ${msg.role === 'ai' ? 'text-blue-300' : 'text-white/50'}`}>
+              {msg.role === 'ai' ? '🤖 AI Coach' : '👤 أنت'}
+            </span>
+            <div className={`max-w-[85%] rounded-3xl px-5 py-4 shadow-lg
+              ${msg.role === 'ai'
+                ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-tl-lg'
+                : 'bg-white text-gray-800 rounded-tr-lg'
+              }`}>
+              <p className="text-sm sm:text-base leading-relaxed" dir="ltr">{msg.content}</p>
+              {msg.role === 'ai' && (
+                <div className="mt-2 pt-2 border-t border-white/20">
+                  <SpeakBtn text={msg.content} size="sm" />
                 </div>
               )}
+            </div>
 
-              {chatMessages.map(msg => (
-                <ChatBubble key={msg.id} msg={msg} />
-              ))}
-
-              {isChatLoading && <TypingIndicator />}
-
-              {chatError && (
-                <div className="flex justify-center">
-                  <div className="bg-red-500/20 border border-red-400/30 text-red-200 text-sm px-4 py-3 rounded-2xl flex items-center gap-2">
-                    <XCircle size={14} />
-                    {chatError}
-                    <button
-                      onClick={() => { setChatError(''); startChat(level) }}
-                      className="underline opacity-80 hover:opacity-100 mr-2"
-                    >
-                      أعد المحاولة
-                    </button>
+            {/* Correction */}
+            {msg.role === 'ai' && msg.correction && (
+              <div className="max-w-[85%] bg-white rounded-2xl rounded-tl-md px-4 py-3 shadow border border-gray-100 space-y-2">
+                <div className="flex items-center gap-1.5">
+                  {msg.isCorrect
+                    ? <CheckCircle2 size={13} className="text-emerald-500" />
+                    : <XCircle size={13} className="text-red-400" />}
+                  <span className={`text-xs font-bold ${msg.isCorrect ? 'text-emerald-600' : 'text-red-500'}`}>
+                    {msg.isCorrect ? 'صحيح!' : 'تصحيح'}
+                  </span>
+                </div>
+                <p className="text-gray-600 text-xs" dir="ltr">{msg.correction}</p>
+                {msg.correctedVersion && (
+                  <div className="flex items-center gap-2 bg-emerald-50 rounded-xl px-3 py-2" dir="ltr">
+                    <CheckCircle2 size={12} className="text-emerald-500 shrink-0" />
+                    <span className="text-emerald-700 text-sm font-semibold flex-1">{msg.correctedVersion}</span>
+                    <SpeakBtn text={msg.correctedVersion} size="sm" />
                   </div>
-                </div>
-              )}
-
-              <div ref={chatEndRef} />
-            </div>
-
-            {/* Chat input */}
-            <div className="mt-3">
-              <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-3 flex items-end gap-3">
-                <textarea
-                  ref={chatInputRef}
-                  value={chatInput}
-                  onChange={e => setChatInput(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault()
-                      handleChatSend()
-                    }
-                  }}
-                  placeholder="اكتب ردك بالإنجليزية..."
-                  rows={2}
-                  dir="ltr"
-                  disabled={isChatLoading || !chatStarted}
-                  className="flex-1 bg-transparent border-none focus:outline-none text-white text-sm resize-none placeholder:text-white/30 leading-relaxed"
-                />
-                <button
-                  onClick={handleChatSend}
-                  disabled={isChatLoading || !chatInput.trim() || !chatStarted}
-                  className="w-11 h-11 bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 disabled:opacity-30 disabled:cursor-not-allowed rounded-xl flex items-center justify-center shadow-lg transition-all duration-200 active:scale-90 shrink-0"
-                >
-                  {isChatLoading
-                    ? <Loader2 size={18} className="text-white animate-spin" />
-                    : <ArrowLeft size={18} className="text-white" />
-                  }
-                </button>
+                )}
               </div>
-              <p className="text-white/30 text-xs text-center mt-2">
-                Enter للإرسال • Shift+Enter لسطر جديد
-              </p>
+            )}
+
+            {/* Encouragement + XP */}
+            {msg.role === 'ai' && msg.encouragement && msg.points > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-amber-300 text-sm font-bold">{msg.encouragement}</span>
+                <span className="flex items-center gap-1 bg-white/10 border border-white/20 text-white text-xs font-bold px-2 py-1 rounded-full">
+                  <Zap size={10} className="text-amber-400" /> +{msg.points} XP
+                </span>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {/* Typing indicator */}
+        {loading && (
+          <div className="flex items-end gap-1.5">
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl rounded-tl-lg px-5 py-4 shadow-lg">
+              <div className="flex items-center gap-1.5">
+                {[0, 1, 2].map(i => (
+                  <span key={i} className="w-2 h-2 bg-white rounded-full inline-block"
+                    style={{ animation: `typingBounce 1.2s ${i * 0.2}s ease-in-out infinite` }} />
+                ))}
+              </div>
             </div>
           </div>
         )}
 
-        {/* ── Bottom CTA ── */}
-        <div className="max-w-2xl mx-auto px-4 mt-12 text-center">
-          <p className="text-blue-200/50 text-sm mb-3">هل تريد تدريباً أعمق مع المعلم؟</p>
-          <a
-            href="https://wa.me/212707902091?text=مرحبا، أريد الانضمام لبرنامج تعلم الإنجليزية"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-[#25d366] hover:bg-[#1ebe5d] text-white font-bold px-6 py-3 rounded-2xl transition-all duration-200 shadow-lg active:scale-95"
+        <div ref={endRef} />
+      </div>
+
+      {/* Input or Done */}
+      {!done ? (
+        <div className="shrink-0 pt-3 border-t border-white/10">
+          <div className="bg-white/10 border border-white/20 rounded-2xl p-3 flex items-end gap-3">
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
+              placeholder="اكتب ردك بالإنجليزية..."
+              rows={2}
+              dir="ltr"
+              disabled={loading}
+              className="flex-1 bg-transparent border-none focus:outline-none text-white text-sm resize-none placeholder:text-white/30 leading-relaxed"
+            />
+            <button
+              onClick={handleSend}
+              disabled={loading || !input.trim()}
+              className="w-11 h-11 bg-gradient-to-br from-blue-500 to-indigo-600 hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed rounded-xl flex items-center justify-center shadow-lg transition-all active:scale-90 shrink-0"
+            >
+              {loading ? <Loader2 size={18} className="text-white animate-spin" /> : <Send size={16} className="text-white" />}
+            </button>
+          </div>
+          <p className="text-white/30 text-xs text-center mt-2">Enter للإرسال</p>
+        </div>
+      ) : (
+        <div className="shrink-0 pt-4 border-t border-white/10">
+          <button
+            onClick={() => onComplete({ xpEarned: chatXP, correct: chatCorrect, total: replyCount })}
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 text-white font-black text-lg shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2"
           >
-            <MessageCircle size={16} />
-            تواصل مع المعلم حمزة
-          </a>
+            🏆 عرض النتائج
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SCREEN 5: RESULTS
+// ═══════════════════════════════════════════════════════════════════
+
+function ResultsScreen({
+  session, progress, onNewSession, onContinue,
+}: {
+  session: SessionState
+  progress: UserProgress
+  onNewSession: () => void
+  onContinue: () => void
+}) {
+  const totalXP   = Object.values(session.results).reduce((a, r) => a + r.xpEarned, 0) + 50
+  const totalCorr = Object.values(session.results).reduce((a, r) => a + r.correct, 0)
+  const totalQ    = Object.values(session.results).reduce((a, r) => a + r.total, 0) || 1
+  const accuracy  = Math.round((totalCorr / totalQ) * 100)
+  const newXP     = progress.xp
+
+  const msg = accuracy >= 90 ? randomFrom(FEEDBACK_MESSAGES.perfect)
+    : accuracy >= 70 ? randomFrom(FEEDBACK_MESSAGES.good)
+    : accuracy >= 50 ? randomFrom(FEEDBACK_MESSAGES.ok)
+    : randomFrom(FEEDBACK_MESSAGES.tryAgain)
+
+  const nextInfo = nextLevelInfo(newXP)
+  const pct      = levelProgress(newXP)
+
+  return (
+    <div className="flex flex-col items-center px-4 pt-6 pb-24 max-w-lg mx-auto">
+      {/* Celebration */}
+      <div className="text-center mb-8 animate-fadeUp">
+        <div className="text-7xl mb-3">{accuracy >= 80 ? '🏆' : accuracy >= 60 ? '🎯' : '💪'}</div>
+        <h2 className="text-3xl font-black text-white mb-2">{msg}</h2>
+        <p className="text-blue-200/70">جلسة كاملة انتهت!</p>
+      </div>
+
+      {/* XP Card */}
+      <div className="w-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-3xl p-6 mb-4 text-center shadow-xl animate-fadeUp"
+        style={{ animationDelay: '100ms' }}>
+        <p className="text-white/80 text-sm font-semibold mb-1">نقاط XP المكتسبة</p>
+        <p className="text-5xl font-black text-white">+{totalXP}</p>
+        <p className="text-white/70 text-sm mt-1">يشمل +50 مكافأة إتمام الجلسة</p>
+      </div>
+
+      {/* Stats */}
+      <div className="w-full grid grid-cols-3 gap-3 mb-4" style={{ animationDelay: '200ms' }}>
+        <div className="bg-white/10 border border-white/15 rounded-2xl p-4 text-center">
+          <div className="text-2xl font-black text-emerald-300">{accuracy}%</div>
+          <div className="text-white/50 text-xs mt-0.5">الدقة</div>
+        </div>
+        <div className="bg-white/10 border border-white/15 rounded-2xl p-4 text-center">
+          <div className="text-2xl font-black text-orange-300">🔥 {progress.streak}</div>
+          <div className="text-white/50 text-xs mt-0.5">أيام</div>
+        </div>
+        <div className="bg-white/10 border border-white/15 rounded-2xl p-4 text-center">
+          <div className="text-2xl font-black text-blue-300">⚡ {newXP}</div>
+          <div className="text-white/50 text-xs mt-0.5">إجمالي XP</div>
+        </div>
+      </div>
+
+      {/* Step breakdown */}
+      <div className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 mb-4 space-y-3 animate-fadeUp"
+        style={{ animationDelay: '300ms' }}>
+        <p className="text-white/70 text-sm font-bold mb-2">تفاصيل الجلسة</p>
+        {([
+          { key: 'reading',     label: 'القراءة',   icon: '📖', color: 'text-blue-300' },
+          { key: 'writing',     label: 'الكتابة',   icon: '✍️', color: 'text-emerald-300' },
+          { key: 'translation', label: 'الترجمة',   icon: '🌐', color: 'text-violet-300' },
+          { key: 'chat',        label: 'المحادثة',  icon: '💬', color: 'text-amber-300' },
+        ] as const).map(({ key, label, icon, color }) => {
+          const r = session.results[key]
+          return (
+            <div key={key} className="flex items-center justify-between">
+              <span className="text-white/60 text-sm">{icon} {label}</span>
+              <div className="flex items-center gap-2">
+                {r.total > 0 && (
+                  <span className="text-white/40 text-xs">{r.correct}/{r.total}</span>
+                )}
+                <span className={`font-bold text-sm ${color}`}>+{r.xpEarned} XP</span>
+              </div>
+            </div>
+          )
+        })}
+        <div className="pt-2 border-t border-white/10 flex items-center justify-between">
+          <span className="text-white font-bold text-sm">مكافأة الإتمام</span>
+          <span className="font-bold text-amber-300 text-sm">+50 XP</span>
+        </div>
+      </div>
+
+      {/* Level progress */}
+      {nextInfo ? (
+        <div className="w-full bg-white/10 border border-white/15 rounded-2xl p-4 mb-6 animate-fadeUp"
+          style={{ animationDelay: '400ms' }}>
+          <div className="flex justify-between text-sm mb-2">
+            <span className="text-white/70 font-semibold">التقدم نحو {nextInfo.label}</span>
+            <span className="text-amber-300 font-bold">{nextInfo.xpNeeded} XP متبقية</span>
+          </div>
+          <div className="h-2.5 bg-white/15 rounded-full overflow-hidden">
+            <div className="h-full bg-gradient-to-r from-amber-400 to-orange-400 rounded-full transition-all duration-1000"
+              style={{ width: `${pct}%` }} />
+          </div>
+        </div>
+      ) : (
+        <div className="w-full bg-gradient-to-r from-violet-500/30 to-purple-500/30 border border-violet-400/40 rounded-2xl p-4 mb-6 text-center animate-fadeUp">
+          <p className="text-violet-200 font-bold">🏆 وصلت إلى أعلى مستوى! أنت ممتاز!</p>
+        </div>
+      )}
+
+      {/* CTA buttons */}
+      <div className="w-full space-y-3">
+        <button
+          onClick={onNewSession}
+          className="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:opacity-90 text-white font-black text-lg shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2"
+        >
+          <RefreshCw size={20} /> جلسة جديدة
+        </button>
+        <button
+          onClick={onContinue}
+          className="w-full py-3 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/20 text-white font-bold text-base transition-all flex items-center justify-center gap-2"
+        >
+          <Trophy size={18} className="text-amber-400" /> تغيير المستوى
+        </button>
+        <a
+          href="https://wa.me/212707902091?text=مرحبا، أريد الانضمام لبرنامج تعلم الإنجليزية"
+          target="_blank" rel="noopener noreferrer"
+          className="w-full py-3 rounded-2xl bg-[#25d366]/20 hover:bg-[#25d366]/30 border border-[#25d366]/40 text-emerald-300 font-bold text-sm transition-all flex items-center justify-center gap-2"
+        >
+          <MessageCircle size={16} /> تواصل مع المعلم حمزة للتدريب المتقدم
+        </a>
+      </div>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MAIN PAGE
+// ═══════════════════════════════════════════════════════════════════
+
+export default function PracticePage() {
+  const [screen, setScreen]   = useState<Screen>('select')
+  const [visible, setVisible] = useState(true)
+  const [session, setSession] = useState<SessionState | null>(null)
+  const [progress, setProgress] = useState<UserProgress>(() => getProgress())
+  const [globalXPFloats, setGlobalXPFloats] = useState<XpFloat[]>([])
+  const [levelUp, setLevelUp] = useState<Level | null>(null)
+
+  // Preload voices on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') window.speechSynthesis?.getVoices()
+  }, [])
+
+  // Animated transition helper
+  const transitionTo = useCallback((next: Screen) => {
+    setVisible(false)
+    setTimeout(() => { setScreen(next); setVisible(true) }, 220)
+  }, [])
+
+  const addGlobalXP = useCallback((pts: number, newProg: UserProgress) => {
+    const id = Math.random().toString(36).slice(2)
+    setGlobalXPFloats(prev => [...prev, { id, points: pts }])
+    setTimeout(() => setGlobalXPFloats(prev => prev.filter(f => f.id !== id)), 1800)
+    // Check for level up
+    const oldLevel = progress.unlockedLevel
+    const newLevel = newProg.unlockedLevel
+    if (newLevel !== oldLevel) {
+      setTimeout(() => { setLevelUp(newLevel); setTimeout(() => setLevelUp(null), 3000) }, 300)
+    }
+  }, [progress.unlockedLevel])
+
+  // ── Start session ──────────────────────────────────────────────
+
+  const startSession = useCallback((level: Level) => {
+    const usedIds = progress.usedSentenceIds[level] ?? []
+    const sentences = getSessionSentences(level, usedIds, 6)
+
+    const newSession: SessionState = {
+      level,
+      sentences,
+      results: {
+        reading:     { xpEarned: 0, correct: 0, total: 0 },
+        writing:     { xpEarned: 0, correct: 0, total: 0 },
+        translation: { xpEarned: 0, correct: 0, total: 0 },
+        chat:        { xpEarned: 0, correct: 0, total: 0 },
+      },
+    }
+    setSession(newSession)
+    transitionTo('reading')
+  }, [progress, transitionTo])
+
+  // ── Step completions ───────────────────────────────────────────
+
+  const completeReading = useCallback(() => {
+    if (!session) return
+    setSession(s => s ? { ...s, results: { ...s.results, reading: { xpEarned: 0, correct: s.sentences.length, total: s.sentences.length } } } : s)
+    transitionTo('writing')
+  }, [session, transitionTo])
+
+  const completeStep = useCallback((step: 'writing' | 'translation' | 'chat', result: StepResult) => {
+    if (!session) return
+
+    setSession(s => {
+      if (!s) return s
+      return { ...s, results: { ...s.results, [step]: result } }
+    })
+
+    if (step !== 'chat') {
+      addGlobalXP(result.xpEarned, progress)
+      const nextScreen: Screen = step === 'writing' ? 'translation' : 'chat'
+      transitionTo(nextScreen)
+    } else {
+      // Final step — compute totals, update progress, show results
+      setSession(s => {
+        if (!s) return s
+        const updated = { ...s, results: { ...s.results, chat: result } }
+
+        // Sum XP across all steps + completion bonus
+        const totalXP = Object.values(updated.results).reduce((a, r) => a + r.xpEarned, 0) + 50
+
+        let newProg = applyXP(progress, totalXP)
+        newProg     = updateStreak(newProg)
+        newProg     = markSentencesUsed(newProg, s.level, s.sentences.map(s2 => s2.id))
+        newProg     = { ...newProg, totalSessions: newProg.totalSessions + 1 }
+
+        saveProgress(newProg)
+        setProgress(newProg)
+        addGlobalXP(totalXP, newProg)
+
+        return updated
+      })
+      transitionTo('results')
+    }
+  }, [session, progress, transitionTo, addGlobalXP])
+
+  const handleNewSession = useCallback(() => {
+    if (!session) { transitionTo('select'); return }
+    // Regenerate sentences (anti-repeat with updated used list)
+    const freshProg = getProgress()
+    const usedIds = freshProg.usedSentenceIds[session.level] ?? []
+    const sentences = getSessionSentences(session.level, usedIds, 6)
+    const newSess: SessionState = {
+      level: session.level,
+      sentences,
+      results: {
+        reading: { xpEarned: 0, correct: 0, total: 0 },
+        writing: { xpEarned: 0, correct: 0, total: 0 },
+        translation: { xpEarned: 0, correct: 0, total: 0 },
+        chat: { xpEarned: 0, correct: 0, total: 0 },
+      },
+    }
+    setSession(newSess)
+    transitionTo('reading')
+  }, [session, transitionTo])
+
+  // ── Render ─────────────────────────────────────────────────────
+
+  return (
+    <>
+      <style>{`
+        @keyframes fadeUp {
+          from { opacity:0; transform:translateY(18px); }
+          to   { opacity:1; transform:translateY(0); }
+        }
+        @keyframes cardIn {
+          from { opacity:0; transform:scale(0.95) translateY(12px); }
+          to   { opacity:1; transform:scale(1)    translateY(0); }
+        }
+        @keyframes typingBounce {
+          0%,100% { transform:translateY(0);   opacity:.4; }
+          50%     { transform:translateY(-6px); opacity:1; }
+        }
+        @keyframes xpFloat {
+          0%   { opacity:1; transform:translateY(0)    scale(1); }
+          100% { opacity:0; transform:translateY(-60px) scale(1.3); }
+        }
+        @keyframes levelUpPop {
+          0%   { opacity:0; transform:scale(0.5) translateY(20px); }
+          60%  { transform:scale(1.1) translateY(-4px); }
+          100% { opacity:1; transform:scale(1)  translateY(0); }
+        }
+        @keyframes screenFade {
+          from { opacity:0; transform:translateY(10px); }
+          to   { opacity:1; transform:translateY(0); }
+        }
+        .animate-fadeUp   { animation: fadeUp   0.4s ease-out both; }
+        .animate-cardIn   { animation: cardIn   0.4s ease-out both; }
+        .animate-xpFloat  { animation: xpFloat  1.8s ease-out both; }
+        .animate-levelUp  { animation: levelUpPop 0.6s cubic-bezier(.34,1.56,.64,1) both; }
+        .animate-screenFade { animation: screenFade 0.22s ease-out both; }
+      `}</style>
+
+      {/* Full-page wrapper */}
+      <div
+        className="min-h-screen pb-8"
+        style={{ background: 'linear-gradient(135deg,#0f172a 0%,#1e1b4b 35%,#1e3a8a 70%,#1d4ed8 100%)' }}
+        dir="rtl"
+      >
+        {/* Global XP floats */}
+        <XpToast floats={globalXPFloats} />
+
+        {/* Level-up modal */}
+        {levelUp && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+            <div className="bg-gradient-to-br from-amber-400 to-orange-500 text-white rounded-3xl px-10 py-8 shadow-2xl text-center animate-levelUp">
+              <div className="text-5xl mb-2">🎉</div>
+              <p className="text-2xl font-black">مستوى جديد!</p>
+              <p className="text-lg font-bold opacity-90">تم فتح مستوى {levelUp}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Session header (steps bar) */}
+        {screen !== 'select' && (
+          <div className="sticky top-16 z-30">
+            <ProgressBar screen={screen} totalXP={progress.xp} />
+          </div>
+        )}
+
+        {/* Hero (select screen only) */}
+        {screen === 'select' && (
+          <div className="pt-24 pb-4 px-4 text-center">
+            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-5 py-2 mb-4 text-sm text-blue-100 backdrop-blur-sm">
+              <Sparkles size={14} className="text-amber-400" />
+              AI-Powered · مجاني 100%
+            </div>
+          </div>
+        )}
+        {screen !== 'select' && <div className="pt-20" />}
+
+        {/* Screens */}
+        <div className={`transition-opacity duration-200 ${visible ? 'opacity-100' : 'opacity-0'}`}>
+
+          {screen === 'select' && (
+            <LevelSelectScreen progress={progress} onStart={startSession} />
+          )}
+
+          {screen === 'reading' && session && (
+            <ReadingScreen sentences={session.sentences} onComplete={completeReading} />
+          )}
+
+          {screen === 'writing' && session && (
+            <WritingScreen
+              sentences={session.sentences}
+              level={session.level}
+              onComplete={r => completeStep('writing', r)}
+            />
+          )}
+
+          {screen === 'translation' && session && (
+            <TranslationScreen
+              sentences={session.sentences}
+              level={session.level}
+              onComplete={r => completeStep('translation', r)}
+            />
+          )}
+
+          {screen === 'chat' && session && (
+            <ChatScreen
+              sentences={session.sentences}
+              level={session.level}
+              onComplete={r => completeStep('chat', r)}
+            />
+          )}
+
+          {screen === 'results' && session && (
+            <ResultsScreen
+              session={session}
+              progress={progress}
+              onNewSession={handleNewSession}
+              onContinue={() => transitionTo('select')}
+            />
+          )}
         </div>
       </div>
     </>
