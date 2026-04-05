@@ -139,6 +139,70 @@ function speakBrowserFallback(text: string) {
   window.speechSynthesis.speak(utt)
 }
 
+// ─── LOCAL VALIDATION (zero API calls) ───────────────────────────────────────
+
+function normalizeText(s: string): string {
+  return s.toLowerCase().trim().replace(/[^\w\s]/g, '').replace(/\s+/g, ' ')
+}
+
+function wordSimilarity(a: string, b: string): number {
+  const wa = normalizeText(a).split(' ').filter(Boolean)
+  const wb = normalizeText(b).split(' ').filter(Boolean)
+  if (!wa.length || !wb.length) return 0
+  const setA = new Set(wa)
+  const setB = new Set(wb)
+  const intersection = [...setA].filter(w => setB.has(w)).length
+  const union = new Set([...wa, ...wb]).size
+  return Math.round((intersection / union) * 100)
+}
+
+function validateLocally(userAnswer: string, reference: string): EvaluateResponse {
+  const trimmed = userAnswer.trim()
+  if (!trimmed) {
+    return { score: 0, isGood: false, feedback: 'لم تكتب إجابة.', corrections: [], betterVersion: reference, xpAwarded: 0 }
+  }
+  const score = wordSimilarity(trimmed, reference)
+  const isGood = score >= 70
+  const xp = score >= 90 ? 10 : score >= 75 ? 8 : score >= 55 ? 5 : 2
+  return {
+    score,
+    isGood,
+    feedback: isGood
+      ? (score >= 90 ? 'ممتاز! إجابة مثالية. 🎉' : 'جيد جداً! معظم الجملة صحيح. 💪')
+      : (score >= 40 ? 'قريب، لكن فيه فرق — راجع الجملة. 🔄' : 'إجابة خاطئة — اقرأ الجملة الصحيحة. ❌'),
+    corrections: isGood ? [] : [`Your answer differs significantly from the reference.`],
+    betterVersion: reference,
+    xpAwarded: xp,
+  }
+}
+
+function playSound(type: 'success' | 'error') {
+  if (typeof window === 'undefined') return
+  try {
+    type AC = typeof AudioContext
+    const AudioCtx: AC = window.AudioContext ?? (window as unknown as { webkitAudioContext: AC }).webkitAudioContext
+    const ctx = new AudioCtx()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    if (type === 'success') {
+      osc.frequency.setValueAtTime(523, ctx.currentTime)
+      osc.frequency.setValueAtTime(659, ctx.currentTime + 0.12)
+      gain.gain.setValueAtTime(0.1, ctx.currentTime)
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5)
+      osc.start(ctx.currentTime)
+      osc.stop(ctx.currentTime + 0.5)
+    } else {
+      osc.frequency.setValueAtTime(200, ctx.currentTime)
+      gain.gain.setValueAtTime(0.1, ctx.currentTime)
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35)
+      osc.start(ctx.currentTime)
+      osc.stop(ctx.currentTime + 0.35)
+    }
+  } catch { /* ignore */ }
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // SHARED UI COMPONENTS
 // ═══════════════════════════════════════════════════════════════════
@@ -374,9 +438,27 @@ function ReadingScreen({
   const [showArabic, setShowArabic] = useState(false)
   const [seen, setSeen] = useState<Set<number>>(new Set())
   const [dir, setDir] = useState<'next' | 'prev'>('next')
+  const [timeLeft, setTimeLeft] = useState(120)
 
   const sentence = sentences[idx]
   const allSeen  = seen.size >= sentences.length
+
+  // Auto-play audio when sentence changes
+  useEffect(() => {
+    let active = true
+    fetchTTS(sentence.english)
+      .then(url => { if (active) new Audio(url).play().catch(() => speakBrowserFallback(sentence.english)) })
+      .catch(() => { if (active) speakBrowserFallback(sentence.english) })
+    return () => { active = false }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idx])
+
+  // Countdown timer (stops at 0)
+  useEffect(() => {
+    if (timeLeft <= 0) return
+    const t = setTimeout(() => setTimeLeft(s => s - 1), 1000)
+    return () => clearTimeout(t)
+  }, [timeLeft])
 
   const goTo = (next: number, d: 'next' | 'prev') => {
     setDir(d)
@@ -392,7 +474,7 @@ function ReadingScreen({
   return (
     <div className="flex flex-col items-center px-4 pt-6 pb-24 max-w-lg mx-auto">
       {/* Header */}
-      <div className="w-full flex items-center justify-between mb-6">
+      <div className="w-full flex items-center justify-between mb-3">
         <div className="text-white/70 text-sm font-semibold">
           <BookOpen size={14} className="inline ml-1" />
           اقرأ وتذكّر
@@ -410,6 +492,13 @@ function ReadingScreen({
           ))}
         </div>
         <span className="text-white/50 text-sm">{idx + 1} / {sentences.length}</span>
+      </div>
+
+      {/* Timer */}
+      <div className={`w-full text-center text-xs font-bold mb-4 tabular-nums ${
+        timeLeft <= 30 ? 'text-red-400' : timeLeft <= 60 ? 'text-amber-400' : 'text-white/40'
+      }`}>
+        ⏱ {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
       </div>
 
       {/* Card */}
@@ -496,7 +585,7 @@ function ReadingScreen({
 // ═══════════════════════════════════════════════════════════════════
 
 function WritingScreen({
-  sentences, level, onComplete,
+  sentences, level: _level, onComplete,
 }: {
   sentences: Sentence[]
   level: Level
@@ -505,7 +594,7 @@ function WritingScreen({
   const [idx, setIdx]       = useState(0)
   const [input, setInput]   = useState('')
   const [result, setResult] = useState<EvaluateResponse | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading] = useState(false)
   const [xpFloats, setXpFloats] = useState<XpFloat[]>([])
   const [stepXP, setStepXP]   = useState(0)
   const [correct, setCorrect] = useState(0)
@@ -520,39 +609,14 @@ function WritingScreen({
     setTimeout(() => setXpFloats(prev => prev.filter(f => f.id !== id)), 1800)
   }
 
-  const handleSubmit = async () => {
-    if (!input.trim() || loading) return
-    setLoading(true)
-    setResult(null)
-
-    try {
-      const res = await fetch('/api/practice', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'evaluate',
-          userAnswer: input.trim(),
-          reference: sentence.english,
-          mode: 'recall',
-          level,
-        }),
-      })
-      const raw = await res.json()
-      const data: EvaluateResponse = res.ok && raw.score !== undefined ? raw : null
-      if (!data) throw new Error('bad response')
-      setResult(data)
-      addFloat(data.xpAwarded ?? 0)
-      setStepXP(x => x + (data.xpAwarded ?? 0))
-      if (data.isGood) setCorrect(c => c + 1)
-    } catch {
-      setResult({
-        score: 60, isGood: true,
-        feedback: 'أحسنت! واصل.',
-        corrections: [], betterVersion: sentence.english, xpAwarded: 5,
-      })
-    } finally {
-      setLoading(false)
-    }
+  const handleSubmit = () => {
+    if (!input.trim()) return
+    const data = validateLocally(input, sentence.english)
+    setResult(data)
+    addFloat(data.xpAwarded)
+    setStepXP(x => x + data.xpAwarded)
+    if (data.isGood) setCorrect(c => c + 1)
+    playSound(data.isGood ? 'success' : 'error')
   }
 
   const handleNext = () => {
@@ -695,7 +759,7 @@ function WritingScreen({
 // ═══════════════════════════════════════════════════════════════════
 
 function TranslationScreen({
-  sentences, level, onComplete,
+  sentences, level: _level, onComplete,
 }: {
   sentences: Sentence[]
   level: Level
@@ -706,7 +770,7 @@ function TranslationScreen({
   const [idx, setIdx]       = useState(0)
   const [input, setInput]   = useState('')
   const [result, setResult] = useState<EvaluateResponse | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [loading] = useState(false)
   const [xpFloats, setXpFloats] = useState<XpFloat[]>([])
   const [stepXP, setStepXP]   = useState(0)
   const [correct, setCorrect] = useState(0)
@@ -720,38 +784,14 @@ function TranslationScreen({
     setTimeout(() => setXpFloats(prev => prev.filter(f => f.id !== id)), 1800)
   }
 
-  const handleSubmit = async () => {
-    if (!input.trim() || loading) return
-    setLoading(true)
-    setResult(null)
-    try {
-      const res = await fetch('/api/practice', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'evaluate',
-          userAnswer: input.trim(),
-          reference: sentence.english,
-          mode: 'translate',
-          level,
-        }),
-      })
-      const raw = await res.json()
-      const data: EvaluateResponse = res.ok && raw.score !== undefined ? raw : null
-      if (!data) throw new Error('bad response')
-      setResult(data)
-      addFloat(data.xpAwarded ?? 0)
-      setStepXP(x => x + (data.xpAwarded ?? 0))
-      if (data.isGood) setCorrect(c => c + 1)
-    } catch {
-      const fallback: EvaluateResponse = { score: 65, isGood: true, feedback: 'أحسنت!', corrections: [], betterVersion: sentence.english, xpAwarded: 6 }
-      setResult(fallback)
-      addFloat(fallback.xpAwarded)
-      setStepXP(x => x + fallback.xpAwarded)
-      setCorrect(c => c + 1)
-    } finally {
-      setLoading(false)
-    }
+  const handleSubmit = () => {
+    if (!input.trim()) return
+    const data = validateLocally(input, sentence.english)
+    setResult(data)
+    addFloat(data.xpAwarded)
+    setStepXP(x => x + data.xpAwarded)
+    if (data.isGood) setCorrect(c => c + 1)
+    playSound(data.isGood ? 'success' : 'error')
   }
 
   const handleNext = () => {
@@ -885,6 +925,7 @@ function ChatScreen({
   const [chatCorrect, setChatCorrect] = useState(0)
   const [xpFloats, setXpFloats] = useState<XpFloat[]>([])
   const [done, setDone]         = useState(false)
+  const [chatError, setChatError] = useState<string | null>(null)
   const endRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -939,6 +980,7 @@ function ChatScreen({
     const text = input.trim()
     if (!text || loading || done) return
     setInput('')
+    setChatError(null)
 
     const userMsg: ChatMsg = {
       id: Math.random().toString(36).slice(2),
@@ -973,10 +1015,8 @@ function ChatScreen({
       setChatXP(x => x + data.points)
       if (data.isCorrect) setChatCorrect(c => c + 1)
     } catch {
-      addAiMsg({ aiMessage: 'Great effort! Keep practicing every day.', correction: null, isCorrect: true, correctedVersion: null, encouragement: 'ممتاز!', points: 7, isLastMessage: newReplyCount >= 3 })
-      addFloat(7)
-      setChatXP(x => x + 7)
-      setChatCorrect(c => c + 1)
+      setInput(text)
+      setChatError('حدث خطأ في الاتصال، حاول مرة أخرى')
     } finally {
       setLoading(false)
       setTimeout(() => inputRef.current?.focus(), 50)
@@ -1075,6 +1115,11 @@ function ChatScreen({
       {/* Input or Done */}
       {!done ? (
         <div className="shrink-0 pt-3 border-t border-white/10">
+          {chatError && (
+            <div className="mb-2 px-4 py-2 bg-red-500/20 border border-red-500/40 rounded-xl text-red-300 text-xs text-center">
+              {chatError}
+            </div>
+          )}
           <div className="bg-white/10 border border-white/20 rounded-2xl p-3 flex items-end gap-3">
             <textarea
               ref={inputRef}
