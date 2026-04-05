@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import {
   Volume2, Send, ChevronRight, ChevronLeft,
   MessageCircle, Zap, Star, BookOpen, Eye, EyeOff,
@@ -149,11 +149,10 @@ function wordSimilarity(a: string, b: string): number {
   const wa = normalizeText(a).split(' ').filter(Boolean)
   const wb = normalizeText(b).split(' ').filter(Boolean)
   if (!wa.length || !wb.length) return 0
-  const setA = new Set(wa)
-  const setB = new Set(wb)
-  const intersection = [...setA].filter(w => setB.has(w)).length
-  const union = new Set([...wa, ...wb]).size
-  return Math.round((intersection / union) * 100)
+  let matches = 0
+  wa.forEach(word => { if (wb.includes(word)) matches++ })
+  const union = wa.length + wb.length - matches
+  return union === 0 ? 0 : Math.round((matches / union) * 100)
 }
 
 function validateLocally(userAnswer: string, reference: string): EvaluateResponse {
@@ -765,18 +764,22 @@ function TranslationScreen({
   level: Level
   onComplete: (result: StepResult) => void
 }) {
-  // Use first 5 sentences (or all if fewer), pick different subset via slice
-  const pool = sentences.slice(0, Math.min(sentences.length, 5))
+  // Build bidirectional tasks from the SAME stored sentences
+  // Even index → Arabic to English | Odd index → English to Arabic
+  const tasks = useMemo(() => sentences.map((s, i) => ({
+    sentence: s,
+    direction: (i % 2 === 0 ? 'ar→en' : 'en→ar') as 'ar→en' | 'en→ar',
+  })), [sentences])
+
   const [idx, setIdx]       = useState(0)
   const [input, setInput]   = useState('')
   const [result, setResult] = useState<EvaluateResponse | null>(null)
-  const [loading] = useState(false)
   const [xpFloats, setXpFloats] = useState<XpFloat[]>([])
   const [stepXP, setStepXP]   = useState(0)
   const [correct, setCorrect] = useState(0)
 
-  const sentence = pool[idx]
-  const isLast   = idx === pool.length - 1
+  const task   = tasks[idx]
+  const isLast = idx === tasks.length - 1
 
   const addFloat = (pts: number) => {
     const id = Math.random().toString(36).slice(2)
@@ -786,7 +789,9 @@ function TranslationScreen({
 
   const handleSubmit = () => {
     if (!input.trim()) return
-    const data = validateLocally(input, sentence.english)
+    // Validate against the correct reference for this direction
+    const reference = task.direction === 'ar→en' ? task.sentence.english : task.sentence.arabic
+    const data = validateLocally(input, reference)
     setResult(data)
     addFloat(data.xpAwarded)
     setStepXP(x => x + data.xpAwarded)
@@ -796,13 +801,18 @@ function TranslationScreen({
 
   const handleNext = () => {
     if (isLast) {
-      onComplete({ xpEarned: stepXP, correct, total: pool.length })
+      onComplete({ xpEarned: stepXP, correct, total: tasks.length })
     } else {
       setIdx(i => i + 1)
       setInput('')
       setResult(null)
     }
   }
+
+  const dirLabel  = task.direction === 'ar→en' ? 'ترجم إلى الإنجليزية' : 'Translate to Arabic'
+  const prompt    = task.direction === 'ar→en' ? task.sentence.arabic   : task.sentence.english
+  const inputHint = task.direction === 'ar→en' ? 'Translate to English...' : 'اكتب بالعربية...'
+  const inputDir  = task.direction === 'ar→en' ? 'ltr' : 'rtl'
 
   return (
     <div className="flex flex-col items-center px-4 pt-6 pb-24 max-w-lg mx-auto">
@@ -812,27 +822,35 @@ function TranslationScreen({
       <div className="w-full flex items-center justify-between mb-4">
         <div className="text-white/70 text-sm font-semibold flex items-center gap-1.5">
           <Sparkles size={14} /> الترجمة
+          <span className="text-xs bg-white/10 rounded-full px-2 py-0.5">
+            {task.direction === 'ar→en' ? '🇬🇧' : '🇸🇦'}
+          </span>
         </div>
-        <span className="text-white/50 text-sm">{idx + 1} / {pool.length}</span>
+        <span className="text-white/50 text-sm">{idx + 1} / {tasks.length}</span>
       </div>
 
       {/* Progress */}
       <div className="flex gap-1.5 mb-6">
-        {pool.map((_, i) => (
+        {tasks.map((t, i) => (
           <div key={i} className={`h-2 rounded-full transition-all duration-300 ${
-            i < idx ? 'w-6 bg-violet-400' :
+            i < idx ? (t.direction === 'ar→en' ? 'w-6 bg-violet-400' : 'w-6 bg-amber-400') :
             i === idx ? 'w-8 bg-blue-400' : 'w-6 bg-white/15'
           }`} />
         ))}
       </div>
 
-      {/* Arabic prompt */}
+      {/* Prompt card */}
       <div className="w-full bg-white rounded-3xl shadow-xl p-6 mb-5">
         <p className="text-xs font-bold text-violet-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-          <Sparkles size={12} /> ترجم إلى الإنجليزية
+          <Sparkles size={12} /> {dirLabel}
         </p>
-        <p className="text-2xl font-bold text-gray-800 leading-relaxed mb-1">{sentence.arabic}</p>
-        <p className="text-gray-400 text-sm mt-2">اكتب ما تعنيه هذه الجملة بالإنجليزية</p>
+        <p className="text-2xl font-bold text-gray-800 leading-relaxed mb-1"
+          dir={task.direction === 'ar→en' ? 'rtl' : 'ltr'}>
+          {prompt}
+        </p>
+        {task.direction === 'en→ar' && (
+          <div className="mt-2"><SpeakBtn text={prompt} size="sm" /></div>
+        )}
       </div>
 
       {/* Answer input */}
@@ -842,18 +860,18 @@ function TranslationScreen({
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit() } }}
-            placeholder="Translate to English..."
+            placeholder={inputHint}
             rows={3}
-            dir="ltr"
+            dir={inputDir}
             autoFocus
             className="w-full bg-white/10 border-2 border-white/20 focus:border-violet-400 focus:outline-none rounded-2xl px-4 py-3 text-white text-base resize-none placeholder:text-white/30 transition-colors leading-relaxed"
           />
           <button
             onClick={handleSubmit}
-            disabled={loading || !input.trim()}
+            disabled={!input.trim()}
             className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-violet-500 to-purple-600 hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-base shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
           >
-            {loading ? <><Loader2 size={18} className="animate-spin" /> تقييم...</> : <><Sparkles size={16} /> قيّم ترجمتي</>}
+            <Sparkles size={16} /> قيّم ترجمتي
           </button>
         </div>
       )}
@@ -870,28 +888,19 @@ function TranslationScreen({
               <span className="text-amber-600 font-bold text-sm bg-amber-50 px-3 py-1 rounded-full">+{result.xpAwarded} XP</span>
             </div>
             <p className="text-gray-700 font-semibold mb-3">{result.feedback}</p>
-            <div className="bg-white rounded-xl px-4 py-3 mb-2" dir="ltr">
+            <div className="bg-white rounded-xl px-4 py-3 mb-2" dir={inputDir}>
               <p className="text-xs text-gray-400 mb-1">إجابتك:</p>
               <p className="text-gray-700">{input}</p>
             </div>
-            <div className="bg-white rounded-xl px-4 py-3 flex items-center gap-2" dir="ltr">
+            <div className="bg-white rounded-xl px-4 py-3 flex items-center gap-2"
+              dir={task.direction === 'ar→en' ? 'ltr' : 'rtl'}>
               <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
               <div className="flex-1">
-                <p className="text-xs text-gray-400 mb-1">الجملة الصحيحة:</p>
+                <p className="text-xs text-gray-400 mb-1">الإجابة الصحيحة:</p>
                 <p className="text-gray-800 font-semibold">{result.betterVersion}</p>
               </div>
-              <SpeakBtn text={result.betterVersion} size="sm" />
+              {task.direction === 'ar→en' && <SpeakBtn text={result.betterVersion} size="sm" />}
             </div>
-            {(result?.corrections?.length ?? 0) > 0 && (
-              <div className="mt-3 space-y-1.5">
-                {result.corrections?.map((c, i) => (
-                  <div key={i} className="flex items-start gap-2 text-sm text-gray-600 bg-orange-50 rounded-xl px-3 py-2">
-                    <span className="text-orange-400 mt-0.5">⚠</span>
-                    <span dir="ltr">{c}</span>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
           <button
             onClick={handleNext}
@@ -906,8 +915,24 @@ function TranslationScreen({
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// SCREEN 4: CHAT
+// SCREEN 4: CHAT — structured task loop (same 5 sentences)
 // ═══════════════════════════════════════════════════════════════════
+
+// Each task in the scripted sequence
+type ChatTaskType = 'dictation' | 'translation' | 'question'
+interface ChatTask { type: ChatTaskType; sentence?: Sentence }
+
+/** Build the fixed 5-task sequence from the stored sentences. */
+function buildChatTasks(sentences: Sentence[]): ChatTask[] {
+  const s = sentences
+  return [
+    { type: 'dictation',   sentence: s[0] },
+    { type: 'dictation',   sentence: s[Math.min(1, s.length - 1)] },
+    { type: 'translation', sentence: s[Math.min(2, s.length - 1)] },
+    { type: 'translation', sentence: s[Math.min(3, s.length - 1)] },
+    { type: 'question' },
+  ]
+}
 
 function ChatScreen({
   sentences, level, onComplete,
@@ -916,17 +941,20 @@ function ChatScreen({
   level: Level
   onComplete: (result: StepResult) => void
 }) {
-  const [messages, setMessages] = useState<ChatMsg[]>([])
-  const [apiHistory, setApiHistory] = useState<{ role: string; content: string }[]>([])
-  const [input, setInput]       = useState('')
-  const [loading, setLoading]   = useState(false)
-  const [replyCount, setReplyCount] = useState(0)
-  const [chatXP, setChatXP]     = useState(0)
+  // Tasks are built ONCE from the stored sentences — never regenerated
+  const tasks = useMemo(() => buildChatTasks(sentences), [sentences])
+
+  const [messages, setMessages]     = useState<ChatMsg[]>([])
+  const [taskIdx, setTaskIdx]       = useState(-1) // -1 = showing intro
+  const [input, setInput]           = useState('')
+  const [loading, setLoading]       = useState(false)
+  const [sessionDone, setSessionDone] = useState(false)
+  const [chatXP, setChatXP]         = useState(0)
   const [chatCorrect, setChatCorrect] = useState(0)
-  const [xpFloats, setXpFloats] = useState<XpFloat[]>([])
-  const [done, setDone]         = useState(false)
-  const [chatError, setChatError] = useState<string | null>(null)
-  const endRef = useRef<HTMLDivElement>(null)
+  const [xpFloats, setXpFloats]     = useState<XpFloat[]>([])
+  const [chatError, setChatError]   = useState<string | null>(null)
+  const apiHistoryRef = useRef<{ role: string; content: string }[]>([])
+  const endRef   = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const addFloat = (pts: number) => {
@@ -935,66 +963,131 @@ function ChatScreen({
     setTimeout(() => setXpFloats(prev => prev.filter(f => f.id !== id)), 1800)
   }
 
-  const addAiMsg = useCallback((data: ChatResponse) => {
-    const msg: ChatMsg = {
-      id: Math.random().toString(36).slice(2),
-      role: 'ai',
-      content: data.aiMessage,
-      correction: data.correction,
-      correctedVersion: data.correctedVersion,
-      encouragement: data.encouragement,
-      isCorrect: data.isCorrect,
-      points: data.points,
-    }
-    setMessages(prev => [...prev, msg])
-    setApiHistory(prev => [...prev, { role: 'assistant', content: data.aiMessage }])
-    if (data.isLastMessage) setDone(true)
+  const pushMsg = useCallback((m: Omit<ChatMsg, 'id'>) => {
+    setMessages(prev => [...prev, { ...m, id: Math.random().toString(36).slice(2) }])
   }, [])
 
-  // Start chat on mount
-  useEffect(() => {
-    setLoading(true)
-    fetch('/api/practice', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: 'chat-practice',
-        sentences: sentences.map(s => ({ english: s.english, arabic: s.arabic })),
-        messages: [],
-        level,
-        replyCount: 0,
-      }),
-    })
-      .then(r => r.json())
-      .then((data: ChatResponse) => { addAiMsg(data); setLoading(false) })
-      .catch(() => {
-        addAiMsg({ aiMessage: 'Hello! Let\'s practice the sentences you just studied. Tell me which one you liked the most!', correction: null, isCorrect: true, correctedVersion: null, encouragement: 'أحسنت!', points: 0, isLastMessage: false })
-        setLoading(false)
+  // Show the scripted AI prompt for a given task
+  const showTaskPrompt = useCallback((idx: number) => {
+    const task = tasks[idx]
+    if (task.type === 'dictation') {
+      const num = idx + 1
+      pushMsg({
+        role: 'ai', isCorrect: true, points: 0,
+        correction: null, correctedVersion: null, encouragement: null,
+        content: `✏️ إملاء ${num}/2 — اكتب هذه الجملة بالضبط:\n"${task.sentence!.english}"`,
       })
+    } else if (task.type === 'translation') {
+      const num = idx - 1
+      pushMsg({
+        role: 'ai', isCorrect: true, points: 0,
+        correction: null, correctedVersion: null, encouragement: null,
+        content: `🌐 ترجمة ${num}/2 — ترجم هذا إلى الإنجليزية:\n"${task.sentence!.arabic}"`,
+      })
+    } else {
+      // question — single API call
+      setLoading(true)
+      fetch('/api/practice', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'chat-practice',
+          sentences: sentences.map(s => ({ english: s.english })),
+          messages: [],
+          level,
+          replyCount: 0,
+        }),
+      })
+        .then(r => r.json())
+        .then((data: ChatResponse) => {
+          pushMsg({
+            role: 'ai', isCorrect: true, points: 0,
+            correction: null, correctedVersion: null, encouragement: null,
+            content: data.aiMessage,
+          })
+          apiHistoryRef.current = [{ role: 'assistant', content: data.aiMessage }]
+          setLoading(false)
+        })
+        .catch(() => {
+          pushMsg({
+            role: 'ai', isCorrect: true, points: 0,
+            correction: null, correctedVersion: null, encouragement: null,
+            content: 'What sentence from today did you find most useful? Tell me why.',
+          })
+          setLoading(false)
+        })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasks, sentences, level, pushMsg])
+
+  // Mount: show intro then immediately queue task 0
+  useEffect(() => {
+    pushMsg({
+      role: 'ai', isCorrect: true, points: 0,
+      correction: null, correctedVersion: null, encouragement: null,
+      content: 'أهلاً! سنراجع نفس الجمل في 4 تمارين: ✏️ إملاء × 2 ← 🌐 ترجمة × 2 ← ❓ سؤال. هيا! 🚀',
+    })
+    const t = setTimeout(() => setTaskIdx(0), 600)
+    return () => clearTimeout(t)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Show task prompt when taskIdx advances
+  useEffect(() => {
+    if (taskIdx < 0) return
+    const t = setTimeout(() => showTaskPrompt(taskIdx), 350)
+    return () => clearTimeout(t)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [taskIdx])
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, loading])
 
   const handleSend = async () => {
     const text = input.trim()
-    if (!text || loading || done) return
+    if (!text || loading || sessionDone || taskIdx < 0) return
     setInput('')
     setChatError(null)
 
-    const userMsg: ChatMsg = {
-      id: Math.random().toString(36).slice(2),
-      role: 'user', content: text,
+    // User message
+    pushMsg({
+      role: 'user', content: text, isCorrect: true, points: 0,
       correction: null, correctedVersion: null, encouragement: null,
-      isCorrect: true, points: 0,
-    }
-    const newHistory = [...apiHistory, { role: 'user', content: text }]
-    setMessages(prev => [...prev, userMsg])
-    setApiHistory(newHistory)
-    setLoading(true)
+    })
 
-    const newReplyCount = replyCount + 1
-    setReplyCount(newReplyCount)
+    const task = tasks[taskIdx]
+
+    // ── Dictation & Translation: validate locally, no API ─────────
+    if (task.type === 'dictation' || task.type === 'translation') {
+      const ev = validateLocally(text, task.sentence!.english)
+      playSound(ev.isGood ? 'success' : 'error')
+      addFloat(ev.xpAwarded)
+      setChatXP(x => x + ev.xpAwarded)
+      if (ev.isGood) setChatCorrect(c => c + 1)
+
+      pushMsg({
+        role: 'ai',
+        content: ev.isGood
+          ? `${ev.feedback} ⚡ +${ev.xpAwarded} XP`
+          : ev.feedback,
+        correction:       ev.isGood ? null : `Score: ${ev.score}%`,
+        correctedVersion: ev.isGood ? null : ev.betterVersion,
+        encouragement:    ev.isGood ? 'ممتاز!' : 'راجع الجملة 🔄',
+        isCorrect: ev.isGood,
+        points: ev.xpAwarded,
+      })
+
+      const next = taskIdx + 1
+      if (next >= tasks.length) {
+        setSessionDone(true)
+      } else {
+        setTaskIdx(next)
+      }
+      return
+    }
+
+    // ── Question: single API call ──────────────────────────────────
+    setLoading(true)
+    apiHistoryRef.current = [...apiHistoryRef.current, { role: 'user', content: text }]
 
     try {
       const res = await fetch('/api/practice', {
@@ -1002,18 +1095,28 @@ function ChatScreen({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'chat-practice',
-          sentences: sentences.map(s => ({ english: s.english, arabic: s.arabic })),
-          messages: newHistory.slice(0, -1),
+          sentences: sentences.map(s => ({ english: s.english })),
+          messages: apiHistoryRef.current.slice(0, -1),
           level,
           userReply: text,
-          replyCount: newReplyCount,
+          replyCount: 1,
         }),
       })
       const data: ChatResponse = await res.json()
-      addAiMsg(data)
+      apiHistoryRef.current = [...apiHistoryRef.current, { role: 'assistant', content: data.aiMessage }]
       addFloat(data.points)
       setChatXP(x => x + data.points)
       if (data.isCorrect) setChatCorrect(c => c + 1)
+      pushMsg({
+        role: 'ai',
+        content: data.aiMessage,
+        correction: data.correction,
+        correctedVersion: data.correctedVersion,
+        encouragement: data.encouragement,
+        isCorrect: data.isCorrect,
+        points: data.points,
+      })
+      setSessionDone(true)
     } catch {
       setInput(text)
       setChatError('حدث خطأ في الاتصال، حاول مرة أخرى')
@@ -1022,6 +1125,13 @@ function ChatScreen({
       setTimeout(() => inputRef.current?.focus(), 50)
     }
   }
+
+  // Progress label
+  const taskLabel = taskIdx < 0 ? 'يبدأ الآن...'
+    : sessionDone ? 'انتهت الجلسة'
+    : tasks[taskIdx]?.type === 'dictation'   ? `إملاء ${taskIdx + 1}/2`
+    : tasks[taskIdx]?.type === 'translation' ? `ترجمة ${taskIdx - 1}/2`
+    : 'سؤال مفتوح'
 
   return (
     <div className="flex flex-col h-[calc(100dvh-140px)] max-w-lg mx-auto px-4 pt-6">
@@ -1035,9 +1145,18 @@ function ChatScreen({
         <div>
           <p className="text-white font-bold text-sm">AI Coach</p>
           <p className="text-blue-200/60 text-xs flex items-center gap-1">
-            <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full inline-block" />
-            محادثة تفاعلية · {3 - replyCount > 0 ? `${3 - replyCount} أسئلة متبقية` : 'انتهت الجلسة'}
+            <span className={`w-1.5 h-1.5 rounded-full inline-block ${sessionDone ? 'bg-amber-400' : 'bg-emerald-400'}`} />
+            {taskLabel}
           </p>
+        </div>
+        {/* Step progress pills */}
+        <div className="mr-auto flex gap-1">
+          {tasks.map((t, i) => (
+            <div key={i} className={`w-2 h-2 rounded-full transition-all ${
+              i < taskIdx || sessionDone ? 'bg-emerald-400' :
+              i === taskIdx ? 'bg-blue-400 scale-125' : 'bg-white/20'
+            }`} />
+          ))}
         </div>
       </div>
 
@@ -1053,7 +1172,7 @@ function ChatScreen({
                 ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-tl-lg'
                 : 'bg-white text-gray-800 rounded-tr-lg'
               }`}>
-              <p className="text-sm sm:text-base leading-relaxed" dir="ltr">{msg.content}</p>
+              <p className="text-sm sm:text-base leading-relaxed whitespace-pre-line" dir="ltr">{msg.content}</p>
               {msg.role === 'ai' && (
                 <div className="mt-2 pt-2 border-t border-white/20">
                   <SpeakBtn text={msg.content} size="sm" />
@@ -1061,7 +1180,7 @@ function ChatScreen({
               )}
             </div>
 
-            {/* Correction */}
+            {/* Correction bubble */}
             {msg.role === 'ai' && msg.correction && (
               <div className="max-w-[85%] bg-white rounded-2xl rounded-tl-md px-4 py-3 shadow border border-gray-100 space-y-2">
                 <div className="flex items-center gap-1.5">
@@ -1113,7 +1232,7 @@ function ChatScreen({
       </div>
 
       {/* Input or Done */}
-      {!done ? (
+      {!sessionDone ? (
         <div className="shrink-0 pt-3 border-t border-white/10">
           {chatError && (
             <div className="mb-2 px-4 py-2 bg-red-500/20 border border-red-500/40 rounded-xl text-red-300 text-xs text-center">
@@ -1126,15 +1245,15 @@ function ChatScreen({
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() } }}
-              placeholder="اكتب ردك بالإنجليزية..."
+              placeholder={tasks[taskIdx]?.type === 'question' ? 'اكتب ردك بالإنجليزية...' : 'اكتب إجابتك...'}
               rows={2}
               dir="ltr"
-              disabled={loading}
+              disabled={loading || taskIdx < 0}
               className="flex-1 bg-transparent border-none focus:outline-none text-white text-sm resize-none placeholder:text-white/30 leading-relaxed"
             />
             <button
               onClick={handleSend}
-              disabled={loading || !input.trim()}
+              disabled={loading || !input.trim() || taskIdx < 0}
               className="w-11 h-11 bg-gradient-to-br from-blue-500 to-indigo-600 hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed rounded-xl flex items-center justify-center shadow-lg transition-all active:scale-90 shrink-0"
             >
               {loading ? <Loader2 size={18} className="text-white animate-spin" /> : <Send size={16} className="text-white" />}
@@ -1145,7 +1264,7 @@ function ChatScreen({
       ) : (
         <div className="shrink-0 pt-4 border-t border-white/10">
           <button
-            onClick={() => onComplete({ xpEarned: chatXP, correct: chatCorrect, total: replyCount })}
+            onClick={() => onComplete({ xpEarned: chatXP, correct: chatCorrect, total: tasks.length })}
             className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 text-white font-black text-lg shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2"
           >
             🏆 عرض النتائج
