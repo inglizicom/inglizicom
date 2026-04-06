@@ -3,16 +3,19 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import {
-  Play, Pause, RotateCcw, ChevronRight, Volume2,
-  CheckCircle2, XCircle, Zap, Crown, Headphones, ArrowRight,
+  Play, Pause, RotateCcw, ChevronRight,
+  CheckCircle2, XCircle, Crown, Headphones,
+  Volume2, ChevronLeft,
 } from 'lucide-react'
 import {
-  CLIPS, FREE_DAILY_LIMIT,
+  CLIPS, CORE_EXERCISES, FREE_DAILY_LIMIT,
   getDailyCount, incrementDailyCount, shuffleClips,
   type Clip, type Difficulty,
 } from '@/lib/listen-clips'
 
-// ─── YouTube IFrame API types ─────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// TYPES & CONSTANTS
+// ─────────────────────────────────────────────────────────────────────────────
 
 declare global {
   interface Window {
@@ -22,376 +25,214 @@ declare global {
   }
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+type Speed     = 0.5 | 0.75 | 1 | 1.25
+type Phase     = 'playing' | 'answering' | 'feedback'
+type Screen    = 'level-select' | 'practice' | 'session-end' | 'limit-wall'
+type FlashType = 'correct' | 'wrong' | null
 
-const SPEEDS = [0.5, 0.75, 1, 1.25] as const
-type Speed = typeof SPEEDS[number]
+const SPEEDS: Speed[] = [0.5, 0.75, 1, 1.25]
+const SESSION_SIZE    = 10
+const STREAK_KEY      = 'inglizi_streak'
 
-const SESSION_LENGTH = 10  // clips per session
-
-const DIFFICULTY_CONFIG: Record<Difficulty, {
-  label: string; sublabel: string; color: string; bg: string
-  border: string; icon: string; gradient: string
+const LEVEL_META: Record<Difficulty, {
+  emoji: string; ar: string; desc: string
+  ring: string; bg: string; text: string; bar: string
 }> = {
   A1: {
-    label: 'A1', sublabel: 'مبتدئ',
-    color: 'text-emerald-400', bg: 'bg-emerald-500/15',
-    border: 'border-emerald-500/40', icon: '🌱',
-    gradient: 'from-emerald-500 to-teal-500',
+    emoji: '🌱', ar: 'مبتدئ',      desc: 'كلمات وجمل بسيطة جداً',
+    ring: 'ring-emerald-500',       bg: 'bg-emerald-500/10',
+    text: 'text-emerald-400',       bar: 'bg-emerald-500',
   },
   A2: {
-    label: 'A2', sublabel: 'أساسي',
-    color: 'text-amber-400', bg: 'bg-amber-500/15',
-    border: 'border-amber-500/40', icon: '⭐',
-    gradient: 'from-amber-500 to-orange-500',
+    emoji: '⭐', ar: 'أساسي',      desc: 'جمل يومية وتعابير شائعة',
+    ring: 'ring-amber-500',         bg: 'bg-amber-500/10',
+    text: 'text-amber-400',         bar: 'bg-amber-500',
   },
   B1: {
-    label: 'B1', sublabel: 'متوسط',
-    color: 'text-violet-400', bg: 'bg-violet-500/15',
-    border: 'border-violet-500/40', icon: '🚀',
-    gradient: 'from-violet-500 to-purple-600',
+    emoji: '🚀', ar: 'متوسط',      desc: 'حوارات طبيعية وتعابير متنوعة',
+    ring: 'ring-violet-500',        bg: 'bg-violet-500/10',
+    text: 'text-violet-400',        bar: 'bg-violet-500',
   },
   B2: {
-    label: 'B2', sublabel: 'فوق المتوسط',
-    color: 'text-rose-400', bg: 'bg-rose-500/15',
-    border: 'border-rose-500/40', icon: '🔥',
-    gradient: 'from-rose-500 to-pink-600',
+    emoji: '🔥', ar: 'فوق المتوسط', desc: 'خطاب سريع، مفردات أكاديمية',
+    ring: 'ring-rose-500',          bg: 'bg-rose-500/10',
+    text: 'text-rose-400',          bar: 'bg-rose-500',
   },
 }
 
-// ─── Alignment validator (ensure data integrity) ──────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// STREAK HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
 
-function validateClipAlignment(clip: Clip): boolean {
-  return clip.options[clip.correctIndex] === clip.sentence
+interface StreakData { count: number; lastDate: string }
+
+function todayISO() { return new Date().toISOString().slice(0, 10) }
+
+function loadStreak(): number {
+  if (typeof window === 'undefined') return 0
+  try {
+    const raw = localStorage.getItem(STREAK_KEY)
+    if (!raw) return 0
+    const d: StreakData = JSON.parse(raw)
+    // Streak resets if more than 1 day has passed
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1)
+    const yISO = yesterday.toISOString().slice(0, 10)
+    if (d.lastDate === todayISO() || d.lastDate === yISO) return d.count
+    return 0
+  } catch { return 0 }
 }
 
-// ─── ClipService: filter by level, validate alignment, shuffle ────────────────
+function saveStreak(count: number) {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.setItem(STREAK_KEY, JSON.stringify({ count, lastDate: todayISO() }))
+  } catch { /* ignore */ }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UTILS
+// ─────────────────────────────────────────────────────────────────────────────
 
 function buildSession(level: Difficulty): Clip[] {
-  const valid = CLIPS
-    .filter(c => c.difficulty === level)
-    .filter(validateClipAlignment)
-  const shuffled = shuffleClips(valid)
-  return shuffled.slice(0, SESSION_LENGTH)
+  const isValid = (c: Clip) => c.options[c.correctIndex] === c.sentence
+  const core    = CORE_EXERCISES.filter(c => c.difficulty === level && isValid(c))
+  const rest    = shuffleClips(CLIPS.filter(c => c.difficulty === level && isValid(c)))
+  // Core exercises always come first; fill remainder from the shuffled pool
+  const combined = [...core, ...rest.filter(c => !core.find(x => x.id === c.id))]
+  return combined.slice(0, SESSION_SIZE)
 }
 
-// ─── Sound effects ────────────────────────────────────────────────────────────
-
-function playSound(type: 'correct' | 'wrong') {
+function playTone(type: 'correct' | 'wrong') {
   if (typeof window === 'undefined') return
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const AudioCtx = window.AudioContext ?? (window as any).webkitAudioContext
-    const ctx = new AudioCtx()
-    const osc = ctx.createOscillator()
+    const AC = window.AudioContext ?? (window as any).webkitAudioContext
+    const ctx  = new AC()
+    const osc  = ctx.createOscillator()
     const gain = ctx.createGain()
-    osc.connect(gain)
-    gain.connect(ctx.destination)
+    osc.connect(gain); gain.connect(ctx.destination)
     if (type === 'correct') {
       osc.frequency.setValueAtTime(523, ctx.currentTime)
-      osc.frequency.setValueAtTime(659, ctx.currentTime + 0.1)
-      osc.frequency.setValueAtTime(784, ctx.currentTime + 0.2)
-      gain.gain.setValueAtTime(0.08, ctx.currentTime)
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5)
-      osc.start(ctx.currentTime)
-      osc.stop(ctx.currentTime + 0.5)
+      osc.frequency.setValueAtTime(659, ctx.currentTime + 0.12)
+      osc.frequency.setValueAtTime(784, ctx.currentTime + 0.24)
+      gain.gain.setValueAtTime(0.07, ctx.currentTime)
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.55)
+      osc.start(); osc.stop(ctx.currentTime + 0.55)
     } else {
-      osc.frequency.setValueAtTime(220, ctx.currentTime)
-      osc.frequency.setValueAtTime(185, ctx.currentTime + 0.15)
-      gain.gain.setValueAtTime(0.08, ctx.currentTime)
+      osc.frequency.setValueAtTime(300, ctx.currentTime)
+      osc.frequency.setValueAtTime(220, ctx.currentTime + 0.15)
+      gain.gain.setValueAtTime(0.07, ctx.currentTime)
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4)
-      osc.start(ctx.currentTime)
-      osc.stop(ctx.currentTime + 0.4)
+      osc.start(); osc.stop(ctx.currentTime + 0.4)
     }
   } catch { /* ignore */ }
 }
 
-// ─── Level Select Screen ──────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// SCREEN: LEVEL SELECT
+// ─────────────────────────────────────────────────────────────────────────────
 
 function LevelSelectScreen({ onSelect }: { onSelect: (d: Difficulty) => void }) {
   const levels: Difficulty[] = ['A1', 'A2', 'B1', 'B2']
 
   return (
-    <div
-      className="min-h-screen flex flex-col items-center justify-center px-4 pb-16"
-      style={{ background: 'linear-gradient(135deg,#0f172a 0%,#1e1b4b 40%,#0f172a 100%)' }}
-      dir="rtl"
-    >
-      <div className="w-full max-w-lg">
-        {/* Header */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 bg-white/10 border border-white/15 rounded-full px-4 py-1.5 text-xs text-blue-200 mb-5">
-            <Headphones size={12} className="text-blue-400" /> تدريب على الاستماع
-          </div>
-          <h1 className="text-4xl font-black text-white mb-3">اختر مستواك</h1>
-          <p className="text-white/50 text-base leading-relaxed">
-            ستحصل على {SESSION_LENGTH} جمل مختارة من مستواك — استمع، افهم، واختر
-          </p>
+    <div className="flex flex-col items-center justify-center min-h-[100dvh] px-5 pb-10" dir="rtl">
+      {/* Header */}
+      <div className="text-center mb-10">
+        <div className="inline-flex items-center gap-2 bg-white/8 border border-white/12 rounded-full px-4 py-1.5 text-xs text-blue-300 mb-5 font-medium">
+          <Headphones size={13} className="text-blue-400" />
+          تدريب الاستماع
         </div>
-
-        {/* Level cards */}
-        <div className="grid grid-cols-2 gap-4">
-          {levels.map((level) => {
-            const cfg = DIFFICULTY_CONFIG[level]
-            const count = CLIPS.filter(c => c.difficulty === level && validateClipAlignment(c)).length
-            return (
-              <button
-                key={level}
-                onClick={() => onSelect(level)}
-                className={`group relative flex flex-col items-center text-center p-6 rounded-3xl border-2 ${cfg.bg} ${cfg.border} hover:scale-[1.03] active:scale-[0.97] transition-all duration-200 shadow-xl`}
-              >
-                <span className="text-4xl mb-3">{cfg.icon}</span>
-                <span className={`text-3xl font-black mb-1 ${cfg.color}`}>{cfg.label}</span>
-                <span className="text-white/70 font-semibold text-sm mb-3">{cfg.sublabel}</span>
-                <span className="text-white/30 text-xs">{count} جملة</span>
-
-                <div className={`mt-4 flex items-center gap-1 text-xs font-bold ${cfg.color} opacity-0 group-hover:opacity-100 transition-opacity`}>
-                  ابدأ <ArrowRight size={12} />
-                </div>
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Footer note */}
-        <p className="text-center text-white/25 text-xs mt-8">
-          يمكنك تغيير المستوى في أي وقت خلال الجلسة
+        <h1 className="text-4xl lg:text-5xl font-black text-white mb-3 tracking-tight">
+          اختر مستواك
+        </h1>
+        <p className="text-white/40 text-sm max-w-xs mx-auto leading-relaxed">
+          {SESSION_SIZE} جمل مصغاة من مصادر حقيقية — اسمع، افهم، واختر
         </p>
       </div>
+
+      {/* Cards grid */}
+      <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
+        {levels.map(level => {
+          const m = LEVEL_META[level]
+          const count = CLIPS.filter(c => c.difficulty === level).length
+          return (
+            <button
+              key={level}
+              onClick={() => onSelect(level)}
+              className={`
+                group flex flex-col items-center text-center
+                p-6 rounded-2xl border border-white/10
+                ${m.bg} hover:ring-2 ${m.ring} hover:ring-offset-0
+                active:scale-[0.96] transition-all duration-200
+              `}
+            >
+              <span className="text-3xl mb-2.5">{m.emoji}</span>
+              <span className={`text-2xl font-black ${m.text} mb-0.5`}>{level}</span>
+              <span className="text-white/60 text-xs font-semibold mb-2">{m.ar}</span>
+              <span className="text-white/25 text-[11px]">{count} مقطع</span>
+            </button>
+          )
+        })}
+      </div>
+
+      <p className="text-white/20 text-xs mt-8">يمكنك تغيير المستوى في أي وقت</p>
     </div>
   )
 }
 
-// ─── Score Display ────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// SCREEN: SESSION END
+// ─────────────────────────────────────────────────────────────────────────────
 
-function ScoreDisplay({
+function SessionEndScreen({
   correct, total, level,
-}: { correct: number; total: number; level: Difficulty }) {
-  const cfg = DIFFICULTY_CONFIG[level]
-  const pct = total === 0 ? 0 : Math.round((correct / total) * 100)
-
-  return (
-    <div className={`rounded-2xl border ${cfg.bg} ${cfg.border} px-4 py-3`}>
-      <div className="flex items-center justify-between mb-2">
-        <span className={`text-xs font-bold ${cfg.color} flex items-center gap-1.5`}>
-          {cfg.icon} {cfg.label} · {cfg.sublabel}
-        </span>
-        <span className="text-white/50 text-xs font-semibold">
-          {correct} / {total} إجابة صحيحة
-        </span>
-      </div>
-      <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-        <div
-          className={`h-full bg-gradient-to-r ${cfg.gradient} rounded-full transition-all duration-700`}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-    </div>
-  )
-}
-
-// ─── Progress bar ─────────────────────────────────────────────────────────────
-
-function ProgressBar({
-  current, total, dailyCount, isPremium,
-}: { current: number; total: number; dailyCount: number; isPremium: boolean }) {
-  const remaining = FREE_DAILY_LIMIT - dailyCount
-  return (
-    <div className="w-full">
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-white/50 text-xs font-semibold flex items-center gap-1">
-          <Headphones size={12} className="text-blue-400" /> جلسة الاستماع
-        </span>
-        <span className="text-white/40 text-xs">{current} / {total}</span>
-      </div>
-      <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-        <div
-          className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-500"
-          style={{ width: `${Math.round((current / total) * 100)}%` }}
-        />
-      </div>
-      {!isPremium && (
-        <div className="flex items-center justify-between mt-1.5">
-          <span className="text-white/25 text-xs">
-            {remaining > 0 ? `${remaining} محاولة متبقية اليوم` : 'وصلت للحد اليومي'}
-          </span>
-          <Link href="/courses" className="text-xs text-amber-400 hover:text-amber-300 font-bold flex items-center gap-0.5 transition-colors">
-            <Crown size={10} /> Premium
-          </Link>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ─── Speed Control ────────────────────────────────────────────────────────────
-
-function SpeedControl({ speed, onChange }: {
-  speed: Speed; onChange: (s: Speed) => void
-}) {
-  return (
-    <div className="flex items-center gap-1">
-      <Volume2 size={12} className="text-white/30 shrink-0" />
-      <span className="text-white/30 text-xs ml-0.5">السرعة:</span>
-      {SPEEDS.map(s => (
-        <button
-          key={s}
-          onClick={() => onChange(s)}
-          className={`text-xs font-bold px-2 py-0.5 rounded-lg transition-all ${
-            speed === s
-              ? 'bg-blue-500 text-white'
-              : 'text-white/40 hover:text-white hover:bg-white/10'
-          }`}
-        >
-          {s}x
-        </button>
-      ))}
-    </div>
-  )
-}
-
-// ─── MCQ Options ─────────────────────────────────────────────────────────────
-
-function MCQOptions({
-  clip, selected, phase, onSelect,
-}: {
-  clip: Clip
-  selected: number | null
-  phase: 'answering' | 'feedback'
-  onSelect: (i: number) => void
-}) {
-  return (
-    <div className="space-y-2.5">
-      <p className="text-white/50 text-sm font-semibold mb-3 flex items-center gap-1.5">
-        🎧 ماذا سمعت؟
-      </p>
-      {clip.options.map((opt, i) => {
-        const isCorrect = i === clip.correctIndex
-        const isSelected = i === selected
-
-        let cls = 'bg-white/5 border-white/15 text-white/90 hover:bg-white/10 hover:border-white/30 cursor-pointer'
-        if (phase === 'feedback') {
-          if (isCorrect) cls = 'bg-emerald-500/20 border-emerald-400 text-emerald-200 cursor-default'
-          else if (isSelected) cls = 'bg-red-500/20 border-red-400 text-red-200 cursor-default'
-          else cls = 'bg-white/3 border-white/8 text-white/25 cursor-default'
-        } else if (isSelected) {
-          cls = 'bg-blue-500/20 border-blue-400 text-blue-200 cursor-pointer'
-        }
-
-        return (
-          <button
-            key={i}
-            onClick={() => phase === 'answering' && onSelect(i)}
-            disabled={phase === 'feedback'}
-            className={`w-full text-right px-4 py-3.5 rounded-xl border-2 font-semibold text-sm transition-all duration-200 active:scale-[0.98] ${cls}`}
-            dir="ltr"
-          >
-            <span className="flex items-center gap-2.5">
-              <span className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs font-black shrink-0">
-                {String.fromCharCode(65 + i)}
-              </span>
-              <span className="flex-1 text-left leading-snug">{opt}</span>
-              {phase === 'feedback' && isCorrect && (
-                <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
-              )}
-              {phase === 'feedback' && isSelected && !isCorrect && (
-                <XCircle size={16} className="text-red-400 shrink-0" />
-              )}
-            </span>
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-// ─── Feedback Banner ──────────────────────────────────────────────────────────
-
-function FeedbackBanner({ isCorrect, correctSentence, xp }: {
-  isCorrect: boolean; correctSentence: string; xp: number
-}) {
-  return (
-    <div className={`rounded-xl border px-4 py-3 ${
-      isCorrect
-        ? 'bg-emerald-500/15 border-emerald-500/40'
-        : 'bg-red-500/15 border-red-500/40'
-    }`}>
-      <div className="flex items-center justify-between mb-1.5">
-        <div className="flex items-center gap-1.5">
-          {isCorrect
-            ? <CheckCircle2 size={15} className="text-emerald-400" />
-            : <XCircle size={15} className="text-red-400" />}
-          <span className={`font-black text-sm ${isCorrect ? 'text-emerald-300' : 'text-red-300'}`}>
-            {isCorrect ? 'ممتاز! إجابة صحيحة 🎉' : 'إجابة خاطئة ❌'}
-          </span>
-        </div>
-        <span className="text-amber-300 font-black text-xs flex items-center gap-0.5">
-          <Zap size={11} /> +{xp} XP
-        </span>
-      </div>
-      {!isCorrect && (
-        <div className="bg-white/10 rounded-lg px-3 py-2 mt-2" dir="ltr">
-          <p className="text-white/40 text-xs mb-0.5">الجملة الصحيحة:</p>
-          <p className="text-white font-semibold text-sm leading-snug">{correctSentence}</p>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ─── Daily Limit Wall ─────────────────────────────────────────────────────────
-
-function DailyLimitWall() {
-  return (
-    <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-      <div className="w-20 h-20 rounded-3xl bg-amber-500/20 border-2 border-amber-500/40 flex items-center justify-center text-4xl mb-6">
-        👑
-      </div>
-      <h2 className="text-2xl font-black text-white mb-3">انتهت محاولاتك اليومية</h2>
-      <p className="text-white/50 mb-8 max-w-xs leading-relaxed text-sm">
-        وصلت لـ {FREE_DAILY_LIMIT} فيديوهات مجانية اليوم. ارجع غداً أو ارقَّ للـ Premium للوصول غير المحدود.
-      </p>
-      <Link
-        href="/courses"
-        className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black px-8 py-4 rounded-2xl text-lg shadow-xl hover:opacity-90 active:scale-95 transition-all mb-4"
-      >
-        <Crown size={20} /> ارقَّ للـ Premium
-      </Link>
-      <p className="text-white/30 text-xs">وصول غير محدود · جميع المستويات · ميزات حصرية</p>
-    </div>
-  )
-}
-
-// ─── Session Complete Screen ──────────────────────────────────────────────────
-
-function SessionComplete({
-  correct, total, level, onRestart, onChangeLevel,
+  onRestart, onChangeLevel,
 }: {
   correct: number; total: number; level: Difficulty
   onRestart: () => void; onChangeLevel: () => void
 }) {
-  const pct = total === 0 ? 0 : Math.round((correct / total) * 100)
-  const cfg = DIFFICULTY_CONFIG[level]
-  const emoji = pct >= 90 ? '🏆' : pct >= 70 ? '🎉' : pct >= 50 ? '💪' : '📚'
+  const m   = LEVEL_META[level]
+  const pct = total ? Math.round((correct / total) * 100) : 0
+  const trophy = pct >= 90 ? '🏆' : pct >= 70 ? '🎉' : pct >= 50 ? '💪' : '📚'
+  const msg    = pct >= 90 ? 'ممتاز! أداء مثالي' : pct >= 70 ? 'جيد جداً! استمر' : pct >= 50 ? 'على الطريق الصحيح' : 'تحتاج مزيداً من التدريب'
 
   return (
-    <div className="flex flex-col items-center text-center py-12 px-6">
-      <div className="text-6xl mb-4">{emoji}</div>
-      <h2 className="text-2xl font-black text-white mb-2">انتهت الجلسة!</h2>
-      <p className={`text-5xl font-black mb-1 ${cfg.color}`}>{correct}<span className="text-white/40 text-2xl">/{total}</span></p>
-      <p className="text-white/50 text-sm mb-2">إجابات صحيحة</p>
-      <p className="text-white/30 text-xs mb-8">{pct}% دقة · مستوى {cfg.label}</p>
+    <div className="flex flex-col items-center justify-center min-h-[100dvh] px-6 text-center" dir="rtl">
+      <div className="text-6xl mb-5">{trophy}</div>
+      <h2 className="text-2xl font-black text-white mb-1">{msg}</h2>
+      <p className="text-white/40 text-sm mb-6">مستوى {level} · {m.ar}</p>
+
+      {/* Big score */}
+      <div className={`w-32 h-32 rounded-full border-4 ${m.ring.replace('ring-', 'border-')} flex flex-col items-center justify-center mb-8`}>
+        <span className={`text-4xl font-black ${m.text}`}>{correct}</span>
+        <span className="text-white/30 text-sm font-bold">/ {total}</span>
+      </div>
+
+      {/* Progress bar */}
+      <div className="w-full max-w-xs mb-8">
+        <div className="flex justify-between text-xs text-white/30 mb-1.5">
+          <span>دقة الإجابات</span>
+          <span>{pct}%</span>
+        </div>
+        <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+          <div
+            className={`h-full ${m.bar} rounded-full transition-all duration-1000`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      </div>
 
       <div className="flex flex-col gap-3 w-full max-w-xs">
         <button
           onClick={onRestart}
-          className={`w-full py-3.5 rounded-2xl bg-gradient-to-r ${cfg.gradient} text-white font-black text-base shadow-lg active:scale-95 transition-all`}
+          className={`w-full py-4 rounded-2xl font-black text-white text-base shadow-lg active:scale-[0.97] transition-all ${m.bar}`}
         >
           إعادة نفس المستوى
         </button>
         <button
           onClick={onChangeLevel}
-          className="w-full py-3.5 rounded-2xl bg-white/10 hover:bg-white/15 text-white/80 font-bold text-sm border border-white/15 active:scale-95 transition-all"
+          className="w-full py-3.5 rounded-2xl font-bold text-white/60 text-sm border border-white/12 hover:bg-white/5 active:scale-[0.97] transition-all"
         >
           تغيير المستوى
         </button>
@@ -400,58 +241,446 @@ function SessionComplete({
   )
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// COMPONENT: VideoPlayer
+// ─────────────────────────────────────────────────────────────────────────────
 
-type Phase = 'playing' | 'answering' | 'feedback'
+interface VideoPlayerProps {
+  clip: Clip
+  speed: Speed
+  onSpeedChange: (s: Speed) => void
+  onEnded: () => void
+  playerRef: React.MutableRefObject<unknown>
+  containerRef: React.RefObject<HTMLDivElement>
+  ytReady: boolean
+  isPlaying: boolean
+  setIsPlaying: (v: boolean) => void
+  onReplay: () => void
+  onTogglePlay: () => void
+  phase: Phase
+}
+
+function VideoPlayer({
+  clip, speed, onSpeedChange,
+  containerRef, ytReady, isPlaying,
+  onReplay, onTogglePlay, phase,
+}: VideoPlayerProps) {
+  return (
+    <div className="flex flex-col h-full">
+      {/* ── Clip meta ── */}
+      <div className="flex items-center justify-between px-1 mb-2 shrink-0">
+        <span className="text-white/30 text-xs font-medium">{clip.showTitle}</span>
+        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${LEVEL_META[clip.difficulty].bg} ${LEVEL_META[clip.difficulty].text}`}>
+          {LEVEL_META[clip.difficulty].emoji} {clip.difficulty}
+        </span>
+      </div>
+
+      {/* ── Video frame ── */}
+      <div
+        className="relative bg-black rounded-2xl overflow-hidden shadow-2xl"
+        style={{ aspectRatio: '16/9' }}
+      >
+        {/* Transparent overlay — captures clicks, blocks YT UI */}
+        <div
+          className="absolute inset-0 z-10 cursor-pointer"
+          onClick={onTogglePlay}
+        />
+
+        {/* YouTube iframe container */}
+        <div
+          ref={containerRef}
+          className="absolute inset-0 pointer-events-none"
+          style={{ width: '100%', height: '100%' }}
+        />
+
+        {/* Loading spinner */}
+        {!ytReady && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black">
+            <div className="w-10 h-10 border-[3px] border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+          </div>
+        )}
+
+        {/* Big play button overlay */}
+        {!isPlaying && ytReady && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+            <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center shadow-xl animate-pulse-slow">
+              <Play size={22} className="text-white translate-x-0.5" />
+            </div>
+          </div>
+        )}
+
+        {/* Phase indicator pill */}
+        {phase === 'answering' && (
+          <div className="absolute top-3 right-3 z-20 bg-blue-600/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full pointer-events-none">
+            🎧 اختر الإجابة
+          </div>
+        )}
+      </div>
+
+      {/* ── Controls bar ── */}
+      <div className="mt-3 flex items-center justify-between shrink-0">
+        {/* Play / Replay */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onTogglePlay}
+            className={`
+              flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-bold
+              transition-all active:scale-[0.95]
+              ${isPlaying
+                ? 'bg-white/15 text-white hover:bg-white/20'
+                : 'bg-blue-600 text-white hover:bg-blue-500'}
+            `}
+          >
+            {isPlaying ? <><Pause size={14} />إيقاف</> : <><Play size={14} />تشغيل</>}
+          </button>
+
+          <button
+            onClick={onReplay}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/8 hover:bg-white/15 text-white/70 hover:text-white text-sm font-bold transition-all active:scale-[0.95] border border-white/10"
+          >
+            <RotateCcw size={13} />إعادة
+          </button>
+        </div>
+
+        {/* Speed selector */}
+        <div className="flex items-center gap-1">
+          <Volume2 size={12} className="text-white/25 ml-0.5" />
+          {SPEEDS.map(s => (
+            <button
+              key={s}
+              onClick={() => onSpeedChange(s)}
+              className={`
+                text-xs font-bold px-2 py-1 rounded-lg transition-all
+                ${speed === s
+                  ? 'bg-white/20 text-white'
+                  : 'text-white/30 hover:text-white/60 hover:bg-white/8'}
+              `}
+            >
+              {s}x
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Arabic hint ── */}
+      {clip.arabicHint && (
+        <div className="mt-2.5 flex items-center gap-1.5 bg-white/5 border border-white/8 rounded-xl px-3 py-2 shrink-0">
+          <span className="text-blue-400 text-xs">💡</span>
+          <span className="text-white/30 text-xs">{clip.arabicHint}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMPONENT: QuizPanel
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface QuizPanelProps {
+  clip: Clip
+  phase: Phase
+
+  wrongAttempts: number[]    // indices of wrong guesses this round
+  score: { correct: number; total: number }
+  streak: number
+  level: Difficulty
+  clipIdx: number
+  sessionSize: number
+  flash: FlashType
+  onSelect: (i: number) => void
+  onReady: () => void
+  onNext: () => void
+  onReplay: () => void
+  isPremium: boolean
+  dailyLeft: number
+}
+
+function QuizPanel({
+  clip, phase, wrongAttempts,
+  score, streak, level, clipIdx, sessionSize, flash,
+  onSelect, onReady, onNext, onReplay,
+  isPremium, dailyLeft,
+}: QuizPanelProps) {
+  const m = LEVEL_META[level]
+  const retries = wrongAttempts.length
+
+  return (
+    <div className="flex flex-col h-full gap-3" dir="rtl">
+
+      {/* ── Flash overlay ── */}
+      {flash && (
+        <div
+          className={`
+            fixed inset-0 z-50 pointer-events-none transition-opacity duration-300
+            ${flash === 'correct' ? 'bg-emerald-500/15' : 'bg-red-500/18'}
+          `}
+        />
+      )}
+
+      {/* ── Top row: Level + Score + Streak ── */}
+      <div className="flex items-center justify-between shrink-0 gap-2">
+        {/* Level badge */}
+        <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-white/10 ${m.bg}`}>
+          <span className="text-sm">{m.emoji}</span>
+          <span className={`text-xs font-black ${m.text}`}>{level}</span>
+          <span className="text-white/35 text-xs">· {m.ar}</span>
+        </div>
+
+        {/* Score */}
+        <div className="flex items-center gap-1 bg-white/6 border border-white/10 rounded-xl px-2.5 py-1.5">
+          <span className="text-white/35 text-xs">النتيجة</span>
+          <span className={`text-sm font-black ${m.text}`}>{score.correct}</span>
+          <span className="text-white/25 text-xs">/{score.total}</span>
+        </div>
+
+        {/* Streak */}
+        <div className={`
+          flex items-center gap-1 px-2.5 py-1.5 rounded-xl border transition-all
+          ${streak >= 3
+            ? 'bg-orange-500/20 border-orange-500/40'
+            : 'bg-white/5 border-white/10'}
+        `}>
+          <span className="text-sm">{streak >= 5 ? '🔥' : streak >= 3 ? '⚡' : '✨'}</span>
+          <span className={`text-sm font-black ${streak >= 3 ? 'text-orange-300' : 'text-white/40'}`}>
+            {streak}
+          </span>
+        </div>
+      </div>
+
+      {/* ── Progress bar (segmented) ── */}
+      <div className="flex items-center gap-1 shrink-0">
+        {Array.from({ length: sessionSize }).map((_, i) => (
+          <div
+            key={i}
+            className={`
+              h-1.5 flex-1 rounded-full transition-all duration-500
+              ${i < clipIdx ? m.bar
+                : i === clipIdx ? (flash === 'correct' ? 'bg-emerald-400' : flash === 'wrong' ? 'bg-red-400' : 'bg-white/50')
+                : 'bg-white/10'}
+            `}
+          />
+        ))}
+      </div>
+
+      {/* ── Phase: playing ── */}
+      {phase === 'playing' && (
+        <div className="flex-1 flex flex-col items-center justify-center gap-5">
+          <div className="text-center">
+            <div className="text-5xl mb-3 animate-pulse-slow">🎧</div>
+            <p className="text-white/55 text-sm font-semibold">استمع للمقطع جيداً</p>
+            <p className="text-white/25 text-xs mt-1.5">يمكنك الإعادة أكثر من مرة</p>
+          </div>
+          <button
+            onClick={onReady}
+            className="w-full max-w-xs flex items-center justify-center gap-2 py-4 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black text-base shadow-xl active:scale-[0.97] transition-all"
+          >
+            اختر الإجابة
+            <ChevronLeft size={18} />
+          </button>
+        </div>
+      )}
+
+      {/* ── Phase: answering ── */}
+      {phase === 'answering' && (
+        <div className="flex-1 flex flex-col justify-center gap-2.5">
+          <div className="flex items-center justify-between mb-0.5">
+            <p className="text-white/50 text-sm font-semibold">ماذا سمعت؟</p>
+            {retries > 0 && (
+              <span className="text-xs text-red-400/70 font-bold flex items-center gap-1">
+                <RotateCcw size={11} /> {retries} {retries === 1 ? 'محاولة' : 'محاولات'}
+              </span>
+            )}
+          </div>
+          {clip.options.map((opt, i) => {
+            const wasWrong = wrongAttempts.includes(i)
+            return (
+              <button
+                key={i}
+                onClick={() => !wasWrong && onSelect(i)}
+                disabled={wasWrong}
+                className={`
+                  w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl
+                  border-2 text-sm font-semibold text-left
+                  transition-all duration-150
+                  ${wasWrong
+                    ? 'bg-red-500/8 border-red-500/20 text-red-400/40 cursor-not-allowed opacity-50'
+                    : 'bg-white/5 border-white/12 text-white/85 hover:bg-white/10 hover:border-white/25 active:scale-[0.98]'}
+                `}
+                dir="ltr"
+              >
+                <span className={`
+                  w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-xs font-black
+                  ${wasWrong ? 'bg-red-500/20 text-red-400/50' : 'bg-white/10 text-white/50'}
+                `}>
+                  {wasWrong ? <XCircle size={14} /> : String.fromCharCode(65 + i)}
+                </span>
+                <span className="flex-1 leading-snug">{opt}</span>
+              </button>
+            )
+          })}
+          {/* Hint after 2 wrong attempts */}
+          {retries >= 2 && (
+            <button
+              onClick={onReplay}
+              className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-blue-500/15 border border-blue-500/25 text-blue-300 text-xs font-bold active:scale-[0.97] transition-all mt-1"
+            >
+              <RotateCcw size={12} /> استمع مجدداً — المحاولة {retries + 1}
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* ── Phase: feedback (correct only — wrong stays in answering) ── */}
+      {phase === 'feedback' && (
+        <div className="flex-1 flex flex-col justify-center gap-3">
+          {/* Result banner */}
+          <div className="rounded-2xl border-2 px-4 py-4 bg-emerald-500/12 border-emerald-500/35">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />
+              <span className="font-black text-sm text-emerald-300">
+                {retries === 0 ? 'ممتاز! من أول مرة 🎉' : `صحيح! بعد ${retries} ${retries === 1 ? 'محاولة' : 'محاولات'} 💪`}
+              </span>
+              {streak >= 3 && (
+                <span className="mr-auto text-orange-300 text-xs font-black flex items-center gap-0.5">
+                  🔥 {streak} متتالية
+                </span>
+              )}
+            </div>
+            <div className="bg-white/8 rounded-xl px-3 py-2.5" dir="ltr">
+              <p className="text-white/35 text-[11px] mb-1">الجملة الصحيحة:</p>
+              <p className="text-white font-semibold text-sm leading-snug">{clip.sentence}</p>
+            </div>
+          </div>
+
+          {/* Options (all revealed) */}
+          <div className="space-y-2">
+            {clip.options.map((opt, i) => {
+              const isCorrectOpt  = i === clip.correctIndex
+              const wasWrongGuess = wrongAttempts.includes(i)
+              return (
+                <div
+                  key={i}
+                  className={`
+                    flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-semibold
+                    ${isCorrectOpt
+                      ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-200'
+                      : wasWrongGuess
+                      ? 'bg-red-500/10 border-red-500/25 text-red-300/60'
+                      : 'bg-white/3 border-white/8 text-white/20'}
+                  `}
+                  dir="ltr"
+                >
+                  <span className="w-5 h-5 shrink-0 rounded-full flex items-center justify-center text-xs">
+                    {isCorrectOpt
+                      ? <CheckCircle2 size={15} className="text-emerald-400" />
+                      : wasWrongGuess
+                      ? <XCircle size={15} className="text-red-400/60" />
+                      : <span className="text-white/20 text-xs font-black">{String.fromCharCode(65 + i)}</span>}
+                  </span>
+                  <span className="flex-1 leading-snug">{opt}</span>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Next — only enabled after correct */}
+          <button
+            onClick={onNext}
+            className={`
+              w-full flex items-center justify-center gap-2 py-4 rounded-2xl
+              text-white font-black text-base shadow-lg active:scale-[0.97] transition-all
+              ${m.bar}
+            `}
+          >
+            {clipIdx < sessionSize - 1
+              ? <>التالي <ChevronLeft size={18} /></>
+              : '🏁 إنهاء الجلسة'}
+          </button>
+        </div>
+      )}
+
+      {/* ── Daily counter / premium ── */}
+      {!isPremium && (
+        <div className="shrink-0 flex items-center justify-between border-t border-white/8 pt-2.5">
+          <span className="text-white/20 text-xs">
+            {dailyLeft > 0 ? `${dailyLeft} محاولة متبقية` : 'انتهت المحاولات'}
+          </span>
+          <Link href="/courses" className="flex items-center gap-1 text-amber-400 hover:text-amber-300 text-xs font-bold transition-colors">
+            <Crown size={11} /> Premium
+          </Link>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SCREEN: DAILY LIMIT
+// ─────────────────────────────────────────────────────────────────────────────
+
+function LimitWallScreen() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[100dvh] px-6 text-center" dir="rtl">
+      <div className="w-20 h-20 rounded-3xl bg-amber-500/15 border-2 border-amber-500/30 flex items-center justify-center text-4xl mb-6">👑</div>
+      <h2 className="text-2xl font-black text-white mb-3">انتهت محاولاتك اليومية</h2>
+      <p className="text-white/40 text-sm mb-8 max-w-xs leading-relaxed">
+        وصلت لـ {FREE_DAILY_LIMIT} فيديوهات مجانية اليوم. ارجع غداً أو ارقَّ للـ Premium للوصول غير المحدود.
+      </p>
+      <Link
+        href="/courses"
+        className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black px-8 py-4 rounded-2xl text-base shadow-xl hover:opacity-90 active:scale-95 transition-all mb-3"
+      >
+        <Crown size={18} /> ارقَّ للـ Premium
+      </Link>
+      <p className="text-white/20 text-xs">وصول غير محدود · جميع المستويات</p>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN PAGE
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function ListenPage() {
-  // ── Level selection ──────────────────────────────────────────────────────
-  const [selectedLevel, setSelectedLevel] = useState<Difficulty | null>(null)
+  // ── Routing state ──────────────────────────────────────────────────────────
+  const [screen, setScreen] = useState<Screen>('level-select')
+  const [level,  setLevel]  = useState<Difficulty>('A1')
 
-  // ── Session clips ────────────────────────────────────────────────────────
-  const [session, setSession] = useState<Clip[]>([])
-  const [clipIdx, setClipIdx] = useState(0)
-  const clip: Clip | undefined = session[clipIdx]
+  // ── Session ────────────────────────────────────────────────────────────────
+  const [session,  setSession]  = useState<Clip[]>([])
+  const [clipIdx,  setClipIdx]  = useState(0)
+  const clip = session[clipIdx] as Clip | undefined
 
-  // ── Score ─────────────────────────────────────────────────────────────────
-  const [score, setScore] = useState({ correct: 0, total: 0 })
+  // ── Quiz state ─────────────────────────────────────────────────────────────
+  const [phase,         setPhase]         = useState<Phase>('playing')
 
-  // ── Learning flow ─────────────────────────────────────────────────────────
-  const [phase, setPhase] = useState<Phase>('playing')
-  const [selected, setSelected] = useState<number | null>(null)
-  const [isCorrect, setIsCorrect] = useState(false)
-  const [sessionDone, setSessionDone] = useState(false)
+  const [wrongAttempts, setWrongAttempts] = useState<number[]>([])
+  const [score,         setScore]         = useState({ correct: 0, total: 0 })
+  const [streak,        setStreak]        = useState<number>(0)
+  const [flash,         setFlash]         = useState<FlashType>(null)
 
-  // ── Player ────────────────────────────────────────────────────────────────
+  // ── Player state ───────────────────────────────────────────────────────────
   const [isPlaying, setIsPlaying] = useState(false)
-  const [speed, setSpeed]         = useState<Speed>(1)
-  const [ytReady, setYtReady]     = useState(false)
+  const [speed,     setSpeed]     = useState<Speed>(1)
+  const [ytReady,   setYtReady]   = useState(false)
 
-  // ── Monetisation ─────────────────────────────────────────────────────────
+  // ── Monetisation ───────────────────────────────────────────────────────────
   const [dailyCount, setDailyCount] = useState(0)
-  const [isPremium]                  = useState(false)
-  const limitReached                 = !isPremium && dailyCount >= FREE_DAILY_LIMIT
+  const isPremium = false
+  const dailyLeft = Math.max(0, FREE_DAILY_LIMIT - dailyCount)
 
-  // ── Refs ──────────────────────────────────────────────────────────────────
+  // ── Refs ───────────────────────────────────────────────────────────────────
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const playerRef    = useRef<any>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const endTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const speedRef     = useRef<Speed>(1)
 
-  // ── Start session when level selected ────────────────────────────────────
-  const startSession = useCallback((level: Difficulty) => {
-    const clips = buildSession(level)
-    setSession(clips)
-    setClipIdx(0)
-    setScore({ correct: 0, total: 0 })
-    setPhase('playing')
-    setSelected(null)
-    setIsCorrect(false)
-    setSessionDone(false)
-    setSelectedLevel(level)
-  }, [])
+  // keep speedRef in sync
+  useEffect(() => { speedRef.current = speed }, [speed])
 
-  // ── Load YouTube IFrame API ───────────────────────────────────────────────
+  // ── Load YouTube IFrame API ────────────────────────────────────────────────
   useEffect(() => {
     setDailyCount(getDailyCount())
     if (window.YT?.Player) { setYtReady(true); return }
@@ -462,17 +691,31 @@ export default function ListenPage() {
     window.onYouTubeIframeAPIReady = () => setYtReady(true)
   }, [])
 
-  // ── Schedule auto-switch to answering after clip ends ────────────────────
-  const scheduleEnd = useCallback((clipEnd: number, clipStart: number, currentSpeed: Speed) => {
+  // ── Start session ──────────────────────────────────────────────────────────
+  const startSession = useCallback((d: Difficulty) => {
+    const clips = buildSession(d)
+    setLevel(d)
+    setSession(clips)
+    setClipIdx(0)
+    setScore({ correct: 0, total: 0 })
+    setPhase('playing')
+    setWrongAttempts([])
+    setStreak(loadStreak())
+    setFlash(null)
+    setScreen('practice')
+  }, [])
+
+  // ── Schedule auto-transition playing → answering ──────────────────────────
+  const scheduleEnd = useCallback((c: Clip, currentSpeed: Speed) => {
     if (endTimerRef.current) clearTimeout(endTimerRef.current)
-    const duration = (clipEnd - clipStart) / currentSpeed
+    const duration = (c.end - c.start) / currentSpeed
     endTimerRef.current = setTimeout(() => {
       setIsPlaying(false)
       setPhase('answering')
     }, (duration + 0.5) * 1000)
   }, [])
 
-  // ── Initialise player ─────────────────────────────────────────────────────
+  // ── Init YouTube player ────────────────────────────────────────────────────
   const initPlayer = useCallback((c: Clip) => {
     if (!containerRef.current || !window.YT?.Player) return
     if (playerRef.current) {
@@ -486,8 +729,7 @@ export default function ListenPage() {
 
     playerRef.current = new window.YT.Player('yt-player', {
       videoId: c.videoId,
-      width:   '100%',
-      height:  '100%',
+      width: '100%', height: '100%',
       playerVars: {
         start: c.start, end: c.end,
         autoplay: 1, controls: 0,
@@ -495,45 +737,45 @@ export default function ListenPage() {
         iv_load_policy: 3, cc_load_policy: 0, playsinline: 1,
       },
       events: {
-        onReady: (e: { target: { setPlaybackRate: (s: number) => void; playVideo: () => void } }) => {
-          e.target.setPlaybackRate(speed)
+        onReady(e: { target: { setPlaybackRate: (s: number) => void; playVideo: () => void } }) {
+          e.target.setPlaybackRate(speedRef.current)
           e.target.playVideo()
           setIsPlaying(true)
-          scheduleEnd(c.end, c.start, speed)
+          scheduleEnd(c, speedRef.current)
         },
-        onStateChange: (e: { data: number }) => {
-          if (e.data === 1) setIsPlaying(true)
-          if (e.data === 2 || e.data === 0) setIsPlaying(false)
+        onStateChange(e: { data: number }) {
+          setIsPlaying(e.data === 1)
         },
       },
     })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [speed])
+  }, [scheduleEnd])
 
+  // Re-init player when clip changes
   useEffect(() => {
-    if (!ytReady || !clip) return
+    if (!ytReady || !clip || screen !== 'practice') return
     setPhase('playing')
-    setSelected(null)
+    setWrongAttempts([])
+    setFlash(null)
     setIsPlaying(false)
     initPlayer(clip)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ytReady, clipIdx, session])
+  }, [ytReady, clipIdx, session, screen])
 
-  // Cleanup timer
+  // Cleanup
   useEffect(() => () => {
     if (endTimerRef.current) clearTimeout(endTimerRef.current)
   }, [])
 
-  // ── Player controls ───────────────────────────────────────────────────────
+  // ── Player controls ────────────────────────────────────────────────────────
   const replay = useCallback(() => {
     if (!playerRef.current || !clip) return
     if (endTimerRef.current) clearTimeout(endTimerRef.current)
     playerRef.current.seekTo(clip.start, true)
-    playerRef.current.setPlaybackRate(speed)
+    playerRef.current.setPlaybackRate(speedRef.current)
     playerRef.current.playVideo()
     setIsPlaying(true)
-    scheduleEnd(clip.end, clip.start, speed)
-  }, [clip, speed, scheduleEnd])
+    scheduleEnd(clip, speedRef.current)
+  }, [clip, scheduleEnd])
 
   const togglePlay = useCallback(() => {
     if (!playerRef.current || !clip) return
@@ -542,310 +784,172 @@ export default function ListenPage() {
       if (endTimerRef.current) clearTimeout(endTimerRef.current)
     } else {
       playerRef.current.seekTo(clip.start, true)
-      playerRef.current.setPlaybackRate(speed)
+      playerRef.current.setPlaybackRate(speedRef.current)
       playerRef.current.playVideo()
-      scheduleEnd(clip.end, clip.start, speed)
+      scheduleEnd(clip, speedRef.current)
     }
-  }, [isPlaying, clip, speed, scheduleEnd])
+  }, [isPlaying, clip, scheduleEnd])
 
   const changeSpeed = useCallback((s: Speed) => {
     setSpeed(s)
+    speedRef.current = s
     if (playerRef.current) playerRef.current.setPlaybackRate(s)
   }, [])
 
-  // ── Answer selection ──────────────────────────────────────────────────────
-  const handleSelect = useCallback((i: number) => {
-    if (phase !== 'answering' || !clip) return
-    setSelected(i)
-    const correct = i === clip.correctIndex
-    setIsCorrect(correct)
-    setPhase('feedback')
-    setScore(s => ({ correct: s.correct + (correct ? 1 : 0), total: s.total + 1 }))
-    playSound(correct ? 'correct' : 'wrong')
-    const newCount = incrementDailyCount()
-    setDailyCount(newCount)
-  }, [phase, clip])
-
-  // ── Next clip ─────────────────────────────────────────────────────────────
-  const handleNext = useCallback(() => {
-    if (clipIdx < session.length - 1) {
-      setClipIdx(i => i + 1)
-    } else {
-      setSessionDone(true)
-    }
-  }, [clipIdx, session.length])
-
-  // ── Ready button (playing → answering) ───────────────────────────────────
+  // ── Quiz handlers ──────────────────────────────────────────────────────────
   const handleReady = useCallback(() => {
     if (endTimerRef.current) clearTimeout(endTimerRef.current)
-    if (playerRef.current) {
-      try { playerRef.current.pauseVideo() } catch { /* ignore */ }
-    }
+    try { playerRef.current?.pauseVideo() } catch { /* ignore */ }
     setIsPlaying(false)
     setPhase('answering')
   }, [])
 
-  // ── Derived ───────────────────────────────────────────────────────────────
-  const xpForResult = isCorrect ? 10 : 3
-  const cfg = selectedLevel ? DIFFICULTY_CONFIG[selectedLevel] : null
+  const handleSelect = useCallback((i: number) => {
+    if (phase !== 'answering' || !clip) return
 
-  // ─── Level select ─────────────────────────────────────────────────────────
-  if (!selectedLevel) {
-    return <LevelSelectScreen onSelect={startSession} />
-  }
+    const correct = i === clip.correctIndex
 
-  // ─── Session done ─────────────────────────────────────────────────────────
-  if (sessionDone) {
-    return (
-      <div
-        className="min-h-screen flex flex-col items-center justify-center"
-        style={{ background: 'linear-gradient(135deg,#0f172a 0%,#1e1b4b 40%,#0f172a 100%)' }}
-        dir="rtl"
-      >
-        <div className="w-full max-w-md px-4">
-          <SessionComplete
-            correct={score.correct}
-            total={score.total}
-            level={selectedLevel}
-            onRestart={() => startSession(selectedLevel)}
-            onChangeLevel={() => setSelectedLevel(null)}
-          />
-        </div>
-      </div>
-    )
-  }
+    // Flash the screen
+    setFlash(correct ? 'correct' : 'wrong')
+    setTimeout(() => setFlash(null), 400)
 
-  // ─── Daily limit ──────────────────────────────────────────────────────────
-  if (limitReached) {
-    return (
-      <div
-        className="min-h-screen flex flex-col items-center justify-center"
-        style={{ background: 'linear-gradient(135deg,#0f172a 0%,#1e1b4b 40%,#0f172a 100%)' }}
-        dir="rtl"
-      >
-        <div className="w-full max-w-md px-4">
-          <DailyLimitWall />
-        </div>
-      </div>
-    )
-  }
+    playTone(correct ? 'correct' : 'wrong')
 
-  // ─── Practice screen ──────────────────────────────────────────────────────
+    if (correct) {
+      // ── Correct: advance to feedback, update score + streak ──────────────
+      const firstTry = wrongAttempts.length === 0
+      setScore(s => ({ correct: s.correct + (firstTry ? 1 : 0), total: s.total + 1 }))
+      setStreak(s => {
+        const next = s + 1
+        saveStreak(next)
+        return next
+      })
+      setPhase('feedback')
+      setDailyCount(incrementDailyCount())
+    } else {
+      // ── Wrong: stay in answering, mark this option as used ───────────────
+      setWrongAttempts(prev => [...prev, i])
+      setStreak(0)
+      saveStreak(0)
+      // Auto-replay clip so learner hears it again
+      setTimeout(() => {
+        if (playerRef.current && clip) {
+          try {
+            playerRef.current.seekTo(clip.start, true)
+            playerRef.current.setPlaybackRate(speedRef.current)
+            playerRef.current.playVideo()
+            setIsPlaying(true)
+            scheduleEnd(clip, speedRef.current)
+          } catch { /* ignore */ }
+        }
+      }, 600)
+    }
+  }, [phase, clip, wrongAttempts, scheduleEnd])
+
+  const handleNext = useCallback(() => {
+    if (!isPremium && dailyCount >= FREE_DAILY_LIMIT) {
+      setScreen('limit-wall'); return
+    }
+    if (clipIdx < session.length - 1) {
+      setClipIdx(i => i + 1)
+    } else {
+      setScreen('session-end')
+    }
+  }, [clipIdx, session.length, isPremium, dailyCount])
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // RENDER
+  // ─────────────────────────────────────────────────────────────────────────
+
   return (
     <>
+      {/* Global styles */}
       <style>{`
-        @keyframes fadeUp {
-          from { opacity:0; transform:translateY(12px); }
-          to   { opacity:1; transform:translateY(0); }
+        @keyframes pulse-slow {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50%       { opacity: 0.7; transform: scale(1.08); }
         }
-        @keyframes pulseRing {
-          0%,100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.4); }
-          70%     { box-shadow: 0 0 0 10px rgba(59,130,246,0); }
-        }
-        .animate-fadeUp { animation: fadeUp 0.3s ease-out both; }
-        .pulse-ring     { animation: pulseRing 1.5s ease-out infinite; }
+        .animate-pulse-slow { animation: pulse-slow 2s ease-in-out infinite; }
       `}</style>
 
       <div
-        className="min-h-screen"
-        style={{ background: 'linear-gradient(135deg,#0f172a 0%,#1e1b4b 40%,#0f172a 100%)' }}
-        dir="rtl"
+        className="min-h-[100dvh] flex flex-col"
+        style={{ background: 'linear-gradient(140deg,#0c1120 0%,#131830 50%,#0c1120 100%)' }}
       >
-        {/* ── Top bar ───────────────────────────────────────────────────────── */}
-        <div className="pt-20 pb-4 px-4">
-          <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
-            <div className="flex-1 max-w-sm">
-              <ProgressBar
-                current={clipIdx + 1}
-                total={session.length}
-                dailyCount={dailyCount}
-                isPremium={isPremium}
-              />
+        {/* ── Screens that take full viewport ────────────────────────────── */}
+        {screen === 'level-select' && <LevelSelectScreen onSelect={startSession} />}
+        {screen === 'session-end'  && (
+          <SessionEndScreen
+            correct={score.correct} total={score.total} level={level}
+            onRestart={() => startSession(level)}
+            onChangeLevel={() => setScreen('level-select')}
+          />
+        )}
+        {screen === 'limit-wall' && <LimitWallScreen />}
+
+        {/* ── Practice screen ─────────────────────────────────────────────── */}
+        {screen === 'practice' && clip && (
+          <>
+            {/* Top bar */}
+            <div className="pt-[72px] pb-3 px-4 shrink-0">
+              <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+                <button
+                  onClick={() => setScreen('level-select')}
+                  className="flex items-center gap-1 text-white/25 hover:text-white/50 text-xs font-semibold transition-colors"
+                >
+                  <ChevronRight size={14} /> تغيير المستوى
+                </button>
+                <span className="text-white/20 text-xs">
+                  {clipIdx + 1} / {session.length}
+                </span>
+              </div>
             </div>
-            <button
-              onClick={() => setSelectedLevel(null)}
-              className="text-white/30 hover:text-white/60 text-xs font-semibold border border-white/10 rounded-lg px-3 py-1.5 hover:border-white/20 transition-all whitespace-nowrap"
-            >
-              تغيير المستوى
-            </button>
-          </div>
-        </div>
 
-        {/* ── Split layout ──────────────────────────────────────────────────── */}
-        <div className="max-w-6xl mx-auto px-4 pb-12">
-          <div className="flex flex-col lg:flex-row gap-5 lg:gap-6 lg:items-start">
+            {/* ── Desktop: split layout | Mobile: stacked ── */}
+            <div className="flex-1 flex flex-col lg:flex-row gap-4 lg:gap-6 max-w-6xl mx-auto w-full px-4 pb-6 lg:pb-8 overflow-hidden">
 
-            {/* ── LEFT: Video player (100% mobile, 60% desktop) ───────────── */}
-            <div className="w-full lg:w-[60%] shrink-0">
-              <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
-
-                {/* Metadata bar */}
-                <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10">
-                  {cfg && (
-                    <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border ${cfg.bg} ${cfg.border} ${cfg.color}`}>
-                      {cfg.icon} {cfg.label} · {cfg.sublabel}
-                    </span>
-                  )}
-                  {clip && (
-                    <span className="text-white/25 text-xs">{clip.showTitle}</span>
-                  )}
-                </div>
-
-                {/* YouTube player */}
-                <div className="relative bg-black" style={{ aspectRatio: '16/9' }}>
-                  <div
-                    className="absolute inset-0 z-10 cursor-pointer"
-                    onClick={togglePlay}
-                  />
-                  <div
-                    ref={containerRef}
-                    className="absolute inset-0 pointer-events-none"
-                    style={{ width: '100%', height: '100%' }}
-                  />
-                  {!ytReady && (
-                    <div className="absolute inset-0 flex items-center justify-center z-20">
-                      <div className="w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                    {!isPlaying && ytReady && (
-                      <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30 pulse-ring">
-                        <Play size={24} className="text-white ml-1" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Controls */}
-                <div className="px-4 py-3.5 space-y-3">
-                  <div className="flex items-center gap-2.5">
-                    <button
-                      onClick={togglePlay}
-                      className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-bold text-sm transition-all active:scale-95 ${
-                        isPlaying ? 'bg-blue-600 text-white' : 'bg-white/10 text-white hover:bg-white/20'
-                      }`}
-                    >
-                      {isPlaying ? <><Pause size={14} /> إيقاف</> : <><Play size={14} /> تشغيل</>}
-                    </button>
-                    <button
-                      onClick={replay}
-                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm transition-all active:scale-95"
-                    >
-                      <RotateCcw size={14} /> إعادة
-                    </button>
-                    <span className="text-white/25 text-xs">استمع كم مرة تريد</span>
-                  </div>
-
-                  <SpeedControl speed={speed} onChange={changeSpeed} />
-
-                  {clip?.arabicHint && (
-                    <div className="flex items-center gap-1.5 text-white/30 text-xs bg-white/5 rounded-lg px-3 py-1.5">
-                      <span className="text-blue-400">💡</span>
-                      <span>المجال: {clip.arabicHint}</span>
-                    </div>
-                  )}
-                </div>
+              {/* ── LEFT / TOP: Video (60% desktop, auto mobile) ── */}
+              <div className="w-full lg:w-[60%] shrink-0 flex flex-col">
+                <VideoPlayer
+                  clip={clip}
+                  speed={speed}
+                  onSpeedChange={changeSpeed}
+                  onEnded={() => setPhase('answering')}
+                  playerRef={playerRef}
+                  containerRef={containerRef as React.RefObject<HTMLDivElement>}
+                  ytReady={ytReady}
+                  isPlaying={isPlaying}
+                  setIsPlaying={setIsPlaying}
+                  onReplay={replay}
+                  onTogglePlay={togglePlay}
+                  phase={phase}
+                />
               </div>
 
-              {/* Ready button — visible on mobile only below video */}
-              {phase === 'playing' && (
-                <div className="lg:hidden mt-3 animate-fadeUp">
-                  <button
-                    onClick={handleReady}
-                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-black text-base shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2"
-                  >
-                    اختر الإجابة <ChevronRight size={18} />
-                  </button>
-                </div>
-              )}
+              {/* ── RIGHT / BOTTOM: Quiz (40% desktop, flex-1 mobile) ── */}
+              <div className="w-full lg:flex-1 flex flex-col min-h-0">
+                <QuizPanel
+                  clip={clip}
+                  phase={phase}
+
+                  wrongAttempts={wrongAttempts}
+                  score={score}
+                  streak={streak}
+                  level={level}
+                  clipIdx={clipIdx}
+                  sessionSize={session.length}
+                  flash={flash}
+                  onSelect={handleSelect}
+                  onReady={handleReady}
+                  onNext={handleNext}
+                  onReplay={replay}
+                  isPremium={isPremium}
+                  dailyLeft={dailyLeft}
+                />
+              </div>
             </div>
-
-            {/* ── RIGHT: Quiz panel (100% mobile, 40% desktop) ────────────── */}
-            <div className="w-full lg:flex-1 flex flex-col gap-4">
-
-              {/* Score */}
-              <ScoreDisplay correct={score.correct} total={score.total} level={selectedLevel} />
-
-              {/* Playing phase — desktop ready button */}
-              {phase === 'playing' && (
-                <div className="hidden lg:block animate-fadeUp">
-                  <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center">
-                    <p className="text-white/40 text-sm mb-5 leading-relaxed">
-                      🎧 استمع جيداً للجملة<br/>
-                      <span className="text-white/25 text-xs">يمكنك الإعادة كم مرة تريد</span>
-                    </p>
-                    <button
-                      onClick={handleReady}
-                      className="w-full py-4 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-black text-base shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2"
-                    >
-                      اختر الإجابة <ChevronRight size={18} />
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* MCQ */}
-              {(phase === 'answering' || phase === 'feedback') && clip && (
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 animate-fadeUp">
-                  <MCQOptions
-                    clip={clip}
-                    selected={selected}
-                    phase={phase === 'feedback' ? 'feedback' : 'answering'}
-                    onSelect={handleSelect}
-                  />
-                </div>
-              )}
-
-              {/* Feedback */}
-              {phase === 'feedback' && clip && (
-                <div className="animate-fadeUp space-y-3">
-                  <FeedbackBanner
-                    isCorrect={isCorrect}
-                    correctSentence={clip.sentence}
-                    xp={xpForResult}
-                  />
-
-                  <div className="flex gap-2">
-                    {!isCorrect && (
-                      <button
-                        onClick={replay}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white/70 text-sm font-bold border border-white/15 active:scale-95 transition-all"
-                      >
-                        <RotateCcw size={13} /> استمع مجدداً
-                      </button>
-                    )}
-                    <button
-                      onClick={handleNext}
-                      className={`flex items-center justify-center gap-1.5 py-3 px-5 rounded-xl text-white font-black text-sm shadow-lg active:scale-95 transition-all bg-gradient-to-r ${cfg?.gradient ?? 'from-blue-500 to-indigo-600'} ${isCorrect ? 'flex-1' : ''}`}
-                    >
-                      {clipIdx < session.length - 1
-                        ? <>التالي <ChevronRight size={15} /></>
-                        : '🏆 إنهاء الجلسة'}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Premium strip */}
-              {!isPremium && phase !== 'feedback' && (
-                <div className="flex items-center justify-between bg-amber-500/10 border border-amber-500/25 rounded-xl px-4 py-3">
-                  <div>
-                    <p className="text-amber-300 font-bold text-xs flex items-center gap-1">
-                      <Crown size={12} /> Premium
-                    </p>
-                    <p className="text-white/30 text-xs mt-0.5">وصول غير محدود + جميع المستويات</p>
-                  </div>
-                  <Link
-                    href="/courses"
-                    className="bg-amber-500 hover:bg-amber-600 text-white font-black text-xs px-3 py-1.5 rounded-lg transition-all active:scale-95 whitespace-nowrap"
-                  >
-                    ارقَّ الآن
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </>
   )

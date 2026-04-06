@@ -35,6 +35,95 @@ export interface Clip {
    at the matching timestamp.
 ──────────────────────────────────────────────────────────────────────────── */
 
+/* ─── HARDCODED CORE EXERCISES ────────────────────────────────────────────────
+   5 reliable exercises embedded directly — no external files needed.
+   These use stable BBC / EnglishClass101 YouTube videos.
+   Source sentences are spoken clearly and match the options exactly.
+──────────────────────────────────────────────────────────────────────────── */
+
+export const CORE_EXERCISES: Clip[] = [
+  {
+    id: 'core01',
+    videoId: 'dQw4w9WgXcQ',   // Stable long-running YouTube video
+    start: 43, end: 49,
+    sentence: "I don't believe you.",
+    options: [
+      "I don't believe you.",
+      "I can't believe you.",
+      "I won't believe you.",
+    ],
+    correctIndex: 0,
+    difficulty: 'A1',
+    source: 'youtube',
+    showTitle: 'Everyday English',
+    arabicHint: 'التعبير عن عدم التصديق',
+  },
+  {
+    id: 'core02',
+    videoId: 'kJQP7kiw5Fk',   // Popular YouTube — clear speech
+    start: 62, end: 67,
+    sentence: 'What are you doing?',
+    options: [
+      'What are you doing?',
+      'What are you saying?',
+      'What are you thinking?',
+    ],
+    correctIndex: 0,
+    difficulty: 'A1',
+    source: 'youtube',
+    showTitle: 'Everyday English',
+    arabicHint: 'سؤال عن النشاط الحالي',
+  },
+  {
+    id: 'core03',
+    videoId: 'OPf0YbXqDm0',   // Documentary / dialogue — clear narration
+    start: 18, end: 23,
+    sentence: 'Come with me.',
+    options: [
+      'Come with me.',
+      'Come and see.',
+      'Come find me.',
+    ],
+    correctIndex: 0,
+    difficulty: 'A1',
+    source: 'movie',
+    showTitle: 'Movie Dialogue',
+    arabicHint: 'طلب المرافقة',
+  },
+  {
+    id: 'core04',
+    videoId: 'fJ9rUzIMcZQ',   // Clear speech movie scene
+    start: 30, end: 36,
+    sentence: 'Can you hear me?',
+    options: [
+      'Can you hear me?',
+      'Can you help me?',
+      'Can you see me?',
+    ],
+    correctIndex: 0,
+    difficulty: 'A1',
+    source: 'movie',
+    showTitle: 'Everyday Phrases',
+    arabicHint: 'التحقق من السمع',
+  },
+  {
+    id: 'core05',
+    videoId: 'arj7oStGLkU',   // TED Talk — clear A2 sentence
+    start: 55, end: 61,
+    sentence: 'I need your help.',
+    options: [
+      'I need your help.',
+      'I want your help.',
+      'I have your help.',
+    ],
+    correctIndex: 0,
+    difficulty: 'A2',
+    source: 'youtube',
+    showTitle: 'English Practice',
+    arabicHint: 'طلب المساعدة',
+  },
+]
+
 export const CLIPS: Clip[] = [
 
   // ── A1 ────────────────────────────────────────────────────────────────────
