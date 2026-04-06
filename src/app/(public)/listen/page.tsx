@@ -123,6 +123,112 @@ function playTone(type: 'correct' | 'wrong') {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// COLOR CHUNKS SYSTEM
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface Chunk { en: string; ar?: string }
+
+const CHUNK_COLORS = [
+  { bg: 'bg-blue-500/20',   ring: 'bg-blue-500/40',   text: 'text-blue-300',   border: 'border-blue-500/35'   },
+  { bg: 'bg-green-500/20',  ring: 'bg-green-500/40',  text: 'text-green-300',  border: 'border-green-500/35'  },
+  { bg: 'bg-purple-500/20', ring: 'bg-purple-500/40', text: 'text-purple-300', border: 'border-purple-500/35' },
+  { bg: 'bg-orange-500/20', ring: 'bg-orange-500/40', text: 'text-orange-300', border: 'border-orange-500/35' },
+]
+
+/**
+ * Split an English sentence into 2-4 meaningful chunks.
+ * Tries natural break points first; falls back to even halves.
+ */
+function autoChunk(sentence: string): string[] {
+  // 1. Split at commas
+  const byComma = sentence.split(/,\s+/)
+  if (byComma.length >= 2 && byComma.length <= 4) return byComma
+
+  // 2. Split at common phrase-boundary words
+  const boundary = /\b(and|or|but|because|when|if|that|which|while|so|after|before|until|since|though|although|however|to|with)\b/i
+  const m = sentence.match(boundary)
+  if (m && m.index && m.index > 3 && m.index < sentence.length - 3) {
+    const idx = m.index
+    return [sentence.slice(0, idx).trim(), sentence.slice(idx).trim()]
+  }
+
+  // 3. Split into 2 roughly equal word groups
+  const words = sentence.split(' ')
+  if (words.length <= 2) return [sentence]
+  const mid = Math.ceil(words.length / 2)
+  return [words.slice(0, mid).join(' '), words.slice(mid).join(' ')]
+}
+
+function ColorChunks({ chunks }: { chunks: Chunk[] }) {
+  const [activeIdx, setActiveIdx] = useState<number | null>(null)
+
+  if (chunks.length === 0) return null
+
+  const hasArabic = chunks.some(c => c.ar && c.ar.trim().length > 0)
+
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/4 px-4 py-3">
+      <p className="text-white/25 text-[10px] font-semibold mb-3 text-center tracking-widest uppercase">
+        Color Chunks · التفكيك اللوني
+      </p>
+
+      {/* ── English row ── */}
+      <div className="flex flex-wrap gap-2 justify-center mb-2" dir="ltr">
+        {chunks.map((c, i) => {
+          const col    = CHUNK_COLORS[i % CHUNK_COLORS.length]
+          const active = activeIdx === i
+          return (
+            <span
+              key={i}
+              onMouseEnter={() => setActiveIdx(i)}
+              onMouseLeave={() => setActiveIdx(null)}
+              onPointerDown={() => setActiveIdx(prev => prev === i ? null : i)}
+              className={`
+                px-3 py-1.5 rounded-xl text-sm font-semibold border cursor-default
+                transition-all duration-200 select-none
+                chunk-fade-in
+                ${active ? col.ring : col.bg} ${col.text} ${col.border}
+              `}
+              style={{ animationDelay: `${i * 90}ms` }}
+            >
+              {c.en}
+            </span>
+          )
+        })}
+      </div>
+
+      {/* ── Arabic row (only if data present) ── */}
+      {hasArabic && (
+        <div className="flex flex-wrap gap-2 justify-center border-t border-white/8 pt-2.5 mt-1" dir="rtl">
+          {chunks.map((c, i) => {
+            if (!c.ar) return null
+            const col    = CHUNK_COLORS[i % CHUNK_COLORS.length]
+            const active = activeIdx === i
+            return (
+              <span
+                key={i}
+                onMouseEnter={() => setActiveIdx(i)}
+                onMouseLeave={() => setActiveIdx(null)}
+                onPointerDown={() => setActiveIdx(prev => prev === i ? null : i)}
+                className={`
+                  px-3 py-1.5 rounded-xl text-sm font-semibold border cursor-default
+                  transition-all duration-200 select-none
+                  chunk-fade-in
+                  ${active ? col.ring : col.bg} ${col.text} ${col.border}
+                `}
+                style={{ animationDelay: `${i * 90 + 220}ms` }}
+              >
+                {c.ar}
+              </span>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // SCREEN: LEVEL SELECT
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -579,6 +685,9 @@ function QuizPanel({
             </div>
           </div>
 
+          {/* ── Color Chunks ── */}
+          <ColorChunks chunks={autoChunk(clip.sentence).map(en => ({ en }))} />
+
           <div className="space-y-2">
             {clip.options.map((opt, i) => {
               const isCorrectOpt  = i === clip.correctIndex
@@ -774,6 +883,14 @@ export default function ListenPage() {
           50%       { opacity: 0.7; transform: scale(1.08); }
         }
         .animate-pulse-slow { animation: pulse-slow 2s ease-in-out infinite; }
+
+        @keyframes chunk-in {
+          from { opacity: 0; transform: translateY(8px) scale(0.92); }
+          to   { opacity: 1; transform: translateY(0)   scale(1);    }
+        }
+        .chunk-fade-in {
+          animation: chunk-in 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
       `}</style>
 
       <div
