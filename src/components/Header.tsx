@@ -20,6 +20,7 @@ const navLinks = [
   { href: '/courses',   label: 'الدورات' },
   { href: '/blog',      label: 'المدونة' },
   { href: '/corrector', label: 'المصحح' },
+  { href: '/listen',    label: '🎧 استماع' },
 ]
 
 // Highlighted CTA link
