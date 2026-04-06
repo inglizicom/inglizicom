@@ -104,3 +104,38 @@ export function togglePublish(id: string): ContentItem | null {
 export function deleteContent(id: string): void {
   writeAll(readAll().filter(c => c.id !== id))
 }
+
+// ─── Practice Page integration ────────────────────────────────────────────────
+
+import type { Sentence } from '@/lib/sentences'
+
+/**
+ * Map published ContentItems for a given level into the Sentence shape
+ * used by the practice page. Shuffled so each session varies.
+ *
+ * `arabic` is intentionally left empty — the practice page handles this
+ * gracefully (hides the Arabic toggle, converts translation tasks to
+ * dictation-style review when arabic is absent).
+ */
+export function getPublishedAsSentences(
+  level: ContentLevel,
+  limit = 6
+): Sentence[] {
+  const items = getPublishedContent()
+    .filter(c => c.level === level)
+
+  // Fisher-Yates shuffle
+  const a = [...items]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]]
+  }
+
+  return a.slice(0, limit).map(c => ({
+    id:      c.id,
+    english: c.sentence,
+    arabic:  '',                                        // not captured in admin — handled in practice screens
+    level:   (c.level === 'B2' ? 'B1' : c.level) as Sentence['level'],
+    topic:   c.lesson.toLowerCase().replace(/\s+/g, '-'),
+  }))
+}

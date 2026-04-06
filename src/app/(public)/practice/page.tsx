@@ -9,8 +9,11 @@ import {
 } from 'lucide-react'
 import type { EvaluateResponse, ChatResponse } from '@/app/api/practice/route'
 import {
-  getSessionSentences, type Sentence, type Level,
+  type Sentence, type Level,
 } from '@/lib/sentences'
+import {
+  getPublishedAsSentences,
+} from '@/lib/content-store'
 import {
   getProgress, saveProgress, updateStreak, applyXP,
   markSentencesUsed, levelProgress, nextLevelInfo,
@@ -519,17 +522,19 @@ function ReadingScreen({
         {/* Controls */}
         <div className="flex items-center gap-3 flex-wrap">
           <SpeakBtn text={sentence.english} />
-          <button
-            onClick={() => setShowArabic(v => !v)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold text-sm transition-all hover:scale-105"
-          >
-            {showArabic ? <EyeOff size={15} /> : <Eye size={15} />}
-            {showArabic ? 'أخفِ العربية' : 'أظهر العربية'}
-          </button>
+          {sentence.arabic && (
+            <button
+              onClick={() => setShowArabic(v => !v)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold text-sm transition-all hover:scale-105"
+            >
+              {showArabic ? <EyeOff size={15} /> : <Eye size={15} />}
+              {showArabic ? 'أخفِ العربية' : 'أظهر العربية'}
+            </button>
+          )}
         </div>
 
         {/* Arabic */}
-        {showArabic && (
+        {showArabic && sentence.arabic && (
           <div className="mt-5 pt-5 border-t border-gray-100 animate-fadeUp">
             <p className="text-gray-600 text-lg leading-relaxed">{sentence.arabic}</p>
           </div>
@@ -651,16 +656,29 @@ function WritingScreen({
         ))}
       </div>
 
-      {/* Arabic prompt */}
+      {/* Prompt card — Arabic hint when available, English recall otherwise */}
       <div className="w-full bg-white rounded-3xl shadow-xl p-6 mb-5">
-        <p className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-          <Star size={12} /> الجملة بالعربية
-        </p>
-        <p className="text-xl font-bold text-gray-800 leading-relaxed">{sentence.arabic}</p>
-        <p className="text-gray-400 text-sm mt-3 flex items-center gap-1">
-          <BookOpen size={12} />
-          اكتب هذه الجملة بالإنجليزية من الذاكرة
-        </p>
+        {sentence.arabic ? (
+          <>
+            <p className="text-xs font-bold text-amber-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <Star size={12} /> الجملة بالعربية
+            </p>
+            <p className="text-xl font-bold text-gray-800 leading-relaxed">{sentence.arabic}</p>
+            <p className="text-gray-400 text-sm mt-3 flex items-center gap-1">
+              <BookOpen size={12} />
+              اكتب هذه الجملة بالإنجليزية من الذاكرة
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+              <BookOpen size={12} /> اكتب الجملة من الذاكرة
+            </p>
+            <p className="text-gray-400 text-sm flex items-center gap-1">
+              استمع للجملة ثم اكتبها بالإنجليزية دون النظر
+            </p>
+          </>
+        )}
       </div>
 
       {/* Answer input */}
@@ -1151,7 +1169,7 @@ function ChatScreen({
         </div>
         {/* Step progress pills */}
         <div className="mr-auto flex gap-1">
-          {tasks.map((t, i) => (
+          {tasks.map((_t, i) => (
             <div key={i} className={`w-2 h-2 rounded-full transition-all ${
               i < taskIdx || sessionDone ? 'bg-emerald-400' :
               i === taskIdx ? 'bg-blue-400 scale-125' : 'bg-white/20'
@@ -1419,6 +1437,7 @@ export default function PracticePage() {
   const [progress, setProgress] = useState<UserProgress>(() => getProgress())
   const [globalXPFloats, setGlobalXPFloats] = useState<XpFloat[]>([])
   const [levelUp, setLevelUp] = useState<Level | null>(null)
+  const [noContent, setNoContent] = useState(false)
 
   // Animated transition helper
   const transitionTo = useCallback((next: Screen) => {
@@ -1441,8 +1460,14 @@ export default function PracticePage() {
   // ── Start session ──────────────────────────────────────────────
 
   const startSession = useCallback((level: Level) => {
-    const usedIds = progress.usedSentenceIds[level] ?? []
-    const sentences = getSessionSentences(level, usedIds, 6)
+    const sentences = getPublishedAsSentences(level, 6)
+
+    // No published content → stay on select screen, show error
+    if (sentences.length === 0) {
+      setNoContent(true)
+      return
+    }
+    setNoContent(false)
 
     const newSession: SessionState = {
       level,
@@ -1456,7 +1481,7 @@ export default function PracticePage() {
     }
     setSession(newSession)
     transitionTo('reading')
-  }, [progress, transitionTo])
+  }, [transitionTo])
 
   // ── Step completions ───────────────────────────────────────────
 
@@ -1504,10 +1529,7 @@ export default function PracticePage() {
 
   const handleNewSession = useCallback(() => {
     if (!session) { transitionTo('select'); return }
-    // Regenerate sentences (anti-repeat with updated used list)
-    const freshProg = getProgress()
-    const usedIds = freshProg.usedSentenceIds[session.level] ?? []
-    const sentences = getSessionSentences(session.level, usedIds, 6)
+    const sentences = getPublishedAsSentences(session.level, 6)
     const newSess: SessionState = {
       level: session.level,
       sentences,
@@ -1601,7 +1623,24 @@ export default function PracticePage() {
         <div className={`transition-opacity duration-200 ${visible ? 'opacity-100' : 'opacity-0'}`}>
 
           {screen === 'select' && (
-            <LevelSelectScreen progress={progress} onStart={startSession} />
+            <>
+              {noContent && (
+                <div className="max-w-lg mx-auto px-4 mb-4">
+                  <div className="flex items-start gap-3 bg-amber-500/15 border border-amber-500/30 rounded-2xl px-5 py-4">
+                    <span className="text-2xl shrink-0">📭</span>
+                    <div>
+                      <p className="text-amber-300 font-black text-sm mb-1">لا يوجد محتوى منشور لهذا المستوى</p>
+                      <p className="text-white/50 text-xs leading-relaxed">
+                        أضف محتوى من{' '}
+                        <a href="/admin/content" className="text-amber-400 underline font-bold">لوحة الإدارة</a>
+                        {' '}ثم انشره حتى يظهر هنا.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <LevelSelectScreen progress={progress} onStart={startSession} />
+            </>
           )}
 
           {screen === 'reading' && session && (
