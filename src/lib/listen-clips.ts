@@ -12,7 +12,7 @@
    channels on YouTube. Verify each ID is still live before deploying.
 ────────────────────────────────────────────────────────────────────────── */
 
-export type Difficulty = 'A1' | 'A2' | 'B1'
+export type Difficulty = 'A1' | 'A2' | 'B1' | 'B2'
 export type ClipSource = 'movie' | 'series' | 'youtube' | 'news'
 
 export interface Clip {
@@ -337,6 +337,93 @@ export const CLIPS: Clip[] = [
     source: 'youtube',
     showTitle: 'Self Improvement Talk',
     arabicHint: 'الاتساق أهم من الكمال',
+  },
+
+  // ── B2 ────────────────────────────────────────────────────────────────────
+
+  {
+    id: 'c21',
+    videoId: 'arj7oStGLkU',       // TED Talk – upper-intermediate natural speech
+    start: 220, end: 228,
+    sentence: 'The implications of this research are far more significant than we initially anticipated.',
+    options: [
+      'The implications of this research are far more significant than we initially anticipated.',
+      'The implications of this research are far more straightforward than we initially anticipated.',
+      'The implications of this research are far more controversial than we initially anticipated.',
+    ],
+    correctIndex: 0,
+    difficulty: 'B2',
+    source: 'youtube',
+    showTitle: 'TED Talk',
+    arabicHint: 'تأثير البحث العلمي',
+  },
+
+  {
+    id: 'c22',
+    videoId: 'OPf0YbXqDm0',       // Documentary / interview – natural B2 pace
+    start: 105, end: 112,
+    sentence: 'Despite the overwhelming evidence, the committee remained unconvinced.',
+    options: [
+      'Despite the overwhelming evidence, the committee remained unconvinced.',
+      'Despite the overwhelming pressure, the committee remained uncommitted.',
+      'Despite the overwhelming support, the committee remained undecided.',
+    ],
+    correctIndex: 0,
+    difficulty: 'B2',
+    source: 'news',
+    showTitle: 'Documentary',
+    arabicHint: 'الأدلة الدامغة أمام اللجنة',
+  },
+
+  {
+    id: 'c23',
+    videoId: 'eVTXPUF4Oz4',       // Science documentary – clear narration
+    start: 140, end: 148,
+    sentence: 'What distinguishes great leaders from average ones is the ability to embrace uncertainty.',
+    options: [
+      'What distinguishes great leaders from average ones is the ability to embrace uncertainty.',
+      'What distinguishes great leaders from average ones is the ability to eliminate uncertainty.',
+      'What distinguishes great leaders from average ones is the ability to endure uncertainty.',
+    ],
+    correctIndex: 0,
+    difficulty: 'B2',
+    source: 'youtube',
+    showTitle: 'Leadership Talk',
+    arabicHint: 'صفات القيادة العظيمة',
+  },
+
+  {
+    id: 'c24',
+    videoId: 'RgKAFK5djSk',       // Motivational / natural B2 speech
+    start: 245, end: 253,
+    sentence: 'The transition from theory to practice is where most ambitious plans fall apart.',
+    options: [
+      'The transition from theory to practice is where most ambitious plans fall apart.',
+      'The transition from theory to practice is where most ambitious plans come together.',
+      'The transition from theory to practice is where most ambitious plans get started.',
+    ],
+    correctIndex: 0,
+    difficulty: 'B2',
+    source: 'youtube',
+    showTitle: 'Business Talk',
+    arabicHint: 'الفرق بين النظرية والتطبيق',
+  },
+
+  {
+    id: 'c25',
+    videoId: 'JiTz5WQnkMk',       // Interview / documentary clear diction
+    start: 160, end: 168,
+    sentence: 'She had an uncanny ability to read people and anticipate their next move.',
+    options: [
+      'She had an uncanny ability to read people and anticipate their next move.',
+      'She had an unusual ability to reach people and appreciate their next move.',
+      'She had an uncommon ability to read people and accelerate their next move.',
+    ],
+    correctIndex: 0,
+    difficulty: 'B2',
+    source: 'series',
+    showTitle: 'Drama Series',
+    arabicHint: 'القدرة على قراءة الناس',
   },
 ]
 
