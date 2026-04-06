@@ -1,9 +1,5 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
-import { Analytics } from '@vercel/analytics/react'
-import WhatsAppButton from '@/components/WhatsAppButton'
 
 export const metadata: Metadata = {
   title: 'إنجليزي.كوم | تعلم الإنجليزية وتكلم بثقة',
@@ -18,15 +14,10 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ar" dir="rtl">
       <head>
-        {/* Google Fonts – Cairo Arabic */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
@@ -35,11 +26,7 @@ export default function RootLayout({
         />
       </head>
       <body style={{ fontFamily: "'Cairo', sans-serif" }}>
-    <Analytics />
-        <Header />
-        <main>{children}</main>
-        <Footer />
-        <WhatsAppButton />
+        {children}
       </body>
     </html>
   )
