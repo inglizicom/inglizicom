@@ -99,41 +99,10 @@ function getCountByLevel(level: ContentLevel): number {
 function playTone(type: 'correct' | 'wrong') {
   if (typeof window === 'undefined') return
   try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const AC  = window.AudioContext ?? (window as any).webkitAudioContext
-    const ctx = new AC()
-    const t   = ctx.currentTime
-
-    if (type === 'correct') {
-      // Two-note chime: E5 → G5 — pleasant, Duolingo-style
-      ;([
-        [659, 0,    0.28],
-        [784, 0.13, 0.28],
-      ] as [number, number, number][]).forEach(([freq, delay, dur]) => {
-        const osc  = ctx.createOscillator()
-        const gain = ctx.createGain()
-        osc.connect(gain); gain.connect(ctx.destination)
-        osc.type = 'sine'
-        osc.frequency.setValueAtTime(freq, t + delay)
-        gain.gain.setValueAtTime(0, t + delay)
-        gain.gain.linearRampToValueAtTime(0.07, t + delay + 0.012)
-        gain.gain.exponentialRampToValueAtTime(0.001, t + delay + dur)
-        osc.start(t + delay)
-        osc.stop(t + delay + dur)
-      })
-    } else {
-      // Single soft descending tone — gentle, not jarring
-      const osc  = ctx.createOscillator()
-      const gain = ctx.createGain()
-      osc.connect(gain); gain.connect(ctx.destination)
-      osc.type = 'sine'
-      osc.frequency.setValueAtTime(370, t)
-      osc.frequency.linearRampToValueAtTime(220, t + 0.28)
-      gain.gain.setValueAtTime(0.06, t)
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.32)
-      osc.start(t)
-      osc.stop(t + 0.32)
-    }
+    const src = type === 'correct' ? '/sounds/correct.wav' : '/sounds/wrong.wav'
+    const audio = new Audio(src)
+    audio.volume = 0.55
+    audio.play().catch(() => {/* autoplay blocked — silent fail */})
   } catch { /* ignore */ }
 }
 
@@ -187,58 +156,37 @@ function ColorChunks({ chunks }: { chunks: Chunk[] }) {
         Color Chunks · التفكيك اللوني
       </p>
 
-      {/* ── English row ── */}
-      <div className="flex flex-wrap gap-2 justify-center mb-2" dir="ltr">
+      <div className="space-y-2">
         {chunks.map((c, i) => {
           const col    = CHUNK_COLORS[i % CHUNK_COLORS.length]
           const active = activeIdx === i
+          const shared = `
+            px-3 py-2 rounded-xl text-sm font-semibold border cursor-default
+            transition-all duration-200 select-none chunk-fade-in
+            ${active ? col.ring : col.bg} ${col.text} ${col.border}
+          `
           return (
-            <span
+            <div
               key={i}
+              className={`grid gap-2 ${hasArabic ? 'grid-cols-2' : 'grid-cols-1'}`}
+              style={{ animationDelay: `${i * 80}ms` }}
               onMouseEnter={() => setActiveIdx(i)}
               onMouseLeave={() => setActiveIdx(null)}
               onPointerDown={() => setActiveIdx(prev => prev === i ? null : i)}
-              className={`
-                px-3 py-1.5 rounded-xl text-sm font-semibold border cursor-default
-                transition-all duration-200 select-none
-                chunk-fade-in
-                ${active ? col.ring : col.bg} ${col.text} ${col.border}
-              `}
-              style={{ animationDelay: `${i * 90}ms` }}
             >
-              {c.en}
-            </span>
+              {/* EN */}
+              <span className={shared} dir="ltr">{c.en}</span>
+
+              {/* AR — same color, right-aligned */}
+              {hasArabic && (
+                <span className={shared} dir="rtl">
+                  {c.ar ?? '—'}
+                </span>
+              )}
+            </div>
           )
         })}
       </div>
-
-      {/* ── Arabic row (only if data present) ── */}
-      {hasArabic && (
-        <div className="flex flex-wrap gap-2 justify-center border-t border-white/8 pt-2.5 mt-1" dir="rtl">
-          {chunks.map((c, i) => {
-            if (!c.ar) return null
-            const col    = CHUNK_COLORS[i % CHUNK_COLORS.length]
-            const active = activeIdx === i
-            return (
-              <span
-                key={i}
-                onMouseEnter={() => setActiveIdx(i)}
-                onMouseLeave={() => setActiveIdx(null)}
-                onPointerDown={() => setActiveIdx(prev => prev === i ? null : i)}
-                className={`
-                  px-3 py-1.5 rounded-xl text-sm font-semibold border cursor-default
-                  transition-all duration-200 select-none
-                  chunk-fade-in
-                  ${active ? col.ring : col.bg} ${col.text} ${col.border}
-                `}
-                style={{ animationDelay: `${i * 90 + 220}ms` }}
-              >
-                {c.ar}
-              </span>
-            )
-          })}
-        </div>
-      )}
     </div>
   )
 }
@@ -414,6 +362,10 @@ function VideoPlayer({
   onReplay, onTogglePlay, phase,
 }: VideoPlayerProps) {
   const m = LEVEL_META[clip.level]
+  const [mediaError, setMediaError] = useState(false)
+
+  // Reset error state when clip changes
+  useEffect(() => { setMediaError(false) }, [clip.id])
 
   return (
     <div className="flex flex-col h-full">
@@ -425,60 +377,79 @@ function VideoPlayer({
         </span>
       </div>
 
-      {/* ── Video frame ── */}
+      {/* ── Video / Audio frame ── */}
       <div
         className="relative bg-black rounded-2xl overflow-hidden shadow-2xl"
         style={{ aspectRatio: '16/9' }}
       >
-        {clip.videoUrl ? (
+        {mediaError || !clip.videoUrl ? (
+          /* ── Error / no-URL fallback ── */
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center px-6">
+            <div className="w-16 h-16 rounded-full bg-white/8 border border-white/15 flex items-center justify-center text-3xl">
+              🎧
+            </div>
+            <p className="text-white/50 text-sm font-semibold">صوت فقط</p>
+            <p className="text-white/25 text-xs leading-relaxed">
+              {mediaError ? 'تعذّر تحميل الفيديو — استمع للصوت' : 'لا يوجد فيديو لهذا المقطع'}
+            </p>
+            {/* Audio-only player */}
+            {clip.videoUrl && !mediaError && (
+              <audio
+                ref={videoRef as unknown as React.RefObject<HTMLAudioElement>}
+                src={clip.videoUrl}
+                onEnded={onEnded}
+                onError={() => setMediaError(true)}
+              />
+            )}
+            <button
+              onClick={onTogglePlay}
+              className={`
+                w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all duration-300
+                ${isPlaying ? 'border-blue-400 bg-blue-500/20' : 'border-white/25 bg-white/8 hover:bg-white/15'}
+              `}
+            >
+              {isPlaying
+                ? <Pause size={26} className="text-blue-300" />
+                : <Play  size={26} className="text-white/60 translate-x-0.5" />}
+            </button>
+          </div>
+        ) : (
           <>
-            {/* Transparent overlay — captures clicks */}
+            {/* ── HTML5 Video ── */}
+            <video
+              ref={videoRef}
+              src={clip.videoUrl}
+              onEnded={onEnded}
+              onError={() => setMediaError(true)}
+              playsInline
+              preload="metadata"
+              className="absolute inset-0 w-full h-full object-contain"
+            >
+              <source src={clip.videoUrl} type="video/mp4" />
+            </video>
+
+            {/* Click-to-toggle overlay */}
             <div
               className="absolute inset-0 z-10 cursor-pointer"
               onClick={onTogglePlay}
             />
 
-            <video
-              ref={videoRef}
-              src={clip.videoUrl}
-              onEnded={onEnded}
-              playsInline
-              className="absolute inset-0 w-full h-full object-contain"
-            />
-
-            {/* Big play button overlay */}
+            {/* Big play button shown when paused */}
             {!isPlaying && (
               <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-                <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center shadow-xl animate-pulse-slow">
-                  <Play size={22} className="text-white translate-x-0.5" />
+                <div className="w-16 h-16 rounded-full bg-black/50 backdrop-blur-sm border border-white/30 flex items-center justify-center shadow-2xl">
+                  <Play size={26} className="text-white translate-x-0.5" />
                 </div>
               </div>
             )}
-          </>
-        ) : (
-          /* No video — audio-only placeholder */
-          <div
-            className="absolute inset-0 flex flex-col items-center justify-center gap-3 cursor-pointer"
-            onClick={onTogglePlay}
-          >
-            <div className={`
-              w-20 h-20 rounded-full border-2 flex items-center justify-center
-              ${isPlaying ? 'border-blue-400 bg-blue-500/20' : 'border-white/20 bg-white/5'}
-              transition-all duration-300
-            `}>
-              {isPlaying
-                ? <Pause size={28} className="text-blue-300" />
-                : <Play size={28} className="text-white/50 translate-x-0.5" />}
-            </div>
-            <span className="text-white/25 text-xs">صوت فقط</span>
-          </div>
-        )}
 
-        {/* Phase indicator pill */}
-        {phase === 'answering' && (
-          <div className="absolute top-3 right-3 z-20 bg-blue-600/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full pointer-events-none">
-            🎧 اختر الإجابة
-          </div>
+            {/* Phase pill */}
+            {phase === 'answering' && (
+              <div className="absolute top-3 right-3 z-20 bg-blue-600/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full pointer-events-none">
+                🎧 اختر الإجابة
+              </div>
+            )}
+          </>
         )}
       </div>
 
