@@ -100,24 +100,39 @@ function playTone(type: 'correct' | 'wrong') {
   if (typeof window === 'undefined') return
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const AC = window.AudioContext ?? (window as any).webkitAudioContext
-    const ctx  = new AC()
-    const osc  = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.connect(gain); gain.connect(ctx.destination)
+    const AC  = window.AudioContext ?? (window as any).webkitAudioContext
+    const ctx = new AC()
+    const t   = ctx.currentTime
+
     if (type === 'correct') {
-      osc.frequency.setValueAtTime(523, ctx.currentTime)
-      osc.frequency.setValueAtTime(659, ctx.currentTime + 0.12)
-      osc.frequency.setValueAtTime(784, ctx.currentTime + 0.24)
-      gain.gain.setValueAtTime(0.07, ctx.currentTime)
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.55)
-      osc.start(); osc.stop(ctx.currentTime + 0.55)
+      // Two-note chime: E5 → G5 — pleasant, Duolingo-style
+      ;([
+        [659, 0,    0.28],
+        [784, 0.13, 0.28],
+      ] as [number, number, number][]).forEach(([freq, delay, dur]) => {
+        const osc  = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.connect(gain); gain.connect(ctx.destination)
+        osc.type = 'sine'
+        osc.frequency.setValueAtTime(freq, t + delay)
+        gain.gain.setValueAtTime(0, t + delay)
+        gain.gain.linearRampToValueAtTime(0.07, t + delay + 0.012)
+        gain.gain.exponentialRampToValueAtTime(0.001, t + delay + dur)
+        osc.start(t + delay)
+        osc.stop(t + delay + dur)
+      })
     } else {
-      osc.frequency.setValueAtTime(300, ctx.currentTime)
-      osc.frequency.setValueAtTime(220, ctx.currentTime + 0.15)
-      gain.gain.setValueAtTime(0.07, ctx.currentTime)
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4)
-      osc.start(); osc.stop(ctx.currentTime + 0.4)
+      // Single soft descending tone — gentle, not jarring
+      const osc  = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain); gain.connect(ctx.destination)
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(370, t)
+      osc.frequency.linearRampToValueAtTime(220, t + 0.28)
+      gain.gain.setValueAtTime(0.06, t)
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.32)
+      osc.start(t)
+      osc.stop(t + 0.32)
     }
   } catch { /* ignore */ }
 }
@@ -521,6 +536,7 @@ function VideoPlayer({
 interface QuizPanelProps {
   clip: ContentItem
   phase: Phase
+  isCorrect: boolean
   wrongAttempts: number[]
   score: { correct: number; total: number }
   streak: number
@@ -535,7 +551,7 @@ interface QuizPanelProps {
 }
 
 function QuizPanel({
-  clip, phase, wrongAttempts,
+  clip, phase, isCorrect, wrongAttempts,
   score, streak, level, clipIdx, sessionSize, flash,
   onSelect, onReady, onNext, onReplay,
 }: QuizPanelProps) {
@@ -667,27 +683,46 @@ function QuizPanel({
       {/* ── Phase: feedback ── */}
       {phase === 'feedback' && (
         <div className="flex-1 flex flex-col justify-center gap-3">
-          <div className="rounded-2xl border-2 px-4 py-4 bg-emerald-500/12 border-emerald-500/35">
-            <div className="flex items-center gap-2 mb-2">
-              <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />
-              <span className="font-black text-sm text-emerald-300">
-                {retries === 0 ? 'ممتاز! من أول مرة 🎉' : `صحيح! بعد ${retries} ${retries === 1 ? 'محاولة' : 'محاولات'} 💪`}
-              </span>
-              {streak >= 3 && (
-                <span className="mr-auto text-orange-300 text-xs font-black flex items-center gap-0.5">
-                  🔥 {streak} متتالية
+
+          {/* ── Result banner ── */}
+          {isCorrect ? (
+            <div className="rounded-2xl border-2 px-4 py-3 bg-emerald-500/12 border-emerald-500/35">
+              <div className="flex items-center gap-2 mb-0.5">
+                <CheckCircle2 size={17} className="text-emerald-400 shrink-0" />
+                <span className="font-black text-sm text-emerald-300">
+                  ممتاز! إجابة صحيحة 🎉
                 </span>
-              )}
+                {streak >= 3 && (
+                  <span className="mr-auto text-orange-300 text-xs font-black flex items-center gap-0.5">
+                    🔥 {streak} متتالية
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="bg-white/8 rounded-xl px-3 py-2.5" dir="ltr">
-              <p className="text-white/35 text-[11px] mb-1">الجملة الصحيحة:</p>
-              <p className="text-white font-semibold text-sm leading-snug">{clip.sentence}</p>
+          ) : (
+            <div className="rounded-2xl border-2 px-4 py-3 bg-red-500/12 border-red-500/35">
+              <div className="flex items-center gap-2 mb-0.5">
+                <XCircle size={17} className="text-red-400 shrink-0" />
+                <span className="font-black text-sm text-red-300">
+                  إجابة خاطئة — الجملة الصحيحة أدناه
+                </span>
+              </div>
             </div>
+          )}
+
+          {/* ── Correct sentence ── */}
+          <div className="bg-white/8 rounded-xl px-4 py-3 border border-white/10" dir="ltr">
+            <p className="text-white/35 text-[11px] mb-1.5 font-semibold uppercase tracking-wide">الجملة الصحيحة</p>
+            <p className="text-white font-semibold text-sm leading-snug">{clip.sentence}</p>
           </div>
 
-          {/* ── Color Chunks ── */}
+          {/* ── Color Chunks — shown only after answer ── */}
           <ColorChunks chunks={autoChunk(clip.sentence).map(en => ({ en }))} />
 
+          {/* ── Divider ── */}
+          <div className="border-t border-white/8 my-0.5" />
+
+          {/* ── Options review ── */}
           <div className="space-y-2">
             {clip.options.map((opt, i) => {
               const isCorrectOpt  = i === clip.correctIndex
@@ -752,6 +787,7 @@ export default function ListenPage() {
 
   // ── Quiz state ─────────────────────────────────────────────────────────────
   const [phase,         setPhase]         = useState<Phase>('playing')
+  const [isCorrect,     setIsCorrect]     = useState(false)
   const [wrongAttempts, setWrongAttempts] = useState<number[]>([])
   const [score,         setScore]         = useState({ correct: 0, total: 0 })
   const [streak,        setStreak]        = useState(0)
@@ -789,6 +825,7 @@ export default function ListenPage() {
   useEffect(() => {
     if (!clip || screen !== 'practice') return
     setPhase('playing')
+    setIsCorrect(false)
     setWrongAttempts([])
     setFlash(null)
     setIsPlaying(false)
@@ -844,24 +881,20 @@ export default function ListenPage() {
     setTimeout(() => setFlash(null), 400)
     playTone(correct ? 'correct' : 'wrong')
 
+    setIsCorrect(correct)
+    setWrongAttempts(correct ? [] : [i])
+
     if (correct) {
-      const firstTry = wrongAttempts.length === 0
-      setScore(s => ({ correct: s.correct + (firstTry ? 1 : 0), total: s.total + 1 }))
+      setScore(s => ({ correct: s.correct + 1, total: s.total + 1 }))
       setStreak(s => { const next = s + 1; saveStreak(next); return next })
-      setPhase('feedback')
     } else {
-      setWrongAttempts(prev => [...prev, i])
+      setScore(s => ({ ...s, total: s.total + 1 }))
       setStreak(0)
       saveStreak(0)
-      // Auto-replay
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.currentTime = 0
-          videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
-        }
-      }, 600)
     }
-  }, [phase, clip, wrongAttempts])
+
+    setPhase('feedback')
+  }, [phase, clip])
 
   const handleNext = useCallback(() => {
     if (clipIdx < session.length - 1) {
@@ -971,6 +1004,7 @@ export default function ListenPage() {
                 <QuizPanel
                   clip={clip}
                   phase={phase}
+                  isCorrect={isCorrect}
                   wrongAttempts={wrongAttempts}
                   score={score}
                   streak={streak}
