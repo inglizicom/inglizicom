@@ -4,59 +4,47 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import {
   Play, Pause, RotateCcw, ChevronRight,
-  CheckCircle2, XCircle, Crown, Headphones,
-  Volume2, ChevronLeft,
+  CheckCircle2, XCircle, Headphones,
+  Volume2, ChevronLeft, AlertCircle,
 } from 'lucide-react'
-import {
-  CLIPS, CORE_EXERCISES, FREE_DAILY_LIMIT,
-  getDailyCount, incrementDailyCount, shuffleClips,
-  type Clip, type Difficulty,
-} from '@/lib/listen-clips'
+import { getPublishedContent, type ContentItem, type ContentLevel } from '@/lib/content-store'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPES & CONSTANTS
 // ─────────────────────────────────────────────────────────────────────────────
 
-declare global {
-  interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    YT: any
-    onYouTubeIframeAPIReady: () => void
-  }
-}
-
 type Speed     = 0.5 | 0.75 | 1 | 1.25
 type Phase     = 'playing' | 'answering' | 'feedback'
-type Screen    = 'level-select' | 'practice' | 'session-end' | 'limit-wall'
+type Screen    = 'level-select' | 'practice' | 'session-end' | 'no-content'
 type FlashType = 'correct' | 'wrong' | null
 
-const SPEEDS: Speed[] = [0.5, 0.75, 1, 1.25]
-const SESSION_SIZE    = 10
-const STREAK_KEY      = 'inglizi_streak'
+const SPEEDS: Speed[]  = [0.5, 0.75, 1, 1.25]
+const SESSION_SIZE     = 10
+const STREAK_KEY       = 'inglizi_streak'
 
-const LEVEL_META: Record<Difficulty, {
+const LEVEL_META: Record<ContentLevel, {
   emoji: string; ar: string; desc: string
   ring: string; bg: string; text: string; bar: string
 }> = {
   A1: {
-    emoji: '🌱', ar: 'مبتدئ',      desc: 'كلمات وجمل بسيطة جداً',
-    ring: 'ring-emerald-500',       bg: 'bg-emerald-500/10',
-    text: 'text-emerald-400',       bar: 'bg-emerald-500',
+    emoji: '🌱', ar: 'مبتدئ',       desc: 'كلمات وجمل بسيطة جداً',
+    ring: 'ring-emerald-500', bg: 'bg-emerald-500/10',
+    text: 'text-emerald-400', bar: 'bg-emerald-500',
   },
   A2: {
-    emoji: '⭐', ar: 'أساسي',      desc: 'جمل يومية وتعابير شائعة',
-    ring: 'ring-amber-500',         bg: 'bg-amber-500/10',
-    text: 'text-amber-400',         bar: 'bg-amber-500',
+    emoji: '⭐', ar: 'أساسي',       desc: 'جمل يومية وتعابير شائعة',
+    ring: 'ring-amber-500',   bg: 'bg-amber-500/10',
+    text: 'text-amber-400',   bar: 'bg-amber-500',
   },
   B1: {
-    emoji: '🚀', ar: 'متوسط',      desc: 'حوارات طبيعية وتعابير متنوعة',
-    ring: 'ring-violet-500',        bg: 'bg-violet-500/10',
-    text: 'text-violet-400',        bar: 'bg-violet-500',
+    emoji: '🚀', ar: 'متوسط',       desc: 'حوارات طبيعية وتعابير متنوعة',
+    ring: 'ring-violet-500',  bg: 'bg-violet-500/10',
+    text: 'text-violet-400',  bar: 'bg-violet-500',
   },
   B2: {
     emoji: '🔥', ar: 'فوق المتوسط', desc: 'خطاب سريع، مفردات أكاديمية',
-    ring: 'ring-rose-500',          bg: 'bg-rose-500/10',
-    text: 'text-rose-400',          bar: 'bg-rose-500',
+    ring: 'ring-rose-500',    bg: 'bg-rose-500/10',
+    text: 'text-rose-400',    bar: 'bg-rose-500',
   },
 }
 
@@ -74,7 +62,6 @@ function loadStreak(): number {
     const raw = localStorage.getItem(STREAK_KEY)
     if (!raw) return 0
     const d: StreakData = JSON.parse(raw)
-    // Streak resets if more than 1 day has passed
     const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1)
     const yISO = yesterday.toISOString().slice(0, 10)
     if (d.lastDate === todayISO() || d.lastDate === yISO) return d.count
@@ -93,13 +80,20 @@ function saveStreak(count: number) {
 // UTILS
 // ─────────────────────────────────────────────────────────────────────────────
 
-function buildSession(level: Difficulty): Clip[] {
-  const isValid = (c: Clip) => c.options[c.correctIndex] === c.sentence
-  const core    = CORE_EXERCISES.filter(c => c.difficulty === level && isValid(c))
-  const rest    = shuffleClips(CLIPS.filter(c => c.difficulty === level && isValid(c)))
-  // Core exercises always come first; fill remainder from the shuffled pool
-  const combined = [...core, ...rest.filter(c => !core.find(x => x.id === c.id))]
-  return combined.slice(0, SESSION_SIZE)
+function buildSession(level: ContentLevel): ContentItem[] {
+  const published = getPublishedContent().filter(c => c.level === level)
+  // Fisher-Yates shuffle
+  const a = [...published]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]]
+  }
+  return a.slice(0, SESSION_SIZE)
+}
+
+function getCountByLevel(level: ContentLevel): number {
+  if (typeof window === 'undefined') return 0
+  return getPublishedContent().filter(c => c.level === level).length
 }
 
 function playTone(type: 'correct' | 'wrong') {
@@ -132,8 +126,22 @@ function playTone(type: 'correct' | 'wrong') {
 // SCREEN: LEVEL SELECT
 // ─────────────────────────────────────────────────────────────────────────────
 
-function LevelSelectScreen({ onSelect }: { onSelect: (d: Difficulty) => void }) {
-  const levels: Difficulty[] = ['A1', 'A2', 'B1', 'B2']
+function LevelSelectScreen({ onSelect }: { onSelect: (d: ContentLevel) => void }) {
+  const [counts, setCounts] = useState<Record<ContentLevel, number>>({
+    A1: 0, A2: 0, B1: 0, B2: 0,
+  })
+
+  useEffect(() => {
+    setCounts({
+      A1: getCountByLevel('A1'),
+      A2: getCountByLevel('A2'),
+      B1: getCountByLevel('B1'),
+      B2: getCountByLevel('B2'),
+    })
+  }, [])
+
+  const levels: ContentLevel[] = ['A1', 'A2', 'B1', 'B2']
+  const total = Object.values(counts).reduce((s, n) => s + n, 0)
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[100dvh] px-5 pb-10" dir="rtl">
@@ -147,36 +155,60 @@ function LevelSelectScreen({ onSelect }: { onSelect: (d: Difficulty) => void }) 
           اختر مستواك
         </h1>
         <p className="text-white/40 text-sm max-w-xs mx-auto leading-relaxed">
-          {SESSION_SIZE} جمل مصغاة من مصادر حقيقية — اسمع، افهم، واختر
+          اسمع الجملة، افهمها، واختر الإجابة الصحيحة
         </p>
       </div>
 
-      {/* Cards grid */}
-      <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
-        {levels.map(level => {
-          const m = LEVEL_META[level]
-          const count = CLIPS.filter(c => c.difficulty === level).length
-          return (
-            <button
-              key={level}
-              onClick={() => onSelect(level)}
-              className={`
-                group flex flex-col items-center text-center
-                p-6 rounded-2xl border border-white/10
-                ${m.bg} hover:ring-2 ${m.ring} hover:ring-offset-0
-                active:scale-[0.96] transition-all duration-200
-              `}
-            >
-              <span className="text-3xl mb-2.5">{m.emoji}</span>
-              <span className={`text-2xl font-black ${m.text} mb-0.5`}>{level}</span>
-              <span className="text-white/60 text-xs font-semibold mb-2">{m.ar}</span>
-              <span className="text-white/25 text-[11px]">{count} مقطع</span>
-            </button>
-          )
-        })}
-      </div>
-
-      <p className="text-white/20 text-xs mt-8">يمكنك تغيير المستوى في أي وقت</p>
+      {total === 0 ? (
+        /* ── No content at all ── */
+        <div className="w-full max-w-sm text-center">
+          <div className="w-16 h-16 rounded-3xl bg-amber-500/15 border-2 border-amber-500/30 flex items-center justify-center text-3xl mx-auto mb-4">📭</div>
+          <p className="text-white/60 font-bold mb-1">لا يوجد محتوى منشور</p>
+          <p className="text-white/30 text-sm mb-6 leading-relaxed">
+            أضف محتوى من لوحة الإدارة وانشره حتى يظهر هنا.
+          </p>
+          <Link
+            href="/admin/content"
+            className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-3 rounded-2xl text-sm transition-all active:scale-95"
+          >
+            الذهاب للوحة الإدارة
+          </Link>
+        </div>
+      ) : (
+        <>
+          {/* Level cards grid */}
+          <div className="grid grid-cols-2 gap-4 w-full max-w-sm">
+            {levels.map(level => {
+              const m     = LEVEL_META[level]
+              const count = counts[level]
+              const empty = count === 0
+              return (
+                <button
+                  key={level}
+                  onClick={() => !empty && onSelect(level)}
+                  disabled={empty}
+                  className={`
+                    group flex flex-col items-center text-center
+                    p-6 rounded-2xl border border-white/10
+                    ${m.bg} transition-all duration-200
+                    ${empty
+                      ? 'opacity-35 cursor-not-allowed'
+                      : `hover:ring-2 ${m.ring} hover:ring-offset-0 active:scale-[0.96]`}
+                  `}
+                >
+                  <span className="text-3xl mb-2.5">{m.emoji}</span>
+                  <span className={`text-2xl font-black ${m.text} mb-0.5`}>{level}</span>
+                  <span className="text-white/60 text-xs font-semibold mb-2">{m.ar}</span>
+                  <span className="text-white/25 text-[11px]">
+                    {empty ? 'لا يوجد محتوى' : `${count} تمرين`}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+          <p className="text-white/20 text-xs mt-8">يمكنك تغيير المستوى في أي وقت</p>
+        </>
+      )}
     </div>
   )
 }
@@ -189,11 +221,11 @@ function SessionEndScreen({
   correct, total, level,
   onRestart, onChangeLevel,
 }: {
-  correct: number; total: number; level: Difficulty
+  correct: number; total: number; level: ContentLevel
   onRestart: () => void; onChangeLevel: () => void
 }) {
-  const m   = LEVEL_META[level]
-  const pct = total ? Math.round((correct / total) * 100) : 0
+  const m     = LEVEL_META[level]
+  const pct   = total ? Math.round((correct / total) * 100) : 0
   const trophy = pct >= 90 ? '🏆' : pct >= 70 ? '🎉' : pct >= 50 ? '💪' : '📚'
   const msg    = pct >= 90 ? 'ممتاز! أداء مثالي' : pct >= 70 ? 'جيد جداً! استمر' : pct >= 50 ? 'على الطريق الصحيح' : 'تحتاج مزيداً من التدريب'
 
@@ -203,13 +235,11 @@ function SessionEndScreen({
       <h2 className="text-2xl font-black text-white mb-1">{msg}</h2>
       <p className="text-white/40 text-sm mb-6">مستوى {level} · {m.ar}</p>
 
-      {/* Big score */}
       <div className={`w-32 h-32 rounded-full border-4 ${m.ring.replace('ring-', 'border-')} flex flex-col items-center justify-center mb-8`}>
         <span className={`text-4xl font-black ${m.text}`}>{correct}</span>
         <span className="text-white/30 text-sm font-bold">/ {total}</span>
       </div>
 
-      {/* Progress bar */}
       <div className="w-full max-w-xs mb-8">
         <div className="flex justify-between text-xs text-white/30 mb-1.5">
           <span>دقة الإجابات</span>
@@ -242,19 +272,16 @@ function SessionEndScreen({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// COMPONENT: VideoPlayer
+// COMPONENT: VideoPlayer (HTML5 video — plays uploaded files)
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface VideoPlayerProps {
-  clip: Clip
+  clip: ContentItem
   speed: Speed
   onSpeedChange: (s: Speed) => void
   onEnded: () => void
-  playerRef: React.MutableRefObject<unknown>
-  containerRef: React.RefObject<HTMLDivElement>
-  ytReady: boolean
+  videoRef: React.RefObject<HTMLVideoElement>
   isPlaying: boolean
-  setIsPlaying: (v: boolean) => void
   onReplay: () => void
   onTogglePlay: () => void
   phase: Phase
@@ -262,16 +289,18 @@ interface VideoPlayerProps {
 
 function VideoPlayer({
   clip, speed, onSpeedChange,
-  containerRef, ytReady, isPlaying,
+  onEnded, videoRef, isPlaying,
   onReplay, onTogglePlay, phase,
 }: VideoPlayerProps) {
+  const m = LEVEL_META[clip.level]
+
   return (
     <div className="flex flex-col h-full">
       {/* ── Clip meta ── */}
       <div className="flex items-center justify-between px-1 mb-2 shrink-0">
-        <span className="text-white/30 text-xs font-medium">{clip.showTitle}</span>
-        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${LEVEL_META[clip.difficulty].bg} ${LEVEL_META[clip.difficulty].text}`}>
-          {LEVEL_META[clip.difficulty].emoji} {clip.difficulty}
+        <span className="text-white/30 text-xs font-medium capitalize">{clip.lesson}</span>
+        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${m.bg} ${m.text}`}>
+          {m.emoji} {clip.level}
         </span>
       </div>
 
@@ -280,32 +309,47 @@ function VideoPlayer({
         className="relative bg-black rounded-2xl overflow-hidden shadow-2xl"
         style={{ aspectRatio: '16/9' }}
       >
-        {/* Transparent overlay — captures clicks, blocks YT UI */}
-        <div
-          className="absolute inset-0 z-10 cursor-pointer"
-          onClick={onTogglePlay}
-        />
+        {clip.videoUrl ? (
+          <>
+            {/* Transparent overlay — captures clicks */}
+            <div
+              className="absolute inset-0 z-10 cursor-pointer"
+              onClick={onTogglePlay}
+            />
 
-        {/* YouTube iframe container */}
-        <div
-          ref={containerRef}
-          className="absolute inset-0 pointer-events-none"
-          style={{ width: '100%', height: '100%' }}
-        />
+            <video
+              ref={videoRef}
+              src={clip.videoUrl}
+              onEnded={onEnded}
+              playsInline
+              className="absolute inset-0 w-full h-full object-contain"
+            />
 
-        {/* Loading spinner */}
-        {!ytReady && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black">
-            <div className="w-10 h-10 border-[3px] border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-          </div>
-        )}
-
-        {/* Big play button overlay */}
-        {!isPlaying && ytReady && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-            <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center shadow-xl animate-pulse-slow">
-              <Play size={22} className="text-white translate-x-0.5" />
+            {/* Big play button overlay */}
+            {!isPlaying && (
+              <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+                <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center shadow-xl animate-pulse-slow">
+                  <Play size={22} className="text-white translate-x-0.5" />
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          /* No video — audio-only placeholder */
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center gap-3 cursor-pointer"
+            onClick={onTogglePlay}
+          >
+            <div className={`
+              w-20 h-20 rounded-full border-2 flex items-center justify-center
+              ${isPlaying ? 'border-blue-400 bg-blue-500/20' : 'border-white/20 bg-white/5'}
+              transition-all duration-300
+            `}>
+              {isPlaying
+                ? <Pause size={28} className="text-blue-300" />
+                : <Play size={28} className="text-white/50 translate-x-0.5" />}
             </div>
+            <span className="text-white/25 text-xs">صوت فقط</span>
           </div>
         )}
 
@@ -319,7 +363,6 @@ function VideoPlayer({
 
       {/* ── Controls bar ── */}
       <div className="mt-3 flex items-center justify-between shrink-0">
-        {/* Play / Replay */}
         <div className="flex items-center gap-2">
           <button
             onClick={onTogglePlay}
@@ -361,14 +404,6 @@ function VideoPlayer({
           ))}
         </div>
       </div>
-
-      {/* ── Arabic hint ── */}
-      {clip.arabicHint && (
-        <div className="mt-2.5 flex items-center gap-1.5 bg-white/5 border border-white/8 rounded-xl px-3 py-2 shrink-0">
-          <span className="text-blue-400 text-xs">💡</span>
-          <span className="text-white/30 text-xs">{clip.arabicHint}</span>
-        </div>
-      )}
     </div>
   )
 }
@@ -378,13 +413,12 @@ function VideoPlayer({
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface QuizPanelProps {
-  clip: Clip
+  clip: ContentItem
   phase: Phase
-
-  wrongAttempts: number[]    // indices of wrong guesses this round
+  wrongAttempts: number[]
   score: { correct: number; total: number }
   streak: number
-  level: Difficulty
+  level: ContentLevel
   clipIdx: number
   sessionSize: number
   flash: FlashType
@@ -392,17 +426,14 @@ interface QuizPanelProps {
   onReady: () => void
   onNext: () => void
   onReplay: () => void
-  isPremium: boolean
-  dailyLeft: number
 }
 
 function QuizPanel({
   clip, phase, wrongAttempts,
   score, streak, level, clipIdx, sessionSize, flash,
   onSelect, onReady, onNext, onReplay,
-  isPremium, dailyLeft,
 }: QuizPanelProps) {
-  const m = LEVEL_META[level]
+  const m       = LEVEL_META[level]
   const retries = wrongAttempts.length
 
   return (
@@ -410,36 +441,29 @@ function QuizPanel({
 
       {/* ── Flash overlay ── */}
       {flash && (
-        <div
-          className={`
-            fixed inset-0 z-50 pointer-events-none transition-opacity duration-300
-            ${flash === 'correct' ? 'bg-emerald-500/15' : 'bg-red-500/18'}
-          `}
-        />
+        <div className={`
+          fixed inset-0 z-50 pointer-events-none transition-opacity duration-300
+          ${flash === 'correct' ? 'bg-emerald-500/15' : 'bg-red-500/18'}
+        `} />
       )}
 
       {/* ── Top row: Level + Score + Streak ── */}
       <div className="flex items-center justify-between shrink-0 gap-2">
-        {/* Level badge */}
         <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-white/10 ${m.bg}`}>
           <span className="text-sm">{m.emoji}</span>
           <span className={`text-xs font-black ${m.text}`}>{level}</span>
           <span className="text-white/35 text-xs">· {m.ar}</span>
         </div>
 
-        {/* Score */}
         <div className="flex items-center gap-1 bg-white/6 border border-white/10 rounded-xl px-2.5 py-1.5">
           <span className="text-white/35 text-xs">النتيجة</span>
           <span className={`text-sm font-black ${m.text}`}>{score.correct}</span>
           <span className="text-white/25 text-xs">/{score.total}</span>
         </div>
 
-        {/* Streak */}
         <div className={`
           flex items-center gap-1 px-2.5 py-1.5 rounded-xl border transition-all
-          ${streak >= 3
-            ? 'bg-orange-500/20 border-orange-500/40'
-            : 'bg-white/5 border-white/10'}
+          ${streak >= 3 ? 'bg-orange-500/20 border-orange-500/40' : 'bg-white/5 border-white/10'}
         `}>
           <span className="text-sm">{streak >= 5 ? '🔥' : streak >= 3 ? '⚡' : '✨'}</span>
           <span className={`text-sm font-black ${streak >= 3 ? 'text-orange-300' : 'text-white/40'}`}>
@@ -456,8 +480,9 @@ function QuizPanel({
             className={`
               h-1.5 flex-1 rounded-full transition-all duration-500
               ${i < clipIdx ? m.bar
-                : i === clipIdx ? (flash === 'correct' ? 'bg-emerald-400' : flash === 'wrong' ? 'bg-red-400' : 'bg-white/50')
-                : 'bg-white/10'}
+                : i === clipIdx
+                  ? (flash === 'correct' ? 'bg-emerald-400' : flash === 'wrong' ? 'bg-red-400' : 'bg-white/50')
+                  : 'bg-white/10'}
             `}
           />
         ))}
@@ -492,6 +517,7 @@ function QuizPanel({
               </span>
             )}
           </div>
+
           {clip.options.map((opt, i) => {
             const wasWrong = wrongAttempts.includes(i)
             return (
@@ -519,6 +545,7 @@ function QuizPanel({
               </button>
             )
           })}
+
           {/* Hint after 2 wrong attempts */}
           {retries >= 2 && (
             <button
@@ -531,10 +558,9 @@ function QuizPanel({
         </div>
       )}
 
-      {/* ── Phase: feedback (correct only — wrong stays in answering) ── */}
+      {/* ── Phase: feedback ── */}
       {phase === 'feedback' && (
         <div className="flex-1 flex flex-col justify-center gap-3">
-          {/* Result banner */}
           <div className="rounded-2xl border-2 px-4 py-4 bg-emerald-500/12 border-emerald-500/35">
             <div className="flex items-center gap-2 mb-2">
               <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />
@@ -553,7 +579,6 @@ function QuizPanel({
             </div>
           </div>
 
-          {/* Options (all revealed) */}
           <div className="space-y-2">
             {clip.options.map((opt, i) => {
               const isCorrectOpt  = i === clip.correctIndex
@@ -584,7 +609,6 @@ function QuizPanel({
             })}
           </div>
 
-          {/* Next — only enabled after correct */}
           <button
             onClick={onNext}
             className={`
@@ -599,41 +623,6 @@ function QuizPanel({
           </button>
         </div>
       )}
-
-      {/* ── Daily counter / premium ── */}
-      {!isPremium && (
-        <div className="shrink-0 flex items-center justify-between border-t border-white/8 pt-2.5">
-          <span className="text-white/20 text-xs">
-            {dailyLeft > 0 ? `${dailyLeft} محاولة متبقية` : 'انتهت المحاولات'}
-          </span>
-          <Link href="/courses" className="flex items-center gap-1 text-amber-400 hover:text-amber-300 text-xs font-bold transition-colors">
-            <Crown size={11} /> Premium
-          </Link>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SCREEN: DAILY LIMIT
-// ─────────────────────────────────────────────────────────────────────────────
-
-function LimitWallScreen() {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-[100dvh] px-6 text-center" dir="rtl">
-      <div className="w-20 h-20 rounded-3xl bg-amber-500/15 border-2 border-amber-500/30 flex items-center justify-center text-4xl mb-6">👑</div>
-      <h2 className="text-2xl font-black text-white mb-3">انتهت محاولاتك اليومية</h2>
-      <p className="text-white/40 text-sm mb-8 max-w-xs leading-relaxed">
-        وصلت لـ {FREE_DAILY_LIMIT} فيديوهات مجانية اليوم. ارجع غداً أو ارقَّ للـ Premium للوصول غير المحدود.
-      </p>
-      <Link
-        href="/courses"
-        className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black px-8 py-4 rounded-2xl text-base shadow-xl hover:opacity-90 active:scale-95 transition-all mb-3"
-      >
-        <Crown size={18} /> ارقَّ للـ Premium
-      </Link>
-      <p className="text-white/20 text-xs">وصول غير محدود · جميع المستويات</p>
     </div>
   )
 }
@@ -645,55 +634,36 @@ function LimitWallScreen() {
 export default function ListenPage() {
   // ── Routing state ──────────────────────────────────────────────────────────
   const [screen, setScreen] = useState<Screen>('level-select')
-  const [level,  setLevel]  = useState<Difficulty>('A1')
+  const [level,  setLevel]  = useState<ContentLevel>('A1')
 
   // ── Session ────────────────────────────────────────────────────────────────
-  const [session,  setSession]  = useState<Clip[]>([])
-  const [clipIdx,  setClipIdx]  = useState(0)
-  const clip = session[clipIdx] as Clip | undefined
+  const [session, setSession] = useState<ContentItem[]>([])
+  const [clipIdx, setClipIdx] = useState(0)
+  const clip = session[clipIdx] as ContentItem | undefined
 
   // ── Quiz state ─────────────────────────────────────────────────────────────
   const [phase,         setPhase]         = useState<Phase>('playing')
-
   const [wrongAttempts, setWrongAttempts] = useState<number[]>([])
   const [score,         setScore]         = useState({ correct: 0, total: 0 })
-  const [streak,        setStreak]        = useState<number>(0)
+  const [streak,        setStreak]        = useState(0)
   const [flash,         setFlash]         = useState<FlashType>(null)
 
   // ── Player state ───────────────────────────────────────────────────────────
   const [isPlaying, setIsPlaying] = useState(false)
   const [speed,     setSpeed]     = useState<Speed>(1)
-  const [ytReady,   setYtReady]   = useState(false)
-
-  // ── Monetisation ───────────────────────────────────────────────────────────
-  const [dailyCount, setDailyCount] = useState(0)
-  const isPremium = false
-  const dailyLeft = Math.max(0, FREE_DAILY_LIMIT - dailyCount)
 
   // ── Refs ───────────────────────────────────────────────────────────────────
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const playerRef    = useRef<any>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const endTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const speedRef     = useRef<Speed>(1)
+  const videoRef = useRef<HTMLVideoElement>(null)
 
-  // keep speedRef in sync
-  useEffect(() => { speedRef.current = speed }, [speed])
-
-  // ── Load YouTube IFrame API ────────────────────────────────────────────────
+  // ── Apply speed to video element ───────────────────────────────────────────
   useEffect(() => {
-    setDailyCount(getDailyCount())
-    if (window.YT?.Player) { setYtReady(true); return }
-    const tag = document.createElement('script')
-    tag.src = 'https://www.youtube.com/iframe_api'
-    tag.async = true
-    document.head.appendChild(tag)
-    window.onYouTubeIframeAPIReady = () => setYtReady(true)
-  }, [])
+    if (videoRef.current) videoRef.current.playbackRate = speed
+  }, [speed])
 
   // ── Start session ──────────────────────────────────────────────────────────
-  const startSession = useCallback((d: Difficulty) => {
+  const startSession = useCallback((d: ContentLevel) => {
     const clips = buildSession(d)
+    if (clips.length === 0) { setScreen('no-content'); setLevel(d); return }
     setLevel(d)
     setSession(clips)
     setClipIdx(0)
@@ -702,105 +672,57 @@ export default function ListenPage() {
     setWrongAttempts([])
     setStreak(loadStreak())
     setFlash(null)
+    setIsPlaying(false)
     setScreen('practice')
   }, [])
 
-  // ── Schedule auto-transition playing → answering ──────────────────────────
-  const scheduleEnd = useCallback((c: Clip, currentSpeed: Speed) => {
-    if (endTimerRef.current) clearTimeout(endTimerRef.current)
-    const duration = (c.end - c.start) / currentSpeed
-    endTimerRef.current = setTimeout(() => {
-      setIsPlaying(false)
-      setPhase('answering')
-    }, (duration + 0.5) * 1000)
-  }, [])
-
-  // ── Init YouTube player ────────────────────────────────────────────────────
-  const initPlayer = useCallback((c: Clip) => {
-    if (!containerRef.current || !window.YT?.Player) return
-    if (playerRef.current) {
-      try { playerRef.current.destroy() } catch { /* ignore */ }
-      playerRef.current = null
-    }
-    const div = document.createElement('div')
-    div.id = 'yt-player'
-    containerRef.current.innerHTML = ''
-    containerRef.current.appendChild(div)
-
-    playerRef.current = new window.YT.Player('yt-player', {
-      videoId: c.videoId,
-      width: '100%', height: '100%',
-      playerVars: {
-        start: c.start, end: c.end,
-        autoplay: 1, controls: 0,
-        modestbranding: 1, rel: 0, fs: 0,
-        iv_load_policy: 3, cc_load_policy: 0, playsinline: 1,
-      },
-      events: {
-        onReady(e: { target: { setPlaybackRate: (s: number) => void; playVideo: () => void } }) {
-          e.target.setPlaybackRate(speedRef.current)
-          e.target.playVideo()
-          setIsPlaying(true)
-          scheduleEnd(c, speedRef.current)
-        },
-        onStateChange(e: { data: number }) {
-          setIsPlaying(e.data === 1)
-        },
-      },
-    })
-  }, [scheduleEnd])
-
-  // Re-init player when clip changes
+  // ── Init video when clip changes ───────────────────────────────────────────
   useEffect(() => {
-    if (!ytReady || !clip || screen !== 'practice') return
+    if (!clip || screen !== 'practice') return
     setPhase('playing')
     setWrongAttempts([])
     setFlash(null)
     setIsPlaying(false)
-    initPlayer(clip)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ytReady, clipIdx, session, screen])
 
-  // Cleanup
-  useEffect(() => () => {
-    if (endTimerRef.current) clearTimeout(endTimerRef.current)
-  }, [])
+    if (videoRef.current) {
+      videoRef.current.load()
+      videoRef.current.playbackRate = speed
+      videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clipIdx, session, screen])
 
   // ── Player controls ────────────────────────────────────────────────────────
   const replay = useCallback(() => {
-    if (!playerRef.current || !clip) return
-    if (endTimerRef.current) clearTimeout(endTimerRef.current)
-    playerRef.current.seekTo(clip.start, true)
-    playerRef.current.setPlaybackRate(speedRef.current)
-    playerRef.current.playVideo()
-    setIsPlaying(true)
-    scheduleEnd(clip, speedRef.current)
-  }, [clip, scheduleEnd])
+    if (!videoRef.current) return
+    videoRef.current.currentTime = 0
+    videoRef.current.playbackRate = speed
+    videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
+  }, [speed])
 
   const togglePlay = useCallback(() => {
-    if (!playerRef.current || !clip) return
+    if (!videoRef.current) return
     if (isPlaying) {
-      playerRef.current.pauseVideo()
-      if (endTimerRef.current) clearTimeout(endTimerRef.current)
+      videoRef.current.pause()
+      setIsPlaying(false)
     } else {
-      playerRef.current.seekTo(clip.start, true)
-      playerRef.current.setPlaybackRate(speedRef.current)
-      playerRef.current.playVideo()
-      scheduleEnd(clip, speedRef.current)
+      videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
     }
-  }, [isPlaying, clip, scheduleEnd])
+  }, [isPlaying])
 
   const changeSpeed = useCallback((s: Speed) => {
     setSpeed(s)
-    speedRef.current = s
-    if (playerRef.current) playerRef.current.setPlaybackRate(s)
+    if (videoRef.current) videoRef.current.playbackRate = s
+  }, [])
+
+  const handleVideoEnded = useCallback(() => {
+    setIsPlaying(false)
+    setPhase('answering')
   }, [])
 
   // ── Quiz handlers ──────────────────────────────────────────────────────────
   const handleReady = useCallback(() => {
-    if (endTimerRef.current) clearTimeout(endTimerRef.current)
-    try { playerRef.current?.pauseVideo() } catch { /* ignore */ }
-    setIsPlaying(false)
+    if (videoRef.current) { videoRef.current.pause(); setIsPlaying(false) }
     setPhase('answering')
   }, [])
 
@@ -809,53 +731,36 @@ export default function ListenPage() {
 
     const correct = i === clip.correctIndex
 
-    // Flash the screen
     setFlash(correct ? 'correct' : 'wrong')
     setTimeout(() => setFlash(null), 400)
-
     playTone(correct ? 'correct' : 'wrong')
 
     if (correct) {
-      // ── Correct: advance to feedback, update score + streak ──────────────
       const firstTry = wrongAttempts.length === 0
       setScore(s => ({ correct: s.correct + (firstTry ? 1 : 0), total: s.total + 1 }))
-      setStreak(s => {
-        const next = s + 1
-        saveStreak(next)
-        return next
-      })
+      setStreak(s => { const next = s + 1; saveStreak(next); return next })
       setPhase('feedback')
-      setDailyCount(incrementDailyCount())
     } else {
-      // ── Wrong: stay in answering, mark this option as used ───────────────
       setWrongAttempts(prev => [...prev, i])
       setStreak(0)
       saveStreak(0)
-      // Auto-replay clip so learner hears it again
+      // Auto-replay
       setTimeout(() => {
-        if (playerRef.current && clip) {
-          try {
-            playerRef.current.seekTo(clip.start, true)
-            playerRef.current.setPlaybackRate(speedRef.current)
-            playerRef.current.playVideo()
-            setIsPlaying(true)
-            scheduleEnd(clip, speedRef.current)
-          } catch { /* ignore */ }
+        if (videoRef.current) {
+          videoRef.current.currentTime = 0
+          videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
         }
       }, 600)
     }
-  }, [phase, clip, wrongAttempts, scheduleEnd])
+  }, [phase, clip, wrongAttempts])
 
   const handleNext = useCallback(() => {
-    if (!isPremium && dailyCount >= FREE_DAILY_LIMIT) {
-      setScreen('limit-wall'); return
-    }
     if (clipIdx < session.length - 1) {
       setClipIdx(i => i + 1)
     } else {
       setScreen('session-end')
     }
-  }, [clipIdx, session.length, isPremium, dailyCount])
+  }, [clipIdx, session.length])
 
   // ─────────────────────────────────────────────────────────────────────────
   // RENDER
@@ -863,7 +768,6 @@ export default function ListenPage() {
 
   return (
     <>
-      {/* Global styles */}
       <style>{`
         @keyframes pulse-slow {
           0%, 100% { opacity: 1; transform: scale(1); }
@@ -876,21 +780,44 @@ export default function ListenPage() {
         className="min-h-[100dvh] flex flex-col"
         style={{ background: 'linear-gradient(140deg,#0c1120 0%,#131830 50%,#0c1120 100%)' }}
       >
-        {/* ── Screens that take full viewport ────────────────────────────── */}
         {screen === 'level-select' && <LevelSelectScreen onSelect={startSession} />}
-        {screen === 'session-end'  && (
+
+        {screen === 'session-end' && (
           <SessionEndScreen
             correct={score.correct} total={score.total} level={level}
             onRestart={() => startSession(level)}
             onChangeLevel={() => setScreen('level-select')}
           />
         )}
-        {screen === 'limit-wall' && <LimitWallScreen />}
 
-        {/* ── Practice screen ─────────────────────────────────────────────── */}
+        {/* ── No content for chosen level ── */}
+        {screen === 'no-content' && (
+          <div className="flex flex-col items-center justify-center min-h-[100dvh] px-6 text-center" dir="rtl">
+            <AlertCircle size={48} className="text-amber-400/60 mb-5" />
+            <h2 className="text-xl font-black text-white mb-2">لا يوجد محتوى لمستوى {level}</h2>
+            <p className="text-white/40 text-sm mb-8 max-w-xs leading-relaxed">
+              لم يتم نشر أي تمارين لهذا المستوى بعد. أضف محتوى من لوحة الإدارة.
+            </p>
+            <div className="flex flex-col gap-3 w-full max-w-xs">
+              <Link
+                href="/admin/content"
+                className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-6 py-3.5 rounded-2xl text-sm transition-all active:scale-95"
+              >
+                الذهاب للوحة الإدارة
+              </Link>
+              <button
+                onClick={() => setScreen('level-select')}
+                className="py-3 rounded-2xl font-bold text-white/50 text-sm border border-white/12 hover:bg-white/5 transition-all"
+              >
+                اختر مستوى آخر
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Practice screen ── */}
         {screen === 'practice' && clip && (
           <>
-            {/* Top bar */}
             <div className="pt-[72px] pb-3 px-4 shrink-0">
               <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
                 <button
@@ -905,33 +832,28 @@ export default function ListenPage() {
               </div>
             </div>
 
-            {/* ── Desktop: split layout | Mobile: stacked ── */}
             <div className="flex-1 flex flex-col lg:flex-row gap-4 lg:gap-6 max-w-6xl mx-auto w-full px-4 pb-6 lg:pb-8 overflow-hidden">
 
-              {/* ── LEFT / TOP: Video (60% desktop, auto mobile) ── */}
+              {/* LEFT / TOP: Video (60% desktop) */}
               <div className="w-full lg:w-[60%] shrink-0 flex flex-col">
                 <VideoPlayer
                   clip={clip}
                   speed={speed}
                   onSpeedChange={changeSpeed}
-                  onEnded={() => setPhase('answering')}
-                  playerRef={playerRef}
-                  containerRef={containerRef as React.RefObject<HTMLDivElement>}
-                  ytReady={ytReady}
+                  onEnded={handleVideoEnded}
+                  videoRef={videoRef as React.RefObject<HTMLVideoElement>}
                   isPlaying={isPlaying}
-                  setIsPlaying={setIsPlaying}
                   onReplay={replay}
                   onTogglePlay={togglePlay}
                   phase={phase}
                 />
               </div>
 
-              {/* ── RIGHT / BOTTOM: Quiz (40% desktop, flex-1 mobile) ── */}
+              {/* RIGHT / BOTTOM: Quiz (40% desktop) */}
               <div className="w-full lg:flex-1 flex flex-col min-h-0">
                 <QuizPanel
                   clip={clip}
                   phase={phase}
-
                   wrongAttempts={wrongAttempts}
                   score={score}
                   streak={streak}
@@ -943,8 +865,6 @@ export default function ListenPage() {
                   onReady={handleReady}
                   onNext={handleNext}
                   onReplay={replay}
-                  isPremium={isPremium}
-                  dailyLeft={dailyLeft}
                 />
               </div>
             </div>
