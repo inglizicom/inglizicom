@@ -7,7 +7,8 @@ import {
   CheckCircle2, XCircle, Headphones,
   ChevronLeft, AlertCircle,
 } from 'lucide-react'
-import { getPublishedContent, type ContentItem, type ContentLevel } from '@/lib/content-store'
+import { type ContentItem, type ContentLevel } from '@/lib/content-store'
+import { fetchPublishedContent } from '@/lib/supabase-content'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPES & CONSTANTS
@@ -78,20 +79,14 @@ function saveStreak(count: number) {
 // UTILS
 // ─────────────────────────────────────────────────────────────────────────────
 
-function buildSession(level: ContentLevel): ContentItem[] {
-  const published = getPublishedContent().filter(c => c.level === level)
-  // Fisher-Yates shuffle
-  const a = [...published]
+function shuffleSlice(items: ContentItem[], level: ContentLevel): ContentItem[] {
+  const filtered = items.filter(c => c.level === level)
+  const a = [...filtered]
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]]
   }
   return a.slice(0, SESSION_SIZE)
-}
-
-function getCountByLevel(level: ContentLevel): number {
-  if (typeof window === 'undefined') return 0
-  return getPublishedContent().filter(c => c.level === level).length
 }
 
 function playTone(type: 'correct' | 'wrong') {
@@ -222,19 +217,16 @@ function ColorChunks({ chunks }: { chunks: Chunk[] }) {
 // SCREEN: LEVEL SELECT
 // ─────────────────────────────────────────────────────────────────────────────
 
-function LevelSelectScreen({ onSelect }: { onSelect: (d: ContentLevel) => void }) {
-  const [counts, setCounts] = useState<Record<ContentLevel, number>>({
-    A1: 0, A2: 0, B1: 0, B2: 0,
-  })
-
-  useEffect(() => {
-    setCounts({
-      A1: getCountByLevel('A1'),
-      A2: getCountByLevel('A2'),
-      B1: getCountByLevel('B1'),
-      B2: getCountByLevel('B2'),
-    })
-  }, [])
+function LevelSelectScreen({ onSelect, allContent }: {
+  onSelect: (d: ContentLevel) => void
+  allContent: ContentItem[]
+}) {
+  const counts: Record<ContentLevel, number> = {
+    A1: allContent.filter(c => c.level === 'A1').length,
+    A2: allContent.filter(c => c.level === 'A2').length,
+    B1: allContent.filter(c => c.level === 'B1').length,
+    B2: allContent.filter(c => c.level === 'B2').length,
+  }
 
   const levels: ContentLevel[] = ['A1', 'A2', 'B1', 'B2']
   const total = Object.values(counts).reduce((s, n) => s + n, 0)
@@ -715,12 +707,16 @@ export default function ListenPage() {
   const [streak,        setStreak]        = useState(0)
   const [flash,         setFlash]         = useState<FlashType>(null)
 
+  // ── All published content (from Supabase) ────────────────────────────────
+  const [allContent, setAllContent] = useState<ContentItem[]>([])
+  useEffect(() => { fetchPublishedContent().then(setAllContent) }, [])
+
   // ── Refs ───────────────────────────────────────────────────────────────────
   const videoRef = useRef<HTMLVideoElement>(null)
 
   // ── Start session ──────────────────────────────────────────────────────────
   const startSession = useCallback((d: ContentLevel) => {
-    const clips = buildSession(d)
+    const clips = shuffleSlice(allContent, d)
     if (clips.length === 0) { setScreen('no-content'); setLevel(d); return }
     setLevel(d)
     setSession(clips)
@@ -731,7 +727,7 @@ export default function ListenPage() {
     setStreak(loadStreak())
     setFlash(null)
     setScreen('practice')
-  }, [])
+  }, [allContent])
 
   // ── Init video when clip changes ───────────────────────────────────────────
   useEffect(() => {
@@ -823,7 +819,7 @@ export default function ListenPage() {
         className="min-h-[100dvh] flex flex-col"
         style={{ background: 'linear-gradient(140deg,#0c1120 0%,#131830 50%,#0c1120 100%)' }}
       >
-        {screen === 'level-select' && <LevelSelectScreen onSelect={startSession} />}
+        {screen === 'level-select' && <LevelSelectScreen onSelect={startSession} allContent={allContent} />}
 
         {screen === 'session-end' && (
           <SessionEndScreen

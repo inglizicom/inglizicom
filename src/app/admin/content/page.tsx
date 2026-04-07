@@ -11,6 +11,7 @@ import {
   type ContentItem, type ContentLevel, type ContentLesson, type ContentStatus,
 } from '@/lib/content-store'
 import { supabase } from '@/lib/supabase'
+import { upsertContentItem, deleteContentItem } from '@/lib/supabase-content'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPES
@@ -429,7 +430,7 @@ export default function AdminContentPage() {
   // ── Save as draft ─────────────────────────────────────────────────────────
   const handleSaveDraft = useCallback(() => {
     if (!sentence.trim() || options.length < 3) return
-    saveContent({
+    const saved = saveContent({
       sentence: sentence.trim(),
       arabicSentence: arabicSentence.trim() || undefined,
       options:  options as [string, string, string],
@@ -437,15 +438,18 @@ export default function AdminContentPage() {
       level, lesson, status: 'draft',
       videoUrl, videoName,
     }, editingId ?? undefined)
+    upsertContentItem(saved)
     refresh(); resetForm()
     showToast('Draft saved')
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sentence, arabicSentence, options, correctIdx, level, lesson, videoUrl, videoName, editingId])
 
   // ── Publish directly ──────────────────────────────────────────────────────
-  const handlePublish = useCallback(() => {
+  const handlePublish = useCallback(async () => {
     if (!sentence.trim() || options.length < 3) return
-    saveContent({
+
+    // 1. Save to localStorage (keeps admin list in sync)
+    const saved = saveContent({
       sentence: sentence.trim(),
       arabicSentence: arabicSentence.trim() || undefined,
       options:  options as [string, string, string],
@@ -453,6 +457,30 @@ export default function AdminContentPage() {
       level, lesson, status: 'published',
       videoUrl, videoName,
     }, editingId ?? undefined)
+
+    // 2. Insert into Supabase content_items table
+    const { data, error } = await supabase.from('content_items').upsert([{
+      id:              saved.id,
+      sentence:        saved.sentence,
+      arabic_sentence: saved.arabicSentence ?? null,
+      options:         saved.options,
+      correct_index:   saved.correctIndex,
+      level:           saved.level,
+      lesson:          saved.lesson,
+      status:          'published',
+      video_url:       saved.videoUrl,
+      video_name:      saved.videoName,
+      created_at:      saved.createdAt,
+      updated_at:      saved.updatedAt,
+    }])
+
+    if (error) {
+      console.error('Supabase insert error:', error)
+      showToast('خطأ في حفظ البيانات — تحقق من Console', 'error')
+      return
+    }
+
+    console.log('SAVED:', data)
     refresh(); resetForm()
     showToast('Published to website 🌐')
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -461,6 +489,7 @@ export default function AdminContentPage() {
   // ── Toggle publish ────────────────────────────────────────────────────────
   const handleToggle = (id: string) => {
     const updated = togglePublish(id)
+    if (updated) upsertContentItem(updated)
     refresh()
     showToast(updated?.status === 'published' ? 'Published 🌐' : 'Moved to drafts', 'info')
   }
@@ -468,7 +497,9 @@ export default function AdminContentPage() {
   // ── Delete ────────────────────────────────────────────────────────────────
   const handleDelete = (id: string) => {
     if (!confirm('Delete this content? This cannot be undone.')) return
-    deleteContent(id); refresh()
+    deleteContent(id)
+    deleteContentItem(id)
+    refresh()
     showToast('Deleted', 'error')
   }
 
