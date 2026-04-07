@@ -384,6 +384,8 @@ function VideoPlayer({
   const m   = LEVEL_META[clip.level]
   const url = clip.videoUrl ?? ''
 
+  console.log("VIDEO URL:", url)
+
   return (
     <div className="flex flex-col h-full">
 
@@ -418,13 +420,14 @@ function VideoPlayer({
           <video
             ref={videoRef}
             key={url}
-            src={url}
             controls
             playsInline
             preload="auto"
             onEnded={onEnded}
             className="absolute inset-0 w-full h-full object-contain"
-          />
+          >
+            <source src={url} type="video/mp4" />
+          </video>
         )}
       </div>
 
@@ -740,9 +743,9 @@ export default function ListenPage() {
     setIsCorrect(false)
     setWrongAttempts([])
     setFlash(null)
-    // Native controls handle playback; just reset position
     if (videoRef.current) {
       videoRef.current.load()
+      videoRef.current.play().catch(() => {/* autoplay blocked — user can tap play */})
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clipIdx, session, screen])
