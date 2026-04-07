@@ -120,6 +120,35 @@ const CHUNK_COLORS = [
 ]
 
 /**
+ * Split any text into exactly N roughly equal word-groups.
+ */
+function splitIntoN(text: string, n: number): string[] {
+  const words = text.trim().split(/\s+/)
+  if (n <= 1 || words.length <= n) return [text.trim()]
+  const result: string[] = []
+  const base = Math.floor(words.length / n)
+  let rem = words.length % n
+  let start = 0
+  for (let i = 0; i < n; i++) {
+    const size = base + (rem-- > 0 ? 1 : 0)
+    result.push(words.slice(start, start + size).join(' '))
+    start += size
+  }
+  return result
+}
+
+/**
+ * Build paired EN↔AR chunks for ColorChunks.
+ * Arabic is split into the same number of parts as English.
+ */
+function buildChunks(enSentence: string, arSentence?: string): Chunk[] {
+  const enParts = autoChunk(enSentence)
+  if (!arSentence?.trim()) return enParts.map(en => ({ en }))
+  const arParts = splitIntoN(arSentence.trim(), enParts.length)
+  return enParts.map((en, i) => ({ en, ar: arParts[i] ?? '' }))
+}
+
+/**
  * Split an English sentence into 2-4 meaningful chunks.
  * Tries natural break points first; falls back to even halves.
  */
@@ -341,7 +370,20 @@ function SessionEndScreen({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// COMPONENT: VideoPlayer (HTML5 video — plays uploaded files)
+// MEDIA HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+
+function isYouTubeUrl(url: string): boolean {
+  return /youtube\.com|youtu\.be/i.test(url)
+}
+
+function getYouTubeEmbedUrl(url: string): string | null {
+  const m = url.match(/(?:[?&]v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/)
+  return m ? `https://www.youtube.com/embed/${m[1]}?rel=0&controls=1&autoplay=0` : null
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMPONENT: MediaPlayer
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface VideoPlayerProps {
@@ -361,14 +403,27 @@ function VideoPlayer({
   onEnded, videoRef, isPlaying,
   onReplay, onTogglePlay, phase,
 }: VideoPlayerProps) {
-  const m = LEVEL_META[clip.level]
-  const [mediaError, setMediaError] = useState(false)
+  const m   = LEVEL_META[clip.level]
+  const url = clip.videoUrl ?? ''
 
-  // Reset error state when clip changes
-  useEffect(() => { setMediaError(false) }, [clip.id])
+  // Track whether HTML5 <video> failed and we should fall back to <audio>
+  const [audioFallback, setAudioFallback] = useState(false)
+  useEffect(() => { setAudioFallback(false) }, [clip.id])
+
+  const isYT      = url !== '' && isYouTubeUrl(url)
+  const ytEmbed   = isYT ? getYouTubeEmbedUrl(url) : null
+  const hasMedia  = url !== ''
+
+  // ── Phase pill shared by video + YouTube ──
+  const PhasePill = () => phase === 'answering' ? (
+    <div className="absolute top-3 right-3 z-20 bg-blue-600/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full pointer-events-none">
+      🎧 اختر الإجابة
+    </div>
+  ) : null
 
   return (
     <div className="flex flex-col h-full">
+
       {/* ── Clip meta ── */}
       <div className="flex items-center justify-between px-1 mb-2 shrink-0">
         <span className="text-white/30 text-xs font-medium capitalize">{clip.lesson}</span>
@@ -377,125 +432,138 @@ function VideoPlayer({
         </span>
       </div>
 
-      {/* ── Video / Audio frame ── */}
+      {/* ── Media frame ── */}
       <div
         className="relative bg-black rounded-2xl overflow-hidden shadow-2xl"
         style={{ aspectRatio: '16/9' }}
       >
-        {mediaError || !clip.videoUrl ? (
-          /* ── Error / no-URL fallback ── */
+
+        {/* ════ NO MEDIA ════ */}
+        {!hasMedia && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center px-6">
-            <div className="w-16 h-16 rounded-full bg-white/8 border border-white/15 flex items-center justify-center text-3xl">
-              🎧
-            </div>
-            <p className="text-white/50 text-sm font-semibold">صوت فقط</p>
-            <p className="text-white/25 text-xs leading-relaxed">
-              {mediaError ? 'تعذّر تحميل الفيديو — استمع للصوت' : 'لا يوجد فيديو لهذا المقطع'}
-            </p>
-            {/* Audio-only player */}
-            {clip.videoUrl && !mediaError && (
-              <audio
-                ref={videoRef as unknown as React.RefObject<HTMLAudioElement>}
-                src={clip.videoUrl}
-                onEnded={onEnded}
-                onError={() => setMediaError(true)}
-              />
-            )}
-            <button
-              onClick={onTogglePlay}
-              className={`
-                w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all duration-300
-                ${isPlaying ? 'border-blue-400 bg-blue-500/20' : 'border-white/25 bg-white/8 hover:bg-white/15'}
-              `}
-            >
-              {isPlaying
-                ? <Pause size={26} className="text-blue-300" />
-                : <Play  size={26} className="text-white/60 translate-x-0.5" />}
-            </button>
+            <div className="text-5xl opacity-20">🎧</div>
+            <p className="text-white/30 text-sm font-semibold">لا يوجد وسائط</p>
+            <p className="text-white/20 text-xs">أضف رابط يوتيوب أو ملف من لوحة الإدارة</p>
           </div>
-        ) : (
+        )}
+
+        {/* ════ YOUTUBE IFRAME ════ */}
+        {hasMedia && isYT && ytEmbed && (
           <>
-            {/* ── HTML5 Video ── */}
+            <iframe
+              src={ytEmbed}
+              className="absolute inset-0 w-full h-full border-0"
+              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              title="lesson video"
+            />
+            <PhasePill />
+          </>
+        )}
+
+        {/* ════ HTML5 VIDEO ════ */}
+        {hasMedia && !isYT && !audioFallback && (
+          <>
             <video
               ref={videoRef}
-              src={clip.videoUrl}
+              src={url}
               onEnded={onEnded}
-              onError={() => setMediaError(true)}
+              onError={() => setAudioFallback(true)}
               playsInline
               preload="metadata"
               className="absolute inset-0 w-full h-full object-contain"
-            >
-              <source src={clip.videoUrl} type="video/mp4" />
-            </video>
-
-            {/* Click-to-toggle overlay */}
-            <div
-              className="absolute inset-0 z-10 cursor-pointer"
-              onClick={onTogglePlay}
             />
 
-            {/* Big play button shown when paused */}
+            {/* Click overlay */}
+            <div className="absolute inset-0 z-10 cursor-pointer" onClick={onTogglePlay} />
+
+            {/* Play button */}
             {!isPlaying && (
               <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-                <div className="w-16 h-16 rounded-full bg-black/50 backdrop-blur-sm border border-white/30 flex items-center justify-center shadow-2xl">
+                <div className="w-16 h-16 rounded-full bg-black/55 backdrop-blur-sm border border-white/25 flex items-center justify-center shadow-2xl">
                   <Play size={26} className="text-white translate-x-0.5" />
                 </div>
               </div>
             )}
 
-            {/* Phase pill */}
-            {phase === 'answering' && (
-              <div className="absolute top-3 right-3 z-20 bg-blue-600/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full pointer-events-none">
-                🎧 اختر الإجابة
-              </div>
-            )}
+            <PhasePill />
           </>
         )}
+
+        {/* ════ AUDIO FALLBACK (video failed) ════ */}
+        {hasMedia && !isYT && audioFallback && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6">
+            <div className="text-4xl">🎧</div>
+            <p className="text-white/50 text-sm font-semibold">وضع الصوت فقط</p>
+            <audio
+              ref={videoRef as unknown as React.RefObject<HTMLAudioElement>}
+              src={url}
+              onEnded={onEnded}
+              controls
+              className="w-full max-w-xs"
+              style={{ accentColor: '#6366f1' }}
+            />
+            <p className="text-white/20 text-xs text-center leading-relaxed">
+              تعذّر تشغيل الفيديو — استخدم مشغّل الصوت أعلاه
+            </p>
+            <PhasePill />
+          </div>
+        )}
+
       </div>
 
-      {/* ── Controls bar ── */}
-      <div className="mt-3 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onTogglePlay}
-            className={`
-              flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-bold
-              transition-all active:scale-[0.95]
-              ${isPlaying
-                ? 'bg-white/15 text-white hover:bg-white/20'
-                : 'bg-blue-600 text-white hover:bg-blue-500'}
-            `}
-          >
-            {isPlaying ? <><Pause size={14} />إيقاف</> : <><Play size={14} />تشغيل</>}
-          </button>
-
-          <button
-            onClick={onReplay}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/8 hover:bg-white/15 text-white/70 hover:text-white text-sm font-bold transition-all active:scale-[0.95] border border-white/10"
-          >
-            <RotateCcw size={13} />إعادة
-          </button>
-        </div>
-
-        {/* Speed selector */}
-        <div className="flex items-center gap-1">
-          <Volume2 size={12} className="text-white/25 ml-0.5" />
-          {SPEEDS.map(s => (
+      {/* ── Controls bar — hidden for YouTube and audio fallback ── */}
+      {!isYT && !audioFallback && hasMedia && (
+        <div className="mt-3 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2">
             <button
-              key={s}
-              onClick={() => onSpeedChange(s)}
+              onClick={onTogglePlay}
               className={`
-                text-xs font-bold px-2 py-1 rounded-lg transition-all
-                ${speed === s
-                  ? 'bg-white/20 text-white'
-                  : 'text-white/30 hover:text-white/60 hover:bg-white/8'}
+                flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-bold
+                transition-all active:scale-[0.95]
+                ${isPlaying
+                  ? 'bg-white/15 text-white hover:bg-white/20'
+                  : 'bg-blue-600 text-white hover:bg-blue-500'}
               `}
             >
-              {s}x
+              {isPlaying ? <><Pause size={14} />إيقاف</> : <><Play size={14} />تشغيل</>}
             </button>
-          ))}
+
+            <button
+              onClick={onReplay}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/8 hover:bg-white/15 text-white/70 hover:text-white text-sm font-bold transition-all active:scale-[0.95] border border-white/10"
+            >
+              <RotateCcw size={13} />إعادة
+            </button>
+          </div>
+
+          {/* Speed selector */}
+          <div className="flex items-center gap-1">
+            <Volume2 size={12} className="text-white/25 ml-0.5" />
+            {SPEEDS.map(s => (
+              <button
+                key={s}
+                onClick={() => onSpeedChange(s)}
+                className={`
+                  text-xs font-bold px-2 py-1 rounded-lg transition-all
+                  ${speed === s
+                    ? 'bg-white/20 text-white'
+                    : 'text-white/30 hover:text-white/60 hover:bg-white/8'}
+                `}
+              >
+                {s}x
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* YouTube note — replay manually */}
+      {isYT && (
+        <p className="mt-2 text-center text-white/20 text-xs shrink-0">
+          يوتيوب · استخدم أدوات المشغّل الداخلية للإعادة والسرعة
+        </p>
+      )}
     </div>
   )
 }
@@ -688,7 +756,7 @@ function QuizPanel({
           </div>
 
           {/* ── Color Chunks — shown only after answer ── */}
-          <ColorChunks chunks={autoChunk(clip.sentence).map(en => ({ en }))} />
+          <ColorChunks chunks={buildChunks(clip.sentence, clip.arabicSentence)} />
 
           {/* ── Divider ── */}
           <div className="border-t border-white/8 my-0.5" />
@@ -724,18 +792,16 @@ function QuizPanel({
             })}
           </div>
 
-          <button
-            onClick={onNext}
-            className={`
-              w-full flex items-center justify-center gap-2 py-4 rounded-2xl
-              text-white font-black text-base shadow-lg active:scale-[0.97] transition-all
-              ${m.bar}
-            `}
-          >
-            {clipIdx < sessionSize - 1
-              ? <>التالي <ChevronLeft size={18} /></>
-              : '🏁 إنهاء الجلسة'}
-          </button>
+          {/* Locked countdown — auto-advances after 2 s */}
+          <div className="relative rounded-2xl overflow-hidden border border-white/12">
+            {/* Progress fill */}
+            <div className={`countdown-bar absolute inset-0 ${isCorrect ? 'bg-emerald-500/30' : 'bg-red-500/20'}`} />
+            {/* Label */}
+            <div className="relative z-10 w-full flex items-center justify-center gap-2 py-4 text-white/45 font-black text-sm select-none">
+              <span className="text-base">⏳</span>
+              {clipIdx < sessionSize - 1 ? 'التالي تلقائياً...' : '🏁 إنهاء الجلسة...'}
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -875,6 +941,17 @@ export default function ListenPage() {
     }
   }, [clipIdx, session.length])
 
+  // Keep a ref to the latest handleNext to avoid stale closures inside timers
+  const handleNextRef = useRef(handleNext)
+  useEffect(() => { handleNextRef.current = handleNext }, [handleNext])
+
+  // Auto-advance 2 s after feedback is shown — forces the review moment
+  useEffect(() => {
+    if (phase !== 'feedback') return
+    const t = setTimeout(() => handleNextRef.current(), 2000)
+    return () => clearTimeout(t)
+  }, [phase])
+
   // ─────────────────────────────────────────────────────────────────────────
   // RENDER
   // ─────────────────────────────────────────────────────────────────────────
@@ -894,6 +971,15 @@ export default function ListenPage() {
         }
         .chunk-fade-in {
           animation: chunk-in 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
+        }
+
+        @keyframes countdown-fill {
+          from { transform: scaleX(0); }
+          to   { transform: scaleX(1); }
+        }
+        .countdown-bar {
+          transform-origin: left;
+          animation: countdown-fill 2s linear forwards;
         }
       `}</style>
 

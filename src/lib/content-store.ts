@@ -11,12 +11,13 @@ export type ContentStatus = 'draft' | 'published'
 export interface ContentItem {
   id: string                          // uuid-like, generated on save
   sentence: string
+  arabicSentence?: string             // optional Arabic translation for color-chunk pairing
   options: [string, string, string]   // exactly 3 MCQ options
   correctIndex: 0 | 1 | 2
   level: ContentLevel
   lesson: ContentLesson
   status: ContentStatus
-  videoUrl: string | null             // blob URL (local) or future CDN URL
+  videoUrl: string | null             // data URL, YouTube link, or hosted file URL
   videoName: string | null
   createdAt: string                   // ISO date string
   updatedAt: string
