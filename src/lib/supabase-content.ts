@@ -56,7 +56,7 @@ export async function fetchPublishedContent(): Promise<ContentItem[]> {
     .from('content_items')
     .select('*')
     .eq('status', 'published')
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: true })
 
   if (error) {
     console.error('fetchPublishedContent error:', error.message)

@@ -18,7 +18,6 @@ type Phase     = 'playing' | 'answering' | 'feedback'
 type Screen    = 'level-select' | 'practice' | 'session-end' | 'no-content'
 type FlashType = 'correct' | 'wrong' | null
 
-const SESSION_SIZE     = 10
 const STREAK_KEY       = 'inglizi_streak'
 
 const LEVEL_META: Record<ContentLevel, {
@@ -79,14 +78,8 @@ function saveStreak(count: number) {
 // UTILS
 // ─────────────────────────────────────────────────────────────────────────────
 
-function shuffleSlice(items: ContentItem[], level: ContentLevel): ContentItem[] {
-  const filtered = items.filter(c => c.level === level)
-  const a = [...filtered]
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]]
-  }
-  return a.slice(0, SESSION_SIZE)
+function filterByLevel(items: ContentItem[], level: ContentLevel): ContentItem[] {
+  return items.filter(c => c.level === level)
 }
 
 function playTone(type: 'correct' | 'wrong') {
@@ -716,7 +709,7 @@ export default function ListenPage() {
 
   // ── Start session ──────────────────────────────────────────────────────────
   const startSession = useCallback((d: ContentLevel) => {
-    const clips = shuffleSlice(allContent, d)
+    const clips = filterByLevel(allContent, d)
     if (clips.length === 0) { setScreen('no-content'); setLevel(d); return }
     setLevel(d)
     setSession(clips)
