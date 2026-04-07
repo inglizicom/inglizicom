@@ -3,9 +3,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import {
-  Play, Pause, RotateCcw, ChevronRight,
+  RotateCcw, ChevronRight,
   CheckCircle2, XCircle, Headphones,
-  Volume2, ChevronLeft, AlertCircle,
+  ChevronLeft, AlertCircle,
 } from 'lucide-react'
 import { getPublishedContent, type ContentItem, type ContentLevel } from '@/lib/content-store'
 
@@ -13,12 +13,10 @@ import { getPublishedContent, type ContentItem, type ContentLevel } from '@/lib/
 // TYPES & CONSTANTS
 // ─────────────────────────────────────────────────────────────────────────────
 
-type Speed     = 0.5 | 0.75 | 1 | 1.25
 type Phase     = 'playing' | 'answering' | 'feedback'
 type Screen    = 'level-select' | 'practice' | 'session-end' | 'no-content'
 type FlashType = 'correct' | 'wrong' | null
 
-const SPEEDS: Speed[]  = [0.5, 0.75, 1, 1.25]
 const SESSION_SIZE     = 10
 const STREAK_KEY       = 'inglizi_streak'
 
@@ -375,25 +373,16 @@ function SessionEndScreen({
 
 interface VideoPlayerProps {
   clip: ContentItem
-  speed: Speed
-  onSpeedChange: (s: Speed) => void
   onEnded: () => void
   videoRef: React.RefObject<HTMLVideoElement>
-  isPlaying: boolean
-  onReplay: () => void
-  onTogglePlay: () => void
   phase: Phase
 }
 
 function VideoPlayer({
-  clip, speed, onSpeedChange,
-  onEnded, videoRef, isPlaying,
-  onReplay, onTogglePlay, phase,
+  clip, onEnded, videoRef, phase,
 }: VideoPlayerProps) {
   const m   = LEVEL_META[clip.level]
   const url = clip.videoUrl ?? ''
-  const [videoError, setVideoError] = useState(false)
-  useEffect(() => { setVideoError(false) }, [clip.id])
 
   return (
     <div className="flex flex-col h-full">
@@ -407,10 +396,8 @@ function VideoPlayer({
       </div>
 
       {/* ── Media frame ── */}
-      <div
-        className="relative bg-black rounded-2xl overflow-hidden shadow-2xl"
-        style={{ aspectRatio: '16/9' }}
-      >
+      <div className="relative bg-black rounded-2xl overflow-hidden shadow-2xl" style={{ aspectRatio: '16/9' }}>
+
         {/* Phase pill */}
         {phase === 'answering' && (
           <div className="absolute top-3 right-3 z-20 bg-blue-600/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full pointer-events-none">
@@ -426,86 +413,26 @@ function VideoPlayer({
           </div>
         )}
 
-        {/* Video error */}
-        {url && videoError && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center px-6">
-            <div className="text-4xl opacity-40">⚠️</div>
-            <p className="text-white/40 text-sm font-semibold">فشل تحميل الفيديو</p>
-          </div>
-        )}
-
-        {/* HTML5 video */}
-        {url && !videoError && (
-          <>
-            <video
-              ref={videoRef}
-              src={url}
-              onEnded={onEnded}
-              onError={() => setVideoError(true)}
-              playsInline
-              preload="metadata"
-              className="absolute inset-0 w-full h-full object-contain"
-            />
-
-            {/* Click overlay */}
-            <div className="absolute inset-0 z-10 cursor-pointer" onClick={onTogglePlay} />
-
-            {/* Play button overlay */}
-            {!isPlaying && (
-              <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
-                <div className="w-16 h-16 rounded-full bg-black/55 backdrop-blur-sm border border-white/25 flex items-center justify-center shadow-2xl">
-                  <Play size={26} className="text-white translate-x-0.5" />
-                </div>
-              </div>
-            )}
-          </>
+        {/* HTML5 video — native controls, browser handles everything */}
+        {url && (
+          <video
+            ref={videoRef}
+            key={url}
+            src={url}
+            controls
+            playsInline
+            preload="auto"
+            onEnded={onEnded}
+            className="absolute inset-0 w-full h-full object-contain"
+          />
         )}
       </div>
 
-      {/* ── Controls bar ── */}
-      {url && !videoError && (
-        <div className="mt-3 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onTogglePlay}
-              className={`
-                flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-bold
-                transition-all active:scale-[0.95]
-                ${isPlaying
-                  ? 'bg-white/15 text-white hover:bg-white/20'
-                  : 'bg-blue-600 text-white hover:bg-blue-500'}
-              `}
-            >
-              {isPlaying ? <><Pause size={14} />إيقاف</> : <><Play size={14} />تشغيل</>}
-            </button>
-
-            <button
-              onClick={onReplay}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white/8 hover:bg-white/15 text-white/70 hover:text-white text-sm font-bold transition-all active:scale-[0.95] border border-white/10"
-            >
-              <RotateCcw size={13} />إعادة
-            </button>
-          </div>
-
-          {/* Speed selector */}
-          <div className="flex items-center gap-1">
-            <Volume2 size={12} className="text-white/25 ml-0.5" />
-            {SPEEDS.map(s => (
-              <button
-                key={s}
-                onClick={() => onSpeedChange(s)}
-                className={`
-                  text-xs font-bold px-2 py-1 rounded-lg transition-all
-                  ${speed === s
-                    ? 'bg-white/20 text-white'
-                    : 'text-white/30 hover:text-white/60 hover:bg-white/8'}
-                `}
-              >
-                {s}x
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* Hint text */}
+      {url && (
+        <p className="mt-2 text-center text-white/20 text-xs shrink-0">
+          اضغط ▶ لتشغيل الفيديو — يمكنك الإعادة أكثر من مرة
+        </p>
       )}
     </div>
   )
@@ -698,16 +625,21 @@ function QuizPanel({
             <p className="text-white font-semibold text-sm leading-snug">{clip.sentence}</p>
           </div>
 
-          {/* ── Translation ── */}
-          {clip.arabicSentence && (
-            <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/8" dir="rtl">
-              <p className="text-white/30 text-[11px] mb-1 font-semibold uppercase tracking-wide">الترجمة</p>
-              <p className="text-white/80 font-semibold text-sm leading-snug">{clip.arabicSentence}</p>
+          {/* ── Sentence card (EN + AR) ── */}
+          <div className="rounded-2xl border border-white/10 overflow-hidden">
+            {/* English */}
+            <div className="bg-white/6 px-4 py-3 border-b border-white/8" dir="ltr">
+              <p className="text-white/35 text-[11px] mb-1 font-semibold uppercase tracking-wide">الجملة بالإنجليزية</p>
+              <p className="text-white font-bold text-base leading-snug">{clip.sentence}</p>
             </div>
-          )}
-
-          {/* ── Color Chunks — shown only after answer ── */}
-          <ColorChunks chunks={buildChunks(clip.sentence, clip.arabicSentence)} />
+            {/* Arabic */}
+            <div className="bg-white/3 px-4 py-3" dir="rtl">
+              <p className="text-white/35 text-[11px] mb-1 font-semibold uppercase tracking-wide">الترجمة بالعربية</p>
+              <p className={`font-bold text-base leading-snug ${clip.arabicSentence ? 'text-amber-300' : 'text-white/20 italic text-sm'}`}>
+                {clip.arabicSentence || 'لا توجد ترجمة'}
+              </p>
+            </div>
+          </div>
 
           {/* ── Divider ── */}
           <div className="border-t border-white/8 my-0.5" />
@@ -783,17 +715,8 @@ export default function ListenPage() {
   const [streak,        setStreak]        = useState(0)
   const [flash,         setFlash]         = useState<FlashType>(null)
 
-  // ── Player state ───────────────────────────────────────────────────────────
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [speed,     setSpeed]     = useState<Speed>(1)
-
   // ── Refs ───────────────────────────────────────────────────────────────────
   const videoRef = useRef<HTMLVideoElement>(null)
-
-  // ── Apply speed to video element ───────────────────────────────────────────
-  useEffect(() => {
-    if (videoRef.current) videoRef.current.playbackRate = speed
-  }, [speed])
 
   // ── Start session ──────────────────────────────────────────────────────────
   const startSession = useCallback((d: ContentLevel) => {
@@ -807,7 +730,6 @@ export default function ListenPage() {
     setWrongAttempts([])
     setStreak(loadStreak())
     setFlash(null)
-    setIsPlaying(false)
     setScreen('practice')
   }, [])
 
@@ -818,12 +740,9 @@ export default function ListenPage() {
     setIsCorrect(false)
     setWrongAttempts([])
     setFlash(null)
-    setIsPlaying(false)
-
+    // Native controls handle playback; just reset position
     if (videoRef.current) {
       videoRef.current.load()
-      videoRef.current.playbackRate = speed
-      videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clipIdx, session, screen])
@@ -832,33 +751,16 @@ export default function ListenPage() {
   const replay = useCallback(() => {
     if (!videoRef.current) return
     videoRef.current.currentTime = 0
-    videoRef.current.playbackRate = speed
-    videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
-  }, [speed])
-
-  const togglePlay = useCallback(() => {
-    if (!videoRef.current) return
-    if (isPlaying) {
-      videoRef.current.pause()
-      setIsPlaying(false)
-    } else {
-      videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {})
-    }
-  }, [isPlaying])
-
-  const changeSpeed = useCallback((s: Speed) => {
-    setSpeed(s)
-    if (videoRef.current) videoRef.current.playbackRate = s
+    videoRef.current.play().catch(() => {})
   }, [])
 
   const handleVideoEnded = useCallback(() => {
-    setIsPlaying(false)
     setPhase('answering')
   }, [])
 
   // ── Quiz handlers ──────────────────────────────────────────────────────────
   const handleReady = useCallback(() => {
-    if (videoRef.current) { videoRef.current.pause(); setIsPlaying(false) }
+    if (videoRef.current) videoRef.current.pause()
     setPhase('answering')
   }, [])
 
@@ -979,13 +881,8 @@ export default function ListenPage() {
               <div className="w-full lg:w-[60%] shrink-0 flex flex-col">
                 <VideoPlayer
                   clip={clip}
-                  speed={speed}
-                  onSpeedChange={changeSpeed}
                   onEnded={handleVideoEnded}
                   videoRef={videoRef as React.RefObject<HTMLVideoElement>}
-                  isPlaying={isPlaying}
-                  onReplay={replay}
-                  onTogglePlay={togglePlay}
                   phase={phase}
                 />
               </div>
