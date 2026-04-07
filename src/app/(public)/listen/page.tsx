@@ -384,7 +384,7 @@ function VideoPlayer({
   const m   = LEVEL_META[clip.level]
   const url = clip.videoUrl ?? ''
 
-  console.log("VIDEO URL:", url)
+  console.log("VIDEO URL:", clip.videoUrl)
 
   return (
     <div className="flex flex-col h-full">
@@ -407,27 +407,24 @@ function VideoPlayer({
           </div>
         )}
 
-        {/* No media */}
+        {/* No media fallback */}
         {!url && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center px-6">
             <div className="text-5xl opacity-20">🎧</div>
             <p className="text-white/30 text-sm font-semibold">لا يوجد فيديو</p>
           </div>
         )}
-
-        {/* HTML5 video — native controls, browser handles everything */}
         {url && (
           <video
             ref={videoRef}
             key={url}
             controls
+            src={url}
             playsInline
             preload="auto"
             onEnded={onEnded}
             className="absolute inset-0 w-full h-full object-contain"
-          >
-            <source src={url} type="video/mp4" />
-          </video>
+          />
         )}
       </div>
 
