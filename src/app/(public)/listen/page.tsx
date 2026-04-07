@@ -370,20 +370,7 @@ function SessionEndScreen({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MEDIA HELPERS
-// ─────────────────────────────────────────────────────────────────────────────
-
-function isYouTubeUrl(url: string): boolean {
-  return /youtube\.com|youtu\.be/i.test(url)
-}
-
-function getYouTubeEmbedUrl(url: string): string | null {
-  const m = url.match(/(?:[?&]v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/)
-  return m ? `https://www.youtube.com/embed/${m[1]}?rel=0&controls=1&autoplay=0` : null
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// COMPONENT: MediaPlayer
+// COMPONENT: VideoPlayer
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface VideoPlayerProps {
@@ -405,21 +392,8 @@ function VideoPlayer({
 }: VideoPlayerProps) {
   const m   = LEVEL_META[clip.level]
   const url = clip.videoUrl ?? ''
-
-  // Track whether HTML5 <video> failed and we should fall back to <audio>
-  const [audioFallback, setAudioFallback] = useState(false)
-  useEffect(() => { setAudioFallback(false) }, [clip.id])
-
-  const isYT      = url !== '' && isYouTubeUrl(url)
-  const ytEmbed   = isYT ? getYouTubeEmbedUrl(url) : null
-  const hasMedia  = url !== ''
-
-  // ── Phase pill shared by video + YouTube ──
-  const PhasePill = () => phase === 'answering' ? (
-    <div className="absolute top-3 right-3 z-20 bg-blue-600/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full pointer-events-none">
-      🎧 اختر الإجابة
-    </div>
-  ) : null
+  const [videoError, setVideoError] = useState(false)
+  useEffect(() => { setVideoError(false) }, [clip.id])
 
   return (
     <div className="flex flex-col h-full">
@@ -437,38 +411,37 @@ function VideoPlayer({
         className="relative bg-black rounded-2xl overflow-hidden shadow-2xl"
         style={{ aspectRatio: '16/9' }}
       >
-
-        {/* ════ NO MEDIA ════ */}
-        {!hasMedia && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center px-6">
-            <div className="text-5xl opacity-20">🎧</div>
-            <p className="text-white/30 text-sm font-semibold">لا يوجد وسائط</p>
-            <p className="text-white/20 text-xs">أضف رابط يوتيوب أو ملف من لوحة الإدارة</p>
+        {/* Phase pill */}
+        {phase === 'answering' && (
+          <div className="absolute top-3 right-3 z-20 bg-blue-600/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full pointer-events-none">
+            🎧 اختر الإجابة
           </div>
         )}
 
-        {/* ════ YOUTUBE IFRAME ════ */}
-        {hasMedia && isYT && ytEmbed && (
-          <>
-            <iframe
-              src={ytEmbed}
-              className="absolute inset-0 w-full h-full border-0"
-              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              title="lesson video"
-            />
-            <PhasePill />
-          </>
+        {/* No media */}
+        {!url && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center px-6">
+            <div className="text-5xl opacity-20">🎧</div>
+            <p className="text-white/30 text-sm font-semibold">لا يوجد فيديو</p>
+          </div>
         )}
 
-        {/* ════ HTML5 VIDEO ════ */}
-        {hasMedia && !isYT && !audioFallback && (
+        {/* Video error */}
+        {url && videoError && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center px-6">
+            <div className="text-4xl opacity-40">⚠️</div>
+            <p className="text-white/40 text-sm font-semibold">فشل تحميل الفيديو</p>
+          </div>
+        )}
+
+        {/* HTML5 video */}
+        {url && !videoError && (
           <>
             <video
               ref={videoRef}
               src={url}
               onEnded={onEnded}
-              onError={() => setAudioFallback(true)}
+              onError={() => setVideoError(true)}
               playsInline
               preload="metadata"
               className="absolute inset-0 w-full h-full object-contain"
@@ -477,7 +450,7 @@ function VideoPlayer({
             {/* Click overlay */}
             <div className="absolute inset-0 z-10 cursor-pointer" onClick={onTogglePlay} />
 
-            {/* Play button */}
+            {/* Play button overlay */}
             {!isPlaying && (
               <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
                 <div className="w-16 h-16 rounded-full bg-black/55 backdrop-blur-sm border border-white/25 flex items-center justify-center shadow-2xl">
@@ -485,35 +458,12 @@ function VideoPlayer({
                 </div>
               </div>
             )}
-
-            <PhasePill />
           </>
         )}
-
-        {/* ════ AUDIO FALLBACK (video failed) ════ */}
-        {hasMedia && !isYT && audioFallback && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6">
-            <div className="text-4xl">🎧</div>
-            <p className="text-white/50 text-sm font-semibold">وضع الصوت فقط</p>
-            <audio
-              ref={videoRef as unknown as React.RefObject<HTMLAudioElement>}
-              src={url}
-              onEnded={onEnded}
-              controls
-              className="w-full max-w-xs"
-              style={{ accentColor: '#6366f1' }}
-            />
-            <p className="text-white/20 text-xs text-center leading-relaxed">
-              تعذّر تشغيل الفيديو — استخدم مشغّل الصوت أعلاه
-            </p>
-            <PhasePill />
-          </div>
-        )}
-
       </div>
 
-      {/* ── Controls bar — hidden for YouTube and audio fallback ── */}
-      {!isYT && !audioFallback && hasMedia && (
+      {/* ── Controls bar ── */}
+      {url && !videoError && (
         <div className="mt-3 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <button
@@ -556,13 +506,6 @@ function VideoPlayer({
             ))}
           </div>
         </div>
-      )}
-
-      {/* YouTube note — replay manually */}
-      {isYT && (
-        <p className="mt-2 text-center text-white/20 text-xs shrink-0">
-          يوتيوب · استخدم أدوات المشغّل الداخلية للإعادة والسرعة
-        </p>
       )}
     </div>
   )
@@ -755,6 +698,14 @@ function QuizPanel({
             <p className="text-white font-semibold text-sm leading-snug">{clip.sentence}</p>
           </div>
 
+          {/* ── Translation ── */}
+          {clip.arabicSentence && (
+            <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/8" dir="rtl">
+              <p className="text-white/30 text-[11px] mb-1 font-semibold uppercase tracking-wide">الترجمة</p>
+              <p className="text-white/80 font-semibold text-sm leading-snug">{clip.arabicSentence}</p>
+            </div>
+          )}
+
           {/* ── Color Chunks — shown only after answer ── */}
           <ColorChunks chunks={buildChunks(clip.sentence, clip.arabicSentence)} />
 
@@ -792,16 +743,18 @@ function QuizPanel({
             })}
           </div>
 
-          {/* Locked countdown — auto-advances after 2 s */}
-          <div className="relative rounded-2xl overflow-hidden border border-white/12">
-            {/* Progress fill */}
-            <div className={`countdown-bar absolute inset-0 ${isCorrect ? 'bg-emerald-500/30' : 'bg-red-500/20'}`} />
-            {/* Label */}
-            <div className="relative z-10 w-full flex items-center justify-center gap-2 py-4 text-white/45 font-black text-sm select-none">
-              <span className="text-base">⏳</span>
-              {clipIdx < sessionSize - 1 ? 'التالي تلقائياً...' : '🏁 إنهاء الجلسة...'}
-            </div>
-          </div>
+          {/* Next button */}
+          <button
+            onClick={onNext}
+            className={`
+              w-full flex items-center justify-center gap-2 py-4 rounded-2xl
+              font-black text-white text-base shadow-xl active:scale-[0.97] transition-all
+              ${isCorrect ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-indigo-600 hover:bg-indigo-500'}
+            `}
+          >
+            {clipIdx < sessionSize - 1 ? 'التالي' : '🏁 إنهاء الجلسة'}
+            <ChevronLeft size={18} />
+          </button>
         </div>
       )}
     </div>
@@ -941,17 +894,6 @@ export default function ListenPage() {
     }
   }, [clipIdx, session.length])
 
-  // Keep a ref to the latest handleNext to avoid stale closures inside timers
-  const handleNextRef = useRef(handleNext)
-  useEffect(() => { handleNextRef.current = handleNext }, [handleNext])
-
-  // Auto-advance 2 s after feedback is shown — forces the review moment
-  useEffect(() => {
-    if (phase !== 'feedback') return
-    const t = setTimeout(() => handleNextRef.current(), 2000)
-    return () => clearTimeout(t)
-  }, [phase])
-
   // ─────────────────────────────────────────────────────────────────────────
   // RENDER
   // ─────────────────────────────────────────────────────────────────────────
@@ -973,14 +915,6 @@ export default function ListenPage() {
           animation: chunk-in 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
         }
 
-        @keyframes countdown-fill {
-          from { transform: scaleX(0); }
-          to   { transform: scaleX(1); }
-        }
-        .countdown-bar {
-          transform-origin: left;
-          animation: countdown-fill 2s linear forwards;
-        }
       `}</style>
 
       <div

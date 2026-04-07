@@ -10,6 +10,7 @@ import {
   getAllContent, saveContent, togglePublish, deleteContent,
   type ContentItem, type ContentLevel, type ContentLesson, type ContentStatus,
 } from '@/lib/content-store'
+import { supabase } from '@/lib/supabase'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPES
@@ -252,34 +253,15 @@ function PreviewCard({ draft }: { draft: PreviewDraft }) {
 
   return (
     <div className="flex flex-col gap-4 p-2">
-      {/* Video / Audio preview */}
+      {/* Video preview */}
       {draft.videoUrl ? (
-        <div className="relative rounded-2xl overflow-hidden bg-black shadow-lg" style={{ aspectRatio: '16/9' }}>
-          {/youtube\.com|youtu\.be/i.test(draft.videoUrl) ? (
-            (() => {
-              const m = draft.videoUrl!.match(/(?:[?&]v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/)
-              return m ? (
-                <iframe
-                  src={`https://www.youtube.com/embed/${m[1]}?rel=0&controls=1&autoplay=0`}
-                  className="w-full h-full border-0"
-                  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen title="preview"
-                />
-              ) : <div className="flex items-center justify-center h-full text-white/40 text-xs p-4">رابط يوتيوب غير صحيح</div>
-            })()
-          ) : draft.videoUrl.startsWith('data:audio') ? (
-            <div className="flex flex-col items-center justify-center h-full gap-3 px-4">
-              <div className="text-3xl">🎧</div>
-              <audio src={draft.videoUrl} controls className="w-full" />
-            </div>
-          ) : (
-            <video src={draft.videoUrl} controls className="w-full h-full object-cover" />
-          )}
+        <div className="rounded-2xl overflow-hidden bg-black shadow-lg" style={{ aspectRatio: '16/9' }}>
+          <video src={draft.videoUrl} controls className="w-full h-full object-contain" />
         </div>
       ) : (
         <div className="rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center gap-2 py-7">
           <Play size={22} className="text-gray-300" />
-          <span className="text-gray-400 text-xs">Video preview</span>
+          <span className="text-gray-400 text-xs font-medium">ارفع فيديو لمعاينته هنا</span>
         </div>
       )}
 
@@ -361,6 +343,7 @@ export default function AdminContentPage() {
   const [correctIdx, setCorrectIdx] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const [generating, setGenerating] = useState(false)
+  const [uploading,  setUploading]  = useState(false)
 
   // ── CMS state ────────────────────────────────────────────────────────────────
   const [contents, setContents] = useState<ContentItem[]>([])
@@ -383,15 +366,24 @@ export default function AdminContentPage() {
     setVideoUrl(null); setVideoName(null); setOptions([]); setCorrectIdx(0)
   }
 
-  // ── File handling — converts to data URL so it persists after refresh ───────
-  const handleFile = useCallback((file: File) => {
-    if (!file.type.startsWith('video/') && !file.type.startsWith('audio/')) return
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      setVideoUrl((e.target?.result as string) ?? null)
+  // ── File handling — uploads to Supabase Storage, stores permanent public URL ─
+  const handleFile = useCallback(async (file: File) => {
+    if (!file.type.startsWith('video/')) return
+    setUploading(true)
+    try {
+      const path = `videos/${Date.now()}-${file.name.replace(/\s+/g, '_')}`
+      const { data, error } = await supabase.storage.from('videos').upload(path, file)
+      if (error || !data) throw error ?? new Error('Upload failed')
+      const { data: pub } = supabase.storage.from('videos').getPublicUrl(data.path)
+      setVideoUrl(pub.publicUrl)
       setVideoName(file.name)
+      showToast('تم رفع الفيديو ✅')
+    } catch {
+      showToast('فشل رفع الفيديو — تحقق من إعدادات Supabase', 'error')
+    } finally {
+      setUploading(false)
     }
-    reader.readAsDataURL(file)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -482,7 +474,7 @@ export default function AdminContentPage() {
 
   // ── Derived ───────────────────────────────────────────────────────────────
   const canGenerate = sentence.trim().length >= 4
-  const canSave     = canGenerate && options.length === 3
+  const canSave     = canGenerate && options.length === 3 && !!videoUrl && !uploading
   const published   = contents.filter(c => c.status === 'published').length
   const drafts      = contents.filter(c => c.status === 'draft').length
   const previewDraft: PreviewDraft = { sentence, level, lesson, options, correctIndex: correctIdx, videoUrl }
@@ -617,104 +609,57 @@ export default function AdminContentPage() {
                 </div>
               )}
 
-              {/* Video / Audio upload */}
+              {/* Video upload → Supabase Storage */}
               <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
                 <div className="px-5 pt-5 pb-3">
                   <h2 className="text-gray-800 font-black text-sm flex items-center gap-2">
-                    <Upload size={15} className="text-indigo-500" /> الوسائط (فيديو أو صوت)
+                    <Upload size={15} className="text-indigo-500" /> رفع الفيديو
+                    <span className="text-red-400 text-xs font-bold">* مطلوب</span>
                   </h2>
                 </div>
 
-                {videoUrl ? (
+                {uploading && (
+                  <div className="mx-5 mb-5 flex items-center gap-3 bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3">
+                    <div className="w-5 h-5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin shrink-0" />
+                    <p className="text-indigo-600 text-sm font-semibold">جارٍ رفع الفيديو إلى Supabase...</p>
+                  </div>
+                )}
+
+                {videoUrl && !uploading ? (
                   <div className="px-5 pb-5">
                     <div className="relative rounded-xl overflow-hidden bg-black shadow" style={{ aspectRatio: '16/9' }}>
-                      {/* YouTube preview */}
-                      {/youtube\.com|youtu\.be/i.test(videoUrl) ? (
-                        (() => {
-                          const m = videoUrl.match(/(?:[?&]v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/)
-                          return m ? (
-                            <iframe
-                              src={`https://www.youtube.com/embed/${m[1]}?rel=0&controls=1&autoplay=0`}
-                              className="w-full h-full border-0"
-                              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                              allowFullScreen
-                              title="preview"
-                            />
-                          ) : (
-                            <div className="flex items-center justify-center h-full text-white/40 text-xs">رابط يوتيوب غير صحيح</div>
-                          )
-                        })()
-                      ) : videoUrl.startsWith('data:audio') ? (
-                        /* Audio data URL preview */
-                        <div className="flex flex-col items-center justify-center h-full gap-3 px-4">
-                          <div className="text-3xl">🎧</div>
-                          <audio src={videoUrl} controls className="w-full" />
-                        </div>
-                      ) : (
-                        /* Video (data URL or direct mp4) */
-                        <video src={videoUrl} controls className="w-full h-full object-cover" />
-                      )}
+                      <video src={videoUrl} controls className="w-full h-full object-contain" />
                       <button
                         onClick={() => { setVideoUrl(null); setVideoName(null) }}
-                        className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-black/60 backdrop-blur text-white flex items-center justify-center hover:bg-black/80 transition-colors"
+                        className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-black/90 transition-colors"
                       >
                         <X size={14} />
                       </button>
                     </div>
-                    <p className="text-xs text-gray-400 mt-2 truncate">{videoName ?? videoUrl}</p>
+                    <p className="text-xs text-emerald-600 font-semibold mt-2 flex items-center gap-1">
+                      <CheckCircle2 size={12} /> تم الرفع — {videoName ?? 'فيديو'}
+                    </p>
                   </div>
-                ) : (
-                  <>
-                    {/* Drag & drop */}
-                    <div
-                      className={`mx-5 rounded-xl border-2 border-dashed transition-all duration-200 cursor-pointer flex flex-col items-center justify-center gap-3 py-8 ${
-                        isDragging ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 bg-gray-50 hover:border-indigo-300 hover:bg-indigo-50/40'
-                      }`}
-                      onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
-                      onDragLeave={() => setIsDragging(false)}
-                      onDrop={handleDrop}
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-colors ${isDragging ? 'bg-indigo-100' : 'bg-gray-100'}`}>
-                        <Upload size={20} className={isDragging ? 'text-indigo-500' : 'text-gray-400'} />
-                      </div>
-                      <div className="text-center">
-                        <p className="text-gray-600 text-sm font-semibold">{isDragging ? 'أفلت الملف هنا' : 'اسحب فيديو أو صوت أو انقر للرفع'}</p>
-                        <p className="text-gray-400 text-xs mt-1">MP4 · MP3 · WebM · MOV · WAV</p>
-                      </div>
-                      <input ref={fileInputRef} type="file" accept="video/*,audio/*" className="hidden"
-                        onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
+                ) : !uploading && (
+                  <div
+                    className={`mx-5 mb-5 rounded-xl border-2 border-dashed transition-all duration-200 cursor-pointer flex flex-col items-center justify-center gap-3 py-10 ${
+                      isDragging ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 bg-gray-50 hover:border-indigo-300 hover:bg-indigo-50/40'
+                    }`}
+                    onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${isDragging ? 'bg-indigo-100' : 'bg-gray-100'}`}>
+                      <Upload size={22} className={isDragging ? 'text-indigo-500' : 'text-gray-400'} />
                     </div>
-
-                    {/* OR — URL input */}
-                    <div className="mx-5 my-3 flex items-center gap-2">
-                      <div className="flex-1 h-px bg-gray-100" />
-                      <span className="text-gray-300 text-xs font-bold">أو</span>
-                      <div className="flex-1 h-px bg-gray-100" />
+                    <div className="text-center">
+                      <p className="text-gray-600 text-sm font-semibold">{isDragging ? 'أفلت الفيديو هنا' : 'اسحب فيديو أو انقر للرفع'}</p>
+                      <p className="text-gray-400 text-xs mt-1">MP4 · WebM · MOV</p>
                     </div>
-
-                    <div className="px-5 pb-5">
-                      <label className="text-xs text-gray-500 font-bold mb-2 flex items-center gap-1.5">
-                        <Globe size={12} /> رابط مباشر (YouTube أو mp4 أو mp3)
-                      </label>
-                      <input
-                        type="url"
-                        placeholder="https://youtube.com/watch?v=... أو https://cdn.example.com/clip.mp4"
-                        dir="ltr"
-                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-gray-700 text-sm placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent focus:bg-white transition-all"
-                        onBlur={e => {
-                          const val = e.target.value.trim()
-                          if (val) { setVideoUrl(val); setVideoName(null) }
-                        }}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') {
-                            const val = (e.target as HTMLInputElement).value.trim()
-                            if (val) { setVideoUrl(val); setVideoName(null) }
-                          }
-                        }}
-                      />
-                    </div>
-                  </>
+                    <input ref={fileInputRef} type="file" accept="video/*" className="hidden"
+                      onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }} />
+                  </div>
                 )}
               </div>
 
