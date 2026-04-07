@@ -369,21 +369,39 @@ export default function AdminContentPage() {
 
   // ── File handling — uploads to Supabase Storage, stores permanent public URL ─
   const handleFile = useCallback(async (file: File) => {
-    if (!file.type.startsWith('video/')) return
+    if (!file || !file.type.startsWith('video/')) return
     setUploading(true)
-    try {
-      const path = `videos/${Date.now()}-${file.name.replace(/\s+/g, '_')}`
-      const { data, error } = await supabase.storage.from('videos').upload(path, file)
-      if (error || !data) throw error ?? new Error('Upload failed')
-      const { data: pub } = supabase.storage.from('videos').getPublicUrl(data.path)
-      setVideoUrl(pub.publicUrl)
-      setVideoName(file.name)
-      showToast('تم رفع الفيديو ✅')
-    } catch {
-      showToast('فشل رفع الفيديو — تحقق من إعدادات Supabase', 'error')
-    } finally {
+
+    console.log('FILE:', file)
+
+    const cleanName = file.name.replace(/\s+/g, '_')
+    const filePath  = `videos/${Date.now()}-${cleanName}`
+
+    console.log('PATH:', filePath)
+
+    const { data, error } = await supabase.storage
+      .from('videos')
+      .upload(filePath, file)
+
+    if (error) {
+      console.error('UPLOAD ERROR:', error)
+      showToast('فشل رفع الفيديو — تحقق من Console', 'error')
       setUploading(false)
+      return
     }
+
+    const { data: publicUrlData } = supabase.storage
+      .from('videos')
+      .getPublicUrl(data.path)
+
+    const videoUrl = publicUrlData.publicUrl
+
+    console.log('VIDEO URL:', videoUrl)
+
+    setVideoUrl(videoUrl)
+    setVideoName(file.name)
+    setUploading(false)
+    showToast('تم رفع الفيديو ✅')
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
