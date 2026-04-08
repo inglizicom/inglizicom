@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X, BookOpen, Instagram, Youtube } from 'lucide-react'
+import { Menu, X, BookOpen } from 'lucide-react'
 
-// TikTok icon as inline SVG (not in lucide-react)
+// Social icons as inline SVGs
 function TikTokIcon({ size = 18 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
@@ -14,13 +14,31 @@ function TikTokIcon({ size = 18 }: { size?: number }) {
   )
 }
 
-// Regular nav links (no CTA)
+function InstagramIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+function YoutubeIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29.94 29.94 0 0 0 1 12a29.94 29.94 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29.94 29.94 0 0 0 23 12a29.94 29.94 0 0 0-.46-5.58z" />
+      <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="white" />
+    </svg>
+  )
+}
+
+// Regular nav links
 const navLinks = [
-  { href: '/',          label: 'الرئيسية' },
-  { href: '/courses',   label: 'الدورات' },
-  { href: '/blog',      label: 'المدونة' },
-  { href: '/corrector', label: 'المصحح' },
-  { href: '/listen',    label: '🎧 استماع' },
+  { href: '/map',        label: '🗺️ المسار' },
+  { href: '/learn',      label: '🗣️ تعلم' },
+  { href: '/listen',     label: '🎧 استماع' },
+  { href: '/level-test', label: '📝 اختبار' },
 ]
 
 // Highlighted CTA link
@@ -121,7 +139,7 @@ export default function Header() {
             className={`p-2 rounded-lg transition-colors ${scrolled ? 'text-gray-500 hover:text-pink-500' : 'text-white/70 hover:text-white'}`}
             aria-label="Instagram"
           >
-            <Instagram size={18} />
+            <InstagramIcon size={18} />
           </a>
           <a
             href="https://www.tiktok.com/@elqasraouihamza"
@@ -137,7 +155,7 @@ export default function Header() {
             className={`p-2 rounded-lg transition-colors ${scrolled ? 'text-gray-500 hover:text-red-600' : 'text-white/70 hover:text-white'}`}
             aria-label="YouTube"
           >
-            <Youtube size={18} />
+            <YoutubeIcon size={18} />
           </a>
 
           {/* CTA */}
@@ -207,13 +225,13 @@ export default function Header() {
           </Link>
           <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-100 px-4">
             <a href="https://www.instagram.com/elqasraouihamza/" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-pink-500">
-              <Instagram size={20} />
+              <InstagramIcon size={20} />
             </a>
             <a href="https://www.tiktok.com/@elqasraouihamza" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-black">
               <TikTokIcon size={20} />
             </a>
             <a href="https://www.youtube.com/@hamzaelqasraoui" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-red-600">
-              <Youtube size={20} />
+              <YoutubeIcon size={20} />
             </a>
             <Link
               href="/courses"
