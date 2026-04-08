@@ -54,12 +54,12 @@ function playChime(correct: boolean) {
 
 // ─── Helper: resolve public URL ───────────────────────────────────────────────
 
-function resolveVideoUrl(raw: string | null): string {
-  if (!raw) return ''
-  // Already a full URL (https://...)
+function resolveVideoUrl(raw: string): string {
+  // Already a full https:// URL (stored by admin upload) — use directly
   if (raw.startsWith('http')) return raw
-  // Filename only — build public URL from storage
-  return supabase.storage.from('videos').getPublicUrl(raw).data.publicUrl
+  // Filename/path only — build public URL from Supabase Storage
+  const { data } = supabase.storage.from('videos').getPublicUrl(raw)
+  return data.publicUrl
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -77,8 +77,13 @@ export default function ListenPage() {
 
   const videoRef  = useRef<HTMLVideoElement>(null)
   const current   = items[index] as ContentItem | undefined
-  const publicUrl = resolveVideoUrl(current?.video_url ?? null)
   const isLast    = index === items.length - 1
+
+  // Build public URL — log both raw and resolved values for debugging
+  const rawUrl    = current?.video_url ?? null
+  const publicUrl = rawUrl ? resolveVideoUrl(rawUrl) : ''
+  if (rawUrl)    console.log('RAW video_url:', rawUrl)
+  if (publicUrl) console.log('PUBLIC URL:', publicUrl)
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
   const fetchLevel = useCallback(async (lv: Level) => {
@@ -221,7 +226,7 @@ export default function ListenPage() {
 
       {/* ── Main grid ── */}
       <div className="flex-1 flex items-center px-4 pb-8">
-        <div className="grid grid-cols-1 md:grid-cols-[55%_45%] gap-6 max-w-6xl mx-auto w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto w-full">
 
           {/* ── LEFT: Video ── */}
           <div className="flex flex-col gap-4">
@@ -231,14 +236,14 @@ export default function ListenPage() {
                   ref={videoRef}
                   key={current.id}
                   src={publicUrl}
+                  controls
                   autoPlay
                   playsInline
-                  controls
                   onEnded={handleVideoEnded}
-                  className="w-full h-[220px] md:h-[360px] object-contain"
+                  className="w-full rounded-xl"
                 />
               ) : (
-                <div className="w-full h-[220px] md:h-[360px] flex items-center justify-center">
+                <div className="w-full aspect-video flex items-center justify-center">
                   <p className="text-white/20 text-sm">لا يوجد فيديو</p>
                 </div>
               )}
