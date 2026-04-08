@@ -303,8 +303,9 @@ export default function ListenPage() {
   const [totalXp,     setTotalXp]     = useState(0)
   const [streak,      setStreak]      = useState(0)
   const [showSummary, setShowSummary] = useState(false)
-  const [showXpFloat, setShowXpFloat] = useState(false)
-  const [lastXp,      setLastXp]      = useState(0)
+  const [showXpFloat,   setShowXpFloat]   = useState(false)
+  const [lastXp,        setLastXp]        = useState(0)
+  const [transitioning, setTransitioning] = useState(false)
   const [lastCorrect, setLastCorrect] = useState(false)
 
   const videoRef  = useRef<HTMLVideoElement>(null)
@@ -408,16 +409,17 @@ export default function ListenPage() {
 
   function handleNext() {
     setModalIn(false)
+    setTransitioning(true)
     setTimeout(() => {
       if (isLast) {
-        // Mark streak for today and show summary
         const newStreak = markStreakToday(streak)
         setStreak(newStreak)
         setShowSummary(true)
       } else {
         setIndex(i => i + 1)
       }
-    }, 200)
+      setTimeout(() => setTransitioning(false), 50)
+    }, 300)
   }
 
   function restartLevel() {
@@ -465,147 +467,146 @@ export default function ListenPage() {
   const m = LEVEL_META[level]
 
   // ─────────────────────────────────────────────────────────────────────────
-  // QUIZ
+  // QUIZ — full-screen, no-scroll, mobile-first
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex flex-col pt-20"
-      style={{ background: 'linear-gradient(140deg,#0a0f1e 0%,#111827 60%,#0a0f1e 100%)' }}>
+    <div
+      className="fixed inset-0 flex flex-col overflow-hidden"
+      style={{ background: 'linear-gradient(160deg,#0a0f1e 0%,#111827 60%,#0a0f1e 100%)', paddingTop: 'env(safe-area-inset-top)' }}
+    >
+      {/* ── Header bar (fixed height) ── */}
+      <div className="shrink-0 px-3 pt-16 pb-2 max-w-6xl mx-auto w-full">
 
-      {/* ── Top bar ── */}
-      <div className="shrink-0 px-4 pt-4 pb-3 max-w-6xl mx-auto w-full">
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-
-          {/* Level tabs */}
-          <div className="flex items-center gap-2 flex-wrap">
+        {/* Nav row */}
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <button onClick={() => setLevel(null)}
-              className="px-3 py-1.5 rounded-xl bg-white/6 border border-white/8 text-white/40 text-xs font-bold hover:text-white/70 hover:bg-white/10 transition-all">
-              ← المستويات
+              className="px-2.5 py-1 rounded-lg bg-white/6 border border-white/8 text-white/40 text-xs font-bold hover:bg-white/10 transition-all active:scale-95">
+              ← رجوع
             </button>
             {LEVELS.map(l => (
               <button key={l} onClick={() => setLevel(l)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${LEVEL_META[l][l === level ? 'active' : 'inactive']}`}>
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all active:scale-95 ${LEVEL_META[l][l === level ? 'active' : 'inactive']}`}>
                 {LEVEL_META[l].emoji} {l}
               </button>
             ))}
           </div>
-
-          {/* XP + streak + position */}
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1 text-orange-400 text-xs font-bold">🔥 {streak}</span>
-            <span className="flex items-center gap-1 text-yellow-400 text-xs font-bold">⚡ {totalXp}</span>
-            <span className="text-green-400 text-xs font-bold">✅ {score.correct}</span>
-            <span className="text-red-400   text-xs font-bold">❌ {score.wrong}</span>
-            <span className="text-white/25  text-xs">{index + 1}/{items.length}</span>
+          <div className="flex items-center gap-2 text-xs font-bold shrink-0">
+            <span className="text-orange-400">🔥{streak}</span>
+            <span className="text-yellow-400">⚡{totalXp}</span>
+            <span className="text-white/30">{index + 1}/{items.length}</span>
           </div>
         </div>
 
-        {/* Segment progress */}
-        <div className="flex gap-1">
+        {/* Segment progress bar */}
+        <div className="flex gap-1 h-1.5">
           {items.map((_, i) => (
             <div key={i}
               style={{ background: i < index ? m.color : i === index ? '#6366f1' : undefined }}
-              className={`h-2 flex-1 rounded-full transition-all duration-500 ${i > index ? 'bg-white/10' : ''}`} />
+              className={`flex-1 rounded-full transition-all duration-500 ${i > index ? 'bg-white/10' : ''}`} />
           ))}
         </div>
       </div>
 
-      {/* ── Grid ── */}
-      <div className="flex-1 px-4 pb-10 mt-2">
-        <div dir="ltr" className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
+      {/* ── Content: fade on transition ── */}
+      <div
+        className="flex-1 flex flex-col md:flex-row gap-3 px-3 pb-3 min-h-0 transition-opacity duration-300"
+        style={{ opacity: transitioning ? 0 : 1 }}
+      >
+        {/* ── TOP / LEFT: Video (60% on desktop, flex on mobile) ── */}
+        <div className="flex flex-col gap-2 md:w-[55%] shrink-0" style={{ flex: '0 0 auto' }}>
 
-          {/* ── LEFT: Video ── */}
-          <div className="flex flex-col gap-3">
-
-            <div className="rounded-2xl overflow-hidden bg-black shadow-2xl ring-1 ring-white/8">
-              {(() => { console.log('CURRENT ITEM:', current); return null })()}
-              {current?.video_url ? (
-                <video
-                  ref={videoRef}
-                  key={current.video_url}
-                  controls
-                  preload="auto"
-                  playsInline
-                  onEnded={handleVideoEnded}
-                  onError={() => console.error('VIDEO ERROR:', current.video_url)}
-                  className="w-full rounded-xl block"
-                >
-                  <source src={resolveVideoUrl(current.video_url)} type="video/mp4" />
-                </video>
-              ) : (
-                <div className="w-full aspect-video flex flex-col items-center justify-center gap-2 bg-white/2">
-                  <p className="text-3xl opacity-20">🎬</p>
-                  <p className="text-white/15 text-xs">لا يوجد فيديو</p>
-                </div>
-              )}
-            </div>
-
-            {/* Replay bar */}
-            <div className="flex items-center gap-2">
-              <div className="flex gap-1 flex-1">
-                {Array.from({ length: MAX_REPLAYS }).map((_, i) => (
-                  <div key={i} className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${i < replayCount ? 'bg-indigo-500' : 'bg-white/8'}`} />
-                ))}
-              </div>
-              <span className="text-white/20 text-xs shrink-0">{replayCount}/{MAX_REPLAYS}</span>
-            </div>
-
-            {/* Show questions */}
-            <button onClick={() => setShowOptions(true)}
-              disabled={!unlocked || showOptions} dir="rtl"
-              className="w-full py-3.5 rounded-xl font-bold text-sm text-white transition-all active:scale-[0.97] bg-indigo-600 hover:bg-indigo-500 disabled:opacity-25 disabled:cursor-not-allowed shadow-lg shadow-indigo-900/40">
-              {showOptions ? '✅ الأسئلة ظاهرة' : unlocked ? '📋 أظهر الأسئلة' : '🎧 استمع أولاً...'}
-            </button>
-          </div>
-
-          {/* ── RIGHT: Quiz ── */}
-          <div dir="rtl" className="flex flex-col justify-center gap-4 min-h-[300px]">
-            {!showOptions ? (
-              <div className="flex-1 flex flex-col items-center justify-center gap-4 opacity-30 select-none">
-                <div className="w-16 h-16 rounded-2xl bg-white/4 border border-white/8 flex items-center justify-center text-3xl">🎧</div>
-                <p className="text-white/40 text-sm text-center leading-relaxed">
-                  شاهد الفيديو كاملاً<br />ثم اضغط &quot;أظهر الأسئلة&quot;
-                </p>
-              </div>
+          {/* Player — fills available height */}
+          <div className="rounded-2xl overflow-hidden bg-black shadow-2xl ring-1 ring-white/8 flex-1 min-h-0 flex items-center">
+            {(() => { console.log('CURRENT ITEM:', current); return null })()}
+            {current?.video_url ? (
+              <video
+                ref={videoRef}
+                key={current.video_url}
+                autoPlay
+                controls
+                preload="auto"
+                playsInline
+                onEnded={handleVideoEnded}
+                onError={() => console.error('VIDEO ERROR:', current.video_url)}
+                className="w-full block"
+              >
+                <source src={resolveVideoUrl(current.video_url)} type="video/mp4" />
+              </video>
             ) : (
-              <>
-                <div>
-                  <p className="text-white/35 text-xs mb-1 font-medium">اختر الإجابة الصحيحة</p>
-                  <h2 className="text-white font-bold text-base leading-snug">ما هي الجملة التي سمعتها؟</h2>
-                </div>
-
-                {/* XP float */}
-                <div className="relative h-0">
-                  {showXpFloat && <XpFloat xp={lastXp} correct={lastCorrect} />}
-                </div>
-
-                <div className="flex flex-col gap-2.5">
-                  {current.options.map((opt, i) => {
-                    let cls = 'w-full px-4 py-3.5 rounded-xl border font-medium text-sm transition-all duration-150 active:scale-[0.98] disabled:cursor-default text-left '
-                    if (selected === null)                 cls += 'border-white/10 bg-white/4 text-white/80 hover:bg-white/8 hover:border-white/20 hover:text-white'
-                    else if (i === current.correct_index)  cls += 'border-green-500/60 bg-green-500/12 text-green-300 shadow-sm shadow-green-900/30'
-                    else if (i === selected)               cls += 'border-red-500/60 bg-red-500/12 text-red-300'
-                    else                                   cls += 'border-white/4 bg-transparent text-white/15 opacity-40'
-                    return (
-                      <button key={i} dir="ltr" onClick={() => handleSelect(i)} disabled={selected !== null} className={cls}>
-                        <span className="text-white/20 mr-2 font-mono">{String.fromCharCode(65 + i)}.</span>
-                        {opt}
-                      </button>
-                    )
-                  })}
-                </div>
-              </>
+              <div className="w-full aspect-video flex flex-col items-center justify-center gap-2">
+                <p className="text-4xl opacity-20">🎬</p>
+                <p className="text-white/15 text-xs">لا يوجد فيديو</p>
+              </div>
             )}
           </div>
+
+          {/* Replay dots + show-questions button in one row */}
+          <div className="flex items-center gap-2">
+            <div className="flex gap-1 flex-1">
+              {Array.from({ length: MAX_REPLAYS }).map((_, i) => (
+                <div key={i} className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${i < replayCount ? 'bg-indigo-500' : 'bg-white/8'}`} />
+              ))}
+            </div>
+            <span className="text-white/20 text-xs shrink-0">{replayCount}/{MAX_REPLAYS}</span>
+            <button
+              onClick={() => setShowOptions(true)}
+              disabled={!unlocked || showOptions}
+              dir="rtl"
+              className="shrink-0 px-4 py-2 rounded-xl font-bold text-xs text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-25 disabled:cursor-not-allowed transition-all active:scale-95 shadow-lg shadow-indigo-900/40"
+            >
+              {showOptions ? '✅ ظاهرة' : unlocked ? '📋 الأسئلة' : '🎧 استمع...'}
+            </button>
+          </div>
+        </div>
+
+        {/* ── BOTTOM / RIGHT: Quiz (40% on desktop, rest on mobile) ── */}
+        <div dir="rtl" className="flex-1 flex flex-col justify-center gap-3 min-h-0 overflow-hidden">
+
+          {!showOptions ? (
+            <div className="flex flex-col items-center justify-center flex-1 gap-3 opacity-25 select-none">
+              <div className="text-4xl">🎧</div>
+              <p className="text-white/40 text-sm text-center">شاهد الفيديو ثم اضغط &quot;الأسئلة&quot;</p>
+            </div>
+          ) : (
+            <>
+              <div className="shrink-0">
+                <p className="text-white/30 text-xs mb-0.5">ما هي الجملة التي سمعتها؟</p>
+                <div className="relative h-1">
+                  {showXpFloat && <XpFloat xp={lastXp} correct={lastCorrect} />}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 overflow-hidden">
+                {current.options.map((opt, i) => {
+                  let cls = 'w-full px-4 py-3.5 rounded-xl border font-medium text-sm transition-all duration-150 active:scale-[0.98] disabled:cursor-default text-left '
+                  if (selected === null)                cls += 'border-white/10 bg-white/4 text-white/80 hover:bg-white/8 hover:border-white/20 hover:text-white'
+                  else if (i === current.correct_index) cls += 'border-green-500/60 bg-green-500/12 text-green-300'
+                  else if (i === selected)              cls += 'border-red-500/60 bg-red-500/12 text-red-300'
+                  else                                  cls += 'border-white/4 bg-transparent text-white/15 opacity-40'
+                  return (
+                    <button key={i} dir="ltr" onClick={() => handleSelect(i)} disabled={selected !== null} className={cls}>
+                      <span className="text-white/20 mr-2 font-mono text-xs">{String.fromCharCode(65 + i)}.</span>
+                      {opt}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <div className="flex items-center justify-between shrink-0 pt-1">
+                <span className="text-white/20 text-xs">✅ {score.correct}  ❌ {score.wrong}</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
       {/* ── Answer Modal ── */}
       {showModal && selected !== null && (
-        <div className={`fixed inset-0 z-50 flex items-end md:items-center justify-center p-4 bg-black/75 backdrop-blur-md transition-opacity duration-200 ${modalIn ? 'opacity-100' : 'opacity-0'}`}>
-          <div className={`bg-[#111827] border border-white/10 rounded-2xl shadow-2xl w-full max-w-md p-6 flex flex-col items-center gap-5 text-center transition-all duration-200 ${modalIn ? 'scale-100 translate-y-0' : 'scale-95 translate-y-6'}`}>
+        <div className={`fixed inset-0 z-50 flex items-end md:items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-opacity duration-200 ${modalIn ? 'opacity-100' : 'opacity-0'}`}>
+          <div className={`bg-[#111827] border border-white/10 rounded-2xl shadow-2xl w-full max-w-md p-6 flex flex-col items-center gap-4 text-center transition-all duration-300 ${modalIn ? 'scale-100 translate-y-0' : 'scale-95 translate-y-8'}`}>
 
-            {/* Result */}
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl ${isCorrect ? 'bg-green-500/15 border border-green-500/30' : 'bg-red-500/15 border border-red-500/30'}`}>
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl ${isCorrect ? 'bg-green-500/15 border border-green-500/30' : 'bg-red-500/15 border border-red-500/30'}`}>
               {isCorrect ? '✅' : '❌'}
             </div>
 
@@ -614,22 +615,19 @@ export default function ListenPage() {
                 {isCorrect ? 'ممتاز! 🎉' : 'حاول مجدداً 💪'}
               </p>
               <p className="text-white/30 text-xs">
-                {isCorrect
-                  ? `+${XP_CORRECT} XP 🏅`
-                  : `الصحيح: ${current.options[current.correct_index]} · +${XP_WRONG} XP`}
+                {isCorrect ? `+${XP_CORRECT} XP 🏅` : `الصحيح: ${current.options[current.correct_index]} · +${XP_WRONG} XP`}
               </p>
             </div>
 
             <ColorChunks en={current.sentence} ar={current.arabic_sentence} />
 
             <div className="flex gap-3 w-full pt-1">
-              <button onClick={handleReplay}
-                disabled={replayCount >= MAX_REPLAYS}
-                className="flex-1 py-3 rounded-xl text-sm font-bold text-white/60 bg-white/6 border border-white/8 hover:bg-white/12 hover:text-white/80 disabled:opacity-20 disabled:cursor-not-allowed transition-all active:scale-95">
-                🔁 استمع ({MAX_REPLAYS - replayCount})
+              <button onClick={handleReplay} disabled={replayCount >= MAX_REPLAYS}
+                className="flex-1 py-3.5 rounded-xl text-sm font-bold text-white/60 bg-white/6 border border-white/8 hover:bg-white/12 disabled:opacity-20 disabled:cursor-not-allowed transition-all active:scale-95">
+                🔁 ({MAX_REPLAYS - replayCount})
               </button>
               <button onClick={handleNext}
-                className="flex-1 py-3 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-900/40 transition-all active:scale-95">
+                className="flex-1 py-3.5 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-900/40 transition-all active:scale-95">
                 {isLast ? '🏁 النتائج' : 'التالي ←'}
               </button>
             </div>
