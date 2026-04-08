@@ -510,11 +510,11 @@ export default function ListenPage() {
 
       {/* ── Content: fade on transition ── */}
       <div
-        className="flex-1 flex flex-col md:flex-row gap-3 px-3 pb-3 min-h-0 transition-opacity duration-300"
-        style={{ opacity: transitioning ? 0 : 1 }}
+        className="flex flex-col md:flex-row min-h-0 transition-opacity duration-300"
+        style={{ flex: 1, gap: 0, margin: 0, padding: '0 12px 12px', opacity: transitioning ? 0 : 1 }}
       >
-        {/* ── TOP / LEFT: Video (60% on desktop, flex on mobile) ── */}
-        <div className="flex flex-col gap-2 md:w-[55%] shrink-0" style={{ flex: '0 0 auto' }}>
+        {/* ── TOP / LEFT: Video — flex 6 ── */}
+        <div className="flex flex-col" style={{ flex: 6, gap: 6, margin: 0, minHeight: 0 }}>
 
           {/* Player — fills available height */}
           <div className="rounded-2xl overflow-hidden bg-black shadow-2xl ring-1 ring-white/8 flex-1 min-h-0 flex items-center">
@@ -560,8 +560,8 @@ export default function ListenPage() {
           </div>
         </div>
 
-        {/* ── BOTTOM / RIGHT: Quiz (40% on desktop, rest on mobile) ── */}
-        <div dir="rtl" className="flex-1 flex flex-col justify-center gap-3 min-h-0 overflow-hidden">
+        {/* ── BOTTOM / RIGHT: Quiz — flex 4 ── */}
+        <div dir="rtl" className="flex flex-col justify-center overflow-hidden" style={{ flex: 4, gap: 8, margin: 0, minHeight: 0 }}>
 
           {!showOptions ? (
             <div className="flex flex-col items-center justify-center flex-1 gap-3 opacity-25 select-none">
@@ -603,37 +603,52 @@ export default function ListenPage() {
 
       {/* ── Answer Modal ── */}
       {showModal && selected !== null && (
-        <div className={`fixed inset-0 z-50 flex items-end md:items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-opacity duration-200 ${modalIn ? 'opacity-100' : 'opacity-0'}`}>
-          <div className={`bg-[#111827] border border-white/10 rounded-2xl shadow-2xl w-full max-w-md p-6 flex flex-col items-center gap-4 text-center transition-all duration-300 ${modalIn ? 'scale-100 translate-y-0' : 'scale-95 translate-y-8'}`}>
+        <>
+          {/* Overlay */}
+          <div
+            className="fixed inset-0 z-50 backdrop-blur-sm transition-opacity duration-200"
+            style={{ background: 'rgba(0,0,0,0.6)', opacity: modalIn ? 1 : 0 }}
+          />
+          {/* Modal — hard-centered */}
+          <div
+            className="fixed z-50 w-full max-w-md px-4 transition-all duration-300"
+            style={{
+              top: '50%', left: '50%',
+              transform: modalIn ? 'translate(-50%, -50%)' : 'translate(-50%, -44%)',
+              opacity: modalIn ? 1 : 0,
+            }}
+          >
+            <div className="bg-[#111827] border border-white/10 rounded-2xl shadow-2xl w-full p-6 flex flex-col items-center gap-4 text-center">
 
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl ${isCorrect ? 'bg-green-500/15 border border-green-500/30' : 'bg-red-500/15 border border-red-500/30'}`}>
-              {isCorrect ? '✅' : '❌'}
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-3xl ${isCorrect ? 'bg-green-500/15 border border-green-500/30' : 'bg-red-500/15 border border-red-500/30'}`}>
+                {isCorrect ? '✅' : '❌'}
+              </div>
+
+              <div>
+                <p className={`text-xl font-black mb-1 ${isCorrect ? 'text-green-400' : 'text-red-400'}`}>
+                  {isCorrect ? 'ممتاز! 🎉' : 'حاول مجدداً 💪'}
+                </p>
+                <p className="text-white/30 text-xs">
+                  {isCorrect ? `+${XP_CORRECT} XP 🏅` : `الصحيح: ${current.options[current.correct_index]} · +${XP_WRONG} XP`}
+                </p>
+              </div>
+
+              <ColorChunks en={current.sentence} ar={current.arabic_sentence} />
+
+              <div className="flex gap-3 w-full pt-1">
+                <button onClick={handleReplay} disabled={replayCount >= MAX_REPLAYS}
+                  className="flex-1 py-3.5 rounded-xl text-sm font-bold text-white/60 bg-white/6 border border-white/8 hover:bg-white/12 disabled:opacity-20 disabled:cursor-not-allowed transition-all active:scale-95">
+                  🔁 ({MAX_REPLAYS - replayCount})
+                </button>
+                <button onClick={handleNext}
+                  className="flex-1 py-3.5 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-900/40 transition-all active:scale-95">
+                  {isLast ? '🏁 النتائج' : 'التالي ←'}
+                </button>
+              </div>
+
             </div>
-
-            <div>
-              <p className={`text-xl font-black mb-1 ${isCorrect ? 'text-green-400' : 'text-red-400'}`}>
-                {isCorrect ? 'ممتاز! 🎉' : 'حاول مجدداً 💪'}
-              </p>
-              <p className="text-white/30 text-xs">
-                {isCorrect ? `+${XP_CORRECT} XP 🏅` : `الصحيح: ${current.options[current.correct_index]} · +${XP_WRONG} XP`}
-              </p>
-            </div>
-
-            <ColorChunks en={current.sentence} ar={current.arabic_sentence} />
-
-            <div className="flex gap-3 w-full pt-1">
-              <button onClick={handleReplay} disabled={replayCount >= MAX_REPLAYS}
-                className="flex-1 py-3.5 rounded-xl text-sm font-bold text-white/60 bg-white/6 border border-white/8 hover:bg-white/12 disabled:opacity-20 disabled:cursor-not-allowed transition-all active:scale-95">
-                🔁 ({MAX_REPLAYS - replayCount})
-              </button>
-              <button onClick={handleNext}
-                className="flex-1 py-3.5 rounded-xl text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-900/40 transition-all active:scale-95">
-                {isLast ? '🏁 النتائج' : 'التالي ←'}
-              </button>
-            </div>
-
           </div>
-        </div>
+        </>
       )}
 
     </div>
