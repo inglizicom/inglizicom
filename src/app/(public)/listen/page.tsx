@@ -226,7 +226,7 @@ export default function ListenPage() {
 
       {/* ── Main grid ── */}
       <div className="flex-1 flex items-center px-4 pb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto w-full">
+        <div dir="ltr" className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto w-full">
 
           {/* ── LEFT: Video ── */}
           <div className="flex flex-col gap-4">
@@ -240,6 +240,7 @@ export default function ListenPage() {
                   autoPlay
                   playsInline
                   onEnded={handleVideoEnded}
+                  onError={(e) => console.error('VIDEO ERROR:', e, publicUrl)}
                   className="w-full rounded-xl"
                 />
               ) : (
@@ -260,7 +261,7 @@ export default function ListenPage() {
           </div>
 
           {/* ── RIGHT: Options ── */}
-          <div className="flex flex-col justify-center gap-3">
+          <div dir="rtl" className="flex flex-col justify-center gap-3">
             {!showOptions ? (
               <div className="flex flex-col items-center justify-center h-full gap-3 opacity-30 select-none">
                 <p className="text-white/50 text-sm text-center" dir="rtl">
@@ -285,7 +286,7 @@ export default function ListenPage() {
                     cls += 'border-white/5 bg-white/3 text-white/20 opacity-40'
                   }
                   return (
-                    <button key={i} onClick={() => handleSelect(i)} disabled={selected !== null} className={cls}>
+                    <button key={i} dir="ltr" onClick={() => handleSelect(i)} disabled={selected !== null} className={cls}>
                       {opt}
                     </button>
                   )
