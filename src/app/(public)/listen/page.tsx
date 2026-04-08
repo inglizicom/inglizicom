@@ -315,7 +315,7 @@ export default function ListenPage() {
   const current    = items[index] as ContentItem | undefined
   const isLast     = index === items.length - 1
   const counts     = Object.fromEntries(LEVELS.map(l => [l, allItems.filter(it => it.level === l).length])) as Record<Level, number>
-  const publicUrl  = resolveVideoUrl(current?.video_url ?? null)
+
 
   // ── Load XP + streak from localStorage ───────────────────────────────────
   useEffect(() => {
@@ -517,12 +517,19 @@ export default function ListenPage() {
           <div className="flex flex-col gap-3">
 
             <div className="rounded-2xl overflow-hidden bg-black shadow-2xl ring-1 ring-white/8">
-              {publicUrl ? (
-                <video ref={videoRef} key={current.id} playsInline preload="auto" controls
+              {(() => { console.log('CURRENT ITEM:', current); return null })()}
+              {current?.video_url ? (
+                <video
+                  ref={videoRef}
+                  key={current.video_url}
+                  controls
+                  preload="auto"
+                  playsInline
                   onEnded={handleVideoEnded}
-                  onError={() => console.error('VIDEO ERROR:', publicUrl)}
-                  className="w-full block">
-                  <source src={publicUrl} type="video/mp4" />
+                  onError={() => console.error('VIDEO ERROR:', current.video_url)}
+                  className="w-full rounded-xl block"
+                >
+                  <source src={resolveVideoUrl(current.video_url)} type="video/mp4" />
                 </video>
               ) : (
                 <div className="w-full aspect-video flex flex-col items-center justify-center gap-2 bg-white/2">
