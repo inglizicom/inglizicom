@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -33,11 +33,26 @@ html {
 }
 
 body {
-  font-family: 'Cairo', sans-serif;
+  font-family: 'Cairo', 'Inter', sans-serif;
   color: #1e293b;
   background-color: #ffffff;
-  line-height: 1.8;
+  line-height: 1.75;
   overflow-x: hidden;
+  font-size: 15px;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.35;
+  color: #1e293b;
+}
+
+p {
+  font-weight: 400;
+  line-height: 1.75;
 }
 
 /* ===== Custom Scrollbar ===== */
@@ -72,20 +87,13 @@ body {
   }
 
   .btn-primary {
-    @apply bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 px-8 rounded-xl
-           transition-all duration-300 shadow-lg hover:shadow-brand-600/40 hover:shadow-xl
-           active:scale-95 inline-flex items-center gap-2;
+    @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-7 rounded-xl
+           transition-all duration-200 shadow-sm active:scale-95 inline-flex items-center gap-2;
   }
 
   .btn-secondary {
-    @apply border-2 border-white text-white font-bold py-3 px-8 rounded-xl
-           hover:bg-white hover:text-brand-700 transition-all duration-300 inline-flex items-center gap-2;
-  }
-
-  .btn-orange {
-    @apply bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-8 rounded-xl
-           transition-all duration-300 shadow-lg hover:shadow-orange-500/40 hover:shadow-xl
-           active:scale-95 inline-flex items-center gap-2;
+    @apply border border-blue-200 text-blue-600 font-semibold py-3 px-7 rounded-xl
+           hover:bg-blue-50 transition-all duration-200 inline-flex items-center gap-2;
   }
 }
 
