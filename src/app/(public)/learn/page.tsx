@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { useGameState } from '@/lib/useGameState'
 import { XP_CORRECT_ANSWER, XP_LESSON_COMPLETE, XP_PERFECT_BONUS } from '@/lib/game'
 import { LessonData, Exercise, LESSONS_DATA, LESSONS_MAP } from '@/data/lessons-data'
+import { playClick, playCorrect, playWrong, playReward } from '@/lib/sounds'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -52,6 +53,7 @@ function AudioBtn({
 
   function play(e: React.MouseEvent) {
     e.stopPropagation()
+    playClick()
     setPlaying(true)
     speak(text, () => setPlaying(false))
   }
@@ -645,7 +647,12 @@ function ExercisesPhase({
     if (selected !== null) return
     setSelected(i)
     const correct = i === ex.correct
-    if (correct) { setScore(s => s + 1); setShowXp(true); setTimeout(() => setShowXp(false), 950) }
+    if (correct) {
+      playCorrect()
+      setScore(s => s + 1); setShowXp(true); setTimeout(() => setShowXp(false), 950)
+    } else {
+      playWrong()
+    }
     onAnswered(correct, index)
     if (ex.type !== 'order') {
       const optText = ex.options[i]
@@ -655,7 +662,12 @@ function ExercisesPhase({
 
   function handleOrderAnswer(ok: boolean) {
     setOrderOk(ok)
-    if (ok) { setScore(s => s + 1); setShowXp(true); setTimeout(() => setShowXp(false), 950) }
+    if (ok) {
+      playCorrect()
+      setScore(s => s + 1); setShowXp(true); setTimeout(() => setShowXp(false), 950)
+    } else {
+      playWrong()
+    }
     onAnswered(ok, index)
   }
 
@@ -822,6 +834,7 @@ function CompleteScreen({
   useEffect(() => {
     if (synced.current) return
     synced.current = true
+    playReward()
     // Supabase sync: mark complete, add bonus XP, touch streak
     onIslandComplete(islandId, pct).then(({ xpEarned, newProfile }) => {
       setSavedXp(score * XP_CORRECT_ANSWER + xpEarned)
