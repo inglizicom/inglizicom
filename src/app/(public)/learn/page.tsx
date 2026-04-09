@@ -1,7 +1,9 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useGameState } from '@/lib/useGameState'
+import { XP_CORRECT_ANSWER, XP_LESSON_COMPLETE, XP_PERFECT_BONUS } from '@/lib/game'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -690,12 +692,33 @@ function OrderExercise({
 
 // ─── Exercises Phase ──────────────────────────────────────────────────────────
 
-function ExercisesPhase({ lesson, onDone }: { lesson: Lesson; onDone: (score: number) => void }) {
+function XpFlash({ amount, color }: { amount: number; color: string }) {
+  const [visible, setVisible] = useState(true)
+  useEffect(() => { const t = setTimeout(() => setVisible(false), 900); return () => clearTimeout(t) }, [])
+  if (!visible) return null
+  return (
+    <div
+      className="pointer-events-none fixed top-24 left-1/2 -translate-x-1/2 z-50 font-black text-lg px-4 py-2 rounded-2xl animate-xp-pop"
+      style={{ background: `${color}22`, border: `1.5px solid ${color}60`, color, whiteSpace: 'nowrap' }}
+    >
+      +{amount} XP ⚡
+    </div>
+  )
+}
+
+function ExercisesPhase({
+  lesson, onDone, onAnswered,
+}: {
+  lesson: Lesson
+  onDone: (score: number) => void
+  onAnswered: (correct: boolean, questionIndex: number) => void
+}) {
   const [index,    setIndex]    = useState(0)
   const [selected, setSelected] = useState<number | null>(null)
   const [orderOk,  setOrderOk]  = useState<boolean | null>(null)
   const [score,    setScore]    = useState(0)
   const [visible,  setVisible]  = useState(true)
+  const [showXp,   setShowXp]   = useState(false)
 
   const ex         = lesson.exercises[index]
   const isAnswered = ex.type === 'order' ? orderOk !== null : selected !== null
@@ -705,7 +728,9 @@ function ExercisesPhase({ lesson, onDone }: { lesson: Lesson; onDone: (score: nu
   function handleSelect(i: number) {
     if (selected !== null) return
     setSelected(i)
-    if (i === ex.correct) setScore(s => s + 1)
+    const correct = i === ex.correct
+    if (correct) { setScore(s => s + 1); setShowXp(true); setTimeout(() => setShowXp(false), 950) }
+    onAnswered(correct, index)
     if (ex.type !== 'order') {
       const optText = ex.options[i]
       if (optText && /^[A-Za-z]/.test(optText)) speak(optText)
@@ -714,7 +739,8 @@ function ExercisesPhase({ lesson, onDone }: { lesson: Lesson; onDone: (score: nu
 
   function handleOrderAnswer(ok: boolean) {
     setOrderOk(ok)
-    if (ok) setScore(s => s + 1)
+    if (ok) { setScore(s => s + 1); setShowXp(true); setTimeout(() => setShowXp(false), 950) }
+    onAnswered(ok, index)
   }
 
   function handleNext() {
@@ -734,6 +760,7 @@ function ExercisesPhase({ lesson, onDone }: { lesson: Lesson; onDone: (score: nu
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
+      {showXp && <XpFlash amount={XP_CORRECT_ANSWER} color={lesson.color} />}
       <ProgressHeader
         phase="exercises" phaseStep={index + 1} phaseTotal={totalEx}
         onBack={() => {}} color={lesson.color}
@@ -855,18 +882,38 @@ function ExercisesPhase({ lesson, onDone }: { lesson: Lesson; onDone: (score: nu
 // ─── Complete Screen ──────────────────────────────────────────────────────────
 
 function CompleteScreen({
-  lesson, score, onReplay, onBack,
+  lesson, score, islandId, streak, onIslandComplete, onReplay, onBack,
 }: {
-  lesson: Lesson; score: number; onReplay: () => void; onBack: () => void
+  lesson: Lesson
+  score: number
+  islandId: string
+  streak: number
+  onIslandComplete: (islandId: string, pct: number) => Promise<{ xpEarned: number; newProfile: { streak: number } | null }>
+  onReplay: () => void
+  onBack: () => void
 }) {
-  const total    = lesson.exercises.length
-  const pct      = Math.round((score / total) * 100)
-  const xpEarned = Math.round((score / total) * 100) + 50
+  const total   = lesson.exercises.length
+  const pct     = Math.round((score / total) * 100)
+  const synced  = useRef(false)
+
+  // Derived XP = per-question XP already awarded + lesson bonus
+  const bonusXp   = XP_LESSON_COMPLETE + (pct === 100 ? XP_PERFECT_BONUS : 0)
+  const totalXpEarned = score * XP_CORRECT_ANSWER + bonusXp
+
+  const [newStreak, setNewStreak] = useState(streak)
+  const [savedXp,   setSavedXp]   = useState(totalXpEarned)
 
   useEffect(() => {
+    if (synced.current) return
+    synced.current = true
+    // Supabase sync: mark complete, add bonus XP, touch streak
+    onIslandComplete(islandId, pct).then(({ xpEarned, newProfile }) => {
+      setSavedXp(score * XP_CORRECT_ANSWER + xpEarned)
+      if (newProfile) setNewStreak(newProfile.streak)
+    })
+    // localStorage fallback (keeps existing behaviour when offline)
     markCompleted(lesson.id)
-    addXp(xpEarned)
-  }, [lesson.id, xpEarned])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const medal = pct === 100 ? '🏆' : pct >= 80 ? '🌟' : pct >= 60 ? '💪' : '📚'
   const msg   = pct === 100
@@ -876,15 +923,11 @@ function CompleteScreen({
     :             'لا بأس، كرر الدرس!'
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-6 gap-6 text-center">
+    <div className="flex-1 flex flex-col items-center justify-center px-6 gap-5 text-center overflow-y-auto py-8">
       {/* Medal */}
       <div
-        className="w-28 h-28 rounded-3xl flex items-center justify-center text-6xl"
-        style={{
-          background: `${lesson.color}18`,
-          border: `2px solid ${lesson.color}40`,
-          boxShadow: `0 0 48px ${lesson.color}30`,
-        }}
+        className="w-28 h-28 rounded-3xl flex items-center justify-center text-6xl shrink-0"
+        style={{ background:`${lesson.color}18`, border:`2px solid ${lesson.color}40`, boxShadow:`0 0 48px ${lesson.color}30` }}
       >
         {medal}
       </div>
@@ -892,57 +935,62 @@ function CompleteScreen({
       <div dir="rtl">
         <h2 className="text-white text-4xl font-black mb-1">{pct}%</h2>
         <p className="text-white/45 text-base">{msg}</p>
-        <p className="text-yellow-400 font-bold text-sm mt-1.5">+{xpEarned} XP مكتسبة ⚡</p>
       </div>
 
-      {/* Stats */}
-      <div className="flex gap-4 w-full max-w-xs">
-        <div className="flex-1 flex flex-col items-center gap-1 py-4 rounded-2xl bg-green-500/10 border border-green-500/20">
-          <span className="text-2xl font-black text-green-400">{score}</span>
-          <span className="text-green-400/50 text-xs" dir="rtl">صحيح</span>
+      {/* Reward cards */}
+      <div className="flex gap-3 w-full max-w-xs">
+        <div className="flex-1 flex flex-col items-center gap-1.5 py-4 rounded-2xl border"
+          style={{ background:'rgba(245,158,11,0.08)', borderColor:'rgba(245,158,11,0.2)' }}>
+          <span className="text-2xl">⚡</span>
+          <span className="text-yellow-400 font-black text-xl">+{savedXp}</span>
+          <span className="text-yellow-400/40 text-xs">XP مكتسبة</span>
         </div>
-        <div className="flex-1 flex flex-col items-center gap-1 py-4 rounded-2xl bg-red-500/10 border border-red-500/20">
-          <span className="text-2xl font-black text-red-400">{total - score}</span>
-          <span className="text-red-400/50 text-xs" dir="rtl">خطأ</span>
+        <div className="flex-1 flex flex-col items-center gap-1.5 py-4 rounded-2xl border"
+          style={{ background:'rgba(251,146,60,0.08)', borderColor:'rgba(251,146,60,0.2)' }}>
+          <span className="text-2xl">🔥</span>
+          <span className="text-orange-400 font-black text-xl">{newStreak}</span>
+          <span className="text-orange-400/40 text-xs" dir="rtl">يوم متتالي</span>
         </div>
-        <div className="flex-1 flex flex-col items-center gap-1 py-4 rounded-2xl bg-amber-500/10 border border-amber-500/20">
-          <span className="text-2xl font-black text-amber-400">{total}</span>
-          <span className="text-amber-400/50 text-xs" dir="rtl">سؤال</span>
+        <div className="flex-1 flex flex-col items-center gap-1.5 py-4 rounded-2xl border"
+          style={{ background:'rgba(16,185,129,0.08)', borderColor:'rgba(16,185,129,0.2)' }}>
+          <span className="text-2xl">✅</span>
+          <span className="text-green-400 font-black text-xl">{score}/{total}</span>
+          <span className="text-green-400/40 text-xs" dir="rtl">إجابة صحيحة</span>
         </div>
       </div>
 
-      {/* Vocab review */}
+      {/* Score bar */}
+      <div className="w-full max-w-xs">
+        <div className="h-2.5 rounded-full overflow-hidden" style={{ background:'rgba(255,255,255,0.08)' }}>
+          <div className="h-full rounded-full transition-all duration-1000"
+            style={{ width:`${pct}%`, background:`linear-gradient(90deg,${lesson.color},${lesson.color}cc)`, boxShadow:`0 0 8px ${lesson.color}50` }} />
+        </div>
+      </div>
+
+      {/* Vocab replay */}
       <div className="w-full max-w-xs" dir="rtl">
-        <p className="text-white/25 text-xs mb-2">الكلمات التي تعلمتها</p>
+        <p className="text-white/25 text-xs mb-2">الكلمات التي تعلمتها — اضغط لتسمعها 🔊</p>
         <div className="flex flex-wrap gap-2 justify-center">
           {lesson.vocab.map((v, i) => (
-            <button
-              key={i}
-              onClick={() => speak(v.word)}
+            <button key={i} onClick={() => speak(v.word)}
               className="text-sm px-3 py-1.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: `${lesson.color}12`, border: `1px solid ${lesson.color}30`, color: lesson.color }}
-            >
+              style={{ background:`${lesson.color}12`, border:`1px solid ${lesson.color}30`, color:lesson.color }}>
               {v.emoji} {v.word}
             </button>
           ))}
         </div>
-        <p className="text-white/15 text-xs mt-2 text-center">اضغط على الكلمة لتسمعها 🔊</p>
       </div>
 
-      {/* Buttons */}
+      {/* Action buttons */}
       <div className="flex gap-3 w-full max-w-xs">
-        <button
-          onClick={onBack}
+        <button onClick={onBack}
           className="flex-1 py-4 rounded-2xl font-bold text-sm text-white/50 transition-all active:scale-95"
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
-        >
+          style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)' }}>
           ← الدروس
         </button>
-        <button
-          onClick={onReplay}
+        <button onClick={onReplay}
           className="flex-1 py-4 rounded-2xl font-black text-base text-white transition-all active:scale-95 shadow-lg"
-          style={{ background: lesson.color, boxShadow: `0 8px 24px ${lesson.color}40` }}
-        >
+          style={{ background:lesson.color, boxShadow:`0 8px 24px ${lesson.color}40` }}>
           مجدداً 🔄
         </button>
       </div>
@@ -952,7 +1000,16 @@ function CompleteScreen({
 
 // ─── Lesson Player ────────────────────────────────────────────────────────────
 
-function LessonPlayer({ lesson, onBack }: { lesson: Lesson; onBack: () => void }) {
+function LessonPlayer({
+  lesson, islandId, streak, onBack, onAnswered, onIslandComplete,
+}: {
+  lesson: Lesson
+  islandId: string
+  streak: number
+  onBack: () => void
+  onAnswered: (correct: boolean, questionIndex: number) => void
+  onIslandComplete: (islandId: string, pct: number) => Promise<{ xpEarned: number; newProfile: { streak: number } | null }>
+}) {
   const [phase, setPhase] = useState<Phase>('vocab')
   const [score, setScore] = useState(0)
 
@@ -967,10 +1024,22 @@ function LessonPlayer({ lesson, onBack }: { lesson: Lesson; onBack: () => void }
       {phase === 'sentences' && <SentencesPhase lesson={lesson} onDone={() => setPhase('dialogue')} />}
       {phase === 'dialogue'  && <DialoguePhase  lesson={lesson} onDone={() => setPhase('exercises')} />}
       {phase === 'exercises' && (
-        <ExercisesPhase lesson={lesson} onDone={s => { setScore(s); setPhase('complete') }} />
+        <ExercisesPhase
+          lesson={lesson}
+          onAnswered={onAnswered}
+          onDone={s => { setScore(s); setPhase('complete') }}
+        />
       )}
       {phase === 'complete' && (
-        <CompleteScreen lesson={lesson} score={score} onReplay={reset} onBack={onBack} />
+        <CompleteScreen
+          lesson={lesson}
+          score={score}
+          islandId={islandId}
+          streak={streak}
+          onIslandComplete={onIslandComplete}
+          onReplay={reset}
+          onBack={onBack}
+        />
       )}
     </div>
   )
@@ -978,14 +1047,14 @@ function LessonPlayer({ lesson, onBack }: { lesson: Lesson; onBack: () => void }
 
 // ─── Lesson List ──────────────────────────────────────────────────────────────
 
-function LessonList({ onSelect }: { onSelect: (l: Lesson) => void }) {
-  const [completed, setCompleted] = useState<string[]>([])
-  const [totalXp,   setTotalXp]   = useState(0)
-
-  useEffect(() => {
-    setCompleted(loadCompleted())
-    setTotalXp(loadXp())
-  }, [])
+function LessonList({
+  onSelect, totalXp, completedIds,
+}: {
+  onSelect: (l: Lesson) => void
+  totalXp: number
+  completedIds: string[]
+}) {
+  const completed = completedIds
 
   const byLevel = ['A1', 'A2'].map(lvl => ({
     lvl,
@@ -1123,20 +1192,56 @@ function LessonList({ onSelect }: { onSelect: (l: Lesson) => void }) {
 
 function LearnInner() {
   const searchParams = useSearchParams()
-  const [active, setActive] = useState<Lesson | null>(null)
+  const [active,    setActive]    = useState<Lesson | null>(null)
+  const [islandId,  setIslandId]  = useState<string>('standalone')
+
+  const game = useGameState()
+
+  // Derive completed lesson IDs from Supabase progress (+ localStorage fallback)
+  const completedIds: string[] = (() => {
+    const fromSupabase = game.progress
+      .filter(p => p.completed)
+      .map(p => p.island_id)             // island_id matches lesson.id in standalone flow
+    const fromLocal = loadCompleted()
+    return Array.from(new Set([...fromSupabase, ...fromLocal]))
+  })()
+
+  const totalXp = game.profile?.xp ?? loadXp()
+  const streak  = game.profile?.streak ?? 0
 
   useEffect(() => {
-    const id = searchParams.get('id')
-    if (id) {
-      const lesson = LESSONS.find(l => l.id === id)
+    const lessonId  = searchParams.get('id')
+    const islandParam = searchParams.get('island') ?? lessonId ?? 'standalone'
+    setIslandId(islandParam)
+    if (lessonId) {
+      const lesson = LESSONS.find(l => l.id === lessonId)
       if (lesson) setActive(lesson)
     }
   }, [searchParams])
 
   if (active) {
-    return <LessonPlayer lesson={active} onBack={() => setActive(null)} />
+    return (
+      <LessonPlayer
+        lesson={active}
+        islandId={islandId}
+        streak={streak}
+        onBack={() => setActive(null)}
+        onAnswered={(correct, qIndex) => {
+          if (correct) game.onCorrectAnswer(active.id, qIndex)
+          else         game.onWrongAnswer(active.id, qIndex)
+        }}
+        onIslandComplete={game.onIslandComplete}
+      />
+    )
   }
-  return <LessonList onSelect={setActive} />
+
+  return (
+    <LessonList
+      onSelect={lesson => { setActive(lesson); setIslandId(lesson.id) }}
+      totalXp={totalXp}
+      completedIds={completedIds}
+    />
+  )
 }
 
 // ─── Main export ──────────────────────────────────────────────────────────────
