@@ -4,181 +4,20 @@ import { useState, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useGameState } from '@/lib/useGameState'
 import { XP_CORRECT_ANSWER, XP_LESSON_COMPLETE, XP_PERFECT_BONUS } from '@/lib/game'
+import { LessonData, Exercise, LESSONS_DATA, LESSONS_MAP } from '@/data/lessons-data'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface VocabWord {
-  word: string
-  pronunciation: string
-  translation_ar: string
-  emoji: string
-  example: string
-}
-interface Sentence {
-  english: string
-  arabic: string
-}
-interface DialogueLine {
-  speaker: 'A' | 'B'
-  name: string
-  english: string
-  arabic: string
-}
+type Lesson = LessonData
 type ExType = 'mc' | 'fill' | 'en_ar' | 'ar_en' | 'order'
-interface Exercise {
-  type: ExType
-  tip_ar: string
-  prompt: string
-  options: string[]
-  correct: number
-  words?: string[]
-  answer?: string[]
-}
-interface Lesson {
-  id: string
-  title: string
-  title_ar: string
-  level: string
-  emoji: string
-  color: string
-  vocab: VocabWord[]
-  sentences: Sentence[]
-  dialogue: DialogueLine[]
-  exercises: Exercise[]
-}
 
-type Phase = 'vocab' | 'sentences' | 'dialogue' | 'exercises' | 'complete'
-
-// ─── Lesson Data ──────────────────────────────────────────────────────────────
-
-const LESSONS: Lesson[] = [
-  {
-    id: 'greetings', title: 'Greetings', title_ar: 'التحيات',
-    level: 'A1', emoji: '👋', color: '#10b981',
-    vocab: [
-      { word: 'Hello',        pronunciation: 'heh-LO',       translation_ar: 'مرحباً',     emoji: '👋', example: 'Hello! My name is Ahmed.' },
-      { word: 'Hi',           pronunciation: 'haɪ',          translation_ar: 'أهلاً',       emoji: '🙌', example: 'Hi! Nice to meet you.' },
-      { word: 'Good morning', pronunciation: 'gʊd MOR-nɪŋ',  translation_ar: 'صباح الخير', emoji: '🌅', example: 'Good morning! How are you?' },
-      { word: 'Good evening', pronunciation: 'gʊd EEV-nɪŋ',  translation_ar: 'مساء الخير', emoji: '🌆', example: 'Good evening! Welcome.' },
-      { word: 'How are you?', pronunciation: 'haʊ ɑr juː',   translation_ar: 'كيف حالك؟',  emoji: '😊', example: 'How are you? I am fine!' },
-    ],
-    sentences: [
-      { english: 'Hello! My name is Sara.',             arabic: 'مرحباً! اسمي سارة.' },
-      { english: 'Hi! Nice to meet you.',               arabic: 'أهلاً! سعيد بلقائك.' },
-      { english: 'Good morning! How are you?',          arabic: 'صباح الخير! كيف حالك؟' },
-      { english: 'Good evening! Welcome.',              arabic: 'مساء الخير! أهلاً وسهلاً.' },
-      { english: 'How are you? I am fine, thank you.',  arabic: 'كيف حالك؟ أنا بخير، شكراً.' },
-    ],
-    dialogue: [
-      { speaker: 'A', name: 'Ahmed', english: "Hello! I'm Ahmed.",             arabic: 'مرحباً! أنا أحمد.' },
-      { speaker: 'B', name: 'Sara',  english: "Hi Ahmed! I'm Sara.",            arabic: 'أهلاً أحمد! أنا سارة.' },
-      { speaker: 'A', name: 'Ahmed', english: 'Good morning! How are you?',     arabic: 'صباح الخير! كيف حالك؟' },
-      { speaker: 'B', name: 'Sara',  english: "I'm fine, thanks! And you?",     arabic: 'أنا بخير، شكراً! وأنت؟' },
-      { speaker: 'A', name: 'Ahmed', english: "I'm great! Good evening, Sara.", arabic: 'أنا بخير جداً! مساء الخير يا سارة.' },
-    ],
-    exercises: [
-      { type: 'mc',    tip_ar: 'ماذا تعني هذه الكلمة؟',               prompt: '👋  Hello',               options: ['مرحباً','شكراً','وداعاً','نعم'],                                                     correct: 0 },
-      { type: 'mc',    tip_ar: 'ماذا تعني هذه الكلمة؟',               prompt: '🌅  Good morning',         options: ['مساء الخير','كيف حالك؟','صباح الخير','أهلاً'],                                       correct: 2 },
-      { type: 'mc',    tip_ar: 'أي تحية تستخدم في المساء؟',           prompt: 'Which greeting is for evening?', options: ['Hello','Good morning','Hi','Good evening'],                                  correct: 3 },
-      { type: 'mc',    tip_ar: 'ماذا تعني هذه العبارة؟',              prompt: '😊  How are you?',         options: ['ما اسمك؟','أين أنت؟','كيف حالك؟','من أنت؟'],                                       correct: 2 },
-      { type: 'fill',  tip_ar: 'أكمل الجملة باختيار الكلمة الصحيحة', prompt: '___ ! My name is Sara.',    options: ['Hello','Goodbye','Please','Sorry'],                                                  correct: 0 },
-      { type: 'fill',  tip_ar: 'اختر الكلمة الصحيحة',                 prompt: 'Good ___, how are you?',    options: ['night','morning','bye','please'],                                                    correct: 1 },
-      { type: 'fill',  tip_ar: 'أكمل الجملة',                         prompt: '___, nice to meet you!',    options: ['Bye','Hi','No','Yes'],                                                               correct: 1 },
-      { type: 'en_ar', tip_ar: 'اختر الترجمة العربية الصحيحة',        prompt: 'Good evening!',             options: ['صباح الخير!','كيف حالك؟','مساء الخير!'],                                            correct: 2 },
-      { type: 'en_ar', tip_ar: 'ترجم هذه الجملة للعربية',             prompt: 'Hi! Nice to meet you.',     options: ['مرحباً! اسمي سارة.','أهلاً! سعيد بلقائك.','كيف حالك؟ أنا بخير.'],                  correct: 1 },
-      { type: 'ar_en', tip_ar: 'اختر الترجمة الإنجليزية الصحيحة',     prompt: 'مرحباً!',                   options: ['Goodbye!','Please!','Hello!'],                                                       correct: 2 },
-      { type: 'ar_en', tip_ar: 'ترجم هذه العبارة للإنجليزية',          prompt: 'كيف حالك؟',                 options: ["What's your name?","Where are you?","How are you?"],                                 correct: 2 },
-      { type: 'order', tip_ar: 'رتب الكلمات لتكوين جملة صحيحة',       prompt: 'Good morning, how are you?', options: [], correct: 0, words: ['are','Good','morning,','you?','how'],               answer: ['Good','morning,','how','are','you?'] },
-      { type: 'order', tip_ar: 'رتب الكلمات بالترتيب الصحيح',          prompt: 'Hello! My name is Sara.',   options: [], correct: 0, words: ['Sara.','Hello!','is','name','My'],                     answer: ['Hello!','My','name','is','Sara.'] },
-    ],
-  },
-  {
-    id: 'coffee', title: 'Coffee Shop', title_ar: 'في المقهى',
-    level: 'A1', emoji: '☕', color: '#f59e0b',
-    vocab: [
-      { word: 'order',     pronunciation: 'OR-der',    translation_ar: 'يطلب',    emoji: '🛒', example: 'I want to order a coffee.' },
-      { word: 'please',    pronunciation: 'pleez',     translation_ar: 'من فضلك', emoji: '🙏', example: 'A coffee, please.' },
-      { word: 'ready',     pronunciation: 'RED-ee',    translation_ar: 'جاهز',    emoji: '✅', example: 'Your order is ready.' },
-      { word: 'wait',      pronunciation: 'wayt',      translation_ar: 'ينتظر',   emoji: '⏳', example: 'Please wait a moment.' },
-      { word: 'thank you', pronunciation: 'θæŋk juː', translation_ar: 'شكراً',   emoji: '🤝', example: 'Thank you very much!' },
-    ],
-    sentences: [
-      { english: 'I want to order a coffee, please.',  arabic: 'أريد أن أطلب قهوة، من فضلك.' },
-      { english: 'Your order is ready!',               arabic: 'طلبك جاهز!' },
-      { english: 'Please wait a moment.',              arabic: 'من فضلك انتظر لحظة.' },
-      { english: 'Thank you very much!',               arabic: 'شكراً جزيلاً!' },
-      { english: 'Can I order a large coffee?',        arabic: 'هل يمكنني طلب قهوة كبيرة؟' },
-    ],
-    dialogue: [
-      { speaker: 'A', name: 'Staff', english: 'Hello! Can I take your order?',    arabic: 'مرحباً! هل يمكنني أخذ طلبك؟' },
-      { speaker: 'B', name: 'You',   english: 'Hi! A large coffee, please.',       arabic: 'أهلاً! قهوة كبيرة من فضلك.' },
-      { speaker: 'A', name: 'Staff', english: 'Of course! Please wait a moment.', arabic: 'بالتأكيد! من فضلك انتظر لحظة.' },
-      { speaker: 'B', name: 'You',   english: 'Thank you!',                        arabic: 'شكراً!' },
-      { speaker: 'A', name: 'Staff', english: 'Your order is ready. Enjoy!',       arabic: 'طلبك جاهز. استمتع!' },
-    ],
-    exercises: [
-      { type: 'mc',    tip_ar: 'ماذا تعني هذه الكلمة؟',               prompt: '🛒  order',                options: ['يطلب','يشرب','يذهب','يجلس'],                                                        correct: 0 },
-      { type: 'mc',    tip_ar: 'ماذا تعني هذه الكلمة؟',               prompt: '✅  ready',                options: ['بطيء','جاهز','كبير','جميل'],                                                        correct: 1 },
-      { type: 'mc',    tip_ar: 'ماذا تعني "thank you"؟',              prompt: 'thank you',                options: ['من فضلك','مرحباً','شكراً','وداعاً'],                                                 correct: 2 },
-      { type: 'fill',  tip_ar: 'أكمل الجملة',                         prompt: 'A coffee, ___ .',           options: ['please','hello','ready','wait'],                                                     correct: 0 },
-      { type: 'fill',  tip_ar: 'اختر الكلمة الصحيحة',                 prompt: 'Your order is ___ .',       options: ['wait','late','ready','big'],                                                         correct: 2 },
-      { type: 'fill',  tip_ar: 'أكمل الجملة',                         prompt: 'Please ___ a moment.',      options: ['go','come','wait','sit'],                                                            correct: 2 },
-      { type: 'en_ar', tip_ar: 'اختر الترجمة العربية الصحيحة',        prompt: 'Your order is ready!',      options: ['من فضلك انتظر.','شكراً جزيلاً!','طلبك جاهز!'],                                      correct: 2 },
-      { type: 'en_ar', tip_ar: 'ترجم هذه الجملة للعربية',             prompt: 'Please wait a moment.',     options: ['طلبك جاهز.','من فضلك انتظر لحظة.','شكراً!'],                                        correct: 1 },
-      { type: 'ar_en', tip_ar: 'ترجم للإنجليزية',                     prompt: 'شكراً!',                    options: ['Please!','Thank you!','Hello!'],                                                      correct: 1 },
-      { type: 'ar_en', tip_ar: 'ترجم هذه الجملة للإنجليزية',          prompt: 'من فضلك انتظر لحظة.',       options: ['Your order is ready.','Please wait a moment.','Thank you very much!'],                correct: 1 },
-      { type: 'order', tip_ar: 'رتب الكلمات لتكوين جملة صحيحة',       prompt: 'A large coffee, please.',   options: [], correct: 0, words: ['please.','A','coffee,','large'],                        answer: ['A','large','coffee,','please.'] },
-    ],
-  },
-  {
-    id: 'shopping', title: 'At the Store', title_ar: 'في المتجر',
-    level: 'A2', emoji: '🛍️', color: '#f43f5e',
-    vocab: [
-      { word: 'buy',   pronunciation: 'baɪ',   translation_ar: 'يشتري',  emoji: '🛒', example: 'I want to buy this.' },
-      { word: 'price', pronunciation: 'praɪs', translation_ar: 'السعر',  emoji: '💰', example: 'What is the price?' },
-      { word: 'cheap', pronunciation: 'tʃiːp', translation_ar: 'رخيص',   emoji: '🏷️', example: 'This is very cheap!' },
-      { word: 'help',  pronunciation: 'help',  translation_ar: 'مساعدة', emoji: '🤝', example: 'Can you help me?' },
-      { word: 'size',  pronunciation: 'saɪz',  translation_ar: 'المقاس', emoji: '📏', example: 'What size is this?' },
-    ],
-    sentences: [
-      { english: 'I want to buy this shirt.',          arabic: 'أريد أن أشتري هذا القميص.' },
-      { english: 'What is the price of this?',         arabic: 'ما هو سعر هذا؟' },
-      { english: 'This is very cheap!',                arabic: 'هذا رخيص جداً!' },
-      { english: 'Can you help me, please?',           arabic: 'هل يمكنك مساعدتي من فضلك؟' },
-      { english: 'Do you have a bigger size?',         arabic: 'هل لديك مقاس أكبر؟' },
-    ],
-    dialogue: [
-      { speaker: 'A', name: 'Staff', english: 'Hello! Can I help you?',             arabic: 'مرحباً! هل يمكنني مساعدتك؟' },
-      { speaker: 'B', name: 'You',   english: "Yes! I want to buy this bag.",        arabic: 'نعم! أريد أن أشتري هذه الحقيبة.' },
-      { speaker: 'A', name: 'Staff', english: 'Great choice! What size?',            arabic: 'اختيار رائع! أي مقاس؟' },
-      { speaker: 'B', name: 'You',   english: 'Medium, please. What is the price?',  arabic: 'وسط من فضلك. ما هو السعر؟' },
-      { speaker: 'A', name: 'Staff', english: "It's only $20. Very cheap!",          arabic: 'إنها ٢٠ دولار فقط. رخيصة جداً!' },
-    ],
-    exercises: [
-      { type: 'mc',    tip_ar: 'ماذا تعني هذه الكلمة؟',               prompt: '🛒  buy',                  options: ['يبيع','يشتري','يأخذ','يعطي'],                                                       correct: 1 },
-      { type: 'mc',    tip_ar: 'ماذا تعني "price"؟',                  prompt: 'price',                    options: ['الحجم','اللون','السعر','الشكل'],                                                     correct: 2 },
-      { type: 'mc',    tip_ar: 'ماذا تعني "cheap"؟',                  prompt: 'cheap',                    options: ['غالي','رخيص','جميل','كبير'],                                                         correct: 1 },
-      { type: 'fill',  tip_ar: 'أكمل الجملة',                         prompt: 'I want to ___ this shirt.', options: ['buy','sell','make','use'],                                                           correct: 0 },
-      { type: 'fill',  tip_ar: 'اختر الكلمة الصحيحة',                 prompt: 'What is the ___ ?',         options: ['color','name','price','size'],                                                       correct: 2 },
-      { type: 'fill',  tip_ar: 'أكمل الجملة',                         prompt: 'Can you ___ me?',           options: ['help','see','love','know'],                                                          correct: 0 },
-      { type: 'en_ar', tip_ar: 'ترجم للعربية',                        prompt: 'I want to buy this.',       options: ['ما هو السعر؟','أريد أن أشتري هذا.','هذا رخيص جداً.'],                              correct: 1 },
-      { type: 'ar_en', tip_ar: 'ترجم للإنجليزية',                     prompt: 'هذا رخيص جداً!',            options: ['This is very big!','This is very cheap!','This is very good!'],                      correct: 1 },
-      { type: 'ar_en', tip_ar: 'ترجم هذه الجملة',                     prompt: 'ما هو سعر هذا؟',            options: ['Can you help me?','What is the price?','Do you have a bigger size?'],                correct: 1 },
-      { type: 'order', tip_ar: 'رتب الكلمات بالترتيب الصحيح',         prompt: 'What is the price?',        options: [], correct: 0, words: ['price?','is','What','the'],                              answer: ['What','is','the','price?'] },
-    ],
-  },
-]
+type Phase = 'vocab' | 'sentences' | 'natural' | 'dialogue' | 'exercises' | 'complete'
 
 // ─── localStorage helpers ─────────────────────────────────────────────────────
 
 function loadXp(): number {
   if (typeof window === 'undefined') return 0
   return parseInt(localStorage.getItem('inglizi_total_xp') ?? '0', 10)
-}
-function addXp(amount: number) {
-  const next = loadXp() + amount
-  localStorage.setItem('inglizi_total_xp', String(next))
-  return next
 }
 function loadCompleted(): string[] {
   if (typeof window === 'undefined') return []
@@ -245,12 +84,12 @@ function ProgressHeader({
   phase: Phase; phaseStep: number; phaseTotal: number; onBack: () => void; color: string
 }) {
   const labels: Record<Phase, string> = {
-    vocab: 'المفردات', sentences: 'الجمل', dialogue: 'الحوار', exercises: 'التمارين', complete: 'مكتمل',
+    vocab: 'المفردات', sentences: 'الجمل', natural: 'جمل طبيعية', dialogue: 'الحوار', exercises: 'التمارين', complete: 'مكتمل',
   }
   const icons: Record<Phase, string> = {
-    vocab: '📚', sentences: '✏️', dialogue: '💬', exercises: '🎯', complete: '🏆',
+    vocab: '📚', sentences: '✏️', natural: '🗣️', dialogue: '💬', exercises: '🎯', complete: '🏆',
   }
-  const allPhases: Phase[] = ['vocab', 'sentences', 'dialogue', 'exercises']
+  const allPhases: Phase[] = ['vocab', 'sentences', 'natural', 'dialogue', 'exercises']
   const idx = allPhases.indexOf(phase)
 
   return (
@@ -491,7 +330,84 @@ function SentencesPhase({ lesson, onDone }: { lesson: Lesson; onDone: () => void
           className="w-full max-w-sm py-4 rounded-2xl font-black text-lg text-white transition-all active:scale-[0.97] shadow-lg disabled:opacity-30"
           style={{ background: lesson.color, boxShadow: `0 8px 24px ${lesson.color}40` }}
         >
-          {index < lesson.sentences.length - 1 ? 'الجملة التالية →' : 'ابدأ الحوار 💬'}
+          {index < lesson.sentences.length - 1 ? 'الجملة التالية →' : 'الجمل الطبيعية 🗣️'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ─── Natural Sentences Phase ──────────────────────────────────────────────────
+
+function NaturalPhase({ lesson, onDone }: { lesson: Lesson; onDone: () => void }) {
+  const [index,    setIndex]    = useState(0)
+  const [revealed, setRevealed] = useState(false)
+  const [visible,  setVisible]  = useState(true)
+  const s = lesson.natural[index]
+
+  function next() {
+    setVisible(false)
+    setTimeout(() => {
+      if (index < lesson.natural.length - 1) {
+        setIndex(i => i + 1); setRevealed(false); setVisible(true)
+      } else { onDone() }
+    }, 200)
+  }
+
+  return (
+    <div className="flex flex-col flex-1 overflow-hidden">
+      <ProgressHeader
+        phase="natural" phaseStep={index + 1} phaseTotal={lesson.natural.length}
+        onBack={() => { if (index > 0) { setIndex(i => i - 1); setRevealed(false) } }}
+        color={lesson.color}
+      />
+
+      <div
+        className="flex-1 flex flex-col items-center justify-between px-5 py-6 transition-opacity duration-200"
+        style={{ opacity: visible ? 1 : 0 }}
+      >
+        <div className="flex-1 w-full max-w-sm flex flex-col items-center justify-center gap-4">
+          {/* Label */}
+          <div className="self-start px-3 py-1 rounded-full text-xs font-black" style={{ background: `${lesson.color}15`, color: lesson.color, border: `1px solid ${lesson.color}30` }}>
+            🗣️ كيف يتكلم الناس الحقيقيون
+          </div>
+
+          <div
+            className="w-full rounded-3xl p-6"
+            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+          >
+            {/* English + audio */}
+            <div className="flex items-start gap-3 mb-4">
+              <AudioBtn text={s.english} size="md" color={lesson.color} />
+              <p className="text-white text-xl font-bold leading-relaxed">{s.english}</p>
+            </div>
+
+            {/* Arabic reveal */}
+            {revealed ? (
+              <div className="pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                <p className="text-2xl font-bold leading-relaxed" style={{ color: lesson.color }} dir="rtl">
+                  {s.arabic}
+                </p>
+              </div>
+            ) : (
+              <button
+                onClick={() => setRevealed(true)}
+                className="mt-1 px-5 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95"
+                style={{ background: `${lesson.color}18`, border: `1px solid ${lesson.color}40`, color: lesson.color }}
+              >
+                🔍 اضغط لرؤية الترجمة
+              </button>
+            )}
+          </div>
+        </div>
+
+        <button
+          onClick={next}
+          disabled={!revealed}
+          className="w-full max-w-sm py-4 rounded-2xl font-black text-lg text-white transition-all active:scale-[0.97] shadow-lg disabled:opacity-30"
+          style={{ background: lesson.color, boxShadow: `0 8px 24px ${lesson.color}40` }}
+        >
+          {index < lesson.natural.length - 1 ? 'الجملة التالية →' : 'ابدأ الحوار 💬'}
         </button>
       </div>
     </div>
@@ -615,7 +531,7 @@ function OrderExercise({
   const [correct, setCorrect] = useState(false)
 
   const placedWords = placed.map(i => words[i])
-  const remaining   = words.map((w, i) => ({ w, i })).filter(({ i }) => !placed.includes(i))
+  const remaining   = words.map((w: string, i: number) => ({ w, i })).filter(({ i }: { i: number }) => !placed.includes(i))
 
   function place(idx: number)    { if (!checked) setPlaced(p => [...p, idx]) }
   function removeAt(pos: number) { if (!checked) setPlaced(p => p.filter((_, i) => i !== pos)) }
@@ -664,7 +580,7 @@ function OrderExercise({
       </div>
 
       <div className="flex flex-wrap gap-2 justify-center">
-        {remaining.map(({ w, i }) => (
+        {remaining.map(({ w, i }: { w: string; i: number }) => (
           <button
             key={i}
             onClick={() => place(i)}
@@ -1021,7 +937,8 @@ function LessonPlayer({
       style={{ background: 'linear-gradient(160deg,#060d1a 0%,#0a1120 60%,#060d1a 100%)' }}
     >
       {phase === 'vocab'     && <VocabPhase     lesson={lesson} onDone={() => setPhase('sentences')} />}
-      {phase === 'sentences' && <SentencesPhase lesson={lesson} onDone={() => setPhase('dialogue')} />}
+      {phase === 'sentences' && <SentencesPhase lesson={lesson} onDone={() => setPhase('natural')} />}
+      {phase === 'natural'   && <NaturalPhase   lesson={lesson} onDone={() => setPhase('dialogue')} />}
       {phase === 'dialogue'  && <DialoguePhase  lesson={lesson} onDone={() => setPhase('exercises')} />}
       {phase === 'exercises' && (
         <ExercisesPhase
@@ -1056,9 +973,9 @@ function LessonList({
 }) {
   const completed = completedIds
 
-  const byLevel = ['A1', 'A2'].map(lvl => ({
+  const byLevel = ['A0', 'A1', 'A2', 'B1'].map(lvl => ({
     lvl,
-    lessons: LESSONS.filter(l => l.level === lvl),
+    lessons: LESSONS_DATA.filter((l: Lesson) => l.level === lvl),
   })).filter(g => g.lessons.length > 0)
 
   return (
@@ -1101,7 +1018,7 @@ function LessonList({
               </div>
 
               <div className="flex flex-col gap-3">
-                {lessons.map(lesson => {
+                {lessons.map((lesson: Lesson) => {
                   const isDone = completed.includes(lesson.id)
                   return (
                     <button
@@ -1138,7 +1055,7 @@ function LessonList({
 
                         {/* Vocab preview with audio hint */}
                         <div className="flex gap-1 mt-1.5 flex-wrap items-center">
-                          {lesson.vocab.slice(0, 3).map((v, i) => (
+                          {lesson.vocab.slice(0, 3).map((v, i: number) => (
                             <span
                               key={i}
                               className="text-xs px-2 py-0.5 rounded-lg font-medium flex items-center gap-1"
@@ -1210,11 +1127,10 @@ function LearnInner() {
   const streak  = game.profile?.streak ?? 0
 
   useEffect(() => {
-    const lessonId  = searchParams.get('id')
-    const islandParam = searchParams.get('island') ?? lessonId ?? 'standalone'
-    setIslandId(islandParam)
+    const lessonId = searchParams.get('id')
+    setIslandId(lessonId ?? 'standalone')
     if (lessonId) {
-      const lesson = LESSONS.find(l => l.id === lessonId)
+      const lesson = LESSONS_MAP[lessonId]
       if (lesson) setActive(lesson)
     }
   }, [searchParams])

@@ -24,23 +24,30 @@ interface Island {
 // ─── Island Data — Moroccan journey A0 → B1 ───────────────────────────────────
 
 const ISLANDS: Island[] = [
-  { id:'1', city:'Oued Zem',         city_ar:'واد زم',           topic:'Greetings',            topic_ar:'التحيات',           cefr:'A0', emoji:'👋', color:'#10b981', xp:50,  lessonId:'greetings', desc_ar:'ابدأ رحلتك! تعلم كيف تقول مرحباً وتقدّم نفسك بالإنجليزية' },
-  { id:'2', city:'Khouribga',         city_ar:'خريبكة',            topic:'Coffee Shop',           topic_ar:'في المقهى',         cefr:'A1', emoji:'☕', color:'#f59e0b', xp:75,  lessonId:'coffee',    desc_ar:'تعلم كيف تطلب مشروبك وتتحدث بشكل طبيعي في المقهى' },
-  { id:'3', city:'Beni Mellal',       city_ar:'بني ملال',          topic:'At the Store',          topic_ar:'في المتجر',         cefr:'A1', emoji:'🛍️', color:'#f43f5e', xp:100, lessonId:'shopping',  desc_ar:'اشتري وتفاوض وتحدث عن الأسعار والمقاسات بثقة' },
-  { id:'4', city:'Settat',            city_ar:'سطات',              topic:'Morning Routine',       topic_ar:'الروتين الصباحي',   cefr:'A1', emoji:'🌅', color:'#f97316', xp:120, lessonId:'greetings', desc_ar:'صف يومك وتحدث عن الأنشطة اليومية والروتين الصباحي' },
-  { id:'5', city:'Casablanca',        city_ar:'الدار البيضاء',     topic:'In the City',           topic_ar:'في المدينة',        cefr:'A2', emoji:'🌆', color:'#0ea5e9', xp:150, lessonId:'shopping',  desc_ar:'تنقل واسأل عن الطريق وتحدث عن الأماكن في المدينة الكبيرة' },
-  { id:'6', city:'Rabat',             city_ar:'الرباط',            topic:'At Work',               topic_ar:'في العمل',          cefr:'A2', emoji:'💼', color:'#6366f1', xp:175, lessonId:'coffee',    desc_ar:'احترف التواصل في بيئة العمل وتحدث مع الزملاء باحترافية' },
-  { id:'7', city:'Marrakech',         city_ar:'مراكش',             topic:'Travel',                topic_ar:'السفر والسياحة',    cefr:'B1', emoji:'✈️', color:'#14b8a6', xp:200, lessonId:'greetings', desc_ar:'سافر وتحدث في المطار والفندق واستمتع بتجربة سياحية كاملة' },
-  { id:'8', city:'Agadir',            city_ar:'أكادير',            topic:'Advanced Conversations',topic_ar:'محادثات متقدمة',    cefr:'B1', emoji:'🏆', color:'#d97706', xp:250, lessonId:'shopping',  desc_ar:'تحدث بطلاقة عن مواضيع متنوعة وأصبح محترفاً حقيقياً' },
+  { id:'greetings',     city:'Oued Zem',        city_ar:'واد زم',           topic:'Greetings',             topic_ar:'التحيات',            cefr:'A0', emoji:'👋', color:'#10b981', xp:50,  lessonId:'greetings',     desc_ar:'ابدأ رحلتك! تعلم كيف تقول مرحباً وتقدّم نفسك بالإنجليزية' },
+  { id:'introductions', city:'Khouribga',        city_ar:'خريبكة',            topic:'Introductions',         topic_ar:'التعارف',            cefr:'A1', emoji:'🤝', color:'#3b82f6', xp:75,  lessonId:'introductions', desc_ar:'قدّم نفسك وتحدث عن عمرك وعائلتك وبلدك بثقة' },
+  { id:'questions',     city:'Beni Mellal',      city_ar:'بني ملال',          topic:'Basic Questions',       topic_ar:'أسئلة أساسية',       cefr:'A1', emoji:'❓', color:'#8b5cf6', xp:80,  lessonId:'questions',     desc_ar:'تعلم كيف تسأل وتجيب عن أي موضوع بالإنجليزية' },
+  { id:'numbers',       city:'Settat',           city_ar:'سطات',              topic:'Numbers',               topic_ar:'الأرقام',             cefr:'A1', emoji:'🔢', color:'#f97316', xp:90,  lessonId:'numbers',       desc_ar:'تعلم الأرقام وكيف تتحدث عن الكميات والأسعار والأعمار' },
+  { id:'time',          city:'El Jadida',        city_ar:'الجديدة',           topic:'Time & Dates',          topic_ar:'الوقت والتواريخ',    cefr:'A1', emoji:'⏰', color:'#06b6d4', xp:100, lessonId:'time',          desc_ar:'تحدث عن الوقت والأيام والمواعيد بطلاقة' },
+  { id:'routine',       city:'Mohammedia',       city_ar:'المحمدية',          topic:'Daily Routine',         topic_ar:'الروتين اليومي',     cefr:'A1', emoji:'🌅', color:'#f59e0b', xp:110, lessonId:'routine',       desc_ar:'صف يومك وتحدث عن الأنشطة اليومية من الصباح للمساء' },
+  { id:'food',          city:'Casablanca',       city_ar:'الدار البيضاء',     topic:'Food & Drinks',         topic_ar:'الطعام والشراب',     cefr:'A1', emoji:'🍔', color:'#f43f5e', xp:120, lessonId:'food',          desc_ar:'اطلب طعامك وتحدث عن مطاعمك المفضلة وما تحب وما لا تحب' },
+  { id:'directions',    city:'Rabat',            city_ar:'الرباط',            topic:'Directions',            topic_ar:'الاتجاهات',           cefr:'A1', emoji:'🗺️', color:'#10b981', xp:130, lessonId:'directions',    desc_ar:'اسأل عن الطريق وأعطِ الاتجاهات بثقة في أي مكان' },
+  { id:'shopping',      city:'Salé',             city_ar:'سلا',               topic:'Shopping',              topic_ar:'التسوق',              cefr:'A1', emoji:'🛍️', color:'#ec4899', xp:140, lessonId:'shopping',      desc_ar:'اشتري وتفاوض وتحدث عن الأسعار والمقاسات بثقة' },
+  { id:'smalltalk',     city:'Kenitra',          city_ar:'القنيطرة',          topic:'Small Talk',            topic_ar:'محادثة خفيفة',       cefr:'A1', emoji:'💬', color:'#6366f1', xp:150, lessonId:'smalltalk',     desc_ar:'ابدأ محادثات يومية وتحدث عن الطقس والأخبار والاهتمامات' },
+  { id:'colors',        city:'Fes',              city_ar:'فاس',               topic:'Colors & Descriptions', topic_ar:'الألوان والأوصاف',   cefr:'A1', emoji:'🎨', color:'#a855f7', xp:160, lessonId:'colors',        desc_ar:'صف الأشياء بالألوان والأحجام والأشكال بشكل طبيعي' },
+  { id:'work',          city:'Meknes',           city_ar:'مكناس',             topic:'At Work',               topic_ar:'في العمل',            cefr:'A2', emoji:'💼', color:'#0ea5e9', xp:200, lessonId:'work',          desc_ar:'احترف التواصل في بيئة العمل والاجتماعات والمراسلات' },
+  { id:'travel',        city:'Tangier',          city_ar:'طنجة',              topic:'Travel',                topic_ar:'السفر',               cefr:'A2', emoji:'✈️', color:'#14b8a6', xp:225, lessonId:'travel',        desc_ar:'سافر وتحدث في المطار والفندق واستمتع بتجربة سياحية كاملة' },
+  { id:'health',        city:'Marrakech',        city_ar:'مراكش',             topic:'Health & Body',         topic_ar:'الصحة والجسم',       cefr:'A2', emoji:'🏥', color:'#ef4444', xp:250, lessonId:'health',        desc_ar:'تحدث مع الطبيب وصف أعراضك وتعلم كيف تهتم بصحتك' },
+  { id:'advanced',      city:'Agadir',           city_ar:'أكادير',            topic:'Advanced Conversations',topic_ar:'محادثات متقدمة',     cefr:'B1', emoji:'🏆', color:'#d97706', xp:300, lessonId:'advanced',      desc_ar:'تحدث بطلاقة عن مواضيع متنوعة وأصبح محترفاً حقيقياً' },
 ]
 
 const ISLAND_IDS = ISLANDS.map(i => i.id)
 
 const CEFR_ZONES = [
-  { label:'A0', color:'#10b981', emoji:'🌱', desc:'مبتدئ تماماً', islandIds:['1']           },
-  { label:'A1', color:'#f59e0b', emoji:'🌿', desc:'مبتدئ',        islandIds:['2','3','4']   },
-  { label:'A2', color:'#0ea5e9', emoji:'⭐', desc:'أساسي',         islandIds:['5','6']       },
-  { label:'B1', color:'#8b5cf6', emoji:'🚀', desc:'متوسط',         islandIds:['7','8']       },
+  { label:'A0', color:'#10b981', emoji:'🌱', desc:'مبتدئ تماماً', islandIds:['greetings']                                                                               },
+  { label:'A1', color:'#f59e0b', emoji:'🌿', desc:'مبتدئ',        islandIds:['introductions','questions','numbers','time','routine','food','directions','shopping','smalltalk','colors'] },
+  { label:'A2', color:'#0ea5e9', emoji:'⭐', desc:'أساسي',         islandIds:['work','travel','health']                                                                  },
+  { label:'B1', color:'#8b5cf6', emoji:'🚀', desc:'متوسط',         islandIds:['advanced']                                                                                },
 ]
 
 // ─── Level colour map ─────────────────────────────────────────────────────────
@@ -290,7 +297,7 @@ export default function MapPage() {
   const overallPct     = Math.round((completedCount / totalIslands) * 100)
 
   function handleStart(island: Island) {
-    router.push(`/learn?id=${island.lessonId}&island=${island.id}`)
+    router.push(`/learn?id=${island.id}`)
   }
 
   const zones = CEFR_ZONES.map(z => ({
