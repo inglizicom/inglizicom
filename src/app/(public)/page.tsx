@@ -3,10 +3,30 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 
-// ─── WhatsApp ─────────────────────────────────────────────────────────────────
-const WA = 'https://wa.me/212707902091?text=' + encodeURIComponent('مرحباً، أريد البدء في رحلة تعلم الإنجليزية')
+// ─── Font shorthand ───────────────────────────────────────────────────────────
+const FONT_HEADING = "'Cairo', 'Inter', sans-serif"
+const FONT_BODY    = "'Cairo', 'Inter', sans-serif"
 
-function WAIcon({ size = 20 }: { size?: number }) {
+// ─── Palette ──────────────────────────────────────────────────────────────────
+const C = {
+  blue:     '#2563eb',
+  blueSoft: '#eff6ff',
+  blueText: '#1d4ed8',
+  green:    '#059669',
+  greenSoft:'#f0fdf4',
+  slate:    '#64748b',
+  slateLight:'#f8fafc',
+  border:   '#e2e8f0',
+  text:     '#1e293b',
+  textMuted:'#64748b',
+  bg:       '#ffffff',
+}
+
+// ─── WhatsApp ─────────────────────────────────────────────────────────────────
+const WA = 'https://wa.me/212707902091?text=' +
+  encodeURIComponent('مرحباً، أريد البدء في رحلة تعلم الإنجليزية')
+
+function WAIcon({ size = 18 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
       <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
@@ -14,27 +34,38 @@ function WAIcon({ size = 20 }: { size?: number }) {
   )
 }
 
-// ─── Slide-in on scroll ───────────────────────────────────────────────────────
-function Reveal({ children, delay = 0, className = '' }: { children: React.ReactNode; delay?: number; className?: string }) {
-  const ref  = useRef<HTMLDivElement>(null)
+// ─── Scroll reveal ────────────────────────────────────────────────────────────
+function Reveal({
+  children, delay = 0, className = '', style = {}, dir,
+}: {
+  children: React.ReactNode
+  delay?: number
+  className?: string
+  style?: React.CSSProperties
+  dir?: string
+}) {
+  const ref = useRef<HTMLDivElement>(null)
   const [vis, setVis] = useState(false)
-
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVis(true); obs.disconnect() } }, { threshold: 0.12 })
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVis(true); obs.disconnect() } },
+      { threshold: 0.1 }
+    )
     obs.observe(el)
     return () => obs.disconnect()
   }, [])
-
   return (
     <div
       ref={ref}
       className={className}
+      dir={dir}
       style={{
+        ...style,
         opacity:    vis ? 1 : 0,
-        transform:  vis ? 'translateY(0)' : 'translateY(28px)',
-        transition: `opacity 0.6s ease ${delay}ms, transform 0.6s ease ${delay}ms`,
+        transform:  vis ? 'translateY(0)' : 'translateY(20px)',
+        transition: `opacity 0.55s ease ${delay}ms, transform 0.55s ease ${delay}ms`,
       }}
     >
       {children}
@@ -42,344 +73,312 @@ function Reveal({ children, delay = 0, className = '' }: { children: React.React
   )
 }
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
+// ─── Section label ────────────────────────────────────────────────────────────
+function SectionLabel({ children, color = C.blue }: { children: React.ReactNode; color?: string }) {
+  return (
+    <span
+      className="inline-block text-sm font-semibold px-4 py-1.5 rounded-full mb-4"
+      style={{
+        color,
+        background: color + '14',
+        border: `1px solid ${color}28`,
+        fontFamily: FONT_BODY,
+        letterSpacing: '0.01em',
+      }}
+    >
+      {children}
+    </span>
+  )
+}
 
-const HERO_SLIDES = [
-  {
-    emoji: '🗺️',
-    badge: 'رحلة تعلم تفاعلية',
-    title: 'تعلّم الإنجليزية',
-    highlight: 'كما يتكلمها الناس',
-    sub: 'نظام رحلة مدروس — كل يوم خطوة جديدة نحو الطلاقة',
-    color: '#3b82f6',
-    bg: 'linear-gradient(135deg,#060d1a 0%,#0a1830 60%,#0e2040 100%)',
-    accent: 'rgba(59,130,246,0.15)',
-    visual: (
-      <div className="relative w-full max-w-[260px] mx-auto">
-        {/* Map journey preview */}
-        <div className="rounded-3xl overflow-hidden p-5" style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)' }}>
-          <p className="text-white/40 text-xs mb-3 text-center">خريطة الرحلة</p>
-          {[
-            { c:'#10b981', t:'واد زم',          s:'مكتمل ✅' },
-            { c:'#3b82f6', t:'خريبكة',            s:'جاري ▶' },
-            { c:'rgba(255,255,255,0.15)', t:'بني ملال',   s:'🔒' },
-          ].map((r,i) => (
-            <div key={i} className="flex items-center gap-3 mb-2.5">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0" style={{ background: r.c, opacity: i === 2 ? 0.4 : 1 }}>
-                {i === 0 ? '⭐' : i === 1 ? '▶' : '🔒'}
-              </div>
-              <div className="flex-1">
-                <p className="text-white text-xs font-bold" style={{ opacity: i === 2 ? 0.3 : 1 }}>{r.t}</p>
-                <p className="text-xs" style={{ color: r.c, opacity: i === 2 ? 0.3 : 0.7 }}>{r.s}</p>
-              </div>
-            </div>
-          ))}
-          <div className="mt-3 h-1.5 rounded-full overflow-hidden" style={{ background:'rgba(255,255,255,0.08)' }}>
-            <div className="h-full rounded-full" style={{ width:'35%', background:'linear-gradient(90deg,#10b981,#3b82f6)' }} />
-          </div>
-          <p className="text-white/25 text-xs text-center mt-2">1 / 11 وحدة</p>
-        </div>
-      </div>
-    ),
-  },
-  {
-    emoji: '💬',
-    badge: 'محادثة حقيقية',
-    title: 'تحدث بثقة',
-    highlight: 'من اليوم الأول',
-    sub: 'تمارين حوار تفاعلية مبنية على مواقف من الحياة الحقيقية',
-    color: '#10b981',
-    bg: 'linear-gradient(135deg,#021208 0%,#031a0e 60%,#042614 100%)',
-    accent: 'rgba(16,185,129,0.15)',
-    visual: (
-      <div className="relative w-full max-w-[260px] mx-auto">
-        <div className="rounded-3xl overflow-hidden p-5" style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)' }}>
-          <p className="text-white/40 text-xs mb-4 text-center">محادثة تفاعلية</p>
-          <div className="space-y-3">
-            <div className="flex gap-2 items-start">
-              <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-xs font-black text-white shrink-0">A</div>
-              <div className="rounded-2xl rounded-tl-sm px-3 py-2" style={{ background:'rgba(16,185,129,0.15)', border:'1px solid rgba(16,185,129,0.25)' }}>
-                <p className="text-white text-xs">Good morning! How are you?</p>
-              </div>
-            </div>
-            <div className="flex gap-2 items-start flex-row-reverse">
-              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-xs font-black text-white shrink-0">أ</div>
-              <div className="rounded-2xl rounded-tr-sm px-3 py-2" style={{ background:'rgba(59,130,246,0.15)', border:'1px solid rgba(59,130,246,0.25)' }}>
-                <p className="text-white text-xs">I&apos;m great, thank you!</p>
-              </div>
-            </div>
-            <div className="flex gap-2 items-start">
-              <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-xs font-black text-white shrink-0">A</div>
-              <div className="rounded-2xl rounded-tl-sm px-3 py-2" style={{ background:'rgba(16,185,129,0.15)', border:'1px solid rgba(16,185,129,0.25)' }}>
-                <p className="text-white text-xs">Ready for today&apos;s lesson? 🚀</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    ),
-  },
-  {
-    emoji: '⚡',
-    badge: 'نظام XP وتقدم',
-    title: 'مكافآت وتحفيز',
-    highlight: 'يجعلك تعود كل يوم',
-    sub: 'نقاط XP وسلسلة يومية وإنجازات — تعلّم يبدو كلعبة ممتعة',
-    color: '#f59e0b',
-    bg: 'linear-gradient(135deg,#100800 0%,#1a0e00 60%,#261500 100%)',
-    accent: 'rgba(245,158,11,0.15)',
-    visual: (
-      <div className="relative w-full max-w-[260px] mx-auto">
-        <div className="rounded-3xl overflow-hidden p-5" style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)' }}>
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-center">
-              <p className="text-amber-400 font-black text-2xl">480</p>
-              <p className="text-white/30 text-xs">XP مكتسبة</p>
-            </div>
-            <div className="text-center">
-              <p className="text-orange-400 font-black text-2xl">🔥 7</p>
-              <p className="text-white/30 text-xs">أيام متتالية</p>
-            </div>
-            <div className="text-center">
-              <p className="text-blue-400 font-black text-2xl">A1</p>
-              <p className="text-white/30 text-xs">مستواك الحالي</p>
-            </div>
-          </div>
-          <div className="mb-3">
-            <div className="flex justify-between mb-1">
-              <span className="text-white/30 text-xs">A1</span>
-              <span className="text-white/30 text-xs">80 XP للمستوى A2</span>
-            </div>
-            <div className="h-3 rounded-full overflow-hidden" style={{ background:'rgba(255,255,255,0.08)' }}>
-              <div className="h-full rounded-full" style={{ width:'80%', background:'linear-gradient(90deg,#f59e0b,#fbbf24)', boxShadow:'0 0 8px rgba(245,158,11,0.6)' }} />
-            </div>
-          </div>
-          <div className="flex gap-2">
-            {['🎯','📚','💬','🏆','⭐'].map((e,i) => (
-              <div key={i} className="flex-1 aspect-square rounded-xl flex items-center justify-center text-lg"
-                style={{ background: i < 3 ? 'rgba(245,158,11,0.2)' : 'rgba(255,255,255,0.04)', border: `1px solid ${i < 3 ? 'rgba(245,158,11,0.35)' : 'rgba(255,255,255,0.07)'}`, opacity: i >= 3 ? 0.35 : 1 }}>
-                {e}
-              </div>
-            ))}
-          </div>
-          <p className="text-amber-400/50 text-xs text-center mt-2">3 إنجازات مكتملة</p>
-        </div>
-      </div>
-    ),
-  },
+// ─── Section heading ──────────────────────────────────────────────────────────
+function SectionHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <h2
+      className="text-2xl sm:text-3xl font-bold leading-snug mb-3"
+      style={{ color: C.text, fontFamily: FONT_HEADING }}
+    >
+      {children}
+    </h2>
+  )
+}
+
+function SectionSub({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-base leading-relaxed max-w-xl mx-auto" style={{ color: C.textMuted, fontFamily: FONT_BODY }}>
+      {children}
+    </p>
+  )
+}
+
+// ─── Divider ─────────────────────────────────────────────────────────────────
+function Divider() {
+  return <div className="w-full" style={{ height: 1, background: C.border }} />
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 1. HERO
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const HERO_STATS = [
+  { value: '+١٠٠٠', label: 'طالب مسجّل' },
+  { value: '١٥+',   label: 'مدينة في الرحلة' },
+  { value: '٥٠٠+',  label: 'تمرين تفاعلي' },
 ]
 
-const PLANS = [
-  { cefr:'A0', label:'المبتدئ المطلق', emoji:'🌱', color:'#10b981', desc:'أول كلماتك بالإنجليزية — من الصفر', units:'11 وحدة' },
-  { cefr:'A1', label:'المبتدئ',         emoji:'🌿', color:'#3b82f6', desc:'جمل بسيطة وأسئلة يومية',             units:'24 وحدة' },
-  { cefr:'A2', label:'الأساسي',         emoji:'⭐', color:'#06b6d4', desc:'محادثات اعتيادية ووصف نفسك',         units:'18 وحدة' },
-  { cefr:'B1', label:'المتوسط',         emoji:'🚀', color:'#8b5cf6', desc:'آراء وقصص وحوارات معقدة',            units:'20 وحدة' },
-  { cefr:'B2', label:'فوق المتوسط',    emoji:'💫', color:'#ec4899', desc:'طلاقة حقيقية ومفردات واسعة',          units:'قريباً' },
-  { cefr:'C1', label:'المتقدم',         emoji:'🏆', color:'#f59e0b', desc:'احتراف كامل — كالناطقين الأصليين',   units:'قريباً' },
-  { cefr:'BZ', label:'Business English',emoji:'💼', color:'#6366f1', desc:'الإنجليزية في بيئة الأعمال',          units:'قريباً' },
-]
-
-const HOW_STEPS = [
-  { n:'01', icon:'📚', title:'تعلم المفردات', desc:'10 كلمات جديدة مع صوت لكل كلمة — اضغط واسمع', color:'#3b82f6' },
-  { n:'02', icon:'✏️', title:'الجمل البسيطة', desc:'استيعاب الجمل وترجمتها بشكل طبيعي',             color:'#10b981' },
-  { n:'03', icon:'🗣️', title:'الجمل الطبيعية', desc:'كيف يتكلم الناس الحقيقيون — بلا حفظ',          color:'#8b5cf6' },
-  { n:'04', icon:'💬', title:'الحوار',          desc:'محادثة كاملة مبنية على سياق حقيقي',             color:'#f59e0b' },
-  { n:'05', icon:'🎯', title:'الاختبار التفاعلي', desc:'أكثر من 10 تمارين متنوعة تثبّت ما تعلمته',  color:'#ec4899' },
-]
-
-const TESTIMONIALS = [
-  { name:'أحمد رضا',     flag:'🇲🇦', role:'مهندس', xp:1240, streak:21, quote:'بدأت من الصفر وهلحين كنعرف نتكلم في الشغل. النظام هدا زوين بزاف!' },
-  { name:'سارة بنالي',   flag:'🇲🇦', role:'طالبة',  xp:890,  streak:14, quote:'ما شفتش نظام تعليم هكذا. كل يوم كتعلم شي جديد وماشي ممل.' },
-  { name:'محمد القاسم',  flag:'🇲🇦', role:'تاجر',   xp:2100, streak:45, quote:'45 يوم متتالية! الإنجليزية ولات عادية بالنسبة ليا.' },
-  { name:'نور الهدى',    flag:'🇩🇿', role:'موظفة',  xp:560,  streak:9,  quote:'الصوت مع كل كلمة غير كل شي. هلحين كنفهم المسلسلات!' },
-]
-
-const FEATURES = [
-  { icon:'🔊', title:'صوت لكل كلمة',       desc:'اسمع النطق الصحيح لكل مفردة وجملة بضغطة واحدة' },
-  { icon:'🎮', title:'تعلم مثل لعبة',       desc:'نقاط XP، سلسلة يومية وإنجازات تجعلك تعود كل يوم' },
-  { icon:'🗺️', title:'رحلة منظمة',          desc:'مسار واضح من A0 إلى C1 عبر مدن مغربية' },
-  { icon:'💬', title:'محادثة من اليوم الأول', desc:'لا قواعد نحو مملة — إنجليزية تُستخدم في الحياة' },
-  { icon:'📊', title:'تقدم مرئي',             desc:'شاهد تقدمك في كل يوم — XP، مستوى، وحدات مكتملة' },
-  { icon:'🆓', title:'ابدأ مجاناً',           desc:'الوحدات الأساسية مفتوحة — جرّب قبل أي التزام' },
-]
-
-const AVATARS = [
-  { l:'أ', c:'#3b82f6' }, { l:'س', c:'#ec4899' }, { l:'م', c:'#10b981' },
-  { l:'ن', c:'#f97316' }, { l:'ي', c:'#8b5cf6' },
-]
-
-// ─── Hero Slider ──────────────────────────────────────────────────────────────
 function HeroSection() {
-  const [idx, setIdx] = useState(0)
-  const slide = HERO_SLIDES[idx]
-
-  useEffect(() => {
-    const t = setInterval(() => setIdx(i => (i + 1) % HERO_SLIDES.length), 5200)
-    return () => clearInterval(t)
-  }, [])
-
   return (
     <section
-      className="relative min-h-screen flex items-center overflow-hidden"
-      style={{ background: slide.bg, transition: 'background 0.8s ease' }}
+      className="relative overflow-hidden"
+      style={{ background: 'linear-gradient(160deg,#f8fafc 0%,#eff6ff 60%,#f0fdf4 100%)', paddingTop: 80 }}
     >
-      {/* Background glow blobs */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-24 right-8 w-72 h-72 rounded-full blur-3xl" style={{ background: slide.accent, transition: 'background 0.8s' }} />
-        <div className="absolute bottom-24 left-8 w-56 h-56 rounded-full blur-3xl" style={{ background: slide.accent, opacity:0.6, transition: 'background 0.8s' }} />
-        <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage:'radial-gradient(circle,white 1px,transparent 1px)', backgroundSize:'32px 32px' }} />
-      </div>
+      {/* Subtle grid */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage: `
+            linear-gradient(${C.border} 1px, transparent 1px),
+            linear-gradient(90deg, ${C.border} 1px, transparent 1px)
+          `,
+          backgroundSize: '48px 48px',
+          opacity: 0.35,
+        }}
+      />
 
-      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 pt-24 pb-20 w-full">
-        <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center py-20 lg:py-28">
 
-          {/* Text */}
-          <div className="flex-1 text-center lg:text-right" dir="rtl">
-            {/* Badge */}
+          {/* ── Text ── */}
+          <div dir="rtl">
             <div
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold mb-6"
-              style={{ background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.12)', color:'rgba(255,255,255,0.8)' }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold mb-7"
+              style={{ background: C.blueSoft, color: C.blueText, border: `1px solid #bfdbfe` }}
             >
-              <span>{slide.emoji}</span>
-              <span>{slide.badge}</span>
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              مفتوح الآن — ابدأ مجاناً
             </div>
 
-            <h1 className="text-4xl sm:text-5xl font-black text-white leading-tight mb-3">
-              {slide.title}
+            <h1
+              className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-5"
+              style={{ color: C.text, fontFamily: FONT_HEADING, letterSpacing: '-0.01em' }}
+            >
+              تعلم الإنجليزية
               <br />
-              <span style={{ color: slide.color, transition:'color 0.5s' }}>{slide.highlight}</span>
+              <span style={{ color: C.blue }}>خطوة بخطوة</span>
             </h1>
 
-            <p className="text-white/55 text-lg leading-relaxed mb-8 max-w-md mx-auto lg:mx-0">
-              {slide.sub}
+            <p
+              className="text-lg leading-relaxed mb-8 max-w-lg"
+              style={{ color: C.textMuted, fontFamily: FONT_BODY, fontWeight: 400 }}
+            >
+              من الصفر حتى الاحتراف — بطريقة عملية تعتمد على المحادثة الحقيقية، بدون قواعد نحو معقدة.
             </p>
 
-            {/* CTA row */}
-            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start mb-8">
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-10">
               <Link
                 href="/onboarding"
-                className="flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-black text-lg text-white transition-all active:scale-95"
-                style={{ background:`linear-gradient(135deg,${slide.color},${slide.color}bb)`, boxShadow:`0 8px 28px ${slide.color}50` }}
+                className="flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold text-white transition-all active:scale-95"
+                style={{ background: C.blue, boxShadow: '0 4px 16px rgba(37,99,235,0.28)', fontFamily: FONT_BODY }}
               >
-                ابدأ الآن 🚀
+                ابدأ الآن
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M19 12H5M12 5l-7 7 7 7" />
+                </svg>
               </Link>
               <Link
-                href="/map"
-                className="flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-bold text-base transition-all active:scale-95"
-                style={{ background:'rgba(255,255,255,0.07)', border:'1px solid rgba(255,255,255,0.14)', color:'rgba(255,255,255,0.85)' }}
+                href="#path"
+                className="flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-sm font-medium transition-all active:scale-95"
+                style={{ color: C.blue, background: '#fff', border: `1.5px solid #bfdbfe`, fontFamily: FONT_BODY }}
               >
-                شاهد كيف يعمل ◀
+                استكشف المنهج
               </Link>
             </div>
 
-            {/* Trust line */}
-            <div className="flex flex-wrap items-center gap-3 justify-center lg:justify-start">
-              <div className="flex items-center">
-                {AVATARS.map((av, i) => (
-                  <div
-                    key={i}
-                    className="w-9 h-9 rounded-full border-2 flex items-center justify-center text-white font-black text-xs"
-                    style={{ background:av.c, borderColor:'rgba(0,0,0,0.4)', marginLeft: i > 0 ? -10 : 0, zIndex:5-i }}
-                  >
-                    {av.l}
-                  </div>
-                ))}
-              </div>
-              <div dir="rtl">
-                <div className="flex gap-0.5 mb-0.5">
-                  {[...Array(5)].map((_,i) => <span key={i} className="text-amber-400 text-xs">★</span>)}
+            {/* Stats row */}
+            <div className="flex items-center gap-6 flex-wrap">
+              {HERO_STATS.map((s, i) => (
+                <div key={i} dir="rtl">
+                  <p className="text-xl font-bold" style={{ color: C.text, fontFamily: FONT_HEADING }}>{s.value}</p>
+                  <p className="text-xs" style={{ color: C.textMuted }}>{s.label}</p>
                 </div>
-                <p className="text-white/45 text-xs">+1000 طالب — نتائج حقيقية — تعلم في 24 ساعة</p>
-              </div>
+              ))}
             </div>
           </div>
 
-          {/* Visual */}
-          <div className="w-full lg:w-auto lg:flex-shrink-0 lg:w-72" style={{ transition:'opacity 0.4s' }}>
-            {slide.visual}
+          {/* ── Visual panel ── */}
+          <div className="flex justify-center lg:justify-end">
+            <div
+              className="w-full max-w-sm rounded-3xl overflow-hidden shadow-lg"
+              style={{ background: '#fff', border: `1px solid ${C.border}` }}
+            >
+              {/* Student card header */}
+              <div className="px-6 py-5" style={{ borderBottom: `1px solid ${C.border}` }}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div
+                    className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-base"
+                    style={{ background: 'linear-gradient(135deg,#2563eb,#4f46e5)' }}
+                  >
+                    أ
+                  </div>
+                  <div dir="rtl">
+                    <p className="font-semibold text-sm" style={{ color: C.text, fontFamily: FONT_BODY }}>أحمد — طالب</p>
+                    <p className="text-xs" style={{ color: C.textMuted }}>يتعلم منذ ٣ أسابيع</p>
+                  </div>
+                  <div className="mr-auto flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold" style={{ background: '#f0fdf4', color: C.green }}>
+                    🔥 ١٤ يوم
+                  </div>
+                </div>
+                {/* XP bar */}
+                <div dir="rtl">
+                  <div className="flex justify-between text-xs mb-1.5" style={{ color: C.textMuted }}>
+                    <span>المستوى A1</span>
+                    <span>٦٤٠ / ١٠٠٠ XP</span>
+                  </div>
+                  <div className="h-2 rounded-full overflow-hidden" style={{ background: C.border }}>
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: '64%', background: 'linear-gradient(90deg,#2563eb,#4f46e5)' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Current lesson */}
+              <div className="px-6 py-4" style={{ borderBottom: `1px solid ${C.border}` }}>
+                <p className="text-xs font-semibold mb-3" style={{ color: C.textMuted, fontFamily: FONT_BODY }}>الدرس الحالي</p>
+                <div
+                  className="flex items-center gap-3 p-3 rounded-xl"
+                  style={{ background: C.blueSoft, border: `1px solid #bfdbfe` }}
+                >
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center text-xl" style={{ background: '#fff' }}>💬</div>
+                  <div dir="rtl" className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm truncate" style={{ color: C.text }}>Small Talk</p>
+                    <p className="text-xs" style={{ color: C.textMuted }}>المحادثة الخفيفة — مدينة القنيطرة</p>
+                  </div>
+                  <Link href="/map" className="shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs" style={{ background: C.blue }}>▶</Link>
+                </div>
+              </div>
+
+              {/* Recent activity */}
+              <div className="px-6 py-4">
+                <p className="text-xs font-semibold mb-3" style={{ color: C.textMuted }}>آخر نشاط</p>
+                <div className="flex flex-col gap-2" dir="rtl">
+                  {[
+                    { icon:'✅', text:'أكمل وحدة الاتجاهات', time:'اليوم', color:'#059669' },
+                    { icon:'⚡', text:'ربح ٥٠ نقطة XP',      time:'أمس',   color:'#d97706' },
+                    { icon:'🔓', text:'فتح مدينة سلا',        time:'٣ أيام', color:'#4f46e5' },
+                  ].map((a, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <span className="text-base">{a.icon}</span>
+                      <span className="flex-1 text-xs" style={{ color: C.text }}>{a.text}</span>
+                      <span className="text-xs" style={{ color: C.textMuted }}>{a.time}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Slider dots */}
-        <div className="flex justify-center gap-2 mt-12">
-          {HERO_SLIDES.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setIdx(i)}
-              className="rounded-full transition-all duration-300"
-              style={{
-                width: i === idx ? 28 : 8, height: 8,
-                background: i === idx ? slide.color : 'rgba(255,255,255,0.2)',
-              }}
-            />
-          ))}
-        </div>
       </div>
 
-      {/* Bottom wave */}
-      <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
-        <svg viewBox="0 0 1440 56" fill="none" preserveAspectRatio="none" style={{ display:'block' }}>
-          <path d="M0 56L1440 56L1440 24C1200 52 880 8 600 22C350 34 150 48 0 24Z" fill="rgba(7,11,20,1)" />
-        </svg>
-      </div>
+      {/* Bottom fade to white */}
+      <div className="h-12 w-full" style={{ background: 'linear-gradient(to bottom, transparent, #fff)' }} />
     </section>
   )
 }
 
-// ─── Plans Section ────────────────────────────────────────────────────────────
-function PlansSection() {
+// ═══════════════════════════════════════════════════════════════════════════════
+// 2. COURSES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const COURSES_DATA = [
+  { cefr:'A0', label:'البداية',        emoji:'🌱', color:'#059669', colorSoft:'#f0fdf4', colorBorder:'#bbf7d0', desc:'أول خطواتك — التحيات والتعارف والعبارات الأساسية', units:11, status:'open' },
+  { cefr:'A1', label:'المبتدئ',        emoji:'📖', color:'#2563eb', colorSoft:'#eff6ff', colorBorder:'#bfdbfe', desc:'الأسئلة والأرقام والوقت والروتين اليومي',              units:24, status:'open' },
+  { cefr:'A2', label:'الأساسي',        emoji:'💬', color:'#0891b2', colorSoft:'#ecfeff', colorBorder:'#a5f3fc', desc:'المحادثة اليومية والسفر والعمل والصحة',                units:18, status:'open' },
+  { cefr:'B1', label:'المتوسط',        emoji:'🚀', color:'#7c3aed', colorSoft:'#f5f3ff', colorBorder:'#ddd6fe', desc:'التعبير عن الرأي والحكايات والمواقف المعقدة',          units:20, status:'open' },
+  { cefr:'B2', label:'فوق المتوسط',   emoji:'⭐', color:'#db2777', colorSoft:'#fdf2f8', colorBorder:'#fbcfe8', desc:'طلاقة حقيقية ومفردات واسعة وأسلوب طبيعي',             units:0,  status:'soon' },
+  { cefr:'C1', label:'المتقدم',        emoji:'🏆', color:'#d97706', colorSoft:'#fffbeb', colorBorder:'#fde68a', desc:'الاحتراف الكامل — كالناطقين الأصليين تماماً',          units:0,  status:'soon' },
+  { cefr:'BZ', label:'Business Eng.', emoji:'💼', color:'#4f46e5', colorSoft:'#eef2ff', colorBorder:'#c7d2fe', desc:'الإنجليزية في بيئة الأعمال والمقابلات والكتابة الرسمية', units:0, status:'soon' },
+]
+
+function CoursesSection() {
   return (
-    <section id="plans" className="py-24" style={{ background:'#070b14' }}>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6">
-        <Reveal className="text-center mb-14">
-          <span className="inline-block px-4 py-1.5 rounded-full text-sm font-black mb-4" style={{ background:'rgba(59,130,246,0.12)', color:'#60a5fa', border:'1px solid rgba(59,130,246,0.25)' }}>
-            📚 خطط التعلم
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-black text-white mb-3">اختر مستواك — ابدأ رحلتك</h2>
-          <p className="text-white/40 text-lg max-w-xl mx-auto" dir="rtl">من الصفر المطلق إلى الاحتراف الكامل — كل مستوى رحلة قائمة بذاتها</p>
+    <section id="courses" className="py-20" style={{ background: '#fff' }}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+
+        <Reveal className="text-center mb-14" dir="rtl">
+          <SectionLabel>📚 الدورات</SectionLabel>
+          <SectionHeading>مسارات تعليمية منظمة</SectionHeading>
+          <SectionSub>اختر مستواك وانطلق — كل مستوى يبني على ما قبله بشكل طبيعي</SectionSub>
         </Reveal>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {PLANS.map((p, i) => (
-            <Reveal key={p.cefr} delay={i * 70}>
-              <Link
-                href={p.units === 'قريباً' ? '#' : '/onboarding'}
-                className="group relative flex flex-col gap-3 p-5 rounded-2xl transition-all duration-200 active:scale-[0.97]"
+          {COURSES_DATA.map((c, i) => (
+            <Reveal key={c.cefr} delay={i * 60}>
+              <div
+                className="group relative flex flex-col gap-4 p-5 rounded-2xl transition-all duration-200 hover:-translate-y-1"
                 style={{
-                  background: p.units === 'قريباً' ? 'rgba(255,255,255,0.02)' : `${p.color}0d`,
-                  border: `1.5px solid ${p.units === 'قريباً' ? 'rgba(255,255,255,0.07)' : p.color + '30'}`,
-                  opacity: p.units === 'قريباً' ? 0.6 : 1,
+                  background: '#fff',
+                  border: `1px solid ${C.border}`,
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+                  opacity: c.status === 'soon' ? 0.65 : 1,
                 }}
               >
-                {p.units === 'قريباً' && (
-                  <span className="absolute top-3 left-3 text-xs px-2 py-0.5 rounded-full font-bold" style={{ background:'rgba(255,255,255,0.06)', color:'rgba(255,255,255,0.3)' }}>
+                {c.status === 'soon' && (
+                  <span
+                    className="absolute top-4 left-4 text-xs px-2.5 py-1 rounded-full font-medium"
+                    style={{ background: '#f1f5f9', color: '#94a3b8', border: '1px solid #e2e8f0' }}
+                  >
                     قريباً
                   </span>
                 )}
-                <div className="flex items-center gap-3">
+
+                {/* Icon + badge */}
+                <div className="flex items-start gap-3">
                   <div
                     className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
-                    style={{ background:`${p.color}18`, border:`1.5px solid ${p.color}35` }}
+                    style={{ background: c.colorSoft, border: `1px solid ${c.colorBorder}` }}
                   >
-                    {p.emoji}
+                    {c.emoji}
                   </div>
-                  <div dir="rtl">
-                    <div className="flex items-center gap-2">
-                      <span className="font-black text-xs px-2 py-0.5 rounded-full" style={{ background:`${p.color}20`, color:p.color }}>{p.cefr !== 'BZ' ? p.cefr : 'BZ'}</span>
+                  <div dir="rtl" className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span
+                        className="text-xs font-bold px-2 py-0.5 rounded-md"
+                        style={{ background: c.colorSoft, color: c.color, border: `1px solid ${c.colorBorder}` }}
+                      >
+                        {c.cefr !== 'BZ' ? c.cefr : 'BZ'}
+                      </span>
                     </div>
-                    <p className="text-white font-black text-sm mt-0.5">{p.label}</p>
+                    <p className="font-semibold text-base" style={{ color: C.text, fontFamily: FONT_HEADING }}>{c.label}</p>
                   </div>
                 </div>
-                <p className="text-white/40 text-xs leading-relaxed" dir="rtl">{p.desc}</p>
-                <div className="flex items-center justify-between mt-1">
-                  <span className="text-xs font-bold" style={{ color: p.units === 'قريباً' ? 'rgba(255,255,255,0.2)' : p.color }}>
-                    {p.units}
-                  </span>
-                  {p.units !== 'قريباً' && (
-                    <span className="text-white/25 text-sm group-hover:text-white/60 transition-colors">←</span>
+
+                <p className="text-sm leading-relaxed" style={{ color: C.textMuted, fontFamily: FONT_BODY }} dir="rtl">
+                  {c.desc}
+                </p>
+
+                <div className="flex items-center justify-between mt-auto pt-1" dir="rtl">
+                  {c.units > 0 && (
+                    <span className="text-xs" style={{ color: C.textMuted }}>{c.units} وحدة تعليمية</span>
+                  )}
+                  {c.status === 'open' ? (
+                    <Link
+                      href="/onboarding"
+                      className="flex items-center gap-1.5 text-sm font-medium transition-colors px-3.5 py-2 rounded-lg"
+                      style={{ color: c.color, background: c.colorSoft, border: `1px solid ${c.colorBorder}` }}
+                    >
+                      ابدأ التعلم
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                        <path d="M19 12H5M12 5l-7 7 7 7" />
+                      </svg>
+                    </Link>
+                  ) : (
+                    <span className="text-xs" style={{ color: '#94a3b8' }}>قريباً...</span>
                   )}
                 </div>
-              </Link>
+              </div>
             </Reveal>
           ))}
         </div>
@@ -388,119 +387,250 @@ function PlansSection() {
   )
 }
 
-// ─── How It Works ─────────────────────────────────────────────────────────────
-function HowItWorksSection() {
-  const [activeStep, setActiveStep] = useState(0)
+// ═══════════════════════════════════════════════════════════════════════════════
+// 3. LEARNING PATH
+// ═══════════════════════════════════════════════════════════════════════════════
 
-  useEffect(() => {
-    const t = setInterval(() => setActiveStep(i => (i + 1) % HOW_STEPS.length), 2200)
-    return () => clearInterval(t)
-  }, [])
+const PATH_STEPS = [
+  {
+    n: '١', icon: '🗺️', title: 'تبدأ من واد زم',
+    desc: 'رحلتك تنطلق من مدينة واد زم — الوحدة الأولى في مستوى A0',
+    color: '#059669', colorSoft: '#f0fdf4',
+  },
+  {
+    n: '٢', icon: '📚', title: 'تتعلم المفردات',
+    desc: '١٠ كلمات جديدة مع صوت لكل كلمة — اضغط واسمع النطق الصحيح',
+    color: '#2563eb', colorSoft: '#eff6ff',
+  },
+  {
+    n: '٣', icon: '✏️', title: 'جمل بسيطة وطبيعية',
+    desc: 'تدريب على الجمل كما يستخدمها الناس في الحياة اليومية',
+    color: '#7c3aed', colorSoft: '#f5f3ff',
+  },
+  {
+    n: '٤', icon: '💬', title: 'حوار تفاعلي',
+    desc: 'محادثة كاملة بين شخصين — اضغط على كل جملة لتسمعها',
+    color: '#0891b2', colorSoft: '#ecfeff',
+  },
+  {
+    n: '٥', icon: '🎯', title: 'اختبارات متنوعة',
+    desc: 'أكثر من ١٠ تمارين — اختيار متعدد، ترجمة، ترتيب الجمل',
+    color: '#d97706', colorSoft: '#fffbeb',
+  },
+  {
+    n: '٦', icon: '⚡', title: 'تقدم وإنجاز',
+    desc: 'اكسب XP وافتح المدينة التالية — رحلة لا تتوقف',
+    color: '#db2777', colorSoft: '#fdf2f8',
+  },
+]
 
+function LearningPathSection() {
   return (
-    <section className="py-24 relative overflow-hidden" style={{ background:'linear-gradient(160deg,#080d1c 0%,#0c1428 100%)' }}>
-      {/* glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full blur-3xl pointer-events-none" style={{ background:'rgba(139,92,246,0.07)' }} />
+    <section id="path" className="py-20" style={{ background: C.slateLight }}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
 
-      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6">
-        <Reveal className="text-center mb-16">
-          <span className="inline-block px-4 py-1.5 rounded-full text-sm font-black mb-4" style={{ background:'rgba(139,92,246,0.12)', color:'#a78bfa', border:'1px solid rgba(139,92,246,0.25)' }}>
-            🎮 كيف يعمل النظام
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-black text-white mb-3">داخل كل وحدة — 5 مراحل</h2>
-          <p className="text-white/40 text-lg" dir="rtl">منهج مدروس يأخذك من الكلمة إلى المحادثة في جلسة واحدة</p>
+        <Reveal className="text-center mb-14" dir="rtl">
+          <SectionLabel color={C.green}>🗺️ مسار التعلم</SectionLabel>
+          <SectionHeading>من الصفر إلى المحادثة — في ٦ خطوات</SectionHeading>
+          <SectionSub>داخل كل وحدة تعليمية تجد هذا المسار المنظم الذي يأخذك خطوة بخطوة</SectionSub>
         </Reveal>
 
-        <div className="grid lg:grid-cols-2 gap-10 items-center">
-          {/* Steps list */}
-          <div className="flex flex-col gap-3">
-            {HOW_STEPS.map((step, i) => (
-              <Reveal key={step.n} delay={i * 80}>
-                <button
-                  onClick={() => setActiveStep(i)}
-                  className="w-full text-left flex items-center gap-4 p-4 rounded-2xl transition-all duration-300"
-                  style={{
-                    background: activeStep === i ? `${step.color}12` : 'rgba(255,255,255,0.03)',
-                    border: `1.5px solid ${activeStep === i ? step.color + '40' : 'rgba(255,255,255,0.07)'}`,
-                    boxShadow: activeStep === i ? `0 4px 20px ${step.color}18` : 'none',
-                  }}
+        {/* Desktop timeline */}
+        <div className="hidden lg:block relative">
+          {/* Connecting line */}
+          <div
+            className="absolute top-8 right-[calc(8.33%-8px)] left-[calc(8.33%-8px)]"
+            style={{ height: 2, background: C.border, zIndex: 0 }}
+          />
+
+          <div className="grid grid-cols-6 gap-4 relative z-10">
+            {PATH_STEPS.map((step, i) => (
+              <Reveal key={i} delay={i * 80} className="flex flex-col items-center text-center gap-3">
+                <div
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-sm"
+                  style={{ background: '#fff', border: `2px solid ${step.color}30` }}
                 >
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0 transition-all duration-300"
-                    style={{
-                      background: activeStep === i ? `${step.color}20` : 'rgba(255,255,255,0.05)',
-                      border: `1.5px solid ${activeStep === i ? step.color + '45' : 'rgba(255,255,255,0.08)'}`,
-                    }}
-                  >
-                    {step.icon}
-                  </div>
-                  <div dir="rtl" className="flex-1">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-xs font-black" style={{ color: step.color, opacity:0.6 }}>{step.n}</span>
-                      <p className="text-white font-black text-sm">{step.title}</p>
-                    </div>
-                    <p className="text-white/35 text-xs leading-relaxed">{step.desc}</p>
-                  </div>
-                  {activeStep === i && (
-                    <div className="w-1.5 h-8 rounded-full shrink-0" style={{ background:step.color }} />
-                  )}
-                </button>
+                  {step.icon}
+                </div>
+                <div dir="rtl">
+                  <p className="text-xs font-bold mb-1" style={{ color: step.color }}>{step.n}</p>
+                  <p className="text-sm font-semibold mb-1" style={{ color: C.text, fontFamily: FONT_HEADING }}>{step.title}</p>
+                  <p className="text-xs leading-relaxed" style={{ color: C.textMuted }}>{step.desc}</p>
+                </div>
               </Reveal>
             ))}
           </div>
+        </div>
 
-          {/* Phone mockup */}
-          <Reveal delay={200}>
-            <div className="flex justify-center">
+        {/* Mobile stacked */}
+        <div className="lg:hidden flex flex-col gap-4">
+          {PATH_STEPS.map((step, i) => (
+            <Reveal key={i} delay={i * 60}>
               <div
-                className="w-64 rounded-[2.5rem] overflow-hidden shadow-2xl"
-                style={{ background:'#060d1a', border:'2px solid rgba(255,255,255,0.1)', boxShadow:'0 32px 80px rgba(0,0,0,0.6)' }}
+                className="flex items-start gap-4 p-4 rounded-2xl"
+                style={{ background: '#fff', border: `1px solid ${C.border}` }}
               >
-                {/* Phone top bar */}
-                <div className="flex items-center justify-center pt-4 pb-2">
-                  <div className="w-24 h-5 rounded-full" style={{ background:'rgba(255,255,255,0.06)' }} />
-                </div>
-
-                {/* Screen content */}
-                <div className="px-4 pb-6">
-                  {/* Progress */}
-                  <div className="flex gap-1 mb-4">
-                    {HOW_STEPS.map((_, i) => (
-                      <div
-                        key={i}
-                        className="flex-1 h-1.5 rounded-full transition-all duration-500"
-                        style={{ background: i <= activeStep ? HOW_STEPS[activeStep].color : 'rgba(255,255,255,0.08)' }}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Active step card */}
+                {/* Left: number + line */}
+                <div className="flex flex-col items-center shrink-0">
                   <div
-                    className="rounded-2xl p-4 text-center mb-4"
-                    style={{ background: `${HOW_STEPS[activeStep].color}10`, border:`1px solid ${HOW_STEPS[activeStep].color}25` }}
+                    className="w-12 h-12 rounded-xl flex items-center justify-center text-xl"
+                    style={{ background: step.colorSoft, border: `1px solid ${step.color}30` }}
                   >
-                    <div className="text-5xl mb-2">{HOW_STEPS[activeStep].icon}</div>
-                    <p className="text-white font-black text-base mb-1" dir="rtl">{HOW_STEPS[activeStep].title}</p>
-                    <p className="text-white/35 text-xs" dir="rtl">{HOW_STEPS[activeStep].desc}</p>
+                    {step.icon}
                   </div>
+                  {i < PATH_STEPS.length - 1 && (
+                    <div className="w-0.5 h-full mt-2" style={{ background: C.border, minHeight: 24 }} />
+                  )}
+                </div>
+                <div dir="rtl" className="flex-1 pt-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: step.colorSoft, color: step.color }}>{step.n}</span>
+                    <p className="font-semibold text-sm" style={{ color: C.text }}>{step.title}</p>
+                  </div>
+                  <p className="text-xs leading-relaxed" style={{ color: C.textMuted }}>{step.desc}</p>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
 
-                  {/* Fake options */}
-                  <div className="flex flex-col gap-2">
-                    {['Hello 👋', 'Good morning ☀️', 'Hi there! 🙌'].map((o, i) => (
-                      <div
-                        key={i}
-                        className="px-3 py-2.5 rounded-xl text-xs font-bold text-white/70 text-center"
-                        style={{
-                          background: i === 1 ? `${HOW_STEPS[activeStep].color}18` : 'rgba(255,255,255,0.04)',
-                          border: `1px solid ${i === 1 ? HOW_STEPS[activeStep].color + '35' : 'rgba(255,255,255,0.08)'}`,
-                          color: i === 1 ? '#fff' : 'rgba(255,255,255,0.4)',
-                        }}
-                      >
-                        {o}
-                      </div>
-                    ))}
+        <Reveal delay={400} className="text-center mt-10">
+          <Link
+            href="/map"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all"
+            style={{ color: C.blue, background: C.blueSoft, border: `1px solid #bfdbfe` }}
+          >
+            شاهد الخريطة الكاملة 🗺️
+          </Link>
+        </Reveal>
+      </div>
+    </section>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 4. METHOD — HOW WE TEACH
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const METHOD_ITEMS = [
+  {
+    icon: '🗣️',
+    title: 'بدون قواعد نحو معقدة',
+    desc: 'نركز على ما تقوله، لا على كيفية كتابته — طريقة الطفل الطبيعية لتعلم اللغة.',
+    color: '#2563eb',
+  },
+  {
+    icon: '🔊',
+    title: 'الاستماع والنطق أولاً',
+    desc: 'كل كلمة وكل جملة مصحوبة بصوت — اسمع الإنجليزية الصحيحة قبل أن تتكلم.',
+    color: '#059669',
+  },
+  {
+    icon: '🔄',
+    title: 'تكرار ذكي ومنظم',
+    desc: 'كل يوم تراجع ما تعلمته بأسلوب مختلف — التكرار يثبّت اللغة في الذاكرة.',
+    color: '#7c3aed',
+  },
+  {
+    icon: '📱',
+    title: 'الاستخدام اليومي',
+    desc: 'جلسة قصيرة كل يوم أفضل من ساعات في الأسبوع — ١٥ دقيقة يومياً تكفي.',
+    color: '#0891b2',
+  },
+]
+
+function MethodSection() {
+  return (
+    <section className="py-20" style={{ background: '#fff' }}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+
+        <div className="grid lg:grid-cols-2 gap-14 items-center">
+
+          {/* Text side */}
+          <Reveal dir="rtl">
+            <SectionLabel>🎓 كيف تتعلم معنا</SectionLabel>
+            <SectionHeading>منهج مبني على كيف يتعلم الدماغ البشري</SectionHeading>
+            <p className="text-base leading-relaxed mb-8" style={{ color: C.textMuted, fontFamily: FONT_BODY }}>
+              تعتمد طريقتنا على نتائج البحث العلمي في تعلم اللغات — الاستماع والتكرار والاستخدام الفعلي، لا الحفظ والقواعد.
+            </p>
+
+            <div className="flex flex-col gap-4">
+              {METHOD_ITEMS.map((m, i) => (
+                <div key={i} className="flex items-start gap-4">
+                  <div
+                    className="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0"
+                    style={{ background: m.color + '12', border: `1px solid ${m.color}22` }}
+                  >
+                    {m.icon}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm mb-0.5" style={{ color: C.text, fontFamily: FONT_HEADING }}>{m.title}</p>
+                    <p className="text-sm leading-relaxed" style={{ color: C.textMuted }}>{m.desc}</p>
                   </div>
                 </div>
+              ))}
+            </div>
+          </Reveal>
+
+          {/* Visual panel */}
+          <Reveal delay={150}>
+            <div
+              className="rounded-3xl overflow-hidden shadow-sm"
+              style={{ border: `1px solid ${C.border}` }}
+            >
+              {/* Lesson phases mockup */}
+              <div className="px-6 py-5" style={{ borderBottom: `1px solid ${C.border}`, background: C.slateLight }}>
+                <p className="text-xs font-semibold mb-1" style={{ color: C.textMuted }}>داخل درس واحد</p>
+                <p className="text-sm font-bold" style={{ color: C.text }}>Greetings — واد زم</p>
+              </div>
+
+              <div className="bg-white">
+                {[
+                  { phase:'المفردات',         icon:'📚', done:true,  active:false, desc:'١٠ كلمات مع صوت' },
+                  { phase:'الجمل البسيطة',    icon:'✏️', done:true,  active:false, desc:'١٠ جمل وترجمتها' },
+                  { phase:'الجمل الطبيعية',   icon:'🗣️', done:false, active:true,  desc:'كيف يتكلم الناس' },
+                  { phase:'الحوار',            icon:'💬', done:false, active:false, desc:'محادثة كاملة' },
+                  { phase:'الاختبار',          icon:'🎯', done:false, active:false, desc:'١٣ تمريناً' },
+                ].map((p, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-4 px-6 py-4"
+                    style={{
+                      borderBottom: i < 4 ? `1px solid ${C.border}` : 'none',
+                      background: p.active ? C.blueSoft : '#fff',
+                    }}
+                  >
+                    <div
+                      className="w-9 h-9 rounded-lg flex items-center justify-center text-lg shrink-0"
+                      style={{
+                        background: p.done ? '#f0fdf4' : p.active ? '#eff6ff' : C.slateLight,
+                        border: `1px solid ${p.done ? '#bbf7d0' : p.active ? '#bfdbfe' : C.border}`,
+                      }}
+                    >
+                      {p.done ? '✅' : p.icon}
+                    </div>
+                    <div dir="rtl" className="flex-1">
+                      <p
+                        className="text-sm font-medium"
+                        style={{ color: p.active ? C.blueText : p.done ? '#6b7280' : C.text }}
+                      >
+                        {p.phase}
+                      </p>
+                      <p className="text-xs" style={{ color: C.textMuted }}>{p.desc}</p>
+                    </div>
+                    {p.active && (
+                      <div
+                        className="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full"
+                        style={{ background: C.blue, color: '#fff' }}
+                      >
+                        الآن
+                      </div>
+                    )}
+                    {p.done && (
+                      <div className="shrink-0 text-xs" style={{ color: '#86efac' }}>✓</div>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
           </Reveal>
@@ -510,60 +640,213 @@ function HowItWorksSection() {
   )
 }
 
-// ─── Social Proof ─────────────────────────────────────────────────────────────
-function SocialProofSection() {
+// ═══════════════════════════════════════════════════════════════════════════════
+// 5. STUDENT EXPERIENCE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const EXP_FEATURES = [
+  {
+    icon: '⚡',
+    title: 'نظام نقاط XP',
+    desc: 'كل إجابة صحيحة = +١٠ نقطة. كل درس مكتمل = +٥٠. الارتقاء في المستويات من A0 إلى C1.',
+    color: '#d97706',
+    colorSoft: '#fffbeb',
+  },
+  {
+    icon: '🔥',
+    title: 'السلسلة اليومية',
+    desc: 'تعلّم كل يوم واحفظ سلسلتك. يوم واحد ينقطع يعيد العداد إلى الصفر — تحدٍّ حقيقي.',
+    color: '#dc2626',
+    colorSoft: '#fff1f2',
+  },
+  {
+    icon: '🗺️',
+    title: 'خريطة الرحلة',
+    desc: 'كل مدينة مغربية تمثل مستوى. أكمل المدينة وافتح التالية — مسار واضح لا يتشتت.',
+    color: '#059669',
+    colorSoft: '#f0fdf4',
+  },
+  {
+    icon: '📊',
+    title: 'تقدم مرئي',
+    desc: 'شريط تقدم في كل مستوى، عدد الوحدات المكتملة، والمدن المفتوحة — كلها أمامك دائماً.',
+    color: '#2563eb',
+    colorSoft: '#eff6ff',
+  },
+]
+
+function ExperienceSection() {
   return (
-    <section className="py-24" style={{ background:'#060a12' }}>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6">
-        <Reveal className="text-center mb-14">
-          <span className="inline-block px-4 py-1.5 rounded-full text-sm font-black mb-4" style={{ background:'rgba(16,185,129,0.12)', color:'#34d399', border:'1px solid rgba(16,185,129,0.25)' }}>
-            💬 قالوا عن إنجليزي.كوم
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-black text-white mb-3">نتائج حقيقية من طلاب حقيقيين</h2>
+    <section className="py-20" style={{ background: C.slateLight }}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+
+        <Reveal className="text-center mb-14" dir="rtl">
+          <SectionLabel color="#7c3aed">🎮 تجربة الطالب</SectionLabel>
+          <SectionHeading>نظام يجعلك تعود كل يوم</SectionHeading>
+          <SectionSub>ليس مجرد دروس — بل تجربة تعليمية مصممة لتبقى ملتزماً حتى تصل</SectionSub>
         </Reveal>
 
-        {/* Stats row */}
-        <Reveal className="grid grid-cols-3 gap-4 mb-14">
-          {[
-            { val:'+1000', label:'طالب نشط' },
-            { val:'97%',   label:'معدل الرضا' },
-            { val:'4.9★',  label:'التقييم العام' },
-          ].map((s, i) => (
-            <div key={i} className="text-center py-5 rounded-2xl" style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)' }}>
-              <p className="text-white font-black text-2xl sm:text-3xl">{s.val}</p>
-              <p className="text-white/30 text-xs mt-1" dir="rtl">{s.label}</p>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+          {EXP_FEATURES.map((f, i) => (
+            <Reveal key={i} delay={i * 70}>
+              <div
+                className="flex flex-col gap-3 p-5 rounded-2xl h-full transition-all duration-200 hover:-translate-y-1"
+                style={{ background: '#fff', border: `1px solid ${C.border}`, boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}
+              >
+                <div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+                  style={{ background: f.colorSoft, border: `1px solid ${f.color}25` }}
+                >
+                  {f.icon}
+                </div>
+                <div dir="rtl">
+                  <p className="font-semibold text-sm mb-1.5" style={{ color: C.text, fontFamily: FONT_HEADING }}>{f.title}</p>
+                  <p className="text-xs leading-relaxed" style={{ color: C.textMuted }}>{f.desc}</p>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        {/* Map preview strip */}
+        <Reveal delay={200}>
+          <div
+            className="rounded-2xl overflow-hidden shadow-sm"
+            style={{ border: `1px solid ${C.border}`, background: '#fff' }}
+          >
+            <div className="px-6 py-4" style={{ borderBottom: `1px solid ${C.border}`, background: C.slateLight }}>
+              <div className="flex items-center justify-between" dir="rtl">
+                <p className="text-sm font-semibold" style={{ color: C.text }}>خريطة الرحلة — المغرب 🇲🇦</p>
+                <Link href="/map" className="text-xs font-medium" style={{ color: C.blue }}>شاهد الكاملة ←</Link>
+              </div>
+            </div>
+
+            <div className="px-6 py-5 overflow-x-auto">
+              <div className="flex items-center gap-3 min-w-max">
+                {[
+                  { name:'واد زم',    emoji:'🌱', cefr:'A0', done:true,    color:'#059669' },
+                  { name:'خريبكة',    emoji:'❓', cefr:'A1', done:true,    color:'#3b82f6' },
+                  { name:'بني ملال',  emoji:'⏰', cefr:'A1', done:false,   color:'#3b82f6', current:true },
+                  { name:'سطات',      emoji:'🍔', cefr:'A1', done:false,   color:'#3b82f6' },
+                  { name:'الجديدة',   emoji:'🗺️', cefr:'A1', locked:true,  color:'#94a3b8' },
+                  { name:'...',       emoji:'',   cefr:'',   locked:true,  color:'#94a3b8', more:true },
+                ].map((city, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <div className="flex flex-col items-center gap-1.5 text-center" style={{ minWidth: 72 }}>
+                      <div
+                        className="w-12 h-12 rounded-full flex items-center justify-center text-xl relative"
+                        style={{
+                          background: city.done ? city.color + '18' : city.locked ? '#f1f5f9' : city.color + '12',
+                          border: `2px solid ${city.done ? city.color : city.locked ? '#e2e8f0' : city.color + '60'}`,
+                          boxShadow: city.current ? `0 0 0 4px ${city.color}22` : 'none',
+                          opacity: city.locked ? 0.5 : 1,
+                        }}
+                      >
+                        {city.more ? '…' : city.locked ? '🔒' : city.done ? '⭐' : city.emoji}
+                      </div>
+                      <p className="text-xs font-medium" style={{ color: city.locked ? '#94a3b8' : C.text }}>{city.name}</p>
+                      {city.cefr && <span className="text-xs px-1.5 py-0.5 rounded-sm font-bold" style={{ background: city.color + '15', color: city.color, fontSize: 10 }}>{city.cefr}</span>}
+                    </div>
+
+                    {i < 5 && (
+                      <div className="w-6 h-0.5 shrink-0" style={{ background: i < 2 ? '#10b981' : C.border }} />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 6. TRUST
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const TESTIMONIALS = [
+  {
+    name: 'أحمد رضا',   flag: '🇲🇦', role: 'مهندس',  q: 'بعد شهر من الاستخدام اليومي صرت أفهم المحادثات الإنجليزية بشكل طبيعي. النظام مختلف عن أي طريقة جربتها قبل.',   stars: 5,
+  },
+  {
+    name: 'سارة بنالي',  flag: '🇲🇦', role: 'طالبة',   q: 'أعجبني أن كل كلمة فيها صوت — ساعدني كثيراً على تحسين النطق. والرحلة عبر المدن فكرة ممتازة للتحفيز.',          stars: 5,
+  },
+  {
+    name: 'محمد القاسم', flag: '🇩🇿', role: 'تاجر',    q: 'وصلت للمستوى A2 في أقل من شهرين. أنصح به كل شخص يريد تعلم الإنجليزية بطريقة علمية وليست مجرد حفظ.',         stars: 5,
+  },
+  {
+    name: 'نور الهدى',   flag: '🇲🇦', role: 'موظفة',   q: 'النظام يجعلك تتقدم بشكل تلقائي — ما تشعرش بالملل. وسلسلة الأيام المتتالية دفعتني للمواظبة يومياً.',           stars: 5,
+  },
+]
+
+const TRUST_STATS = [
+  { value: '+١٠٠٠', label: 'طالب نشط', icon: '👩‍🎓' },
+  { value: '٩٧٪',   label: 'معدل الرضا', icon: '⭐' },
+  { value: '٤.٩',   label: 'تقييم عام', icon: '🏅' },
+  { value: '١٥+',   label: 'مدينة في الرحلة', icon: '🗺️' },
+]
+
+function TrustSection() {
+  return (
+    <section className="py-20" style={{ background: '#fff' }}>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+
+        <Reveal className="text-center mb-14" dir="rtl">
+          <SectionLabel color={C.green}>💬 آراء الطلاب</SectionLabel>
+          <SectionHeading>نتائج حقيقية من طلاب حقيقيين</SectionHeading>
+        </Reveal>
+
+        {/* Stats strip */}
+        <Reveal className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-14">
+          {TRUST_STATS.map((s, i) => (
+            <div
+              key={i}
+              className="text-center py-6 px-4 rounded-2xl"
+              style={{ background: C.slateLight, border: `1px solid ${C.border}` }}
+            >
+              <p className="text-2xl mb-2">{s.icon}</p>
+              <p className="text-2xl font-bold mb-1" style={{ color: C.text, fontFamily: FONT_HEADING }}>{s.value}</p>
+              <p className="text-sm" style={{ color: C.textMuted }}>{s.label}</p>
             </div>
           ))}
         </Reveal>
 
-        {/* Testimonials grid */}
+        {/* Testimonials */}
         <div className="grid sm:grid-cols-2 gap-4">
           {TESTIMONIALS.map((t, i) => (
-            <Reveal key={i} delay={i * 80}>
+            <Reveal key={i} delay={i * 60}>
               <div
-                className="flex flex-col gap-4 p-5 rounded-2xl"
-                style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)' }}
+                className="flex flex-col gap-4 p-6 rounded-2xl h-full"
+                style={{ background: C.slateLight, border: `1px solid ${C.border}` }}
               >
-                {/* Header */}
-                <div className="flex items-center gap-3">
+                {/* Stars */}
+                <div className="flex gap-1">
+                  {[...Array(t.stars)].map((_, j) => (
+                    <span key={j} style={{ color: '#f59e0b', fontSize: 14 }}>★</span>
+                  ))}
+                </div>
+
+                <p
+                  className="text-sm leading-relaxed flex-1"
+                  style={{ color: '#374151', fontFamily: FONT_BODY }}
+                  dir="rtl"
+                >
+                  &ldquo;{t.q}&rdquo;
+                </p>
+
+                <div className="flex items-center gap-3 pt-2" style={{ borderTop: `1px solid ${C.border}` }}>
                   <div
-                    className="w-11 h-11 rounded-full flex items-center justify-center font-black text-white shrink-0"
-                    style={{ background:`hsl(${i * 90 + 120},60%,40%)` }}
+                    className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white text-sm shrink-0"
+                    style={{ background: `hsl(${i * 90 + 200},55%,45%)` }}
                   >
                     {t.name[0]}
                   </div>
-                  <div dir="rtl" className="flex-1">
-                    <p className="text-white font-black text-sm">{t.flag} {t.name}</p>
-                    <p className="text-white/30 text-xs">{t.role}</p>
+                  <div dir="rtl">
+                    <p className="text-sm font-semibold" style={{ color: C.text }}>{t.flag} {t.name}</p>
+                    <p className="text-xs" style={{ color: C.textMuted }}>{t.role}</p>
                   </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className="text-xs font-black text-amber-400">⚡ {t.xp} XP</span>
-                    <span className="text-xs text-orange-400">🔥 {t.streak} يوم</span>
-                  </div>
-                </div>
-                <p className="text-white/60 text-sm leading-relaxed" dir="rtl">&ldquo;{t.quote}&rdquo;</p>
-                <div className="flex gap-0.5">
-                  {[...Array(5)].map((_,j) => <span key={j} className="text-amber-400 text-xs">★</span>)}
                 </div>
               </div>
             </Reveal>
@@ -574,95 +857,62 @@ function SocialProofSection() {
   )
 }
 
-// ─── Features Section ─────────────────────────────────────────────────────────
-function FeaturesSection() {
-  return (
-    <section className="py-24" style={{ background:'linear-gradient(160deg,#070c1c 0%,#0a1020 100%)' }}>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6">
-        <Reveal className="text-center mb-14">
-          <span className="inline-block px-4 py-1.5 rounded-full text-sm font-black mb-4" style={{ background:'rgba(249,115,22,0.12)', color:'#fb923c', border:'1px solid rgba(249,115,22,0.25)' }}>
-            ⚡ لماذا إنجليزي.كوم؟
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-black text-white mb-3">تعلم مختلف — نتائج مختلفة</h2>
-          <p className="text-white/40 text-lg" dir="rtl">نظام مبني على أحدث طرق التعلم اللغوي — بدون قواعد مملة</p>
-        </Reveal>
+// ═══════════════════════════════════════════════════════════════════════════════
+// 7. FINAL CTA
+// ═══════════════════════════════════════════════════════════════════════════════
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {FEATURES.map((f, i) => (
-            <Reveal key={i} delay={i * 60}>
-              <div
-                className="group p-5 rounded-2xl transition-all duration-300"
-                style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.07)' }}
-              >
-                <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-4"
-                  style={{ background:'rgba(255,255,255,0.06)', border:'1px solid rgba(255,255,255,0.1)' }}
-                >
-                  {f.icon}
-                </div>
-                <h3 className="text-white font-black text-base mb-2" dir="rtl">{f.title}</h3>
-                <p className="text-white/35 text-sm leading-relaxed" dir="rtl">{f.desc}</p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── Final CTA ────────────────────────────────────────────────────────────────
 function FinalCTA() {
   return (
-    <section className="py-28 relative overflow-hidden" style={{ background:'linear-gradient(135deg,#050913 0%,#0c1428 50%,#0e1830 100%)' }}>
-      {/* Glow orbs */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[400px] rounded-full blur-3xl pointer-events-none" style={{ background:'rgba(59,130,246,0.12)' }} />
-      <div className="absolute bottom-0 right-1/4 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ background:'rgba(139,92,246,0.1)' }} />
-      <div className="absolute inset-0 pointer-events-none opacity-[0.025]" style={{ backgroundImage:'radial-gradient(circle,white 1px,transparent 1px)', backgroundSize:'28px 28px' }} />
-
-      <div className="relative z-10 max-w-2xl mx-auto px-4 text-center">
-        <Reveal>
+    <section className="py-24" style={{ background: C.slateLight, borderTop: `1px solid ${C.border}` }}>
+      <div className="max-w-2xl mx-auto px-4 text-center">
+        <Reveal dir="rtl">
           <div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold mb-8"
-            style={{ background:'rgba(245,158,11,0.12)', border:'1px solid rgba(245,158,11,0.25)', color:'#fbbf24' }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold mb-6"
+            style={{ background: '#eff6ff', color: C.blueText, border: '1px solid #bfdbfe' }}
           >
-            🏆 انضم لأكثر من 1000 طالب ناجح
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            مفتوح الآن — ابدأ مجاناً
           </div>
 
-          <h2 className="text-4xl sm:text-5xl font-black text-white mb-5 leading-tight" dir="rtl">
-            ابدأ رحلتك<br />
-            <span style={{ background:'linear-gradient(90deg,#3b82f6,#8b5cf6)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
-              الآن
-            </span>
+          <h2
+            className="text-3xl sm:text-4xl font-bold mb-5 leading-tight"
+            style={{ color: C.text, fontFamily: FONT_HEADING }}
+          >
+            ابدأ رحلتك اليوم
           </h2>
 
-          <p className="text-white/45 text-lg mb-10 leading-relaxed" dir="rtl">
-            لا تؤجل — كل يوم تنتظر هو يوم ضائع.<br />
-            رحلتك تبدأ من واد زم وتنتهي عندما تصبح محترفاً حقيقياً.
+          <p
+            className="text-base leading-relaxed mb-10 max-w-md mx-auto"
+            style={{ color: C.textMuted, fontFamily: FONT_BODY }}
+          >
+            انضم لأكثر من ١٠٠٠ طالب يتعلمون الإنجليزية بطريقة مختلفة — منظمة، عملية، وممتعة.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-8">
             <Link
               href="/onboarding"
-              className="flex items-center justify-center gap-2 px-10 py-5 rounded-2xl font-black text-xl text-white transition-all active:scale-95"
-              style={{ background:'linear-gradient(135deg,#3b82f6,#6366f1)', boxShadow:'0 12px 40px rgba(59,130,246,0.45)' }}
+              className="flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-sm font-semibold text-white transition-all active:scale-95"
+              style={{ background: C.blue, boxShadow: '0 4px 20px rgba(37,99,235,0.3)', fontFamily: FONT_BODY }}
             >
-              🚀 ابدأ الآن — مجاناً
+              ابدأ الآن — مجاناً
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M19 12H5M12 5l-7 7 7 7" />
+              </svg>
             </Link>
             <a
               href={WA}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 px-10 py-5 rounded-2xl font-black text-xl text-white transition-all active:scale-95"
-              style={{ background:'#25d366', boxShadow:'0 12px 40px rgba(37,211,102,0.35)' }}
+              className="flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-sm font-semibold text-white transition-all active:scale-95"
+              style={{ background: '#16a34a', boxShadow: '0 4px 20px rgba(22,163,74,0.25)', fontFamily: FONT_BODY }}
             >
-              <WAIcon size={22} />
-              واتساب
+              <WAIcon size={16} />
+              تواصل عبر واتساب
             </a>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-5 text-white/35 text-sm" dir="rtl">
-            {['✅ ابدأ مجاناً', '🔒 بدون بطاقة', '📱 يعمل على الموبايل', '🇲🇦 مصمم للعرب'].map((t, i) => (
+          <div className="flex flex-wrap justify-center gap-5 text-xs" style={{ color: C.textMuted }}>
+            {['✓ لا يلزم بطاقة بنكية', '✓ ابدأ مجاناً', '✓ يعمل على الموبايل', '✓ دعم كامل بالعربية'].map((t, i) => (
               <span key={i}>{t}</span>
             ))}
           </div>
@@ -672,15 +922,24 @@ function FinalCTA() {
   )
 }
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAGE
+// ═══════════════════════════════════════════════════════════════════════════════
+
 export default function HomePage() {
   return (
-    <main className="overflow-x-hidden" dir="rtl">
+    <main className="overflow-x-hidden" dir="rtl" style={{ background: '#fff' }}>
       <HeroSection />
-      <PlansSection />
-      <HowItWorksSection />
-      <SocialProofSection />
-      <FeaturesSection />
+      <Divider />
+      <CoursesSection />
+      <Divider />
+      <LearningPathSection />
+      <Divider />
+      <MethodSection />
+      <Divider />
+      <ExperienceSection />
+      <Divider />
+      <TrustSection />
       <FinalCTA />
     </main>
   )
