@@ -503,3 +503,11 @@ p {
   cursor: pointer;
 }
 .audio-progress { -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; outline: none; }
+
+/* ===== Courses grid responsive ===== */
+@media (max-width: 900px) {
+  .courses-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 580px) {
+  .courses-grid { grid-template-columns: 1fr !important; }
+}

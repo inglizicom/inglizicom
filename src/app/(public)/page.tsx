@@ -27,12 +27,12 @@ const FEATURES = [
 ]
 
 const COURSES = [
-  { level:'A0', title:'المبتدئ المطلق',   desc:'ابدأ من الصفر الحقيقي',              dur:'3 أسابيع', price:'99 درهم',  clr:'#dcfce7', bc:G, open:true  },
-  { level:'A1', title:'الأساسيات',        desc:'أول جمل وتعبيرات حقيقية',            dur:'4 أسابيع', price:'149 درهم', clr:'#dbeafe', bc:B, open:true  },
-  { level:'A2', title:'المحادثة اليومية', desc:'تحدث في المواقف اليومية بسهولة',     dur:'5 أسابيع', price:'149 درهم', clr:'#fdf4ff', bc:P, open:true  },
-  { level:'B1', title:'المتوسط',          desc:'أفكار ومواقف ومشاعر بالإنجليزية',    dur:'6 أسابيع', price:'199 درهم', clr:'#fff7ed', bc:O, open:true  },
-  { level:'B2', title:'فوق المتوسط',      desc:'نقاش وفهم عميق لأي موضوع',           dur:'7 أسابيع', price:'249 درهم', clr:'#fef9c3', bc:'#ca8a04', open:false },
-  { level:'C1', title:'الاحتراف',         desc:'طلاقة كاملة في كل المجالات',          dur:'8 أسابيع', price:'299 درهم', clr:'#fce7f3', bc:'#db2777', open:false },
+  { level:'A0', title:'المبتدئ المطلق',   desc:'أول خطوة — تتعلم التحيات والكلام الأساسي',  dur:'3 أسابيع', price:'99 درهم',  open:true,  featured:true  },
+  { level:'A1', title:'الأساسيات',        desc:'أول جمل وتعبيرات حقيقية من الحياة اليومية', dur:'4 أسابيع', price:'149 درهم', open:true,  featured:false },
+  { level:'A2', title:'المحادثة اليومية', desc:'تحدث في المواقف اليومية بثقة وسهولة',       dur:'5 أسابيع', price:'149 درهم', open:true,  featured:false },
+  { level:'B1', title:'المتوسط',          desc:'عبّر عن أفكارك ومشاعرك بالإنجليزية',        dur:'6 أسابيع', price:'199 درهم', open:true,  featured:false },
+  { level:'B2', title:'فوق المتوسط',      desc:'نقاش وفهم عميق لأي موضوع أو سياق',          dur:'7 أسابيع', price:'249 درهم', open:false, featured:false },
+  { level:'C1', title:'الاحتراف',         desc:'طلاقة كاملة في كل المجالات والسياقات',       dur:'8 أسابيع', price:'299 درهم', open:false, featured:false },
 ]
 
 const TESTIMONIALS = [
@@ -598,65 +598,134 @@ function FeaturesSection() {
 /* ══════════════════════════════════════════════
    4. COURSES
 ══════════════════════════════════════════════ */
-function CourseCard({ c, i }: { c:typeof COURSES[number]; i:number }) {
+function CourseCard({ c, i }: { c: typeof COURSES[number]; i: number }) {
   const { ref, vis } = useVisible(0.08)
   const [h, sH] = useState(false)
+
+  const isFeatured = c.featured
+  const canHover   = h && c.open
+
   return (
-    <div ref={ref}
-      onMouseEnter={()=>sH(true)} onMouseLeave={()=>sH(false)}
+    <div
+      ref={ref}
+      onMouseEnter={() => sH(true)}
+      onMouseLeave={() => sH(false)}
       style={{
-        background:'#fff',
-        border:`2px solid ${h&&c.open?c.bc:'#f1f5f9'}`,
-        borderRadius:26, padding:'32px 28px',
-        opacity: vis?(c.open?1:.5):0,
-        transform: vis?(h&&c.open?'translateY(-9px) scale(1.015)':'none'):'translateY(28px)',
-        boxShadow: h&&c.open?`0 24px 56px rgba(0,0,0,.11)`:'0 2px 16px rgba(0,0,0,.04)',
-        transition:`opacity .55s ${i*.07}s, transform .25s ease, border-color .2s, box-shadow .25s`,
-        display:'flex', flexDirection:'column',
+        background: '#fff',
+        border: `${isFeatured ? '2.5px' : '1.5px'} solid ${canHover || isFeatured ? G : '#f1f5f9'}`,
+        borderRadius: 24,
+        padding: isFeatured ? '36px 32px' : '28px 26px',
+        opacity: vis ? (c.open ? 1 : 0.5) : 0,
+        transform: vis
+          ? (canHover ? 'translateY(-8px) scale(1.015)' : 'none')
+          : 'translateY(28px)',
+        boxShadow: isFeatured
+          ? (canHover
+            ? '0 28px 64px rgba(34,197,94,.22)'
+            : '0 12px 40px rgba(34,197,94,.15)')
+          : (canHover
+            ? '0 16px 40px rgba(0,0,0,.10)'
+            : '0 2px 12px rgba(0,0,0,.04)'),
+        transition: `opacity .55s ${i * .07}s ease, transform .25s ease, box-shadow .25s ease, border-color .2s ease`,
+        display: 'flex', flexDirection: 'column',
+        position: 'relative', overflow: 'hidden',
       }}
     >
-      {/* top accent bar */}
+      {/* top accent line */}
       <div style={{
-        height:5,
-        background:c.open?`linear-gradient(90deg,${c.bc},${c.clr}aa)`:'#e2e8f0',
-        marginTop:-32, marginLeft:-28, marginRight:-28, marginBottom:28,
-        borderRadius:'24px 24px 0 0',
+        position: 'absolute', top: 0, left: 0, right: 0,
+        height: isFeatured ? 5 : 3,
+        background: c.open
+          ? `linear-gradient(90deg, ${GL}, ${G})`
+          : '#e2e8f0',
+        borderRadius: '24px 24px 0 0',
       }}/>
 
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:18 }}>
+      {/* featured badge */}
+      {isFeatured && (
+        <div style={{
+          position: 'absolute', top: 16, left: 20,
+          background: 'linear-gradient(135deg,#ff6b35,#f59e0b)',
+          color: '#fff', fontSize: '0.72rem', fontWeight: 800,
+          padding: '4px 12px', borderRadius: 99, fontFamily: F,
+        }}>
+          🔥 الأكثر طلباً
+        </div>
+      )}
+
+      {/* level + soon */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, marginTop: isFeatured ? 28 : 12 }}>
         <span style={{
-          background:c.clr, color:c.bc,
-          fontWeight:900, fontSize:'0.9rem',
-          padding:'5px 14px', borderRadius:10, fontFamily:F,
-        }}>{c.level}</span>
-        {!c.open && <span style={{ background:'#f1f5f9', color:'#94a3b8', fontSize:'0.72rem', padding:'3px 10px', borderRadius:8, fontFamily:F, fontWeight:600 }}>قريباً</span>}
+          background: c.open ? '#dcfce7' : '#f1f5f9',
+          color: c.open ? GL : '#94a3b8',
+          fontWeight: 900, fontSize: '0.9rem',
+          padding: '5px 14px', borderRadius: 10, fontFamily: F,
+        }}>
+          {c.level}
+        </span>
+        {!c.open && (
+          <span style={{ background: '#f1f5f9', color: '#94a3b8', fontSize: '0.72rem', fontWeight: 600, padding: '3px 10px', borderRadius: 8, fontFamily: F }}>
+            قريباً
+          </span>
+        )}
       </div>
 
-      <p style={{ fontWeight:800, fontSize:'1.08rem', color:DARK, marginBottom:6, fontFamily:F }}>{c.title}</p>
-      <p style={{ color:MUTED, fontSize:'0.875rem', fontWeight:400, lineHeight:1.65, marginBottom:18, fontFamily:F }}>{c.desc}</p>
+      {/* title */}
+      <p style={{
+        fontWeight: 900,
+        fontSize: isFeatured ? '1.2rem' : '1.05rem',
+        color: DARK, marginBottom: 8, fontFamily: F,
+      }}>
+        {c.title}
+      </p>
 
-      <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:22 }}>
-        <span style={{ background:'#f0fdf4', color:GL, fontSize:'0.75rem', padding:'3px 10px', borderRadius:8, fontFamily:F, fontWeight:600 }}>⏱ {c.dur}</span>
-        <span style={{ background:'#eff6ff', color:B, fontSize:'0.75rem', padding:'3px 10px', borderRadius:8, fontFamily:F, fontWeight:600 }}>بدون قواعد مملة</span>
+      {/* desc */}
+      <p style={{
+        color: MUTED, fontSize: '0.875rem',
+        fontWeight: 400, lineHeight: 1.7,
+        marginBottom: 18, fontFamily: F,
+      }}>
+        {c.desc}
+      </p>
+
+      {/* tags */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 22 }}>
+        <span style={{ background: '#f0fdf4', color: GL, fontSize: '0.75rem', padding: '4px 12px', borderRadius: 8, fontFamily: F, fontWeight: 600 }}>
+          ⏱ {c.dur}
+        </span>
+        <span style={{ background: '#f8fafc', color: MUTED, fontSize: '0.75rem', padding: '4px 12px', borderRadius: 8, fontFamily: F, fontWeight: 600 }}>
+          بدون قواعد مملة
+        </span>
       </div>
 
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:'auto' }}>
-        <span style={{ fontWeight:900, fontSize:'1.1rem', color:DARK, fontFamily:F }}>{c.price}</span>
+      {/* price + CTA */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
+        <div>
+          <span style={{ fontWeight: 900, fontSize: isFeatured ? '1.3rem' : '1.1rem', color: DARK, fontFamily: F }}>
+            {c.price}
+          </span>
+        </div>
         {c.open ? (
-          <Link href={`/courses/${c.level.toLowerCase()}`} style={{
-            background:`linear-gradient(135deg,${c.bc},${c.clr})`,
-            color: c.bc==='#ca8a04'||c.bc===O?'#fff':'#fff',
-            padding:'9px 22px', borderRadius:12,
-            fontSize:'0.875rem', fontWeight:800,
-            textDecoration:'none', fontFamily:F,
-            transition:'transform .15s, box-shadow .15s',
-            boxShadow:`0 4px 14px ${c.bc}55`,
-          }}
-          onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.transform='scale(1.07)'}}
-          onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.transform='none'}}
-          >ابدأ الآن</Link>
+          <Link
+            href={`/courses/${c.level.toLowerCase()}`}
+            style={{
+              background: `linear-gradient(135deg,${GL},${G})`,
+              color: '#fff',
+              padding: isFeatured ? '11px 28px' : '9px 22px',
+              borderRadius: 12,
+              fontSize: isFeatured ? '0.95rem' : '0.875rem',
+              fontWeight: 800,
+              textDecoration: 'none', fontFamily: F,
+              boxShadow: '0 4px 16px rgba(34,197,94,.38)',
+              transition: 'transform .15s, box-shadow .15s',
+            }}
+            onMouseEnter={e => { const t = e.currentTarget as HTMLElement; t.style.transform = 'scale(1.06)'; t.style.boxShadow = '0 8px 24px rgba(34,197,94,.5)' }}
+            onMouseLeave={e => { const t = e.currentTarget as HTMLElement; t.style.transform = 'none'; t.style.boxShadow = '0 4px 16px rgba(34,197,94,.38)' }}
+          >
+            ابدأ الآن
+          </Link>
         ) : (
-          <span style={{ color:'#94a3b8', fontSize:'0.85rem', fontFamily:F }}>قريباً</span>
+          <span style={{ color: '#94a3b8', fontSize: '0.85rem', fontFamily: F }}>قريباً</span>
         )}
       </div>
     </div>
@@ -666,20 +735,43 @@ function CourseCard({ c, i }: { c:typeof COURSES[number]; i:number }) {
 function CoursesSection() {
   const { ref, vis } = useVisible()
   return (
-    <section style={{ background:'#fff', padding:'80px 24px' }}>
-      <div style={{ maxWidth:1040, margin:'0 auto' }}>
+    <section style={{ background: '#f8fafc', padding: '88px 24px' }}>
+      <div style={{ maxWidth: 1060, margin: '0 auto' }}>
+
+        {/* heading */}
         <div ref={ref} style={{
-          textAlign:'center', marginBottom:52,
-          opacity:vis?1:0, transform:vis?'none':'translateY(18px)',
-          transition:'opacity .5s, transform .5s',
+          textAlign: 'center', marginBottom: 56,
+          opacity: vis ? 1 : 0,
+          transform: vis ? 'none' : 'translateY(18px)',
+          transition: 'opacity .5s, transform .5s',
         }}>
-          <Tag color="#eff6ff" text={B}>📚 الدورات</Tag>
-          <h2 style={{ fontSize:'clamp(1.6rem,3.5vw,2.2rem)', fontWeight:900, color:DARK, fontFamily:F, marginTop:4 }}>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            background: '#dcfce7', borderRadius: 99,
+            padding: '5px 18px', marginBottom: 16,
+          }}>
+            <span style={{ fontSize: '0.9rem' }}>📚</span>
+            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: GL, fontFamily: F }}>الدورات</span>
+          </div>
+          <h2 style={{
+            fontSize: 'clamp(1.7rem, 3.5vw, 2.3rem)',
+            fontWeight: 900, color: DARK, fontFamily: F, marginBottom: 12,
+          }}>
             اختر مستواك وابدأ رحلتك
           </h2>
-          <p style={{ color:MUTED, fontFamily:F, marginTop:10 }}>6 مستويات من الصفر إلى الاحتراف الكامل</p>
+          <p style={{ color: MUTED, fontFamily: F, fontWeight: 400 }}>
+            6 مستويات من الصفر إلى الاحتراف الكامل — كل دورة بدون قواعد مملة
+          </p>
         </div>
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(300px,1fr))', gap:22 }}>
+
+        {/* grid */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: 24,
+        }}
+        className="courses-grid"
+        >
           {COURSES.map((c, i) => <CourseCard key={c.level} c={c} i={i} />)}
         </div>
       </div>
