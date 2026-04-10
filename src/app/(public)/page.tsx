@@ -509,6 +509,31 @@ function CoursesSection() {
 /* ──────────────────────────────────────────────
    5. WHY
 ────────────────────────────────────────────── */
+function WhyCard({ w, i, vis }: { w: typeof WHY[number]; i: number; vis: boolean }) {
+  const [hov, setHov] = useState(false)
+  return (
+    <div
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: hov ? SOFT : '#fff',
+        border:`1.5px solid ${hov ? G : '#e2e8f0'}`,
+        borderRadius:22, padding:'36px 28px',
+        textAlign:'center',
+        opacity: vis ? 1 : 0,
+        transform: vis ? (hov ? 'translateY(-6px)' : 'none') : 'translateY(28px)',
+        boxShadow: hov ? `0 16px 40px rgba(34,197,94,.14)` : '0 2px 12px rgba(0,0,0,.04)',
+        transition: `opacity .55s ${i*.1}s, transform .25s ease, border-color .2s, box-shadow .25s, background .2s`,
+        cursor:'default',
+      }}
+    >
+      <div style={{ fontSize:'2.8rem', marginBottom:18 }}>{w.icon}</div>
+      <p style={{ fontWeight:800, fontSize:'1rem', color:DARK, marginBottom:8, fontFamily:F }}>{w.title}</p>
+      <p style={{ color:MUTED, fontSize:'0.875rem', fontWeight:400, lineHeight:1.65, fontFamily:F }}>{w.desc}</p>
+    </div>
+  )
+}
+
 function WhySection() {
   const { ref, vis } = useVisible()
   return (
@@ -526,33 +551,7 @@ function WhySection() {
           <p style={{ color:MUTED, fontFamily:F }}>نهج عملي يُعطي نتائج حقيقية</p>
         </div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(210px,1fr))', gap:20 }}>
-          {WHY.map((w, i) => {
-            // eslint-disable-next-line react-hooks/rules-of-hooks
-            const [hov, setHov] = useState(false)
-            return (
-              <div key={i}
-                onMouseEnter={() => setHov(true)}
-                onMouseLeave={() => setHov(false)}
-                style={{
-                  background: hov ? SOFT : '#fff',
-                  border:`1.5px solid ${hov ? G : '#e2e8f0'}`,
-                  borderRadius:22, padding:'36px 28px',
-                  textAlign:'center',
-                  opacity: vis ? 1 : 0,
-                  transform: vis
-                    ? (hov ? 'translateY(-6px)' : 'none')
-                    : 'translateY(28px)',
-                  boxShadow: hov ? `0 16px 40px rgba(34,197,94,.14)` : '0 2px 12px rgba(0,0,0,.04)',
-                  transition: `opacity .55s ${i*.1}s, transform .25s ease, border-color .2s, box-shadow .25s, background .2s`,
-                  cursor:'default',
-                }}
-              >
-                <div style={{ fontSize:'2.8rem', marginBottom:18 }}>{w.icon}</div>
-                <p style={{ fontWeight:800, fontSize:'1rem', color:DARK, marginBottom:8, fontFamily:F }}>{w.title}</p>
-                <p style={{ color:MUTED, fontSize:'0.875rem', fontWeight:400, lineHeight:1.65, fontFamily:F }}>{w.desc}</p>
-              </div>
-            )
-          })}
+          {WHY.map((w, i) => <WhyCard key={i} w={w} i={i} vis={vis} />)}
         </div>
       </div>
     </section>
