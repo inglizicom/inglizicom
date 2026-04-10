@@ -103,69 +103,83 @@ function Tag({ children, color='#dcfce7', text='#16a34a' }: { children:React.Rea
 }
 
 /* ══════════════════════════════════════════════
-   1. HERO + 1b. SLIDER DATA
+   1. HERO (split: text left + image slider right)
 ══════════════════════════════════════════════ */
-const SLIDER_SLIDES = [
+const HERO_IMAGES = [
   {
-    image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=900&h=520&fit=crop&q=80',
-    text: 'تحدث من أول يوم',
-    sub: 'محادثات حقيقية من الدرس الأول',
-    accent: '#2563eb',
+    src: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=720&h=860&fit=crop&q=80',
+    label: 'تحدث من أول يوم',
+    accent: G,
   },
   {
-    image: 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=900&h=520&fit=crop&q=80',
-    text: 'تعلم في أي وقت',
-    sub: 'من هاتفك أو حاسوبك في أي مكان',
-    accent: '#16a34a',
+    src: 'https://images.unsplash.com/photo-1531545514256-b1400bc00f31?w=720&h=860&fit=crop&q=80',
+    label: 'محادثة حقيقية',
+    accent: B,
   },
   {
-    image: 'https://images.unsplash.com/photo-1543269865-cbf427effbad?w=900&h=520&fit=crop&q=80',
-    text: 'دروس قصيرة ممتعة',
-    sub: '5 دقائق كافية لتتقدم كل يوم',
-    accent: '#7c3aed',
+    src: 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=720&h=860&fit=crop&q=80',
+    label: 'تعلم في أي مكان',
+    accent: P,
   },
 ]
 
 /* ──────────────────────────────────────────────
-   HERO — split layout, fixed
+   HERO — split: text left + image slider right
 ────────────────────────────────────────────── */
 function Hero() {
-  const [on, setOn] = useState(false)
+  const [idx, setIdx]   = useState(0)
+  const [fade, setFade] = useState(false)
+  const [on, setOn]     = useState(false)
+
   useEffect(() => { const t = setTimeout(() => setOn(true), 60); return () => clearTimeout(t) }, [])
+
+  const go = (next: number) => {
+    if (fade) return
+    setFade(true)
+    setTimeout(() => { setIdx(next); setFade(false) }, 380)
+  }
+
+  useEffect(() => {
+    const t = setInterval(() => go((idx + 1) % HERO_IMAGES.length), 3500)
+    return () => clearInterval(t)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idx, fade])
 
   const fd = (d: number): React.CSSProperties => ({
     opacity: on ? 1 : 0,
-    transform: on ? 'none' : 'translateY(24px)',
+    transform: on ? 'none' : 'translateY(22px)',
     transition: `opacity .7s ${d}s ease, transform .7s ${d}s ease`,
   })
 
+  const img = HERO_IMAGES[idx]
+
   return (
     <section style={{
-      background: 'linear-gradient(150deg, #0f172a 0%, #1e3a5f 45%, #1d4ed8 100%)',
+      background: 'linear-gradient(160deg, #f0fdf4 0%, #ffffff 50%, #eff6ff 100%)',
       paddingTop: 68, minHeight: '92vh',
       display: 'flex', alignItems: 'center',
       overflow: 'hidden', position: 'relative',
     }}>
-      {/* bg glows */}
-      <div style={{ position:'absolute', top:-120, right:-80, width:480, height:480, borderRadius:'50%', background:'rgba(255,255,255,.05)', pointerEvents:'none' }}/>
-      <div style={{ position:'absolute', bottom:-80, left:-60, width:340, height:340, borderRadius:'50%', background:'rgba(255,255,255,.04)', pointerEvents:'none' }}/>
+      {/* soft bg glows */}
+      <div style={{ position:'absolute', top:-100, left:-80, width:440, height:440, borderRadius:'50%', background:'radial-gradient(circle,rgba(34,197,94,.1),transparent 70%)', pointerEvents:'none' }}/>
+      <div style={{ position:'absolute', bottom:-80, right:-60, width:360, height:360, borderRadius:'50%', background:'radial-gradient(circle,rgba(37,99,235,.08),transparent 70%)', pointerEvents:'none' }}/>
 
       <div style={{
         maxWidth: 1120, margin: '0 auto', width: '100%',
-        padding: '64px 28px',
+        padding: '60px 28px',
         display: 'flex', alignItems: 'center',
-        gap: 60, flexWrap: 'wrap',
+        gap: 56, flexWrap: 'wrap',
       }}>
 
-        {/* ── LEFT: TEXT ── */}
+        {/* ── TEXT (right in RTL = right side visually) ── */}
         <div style={{ flex: '1 1 360px', textAlign: 'right' }} dir="rtl">
+
           <div style={{ ...fd(0), marginBottom: 18 }}>
             <span style={{
-              display: 'inline-block',
-              background: 'rgba(255,255,255,.15)',
-              border: '1px solid rgba(255,255,255,.28)',
-              color: '#fff', fontSize: '0.8rem', fontWeight: 700,
-              padding: '6px 18px', borderRadius: 99, fontFamily: F,
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              background: '#dcfce7', color: GL,
+              fontSize: '0.78rem', fontWeight: 700,
+              padding: '5px 16px', borderRadius: 99, fontFamily: F,
             }}>
               🎉 الأكثر استخداماً في المغرب
             </span>
@@ -173,24 +187,22 @@ function Hero() {
 
           <h1 style={{
             ...fd(0.1),
-            fontSize: 'clamp(2.2rem,5.5vw,3.8rem)',
-            fontWeight: 900, lineHeight: 1.1,
-            color: '#fff', fontFamily: F, marginBottom: 20,
+            fontSize: 'clamp(2.1rem, 5.5vw, 3.6rem)',
+            fontWeight: 900, lineHeight: 1.12,
+            color: DARK, fontFamily: F, marginBottom: 20,
           }}>
             تعلم الإنجليزية<br/>
             <span style={{
-              background: 'linear-gradient(90deg,#fff,#93c5fd)',
+              background: `linear-gradient(90deg,${GL},${G},#4ade80)`,
               WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
-            }}>
-              بالمحادثة
-            </span>
+            }}>بالمحادثة</span>
           </h1>
 
           <p style={{
             ...fd(0.18),
-            fontSize: '1.08rem', color: 'rgba(255,255,255,.8)',
-            lineHeight: 1.85, marginBottom: 40, fontFamily: F, fontWeight: 400,
+            fontSize: '1.08rem', color: MUTED,
+            lineHeight: 1.88, marginBottom: 38, fontFamily: F, fontWeight: 400,
           }}>
             بدون قواعد مملة — فقط ممارسة يومية<br/>
             من الصفر حتى الطلاقة الكاملة 🚀
@@ -203,24 +215,24 @@ function Hero() {
               padding: '14px 40px', borderRadius: 14,
               fontSize: '1rem', fontWeight: 900,
               textDecoration: 'none', fontFamily: F,
-              boxShadow: '0 6px 28px rgba(34,197,94,.45)',
+              boxShadow: '0 6px 28px rgba(34,197,94,.4)',
               transition: 'transform .18s, box-shadow .18s',
             }}
-            onMouseEnter={e=>{const t=e.currentTarget as HTMLElement;t.style.transform='scale(1.05)';t.style.boxShadow='0 10px 36px rgba(34,197,94,.6)'}}
-            onMouseLeave={e=>{const t=e.currentTarget as HTMLElement;t.style.transform='none';t.style.boxShadow='0 6px 28px rgba(34,197,94,.45)'}}
+            onMouseEnter={e=>{const t=e.currentTarget as HTMLElement;t.style.transform='scale(1.05)';t.style.boxShadow='0 10px 36px rgba(34,197,94,.55)'}}
+            onMouseLeave={e=>{const t=e.currentTarget as HTMLElement;t.style.transform='none';t.style.boxShadow='0 6px 28px rgba(34,197,94,.4)'}}
             >ابدأ الآن</Link>
 
             <Link href="/courses/a0" style={{
               display: 'inline-flex', alignItems: 'center',
-              background: 'rgba(255,255,255,.14)',
-              border: '1.5px solid rgba(255,255,255,.35)',
-              color: '#fff', padding: '13px 28px', borderRadius: 14,
+              background: '#fff', color: GL,
+              border: '2px solid #22c55e',
+              padding: '12px 28px', borderRadius: 14,
               fontSize: '0.95rem', fontWeight: 700,
               textDecoration: 'none', fontFamily: F,
               transition: 'background .18s, transform .18s',
             }}
-            onMouseEnter={e=>{const t=e.currentTarget as HTMLElement;t.style.background='rgba(255,255,255,.24)';t.style.transform='scale(1.04)'}}
-            onMouseLeave={e=>{const t=e.currentTarget as HTMLElement;t.style.background='rgba(255,255,255,.14)';t.style.transform='none'}}
+            onMouseEnter={e=>{const t=e.currentTarget as HTMLElement;t.style.background='#f0fdf4';t.style.transform='scale(1.04)'}}
+            onMouseLeave={e=>{const t=e.currentTarget as HTMLElement;t.style.background='#fff';t.style.transform='none'}}
             >جرب درس مجاني</Link>
           </div>
 
@@ -230,203 +242,131 @@ function Hero() {
               {['👩‍🎓','🧑‍💻','👩‍🏫','🧑‍💼','🧕'].map((e,i) => (
                 <div key={i} style={{
                   width: 38, height: 38, borderRadius: '50%',
-                  background: `hsl(${i*55+200},65%,60%)`,
-                  border: '2.5px solid rgba(255,255,255,.4)',
+                  background: `hsl(${i*55+120},65%,62%)`,
+                  border: '2.5px solid #fff',
                   marginLeft: i ? -10 : 0, zIndex: 5-i,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '1rem',
                 }}>{e}</div>
               ))}
             </div>
-            <div style={{ borderRight: '1px solid rgba(255,255,255,.2)', paddingRight: 18 }}>
-              <div style={{ fontWeight: 900, fontSize: '0.95rem', color: '#fff', fontFamily: F }}>+1,000 طالب</div>
-              <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,.65)', fontFamily: F }}>⭐⭐⭐⭐⭐ تقييم 4.9</div>
+            <div style={{ borderRight: '1px solid #e2e8f0', paddingRight: 18 }}>
+              <div style={{ fontWeight: 900, fontSize: '0.92rem', color: DARK, fontFamily: F }}>+1,000 طالب</div>
+              <div style={{ fontSize: '0.72rem', color: MUTED, fontFamily: F }}>⭐⭐⭐⭐⭐ تقييم 4.9</div>
             </div>
             <div>
-              <div style={{ fontWeight: 900, fontSize: '0.95rem', color: '#fff', fontFamily: F }}>97%</div>
-              <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,.65)', fontFamily: F }}>نسبة الرضا</div>
+              <div style={{ fontWeight: 900, fontSize: '0.92rem', color: DARK, fontFamily: F }}>97%</div>
+              <div style={{ fontSize: '0.72rem', color: MUTED, fontFamily: F }}>نسبة الرضا</div>
             </div>
           </div>
         </div>
 
-        {/* ── RIGHT: IMAGE ── */}
+        {/* ── IMAGE SLIDER ── */}
         <div style={{
           flex: '1 1 300px', position: 'relative',
-          minHeight: 400, display: 'flex',
-          alignItems: 'center', justifyContent: 'center',
-          opacity: on ? 1 : 0, transition: 'opacity .9s .15s ease',
+          minHeight: 440,
+          opacity: on ? 1 : 0, transition: 'opacity .9s .2s ease',
         }}>
-          {/* main photo */}
-          <div className="float-1" style={{
-            width: 340, height: 420, borderRadius: 36,
-            overflow: 'hidden', position: 'relative',
-            boxShadow: '0 40px 100px rgba(0,0,0,.45)',
-            border: '1.5px solid rgba(255,255,255,.2)',
+          {/* image card */}
+          <div style={{
+            width: '100%', height: 440,
+            borderRadius: 28, overflow: 'hidden', position: 'relative',
+            boxShadow: '0 28px 72px rgba(0,0,0,.16)',
+            border: '1.5px solid #e2e8f0',
           }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=680&h=840&fit=crop&q=80"
-              alt="طالب يتعلم الإنجليزية"
-              style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top', display:'block' }}
+              src={img.src}
+              alt={img.label}
+              style={{
+                width: '100%', height: '100%',
+                objectFit: 'cover', objectPosition: 'center top',
+                display: 'block',
+                opacity: fade ? 0 : 1,
+                transform: fade ? 'scale(1.05)' : 'scale(1)',
+                transition: 'opacity .38s ease, transform .38s ease',
+              }}
             />
-            <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg,transparent 55%,rgba(0,0,0,.4) 100%)', pointerEvents:'none' }}/>
-          </div>
-
-          {/* floating: chat */}
-          <div className="float-2" style={{
-            position:'absolute', top:28, right:-16,
-            background:'#fff', borderRadius:18, padding:'11px 16px',
-            boxShadow:'0 10px 36px rgba(0,0,0,.18)',
-            display:'flex', alignItems:'center', gap:10, fontFamily:F,
-          }}>
-            <span style={{ fontSize:'1.5rem' }}>💬</span>
-            <div>
-              <div style={{ fontWeight:800, fontSize:'0.78rem', color:DARK }}>محادثة حقيقية</div>
-              <div style={{ fontSize:'0.67rem', color:MUTED }}>من أول درس</div>
-            </div>
-          </div>
-
-          {/* floating: audio */}
-          <div className="float-3" style={{
-            position:'absolute', bottom:60, left:-16,
-            background:'#fff', borderRadius:18, padding:'11px 16px',
-            boxShadow:'0 10px 36px rgba(0,0,0,.18)',
-            display:'flex', alignItems:'center', gap:10, fontFamily:F,
-          }}>
-            <span style={{ fontSize:'1.5rem' }}>🔊</span>
-            <div>
-              <div style={{ fontWeight:800, fontSize:'0.78rem', color:DARK }}>نطق صحيح</div>
-              <div style={{ fontSize:'0.67rem', color:MUTED }}>صوت + تكرار</div>
-            </div>
-          </div>
-
-          {/* floating: stars */}
-          <div className="float-1" style={{
-            position:'absolute', bottom:12, right:10,
-            background:G, borderRadius:14, padding:'9px 16px',
-            boxShadow:'0 6px 22px rgba(34,197,94,.45)', fontFamily:F,
-          }}>
-            <div style={{ fontSize:'0.73rem', fontWeight:800, color:'#fff' }}>⭐ +1,000 طالب معنا</div>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ──────────────────────────────────────────────
-   1b. HERO SLIDER — below hero
-────────────────────────────────────────────── */
-function HeroSlider() {
-  const [idx, setIdx]       = useState(0)
-  const [fading, setFading] = useState(false)
-
-  const go = (next: number) => {
-    if (fading) return
-    setFading(true)
-    setTimeout(() => { setIdx(next); setFading(false) }, 320)
-  }
-
-  useEffect(() => {
-    const t = setInterval(() => go((idx + 1) % SLIDER_SLIDES.length), 3000)
-    return () => clearInterval(t)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [idx, fading])
-
-  const s = SLIDER_SLIDES[idx]
-
-  return (
-    <section style={{ background: '#fff', padding: '64px 24px' }}>
-      <div style={{ maxWidth: 900, margin: '0 auto' }}>
-
-        {/* slide card */}
-        <div style={{
-          position: 'relative', borderRadius: 28, overflow: 'hidden',
-          height: 420, boxShadow: '0 24px 64px rgba(0,0,0,.14)',
-        }}>
-          {/* background image */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={s.image}
-            alt={s.text}
-            style={{
+            {/* gradient overlay */}
+            <div style={{
               position: 'absolute', inset: 0,
-              width: '100%', height: '100%',
-              objectFit: 'cover', objectPosition: 'center',
-              opacity: fading ? 0 : 1,
-              transform: fading ? 'scale(1.04)' : 'scale(1)',
-              transition: 'opacity .35s ease, transform .35s ease',
-            }}
-          />
+              background: 'linear-gradient(180deg,transparent 55%,rgba(0,0,0,.55) 100%)',
+              pointerEvents: 'none',
+            }}/>
+            {/* label pill */}
+            <div style={{
+              position: 'absolute', bottom: 22, right: 22,
+              background: img.accent, color: '#fff',
+              fontSize: '0.78rem', fontWeight: 800,
+              padding: '6px 16px', borderRadius: 99,
+              fontFamily: F,
+              opacity: fade ? 0 : 1,
+              transform: fade ? 'translateY(8px)' : 'none',
+              transition: 'opacity .35s .06s, transform .35s .06s',
+            }}>
+              {img.label}
+            </div>
 
-          {/* dark overlay */}
-          <div style={{
-            position: 'absolute', inset: 0,
-            background: 'linear-gradient(to top, rgba(0,0,0,.72) 0%, rgba(0,0,0,.15) 60%, transparent 100%)',
-          }}/>
-
-          {/* text overlay */}
-          <div style={{
-            position: 'absolute', bottom: 0, right: 0, left: 0,
-            padding: '36px 40px',
-            opacity: fading ? 0 : 1,
-            transform: fading ? 'translateY(10px)' : 'none',
-            transition: 'opacity .35s .05s ease, transform .35s .05s ease',
-            textAlign: 'right', direction: 'rtl',
-          }}>
-            <span style={{
-              display: 'inline-block',
-              background: s.accent,
-              color: '#fff', fontSize: '0.75rem', fontWeight: 700,
-              padding: '4px 14px', borderRadius: 99, fontFamily: F,
-              marginBottom: 12,
-            }}>
-              {['تعلم', 'مرونة', 'متعة'][idx]}
-            </span>
-            <h3 style={{
-              fontSize: 'clamp(1.5rem, 3.5vw, 2.2rem)',
-              fontWeight: 900, color: '#fff',
-              fontFamily: F, marginBottom: 8, lineHeight: 1.2,
-            }}>
-              {s.text}
-            </h3>
-            <p style={{
-              fontSize: '0.95rem', color: 'rgba(255,255,255,.8)',
-              fontFamily: F, fontWeight: 400,
-            }}>
-              {s.sub}
-            </p>
+            {/* arrows */}
+            {[0, 1].map(si => (
+              <button key={si} onClick={() => go(si === 0 ? (idx - 1 + HERO_IMAGES.length) % HERO_IMAGES.length : (idx + 1) % HERO_IMAGES.length)} style={{
+                position: 'absolute', top: '50%',
+                [si === 0 ? 'right' : 'left']: 14,
+                transform: 'translateY(-50%)',
+                width: 38, height: 38, borderRadius: '50%',
+                background: 'rgba(255,255,255,.22)',
+                border: '1px solid rgba(255,255,255,.4)',
+                color: '#fff', cursor: 'pointer',
+                fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                backdropFilter: 'blur(6px)',
+                transition: 'background .15s',
+              }}
+              onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,.4)'}}
+              onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,.22)'}}
+              >{si === 0 ? '›' : '‹'}</button>
+            ))}
           </div>
 
-          {/* prev/next arrows */}
-          {(['right','left'] as const).map((side, si) => (
-            <button key={side} onClick={() => go(si === 0 ? (idx - 1 + SLIDER_SLIDES.length) % SLIDER_SLIDES.length : (idx + 1) % SLIDER_SLIDES.length)} style={{
-              position: 'absolute', top: '50%', [side]: 16,
-              transform: 'translateY(-50%)',
-              width: 42, height: 42, borderRadius: '50%',
-              background: 'rgba(255,255,255,.2)',
-              border: '1px solid rgba(255,255,255,.35)',
-              color: '#fff', cursor: 'pointer',
-              fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              transition: 'background .15s',
-              backdropFilter: 'blur(6px)',
-            }}
-            onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,.38)'}}
-            onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,.2)'}}
-            >{si === 0 ? '›' : '‹'}</button>
-          ))}
-        </div>
+          {/* dots */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginTop: 16 }}>
+            {HERO_IMAGES.map((im, i) => (
+              <button key={i} onClick={() => go(i)} style={{
+                width: i === idx ? 28 : 9, height: 9,
+                borderRadius: 5, border: 'none', cursor: 'pointer', padding: 0,
+                background: i === idx ? im.accent : '#cbd5e1',
+                transition: 'width .32s ease, background .28s',
+              }}/>
+            ))}
+          </div>
 
-        {/* dots */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 22 }}>
-          {SLIDER_SLIDES.map((sl, i) => (
-            <button key={i} onClick={() => go(i)} style={{
-              width: i === idx ? 32 : 10, height: 10,
-              borderRadius: 5, border: 'none', cursor: 'pointer', padding: 0,
-              background: i === idx ? sl.accent : '#cbd5e1',
-              transition: 'width .35s ease, background .3s',
-            }}/>
-          ))}
+          {/* floating badges */}
+          <div className="float-2" style={{
+            position: 'absolute', top: 24, right: -16,
+            background: '#fff', borderRadius: 16, padding: '10px 14px',
+            boxShadow: '0 8px 28px rgba(0,0,0,.12)',
+            display: 'flex', alignItems: 'center', gap: 9, fontFamily: F,
+            border: '1px solid #f1f5f9',
+          }}>
+            <span style={{ fontSize: '1.4rem' }}>💬</span>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: '0.76rem', color: DARK }}>محادثة حقيقية</div>
+              <div style={{ fontSize: '0.66rem', color: MUTED }}>من أول درس</div>
+            </div>
+          </div>
+
+          <div className="float-3" style={{
+            position: 'absolute', top: 120, left: -16,
+            background: '#fff', borderRadius: 16, padding: '10px 14px',
+            boxShadow: '0 8px 28px rgba(0,0,0,.12)',
+            display: 'flex', alignItems: 'center', gap: 9, fontFamily: F,
+            border: '1px solid #f1f5f9',
+          }}>
+            <span style={{ fontSize: '1.4rem' }}>🔊</span>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: '0.76rem', color: DARK }}>نطق صحيح</div>
+              <div style={{ fontSize: '0.66rem', color: MUTED }}>صوت + تكرار</div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -1020,7 +960,6 @@ export default function HomePage() {
   return (
     <main dir="rtl" style={{ fontFamily:F, background:'#fff', color:DARK }}>
       <Hero />
-      <HeroSlider />
       <StatsStrip />
       <FeaturesSection />
       <CoursesSection />
