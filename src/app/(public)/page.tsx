@@ -614,20 +614,23 @@ function CourseCard({ c, i }: { c: typeof COURSES[number]; i: number }) {
         background: '#fff',
         border: `${isFeatured ? '2.5px' : '1.5px'} solid ${canHover || isFeatured ? G : '#f1f5f9'}`,
         borderRadius: 24,
-        padding: isFeatured ? '36px 32px' : '28px 26px',
+        padding: isFeatured ? '40px 40px' : '28px 26px',
         opacity: vis ? (c.open ? 1 : 0.5) : 0,
         transform: vis
           ? (canHover ? 'translateY(-8px) scale(1.015)' : 'none')
           : 'translateY(28px)',
         boxShadow: isFeatured
           ? (canHover
-            ? '0 28px 64px rgba(34,197,94,.22)'
-            : '0 12px 40px rgba(34,197,94,.15)')
+            ? '0 28px 64px rgba(34,197,94,.25)'
+            : '0 12px 48px rgba(34,197,94,.18)')
           : (canHover
             ? '0 16px 40px rgba(0,0,0,.10)'
             : '0 2px 12px rgba(0,0,0,.04)'),
         transition: `opacity .55s ${i * .07}s ease, transform .25s ease, box-shadow .25s ease, border-color .2s ease`,
-        display: 'flex', flexDirection: 'column',
+        display: 'flex',
+        flexDirection: isFeatured ? 'row' : 'column',
+        alignItems: isFeatured ? 'center' : undefined,
+        gap: isFeatured ? 48 : undefined,
         position: 'relative', overflow: 'hidden',
       }}
     >
@@ -644,90 +647,146 @@ function CourseCard({ c, i }: { c: typeof COURSES[number]; i: number }) {
       {/* featured badge */}
       {isFeatured && (
         <div style={{
-          position: 'absolute', top: 16, left: 20,
+          position: 'absolute', top: 16, right: 20,
           background: 'linear-gradient(135deg,#ff6b35,#f59e0b)',
           color: '#fff', fontSize: '0.72rem', fontWeight: 800,
-          padding: '4px 12px', borderRadius: 99, fontFamily: F,
+          padding: '4px 14px', borderRadius: 99, fontFamily: F,
+          boxShadow: '0 3px 10px rgba(255,107,53,.4)',
         }}>
           🔥 الأكثر طلباً
         </div>
       )}
 
-      {/* level + soon */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, marginTop: isFeatured ? 28 : 12 }}>
-        <span style={{
-          background: c.open ? '#dcfce7' : '#f1f5f9',
-          color: c.open ? GL : '#94a3b8',
-          fontWeight: 900, fontSize: '0.9rem',
-          padding: '5px 14px', borderRadius: 10, fontFamily: F,
-        }}>
-          {c.level}
-        </span>
-        {!c.open && (
-          <span style={{ background: '#f1f5f9', color: '#94a3b8', fontSize: '0.72rem', fontWeight: 600, padding: '3px 10px', borderRadius: 8, fontFamily: F }}>
-            قريباً
-          </span>
-        )}
-      </div>
+      {isFeatured ? (
+        <>
+          {/* featured LEFT col: info */}
+          <div style={{ flex: 1, minWidth: 0, marginTop: 28 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <span style={{
+                background: '#dcfce7', color: GL,
+                fontWeight: 900, fontSize: '0.9rem',
+                padding: '5px 14px', borderRadius: 10, fontFamily: F,
+              }}>
+                {c.level}
+              </span>
+            </div>
+            <p style={{ fontWeight: 900, fontSize: '1.35rem', color: DARK, marginBottom: 10, fontFamily: F }}>
+              {c.title}
+            </p>
+            <p style={{ color: MUTED, fontSize: '0.9rem', fontWeight: 400, lineHeight: 1.8, marginBottom: 20, fontFamily: F }}>
+              {c.desc}
+            </p>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ background: '#f0fdf4', color: GL, fontSize: '0.78rem', padding: '5px 14px', borderRadius: 8, fontFamily: F, fontWeight: 600 }}>
+                ⏱ {c.dur}
+              </span>
+              <span style={{ background: '#f8fafc', color: MUTED, fontSize: '0.78rem', padding: '5px 14px', borderRadius: 8, fontFamily: F, fontWeight: 600 }}>
+                بدون قواعد مملة
+              </span>
+              <span style={{ background: '#eff6ff', color: '#2563eb', fontSize: '0.78rem', padding: '5px 14px', borderRadius: 8, fontFamily: F, fontWeight: 600 }}>
+                🎯 للمبتدئين تماماً
+              </span>
+            </div>
+          </div>
 
-      {/* title */}
-      <p style={{
-        fontWeight: 900,
-        fontSize: isFeatured ? '1.2rem' : '1.05rem',
-        color: DARK, marginBottom: 8, fontFamily: F,
-      }}>
-        {c.title}
-      </p>
+          {/* featured RIGHT col: price + CTA */}
+          <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            gap: 16, flexShrink: 0,
+            background: '#f0fdf4', borderRadius: 20,
+            padding: '32px 36px',
+          }}>
+            <p style={{ color: MUTED, fontSize: '0.82rem', fontFamily: F, fontWeight: 500, margin: 0 }}>السعر</p>
+            <span style={{ fontWeight: 900, fontSize: '1.7rem', color: DARK, fontFamily: F }}>
+              {c.price}
+            </span>
+            <Link
+              href={`/courses/${c.level.toLowerCase()}`}
+              style={{
+                background: `linear-gradient(135deg,${GL},${G})`,
+                color: '#fff',
+                padding: '13px 36px',
+                borderRadius: 14,
+                fontSize: '1rem',
+                fontWeight: 800,
+                textDecoration: 'none', fontFamily: F,
+                boxShadow: '0 4px 20px rgba(34,197,94,.4)',
+                transition: 'transform .15s, box-shadow .15s',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={e => { const t = e.currentTarget as HTMLElement; t.style.transform = 'scale(1.06)'; t.style.boxShadow = '0 8px 28px rgba(34,197,94,.55)' }}
+              onMouseLeave={e => { const t = e.currentTarget as HTMLElement; t.style.transform = 'none'; t.style.boxShadow = '0 4px 20px rgba(34,197,94,.4)' }}
+            >
+              ابدأ الآن 🚀
+            </Link>
+            <p style={{ color: '#94a3b8', fontSize: '0.75rem', fontFamily: F, margin: 0 }}>✓ ضمان استرداد 7 أيام</p>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* normal card content */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, marginTop: 12 }}>
+            <span style={{
+              background: c.open ? '#dcfce7' : '#f1f5f9',
+              color: c.open ? GL : '#94a3b8',
+              fontWeight: 900, fontSize: '0.9rem',
+              padding: '5px 14px', borderRadius: 10, fontFamily: F,
+            }}>
+              {c.level}
+            </span>
+            {!c.open && (
+              <span style={{ background: '#f1f5f9', color: '#94a3b8', fontSize: '0.72rem', fontWeight: 600, padding: '3px 10px', borderRadius: 8, fontFamily: F }}>
+                قريباً
+              </span>
+            )}
+          </div>
 
-      {/* desc */}
-      <p style={{
-        color: MUTED, fontSize: '0.875rem',
-        fontWeight: 400, lineHeight: 1.7,
-        marginBottom: 18, fontFamily: F,
-      }}>
-        {c.desc}
-      </p>
+          <p style={{ fontWeight: 900, fontSize: '1.05rem', color: DARK, marginBottom: 8, fontFamily: F }}>
+            {c.title}
+          </p>
 
-      {/* tags */}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 22 }}>
-        <span style={{ background: '#f0fdf4', color: GL, fontSize: '0.75rem', padding: '4px 12px', borderRadius: 8, fontFamily: F, fontWeight: 600 }}>
-          ⏱ {c.dur}
-        </span>
-        <span style={{ background: '#f8fafc', color: MUTED, fontSize: '0.75rem', padding: '4px 12px', borderRadius: 8, fontFamily: F, fontWeight: 600 }}>
-          بدون قواعد مملة
-        </span>
-      </div>
+          <p style={{ color: MUTED, fontSize: '0.875rem', fontWeight: 400, lineHeight: 1.7, marginBottom: 18, fontFamily: F }}>
+            {c.desc}
+          </p>
 
-      {/* price + CTA */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
-        <div>
-          <span style={{ fontWeight: 900, fontSize: isFeatured ? '1.3rem' : '1.1rem', color: DARK, fontFamily: F }}>
-            {c.price}
-          </span>
-        </div>
-        {c.open ? (
-          <Link
-            href={`/courses/${c.level.toLowerCase()}`}
-            style={{
-              background: `linear-gradient(135deg,${GL},${G})`,
-              color: '#fff',
-              padding: isFeatured ? '11px 28px' : '9px 22px',
-              borderRadius: 12,
-              fontSize: isFeatured ? '0.95rem' : '0.875rem',
-              fontWeight: 800,
-              textDecoration: 'none', fontFamily: F,
-              boxShadow: '0 4px 16px rgba(34,197,94,.38)',
-              transition: 'transform .15s, box-shadow .15s',
-            }}
-            onMouseEnter={e => { const t = e.currentTarget as HTMLElement; t.style.transform = 'scale(1.06)'; t.style.boxShadow = '0 8px 24px rgba(34,197,94,.5)' }}
-            onMouseLeave={e => { const t = e.currentTarget as HTMLElement; t.style.transform = 'none'; t.style.boxShadow = '0 4px 16px rgba(34,197,94,.38)' }}
-          >
-            ابدأ الآن
-          </Link>
-        ) : (
-          <span style={{ color: '#94a3b8', fontSize: '0.85rem', fontFamily: F }}>قريباً</span>
-        )}
-      </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 22 }}>
+            <span style={{ background: '#f0fdf4', color: GL, fontSize: '0.75rem', padding: '4px 12px', borderRadius: 8, fontFamily: F, fontWeight: 600 }}>
+              ⏱ {c.dur}
+            </span>
+            <span style={{ background: '#f8fafc', color: MUTED, fontSize: '0.75rem', padding: '4px 12px', borderRadius: 8, fontFamily: F, fontWeight: 600 }}>
+              بدون قواعد مملة
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
+            <span style={{ fontWeight: 900, fontSize: '1.1rem', color: DARK, fontFamily: F }}>
+              {c.price}
+            </span>
+            {c.open ? (
+              <Link
+                href={`/courses/${c.level.toLowerCase()}`}
+                style={{
+                  background: `linear-gradient(135deg,${GL},${G})`,
+                  color: '#fff',
+                  padding: '9px 22px',
+                  borderRadius: 12,
+                  fontSize: '0.875rem',
+                  fontWeight: 800,
+                  textDecoration: 'none', fontFamily: F,
+                  boxShadow: '0 4px 16px rgba(34,197,94,.38)',
+                  transition: 'transform .15s, box-shadow .15s',
+                }}
+                onMouseEnter={e => { const t = e.currentTarget as HTMLElement; t.style.transform = 'scale(1.06)'; t.style.boxShadow = '0 8px 24px rgba(34,197,94,.5)' }}
+                onMouseLeave={e => { const t = e.currentTarget as HTMLElement; t.style.transform = 'none'; t.style.boxShadow = '0 4px 16px rgba(34,197,94,.38)' }}
+              >
+                ابدأ الآن
+              </Link>
+            ) : (
+              <span style={{ color: '#94a3b8', fontSize: '0.85rem', fontFamily: F }}>قريباً</span>
+            )}
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -764,7 +823,12 @@ function CoursesSection() {
           </p>
         </div>
 
-        {/* grid */}
+        {/* featured card — full width */}
+        <div style={{ marginBottom: 24 }}>
+          <CourseCard c={COURSES[0]} i={0} />
+        </div>
+
+        {/* remaining 5 cards — 3 col grid */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
@@ -772,7 +836,7 @@ function CoursesSection() {
         }}
         className="courses-grid"
         >
-          {COURSES.map((c, i) => <CourseCard key={c.level} c={c} i={i} />)}
+          {COURSES.slice(1).map((c, i) => <CourseCard key={c.level} c={c} i={i + 1} />)}
         </div>
       </div>
     </section>
