@@ -114,8 +114,7 @@ function Tag({ children, color='#dcfce7', text='#16a34a' }: { children:React.Rea
 const HERO_SLIDES = [
   {
     bg: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1d4ed8 100%)',
-    image: '👩‍💻',
-    imageBg: 'linear-gradient(135deg,#dbeafe,#bfdbfe)',
+    image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=680&h=780&fit=crop&q=80',
     tag: '🎉 الأكثر استخداماً في المغرب',
     title: 'تعلم الإنجليزية',
     titleGreen: 'بالمحادثة',
@@ -126,8 +125,7 @@ const HERO_SLIDES = [
   },
   {
     bg: 'linear-gradient(135deg, #064e3b 0%, #065f46 50%, #16a34a 100%)',
-    image: '🧑‍🏫',
-    imageBg: 'linear-gradient(135deg,#dcfce7,#bbf7d0)',
+    image: 'https://images.unsplash.com/photo-1531545514256-b1400bc00f31?w=680&h=780&fit=crop&q=80',
     tag: '🚀 تقدم سريع وملحوظ',
     title: 'تحدث الإنجليزية',
     titleGreen: 'بثقة كاملة',
@@ -138,8 +136,7 @@ const HERO_SLIDES = [
   },
   {
     bg: 'linear-gradient(135deg, #3b0764 0%, #6b21a8 50%, #9333ea 100%)',
-    image: '👩‍🎓',
-    imageBg: 'linear-gradient(135deg,#fdf4ff,#f3e8ff)',
+    image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=680&h=780&fit=crop&q=80',
     tag: '🏆 +1000 طالب متخرج',
     title: 'من وادي زم',
     titleGreen: 'إلى الاحتراف',
@@ -346,22 +343,28 @@ function Hero() {
             ...imgStyle,
             width: 340, height: 400,
             borderRadius: 36,
-            background: s.imageBg,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '9rem',
-            boxShadow: '0 40px 100px rgba(0,0,0,.35)',
-            border: '1.5px solid rgba(255,255,255,.25)',
+            background: '#0f172a',
+            boxShadow: '0 40px 100px rgba(0,0,0,.45)',
+            border: '1.5px solid rgba(255,255,255,.2)',
             position: 'relative', overflow: 'hidden',
           }}>
+            {/* photo */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={s.image}
+              alt="student"
+              style={{
+                width: '100%', height: '100%',
+                objectFit: 'cover', objectPosition: 'center top',
+                display: 'block',
+              }}
+            />
             {/* shimmer overlay */}
             <div style={{
               position: 'absolute', inset: 0,
-              background: 'linear-gradient(135deg, rgba(255,255,255,.15) 0%, transparent 60%)',
+              background: 'linear-gradient(180deg, transparent 55%, rgba(0,0,0,.35) 100%)',
               pointerEvents: 'none',
             }}/>
-            <span style={{ filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.2))' }}>
-              {s.image}
-            </span>
           </div>
 
           {/* floating badge — streak */}
