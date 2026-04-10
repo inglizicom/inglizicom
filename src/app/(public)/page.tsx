@@ -93,22 +93,6 @@ function GBtn({ href, children, big }: { href:string; children:React.ReactNode; 
   )
 }
 
-function OBtn({ href, children }: { href:string; children:React.ReactNode }) {
-  const [h, sH] = useState(false)
-  return (
-    <Link href={href} style={{
-      display:'inline-flex', alignItems:'center', justifyContent:'center',
-      background: h?'#f0fdf4':'#fff', color:GL,
-      border:`2px solid ${h?GL:G}`, padding:'11px 28px',
-      borderRadius:16, fontSize:'0.95rem', fontWeight:800,
-      textDecoration:'none', fontFamily:F,
-      transform: h?'scale(1.04)':'none',
-      transition:'all .18s ease',
-    }}
-    onMouseEnter={()=>sH(true)} onMouseLeave={()=>sH(false)}
-    >{children}</Link>
-  )
-}
 
 /* ══════════════════════════════════════════════
    SECTION TAG
@@ -125,212 +109,358 @@ function Tag({ children, color='#dcfce7', text='#16a34a' }: { children:React.Rea
 }
 
 /* ══════════════════════════════════════════════
-   1. HERO
+   1. HERO SLIDER
 ══════════════════════════════════════════════ */
+const HERO_SLIDES = [
+  {
+    bg: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1d4ed8 100%)',
+    image: '👩‍💻',
+    imageBg: 'linear-gradient(135deg,#dbeafe,#bfdbfe)',
+    tag: '🎉 الأكثر استخداماً في المغرب',
+    title: 'تعلم الإنجليزية',
+    titleGreen: 'بالمحادثة',
+    sub: 'بدون قواعد مملة — فقط كلام حقيقي كل يوم من الصفر حتى الطلاقة الكاملة',
+    cta1: { label: 'ابدأ الآن مجاناً', href: '/courses' },
+    cta2: { label: 'جرب درس مجاني', href: '/courses/a0' },
+    accent: '#3b82f6',
+  },
+  {
+    bg: 'linear-gradient(135deg, #064e3b 0%, #065f46 50%, #16a34a 100%)',
+    image: '🧑‍🏫',
+    imageBg: 'linear-gradient(135deg,#dcfce7,#bbf7d0)',
+    tag: '🚀 تقدم سريع وملحوظ',
+    title: 'تحدث الإنجليزية',
+    titleGreen: 'بثقة كاملة',
+    sub: 'ابدأ بالتحدث من الدرس الأول — منهج مُصمَّم للنتائج السريعة بدون إضاعة الوقت',
+    cta1: { label: 'ابدأ رحلتك', href: '/courses' },
+    cta2: { label: 'اكتشف المنهج', href: '/map' },
+    accent: '#22c55e',
+  },
+  {
+    bg: 'linear-gradient(135deg, #3b0764 0%, #6b21a8 50%, #9333ea 100%)',
+    image: '👩‍🎓',
+    imageBg: 'linear-gradient(135deg,#fdf4ff,#f3e8ff)',
+    tag: '🏆 +1000 طالب متخرج',
+    title: 'من وادي زم',
+    titleGreen: 'إلى الاحتراف',
+    sub: 'انضم لأكثر من ألف طالب أنهوا دوراتهم وأصبحوا يتحدثون الإنجليزية بطلاقة',
+    cta1: { label: 'انضم الآن', href: '/courses' },
+    cta2: { label: 'شاهد القصص', href: '/blog' },
+    accent: '#a855f7',
+  },
+]
+
 function Hero() {
-  const [on, setOn] = useState(false)
-  useEffect(() => { const t = setTimeout(()=>setOn(true), 80); return ()=>clearTimeout(t) }, [])
-  const fd = (d:number):React.CSSProperties => ({
-    opacity: on?1:0,
-    transform: on?'none':'translateY(28px)',
-    transition:`opacity .7s ${d}s ease, transform .7s ${d}s ease`,
-  })
+  const [idx, setIdx]       = useState(0)
+  const [fading, setFading] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { const t = setTimeout(() => setMounted(true), 60); return () => clearTimeout(t) }, [])
+
+  const go = (next: number) => {
+    if (fading) return
+    setFading(true)
+    setTimeout(() => { setIdx(next); setFading(false) }, 420)
+  }
+
+  useEffect(() => {
+    const t = setInterval(() => go((idx + 1) % HERO_SLIDES.length), 5500)
+    return () => clearInterval(t)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idx, fading])
+
+  const s = HERO_SLIDES[idx]
+
+  const textStyle: React.CSSProperties = {
+    opacity:   fading ? 0 : (mounted ? 1 : 0),
+    transform: fading ? 'translateY(16px)' : (mounted ? 'none' : 'translateY(24px)'),
+    transition: fading
+      ? 'opacity .4s ease, transform .4s ease'
+      : 'opacity .75s .05s ease, transform .75s .05s ease',
+  }
+
+  const imgStyle: React.CSSProperties = {
+    opacity:   fading ? 0 : (mounted ? 1 : 0),
+    transform: fading ? 'scale(.93) translateX(20px)' : (mounted ? 'scale(1) translateX(0)' : 'scale(.93) translateX(20px)'),
+    transition: fading
+      ? 'opacity .4s ease, transform .4s ease'
+      : 'opacity .8s .1s ease, transform .8s .1s ease',
+  }
 
   return (
     <section style={{
-      background:'linear-gradient(160deg, #f0fdf4 0%, #ffffff 55%, #eff6ff 100%)',
-      padding:'100px 24px 80px', overflow:'hidden', position:'relative',
+      background: s.bg,
+      transition: 'background .6s ease',
+      minHeight: '100vh',
+      display: 'flex', flexDirection: 'column',
+      paddingTop: 68, /* header height */
+      overflow: 'hidden', position: 'relative',
     }}>
-      {/* bg decorations */}
+
+      {/* ── bg decorative circles ── */}
       <div style={{
-        position:'absolute', top:-120, left:-100, width:500, height:500,
-        borderRadius:'50%', background:'radial-gradient(circle,rgba(34,197,94,.12),transparent 70%)',
-        pointerEvents:'none',
+        position:'absolute', top:-140, right:-100, width:520, height:520,
+        borderRadius:'50%', background:'rgba(255,255,255,.05)', pointerEvents:'none',
       }}/>
       <div style={{
-        position:'absolute', bottom:-80, right:-60, width:380, height:380,
-        borderRadius:'50%', background:'radial-gradient(circle,rgba(37,99,235,.10),transparent 70%)',
-        pointerEvents:'none',
+        position:'absolute', bottom:-80, left:-80, width:360, height:360,
+        borderRadius:'50%', background:'rgba(255,255,255,.04)', pointerEvents:'none',
       }}/>
 
+      {/* ── main content ── */}
       <div style={{
-        maxWidth:1120, margin:'0 auto',
-        display:'flex', alignItems:'center',
-        gap:60, flexWrap:'wrap', position:'relative',
+        flex: 1, maxWidth: 1140, margin: '0 auto',
+        padding: '60px 28px 48px',
+        display: 'flex', alignItems: 'center',
+        gap: 64, flexWrap: 'wrap',
+        width: '100%',
       }}>
 
-        {/* ── TEXT ── */}
-        <div style={{ flex:'1 1 360px', textAlign:'right' }} dir="rtl">
-          <div style={fd(0)}>
-            <Tag>🎉 الأكثر استخداماً في المغرب</Tag>
+        {/* TEXT */}
+        <div style={{ flex: '1 1 360px', textAlign: 'right' }} dir="rtl">
+          {/* tag */}
+          <div style={{ ...textStyle, marginBottom: 20 }}>
+            <span style={{
+              display: 'inline-block',
+              background: 'rgba(255,255,255,.18)',
+              border: '1px solid rgba(255,255,255,.3)',
+              color: '#fff',
+              fontSize: '0.8rem', fontWeight: 700,
+              padding: '6px 18px', borderRadius: 99, fontFamily: F,
+              backdropFilter: 'blur(8px)',
+            }}>
+              {s.tag}
+            </span>
           </div>
 
+          {/* title */}
           <h1 style={{
-            ...fd(0.1),
-            fontSize:'clamp(2.1rem,5.5vw,3.6rem)',
-            fontWeight:900, lineHeight:1.12,
-            color:DARK, fontFamily:F, marginBottom:20,
+            ...textStyle,
+            fontSize: 'clamp(2.2rem, 5.5vw, 3.8rem)',
+            fontWeight: 900, lineHeight: 1.1,
+            color: '#fff', fontFamily: F,
+            marginBottom: 20,
+            transitionDelay: fading ? '0s' : '.08s',
           }}>
-            تعلم الإنجليزية<br/>
+            {s.title}<br/>
             <span style={{
-              background:`linear-gradient(90deg,${GL},${G},#4ade80)`,
-              WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent',
-              backgroundClip:'text',
-            }}>بالمحادثة</span>
+              background: `linear-gradient(90deg, #fff, ${s.accent === '#22c55e' ? '#4ade80' : s.accent === '#a855f7' ? '#d8b4fe' : '#93c5fd'})`,
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}>
+              {s.titleGreen}
+            </span>
           </h1>
 
+          {/* subtitle */}
           <p style={{
-            ...fd(0.22),
-            fontSize:'1.1rem', color:MUTED,
-            lineHeight:1.9, marginBottom:40, fontFamily:F, fontWeight:400,
+            ...textStyle,
+            fontSize: '1.08rem', color: 'rgba(255,255,255,.8)',
+            lineHeight: 1.85, marginBottom: 40,
+            fontFamily: F, fontWeight: 400,
+            maxWidth: 460,
+            transitionDelay: fading ? '0s' : '.14s',
           }}>
-            بدون قواعد مملة — فقط كلام حقيقي كل يوم<br/>
-            من الصفر حتى الطلاقة الكاملة 🚀
+            {s.sub}
           </p>
 
-          <div style={{ ...fd(0.32), display:'flex', gap:14, flexWrap:'wrap', marginBottom:44 }}>
-            <GBtn href="/courses">ابدأ الآن مجاناً</GBtn>
-            <OBtn href="/courses/a0">جرب درس مجاني</OBtn>
+          {/* buttons */}
+          <div style={{
+            ...textStyle,
+            display: 'flex', gap: 14, flexWrap: 'wrap',
+            marginBottom: 48,
+            transitionDelay: fading ? '0s' : '.2s',
+          }}>
+            <Link href={s.cta1.href} style={{
+              display: 'inline-flex', alignItems: 'center',
+              background: '#fff', color: DARK,
+              padding: '14px 36px', borderRadius: 14,
+              fontSize: '0.98rem', fontWeight: 900,
+              textDecoration: 'none', fontFamily: F,
+              boxShadow: '0 6px 24px rgba(0,0,0,.25)',
+              transition: 'transform .18s, box-shadow .18s',
+            }}
+            onMouseEnter={e => { const t=e.currentTarget as HTMLElement; t.style.transform='scale(1.05)'; t.style.boxShadow='0 10px 32px rgba(0,0,0,.35)' }}
+            onMouseLeave={e => { const t=e.currentTarget as HTMLElement; t.style.transform='none'; t.style.boxShadow='0 6px 24px rgba(0,0,0,.25)' }}
+            >
+              {s.cta1.label}
+            </Link>
+
+            <Link href={s.cta2.href} style={{
+              display: 'inline-flex', alignItems: 'center',
+              background: 'rgba(255,255,255,.15)',
+              border: '1.5px solid rgba(255,255,255,.4)',
+              color: '#fff',
+              padding: '13px 28px', borderRadius: 14,
+              fontSize: '0.95rem', fontWeight: 700,
+              textDecoration: 'none', fontFamily: F,
+              backdropFilter: 'blur(8px)',
+              transition: 'background .18s, transform .18s',
+            }}
+            onMouseEnter={e => { const t=e.currentTarget as HTMLElement; t.style.background='rgba(255,255,255,.25)'; t.style.transform='scale(1.04)' }}
+            onMouseLeave={e => { const t=e.currentTarget as HTMLElement; t.style.background='rgba(255,255,255,.15)'; t.style.transform='none' }}
+            >
+              {s.cta2.label}
+            </Link>
           </div>
 
           {/* social proof */}
-          <div style={{ ...fd(0.42), display:'flex', alignItems:'center', gap:20, flexWrap:'wrap' }}>
-            <div style={{ display:'flex' }}>
-              {['🧑‍🎓','👩‍💻','🧑‍💼','👩‍🏫','🧕'].map((e,i) => (
+          <div style={{
+            ...textStyle,
+            display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap',
+            transitionDelay: fading ? '0s' : '.28s',
+          }}>
+            {/* avatars */}
+            <div style={{ display: 'flex' }}>
+              {['👩‍🎓','🧑‍💻','👩‍🏫','🧑‍💼','🧕'].map((e, i) => (
                 <div key={i} style={{
-                  width:38, height:38, borderRadius:'50%',
-                  background:`hsl(${i*50+120},70%,65%)`,
-                  border:'3px solid #fff',
-                  marginLeft: i?-10:0,
-                  display:'flex', alignItems:'center', justifyContent:'center',
-                  fontSize:'1.1rem', zIndex:5-i,
+                  width: 40, height: 40, borderRadius: '50%',
+                  background: `hsl(${i*55+200},65%,60%)`,
+                  border: '2.5px solid rgba(255,255,255,.5)',
+                  marginLeft: i ? -12 : 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '1.1rem', position: 'relative', zIndex: 5 - i,
                 }}>{e}</div>
               ))}
             </div>
-            <div>
-              <div style={{ fontWeight:800, fontSize:'0.9rem', color:DARK, fontFamily:F }}>+1,200 طالب</div>
-              <div style={{ fontSize:'0.75rem', color:MUTED, fontFamily:F }}>{'⭐'.repeat(5)} 4.9 تقييم</div>
+
+            <div style={{ borderRight: '1px solid rgba(255,255,255,.25)', paddingRight: 18 }}>
+              <div style={{ fontWeight: 900, fontSize: '1rem', color: '#fff', fontFamily: F }}>+1,000 طالب</div>
+              <div style={{ fontSize: '0.73rem', color: 'rgba(255,255,255,.72)', fontFamily: F }}>⭐⭐⭐⭐⭐ تقييم 4.9</div>
             </div>
-            <div style={{ width:1, height:36, background:'#e2e8f0' }}/>
-            <div style={{ fontFamily:F }}>
-              <div style={{ fontWeight:800, fontSize:'0.9rem', color:DARK }}>97%</div>
-              <div style={{ fontSize:'0.75rem', color:MUTED }}>نسبة الرضا</div>
+
+            <div>
+              <div style={{ fontWeight: 900, fontSize: '1rem', color: '#fff', fontFamily: F }}>97%</div>
+              <div style={{ fontSize: '0.73rem', color: 'rgba(255,255,255,.72)', fontFamily: F }}>نسبة الرضا</div>
             </div>
           </div>
         </div>
 
-        {/* ── VISUAL ── */}
+        {/* IMAGE */}
         <div style={{
-          flex:'1 1 320px', position:'relative',
-          minHeight:420, display:'flex',
-          alignItems:'center', justifyContent:'center',
-          opacity: on?1:0, transition:'opacity .9s .15s ease',
+          flex: '1 1 300px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          position: 'relative', minHeight: 380,
         }}>
-          {/* main card mockup */}
-          <div className="float-1" style={{
-            width:300, height:380,
-            background:'#fff',
-            borderRadius:32,
-            boxShadow:'0 32px 80px rgba(0,0,0,.14)',
-            padding:28,
-            display:'flex', flexDirection:'column', gap:16,
-            border:'1.5px solid #e2e8f0',
+          <div style={{
+            ...imgStyle,
+            width: 340, height: 400,
+            borderRadius: 36,
+            background: s.imageBg,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '9rem',
+            boxShadow: '0 40px 100px rgba(0,0,0,.35)',
+            border: '1.5px solid rgba(255,255,255,.25)',
+            position: 'relative', overflow: 'hidden',
           }}>
-            {/* header */}
-            <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-              <div style={{
-                width:44, height:44, borderRadius:14,
-                background:'linear-gradient(135deg,#dcfce7,#bbf7d0)',
-                display:'flex', alignItems:'center', justifyContent:'center',
-                fontSize:'1.4rem',
-              }}>🎙️</div>
-              <div>
-                <div style={{ fontWeight:800, fontSize:'0.85rem', color:DARK, fontFamily:F }}>درس المحادثة</div>
-                <div style={{ fontSize:'0.72rem', color:MUTED, fontFamily:F }}>الوحدة 4 — A1</div>
-              </div>
-              <div style={{ marginRight:'auto', background:'#f0fdf4', color:GL, fontSize:'0.7rem', fontWeight:700, padding:'3px 10px', borderRadius:99, fontFamily:F }}>جديد</div>
-            </div>
-
-            {/* chat bubbles */}
-            {[
-              { msg:'How are you today?', dir:'ltr', bg:'#f8fafc', c:DARK   },
-              { msg:'I am fine, thank you!', dir:'ltr', bg:`linear-gradient(135deg,${GL},${G})`, c:'#fff' },
-              { msg:'Where are you from?', dir:'ltr', bg:'#f8fafc', c:DARK  },
-            ].map((b,i) => (
-              <div key={i} style={{
-                alignSelf: i%2===0?'flex-start':'flex-end',
-                background:b.bg, color:b.c,
-                padding:'10px 16px', borderRadius:16,
-                fontSize:'0.82rem', fontFamily:'Inter, sans-serif',
-                maxWidth:'80%', boxShadow:'0 2px 8px rgba(0,0,0,.06)',
-                fontWeight: i%2===0?400:700,
-              }}>{b.msg}</div>
-            ))}
-
-            {/* XP bar */}
-            <div style={{ marginTop:'auto' }}>
-              <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6, fontFamily:F }}>
-                <span style={{ fontSize:'0.72rem', color:MUTED }}>XP اليوم</span>
-                <span style={{ fontSize:'0.72rem', fontWeight:700, color:GL }}>64 / 100</span>
-              </div>
-              <div style={{ height:8, borderRadius:4, background:'#e2e8f0', overflow:'hidden' }}>
-                <div style={{ height:'100%', width:'64%', background:`linear-gradient(90deg,${GL},${G})`, borderRadius:4, transition:'width 1.5s cubic-bezier(.34,1.56,.64,1)' }}/>
-              </div>
-              <div style={{ display:'flex', gap:8, marginTop:14 }}>
-                {['🔥','⭐','💎'].map((e,i)=>(
-                  <div key={i} style={{ flex:1, background:'#f8fafc', borderRadius:12, padding:'8px 4px', textAlign:'center', fontSize:'1.1rem' }}>{e}</div>
-                ))}
-              </div>
-            </div>
+            {/* shimmer overlay */}
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: 'linear-gradient(135deg, rgba(255,255,255,.15) 0%, transparent 60%)',
+              pointerEvents: 'none',
+            }}/>
+            <span style={{ filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.2))' }}>
+              {s.image}
+            </span>
           </div>
 
-          {/* floating badges */}
+          {/* floating badge — streak */}
           <div className="float-2" style={{
-            position:'absolute', top:20, right:-12,
-            background:'#fff', borderRadius:18,
-            padding:'12px 18px', boxShadow:'0 8px 32px rgba(0,0,0,.12)',
-            display:'flex', alignItems:'center', gap:10, fontFamily:F,
-            border:'1px solid #e2e8f0',
+            position: 'absolute', top: 24, right: -8,
+            background: '#fff', borderRadius: 18,
+            padding: '12px 18px',
+            boxShadow: '0 10px 36px rgba(0,0,0,.18)',
+            display: 'flex', alignItems: 'center', gap: 10,
+            fontFamily: F,
           }}>
-            <span style={{ fontSize:'1.6rem' }}>💬</span>
+            <span style={{ fontSize: '1.5rem' }}>🔥</span>
             <div>
-              <div style={{ fontWeight:800, fontSize:'0.78rem', color:DARK }}>محادثة حقيقية</div>
-              <div style={{ fontSize:'0.68rem', color:MUTED }}>من أول درس</div>
+              <div style={{ fontWeight: 800, fontSize: '0.8rem', color: DARK }}>سلسلة 12 يوم!</div>
+              <div style={{ fontSize: '0.68rem', color: MUTED }}>استمر هكذا</div>
             </div>
           </div>
 
+          {/* floating badge — achievement */}
           <div className="float-3" style={{
-            position:'absolute', bottom:56, left:-20,
-            background:'#fff', borderRadius:18,
-            padding:'12px 18px', boxShadow:'0 8px 32px rgba(0,0,0,.12)',
-            display:'flex', alignItems:'center', gap:10, fontFamily:F,
-            border:'1px solid #e2e8f0',
+            position: 'absolute', bottom: 48, left: -8,
+            background: '#fff', borderRadius: 18,
+            padding: '12px 18px',
+            boxShadow: '0 10px 36px rgba(0,0,0,.18)',
+            display: 'flex', alignItems: 'center', gap: 10,
+            fontFamily: F,
           }}>
-            <span style={{ fontSize:'1.6rem' }}>🏆</span>
+            <span style={{ fontSize: '1.5rem' }}>🏆</span>
             <div>
-              <div style={{ fontWeight:800, fontSize:'0.78rem', color:DARK }}>إنجاز جديد!</div>
-              <div style={{ fontSize:'0.68rem', color:MUTED }}>أكملت 7 دروس</div>
+              <div style={{ fontWeight: 800, fontSize: '0.8rem', color: DARK }}>إنجاز جديد!</div>
+              <div style={{ fontSize: '0.68rem', color: MUTED }}>أكملت A1 ✅</div>
             </div>
           </div>
 
+          {/* floating badge — students */}
           <div className="float-1" style={{
-            position:'absolute', bottom:12, right:8,
-            background:B, borderRadius:14, padding:'10px 16px',
-            boxShadow:`0 6px 22px rgba(37,99,235,.4)`, fontFamily:F,
+            position: 'absolute', bottom: 10, right: 12,
+            background: s.accent,
+            borderRadius: 14, padding: '9px 16px',
+            boxShadow: `0 6px 22px rgba(0,0,0,.25)`,
+            fontFamily: F,
           }}>
-            <div style={{ fontSize:'0.72rem', fontWeight:800, color:'#fff' }}>📱 تعلم في أي مكان</div>
-          </div>
-
-          <div className="float-2" style={{
-            position:'absolute', top:100, left:-12,
-            background:'#fef9c3', borderRadius:12,
-            padding:'8px 14px', fontFamily:F,
-            boxShadow:'0 4px 16px rgba(0,0,0,.08)',
-            border:'1px solid #fde68a',
-          }}>
-            <div style={{ fontSize:'0.72rem', fontWeight:700, color:'#92400e' }}>🔥 سلسلة 7 أيام!</div>
+            <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#fff' }}>👥 +1,000 طالب معنا</div>
           </div>
         </div>
+      </div>
+
+      {/* ── DOTS + ARROWS ── */}
+      <div style={{
+        display: 'flex', alignItems: 'center',
+        justifyContent: 'center', gap: 20,
+        paddingBottom: 36,
+      }}>
+        {/* prev */}
+        <button onClick={() => go((idx - 1 + HERO_SLIDES.length) % HERO_SLIDES.length)} style={{
+          width: 40, height: 40, borderRadius: '50%',
+          background: 'rgba(255,255,255,.18)',
+          border: '1px solid rgba(255,255,255,.3)',
+          color: '#fff', cursor: 'pointer',
+          fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'background .15s',
+        }}
+        onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,.32)'}}
+        onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,.18)'}}
+        >›</button>
+
+        {/* dots */}
+        <div style={{ display: 'flex', gap: 8 }}>
+          {HERO_SLIDES.map((_, i) => (
+            <button key={i} onClick={() => go(i)} style={{
+              width: i === idx ? 32 : 10, height: 10,
+              borderRadius: 5, border: 'none', cursor: 'pointer', padding: 0,
+              background: i === idx ? '#fff' : 'rgba(255,255,255,.4)',
+              transition: 'width .35s ease, background .3s',
+            }}/>
+          ))}
+        </div>
+
+        {/* next */}
+        <button onClick={() => go((idx + 1) % HERO_SLIDES.length)} style={{
+          width: 40, height: 40, borderRadius: '50%',
+          background: 'rgba(255,255,255,.18)',
+          border: '1px solid rgba(255,255,255,.3)',
+          color: '#fff', cursor: 'pointer',
+          fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'background .15s',
+        }}
+        onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,.32)'}}
+        onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,.18)'}}
+        >‹</button>
+      </div>
+
+      {/* slide counter */}
+      <div style={{
+        position: 'absolute', bottom: 40, left: 32,
+        color: 'rgba(255,255,255,.55)',
+        fontSize: '0.75rem', fontFamily: F, fontWeight: 600,
+      }}>
+        {idx + 1} / {HERO_SLIDES.length}
       </div>
     </section>
   )
