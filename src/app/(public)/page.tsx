@@ -103,361 +103,331 @@ function Tag({ children, color='#dcfce7', text='#16a34a' }: { children:React.Rea
 }
 
 /* ══════════════════════════════════════════════
-   1. HERO SLIDER
+   1. HERO + 1b. SLIDER DATA
 ══════════════════════════════════════════════ */
-const HERO_SLIDES = [
+const SLIDER_SLIDES = [
   {
-    bg: 'linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1d4ed8 100%)',
-    image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=680&h=780&fit=crop&q=80',
-    tag: '🎉 الأكثر استخداماً في المغرب',
-    title: 'تعلم الإنجليزية',
-    titleGreen: 'بالمحادثة',
-    sub: 'بدون قواعد مملة — فقط كلام حقيقي كل يوم من الصفر حتى الطلاقة الكاملة',
-    cta1: { label: 'ابدأ الآن مجاناً', href: '/courses' },
-    cta2: { label: 'جرب درس مجاني', href: '/courses/a0' },
-    accent: '#3b82f6',
+    image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=900&h=520&fit=crop&q=80',
+    text: 'تحدث من أول يوم',
+    sub: 'محادثات حقيقية من الدرس الأول',
+    accent: '#2563eb',
   },
   {
-    bg: 'linear-gradient(135deg, #064e3b 0%, #065f46 50%, #16a34a 100%)',
-    image: 'https://images.unsplash.com/photo-1531545514256-b1400bc00f31?w=680&h=780&fit=crop&q=80',
-    tag: '🚀 تقدم سريع وملحوظ',
-    title: 'تحدث الإنجليزية',
-    titleGreen: 'بثقة كاملة',
-    sub: 'ابدأ بالتحدث من الدرس الأول — منهج مُصمَّم للنتائج السريعة بدون إضاعة الوقت',
-    cta1: { label: 'ابدأ رحلتك', href: '/courses' },
-    cta2: { label: 'اكتشف المنهج', href: '/map' },
-    accent: '#22c55e',
+    image: 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=900&h=520&fit=crop&q=80',
+    text: 'تعلم في أي وقت',
+    sub: 'من هاتفك أو حاسوبك في أي مكان',
+    accent: '#16a34a',
   },
   {
-    bg: 'linear-gradient(135deg, #3b0764 0%, #6b21a8 50%, #9333ea 100%)',
-    image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=680&h=780&fit=crop&q=80',
-    tag: '🏆 +1000 طالب متخرج',
-    title: 'من وادي زم',
-    titleGreen: 'إلى الاحتراف',
-    sub: 'انضم لأكثر من ألف طالب أنهوا دوراتهم وأصبحوا يتحدثون الإنجليزية بطلاقة',
-    cta1: { label: 'انضم الآن', href: '/courses' },
-    cta2: { label: 'شاهد القصص', href: '/blog' },
-    accent: '#a855f7',
+    image: 'https://images.unsplash.com/photo-1543269865-cbf427effbad?w=900&h=520&fit=crop&q=80',
+    text: 'دروس قصيرة ممتعة',
+    sub: '5 دقائق كافية لتتقدم كل يوم',
+    accent: '#7c3aed',
   },
 ]
 
+/* ──────────────────────────────────────────────
+   HERO — split layout, fixed
+────────────────────────────────────────────── */
 function Hero() {
+  const [on, setOn] = useState(false)
+  useEffect(() => { const t = setTimeout(() => setOn(true), 60); return () => clearTimeout(t) }, [])
+
+  const fd = (d: number): React.CSSProperties => ({
+    opacity: on ? 1 : 0,
+    transform: on ? 'none' : 'translateY(24px)',
+    transition: `opacity .7s ${d}s ease, transform .7s ${d}s ease`,
+  })
+
+  return (
+    <section style={{
+      background: 'linear-gradient(150deg, #0f172a 0%, #1e3a5f 45%, #1d4ed8 100%)',
+      paddingTop: 68, minHeight: '92vh',
+      display: 'flex', alignItems: 'center',
+      overflow: 'hidden', position: 'relative',
+    }}>
+      {/* bg glows */}
+      <div style={{ position:'absolute', top:-120, right:-80, width:480, height:480, borderRadius:'50%', background:'rgba(255,255,255,.05)', pointerEvents:'none' }}/>
+      <div style={{ position:'absolute', bottom:-80, left:-60, width:340, height:340, borderRadius:'50%', background:'rgba(255,255,255,.04)', pointerEvents:'none' }}/>
+
+      <div style={{
+        maxWidth: 1120, margin: '0 auto', width: '100%',
+        padding: '64px 28px',
+        display: 'flex', alignItems: 'center',
+        gap: 60, flexWrap: 'wrap',
+      }}>
+
+        {/* ── LEFT: TEXT ── */}
+        <div style={{ flex: '1 1 360px', textAlign: 'right' }} dir="rtl">
+          <div style={{ ...fd(0), marginBottom: 18 }}>
+            <span style={{
+              display: 'inline-block',
+              background: 'rgba(255,255,255,.15)',
+              border: '1px solid rgba(255,255,255,.28)',
+              color: '#fff', fontSize: '0.8rem', fontWeight: 700,
+              padding: '6px 18px', borderRadius: 99, fontFamily: F,
+            }}>
+              🎉 الأكثر استخداماً في المغرب
+            </span>
+          </div>
+
+          <h1 style={{
+            ...fd(0.1),
+            fontSize: 'clamp(2.2rem,5.5vw,3.8rem)',
+            fontWeight: 900, lineHeight: 1.1,
+            color: '#fff', fontFamily: F, marginBottom: 20,
+          }}>
+            تعلم الإنجليزية<br/>
+            <span style={{
+              background: 'linear-gradient(90deg,#fff,#93c5fd)',
+              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}>
+              بالمحادثة
+            </span>
+          </h1>
+
+          <p style={{
+            ...fd(0.18),
+            fontSize: '1.08rem', color: 'rgba(255,255,255,.8)',
+            lineHeight: 1.85, marginBottom: 40, fontFamily: F, fontWeight: 400,
+          }}>
+            بدون قواعد مملة — فقط ممارسة يومية<br/>
+            من الصفر حتى الطلاقة الكاملة 🚀
+          </p>
+
+          <div style={{ ...fd(0.26), display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 44 }}>
+            <Link href="/courses" style={{
+              display: 'inline-flex', alignItems: 'center',
+              background: G, color: '#fff',
+              padding: '14px 40px', borderRadius: 14,
+              fontSize: '1rem', fontWeight: 900,
+              textDecoration: 'none', fontFamily: F,
+              boxShadow: '0 6px 28px rgba(34,197,94,.45)',
+              transition: 'transform .18s, box-shadow .18s',
+            }}
+            onMouseEnter={e=>{const t=e.currentTarget as HTMLElement;t.style.transform='scale(1.05)';t.style.boxShadow='0 10px 36px rgba(34,197,94,.6)'}}
+            onMouseLeave={e=>{const t=e.currentTarget as HTMLElement;t.style.transform='none';t.style.boxShadow='0 6px 28px rgba(34,197,94,.45)'}}
+            >ابدأ الآن</Link>
+
+            <Link href="/courses/a0" style={{
+              display: 'inline-flex', alignItems: 'center',
+              background: 'rgba(255,255,255,.14)',
+              border: '1.5px solid rgba(255,255,255,.35)',
+              color: '#fff', padding: '13px 28px', borderRadius: 14,
+              fontSize: '0.95rem', fontWeight: 700,
+              textDecoration: 'none', fontFamily: F,
+              transition: 'background .18s, transform .18s',
+            }}
+            onMouseEnter={e=>{const t=e.currentTarget as HTMLElement;t.style.background='rgba(255,255,255,.24)';t.style.transform='scale(1.04)'}}
+            onMouseLeave={e=>{const t=e.currentTarget as HTMLElement;t.style.background='rgba(255,255,255,.14)';t.style.transform='none'}}
+            >جرب درس مجاني</Link>
+          </div>
+
+          {/* social proof */}
+          <div style={{ ...fd(0.34), display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex' }}>
+              {['👩‍🎓','🧑‍💻','👩‍🏫','🧑‍💼','🧕'].map((e,i) => (
+                <div key={i} style={{
+                  width: 38, height: 38, borderRadius: '50%',
+                  background: `hsl(${i*55+200},65%,60%)`,
+                  border: '2.5px solid rgba(255,255,255,.4)',
+                  marginLeft: i ? -10 : 0, zIndex: 5-i,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '1rem',
+                }}>{e}</div>
+              ))}
+            </div>
+            <div style={{ borderRight: '1px solid rgba(255,255,255,.2)', paddingRight: 18 }}>
+              <div style={{ fontWeight: 900, fontSize: '0.95rem', color: '#fff', fontFamily: F }}>+1,000 طالب</div>
+              <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,.65)', fontFamily: F }}>⭐⭐⭐⭐⭐ تقييم 4.9</div>
+            </div>
+            <div>
+              <div style={{ fontWeight: 900, fontSize: '0.95rem', color: '#fff', fontFamily: F }}>97%</div>
+              <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,.65)', fontFamily: F }}>نسبة الرضا</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── RIGHT: IMAGE ── */}
+        <div style={{
+          flex: '1 1 300px', position: 'relative',
+          minHeight: 400, display: 'flex',
+          alignItems: 'center', justifyContent: 'center',
+          opacity: on ? 1 : 0, transition: 'opacity .9s .15s ease',
+        }}>
+          {/* main photo */}
+          <div className="float-1" style={{
+            width: 340, height: 420, borderRadius: 36,
+            overflow: 'hidden', position: 'relative',
+            boxShadow: '0 40px 100px rgba(0,0,0,.45)',
+            border: '1.5px solid rgba(255,255,255,.2)',
+          }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=680&h=840&fit=crop&q=80"
+              alt="طالب يتعلم الإنجليزية"
+              style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top', display:'block' }}
+            />
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(180deg,transparent 55%,rgba(0,0,0,.4) 100%)', pointerEvents:'none' }}/>
+          </div>
+
+          {/* floating: chat */}
+          <div className="float-2" style={{
+            position:'absolute', top:28, right:-16,
+            background:'#fff', borderRadius:18, padding:'11px 16px',
+            boxShadow:'0 10px 36px rgba(0,0,0,.18)',
+            display:'flex', alignItems:'center', gap:10, fontFamily:F,
+          }}>
+            <span style={{ fontSize:'1.5rem' }}>💬</span>
+            <div>
+              <div style={{ fontWeight:800, fontSize:'0.78rem', color:DARK }}>محادثة حقيقية</div>
+              <div style={{ fontSize:'0.67rem', color:MUTED }}>من أول درس</div>
+            </div>
+          </div>
+
+          {/* floating: audio */}
+          <div className="float-3" style={{
+            position:'absolute', bottom:60, left:-16,
+            background:'#fff', borderRadius:18, padding:'11px 16px',
+            boxShadow:'0 10px 36px rgba(0,0,0,.18)',
+            display:'flex', alignItems:'center', gap:10, fontFamily:F,
+          }}>
+            <span style={{ fontSize:'1.5rem' }}>🔊</span>
+            <div>
+              <div style={{ fontWeight:800, fontSize:'0.78rem', color:DARK }}>نطق صحيح</div>
+              <div style={{ fontSize:'0.67rem', color:MUTED }}>صوت + تكرار</div>
+            </div>
+          </div>
+
+          {/* floating: stars */}
+          <div className="float-1" style={{
+            position:'absolute', bottom:12, right:10,
+            background:G, borderRadius:14, padding:'9px 16px',
+            boxShadow:'0 6px 22px rgba(34,197,94,.45)', fontFamily:F,
+          }}>
+            <div style={{ fontSize:'0.73rem', fontWeight:800, color:'#fff' }}>⭐ +1,000 طالب معنا</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ──────────────────────────────────────────────
+   1b. HERO SLIDER — below hero
+────────────────────────────────────────────── */
+function HeroSlider() {
   const [idx, setIdx]       = useState(0)
   const [fading, setFading] = useState(false)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => { const t = setTimeout(() => setMounted(true), 60); return () => clearTimeout(t) }, [])
 
   const go = (next: number) => {
     if (fading) return
     setFading(true)
-    setTimeout(() => { setIdx(next); setFading(false) }, 420)
+    setTimeout(() => { setIdx(next); setFading(false) }, 320)
   }
 
   useEffect(() => {
-    const t = setInterval(() => go((idx + 1) % HERO_SLIDES.length), 5500)
+    const t = setInterval(() => go((idx + 1) % SLIDER_SLIDES.length), 3000)
     return () => clearInterval(t)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idx, fading])
 
-  const s = HERO_SLIDES[idx]
-
-  const textStyle: React.CSSProperties = {
-    opacity:   fading ? 0 : (mounted ? 1 : 0),
-    transform: fading ? 'translateY(16px)' : (mounted ? 'none' : 'translateY(24px)'),
-    transition: fading
-      ? 'opacity .4s ease, transform .4s ease'
-      : 'opacity .75s .05s ease, transform .75s .05s ease',
-  }
-
-  const imgStyle: React.CSSProperties = {
-    opacity:   fading ? 0 : (mounted ? 1 : 0),
-    transform: fading ? 'scale(.93) translateX(20px)' : (mounted ? 'scale(1) translateX(0)' : 'scale(.93) translateX(20px)'),
-    transition: fading
-      ? 'opacity .4s ease, transform .4s ease'
-      : 'opacity .8s .1s ease, transform .8s .1s ease',
-  }
+  const s = SLIDER_SLIDES[idx]
 
   return (
-    <section style={{
-      background: s.bg,
-      transition: 'background .6s ease',
-      minHeight: '100vh',
-      display: 'flex', flexDirection: 'column',
-      paddingTop: 68, /* header height */
-      overflow: 'hidden', position: 'relative',
-    }}>
+    <section style={{ background: '#fff', padding: '64px 24px' }}>
+      <div style={{ maxWidth: 900, margin: '0 auto' }}>
 
-      {/* ── bg decorative circles ── */}
-      <div style={{
-        position:'absolute', top:-140, right:-100, width:520, height:520,
-        borderRadius:'50%', background:'rgba(255,255,255,.05)', pointerEvents:'none',
-      }}/>
-      <div style={{
-        position:'absolute', bottom:-80, left:-80, width:360, height:360,
-        borderRadius:'50%', background:'rgba(255,255,255,.04)', pointerEvents:'none',
-      }}/>
+        {/* slide card */}
+        <div style={{
+          position: 'relative', borderRadius: 28, overflow: 'hidden',
+          height: 420, boxShadow: '0 24px 64px rgba(0,0,0,.14)',
+        }}>
+          {/* background image */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={s.image}
+            alt={s.text}
+            style={{
+              position: 'absolute', inset: 0,
+              width: '100%', height: '100%',
+              objectFit: 'cover', objectPosition: 'center',
+              opacity: fading ? 0 : 1,
+              transform: fading ? 'scale(1.04)' : 'scale(1)',
+              transition: 'opacity .35s ease, transform .35s ease',
+            }}
+          />
 
-      {/* ── main content ── */}
-      <div style={{
-        flex: 1, maxWidth: 1140, margin: '0 auto',
-        padding: '60px 28px 48px',
-        display: 'flex', alignItems: 'center',
-        gap: 64, flexWrap: 'wrap',
-        width: '100%',
-      }}>
+          {/* dark overlay */}
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(to top, rgba(0,0,0,.72) 0%, rgba(0,0,0,.15) 60%, transparent 100%)',
+          }}/>
 
-        {/* TEXT */}
-        <div style={{ flex: '1 1 360px', textAlign: 'right' }} dir="rtl">
-          {/* tag */}
-          <div style={{ ...textStyle, marginBottom: 20 }}>
+          {/* text overlay */}
+          <div style={{
+            position: 'absolute', bottom: 0, right: 0, left: 0,
+            padding: '36px 40px',
+            opacity: fading ? 0 : 1,
+            transform: fading ? 'translateY(10px)' : 'none',
+            transition: 'opacity .35s .05s ease, transform .35s .05s ease',
+            textAlign: 'right', direction: 'rtl',
+          }}>
             <span style={{
               display: 'inline-block',
-              background: 'rgba(255,255,255,.18)',
-              border: '1px solid rgba(255,255,255,.3)',
-              color: '#fff',
-              fontSize: '0.8rem', fontWeight: 700,
-              padding: '6px 18px', borderRadius: 99, fontFamily: F,
-              backdropFilter: 'blur(8px)',
+              background: s.accent,
+              color: '#fff', fontSize: '0.75rem', fontWeight: 700,
+              padding: '4px 14px', borderRadius: 99, fontFamily: F,
+              marginBottom: 12,
             }}>
-              {s.tag}
+              {['تعلم', 'مرونة', 'متعة'][idx]}
             </span>
-          </div>
-
-          {/* title */}
-          <h1 style={{
-            ...textStyle,
-            fontSize: 'clamp(2.2rem, 5.5vw, 3.8rem)',
-            fontWeight: 900, lineHeight: 1.1,
-            color: '#fff', fontFamily: F,
-            marginBottom: 20,
-            transitionDelay: fading ? '0s' : '.08s',
-          }}>
-            {s.title}<br/>
-            <span style={{
-              background: `linear-gradient(90deg, #fff, ${s.accent === '#22c55e' ? '#4ade80' : s.accent === '#a855f7' ? '#d8b4fe' : '#93c5fd'})`,
-              WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
+            <h3 style={{
+              fontSize: 'clamp(1.5rem, 3.5vw, 2.2rem)',
+              fontWeight: 900, color: '#fff',
+              fontFamily: F, marginBottom: 8, lineHeight: 1.2,
             }}>
-              {s.titleGreen}
-            </span>
-          </h1>
+              {s.text}
+            </h3>
+            <p style={{
+              fontSize: '0.95rem', color: 'rgba(255,255,255,.8)',
+              fontFamily: F, fontWeight: 400,
+            }}>
+              {s.sub}
+            </p>
+          </div>
 
-          {/* subtitle */}
-          <p style={{
-            ...textStyle,
-            fontSize: '1.08rem', color: 'rgba(255,255,255,.8)',
-            lineHeight: 1.85, marginBottom: 40,
-            fontFamily: F, fontWeight: 400,
-            maxWidth: 460,
-            transitionDelay: fading ? '0s' : '.14s',
-          }}>
-            {s.sub}
-          </p>
-
-          {/* buttons */}
-          <div style={{
-            ...textStyle,
-            display: 'flex', gap: 14, flexWrap: 'wrap',
-            marginBottom: 48,
-            transitionDelay: fading ? '0s' : '.2s',
-          }}>
-            <Link href={s.cta1.href} style={{
-              display: 'inline-flex', alignItems: 'center',
-              background: '#fff', color: DARK,
-              padding: '14px 36px', borderRadius: 14,
-              fontSize: '0.98rem', fontWeight: 900,
-              textDecoration: 'none', fontFamily: F,
-              boxShadow: '0 6px 24px rgba(0,0,0,.25)',
-              transition: 'transform .18s, box-shadow .18s',
+          {/* prev/next arrows */}
+          {(['right','left'] as const).map((side, si) => (
+            <button key={side} onClick={() => go(si === 0 ? (idx - 1 + SLIDER_SLIDES.length) % SLIDER_SLIDES.length : (idx + 1) % SLIDER_SLIDES.length)} style={{
+              position: 'absolute', top: '50%', [side]: 16,
+              transform: 'translateY(-50%)',
+              width: 42, height: 42, borderRadius: '50%',
+              background: 'rgba(255,255,255,.2)',
+              border: '1px solid rgba(255,255,255,.35)',
+              color: '#fff', cursor: 'pointer',
+              fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'background .15s',
+              backdropFilter: 'blur(6px)',
             }}
-            onMouseEnter={e => { const t=e.currentTarget as HTMLElement; t.style.transform='scale(1.05)'; t.style.boxShadow='0 10px 32px rgba(0,0,0,.35)' }}
-            onMouseLeave={e => { const t=e.currentTarget as HTMLElement; t.style.transform='none'; t.style.boxShadow='0 6px 24px rgba(0,0,0,.25)' }}
-            >
-              {s.cta1.label}
-            </Link>
-
-            <Link href={s.cta2.href} style={{
-              display: 'inline-flex', alignItems: 'center',
-              background: 'rgba(255,255,255,.15)',
-              border: '1.5px solid rgba(255,255,255,.4)',
-              color: '#fff',
-              padding: '13px 28px', borderRadius: 14,
-              fontSize: '0.95rem', fontWeight: 700,
-              textDecoration: 'none', fontFamily: F,
-              backdropFilter: 'blur(8px)',
-              transition: 'background .18s, transform .18s',
-            }}
-            onMouseEnter={e => { const t=e.currentTarget as HTMLElement; t.style.background='rgba(255,255,255,.25)'; t.style.transform='scale(1.04)' }}
-            onMouseLeave={e => { const t=e.currentTarget as HTMLElement; t.style.background='rgba(255,255,255,.15)'; t.style.transform='none' }}
-            >
-              {s.cta2.label}
-            </Link>
-          </div>
-
-          {/* social proof */}
-          <div style={{
-            ...textStyle,
-            display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap',
-            transitionDelay: fading ? '0s' : '.28s',
-          }}>
-            {/* avatars */}
-            <div style={{ display: 'flex' }}>
-              {['👩‍🎓','🧑‍💻','👩‍🏫','🧑‍💼','🧕'].map((e, i) => (
-                <div key={i} style={{
-                  width: 40, height: 40, borderRadius: '50%',
-                  background: `hsl(${i*55+200},65%,60%)`,
-                  border: '2.5px solid rgba(255,255,255,.5)',
-                  marginLeft: i ? -12 : 0,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '1.1rem', position: 'relative', zIndex: 5 - i,
-                }}>{e}</div>
-              ))}
-            </div>
-
-            <div style={{ borderRight: '1px solid rgba(255,255,255,.25)', paddingRight: 18 }}>
-              <div style={{ fontWeight: 900, fontSize: '1rem', color: '#fff', fontFamily: F }}>+1,000 طالب</div>
-              <div style={{ fontSize: '0.73rem', color: 'rgba(255,255,255,.72)', fontFamily: F }}>⭐⭐⭐⭐⭐ تقييم 4.9</div>
-            </div>
-
-            <div>
-              <div style={{ fontWeight: 900, fontSize: '1rem', color: '#fff', fontFamily: F }}>97%</div>
-              <div style={{ fontSize: '0.73rem', color: 'rgba(255,255,255,.72)', fontFamily: F }}>نسبة الرضا</div>
-            </div>
-          </div>
+            onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,.38)'}}
+            onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,.2)'}}
+            >{si === 0 ? '›' : '‹'}</button>
+          ))}
         </div>
-
-        {/* IMAGE */}
-        <div style={{
-          flex: '1 1 300px',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          position: 'relative', minHeight: 380,
-        }}>
-          <div style={{
-            ...imgStyle,
-            width: 340, height: 400,
-            borderRadius: 36,
-            background: '#0f172a',
-            boxShadow: '0 40px 100px rgba(0,0,0,.45)',
-            border: '1.5px solid rgba(255,255,255,.2)',
-            position: 'relative', overflow: 'hidden',
-          }}>
-            {/* photo */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={s.image}
-              alt="student"
-              style={{
-                width: '100%', height: '100%',
-                objectFit: 'cover', objectPosition: 'center top',
-                display: 'block',
-              }}
-            />
-            {/* shimmer overlay */}
-            <div style={{
-              position: 'absolute', inset: 0,
-              background: 'linear-gradient(180deg, transparent 55%, rgba(0,0,0,.35) 100%)',
-              pointerEvents: 'none',
-            }}/>
-          </div>
-
-          {/* floating badge — streak */}
-          <div className="float-2" style={{
-            position: 'absolute', top: 24, right: -8,
-            background: '#fff', borderRadius: 18,
-            padding: '12px 18px',
-            boxShadow: '0 10px 36px rgba(0,0,0,.18)',
-            display: 'flex', alignItems: 'center', gap: 10,
-            fontFamily: F,
-          }}>
-            <span style={{ fontSize: '1.5rem' }}>🔥</span>
-            <div>
-              <div style={{ fontWeight: 800, fontSize: '0.8rem', color: DARK }}>سلسلة 12 يوم!</div>
-              <div style={{ fontSize: '0.68rem', color: MUTED }}>استمر هكذا</div>
-            </div>
-          </div>
-
-          {/* floating badge — achievement */}
-          <div className="float-3" style={{
-            position: 'absolute', bottom: 48, left: -8,
-            background: '#fff', borderRadius: 18,
-            padding: '12px 18px',
-            boxShadow: '0 10px 36px rgba(0,0,0,.18)',
-            display: 'flex', alignItems: 'center', gap: 10,
-            fontFamily: F,
-          }}>
-            <span style={{ fontSize: '1.5rem' }}>🏆</span>
-            <div>
-              <div style={{ fontWeight: 800, fontSize: '0.8rem', color: DARK }}>إنجاز جديد!</div>
-              <div style={{ fontSize: '0.68rem', color: MUTED }}>أكملت A1 ✅</div>
-            </div>
-          </div>
-
-          {/* floating badge — students */}
-          <div className="float-1" style={{
-            position: 'absolute', bottom: 10, right: 12,
-            background: s.accent,
-            borderRadius: 14, padding: '9px 16px',
-            boxShadow: `0 6px 22px rgba(0,0,0,.25)`,
-            fontFamily: F,
-          }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#fff' }}>👥 +1,000 طالب معنا</div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── DOTS + ARROWS ── */}
-      <div style={{
-        display: 'flex', alignItems: 'center',
-        justifyContent: 'center', gap: 20,
-        paddingBottom: 36,
-      }}>
-        {/* prev */}
-        <button onClick={() => go((idx - 1 + HERO_SLIDES.length) % HERO_SLIDES.length)} style={{
-          width: 40, height: 40, borderRadius: '50%',
-          background: 'rgba(255,255,255,.18)',
-          border: '1px solid rgba(255,255,255,.3)',
-          color: '#fff', cursor: 'pointer',
-          fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          transition: 'background .15s',
-        }}
-        onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,.32)'}}
-        onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,.18)'}}
-        >›</button>
 
         {/* dots */}
-        <div style={{ display: 'flex', gap: 8 }}>
-          {HERO_SLIDES.map((_, i) => (
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 10, marginTop: 22 }}>
+          {SLIDER_SLIDES.map((sl, i) => (
             <button key={i} onClick={() => go(i)} style={{
               width: i === idx ? 32 : 10, height: 10,
               borderRadius: 5, border: 'none', cursor: 'pointer', padding: 0,
-              background: i === idx ? '#fff' : 'rgba(255,255,255,.4)',
+              background: i === idx ? sl.accent : '#cbd5e1',
               transition: 'width .35s ease, background .3s',
             }}/>
           ))}
         </div>
-
-        {/* next */}
-        <button onClick={() => go((idx + 1) % HERO_SLIDES.length)} style={{
-          width: 40, height: 40, borderRadius: '50%',
-          background: 'rgba(255,255,255,.18)',
-          border: '1px solid rgba(255,255,255,.3)',
-          color: '#fff', cursor: 'pointer',
-          fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          transition: 'background .15s',
-        }}
-        onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,.32)'}}
-        onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,.18)'}}
-        >‹</button>
-      </div>
-
-      {/* slide counter */}
-      <div style={{
-        position: 'absolute', bottom: 40, left: 32,
-        color: 'rgba(255,255,255,.55)',
-        fontSize: '0.75rem', fontFamily: F, fontWeight: 600,
-      }}>
-        {idx + 1} / {HERO_SLIDES.length}
       </div>
     </section>
   )
@@ -1050,6 +1020,7 @@ export default function HomePage() {
   return (
     <main dir="rtl" style={{ fontFamily:F, background:'#fff', color:DARK }}>
       <Hero />
+      <HeroSlider />
       <StatsStrip />
       <FeaturesSection />
       <CoursesSection />
