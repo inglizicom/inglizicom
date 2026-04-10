@@ -18,12 +18,6 @@ const F   = "'Cairo', sans-serif"
 /* ══════════════════════════════════════════════
    DATA
 ══════════════════════════════════════════════ */
-const STATS = [
-  { icon:'🔥', val:'1,200+', lbl:'طالب نشط',       color:'#fff7ed', ic:'#ea580c' },
-  { icon:'⭐', val:'4.9',    lbl:'تقييم المتعلمين', color:'#fefce8', ic:'#ca8a04' },
-  { icon:'🚀', val:'97%',    lbl:'نسبة التقدم',     color:'#eff6ff', ic:B         },
-  { icon:'🏆', val:'A0→C1', lbl:'جميع المستويات',  color:'#fdf4ff', ic:P         },
-]
 
 const FEATURES = [
   { icon:'🎙️', title:'تحدث من اليوم الأول',  desc:'محادثات حقيقية بدون خوف من البداية',       color:'#dcfce7', border:G },
@@ -472,31 +466,162 @@ function Hero() {
 /* ══════════════════════════════════════════════
    2. STATS STRIP
 ══════════════════════════════════════════════ */
+const STATS_V2 = [
+  {
+    icon: '👥',
+    val: '+1,200',
+    lbl: 'طالب نشط',
+    sub: 'من المغرب والعالم العربي',
+    gradient: 'linear-gradient(135deg,#1d4ed8,#3b82f6)',
+    glow: 'rgba(37,99,235,.3)',
+  },
+  {
+    icon: '⭐',
+    val: '4.9 / 5',
+    lbl: 'تقييم المتعلمين',
+    sub: 'بناءً على آراء الطلاب',
+    gradient: 'linear-gradient(135deg,#ca8a04,#facc15)',
+    glow: 'rgba(202,138,4,.3)',
+  },
+  {
+    icon: '🚀',
+    val: '97%',
+    lbl: 'نسبة التقدم',
+    sub: 'من الطلاب يُكملون دوراتهم',
+    gradient: 'linear-gradient(135deg,#16a34a,#22c55e)',
+    glow: 'rgba(22,163,74,.3)',
+  },
+  {
+    icon: '🎓',
+    val: 'A0 → C1',
+    lbl: 'جميع المستويات',
+    sub: 'منهج كامل ومتكامل',
+    gradient: 'linear-gradient(135deg,#7c3aed,#a855f7)',
+    glow: 'rgba(124,58,237,.3)',
+  },
+]
+
+function StatCard({ s, i, vis }: { s: typeof STATS_V2[number]; i: number; vis: boolean }) {
+  const [h, sH] = useState(false)
+  return (
+    <div
+      onMouseEnter={() => sH(true)}
+      onMouseLeave={() => sH(false)}
+      style={{
+        background: '#fff',
+        borderRadius: 24,
+        padding: '32px 24px 28px',
+        border: `1.5px solid ${h ? 'transparent' : '#f1f5f9'}`,
+        boxShadow: h
+          ? `0 20px 48px ${s.glow}, 0 0 0 1.5px rgba(0,0,0,.06)`
+          : '0 2px 16px rgba(0,0,0,.05)',
+        opacity: vis ? 1 : 0,
+        transform: vis ? (h ? 'translateY(-6px)' : 'none') : 'translateY(28px)',
+        transition: `opacity .6s ${i * .12}s ease, transform .28s ease, box-shadow .28s ease, border-color .28s ease`,
+        position: 'relative', overflow: 'hidden',
+        cursor: 'default',
+      }}
+    >
+      {/* top accent bar */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, height: 4,
+        background: s.gradient, borderRadius: '24px 24px 0 0',
+        opacity: h ? 1 : 0.5,
+        transition: 'opacity .28s',
+      }}/>
+
+      {/* icon circle */}
+      <div style={{
+        width: 56, height: 56, borderRadius: 18,
+        background: s.gradient,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: '1.6rem', marginBottom: 18,
+        boxShadow: `0 6px 20px ${s.glow}`,
+        transform: h ? 'scale(1.1) rotate(-4deg)' : 'none',
+        transition: 'transform .28s cubic-bezier(.34,1.56,.64,1)',
+      }}>
+        {s.icon}
+      </div>
+
+      {/* value */}
+      <div style={{
+        fontWeight: 900,
+        fontSize: 'clamp(1.5rem, 2.5vw, 2rem)',
+        color: DARK, fontFamily: F,
+        lineHeight: 1, marginBottom: 8,
+      }}>
+        {s.val}
+      </div>
+
+      {/* label */}
+      <div style={{
+        fontWeight: 700, fontSize: '0.95rem',
+        color: DARK, fontFamily: F, marginBottom: 6,
+      }}>
+        {s.lbl}
+      </div>
+
+      {/* sub */}
+      <div style={{
+        fontSize: '0.78rem', color: MUTED,
+        fontFamily: F, fontWeight: 400, lineHeight: 1.5,
+      }}>
+        {s.sub}
+      </div>
+
+      {/* bg glow on hover */}
+      <div style={{
+        position: 'absolute', bottom: -40, right: -40,
+        width: 120, height: 120, borderRadius: '50%',
+        background: s.gradient, opacity: h ? 0.08 : 0,
+        transition: 'opacity .3s', pointerEvents: 'none',
+        filter: 'blur(20px)',
+      }}/>
+    </div>
+  )
+}
+
 function StatsStrip() {
   const { ref, vis } = useVisible()
   return (
-    <section style={{ background:'#fff', padding:'32px 24px 64px' }}>
-      <div style={{ maxWidth:1020, margin:'0 auto' }}>
+    <section style={{ background: '#f8fafc', padding: '72px 24px' }}>
+      <div style={{ maxWidth: 1060, margin: '0 auto' }}>
+
+        {/* heading */}
         <div ref={ref} style={{
-          display:'grid',
-          gridTemplateColumns:'repeat(auto-fill, minmax(200px, 1fr))',
-          gap:16,
+          textAlign: 'center', marginBottom: 48,
+          opacity: vis ? 1 : 0,
+          transform: vis ? 'none' : 'translateY(16px)',
+          transition: 'opacity .5s, transform .5s',
         }}>
-          {STATS.map((s, i) => (
-            <div key={i} style={{
-              background:s.color,
-              borderRadius:22, padding:'28px 24px',
-              textAlign:'center',
-              opacity: vis?1:0,
-              transform: vis?'none':'translateY(20px)',
-              transition:`opacity .55s ${i*.1}s, transform .55s ${i*.1}s`,
-              border:'1.5px solid rgba(0,0,0,.05)',
-            }}>
-              <div style={{ fontSize:'2.2rem', marginBottom:10 }}>{s.icon}</div>
-              <div style={{ fontWeight:900, fontSize:'1.5rem', color:DARK, fontFamily:F }}>{s.val}</div>
-              <div style={{ fontSize:'0.8rem', color:MUTED, fontFamily:F, marginTop:4 }}>{s.lbl}</div>
-            </div>
-          ))}
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            background: '#fff', border: '1.5px solid #e2e8f0',
+            borderRadius: 99, padding: '6px 20px', marginBottom: 16,
+            boxShadow: '0 2px 12px rgba(0,0,0,.05)',
+          }}>
+            <span style={{ fontSize: '1rem' }}>📊</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: MUTED, fontFamily: F }}>أرقام حقيقية من طلابنا</span>
+          </div>
+          <h2 style={{
+            fontSize: 'clamp(1.5rem, 3.5vw, 2.1rem)',
+            fontWeight: 900, color: DARK, fontFamily: F,
+            marginBottom: 10,
+          }}>
+            منصة تعليمية بنتائج حقيقية
+          </h2>
+          <p style={{ color: MUTED, fontFamily: F, fontWeight: 400 }}>
+            انضم لآلاف الطلاب الذين غيّروا مستواهم معنا
+          </p>
+        </div>
+
+        {/* cards */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))',
+          gap: 20,
+        }}>
+          {STATS_V2.map((s, i) => <StatCard key={i} s={s} i={i} vis={vis} />)}
         </div>
       </div>
     </section>
