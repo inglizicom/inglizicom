@@ -42,10 +42,10 @@ export default function Header() {
         {/* ── Logo ── */}
         <Link href="/" className="flex items-center gap-2.5 no-underline flex-shrink-0">
           <div className="w-9 h-9 rounded-[10px] bg-white/[0.18] border-[1.5px] border-white/35 flex items-center justify-center text-[0.9rem] font-black text-white">
-            E
+            إ
           </div>
           <span className="font-black text-[1.1rem] text-white tracking-tight">
-            Inglizi<span className="text-blue-300">.com</span>
+            إنجليزي<span className="text-blue-300">.كوم</span>
           </span>
         </Link>
 
