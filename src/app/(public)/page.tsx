@@ -569,7 +569,7 @@ function StatItem({ num, suffix, label, icon, gradient }: { num: number; suffix:
       <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 tabular-nums">
         {suffix === "%" ? `${count}%` : suffix === "+" ? `${count}+` : suffix}
       </h3>
-      <p className="text-gray-500 text-sm mt-1 font-medium">{label}</p>
+      <p className="text-gray-600 text-sm mt-1 font-semibold">{label}</p>
     </motion.div>
   )
 }
@@ -648,11 +648,11 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
           </motion.div>
           <div>
             <h3 className="font-black text-gray-900 text-xl leading-tight">{plan.title}</h3>
-            <p className="text-gray-400 text-sm font-medium">{plan.subtitle}</p>
+            <p className="text-gray-500 text-sm font-semibold">{plan.subtitle}</p>
           </div>
         </div>
 
-        <p className="text-gray-500 text-[0.92rem] leading-relaxed mb-6">{plan.desc}</p>
+        <p className="text-gray-600 text-sm leading-[1.8] mb-6">{plan.desc}</p>
 
         {/* price block */}
         <div className={`${c.light} rounded-2xl p-5 mb-6 text-center border border-gray-100/50`}>
@@ -666,7 +666,7 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
               transition={{ duration: 1.5, repeat: Infinity }}
               className={`w-2 h-2 rounded-full bg-gradient-to-br ${c.bg}`}
             />
-            <span className="text-gray-400 text-xs font-bold">+{plan.xp.toLocaleString()} XP مكافأة</span>
+            <span className="text-gray-500 text-sm font-bold">+{plan.xp.toLocaleString()} XP مكافأة</span>
             <span className="text-yellow-400">✨</span>
           </div>
         </div>
@@ -674,7 +674,7 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
         {/* divider with sparkle */}
         <div className="flex items-center gap-3 mb-6">
           <div className="flex-1 h-px bg-gray-100" />
-          <span className="text-gray-300 text-xs font-bold">ماذا تشمل</span>
+          <span className="text-gray-500 text-sm font-bold">ماذا تشمل</span>
           <div className="flex-1 h-px bg-gray-100" />
         </div>
 
@@ -687,10 +687,10 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.2 + j * 0.06 }}
-              className="flex items-center gap-3 text-[0.9rem]"
+              className="flex items-center gap-3 text-sm"
             >
               <span className="text-base flex-shrink-0">{f.slice(0, 2)}</span>
-              <span className="text-gray-700 font-semibold">{f.slice(2).trim()}</span>
+              <span className="text-gray-700 font-bold">{f.slice(2).trim()}</span>
             </motion.li>
           ))}
         </ul>
@@ -700,7 +700,7 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
           <Link
             href={`https://wa.me/212707902091?text=${encodeURIComponent(`مرحبا، أريد الاشتراك في ${plan.title}`)}`}
             target="_blank"
-            className={`block w-full text-center py-4 rounded-2xl font-extrabold text-[0.95rem] transition-all duration-300 ${
+            className={`block w-full text-center py-4 rounded-2xl font-extrabold text-base transition-all duration-300 ${
               plan.popular
                 ? `bg-gradient-to-l ${c.bg} text-white shadow-xl ${c.shadow} hover:shadow-2xl`
                 : plan.badge
@@ -713,7 +713,7 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
         </motion.div>
 
         {/* bottom note */}
-        <p className="text-center text-gray-400 text-xs mt-4 flex items-center justify-center gap-2">
+        <p className="text-center text-gray-500 text-sm mt-4 flex items-center justify-center gap-2">
           <span className={c.text}>✓</span> نتائج مضمونة
           <span className="w-1 h-1 bg-gray-200 rounded-full" />
           <span className={c.text}>✓</span> دعم مباشر
@@ -728,7 +728,7 @@ function CoursesSection() {
   const extraPlans = PLANS.slice(4)
 
   return (
-    <section className="py-16 sm:py-28 px-4 sm:px-6 bg-gradient-to-b from-gray-50/80 via-white to-gray-50/50 relative overflow-hidden">
+    <section className="py-12 sm:py-20 px-4 sm:px-6 bg-gradient-to-b from-gray-50/80 via-white to-gray-50/50 relative overflow-hidden">
       <div className="absolute top-20 left-0 w-[500px] h-[500px] bg-green-100/20 rounded-full blur-3xl" />
       <div className="absolute bottom-20 right-0 w-[400px] h-[400px] bg-blue-100/15 rounded-full blur-3xl" />
 
@@ -749,7 +749,7 @@ function CoursesSection() {
             اختر الخطة المناسبة
             <span className="bg-gradient-to-l from-green-500 to-emerald-600 bg-clip-text text-transparent"> لمستواك</span>
           </h2>
-          <p className="text-gray-500 mt-4 text-lg max-w-2xl mx-auto">
+          <p className="text-gray-600 mt-4 text-lg max-w-2xl mx-auto">
             دورات مصممة بعناية تشمل دروس مسجلة + متابعة شخصية + مجموعة واتساب + نتائج مضمونة
           </p>
         </motion.div>
@@ -872,11 +872,11 @@ function HowItWorks() {
   ]
 
   return (
-    <section className="py-16 sm:py-24 px-4 sm:px-6 bg-white relative overflow-hidden">
+    <section className="py-12 sm:py-16 px-4 sm:px-6 bg-white relative overflow-hidden">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-br from-green-50/30 to-blue-50/20 rounded-full blur-3xl" />
 
       <div className="max-w-5xl mx-auto relative z-10">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-10 sm:mb-16">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-8 sm:mb-12">
           <span className="inline-flex items-center gap-2 bg-blue-100/80 text-blue-700 px-5 py-2 rounded-full text-sm font-bold mb-5 border border-blue-200/50">
             🧠 كيف يعمل
           </span>
@@ -906,7 +906,7 @@ function HowItWorks() {
                   {s.icon}
                 </motion.div>
                 <h3 className="font-black text-xl text-gray-900 mb-3">{s.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{s.desc}</p>
+                <p className="text-gray-600 text-sm font-medium leading-relaxed">{s.desc}</p>
               </div>
             </motion.div>
           ))}
@@ -931,11 +931,11 @@ function WhatYouGet() {
   ]
 
   return (
-    <section className="py-16 sm:py-24 px-4 sm:px-6 bg-gradient-to-b from-gray-50/60 to-white relative overflow-hidden">
+    <section className="py-12 sm:py-16 px-4 sm:px-6 bg-gradient-to-b from-gray-50/60 to-white relative overflow-hidden">
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-green-50/40 to-transparent rounded-full blur-3xl" />
 
       <div className="max-w-5xl mx-auto relative z-10">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-10 sm:mb-16">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-8 sm:mb-12">
           <span className="inline-flex items-center gap-2 bg-green-100/80 text-green-700 px-5 py-2 rounded-full text-sm font-bold mb-5 border border-green-200/50">
             🎁 شنو غادي تاخد
           </span>
@@ -961,7 +961,7 @@ function WhatYouGet() {
                 {item.icon}
               </motion.div>
               <h3 className="font-black text-lg text-gray-900 mb-2">{item.title}</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
+              <p className="text-gray-600 text-sm font-medium leading-relaxed">{item.desc}</p>
             </motion.div>
           ))}
         </motion.div>
@@ -971,54 +971,60 @@ function WhatYouGet() {
 }
 
 /* ═══════════════════════════════════════════════════
-   MAP PREVIEW
+   MAP PREVIEW — compact progress roadmap
 ═══════════════════════════════════════════════════ */
 
 function MapSection() {
   return (
-    <section className="py-16 sm:py-24 px-4 sm:px-6 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white overflow-hidden relative">
-      <Particles count={20} />
-      <div className="absolute top-10 left-10 w-60 h-60 bg-white/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-10 right-10 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
+    <section className="py-12 sm:py-16 px-4 sm:px-6 relative overflow-hidden">
+      <div className="max-w-4xl mx-auto relative z-10">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeUp}
+          custom={0}
+          className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-3xl p-6 sm:p-10 text-white relative overflow-hidden"
+        >
+          <Particles count={10} />
+          <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-3xl" />
 
-      <div className="max-w-5xl mx-auto relative z-10">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-14">
-          <span className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-5 py-2 rounded-full text-sm font-bold mb-5 border border-white/20">
-            🗺️ رحلة التعلم
-          </span>
-          <h2 className="text-2xl sm:text-3xl md:text-[2.8rem] font-black leading-tight">
-            من الصفر إلى
-            <span className="text-yellow-300"> الاحتراف</span>
-          </h2>
-          <p className="text-blue-200 mt-3 text-lg">تتبع تقدمك عبر مستويات واضحة</p>
-        </motion.div>
+          <div className="relative z-10">
+            {/* header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+              <div>
+                <h3 className="font-black text-xl sm:text-2xl mb-1">خريطة تقدمك الشخصية</h3>
+                <p className="text-blue-200 text-sm font-medium">تابع رحلتك من A0 حتى الاحتراف — كل مستوى تنجزه يفتح التالي</p>
+              </div>
+              <MagneticButton href="/map" className="inline-flex items-center gap-2 bg-white text-blue-700 font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 text-sm flex-shrink-0">
+                🗺️ شوف الخريطة
+              </MagneticButton>
+            </div>
 
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }} variants={stagger} className="flex flex-wrap justify-center items-center gap-2 sm:gap-3 md:gap-4">
-          {MAP_NODES.map((n, i) => (
-            <motion.div key={i} custom={i} variants={fadeScale} className="flex items-center gap-2 sm:gap-3 md:gap-4">
-              <motion.div whileHover={{ scale: 1.15 }} className="flex flex-col items-center gap-2 sm:gap-3">
-                <div className={`w-[52px] h-[52px] sm:w-[68px] sm:h-[68px] rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-sm sm:text-lg shadow-xl transition-all duration-300 ${
-                  n.status === "done" ? "bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-green-500/40"
-                  : n.status === "current" ? "bg-white text-blue-700 shadow-white/40 node-pulse ring-4 ring-white/20"
-                  : "bg-white/10 text-white/30 border-2 border-white/10"
-                }`}>
-                  {n.status === "done" ? <motion.span initial={{ scale: 0 }} whileInView={{ scale: 1 }} viewport={{ once: true }} transition={{ type: "spring", delay: i * 0.1 }}>✓</motion.span> : n.label}
+            {/* compact level progress */}
+            <div className="flex items-center justify-between gap-1 sm:gap-2">
+              {MAP_NODES.map((n, i) => (
+                <div key={i} className="flex items-center gap-1 sm:gap-2 flex-1">
+                  <motion.div
+                    whileHover={{ scale: 1.1 }}
+                    className="flex flex-col items-center gap-1.5 flex-shrink-0"
+                  >
+                    <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center font-black text-xs sm:text-sm shadow-lg transition-all duration-300 ${
+                      n.status === "done" ? "bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-green-500/30"
+                      : n.status === "current" ? "bg-white text-blue-700 shadow-white/30 ring-2 ring-white/30"
+                      : "bg-white/10 text-white/40 border border-white/15"
+                    }`}>
+                      {n.status === "done" ? "✓" : n.label}
+                    </div>
+                    <span className={`text-[10px] sm:text-xs font-bold ${n.status === "locked" ? "text-white/40" : "text-white/80"}`}>{n.city}</span>
+                  </motion.div>
+                  {i < MAP_NODES.length - 1 && (
+                    <div className={`flex-1 h-0.5 sm:h-1 rounded-full ${n.status === "done" ? "bg-gradient-to-l from-green-300 to-green-500" : "bg-white/10"}`} />
+                  )}
                 </div>
-                <span className={`text-xs font-bold ${n.status === "locked" ? "text-white/30" : "text-white"}`}>{n.city}</span>
-              </motion.div>
-              {i < MAP_NODES.length - 1 && (
-                <motion.div initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ delay: 0.3 + i * 0.1, duration: 0.5 }}
-                  className={`w-4 sm:w-8 md:w-14 h-1 sm:h-1.5 rounded-full origin-right ${n.status === "done" ? "bg-gradient-to-l from-green-300 to-green-500" : "bg-white/10"}`}
-                />
-              )}
-            </motion.div>
-          ))}
-        </motion.div>
-
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={3} className="text-center mt-12">
-          <MagneticButton href="/map" className="inline-flex items-center gap-2 bg-white text-blue-700 font-bold px-9 py-4 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300">
-            🗺️ اكتشف الخريطة
-          </MagneticButton>
+              ))}
+            </div>
+          </div>
         </motion.div>
       </div>
     </section>
@@ -1026,61 +1032,107 @@ function MapSection() {
 }
 
 /* ═══════════════════════════════════════════════════
-   TESTIMONIALS — big cards with gradient accents
+   TESTIMONIALS — high-converting social proof
 ═══════════════════════════════════════════════════ */
 
 function TestimonialsSection() {
   return (
-    <section className="py-16 sm:py-24 px-4 sm:px-6 bg-white relative overflow-hidden">
+    <section className="py-12 sm:py-20 px-4 sm:px-6 bg-gradient-to-b from-white via-orange-50/30 to-white relative overflow-hidden">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-yellow-50/40 to-transparent rounded-full blur-3xl" />
 
       <div className="max-w-5xl mx-auto relative z-10">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-10 sm:mb-16">
+        {/* header with social proof stats */}
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-10 sm:mb-14">
           <span className="inline-flex items-center gap-2 bg-yellow-100/80 text-yellow-700 px-5 py-2 rounded-full text-sm font-bold mb-5 border border-yellow-200/50">
-            ⭐ آراء الطلاب
+            ⭐ نتائج حقيقية من طلاب حقيقيين
           </span>
           <h2 className="text-2xl sm:text-3xl md:text-[2.8rem] font-black text-gray-900 leading-tight">
-            +1200 طالب
-            <span className="bg-gradient-to-l from-yellow-500 to-orange-500 bg-clip-text text-transparent"> يثقون فينا</span>
+            شوف شنو قالوا
+            <span className="bg-gradient-to-l from-yellow-500 to-orange-500 bg-clip-text text-transparent"> طلابنا</span>
           </h2>
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <div className="flex gap-0.5">
+              {[...Array(5)].map((_, i) => <span key={i} className="text-yellow-400 text-xl">★</span>)}
+            </div>
+            <span className="font-black text-gray-900 text-lg">4.9/5</span>
+            <span className="text-gray-500 font-semibold text-sm">من +1200 طالب</span>
+          </div>
         </motion.div>
 
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.15 }} variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-7">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.15 }} variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6">
           {TESTIMONIALS.map((t, i) => (
             <motion.div
               key={i}
               custom={i}
               variants={fadeUp}
-              whileHover={{ y: -8 }}
+              whileHover={{ y: -6, scale: 1.02 }}
               className="relative rounded-3xl overflow-hidden group"
             >
-              {/* gradient top accent */}
-              <div className={`h-2 bg-gradient-to-l ${t.color}`} />
+              <div className={`bg-gradient-to-br ${t.color} p-6 sm:p-7 text-white relative`}>
+                {/* decorative circles */}
+                <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+                <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2" />
 
-              <div className="bg-white p-8 border-x-2 border-b-2 border-gray-100 rounded-b-3xl">
-                {/* quote mark */}
-                <div className="text-5xl text-gray-100 font-serif leading-none mb-4 select-none">&ldquo;</div>
-
-                <p className="text-gray-700 leading-[1.9] text-[0.95rem] mb-6">{t.text}</p>
-
-                <div className="flex gap-1 mb-5">
+                {/* stars */}
+                <div className="flex gap-1 mb-4 relative z-10">
                   {[...Array(5)].map((_, j) => (
-                    <motion.span key={j} initial={{ opacity: 0, scale: 0 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: 0.4 + j * 0.06, type: "spring" }} className="text-yellow-400 text-lg">★</motion.span>
+                    <motion.span key={j} initial={{ opacity: 0, scale: 0 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: 0.3 + j * 0.05, type: "spring" }} className="text-yellow-300 text-lg">★</motion.span>
                   ))}
                 </div>
 
-                <div className="flex items-center gap-3 pt-5 border-t border-gray-100">
-                  <div className={`w-12 h-12 bg-gradient-to-br ${t.color} rounded-2xl flex items-center justify-center text-xl shadow-md`}>
+                {/* quote */}
+                <p className="text-white/95 leading-[1.9] text-[0.95rem] font-medium relative z-10 mb-2">
+                  &ldquo;{t.text}&rdquo;
+                </p>
+              </div>
+
+              {/* author bar */}
+              <div className="bg-white px-6 py-4 border-x-2 border-b-2 border-gray-100 rounded-b-3xl flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-11 h-11 bg-gradient-to-br ${t.color} rounded-xl flex items-center justify-center text-lg shadow-md`}>
                     {t.avatar}
                   </div>
                   <div>
-                    <p className="font-bold text-gray-900">{t.name}</p>
-                    <span className="text-xs font-bold text-green-600">مستوى {t.level} ✨</span>
+                    <p className="font-bold text-gray-900 text-sm">{t.name}</p>
+                    <span className="text-xs font-bold text-green-600 flex items-center gap-1">
+                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" /></svg>
+                      وصل مستوى {t.level}
+                    </span>
                   </div>
+                </div>
+                <div className="bg-green-50 text-green-700 px-3 py-1.5 rounded-lg text-xs font-black border border-green-100">
+                  نتيجة حقيقية
                 </div>
               </div>
             </motion.div>
           ))}
+        </motion.div>
+
+        {/* bottom trust bar */}
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={3} className="mt-8 sm:mt-10 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-lg">📊</div>
+            <div>
+              <p className="font-black text-gray-900 text-sm">97% راضين تماما</p>
+              <p className="text-gray-500 text-xs font-semibold">نسبة رضا مؤكدة</p>
+            </div>
+          </div>
+          <div className="hidden sm:block w-px h-10 bg-gray-100" />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-lg">⚡</div>
+            <div>
+              <p className="font-black text-gray-900 text-sm">نتائج من أول أسبوع</p>
+              <p className="text-gray-500 text-xs font-semibold">تقدم سريع وملموس</p>
+            </div>
+          </div>
+          <div className="hidden sm:block w-px h-10 bg-gray-100" />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center text-lg">🌍</div>
+            <div>
+              <p className="font-black text-gray-900 text-sm">طلاب من 15+ دولة</p>
+              <p className="text-gray-500 text-xs font-semibold">مجتمع عالمي نشط</p>
+            </div>
+          </div>
         </motion.div>
       </div>
     </section>
@@ -1093,9 +1145,9 @@ function TestimonialsSection() {
 
 function ToolsSection() {
   return (
-    <section className="py-16 sm:py-24 px-4 sm:px-6 bg-gradient-to-b from-gray-50/60 to-white relative overflow-hidden">
+    <section className="py-12 sm:py-16 px-4 sm:px-6 bg-gradient-to-b from-gray-50/60 to-white relative overflow-hidden">
       <div className="max-w-5xl mx-auto relative z-10">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-10 sm:mb-14">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-8 sm:mb-10">
           <span className="inline-flex items-center gap-2 bg-purple-100/80 text-purple-700 px-5 py-2 rounded-full text-sm font-bold mb-5 border border-purple-200/50">
             🛠️ أدوات مجانية
           </span>
@@ -1116,7 +1168,7 @@ function ToolsSection() {
                   {t.icon}
                 </motion.div>
                 <h3 className="font-black text-xl text-gray-900 mb-2">{t.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed mb-4">{t.desc}</p>
+                <p className="text-gray-600 text-sm font-medium leading-relaxed mb-4">{t.desc}</p>
                 <span className="inline-flex items-center gap-1 text-purple-600 font-bold text-sm group-hover:underline">
                   جرب الآن <motion.span animate={{ x: [0, -3, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>←</motion.span>
                 </span>
@@ -1135,7 +1187,7 @@ function ToolsSection() {
 
 function FinalCTA() {
   return (
-    <section className="py-16 sm:py-28 px-4 sm:px-6 bg-gradient-to-br from-green-500 via-emerald-500 to-green-600 text-white text-center relative overflow-hidden">
+    <section className="py-12 sm:py-20 px-4 sm:px-6 bg-gradient-to-br from-green-500 via-emerald-500 to-green-600 text-white text-center relative overflow-hidden">
       <Particles count={25} />
 
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
@@ -1146,7 +1198,7 @@ function FinalCTA() {
       <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="max-w-2xl mx-auto relative z-10">
         <motion.div animate={{ y: [-5, 5, -5], rotate: [-3, 3, -3] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" as const }} className="text-7xl mb-8">🚀</motion.div>
         <h2 className="text-2xl sm:text-3xl md:text-[3.2rem] font-black mb-5 leading-tight">جاهز تبدأ رحلتك؟</h2>
-        <p className="text-green-100 text-base sm:text-lg mb-8 sm:mb-12 leading-relaxed">انضم لأكثر من 1200 طالب يتعلمون الإنجليزية بطريقة ممتعة وفعالة</p>
+        <p className="text-white/90 text-base sm:text-lg mb-8 sm:mb-12 leading-relaxed font-semibold">انضم لأكثر من 1200 طالب يتعلمون الإنجليزية بطريقة ممتعة وفعالة</p>
 
         <div className="flex flex-wrap justify-center gap-5">
           <MagneticButton href="/onboarding" className="bg-white text-green-700 font-black px-12 py-5 rounded-2xl shadow-2xl shadow-green-900/30 hover:shadow-green-900/40 transition-all duration-300 text-lg inline-flex items-center gap-2">
@@ -1157,7 +1209,7 @@ function FinalCTA() {
           </MagneticButton>
         </div>
 
-        <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.5 }} className="text-green-200/80 text-sm mt-10 flex items-center justify-center gap-3 flex-wrap">
+        <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.5 }} className="text-white/70 text-sm font-semibold mt-10 flex items-center justify-center gap-3 flex-wrap">
           <span>✅ نتائج مضمونة</span>
           <span className="w-1 h-1 bg-green-200/40 rounded-full" />
           <span>💬 دعم واتساب مباشر</span>
