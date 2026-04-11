@@ -316,20 +316,20 @@ function HeroSlider() {
 
       <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 md:gap-12 items-center px-5 sm:px-6 py-10 md:py-20 relative z-10 w-full">
         {/* TEXT SIDE */}
-        <div className="order-2 md:order-1">
+        <div className="order-2 md:order-1 text-right" dir="rtl">
           <AnimatePresence mode="wait">
             <motion.div
               key={idx}
-              initial={{ opacity: 0, x: -40, filter: "blur(10px)" }}
+              initial={{ opacity: 0, x: 40, filter: "blur(10px)" }}
               animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-              exit={{ opacity: 0, x: 40, filter: "blur(10px)" }}
+              exit={{ opacity: 0, x: -40, filter: "blur(10px)" }}
               transition={{ duration: 0.6, ease: [0.25, 0.4, 0.25, 1] }}
             >
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="inline-flex items-center gap-2 bg-green-100/80 backdrop-blur-sm text-green-700 px-5 py-2 rounded-full text-sm font-bold mb-6 border border-green-200/50"
+                className="inline-flex items-center gap-2.5 bg-green-100/80 backdrop-blur-sm text-green-700 px-5 py-2.5 rounded-full text-sm font-bold mb-7 border border-green-200/50"
               >
                 <span className="w-2.5 h-2.5 bg-green-500 rounded-full dot-pulse" />
                 <span>+1200 طالب يتعلمون الآن</span>
@@ -342,7 +342,7 @@ function HeroSlider() {
                 </motion.span>
               </motion.div>
 
-              <h1 className="text-3xl sm:text-4xl md:text-[3.4rem] font-extrabold leading-[1.2] mb-5">
+              <h1 className="text-3xl sm:text-[2.7rem] md:text-[3.5rem] font-black leading-[1.25] mb-6 text-gray-900">
                 تعلم{" "}
                 <AnimatePresence mode="wait">
                   <motion.span
@@ -357,17 +357,17 @@ function HeroSlider() {
                   </motion.span>
                 </AnimatePresence>
                 <br />
-                <span className="text-gray-900">{slide.sub.split("—")[0]}</span>
+                {slide.title}
               </h1>
 
-              <p className="text-gray-500 text-lg mb-9 leading-relaxed max-w-lg">
+              <p className="text-gray-600 text-base sm:text-lg mb-10 leading-[1.9] max-w-xl">
                 {slide.sub}
               </p>
 
               <div className="flex flex-wrap gap-4">
                 <MagneticButton
                   href="/onboarding"
-                  className="relative bg-gradient-to-l from-green-500 to-emerald-600 text-white font-bold px-9 py-4 rounded-2xl shadow-xl shadow-green-500/30 hover:shadow-green-500/50 hover:scale-105 transition-all duration-300 inline-flex items-center gap-2 overflow-hidden group"
+                  className="relative bg-gradient-to-l from-green-500 to-emerald-600 text-white font-extrabold text-base px-10 py-4 rounded-2xl shadow-xl shadow-green-500/30 hover:shadow-green-500/50 hover:scale-105 transition-all duration-300 inline-flex items-center gap-2.5 overflow-hidden group"
                 >
                   <span className="relative z-10">ابدأ الآن</span>
                   <motion.span
@@ -382,7 +382,7 @@ function HeroSlider() {
 
                 <Link
                   href="/courses"
-                  className="border-2 border-gray-200 hover:border-green-300 bg-white/80 backdrop-blur-sm text-gray-700 font-bold px-9 py-4 rounded-2xl hover:bg-green-50 transition-all duration-300 inline-flex items-center gap-2 hover:shadow-lg"
+                  className="border-2 border-gray-200 hover:border-green-300 bg-white/80 backdrop-blur-sm text-gray-700 font-extrabold text-base px-10 py-4 rounded-2xl hover:bg-green-50 transition-all duration-300 inline-flex items-center gap-2.5 hover:shadow-lg"
                 >
                   شاهد الدورات
                   <motion.span animate={{ x: [0, -4, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>←</motion.span>
@@ -394,7 +394,7 @@ function HeroSlider() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.8 }}
-                className="flex items-center gap-4 mt-10 bg-white/60 backdrop-blur-sm rounded-2xl px-5 py-3 border border-gray-100 w-fit"
+                className="flex items-center gap-4 mt-10 bg-white/60 backdrop-blur-sm rounded-2xl px-5 py-3.5 border border-gray-100 w-fit"
               >
                 <div className="flex -space-x-3 space-x-reverse">
                   {["bg-blue-500", "bg-green-500", "bg-purple-500", "bg-orange-400"].map((c, i) => (
@@ -409,16 +409,16 @@ function HeroSlider() {
                     </motion.div>
                   ))}
                 </div>
-                <div className="text-sm">
-                  <div className="flex items-center gap-1 text-yellow-500 font-bold">
+                <div>
+                  <div className="flex items-center gap-1 text-yellow-500 font-bold text-base">
                     {[...Array(5)].map((_, i) => (
                       <motion.span key={i} initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1.2 + i * 0.05 }}>
                         ★
                       </motion.span>
                     ))}
-                    <span className="text-gray-700 mr-1">4.9</span>
+                    <span className="text-gray-700 mr-1 text-sm font-black">4.9</span>
                   </div>
-                  <p className="text-gray-500 text-xs">من 1200+ طالب سعيد</p>
+                  <p className="text-gray-500 text-sm font-semibold">من 1200+ طالب سعيد</p>
                 </div>
               </motion.div>
             </motion.div>
