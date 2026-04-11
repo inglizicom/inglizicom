@@ -82,10 +82,10 @@ const LEVEL_CONFIG: Record<Level, {
 }
 
 const FEEDBACK_MESSAGES = {
-  perfect:  ['ممتاز جداً! 🎉', 'رائع! أنت محترف! 🌟', 'مثالي تماماً! 👑'],
-  good:     ['جيد جداً! 💪', 'عمل ممتاز! 🎯', 'أنت تتحسن بسرعة! 📈'],
-  ok:       ['ليس بأس، واصل! 🔥', 'التدريب يصنع الفرق! 💡', 'كل يوم تتحسن أكثر! ⭐'],
-  tryAgain: ['حاول مرة أخرى! 🔄', 'الأخطاء طريق التعلم! 📚', 'لا تستسلم! 🎯'],
+  perfect:  ['ممتاز جداً! أداء مثالي! 🎉', 'رائع! أنت محترف حقيقي! 🌟', 'مثالي تماماً! فخورين بيك! 👑', 'وااو! نتيجة خرافية! 🔥'],
+  good:     ['جيد جداً! كمّل هاد الطريق! 💪', 'عمل ممتاز! قربت للمثالية! 🎯', 'أنت تتحسن بسرعة ملحوظة! 📈'],
+  ok:       ['بداية جيدة، واصل وستتحسن! 🔥', 'التدريب يصنع المعجزات! 💡', 'كل جلسة تقربك أكثر — لا تتوقف! ⭐'],
+  tryAgain: ['الأخطاء جزء من التعلم — حاول مرة أخرى! 🔄', 'كل محاولة تجعلك أفضل! 📚', 'لا تستسلم، التكرار هو المفتاح! 🎯'],
 }
 
 function randomFrom<T>(arr: T[]): T {
@@ -170,9 +170,9 @@ function validateLocally(userAnswer: string, reference: string): EvaluateRespons
     score,
     isGood,
     feedback: isGood
-      ? (score >= 90 ? 'ممتاز! إجابة مثالية. 🎉' : 'جيد جداً! معظم الجملة صحيح. 💪')
-      : (score >= 40 ? 'قريب، لكن فيه فرق — راجع الجملة. 🔄' : 'إجابة خاطئة — اقرأ الجملة الصحيحة. ❌'),
-    corrections: isGood ? [] : [`Your answer differs significantly from the reference.`],
+      ? (score >= 90 ? 'ممتاز! إجابة مثالية — برافو عليك! 🎉' : 'جيد جداً! معظم الجملة صحيح، كمّل هكا! 💪')
+      : (score >= 40 ? 'قريب! فيه فرق بسيط — قارن مع الجملة الصحيحة 🔄' : 'مش مشكل — راجع الجملة الصحيحة وحاول مرة أخرى 📖'),
+    corrections: isGood ? [] : ['إجابتك مختلفة عن الجملة الأصلية — قارنها مع الصيغة الصحيحة أسفله.'],
     betterVersion: reference,
     xpAwarded: xp,
   }
@@ -328,7 +328,7 @@ function LevelSelectScreen({
       <div className="text-center mb-8">
         <div className="text-6xl mb-4">🎯</div>
         <h1 className="text-3xl font-black text-white mb-2">تدرب على الإنجليزية</h1>
-        <p className="text-blue-200/70">اختر مستواك وابدأ جلسة تعلم كاملة</p>
+        <p className="text-blue-200/70 text-sm leading-relaxed max-w-xs mx-auto">اختر مستواك وابدأ جلسة تعلم كاملة — قراءة، كتابة، ترجمة ومحادثة مع AI</p>
       </div>
 
       {/* Stats */}
@@ -407,11 +407,45 @@ function LevelSelectScreen({
       </div>
 
       {/* Session Info */}
-      <div className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 mb-6 text-sm text-white/60 space-y-1.5">
-        <div className="flex items-center gap-2"><BookOpen size={14} className="text-blue-400" /> قراءة 6 جمل + استماع</div>
-        <div className="flex items-center gap-2"><Star size={14} className="text-amber-400" /> إعادة الكتابة من الذاكرة</div>
-        <div className="flex items-center gap-2"><Sparkles size={14} className="text-violet-400" /> ترجمة مع تقييم AI</div>
-        <div className="flex items-center gap-2"><MessageCircle size={14} className="text-emerald-400" /> محادثة مع AI Coach</div>
+      <div className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 mb-6">
+        <p className="text-white/80 font-bold text-sm mb-3">كل جلسة تشمل 4 مراحل:</p>
+        <div className="grid grid-cols-2 gap-2.5">
+          <div className="flex items-center gap-2.5 bg-white/5 rounded-xl px-3 py-2.5">
+            <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center text-sm">📖</div>
+            <div>
+              <p className="text-white/90 text-xs font-bold">القراءة والاستماع</p>
+              <p className="text-white/40 text-[10px]">6 جمل مع نطق صوتي</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 bg-white/5 rounded-xl px-3 py-2.5">
+            <div className="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center text-sm">✍️</div>
+            <div>
+              <p className="text-white/90 text-xs font-bold">الكتابة من الذاكرة</p>
+              <p className="text-white/40 text-[10px]">اختبر حفظك للجمل</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 bg-white/5 rounded-xl px-3 py-2.5">
+            <div className="w-8 h-8 bg-violet-500/20 rounded-lg flex items-center justify-center text-sm">🌐</div>
+            <div>
+              <p className="text-white/90 text-xs font-bold">الترجمة الثنائية</p>
+              <p className="text-white/40 text-[10px]">عربي ↔ إنجليزي</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2.5 bg-white/5 rounded-xl px-3 py-2.5">
+            <div className="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center text-sm">🤖</div>
+            <div>
+              <p className="text-white/90 text-xs font-bold">محادثة AI Coach</p>
+              <p className="text-white/40 text-[10px]">تمارين ذكية + سؤال</p>
+            </div>
+          </div>
+        </div>
+        <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-center gap-4 text-[11px] text-white/40 font-semibold">
+          <span>⏱ ~10 دقائق</span>
+          <span className="w-1 h-1 bg-white/20 rounded-full" />
+          <span>⚡ حتى 100 XP</span>
+          <span className="w-1 h-1 bg-white/20 rounded-full" />
+          <span>🔥 يحسب في الـ streak</span>
+        </div>
       </div>
 
       <button
@@ -422,6 +456,15 @@ function LevelSelectScreen({
       >
         ابدأ الجلسة 🚀
       </button>
+
+      {/* Social proof */}
+      <p className="text-white/30 text-xs text-center mt-4 flex items-center justify-center gap-2">
+        <span>✅ مجاني 100%</span>
+        <span className="w-1 h-1 bg-white/15 rounded-full" />
+        <span>🎯 بدون تسجيل</span>
+        <span className="w-1 h-1 bg-white/15 rounded-full" />
+        <span>📱 يعمل على الهاتف</span>
+      </p>
     </div>
   )
 }
@@ -562,23 +605,35 @@ function ReadingScreen({
       </div>
 
       {/* Tip */}
-      <div className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white/50 text-sm text-center mb-6">
-        💡 استمع للجملة وحاول أن تحفظها — ستكتبها لاحقاً من الذاكرة
+      <div className="w-full bg-amber-500/10 border border-amber-500/20 rounded-2xl px-4 py-3 text-center mb-6">
+        <p className="text-amber-300/90 text-sm font-bold mb-0.5">💡 نصيحة مهمة</p>
+        <p className="text-white/50 text-xs">ركّز على كل كلمة واستمع للنطق — ستحتاج كتابة هذه الجمل من الذاكرة في الخطوة التالية!</p>
       </div>
 
       {/* Start button — shown after seeing all */}
       {allSeen && (
-        <button
-          onClick={onComplete}
-          className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 text-white font-black text-lg shadow-xl active:scale-95 transition-all animate-fadeUp flex items-center justify-center gap-2"
-        >
-          جاهز للكتابة <ArrowRight size={20} />
-        </button>
+        <div className="w-full space-y-2 animate-fadeUp">
+          <button
+            onClick={onComplete}
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 text-white font-black text-lg shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            جاهز للكتابة <ArrowRight size={20} />
+          </button>
+          <p className="text-white/30 text-xs text-center">✅ قرأت جميع الجمل — يلا نبدأو!</p>
+        </div>
       )}
       {!allSeen && (
-        <p className="text-white/30 text-sm text-center">
-          اقرأ جميع الجمل لتستمر ({seen.size}/{sentences.length})
-        </p>
+        <div className="w-full bg-white/5 rounded-2xl px-4 py-3 text-center">
+          <div className="flex items-center justify-center gap-2 text-white/50 text-sm font-semibold">
+            <span>📖 اقرأ جميع الجمل لتستمر</span>
+          </div>
+          <div className="flex items-center justify-center gap-1.5 mt-2">
+            {sentences.map((_, i) => (
+              <div key={i} className={`w-6 h-1.5 rounded-full transition-all ${seen.has(i) ? 'bg-emerald-400' : 'bg-white/15'}`} />
+            ))}
+          </div>
+          <p className="text-white/30 text-xs mt-1.5">{seen.size} من {sentences.length}</p>
+        </div>
       )}
     </div>
   )
@@ -674,9 +729,10 @@ function WritingScreen({
             <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
               <BookOpen size={12} /> اكتب الجملة من الذاكرة
             </p>
-            <p className="text-gray-400 text-sm flex items-center gap-1">
-              استمع للجملة ثم اكتبها بالإنجليزية دون النظر
-            </p>
+            <div className="flex items-center gap-3 bg-blue-50 rounded-xl px-4 py-3">
+              <SpeakBtn text={sentence.english} size="sm" />
+              <p className="text-gray-500 text-sm font-medium">استمع ثم اكتب الجملة بالإنجليزية من الذاكرة</p>
+            </div>
           </>
         )}
       </div>
@@ -763,7 +819,7 @@ function WritingScreen({
             onClick={handleNext}
             className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-90 text-white font-black text-base shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
           >
-            {isLast ? '🎯 انتقل للترجمة' : <>التالي <ArrowRight size={18} /></>}
+            {isLast ? '🌐 يلا للترجمة!' : <>التالي <ArrowRight size={18} /></>}
           </button>
         </div>
       )}
@@ -924,7 +980,7 @@ function TranslationScreen({
             onClick={handleNext}
             className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-violet-500 to-purple-600 hover:opacity-90 text-white font-black text-base shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
           >
-            {isLast ? '💬 انتقل للمحادثة' : <>التالي <ArrowRight size={18} /></>}
+            {isLast ? '🤖 يلا للمحادثة!' : <>التالي <ArrowRight size={18} /></>}
           </button>
         </div>
       )}
@@ -1400,7 +1456,26 @@ function ResultsScreen({
         </div>
       )}
 
-      {/* CTA buttons */}
+      {/* WhatsApp upgrade CTA */}
+      <div className="w-full bg-gradient-to-r from-[#25d366]/15 to-emerald-500/10 border border-[#25d366]/30 rounded-2xl p-5 mb-4 animate-fadeUp"
+        style={{ animationDelay: '450ms' }}>
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 bg-[#25d366] rounded-xl flex items-center justify-center text-lg shadow-md flex-shrink-0">💬</div>
+          <div className="flex-1">
+            <p className="text-white font-black text-sm mb-1">عجبتك التجربة؟ النتائج الحقيقية مع المتابعة!</p>
+            <p className="text-white/50 text-xs leading-relaxed mb-3">انضم لدورة مع المعلم حمزة — متابعة شخصية + مجموعة واتساب + نتائج مضمونة</p>
+            <a
+              href="https://wa.me/212707902091?text=مرحبا، جربت التدريب المجاني وأريد الانضمام لدورة كاملة"
+              target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-[#25d366] hover:bg-[#20bd5a] text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow-lg transition-all active:scale-95"
+            >
+              <MessageCircle size={14} /> تواصل مع حمزة الآن
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Action buttons */}
       <div className="w-full space-y-3">
         <button
           onClick={onNewSession}
@@ -1414,13 +1489,6 @@ function ResultsScreen({
         >
           <Trophy size={18} className="text-amber-400" /> تغيير المستوى
         </button>
-        <a
-          href="https://wa.me/212707902091?text=مرحبا، أريد الانضمام لبرنامج تعلم الإنجليزية"
-          target="_blank" rel="noopener noreferrer"
-          className="w-full py-3 rounded-2xl bg-[#25d366]/20 hover:bg-[#25d366]/30 border border-[#25d366]/40 text-emerald-300 font-bold text-sm transition-all flex items-center justify-center gap-2"
-        >
-          <MessageCircle size={16} /> تواصل مع المعلم حمزة للتدريب المتقدم
-        </a>
       </div>
     </div>
   )
