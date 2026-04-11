@@ -14,8 +14,10 @@ const quickLinks = [
   { href: '/courses',    label: 'الدورات' },
   { href: '/level-test', label: 'اختبر مستواك' },
   { href: '/blog',       label: 'المدونة' },
-  { href: '/about',      label: 'عن المعلم' },
+  { href: '/about',      label: 'من نحن' },
   { href: '/contact',    label: 'تواصل معنا' },
+  { href: '/privacy',    label: 'سياسة الخصوصية' },
+  { href: '/terms',      label: 'شروط الاستخدام' },
 ]
 
 export default function Footer() {
@@ -169,9 +171,13 @@ export default function Footer() {
           <p className="text-blue-200/60 text-sm">
             © {new Date().getFullYear()} إنجليزي.كوم — جميع الحقوق محفوظة
           </p>
-          <p className="text-blue-200/60 text-sm flex items-center gap-1">
-            صُنع بـ ❤️ لمساعدتك على التحدث بثقة
-          </p>
+          <div className="flex items-center gap-4">
+            <Link href="/about" className="text-blue-200/60 text-sm hover:text-white transition-colors">من نحن</Link>
+            <span className="text-white/20">|</span>
+            <Link href="/privacy" className="text-blue-200/60 text-sm hover:text-white transition-colors">سياسة الخصوصية</Link>
+            <span className="text-white/20">|</span>
+            <Link href="/terms" className="text-blue-200/60 text-sm hover:text-white transition-colors">شروط الاستخدام</Link>
+          </div>
         </div>
       </div>
     </footer>
