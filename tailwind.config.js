@@ -8,8 +8,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Cairo', 'sans-serif'],
-        arabic: ['Cairo', 'sans-serif'],
+        sans: ['Tajawal', 'sans-serif'],
+        arabic: ['Tajawal', 'sans-serif'],
       },
       colors: {
         brand: {
