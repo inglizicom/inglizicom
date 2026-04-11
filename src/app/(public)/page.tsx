@@ -295,7 +295,7 @@ function HeroSlider() {
 
   return (
     <section
-      className="relative min-h-[calc(100vh-68px)] flex items-center overflow-hidden"
+      className="relative min-h-screen pt-20 flex items-center overflow-hidden"
       onMouseMove={(e) => {
         const rect = e.currentTarget.getBoundingClientRect()
         mouseX.set(e.clientX - rect.left - rect.width / 2)

@@ -8,7 +8,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
     <>
       <Analytics />
       <Header />
-      <main className="pt-[68px]">{children}</main>
+      <main>{children}</main>
       <Footer />
       <WhatsAppButton />
     </>
