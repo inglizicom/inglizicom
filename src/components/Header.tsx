@@ -35,32 +35,32 @@ export default function Header() {
       }`}
     >
       <div
-        className={`max-w-[1100px] mx-auto px-6 flex items-center justify-between transition-[height] duration-300 ${
-          scrolled ? 'h-[58px]' : 'h-[68px]'
+        className={`max-w-[1200px] mx-auto px-4 sm:px-8 flex items-center justify-between transition-[height] duration-300 ${
+          scrolled ? 'h-[60px]' : 'h-[70px]'
         }`}
       >
         {/* ── Logo ── */}
-        <Link href="/" className="flex items-center gap-2.5 no-underline flex-shrink-0">
-          <div className="w-9 h-9 rounded-[10px] bg-white/[0.18] border-[1.5px] border-white/35 flex items-center justify-center text-[0.9rem] font-black text-white">
+        <Link href="/" className="flex items-center gap-3 no-underline flex-shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-white/20 border-2 border-white/30 flex items-center justify-center text-lg font-black text-white">
             إ
           </div>
-          <span className="font-black text-[1.1rem] text-white tracking-tight">
+          <span className="font-black text-xl text-white">
             إنجليزي<span className="text-blue-300">.كوم</span>
           </span>
         </Link>
 
         {/* ── Desktop Nav ── */}
-        <nav className="hidden lg:flex items-center gap-0.5" dir="rtl">
+        <nav className="hidden lg:flex items-center gap-1" dir="rtl">
           {NAV.map(link => {
             const active = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href))
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-3.5 py-2 rounded-[10px] text-[0.9rem] no-underline transition-colors duration-150 ${
+                className={`px-5 py-2.5 rounded-xl text-[15px] no-underline transition-colors duration-150 ${
                   active
-                    ? 'font-bold text-white bg-white/[0.18]'
-                    : 'font-medium text-white/80 hover:text-white hover:bg-white/[0.12]'
+                    ? 'font-bold text-white bg-white/20'
+                    : 'font-semibold text-white/80 hover:text-white hover:bg-white/[0.12]'
                 }`}
               >
                 {link.label}
@@ -73,7 +73,7 @@ export default function Header() {
         <div className="hidden lg:flex">
           <Link
             href="/onboarding"
-            className="px-6 py-2.5 rounded-xl text-[0.9rem] font-extrabold no-underline bg-white text-brand-700 shadow-[0_2px_12px_rgba(0,0,0,0.18)] hover:scale-105 hover:shadow-[0_6px_20px_rgba(0,0,0,0.25)] transition-all duration-150"
+            className="px-7 py-2.5 rounded-xl text-[15px] font-extrabold no-underline bg-white text-brand-700 shadow-[0_2px_12px_rgba(0,0,0,0.18)] hover:scale-105 hover:shadow-[0_6px_20px_rgba(0,0,0,0.25)] transition-all duration-150"
           >
             ابدأ الآن
           </Link>
@@ -81,11 +81,11 @@ export default function Header() {
 
         {/* ── Mobile Hamburger ── */}
         <button
-          className="lg:hidden w-10 h-10 flex items-center justify-center rounded-[10px] border-none cursor-pointer bg-white/15 text-white hover:bg-white/25 transition-colors duration-150"
+          className="lg:hidden w-11 h-11 flex items-center justify-center rounded-xl border-none cursor-pointer bg-white/15 text-white hover:bg-white/25 transition-colors duration-150"
           onClick={() => setOpen(o => !o)}
           aria-label="القائمة"
         >
-          {open ? <X size={20} /> : <Menu size={20} />}
+          {open ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>
 
@@ -103,10 +103,10 @@ export default function Header() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`px-4 py-3 rounded-xl text-[0.92rem] no-underline transition-colors duration-150 ${
+                  className={`px-5 py-3.5 rounded-xl text-base no-underline transition-colors duration-150 ${
                     active
                       ? 'font-bold text-brand-700 bg-brand-50'
-                      : 'font-medium text-gray-700 hover:bg-gray-50'
+                      : 'font-semibold text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   {link.label}
@@ -116,7 +116,7 @@ export default function Header() {
             <div className="px-1 pt-2 pb-1">
               <Link
                 href="/onboarding"
-                className="flex items-center justify-center w-full py-3.5 rounded-xl text-[0.95rem] font-extrabold no-underline bg-brand-700 text-white shadow-[0_4px_16px_rgba(29,78,216,0.35)]"
+                className="flex items-center justify-center w-full py-4 rounded-xl text-base font-extrabold no-underline bg-brand-700 text-white shadow-[0_4px_16px_rgba(29,78,216,0.35)]"
               >
                 ابدأ الآن 🚀
               </Link>
