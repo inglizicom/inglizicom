@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -78,8 +76,7 @@ html {
 }
 
 body {
-  font-family: 'Cairo', 'Inter', sans-serif;
-  color: #1e293b;
+  @apply font-sans text-slate-800;
   background-color: #ffffff;
   line-height: 1.75;
   overflow-x: hidden;

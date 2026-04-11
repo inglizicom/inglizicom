@@ -295,7 +295,7 @@ function HeroSlider() {
 
   return (
     <section
-      className="relative min-h-[94vh] flex items-center overflow-hidden"
+      className="relative min-h-[calc(100vh-68px)] flex items-center overflow-hidden"
       onMouseMove={(e) => {
         const rect = e.currentTarget.getBoundingClientRect()
         mouseX.set(e.clientX - rect.left - rect.width / 2)
@@ -314,7 +314,7 @@ function HeroSlider() {
 
       <Particles count={15} className="opacity-30" />
 
-      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center px-6 py-20 relative z-10 w-full">
+      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 md:gap-12 items-center px-5 sm:px-6 py-10 md:py-20 relative z-10 w-full">
         {/* TEXT SIDE */}
         <div className="order-2 md:order-1">
           <AnimatePresence mode="wait">
@@ -342,7 +342,7 @@ function HeroSlider() {
                 </motion.span>
               </motion.div>
 
-              <h1 className="text-4xl md:text-[3.4rem] font-extrabold leading-[1.2] mb-5">
+              <h1 className="text-3xl sm:text-4xl md:text-[3.4rem] font-extrabold leading-[1.2] mb-5">
                 تعلم{" "}
                 <AnimatePresence mode="wait">
                   <motion.span
@@ -440,7 +440,7 @@ function HeroSlider() {
                 <img
                   src={slide.img}
                   alt={slide.title}
-                  className="w-full h-[340px] md:h-[440px] object-cover"
+                  className="w-full h-[260px] sm:h-[340px] md:h-[440px] object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-white/5 rounded-3xl" />
 
@@ -473,7 +473,7 @@ function HeroSlider() {
               <motion.div
                 animate={{ y: [-8, 8, -8], rotate: [-2, 2, -2] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" as const }}
-                className="absolute -top-5 -left-5 bg-white px-4 py-3 rounded-2xl shadow-xl border border-gray-100 text-sm font-bold flex items-center gap-2"
+                className="hidden sm:flex absolute -top-5 -left-5 bg-white px-4 py-3 rounded-2xl shadow-xl border border-gray-100 text-sm font-bold items-center gap-2"
               >
                 <span className="text-xl">💬</span>
                 <span className="bg-gradient-to-l from-green-500 to-emerald-600 bg-clip-text text-transparent">Hello!</span>
@@ -482,7 +482,7 @@ function HeroSlider() {
               <motion.div
                 animate={{ y: [8, -8, 8], rotate: [2, -2, 2] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" as const, delay: 1 }}
-                className="absolute -bottom-5 -right-5 bg-gradient-to-l from-green-500 to-emerald-600 text-white px-4 py-3 rounded-2xl shadow-xl text-sm font-bold flex items-center gap-2"
+                className="hidden sm:flex absolute -bottom-5 -right-5 bg-gradient-to-l from-green-500 to-emerald-600 text-white px-4 py-3 rounded-2xl shadow-xl text-sm font-bold items-center gap-2"
               >
                 <span className="text-xl">🔥</span>
                 <span>7 أيام streak</span>
@@ -491,7 +491,7 @@ function HeroSlider() {
               <motion.div
                 animate={{ y: [-6, 6, -6], scale: [1, 1.05, 1] }}
                 transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" as const, delay: 0.5 }}
-                className="absolute top-1/3 -right-8 bg-white px-4 py-2.5 rounded-xl shadow-lg border border-yellow-200 text-sm font-extrabold flex items-center gap-1.5"
+                className="hidden sm:flex absolute top-1/3 -right-8 bg-white px-4 py-2.5 rounded-xl shadow-lg border border-yellow-200 text-sm font-extrabold items-center gap-1.5"
               >
                 <span className="text-yellow-500">⭐</span>
                 <span className="text-gray-800">+15 XP</span>
@@ -500,7 +500,7 @@ function HeroSlider() {
               <motion.div
                 animate={{ y: [5, -10, 5], x: [-3, 3, -3] }}
                 transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" as const, delay: 2 }}
-                className="absolute top-8 right-8 bg-purple-500 text-white px-3 py-2 rounded-xl shadow-lg text-xs font-bold"
+                className="hidden sm:block absolute top-8 right-8 bg-purple-500 text-white px-3 py-2 rounded-xl shadow-lg text-xs font-bold"
               >
                 🎯 Level Up!
               </motion.div>
@@ -533,7 +533,7 @@ function HeroSlider() {
       <motion.div
         animate={{ y: [0, 8, 0] }}
         transition={{ duration: 2, repeat: Infinity }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-gray-400"
+        className="hidden md:flex absolute bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-2 text-gray-400"
       >
         <span className="text-xs font-medium">اكتشف المزيد</span>
         <div className="w-6 h-10 rounded-full border-2 border-gray-300 flex justify-center pt-2">
@@ -566,7 +566,7 @@ function StatItem({ num, suffix, label, icon, gradient }: { num: number; suffix:
       >
         {icon}
       </motion.div>
-      <h3 className="text-3xl md:text-4xl font-black text-gray-900 tabular-nums">
+      <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 tabular-nums">
         {suffix === "%" ? `${count}%` : suffix === "+" ? `${count}+` : suffix}
       </h3>
       <p className="text-gray-500 text-sm mt-1 font-medium">{label}</p>
@@ -576,13 +576,13 @@ function StatItem({ num, suffix, label, icon, gradient }: { num: number; suffix:
 
 function StatsStrip() {
   return (
-    <section className="relative -mt-10 z-20 px-6">
+    <section className="relative -mt-10 z-20 px-4 sm:px-6">
       <motion.div
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.3 }}
         variants={stagger}
-        className="max-w-5xl mx-auto bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-gray-200/60 border border-gray-100/80 grid grid-cols-2 md:grid-cols-4 gap-8 p-10"
+        className="max-w-5xl mx-auto bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-gray-200/60 border border-gray-100/80 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 p-6 sm:p-10"
       >
         <StatItem num={1200} suffix="+" label="طالب نشط" icon="👥" gradient="from-green-400 to-emerald-500" />
         <StatItem num={97} suffix="%" label="راضين تماماً" icon="⭐" gradient="from-yellow-400 to-amber-500" />
@@ -636,7 +636,7 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
         </div>
       )}
 
-      <div className="flex flex-col flex-1 p-7 md:p-8">
+      <div className="flex flex-col flex-1 p-5 sm:p-7 md:p-8">
         {/* emoji + title */}
         <div className="flex items-center gap-4 mb-5">
           <motion.div
@@ -657,7 +657,7 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
         {/* price block */}
         <div className={`${c.light} rounded-2xl p-5 mb-6 text-center border border-gray-100/50`}>
           <div className="flex items-baseline justify-center gap-2">
-            <span className="text-5xl font-black text-gray-900 tracking-tight">{plan.price.toLocaleString()}</span>
+            <span className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">{plan.price.toLocaleString()}</span>
             <span className={`${c.text} text-lg font-extrabold`}>{plan.currency}</span>
           </div>
           <div className="flex items-center justify-center gap-2 mt-2">
@@ -728,7 +728,7 @@ function CoursesSection() {
   const extraPlans = PLANS.slice(4)
 
   return (
-    <section className="py-28 px-6 bg-gradient-to-b from-gray-50/80 via-white to-gray-50/50 relative overflow-hidden">
+    <section className="py-16 sm:py-28 px-4 sm:px-6 bg-gradient-to-b from-gray-50/80 via-white to-gray-50/50 relative overflow-hidden">
       <div className="absolute top-20 left-0 w-[500px] h-[500px] bg-green-100/20 rounded-full blur-3xl" />
       <div className="absolute bottom-20 right-0 w-[400px] h-[400px] bg-blue-100/15 rounded-full blur-3xl" />
 
@@ -745,7 +745,7 @@ function CoursesSection() {
           <span className="inline-flex items-center gap-2 bg-green-100/80 text-green-700 px-5 py-2 rounded-full text-sm font-bold mb-5 border border-green-200/50">
             📚 الدورات والأسعار
           </span>
-          <h2 className="text-3xl md:text-[2.8rem] font-black text-gray-900 leading-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-[2.8rem] font-black text-gray-900 leading-tight">
             اختر الخطة المناسبة
             <span className="bg-gradient-to-l from-green-500 to-emerald-600 bg-clip-text text-transparent"> لمستواك</span>
           </h2>
@@ -827,7 +827,7 @@ function CoursesSection() {
           viewport={{ once: true }}
           variants={fadeUp}
           custom={2}
-          className="mt-14 bg-gradient-to-l from-green-500 to-emerald-600 rounded-3xl shadow-2xl shadow-green-200/40 p-8 md:p-10 relative overflow-hidden"
+          className="mt-10 sm:mt-14 bg-gradient-to-l from-green-500 to-emerald-600 rounded-2xl sm:rounded-3xl shadow-2xl shadow-green-200/40 p-5 sm:p-8 md:p-10 relative overflow-hidden"
         >
           <Particles count={12} />
           <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10 relative z-10">
@@ -872,21 +872,21 @@ function HowItWorks() {
   ]
 
   return (
-    <section className="py-24 px-6 bg-white relative overflow-hidden">
+    <section className="py-16 sm:py-24 px-4 sm:px-6 bg-white relative overflow-hidden">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-br from-green-50/30 to-blue-50/20 rounded-full blur-3xl" />
 
       <div className="max-w-5xl mx-auto relative z-10">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-16">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-10 sm:mb-16">
           <span className="inline-flex items-center gap-2 bg-blue-100/80 text-blue-700 px-5 py-2 rounded-full text-sm font-bold mb-5 border border-blue-200/50">
             🧠 كيف يعمل
           </span>
-          <h2 className="text-3xl md:text-[2.8rem] font-black text-gray-900 leading-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-[2.8rem] font-black text-gray-900 leading-tight">
             3 خطوات
             <span className="bg-gradient-to-l from-blue-500 to-blue-700 bg-clip-text text-transparent"> للنجاح</span>
           </h2>
         </motion.div>
 
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={stagger} className="grid md:grid-cols-3 gap-0">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={stagger} className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-0">
           {steps.map((s, i) => (
             <motion.div key={i} custom={i} variants={fadeUp} className="relative">
               {/* connector line */}
@@ -894,7 +894,7 @@ function HowItWorks() {
                 <div className="hidden md:block absolute top-16 -left-[1px] w-full h-0.5 bg-gradient-to-l from-gray-200 to-transparent z-0" />
               )}
 
-              <div className="relative z-10 bg-white rounded-3xl p-8 text-center mx-2 border border-gray-100 shadow-sm hover:shadow-xl hover:border-gray-200 transition-all duration-300 group">
+              <div className="relative z-10 bg-white rounded-3xl p-6 sm:p-8 text-center mx-0 md:mx-2 border border-gray-100 shadow-sm hover:shadow-xl hover:border-gray-200 transition-all duration-300 group">
                 {/* number */}
                 <span className="absolute top-5 left-5 text-6xl font-black text-gray-100/80 leading-none select-none">{s.num}</span>
 
@@ -931,15 +931,15 @@ function WhatYouGet() {
   ]
 
   return (
-    <section className="py-24 px-6 bg-gradient-to-b from-gray-50/60 to-white relative overflow-hidden">
+    <section className="py-16 sm:py-24 px-4 sm:px-6 bg-gradient-to-b from-gray-50/60 to-white relative overflow-hidden">
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-green-50/40 to-transparent rounded-full blur-3xl" />
 
       <div className="max-w-5xl mx-auto relative z-10">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-16">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-10 sm:mb-16">
           <span className="inline-flex items-center gap-2 bg-green-100/80 text-green-700 px-5 py-2 rounded-full text-sm font-bold mb-5 border border-green-200/50">
             🎁 شنو غادي تاخد
           </span>
-          <h2 className="text-3xl md:text-[2.8rem] font-black text-gray-900 leading-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-[2.8rem] font-black text-gray-900 leading-tight">
             كل دورة تشمل
             <span className="bg-gradient-to-l from-green-500 to-emerald-600 bg-clip-text text-transparent"> كل هاد المزايا</span>
           </h2>
@@ -976,7 +976,7 @@ function WhatYouGet() {
 
 function MapSection() {
   return (
-    <section className="py-24 px-6 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white overflow-hidden relative">
+    <section className="py-16 sm:py-24 px-4 sm:px-6 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white overflow-hidden relative">
       <Particles count={20} />
       <div className="absolute top-10 left-10 w-60 h-60 bg-white/5 rounded-full blur-3xl" />
       <div className="absolute bottom-10 right-10 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
@@ -986,18 +986,18 @@ function MapSection() {
           <span className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-5 py-2 rounded-full text-sm font-bold mb-5 border border-white/20">
             🗺️ رحلة التعلم
           </span>
-          <h2 className="text-3xl md:text-[2.8rem] font-black leading-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-[2.8rem] font-black leading-tight">
             من الصفر إلى
             <span className="text-yellow-300"> الاحتراف</span>
           </h2>
           <p className="text-blue-200 mt-3 text-lg">تتبع تقدمك عبر مستويات واضحة</p>
         </motion.div>
 
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }} variants={stagger} className="flex flex-wrap justify-center items-center gap-3 md:gap-4">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }} variants={stagger} className="flex flex-wrap justify-center items-center gap-2 sm:gap-3 md:gap-4">
           {MAP_NODES.map((n, i) => (
-            <motion.div key={i} custom={i} variants={fadeScale} className="flex items-center gap-3 md:gap-4">
-              <motion.div whileHover={{ scale: 1.15 }} className="flex flex-col items-center gap-3">
-                <div className={`w-[68px] h-[68px] rounded-2xl flex items-center justify-center font-black text-lg shadow-xl transition-all duration-300 ${
+            <motion.div key={i} custom={i} variants={fadeScale} className="flex items-center gap-2 sm:gap-3 md:gap-4">
+              <motion.div whileHover={{ scale: 1.15 }} className="flex flex-col items-center gap-2 sm:gap-3">
+                <div className={`w-[52px] h-[52px] sm:w-[68px] sm:h-[68px] rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-sm sm:text-lg shadow-xl transition-all duration-300 ${
                   n.status === "done" ? "bg-gradient-to-br from-green-400 to-emerald-500 text-white shadow-green-500/40"
                   : n.status === "current" ? "bg-white text-blue-700 shadow-white/40 node-pulse ring-4 ring-white/20"
                   : "bg-white/10 text-white/30 border-2 border-white/10"
@@ -1008,7 +1008,7 @@ function MapSection() {
               </motion.div>
               {i < MAP_NODES.length - 1 && (
                 <motion.div initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true }} transition={{ delay: 0.3 + i * 0.1, duration: 0.5 }}
-                  className={`w-8 md:w-14 h-1.5 rounded-full origin-right ${n.status === "done" ? "bg-gradient-to-l from-green-300 to-green-500" : "bg-white/10"}`}
+                  className={`w-4 sm:w-8 md:w-14 h-1 sm:h-1.5 rounded-full origin-right ${n.status === "done" ? "bg-gradient-to-l from-green-300 to-green-500" : "bg-white/10"}`}
                 />
               )}
             </motion.div>
@@ -1031,21 +1031,21 @@ function MapSection() {
 
 function TestimonialsSection() {
   return (
-    <section className="py-24 px-6 bg-white relative overflow-hidden">
+    <section className="py-16 sm:py-24 px-4 sm:px-6 bg-white relative overflow-hidden">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-yellow-50/40 to-transparent rounded-full blur-3xl" />
 
       <div className="max-w-5xl mx-auto relative z-10">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-16">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-10 sm:mb-16">
           <span className="inline-flex items-center gap-2 bg-yellow-100/80 text-yellow-700 px-5 py-2 rounded-full text-sm font-bold mb-5 border border-yellow-200/50">
             ⭐ آراء الطلاب
           </span>
-          <h2 className="text-3xl md:text-[2.8rem] font-black text-gray-900 leading-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-[2.8rem] font-black text-gray-900 leading-tight">
             +1200 طالب
             <span className="bg-gradient-to-l from-yellow-500 to-orange-500 bg-clip-text text-transparent"> يثقون فينا</span>
           </h2>
         </motion.div>
 
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.15 }} variants={stagger} className="grid md:grid-cols-3 gap-7">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.15 }} variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-7">
           {TESTIMONIALS.map((t, i) => (
             <motion.div
               key={i}
@@ -1093,19 +1093,19 @@ function TestimonialsSection() {
 
 function ToolsSection() {
   return (
-    <section className="py-24 px-6 bg-gradient-to-b from-gray-50/60 to-white relative overflow-hidden">
+    <section className="py-16 sm:py-24 px-4 sm:px-6 bg-gradient-to-b from-gray-50/60 to-white relative overflow-hidden">
       <div className="max-w-5xl mx-auto relative z-10">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-14">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-10 sm:mb-14">
           <span className="inline-flex items-center gap-2 bg-purple-100/80 text-purple-700 px-5 py-2 rounded-full text-sm font-bold mb-5 border border-purple-200/50">
             🛠️ أدوات مجانية
           </span>
-          <h2 className="text-3xl md:text-[2.8rem] font-black text-gray-900 leading-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-[2.8rem] font-black text-gray-900 leading-tight">
             أدوات تساعدك
             <span className="bg-gradient-to-l from-purple-500 to-purple-700 bg-clip-text text-transparent"> تتعلم أسرع</span>
           </h2>
         </motion.div>
 
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={stagger} className="grid md:grid-cols-3 gap-6">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6">
           {TOOLS.map((t, i) => (
             <motion.div key={i} custom={i} variants={fadeUp} whileHover={{ y: -8 }}>
               <Link href={t.href} className="block bg-white rounded-3xl p-8 border-2 border-gray-100 hover:border-purple-200 shadow-md hover:shadow-xl transition-all duration-300 group text-center">
@@ -1135,7 +1135,7 @@ function ToolsSection() {
 
 function FinalCTA() {
   return (
-    <section className="py-28 px-6 bg-gradient-to-br from-green-500 via-emerald-500 to-green-600 text-white text-center relative overflow-hidden">
+    <section className="py-16 sm:py-28 px-4 sm:px-6 bg-gradient-to-br from-green-500 via-emerald-500 to-green-600 text-white text-center relative overflow-hidden">
       <Particles count={25} />
 
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
@@ -1145,8 +1145,8 @@ function FinalCTA() {
 
       <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="max-w-2xl mx-auto relative z-10">
         <motion.div animate={{ y: [-5, 5, -5], rotate: [-3, 3, -3] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" as const }} className="text-7xl mb-8">🚀</motion.div>
-        <h2 className="text-3xl md:text-[3.2rem] font-black mb-5 leading-tight">جاهز تبدأ رحلتك؟</h2>
-        <p className="text-green-100 text-lg mb-12 leading-relaxed">انضم لأكثر من 1200 طالب يتعلمون الإنجليزية بطريقة ممتعة وفعالة</p>
+        <h2 className="text-2xl sm:text-3xl md:text-[3.2rem] font-black mb-5 leading-tight">جاهز تبدأ رحلتك؟</h2>
+        <p className="text-green-100 text-base sm:text-lg mb-8 sm:mb-12 leading-relaxed">انضم لأكثر من 1200 طالب يتعلمون الإنجليزية بطريقة ممتعة وفعالة</p>
 
         <div className="flex flex-wrap justify-center gap-5">
           <MagneticButton href="/onboarding" className="bg-white text-green-700 font-black px-12 py-5 rounded-2xl shadow-2xl shadow-green-900/30 hover:shadow-green-900/40 transition-all duration-300 text-lg inline-flex items-center gap-2">
