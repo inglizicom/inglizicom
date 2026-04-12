@@ -1,89 +1,59 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
 import {
-  Radio, Lock, Crown, Send, MessageCircle, Clock,
-  Calendar, ChevronRight, PlayCircle, Users, Star,
-  CheckCircle2, X, ExternalLink, Bell, WifiOff,
-  Play, Video, TrendingUp,
+  Radio, Send, MessageCircle, Clock,
+  ChevronRight, Users, Star,
+  CheckCircle2, ExternalLink, Bell, WifiOff,
+  Video, TrendingUp, Play,
 } from 'lucide-react'
 
-// ─── Configuration ────────────────────────────────────────────────────────────
-// ↓ Edit these values to control the page state
-
-const LIVE_CONFIG = {
-  isLive: true,
-  liveLink: 'https://meet.google.com/abc-defg-hij', // ← paste your Google Meet link
-  sessionTitle: 'محادثة يومية — Daily Conversation Practice',
-  sessionSubtitle: 'تدرب على المحادثة الحقيقية مع المعلم مباشرةً',
-  // Set to a future Date to show countdown instead of "no session":
-  scheduledAt: null as Date | null,
-  hostName: 'حمزة القصراوي',
-  hostTitle: 'مدرب الإنجليزية المعتمد',
-  attendees: 42,
-}
-
-const IS_PAID_USER = false // ← flip to true to simulate paid access
+// ─── Constants ───────────────────────────────────────────────────────────────
 
 const WHATSAPP_NUMBER = '212707902091'
 
-// ─── Replay Videos ────────────────────────────────────────────────────────────
+// ─── Floating Icons ──────────────────────────────────────────────────────────
 
-const REPLAYS = [
-  {
-    id: 'r1',
-    titleAr: 'تدريب على المحادثة اليومية',
-    titleEn: 'Daily Conversation Practice',
-    date: '٢ أبريل ٢٠٢٥',
-    duration: '45:12',
-    views: '1.2K',
-    embedUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-    level: 'A1 – A2',
-  },
-  {
-    id: 'r2',
-    titleAr: 'أسئلة المقابلة الوظيفية بالإنجليزية',
-    titleEn: 'Job Interview Questions in English',
-    date: '٢٦ مارس ٢٠٢٥',
-    duration: '52:30',
-    views: '2.4K',
-    embedUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-    level: 'B1 – B2',
-  },
-  {
-    id: 'r3',
-    titleAr: 'نطق الحروف الصعبة في الإنجليزية',
-    titleEn: 'Difficult English Pronunciation',
-    date: '١٩ مارس ٢٠٢٥',
-    duration: '38:15',
-    views: '3.1K',
-    embedUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-    level: 'A1 – B1',
-  },
+const FLOATING_ICONS = [
+  { icon: '🎥', size: 28, x: 5,  y: 12, delay: 0,   dur: 18 },
+  { icon: '🎓', size: 22, x: 90, y: 18, delay: 2,   dur: 22 },
+  { icon: '💬', size: 20, x: 12, y: 50, delay: 4,   dur: 20 },
+  { icon: '✨', size: 18, x: 92, y: 55, delay: 1,   dur: 16 },
+  { icon: '📡', size: 24, x: 8,  y: 82, delay: 3,   dur: 24 },
+  { icon: '🌟', size: 20, x: 85, y: 88, delay: 5,   dur: 19 },
+  { icon: '🎯', size: 16, x: 50, y: 8,  delay: 2.5, dur: 21 },
+  { icon: '🔤', size: 22, x: 72, y: 42, delay: 1.5, dur: 17 },
 ]
 
-// ─── Seed Comments ────────────────────────────────────────────────────────────
-
-const SEED_COMMENTS = [
-  { id: '1', author: 'سارة بنعلي',     avatar: 'س', color: 'bg-pink-500',    text: 'ما شاء الله على الحصة! استفدت كثيراً من تمارين النطق 🎉', time: 'منذ ٣ دقائق'  },
-  { id: '2', author: 'أيوب المنصوري',  avatar: 'أ', color: 'bg-blue-500',    text: 'جزاك الله خيراً أستاذ حمزة، الشرح واضح جداً 👍',         time: 'منذ ٧ دقائق'  },
-  { id: '3', author: 'نورة الزهراء',   avatar: 'ن', color: 'bg-violet-500',  text: 'هل سيكون هناك ريبلاي لمن فاته الحضور؟',                 time: 'منذ ١٢ دقيقة' },
-  { id: '4', author: 'رضا الخياط',     avatar: 'ر', color: 'bg-emerald-500', text: 'أحسن أستاذ في المغرب 🙌 الأسلوب مميز جداً',               time: 'منذ ٢٠ دقيقة' },
-]
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface Comment {
-  id: string
-  author: string
-  avatar: string
-  color: string
-  text: string
-  time: string
+function FloatingIcons() {
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
+      {FLOATING_ICONS.map((f, i) => (
+        <div key={i} className="absolute opacity-[0.06] animate-float-icon"
+          style={{ left: `${f.x}%`, top: `${f.y}%`, fontSize: f.size, animationDelay: `${f.delay}s`, animationDuration: `${f.dur}s` }}>
+          {f.icon}
+        </div>
+      ))}
+      <style jsx>{`
+        @keyframes float-icon {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          25%      { transform: translateY(-20px) rotate(5deg); }
+          50%      { transform: translateY(-8px) rotate(-3deg); }
+          75%      { transform: translateY(-25px) rotate(4deg); }
+        }
+        .animate-float-icon {
+          animation-name: float-icon;
+          animation-timing-function: ease-in-out;
+          animation-iteration-count: infinite;
+        }
+      `}</style>
+    </div>
+  )
 }
 
-// ─── Icon Components ──────────────────────────────────────────────────────────
+// ─── Icons ───────────────────────────────────────────────────────────────────
 
 function WAIcon({ size = 22 }: { size?: number }) {
   return (
@@ -107,332 +77,126 @@ function MeetIcon({ size = 22 }: { size?: number }) {
   )
 }
 
-// ─── Countdown Timer ──────────────────────────────────────────────────────────
+// ─── Types ───────────────────────────────────────────────────────────────────
 
-function Countdown({ targetDate }: { targetDate: Date }) {
-  const [timeLeft, setTimeLeft] = useState(0)
-
-  useEffect(() => {
-    const update = () => setTimeLeft(Math.max(0, Math.floor((targetDate.getTime() - Date.now()) / 1000)))
-    update()
-    const t = setInterval(update, 1000)
-    return () => clearInterval(t)
-  }, [targetDate])
-
-  if (timeLeft === 0) return null
-
-  const units = [
-    { v: Math.floor(timeLeft / 3600),         l: 'ساعة'   },
-    { v: Math.floor((timeLeft % 3600) / 60),  l: 'دقيقة'  },
-    { v: timeLeft % 60,                        l: 'ثانية'  },
-  ]
-
-  return (
-    <div className="flex items-center justify-center gap-3 mt-5 mb-2">
-      {units.map(({ v, l }) => (
-        <div key={l} className="flex flex-col items-center">
-          <div className="w-16 h-16 bg-white/10 border border-white/25 rounded-2xl flex items-center justify-center text-2xl font-extrabold text-white tabular-nums shadow-inner">
-            {String(v).padStart(2, '0')}
-          </div>
-          <span className="text-blue-300 text-xs mt-1.5 font-medium">{l}</span>
-        </div>
-      ))}
-    </div>
-  )
+interface LiveContent {
+  id: number
+  live_link: string | null
+  youtube_link: string | null
+  created_at: string
 }
 
-// ─── Access Gate Modal ────────────────────────────────────────────────────────
-
-function AccessModal({ onClose }: { onClose: () => void }) {
-  const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('مرحباً! أريد الاشتراك في الخطة السنوية للحصص المباشرة')}`
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
-
-      {/* Panel */}
-      <div className="relative bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-md p-7 sm:p-8 text-center animate-in">
-        <button
-          onClick={onClose}
-          className="absolute top-4 left-4 text-slate-400 hover:text-slate-700 transition-colors p-1.5 rounded-xl hover:bg-slate-100"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Lock icon */}
-        <div className="w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-5 shadow-inner">
-          <Lock className="w-10 h-10 text-amber-500" />
-        </div>
-
-        <h3 className="text-xl font-extrabold text-slate-800 mb-2 leading-snug">
-          هذه الحصة للمشتركين فقط 🔒
-        </h3>
-        <p className="text-slate-500 text-sm mb-6 leading-relaxed">
-          اشترك في الخطة السنوية للوصول إلى جميع الحصص المباشرة والريبلايات بدون قيود
-        </p>
-
-        {/* Pricing box */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-5 mb-6 text-right">
-          <div className="flex items-baseline gap-2 justify-center mb-3">
-            <span className="text-4xl font-extrabold text-blue-700">3,000</span>
-            <span className="text-blue-500 font-bold">درهم / سنة</span>
-          </div>
-          <ul className="space-y-2">
-            {[
-              'جميع الحصص المباشرة الأسبوعية',
-              'ريبلايات كاملة غير محدودة',
-              'دورات A1 → B2 كاملة',
-              'شهادة إتمام معتمدة',
-              'دعم مباشر عبر واتساب',
-            ].map(f => (
-              <li key={f} className="flex items-center gap-2 text-sm text-slate-600">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                {f}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <a
-          href={waUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2.5 w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-extrabold py-4 rounded-2xl hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg shadow-amber-500/25 hover:-translate-y-0.5 text-base"
-        >
-          <Crown className="w-5 h-5" />
-          احصل على الوصول الكامل — 3,000 درهم/سنة
-        </a>
-        <p className="text-slate-400 text-xs mt-3">ضمان استرداد الأموال خلال 30 يوماً ✓</p>
-      </div>
-    </div>
-  )
+interface YTVideo {
+  id: string
+  title: string
+  published: string
+  thumbnail: string
+  views: number
 }
 
-// ─── Live Hero Section ────────────────────────────────────────────────────────
-
-function LiveSection({ onJoinAttempt }: { onJoinAttempt: () => void }) {
-  const { isLive, liveLink, sessionTitle, sessionSubtitle, scheduledAt, hostName, hostTitle, attendees } = LIVE_CONFIG
-  const showNoSession = !isLive && !scheduledAt
-
-  return (
-    <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 shadow-2xl shadow-blue-900/40">
-      {/* Decorative blobs */}
-      <div className="absolute -top-24 -left-24 w-72 h-72 bg-blue-600/25 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-16 -right-16 w-56 h-56 bg-indigo-600/25 rounded-full blur-3xl pointer-events-none" />
-      {/* Grid texture */}
-      <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
-
-      <div className="relative px-6 py-12 md:py-16 max-w-2xl mx-auto text-center">
-
-        {/* Status badge */}
-        {isLive && (
-          <div className="inline-flex items-center gap-2.5 bg-red-500/20 border border-red-400/40 text-red-300 text-sm font-bold px-5 py-2.5 rounded-full mb-6 shadow-inner">
-            <span className="w-2.5 h-2.5 bg-red-400 rounded-full animate-pulse" />
-            🔴 بث مباشر الآن — Live Now
-          </div>
-        )}
-        {!isLive && scheduledAt && (
-          <div className="inline-flex items-center gap-2 bg-amber-500/20 border border-amber-400/40 text-amber-300 text-sm font-bold px-5 py-2.5 rounded-full mb-4">
-            <Calendar className="w-4 h-4" />
-            حصة قادمة — يبدأ العد التنازلي:
-          </div>
-        )}
-        {showNoSession && (
-          <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-slate-300 text-sm font-semibold px-5 py-2.5 rounded-full mb-6">
-            <WifiOff className="w-4 h-4" />
-            لا توجد حصة مباشرة حالياً
-          </div>
-        )}
-
-        {/* Countdown */}
-        {!isLive && scheduledAt && <Countdown targetDate={scheduledAt} />}
-
-        {/* Title */}
-        <h1 className="text-2xl md:text-4xl font-extrabold text-white mb-3 leading-snug mt-2">
-          {sessionTitle}
-        </h1>
-        <p className="text-blue-200 text-base md:text-lg mb-7">{sessionSubtitle}</p>
-
-        {/* Host pill */}
-        <div className="inline-flex items-center gap-3 bg-white/10 border border-white/15 rounded-full px-5 py-3 mb-8">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center font-extrabold text-white text-base">
-            ح
-          </div>
-          <div className="text-right">
-            <p className="text-white font-bold text-sm leading-none">{hostName}</p>
-            <p className="text-blue-300 text-xs mt-0.5">{hostTitle}</p>
-          </div>
-          <div className="h-6 w-px bg-white/20 mx-1" />
-          <div className="flex items-center gap-1.5 text-blue-200 text-xs">
-            <Users className="w-4 h-4" />
-            <span className="font-semibold">{attendees} مشارك</span>
-          </div>
-        </div>
-
-        {/* CTA — paid user: direct link */}
-        {isLive && IS_PAID_USER && (
-          <a
-            href={liveLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-3 bg-white text-blue-800 font-extrabold px-8 py-4 rounded-2xl text-lg hover:bg-blue-50 transition-all shadow-2xl hover:-translate-y-1 active:scale-95"
-          >
-            <MeetIcon size={26} />
-            انضم للحصة المباشرة الآن
-            <ExternalLink className="w-5 h-5" />
-          </a>
-        )}
-
-        {/* CTA — free user: trigger modal */}
-        {isLive && !IS_PAID_USER && (
-          <div className="flex flex-col items-center gap-3">
-            <button
-              onClick={onJoinAttempt}
-              className="inline-flex items-center gap-3 bg-white/15 border border-white/30 text-white font-extrabold px-8 py-4 rounded-2xl text-lg hover:bg-white/25 transition-all group"
-            >
-              <Lock className="w-5 h-5 text-amber-400" />
-              انضم للحصة — للمشتركين فقط
-              <Crown className="w-5 h-5 text-amber-400 group-hover:rotate-12 transition-transform" />
-            </button>
-            <button
-              onClick={onJoinAttempt}
-              className="text-amber-300 hover:text-amber-200 text-sm font-semibold underline underline-offset-4 transition-colors"
-            >
-              اشترك الآن — 3,000 درهم/سنة ←
-            </button>
-          </div>
-        )}
-
-        {/* No session state */}
-        {showNoSession && (
-          <a
-            href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('أريد أن أعرف موعد الحصة المباشرة القادمة')}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-7 py-3.5 rounded-2xl transition-all shadow-lg shadow-emerald-500/30 hover:-translate-y-0.5"
-          >
-            <Bell className="w-5 h-5" />
-            أعلمني بموعد الحصة القادمة
-          </a>
-        )}
-
-        {/* Footer note */}
-        <p className="text-blue-400 text-sm mt-6 flex items-center justify-center gap-2">
-          <Clock className="w-4 h-4" />
-          حصة مباشرة جديدة كل أسبوع — New session every week
-        </p>
-      </div>
-    </section>
-  )
+interface Comment {
+  id: string
+  author: string
+  avatar: string
+  color: string
+  text: string
+  time: string
 }
 
-// ─── Stats Bar ────────────────────────────────────────────────────────────────
+// ─── Seed Comments ───────────────────────────────────────────────────────────
 
-function StatsBar() {
-  const stats = [
-    { icon: Users,       value: '+2,000',  label: 'طالب مسجل',     color: 'text-blue-600',   bg: 'bg-blue-100'   },
-    { icon: Video,       value: '+50',     label: 'حصة مباشرة',    color: 'text-emerald-600', bg: 'bg-emerald-100'},
-    { icon: Star,        value: '5.0',     label: 'تقييم الطلاب',  color: 'text-amber-500',  bg: 'bg-amber-100'  },
-    { icon: TrendingUp,  value: '+200h',   label: 'محتوى مسجل',    color: 'text-violet-600', bg: 'bg-violet-100' },
-  ]
+const SEED_COMMENTS: Comment[] = [
+  { id: '1', author: 'سارة بنعلي',    avatar: 'س', color: 'bg-pink-500',    text: 'ما شاء الله على الحصة! استفدت كثيراً من تمارين النطق 🎉', time: 'منذ ٣ دقائق'  },
+  { id: '2', author: 'أيوب المنصوري', avatar: 'أ', color: 'bg-blue-500',    text: 'جزاك الله خيراً أستاذ حمزة، الشرح واضح جداً 👍',         time: 'منذ ٧ دقائق'  },
+  { id: '3', author: 'نورة الزهراء',  avatar: 'ن', color: 'bg-violet-500',  text: 'هل سيكون هناك ريبلاي لمن فاته الحضور؟',                 time: 'منذ ١٢ دقيقة' },
+  { id: '4', author: 'رضا الخياط',    avatar: 'ر', color: 'bg-emerald-500', text: 'أحسن أستاذ في المغرب 🙌 الأسلوب مميز جداً',               time: 'منذ ٢٠ دقيقة' },
+]
 
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {stats.map(({ icon: Icon, value, label, color, bg }) => (
-        <div
-          key={label}
-          className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 text-center hover:shadow-md hover:-translate-y-0.5 transition-all"
-        >
-          <div className={`w-10 h-10 ${bg} rounded-xl flex items-center justify-center mx-auto mb-3`}>
-            <Icon className={`w-5 h-5 ${color}`} />
-          </div>
-          <p className={`text-2xl font-extrabold ${color} leading-none`}>{value}</p>
-          <p className="text-xs text-slate-500 mt-1.5 font-medium">{label}</p>
-        </div>
-      ))}
-    </div>
-  )
-}
+// ─── Video Card ──────────────────────────────────────────────────────────────
 
-// ─── Replay Card ──────────────────────────────────────────────────────────────
-
-type Replay = typeof REPLAYS[0]
-
-function ReplayCard({ replay }: { replay: Replay }) {
+function VideoCard({ video }: { video: YTVideo }) {
   const [playing, setPlaying] = useState(false)
 
+  const viewsStr = video.views >= 1000
+    ? `${(video.views / 1000).toFixed(1)}K`
+    : String(video.views)
+
+  const dateStr = new Date(video.published).toLocaleDateString('ar-MA', {
+    year: 'numeric', month: 'short', day: 'numeric',
+  })
+
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-lg hover:border-blue-200 hover:-translate-y-1 transition-all group">
+    <div className="rounded-2xl overflow-hidden border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.1] transition-all group">
       {playing ? (
-        <div style={{ paddingTop: '56.25%', position: 'relative' }}>
+        <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
           <iframe
-            src={`${replay.embedUrl}?autoplay=1&rel=0&modestbranding=1`}
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+            src={`https://www.youtube.com/embed/${video.id}?autoplay=1&rel=0&modestbranding=1`}
+            className="absolute inset-0 w-full h-full"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
-            title={replay.titleAr}
+            title={video.title}
           />
         </div>
       ) : (
-        <button
-          onClick={() => setPlaying(true)}
-          className="relative block w-full aspect-video bg-gradient-to-br from-slate-700 to-slate-900 overflow-hidden"
-        >
+        <button onClick={() => setPlaying(true)} className="relative block w-full aspect-video bg-black/40 overflow-hidden">
+          {video.thumbnail && (
+            <img src={video.thumbnail} alt={video.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300" />
+          )}
           {/* Play overlay */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform duration-300 shadow-xl">
-              <Play className="w-7 h-7 text-white fill-white translate-x-0.5" />
+            <div className="w-14 h-14 bg-white/15 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20 group-hover:scale-110 group-hover:bg-white/25 transition-all duration-300 shadow-xl">
+              <Play className="w-6 h-6 text-white fill-white translate-x-0.5" />
             </div>
           </div>
-          {/* Duration */}
-          <div className="absolute bottom-3 left-3 bg-black/75 text-white text-xs font-bold px-2.5 py-1 rounded-lg tabular-nums">
-            {replay.duration}
+          {/* Views badge */}
+          <div className="absolute bottom-2.5 left-2.5 bg-black/70 backdrop-blur-sm text-white/70 text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
+            <Users className="w-3 h-3" />
+            {viewsStr}
           </div>
-          {/* Level */}
-          <div className="absolute top-3 right-3 bg-blue-600/90 backdrop-blur-sm text-white text-xs font-bold px-2.5 py-1 rounded-lg">
-            {replay.level}
-          </div>
-          {/* Hover tint */}
-          <div className="absolute inset-0 bg-blue-600/0 group-hover:bg-blue-600/10 transition-colors" />
         </button>
       )}
 
-      <div className="p-4">
-        <h3 className="font-bold text-slate-800 mb-1 leading-snug">{replay.titleAr}</h3>
-        <p className="text-xs text-slate-400 mb-3">{replay.titleEn}</p>
-        <div className="flex items-center justify-between text-xs text-slate-500 mb-3">
-          <span className="flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5" />
-            {replay.date}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Users className="w-3.5 h-3.5" />
-            {replay.views} مشاهدة
-          </span>
+      <div className="p-3.5">
+        <h3 className="font-bold text-white/80 text-sm leading-snug line-clamp-2 mb-2 group-hover:text-white transition-colors">{video.title}</h3>
+        <div className="flex items-center justify-between text-[10px] text-white/25">
+          <span>{dateStr}</span>
+          <span className="flex items-center gap-1"><Users className="w-3 h-3" />{viewsStr} مشاهدة</span>
         </div>
-        {!playing && (
-          <button
-            onClick={() => setPlaying(true)}
-            className="w-full flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white font-bold py-2.5 rounded-xl transition-all text-sm border border-blue-100 hover:border-blue-600 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600"
-          >
-            <PlayCircle className="w-4 h-4" />
-            مشاهدة الحصة
-          </button>
-        )}
       </div>
     </div>
   )
 }
 
-// ─── Comments Section ─────────────────────────────────────────────────────────
+// ─── Stats Bar ───────────────────────────────────────────────────────────────
+
+function StatsBar() {
+  const stats = [
+    { icon: Users,      value: '+2,000',  label: 'طالب مسجل',    color: 'text-blue-400',    bg: 'bg-blue-500/10',   border: 'border-blue-500/20'   },
+    { icon: Video,      value: '+50',     label: 'حصة مباشرة',   color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+    { icon: Star,       value: '5.0',     label: 'تقييم الطلاب', color: 'text-amber-400',   bg: 'bg-amber-500/10',  border: 'border-amber-500/20'  },
+    { icon: TrendingUp, value: '+200h',   label: 'محتوى مسجل',   color: 'text-violet-400',  bg: 'bg-violet-500/10', border: 'border-violet-500/20' },
+  ]
+
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {stats.map(({ icon: Icon, value, label, color, bg, border }) => (
+        <div key={label} className={`rounded-2xl p-5 ${bg} border ${border} text-center hover:scale-[1.02] transition-transform`}>
+          <div className={`w-10 h-10 ${bg} border ${border} rounded-xl flex items-center justify-center mx-auto mb-3`}>
+            <Icon className={`w-5 h-5 ${color}`} />
+          </div>
+          <p className={`text-2xl font-extrabold ${color} leading-none`}>{value}</p>
+          <p className="text-xs text-white/40 mt-1.5 font-medium">{label}</p>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ─── Comments Section ────────────────────────────────────────────────────────
 
 function CommentsSection() {
   const [comments, setComments] = useState<Comment[]>(SEED_COMMENTS)
-  const [input, setInput] = useState('')
+  const [input, setInput]       = useState('')
   const [authorName, setAuthorName] = useState('')
   const listRef = useRef<HTMLDivElement>(null)
 
@@ -456,33 +220,31 @@ function CommentsSection() {
   }
 
   const handleKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      submit()
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit() }
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
       {/* Header */}
-      <div className="px-5 py-4 border-b border-slate-100 flex items-center gap-3">
-        <div className="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center">
-          <MessageCircle className="w-5 h-5 text-blue-600" />
+      <div className="px-5 py-4 border-b border-white/[0.06] flex items-center gap-3">
+        <div className="w-9 h-9 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-center">
+          <MessageCircle className="w-5 h-5 text-blue-400" />
         </div>
         <div>
-          <h2 className="font-bold text-slate-800 leading-none">التعليقات</h2>
-          <p className="text-xs text-slate-500 mt-0.5">{comments.length} تعليق</p>
+          <h2 className="font-bold text-white leading-none">التعليقات</h2>
+          <p className="text-xs text-white/30 mt-0.5">{comments.length} تعليق</p>
         </div>
       </div>
 
-      {/* Input area */}
-      <div className="p-4 border-b border-slate-100 bg-slate-50/60">
+      {/* Input */}
+      <div className="p-4 border-b border-white/[0.06] bg-white/[0.02]">
         <input
           type="text"
           placeholder="اسمك (اختياري)"
           value={authorName}
           onChange={e => setAuthorName(e.target.value)}
-          className="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm text-right mb-2.5 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
+          dir="rtl"
+          className="w-full border border-white/[0.08] bg-white/[0.03] rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/20 mb-2.5 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all"
         />
         <div className="flex gap-2 items-end">
           <textarea
@@ -491,30 +253,29 @@ function CommentsSection() {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKey}
-            className="flex-1 border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm text-right resize-none focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
+            dir="rtl"
+            className="flex-1 border border-white/[0.08] bg-white/[0.03] rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/20 resize-none focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all"
           />
-          <button
-            onClick={submit}
-            className="w-11 h-11 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-xl flex items-center justify-center transition-all shadow-sm hover:shadow-blue-500/30 shrink-0"
-          >
+          <button onClick={submit}
+            className="w-11 h-11 bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-white rounded-xl flex items-center justify-center transition-all shadow-lg shadow-indigo-900/30 shrink-0">
             <Send className="w-4 h-4" />
           </button>
         </div>
       </div>
 
       {/* List */}
-      <div ref={listRef} className="divide-y divide-slate-50 max-h-96 overflow-y-auto scrollbar-thin">
+      <div ref={listRef} className="divide-y divide-white/[0.04] max-h-96 overflow-y-auto">
         {comments.map(c => (
-          <div key={c.id} className="flex gap-3 p-4 hover:bg-slate-50/60 transition-colors">
+          <div key={c.id} className="flex gap-3 p-4 hover:bg-white/[0.02] transition-colors">
             <div className={`w-9 h-9 rounded-full ${c.color} text-white font-bold text-sm flex items-center justify-center shrink-0 shadow-sm`}>
               {c.avatar}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2 mb-1">
-                <span className="font-bold text-sm text-slate-800">{c.author}</span>
-                <span className="text-xs text-slate-400 shrink-0">{c.time}</span>
+                <span className="font-bold text-sm text-white/80">{c.author}</span>
+                <span className="text-xs text-white/20 shrink-0">{c.time}</span>
               </div>
-              <p className="text-sm text-slate-600 leading-relaxed">{c.text}</p>
+              <p className="text-sm text-white/50 leading-relaxed">{c.text}</p>
             </div>
           </div>
         ))}
@@ -523,44 +284,32 @@ function CommentsSection() {
   )
 }
 
-// ─── WhatsApp CTA Section ─────────────────────────────────────────────────────
+// ─── WhatsApp CTA ────────────────────────────────────────────────────────────
 
 function WhatsAppCTA() {
   const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('مرحباً أستاذ حمزة! شاهدت الحصة المباشرة وأريد أن أعرف أكثر عن الاشتراك.')}`
-
   return (
-    <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 p-8 md:p-12 text-center text-white shadow-xl shadow-emerald-600/30">
-      <div className="absolute -top-12 -right-12 w-40 h-40 bg-white/8 rounded-full blur-2xl pointer-events-none" />
-      <div className="absolute -bottom-10 -left-10 w-36 h-36 bg-white/8 rounded-full blur-2xl pointer-events-none" />
+    <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600/20 to-teal-700/20 border border-emerald-500/20 p-8 md:p-12 text-center">
+      <div className="absolute -top-12 -right-12 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-10 -left-10 w-36 h-36 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative max-w-lg mx-auto">
-        <p className="text-emerald-200 text-sm font-bold mb-2 tracking-widest uppercase">
-          تواصل مباشرة مع المعلم
-        </p>
-        <h2 className="text-2xl md:text-3xl font-extrabold mb-3 leading-snug">
-          🔥 عجبك المحتوى؟ تحدث معنا!
-        </h2>
-        <p className="text-emerald-100 text-base mb-8 leading-relaxed">
-          احصل على خطة تعلم مخصصة واستشارة مجانية عبر واتساب
-        </p>
+        <p className="text-emerald-400/60 text-xs font-bold mb-2 tracking-widest uppercase">تواصل مباشرة مع المعلم</p>
+        <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-3 leading-snug">عجبك المحتوى؟ تحدث معنا!</h2>
+        <p className="text-white/40 text-base mb-8 leading-relaxed">احصل على خطة تعلم مخصصة واستشارة مجانية عبر واتساب</p>
 
-        <a
-          href={waUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-3 bg-white text-emerald-700 font-extrabold px-8 py-4 rounded-2xl text-lg hover:bg-emerald-50 transition-all shadow-2xl hover:-translate-y-1 active:scale-95"
-        >
+        <a href={waUrl} target="_blank" rel="noopener noreferrer"
+          className="inline-flex items-center gap-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold px-8 py-4 rounded-2xl text-lg transition-all shadow-lg shadow-emerald-900/30 hover:-translate-y-0.5 active:scale-95">
           <WAIcon size={24} />
           تواصل معي على واتساب
         </a>
 
-        <p className="text-emerald-200 text-sm mt-5">⚡ يرد عادةً في أقل من ساعة</p>
+        <p className="text-white/25 text-sm mt-5">⚡ يرد عادةً في أقل من ساعة</p>
 
-        {/* Trust signals */}
         <div className="flex items-center justify-center gap-6 mt-7 flex-wrap">
           {['+2,000 طالب', '5 ★ تقييم', 'ضمان 30 يوم'].map(t => (
-            <div key={t} className="flex items-center gap-1.5 text-emerald-200 text-sm">
-              <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+            <div key={t} className="flex items-center gap-1.5 text-white/30 text-sm">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400/50" />
               {t}
             </div>
           ))}
@@ -570,122 +319,309 @@ function WhatsAppCTA() {
   )
 }
 
-// ─── Sticky Page Sub-Header ───────────────────────────────────────────────────
+// ─── Main Page ───────────────────────────────────────────────────────────────
 
-function PageHeader({ onJoinAttempt }: { onJoinAttempt: () => void }) {
-  return (
-    <div className="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-16 z-30 shadow-sm">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-        {/* Left: title */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center shrink-0">
-            <Radio className="w-4 h-4 text-red-500" />
-          </div>
-          <div className="hidden sm:block">
-            <p className="font-bold text-slate-800 text-sm leading-none">Live Classes</p>
-            <p className="text-xs text-slate-500 mt-0.5">حصص مباشرة أسبوعية</p>
-          </div>
-          <p className="sm:hidden font-bold text-slate-800 text-sm">حصص مباشرة</p>
+export default function LiveClassesPage() {
+  const [data, setData]           = useState<LiveContent | null>(null)
+  const [loading, setLoading]     = useState(true)
+  const [error, setError]         = useState(false)
+  const [videos, setVideos]       = useState<YTVideo[]>([])
+  const [videosLoading, setVideosLoading] = useState(true)
+
+  // Fetch Supabase content row
+  const fetchContent = useCallback(async () => {
+    setLoading(true)
+    const { data: rows, error: err } = await supabase
+      .from('content')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (err) { console.error('FETCH ERROR:', err); setError(true); setLoading(false); return }
+    setData(rows as LiveContent)
+    setLoading(false)
+  }, [])
+
+  // Fetch YouTube channel videos
+  const fetchVideos = useCallback(async () => {
+    setVideosLoading(true)
+    try {
+      const res = await fetch('/api/youtube')
+      const json = await res.json()
+      setVideos((json.videos ?? []) as YTVideo[])
+    } catch { /* silent */ }
+    setVideosLoading(false)
+  }, [])
+
+  useEffect(() => { fetchContent(); fetchVideos() }, [fetchContent, fetchVideos])
+
+  const hasLive = !!data?.live_link
+  const hasYT   = !!data?.youtube_link
+
+  // ── Loading ────────────────────────────────────────────────────────────────
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#0a0f1e' }}>
+      <div className="flex flex-col items-center gap-4">
+        <div className="relative w-12 h-12">
+          <div className="absolute inset-0 border-2 border-indigo-500/30 rounded-full" />
+          <div className="absolute inset-0 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
         </div>
-
-        {/* Right: status + actions */}
-        <div className="flex items-center gap-2">
-          {LIVE_CONFIG.isLive && (
-            <span className="flex items-center gap-1.5 text-red-500 text-xs font-bold bg-red-50 border border-red-100 px-3 py-1.5 rounded-full">
-              <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-              <span className="hidden sm:inline">مباشر الآن</span>
-              <span className="sm:hidden">Live</span>
-            </span>
-          )}
-
-          <span className="hidden md:flex items-center gap-1.5 text-slate-500 text-xs bg-slate-100 px-3 py-1.5 rounded-full">
-            <Bell className="w-3.5 h-3.5" />
-            حصة جديدة كل أسبوع
-          </span>
-
-          {LIVE_CONFIG.isLive && !IS_PAID_USER && (
-            <button
-              onClick={onJoinAttempt}
-              className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-4 py-2 rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all shadow-sm hover:shadow-amber-500/25"
-            >
-              <Crown className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">اشترك الآن</span>
-              <span className="sm:hidden">اشترك</span>
-            </button>
-          )}
-
-          <Link
-            href="/courses"
-            className="hidden sm:flex items-center gap-1 text-slate-600 text-xs font-semibold hover:text-blue-600 transition-colors py-1.5"
-          >
-            <ChevronRight className="w-3.5 h-3.5" />
-            الدورات
-          </Link>
-        </div>
+        <p className="text-white/20 text-sm">جاري التحميل...</p>
       </div>
     </div>
   )
-}
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+  // ── Error ──────────────────────────────────────────────────────────────────
+  if (error) return (
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4" style={{ background: '#0a0f1e' }}>
+      <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-3xl">⚠️</div>
+      <p className="text-white/30 text-sm">حدث خطأ في تحميل المحتوى</p>
+      <button onClick={fetchContent} className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold transition-all active:scale-95">
+        أعد المحاولة
+      </button>
+    </div>
+  )
 
-export default function LiveClassesPage() {
-  const [showModal, setShowModal] = useState(false)
-
-  // Close modal on Escape
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowModal(false) }
-    document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
-  }, [])
-
+  // ── Main ───────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-50 pt-16">
+    <div className="min-h-screen relative" style={{ background: 'linear-gradient(160deg,#0a0f1e 0%,#111827 50%,#0a0f1e 100%)' }}>
+      <FloatingIcons />
 
-      {/* Sticky sub-header (sits below the site header at top-16) */}
-      <PageHeader onJoinAttempt={() => setShowModal(true)} />
+      {/* Spacer for fixed header */}
+      <div className="h-[70px]" />
 
-      <div className="max-w-6xl mx-auto px-4 py-8 space-y-10">
+      {/* Sub-header */}
+      <div className="sticky top-[70px] z-30 backdrop-blur-xl bg-[#0a0f1e]/80 border-b border-white/[0.04]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center justify-center shrink-0">
+              <Radio className="w-4 h-4 text-red-400" />
+            </div>
+            <div className="hidden sm:block">
+              <p className="font-bold text-white text-sm leading-none">Live Classes</p>
+              <p className="text-xs text-white/30 mt-0.5">حصص مباشرة أسبوعية</p>
+            </div>
+            <p className="sm:hidden font-bold text-white text-sm">حصص مباشرة</p>
+          </div>
 
-        {/* 1 ── Live Hero */}
-        <LiveSection onJoinAttempt={() => setShowModal(true)} />
+          <div className="flex items-center gap-2">
+            {hasLive && (
+              <span className="flex items-center gap-1.5 text-red-400 text-xs font-bold bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded-full">
+                <span className="w-2 h-2 bg-red-400 rounded-full animate-pulse" />
+                <span className="hidden sm:inline">مباشر الآن</span>
+                <span className="sm:hidden">Live</span>
+              </span>
+            )}
+            <span className="hidden md:flex items-center gap-1.5 text-white/25 text-xs bg-white/[0.04] px-3 py-1.5 rounded-full">
+              <Bell className="w-3.5 h-3.5" />
+              حصة جديدة كل أسبوع
+            </span>
+            <Link href="/courses"
+              className="hidden sm:flex items-center gap-1 text-white/40 text-xs font-semibold hover:text-indigo-400 transition-colors py-1.5">
+              <ChevronRight className="w-3.5 h-3.5" />
+              الدورات
+            </Link>
+          </div>
+        </div>
+      </div>
 
-        {/* 2 ── Stats */}
-        <StatsBar />
+      {/* Content */}
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
 
-        {/* 3 ── Replays */}
-        <section>
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
-                <PlayCircle className="w-5 h-5 text-red-500" />
+        {/* ═══════════════════════════════════════════════════════════════
+            LIVE STATE — stream embedded + join button
+           ═══════════════════════════════════════════════════════════════ */}
+        {hasLive && hasReplay && (
+          <>
+            {/* Live badge + title bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 bg-red-500/15 border border-red-400/30 text-red-300 text-sm font-bold px-4 py-2 rounded-full">
+                  <span className="w-2.5 h-2.5 bg-red-400 rounded-full animate-pulse" />
+                  بث مباشر الآن
+                </div>
+                <div>
+                  <h1 className="text-white font-extrabold text-lg sm:text-xl leading-tight">محادثة يومية — Daily Conversation</h1>
+                  <p className="text-white/30 text-xs sm:text-sm mt-0.5">شاهد الحصة مباشرة — Watch live</p>
+                </div>
               </div>
-              <div>
-                <h2 className="font-extrabold text-slate-800 text-xl leading-none">📺 حصص سابقة</h2>
-                <p className="text-sm text-slate-500 mt-1">شاهد الحصص التي فاتتك في أي وقت</p>
+              <div className="flex items-center gap-3 bg-white/[0.04] border border-white/[0.06] rounded-full px-4 py-2 self-start sm:self-auto">
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center font-extrabold text-white text-xs">ح</div>
+                <span className="text-white/60 text-xs font-medium">حمزة القصراوي</span>
               </div>
             </div>
-            <span className="text-xs bg-slate-100 text-slate-600 font-semibold px-3 py-1.5 rounded-full hidden sm:inline">
-              {REPLAYS.length} حصص متاحة
-            </span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {REPLAYS.map(r => <ReplayCard key={r.id} replay={r} />)}
-          </div>
-        </section>
 
-        {/* 4 ── Comments */}
-        <section>
-          <CommentsSection />
-        </section>
+            {/* Live stream embed — full width, prominent */}
+            <div className="rounded-2xl overflow-hidden border border-red-500/20 bg-black shadow-2xl shadow-red-900/10 ring-1 ring-red-500/10">
+              {/* Live indicator strip */}
+              <div className="flex items-center justify-between px-4 py-2.5 bg-gradient-to-r from-red-600/20 to-red-500/10 border-b border-red-500/15">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-red-400 rounded-full animate-pulse" />
+                  <span className="text-red-300 text-xs font-bold uppercase tracking-wider">Live</span>
+                </div>
+                <span className="text-white/20 text-xs flex items-center gap-1.5">
+                  <Clock className="w-3 h-3" />
+                  جاري البث...
+                </span>
+              </div>
+              {/* YouTube embed */}
+              <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
+                <iframe
+                  src={`${data!.youtube_link!}${data!.youtube_link!.includes('?') ? '&' : '?'}autoplay=1&mute=1`}
+                  className="absolute inset-0 w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title="بث مباشر"
+                />
+              </div>
+            </div>
 
-        {/* 5 ── WhatsApp CTA */}
+            {/* Action bar below the stream */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              {/* Join on Meet CTA */}
+              <a href={data!.live_link!} target="_blank" rel="noopener noreferrer"
+                className="flex-1 inline-flex items-center justify-center gap-3 bg-white text-blue-800 font-extrabold px-6 py-4 rounded-2xl text-base hover:bg-blue-50 transition-all shadow-xl hover:-translate-y-0.5 active:scale-95">
+                <MeetIcon size={24} />
+                شارك في الحصة عبر Google Meet
+                <ExternalLink className="w-4 h-4 opacity-50" />
+              </a>
+
+              {/* WhatsApp quick contact */}
+              <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('مرحباً! أريد المشاركة في الحصة المباشرة')}`}
+                target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-4 rounded-2xl transition-all shadow-lg shadow-emerald-900/30 active:scale-95">
+                <WAIcon size={20} />
+                <span className="hidden sm:inline">تواصل عبر واتساب</span>
+                <span className="sm:hidden">واتساب</span>
+              </a>
+            </div>
+
+            {/* Info strip */}
+            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-white/20 text-xs">
+              <span className="flex items-center gap-1.5">📺 شاهد الحصة مباشرة مجاناً</span>
+              <span className="hidden sm:inline text-white/10">|</span>
+              <span className="flex items-center gap-1.5">💬 شارك وتفاعل عبر Google Meet</span>
+              <span className="hidden sm:inline text-white/10">|</span>
+              <span className="flex items-center gap-1.5">
+                <Clock className="w-3 h-3" />
+                حصة جديدة كل أسبوع
+              </span>
+            </div>
+          </>
+        )}
+
+        {/* Live link exists but no YouTube stream — fallback hero */}
+        {hasLive && !hasReplay && (
+          <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-900/40 via-blue-800/30 to-indigo-900/40 border border-white/[0.06] shadow-2xl">
+            <div className="absolute -top-24 -left-24 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-16 -right-16 w-56 h-56 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="relative px-6 py-12 md:py-16 max-w-2xl mx-auto text-center">
+              <div className="inline-flex items-center gap-2.5 bg-red-500/15 border border-red-400/30 text-red-300 text-sm font-bold px-5 py-2.5 rounded-full mb-6">
+                <span className="w-2.5 h-2.5 bg-red-400 rounded-full animate-pulse" />
+                بث مباشر الآن — Live Now
+              </div>
+              <h1 className="text-2xl md:text-4xl font-extrabold text-white mb-3">محادثة يومية — Daily Conversation</h1>
+              <p className="text-white/40 text-base mb-8">تدرب على المحادثة الحقيقية مع المعلم مباشرةً</p>
+              <a href={data!.live_link!} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 bg-white text-blue-800 font-extrabold px-8 py-4 rounded-2xl text-lg hover:bg-blue-50 transition-all shadow-2xl hover:-translate-y-1 active:scale-95">
+                <MeetIcon size={26} />
+                انضم للحصة عبر Google Meet
+                <ExternalLink className="w-5 h-5" />
+              </a>
+            </div>
+          </section>
+        )}
+
+        {/* ═══════════════════════════════════════════════════════════════
+            NOT LIVE — show channel videos
+           ═══════════════════════════════════════════════════════════════ */}
+        {!hasLive && (
+          <>
+            {/* Hero banner — no session currently */}
+            <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-900/40 via-blue-800/30 to-indigo-900/40 border border-white/[0.06] shadow-2xl">
+              <div className="absolute -top-24 -left-24 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute -bottom-16 -right-16 w-56 h-56 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="relative px-6 py-10 md:py-12 max-w-2xl mx-auto text-center">
+                <div className="inline-flex items-center gap-2 bg-white/[0.06] border border-white/[0.1] text-white/40 text-sm font-semibold px-5 py-2.5 rounded-full mb-5">
+                  <WifiOff className="w-4 h-4" />
+                  لا توجد حصة مباشرة حالياً
+                </div>
+                <h1 className="text-xl md:text-3xl font-extrabold text-white mb-2 leading-snug">شاهد محتوى حمزة القصراوي</h1>
+                <p className="text-white/40 text-sm md:text-base mb-6">تعلم الإنجليزية مع دروس وحصص مسجلة — تابع القناة لمزيد من المحتوى</p>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('أريد أن أعرف موعد الحصة المباشرة القادمة')}`}
+                    target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-2xl transition-all shadow-lg shadow-emerald-900/30 hover:-translate-y-0.5 active:scale-95 text-sm">
+                    <Bell className="w-4 h-4" />
+                    أعلمني بموعد الحصة القادمة
+                  </a>
+                  <a href="https://www.youtube.com/@hamzaelqasraoui" target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 bg-red-600/80 hover:bg-red-600 text-white font-bold px-6 py-3 rounded-2xl transition-all shadow-lg shadow-red-900/30 hover:-translate-y-0.5 active:scale-95 text-sm">
+                    <Play className="w-4 h-4 fill-white" />
+                    تابع القناة على يوتيوب
+                  </a>
+                </div>
+              </div>
+            </section>
+
+            {/* Channel videos grid */}
+            <section>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center justify-center">
+                    <Play className="w-5 h-5 text-red-400 fill-red-400" />
+                  </div>
+                  <div>
+                    <h2 className="font-extrabold text-white text-lg sm:text-xl leading-none">دروس وحصص مسجلة</h2>
+                    <p className="text-sm text-white/30 mt-1">من قناة حمزة القصراوي</p>
+                  </div>
+                </div>
+                <a href="https://www.youtube.com/@hamzaelqasraoui" target="_blank" rel="noopener noreferrer"
+                  className="hidden sm:flex items-center gap-1.5 text-red-400/70 hover:text-red-400 text-xs font-bold transition-colors">
+                  عرض الكل على يوتيوب
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+
+              {videosLoading ? (
+                <div className="flex items-center justify-center py-16">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="relative w-10 h-10">
+                      <div className="absolute inset-0 border-2 border-indigo-500/30 rounded-full" />
+                      <div className="absolute inset-0 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                    <p className="text-white/20 text-xs">جاري تحميل الفيديوهات...</p>
+                  </div>
+                </div>
+              ) : videos.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {videos.map(v => <VideoCard key={v.id} video={v} />)}
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 sm:p-12 text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
+                    <span className="text-3xl opacity-30">📺</span>
+                  </div>
+                  <p className="text-white/30 text-sm">لم يتم العثور على فيديوهات</p>
+                  <a href="https://www.youtube.com/@hamzaelqasraoui" target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-red-400 hover:text-red-300 text-sm font-bold mt-3 transition-colors">
+                    <Play className="w-4 h-4 fill-current" />
+                    زيارة القناة على يوتيوب
+                  </a>
+                </div>
+              )}
+            </section>
+          </>
+        )}
+
+        {/* ── 4. Comments ── */}
+        <CommentsSection />
+
+        {/* ── 5. WhatsApp CTA ── */}
         <WhatsAppCTA />
 
       </div>
-
-      {/* Access Gate Modal */}
-      {showModal && <AccessModal onClose={() => setShowModal(false)} />}
     </div>
   )
 }
