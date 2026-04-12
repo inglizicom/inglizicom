@@ -10,10 +10,8 @@ import {
 import type { EvaluateResponse, ChatResponse } from '@/app/api/practice/route'
 import {
   type Sentence, type Level,
+  getSessionSentences,
 } from '@/lib/sentences'
-import {
-  getPublishedAsSentences,
-} from '@/lib/content-store'
 import {
   getProgress, saveProgress, updateStreak, applyXP,
   markSentencesUsed, levelProgress, nextLevelInfo,
@@ -1528,9 +1526,9 @@ export default function PracticePage() {
   // ── Start session ──────────────────────────────────────────────
 
   const startSession = useCallback((level: Level) => {
-    const sentences = getPublishedAsSentences(level, 6)
+    const usedIds = progress.usedSentenceIds?.[level] ?? []
+    const sentences = getSessionSentences(level, usedIds, 6)
 
-    // No published content → stay on select screen, show error
     if (sentences.length === 0) {
       setNoContent(true)
       return
@@ -1597,7 +1595,9 @@ export default function PracticePage() {
 
   const handleNewSession = useCallback(() => {
     if (!session) { transitionTo('select'); return }
-    const sentences = getPublishedAsSentences(session.level, 6)
+    const usedIds = progress.usedSentenceIds?.[session.level] ?? []
+    const sentences = getSessionSentences(session.level, usedIds, 6)
+    if (sentences.length === 0) { transitionTo('select'); return }
     const newSess: SessionState = {
       level: session.level,
       sentences,
