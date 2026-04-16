@@ -14,6 +14,28 @@ import {
 
 const WHATSAPP_NUMBER = '212707902091'
 
+function toEmbedUrl(url: string): string {
+  try {
+    const u = new URL(url)
+    // Already an embed URL — extract video ID from path
+    if (u.pathname.startsWith('/embed/')) {
+      const id = u.pathname.split('/embed/')[1]?.split('/')[0]
+      if (id) return `https://www.youtube.com/embed/${id}`
+    }
+    // youtube.com/watch?v=ID or youtube.com/live/ID
+    if (u.hostname.includes('youtube.com')) {
+      const id = u.searchParams.get('v') || u.pathname.split('/live/')[1] || u.pathname.split('/').pop()
+      if (id) return `https://www.youtube.com/embed/${id}`
+    }
+    // youtu.be/ID
+    if (u.hostname === 'youtu.be') {
+      const id = u.pathname.slice(1)
+      if (id) return `https://www.youtube.com/embed/${id}`
+    }
+  } catch { /* fallback */ }
+  return url
+}
+
 // ─── Floating Icons ──────────────────────────────────────────────────────────
 
 const FLOATING_ICONS = [
@@ -336,10 +358,9 @@ export default function LiveClassesPage() {
       .select('*')
       .order('created_at', { ascending: false })
       .limit(1)
-      .single()
 
     if (err) { console.error('FETCH ERROR:', err); setError(true); setLoading(false); return }
-    setData(rows as LiveContent)
+    setData((rows?.[0] as LiveContent) ?? null)
     setLoading(false)
   }, [])
 
@@ -432,7 +453,7 @@ export default function LiveClassesPage() {
         {/* ═══════════════════════════════════════════════════════════════
             LIVE STATE — stream embedded + join button
            ═══════════════════════════════════════════════════════════════ */}
-        {hasLive && hasReplay && (
+        {hasLive && hasYT && (
           <>
             {/* Live badge + title bar */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -468,7 +489,7 @@ export default function LiveClassesPage() {
               {/* YouTube embed */}
               <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
                 <iframe
-                  src={`${data!.youtube_link!}${data!.youtube_link!.includes('?') ? '&' : '?'}autoplay=1&mute=1`}
+                  src={`${toEmbedUrl(data!.youtube_link!)}${toEmbedUrl(data!.youtube_link!).includes('?') ? '&' : '?'}autoplay=1&mute=1`}
                   className="absolute inset-0 w-full h-full"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
@@ -512,7 +533,7 @@ export default function LiveClassesPage() {
         )}
 
         {/* Live link exists but no YouTube stream — fallback hero */}
-        {hasLive && !hasReplay && (
+        {hasLive && !hasYT && (
           <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-900/40 via-blue-800/30 to-indigo-900/40 border border-white/[0.06] shadow-2xl">
             <div className="absolute -top-24 -left-24 w-72 h-72 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute -bottom-16 -right-16 w-56 h-56 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />

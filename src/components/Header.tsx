@@ -11,6 +11,7 @@ const NAV = [
   { href: '/blog',     label: 'المدونة' },
   { href: '/listen',   label: 'الاستماع' },
   { href: '/practice', label: 'تدرب الآن' },
+  { href: '/play',     label: '🎮 العب' },
   { href: '/map',      label: '🗺️ الخريطة' },
 ]
 
