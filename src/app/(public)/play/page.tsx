@@ -6,16 +6,69 @@ import {
   Gamepad2, Sparkles, Zap, Heart, Flame,
   ArrowRight, RefreshCw, Home, MessageCircle,
   Shuffle, Link2, Blocks, Star, Crown, Timer,
-  CheckCircle2, XCircle, Rocket, Target,
+  CheckCircle2, XCircle, Rocket, Target, ChevronUp,
+  Bug,
 } from 'lucide-react'
 
 // ═════════════════════════════════════════════════════════════════════════════
 //   PLAY PAGE — Word games with Teacher Hamza from Oued Zem
-//   Mini-games: Scramble · Match · Sentence Builder
 // ═════════════════════════════════════════════════════════════════════════════
 
 const WHATSAPP_NUMBER = '212707902091'
 const STORAGE_KEY = 'inglizi-play-progress'
+
+// ─── Sound Engine (Web Audio API — no files needed) ──────────────────────────
+
+const AudioCtx = typeof window !== 'undefined' ? (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext) : null
+
+let _ctx: AudioContext | null = null
+function getCtx(): AudioContext | null {
+  if (!AudioCtx) return null
+  if (!_ctx) _ctx = new AudioCtx()
+  return _ctx
+}
+
+function playTone(freq: number, dur: number, type: OscillatorType = 'sine', vol = 0.15) {
+  const ctx = getCtx()
+  if (!ctx) return
+  const osc = ctx.createOscillator()
+  const gain = ctx.createGain()
+  osc.type = type
+  osc.frequency.value = freq
+  gain.gain.setValueAtTime(vol, ctx.currentTime)
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur)
+  osc.connect(gain)
+  gain.connect(ctx.destination)
+  osc.start()
+  osc.stop(ctx.currentTime + dur)
+}
+
+function sfxCorrect() {
+  playTone(523, 0.12, 'sine', 0.18)
+  setTimeout(() => playTone(659, 0.12, 'sine', 0.18), 80)
+  setTimeout(() => playTone(784, 0.18, 'sine', 0.22), 160)
+}
+
+function sfxWrong() {
+  playTone(200, 0.15, 'square', 0.1)
+  setTimeout(() => playTone(160, 0.2, 'square', 0.08), 120)
+}
+
+function sfxClick() {
+  playTone(880, 0.05, 'sine', 0.06)
+}
+
+function sfxWin() {
+  ;[523, 659, 784, 1047].forEach((f, i) =>
+    setTimeout(() => playTone(f, 0.2, 'sine', 0.15), i * 100),
+  )
+}
+
+function sfxLevelUp() {
+  ;[440, 554, 659, 880, 1047].forEach((f, i) =>
+    setTimeout(() => playTone(f, 0.25, 'triangle', 0.12), i * 80),
+  )
+}
 
 // ─── Teacher Hamza personality — funny Moroccan messages ─────────────────────
 
@@ -30,28 +83,28 @@ const HAMZA_CORRECT = [
 ]
 
 const HAMZA_WRONG = [
-  'لا لا، في واد زم ما كنديروش هكا 😄 حاول مرة أخرى',
-  'قريب... بصح أستاذ حمزة كيقول لك: ركز شوية 🤓',
-  'Oops! هاد غير بداية، كاين تحسن 💪',
-  'آش هاد الجواب دابا؟ 😂 جرب مرة أخرى',
-  'Not bad! بصح كاين شي حاجة خاصني نعلمك ليها 📚',
-  'راك قريب للجواب الصحيح، لا تستسلم! 💡',
+  'لا لا، حاول مرة أخرى 😄',
+  'ركز شوية، أنت قريب! 🤓',
+  'Oops! جرب مرة أخرى 💪',
+  'آش هاد الجواب؟ 😂 عاود',
+  'قريب... حاول مرة أخرى! 📚',
+  'لا تستسلم! ركز 💡',
 ]
 
 const LEVEL_MESSAGES = [
-  { threshold: 0,    emoji: '🌱', title: 'مبتدئ من واد زم',      desc: 'بدايتك مع تيتشر حمزة' },
-  { threshold: 50,   emoji: '🌿', title: 'طالب نشيط',             desc: 'ديرها ديرها!' },
-  { threshold: 150,  emoji: '🔥', title: 'طالب مميز',             desc: 'أستاذ حمزة لاحظك' },
-  { threshold: 300,  emoji: '⭐', title: 'نجم الفصل',             desc: 'واد زم فخور بيك' },
-  { threshold: 500,  emoji: '👑', title: 'بطل اللغة',              desc: 'تلميذ من النخبة' },
-  { threshold: 1000, emoji: '🏆', title: 'أسطورة واد زم',          desc: 'Teacher Hamza approved!' },
+  { threshold: 0,    emoji: '🌱', title: 'مبتدئ من واد زم',  desc: 'بدايتك مع تيتشر حمزة' },
+  { threshold: 50,   emoji: '🌿', title: 'طالب نشيط',         desc: 'ديرها ديرها!' },
+  { threshold: 150,  emoji: '🔥', title: 'طالب مميز',         desc: 'أستاذ حمزة لاحظك' },
+  { threshold: 300,  emoji: '⭐', title: 'نجم الفصل',         desc: 'واد زم فخور بيك' },
+  { threshold: 500,  emoji: '👑', title: 'بطل اللغة',          desc: 'تلميذ من النخبة' },
+  { threshold: 1000, emoji: '🏆', title: 'أسطورة واد زم',      desc: 'Teacher Hamza approved!' },
 ]
 
 function getLevel(xp: number) {
   return [...LEVEL_MESSAGES].reverse().find(l => xp >= l.threshold) ?? LEVEL_MESSAGES[0]
 }
 
-// ─── Word Pool for Scramble & Match ──────────────────────────────────────────
+// ─── Word Pool ───────────────────────────────────────────────────────────────
 
 type Difficulty = 1 | 2 | 3
 
@@ -64,130 +117,125 @@ interface WordPair {
 }
 
 const WORDS: WordPair[] = [
-  // ─── LEVEL 1 — Easy (3-5 letters, common words) ───────────────────────────
-  { en: 'book',    ar: 'كتاب',   emoji: '📚', lvl: 1 },
-  { en: 'pen',     ar: 'قلم',    emoji: '✒️', lvl: 1 },
-  { en: 'tea',     ar: 'شاي',    emoji: '🍵', lvl: 1, hint: 'أتاي بالنعناع' },
-  { en: 'water',   ar: 'ماء',    emoji: '💧', lvl: 1 },
-  { en: 'bread',   ar: 'خبز',    emoji: '🍞', lvl: 1, hint: 'خبز ديال واد زم' },
-  { en: 'apple',   ar: 'تفاحة',  emoji: '🍎', lvl: 1 },
-  { en: 'mother',  ar: 'أم',     emoji: '👩', lvl: 1 },
-  { en: 'father',  ar: 'أب',     emoji: '👨', lvl: 1 },
-  { en: 'house',   ar: 'بيت',    emoji: '🏠', lvl: 1 },
-  { en: 'city',    ar: 'مدينة',  emoji: '🏙️', lvl: 1, hint: 'مثل واد زم' },
-  { en: 'sun',     ar: 'شمس',    emoji: '☀️', lvl: 1 },
-  { en: 'moon',    ar: 'قمر',    emoji: '🌙', lvl: 1 },
-  { en: 'rain',    ar: 'مطر',    emoji: '🌧️', lvl: 1 },
-  { en: 'tree',    ar: 'شجرة',   emoji: '🌳', lvl: 1 },
-  { en: 'happy',   ar: 'سعيد',   emoji: '😊', lvl: 1 },
-  { en: 'sad',     ar: 'حزين',   emoji: '😢', lvl: 1 },
-  { en: 'play',    ar: 'يلعب',   emoji: '🎮', lvl: 1 },
-  { en: 'run',     ar: 'يجري',   emoji: '🏃', lvl: 1 },
-  { en: 'eat',     ar: 'يأكل',   emoji: '🍴', lvl: 1 },
-  { en: 'road',    ar: 'طريق',   emoji: '🛣️', lvl: 1 },
-  { en: 'friend',  ar: 'صديق',   emoji: '🤝', lvl: 1 },
-  { en: 'car',     ar: 'سيارة',  emoji: '🚗', lvl: 1 },
-  { en: 'dog',     ar: 'كلب',    emoji: '🐶', lvl: 1 },
-  { en: 'cat',     ar: 'قطة',    emoji: '🐱', lvl: 1 },
-
-  // ─── LEVEL 2 — Medium (5-7 letters) ───────────────────────────────────────
-  { en: 'teacher',   ar: 'أستاذ',    emoji: '👨‍🏫', lvl: 2, hint: 'مثل حمزة القصراوي' },
-  { en: 'student',   ar: 'طالب',     emoji: '🎓',   lvl: 2, hint: 'أنت واحد منهم!' },
-  { en: 'school',    ar: 'مدرسة',    emoji: '🏫',   lvl: 2 },
-  { en: 'tagine',    ar: 'طاجين',    emoji: '🍲',   lvl: 2, hint: 'الأكلة المغربية الشهيرة' },
-  { en: 'coffee',    ar: 'قهوة',     emoji: '☕',   lvl: 2 },
-  { en: 'orange',    ar: 'برتقال',   emoji: '🍊',   lvl: 2 },
-  { en: 'brother',   ar: 'أخ',       emoji: '🧑',   lvl: 2 },
-  { en: 'sister',    ar: 'أخت',      emoji: '👧',   lvl: 2 },
-  { en: 'family',    ar: 'عائلة',    emoji: '👪',   lvl: 2 },
-  { en: 'market',    ar: 'سوق',      emoji: '🛒',   lvl: 2 },
-  { en: 'mosque',    ar: 'مسجد',     emoji: '🕌',   lvl: 2 },
-  { en: 'garden',    ar: 'حديقة',    emoji: '🌳',   lvl: 2 },
-  { en: 'tired',     ar: 'متعب',     emoji: '😴',   lvl: 2 },
-  { en: 'hungry',    ar: 'جائع',     emoji: '🍽️',  lvl: 2 },
-  { en: 'learn',     ar: 'يتعلم',    emoji: '🧠',   lvl: 2, hint: 'الي كتديرو دابا' },
-  { en: 'sleep',     ar: 'ينام',     emoji: '😴',   lvl: 2 },
-  { en: 'window',    ar: 'نافذة',    emoji: '🪟',   lvl: 2 },
-  { en: 'kitchen',   ar: 'مطبخ',     emoji: '🍳',   lvl: 2 },
-  { en: 'morning',   ar: 'صباح',     emoji: '🌅',   lvl: 2 },
-  { en: 'evening',   ar: 'مساء',     emoji: '🌆',   lvl: 2 },
-  { en: 'weather',   ar: 'طقس',      emoji: '🌤️',   lvl: 2 },
-  { en: 'doctor',    ar: 'طبيب',     emoji: '⚕️',   lvl: 2 },
-  { en: 'music',     ar: 'موسيقى',   emoji: '🎵',   lvl: 2 },
-  { en: 'summer',    ar: 'صيف',      emoji: '🏖️',   lvl: 2 },
-  { en: 'winter',    ar: 'شتاء',     emoji: '❄️',   lvl: 2 },
-
-  // ─── LEVEL 3 — Hard (8+ letters or tricky) ────────────────────────────────
-  { en: 'beautiful',    ar: 'جميل',         emoji: '✨',   lvl: 3 },
-  { en: 'delicious',    ar: 'لذيذ',         emoji: '😋',   lvl: 3, hint: 'كتوصف بيه الطاجين' },
-  { en: 'breakfast',    ar: 'فطور',         emoji: '🍳',   lvl: 3 },
-  { en: 'important',    ar: 'مهم',          emoji: '⚡',   lvl: 3 },
-  { en: 'beginner',     ar: 'مبتدئ',        emoji: '🌱',   lvl: 3 },
-  { en: 'adventure',    ar: 'مغامرة',       emoji: '🗺️',   lvl: 3 },
-  { en: 'knowledge',    ar: 'معرفة',        emoji: '🎓',   lvl: 3 },
-  { en: 'different',    ar: 'مختلف',        emoji: '🔀',   lvl: 3 },
-  { en: 'practice',     ar: 'تمرين',        emoji: '💪',   lvl: 3, hint: 'الي كنديرو في إنجليزي.كوم' },
-  { en: 'language',     ar: 'لغة',          emoji: '🗣️',   lvl: 3 },
-  { en: 'exercise',     ar: 'تمرين رياضي',  emoji: '🏋️',   lvl: 3 },
-  { en: 'wonderful',    ar: 'رائع',         emoji: '🌟',   lvl: 3 },
-  { en: 'opportunity',  ar: 'فرصة',         emoji: '🎯',   lvl: 3 },
-  { en: 'experience',   ar: 'تجربة',        emoji: '🧭',   lvl: 3 },
-  { en: 'discover',     ar: 'يكتشف',        emoji: '🔍',   lvl: 3 },
-  { en: 'successful',   ar: 'ناجح',         emoji: '🏆',   lvl: 3 },
-  { en: 'confident',    ar: 'واثق',         emoji: '💪',   lvl: 3 },
-  { en: 'favourite',    ar: 'مفضل',         emoji: '❤️',   lvl: 3 },
-  { en: 'vegetables',   ar: 'خضروات',       emoji: '🥬',   lvl: 3 },
-  { en: 'dictionary',   ar: 'قاموس',        emoji: '📖',   lvl: 3 },
+  // LEVEL 1
+  { en: 'book',   ar: 'كتاب',  emoji: '📚', lvl: 1 },
+  { en: 'pen',    ar: 'قلم',   emoji: '✒️', lvl: 1 },
+  { en: 'tea',    ar: 'شاي',   emoji: '🍵', lvl: 1, hint: 'أتاي بالنعناع' },
+  { en: 'water',  ar: 'ماء',   emoji: '💧', lvl: 1 },
+  { en: 'bread',  ar: 'خبز',   emoji: '🍞', lvl: 1, hint: 'خبز ديال واد زم' },
+  { en: 'apple',  ar: 'تفاحة', emoji: '🍎', lvl: 1 },
+  { en: 'mother', ar: 'أم',    emoji: '👩', lvl: 1 },
+  { en: 'father', ar: 'أب',    emoji: '👨', lvl: 1 },
+  { en: 'house',  ar: 'بيت',   emoji: '🏠', lvl: 1 },
+  { en: 'city',   ar: 'مدينة', emoji: '🏙️', lvl: 1, hint: 'مثل واد زم' },
+  { en: 'sun',    ar: 'شمس',   emoji: '☀️', lvl: 1 },
+  { en: 'moon',   ar: 'قمر',   emoji: '🌙', lvl: 1 },
+  { en: 'rain',   ar: 'مطر',   emoji: '🌧️', lvl: 1 },
+  { en: 'tree',   ar: 'شجرة',  emoji: '🌳', lvl: 1 },
+  { en: 'happy',  ar: 'سعيد',  emoji: '😊', lvl: 1 },
+  { en: 'sad',    ar: 'حزين',  emoji: '😢', lvl: 1 },
+  { en: 'play',   ar: 'يلعب',  emoji: '🎮', lvl: 1 },
+  { en: 'run',    ar: 'يجري',  emoji: '🏃', lvl: 1 },
+  { en: 'eat',    ar: 'يأكل',  emoji: '🍴', lvl: 1 },
+  { en: 'road',   ar: 'طريق',  emoji: '🛣️', lvl: 1 },
+  { en: 'friend', ar: 'صديق',  emoji: '🤝', lvl: 1 },
+  { en: 'car',    ar: 'سيارة', emoji: '🚗', lvl: 1 },
+  { en: 'dog',    ar: 'كلب',   emoji: '🐶', lvl: 1 },
+  { en: 'cat',    ar: 'قطة',   emoji: '🐱', lvl: 1 },
+  // LEVEL 2
+  { en: 'teacher', ar: 'أستاذ',  emoji: '👨‍🏫', lvl: 2, hint: 'مثل حمزة القصراوي' },
+  { en: 'student', ar: 'طالب',   emoji: '🎓',  lvl: 2, hint: 'أنت واحد منهم!' },
+  { en: 'school',  ar: 'مدرسة',  emoji: '🏫',  lvl: 2 },
+  { en: 'tagine',  ar: 'طاجين',  emoji: '🍲',  lvl: 2, hint: 'الأكلة المغربية الشهيرة' },
+  { en: 'coffee',  ar: 'قهوة',   emoji: '☕',  lvl: 2 },
+  { en: 'orange',  ar: 'برتقال', emoji: '🍊',  lvl: 2 },
+  { en: 'brother', ar: 'أخ',     emoji: '🧑',  lvl: 2 },
+  { en: 'sister',  ar: 'أخت',    emoji: '👧',  lvl: 2 },
+  { en: 'family',  ar: 'عائلة',  emoji: '👪',  lvl: 2 },
+  { en: 'market',  ar: 'سوق',    emoji: '🛒',  lvl: 2 },
+  { en: 'mosque',  ar: 'مسجد',   emoji: '🕌',  lvl: 2 },
+  { en: 'garden',  ar: 'حديقة',  emoji: '🌳',  lvl: 2 },
+  { en: 'tired',   ar: 'متعب',   emoji: '😴',  lvl: 2 },
+  { en: 'hungry',  ar: 'جائع',   emoji: '🍽️', lvl: 2 },
+  { en: 'learn',   ar: 'يتعلم',  emoji: '🧠',  lvl: 2, hint: 'الي كتديرو دابا' },
+  { en: 'sleep',   ar: 'ينام',   emoji: '😴',  lvl: 2 },
+  { en: 'window',  ar: 'نافذة',  emoji: '🪟',  lvl: 2 },
+  { en: 'kitchen', ar: 'مطبخ',   emoji: '🍳',  lvl: 2 },
+  { en: 'morning', ar: 'صباح',   emoji: '🌅',  lvl: 2 },
+  { en: 'evening', ar: 'مساء',   emoji: '🌆',  lvl: 2 },
+  { en: 'weather', ar: 'طقس',    emoji: '🌤️',  lvl: 2 },
+  { en: 'doctor',  ar: 'طبيب',   emoji: '⚕️',  lvl: 2 },
+  { en: 'music',   ar: 'موسيقى', emoji: '🎵',  lvl: 2 },
+  { en: 'summer',  ar: 'صيف',    emoji: '🏖️',  lvl: 2 },
+  { en: 'winter',  ar: 'شتاء',   emoji: '❄️',  lvl: 2 },
+  // LEVEL 3
+  { en: 'beautiful',   ar: 'جميل',        emoji: '✨',  lvl: 3 },
+  { en: 'delicious',   ar: 'لذيذ',        emoji: '😋',  lvl: 3, hint: 'كتوصف بيه الطاجين' },
+  { en: 'breakfast',   ar: 'فطور',        emoji: '🍳',  lvl: 3 },
+  { en: 'important',   ar: 'مهم',         emoji: '⚡',  lvl: 3 },
+  { en: 'beginner',    ar: 'مبتدئ',       emoji: '🌱',  lvl: 3 },
+  { en: 'adventure',   ar: 'مغامرة',      emoji: '🗺️',  lvl: 3 },
+  { en: 'knowledge',   ar: 'معرفة',       emoji: '🎓',  lvl: 3 },
+  { en: 'different',   ar: 'مختلف',       emoji: '🔀',  lvl: 3 },
+  { en: 'practice',    ar: 'تمرين',       emoji: '💪',  lvl: 3, hint: 'الي كنديرو في إنجليزي.كوم' },
+  { en: 'language',    ar: 'لغة',         emoji: '🗣️',  lvl: 3 },
+  { en: 'exercise',    ar: 'تمرين رياضي', emoji: '🏋️',  lvl: 3 },
+  { en: 'wonderful',   ar: 'رائع',        emoji: '🌟',  lvl: 3 },
+  { en: 'opportunity', ar: 'فرصة',        emoji: '🎯',  lvl: 3 },
+  { en: 'experience',  ar: 'تجربة',       emoji: '🧭',  lvl: 3 },
+  { en: 'discover',    ar: 'يكتشف',       emoji: '🔍',  lvl: 3 },
+  { en: 'successful',  ar: 'ناجح',        emoji: '🏆',  lvl: 3 },
+  { en: 'confident',   ar: 'واثق',        emoji: '💪',  lvl: 3 },
+  { en: 'favourite',   ar: 'مفضل',        emoji: '❤️',  lvl: 3 },
+  { en: 'vegetables',  ar: 'خضروات',      emoji: '🥬',  lvl: 3 },
+  { en: 'dictionary',  ar: 'قاموس',       emoji: '📖',  lvl: 3 },
 ]
 
-// ─── Sentence Pool for Builder ───────────────────────────────────────────────
+// ─── Sentence Pool ───────────────────────────────────────────────────────────
 
 interface SentenceChallenge {
-  en: string          // target sentence (space-separated words)
-  ar: string          // Arabic translation for the hint
+  en: string
+  ar: string
   difficulty: Difficulty
-  topic?: string
 }
 
 const SENTENCES: SentenceChallenge[] = [
-  // ─── LEVEL 1 — Easy (short, 4-6 words) ────────────────────────────────────
-  { en: 'I am a student',                           ar: 'أنا طالب',                           difficulty: 1 },
-  { en: 'My name is Hamza',                         ar: 'اسمي حمزة',                          difficulty: 1 },
-  { en: 'I live in Oued Zem',                       ar: 'أعيش في واد زم',                     difficulty: 1 },
-  { en: 'She is my sister',                         ar: 'هي أختي',                            difficulty: 1 },
-  { en: 'I drink tea every morning',                ar: 'أشرب الشاي كل صباح',                 difficulty: 1 },
-  { en: 'We go to school',                          ar: 'نذهب إلى المدرسة',                   difficulty: 1 },
-  { en: 'The weather is nice today',                ar: 'الطقس لطيف اليوم',                   difficulty: 1 },
-  { en: 'I have a small dog',                       ar: 'عندي كلب صغير',                      difficulty: 1 },
-  { en: 'He reads a book every night',              ar: 'يقرأ كتاباً كل ليلة',                difficulty: 1 },
-  { en: 'My father works in the city',              ar: 'أبي يعمل في المدينة',                difficulty: 1 },
-
-  // ─── LEVEL 2 — Medium (6-9 words) ─────────────────────────────────────────
-  { en: 'I am a student from Oued Zem',             ar: 'أنا طالب من واد زم',                 difficulty: 2, topic: 'intro' },
-  { en: 'My teacher is Hamza el Qasraoui',          ar: 'أستاذي هو حمزة القصراوي',            difficulty: 2, topic: 'intro' },
-  { en: 'I love learning English every day',        ar: 'أحب تعلم الإنجليزية كل يوم',         difficulty: 2, topic: 'daily' },
-  { en: 'She drinks tea in the morning',            ar: 'هي تشرب الشاي في الصباح',            difficulty: 2, topic: 'daily' },
-  { en: 'We go to school by bus',                   ar: 'نذهب إلى المدرسة بالحافلة',          difficulty: 2, topic: 'daily' },
-  { en: 'The weather is beautiful today',           ar: 'الطقس جميل اليوم',                   difficulty: 2, topic: 'weather' },
-  { en: 'He is my best friend in class',            ar: 'هو صديقي المفضل في الفصل',           difficulty: 2, topic: 'friends' },
-  { en: 'My mother cooks a delicious tagine',       ar: 'أمي تطبخ طاجيناً لذيذاً',            difficulty: 2, topic: 'food' },
-  { en: 'I study English with Teacher Hamza',       ar: 'أدرس الإنجليزية مع تيتشر حمزة',       difficulty: 2, topic: 'learning' },
-  { en: 'Oued Zem is a beautiful city',             ar: 'واد زم مدينة جميلة',                 difficulty: 2, topic: 'places' },
-  { en: 'Never give up on your dreams',             ar: 'لا تتخلى أبداً عن أحلامك',           difficulty: 2, topic: 'motivation' },
-  { en: 'I want to speak English fluently',         ar: 'أريد التحدث بالإنجليزية بطلاقة',      difficulty: 2, topic: 'learning' },
-  { en: 'My favourite subject is English',          ar: 'مادتي المفضلة هي الإنجليزية',        difficulty: 2, topic: 'learning' },
-
-  // ─── LEVEL 3 — Hard (9+ words, complex) ───────────────────────────────────
-  { en: 'I want to travel around the world one day',           ar: 'أريد أن أسافر حول العالم يوماً ما',         difficulty: 3, topic: 'travel' },
-  { en: 'Reading books every day makes me feel happy',         ar: 'قراءة الكتب كل يوم تجعلني سعيداً',          difficulty: 3, topic: 'hobbies' },
-  { en: 'If you believe in yourself you can do anything',      ar: 'إذا آمنت بنفسك يمكنك فعل أي شيء',           difficulty: 3, topic: 'motivation' },
-  { en: 'I practice speaking English with my teacher online',  ar: 'أتدرب على التحدث بالإنجليزية مع أستاذي',   difficulty: 3, topic: 'learning' },
-  { en: 'Teacher Hamza from Oued Zem helps many students',     ar: 'تيتشر حمزة من واد زم يساعد العديد من الطلاب', difficulty: 3, topic: 'intro' },
-  { en: 'Learning a new language opens many opportunities',    ar: 'تعلم لغة جديدة يفتح فرصاً كثيرة',           difficulty: 3, topic: 'motivation' },
-  { en: 'I would like to become a successful doctor',          ar: 'أود أن أصبح طبيباً ناجحاً',                difficulty: 3, topic: 'goals' },
-  { en: 'The students are learning English in a fun way',      ar: 'الطلاب يتعلمون الإنجليزية بطريقة ممتعة',   difficulty: 3, topic: 'learning' },
-  { en: 'My favourite part of the day is the evening',         ar: 'الجزء المفضل عندي من اليوم هو المساء',      difficulty: 3, topic: 'daily' },
-  { en: 'Every great journey begins with a small step',        ar: 'كل رحلة عظيمة تبدأ بخطوة صغيرة',            difficulty: 3, topic: 'motivation' },
+  // LEVEL 1
+  { en: 'I am a student',              ar: 'أنا طالب',                difficulty: 1 },
+  { en: 'My name is Hamza',            ar: 'اسمي حمزة',               difficulty: 1 },
+  { en: 'I live in Oued Zem',          ar: 'أعيش في واد زم',          difficulty: 1 },
+  { en: 'She is my sister',            ar: 'هي أختي',                 difficulty: 1 },
+  { en: 'I drink tea every morning',   ar: 'أشرب الشاي كل صباح',      difficulty: 1 },
+  { en: 'We go to school',             ar: 'نذهب إلى المدرسة',        difficulty: 1 },
+  { en: 'The weather is nice today',   ar: 'الطقس لطيف اليوم',        difficulty: 1 },
+  { en: 'I have a small dog',          ar: 'عندي كلب صغير',           difficulty: 1 },
+  { en: 'He reads a book every night', ar: 'يقرأ كتاباً كل ليلة',     difficulty: 1 },
+  { en: 'My father works in the city', ar: 'أبي يعمل في المدينة',     difficulty: 1 },
+  // LEVEL 2
+  { en: 'I am a student from Oued Zem',        ar: 'أنا طالب من واد زم',                difficulty: 2 },
+  { en: 'My teacher is Hamza el Qasraoui',     ar: 'أستاذي هو حمزة القصراوي',           difficulty: 2 },
+  { en: 'I love learning English every day',    ar: 'أحب تعلم الإنجليزية كل يوم',        difficulty: 2 },
+  { en: 'She drinks tea in the morning',        ar: 'هي تشرب الشاي في الصباح',           difficulty: 2 },
+  { en: 'We go to school by bus',               ar: 'نذهب إلى المدرسة بالحافلة',         difficulty: 2 },
+  { en: 'The weather is beautiful today',       ar: 'الطقس جميل اليوم',                  difficulty: 2 },
+  { en: 'He is my best friend in class',        ar: 'هو صديقي المفضل في الفصل',          difficulty: 2 },
+  { en: 'My mother cooks a delicious tagine',   ar: 'أمي تطبخ طاجيناً لذيذاً',           difficulty: 2 },
+  { en: 'I study English with Teacher Hamza',   ar: 'أدرس الإنجليزية مع تيتشر حمزة',     difficulty: 2 },
+  { en: 'Oued Zem is a beautiful city',         ar: 'واد زم مدينة جميلة',                difficulty: 2 },
+  { en: 'Never give up on your dreams',         ar: 'لا تتخلى أبداً عن أحلامك',          difficulty: 2 },
+  { en: 'I want to speak English fluently',     ar: 'أريد التحدث بالإنجليزية بطلاقة',     difficulty: 2 },
+  { en: 'My favourite subject is English',      ar: 'مادتي المفضلة هي الإنجليزية',       difficulty: 2 },
+  // LEVEL 3
+  { en: 'I want to travel around the world one day',          ar: 'أريد أن أسافر حول العالم يوماً ما',         difficulty: 3 },
+  { en: 'Reading books every day makes me feel happy',        ar: 'قراءة الكتب كل يوم تجعلني سعيداً',          difficulty: 3 },
+  { en: 'If you believe in yourself you can do anything',     ar: 'إذا آمنت بنفسك يمكنك فعل أي شيء',           difficulty: 3 },
+  { en: 'I practice speaking English with my teacher online', ar: 'أتدرب على التحدث بالإنجليزية مع أستاذي',   difficulty: 3 },
+  { en: 'Teacher Hamza from Oued Zem helps many students',    ar: 'تيتشر حمزة من واد زم يساعد العديد من الطلاب', difficulty: 3 },
+  { en: 'Learning a new language opens many opportunities',   ar: 'تعلم لغة جديدة يفتح فرصاً كثيرة',           difficulty: 3 },
+  { en: 'I would like to become a successful doctor',         ar: 'أود أن أصبح طبيباً ناجحاً',                difficulty: 3 },
+  { en: 'The students are learning English in a fun way',     ar: 'الطلاب يتعلمون الإنجليزية بطريقة ممتعة',   difficulty: 3 },
+  { en: 'My favourite part of the day is the evening',        ar: 'الجزء المفضل عندي من اليوم هو المساء',      difficulty: 3 },
+  { en: 'Every great journey begins with a small step',       ar: 'كل رحلة عظيمة تبدأ بخطوة صغيرة',            difficulty: 3 },
 ]
 
 // ─── Utilities ───────────────────────────────────────────────────────────────
@@ -211,188 +259,108 @@ function randomFrom<T>(arr: T[]): T {
 
 function scrambleWord(word: string): string {
   if (word.length < 3) return word
-  let out = word
-  let attempts = 0
-  while (out === word && attempts < 20) {
-    out = shuffle(word.split('')).join('')
-    attempts++
-  }
+  let out = word; let attempts = 0
+  while (out === word && attempts < 20) { out = shuffle(word.split('')).join(''); attempts++ }
   return out
 }
 
 // ─── Difficulty Configuration ────────────────────────────────────────────────
 
 interface DifficultyInfo {
-  label: string          // Arabic label
-  subtitle: string       // English subtitle
-  emoji: string
-  gradient: string       // tailwind gradient
-  border: string
-  xpMultiplier: number
+  label: string; subtitle: string; emoji: string
+  gradient: string; border: string; xpMultiplier: number
 }
 
 const DIFFICULTY_INFO: Record<Difficulty, DifficultyInfo> = {
-  1: { label: 'مبتدئ',  subtitle: 'Beginner',     emoji: '🌱', gradient: 'from-emerald-600/20 to-teal-600/20', border: 'border-emerald-500/30', xpMultiplier: 1 },
-  2: { label: 'متوسط',  subtitle: 'Intermediate', emoji: '🔥', gradient: 'from-amber-600/20 to-orange-600/20',  border: 'border-amber-500/30',  xpMultiplier: 2 },
-  3: { label: 'متقدم',  subtitle: 'Advanced',     emoji: '👑', gradient: 'from-red-600/20 to-rose-600/20',      border: 'border-red-500/30',    xpMultiplier: 3 },
+  1: { label: 'مبتدئ', subtitle: 'Beginner',     emoji: '🌱', gradient: 'from-emerald-600/20 to-teal-600/20', border: 'border-emerald-500/30', xpMultiplier: 1 },
+  2: { label: 'متوسط', subtitle: 'Intermediate', emoji: '🔥', gradient: 'from-amber-600/20 to-orange-600/20',  border: 'border-amber-500/30',  xpMultiplier: 2 },
+  3: { label: 'متقدم', subtitle: 'Advanced',     emoji: '👑', gradient: 'from-red-600/20 to-rose-600/20',      border: 'border-red-500/30',    xpMultiplier: 3 },
 }
 
-// Per-game difficulty settings
-const SCRAMBLE_CONFIG: Record<Difficulty, { rounds: number }> = {
-  1: { rounds: 6 },
-  2: { rounds: 10 },
-  3: { rounds: 12 },
-}
+const SCRAMBLE_CONFIG: Record<Difficulty, { rounds: number }> = { 1: { rounds: 6 }, 2: { rounds: 10 }, 3: { rounds: 12 } }
+const MATCH_CONFIG: Record<Difficulty, { pairs: number; time: number }> = { 1: { pairs: 4, time: 45 }, 2: { pairs: 6, time: 60 }, 3: { pairs: 8, time: 75 } }
+const BUILDER_CONFIG: Record<Difficulty, { rounds: number }> = { 1: { rounds: 5 }, 2: { rounds: 6 }, 3: { rounds: 8 } }
 
-const MATCH_CONFIG: Record<Difficulty, { pairs: number, time: number }> = {
-  1: { pairs: 4, time: 45 },
-  2: { pairs: 6, time: 60 },
-  3: { pairs: 8, time: 75 },
-}
+// ─── Progress ────────────────────────────────────────────────────────────────
 
-const BUILDER_CONFIG: Record<Difficulty, { rounds: number }> = {
-  1: { rounds: 5 },
-  2: { rounds: 6 },
-  3: { rounds: 8 },
-}
-
-// ─── Progress persistence ────────────────────────────────────────────────────
-
-interface PlayProgress {
-  xp: number
-  bestStreak: number
-  gamesPlayed: number
-}
-
+interface PlayProgress { xp: number; bestStreak: number; gamesPlayed: number }
 function loadProgress(): PlayProgress {
   if (typeof window === 'undefined') return { xp: 0, bestStreak: 0, gamesPlayed: 0 }
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return { xp: 0, bestStreak: 0, gamesPlayed: 0 }
-    return JSON.parse(raw)
-  } catch {
-    return { xp: 0, bestStreak: 0, gamesPlayed: 0 }
-  }
+  try { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : { xp: 0, bestStreak: 0, gamesPlayed: 0 } } catch { return { xp: 0, bestStreak: 0, gamesPlayed: 0 } }
 }
-
-function saveProgress(p: PlayProgress) {
-  if (typeof window === 'undefined') return
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(p))
+function saveProgressData(p: PlayProgress) {
+  if (typeof window !== 'undefined') localStorage.setItem(STORAGE_KEY, JSON.stringify(p))
 }
 
 // ─── Floating Icons ──────────────────────────────────────────────────────────
 
-const FLOATING_ICONS = [
-  { icon: '🎮', x: 5,  y: 10, delay: 0,   dur: 19 },
-  { icon: '🏆', x: 90, y: 15, delay: 2,   dur: 22 },
-  { icon: '✨', x: 15, y: 45, delay: 4,   dur: 18 },
-  { icon: '🎯', x: 88, y: 55, delay: 1,   dur: 21 },
-  { icon: '🌟', x: 10, y: 80, delay: 3,   dur: 20 },
-  { icon: '🚀', x: 85, y: 85, delay: 5,   dur: 24 },
-  { icon: '🔥', x: 50, y: 5,  delay: 2.5, dur: 17 },
-  { icon: '💡', x: 70, y: 40, delay: 1.5, dur: 23 },
-]
-
 function FloatingIcons() {
+  const icons = [
+    { icon: '🎮', x: 5,  y: 10, delay: 0,   dur: 19 },
+    { icon: '🏆', x: 90, y: 15, delay: 2,   dur: 22 },
+    { icon: '✨', x: 15, y: 45, delay: 4,   dur: 18 },
+    { icon: '🎯', x: 88, y: 55, delay: 1,   dur: 21 },
+    { icon: '🌟', x: 10, y: 80, delay: 3,   dur: 20 },
+    { icon: '🚀', x: 85, y: 85, delay: 5,   dur: 24 },
+    { icon: '🔥', x: 50, y: 5,  delay: 2.5, dur: 17 },
+    { icon: '💡', x: 70, y: 40, delay: 1.5, dur: 23 },
+  ]
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
-      {FLOATING_ICONS.map((f, i) => (
-        <div key={i} className="absolute opacity-[0.07] animate-float-icon text-2xl"
-          style={{ left: `${f.x}%`, top: `${f.y}%`, animationDelay: `${f.delay}s`, animationDuration: `${f.dur}s` }}>
+      {icons.map((f, i) => (
+        <div key={i} className="absolute opacity-[0.07] text-2xl"
+          style={{ left: `${f.x}%`, top: `${f.y}%`, animation: `float-icon ${f.dur}s ease-in-out ${f.delay}s infinite` }}>
           {f.icon}
         </div>
       ))}
-      <style jsx>{`
-        @keyframes float-icon {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          25%      { transform: translateY(-22px) rotate(6deg); }
-          50%      { transform: translateY(-8px) rotate(-4deg); }
-          75%      { transform: translateY(-26px) rotate(5deg); }
-        }
-        .animate-float-icon {
-          animation-name: float-icon;
-          animation-timing-function: ease-in-out;
-          animation-iteration-count: infinite;
-        }
-      `}</style>
     </div>
   )
 }
 
-// ─── Feedback Toast (inline, appears then fades) ─────────────────────────────
+// ─── Inline Feedback ─────────────────────────────────────────────────────────
 
-function FeedbackToast({ type, message, onDone }: {
-  type: 'correct' | 'wrong'
-  message: string
-  onDone: () => void
-}) {
-  useEffect(() => {
-    const t = setTimeout(onDone, 1600)
-    return () => clearTimeout(t)
-  }, [onDone])
+function InlineFeedback({ type, message }: { type: 'correct' | 'wrong'; message: string }) {
   const isGood = type === 'correct'
   return (
-    <div className="fixed left-1/2 -translate-x-1/2 top-24 z-50 pointer-events-none animate-toast-in">
-      <div className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl backdrop-blur-xl border ${
-        isGood
-          ? 'bg-emerald-500/20 border-emerald-400/30 text-emerald-100'
-          : 'bg-red-500/20 border-red-400/30 text-red-100'
-      }`}>
-        {isGood ? <CheckCircle2 className="w-5 h-5 shrink-0" /> : <XCircle className="w-5 h-5 shrink-0" />}
-        <p className="text-sm font-bold">{message}</p>
-      </div>
-      <style jsx>{`
-        @keyframes toast-in {
-          0%   { transform: translateX(-50%) translateY(-20px); opacity: 0; }
-          15%  { transform: translateX(-50%) translateY(0);     opacity: 1; }
-          85%  { transform: translateX(-50%) translateY(0);     opacity: 1; }
-          100% { transform: translateX(-50%) translateY(-20px); opacity: 0; }
-        }
-        .animate-toast-in { animation: toast-in 1.6s ease-in-out forwards; }
-      `}</style>
+    <div className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold animate-[fadeInUp_0.3s_ease-out] ${
+      isGood ? 'bg-emerald-500/15 border border-emerald-400/30 text-emerald-200' : 'bg-red-500/15 border border-red-400/30 text-red-200'
+    }`}>
+      {isGood ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <XCircle className="w-4 h-4 shrink-0" />}
+      <span className="line-clamp-2">{message}</span>
     </div>
   )
 }
 
-// ─── XP/Streak Bar ───────────────────────────────────────────────────────────
+// ─── Top bar inside games ────────────────────────────────────────────────────
 
-function StatsBar({ xp, streak, roundXp, roundCorrect, roundTotal, onExit }: {
-  xp: number
-  streak: number
-  roundXp: number
-  roundCorrect: number
-  roundTotal: number
-  onExit: () => void
+function GameBar({ streak, xp, current, total, onExit }: {
+  streak: number; xp: number; current: number; total: number; onExit: () => void
 }) {
   return (
-    <div className="sticky top-[70px] z-30 backdrop-blur-xl bg-[#0a0f1e]/80 border-b border-white/[0.06]">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-        <button onClick={onExit}
-          className="flex items-center gap-2 text-white/50 hover:text-white text-sm font-semibold transition-colors">
-          <Home className="w-4 h-4" />
-          <span className="hidden sm:inline">القائمة</span>
-        </button>
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-full">
-            <Flame className="w-4 h-4 text-amber-400" />
-            <span className="text-amber-200 text-xs font-bold">{streak}</span>
-          </div>
-          <div className="flex items-center gap-1.5 bg-violet-500/10 border border-violet-500/20 px-3 py-1.5 rounded-full">
-            <Zap className="w-4 h-4 text-violet-400" />
-            <span className="text-violet-200 text-xs font-bold">+{roundXp} XP</span>
-          </div>
-          <div className="hidden sm:flex items-center gap-1.5 bg-white/[0.04] border border-white/[0.08] px-3 py-1.5 rounded-full">
-            <Target className="w-4 h-4 text-white/50" />
-            <span className="text-white/60 text-xs font-bold">{roundCorrect}/{roundTotal}</span>
-          </div>
-        </div>
+    <div className="flex items-center justify-between gap-2 mb-4">
+      <button onClick={onExit} className="text-white/40 hover:text-white transition-colors p-1">
+        <Home className="w-4 h-4" />
+      </button>
+      <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full overflow-hidden mx-2">
+        <div className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-500 rounded-full"
+          style={{ width: `${(current / total) * 100}%` }} />
+      </div>
+      <div className="flex items-center gap-2">
+        {streak > 0 && (
+          <span className="flex items-center gap-1 bg-amber-500/15 border border-amber-500/25 px-2 py-0.5 rounded-full text-amber-200 text-[11px] font-bold">
+            <Flame className="w-3 h-3" />{streak}
+          </span>
+        )}
+        <span className="flex items-center gap-1 bg-violet-500/15 border border-violet-500/25 px-2 py-0.5 rounded-full text-violet-200 text-[11px] font-bold">
+          <Zap className="w-3 h-3" />+{xp}
+        </span>
       </div>
     </div>
   )
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
-//   GAME 1 — WORD SCRAMBLE
+//   GAME 1 — WORD SCRAMBLE (stay on word until correct)
 // ═════════════════════════════════════════════════════════════════════════════
 
 function ScrambleGame({ difficulty, onDone, onExit }: {
@@ -402,165 +370,120 @@ function ScrambleGame({ difficulty, onDone, onExit }: {
 }) {
   const TOTAL = SCRAMBLE_CONFIG[difficulty].rounds
   const mult = DIFFICULTY_INFO[difficulty].xpMultiplier
-  const [round, setRound]         = useState(0)
-  const [words]                   = useState(() => {
+  const [round, setRound] = useState(0)
+  const [words] = useState(() => {
     const pool = WORDS.filter(w => w.lvl === difficulty)
-    const source = pool.length >= TOTAL ? pool : WORDS
-    return pick(source, TOTAL)
+    return pick(pool.length >= TOTAL ? pool : WORDS, TOTAL)
   })
   const [scrambled, setScrambled] = useState(() => scrambleWord(words[0].en))
-  const [input, setInput]         = useState('')
-  const [correct, setCorrect]     = useState(0)
-  const [streak, setStreak]       = useState(0)
-  const [best, setBest]           = useState(0)
-  const [xp, setXp]               = useState(0)
-  const [toast, setToast]         = useState<{ type: 'correct' | 'wrong', msg: string } | null>(null)
+  const [input, setInput] = useState('')
+  const [correct, setCorrect] = useState(0)
+  const [streak, setStreak] = useState(0)
+  const [best, setBest] = useState(0)
+  const [xp, setXp] = useState(0)
+  const [feedback, setFeedback] = useState<{ type: 'correct' | 'wrong'; msg: string } | null>(null)
+  const [locked, setLocked] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const current = words[round]
 
-  useEffect(() => { inputRef.current?.focus() }, [round])
+  useEffect(() => { if (!locked) inputRef.current?.focus() }, [round, locked])
+
+  const advance = useCallback(() => {
+    if (round + 1 >= TOTAL) {
+      sfxWin()
+      onDone(xp, correct, TOTAL, best)
+    } else {
+      const next = round + 1
+      setRound(next)
+      setScrambled(scrambleWord(words[next].en))
+      setFeedback(null)
+    }
+  }, [round, TOTAL, xp, correct, best, onDone, words])
 
   const submit = () => {
+    if (locked || !input.trim()) return
     const guess = input.trim().toLowerCase()
-    if (!guess) return
     if (guess === current.en.toLowerCase()) {
+      sfxCorrect()
       const gain = (10 + streak * 2) * mult
       const newStreak = streak + 1
       setCorrect(c => c + 1)
       setStreak(newStreak)
       setBest(b => Math.max(b, newStreak))
       setXp(x => x + gain)
-      setToast({ type: 'correct', msg: randomFrom(HAMZA_CORRECT) })
+      setFeedback({ type: 'correct', msg: randomFrom(HAMZA_CORRECT) })
+      setInput('')
+      setLocked(true)
+      setTimeout(() => { setLocked(false); advance() }, 1000)
     } else {
+      // WRONG — stay on same word, re-scramble, let them retry
+      sfxWrong()
       setStreak(0)
-      setToast({ type: 'wrong', msg: `الجواب: ${current.en} — ${randomFrom(HAMZA_WRONG)}` })
+      setFeedback({ type: 'wrong', msg: randomFrom(HAMZA_WRONG) })
+      setInput('')
+      // Re-scramble after short delay
+      setTimeout(() => {
+        setScrambled(scrambleWord(current.en))
+        setFeedback(null)
+      }, 1200)
     }
-    setInput('')
-    setTimeout(() => {
-      if (round + 1 >= TOTAL) {
-        onDone(xp + (guess === current.en.toLowerCase() ? (10 + streak * 2) * mult : 0),
-               correct + (guess === current.en.toLowerCase() ? 1 : 0),
-               TOTAL, best)
-      } else {
-        const next = round + 1
-        setRound(next)
-        setScrambled(scrambleWord(words[next].en))
-      }
-    }, 1200)
-  }
-
-  const skip = () => {
-    setStreak(0)
-    setToast({ type: 'wrong', msg: `الجواب كان: ${current.en}` })
-    setInput('')
-    setTimeout(() => {
-      if (round + 1 >= TOTAL) onDone(xp, correct, TOTAL, best)
-      else {
-        const next = round + 1
-        setRound(next)
-        setScrambled(scrambleWord(words[next].en))
-      }
-    }, 1200)
   }
 
   return (
-    <>
-      <StatsBar xp={xp} streak={streak} roundXp={xp} roundCorrect={correct} roundTotal={TOTAL} onExit={onExit} />
-      {toast && <FeedbackToast type={toast.type} message={toast.msg} onDone={() => setToast(null)} />}
+    <div className="flex flex-col h-[calc(100dvh-70px)] max-w-2xl mx-auto px-4 sm:px-6 py-4 relative z-10">
+      <GameBar streak={streak} xp={xp} current={round} total={TOTAL} onExit={onExit} />
 
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12 relative z-10">
-        {/* Progress */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-white/40 text-xs font-bold">السؤال {round + 1} / {TOTAL}</span>
-            <span className="text-violet-300/70 text-xs font-bold">رتب الأحرف ✨</span>
-          </div>
-          <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-500"
-              style={{ width: `${((round) / TOTAL) * 100}%` }} />
-          </div>
-        </div>
-
-        {/* Question card */}
-        <div className="rounded-3xl bg-gradient-to-br from-violet-900/30 via-indigo-900/20 to-purple-900/30 border border-white/[0.06] p-6 sm:p-10 shadow-2xl">
-          {/* Emoji hint */}
-          <div className="text-center mb-6">
-            <div className="text-6xl sm:text-7xl mb-3 animate-bounce-slow">{current.emoji}</div>
-            <p className="text-white/70 text-lg sm:text-xl font-bold">{current.ar}</p>
-            {current.hint && (
-              <p className="text-amber-300/60 text-xs mt-2 italic">💡 {current.hint}</p>
-            )}
+      {/* Card — centered, fills available space */}
+      <div className="flex-1 flex flex-col justify-center min-h-0">
+        <div className="rounded-2xl bg-gradient-to-br from-violet-900/30 via-indigo-900/20 to-purple-900/30 border border-white/[0.06] p-5 sm:p-8 shadow-2xl">
+          {/* Emoji + Arabic */}
+          <div className="text-center mb-4">
+            <div className="text-5xl sm:text-6xl mb-2">{current.emoji}</div>
+            <p className="text-white/70 text-lg font-bold">{current.ar}</p>
+            {current.hint && <p className="text-amber-300/50 text-xs mt-1 italic">💡 {current.hint}</p>}
           </div>
 
           {/* Scrambled letters */}
-          <div className="mb-6 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+          <div className="mb-4 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
             {scrambled.split('').map((ch, i) => (
-              <div key={i}
-                className="w-11 h-11 sm:w-14 sm:h-14 rounded-xl bg-white/[0.06] border border-white/[0.1] flex items-center justify-center text-xl sm:text-2xl font-extrabold text-white uppercase shadow-lg animate-letter-in"
-                style={{ animationDelay: `${i * 50}ms` }}>
+              <div key={`${round}-${i}-${ch}`}
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-white/[0.06] border border-white/[0.1] flex items-center justify-center text-lg sm:text-xl font-extrabold text-white uppercase"
+                style={{ animation: `scaleIn 0.3s ease-out ${i * 40}ms backwards` }}>
                 {ch}
               </div>
             ))}
           </div>
 
+          {/* Feedback inline */}
+          {feedback && <div className="mb-3"><InlineFeedback type={feedback.type} message={feedback.msg} /></div>}
+
           {/* Input */}
           <div className="flex gap-2">
-            <input
-              ref={inputRef}
-              type="text"
-              value={input}
+            <input ref={inputRef} type="text" value={input}
               onChange={e => setInput(e.target.value.replace(/[^a-zA-Z]/g, ''))}
               onKeyDown={e => { if (e.key === 'Enter') submit() }}
-              placeholder="اكتب الكلمة..."
-              dir="ltr"
-              className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-2xl px-5 py-4 text-lg font-bold text-white placeholder:text-white/20 text-center tracking-wider focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 transition-all uppercase"
-              autoComplete="off"
-              spellCheck={false}
-            />
-            <button onClick={submit}
-              disabled={!input.trim()}
-              className="bg-violet-600 hover:bg-violet-500 disabled:bg-white/[0.06] disabled:text-white/20 text-white font-extrabold px-5 rounded-2xl transition-all shadow-lg shadow-violet-900/40 active:scale-95">
+              placeholder="اكتب الكلمة..." dir="ltr" autoComplete="off" spellCheck={false}
+              disabled={locked}
+              className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-base font-bold text-white placeholder:text-white/20 text-center tracking-wider focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20 transition-all uppercase disabled:opacity-50" />
+            <button onClick={submit} disabled={locked || !input.trim()}
+              className="bg-violet-600 hover:bg-violet-500 disabled:bg-white/[0.06] disabled:text-white/20 text-white font-extrabold px-4 rounded-xl transition-all active:scale-95">
               <ArrowRight className="w-5 h-5" />
             </button>
           </div>
 
-          <button onClick={skip}
-            className="w-full mt-3 text-white/30 hover:text-white/60 text-xs font-bold py-2 transition-colors">
-            تخطي السؤال ←
-          </button>
+          <p className="text-center text-white/20 text-[10px] mt-2">{round + 1} / {TOTAL}</p>
         </div>
-
-        <style jsx>{`
-          @keyframes bounce-slow {
-            0%,100% { transform: translateY(0); }
-            50%     { transform: translateY(-8px); }
-          }
-          .animate-bounce-slow { animation: bounce-slow 2s ease-in-out infinite; }
-          @keyframes letter-in {
-            0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
-            100% { transform: scale(1) rotate(0);       opacity: 1; }
-          }
-          .animate-letter-in {
-            animation: letter-in 0.4s ease-out backwards;
-          }
-        `}</style>
       </div>
-    </>
+    </div>
   )
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
-//   GAME 2 — MATCH (Memory style with timer)
+//   GAME 2 — MATCH (stay on same pairs, just deselect on wrong)
 // ═════════════════════════════════════════════════════════════════════════════
 
-interface MatchCard {
-  id: string
-  pairKey: string
-  label: string
-  side: 'en' | 'ar'
-  matched: boolean
-}
+interface MatchCard { id: string; pairKey: string; label: string; side: 'en' | 'ar'; matched: boolean }
 
 function MatchGame({ difficulty, onDone, onExit }: {
   difficulty: Difficulty
@@ -570,33 +493,26 @@ function MatchGame({ difficulty, onDone, onExit }: {
   const PAIRS_COUNT = MATCH_CONFIG[difficulty].pairs
   const TIME_START = MATCH_CONFIG[difficulty].time
   const mult = DIFFICULTY_INFO[difficulty].xpMultiplier
-  const [pairs] = useState(() => {
-    const pool = WORDS.filter(w => w.lvl === difficulty)
-    const source = pool.length >= PAIRS_COUNT ? pool : WORDS
-    return pick(source, PAIRS_COUNT)
-  })
-  const [cards, setCards] = useState<MatchCard[]>(() => {
-    const all: MatchCard[] = pairs.flatMap(p => [
-      { id: `${p.en}-en`, pairKey: p.en, label: `${p.emoji} ${p.en}`, side: 'en', matched: false },
-      { id: `${p.en}-ar`, pairKey: p.en, label: p.ar,                 side: 'ar', matched: false },
-    ])
-    return shuffle(all)
-  })
-  const [selectedEn, setSelectedEn] = useState<string | null>(null)
-  const [selectedAr, setSelectedAr] = useState<string | null>(null)
+  const [pairs] = useState(() => { const p = WORDS.filter(w => w.lvl === difficulty); return pick(p.length >= PAIRS_COUNT ? p : WORDS, PAIRS_COUNT) })
+  const [cards, setCards] = useState<MatchCard[]>(() =>
+    shuffle(pairs.flatMap(p => [
+      { id: `${p.en}-en`, pairKey: p.en, label: `${p.emoji} ${p.en}`, side: 'en' as const, matched: false },
+      { id: `${p.en}-ar`, pairKey: p.en, label: p.ar, side: 'ar' as const, matched: false },
+    ])),
+  )
+  const [selEn, setSelEn] = useState<string | null>(null)
+  const [selAr, setSelAr] = useState<string | null>(null)
   const [matches, setMatches] = useState(0)
-  const [attempts, setAttempts] = useState(0)
   const [streak, setStreak] = useState(0)
   const [best, setBest] = useState(0)
   const [timeLeft, setTimeLeft] = useState(TIME_START)
   const [xp, setXp] = useState(0)
-  const [toast, setToast] = useState<{ type: 'correct' | 'wrong', msg: string } | null>(null)
-  const [wrongFlash, setWrongFlash] = useState<[string, string] | null>(null)
+  const [wrongIds, setWrongIds] = useState<string[]>([])
+  const doneRef = useRef(false)
 
-  // Timer
   useEffect(() => {
-    if (timeLeft <= 0) {
-      onDone(xp, matches, PAIRS_COUNT, best)
+    if (doneRef.current || timeLeft <= 0) {
+      if (!doneRef.current) { doneRef.current = true; onDone(xp, matches, PAIRS_COUNT, best) }
       return
     }
     const t = setTimeout(() => setTimeLeft(s => s - 1), 1000)
@@ -604,140 +520,101 @@ function MatchGame({ difficulty, onDone, onExit }: {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeLeft])
 
-  // Check match when both selected
   useEffect(() => {
-    if (!selectedEn || !selectedAr) return
-    const enCard = cards.find(c => c.id === selectedEn)
-    const arCard = cards.find(c => c.id === selectedAr)
-    if (!enCard || !arCard) return
-    setAttempts(a => a + 1)
-    if (enCard.pairKey === arCard.pairKey) {
-      // Match!
+    if (!selEn || !selAr) return
+    const en = cards.find(c => c.id === selEn)
+    const ar = cards.find(c => c.id === selAr)
+    if (!en || !ar) return
+    if (en.pairKey === ar.pairKey) {
+      sfxCorrect()
       const gain = (15 + streak * 3 + Math.max(0, Math.floor(timeLeft / 10))) * mult
-      const newStreak = streak + 1
+      const ns = streak + 1
       setMatches(m => m + 1)
-      setStreak(newStreak)
-      setBest(b => Math.max(b, newStreak))
+      setStreak(ns)
+      setBest(b => Math.max(b, ns))
       setXp(x => x + gain)
-      setCards(cs => cs.map(c => c.pairKey === enCard.pairKey ? { ...c, matched: true } : c))
-      setToast({ type: 'correct', msg: randomFrom(HAMZA_CORRECT) })
-      setSelectedEn(null)
-      setSelectedAr(null)
-      // Check if all done
-      if (matches + 1 >= PAIRS_COUNT) {
-        setTimeout(() => onDone(xp + gain, matches + 1, PAIRS_COUNT, Math.max(best, newStreak)), 1000)
+      setCards(cs => cs.map(c => c.pairKey === en.pairKey ? { ...c, matched: true } : c))
+      setSelEn(null); setSelAr(null)
+      if (matches + 1 >= PAIRS_COUNT && !doneRef.current) {
+        doneRef.current = true
+        sfxWin()
+        setTimeout(() => onDone(xp + gain, matches + 1, PAIRS_COUNT, Math.max(best, ns)), 600)
       }
     } else {
-      // Wrong
+      sfxWrong()
       setStreak(0)
-      setWrongFlash([selectedEn, selectedAr])
-      setToast({ type: 'wrong', msg: randomFrom(HAMZA_WRONG) })
-      setTimeout(() => {
-        setSelectedEn(null)
-        setSelectedAr(null)
-        setWrongFlash(null)
-      }, 700)
+      setWrongIds([selEn, selAr])
+      setTimeout(() => { setSelEn(null); setSelAr(null); setWrongIds([]) }, 500)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedEn, selectedAr])
+  }, [selEn, selAr])
 
-  const clickCard = (card: MatchCard) => {
-    if (card.matched) return
-    if (card.side === 'en') {
-      if (selectedEn === card.id) setSelectedEn(null)
-      else setSelectedEn(card.id)
-    } else {
-      if (selectedAr === card.id) setSelectedAr(null)
-      else setSelectedAr(card.id)
-    }
+  const click = (c: MatchCard) => {
+    if (c.matched || wrongIds.length > 0) return
+    sfxClick()
+    if (c.side === 'en') setSelEn(selEn === c.id ? null : c.id)
+    else setSelAr(selAr === c.id ? null : c.id)
   }
 
   const timePct = (timeLeft / TIME_START) * 100
-  const timeColor = timeLeft > TIME_START * 0.33 ? 'from-emerald-500 to-teal-500'
-                  : timeLeft > TIME_START * 0.16 ? 'from-amber-500 to-orange-500'
-                                                 : 'from-red-500 to-rose-500'
 
   return (
-    <>
-      <StatsBar xp={xp} streak={streak} roundXp={xp} roundCorrect={matches} roundTotal={PAIRS_COUNT} onExit={onExit} />
-      {toast && <FeedbackToast type={toast.type} message={toast.msg} onDone={() => setToast(null)} />}
-
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 relative z-10">
-        {/* Timer */}
-        <div className="mb-5">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-white/40 text-xs font-bold">
-              المطابقات: {matches} / {PAIRS_COUNT}
-            </span>
-            <span className="flex items-center gap-1.5 text-white/60 text-xs font-bold">
-              <Timer className="w-3.5 h-3.5" />
-              {timeLeft}ث
+    <div className="flex flex-col h-[calc(100dvh-70px)] max-w-3xl mx-auto px-3 sm:px-6 py-4 relative z-10">
+      {/* Timer bar */}
+      <div className="mb-3">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-white/40 text-[11px] font-bold">{matches}/{PAIRS_COUNT}</span>
+          <div className="flex items-center gap-2">
+            {streak > 0 && (
+              <span className="flex items-center gap-1 text-amber-200 text-[11px] font-bold"><Flame className="w-3 h-3" />{streak}</span>
+            )}
+            <span className="flex items-center gap-1 text-violet-200 text-[11px] font-bold"><Zap className="w-3 h-3" />+{xp}</span>
+            <span className={`flex items-center gap-1 text-[11px] font-bold ${timeLeft <= 10 ? 'text-red-300 animate-pulse' : 'text-white/50'}`}>
+              <Timer className="w-3 h-3" />{timeLeft}ث
             </span>
           </div>
-          <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
-            <div className={`h-full bg-gradient-to-r ${timeColor} transition-all duration-1000`}
-              style={{ width: `${timePct}%` }} />
-          </div>
         </div>
-
-        {/* Cards grid */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-4">
-          {cards.map(card => {
-            const isSelected = card.id === selectedEn || card.id === selectedAr
-            const isWrong = wrongFlash?.includes(card.id) ?? false
-            return (
-              <button key={card.id}
-                onClick={() => clickCard(card)}
-                disabled={card.matched}
-                className={`relative min-h-[68px] sm:min-h-[84px] rounded-2xl border-2 p-3 sm:p-4 text-center transition-all active:scale-95 ${
-                  card.matched
-                    ? 'bg-emerald-500/15 border-emerald-400/40 text-emerald-100 opacity-60 cursor-default'
-                    : isWrong
-                      ? 'bg-red-500/20 border-red-400/50 text-white animate-shake'
-                      : isSelected
-                        ? card.side === 'en'
-                          ? 'bg-blue-500/25 border-blue-400/60 text-white shadow-xl shadow-blue-900/30 scale-[1.02]'
-                          : 'bg-violet-500/25 border-violet-400/60 text-white shadow-xl shadow-violet-900/30 scale-[1.02]'
-                        : card.side === 'en'
-                          ? 'bg-blue-500/[0.06] border-blue-500/20 text-blue-100 hover:bg-blue-500/10 hover:border-blue-500/40'
-                          : 'bg-violet-500/[0.06] border-violet-500/20 text-violet-100 hover:bg-violet-500/10 hover:border-violet-500/40'
-                }`}
-                dir={card.side === 'ar' ? 'rtl' : 'ltr'}>
-                <span className="block font-extrabold text-base sm:text-lg break-words">{card.label}</span>
-                {card.matched && (
-                  <CheckCircle2 className="absolute top-1.5 right-1.5 w-4 h-4 text-emerald-400" />
-                )}
-              </button>
-            )
-          })}
+        <div className="h-1 bg-white/[0.06] rounded-full overflow-hidden">
+          <div className={`h-full rounded-full transition-all duration-1000 ${
+            timePct > 33 ? 'bg-emerald-500' : timePct > 16 ? 'bg-amber-500' : 'bg-red-500'
+          }`} style={{ width: `${timePct}%` }} />
         </div>
-
-        <p className="text-center text-white/30 text-xs mt-6 italic">
-          💡 اختر كلمة إنجليزية ثم ترجمتها العربية
-        </p>
-
-        <style jsx>{`
-          @keyframes shake {
-            0%,100% { transform: translateX(0); }
-            25%     { transform: translateX(-6px); }
-            75%     { transform: translateX(6px); }
-          }
-          .animate-shake { animation: shake 0.3s ease-in-out; }
-        `}</style>
       </div>
-    </>
+
+      <button onClick={onExit} className="text-white/30 hover:text-white text-[11px] font-bold flex items-center gap-1 mb-2 self-start transition-colors">
+        <Home className="w-3 h-3" /> خروج
+      </button>
+
+      {/* Cards grid — fills viewport */}
+      <div className="flex-1 grid grid-cols-2 gap-2 sm:gap-3 auto-rows-fr min-h-0 content-center">
+        {cards.map(c => {
+          const isSel = c.id === selEn || c.id === selAr
+          const isWrong = wrongIds.includes(c.id)
+          return (
+            <button key={c.id} onClick={() => click(c)} disabled={c.matched}
+              className={`rounded-xl border-2 p-2 sm:p-3 text-center transition-all active:scale-95 ${
+                c.matched ? 'bg-emerald-500/15 border-emerald-400/40 text-emerald-200/60 cursor-default'
+                : isWrong ? 'bg-red-500/20 border-red-400/50 text-white animate-[shake_0.3s_ease-in-out]'
+                : isSel
+                  ? c.side === 'en' ? 'bg-blue-500/25 border-blue-400/60 text-white scale-[1.02] shadow-lg' : 'bg-violet-500/25 border-violet-400/60 text-white scale-[1.02] shadow-lg'
+                  : c.side === 'en' ? 'bg-blue-500/[0.06] border-blue-500/20 text-blue-100 hover:bg-blue-500/10' : 'bg-violet-500/[0.06] border-violet-500/20 text-violet-100 hover:bg-violet-500/10'
+              }`}
+              dir={c.side === 'ar' ? 'rtl' : 'ltr'}>
+              <span className="block font-extrabold text-sm sm:text-base break-words">{c.label}</span>
+              {c.matched && <CheckCircle2 className="absolute top-1 right-1 w-3.5 h-3.5 text-emerald-400" />}
+            </button>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
-//   GAME 3 — SENTENCE BUILDER
+//   GAME 3 — SENTENCE BUILDER (stay until correct)
 // ═════════════════════════════════════════════════════════════════════════════
 
-interface BuilderToken {
-  id: string
-  word: string
-  used: boolean
-}
+interface BuilderToken { id: string; word: string; used: boolean }
 
 function BuilderGame({ difficulty, onDone, onExit }: {
   difficulty: Difficulty
@@ -747,33 +624,35 @@ function BuilderGame({ difficulty, onDone, onExit }: {
   const TOTAL = BUILDER_CONFIG[difficulty].rounds
   const mult = DIFFICULTY_INFO[difficulty].xpMultiplier
   const [sentences] = useState(() => {
-    const pool = SENTENCES.filter(s => s.difficulty === difficulty)
-    const source = pool.length >= TOTAL ? pool : SENTENCES
-    return pick(source, TOTAL)
+    const p = SENTENCES.filter(s => s.difficulty === difficulty)
+    return pick(p.length >= TOTAL ? p : SENTENCES, TOTAL)
   })
   const [round, setRound] = useState(0)
-  const [tokens, setTokens] = useState<BuilderToken[]>(() => {
-    const words = sentences[0].en.split(' ')
-    return shuffle(words.map((w, i) => ({ id: `${i}-${w}`, word: w, used: false })))
-  })
+  const mkTokens = (idx: number) => {
+    const ws = sentences[idx].en.split(' ')
+    return shuffle(ws.map((w, i) => ({ id: `${idx}-${i}-${w}`, word: w, used: false })))
+  }
+  const [tokens, setTokens] = useState<BuilderToken[]>(() => mkTokens(0))
   const [placed, setPlaced] = useState<BuilderToken[]>([])
   const [correct, setCorrect] = useState(0)
   const [streak, setStreak] = useState(0)
   const [best, setBest] = useState(0)
   const [xp, setXp] = useState(0)
-  const [toast, setToast] = useState<{ type: 'correct' | 'wrong', msg: string } | null>(null)
+  const [feedback, setFeedback] = useState<{ type: 'correct' | 'wrong'; msg: string } | null>(null)
   const [locked, setLocked] = useState(false)
 
   const current = sentences[round]
 
   const placeToken = (tok: BuilderToken) => {
     if (locked || tok.used) return
+    sfxClick()
     setTokens(ts => ts.map(t => t.id === tok.id ? { ...t, used: true } : t))
     setPlaced(p => [...p, tok])
   }
 
   const removeToken = (tok: BuilderToken) => {
     if (locked) return
+    sfxClick()
     setPlaced(p => p.filter(t => t.id !== tok.id))
     setTokens(ts => ts.map(t => t.id === tok.id ? { ...t, used: false } : t))
   }
@@ -782,217 +661,594 @@ function BuilderGame({ difficulty, onDone, onExit }: {
     if (locked) return
     setTokens(ts => ts.map(t => ({ ...t, used: false })))
     setPlaced([])
+    setFeedback(null)
   }
 
-  const check = () => {
-    if (placed.length === 0) return
-    const guess = placed.map(t => t.word).join(' ')
-    const target = current.en
-    setLocked(true)
-    if (guess === target) {
-      const gain = (25 + streak * 5 + current.difficulty * 10) * mult
-      const newStreak = streak + 1
-      setCorrect(c => c + 1)
-      setStreak(newStreak)
-      setBest(b => Math.max(b, newStreak))
-      setXp(x => x + gain)
-      setToast({ type: 'correct', msg: randomFrom(HAMZA_CORRECT) })
+  const advance = useCallback(() => {
+    if (round + 1 >= TOTAL) {
+      sfxWin()
+      onDone(xp, correct, TOTAL, best)
     } else {
-      setStreak(0)
-      setToast({ type: 'wrong', msg: `الصحيح: "${target}" — ${randomFrom(HAMZA_WRONG)}` })
+      const next = round + 1
+      setRound(next)
+      setTokens(mkTokens(next))
+      setPlaced([])
+      setFeedback(null)
     }
-    setTimeout(() => {
-      setLocked(false)
-      if (round + 1 >= TOTAL) {
-        onDone(xp + (guess === target ? (25 + streak * 5 + current.difficulty * 10) * mult : 0),
-               correct + (guess === target ? 1 : 0),
-               TOTAL, best)
-      } else {
-        const next = round + 1
-        setRound(next)
-        const words = sentences[next].en.split(' ')
-        setTokens(shuffle(words.map((w, i) => ({ id: `${next}-${i}-${w}`, word: w, used: false }))))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [round, TOTAL, xp, correct, best, onDone])
+
+  const check = () => {
+    if (locked || placed.length === 0) return
+    const guess = placed.map(t => t.word).join(' ')
+    if (guess === current.en) {
+      sfxCorrect()
+      const gain = (25 + streak * 5 + current.difficulty * 10) * mult
+      const ns = streak + 1
+      setCorrect(c => c + 1)
+      setStreak(ns)
+      setBest(b => Math.max(b, ns))
+      setXp(x => x + gain)
+      setFeedback({ type: 'correct', msg: randomFrom(HAMZA_CORRECT) })
+      setLocked(true)
+      setTimeout(() => { setLocked(false); advance() }, 1000)
+    } else {
+      // WRONG — reset board, let them retry
+      sfxWrong()
+      setStreak(0)
+      setFeedback({ type: 'wrong', msg: randomFrom(HAMZA_WRONG) })
+      setTimeout(() => {
+        setTokens(ts => ts.map(t => ({ ...t, used: false })))
         setPlaced([])
-      }
-    }, 1800)
+        // Keep feedback visible briefly
+        setTimeout(() => setFeedback(null), 800)
+      }, 600)
+    }
   }
 
   return (
-    <>
-      <StatsBar xp={xp} streak={streak} roundXp={xp} roundCorrect={correct} roundTotal={TOTAL} onExit={onExit} />
-      {toast && <FeedbackToast type={toast.type} message={toast.msg} onDone={() => setToast(null)} />}
+    <div className="flex flex-col h-[calc(100dvh-70px)] max-w-3xl mx-auto px-4 sm:px-6 py-4 relative z-10">
+      <GameBar streak={streak} xp={xp} current={round} total={TOTAL} onExit={onExit} />
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 relative z-10">
-        {/* Progress */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-white/40 text-xs font-bold">الجملة {round + 1} / {TOTAL}</span>
-            <span className="flex items-center gap-1 text-amber-300/70 text-xs font-bold">
-              {Array.from({ length: current.difficulty }).map((_, i) => (
-                <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
-              ))}
-            </span>
-          </div>
-          <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-pink-500 to-rose-500 transition-all duration-500"
-              style={{ width: `${(round / TOTAL) * 100}%` }} />
-          </div>
-        </div>
-
-        {/* Challenge card */}
-        <div className="rounded-3xl bg-gradient-to-br from-pink-900/20 via-rose-900/20 to-red-900/20 border border-white/[0.06] p-5 sm:p-8 shadow-2xl">
+      <div className="flex-1 flex flex-col justify-center min-h-0">
+        <div className="rounded-2xl bg-gradient-to-br from-pink-900/20 via-rose-900/20 to-red-900/20 border border-white/[0.06] p-4 sm:p-6 shadow-2xl">
           {/* Arabic prompt */}
-          <div className="text-center mb-6">
-            <p className="text-white/40 text-xs font-bold mb-2 tracking-widest uppercase">رتب الجملة بالإنجليزية</p>
-            <p className="text-white text-lg sm:text-xl font-extrabold leading-relaxed" dir="rtl">{current.ar}</p>
+          <div className="text-center mb-4">
+            <p className="text-white/40 text-[10px] font-bold tracking-widest uppercase mb-1.5">رتب الجملة بالإنجليزية</p>
+            <p className="text-white text-base sm:text-lg font-extrabold leading-relaxed" dir="rtl">{current.ar}</p>
           </div>
 
-          {/* Placed (answer) area */}
-          <div className="min-h-[80px] rounded-2xl bg-black/30 border-2 border-dashed border-white/[0.1] p-3 mb-4 flex flex-wrap items-center gap-2" dir="ltr">
+          {/* Placed area */}
+          <div className="min-h-[56px] rounded-xl bg-black/30 border-2 border-dashed border-white/[0.1] p-2.5 mb-3 flex flex-wrap items-center gap-1.5" dir="ltr">
             {placed.length === 0 ? (
-              <span className="mx-auto text-white/20 text-sm italic">اضغط الكلمات بالأسفل لترتيبها هنا ↓</span>
-            ) : (
-              placed.map(tok => (
-                <button key={tok.id} onClick={() => removeToken(tok)}
-                  disabled={locked}
-                  className="px-3 py-2 rounded-xl bg-pink-500/20 border border-pink-400/40 text-white font-bold text-sm hover:bg-pink-500/30 transition-all active:scale-95">
-                  {tok.word}
-                </button>
-              ))
-            )}
-          </div>
-
-          {/* Word tokens */}
-          <div className="flex flex-wrap items-center justify-center gap-2 min-h-[60px]" dir="ltr">
-            {tokens.filter(t => !t.used).map(tok => (
-              <button key={tok.id} onClick={() => placeToken(tok)}
-                disabled={locked}
-                className="px-3 sm:px-4 py-2.5 rounded-xl bg-white/[0.06] border border-white/[0.1] text-white font-bold text-sm sm:text-base hover:bg-white/[0.1] hover:border-white/[0.2] transition-all shadow-md active:scale-95 animate-token-in">
+              <span className="mx-auto text-white/20 text-xs italic">اضغط الكلمات لترتيبها هنا ↓</span>
+            ) : placed.map(tok => (
+              <button key={tok.id} onClick={() => removeToken(tok)} disabled={locked}
+                className="px-2.5 py-1.5 rounded-lg bg-pink-500/20 border border-pink-400/40 text-white font-bold text-sm hover:bg-pink-500/30 transition-all active:scale-95">
                 {tok.word}
               </button>
             ))}
           </div>
 
+          {/* Word tokens */}
+          <div className="flex flex-wrap items-center justify-center gap-1.5 min-h-[44px] mb-3" dir="ltr">
+            {tokens.filter(t => !t.used).map(tok => (
+              <button key={tok.id} onClick={() => placeToken(tok)} disabled={locked}
+                className="px-3 py-2 rounded-lg bg-white/[0.06] border border-white/[0.1] text-white font-bold text-sm hover:bg-white/[0.1] hover:border-white/[0.2] transition-all active:scale-95">
+                {tok.word}
+              </button>
+            ))}
+          </div>
+
+          {/* Feedback */}
+          {feedback && <div className="mb-3"><InlineFeedback type={feedback.type} message={feedback.msg} /></div>}
+
           {/* Actions */}
-          <div className="flex gap-2 mt-6">
-            <button onClick={resetBoard}
-              disabled={locked || placed.length === 0}
-              className="flex items-center justify-center gap-2 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] disabled:opacity-30 text-white/60 font-bold px-4 py-3 rounded-xl transition-all text-sm">
-              <RefreshCw className="w-4 h-4" />
-              <span className="hidden sm:inline">إعادة</span>
+          <div className="flex gap-2">
+            <button onClick={resetBoard} disabled={locked || placed.length === 0}
+              className="flex items-center gap-1.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] disabled:opacity-30 text-white/60 font-bold px-3 py-2.5 rounded-xl transition-all text-sm">
+              <RefreshCw className="w-3.5 h-3.5" />
             </button>
-            <button onClick={check}
-              disabled={locked || placed.length === 0}
-              className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 disabled:opacity-40 disabled:from-white/[0.06] disabled:to-white/[0.06] text-white font-extrabold px-5 py-3 rounded-xl transition-all shadow-lg shadow-pink-900/40 active:scale-95">
-              <CheckCircle2 className="w-5 h-5" />
-              تحقق من الجواب
+            <button onClick={check} disabled={locked || placed.length === 0}
+              className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 hover:to-rose-500 disabled:opacity-40 text-white font-extrabold px-4 py-2.5 rounded-xl transition-all shadow-lg active:scale-95 text-sm">
+              <CheckCircle2 className="w-4 h-4" />
+              تحقق
             </button>
           </div>
+          <p className="text-center text-white/20 text-[10px] mt-2">{round + 1} / {TOTAL}</p>
         </div>
-
-        <style jsx>{`
-          @keyframes token-in {
-            0%   { transform: scale(0.5) translateY(10px); opacity: 0; }
-            100% { transform: scale(1)   translateY(0);     opacity: 1; }
-          }
-          .animate-token-in { animation: token-in 0.3s ease-out backwards; }
-        `}</style>
       </div>
-    </>
+    </div>
   )
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
-//   RESULTS SCREEN
+//   GAME 4 — WORD SNAKE (endless, grid-based, eat words to form sentences)
 // ═════════════════════════════════════════════════════════════════════════════
 
-function ResultsScreen({ xp, correct, total, bestStreak, gameName, onPlayAgain, onMenu }: {
-  xp: number
-  correct: number
-  total: number
-  bestStreak: number
-  gameName: string
-  onPlayAgain: () => void
-  onMenu: () => void
+const SNAKE_SENTENCES = [
+  { en: ['I', 'am', 'happy'],                       ar: 'أنا سعيد' },
+  { en: ['She', 'is', 'my', 'friend'],              ar: 'هي صديقتي' },
+  { en: ['I', 'love', 'tea'],                        ar: 'أحب الشاي' },
+  { en: ['He', 'is', 'a', 'teacher'],               ar: 'هو أستاذ' },
+  { en: ['We', 'go', 'to', 'school'],               ar: 'نذهب إلى المدرسة' },
+  { en: ['My', 'name', 'is', 'Hamza'],              ar: 'اسمي حمزة' },
+  { en: ['I', 'live', 'in', 'Oued', 'Zem'],         ar: 'أعيش في واد زم' },
+  { en: ['This', 'is', 'my', 'book'],               ar: 'هذا كتابي' },
+  { en: ['I', 'eat', 'bread', 'every', 'morning'],  ar: 'آكل الخبز كل صباح' },
+  { en: ['She', 'drinks', 'coffee'],                 ar: 'هي تشرب القهوة' },
+  { en: ['The', 'sun', 'is', 'beautiful'],           ar: 'الشمس جميلة' },
+  { en: ['I', 'want', 'to', 'learn', 'English'],    ar: 'أريد تعلم الإنجليزية' },
+  { en: ['My', 'mother', 'cooks', 'tagine'],        ar: 'أمي تطبخ الطاجين' },
+  { en: ['He', 'reads', 'a', 'book'],               ar: 'يقرأ كتاباً' },
+  { en: ['I', 'play', 'every', 'day'],              ar: 'ألعب كل يوم' },
+  { en: ['We', 'are', 'students'],                   ar: 'نحن طلاب' },
+  { en: ['The', 'weather', 'is', 'nice'],           ar: 'الطقس لطيف' },
+  { en: ['I', 'study', 'with', 'Teacher', 'Hamza'], ar: 'أدرس مع تيتشر حمزة' },
+  { en: ['She', 'is', 'very', 'happy'],             ar: 'هي سعيدة جداً' },
+  { en: ['My', 'father', 'works', 'hard'],          ar: 'أبي يعمل بجد' },
+  { en: ['I', 'drink', 'water'],                     ar: 'أشرب الماء' },
+  { en: ['Oued', 'Zem', 'is', 'great'],             ar: 'واد زم رائعة' },
+  { en: ['Never', 'give', 'up'],                     ar: 'لا تستسلم' },
+  { en: ['I', 'can', 'do', 'it'],                   ar: 'أستطيع فعلها' },
+]
+
+type Dir = 'up' | 'down' | 'left' | 'right'
+type Cell = { r: number; c: number }
+
+const GRID_COLS = 10
+const GRID_ROWS = 10
+
+function cellKey(r: number, c: number) { return `${r}-${c}` }
+
+function SnakeGame({ onDone, onExit }: {
+  onDone: (xp: number, sentences: number, bestCombo: number) => void
+  onExit: () => void
 }) {
-  const pct = total > 0 ? Math.round((correct / total) * 100) : 0
-  const [title, sub, emoji] = pct >= 90
-    ? ['أسطورة! 🏆', 'واد زم فخور بيك، تيتشر حمزة كيباركلك!', '🌟']
-    : pct >= 70
-      ? ['ممتاز! 🔥', 'Bravo! استمر على هاد المنوال', '💪']
-      : pct >= 50
-        ? ['جيد! 👍', 'تقدم ملموس، كاين شي حاجة خاصنا نحسنوها', '✨']
-        : ['حاول مرة أخرى 🌱', 'Don\'t give up! كل أسطورة بدات بخطوة', '💡']
+  // Pick a random sentence for the current target
+  const pickSentence = useCallback(() => {
+    return SNAKE_SENTENCES[Math.floor(Math.random() * SNAKE_SENTENCES.length)]
+  }, [])
 
-  const waMsg = `مرحباً تيتشر حمزة! لعبت لعبة ${gameName} في إنجليزي.كوم وحصلت على ${xp} XP 🎮 أريد أن أتعلم أكثر معك!`
-  const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(waMsg)}`
+  // Place a word at a random empty cell
+  const placeWord = useCallback((snake: Cell[], existing: Map<string, string>, word: string): Cell => {
+    const occupied = new Set([
+      ...snake.map(s => cellKey(s.r, s.c)),
+      ...existing.keys(),
+    ])
+    const free: Cell[] = []
+    for (let r = 0; r < GRID_ROWS; r++)
+      for (let c = 0; c < GRID_COLS; c++)
+        if (!occupied.has(cellKey(r, c))) free.push({ r, c })
+    if (free.length === 0) return { r: 0, c: 0 }
+    return free[Math.floor(Math.random() * free.length)]
+  }, [])
 
-  return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10 sm:py-16 relative z-10">
-      <div className="rounded-3xl bg-gradient-to-br from-indigo-900/40 via-violet-900/30 to-purple-900/40 border border-white/[0.08] p-8 sm:p-12 text-center shadow-2xl relative overflow-hidden">
-        {/* Confetti-style background */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-pink-500 via-violet-500 to-blue-500" />
-        <div className="absolute -top-16 -right-16 w-52 h-52 bg-violet-500/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-16 -left-16 w-52 h-52 bg-pink-500/10 rounded-full blur-3xl" />
+  // State
+  const [snake, setSnake] = useState<Cell[]>([{ r: 5, c: 5 }, { r: 5, c: 4 }, { r: 5, c: 3 }])
+  const [dir, setDir] = useState<Dir>('right')
+  const [sentence, setSentence] = useState(() => pickSentence())
+  const [wordIdx, setWordIdx] = useState(0) // next word to eat
+  const [wordCells, setWordCells] = useState<Map<string, string>>(new Map())
+  const [gameOver, setGameOver] = useState(false)
+  const [score, setScore] = useState(0)
+  const [xp, setXp] = useState(0)
+  const [sentencesDone, setSentencesDone] = useState(0)
+  const [combo, setCombo] = useState(0)
+  const [bestCombo, setBestCombo] = useState(0)
+  const [speed, setSpeed] = useState(280) // ms per tick
+  const [flash, setFlash] = useState<'correct' | 'wrong' | null>(null)
+  const [collected, setCollected] = useState<string[]>([])
 
-        <div className="relative">
-          <div className="text-6xl sm:text-7xl mb-4 animate-bounce-in">{emoji}</div>
-          <h2 className="text-3xl sm:text-4xl font-black text-white mb-2">{title}</h2>
-          <p className="text-white/50 text-sm sm:text-base mb-8">{sub}</p>
+  const dirRef = useRef(dir)
+  const snakeRef = useRef(snake)
+  const wordCellsRef = useRef(wordCells)
+  const sentenceRef = useRef(sentence)
+  const wordIdxRef = useRef(wordIdx)
+  const gameOverRef = useRef(false)
 
-          {/* Score grid */}
-          <div className="grid grid-cols-3 gap-3 mb-8">
-            <div className="rounded-2xl bg-violet-500/10 border border-violet-500/20 p-4">
-              <Zap className="w-5 h-5 text-violet-400 mx-auto mb-2" />
-              <p className="text-2xl font-black text-violet-200">+{xp}</p>
-              <p className="text-xs text-white/40 mt-0.5">XP</p>
+  dirRef.current = dir
+  snakeRef.current = snake
+  wordCellsRef.current = wordCells
+  sentenceRef.current = sentence
+  wordIdxRef.current = wordIdx
+
+  // Place initial words
+  useEffect(() => {
+    const initial = new Map<string, string>()
+    const s = snakeRef.current
+    // Place all words of current sentence + some distractors
+    const words = sentenceRef.current.en
+    const allWords = [...words]
+    // Add 2-3 distractor words
+    const distractors = ['cat', 'run', 'big', 'why', 'red', 'the', 'can', 'you', 'no', 'yes', 'is', 'it']
+    for (let i = 0; i < 3; i++) allWords.push(distractors[Math.floor(Math.random() * distractors.length)])
+    shuffle(allWords).forEach(w => {
+      const cell = placeWord(s, initial, w)
+      initial.set(cellKey(cell.r, cell.c), w)
+    })
+    setWordCells(initial)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Spawn new sentence words
+  const spawnNewSentence = useCallback(() => {
+    const ns = pickSentence()
+    setSentence(ns)
+    sentenceRef.current = ns
+    setWordIdx(0)
+    wordIdxRef.current = 0
+    setCollected([])
+    // Add new words to grid
+    setWordCells(prev => {
+      const next = new Map(prev)
+      const allWords = [...ns.en]
+      const distractors = ['cat', 'run', 'big', 'why', 'red', 'no', 'yes', 'so', 'on', 'up']
+      for (let i = 0; i < 2; i++) allWords.push(distractors[Math.floor(Math.random() * distractors.length)])
+      shuffle(allWords).forEach(w => {
+        const cell = placeWord(snakeRef.current, next, w)
+        next.set(cellKey(cell.r, cell.c), w)
+      })
+      return next
+    })
+  }, [pickSentence, placeWord])
+
+  // Keyboard controls
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (gameOverRef.current) return
+      const d = dirRef.current
+      if ((e.key === 'ArrowUp'    || e.key === 'w') && d !== 'down')  setDir('up')
+      if ((e.key === 'ArrowDown'  || e.key === 's') && d !== 'up')    setDir('down')
+      if ((e.key === 'ArrowLeft'  || e.key === 'a') && d !== 'right') setDir('left')
+      if ((e.key === 'ArrowRight' || e.key === 'd') && d !== 'left')  setDir('right')
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
+
+  // Swipe controls
+  const touchStart = useRef<{ x: number; y: number } | null>(null)
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+  }, [])
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (!touchStart.current || gameOverRef.current) return
+    const dx = e.changedTouches[0].clientX - touchStart.current.x
+    const dy = e.changedTouches[0].clientY - touchStart.current.y
+    const d = dirRef.current
+    if (Math.abs(dx) > Math.abs(dy)) {
+      if (dx > 20 && d !== 'left') setDir('right')
+      else if (dx < -20 && d !== 'right') setDir('left')
+    } else {
+      if (dy > 20 && d !== 'up') setDir('down')
+      else if (dy < -20 && d !== 'down') setDir('up')
+    }
+    touchStart.current = null
+  }, [])
+
+  // Game loop
+  useEffect(() => {
+    if (gameOver) return
+    const tick = setInterval(() => {
+      const s = [...snakeRef.current]
+      const head = s[0]
+      const d = dirRef.current
+      let nr = head.r, nc = head.c
+      if (d === 'up')    nr--
+      if (d === 'down')  nr++
+      if (d === 'left')  nc--
+      if (d === 'right') nc++
+
+      // Wrap around
+      if (nr < 0) nr = GRID_ROWS - 1
+      if (nr >= GRID_ROWS) nr = 0
+      if (nc < 0) nc = GRID_COLS - 1
+      if (nc >= GRID_COLS) nc = 0
+
+      // Check self-collision
+      if (s.some(seg => seg.r === nr && seg.c === nc)) {
+        sfxWrong()
+        gameOverRef.current = true
+        setGameOver(true)
+        return
+      }
+
+      const newHead: Cell = { r: nr, c: nc }
+      const key = cellKey(nr, nc)
+      const wc = wordCellsRef.current
+      const hitWord = wc.get(key)
+
+      if (hitWord) {
+        const target = sentenceRef.current.en[wordIdxRef.current]
+        if (hitWord === target) {
+          // Correct word!
+          sfxCorrect()
+          const newIdx = wordIdxRef.current + 1
+          setWordIdx(newIdx)
+          wordIdxRef.current = newIdx
+          setCollected(c => [...c, hitWord])
+          setScore(sc => sc + 10)
+          setXp(x => x + 15)
+          setCombo(c => { const nc = c + 1; setBestCombo(b => Math.max(b, nc)); return nc })
+          setFlash('correct')
+          setTimeout(() => setFlash(null), 400)
+
+          // Remove word from grid
+          setWordCells(prev => { const n = new Map(prev); n.delete(key); return n })
+          wordCellsRef.current = new Map(wordCellsRef.current)
+          wordCellsRef.current.delete(key)
+
+          // Grow snake (don't pop tail)
+          setSnake([newHead, ...s])
+          snakeRef.current = [newHead, ...s]
+
+          // Sentence complete?
+          if (newIdx >= sentenceRef.current.en.length) {
+            sfxLevelUp()
+            setSentencesDone(sd => sd + 1)
+            setScore(sc => sc + 50)
+            setXp(x => x + 50)
+            // Speed up slightly (min 120ms)
+            setSpeed(sp => Math.max(120, sp - 12))
+            setTimeout(() => spawnNewSentence(), 600)
+          }
+        } else {
+          // Wrong word — game over!
+          sfxWrong()
+          gameOverRef.current = true
+          setGameOver(true)
+          return
+        }
+      } else {
+        // Move normally — pop tail
+        const ns = [newHead, ...s.slice(0, -1)]
+        setSnake(ns)
+        snakeRef.current = ns
+      }
+    }, speed)
+    return () => clearInterval(tick)
+  }, [gameOver, speed, spawnNewSentence])
+
+  // Game over screen
+  if (gameOver) {
+    const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`مرحباً تيتشر حمزة! لعبت Word Snake في إنجليزي.كوم وأكملت ${sentencesDone} جملة وحصلت على ${xp} XP! 🐍🔥`)}`
+    return (
+      <div className="flex flex-col items-center justify-center h-[calc(100dvh-70px)] px-4 relative z-10">
+        <div className="w-full max-w-sm rounded-2xl bg-gradient-to-br from-red-900/40 via-orange-900/30 to-amber-900/40 border border-white/[0.08] p-6 text-center shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 via-orange-500 to-amber-500" />
+          <div className="text-5xl mb-2" style={{ animation: 'bounceIn 0.6s ease-out' }}>🐍</div>
+          <h2 className="text-2xl font-black text-white mb-1">انتهت اللعبة!</h2>
+          <p className="text-white/50 text-xs mb-4">{sentencesDone > 0 ? randomFrom(HAMZA_CORRECT) : 'حاول مرة أخرى!'}</p>
+
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <div className="rounded-xl bg-violet-500/10 border border-violet-500/20 py-2 px-1.5">
+              <Zap className="w-4 h-4 text-violet-400 mx-auto mb-0.5" />
+              <p className="text-lg font-black text-violet-200">+{xp}</p>
+              <p className="text-[9px] text-white/30">XP</p>
             </div>
-            <div className="rounded-2xl bg-emerald-500/10 border border-emerald-500/20 p-4">
-              <CheckCircle2 className="w-5 h-5 text-emerald-400 mx-auto mb-2" />
-              <p className="text-2xl font-black text-emerald-200">{correct}/{total}</p>
-              <p className="text-xs text-white/40 mt-0.5">صحيح</p>
+            <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 py-2 px-1.5">
+              <Target className="w-4 h-4 text-emerald-400 mx-auto mb-0.5" />
+              <p className="text-lg font-black text-emerald-200">{sentencesDone}</p>
+              <p className="text-[9px] text-white/30">جمل</p>
             </div>
-            <div className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4">
-              <Flame className="w-5 h-5 text-amber-400 mx-auto mb-2" />
-              <p className="text-2xl font-black text-amber-200">{bestStreak}</p>
-              <p className="text-xs text-white/40 mt-0.5">أفضل سلسلة</p>
+            <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 py-2 px-1.5">
+              <Flame className="w-4 h-4 text-amber-400 mx-auto mb-0.5" />
+              <p className="text-lg font-black text-amber-200">{bestCombo}</p>
+              <p className="text-[9px] text-white/30">كومبو</p>
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex flex-col gap-3">
-            <button onClick={onPlayAgain}
-              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-extrabold px-6 py-4 rounded-2xl transition-all shadow-xl shadow-violet-900/40 active:scale-95">
-              <RefreshCw className="w-5 h-5" />
-              العب مرة أخرى
+          <div className="space-y-2">
+            <button onClick={() => onDone(xp, sentencesDone, bestCombo)}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-extrabold py-3 rounded-xl transition-all shadow-lg active:scale-95 text-sm">
+              <RefreshCw className="w-4 h-4" /> العب مرة أخرى
             </button>
-            <div className="grid grid-cols-2 gap-3">
-              <button onClick={onMenu}
-                className="flex items-center justify-center gap-2 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white/70 hover:text-white font-bold px-5 py-3 rounded-2xl transition-all">
-                <Home className="w-4 h-4" />
-                القائمة
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={onExit}
+                className="flex items-center justify-center gap-1.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white/60 font-bold py-2.5 rounded-xl transition-all text-xs">
+                <Home className="w-3.5 h-3.5" /> القائمة
               </button>
               <a href={waUrl} target="_blank" rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 bg-emerald-600/80 hover:bg-emerald-500 text-white font-bold px-5 py-3 rounded-2xl transition-all shadow-lg shadow-emerald-900/30">
-                <MessageCircle className="w-4 h-4" />
-                شارك معي
+                className="flex items-center justify-center gap-1.5 bg-emerald-600/80 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl transition-all text-xs">
+                <MessageCircle className="w-3.5 h-3.5" /> شارك
               </a>
             </div>
           </div>
+        </div>
+      </div>
+    )
+  }
 
-          <p className="text-white/30 text-xs mt-6 italic">
-            💬 أرسل نتيجتك لتيتشر حمزة عبر واتساب
-          </p>
+  // Build grid data
+  const snakeSet = new Set(snake.map(s => cellKey(s.r, s.c)))
+  const headKey = cellKey(snake[0].r, snake[0].c)
+
+  return (
+    <div className="flex flex-col h-[calc(100dvh-70px)] max-w-lg mx-auto px-2 sm:px-4 py-3 relative z-10 select-none"
+      onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+
+      {/* Top bar */}
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <button onClick={onExit} className="text-white/40 hover:text-white transition-colors p-1">
+          <Home className="w-4 h-4" />
+        </button>
+        <div className="flex items-center gap-2">
+          <span className="flex items-center gap-1 bg-violet-500/15 border border-violet-500/25 px-2 py-0.5 rounded-full text-violet-200 text-[11px] font-bold">
+            <Zap className="w-3 h-3" />+{xp}
+          </span>
+          <span className="flex items-center gap-1 bg-emerald-500/15 border border-emerald-500/25 px-2 py-0.5 rounded-full text-emerald-200 text-[11px] font-bold">
+            🐍 {sentencesDone}
+          </span>
+          {combo > 1 && (
+            <span className="flex items-center gap-1 bg-amber-500/15 border border-amber-500/25 px-2 py-0.5 rounded-full text-amber-200 text-[11px] font-bold animate-pulse">
+              <Flame className="w-3 h-3" />×{combo}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Sentence target */}
+      <div className={`rounded-xl border p-2.5 mb-2 text-center transition-colors ${
+        flash === 'correct' ? 'bg-emerald-500/15 border-emerald-400/30' : flash === 'wrong' ? 'bg-red-500/15 border-red-400/30' : 'bg-white/[0.03] border-white/[0.06]'
+      }`}>
+        <p className="text-white/40 text-[10px] font-bold mb-1" dir="rtl">{sentence.ar}</p>
+        <div className="flex flex-wrap items-center justify-center gap-1" dir="ltr">
+          {sentence.en.map((w, i) => (
+            <span key={i} className={`text-xs font-bold px-1.5 py-0.5 rounded ${
+              i < wordIdx ? 'bg-emerald-500/20 text-emerald-300 line-through' : i === wordIdx ? 'bg-amber-500/20 text-amber-200 animate-pulse' : 'text-white/30'
+            }`}>{w}</span>
+          ))}
+        </div>
+        {collected.length > 0 && (
+          <p className="text-emerald-300/60 text-[10px] mt-1 font-bold" dir="ltr">{collected.join(' ')}</p>
+        )}
+      </div>
+
+      {/* Game grid */}
+      <div className="flex-1 flex items-center justify-center min-h-0">
+        <div className="w-full aspect-square max-h-full grid border border-white/[0.08] rounded-xl overflow-hidden bg-black/30"
+          style={{ gridTemplateColumns: `repeat(${GRID_COLS}, 1fr)`, gridTemplateRows: `repeat(${GRID_ROWS}, 1fr)` }}>
+          {Array.from({ length: GRID_ROWS }).map((_, r) =>
+            Array.from({ length: GRID_COLS }).map((_, c) => {
+              const k = cellKey(r, c)
+              const isHead = k === headKey
+              const isSnake = snakeSet.has(k)
+              const word = wordCells.get(k)
+              const isTarget = word === sentence.en[wordIdx]
+              return (
+                <div key={k} className={`relative flex items-center justify-center border border-white/[0.03] text-[7px] sm:text-[9px] font-bold leading-none overflow-hidden ${
+                  isHead ? 'bg-emerald-400 rounded-sm z-10'
+                  : isSnake ? 'bg-emerald-500/60'
+                  : word
+                    ? isTarget
+                      ? 'bg-amber-500/25 animate-pulse'
+                      : 'bg-white/[0.04]'
+                    : ''
+                }`}>
+                  {isHead && <span className="text-[10px] sm:text-xs">🐍</span>}
+                  {!isSnake && word && (
+                    <span className={`truncate px-0.5 ${isTarget ? 'text-amber-200' : 'text-white/50'}`}>{word}</span>
+                  )}
+                </div>
+              )
+            }),
+          )}
+        </div>
+      </div>
+
+      {/* D-pad for mobile */}
+      <div className="flex items-center justify-center gap-1 mt-2 sm:hidden">
+        <div className="grid grid-cols-3 gap-1 w-32">
+          <div />
+          <button onTouchStart={() => { if (dirRef.current !== 'down') setDir('up') }}
+            className="w-10 h-10 bg-white/[0.06] border border-white/[0.1] rounded-lg flex items-center justify-center text-white/60 active:bg-white/[0.15] active:scale-95 transition-all">
+            <ArrowRight className="w-4 h-4 -rotate-90" />
+          </button>
+          <div />
+          <button onTouchStart={() => { if (dirRef.current !== 'right') setDir('left') }}
+            className="w-10 h-10 bg-white/[0.06] border border-white/[0.1] rounded-lg flex items-center justify-center text-white/60 active:bg-white/[0.15] active:scale-95 transition-all">
+            <ArrowRight className="w-4 h-4 rotate-180" />
+          </button>
+          <div className="w-10 h-10 flex items-center justify-center text-white/20 text-lg">🐍</div>
+          <button onTouchStart={() => { if (dirRef.current !== 'left') setDir('right') }}
+            className="w-10 h-10 bg-white/[0.06] border border-white/[0.1] rounded-lg flex items-center justify-center text-white/60 active:bg-white/[0.15] active:scale-95 transition-all">
+            <ArrowRight className="w-4 h-4" />
+          </button>
+          <div />
+          <button onTouchStart={() => { if (dirRef.current !== 'up') setDir('down') }}
+            className="w-10 h-10 bg-white/[0.06] border border-white/[0.1] rounded-lg flex items-center justify-center text-white/60 active:bg-white/[0.15] active:scale-95 transition-all">
+            <ArrowRight className="w-4 h-4 rotate-90" />
+          </button>
+          <div />
+        </div>
+      </div>
+
+      <p className="text-center text-white/20 text-[9px] mt-1.5 hidden sm:block">
+        استخدم الأسهم أو WASD للتحكم · كل الكلمات الخاطئة تنهي اللعبة
+      </p>
+    </div>
+  )
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//   RESULTS (compact — fits viewport, no scrolling)
+// ═════════════════════════════════════════════════════════════════════════════
+
+function ResultsScreen({ xp, correct, total, bestStreak, gameName, difficulty, onReplay, onNextLevel, onMenu }: {
+  xp: number; correct: number; total: number; bestStreak: number
+  gameName: string; difficulty: Difficulty
+  onReplay: () => void; onNextLevel: () => void; onMenu: () => void
+}) {
+  const pct = total > 0 ? Math.round((correct / total) * 100) : 0
+  const [title, sub, emoji] = pct >= 90
+    ? ['أسطورة! 🏆', 'واد زم فخور بيك!', '🌟']
+    : pct >= 70
+      ? ['ممتاز! 🔥', 'Bravo! استمر على هاد المنوال', '💪']
+      : pct >= 50
+        ? ['جيد! 👍', 'تقدم ملموس، حسّن أكثر', '✨']
+        : ['حاول مرة أخرى 🌱', 'كل أسطورة بدات بخطوة', '💡']
+
+  const hasNext = difficulty < 3
+  const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`مرحباً تيتشر حمزة! لعبت ${gameName} وحصلت على ${xp} XP 🎮`)}`
+
+  useEffect(() => { sfxWin() }, [])
+
+  return (
+    <div className="flex flex-col items-center justify-center h-[calc(100dvh-70px)] px-4 sm:px-6 relative z-10">
+      <div className="w-full max-w-md rounded-2xl bg-gradient-to-br from-indigo-900/40 via-violet-900/30 to-purple-900/40 border border-white/[0.08] p-6 sm:p-8 text-center shadow-2xl relative overflow-hidden">
+        {/* Accent line */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-pink-500 via-violet-500 to-blue-500" />
+
+        <div className="text-5xl mb-2" style={{ animation: 'bounceIn 0.6s ease-out' }}>{emoji}</div>
+        <h2 className="text-2xl font-black text-white mb-1">{title}</h2>
+        <p className="text-white/50 text-xs mb-1">{sub}</p>
+        <p className="text-white/25 text-[10px] mb-4">{gameName} · {DIFFICULTY_INFO[difficulty].label}</p>
+
+        {/* Score row */}
+        <div className="grid grid-cols-3 gap-2 mb-5">
+          <div className="rounded-xl bg-violet-500/10 border border-violet-500/20 py-2.5 px-2">
+            <Zap className="w-4 h-4 text-violet-400 mx-auto mb-1" />
+            <p className="text-lg font-black text-violet-200">+{xp}</p>
+            <p className="text-[10px] text-white/30">XP</p>
+          </div>
+          <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 py-2.5 px-2">
+            <Target className="w-4 h-4 text-emerald-400 mx-auto mb-1" />
+            <p className="text-lg font-black text-emerald-200">{correct}/{total}</p>
+            <p className="text-[10px] text-white/30">صحيح</p>
+          </div>
+          <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 py-2.5 px-2">
+            <Flame className="w-4 h-4 text-amber-400 mx-auto mb-1" />
+            <p className="text-lg font-black text-amber-200">{bestStreak}</p>
+            <p className="text-[10px] text-white/30">سلسلة</p>
+          </div>
         </div>
 
-        <style jsx>{`
-          @keyframes bounce-in {
-            0%   { transform: scale(0) rotate(-180deg); opacity: 0; }
-            60%  { transform: scale(1.2) rotate(10deg); }
-            100% { transform: scale(1) rotate(0);       opacity: 1; }
-          }
-          .animate-bounce-in { animation: bounce-in 0.8s ease-out; }
-        `}</style>
+        {/* Action buttons */}
+        <div className="space-y-2">
+          <button onClick={() => { sfxClick(); onReplay() }}
+            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-extrabold py-3 rounded-xl transition-all shadow-lg active:scale-95 text-sm">
+            <RefreshCw className="w-4 h-4" />
+            أعد اللعب (كلمات جديدة)
+          </button>
+          {hasNext && (
+            <button onClick={() => { sfxLevelUp(); onNextLevel() }}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-extrabold py-3 rounded-xl transition-all shadow-lg active:scale-95 text-sm">
+              <ChevronUp className="w-4 h-4" />
+              المستوى التالي: {DIFFICULTY_INFO[(difficulty + 1) as Difficulty].label} {DIFFICULTY_INFO[(difficulty + 1) as Difficulty].emoji}
+            </button>
+          )}
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={onMenu}
+              className="flex items-center justify-center gap-1.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white/60 hover:text-white font-bold py-2.5 rounded-xl transition-all text-xs">
+              <Home className="w-3.5 h-3.5" /> القائمة
+            </button>
+            <a href={waUrl} target="_blank" rel="noopener noreferrer"
+              className="flex items-center justify-center gap-1.5 bg-emerald-600/80 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl transition-all text-xs">
+              <MessageCircle className="w-3.5 h-3.5" /> شارك
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -1003,86 +1259,58 @@ function ResultsScreen({ xp, correct, total, bestStreak, gameName, onPlayAgain, 
 // ═════════════════════════════════════════════════════════════════════════════
 
 function DifficultyPicker({ game, onPick, onBack }: {
-  game: GameMode
-  onPick: (d: Difficulty) => void
-  onBack: () => void
+  game: GameMode; onPick: (d: Difficulty) => void; onBack: () => void
 }) {
   const gameMeta: Record<GameMode, { title: string; subtitle: string; Icon: typeof Shuffle; color: string }> = {
-    scramble: { title: 'قلب الحروف',     subtitle: 'Word Scramble',     Icon: Shuffle, color: 'text-violet-300' },
-    match:    { title: 'طابق الكلمات',   subtitle: 'Quick Match',       Icon: Link2,   color: 'text-blue-300' },
-    builder:  { title: 'ركب الجملة',     subtitle: 'Sentence Builder',  Icon: Blocks,  color: 'text-pink-300' },
+    scramble: { title: 'قلب الحروف',   subtitle: 'Word Scramble',    Icon: Shuffle, color: 'text-violet-300' },
+    match:    { title: 'طابق الكلمات', subtitle: 'Quick Match',      Icon: Link2,   color: 'text-blue-300' },
+    builder:  { title: 'ركب الجملة',   subtitle: 'Sentence Builder', Icon: Blocks,  color: 'text-pink-300' },
+    snake:    { title: 'أفعى الكلمات', subtitle: 'Word Snake',       Icon: Bug,     color: 'text-orange-300' },
   }
   const m = gameMeta[game]
 
   const levelDetails: Record<Difficulty, { rounds: string; desc: string }> = {
-    1: {
-      rounds: game === 'match'
-        ? `${MATCH_CONFIG[1].pairs} أزواج · ${MATCH_CONFIG[1].time}ث`
-        : `${game === 'scramble' ? SCRAMBLE_CONFIG[1].rounds : BUILDER_CONFIG[1].rounds} جولات`,
-      desc: 'كلمات قصيرة ومألوفة — مثالي للبداية',
-    },
-    2: {
-      rounds: game === 'match'
-        ? `${MATCH_CONFIG[2].pairs} أزواج · ${MATCH_CONFIG[2].time}ث`
-        : `${game === 'scramble' ? SCRAMBLE_CONFIG[2].rounds : BUILDER_CONFIG[2].rounds} جولات`,
-      desc: 'كلمات أطول وتحدٍّ أكبر · نقاط مضاعفة',
-    },
-    3: {
-      rounds: game === 'match'
-        ? `${MATCH_CONFIG[3].pairs} أزواج · ${MATCH_CONFIG[3].time}ث`
-        : `${game === 'scramble' ? SCRAMBLE_CONFIG[3].rounds : BUILDER_CONFIG[3].rounds} جولات`,
-      desc: 'للأبطال فقط! · نقاط ×3',
-    },
+    1: { rounds: game === 'match' ? `${MATCH_CONFIG[1].pairs} أزواج · ${MATCH_CONFIG[1].time}ث` : `${game === 'scramble' ? SCRAMBLE_CONFIG[1].rounds : BUILDER_CONFIG[1].rounds} جولات`, desc: 'كلمات مألوفة — مثالي للبداية' },
+    2: { rounds: game === 'match' ? `${MATCH_CONFIG[2].pairs} أزواج · ${MATCH_CONFIG[2].time}ث` : `${game === 'scramble' ? SCRAMBLE_CONFIG[2].rounds : BUILDER_CONFIG[2].rounds} جولات`, desc: 'تحدٍّ أكبر · نقاط ×2' },
+    3: { rounds: game === 'match' ? `${MATCH_CONFIG[3].pairs} أزواج · ${MATCH_CONFIG[3].time}ث` : `${game === 'scramble' ? SCRAMBLE_CONFIG[3].rounds : BUILDER_CONFIG[3].rounds} جولات`, desc: 'للأبطال! نقاط ×3' },
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 relative z-10">
-      {/* Back button */}
-      <button onClick={onBack}
-        className="flex items-center gap-2 text-white/40 hover:text-white text-sm font-bold mb-6 transition-colors">
-        <ArrowRight className="w-4 h-4 rotate-180" />
-        القائمة
-      </button>
+    <div className="flex flex-col items-center justify-center h-[calc(100dvh-70px)] px-4 sm:px-6 relative z-10">
+      <div className="w-full max-w-lg">
+        <button onClick={onBack} className="flex items-center gap-1.5 text-white/40 hover:text-white text-xs font-bold mb-4 transition-colors">
+          <ArrowRight className="w-3.5 h-3.5 rotate-180" /> القائمة
+        </button>
 
-      {/* Game header */}
-      <div className="text-center mb-8 sm:mb-10">
-        <div className={`inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-white/[0.06] border border-white/[0.1] mb-4`}>
-          <m.Icon className={`w-8 h-8 sm:w-10 sm:h-10 ${m.color}`} />
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-white/[0.06] border border-white/[0.1] mb-3">
+            <m.Icon className={`w-7 h-7 ${m.color}`} />
+          </div>
+          <p className="text-white/30 text-[10px] font-bold tracking-widest uppercase mb-1">{m.subtitle}</p>
+          <h1 className="text-2xl sm:text-3xl font-black text-white">{m.title}</h1>
         </div>
-        <p className="text-white/30 text-xs font-bold tracking-widest uppercase mb-2">{m.subtitle}</p>
-        <h1 className="text-3xl sm:text-4xl font-black text-white mb-3">{m.title}</h1>
-        <p className="text-white/50 text-sm sm:text-base">اختر مستوى الصعوبة للبدء</p>
-      </div>
 
-      {/* Difficulty tiles */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {([1, 2, 3] as Difficulty[]).map(d => {
-          const info = DIFFICULTY_INFO[d]
-          const det = levelDetails[d]
-          return (
-            <button key={d} onClick={() => onPick(d)}
-              className={`group text-center rounded-3xl bg-gradient-to-br ${info.gradient} border ${info.border} p-6 hover:scale-[1.03] active:scale-[0.98] transition-all shadow-xl hover:shadow-2xl`}>
-              <div className="text-5xl mb-3 group-hover:scale-110 transition-transform">
-                {info.emoji}
-              </div>
-              <p className="text-white/30 text-[10px] font-bold tracking-widest uppercase mb-1">{info.subtitle}</p>
-              <h3 className="text-white font-black text-xl mb-2">{info.label}</h3>
-              <p className="text-white/50 text-xs mb-3">{det.rounds}</p>
-              <p className="text-white/40 text-xs leading-relaxed">{det.desc}</p>
-              {info.xpMultiplier > 1 && (
-                <div className="inline-flex items-center gap-1 mt-3 bg-white/[0.08] border border-white/[0.12] text-white/70 text-[10px] font-bold px-2.5 py-1 rounded-full">
-                  <Zap className="w-3 h-3" />
-                  XP ×{info.xpMultiplier}
-                </div>
-              )}
-            </button>
-          )
-        })}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {([1, 2, 3] as Difficulty[]).map(d => {
+            const info = DIFFICULTY_INFO[d]
+            const det = levelDetails[d]
+            return (
+              <button key={d} onClick={() => { sfxClick(); onPick(d) }}
+                className={`group text-center rounded-2xl bg-gradient-to-br ${info.gradient} border ${info.border} p-5 hover:scale-[1.03] active:scale-[0.98] transition-all shadow-xl`}>
+                <div className="text-4xl mb-2 group-hover:scale-110 transition-transform">{info.emoji}</div>
+                <h3 className="text-white font-black text-lg mb-1">{info.label}</h3>
+                <p className="text-white/50 text-[11px] mb-1.5">{det.rounds}</p>
+                <p className="text-white/35 text-[10px] leading-relaxed">{det.desc}</p>
+                {info.xpMultiplier > 1 && (
+                  <div className="inline-flex items-center gap-1 mt-2 bg-white/[0.08] text-white/60 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    <Zap className="w-2.5 h-2.5" /> ×{info.xpMultiplier}
+                  </div>
+                )}
+              </button>
+            )
+          })}
+        </div>
       </div>
-
-      <p className="text-center text-white/25 text-xs mt-8 italic">
-        💡 كلما اخترت مستوى أصعب، كلما ربحت نقاط XP أكثر!
-      </p>
     </div>
   )
 }
@@ -1091,182 +1319,100 @@ function DifficultyPicker({ game, onPick, onBack }: {
 //   MENU SCREEN
 // ═════════════════════════════════════════════════════════════════════════════
 
-function MenuScreen({ progress, onPick }: {
-  progress: PlayProgress
-  onPick: (game: GameMode) => void
-}) {
+function MenuScreen({ progress, onPick }: { progress: PlayProgress; onPick: (game: GameMode) => void }) {
   const level = getLevel(progress.xp)
-
-  const games: Array<{
-    id: GameMode
-    title: string
-    subtitle: string
-    desc: string
-    Icon: typeof Shuffle
-    gradient: string
-    border: string
-    badge: string
-  }> = [
-    {
-      id: 'scramble',
-      title: 'قلب الحروف',
-      subtitle: 'Word Scramble',
-      desc: 'رتب الحروف المخلوطة وشكّل الكلمة الصحيحة',
-      Icon: Shuffle,
-      gradient: 'from-violet-600/20 to-indigo-600/20',
-      border: 'border-violet-500/30',
-      badge: '٣ مستويات',
-    },
-    {
-      id: 'match',
-      title: 'طابق الكلمات',
-      subtitle: 'Quick Match',
-      desc: 'اربط الكلمة الإنجليزية بترجمتها قبل أن ينتهي الوقت',
-      Icon: Link2,
-      gradient: 'from-blue-600/20 to-cyan-600/20',
-      border: 'border-blue-500/30',
-      badge: '٣ مستويات',
-    },
-    {
-      id: 'builder',
-      title: 'ركب الجملة',
-      subtitle: 'Sentence Builder',
-      desc: 'رتب الكلمات لتكوين جملة إنجليزية صحيحة',
-      Icon: Blocks,
-      gradient: 'from-pink-600/20 to-rose-600/20',
-      border: 'border-pink-500/30',
-      badge: '٣ مستويات',
-    },
+  const games: Array<{ id: GameMode; title: string; subtitle: string; desc: string; Icon: typeof Shuffle; gradient: string; border: string }> = [
+    { id: 'scramble', title: 'قلب الحروف', subtitle: 'Word Scramble', desc: 'رتب الحروف المخلوطة', Icon: Shuffle, gradient: 'from-violet-600/20 to-indigo-600/20', border: 'border-violet-500/30' },
+    { id: 'match',    title: 'طابق الكلمات', subtitle: 'Quick Match', desc: 'اربط الكلمة بترجمتها', Icon: Link2, gradient: 'from-blue-600/20 to-cyan-600/20', border: 'border-blue-500/30' },
+    { id: 'builder',  title: 'ركب الجملة', subtitle: 'Sentence Builder', desc: 'رتب الكلمات لتكوين جملة', Icon: Blocks, gradient: 'from-pink-600/20 to-rose-600/20', border: 'border-pink-500/30' },
+    { id: 'snake',    title: 'أفعى الكلمات', subtitle: 'Word Snake', desc: 'كُل الكلمات بالترتيب لتكوين جمل', Icon: Bug, gradient: 'from-orange-600/20 to-amber-600/20', border: 'border-orange-500/30' },
   ]
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10 relative z-10">
-      {/* Hero */}
-      <section className="text-center mb-10 sm:mb-14">
-        <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 text-violet-300 text-xs font-bold px-4 py-2 rounded-full mb-5">
-          <Gamepad2 className="w-4 h-4" />
-          العب وتعلم — Play & Learn
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-5 sm:py-8 relative z-10">
+      {/* Hero (compact) */}
+      <section className="text-center mb-6 sm:mb-8">
+        <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 text-violet-300 text-xs font-bold px-3 py-1.5 rounded-full mb-3">
+          <Gamepad2 className="w-3.5 h-3.5" /> العب وتعلم
         </div>
-        <h1 className="text-3xl sm:text-5xl font-black text-white mb-4 leading-tight">
-          كنز اللغة{' '}
-          <span className="bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent">
-            الإنجليزية
-          </span>
+        <h1 className="text-2xl sm:text-4xl font-black text-white mb-2 leading-tight">
+          كنز اللغة <span className="bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent">الإنجليزية</span>
         </h1>
-        <p className="text-white/50 text-sm sm:text-base max-w-xl mx-auto leading-relaxed">
-          ألعاب ممتعة ستعلمك الكلمات والجمل بطريقة واد زمية! 😎
-          <br />
-          مع تيتشر حمزة القصراوي من{' '}
-          <span className="text-amber-300 font-bold">واد زم</span>
+        <p className="text-white/50 text-xs sm:text-sm max-w-md mx-auto">
+          مع تيتشر حمزة القصراوي من <span className="text-amber-300 font-bold">واد زم</span> 😎
         </p>
       </section>
 
-      {/* Teacher Hamza badge */}
-      <section className="mb-8">
-        <div className="rounded-3xl bg-gradient-to-r from-amber-900/20 via-orange-900/20 to-red-900/20 border border-amber-500/20 p-5 sm:p-6 flex items-center gap-4 sm:gap-5">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-2xl sm:text-3xl font-black text-white shadow-xl shrink-0">
-            ح
-          </div>
+      {/* Teacher badge (compact) */}
+      <section className="mb-5">
+        <div className="rounded-2xl bg-gradient-to-r from-amber-900/20 via-orange-900/20 to-red-900/20 border border-amber-500/20 p-4 flex items-center gap-3 sm:gap-4">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-xl sm:text-2xl font-black text-white shadow-xl shrink-0">ح</div>
           <div className="flex-1 min-w-0">
-            <p className="text-amber-300/70 text-[10px] sm:text-xs font-bold tracking-wider uppercase mb-0.5">أستاذك اليوم</p>
-            <h2 className="text-white font-black text-lg sm:text-xl leading-tight">
-              Teacher Hamza el Qasraoui
-            </h2>
-            <p className="text-white/50 text-xs sm:text-sm mt-1">
-              📍 من واد زم · معلم الإنجليزية للمبتدئين والمتقدمين
-            </p>
+            <h2 className="text-white font-black text-sm sm:text-base leading-tight">Teacher Hamza el Qasraoui</h2>
+            <p className="text-white/40 text-[11px] mt-0.5">📍 واد زم · معلم الإنجليزية</p>
           </div>
           <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('مرحباً تيتشر حمزة! أريد معلومات عن الدروس.')}`}
-             target="_blank" rel="noopener noreferrer"
-             className="hidden sm:flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-900/30 active:scale-95 text-sm shrink-0">
-            <MessageCircle className="w-4 h-4" />
-            تواصل
+            target="_blank" rel="noopener noreferrer"
+            className="hidden sm:flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-lg transition-all text-xs shrink-0">
+            <MessageCircle className="w-3.5 h-3.5" /> تواصل
           </a>
         </div>
       </section>
 
-      {/* Player stats */}
-      <section className="mb-8 grid grid-cols-3 gap-3">
-        <div className="rounded-2xl bg-white/[0.03] border border-white/[0.06] p-4 text-center">
-          <span className="block text-2xl mb-1">{level.emoji}</span>
-          <p className="text-white/60 text-[10px] sm:text-xs font-bold">{level.title}</p>
+      {/* Stats */}
+      <section className="mb-5 grid grid-cols-3 gap-2">
+        <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-3 text-center">
+          <span className="block text-xl">{level.emoji}</span>
+          <p className="text-white/50 text-[10px] font-bold mt-0.5">{level.title}</p>
         </div>
-        <div className="rounded-2xl bg-violet-500/10 border border-violet-500/20 p-4 text-center">
-          <Zap className="w-5 h-5 text-violet-400 mx-auto mb-1" />
-          <p className="text-xl sm:text-2xl font-black text-violet-200">{progress.xp}</p>
-          <p className="text-[10px] sm:text-xs text-white/40 mt-0.5 font-bold">XP</p>
+        <div className="rounded-xl bg-violet-500/10 border border-violet-500/20 p-3 text-center">
+          <Zap className="w-4 h-4 text-violet-400 mx-auto" />
+          <p className="text-lg font-black text-violet-200">{progress.xp}</p>
+          <p className="text-[10px] text-white/30 font-bold">XP</p>
         </div>
-        <div className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4 text-center">
-          <Flame className="w-5 h-5 text-amber-400 mx-auto mb-1" />
-          <p className="text-xl sm:text-2xl font-black text-amber-200">{progress.bestStreak}</p>
-          <p className="text-[10px] sm:text-xs text-white/40 mt-0.5 font-bold">أفضل سلسلة</p>
+        <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-center">
+          <Flame className="w-4 h-4 text-amber-400 mx-auto" />
+          <p className="text-lg font-black text-amber-200">{progress.bestStreak}</p>
+          <p className="text-[10px] text-white/30 font-bold">سلسلة</p>
         </div>
       </section>
 
       {/* Games grid */}
-      <section className="mb-10">
-        <h2 className="text-white font-black text-xl mb-5 flex items-center gap-2">
-          <Rocket className="w-5 h-5 text-pink-400" />
-          اختر لعبتك
+      <section className="mb-6">
+        <h2 className="text-white font-black text-base sm:text-lg mb-3 flex items-center gap-2">
+          <Rocket className="w-4 h-4 text-pink-400" /> اختر لعبتك
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {games.map(g => (
-            <button key={g.id} onClick={() => onPick(g.id)}
-              className={`group text-right rounded-3xl bg-gradient-to-br ${g.gradient} border ${g.border} p-6 hover:scale-[1.03] transition-all shadow-xl hover:shadow-2xl active:scale-[0.98]`}>
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-14 h-14 rounded-2xl bg-white/[0.08] border border-white/[0.12] flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <g.Icon className="w-7 h-7 text-white" />
+            <button key={g.id} onClick={() => { sfxClick(); onPick(g.id) }}
+              className={`group text-right rounded-2xl bg-gradient-to-br ${g.gradient} border ${g.border} p-5 hover:scale-[1.02] transition-all shadow-lg active:scale-[0.98]`}>
+              <div className="flex items-start justify-between mb-3">
+                <div className="w-11 h-11 rounded-xl bg-white/[0.08] border border-white/[0.12] flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <g.Icon className="w-5 h-5 text-white" />
                 </div>
-                <span className="bg-white/[0.08] border border-white/[0.12] text-white/60 text-[10px] font-bold px-2.5 py-1 rounded-full">
-                  {g.badge}
-                </span>
+                <span className="bg-white/[0.08] text-white/50 text-[10px] font-bold px-2 py-0.5 rounded-full">{g.id === 'snake' ? 'بلا حدود 🐍' : '٣ مستويات'}</span>
               </div>
-              <h3 className="text-white font-black text-lg mb-1">{g.title}</h3>
-              <p className="text-white/30 text-[11px] font-bold tracking-wider uppercase mb-2.5">{g.subtitle}</p>
-              <p className="text-white/50 text-sm leading-relaxed">{g.desc}</p>
-              <div className="flex items-center gap-1.5 mt-4 text-white/40 text-xs font-bold group-hover:text-white transition-colors">
-                <span>ابدأ اللعب</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              <h3 className="text-white font-black text-base mb-0.5">{g.title}</h3>
+              <p className="text-white/30 text-[10px] font-bold tracking-wider uppercase mb-1.5">{g.subtitle}</p>
+              <p className="text-white/45 text-xs">{g.desc}</p>
+              <div className="flex items-center gap-1 mt-3 text-white/35 text-xs font-bold group-hover:text-white transition-colors">
+                ابدأ <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
               </div>
             </button>
           ))}
         </div>
       </section>
 
-      {/* How it works / motivation */}
-      <section className="rounded-3xl bg-white/[0.02] border border-white/[0.06] p-6 sm:p-8 mb-8">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 text-center">
-          {[
-            { emoji: '🎮', title: 'العب', desc: 'اختر لعبة واستمتع' },
-            { emoji: '💡', title: 'تعلم', desc: 'كلمات وجمل جديدة' },
-            { emoji: '🏆', title: 'اربح', desc: 'نقاط XP وسلاسل' },
-          ].map(s => (
-            <div key={s.title}>
-              <div className="text-3xl mb-2">{s.emoji}</div>
-              <h3 className="text-white font-extrabold text-base mb-1">{s.title}</h3>
-              <p className="text-white/40 text-xs">{s.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA — bring more students */}
-      <section className="rounded-3xl bg-gradient-to-br from-emerald-900/30 to-teal-900/30 border border-emerald-500/20 p-6 sm:p-8 text-center">
-        <Sparkles className="w-7 h-7 text-emerald-400 mx-auto mb-3" />
-        <h3 className="text-white font-black text-lg sm:text-xl mb-2">استمتعت باللعب؟</h3>
-        <p className="text-white/50 text-sm mb-5 max-w-md mx-auto">
-          انضم لحصص تيتشر حمزة المباشرة من واد زم وارفع مستواك في الإنجليزية بطريقة ممتعة 🚀
-        </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Link href="/courses"
-            className="inline-flex items-center gap-2 bg-white text-emerald-900 font-extrabold px-6 py-3 rounded-2xl transition-all shadow-xl hover:-translate-y-0.5 active:scale-95">
-            <Crown className="w-4 h-4" />
-            شاهد الدورات
+      {/* CTA */}
+      <section className="rounded-2xl bg-gradient-to-br from-emerald-900/30 to-teal-900/30 border border-emerald-500/20 p-5 text-center">
+        <Sparkles className="w-5 h-5 text-emerald-400 mx-auto mb-2" />
+        <h3 className="text-white font-black text-sm sm:text-base mb-1">استمتعت؟ تعلم أكثر مع تيتشر حمزة</h3>
+        <div className="flex items-center justify-center gap-2 mt-3">
+          <Link href="/courses" className="inline-flex items-center gap-1.5 bg-white text-emerald-900 font-extrabold px-4 py-2 rounded-xl text-xs transition-all hover:-translate-y-0.5 active:scale-95">
+            <Crown className="w-3.5 h-3.5" /> الدورات
           </Link>
-          <Link href="/live"
-            className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3 rounded-2xl transition-all shadow-lg shadow-emerald-900/30 active:scale-95">
-            <Heart className="w-4 h-4" />
-            الحصص المباشرة
+          <Link href="/live" className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition-all active:scale-95">
+            <Heart className="w-3.5 h-3.5" /> حصة مباشرة
           </Link>
         </div>
       </section>
@@ -1278,24 +1424,15 @@ function MenuScreen({ progress, onPick }: {
 //   MAIN PAGE
 // ═════════════════════════════════════════════════════════════════════════════
 
-type GameMode = 'scramble' | 'match' | 'builder'
+type GameMode = 'scramble' | 'match' | 'builder' | 'snake'
 type Screen = 'menu' | 'picker' | GameMode | 'results'
 
 interface LastResult {
-  xp: number
-  correct: number
-  total: number
-  bestStreak: number
-  gameName: string
-  from: GameMode
-  difficulty: Difficulty
+  xp: number; correct: number; total: number; bestStreak: number
+  gameName: string; from: GameMode; difficulty: Difficulty
 }
 
-const GAME_NAMES: Record<GameMode, string> = {
-  scramble: 'قلب الحروف',
-  match:    'طابق الكلمات',
-  builder:  'ركب الجملة',
-}
+const GAME_NAMES: Record<GameMode, string> = { scramble: 'قلب الحروف', match: 'طابق الكلمات', builder: 'ركب الجملة', snake: 'أفعى الكلمات' }
 
 export default function PlayPage() {
   const [screen, setScreen] = useState<Screen>('menu')
@@ -1304,106 +1441,108 @@ export default function PlayPage() {
   const [activeDifficulty, setActiveDifficulty] = useState<Difficulty>(1)
   const [progress, setProgress] = useState<PlayProgress>({ xp: 0, bestStreak: 0, gamesPlayed: 0 })
   const [lastResult, setLastResult] = useState<LastResult | null>(null)
+  // Key to force re-mount games (ensures fresh random words)
+  const [gameKey, setGameKey] = useState(0)
 
   useEffect(() => { setProgress(loadProgress()) }, [])
 
-  const finishGame = useCallback((
-    xp: number, correct: number, total: number, bestStreak: number,
-  ) => {
+  const finishGame = useCallback((xp: number, correct: number, total: number, bestStreak: number) => {
     if (!activeGame) return
-    const newProgress: PlayProgress = {
+    const np: PlayProgress = {
       xp: progress.xp + xp,
       bestStreak: Math.max(progress.bestStreak, bestStreak),
       gamesPlayed: progress.gamesPlayed + 1,
     }
-    setProgress(newProgress)
-    saveProgress(newProgress)
-    setLastResult({
-      xp, correct, total, bestStreak,
-      gameName: GAME_NAMES[activeGame],
-      from: activeGame,
-      difficulty: activeDifficulty,
-    })
+    setProgress(np)
+    saveProgressData(np)
+    setLastResult({ xp, correct, total, bestStreak, gameName: GAME_NAMES[activeGame], from: activeGame, difficulty: activeDifficulty })
     setScreen('results')
   }, [progress, activeGame, activeDifficulty])
 
   const openPicker = (g: GameMode) => {
-    setPickerGame(g)
-    setScreen('picker')
+    if (g === 'snake') {
+      setActiveGame('snake')
+      setGameKey(k => k + 1)
+      setScreen('snake')
+      return
+    }
+    setPickerGame(g); setScreen('picker')
   }
 
   const startGame = (d: Difficulty) => {
     if (!pickerGame) return
-    setActiveGame(pickerGame)
-    setActiveDifficulty(d)
+    setActiveGame(pickerGame); setActiveDifficulty(d)
+    setGameKey(k => k + 1) // new key = fresh words
     setScreen(pickerGame)
   }
 
-  const goMenu = () => {
-    setScreen('menu')
-    setPickerGame(null)
-    setActiveGame(null)
+  const goMenu = () => { setScreen('menu'); setPickerGame(null); setActiveGame(null) }
+
+  const replay = () => {
+    if (!lastResult) return
+    setActiveGame(lastResult.from); setActiveDifficulty(lastResult.difficulty)
+    setGameKey(k => k + 1) // new key = fresh words
+    setScreen(lastResult.from)
   }
 
-  const playAgain = () => {
-    if (!lastResult) return
-    setActiveGame(lastResult.from)
-    setActiveDifficulty(lastResult.difficulty)
+  const nextLevel = () => {
+    if (!lastResult || lastResult.difficulty >= 3) return
+    const nd = (lastResult.difficulty + 1) as Difficulty
+    setActiveGame(lastResult.from); setActiveDifficulty(nd)
+    setGameKey(k => k + 1)
     setScreen(lastResult.from)
   }
 
   return (
-    <div className="min-h-screen relative" style={{ background: 'linear-gradient(160deg,#0a0f1e 0%,#111827 50%,#0a0f1e 100%)' }}>
+    <div className="min-h-[100dvh] relative" style={{ background: 'linear-gradient(160deg,#0a0f1e 0%,#111827 50%,#0a0f1e 100%)' }}>
       <FloatingIcons />
-
-      {/* Spacer for fixed header */}
       <div className="h-[70px]" />
 
-      {screen === 'menu' && (
-        <MenuScreen progress={progress} onPick={openPicker} />
-      )}
+      {/* Global CSS for animations */}
+      <style jsx global>{`
+        @keyframes float-icon { 0%,100%{transform:translateY(0) rotate(0deg)} 25%{transform:translateY(-22px) rotate(6deg)} 50%{transform:translateY(-8px) rotate(-4deg)} 75%{transform:translateY(-26px) rotate(5deg)} }
+        @keyframes scaleIn { 0%{transform:scale(0) rotate(-20deg);opacity:0} 100%{transform:scale(1) rotate(0);opacity:1} }
+        @keyframes fadeInUp { 0%{transform:translateY(8px);opacity:0} 100%{transform:translateY(0);opacity:1} }
+        @keyframes bounceIn { 0%{transform:scale(0) rotate(-180deg);opacity:0} 60%{transform:scale(1.15) rotate(8deg)} 100%{transform:scale(1) rotate(0);opacity:1} }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+      `}</style>
+
+      {screen === 'menu' && <MenuScreen progress={progress} onPick={openPicker} />}
 
       {screen === 'picker' && pickerGame && (
-        <DifficultyPicker
-          game={pickerGame}
-          onPick={startGame}
-          onBack={goMenu}
-        />
+        <DifficultyPicker game={pickerGame} onPick={startGame} onBack={goMenu} />
       )}
 
       {screen === 'scramble' && activeGame === 'scramble' && (
-        <ScrambleGame
-          difficulty={activeDifficulty}
-          onDone={finishGame}
-          onExit={goMenu}
-        />
+        <ScrambleGame key={gameKey} difficulty={activeDifficulty} onDone={finishGame} onExit={goMenu} />
       )}
-
       {screen === 'match' && activeGame === 'match' && (
-        <MatchGame
-          difficulty={activeDifficulty}
-          onDone={finishGame}
-          onExit={goMenu}
-        />
+        <MatchGame key={gameKey} difficulty={activeDifficulty} onDone={finishGame} onExit={goMenu} />
+      )}
+      {screen === 'builder' && activeGame === 'builder' && (
+        <BuilderGame key={gameKey} difficulty={activeDifficulty} onDone={finishGame} onExit={goMenu} />
       )}
 
-      {screen === 'builder' && activeGame === 'builder' && (
-        <BuilderGame
-          difficulty={activeDifficulty}
-          onDone={finishGame}
-          onExit={goMenu}
-        />
+      {screen === 'snake' && activeGame === 'snake' && (
+        <SnakeGame key={gameKey} onDone={(xp, sentences, bestCombo) => {
+          const np: PlayProgress = {
+            xp: progress.xp + xp,
+            bestStreak: Math.max(progress.bestStreak, bestCombo),
+            gamesPlayed: progress.gamesPlayed + 1,
+          }
+          setProgress(np)
+          saveProgressData(np)
+          setLastResult({ xp, correct: sentences, total: sentences, bestStreak: bestCombo, gameName: GAME_NAMES.snake, from: 'snake', difficulty: 3 })
+          setScreen('results')
+        }} onExit={goMenu} />
       )}
 
       {screen === 'results' && lastResult && (
         <ResultsScreen
-          xp={lastResult.xp}
-          correct={lastResult.correct}
-          total={lastResult.total}
+          xp={lastResult.xp} correct={lastResult.correct} total={lastResult.total}
           bestStreak={lastResult.bestStreak}
-          gameName={`${lastResult.gameName} · ${DIFFICULTY_INFO[lastResult.difficulty].label}`}
-          onPlayAgain={playAgain}
-          onMenu={goMenu}
+          gameName={lastResult.gameName} difficulty={lastResult.difficulty}
+          onReplay={replay} onNextLevel={nextLevel} onMenu={goMenu}
         />
       )}
     </div>
