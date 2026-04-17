@@ -68,24 +68,43 @@ function startAmbient() {
   const ctx = getCtx()
   if (!ctx || _ambientNodes.length > 0) return
   _ambientGain = ctx.createGain()
-  _ambientGain.gain.setValueAtTime(0.025, ctx.currentTime)
+  _ambientGain.gain.setValueAtTime(0, ctx.currentTime)
+  _ambientGain.gain.linearRampToValueAtTime(0.03, ctx.currentTime + 2)
   _ambientGain.connect(ctx.destination)
 
-  // Soft pad: layered sine waves at consonant intervals
-  const freqs = [130.81, 164.81, 196.00, 261.63] // C3, E3, G3, C4
-  freqs.forEach(f => {
+  // Lo-fi warm pad: Am7 chord with subtle detuning
+  const voices: { freq: number; type: OscillatorType; detune: number; vol: number }[] = [
+    { freq: 110.00, type: 'sine',     detune: -3,  vol: 1.0 },   // A2
+    { freq: 130.81, type: 'triangle', detune: 5,   vol: 0.6 },   // C3
+    { freq: 164.81, type: 'sine',     detune: -2,  vol: 0.7 },   // E3
+    { freq: 196.00, type: 'triangle', detune: 4,   vol: 0.5 },   // G3
+    { freq: 220.00, type: 'sine',     detune: -4,  vol: 0.35 },  // A3 octave
+  ]
+
+  // Low-pass filter for warmth
+  const lpf = ctx.createBiquadFilter()
+  lpf.type = 'lowpass'
+  lpf.frequency.setValueAtTime(800, ctx.currentTime)
+  lpf.Q.setValueAtTime(0.7, ctx.currentTime)
+  lpf.connect(_ambientGain)
+
+  voices.forEach(v => {
     const osc = ctx.createOscillator()
-    osc.type = 'sine'
-    osc.frequency.setValueAtTime(f, ctx.currentTime)
-    // Gentle vibrato
+    osc.type = v.type
+    osc.frequency.setValueAtTime(v.freq, ctx.currentTime)
+    osc.detune.setValueAtTime(v.detune, ctx.currentTime)
+    const g = ctx.createGain()
+    g.gain.setValueAtTime(v.vol, ctx.currentTime)
+    // Slow drift vibrato
     const lfo = ctx.createOscillator()
-    const lfoGain = ctx.createGain()
-    lfo.frequency.setValueAtTime(0.3, ctx.currentTime)
-    lfoGain.gain.setValueAtTime(0.5, ctx.currentTime)
-    lfo.connect(lfoGain)
-    lfoGain.connect(osc.frequency)
+    const lfoG = ctx.createGain()
+    lfo.frequency.setValueAtTime(0.15 + Math.random() * 0.15, ctx.currentTime)
+    lfoG.gain.setValueAtTime(0.6, ctx.currentTime)
+    lfo.connect(lfoG)
+    lfoG.connect(osc.frequency)
     lfo.start()
-    osc.connect(_ambientGain!)
+    osc.connect(g)
+    g.connect(lpf)
     osc.start()
     _ambientNodes.push(osc, lfo)
   })
@@ -248,6 +267,27 @@ const UNITS: Unit[] = [
         correct: 2,
         explanation: 'Ninety = 90',
       },
+      {
+        id: 'u1q13',
+        question: 'كيف تقول "صباح الخير" بالإنجليزية؟',
+        options: ['Good evening', 'Good night', 'Good morning', 'Good afternoon'],
+        correct: 2,
+        explanation: 'Good morning = صباح الخير',
+      },
+      {
+        id: 'u1q14',
+        question: '"Seventy-three" يعني بالأرقام...',
+        options: ['37', '73', '70', '33'],
+        correct: 1,
+        explanation: 'Seventy-three = 73',
+      },
+      {
+        id: 'u1q15',
+        question: 'ما الفرق بين "Good night" و "Good evening"؟',
+        options: ['لا فرق بينهما', 'Good night للوداع و Good evening للتحية', 'Good evening للوداع و Good night للتحية', 'كلاهما للتحية فقط'],
+        correct: 1,
+        explanation: 'Good evening = مساء الخير (تحية). Good night = تصبح على خير (وداع)',
+      },
     ],
   },
 
@@ -333,6 +373,41 @@ const UNITS: Unit[] = [
         options: ['متزوج', 'مطلق', 'مخطوب', 'أرمل'],
         correct: 2,
         explanation: 'Engaged = مخطوب',
+      },
+      {
+        id: 'u2q11',
+        question: 'أكمل: "I am ___ engineer"',
+        options: ['a', 'an', 'the', 'one'],
+        correct: 1,
+        explanation: 'نستخدم "an" قبل الكلمات التي تبدأ بحرف متحرك: an engineer',
+      },
+      {
+        id: 'u2q12',
+        question: 'ما هي جنسية شخص من مصر (Egypt)؟',
+        options: ['Egyption', 'Egyptien', 'Egyptian', 'Egyptan'],
+        correct: 2,
+        explanation: 'Country: Egypt → Nationality: Egyptian',
+      },
+      {
+        id: 'u2q13',
+        question: '"Widowed" تعني بالعربية...',
+        options: ['مطلق', 'أعزب', 'أرمل', 'مخطوب'],
+        correct: 2,
+        explanation: 'Widowed = أرمل/ة',
+      },
+      {
+        id: 'u2q14',
+        question: 'شخص يعمل في المستشفى ويعالج المرضى يسمى...',
+        options: ['a teacher', 'a doctor', 'a farmer', 'a driver'],
+        correct: 1,
+        explanation: 'doctor = طبيب (يعمل في المستشفى ويعالج المرضى)',
+      },
+      {
+        id: 'u2q15',
+        question: 'ما هي جنسية شخص من فرنسا (France)؟',
+        options: ['Francish', 'Frensh', 'French', 'Francian'],
+        correct: 2,
+        explanation: 'Country: France → Nationality: French',
       },
     ],
   },
@@ -432,6 +507,27 @@ const UNITS: Unit[] = [
         correct: 3,
         explanation: 'Why = لماذا / علاش',
       },
+      {
+        id: 'u3q13',
+        question: 'ابنة أختك تسمى بالإنجليزية...',
+        options: ['Cousin', 'Niece', 'Daughter', 'Granddaughter'],
+        correct: 1,
+        explanation: 'Niece = ابنة الأخ أو ابنة الأخت',
+      },
+      {
+        id: 'u3q14',
+        question: '"Lazy" عكسها هو...',
+        options: ['Tired', 'Hardworking', 'Slow', 'Weak'],
+        correct: 1,
+        explanation: 'Lazy (كسول) ↔ Hardworking (مجتهد)',
+      },
+      {
+        id: 'u3q15',
+        question: '"How" تعني بالعربية...',
+        options: ['ماذا', 'أين', 'كيف', 'من'],
+        correct: 2,
+        explanation: 'How = كيف',
+      },
     ],
   },
 
@@ -517,6 +613,41 @@ const UNITS: Unit[] = [
         options: ['مسطرة', 'محاية', 'قلم', 'دفتر'],
         correct: 1,
         explanation: 'Eraser = محاية',
+      },
+      {
+        id: 'u4q11',
+        question: 'أكمل: "She ___ her teeth every morning"',
+        options: ['brush', 'brushs', 'brushes', 'brushing'],
+        correct: 2,
+        explanation: 'مع She نضيف -es للأفعال المنتهية بـ sh: She brushes',
+      },
+      {
+        id: 'u4q12',
+        question: 'ما معنى "Ruler" في أدوات القسم؟',
+        options: ['ممحاة', 'مسطرة', 'مقص', 'قلم حبر'],
+        correct: 1,
+        explanation: 'Ruler = مسطرة',
+      },
+      {
+        id: 'u4q13',
+        question: '"Open your books" يقولها...',
+        options: ['التلميذ', 'المعلم', 'الحارس', 'الوالد'],
+        correct: 1,
+        explanation: '"Open your books" = افتحوا كتبكم — عبارة خاصة بالمعلم',
+      },
+      {
+        id: 'u4q14',
+        question: 'ما معنى "He gets dressed"؟',
+        options: ['يستحم', 'يرتدي ملابسه', 'يفرش أسنانه', 'يتناول الفطور'],
+        correct: 1,
+        explanation: 'gets dressed = يرتدي ملابسه',
+      },
+      {
+        id: 'u4q15',
+        question: '"Notebook" تعني بالعربية...',
+        options: ['كتاب', 'دفتر', 'حاسوب', 'حقيبة'],
+        correct: 1,
+        explanation: 'Notebook = دفتر',
       },
     ],
   },
@@ -605,6 +736,43 @@ const UNITS: Unit[] = [
         correct: 2,
         explanation: 'In front of = أمام',
       },
+      {
+        id: 'u5q11',
+        question: 'أكمل: "We ___ students"',
+        context: 'The verb "to be"',
+        options: ['is', 'am', 'are', 'be'],
+        correct: 2,
+        explanation: 'مع We: We are',
+      },
+      {
+        id: 'u5q12',
+        question: '"The cat is under the table" تعني...',
+        options: ['القط فوق الطاولة', 'القط تحت الطاولة', 'القط بجانب الطاولة', 'القط أمام الطاولة'],
+        correct: 1,
+        explanation: 'under = تحت',
+      },
+      {
+        id: 'u5q13',
+        question: 'ما معنى "Mirror"؟',
+        options: ['نافذة', 'مرآة', 'باب', 'ستارة'],
+        correct: 1,
+        explanation: 'Mirror = مرآة',
+      },
+      {
+        id: 'u5q14',
+        question: 'أكمل: "She ___ a new car"',
+        context: 'The verb "to have"',
+        options: ['have', 'haves', 'has', 'had'],
+        correct: 2,
+        explanation: 'مع She: have → has',
+      },
+      {
+        id: 'u5q15',
+        question: '"Behind" تعني بالعربية...',
+        options: ['أمام', 'بين', 'خلف', 'فوق'],
+        correct: 2,
+        explanation: 'Behind = خلف / وراء',
+      },
     ],
   },
 
@@ -690,6 +858,42 @@ const UNITS: Unit[] = [
         correct: 2,
         explanation: 'نستخدم "on" مع أيام الأسبوع: on Monday',
       },
+      {
+        id: 'u6q11',
+        question: '"Usually" تعني أن الفعل يحدث بنسبة...',
+        options: ['100%', '0%', '50%', '80%'],
+        correct: 3,
+        explanation: 'Usually = عادةً = 80%',
+      },
+      {
+        id: 'u6q12',
+        question: '"It\'s quarter past three" يعني الساعة...',
+        options: ['3:45', '3:30', '3:15', '2:45'],
+        correct: 2,
+        explanation: 'Quarter past = والربع. 3:15 = quarter past three',
+      },
+      {
+        id: 'u6q13',
+        question: 'ما هو اليوم الذي يأتي قبل Friday؟',
+        options: ['Wednesday', 'Saturday', 'Thursday', 'Sunday'],
+        correct: 2,
+        explanation: 'الترتيب: ...Wednesday, Thursday, Friday...',
+      },
+      {
+        id: 'u6q14',
+        question: '"I have breakfast at 7:00 AM" تعني...',
+        options: ['أتناول الغداء الساعة 7', 'أتناول الفطور الساعة 7 صباحاً', 'أتناول العشاء الساعة 7', 'أخرج الساعة 7'],
+        correct: 1,
+        explanation: 'have breakfast = أتناول الفطور. AM = صباحاً',
+      },
+      {
+        id: 'u6q15',
+        question: 'أين نضع الـ Adverb مع الأفعال العادية؟',
+        context: 'I always drink tea',
+        options: ['بعد الفعل', 'قبل الفعل', 'في نهاية الجملة', 'بعد المفعول'],
+        correct: 1,
+        explanation: 'مع الأفعال العادية يأتي الـ Adverb قبل الفعل: I always drink tea',
+      },
     ],
   },
 
@@ -773,6 +977,41 @@ const UNITS: Unit[] = [
         options: ['شاي أخضر', 'شاي بالنعناع', 'شاي الأعشاب', 'شاي بالزنجبيل'],
         correct: 2,
         explanation: 'Herbal tea = شاي الأعشاب',
+      },
+      {
+        id: 'u7q11',
+        question: '"Rice" تعني بالعربية...',
+        options: ['خبز', 'أرز', 'معكرونة', 'سلطة'],
+        correct: 1,
+        explanation: 'Rice = أرز',
+      },
+      {
+        id: 'u7q12',
+        question: 'أكمل: "She ___ like milk"',
+        options: ["don't", "doesn't", "isn't", "not"],
+        correct: 1,
+        explanation: 'مع She في النفي: She doesn\'t like',
+      },
+      {
+        id: 'u7q13',
+        question: '"Grilled fish" تعني...',
+        options: ['سمك مقلي', 'سمك مشوي', 'سمك مطبوخ', 'سمك نيء'],
+        correct: 1,
+        explanation: 'Grilled fish = سمك مشوي',
+      },
+      {
+        id: 'u7q14',
+        question: '"Does she like coffee?" — "Yes, she ___"',
+        options: ['do', 'does', 'is', 'like'],
+        correct: 1,
+        explanation: 'مع Does: Yes, she does',
+      },
+      {
+        id: 'u7q15',
+        question: '"Vegetables" تعني بالعربية...',
+        options: ['فواكه', 'حلويات', 'خضروات', 'لحوم'],
+        correct: 2,
+        explanation: 'Vegetables = خضروات',
       },
     ],
   },
@@ -873,6 +1112,27 @@ const UNITS: Unit[] = [
         correct: 1,
         explanation: 'can\'t = لا يستطيع. He can\'t swim = لا يستطيع السباحة',
       },
+      {
+        id: 'u8q13',
+        question: '"Those" تُستعمل مع...',
+        options: ['مفرد قريب', 'مفرد بعيد', 'جمع قريب', 'جمع بعيد'],
+        correct: 3,
+        explanation: 'Those = أولئك (جمع بعيد)',
+      },
+      {
+        id: 'u8q14',
+        question: '"There are many shops" — نستخدم "are" لأن shops...',
+        options: ['كبيرة', 'مفرد', 'بعيدة', 'جمع'],
+        correct: 3,
+        explanation: 'There are = هناك (جمع). shops = محلات (جمع)',
+      },
+      {
+        id: 'u8q15',
+        question: '"Turn right" تعني...',
+        options: ['انعطف يميناً', 'انعطف يساراً', 'امشِ مستقيماً', 'ارجع للخلف'],
+        correct: 0,
+        explanation: 'Turn right = انعطف يميناً',
+      },
     ],
   },
 ]
@@ -887,10 +1147,239 @@ function shuffle<T>(arr: T[]): T[] {
   return a
 }
 
-// Generate final exam questions (random from all units)
+// ═══════════════════════════════════════════════════════════════════════════
+//  FINAL EXAM — 30 NEW unique questions covering all lessons (not from units)
+// ═══════════════════════════════════════════════════════════════════════════
+
+const FINAL_EXAM_QUESTIONS: Question[] = [
+  // Greetings & Alphabet (L1-2)
+  {
+    id: 'fq1',
+    question: 'أكمل: "Good ___, teacher!" (في الصباح الباكر)',
+    options: ['night', 'evening', 'morning', 'afternoon'],
+    correct: 2,
+    explanation: 'في الصباح نقول: Good morning = صباح الخير',
+  },
+  {
+    id: 'fq2',
+    question: '"Eighty-six" يعني بالأرقام...',
+    options: ['68', '86', '816', '806'],
+    correct: 1,
+    explanation: 'Eighty-six = 86',
+  },
+  {
+    id: 'fq3',
+    question: 'ما هو الحرف الأخير في الأبجدية الإنجليزية؟',
+    options: ['Y', 'X', 'Z', 'W'],
+    correct: 2,
+    explanation: 'الحرف الأخير: Z (زِد)',
+  },
+  // Countries, Jobs (L3-4)
+  {
+    id: 'fq4',
+    question: 'أكمل: "She is ___ doctor. She works at a hospital."',
+    options: ['an', 'a', 'the', 'one'],
+    correct: 1,
+    explanation: 'نستخدم "a" قبل الحرف الساكن: a doctor',
+  },
+  {
+    id: 'fq5',
+    question: 'ما هي جنسية شخص من ألمانيا (Germany)؟',
+    options: ['Germanish', 'Germanian', 'German', 'Germanise'],
+    correct: 2,
+    explanation: 'Country: Germany → Nationality: German',
+  },
+  {
+    id: 'fq6',
+    question: '"Separated" تعني في الحالة العائلية...',
+    options: ['مطلق', 'أعزب', 'منفصل', 'أرمل'],
+    correct: 2,
+    explanation: 'Separated = منفصل (لا يزال متزوجاً قانونياً لكن لا يعيش مع الشريك)',
+  },
+  // Family & Descriptions (L5-6)
+  {
+    id: 'fq7',
+    question: 'أخت زوجتك تسمى بالإنجليزية...',
+    options: ['Cousin', 'Aunt', 'Sister-in-law', 'Niece'],
+    correct: 2,
+    explanation: 'Sister-in-law = أخت الزوج/الزوجة',
+  },
+  {
+    id: 'fq8',
+    question: '"Patient" كصفة شخصية تعني...',
+    options: ['مريض', 'صبور', 'قوي', 'هادئ'],
+    correct: 1,
+    explanation: 'Patient (صفة) = صبور. لا نخلط مع patient (اسم) = مريض',
+  },
+  {
+    id: 'fq9',
+    question: 'أكمل: "___ is your father\'s name?"',
+    options: ['How', 'Where', 'What', 'Why'],
+    correct: 2,
+    explanation: 'What is your father\'s name? = ما اسم والدك؟',
+  },
+  // Reading & Classroom (L7-8)
+  {
+    id: 'fq10',
+    question: 'أكمل: "She ___ to school by bus every day"',
+    options: ['go', 'goes', 'going', 'goed'],
+    correct: 1,
+    explanation: 'مع She نضيف -es: She goes',
+  },
+  {
+    id: 'fq11',
+    question: '"Scissors" تعني بالعربية...',
+    options: ['مقلمة', 'مقص', 'دبّاسة', 'مسطرة'],
+    correct: 1,
+    explanation: 'Scissors = مقص',
+  },
+  {
+    id: 'fq12',
+    question: '"Close your notebooks" يقولها المعلم بمعنى...',
+    options: ['افتحوا دفاتركم', 'أعطوني دفاتركم', 'أغلقوا دفاتركم', 'اكتبوا في دفاتركم'],
+    correct: 2,
+    explanation: 'Close your notebooks = أغلقوا دفاتركم',
+  },
+  // Verbs, Pronouns & Home (L9-10)
+  {
+    id: 'fq13',
+    question: 'أكمل: "The keys are ___ the door"',
+    options: ['on', 'in', 'behind', 'between'],
+    correct: 2,
+    explanation: 'behind the door = خلف الباب',
+  },
+  {
+    id: 'fq14',
+    question: 'أكمل: "It ___ a beautiful house"',
+    options: ['am', 'are', 'is', 'be'],
+    correct: 2,
+    explanation: 'مع It: It is (It\'s)',
+  },
+  {
+    id: 'fq15',
+    question: '"Curtains" تعني بالعربية...',
+    options: ['وسائد', 'ستائر', 'أغطية', 'رفوف'],
+    correct: 1,
+    explanation: 'Curtains = ستائر',
+  },
+  // Daily Activities & Days (L11-12)
+  {
+    id: 'fq16',
+    question: '"It\'s half past nine" يعني الساعة...',
+    options: ['9:15', '9:30', '9:45', '8:30'],
+    correct: 1,
+    explanation: 'Half past = والنصف. 9:30 = half past nine',
+  },
+  {
+    id: 'fq17',
+    question: 'ما هو أول يوم في الأسبوع حسب التقويم الغربي؟',
+    options: ['Saturday', 'Monday', 'Sunday', 'Friday'],
+    correct: 2,
+    explanation: 'في التقويم الغربي، الأسبوع يبدأ يوم Sunday (الأحد)',
+  },
+  {
+    id: 'fq18',
+    question: '"Rarely" تعني أن الفعل يحدث بنسبة...',
+    options: ['80%', '100%', '50%', '10%'],
+    correct: 3,
+    explanation: 'Rarely = نادراً = حوالي 10%',
+  },
+  // Food & Drinks (L13-14)
+  {
+    id: 'fq19',
+    question: 'أكمل: "I ___ like spicy food"',
+    options: ["doesn't", "don't", "isn't", "not"],
+    correct: 1,
+    explanation: 'مع I في النفي: I don\'t like',
+  },
+  {
+    id: 'fq20',
+    question: '"Lamb" تعني بالعربية...',
+    options: ['دجاج', 'لحم خنزير', 'لحم خروف', 'سمك'],
+    correct: 2,
+    explanation: 'Lamb = لحم خروف/حمل',
+  },
+  {
+    id: 'fq21',
+    question: '"Still water or sparkling?" — الفرق هو...',
+    options: ['ساخن أو بارد', 'عادي أو غازي', 'كبير أو صغير', 'نظيف أو متسخ'],
+    correct: 1,
+    explanation: 'Still water = ماء عادي، Sparkling water = ماء غازي',
+  },
+  // Transport, Places & Hobbies (L15-19)
+  {
+    id: 'fq22',
+    question: '"Crossing" في إعطاء الاتجاهات تعني...',
+    options: ['الدوار', 'ممر الراجلين/التقاطع', 'إشارة المرور', 'الجسر'],
+    correct: 1,
+    explanation: 'Crossing = تقاطع / ممر الراجلين',
+  },
+  {
+    id: 'fq23',
+    question: 'أكمل: "There ___ three parks in my city"',
+    options: ['is', 'are', 'has', 'have'],
+    correct: 1,
+    explanation: 'There are (للجمع): There are three parks',
+  },
+  {
+    id: 'fq24',
+    question: '"A firefighter" هو شخص يعمل في...',
+    options: ['المستشفى', 'المطبخ', 'إطفاء الحرائق', 'المدرسة'],
+    correct: 2,
+    explanation: 'Firefighter = رجل إطفاء',
+  },
+  {
+    id: 'fq25',
+    question: '"She can play the piano" تعني...',
+    options: ['تحب البيانو', 'تتعلم البيانو', 'تستطيع العزف على البيانو', 'تريد شراء بيانو'],
+    correct: 2,
+    explanation: 'She can play = تستطيع العزف',
+  },
+  // Mixed comprehensive
+  {
+    id: 'fq26',
+    question: 'ما هو الضمير المناسب: "___ is my best friend" (هي صديقتي المفضلة)',
+    options: ['He', 'She', 'It', 'They'],
+    correct: 1,
+    explanation: 'She = هي. She is my best friend',
+  },
+  {
+    id: 'fq27',
+    question: '"At" تُستخدم مع...',
+    options: ['أيام الأسبوع', 'الشهور', 'الساعة', 'السنوات'],
+    correct: 2,
+    explanation: 'at = مع الساعة: at 7:00. on = مع الأيام. in = مع الشهور والسنوات',
+  },
+  {
+    id: 'fq28',
+    question: 'أكمل: "My mother ___ cooking very well"',
+    options: ['can', 'like', 'do', 'have'],
+    correct: 0,
+    explanation: 'My mother can cooking → My mother can cook. can = تستطيع',
+  },
+  {
+    id: 'fq29',
+    question: '"Straight ahead" تعني...',
+    options: ['انعطف يميناً', 'ارجع للخلف', 'امشِ مستقيماً', 'توقف هنا'],
+    correct: 2,
+    explanation: 'Straight ahead = امشِ مستقيماً للأمام',
+  },
+  {
+    id: 'fq30',
+    question: 'أي جملة صحيحة نحوياً؟',
+    options: [
+      'He don\'t like tea',
+      'She doesn\'t likes coffee',
+      'They doesn\'t go to school',
+      'He doesn\'t like tea',
+    ],
+    correct: 3,
+    explanation: 'He doesn\'t like (بدون s بعد doesn\'t)',
+  },
+]
+
 function generateFinalExam(): Question[] {
-  const all = UNITS.flatMap(u => u.questions)
-  return shuffle(all).slice(0, 25)
+  return shuffle(FINAL_EXAM_QUESTIONS)
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -67,21 +67,51 @@ function startAmbient() {
   const ctx = getCtx()
   if (!ctx || _ambientNodes.length > 0) return
   _ambientGain = ctx.createGain()
-  _ambientGain.gain.setValueAtTime(0.025, ctx.currentTime)
+  _ambientGain.gain.setValueAtTime(0, ctx.currentTime)
+  _ambientGain.gain.linearRampToValueAtTime(0.028, ctx.currentTime + 2.5)
   _ambientGain.connect(ctx.destination)
-  const freqs = [146.83, 174.61, 220.00, 293.66] // D3, F3, A3, D4
-  freqs.forEach(f => {
+
+  // Chill study pad: Fmaj9 voicing — airy and spacious
+  const voices: { freq: number; type: OscillatorType; detune: number; vol: number }[] = [
+    { freq: 87.31,  type: 'sine',     detune: 2,   vol: 0.9 },   // F2
+    { freq: 130.81, type: 'triangle', detune: -3,  vol: 0.55 },  // C3
+    { freq: 164.81, type: 'sine',     detune: 4,   vol: 0.65 },  // E3
+    { freq: 196.00, type: 'triangle', detune: -2,  vol: 0.4 },   // G3 (9th)
+    { freq: 174.61, type: 'sine',     detune: 3,   vol: 0.7 },   // F3 octave
+    { freq: 329.63, type: 'sine',     detune: -5,  vol: 0.2 },   // E4 shimmer
+  ]
+
+  // Band-pass for a dreamy, focused sound
+  const bpf = ctx.createBiquadFilter()
+  bpf.type = 'bandpass'
+  bpf.frequency.setValueAtTime(600, ctx.currentTime)
+  bpf.Q.setValueAtTime(0.4, ctx.currentTime)
+
+  // Also a gentle low-pass to smooth highs
+  const lpf = ctx.createBiquadFilter()
+  lpf.type = 'lowpass'
+  lpf.frequency.setValueAtTime(1200, ctx.currentTime)
+  lpf.Q.setValueAtTime(0.5, ctx.currentTime)
+  bpf.connect(lpf)
+  lpf.connect(_ambientGain)
+
+  voices.forEach(v => {
     const osc = ctx.createOscillator()
-    osc.type = 'sine'
-    osc.frequency.setValueAtTime(f, ctx.currentTime)
+    osc.type = v.type
+    osc.frequency.setValueAtTime(v.freq, ctx.currentTime)
+    osc.detune.setValueAtTime(v.detune, ctx.currentTime)
+    const g = ctx.createGain()
+    g.gain.setValueAtTime(v.vol, ctx.currentTime)
+    // Very slow wavering
     const lfo = ctx.createOscillator()
-    const lfoGain = ctx.createGain()
-    lfo.frequency.setValueAtTime(0.25, ctx.currentTime)
-    lfoGain.gain.setValueAtTime(0.4, ctx.currentTime)
-    lfo.connect(lfoGain)
-    lfoGain.connect(osc.frequency)
+    const lfoG = ctx.createGain()
+    lfo.frequency.setValueAtTime(0.1 + Math.random() * 0.12, ctx.currentTime)
+    lfoG.gain.setValueAtTime(0.45, ctx.currentTime)
+    lfo.connect(lfoG)
+    lfoG.connect(osc.frequency)
     lfo.start()
-    osc.connect(_ambientGain!)
+    osc.connect(g)
+    g.connect(bpf)
     osc.start()
     _ambientNodes.push(osc, lfo)
   })
@@ -259,6 +289,32 @@ const UNITS: Unit[] = [
         correct: 1,
         explanation: 'I use a toothbrush to brush my teeth = أستخدم فرشاة أسنان لتفريش أسناني',
       },
+      {
+        id: 'u1q13', type: 'mcq',
+        question: 'ما معنى "I shave my beard with a razor"؟',
+        options: ['أقص شعري بالمقص', 'أحلق ذقني بالشفرة', 'أمشط شعري بالمشط', 'أغسل وجهي بالصابون'],
+        correct: 1,
+        explanation: 'shave = أحلق، beard = ذقن/لحية، razor = شفرة حلاقة',
+      },
+      {
+        id: 'u1q14', type: 'situation',
+        question: 'كيف تصف روتينك الصباحي بترتيب منطقي؟',
+        options: [
+          'First I eat, then I wake up, then I sleep',
+          'First I wake up, then I wash my face, then I have breakfast',
+          'First I go to work, then I wake up, then I brush my teeth',
+          'First I sleep, then I take a shower, then I wake up',
+        ],
+        correct: 1,
+        explanation: 'الترتيب المنطقي: أولاً أستيقظ، ثم أغسل وجهي، ثم أتناول الفطور',
+      },
+      {
+        id: 'u1q15', type: 'truefalse',
+        question: 'صحيح أم خطأ: "I use soap to wash my body" تعني "أستخدم الشامبو لغسل جسمي"',
+        options: ['صحيح ✓', 'خطأ ✗'],
+        correct: 1,
+        explanation: 'خطأ! soap = صابون وليس شامبو (shampoo). الشامبو للشعر',
+      },
     ],
   },
 
@@ -356,6 +412,47 @@ const UNITS: Unit[] = [
         options: ['knife', 'spoon', 'blender', 'pan'],
         correct: 2,
         explanation: 'blender = الخلاط. I use the blender to mix the fruit',
+      },
+      {
+        id: 'u2q11', type: 'mcq',
+        question: '"Fridge" تعني بالعربية...',
+        options: ['فرن', 'ثلاجة', 'خلاط', 'غسالة صحون'],
+        correct: 1,
+        explanation: 'Fridge = ثلاجة',
+      },
+      {
+        id: 'u2q12', type: 'situation',
+        question: 'تريد طلب شيء إضافي في المقهى. ماذا تقول؟',
+        context: 'Pattern: Can I also have...?',
+        options: [
+          'More! Now!',
+          'And give me also',
+          'Can I also have a croissant, please?',
+          'I need more food here',
+        ],
+        correct: 2,
+        explanation: 'Can I also have a croissant, please? = هل يمكنني أيضاً كرواسون من فضلك؟',
+      },
+      {
+        id: 'u2q13', type: 'fill',
+        question: 'أكمل: "I ___ the vegetables with a knife"',
+        options: ['boil', 'fry', 'cut', 'wash'],
+        correct: 2,
+        explanation: 'I cut the vegetables with a knife = أقطع الخضار بالسكين',
+      },
+      {
+        id: 'u2q14', type: 'truefalse',
+        question: 'صحيح أم خطأ: "Microwave" تعني "فرن الغاز"',
+        options: ['صحيح ✓', 'خطأ ✗'],
+        correct: 1,
+        explanation: 'خطأ! Microwave = الميكرويف (فرن كهربائي). Gas stove = فرن الغاز',
+      },
+      {
+        id: 'u2q15', type: 'conversation',
+        question: 'في المقهى سأل النادل: "Sugar?" فأجاب الزبون:',
+        options: ['Yes, two spoons please', 'I want food', 'No, just coffee', 'Give me the menu'],
+        correct: 0,
+        explanation: 'الزبون أجاب: "Yes, two spoons please" = نعم، ملعقتين من فضلك',
       },
     ],
   },
@@ -460,6 +557,40 @@ const UNITS: Unit[] = [
         options: ['لحم مشوي', 'لحم مفروم', 'نقانق', 'دجاج'],
         correct: 1,
         explanation: 'Ground meat = لحم مفروم',
+      },
+      {
+        id: 'u3q12', type: 'fill',
+        question: 'أكمل: "I\'ll have the grilled fish with ___"',
+        context: 'Ordering a side dish',
+        options: ['menu', 'bill', 'salad', 'waiter'],
+        correct: 2,
+        explanation: 'I\'ll have the grilled fish with salad = سآخذ السمك المشوي مع السلطة',
+      },
+      {
+        id: 'u3q13', type: 'situation',
+        question: 'انتهيت من الأكل وتريد الفاتورة. ماذا تقول؟',
+        options: [
+          'I want to go',
+          'The bill, please',
+          'No more food',
+          'Where is the door?',
+        ],
+        correct: 1,
+        explanation: 'The bill, please = الفاتورة من فضلك',
+      },
+      {
+        id: 'u3q14', type: 'mcq',
+        question: '"Peach" تعني بالعربية...',
+        options: ['برتقال', 'تفاح', 'خوخ', 'عنب'],
+        correct: 2,
+        explanation: 'Peach = خوخ',
+      },
+      {
+        id: 'u3q15', type: 'truefalse',
+        question: 'صحيح أم خطأ: "Sparkling water" تعني "ماء عادي"',
+        options: ['صحيح ✓', 'خطأ ✗'],
+        correct: 1,
+        explanation: 'خطأ! Sparkling water = ماء غازي. Still water = ماء عادي',
       },
     ],
   },
@@ -566,6 +697,46 @@ const UNITS: Unit[] = [
         options: ['هذا رخيص جداً', 'هذا غالي جداً', 'هذا جميل جداً', 'هذا كبير جداً'],
         correct: 1,
         explanation: 'too expensive = غالي جداً',
+      },
+      {
+        id: 'u4q11', type: 'fill',
+        question: 'أكمل: "Take one ___ after meals" (خذ حبة واحدة بعد الأكل)',
+        options: ['spoon', 'bottle', 'tablet', 'glass'],
+        correct: 2,
+        explanation: 'tablet = حبة/قرص دواء',
+      },
+      {
+        id: 'u4q12', type: 'situation',
+        question: 'تريد أن تسأل الصيدلي عن أعراض جانبية. كيف تسأل؟',
+        options: [
+          'Is it dangerous?',
+          'Are there any side effects?',
+          'Will I die?',
+          'Is it good medicine?',
+        ],
+        correct: 1,
+        explanation: 'Are there any side effects? = هل هناك أعراض جانبية؟',
+      },
+      {
+        id: 'u4q13', type: 'mcq',
+        question: '"Shopping cart" في السوبرماركت تعني...',
+        options: ['سلة يد', 'عربة التسوق', 'كيس بلاستيك', 'رف المنتجات'],
+        correct: 1,
+        explanation: 'Shopping cart = عربة التسوق',
+      },
+      {
+        id: 'u4q14', type: 'conversation',
+        question: 'في السوبرماركت سأل الزبون: "Where is the dairy section?" ماذا يعني؟',
+        options: ['أين قسم اللحوم؟', 'أين قسم الحلويات؟', 'أين قسم مشتقات الحليب؟', 'أين قسم الخضروات؟'],
+        correct: 2,
+        explanation: 'dairy section = قسم مشتقات الحليب',
+      },
+      {
+        id: 'u4q15', type: 'truefalse',
+        question: 'صحيح أم خطأ: "Cough syrup" تعني "حبوب الصداع"',
+        options: ['صحيح ✓', 'خطأ ✗'],
+        correct: 1,
+        explanation: 'خطأ! Cough syrup = شراب السعال. حبوب الصداع = headache pills',
       },
     ],
   },
@@ -677,6 +848,46 @@ const UNITS: Unit[] = [
         correct: 2,
         explanation: 'Hoodie = هودي (سترة رياضية بقبعة)',
       },
+      {
+        id: 'u5q11', type: 'fill',
+        question: 'أكمل: "Do you have this in ___?" (هل لديك هذا باللون الأسود)',
+        options: ['big', 'cheap', 'black', 'nice'],
+        correct: 2,
+        explanation: 'Do you have this in black? = هل لديك هذا باللون الأسود؟',
+      },
+      {
+        id: 'u5q12', type: 'situation',
+        question: 'الملابس ضيقة عليك وتريد مقاس أكبر. ماذا تقول؟',
+        options: [
+          'This is bad',
+          'Do you have a bigger size?',
+          'I don\'t like this',
+          'It\'s too long',
+        ],
+        correct: 1,
+        explanation: 'Do you have a bigger size? = هل لديكم مقاس أكبر؟',
+      },
+      {
+        id: 'u5q13', type: 'mcq',
+        question: '"Whole wheat bread" تعني...',
+        options: ['خبز أبيض', 'خبز القمح الكامل', 'كعك', 'خبز الذرة'],
+        correct: 1,
+        explanation: 'Whole wheat bread = خبز القمح الكامل (خبز أسمر)',
+      },
+      {
+        id: 'u5q14', type: 'conversation',
+        question: 'في المخبزة سأل الزبون: "Is this bread fresh?" فأجاب الخباز:',
+        options: ['No, it\'s old', 'Yes, I just baked it this morning', 'I don\'t know', 'It doesn\'t matter'],
+        correct: 1,
+        explanation: 'الخباز قال: "Yes, I just baked it this morning" = نعم، خبزته هذا الصباح',
+      },
+      {
+        id: 'u5q15', type: 'truefalse',
+        question: 'صحيح أم خطأ: "It\'s too loose" تعني "إنه ضيق جداً"',
+        options: ['صحيح ✓', 'خطأ ✗'],
+        correct: 1,
+        explanation: 'خطأ! loose = واسع/فضفاض. الضيق = tight',
+      },
     ],
   },
 
@@ -777,6 +988,46 @@ const UNITS: Unit[] = [
         options: ['dry', 'fold', 'iron', 'clean'],
         correct: 2,
         explanation: 'iron = كوي. I want wash and iron = أريد غسيلاً وكيّاً',
+      },
+      {
+        id: 'u6q11', type: 'mcq',
+        question: '"Sore throat" تعني بالعربية...',
+        options: ['ألم في الأذن', 'ألم في الحلق', 'ألم في العين', 'ألم في الظهر'],
+        correct: 1,
+        explanation: 'Sore throat = التهاب/ألم في الحلق',
+      },
+      {
+        id: 'u6q12', type: 'situation',
+        question: 'تريد أن تسأل الطبيب عن الدواء. ماذا تقول؟',
+        options: [
+          'What should I take?',
+          'Give me medicine',
+          'I want to go home',
+          'Medicine how?',
+        ],
+        correct: 0,
+        explanation: 'What should I take? = ماذا يجب أن آخذ (من دواء)؟',
+      },
+      {
+        id: 'u6q13', type: 'fill',
+        question: 'أكمل: "Separate the whites from the ___" (افصل الأبيض عن الملوّن)',
+        options: ['darks', 'reds', 'shirts', 'shoes'],
+        correct: 0,
+        explanation: 'whites = ملابس بيضاء، darks = ملابس ملوّنة/داكنة. نفصلهم قبل الغسيل',
+      },
+      {
+        id: 'u6q14', type: 'conversation',
+        question: 'قال المريض: "I have a cough." فأجاب الطبيب:',
+        options: ['Go home', 'Take this cough syrup twice a day', 'Drink coffee', 'It\'s nothing'],
+        correct: 1,
+        explanation: 'الطبيب وصف شراب السعال مرتين يومياً',
+      },
+      {
+        id: 'u6q15', type: 'truefalse',
+        question: 'صحيح أم خطأ: "Dry clean only" تعني "اغسله بالماء فقط"',
+        options: ['صحيح ✓', 'خطأ ✗'],
+        correct: 1,
+        explanation: 'خطأ! Dry clean only = تنظيف جاف فقط (بدون ماء)',
       },
     ],
   },
@@ -885,6 +1136,34 @@ const UNITS: Unit[] = [
         ],
         correct: 1,
         explanation: 'Can you repeat, please? I don\'t understand = هل يمكنك الإعادة؟ لم أفهم',
+      },
+      {
+        id: 'u7q12', type: 'mcq',
+        question: '"Ginger" تعني بالعربية...',
+        options: ['كمون', 'ثوم', 'زنجبيل', 'فلفل حار'],
+        correct: 2,
+        explanation: 'Ginger = زنجبيل',
+      },
+      {
+        id: 'u7q13', type: 'fill',
+        question: 'أكمل: "I need a ___ to clean the floor" (أحتاج ممسحة لتنظيف الأرض)',
+        options: ['broom', 'mop', 'knife', 'plate'],
+        correct: 1,
+        explanation: 'mop = ممسحة. broom = مكنسة',
+      },
+      {
+        id: 'u7q14', type: 'conversation',
+        question: 'في السوق، قال البائع: "Two kilos for 10 dirhams" فأجاب الزبون:',
+        options: ['That\'s too much. How about 7?', 'Okay, give me five kilos', 'I don\'t want anything', 'Where is the supermarket?'],
+        correct: 0,
+        explanation: 'الزبون يفاوض: "That\'s too much. How about 7?" = هذا كثير. ماذا عن 7؟',
+      },
+      {
+        id: 'u7q15', type: 'truefalse',
+        question: 'صحيح أم خطأ: "Turmeric" تعني "كمون"',
+        options: ['صحيح ✓', 'خطأ ✗'],
+        correct: 1,
+        explanation: 'خطأ! Turmeric = كركم. Cumin = كمون',
       },
     ],
   },
@@ -1010,6 +1289,32 @@ const UNITS: Unit[] = [
         correct: 1,
         explanation: 'Housekeeping = التنظيف وترتيب الغرف',
       },
+      {
+        id: 'u8q13', type: 'fill',
+        question: 'أكمل: "I want to ___ a car for three days"',
+        options: ['buy', 'borrow', 'rent', 'drive'],
+        correct: 2,
+        explanation: 'rent = استئجار. I want to rent a car = أريد استئجار سيارة',
+      },
+      {
+        id: 'u8q14', type: 'situation',
+        question: 'في البنك تريد فتح حساب جديد. ماذا تقول؟',
+        options: [
+          'Give me money',
+          'I want to open a bank account',
+          'Where is the ATM?',
+          'I need a loan now',
+        ],
+        correct: 1,
+        explanation: 'I want to open a bank account = أريد فتح حساب بنكي',
+      },
+      {
+        id: 'u8q15', type: 'conversation',
+        question: 'في الفندق سأل الضيف: "Do you have room service?" ماذا يعني؟',
+        options: ['هل لديكم غرفة فارغة؟', 'هل لديكم خدمة الغرف؟', 'هل الغرفة نظيفة؟', 'متى أخرج من الغرفة؟'],
+        correct: 1,
+        explanation: 'Room service = خدمة الغرف (توصيل الطعام للغرفة)',
+      },
     ],
   },
 ]
@@ -1024,9 +1329,281 @@ function shuffle<T>(arr: T[]): T[] {
   return a
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  FINAL EXAM — 30 NEW unique questions covering all 20 lessons (not from units)
+// ═══════════════════════════════════════════════════════════════════════════
+
+const FINAL_EXAM_QUESTIONS: Question[] = [
+  // Morning Routine & Bathroom (L1-2)
+  {
+    id: 'fq1', type: 'fill',
+    question: 'أكمل: "After I wake up, I ___ to the bathroom"',
+    options: ['run', 'go', 'fly', 'walk'],
+    correct: 1,
+    explanation: 'I go to the bathroom = أذهب إلى الحمام',
+  },
+  {
+    id: 'fq2', type: 'situation',
+    question: 'كيف تصف عادتك اليومية: "أستخدم المجفف لتجفيف شعري"؟',
+    options: [
+      'I use a towel on my hair',
+      'I use a hairdryer to dry my hair',
+      'I comb my hair with water',
+      'I wash my hair every morning',
+    ],
+    correct: 1,
+    explanation: 'hairdryer = مجفف الشعر. I use a hairdryer to dry my hair',
+  },
+  // Kitchen & Café (L3-4)
+  {
+    id: 'fq3', type: 'fill',
+    question: 'أكمل: "I need a ___ to stir the soup"',
+    options: ['knife', 'plate', 'spoon', 'pan'],
+    correct: 2,
+    explanation: 'spoon = ملعقة. stir = تحريك/خلط',
+  },
+  {
+    id: 'fq4', type: 'mcq',
+    question: '"Oven" تعني بالعربية...',
+    options: ['ثلاجة', 'فرن', 'خلاط', 'غسالة'],
+    correct: 1,
+    explanation: 'Oven = فرن',
+  },
+  {
+    id: 'fq5', type: 'situation',
+    question: 'في المقهى تريد أن تدفع. ماذا تقول؟',
+    options: [
+      'I want to leave',
+      'Can I have the bill, please?',
+      'Money please',
+      'How much is the café?',
+    ],
+    correct: 1,
+    explanation: 'Can I have the bill, please? = هل يمكنني الحساب من فضلك؟',
+  },
+  // Restaurant & Groceries (L5-6)
+  {
+    id: 'fq6', type: 'conversation',
+    question: 'النادل سأل: "How would you like your steak?" ماذا يعني؟',
+    options: ['كم تريد من الستيك؟', 'كيف تريد تحضير الستيك؟', 'هل تحب الستيك؟', 'من أين الستيك؟'],
+    correct: 1,
+    explanation: 'How would you like your steak? = كيف تريد درجة نضج الستيك؟ (rare, medium, well-done)',
+  },
+  {
+    id: 'fq7', type: 'mcq',
+    question: '"Watermelon" تعني بالعربية...',
+    options: ['شمام', 'بطيخ أحمر', 'أناناس', 'مانجو'],
+    correct: 1,
+    explanation: 'Watermelon = بطيخ أحمر / دلّاح',
+  },
+  {
+    id: 'fq8', type: 'truefalse',
+    question: 'صحيح أم خطأ: "Appetizer" تعني "الطبق الرئيسي"',
+    options: ['صحيح ✓', 'خطأ ✗'],
+    correct: 1,
+    explanation: 'خطأ! Appetizer = مقبّلات. Main course = الطبق الرئيسي',
+  },
+  // Supermarket & Pharmacy (L7-8)
+  {
+    id: 'fq9', type: 'situation',
+    question: 'تشعر بألم في المعدة وتريد إخبار الصيدلي. ماذا تقول؟',
+    options: [
+      'My head hurts',
+      'I have a stomachache',
+      'I feel dizzy',
+      'I can\'t sleep',
+    ],
+    correct: 1,
+    explanation: 'I have a stomachache = عندي ألم في المعدة',
+  },
+  {
+    id: 'fq10', type: 'fill',
+    question: 'أكمل: "Is this product ___?" (هل هذا المنتج عضوي)',
+    options: ['cheap', 'organic', 'big', 'new'],
+    correct: 1,
+    explanation: 'organic = عضوي/طبيعي',
+  },
+  // Bakery & Clothes (L9-10)
+  {
+    id: 'fq11', type: 'mcq',
+    question: '"Croissant" في المخبزة هو...',
+    options: ['كعكة بالشوكولا', 'خبز مدوّر', 'معجنات هلالية الشكل', 'بسكويت'],
+    correct: 2,
+    explanation: 'Croissant = كرواسون (معجنات هلالية الشكل)',
+  },
+  {
+    id: 'fq12', type: 'conversation',
+    question: 'قال البائع: "It looks great on you!" ماذا يعني؟',
+    options: ['إنه غالي عليك', 'إنه يبدو رائعاً عليك', 'إنه كبير عليك', 'إنه ليس لك'],
+    correct: 1,
+    explanation: 'It looks great on you! = إنه يبدو رائعاً عليك!',
+  },
+  {
+    id: 'fq13', type: 'fill',
+    question: 'أكمل: "I\'ll take it. Can you ___ it up?" (غلّفه لي)',
+    options: ['pick', 'wrap', 'pack', 'fold'],
+    correct: 1,
+    explanation: 'wrap it up = غلّفه / لفّه',
+  },
+  // Laundry & Clinic (L11-12)
+  {
+    id: 'fq14', type: 'situation',
+    question: 'ملابسك بها بقعة صعبة. ماذا تقول للمغسلة؟',
+    options: [
+      'Wash it fast',
+      'There\'s a tough stain here. Can you remove it?',
+      'This shirt is old',
+      'I don\'t like this color',
+    ],
+    correct: 1,
+    explanation: 'tough stain = بقعة صعبة. Can you remove it? = هل يمكنك إزالتها؟',
+  },
+  {
+    id: 'fq15', type: 'mcq',
+    question: '"Take a deep breath" يقولها الطبيب بمعنى...',
+    options: ['اشرب ماء', 'خذ نفساً عميقاً', 'انتظر قليلاً', 'ارفع يدك'],
+    correct: 1,
+    explanation: 'Take a deep breath = خذ نفساً عميقاً',
+  },
+  {
+    id: 'fq16', type: 'truefalse',
+    question: 'صحيح أم خطأ: "Detergent" تعني "مُنعّم الأقمشة"',
+    options: ['صحيح ✓', 'خطأ ✗'],
+    correct: 1,
+    explanation: 'خطأ! Detergent = مسحوق/سائل الغسيل. Fabric softener = منعم الأقمشة',
+  },
+  // School, Market & Household (L13-15)
+  {
+    id: 'fq17', type: 'fill',
+    question: 'أكمل: "The teacher said: ___ to page 45"',
+    options: ['Go', 'Open', 'Turn', 'Read'],
+    correct: 2,
+    explanation: 'Turn to page 45 = اقلبوا إلى صفحة 45',
+  },
+  {
+    id: 'fq18', type: 'situation',
+    question: 'أنت في السوق وتريد تذوق الفاكهة قبل الشراء. ماذا تقول؟',
+    options: [
+      'Give me free fruit',
+      'Can I taste it before I buy?',
+      'I want to eat here',
+      'Is this food?',
+    ],
+    correct: 1,
+    explanation: 'Can I taste it before I buy? = هل يمكنني تذوقه قبل الشراء؟',
+  },
+  {
+    id: 'fq19', type: 'mcq',
+    question: '"Cinnamon" تعني بالعربية...',
+    options: ['كمون', 'قرفة', 'فلفل', 'كركم'],
+    correct: 1,
+    explanation: 'Cinnamon = قرفة',
+  },
+  {
+    id: 'fq20', type: 'conversation',
+    question: 'في المدرسة قال المعلم: "Hand in your homework." ماذا يعني؟',
+    options: ['اكتبوا الواجب', 'سلّموا واجبكم', 'افتحوا كتبكم', 'اخرجوا أقلامكم'],
+    correct: 1,
+    explanation: 'Hand in your homework = سلّموا/قدّموا واجبكم المنزلي',
+  },
+  // Travel & Hotel (L16-17)
+  {
+    id: 'fq21', type: 'fill',
+    question: 'أكمل: "I\'d like a room with a sea ___"',
+    options: ['look', 'view', 'picture', 'window'],
+    correct: 1,
+    explanation: 'sea view = إطلالة على البحر',
+  },
+  {
+    id: 'fq22', type: 'situation',
+    question: 'في المطار تريد معرفة بوابة الصعود. ماذا تسأل؟',
+    options: [
+      'Where is my plane?',
+      'Which gate is my flight?',
+      'When do I fly?',
+      'Is the plane big?',
+    ],
+    correct: 1,
+    explanation: 'Which gate is my flight? = أي بوابة رحلتي؟',
+  },
+  // Transport (L18)
+  {
+    id: 'fq23', type: 'mcq',
+    question: '"Fare" في التاكسي تعني...',
+    options: ['المسافة', 'الأجرة/التعرفة', 'السرعة', 'الوقت'],
+    correct: 1,
+    explanation: 'Fare = الأجرة / تعرفة النقل',
+  },
+  {
+    id: 'fq24', type: 'conversation',
+    question: 'سأل الراكب سائق التاكسي: "How long will it take?" ماذا يعني؟',
+    options: ['كم المسافة؟', 'كم سيستغرق الوقت؟', 'كم الثمن؟', 'أين نحن؟'],
+    correct: 1,
+    explanation: 'How long will it take? = كم سيستغرق من الوقت؟',
+  },
+  // Bank (L19-20)
+  {
+    id: 'fq25', type: 'fill',
+    question: 'أكمل: "I want to ___ money from my account"',
+    options: ['put', 'withdraw', 'send', 'make'],
+    correct: 1,
+    explanation: 'withdraw money = سحب نقود من الحساب',
+  },
+  {
+    id: 'fq26', type: 'truefalse',
+    question: 'صحيح أم خطأ: "Exchange rate" تعني "سعر الفائدة"',
+    options: ['صحيح ✓', 'خطأ ✗'],
+    correct: 1,
+    explanation: 'خطأ! Exchange rate = سعر الصرف. Interest rate = سعر الفائدة',
+  },
+  // Mixed comprehensive
+  {
+    id: 'fq27', type: 'situation',
+    question: 'تريد أن تسأل "أين أقرب صيدلية؟"',
+    options: [
+      'Is there a pharmacy?',
+      'Where is the nearest pharmacy?',
+      'I need a doctor',
+      'Pharmacy open?',
+    ],
+    correct: 1,
+    explanation: 'Where is the nearest pharmacy? = أين أقرب صيدلية؟',
+  },
+  {
+    id: 'fq28', type: 'mcq',
+    question: 'أي من هذه الجمل تستخدم "some" بشكل صحيح؟',
+    options: [
+      'I want some informations',
+      'Can I have some water?',
+      'She has some a friend',
+      'There is some books',
+    ],
+    correct: 1,
+    explanation: 'some + uncountable noun: some water. أو some + plural: some books',
+  },
+  {
+    id: 'fq29', type: 'fill',
+    question: 'أكمل: "Check-___ time is at 12 PM" (وقت المغادرة من الفندق)',
+    options: ['in', 'up', 'out', 'off'],
+    correct: 2,
+    explanation: 'Check-out = المغادرة. Check-in = الوصول/تسجيل الدخول',
+  },
+  {
+    id: 'fq30', type: 'conversation',
+    question: 'في كل المواقف، "Excuse me" تُستخدم عندما...',
+    options: [
+      'تريد الاعتذار عن خطأ كبير',
+      'تريد لفت انتباه شخص أو المرور بجانبه',
+      'تريد أن تقول وداعاً',
+      'تريد أن تشكر أحداً',
+    ],
+    correct: 1,
+    explanation: 'Excuse me = عذراً / لو سمحت (لجذب الانتباه أو الاستئذان)',
+  },
+]
+
 function generateFinalExam(): Question[] {
-  const all = UNITS.flatMap(u => u.questions)
-  return shuffle(all).slice(0, 25)
+  return shuffle(FINAL_EXAM_QUESTIONS)
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
