@@ -13,6 +13,8 @@ const NAV = [
   { href: '/practice', label: 'تدرب الآن' },
   { href: '/play',     label: '🎮 العب' },
   { href: '/map',      label: '🗺️ الخريطة' },
+  { href: '/a0',       label: '📝 امتحان A0' },
+  { href: '/a1',       label: '📝 امتحان A1' },
 ]
 
 export default function Header() {

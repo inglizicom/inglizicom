@@ -7,7 +7,8 @@ import {
   ArrowRight, RefreshCw, Home, MessageCircle,
   Shuffle, Link2, Blocks, Star, Crown, Timer,
   CheckCircle2, XCircle, Rocket, Target, ChevronUp,
-  Bug,
+  ChevronDown, ChevronLeft, ChevronRight,
+  Bug, Volume2, VolumeX,
 } from 'lucide-react'
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -68,6 +69,74 @@ function sfxLevelUp() {
   ;[440, 554, 659, 880, 1047].forEach((f, i) =>
     setTimeout(() => playTone(f, 0.25, 'triangle', 0.12), i * 80),
   )
+}
+
+function sfxEat() {
+  playTone(660, 0.06, 'sine', 0.12)
+  setTimeout(() => playTone(880, 0.08, 'sine', 0.15), 50)
+}
+
+function sfxSentenceComplete() {
+  ;[523, 659, 784, 1047, 1318].forEach((f, i) =>
+    setTimeout(() => playTone(f, 0.2, 'triangle', 0.14), i * 70),
+  )
+}
+
+function sfxCrash() {
+  playTone(150, 0.3, 'sawtooth', 0.12)
+  setTimeout(() => playTone(100, 0.4, 'sawtooth', 0.1), 100)
+}
+
+// ─── Snake BGM (Web Audio looping bass line) ────────────────────────────────
+let _bgmNodes: { osc1: OscillatorNode; osc2: OscillatorNode; gain: GainNode } | null = null
+
+function startBgm() {
+  const ctx = getCtx()
+  if (!ctx || _bgmNodes) return
+  const gain = ctx.createGain()
+  gain.gain.setValueAtTime(0.04, ctx.currentTime)
+  gain.connect(ctx.destination)
+
+  // Subtle bass pulse
+  const osc1 = ctx.createOscillator()
+  osc1.type = 'sine'
+  osc1.frequency.setValueAtTime(55, ctx.currentTime)
+  osc1.connect(gain)
+  osc1.start()
+
+  // Rhythmic hi-hat tick via high-pass filtered noise-like oscillator
+  const osc2 = ctx.createOscillator()
+  osc2.type = 'triangle'
+  osc2.frequency.setValueAtTime(110, ctx.currentTime)
+  const gain2 = ctx.createGain()
+  gain2.gain.setValueAtTime(0.02, ctx.currentTime)
+  osc2.connect(gain2)
+  gain2.connect(ctx.destination)
+  osc2.start()
+
+  // Pulse the bass for rhythm
+  const now = ctx.currentTime
+  for (let i = 0; i < 600; i++) {
+    const t = now + i * 0.5
+    gain.gain.setValueAtTime(0.04, t)
+    gain.gain.exponentialRampToValueAtTime(0.015, t + 0.25)
+    gain.gain.setValueAtTime(0.04, t + 0.25)
+    // Bass note changes
+    const notes = [55, 65, 55, 73]
+    osc1.frequency.setValueAtTime(notes[i % 4], t)
+  }
+
+  _bgmNodes = { osc1, osc2, gain }
+}
+
+function stopBgm() {
+  if (!_bgmNodes) return
+  try {
+    _bgmNodes.osc1.stop()
+    _bgmNodes.osc2.stop()
+    _bgmNodes.gain.disconnect()
+  } catch { /* ignore */ }
+  _bgmNodes = null
 }
 
 // ─── Teacher Hamza personality — funny Moroccan messages ─────────────────────
@@ -805,12 +874,12 @@ function SnakeGame({ onDone, onExit }: {
   onDone: (xp: number, sentences: number, bestCombo: number) => void
   onExit: () => void
 }) {
-  // Pick a random sentence for the current target
+  const [musicOn, setMusicOn] = useState(true)
+
   const pickSentence = useCallback(() => {
     return SNAKE_SENTENCES[Math.floor(Math.random() * SNAKE_SENTENCES.length)]
   }, [])
 
-  // Place a word at a random empty cell
   const placeWord = useCallback((snake: Cell[], existing: Map<string, string>, word: string): Cell => {
     const occupied = new Set([
       ...snake.map(s => cellKey(s.r, s.c)),
@@ -828,7 +897,7 @@ function SnakeGame({ onDone, onExit }: {
   const [snake, setSnake] = useState<Cell[]>([{ r: 5, c: 5 }, { r: 5, c: 4 }, { r: 5, c: 3 }])
   const [dir, setDir] = useState<Dir>('right')
   const [sentence, setSentence] = useState(() => pickSentence())
-  const [wordIdx, setWordIdx] = useState(0) // next word to eat
+  const [wordIdx, setWordIdx] = useState(0)
   const [wordCells, setWordCells] = useState<Map<string, string>>(new Map())
   const [gameOver, setGameOver] = useState(false)
   const [score, setScore] = useState(0)
@@ -836,9 +905,10 @@ function SnakeGame({ onDone, onExit }: {
   const [sentencesDone, setSentencesDone] = useState(0)
   const [combo, setCombo] = useState(0)
   const [bestCombo, setBestCombo] = useState(0)
-  const [speed, setSpeed] = useState(280) // ms per tick
+  const [speed, setSpeed] = useState(300)
   const [flash, setFlash] = useState<'correct' | 'wrong' | null>(null)
   const [collected, setCollected] = useState<string[]>([])
+  const [sentenceFlash, setSentenceFlash] = useState(false)
 
   const dirRef = useRef(dir)
   const snakeRef = useRef(snake)
@@ -853,14 +923,19 @@ function SnakeGame({ onDone, onExit }: {
   sentenceRef.current = sentence
   wordIdxRef.current = wordIdx
 
+  // Start/stop BGM
+  useEffect(() => {
+    if (musicOn && !gameOver) startBgm()
+    else stopBgm()
+    return () => stopBgm()
+  }, [musicOn, gameOver])
+
   // Place initial words
   useEffect(() => {
     const initial = new Map<string, string>()
     const s = snakeRef.current
-    // Place all words of current sentence + some distractors
     const words = sentenceRef.current.en
     const allWords = [...words]
-    // Add 2-3 distractor words
     const distractors = ['cat', 'run', 'big', 'why', 'red', 'the', 'can', 'you', 'no', 'yes', 'is', 'it']
     for (let i = 0; i < 3; i++) allWords.push(distractors[Math.floor(Math.random() * distractors.length)])
     shuffle(allWords).forEach(w => {
@@ -879,7 +954,6 @@ function SnakeGame({ onDone, onExit }: {
     setWordIdx(0)
     wordIdxRef.current = 0
     setCollected([])
-    // Add new words to grid
     setWordCells(prev => {
       const next = new Map(prev)
       const allWords = [...ns.en]
@@ -907,7 +981,7 @@ function SnakeGame({ onDone, onExit }: {
     return () => window.removeEventListener('keydown', handler)
   }, [])
 
-  // Swipe controls
+  // Swipe controls (on the whole game area)
   const touchStart = useRef<{ x: number; y: number } | null>(null)
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
@@ -946,9 +1020,9 @@ function SnakeGame({ onDone, onExit }: {
       if (nc < 0) nc = GRID_COLS - 1
       if (nc >= GRID_COLS) nc = 0
 
-      // Check self-collision
+      // Self-collision
       if (s.some(seg => seg.r === nr && seg.c === nc)) {
-        sfxWrong()
+        sfxCrash()
         gameOverRef.current = true
         setGameOver(true)
         return
@@ -962,8 +1036,7 @@ function SnakeGame({ onDone, onExit }: {
       if (hitWord) {
         const target = sentenceRef.current.en[wordIdxRef.current]
         if (hitWord === target) {
-          // Correct word!
-          sfxCorrect()
+          sfxEat()
           const newIdx = wordIdxRef.current + 1
           setWordIdx(newIdx)
           wordIdxRef.current = newIdx
@@ -974,34 +1047,32 @@ function SnakeGame({ onDone, onExit }: {
           setFlash('correct')
           setTimeout(() => setFlash(null), 400)
 
-          // Remove word from grid
           setWordCells(prev => { const n = new Map(prev); n.delete(key); return n })
           wordCellsRef.current = new Map(wordCellsRef.current)
           wordCellsRef.current.delete(key)
 
-          // Grow snake (don't pop tail)
+          // Grow snake
           setSnake([newHead, ...s])
           snakeRef.current = [newHead, ...s]
 
           // Sentence complete?
           if (newIdx >= sentenceRef.current.en.length) {
-            sfxLevelUp()
+            sfxSentenceComplete()
             setSentencesDone(sd => sd + 1)
+            setSentenceFlash(true)
+            setTimeout(() => setSentenceFlash(false), 800)
             setScore(sc => sc + 50)
             setXp(x => x + 50)
-            // Speed up slightly (min 120ms)
             setSpeed(sp => Math.max(120, sp - 12))
             setTimeout(() => spawnNewSentence(), 600)
           }
         } else {
-          // Wrong word — game over!
-          sfxWrong()
+          sfxCrash()
           gameOverRef.current = true
           setGameOver(true)
           return
         }
       } else {
-        // Move normally — pop tail
         const ns = [newHead, ...s.slice(0, -1)]
         setSnake(ns)
         snakeRef.current = ns
@@ -1010,43 +1081,54 @@ function SnakeGame({ onDone, onExit }: {
     return () => clearInterval(tick)
   }, [gameOver, speed, spawnNewSentence])
 
+  // Handle exit — stop music
+  const handleExit = () => { stopBgm(); onExit() }
+  const handleDone = () => { stopBgm(); onDone(xp, sentencesDone, bestCombo) }
+
   // Game over screen
   if (gameOver) {
     const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(`مرحباً تيتشر حمزة! لعبت Word Snake في إنجليزي.كوم وأكملت ${sentencesDone} جملة وحصلت على ${xp} XP! 🐍🔥`)}`
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100dvh-70px)] px-4 relative z-10">
-        <div className="w-full max-w-sm rounded-2xl bg-gradient-to-br from-red-900/40 via-orange-900/30 to-amber-900/40 border border-white/[0.08] p-6 text-center shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 via-orange-500 to-amber-500" />
-          <div className="text-5xl mb-2" style={{ animation: 'bounceIn 0.6s ease-out' }}>🐍</div>
-          <h2 className="text-2xl font-black text-white mb-1">انتهت اللعبة!</h2>
-          <p className="text-white/50 text-xs mb-4">{sentencesDone > 0 ? randomFrom(HAMZA_CORRECT) : 'حاول مرة أخرى!'}</p>
+        <style jsx>{`
+          @keyframes snakeSlither { 0%,100%{transform:rotate(-5deg) scale(1)} 50%{transform:rotate(5deg) scale(1.1)} }
+          @keyframes glowPulse { 0%,100%{box-shadow:0 0 20px rgba(249,115,22,0.3)} 50%{box-shadow:0 0 40px rgba(249,115,22,0.5)} }
+        `}</style>
+        <div className="w-full max-w-sm rounded-2xl bg-gradient-to-br from-orange-950/60 via-red-950/40 to-amber-950/60 border border-orange-500/20 p-6 text-center shadow-2xl relative overflow-hidden"
+          style={{ animation: 'glowPulse 2s ease-in-out infinite' }}>
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-red-500 via-orange-400 to-amber-400" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(249,115,22,0.1),transparent_60%)]" />
 
-          <div className="grid grid-cols-3 gap-2 mb-4">
-            <div className="rounded-xl bg-violet-500/10 border border-violet-500/20 py-2 px-1.5">
+          <div className="text-6xl mb-3 relative" style={{ animation: 'snakeSlither 1.5s ease-in-out infinite' }}>🐍</div>
+          <h2 className="text-2xl font-black text-white mb-1">انتهت اللعبة!</h2>
+          <p className="text-orange-200/60 text-xs mb-4">{sentencesDone > 0 ? randomFrom(HAMZA_CORRECT) : 'حاول مرة أخرى! 💪'}</p>
+
+          <div className="grid grid-cols-3 gap-2 mb-5">
+            <div className="rounded-xl bg-violet-500/15 border border-violet-500/25 py-2.5 px-1.5">
               <Zap className="w-4 h-4 text-violet-400 mx-auto mb-0.5" />
-              <p className="text-lg font-black text-violet-200">+{xp}</p>
-              <p className="text-[9px] text-white/30">XP</p>
+              <p className="text-xl font-black text-violet-200">+{xp}</p>
+              <p className="text-[9px] text-white/30 font-bold">XP</p>
             </div>
-            <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 py-2 px-1.5">
+            <div className="rounded-xl bg-emerald-500/15 border border-emerald-500/25 py-2.5 px-1.5">
               <Target className="w-4 h-4 text-emerald-400 mx-auto mb-0.5" />
-              <p className="text-lg font-black text-emerald-200">{sentencesDone}</p>
-              <p className="text-[9px] text-white/30">جمل</p>
+              <p className="text-xl font-black text-emerald-200">{sentencesDone}</p>
+              <p className="text-[9px] text-white/30 font-bold">جمل</p>
             </div>
-            <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 py-2 px-1.5">
+            <div className="rounded-xl bg-amber-500/15 border border-amber-500/25 py-2.5 px-1.5">
               <Flame className="w-4 h-4 text-amber-400 mx-auto mb-0.5" />
-              <p className="text-lg font-black text-amber-200">{bestCombo}</p>
-              <p className="text-[9px] text-white/30">كومبو</p>
+              <p className="text-xl font-black text-amber-200">{bestCombo}</p>
+              <p className="text-[9px] text-white/30 font-bold">كومبو</p>
             </div>
           </div>
 
           <div className="space-y-2">
-            <button onClick={() => onDone(xp, sentencesDone, bestCombo)}
-              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-extrabold py-3 rounded-xl transition-all shadow-lg active:scale-95 text-sm">
+            <button onClick={handleDone}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-white font-extrabold py-3.5 rounded-xl transition-all shadow-[0_4px_20px_rgba(249,115,22,0.4)] active:scale-95 text-sm">
               <RefreshCw className="w-4 h-4" /> العب مرة أخرى
             </button>
             <div className="grid grid-cols-2 gap-2">
-              <button onClick={onExit}
-                className="flex items-center justify-center gap-1.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-white/60 font-bold py-2.5 rounded-xl transition-all text-xs">
+              <button onClick={handleExit}
+                className="flex items-center justify-center gap-1.5 bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.1] text-white/60 hover:text-white font-bold py-2.5 rounded-xl transition-all text-xs">
                 <Home className="w-3.5 h-3.5" /> القائمة
               </button>
               <a href={waUrl} target="_blank" rel="noopener noreferrer"
@@ -1063,72 +1145,120 @@ function SnakeGame({ onDone, onExit }: {
   // Build grid data
   const snakeSet = new Set(snake.map(s => cellKey(s.r, s.c)))
   const headKey = cellKey(snake[0].r, snake[0].c)
+  // Compute snake body index for gradient coloring
+  const snakeMap = new Map<string, number>()
+  snake.forEach((s, i) => snakeMap.set(cellKey(s.r, s.c), i))
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-70px)] max-w-lg mx-auto px-2 sm:px-4 py-3 relative z-10 select-none"
+    <div className="flex flex-col h-[calc(100dvh-70px)] max-w-lg mx-auto px-2 sm:px-4 py-2 relative z-10 select-none"
       onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
 
+      <style jsx>{`
+        @keyframes neonGlow { 0%,100%{box-shadow:0 0 8px rgba(52,211,153,0.4), inset 0 0 4px rgba(52,211,153,0.1)} 50%{box-shadow:0 0 16px rgba(52,211,153,0.6), inset 0 0 8px rgba(52,211,153,0.2)} }
+        @keyframes targetPulse { 0%,100%{box-shadow:0 0 6px rgba(251,191,36,0.3)} 50%{box-shadow:0 0 14px rgba(251,191,36,0.6)} }
+        @keyframes sentenceGlow { 0%{background:rgba(16,185,129,0.2)} 100%{background:transparent} }
+        @keyframes dpadPress { 0%{transform:scale(1)} 50%{transform:scale(0.88)} 100%{transform:scale(1)} }
+      `}</style>
+
       {/* Top bar */}
-      <div className="flex items-center justify-between gap-2 mb-2">
-        <button onClick={onExit} className="text-white/40 hover:text-white transition-colors p-1">
+      <div className="flex items-center justify-between gap-2 mb-1.5">
+        <button onClick={handleExit} className="text-white/40 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/[0.06]">
           <Home className="w-4 h-4" />
         </button>
-        <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1 bg-violet-500/15 border border-violet-500/25 px-2 py-0.5 rounded-full text-violet-200 text-[11px] font-bold">
+        <div className="flex items-center gap-1.5">
+          <span className="flex items-center gap-1 bg-violet-500/15 border border-violet-500/25 px-2.5 py-1 rounded-full text-violet-200 text-[11px] font-bold">
             <Zap className="w-3 h-3" />+{xp}
           </span>
-          <span className="flex items-center gap-1 bg-emerald-500/15 border border-emerald-500/25 px-2 py-0.5 rounded-full text-emerald-200 text-[11px] font-bold">
+          <span className="flex items-center gap-1 bg-emerald-500/15 border border-emerald-500/25 px-2.5 py-1 rounded-full text-emerald-200 text-[11px] font-bold">
             🐍 {sentencesDone}
           </span>
           {combo > 1 && (
-            <span className="flex items-center gap-1 bg-amber-500/15 border border-amber-500/25 px-2 py-0.5 rounded-full text-amber-200 text-[11px] font-bold animate-pulse">
+            <span className="flex items-center gap-1 bg-amber-500/15 border border-amber-500/25 px-2.5 py-1 rounded-full text-amber-200 text-[11px] font-bold animate-pulse">
               <Flame className="w-3 h-3" />×{combo}
             </span>
           )}
+          <button onClick={() => setMusicOn(m => !m)}
+            className="p-1.5 rounded-lg text-white/30 hover:text-white/60 hover:bg-white/[0.06] transition-all">
+            {musicOn ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+          </button>
         </div>
       </div>
 
       {/* Sentence target */}
-      <div className={`rounded-xl border p-2.5 mb-2 text-center transition-colors ${
-        flash === 'correct' ? 'bg-emerald-500/15 border-emerald-400/30' : flash === 'wrong' ? 'bg-red-500/15 border-red-400/30' : 'bg-white/[0.03] border-white/[0.06]'
+      <div className={`rounded-xl border p-2.5 mb-1.5 text-center transition-all duration-300 ${
+        sentenceFlash ? 'bg-emerald-500/20 border-emerald-400/40 shadow-[0_0_20px_rgba(16,185,129,0.2)]'
+        : flash === 'correct' ? 'bg-emerald-500/15 border-emerald-400/30'
+        : flash === 'wrong' ? 'bg-red-500/15 border-red-400/30'
+        : 'bg-white/[0.03] border-white/[0.08]'
       }`}>
         <p className="text-white/40 text-[10px] font-bold mb-1" dir="rtl">{sentence.ar}</p>
-        <div className="flex flex-wrap items-center justify-center gap-1" dir="ltr">
+        <div className="flex flex-wrap items-center justify-center gap-1.5" dir="ltr">
           {sentence.en.map((w, i) => (
-            <span key={i} className={`text-xs font-bold px-1.5 py-0.5 rounded ${
-              i < wordIdx ? 'bg-emerald-500/20 text-emerald-300 line-through' : i === wordIdx ? 'bg-amber-500/20 text-amber-200 animate-pulse' : 'text-white/30'
+            <span key={i} className={`text-xs font-bold px-2 py-0.5 rounded-md transition-all duration-200 ${
+              i < wordIdx
+                ? 'bg-emerald-500/25 text-emerald-300 line-through'
+                : i === wordIdx
+                  ? 'bg-amber-500/25 text-amber-200 shadow-[0_0_10px_rgba(251,191,36,0.3)] animate-pulse'
+                  : 'text-white/25 bg-white/[0.03]'
             }`}>{w}</span>
           ))}
         </div>
         {collected.length > 0 && (
-          <p className="text-emerald-300/60 text-[10px] mt-1 font-bold" dir="ltr">{collected.join(' ')}</p>
+          <p className="text-emerald-300/50 text-[10px] mt-1 font-bold" dir="ltr">{collected.join(' ')}</p>
         )}
       </div>
 
-      {/* Game grid */}
+      {/* Game grid — neon style */}
       <div className="flex-1 flex items-center justify-center min-h-0">
-        <div className="w-full aspect-square max-h-full grid border border-white/[0.08] rounded-xl overflow-hidden bg-black/30"
-          style={{ gridTemplateColumns: `repeat(${GRID_COLS}, 1fr)`, gridTemplateRows: `repeat(${GRID_ROWS}, 1fr)` }}>
+        <div className="w-full aspect-square max-h-full grid rounded-xl overflow-hidden border border-emerald-500/10"
+          style={{
+            gridTemplateColumns: `repeat(${GRID_COLS}, 1fr)`,
+            gridTemplateRows: `repeat(${GRID_ROWS}, 1fr)`,
+            background: 'linear-gradient(180deg, rgba(0,20,15,0.9) 0%, rgba(0,10,20,0.95) 100%)',
+            boxShadow: '0 0 30px rgba(16,185,129,0.08), inset 0 0 30px rgba(0,0,0,0.3)',
+          }}>
           {Array.from({ length: GRID_ROWS }).map((_, r) =>
             Array.from({ length: GRID_COLS }).map((_, c) => {
               const k = cellKey(r, c)
               const isHead = k === headKey
               const isSnake = snakeSet.has(k)
+              const bodyIdx = snakeMap.get(k) ?? -1
               const word = wordCells.get(k)
               const isTarget = word === sentence.en[wordIdx]
+
+              // Snake body gradient: head is brightest, tail fades
+              const snakeOpacity = isSnake ? Math.max(0.2, 1 - bodyIdx * 0.08) : 0
+
               return (
-                <div key={k} className={`relative flex items-center justify-center border border-white/[0.03] text-[7px] sm:text-[9px] font-bold leading-none overflow-hidden ${
-                  isHead ? 'bg-emerald-400 rounded-sm z-10'
-                  : isSnake ? 'bg-emerald-500/60'
-                  : word
-                    ? isTarget
-                      ? 'bg-amber-500/25 animate-pulse'
-                      : 'bg-white/[0.04]'
-                    : ''
-                }`}>
-                  {isHead && <span className="text-[10px] sm:text-xs">🐍</span>}
+                <div key={k} className={`relative flex items-center justify-center text-[7px] sm:text-[9px] font-bold leading-none overflow-hidden transition-colors duration-100 ${
+                  isHead ? 'z-10'
+                  : word && isTarget ? ''
+                  : word ? ''
+                  : ''
+                }`}
+                style={{
+                  borderRight: c < GRID_COLS - 1 ? '1px solid rgba(16,185,129,0.06)' : 'none',
+                  borderBottom: r < GRID_ROWS - 1 ? '1px solid rgba(16,185,129,0.06)' : 'none',
+                  ...(isHead ? {
+                    background: 'linear-gradient(135deg, #34d399, #10b981)',
+                    borderRadius: '4px',
+                    boxShadow: '0 0 12px rgba(52,211,153,0.6), 0 0 4px rgba(52,211,153,0.8)',
+                  } : isSnake ? {
+                    background: `rgba(16,185,129,${snakeOpacity * 0.7})`,
+                    boxShadow: snakeOpacity > 0.5 ? `0 0 6px rgba(52,211,153,${snakeOpacity * 0.3})` : 'none',
+                    borderRadius: '2px',
+                  } : word && isTarget ? {
+                    background: 'rgba(251,191,36,0.15)',
+                    boxShadow: '0 0 10px rgba(251,191,36,0.2)',
+                  } : word ? {
+                    background: 'rgba(255,255,255,0.04)',
+                  } : {}),
+                }}>
+                  {isHead && <span className="text-[11px] sm:text-sm drop-shadow-lg">🐍</span>}
                   {!isSnake && word && (
-                    <span className={`truncate px-0.5 ${isTarget ? 'text-amber-200' : 'text-white/50'}`}>{word}</span>
+                    <span className={`truncate px-0.5 ${
+                      isTarget ? 'text-amber-300 font-extrabold drop-shadow-[0_0_4px_rgba(251,191,36,0.5)]' : 'text-white/40'
+                    }`}>{word}</span>
                   )}
                 </div>
               )
@@ -1137,35 +1267,59 @@ function SnakeGame({ onDone, onExit }: {
         </div>
       </div>
 
-      {/* D-pad for mobile */}
-      <div className="flex items-center justify-center gap-1 mt-2 sm:hidden">
-        <div className="grid grid-cols-3 gap-1 w-32">
+      {/* D-pad for mobile — bigger, colored, proper icons */}
+      <div className="flex items-center justify-center mt-2 sm:hidden">
+        <div className="grid grid-cols-3 gap-1.5 w-40">
           <div />
-          <button onTouchStart={() => { if (dirRef.current !== 'down') setDir('up') }}
-            className="w-10 h-10 bg-white/[0.06] border border-white/[0.1] rounded-lg flex items-center justify-center text-white/60 active:bg-white/[0.15] active:scale-95 transition-all">
-            <ArrowRight className="w-4 h-4 -rotate-90" />
+          <button
+            onTouchStart={(e) => { e.preventDefault(); if (dirRef.current !== 'down') { setDir('up'); sfxClick() } }}
+            className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all active:scale-90 ${
+              dir === 'up'
+                ? 'bg-emerald-500/30 border-2 border-emerald-400/50 text-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.3)]'
+                : 'bg-white/[0.08] border border-white/[0.12] text-white/50 active:bg-emerald-500/20'
+            }`}>
+            <ChevronUp className="w-6 h-6" />
           </button>
           <div />
-          <button onTouchStart={() => { if (dirRef.current !== 'right') setDir('left') }}
-            className="w-10 h-10 bg-white/[0.06] border border-white/[0.1] rounded-lg flex items-center justify-center text-white/60 active:bg-white/[0.15] active:scale-95 transition-all">
-            <ArrowRight className="w-4 h-4 rotate-180" />
+
+          <button
+            onTouchStart={(e) => { e.preventDefault(); if (dirRef.current !== 'right') { setDir('left'); sfxClick() } }}
+            className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all active:scale-90 ${
+              dir === 'left'
+                ? 'bg-emerald-500/30 border-2 border-emerald-400/50 text-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.3)]'
+                : 'bg-white/[0.08] border border-white/[0.12] text-white/50 active:bg-emerald-500/20'
+            }`}>
+            <ChevronLeft className="w-6 h-6" />
           </button>
-          <div className="w-10 h-10 flex items-center justify-center text-white/20 text-lg">🐍</div>
-          <button onTouchStart={() => { if (dirRef.current !== 'left') setDir('right') }}
-            className="w-10 h-10 bg-white/[0.06] border border-white/[0.1] rounded-lg flex items-center justify-center text-white/60 active:bg-white/[0.15] active:scale-95 transition-all">
-            <ArrowRight className="w-4 h-4" />
+          <div className="w-12 h-12 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-sm">🐍</div>
+          </div>
+          <button
+            onTouchStart={(e) => { e.preventDefault(); if (dirRef.current !== 'left') { setDir('right'); sfxClick() } }}
+            className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all active:scale-90 ${
+              dir === 'right'
+                ? 'bg-emerald-500/30 border-2 border-emerald-400/50 text-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.3)]'
+                : 'bg-white/[0.08] border border-white/[0.12] text-white/50 active:bg-emerald-500/20'
+            }`}>
+            <ChevronRight className="w-6 h-6" />
           </button>
+
           <div />
-          <button onTouchStart={() => { if (dirRef.current !== 'up') setDir('down') }}
-            className="w-10 h-10 bg-white/[0.06] border border-white/[0.1] rounded-lg flex items-center justify-center text-white/60 active:bg-white/[0.15] active:scale-95 transition-all">
-            <ArrowRight className="w-4 h-4 rotate-90" />
+          <button
+            onTouchStart={(e) => { e.preventDefault(); if (dirRef.current !== 'up') { setDir('down'); sfxClick() } }}
+            className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all active:scale-90 ${
+              dir === 'down'
+                ? 'bg-emerald-500/30 border-2 border-emerald-400/50 text-emerald-300 shadow-[0_0_12px_rgba(52,211,153,0.3)]'
+                : 'bg-white/[0.08] border border-white/[0.12] text-white/50 active:bg-emerald-500/20'
+            }`}>
+            <ChevronDown className="w-6 h-6" />
           </button>
           <div />
         </div>
       </div>
 
-      <p className="text-center text-white/20 text-[9px] mt-1.5 hidden sm:block">
-        استخدم الأسهم أو WASD للتحكم · كل الكلمات الخاطئة تنهي اللعبة
+      <p className="text-center text-white/15 text-[9px] mt-1 hidden sm:block">
+        استخدم الأسهم أو WASD للتحكم · كُل الكلمة الصحيحة = نقاط · الكلمة الغلط = انتهت اللعبة
       </p>
     </div>
   )
