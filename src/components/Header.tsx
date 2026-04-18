@@ -30,6 +30,11 @@ export default function Header() {
 
   useEffect(() => { setOpen(false) }, [pathname])
 
+  useEffect(() => {
+    document.body.style.overflow = open ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [open])
+
   return (
     <header
       className={`fixed top-0 right-0 left-0 z-50 bg-brand-700 transition-shadow duration-300 ${
@@ -91,24 +96,33 @@ export default function Header() {
         </button>
       </div>
 
+      {/* ── Mobile Backdrop ── */}
+      <div
+        onClick={() => setOpen(false)}
+        className={`lg:hidden fixed inset-0 top-[60px] bg-black/40 transition-opacity duration-300 ${
+          open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        aria-hidden="true"
+      />
+
       {/* ── Mobile Drawer ── */}
       <div
-        className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-          open ? 'max-h-[520px] opacity-100' : 'max-h-0 opacity-0'
+        className={`lg:hidden absolute top-full left-0 right-0 transition-all duration-300 ease-in-out ${
+          open ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-2 pointer-events-none'
         }`}
       >
-        <div className="mx-4 mb-4 rounded-2xl overflow-hidden bg-white shadow-[0_12px_40px_rgba(0,0,0,0.18)]">
-          <nav className="p-3 flex flex-col gap-1" dir="rtl">
+        <div className="mx-3 mt-2 mb-4 rounded-2xl overflow-hidden bg-white shadow-[0_12px_40px_rgba(0,0,0,0.25)] max-h-[calc(100vh-80px)] overflow-y-auto">
+          <nav className="p-2.5 flex flex-col gap-0.5" dir="rtl">
             {NAV.map(link => {
               const active = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href))
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`px-5 py-3.5 rounded-xl text-base no-underline transition-colors duration-150 ${
+                  className={`px-4 py-3 rounded-xl text-[15px] no-underline transition-colors duration-150 ${
                     active
                       ? 'font-bold text-brand-700 bg-brand-50'
-                      : 'font-semibold text-gray-700 hover:bg-gray-50'
+                      : 'font-semibold text-gray-700 hover:bg-gray-50 active:bg-gray-100'
                   }`}
                 >
                   {link.label}
@@ -118,9 +132,9 @@ export default function Header() {
             <div className="px-1 pt-2 pb-1">
               <Link
                 href="/onboarding"
-                className="flex items-center justify-center w-full py-4 rounded-xl text-base font-extrabold no-underline bg-brand-700 text-white shadow-[0_4px_16px_rgba(29,78,216,0.35)]"
+                className="flex items-center justify-center w-full py-3.5 rounded-xl text-base font-extrabold no-underline bg-brand-700 text-white shadow-[0_4px_16px_rgba(29,78,216,0.35)]"
               >
-                ابدأ الآن 🚀
+                ابدأ الآن
               </Link>
             </div>
           </nav>
