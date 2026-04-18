@@ -1,19 +1,10 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Clock, ArrowLeft, BookOpen } from 'lucide-react'
-import { articles } from '@/data/articles'
+import { fetchPublishedArticles } from '@/lib/articles-db'
+import type { Article } from '@/data/articles'
 import FadeIn from './FadeIn'
 
-/* ── Pick the 3 most prominent articles to showcase ───────────
-   Strategy: featured first, then fill with the next most recent.
-───────────────────────────────────────────────────────────── */
-const SHOWCASE = (() => {
-  const featured = articles.find(a => a.featured)
-  const rest     = articles.filter(a => !a.featured)
-  return featured ? [featured, ...rest].slice(0, 3) : articles.slice(0, 3)
-})()
-
-/* ── Category accent colors used on the card image overlay ── */
 const OVERLAY_GRADIENTS: Record<string, string> = {
   'نصائح التعلم':   'from-blue-600/80',
   'النطق والكلام':  'from-emerald-600/80',
@@ -22,8 +13,12 @@ const OVERLAY_GRADIENTS: Record<string, string> = {
   'إنجليزية العمل': 'from-violet-600/80',
 }
 
-/* ─────────────────────────────────────────────────────────── */
-export default function LatestArticles() {
+export default async function LatestArticles() {
+  const all = await fetchPublishedArticles()
+  const featured = all.find(a => a.featured)
+  const rest     = all.filter(a => !a.featured)
+  const showcase = (featured ? [featured, ...rest] : all).slice(0, 3)
+
   return (
     <section className="py-24 bg-gradient-to-b from-white to-slate-50 relative overflow-hidden">
 
@@ -77,7 +72,7 @@ export default function LatestArticles() {
 
         {/* ── Cards grid ── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-          {SHOWCASE.map((article, i) => {
+          {showcase.map((article, i) => {
             const overlayFrom = OVERLAY_GRADIENTS[article.category] ?? 'from-indigo-600/80'
             return (
               <FadeIn key={article.slug} delay={i * 110}>
@@ -121,7 +116,7 @@ export default function LatestArticles() {
 
 /* ─── Article card ─────────────────────────────────────────── */
 interface CardProps {
-  article: (typeof articles)[number]
+  article: Article
   overlayFrom: string
   index: number
 }

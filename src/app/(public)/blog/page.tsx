@@ -1,26 +1,26 @@
-import { Suspense } from 'react'
-import { BookOpen, Search } from 'lucide-react'
-import { articles, categories } from '@/data/articles'
+import { BookOpen } from 'lucide-react'
+import { categories } from '@/data/articles'
+import { fetchPublishedArticles } from '@/lib/articles-db'
 import ArticleCard from '@/components/ArticleCard'
 import FadeIn from '@/components/FadeIn'
 
-/* ─────────────────────────────────────────
-   This is a Server Component — no 'use client'.
-   Category filter is done via searchParams (URL).
-───────────────────────────────────────── */
+export const dynamic = 'force-dynamic'
+
 interface PageProps {
   searchParams: { category?: string }
 }
 
-export default function BlogPage({ searchParams }: PageProps) {
+export default async function BlogPage({ searchParams }: PageProps) {
   const activeCategory = searchParams.category ?? 'الكل'
+
+  const articles = await fetchPublishedArticles()
 
   const filtered =
     activeCategory === 'الكل'
       ? articles
       : articles.filter(a => a.category === activeCategory)
 
-  const featured  = articles.find(a => a.featured)!
+  const featured  = articles.find(a => a.featured)
   const rest      = filtered.filter(a => !a.featured || activeCategory !== 'الكل')
 
   return (
@@ -82,7 +82,7 @@ export default function BlogPage({ searchParams }: PageProps) {
           </FadeIn>
 
           {/* ── Featured (only on 'الكل') ── */}
-          {activeCategory === 'الكل' && (
+          {activeCategory === 'الكل' && featured && (
             <FadeIn delay={50}>
               <div className="mb-10">
                 <ArticleCard article={featured} variant="featured" />

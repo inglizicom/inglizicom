@@ -1,13 +1,19 @@
 import Link from 'next/link'
-import { Shield, LayoutDashboard, FileEdit } from 'lucide-react'
+import { Shield, LayoutDashboard, FileEdit, Lock, FileText, BookOpen, Database } from 'lucide-react'
+import AdminGuard from './AdminGuard'
 
 const navItems = [
-  { href: '/admin',         label: 'Dashboard',      icon: LayoutDashboard },
-  { href: '/admin/content', label: 'Content Studio',  icon: FileEdit },
+  { href: '/admin',           label: 'Dashboard',      icon: LayoutDashboard },
+  { href: '/admin/access',    label: 'Access',         icon: Lock },
+  { href: '/admin/articles',  label: 'Articles',       icon: FileText },
+  { href: '/admin/lessons',   label: 'Lessons',        icon: BookOpen },
+  { href: '/admin/content',   label: 'Listen Studio',  icon: FileEdit },
+  { href: '/admin/bootstrap', label: 'Bootstrap',      icon: Database },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
+    <AdminGuard>
     <div className="min-h-screen flex flex-col bg-gray-50" dir="ltr">
 
       {/* ── Admin header ── */}
@@ -48,5 +54,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {children}
       </div>
     </div>
+    </AdminGuard>
   )
 }

@@ -2,7 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Clock, ArrowRight, User, Tag, Share2 } from 'lucide-react'
-import { getArticleBySlug, getRelatedArticles, getRecentArticles } from '@/data/articles'
+import { fetchArticleBySlug, fetchRelatedArticles, fetchRecentArticles } from '@/lib/articles-db'
 import type { BlockType } from '@/data/articles'
 import BlogSidebar from '@/components/BlogSidebar'
 import ArticleCard from '@/components/ArticleCard'
@@ -156,12 +156,16 @@ function ShareButtons({ title }: { title: string }) {
 /* ──────────────────────────────────────────────
    PAGE
 ──────────────────────────────────────────────── */
-export default function ArticlePage({ params }: { params: { slug: string } }) {
-  const article  = getArticleBySlug(params.slug)
-  if (!article) notFound()
+export const dynamic = 'force-dynamic'
 
-  const related  = getRelatedArticles(article.slug, article.category, 3)
-  const recent   = getRecentArticles(5)
+export default async function ArticlePage({ params }: { params: { slug: string } }) {
+  const article  = await fetchArticleBySlug(params.slug)
+  if (!article || article.status !== 'published') notFound()
+
+  const [related, recent] = await Promise.all([
+    fetchRelatedArticles(article.slug, article.category, 3),
+    fetchRecentArticles(5),
+  ])
 
   return (
     <>
@@ -321,8 +325,3 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
   )
 }
 
-/* Static params for build */
-export async function generateStaticParams() {
-  const { articles } = await import('@/data/articles')
-  return articles.map(a => ({ slug: a.slug }))
-}

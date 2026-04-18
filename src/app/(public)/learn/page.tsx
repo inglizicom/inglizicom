@@ -4,7 +4,8 @@ import { useState, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useGameState } from '@/lib/useGameState'
 import { XP_CORRECT_ANSWER, XP_LESSON_COMPLETE, XP_PERFECT_BONUS } from '@/lib/game'
-import { LessonData, Exercise, LESSONS_DATA, LESSONS_MAP } from '@/data/lessons-data'
+import type { LessonData, Exercise } from '@/data/lessons-data'
+import { fetchPublishedLessons } from '@/lib/lessons-db'
 import { playClick, playCorrect, playWrong, playReward } from '@/lib/sounds'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -978,17 +979,18 @@ function LessonPlayer({
 // ─── Lesson List ──────────────────────────────────────────────────────────────
 
 function LessonList({
-  onSelect, totalXp, completedIds,
+  onSelect, totalXp, completedIds, lessons,
 }: {
   onSelect: (l: Lesson) => void
   totalXp: number
   completedIds: string[]
+  lessons: Lesson[]
 }) {
   const completed = completedIds
 
   const byLevel = ['A0', 'A1', 'A2', 'B1'].map(lvl => ({
     lvl,
-    lessons: LESSONS_DATA.filter((l: Lesson) => l.level === lvl),
+    lessons: lessons.filter((l: Lesson) => l.level === lvl),
   })).filter(g => g.lessons.length > 0)
 
   return (
@@ -1124,6 +1126,8 @@ function LearnInner() {
   const searchParams = useSearchParams()
   const [active,    setActive]    = useState<Lesson | null>(null)
   const [islandId,  setIslandId]  = useState<string>('standalone')
+  const [lessons,   setLessons]   = useState<Lesson[]>([])
+  const [loading,   setLoading]   = useState(true)
 
   const game = useGameState()
 
@@ -1140,13 +1144,32 @@ function LearnInner() {
   const streak  = game.profile?.streak ?? 0
 
   useEffect(() => {
+    fetchPublishedLessons().then(rows => {
+      setLessons(rows as Lesson[])
+      setLoading(false)
+    })
+  }, [])
+
+  useEffect(() => {
+    if (loading) return
     const lessonId = searchParams.get('id')
     setIslandId(lessonId ?? 'standalone')
     if (lessonId) {
-      const lesson = LESSONS_MAP[lessonId]
+      const lesson = lessons.find(l => l.id === lessonId)
       if (lesson) setActive(lesson)
     }
-  }, [searchParams])
+  }, [searchParams, loading, lessons])
+
+  if (loading) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: 'linear-gradient(160deg,#060d1a 0%,#0a1120 60%,#060d1a 100%)' }}
+      >
+        <p className="text-white/30 text-sm" dir="rtl">جاري تحميل الدروس...</p>
+      </div>
+    )
+  }
 
   if (active) {
     return (
@@ -1169,6 +1192,7 @@ function LearnInner() {
       onSelect={lesson => { setActive(lesson); setIslandId(lesson.id) }}
       totalXp={totalXp}
       completedIds={completedIds}
+      lessons={lessons}
     />
   )
 }

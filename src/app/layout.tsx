@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { AuthProvider } from '@/lib/auth-context'
+import { FeatureAccessProvider } from '@/lib/feature-access'
 
 export const metadata: Metadata = {
   title: 'إنجليزي.كوم | تعلم الإنجليزية وتكلم بثقة',
@@ -26,7 +28,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="font-sans">
-        {children}
+        <AuthProvider>
+          <FeatureAccessProvider>
+            {children}
+          </FeatureAccessProvider>
+        </AuthProvider>
       </body>
     </html>
   )

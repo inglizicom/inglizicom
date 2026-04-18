@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useGameState } from '@/lib/useGameState'
 import { xpToNextLevel, LEVEL_THRESHOLDS, type CefrLevel } from '@/lib/game'
 import { JOURNEY_CITIES, ALL_UNIT_IDS, CEFR_META, type JourneyCity, type JourneyUnit } from '@/data/journey-data'
+import { useAuth } from '@/lib/auth-context'
+import { useFeatureAccess, checkLock } from '@/lib/feature-access'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -118,18 +120,20 @@ function UnitRow({
 // ─── City Card (collapsed/expanded) ──────────────────────────────────────────
 
 function CityCard({
-  city, completedIds, isLast, onUnitStart,
+  city, completedIds, isLast, onUnitStart, authLocked, onLoginRequired,
 }: {
   city: JourneyCity
   completedIds: Set<string>
   isLast: boolean
   onUnitStart: (unit: JourneyUnit) => void
+  authLocked: boolean
+  onLoginRequired: () => void
 }) {
-  const status   = getCityStatus(city, completedIds)
-  const locked   = status === 'locked'
-  const soon     = status === 'coming-soon'
-  const completed = status === 'completed'
-  const current  = status === 'current'
+  const baseStatus = getCityStatus(city, completedIds)
+  const locked     = authLocked || baseStatus === 'locked'
+  const soon       = baseStatus === 'coming-soon'
+  const completed  = !authLocked && baseStatus === 'completed'
+  const current    = !authLocked && baseStatus === 'current'
 
   const [open, setOpen] = useState(current)
 
@@ -149,18 +153,21 @@ function CityCard({
             />
           )}
           <button
-            onClick={() => !locked && !soon && setOpen(o => !o)}
-            disabled={locked || soon}
+            onClick={() => {
+              if (authLocked) { onLoginRequired(); return }
+              if (!locked && !soon) setOpen(o => !o)
+            }}
+            disabled={(locked && !authLocked) || soon}
             className="w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-lg sm:text-xl z-10 relative transition-all duration-200"
             style={{
               background: locked || soon ? '#12192e' : completed ? `${city.color}28` : `${city.color}20`,
               border: `2.5px solid ${locked || soon ? '#ffffff15' : city.color}`,
               boxShadow: current ? `0 0 24px ${city.color}55` : completed ? `0 0 12px ${city.color}35` : 'none',
-              opacity: locked ? 0.4 : 1,
+              opacity: locked ? (authLocked ? 0.65 : 0.4) : 1,
               animation: current ? 'islandFloat 3s ease-in-out infinite' : 'none',
             }}
           >
-            {locked ? '🔒' : soon ? '🔮' : completed ? '⭐' : city.emoji}
+            {authLocked ? '👤' : locked ? '🔒' : soon ? '🔮' : completed ? '⭐' : city.emoji}
           </button>
         </div>
         {!isLast && (
@@ -174,13 +181,16 @@ function CityCard({
       {/* ── Content ── */}
       <div className="flex-1 min-w-0 pb-5">
         <button
-          onClick={() => !locked && !soon && setOpen(o => !o)}
-          disabled={locked || soon}
+          onClick={() => {
+            if (authLocked) { onLoginRequired(); return }
+            if (!locked && !soon) setOpen(o => !o)
+          }}
+          disabled={(locked && !authLocked) || soon}
           className="w-full text-left rounded-2xl p-3 sm:p-4 transition-all duration-150 active:scale-[0.98]"
           style={{
             background: locked || soon ? 'rgba(255,255,255,0.02)' : open ? `${city.color}10` : 'rgba(255,255,255,0.04)',
             border: `1.5px solid ${locked || soon ? 'rgba(255,255,255,0.06)' : open ? city.color + '40' : city.color + '20'}`,
-            opacity: locked ? 0.55 : 1,
+            opacity: locked ? (authLocked ? 0.7 : 0.55) : 1,
           }}
         >
           <div className="flex items-start justify-between gap-2">
@@ -192,6 +202,7 @@ function CityCard({
                 {completed && <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background:'rgba(245,158,11,0.15)', color:'#fbbf24' }}>✅ مكتمل</span>}
                 {current   && <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background:`${city.color}20`, color:city.color }}>▶ جاري</span>}
                 {soon      && <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background:'rgba(255,255,255,0.05)', color:'rgba(255,255,255,0.25)' }}>🔮 قريباً</span>}
+                {authLocked && <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background:'rgba(59,130,246,0.15)', color:'#93c5fd', border:'1px solid rgba(59,130,246,0.3)' }}>🔐 يتطلب تسجيل الدخول</span>}
               </div>
               <p className="text-white font-black text-sm sm:text-base leading-tight truncate" style={{ color: locked || soon ? 'rgba(255,255,255,0.25)' : '#fff' }}>
                 {city.name_ar}
@@ -246,7 +257,20 @@ function CityCard({
 
 export default function MapPage() {
   const router = useRouter()
+  const { user, loading: authLoading } = useAuth()
+  const { features, loading: featuresLoading } = useFeatureAccess()
   const game   = useGameState(ALL_UNIT_IDS)
+
+  function handleLoginRequired() {
+    router.push('/login?next=/map')
+  }
+
+  function isAuthLocked(cityId: string): boolean {
+    if (authLoading || featuresLoading) return false
+    const f = features[`map.city.${cityId}`]
+    const lock = checkLock(f, { isAuthenticated: !!user })
+    return lock !== 'free'
+  }
 
   const { profile, progress, loading } = game
 
@@ -344,6 +368,8 @@ export default function MapPage() {
               completedIds={loading ? new Set() : completedIds}
               isLast={idx === JOURNEY_CITIES.length - 1}
               onUnitStart={handleUnitStart}
+              authLocked={isAuthLocked(city.id)}
+              onLoginRequired={handleLoginRequired}
             />
           ))}
 
