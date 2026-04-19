@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import type PlyrType from 'plyr'
 import 'plyr/dist/plyr.css'
 
 interface Props {
@@ -13,7 +12,7 @@ export default function VideoPlayer({ youtubeId }: Props) {
 
   useEffect(() => {
     let cancelled = false
-    let instance: PlyrType | null = null
+    let instance: { destroy: () => void } | null = null
 
     import('plyr').then(({ default: Plyr }) => {
       if (cancelled || !ref.current) return
@@ -26,7 +25,7 @@ export default function VideoPlayer({ youtubeId }: Props) {
           iv_load_policy: 3,
           modestbranding: 1,
         },
-      })
+      }) as unknown as { destroy: () => void }
     })
 
     return () => {

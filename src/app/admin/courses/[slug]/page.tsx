@@ -79,9 +79,6 @@ export default function CourseLessonsAdminPage() {
   }
 
   function addRow() {
-    const existingSections = Array.from(
-      new Set(rows.map(r => `${r.section_order}|${r.section_title}`))
-    )
     const lastSection = rows[rows.length - 1]
     const sectionOrder = lastSection ? lastSection.section_order : 0
     const sectionTitle = lastSection ? lastSection.section_title : 'الوحدة 1'
