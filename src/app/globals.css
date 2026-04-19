@@ -515,3 +515,19 @@ p {
   100% { background-position: 250% 0; }
 }
 .animate-shimmer { animation: shimmer-sweep 3s ease-in-out infinite; }
+
+/* ===== Plyr: block YouTube chrome leakage ===== */
+/* Kills direct clicks on YouTube's logo, title, and "Watch on YouTube"
+   pill. All play/pause/seek still works through Plyr's overlay. */
+.plyr--youtube .plyr__video-embed,
+.plyr--youtube .plyr__video-embed iframe {
+  pointer-events: none !important;
+}
+.plyr--youtube .plyr__control,
+.plyr--youtube .plyr__controls,
+.plyr--youtube .plyr__progress,
+.plyr--youtube .plyr__volume,
+.plyr--youtube .plyr__menu,
+.plyr--youtube button {
+  pointer-events: auto !important;
+}
