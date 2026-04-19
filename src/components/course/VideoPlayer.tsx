@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 
 interface PlyrInstance {
   destroy: () => void
+  on: (event: string, cb: () => void) => void
 }
 
 declare global {
@@ -23,8 +24,7 @@ const JS_URL  = 'https://cdn.plyr.io/3.7.8/plyr.js'
 function loadCss(): Promise<void> {
   return new Promise((resolve) => {
     if (typeof document === 'undefined') return resolve()
-    const existing = document.getElementById(CSS_ID) as HTMLLinkElement | null
-    if (existing) return resolve()
+    if (document.getElementById(CSS_ID)) return resolve()
     const link = document.createElement('link')
     link.id = CSS_ID
     link.rel = 'stylesheet'
@@ -61,9 +61,11 @@ interface Props {
 
 export default function VideoPlayer({ youtubeId }: Props) {
   const ref = useRef<HTMLDivElement>(null)
+  const [ready, setReady] = useState(false)
   const [failed, setFailed] = useState(false)
 
   useEffect(() => {
+    setReady(false)
     let cancelled = false
     let instance: PlyrInstance | null = null
 
@@ -78,6 +80,9 @@ export default function VideoPlayer({ youtubeId }: Props) {
             modestbranding: 1,
             playsinline: 1,
           },
+        })
+        instance.on('ready', () => {
+          if (!cancelled) setReady(true)
         })
       })
       .catch((err: Error) => {
@@ -111,7 +116,7 @@ export default function VideoPlayer({ youtubeId }: Props) {
 
   return (
     <div
-      className="w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-xl"
+      className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-xl"
       dir="ltr"
     >
       <div
@@ -120,6 +125,11 @@ export default function VideoPlayer({ youtubeId }: Props) {
         data-plyr-provider="youtube"
         data-plyr-embed-id={youtubeId}
       />
+      {!ready && (
+        <div className="absolute inset-0 bg-black flex items-center justify-center pointer-events-none">
+          <div className="w-10 h-10 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+        </div>
+      )}
     </div>
   )
 }
