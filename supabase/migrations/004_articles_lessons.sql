@@ -33,7 +33,7 @@ create table if not exists public.lessons (
   color       text        not null default '#3b82f6',
   vocab       jsonb       not null default '[]'::jsonb,
   sentences   jsonb       not null default '[]'::jsonb,
-  natural     jsonb       not null default '[]'::jsonb,
+  "natural"   jsonb       not null default '[]'::jsonb,
   dialogue    jsonb       not null default '[]'::jsonb,
   exercises   jsonb       not null default '[]'::jsonb,
   status      text        not null default 'published',
