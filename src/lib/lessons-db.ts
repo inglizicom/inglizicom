@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from 'next/cache'
 import { supabase } from './supabase'
 import type { LessonData } from '@/data/lessons-data'
 
@@ -11,6 +12,7 @@ export interface LessonRow extends LessonData {
 }
 
 export async function fetchPublishedLessons(): Promise<LessonRow[]> {
+  noStore()
   const { data, error } = await supabase
     .from('lessons')
     .select('*')
@@ -21,6 +23,7 @@ export async function fetchPublishedLessons(): Promise<LessonRow[]> {
 }
 
 export async function fetchAllLessons(): Promise<LessonRow[]> {
+  noStore()
   const { data, error } = await supabase
     .from('lessons')
     .select('*')
@@ -30,6 +33,7 @@ export async function fetchAllLessons(): Promise<LessonRow[]> {
 }
 
 export async function fetchLessonById(id: string): Promise<LessonRow | null> {
+  noStore()
   const { data, error } = await supabase
     .from('lessons')
     .select('*')

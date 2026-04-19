@@ -1,3 +1,4 @@
+import { unstable_noStore as noStore } from 'next/cache'
 import { supabase } from './supabase'
 import type { Article, BlockType } from '@/data/articles'
 
@@ -44,6 +45,7 @@ function rowToArticle(r: ArticleRow): Article & { uuid: string; status: ArticleS
 }
 
 export async function fetchPublishedArticles() {
+  noStore()
   const { data, error } = await supabase
     .from('articles')
     .select('*')
@@ -54,6 +56,7 @@ export async function fetchPublishedArticles() {
 }
 
 export async function fetchAllArticles() {
+  noStore()
   const { data, error } = await supabase
     .from('articles')
     .select('*')
@@ -63,6 +66,7 @@ export async function fetchAllArticles() {
 }
 
 export async function fetchArticleBySlug(slug: string) {
+  noStore()
   const { data, error } = await supabase
     .from('articles')
     .select('*')
@@ -93,6 +97,7 @@ export async function bootstrapArticles(rows: Omit<ArticleRow, 'id' | 'created_a
 }
 
 export async function fetchRelatedArticles(currentSlug: string, category: string, limit = 3) {
+  noStore()
   const { data, error } = await supabase
     .from('articles')
     .select('*')
@@ -106,6 +111,7 @@ export async function fetchRelatedArticles(currentSlug: string, category: string
 }
 
 export async function fetchRecentArticles(limit = 5) {
+  noStore()
   const { data, error } = await supabase
     .from('articles')
     .select('*')
