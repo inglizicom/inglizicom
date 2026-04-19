@@ -14,6 +14,11 @@ import {
   deleteCourseLesson,
   type CourseLessonRow,
 } from '@/lib/course-lessons-db'
+import {
+  fetchCourseMeta,
+  upsertCourseMeta,
+  type CourseMeta,
+} from '@/lib/course-meta-db'
 
 interface Draft extends Partial<CourseLessonRow> {
   // negative id = new, not yet persisted
@@ -56,11 +61,24 @@ export default function CourseLessonsAdminPage() {
   const [busy, setBusy] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
 
+  const [meta, setMeta]           = useState<CourseMeta | null>(null)
+  const [courseType, setCourseType] = useState<'native' | 'external'>('native')
+  const [externalUrl, setExternalUrl] = useState('')
+  const [savingMeta, setSavingMeta] = useState(false)
+  const metaDirty = (meta?.course_type ?? 'native') !== courseType
+    || (meta?.external_url ?? '') !== externalUrl
+
   async function load() {
     setLoading(true); setError(null)
     try {
-      const fresh = await fetchCourseLessons(slug)
+      const [fresh, m] = await Promise.all([
+        fetchCourseLessons(slug),
+        fetchCourseMeta(slug),
+      ])
       setRows(fresh.map(toDraft))
+      setMeta(m)
+      setCourseType(m?.course_type ?? 'native')
+      setExternalUrl(m?.external_url ?? '')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unknown error')
     }
@@ -68,6 +86,27 @@ export default function CourseLessonsAdminPage() {
   }
 
   useEffect(() => { load() }, [slug])
+
+  async function saveMeta() {
+    setSavingMeta(true)
+    try {
+      await upsertCourseMeta({
+        slug,
+        course_type:  courseType,
+        external_url: courseType === 'external' ? externalUrl.trim() || null : null,
+      })
+      setMeta({
+        slug,
+        course_type:  courseType,
+        external_url: courseType === 'external' ? externalUrl.trim() || null : null,
+        updated_at:   new Date().toISOString(),
+      })
+      showToast('Hosting settings saved')
+    } catch (e) {
+      showToast('Error: ' + (e instanceof Error ? e.message : 'failed'))
+    }
+    setSavingMeta(false)
+  }
 
   function showToast(msg: string) {
     setToast(msg)
@@ -176,6 +215,72 @@ export default function CourseLessonsAdminPage() {
             <Plus size={14} /> New lesson
           </button>
         </div>
+      </div>
+
+      <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-3">
+        <div>
+          <h2 className="text-gray-900 font-bold text-sm leading-none">Hosting</h2>
+          <p className="text-gray-400 text-xs mt-1">Where does this course live?</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setCourseType('native')}
+            className={`flex-1 min-w-[140px] text-left px-4 py-3 rounded-xl border-2 transition-all ${
+              courseType === 'native'
+                ? 'border-indigo-500 bg-indigo-50'
+                : 'border-gray-200 hover:border-gray-300'
+            }`}
+          >
+            <div className="text-xs font-black uppercase tracking-wider text-indigo-600 mb-0.5">Native</div>
+            <div className="text-xs text-gray-500">Render on this site from course_lessons</div>
+          </button>
+          <button
+            onClick={() => setCourseType('external')}
+            className={`flex-1 min-w-[140px] text-left px-4 py-3 rounded-xl border-2 transition-all ${
+              courseType === 'external'
+                ? 'border-rose-500 bg-rose-50'
+                : 'border-gray-200 hover:border-gray-300'
+            }`}
+          >
+            <div className="text-xs font-black uppercase tracking-wider text-rose-600 mb-0.5">External</div>
+            <div className="text-xs text-gray-500">Redirect to another platform (e.g. skool.com)</div>
+          </button>
+        </div>
+
+        {courseType === 'external' && (
+          <div>
+            <label className="text-xs font-bold text-gray-500 mb-1.5 block">External URL</label>
+            <input
+              type="url"
+              value={externalUrl}
+              onChange={e => setExternalUrl(e.target.value)}
+              placeholder="https://www.skool.com/your-community"
+              className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold outline-none focus:border-rose-500"
+            />
+          </div>
+        )}
+
+        {metaDirty && (
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              onClick={saveMeta}
+              disabled={savingMeta || (courseType === 'external' && !externalUrl.trim())}
+              className="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors"
+            >
+              {savingMeta ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+              Save hosting
+            </button>
+            <button
+              onClick={() => {
+                setCourseType(meta?.course_type ?? 'native')
+                setExternalUrl(meta?.external_url ?? '')
+              }}
+              className="text-xs font-semibold text-gray-500 hover:text-gray-900 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-xs text-blue-800 flex items-start gap-2">
