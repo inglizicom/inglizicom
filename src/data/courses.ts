@@ -117,8 +117,8 @@ export const COURSES: Course[] = [
       {
         title: 'الوحدة 1 — الأبجدية والنطق',
         lessons: [
-          { title: 'مقدمة الكورس', duration: '3:12', youtubeId: 'dQw4w9WgXcQ', isFree: true },
-          { title: 'الحروف الإنجليزية والنطق الصحيح', duration: '9:48', youtubeId: 'dQw4w9WgXcQ', isFree: true },
+          { title: 'مقدمة الكورس', duration: '3:12', youtubeId: 'jNQXAC9IVRw', isFree: true },
+          { title: 'الحروف الإنجليزية والنطق الصحيح', duration: '9:48', youtubeId: 'jNQXAC9IVRw', isFree: true },
           { title: 'الحروف المتحركة والساكنة', duration: '11:20', youtubeId: '', isFree: false },
           { title: 'أصوات صعبة: th, r, v', duration: '8:35', youtubeId: '', isFree: false },
         ],
@@ -179,8 +179,8 @@ export const COURSES: Course[] = [
       {
         title: 'الوحدة 1 — الأزمنة الأساسية',
         lessons: [
-          { title: 'مقدمة الكورس: ما الذي ستتقنه؟', duration: '4:20', youtubeId: 'dQw4w9WgXcQ', isFree: true },
-          { title: 'المضارع البسيط في الحياة اليومية', duration: '11:15', youtubeId: 'dQw4w9WgXcQ', isFree: true },
+          { title: 'مقدمة الكورس: ما الذي ستتقنه؟', duration: '4:20', youtubeId: 'jNQXAC9IVRw', isFree: true },
+          { title: 'المضارع البسيط في الحياة اليومية', duration: '11:15', youtubeId: 'jNQXAC9IVRw', isFree: true },
           { title: 'المضارع المستمر', duration: '9:40', youtubeId: '', isFree: false },
           { title: 'الماضي البسيط والأفعال الشاذة', duration: '13:22', youtubeId: '', isFree: false },
         ],
@@ -241,8 +241,8 @@ export const COURSES: Course[] = [
       {
         title: 'الوحدة 1 — التفكير بالإنجليزية',
         lessons: [
-          { title: 'لماذا نترجم في رؤوسنا؟', duration: '6:18', youtubeId: 'dQw4w9WgXcQ', isFree: true },
-          { title: 'تقنيات التوقف عن الترجمة', duration: '12:30', youtubeId: 'dQw4w9WgXcQ', isFree: true },
+          { title: 'لماذا نترجم في رؤوسنا؟', duration: '6:18', youtubeId: 'jNQXAC9IVRw', isFree: true },
+          { title: 'تقنيات التوقف عن الترجمة', duration: '12:30', youtubeId: 'jNQXAC9IVRw', isFree: true },
           { title: 'التدريب اليومي على التفكير', duration: '9:52', youtubeId: '', isFree: false },
           { title: 'التخلص من الخوف من الخطأ', duration: '8:40', youtubeId: '', isFree: false },
         ],
@@ -303,8 +303,8 @@ export const COURSES: Course[] = [
       {
         title: 'الوحدة 1 — إنجليزية العمل',
         lessons: [
-          { title: 'مقدمة: ما الذي يميز الإنجليزية المهنية؟', duration: '5:45', youtubeId: 'dQw4w9WgXcQ', isFree: true },
-          { title: 'مفردات الاجتماعات والعروض', duration: '13:50', youtubeId: 'dQw4w9WgXcQ', isFree: true },
+          { title: 'مقدمة: ما الذي يميز الإنجليزية المهنية؟', duration: '5:45', youtubeId: 'jNQXAC9IVRw', isFree: true },
+          { title: 'مفردات الاجتماعات والعروض', duration: '13:50', youtubeId: 'jNQXAC9IVRw', isFree: true },
           { title: 'البريد الإلكتروني الرسمي', duration: '10:12', youtubeId: '', isFree: false },
           { title: 'المكالمات الهاتفية الاحترافية', duration: '9:35', youtubeId: '', isFree: false },
         ],

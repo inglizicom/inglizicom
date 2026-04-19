@@ -2,12 +2,20 @@
 
 import { useEffect, useRef } from 'react'
 
+interface PlyrInstance {
+  destroy: () => void
+  source: {
+    type: 'video'
+    sources: { src: string; provider: 'youtube' }[]
+  }
+}
+
 declare global {
   interface Window {
     Plyr?: new (
       el: Element | string,
       opts?: Record<string, unknown>,
-    ) => { destroy: () => void }
+    ) => PlyrInstance
   }
 }
 
@@ -58,7 +66,7 @@ export default function VideoPlayer({ youtubeId }: Props) {
   useEffect(() => {
     ensureCss()
     let cancelled = false
-    let instance: { destroy: () => void } | null = null
+    let instance: PlyrInstance | null = null
 
     ensureJs()
       .then(() => {
@@ -66,13 +74,16 @@ export default function VideoPlayer({ youtubeId }: Props) {
         instance = new window.Plyr(ref.current, {
           ratio: '16:9',
           youtube: {
-            noCookie: true,
             rel: 0,
             showinfo: 0,
             iv_load_policy: 3,
             modestbranding: 1,
           },
         })
+        instance.source = {
+          type: 'video',
+          sources: [{ src: youtubeId, provider: 'youtube' }],
+        }
       })
       .catch(err => console.error('[VideoPlayer] plyr load failed', err))
 
@@ -87,12 +98,7 @@ export default function VideoPlayer({ youtubeId }: Props) {
       className="w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-xl"
       dir="ltr"
     >
-      <div
-        key={youtubeId}
-        ref={ref}
-        data-plyr-provider="youtube"
-        data-plyr-embed-id={youtubeId}
-      />
+      <div key={youtubeId} ref={ref} />
     </div>
   )
 }
