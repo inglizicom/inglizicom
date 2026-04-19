@@ -4,6 +4,18 @@ export interface CourseDetailFeature {
   description: string
 }
 
+export interface CurriculumLesson {
+  title: string
+  duration: string
+  youtubeId: string
+  isFree: boolean
+}
+
+export interface CurriculumSection {
+  title: string
+  lessons: CurriculumLesson[]
+}
+
 export interface Course {
   id: string
   slug: string
@@ -30,6 +42,7 @@ export interface Course {
   promise: string
   beforeState: string
   afterState: string
+  curriculum: CurriculumSection[]
 }
 
 const SHARED_DETAIL_FEATURES: CourseDetailFeature[] = [
@@ -100,6 +113,33 @@ export const COURSES: Course[] = [
     promise: 'بعد هذا الكورس ستتكلم أول جملة كاملة بالإنجليزية بثقة تامة',
     beforeState: 'لا أعرف كيف أقول حتى "مرحبا" بالإنجليزية بشكل صحيح',
     afterState: 'أتعرف بنفسي وأتحدث في المواقف اليومية بثقة وسلاسة',
+    curriculum: [
+      {
+        title: 'الوحدة 1 — الأبجدية والنطق',
+        lessons: [
+          { title: 'مقدمة الكورس', duration: '3:12', youtubeId: 'dQw4w9WgXcQ', isFree: true },
+          { title: 'الحروف الإنجليزية والنطق الصحيح', duration: '9:48', youtubeId: 'dQw4w9WgXcQ', isFree: true },
+          { title: 'الحروف المتحركة والساكنة', duration: '11:20', youtubeId: '', isFree: false },
+          { title: 'أصوات صعبة: th, r, v', duration: '8:35', youtubeId: '', isFree: false },
+        ],
+      },
+      {
+        title: 'الوحدة 2 — التعريف بالنفس',
+        lessons: [
+          { title: 'الضمائر الشخصية وفعل to be', duration: '10:02', youtubeId: '', isFree: false },
+          { title: 'التعريف بنفسك: الاسم، العمر، البلد', duration: '7:45', youtubeId: '', isFree: false },
+          { title: 'المهنة والدراسة', duration: '6:58', youtubeId: '', isFree: false },
+        ],
+      },
+      {
+        title: 'الوحدة 3 — الحياة اليومية',
+        lessons: [
+          { title: 'الأرقام من 1 إلى 100', duration: '8:12', youtubeId: '', isFree: false },
+          { title: 'الوقت والتاريخ', duration: '9:30', youtubeId: '', isFree: false },
+          { title: 'مفردات الطعام والشراب', duration: '12:05', youtubeId: '', isFree: false },
+        ],
+      },
+    ],
   },
   {
     id: 'a1-a2',
@@ -135,6 +175,33 @@ export const COURSES: Course[] = [
     promise: 'ستتمكن من إجراء محادثة يومية كاملة بالإنجليزية دون توقف',
     beforeState: 'أعرف بعض الكلمات لكن لا أستطيع تكوين جملة كاملة بسهولة',
     afterState: 'أجري محادثات يومية متنوعة بثقة تامة وأعبر عن نفسي بوضوح',
+    curriculum: [
+      {
+        title: 'الوحدة 1 — الأزمنة الأساسية',
+        lessons: [
+          { title: 'مقدمة الكورس: ما الذي ستتقنه؟', duration: '4:20', youtubeId: 'dQw4w9WgXcQ', isFree: true },
+          { title: 'المضارع البسيط في الحياة اليومية', duration: '11:15', youtubeId: 'dQw4w9WgXcQ', isFree: true },
+          { title: 'المضارع المستمر', duration: '9:40', youtubeId: '', isFree: false },
+          { title: 'الماضي البسيط والأفعال الشاذة', duration: '13:22', youtubeId: '', isFree: false },
+        ],
+      },
+      {
+        title: 'الوحدة 2 — المحادثات اليومية',
+        lessons: [
+          { title: 'في المطعم: الطلب والدفع', duration: '10:08', youtubeId: '', isFree: false },
+          { title: 'في المطار: إجراءات السفر', duration: '11:55', youtubeId: '', isFree: false },
+          { title: 'التسوق وطلب المساعدة', duration: '8:48', youtubeId: '', isFree: false },
+        ],
+      },
+      {
+        title: 'الوحدة 3 — التعبير عن الرأي',
+        lessons: [
+          { title: 'الإعجاب والرفض بأدب', duration: '7:30', youtubeId: '', isFree: false },
+          { title: 'المشاعر والأحاسيس', duration: '9:12', youtubeId: '', isFree: false },
+          { title: 'الموافقة والاختلاف في النقاش', duration: '10:45', youtubeId: '', isFree: false },
+        ],
+      },
+    ],
   },
   {
     id: 'a2-b1',
@@ -170,6 +237,33 @@ export const COURSES: Course[] = [
     promise: 'ستتكلم الإنجليزية بطلاقة دون التوقف للتفكير في الترجمة',
     beforeState: 'أتكلم ببطء وأترجم كل كلمة في رأسي قبل أن أقولها',
     afterState: 'أتكلم بطلاقة تامة وأفكر مباشرة بالإنجليزية دون أي توقف',
+    curriculum: [
+      {
+        title: 'الوحدة 1 — التفكير بالإنجليزية',
+        lessons: [
+          { title: 'لماذا نترجم في رؤوسنا؟', duration: '6:18', youtubeId: 'dQw4w9WgXcQ', isFree: true },
+          { title: 'تقنيات التوقف عن الترجمة', duration: '12:30', youtubeId: 'dQw4w9WgXcQ', isFree: true },
+          { title: 'التدريب اليومي على التفكير', duration: '9:52', youtubeId: '', isFree: false },
+          { title: 'التخلص من الخوف من الخطأ', duration: '8:40', youtubeId: '', isFree: false },
+        ],
+      },
+      {
+        title: 'الوحدة 2 — محادثات معقدة',
+        lessons: [
+          { title: 'النقاشات الفلسفية والرأي', duration: '14:25', youtubeId: '', isFree: false },
+          { title: 'الحكي عن قصص طويلة', duration: '11:18', youtubeId: '', isFree: false },
+          { title: 'التفاوض والإقناع', duration: '13:02', youtubeId: '', isFree: false },
+        ],
+      },
+      {
+        title: 'الوحدة 3 — الفروق الدقيقة',
+        lessons: [
+          { title: 'Phrasal Verbs الأكثر استخداماً', duration: '15:40', youtubeId: '', isFree: false },
+          { title: 'Idioms في المحادثة اليومية', duration: '12:08', youtubeId: '', isFree: false },
+          { title: 'اللهجات البريطانية والأمريكية', duration: '10:22', youtubeId: '', isFree: false },
+        ],
+      },
+    ],
   },
   {
     id: 'b1-b2',
@@ -205,5 +299,32 @@ export const COURSES: Course[] = [
     promise: 'ستصبح قادراً على العمل والتواصل باحترافية كاملة بالإنجليزية',
     beforeState: 'أتكلم بطلاقة لكن أفشل في المواقف الاحترافية والمهنية',
     afterState: 'أتحدث باحتراف كامل في العمل والمقابلات والمؤتمرات الدولية',
+    curriculum: [
+      {
+        title: 'الوحدة 1 — إنجليزية العمل',
+        lessons: [
+          { title: 'مقدمة: ما الذي يميز الإنجليزية المهنية؟', duration: '5:45', youtubeId: 'dQw4w9WgXcQ', isFree: true },
+          { title: 'مفردات الاجتماعات والعروض', duration: '13:50', youtubeId: 'dQw4w9WgXcQ', isFree: true },
+          { title: 'البريد الإلكتروني الرسمي', duration: '10:12', youtubeId: '', isFree: false },
+          { title: 'المكالمات الهاتفية الاحترافية', duration: '9:35', youtubeId: '', isFree: false },
+        ],
+      },
+      {
+        title: 'الوحدة 2 — مقابلات العمل',
+        lessons: [
+          { title: 'الأسئلة الأكثر شيوعاً وأفضل الإجابات', duration: '16:20', youtubeId: '', isFree: false },
+          { title: 'تقديم نفسك بطريقة تُبهر', duration: '12:48', youtubeId: '', isFree: false },
+          { title: 'التفاوض على الراتب والعرض', duration: '11:30', youtubeId: '', isFree: false },
+        ],
+      },
+      {
+        title: 'الوحدة 3 — لهجة المتحدثين الأصليين',
+        lessons: [
+          { title: 'الإيقاع والتنغيم الطبيعي', duration: '14:02', youtubeId: '', isFree: false },
+          { title: 'تقليل اللهجة الأجنبية', duration: '12:15', youtubeId: '', isFree: false },
+          { title: 'التعبيرات الثقافية والإشارات', duration: '10:58', youtubeId: '', isFree: false },
+        ],
+      },
+    ],
   },
 ]

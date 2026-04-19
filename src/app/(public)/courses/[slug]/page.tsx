@@ -246,15 +246,13 @@ export default function CourseDetailPage({ params }: PageProps) {
                   </svg>
                   سجّل الآن
                 </a>
-                <a
-                  href={waInfo}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href={`/courses/${course.slug}/watch`}
                   className="flex-1 inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 text-white font-bold text-base px-8 py-4 rounded-2xl hover:bg-white/20 transition-all duration-300"
                 >
-                  <MessageCircle className="w-5 h-5" />
-                  اسأل عن الكورس
-                </a>
+                  <Play className="w-5 h-5 fill-white" />
+                  شاهد الدروس المجانية
+                </Link>
               </div>
             </div>
 
