@@ -1,7 +1,16 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
-import 'plyr/dist/plyr.css'
+import { useEffect, useRef, useState } from 'react'
+import Script from 'next/script'
+
+declare global {
+  interface Window {
+    Plyr?: new (
+      el: Element | string,
+      opts?: Record<string, unknown>,
+    ) => { destroy: () => void }
+  }
+}
 
 interface Props {
   youtubeId: string
@@ -9,39 +18,47 @@ interface Props {
 
 export default function VideoPlayer({ youtubeId }: Props) {
   const ref = useRef<HTMLDivElement>(null)
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    let cancelled = false
-    let instance: { destroy: () => void } | null = null
+    if (typeof window !== 'undefined' && window.Plyr) setReady(true)
+  }, [])
 
-    import('plyr').then(({ default: Plyr }) => {
-      if (cancelled || !ref.current) return
-      instance = new Plyr(ref.current, {
-        ratio: '16:9',
-        youtube: {
-          noCookie: true,
-          rel: 0,
-          showinfo: 0,
-          iv_load_policy: 3,
-          modestbranding: 1,
-        },
-      }) as unknown as { destroy: () => void }
+  useEffect(() => {
+    if (!ready || !ref.current || !window.Plyr) return
+    const instance = new window.Plyr(ref.current, {
+      ratio: '16:9',
+      youtube: {
+        noCookie: true,
+        rel: 0,
+        showinfo: 0,
+        iv_load_policy: 3,
+        modestbranding: 1,
+      },
     })
-
-    return () => {
-      cancelled = true
-      instance?.destroy()
-    }
-  }, [youtubeId])
+    return () => instance.destroy()
+  }, [ready, youtubeId])
 
   return (
-    <div className="w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-xl" dir="ltr">
-      <div
-        key={youtubeId}
-        ref={ref}
-        data-plyr-provider="youtube"
-        data-plyr-embed-id={youtubeId}
+    <>
+      {/* eslint-disable-next-line @next/next/no-css-tags */}
+      <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+      <Script
+        src="https://cdn.plyr.io/3.7.8/plyr.js"
+        strategy="afterInteractive"
+        onLoad={() => setReady(true)}
       />
-    </div>
+      <div
+        className="w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-xl"
+        dir="ltr"
+      >
+        <div
+          key={youtubeId}
+          ref={ref}
+          data-plyr-provider="youtube"
+          data-plyr-embed-id={youtubeId}
+        />
+      </div>
+    </>
   )
 }
