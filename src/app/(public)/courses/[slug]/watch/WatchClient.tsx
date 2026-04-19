@@ -3,11 +3,12 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Lock, Play, ArrowRight, ArrowLeft, MessageCircle, CheckCircle } from 'lucide-react'
-import type { Course } from '@/data/courses'
+import type { Course, CurriculumSection } from '@/data/courses'
 import VideoPlayer from '@/components/course/VideoPlayer'
 
 interface Props {
   course: Course
+  sections: CurriculumSection[]
 }
 
 interface FlatLesson {
@@ -20,10 +21,10 @@ interface FlatLesson {
   lessonIdx: number
 }
 
-export default function WatchClient({ course }: Props) {
+export default function WatchClient({ course, sections }: Props) {
   const flat: FlatLesson[] = useMemo(
     () =>
-      course.curriculum.flatMap((section, sectionIdx) =>
+      sections.flatMap((section, sectionIdx) =>
         section.lessons.map((lesson, lessonIdx) => ({
           ...lesson,
           sectionTitle: section.title,
@@ -31,7 +32,7 @@ export default function WatchClient({ course }: Props) {
           lessonIdx,
         })),
       ),
-    [course],
+    [sections],
   )
 
   const firstFreeIdx = flat.findIndex(l => l.isFree)
@@ -125,13 +126,13 @@ export default function WatchClient({ course }: Props) {
             </div>
             <h2 className="text-white font-black text-lg leading-snug">{course.title}</h2>
             <div className="text-xs text-gray-400 mt-2 font-semibold">
-              {course.curriculum.length} وحدات · {flat.length} درس ·{' '}
+              {sections.length} وحدات · {flat.length} درس ·{' '}
               <span className="text-emerald-400">{freeCount} مجاني</span>
             </div>
           </div>
 
           <div className="max-h-[calc(100vh-320px)] overflow-y-auto">
-            {course.curriculum.map((section, si) => (
+            {sections.map((section, si) => (
               <div key={si}>
                 <div className="px-5 py-3 bg-gray-900 text-xs font-black tracking-wider text-gray-400 border-t border-gray-800">
                   {section.title}

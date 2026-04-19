@@ -1,10 +1,11 @@
 import Link from 'next/link'
-import { Shield, LayoutDashboard, FileEdit, Lock, FileText, BookOpen, Database } from 'lucide-react'
+import { Shield, LayoutDashboard, FileEdit, Lock, FileText, BookOpen, Database, Video } from 'lucide-react'
 import AdminGuard from './AdminGuard'
 
 const navItems = [
   { href: '/admin',           label: 'Dashboard',      icon: LayoutDashboard },
   { href: '/admin/access',    label: 'Access',         icon: Lock },
+  { href: '/admin/courses',   label: 'Courses',        icon: Video },
   { href: '/admin/articles',  label: 'Articles',       icon: FileText },
   { href: '/admin/lessons',   label: 'Lessons',        icon: BookOpen },
   { href: '/admin/content',   label: 'Listen Studio',  icon: FileEdit },

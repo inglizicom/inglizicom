@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { COURSES } from '@/data/courses'
+import { fetchCourseLessons, groupLessonsIntoSections } from '@/lib/course-lessons-db'
 import WatchClient from './WatchClient'
 
 interface Params {
@@ -16,9 +17,12 @@ export function generateMetadata({ params }: Params): Metadata {
   }
 }
 
-export default function WatchPage({ params }: Params) {
+export default async function WatchPage({ params }: Params) {
   const course = COURSES.find(c => c.slug === params.slug)
   if (!course) notFound()
 
-  return <WatchClient course={course} />
+  const rows = await fetchCourseLessons(params.slug)
+  const sections = rows.length > 0 ? groupLessonsIntoSections(rows) : course.curriculum
+
+  return <WatchClient course={course} sections={sections} />
 }

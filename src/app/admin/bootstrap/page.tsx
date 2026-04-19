@@ -1,16 +1,19 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckCircle2, AlertCircle, Loader2, Database, FileText, BookOpen } from 'lucide-react'
+import { CheckCircle2, AlertCircle, Loader2, Database, FileText, BookOpen, Video } from 'lucide-react'
 import { articles as STATIC_ARTICLES } from '@/data/articles'
 import { LESSONS_DATA } from '@/data/lessons-data'
+import { COURSES } from '@/data/courses'
 import { bootstrapArticles } from '@/lib/articles-db'
 import { bootstrapLessons } from '@/lib/lessons-db'
+import { bootstrapCourseLessons } from '@/lib/course-lessons-db'
 
 export default function BootstrapPage() {
   const [status, setStatus] = useState<Record<string, { state: 'idle' | 'busy' | 'done' | 'error'; msg?: string }>>({
-    articles: { state: 'idle' },
-    lessons:  { state: 'idle' },
+    articles:      { state: 'idle' },
+    lessons:       { state: 'idle' },
+    courseLessons: { state: 'idle' },
   })
 
   async function importArticles() {
@@ -54,6 +57,30 @@ export default function BootstrapPage() {
     }
   }
 
+  async function importCourseLessons() {
+    setStatus(s => ({ ...s, courseLessons: { state: 'busy' } }))
+    try {
+      const rows = COURSES.flatMap(course =>
+        course.curriculum.flatMap((section, sectionIdx) =>
+          section.lessons.map((lesson, lessonIdx) => ({
+            course_slug:   course.slug,
+            section_title: section.title,
+            section_order: sectionIdx,
+            lesson_title:  lesson.title,
+            duration:      lesson.duration,
+            youtube_id:    lesson.youtubeId,
+            is_free:       lesson.isFree,
+            sort_order:    lessonIdx,
+          })),
+        ),
+      )
+      await bootstrapCourseLessons(rows)
+      setStatus(s => ({ ...s, courseLessons: { state: 'done', msg: `Imported ${rows.length} course lessons` } }))
+    } catch (e) {
+      setStatus(s => ({ ...s, courseLessons: { state: 'error', msg: e instanceof Error ? e.message : 'failed' } }))
+    }
+  }
+
   return (
     <main className="max-w-3xl mx-auto px-4 py-8 space-y-6">
 
@@ -84,6 +111,14 @@ export default function BootstrapPage() {
         subtitle={`${LESSONS_DATA.length} lessons in src/data/lessons-data.ts`}
         status={status.lessons}
         onRun={importLessons}
+      />
+
+      <Card
+        icon={<Video size={20} className="text-rose-600" />}
+        title="Course video lessons"
+        subtitle={`${COURSES.reduce((acc, c) => acc + c.curriculum.reduce((a, s) => a + s.lessons.length, 0), 0)} lessons across ${COURSES.length} courses`}
+        status={status.courseLessons}
+        onRun={importCourseLessons}
       />
 
       <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 text-xs text-gray-600 flex items-start gap-2">
