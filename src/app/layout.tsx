@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { AuthProvider } from '@/lib/auth-context'
+import { ProfileProvider } from '@/lib/profile-context'
 import { FeatureAccessProvider } from '@/lib/feature-access'
 
 export const metadata: Metadata = {
@@ -29,9 +30,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="font-sans">
         <AuthProvider>
-          <FeatureAccessProvider>
-            {children}
-          </FeatureAccessProvider>
+          <ProfileProvider>
+            <FeatureAccessProvider>
+              {children}
+            </FeatureAccessProvider>
+          </ProfileProvider>
         </AuthProvider>
       </body>
     </html>

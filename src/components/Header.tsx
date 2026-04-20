@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu, X } from 'lucide-react'
+import HeaderAuthButton from './HeaderAuthButton'
 
 const NAV = [
   { href: '/',         label: 'الرئيسية' },
   { href: '/courses',  label: 'الدورات' },
+  { href: '/pricing',  label: 'الأسعار' },
   { href: '/blog',     label: 'المدونة' },
   { href: '/listen',   label: 'الاستماع' },
   { href: '/practice', label: 'تدرب الآن' },
@@ -76,14 +78,15 @@ export default function Header() {
           })}
         </nav>
 
-        {/* ── Desktop CTA ── */}
-        <div className="hidden lg:flex items-center flex-shrink-0">
+        {/* ── Desktop CTA + Auth ── */}
+        <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
           <Link
             href="/onboarding"
             className="px-5 py-2 rounded-lg text-[14px] font-extrabold no-underline bg-white text-brand-700 shadow-[0_2px_12px_rgba(0,0,0,0.18)] hover:scale-105 hover:shadow-[0_6px_20px_rgba(0,0,0,0.25)] transition-all duration-150 whitespace-nowrap"
           >
             ابدأ الآن
           </Link>
+          <HeaderAuthButton variant="desktop" />
         </div>
 
         {/* ── Mobile Hamburger ── */}
@@ -129,13 +132,14 @@ export default function Header() {
                 </Link>
               )
             })}
-            <div className="px-1 pt-2 pb-1">
+            <div className="px-1 pt-2 pb-1 space-y-2">
               <Link
                 href="/onboarding"
                 className="flex items-center justify-center w-full py-3.5 rounded-xl text-base font-extrabold no-underline bg-brand-700 text-white shadow-[0_4px_16px_rgba(29,78,216,0.35)]"
               >
                 ابدأ الآن
               </Link>
+              <HeaderAuthButton variant="mobile" />
             </div>
           </nav>
         </div>

@@ -2,11 +2,13 @@
 
 import Link from 'next/link'
 import { useState, useRef, useEffect } from 'react'
-import { LogIn, LogOut, User as UserIcon, Loader2, CreditCard, MessageCircle } from 'lucide-react'
+import { LogIn, LogOut, User as UserIcon, Loader2, CreditCard, MessageCircle, Crown, AlertCircle } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
+import { useProfile } from '@/lib/profile-context'
 
 export default function HeaderAuthButton({ variant = 'desktop' }: { variant?: 'desktop' | 'mobile' }) {
   const { user, loading, signOut } = useAuth()
+  const { status } = useProfile()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -83,8 +85,28 @@ export default function HeaderAuthButton({ variant = 'desktop' }: { variant?: 'd
     )
   }
 
+  const nudge =
+    status.isExpired               ? { href: '/billing', label: 'جدّد الآن',  tone: 'danger' as const, icon: AlertCircle } :
+    status.expiresSoon             ? { href: '/billing', label: `متبقي ${status.expiresInDays}ي`, tone: 'warn' as const,   icon: AlertCircle } :
+    !status.isPaid                 ? { href: '/pricing', label: 'اشترك',     tone: 'upgrade' as const, icon: Crown } :
+    null
+
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative flex items-center gap-2">
+      {nudge && (
+        <Link
+          href={nudge.href}
+          className={`hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black no-underline transition-colors ${
+            nudge.tone === 'danger'  ? 'bg-red-500 text-white hover:bg-red-400'      :
+            nudge.tone === 'warn'    ? 'bg-amber-400 text-gray-900 hover:bg-amber-300' :
+                                       'bg-amber-500 text-gray-900 hover:bg-amber-400'
+          }`}
+        >
+          <nudge.icon size={11} />
+          {nudge.label}
+        </Link>
+      )}
+
       <button
         onClick={() => setOpen(o => !o)}
         className="flex items-center gap-2 pr-2 pl-1 py-1 rounded-full bg-white/15 hover:bg-white/25 transition-colors"
