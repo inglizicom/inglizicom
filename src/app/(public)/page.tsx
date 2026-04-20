@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, useInView } from "framer-motion"
 import Link from "next/link"
 import { TESTIMONIALS } from "@/data/testimonials"
+import { SUBSCRIBE_FORM_URL } from "@/data/plans"
 
 /* ═══════════════════════════════════════════════════
    DATA
@@ -611,8 +612,8 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
   }
   const c = colorMap[plan.color] || colorMap.blue
 
-  const subscribeHref = '/billing'
-  const waHref = `https://wa.me/212707902091?text=${encodeURIComponent(`مرحبا، أريد الاشتراك في ${plan.title}`)}`
+  const subscribeHref = `${SUBSCRIBE_FORM_URL}?course=${encodeURIComponent(plan.title)}`
+  const waHref = `https://wa.me/212707902091?text=${encodeURIComponent(`مرحبا، عندي سؤال حول ${plan.title}`)}`
   const isLowStock = plan.seatsLeft !== null && plan.seatsLeft !== undefined && plan.seatsLeft <= 5
 
   return (
@@ -724,28 +725,30 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
 
         {/* dual CTAs */}
         <div className="flex flex-col gap-2">
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Link
-              href={subscribeHref}
-              className={`block w-full text-center py-3.5 rounded-2xl font-extrabold text-sm transition-all duration-300 ${
-                plan.popular
-                  ? `bg-gradient-to-l ${c.bg} text-white shadow-xl ${c.shadow} hover:shadow-2xl`
-                  : plan.badge
-                  ? `bg-gradient-to-l ${c.bg} text-white shadow-lg ${c.shadow} hover:shadow-xl`
-                  : `bg-gray-900 text-white hover:bg-gray-800 shadow-lg shadow-gray-200/50 hover:shadow-xl`
-              }`}
-            >
-              🔓 اشترك مباشرة
-            </Link>
-          </motion.div>
+          <motion.a
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            href={subscribeHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`block w-full text-center py-3.5 rounded-2xl font-extrabold text-sm transition-all duration-300 ${
+              plan.popular
+                ? `bg-gradient-to-l ${c.bg} text-white shadow-xl ${c.shadow} hover:shadow-2xl`
+                : plan.badge
+                ? `bg-gradient-to-l ${c.bg} text-white shadow-lg ${c.shadow} hover:shadow-xl`
+                : `bg-gray-900 text-white hover:bg-gray-800 shadow-lg shadow-gray-200/50 hover:shadow-xl`
+            }`}
+          >
+            🔓 اشترك الآن
+          </motion.a>
 
           <a
             href={waHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl font-bold text-xs text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-colors"
+            className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl font-bold text-xs text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 transition-colors"
           >
-            💬 أو تواصل مع الأستاذ
+            💬 استفسر عبر واتساب
           </a>
         </div>
 
