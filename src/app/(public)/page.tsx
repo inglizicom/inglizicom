@@ -611,7 +611,7 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
   }
   const c = colorMap[plan.color] || colorMap.blue
 
-  const subscribeHref = plan.slug ? `/courses/${plan.slug}` : '/pricing'
+  const subscribeHref = '/billing'
   const waHref = `https://wa.me/212707902091?text=${encodeURIComponent(`مرحبا، أريد الاشتراك في ${plan.title}`)}`
   const isLowStock = plan.seatsLeft !== null && plan.seatsLeft !== undefined && plan.seatsLeft <= 5
 
