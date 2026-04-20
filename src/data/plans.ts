@@ -36,11 +36,11 @@ export function getPlan(id: string): Plan | undefined {
 }
 
 export const BANK_DETAILS = {
-  bank_name:      'البنك الشعبي',
-  account_holder: 'Inglizi.com',
-  account_number: 'XXXX XXXX XXXX XXXX',
-  rib:            'XXX XXX XXXXXXXXXXXXXX XX',
-  swift:          'BCPOMAMC',
+  bank_name:      'Cih Bank',
+  account_holder: 'El Qasraoui Hamza',
+  account_number: '6183417211014000',
+  rib:            '230411618341721101400092',
+  swift:          'CIHAMAMC',
 }
 
 export const PAYMENT_WHATSAPP = '+212707902091'
