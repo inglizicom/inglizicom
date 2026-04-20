@@ -1,10 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { Crown, Check, ArrowLeft, Sparkles, MessageCircle, Clock, Shield, RefreshCw } from 'lucide-react'
+import { Crown, Check, ArrowLeft, Sparkles, MessageCircle, Clock, Shield, RefreshCw, Star, Users, Globe } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { useProfile } from '@/lib/profile-context'
 import { PLANS, PAYMENT_WHATSAPP } from '@/data/plans'
+import { TESTIMONIALS, STATS } from '@/data/testimonials'
 
 const BENEFITS = [
   'دخول كامل لجميع الكورسات',
@@ -51,6 +52,22 @@ export default function PricingPage() {
           <p className="text-gray-400 text-base max-w-xl mx-auto">
             اختر المدة المناسبة لك، وابدأ التعلم فوراً بعد تأكيد الدفع
           </p>
+
+          <div className="mt-6 inline-flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-gray-400 text-xs sm:text-sm">
+            <span className="inline-flex items-center gap-1.5">
+              <Users className="w-4 h-4 text-amber-400" />
+              <span className="text-white font-black">+{STATS.students}</span> طالب
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <Globe className="w-4 h-4 text-amber-400" />
+              <span className="text-white font-black">{STATS.countries}</span> دولة
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+              <span className="text-white font-black">{STATS.rating}</span>/5
+              <span className="text-gray-500">({STATS.reviews} تقييم)</span>
+            </span>
+          </div>
         </div>
 
         {status.isPaid && (
@@ -131,6 +148,40 @@ export default function PricingPage() {
           <TrustBadge icon={Shield}    title="دفع آمن"        subtitle="تحويل بنكي مغربي" />
           <TrustBadge icon={Clock}     title="تفعيل خلال 24h" subtitle="مراجعة يدوية للطلب" />
           <TrustBadge icon={RefreshCw} title="بدون تجديد تلقائي" subtitle="أنت تتحكم دائماً" />
+        </div>
+
+        <div className="max-w-5xl mx-auto mb-12">
+          <div className="text-center mb-6">
+            <h2 className="text-white font-black text-xl mb-1">ماذا يقول الطلاب؟</h2>
+            <div className="inline-flex items-center gap-1 text-amber-400 text-sm">
+              {[0,1,2,3,4].map(i => <Star key={i} className="w-4 h-4 fill-amber-400" />)}
+              <span className="text-gray-400 text-xs mr-2 font-semibold">
+                {STATS.rating}/5 من {STATS.reviews} تقييم
+              </span>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {TESTIMONIALS.slice(0, 6).map((t, i) => (
+              <div
+                key={i}
+                className="bg-gray-900 border border-gray-800 rounded-2xl p-5"
+              >
+                <div className="flex items-center gap-1 text-amber-400 mb-2">
+                  {[0,1,2,3,4].map(j => <Star key={j} className="w-3.5 h-3.5 fill-amber-400" />)}
+                </div>
+                <p className="text-gray-200 text-sm leading-relaxed mb-4">{t.text}</p>
+                <div className="flex items-center gap-3 pt-3 border-t border-gray-800">
+                  <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${t.color} flex items-center justify-center text-lg`}>
+                    {t.avatar}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-white font-black text-sm">{t.name}</div>
+                    <div className="text-gray-500 text-xs font-semibold">مستوى {t.level}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="max-w-2xl mx-auto mb-10">

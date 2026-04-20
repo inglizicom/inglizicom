@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, useInView } from "framer-motion"
 import Link from "next/link"
+import { TESTIMONIALS } from "@/data/testimonials"
 
 /* ═══════════════════════════════════════════════════
    DATA
@@ -157,12 +158,6 @@ const MAP_NODES = [
   { label: "B1", city: "المتوسط", status: "locked" },
   { label: "B2", city: "المتقدم", status: "locked" },
   { label: "C1", city: "الاحتراف", status: "locked" },
-]
-
-const TESTIMONIALS = [
-  { name: "سارة م.", text: "من أحسن قرار خذيته — بديت نتكلم إنجليزية في أسبوعين!", avatar: "👩‍🎓", level: "A2", color: "from-pink-400 to-rose-500" },
-  { name: "يوسف ب.", text: "الطريقة ممتعة بزاف وماكتحسش بالملل أبدا. شكرا حمزة!", avatar: "👨‍💻", level: "B1", color: "from-blue-400 to-indigo-500" },
-  { name: "نادية ك.", text: "ولادي كيتعلمو معايا — الموقع سهل ومفهوم للجميع", avatar: "👩‍🏫", level: "A1", color: "from-green-400 to-emerald-500" },
 ]
 
 const WORDS_CYCLE = ["الإنجليزية", "المحادثة", "النطق", "الاستماع", "الطلاقة"]
