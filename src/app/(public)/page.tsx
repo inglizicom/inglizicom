@@ -32,11 +32,12 @@ const SLIDES = [
 
 const PLANS = [
   {
-    id: "a0a1", title: "A0 → A1", subtitle: "المستوى الأول", emoji: "🌱", popular: true,
+    id: "a0a1", slug: "a0-a1", title: "A0 → A1", subtitle: "المستوى الأول", emoji: "🌱", popular: true,
     badge: "🔥 الأكثر طلباً",
     desc: "من الصفر المطلق إلى أول محادثة حقيقية",
     price: 750, currency: "DH",
     xp: 500,
+    rating: 4.9, ratingCount: 184, seatsLeft: 3, recentBuyers: 7,
     features: [
       "📹 دروس مسجلة عالية الجودة",
       "💬 مجموعة واتساب خاصة",
@@ -48,11 +49,12 @@ const PLANS = [
     color: "green", gradient: "from-green-500 to-emerald-600",
   },
   {
-    id: "a1a2", title: "A1 → A2", subtitle: "المحادثة اليومية", emoji: "💬", popular: false,
+    id: "a1a2", slug: "a1-a2", title: "A1 → A2", subtitle: "المحادثة اليومية", emoji: "💬", popular: false,
     badge: null,
     desc: "تحدث بثقة في المواقف اليومية البسيطة",
     price: 1200, currency: "DH",
     xp: 1200,
+    rating: 4.8, ratingCount: 96, seatsLeft: 5, recentBuyers: 4,
     features: [
       "📹 دروس مسجلة متقدمة",
       "💬 مجموعة واتساب خاصة",
@@ -64,11 +66,12 @@ const PLANS = [
     color: "blue", gradient: "from-blue-500 to-blue-600",
   },
   {
-    id: "a2b1", title: "A2 → B1", subtitle: "المتوسط", emoji: "🚀", popular: false,
+    id: "a2b1", slug: "a2-b1", title: "A2 → B1", subtitle: "المتوسط", emoji: "🚀", popular: false,
     badge: null,
     desc: "عبّر عن أفكارك بطلاقة وافهم المحادثات المعقدة",
     price: 1700, currency: "DH",
     xp: 2500,
+    rating: 4.9, ratingCount: 72, seatsLeft: null, recentBuyers: 3,
     features: [
       "📹 دروس مسجلة متقدمة",
       "💬 مجموعة واتساب خاصة",
@@ -80,11 +83,12 @@ const PLANS = [
     color: "purple", gradient: "from-purple-500 to-purple-600",
   },
   {
-    id: "b1b2", title: "B1 → B2", subtitle: "المتقدم", emoji: "⚡", popular: false,
+    id: "b1b2", slug: "b1-b2", title: "B1 → B2", subtitle: "المتقدم", emoji: "⚡", popular: false,
     badge: null,
     desc: "نقاشات عميقة وفهم شامل لأي سياق",
     price: 2500, currency: "DH",
     xp: 4000,
+    rating: 5.0, ratingCount: 48, seatsLeft: 2, recentBuyers: null,
     features: [
       "📹 دروس مسجلة احترافية",
       "💬 مجموعة واتساب خاصة",
@@ -96,11 +100,12 @@ const PLANS = [
     color: "orange", gradient: "from-orange-500 to-amber-500",
   },
   {
-    id: "business", title: "Business English", subtitle: "إنجليزية الأعمال", emoji: "💼", popular: false,
+    id: "business", slug: null, title: "Business English", subtitle: "إنجليزية الأعمال", emoji: "💼", popular: false,
     badge: "⭐ Premium",
     desc: "3 أشهر متابعة شخصية + حصص مباشرة + دروس مسجلة",
     price: 5000, currency: "DH",
     xp: 8000,
+    rating: 5.0, ratingCount: 34, seatsLeft: 4, recentBuyers: null,
     features: [
       "📹 دروس مسجلة احترافية",
       "🎥 حصص LIVE مباشرة",
@@ -112,11 +117,12 @@ const PLANS = [
     color: "gold", gradient: "from-yellow-500 to-amber-600",
   },
   {
-    id: "grammar", title: "Grammar Course", subtitle: "القواعد حتى A2", emoji: "📖", popular: false,
+    id: "grammar", slug: null, title: "Grammar Course", subtitle: "القواعد حتى A2", emoji: "📖", popular: false,
     badge: null,
     desc: "أساسيات القواعد من الصفر إلى المستوى المتوسط",
     price: 1300, currency: "DH",
     xp: 1500,
+    rating: 4.8, ratingCount: 58, seatsLeft: null, recentBuyers: 2,
     features: [
       "📹 دروس قواعد مسجلة",
       "💬 مجموعة واتساب خاصة",
@@ -128,11 +134,12 @@ const PLANS = [
     color: "teal", gradient: "from-teal-500 to-cyan-600",
   },
   {
-    id: "advanced-grammar", title: "Advanced Grammar", subtitle: "قواعد متقدمة", emoji: "🎓", popular: false,
+    id: "advanced-grammar", slug: null, title: "Advanced Grammar", subtitle: "قواعد متقدمة", emoji: "🎓", popular: false,
     badge: null,
     desc: "إتقان كامل للقواعد المتقدمة والتراكيب المعقدة",
     price: 2000, currency: "DH",
     xp: 3000,
+    rating: 4.9, ratingCount: 41, seatsLeft: null, recentBuyers: null,
     features: [
       "📹 دروس قواعد متقدمة",
       "💬 مجموعة واتساب خاصة",
@@ -604,11 +611,15 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
   }
   const c = colorMap[plan.color] || colorMap.blue
 
+  const subscribeHref = plan.slug ? `/courses/${plan.slug}` : '/pricing'
+  const waHref = `https://wa.me/212707902091?text=${encodeURIComponent(`مرحبا، أريد الاشتراك في ${plan.title}`)}`
+  const isLowStock = plan.seatsLeft !== null && plan.seatsLeft !== undefined && plan.seatsLeft <= 5
+
   return (
     <motion.div
       custom={i}
       variants={fadeUp}
-      whileHover={{ y: -12, scale: 1.02 }}
+      whileHover={{ y: -8, scale: 1.015 }}
       className={`relative flex flex-col rounded-3xl overflow-hidden transition-all duration-400 group ${
         plan.popular
           ? `bg-white border-2 ${c.border} shadow-2xl ${c.shadow} ring-4 ${c.ring}`
@@ -619,7 +630,7 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
     >
       {/* top ribbon */}
       {plan.badge && (
-        <div className={`bg-gradient-to-l ${c.bg} px-6 py-3.5 text-center relative overflow-hidden`}>
+        <div className={`bg-gradient-to-l ${c.bg} px-6 py-3 text-center relative overflow-hidden`}>
           <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.15)_50%,transparent_75%)] bg-[length:250%_100%] animate-shimmer" />
           <motion.span
             animate={{ scale: [1, 1.05, 1] }}
@@ -631,87 +642,115 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
         </div>
       )}
 
-      <div className="flex flex-col flex-1 p-5 sm:p-7 md:p-8">
+      {/* low-stock banner */}
+      {isLowStock && !plan.badge && (
+        <div className="bg-gradient-to-l from-red-500 to-orange-500 px-4 py-2 text-center">
+          <motion.span
+            animate={{ opacity: [1, 0.6, 1] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="text-white text-xs font-black inline-flex items-center gap-1.5"
+          >
+            ⏰ باقي {plan.seatsLeft} مقاعد فقط
+          </motion.span>
+        </div>
+      )}
+
+      <div className="flex flex-col flex-1 p-5 sm:p-6 md:p-7">
         {/* emoji + title */}
-        <div className="flex items-center gap-4 mb-5">
+        <div className="flex items-center gap-3 mb-3">
           <motion.div
             whileHover={{ rotate: [0, -10, 10, 0], scale: 1.15 }}
             transition={{ duration: 0.5 }}
-            className={`w-14 h-14 bg-gradient-to-br ${c.bg} rounded-2xl flex items-center justify-center text-2xl shadow-lg flex-shrink-0`}
+            className={`w-12 h-12 bg-gradient-to-br ${c.bg} rounded-2xl flex items-center justify-center text-xl shadow-lg flex-shrink-0`}
           >
             {plan.emoji}
           </motion.div>
-          <div>
-            <h3 className="font-black text-gray-900 text-xl leading-tight">{plan.title}</h3>
-            <p className="text-gray-500 text-sm font-semibold">{plan.subtitle}</p>
+          <div className="min-w-0">
+            <h3 className="font-black text-gray-900 text-lg leading-tight">{plan.title}</h3>
+            <p className="text-gray-500 text-xs font-semibold">{plan.subtitle}</p>
           </div>
         </div>
 
-        <p className="text-gray-600 text-sm leading-[1.8] mb-6">{plan.desc}</p>
+        {/* social proof row */}
+        {(plan.rating || plan.recentBuyers || (isLowStock && plan.badge)) && (
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 mb-4 text-xs">
+            {plan.rating && (
+              <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-100 px-2 py-1 rounded-lg font-black">
+                <span className="text-yellow-500">★</span>
+                {plan.rating}
+                {plan.ratingCount && <span className="text-amber-600/70 font-semibold">({plan.ratingCount})</span>}
+              </span>
+            )}
+            {plan.recentBuyers !== null && plan.recentBuyers !== undefined && plan.recentBuyers > 0 && (
+              <motion.span
+                animate={{ scale: [1, 1.04, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-1 rounded-lg font-black"
+              >
+                🔥 {plan.recentBuyers} اشترو اليوم
+              </motion.span>
+            )}
+            {isLowStock && plan.badge && (
+              <span className="inline-flex items-center gap-1 bg-red-50 text-red-700 border border-red-100 px-2 py-1 rounded-lg font-black">
+                ⏰ باقي {plan.seatsLeft} مقاعد
+              </span>
+            )}
+          </div>
+        )}
+
+        <p className="text-gray-600 text-sm leading-[1.7] mb-5">{plan.desc}</p>
 
         {/* price block */}
-        <div className={`${c.light} rounded-2xl p-5 mb-6 text-center border border-gray-100/50`}>
+        <div className={`${c.light} rounded-2xl p-4 mb-5 text-center border border-gray-100/50`}>
           <div className="flex items-baseline justify-center gap-2">
-            <span className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">{plan.price.toLocaleString()}</span>
-            <span className={`${c.text} text-lg font-extrabold`}>{plan.currency}</span>
+            <span className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">{plan.price.toLocaleString()}</span>
+            <span className={`${c.text} text-base font-extrabold`}>{plan.currency}</span>
           </div>
-          <div className="flex items-center justify-center gap-2 mt-2">
-            <motion.div
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className={`w-2 h-2 rounded-full bg-gradient-to-br ${c.bg}`}
-            />
-            <span className="text-gray-500 text-sm font-bold">+{plan.xp.toLocaleString()} XP مكافأة</span>
+          <div className="flex items-center justify-center gap-2 mt-1.5">
+            <span className="text-gray-500 text-xs font-bold">+{plan.xp.toLocaleString()} XP مكافأة</span>
             <span className="text-yellow-400">✨</span>
           </div>
         </div>
 
-        {/* divider with sparkle */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex-1 h-px bg-gray-100" />
-          <span className="text-gray-500 text-sm font-bold">ماذا تشمل</span>
-          <div className="flex-1 h-px bg-gray-100" />
-        </div>
-
         {/* features list */}
-        <ul className="space-y-3.5 mb-8 flex-1">
-          {plan.features.map((f, j) => (
-            <motion.li
-              key={j}
-              initial={{ opacity: 0, x: 10 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 + j * 0.06 }}
-              className="flex items-center gap-3 text-sm"
-            >
+        <ul className="space-y-2.5 mb-6 flex-1">
+          {plan.features.slice(0, 5).map((f, j) => (
+            <li key={j} className="flex items-center gap-2.5 text-sm">
               <span className="text-base flex-shrink-0">{f.slice(0, 2)}</span>
               <span className="text-gray-700 font-bold">{f.slice(2).trim()}</span>
-            </motion.li>
+            </li>
           ))}
         </ul>
 
-        {/* CTA */}
-        <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-          <Link
-            href={`https://wa.me/212707902091?text=${encodeURIComponent(`مرحبا، أريد الاشتراك في ${plan.title}`)}`}
-            target="_blank"
-            className={`block w-full text-center py-4 rounded-2xl font-extrabold text-base transition-all duration-300 ${
-              plan.popular
-                ? `bg-gradient-to-l ${c.bg} text-white shadow-xl ${c.shadow} hover:shadow-2xl`
-                : plan.badge
-                ? `bg-gradient-to-l ${c.bg} text-white shadow-lg ${c.shadow} hover:shadow-xl`
-                : `bg-gray-900 text-white hover:bg-gray-800 shadow-lg shadow-gray-200/50 hover:shadow-xl`
-            }`}
-          >
-            {plan.popular ? "🚀 ابدأ الآن" : "اشترك الآن ←"}
-          </Link>
-        </motion.div>
+        {/* dual CTAs */}
+        <div className="flex flex-col gap-2">
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Link
+              href={subscribeHref}
+              className={`block w-full text-center py-3.5 rounded-2xl font-extrabold text-sm transition-all duration-300 ${
+                plan.popular
+                  ? `bg-gradient-to-l ${c.bg} text-white shadow-xl ${c.shadow} hover:shadow-2xl`
+                  : plan.badge
+                  ? `bg-gradient-to-l ${c.bg} text-white shadow-lg ${c.shadow} hover:shadow-xl`
+                  : `bg-gray-900 text-white hover:bg-gray-800 shadow-lg shadow-gray-200/50 hover:shadow-xl`
+              }`}
+            >
+              🔓 اشترك مباشرة
+            </Link>
+          </motion.div>
 
-        {/* bottom note */}
-        <p className="text-center text-gray-500 text-sm mt-4 flex items-center justify-center gap-2">
-          <span className={c.text}>✓</span> نتائج مضمونة
-          <span className="w-1 h-1 bg-gray-200 rounded-full" />
-          <span className={c.text}>✓</span> دعم مباشر
+          <a
+            href={waHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl font-bold text-xs text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-colors"
+          >
+            💬 أو تواصل مع الأستاذ
+          </a>
+        </div>
+
+        <p className="text-center text-gray-400 text-[11px] mt-3 font-semibold">
+          ✓ نتائج مضمونة · ✓ إلغاء في أي وقت
         </p>
       </div>
     </motion.div>
