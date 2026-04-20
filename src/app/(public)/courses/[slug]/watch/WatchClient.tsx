@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Lock, Play, ArrowRight, ArrowLeft, MessageCircle, CheckCircle } from 'lucide-react'
+import { Lock, Play, ArrowRight, ArrowLeft, MessageCircle, CheckCircle, Crown } from 'lucide-react'
 import type { Course, CurriculumSection } from '@/data/courses'
 import VideoPlayer from '@/components/course/VideoPlayer'
 
@@ -188,19 +188,23 @@ export default function WatchClient({ course, sections }: Props) {
             ))}
           </div>
 
-          <div className="p-5 border-t border-gray-800 bg-gradient-to-br from-gray-900 to-gray-950">
+          <div className="p-5 border-t border-gray-800 bg-gradient-to-br from-gray-900 to-gray-950 space-y-2">
+            <Link
+              href="/billing"
+              className="flex items-center justify-center gap-2 w-full bg-amber-500 hover:bg-amber-400 text-gray-900 font-black text-sm py-3.5 rounded-xl shadow-lg shadow-amber-500/20 transition-all duration-300 hover:scale-[1.02] active:scale-95"
+            >
+              <Crown className="w-4 h-4" />
+              اشترك الآن لفتح كل الدروس
+            </Link>
             <a
               href={waLocked}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full bg-[#25d366] hover:bg-[#20c05c] text-white font-black text-sm py-3.5 rounded-xl shadow-lg shadow-green-500/20 transition-all duration-300 hover:scale-[1.02] active:scale-95"
+              className="flex items-center justify-center gap-2 w-full bg-[#25d366]/90 hover:bg-[#25d366] text-white font-bold text-xs py-2.5 rounded-xl transition-all duration-300"
             >
-              <MessageCircle className="w-4 h-4" />
-              احصل على الكورس كاملاً
+              <MessageCircle className="w-3.5 h-3.5" />
+              أو تواصل عبر واتساب
             </a>
-            <p className="text-xs text-gray-500 text-center mt-2.5 font-semibold">
-              تواصل مع الأستاذ عبر واتساب
-            </p>
           </div>
         </aside>
       </div>
@@ -230,15 +234,24 @@ function LockedOverlay({
           اشترك في كورس &quot;{courseTitle}&quot; للوصول لجميع الدروس
           ومتابعة شخصية من الأستاذ
         </p>
-        <a
-          href={waUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 bg-[#25d366] hover:bg-[#20c05c] text-white font-black text-sm px-8 py-3.5 rounded-xl shadow-xl shadow-green-500/30 transition-all duration-300 hover:scale-105 active:scale-95"
-        >
-          <MessageCircle className="w-4 h-4" />
-          تواصل مع الأستاذ للاشتراك
-        </a>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Link
+            href="/billing"
+            className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-gray-900 font-black text-sm px-8 py-3.5 rounded-xl shadow-xl shadow-amber-500/30 transition-all duration-300 hover:scale-105 active:scale-95"
+          >
+            <Crown className="w-4 h-4" />
+            اشترك الآن
+          </Link>
+          <a
+            href={waUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-[#25d366]/90 hover:bg-[#25d366] text-white font-black text-sm px-6 py-3.5 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95"
+          >
+            <MessageCircle className="w-4 h-4" />
+            واتساب
+          </a>
+        </div>
       </div>
     </div>
   )

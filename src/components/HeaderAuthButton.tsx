@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useRef, useEffect } from 'react'
-import { LogIn, LogOut, User as UserIcon, Loader2 } from 'lucide-react'
+import { LogIn, LogOut, User as UserIcon, Loader2, CreditCard, MessageCircle } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 
 export default function HeaderAuthButton({ variant = 'desktop' }: { variant?: 'desktop' | 'mobile' }) {
@@ -57,13 +57,29 @@ export default function HeaderAuthButton({ variant = 'desktop' }: { variant?: 'd
 
   if (variant === 'mobile') {
     return (
-      <button
-        onClick={() => signOut()}
-        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-base font-bold border border-gray-200 text-gray-700 bg-white"
-      >
-        <LogOut size={16} />
-        تسجيل الخروج
-      </button>
+      <div className="flex flex-col gap-2">
+        <Link
+          href="/billing"
+          className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-base font-bold no-underline border border-brand-700 text-brand-700 bg-white"
+        >
+          <CreditCard size={16} />
+          اشتراكي
+        </Link>
+        <Link
+          href="/support"
+          className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-base font-bold no-underline border border-gray-200 text-gray-700 bg-white"
+        >
+          <MessageCircle size={16} />
+          الدعم
+        </Link>
+        <button
+          onClick={() => signOut()}
+          className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-base font-bold border border-gray-200 text-gray-700 bg-white"
+        >
+          <LogOut size={16} />
+          تسجيل الخروج
+        </button>
+      </div>
     )
   }
 
@@ -94,9 +110,25 @@ export default function HeaderAuthButton({ variant = 'desktop' }: { variant?: 'd
               <p className="text-gray-400 text-xs truncate" dir="ltr">{user.email}</p>
             )}
           </div>
+          <Link
+            href="/billing"
+            onClick={() => setOpen(false)}
+            className="w-full flex items-center gap-2 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors no-underline"
+          >
+            <CreditCard size={14} />
+            اشتراكي
+          </Link>
+          <Link
+            href="/support"
+            onClick={() => setOpen(false)}
+            className="w-full flex items-center gap-2 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors no-underline border-t border-gray-100"
+          >
+            <MessageCircle size={14} />
+            الدعم
+          </Link>
           <button
             onClick={() => { setOpen(false); signOut() }}
-            className="w-full flex items-center gap-2 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+            className="w-full flex items-center gap-2 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100"
           >
             <LogOut size={14} />
             تسجيل الخروج
