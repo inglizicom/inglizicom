@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, useInView } from "framer-motion"
 import Link from "next/link"
 import { TESTIMONIALS } from "@/data/testimonials"
-import { SUBSCRIBE_FORM_URL } from "@/data/plans"
+import SubscribeModal from "@/components/SubscribeModal"
 
 /* ═══════════════════════════════════════════════════
    DATA
@@ -612,7 +612,7 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
   }
   const c = colorMap[plan.color] || colorMap.blue
 
-  const subscribeHref = `${SUBSCRIBE_FORM_URL}?course=${encodeURIComponent(plan.title)}`
+  const [subOpen, setSubOpen] = useState(false)
   const waHref = `https://wa.me/212707902091?text=${encodeURIComponent(`مرحبا، عندي سؤال حول ${plan.title}`)}`
   const isLowStock = plan.seatsLeft !== null && plan.seatsLeft !== undefined && plan.seatsLeft <= 5
 
@@ -725,12 +725,11 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
 
         {/* dual CTAs */}
         <div className="flex flex-col gap-2">
-          <motion.a
+          <motion.button
+            type="button"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            href={subscribeHref}
-            target="_blank"
-            rel="noopener noreferrer"
+            onClick={() => setSubOpen(true)}
             className={`block w-full text-center py-3.5 rounded-2xl font-extrabold text-sm transition-all duration-300 ${
               plan.popular
                 ? `bg-gradient-to-l ${c.bg} text-white shadow-xl ${c.shadow} hover:shadow-2xl`
@@ -740,7 +739,7 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
             }`}
           >
             🔓 اشترك الآن
-          </motion.a>
+          </motion.button>
 
           <a
             href={waHref}
@@ -756,6 +755,13 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
           ✓ نتائج مضمونة · ✓ إلغاء في أي وقت
         </p>
       </div>
+
+      <SubscribeModal
+        open={subOpen}
+        onClose={() => setSubOpen(false)}
+        courseTitle={plan.title}
+        coursePrice={`${plan.price.toLocaleString()} ${plan.currency}`}
+      />
     </motion.div>
   )
 }

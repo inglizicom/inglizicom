@@ -44,6 +44,3 @@ export const BANK_DETAILS = {
 }
 
 export const PAYMENT_WHATSAPP = '+212707902091'
-
-// Google Form that feeds into a Sheet — replace with the real URL
-export const SUBSCRIBE_FORM_URL = 'https://forms.gle/REPLACE_ME'
