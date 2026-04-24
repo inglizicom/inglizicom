@@ -5,6 +5,7 @@ import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, useIn
 import Link from "next/link"
 import { TESTIMONIALS } from "@/data/testimonials"
 import SubscribeModal from "@/components/SubscribeModal"
+import { PLANS as CANONICAL_PLANS, getPlan } from "@/data/plans"
 
 /* ═══════════════════════════════════════════════════
    DATA
@@ -31,127 +32,89 @@ const SLIDES = [
   },
 ]
 
-const PLANS = [
+/**
+ * View-only presentation layer on top of the canonical PLANS
+ * from /data/plans.ts. Pricing, level, follow-up duration and perks
+ * are the source of truth; emoji/gradient/popular/rating are UI extras.
+ */
+const PLAN_VIEW: Record<
+  string,
   {
-    id: "a0a1", slug: "a0-a1", title: "A0 → A1", subtitle: "المستوى الأول", emoji: "🌱", popular: true,
-    badge: "🔥 الأكثر طلباً",
-    desc: "من الصفر المطلق إلى أول محادثة حقيقية",
-    price: 750, currency: "DH",
-    xp: 500,
-    rating: 4.9, ratingCount: 184, seatsLeft: 3, recentBuyers: 7,
-    features: [
-      "📹 دروس مسجلة عالية الجودة",
-      "💬 مجموعة واتساب خاصة",
-      "📊 متابعة شخصية مستمرة",
-      "✅ نتائج مضمونة",
-      "📂 ملفات PDF تدريبية",
-      "♾️ وصول مدى الحياة",
-    ],
-    color: "green", gradient: "from-green-500 to-emerald-600",
+    emoji:    string
+    popular?: boolean
+    badge?:   string | null
+    desc:     string
+    color:    "green" | "blue" | "purple" | "orange" | "gold" | "slate"
+    gradient: string
+    rating?:        number
+    ratingCount?:   number
+    recentBuyers?:  number | null
+  }
+> = {
+  "a0-a1": {
+    emoji: "🌱", popular: true, badge: "🔥 الأكثر طلباً",
+    desc:  "من الصفر المطلق إلى أول محادثة حقيقية",
+    color: "green",  gradient: "from-green-500 to-emerald-600",
+    rating: 4.9, ratingCount: 184, recentBuyers: 7,
   },
-  {
-    id: "a1a2", slug: "a1-a2", title: "A1 → A2", subtitle: "المحادثة اليومية", emoji: "💬", popular: false,
-    badge: null,
-    desc: "تحدث بثقة في المواقف اليومية البسيطة",
-    price: 1200, currency: "DH",
-    xp: 1200,
-    rating: 4.8, ratingCount: 96, seatsLeft: 5, recentBuyers: 4,
-    features: [
-      "📹 دروس مسجلة متقدمة",
-      "💬 مجموعة واتساب خاصة",
-      "📊 متابعة شخصية مستمرة",
-      "✅ نتائج مضمونة",
-      "📂 ملفات PDF تدريبية",
-      "♾️ وصول مدى الحياة",
-    ],
-    color: "blue", gradient: "from-blue-500 to-blue-600",
+  "a1-a2": {
+    emoji: "💬", badge: null,
+    desc:  "تحدث بثقة في المواقف اليومية + متابعة أسبوعية",
+    color: "blue",   gradient: "from-blue-500 to-blue-600",
+    rating: 4.8, ratingCount: 96, recentBuyers: 4,
   },
-  {
-    id: "a2b1", slug: "a2-b1", title: "A2 → B1", subtitle: "المتوسط", emoji: "🚀", popular: false,
-    badge: null,
-    desc: "عبّر عن أفكارك بطلاقة وافهم المحادثات المعقدة",
-    price: 1700, currency: "DH",
-    xp: 2500,
-    rating: 4.9, ratingCount: 72, seatsLeft: null, recentBuyers: 3,
-    features: [
-      "📹 دروس مسجلة متقدمة",
-      "💬 مجموعة واتساب خاصة",
-      "📊 متابعة شخصية مستمرة",
-      "✅ نتائج مضمونة",
-      "📂 ملفات PDF تدريبية",
-      "♾️ وصول مدى الحياة",
-    ],
+  "a2-b1": {
+    emoji: "🚀", badge: "⭐ الأفضل قيمة",
+    desc:  "اقفز إلى الطلاقة + متابعة شخصية من الأستاذ",
     color: "purple", gradient: "from-purple-500 to-purple-600",
+    rating: 4.9, ratingCount: 72, recentBuyers: 3,
   },
-  {
-    id: "b1b2", slug: "b1-b2", title: "B1 → B2", subtitle: "المتقدم", emoji: "⚡", popular: false,
-    badge: null,
-    desc: "نقاشات عميقة وفهم شامل لأي سياق",
-    price: 2500, currency: "DH",
-    xp: 4000,
-    rating: 5.0, ratingCount: 48, seatsLeft: 2, recentBuyers: null,
-    features: [
-      "📹 دروس مسجلة احترافية",
-      "💬 مجموعة واتساب خاصة",
-      "📊 متابعة شخصية مكثفة",
-      "✅ نتائج مضمونة",
-      "📂 ملفات PDF تدريبية",
-      "♾️ وصول مدى الحياة",
-    ],
+  "b1-b2": {
+    emoji: "⚡", badge: null,
+    desc:  "إتقان احترافي + لايفان شهرياً للمشتركين",
     color: "orange", gradient: "from-orange-500 to-amber-500",
+    rating: 5.0, ratingCount: 48, recentBuyers: null,
   },
-  {
-    id: "business", slug: null, title: "Business English", subtitle: "إنجليزية الأعمال", emoji: "💼", popular: false,
-    badge: "⭐ Premium",
-    desc: "3 أشهر متابعة شخصية + حصص مباشرة + دروس مسجلة",
-    price: 5000, currency: "DH",
-    xp: 8000,
-    rating: 5.0, ratingCount: 34, seatsLeft: 4, recentBuyers: null,
-    features: [
-      "📹 دروس مسجلة احترافية",
-      "🎥 حصص LIVE مباشرة",
-      "👤 3 أشهر متابعة شخصية",
-      "💬 مجموعة واتساب VIP",
-      "📂 ملفات PDF متقدمة",
-      "🏆 شهادة إتمام معتمدة",
-    ],
-    color: "gold", gradient: "from-yellow-500 to-amber-600",
+  "a0-b2-full": {
+    emoji: "👑", badge: "⭐ الأكثر شمولاً",
+    desc:  "الباقة الكاملة: كل المستويات + كوتشينغ 1:1 + 3 لايفات شهرياً",
+    color: "gold",   gradient: "from-yellow-500 to-amber-600",
+    rating: 5.0, ratingCount: 34, recentBuyers: null,
   },
-  {
-    id: "grammar", slug: null, title: "Grammar Course", subtitle: "القواعد حتى A2", emoji: "📖", popular: false,
-    badge: null,
-    desc: "أساسيات القواعد من الصفر إلى المستوى المتوسط",
-    price: 1300, currency: "DH",
-    xp: 1500,
-    rating: 4.8, ratingCount: 58, seatsLeft: null, recentBuyers: 2,
-    features: [
-      "📹 دروس قواعد مسجلة",
-      "💬 مجموعة واتساب خاصة",
-      "📊 متابعة شخصية",
-      "📂 ملفات PDF وتمارين",
-      "✅ نتائج مضمونة",
-      "♾️ وصول مدى الحياة",
-    ],
-    color: "teal", gradient: "from-teal-500 to-cyan-600",
+  "business": {
+    emoji: "💼", badge: "فردي 1:1",
+    desc:  "حصص فردية 1:30–2 ساعات، حد أدنى 5 حصص شهرياً",
+    color: "slate",  gradient: "from-slate-600 to-slate-800",
+    rating: 5.0, ratingCount: 22, recentBuyers: null,
   },
-  {
-    id: "advanced-grammar", slug: null, title: "Advanced Grammar", subtitle: "قواعد متقدمة", emoji: "🎓", popular: false,
-    badge: null,
-    desc: "إتقان كامل للقواعد المتقدمة والتراكيب المعقدة",
-    price: 2000, currency: "DH",
-    xp: 3000,
-    rating: 4.9, ratingCount: 41, seatsLeft: null, recentBuyers: null,
-    features: [
-      "📹 دروس قواعد متقدمة",
-      "💬 مجموعة واتساب خاصة",
-      "📊 متابعة شخصية مكثفة",
-      "📂 ملفات PDF متقدمة",
-      "✅ نتائج مضمونة",
-      "♾️ وصول مدى الحياة",
-    ],
-    color: "indigo", gradient: "from-indigo-500 to-violet-600",
-  },
-]
+}
+
+const PLANS = CANONICAL_PLANS.map(p => {
+  const v = PLAN_VIEW[p.id]
+  return {
+    id:           p.id,
+    canonicalId:  p.id,
+    slug:         p.courseSlug,
+    title:        p.levelFrom && p.levelTo
+                    ? `${p.levelFrom} → ${p.levelTo}`
+                    : p.title_ar,
+    subtitle:     p.subtitle_ar,
+    price:        p.amount_mad,
+    isHourly:     !!p.isHourly,
+    followUp:     `${p.followUpLabel_ar} · ${p.followUpDuration_ar}`,
+    currency:     "DH",
+    features:     [...p.lifetimePerks, ...p.monthlyPerks],
+    emoji:        v?.emoji    ?? "⭐",
+    popular:      v?.popular  ?? false,
+    badge:        v?.badge    ?? p.badge_ar ?? null,
+    desc:         v?.desc     ?? p.subtitle_ar,
+    color:        v?.color    ?? "blue",
+    gradient:     v?.gradient ?? "from-blue-500 to-blue-600",
+    rating:       v?.rating,
+    ratingCount:  v?.ratingCount,
+    recentBuyers: v?.recentBuyers,
+  }
+})
 
 const TOOLS = [
   { icon: "🎧", title: "الاستماع", desc: "بودكاست ومحادثات حقيقية بمستويات مختلفة", href: "/listen", gradient: "from-blue-500 to-cyan-400", glow: "shadow-blue-500/20" },
@@ -607,14 +570,12 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
     purple: { bg: "from-purple-500 to-purple-600", text: "text-purple-600", light: "bg-purple-50", border: "border-purple-300", shadow: "shadow-purple-200/40", ring: "ring-purple-400/20" },
     orange: { bg: "from-orange-500 to-amber-500", text: "text-orange-600", light: "bg-orange-50", border: "border-orange-300", shadow: "shadow-orange-200/40", ring: "ring-orange-400/20" },
     gold:   { bg: "from-yellow-500 to-amber-600", text: "text-amber-600", light: "bg-amber-50", border: "border-amber-400", shadow: "shadow-amber-200/50", ring: "ring-amber-400/20" },
-    teal:   { bg: "from-teal-500 to-cyan-600", text: "text-teal-600", light: "bg-teal-50", border: "border-teal-300", shadow: "shadow-teal-200/40", ring: "ring-teal-400/20" },
-    indigo: { bg: "from-indigo-500 to-violet-600", text: "text-indigo-600", light: "bg-indigo-50", border: "border-indigo-300", shadow: "shadow-indigo-200/40", ring: "ring-indigo-400/20" },
+    slate:  { bg: "from-slate-600 to-slate-800", text: "text-slate-700", light: "bg-slate-50", border: "border-slate-400", shadow: "shadow-slate-200/50", ring: "ring-slate-400/20" },
   }
   const c = colorMap[plan.color] || colorMap.blue
 
   const [subOpen, setSubOpen] = useState(false)
-  const waHref = `https://wa.me/212707902091?text=${encodeURIComponent(`مرحبا، عندي سؤال حول ${plan.title}`)}`
-  const isLowStock = plan.seatsLeft !== null && plan.seatsLeft !== undefined && plan.seatsLeft <= 5
+  const canonical = getPlan(plan.canonicalId)
 
   return (
     <motion.div
@@ -643,19 +604,6 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
         </div>
       )}
 
-      {/* low-stock banner */}
-      {isLowStock && !plan.badge && (
-        <div className="bg-gradient-to-l from-red-500 to-orange-500 px-4 py-2 text-center">
-          <motion.span
-            animate={{ opacity: [1, 0.6, 1] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="text-white text-xs font-black inline-flex items-center gap-1.5"
-          >
-            ⏰ باقي {plan.seatsLeft} مقاعد فقط
-          </motion.span>
-        </div>
-      )}
-
       <div className="flex flex-col flex-1 p-5 sm:p-6 md:p-7">
         {/* emoji + title */}
         <div className="flex items-center gap-3 mb-3">
@@ -673,7 +621,7 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
         </div>
 
         {/* social proof row */}
-        {(plan.rating || plan.recentBuyers || (isLowStock && plan.badge)) && (
+        {(plan.rating || (plan.recentBuyers && plan.recentBuyers > 0)) && (
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 mb-4 text-xs">
             {plan.rating && (
               <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 border border-amber-100 px-2 py-1 rounded-lg font-black">
@@ -688,13 +636,8 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
                 transition={{ duration: 2, repeat: Infinity }}
                 className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-1 rounded-lg font-black"
               >
-                🔥 {plan.recentBuyers} اشترو اليوم
+                🔥 {plan.recentBuyers} اشتركوا اليوم
               </motion.span>
-            )}
-            {isLowStock && plan.badge && (
-              <span className="inline-flex items-center gap-1 bg-red-50 text-red-700 border border-red-100 px-2 py-1 rounded-lg font-black">
-                ⏰ باقي {plan.seatsLeft} مقاعد
-              </span>
             )}
           </div>
         )}
@@ -705,25 +648,26 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
         <div className={`${c.light} rounded-2xl p-4 mb-5 text-center border border-gray-100/50`}>
           <div className="flex items-baseline justify-center gap-2">
             <span className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">{plan.price.toLocaleString()}</span>
-            <span className={`${c.text} text-base font-extrabold`}>{plan.currency}</span>
+            <span className={`${c.text} text-base font-extrabold`}>
+              {plan.currency}{plan.isHourly ? ' / الساعة' : ''}
+            </span>
           </div>
-          <div className="flex items-center justify-center gap-2 mt-1.5">
-            <span className="text-gray-500 text-xs font-bold">+{plan.xp.toLocaleString()} XP مكافأة</span>
-            <span className="text-yellow-400">✨</span>
+          <div className="flex items-center justify-center gap-1.5 mt-1.5">
+            <span className="text-gray-500 text-[11px] font-bold">{plan.followUp}</span>
           </div>
         </div>
 
         {/* features list */}
         <ul className="space-y-2.5 mb-6 flex-1">
           {plan.features.slice(0, 5).map((f, j) => (
-            <li key={j} className="flex items-center gap-2.5 text-sm">
-              <span className="text-base flex-shrink-0">{f.slice(0, 2)}</span>
-              <span className="text-gray-700 font-bold">{f.slice(2).trim()}</span>
+            <li key={j} className="flex items-start gap-2.5 text-sm">
+              <span className="mt-0.5 text-green-600 flex-shrink-0">✓</span>
+              <span className="text-gray-700 font-bold leading-snug">{f}</span>
             </li>
           ))}
         </ul>
 
-        {/* dual CTAs */}
+        {/* CTAs: subscribe primary + watch demo secondary */}
         <div className="flex flex-col gap-2">
           <motion.button
             type="button"
@@ -738,30 +682,31 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
                 : `bg-gray-900 text-white hover:bg-gray-800 shadow-lg shadow-gray-200/50 hover:shadow-xl`
             }`}
           >
-            🔓 اشترك الآن
+            اشترك الآن
           </motion.button>
 
-          <a
-            href={waHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl font-bold text-xs text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 transition-colors"
-          >
-            💬 استفسر عبر واتساب
-          </a>
+          {plan.slug && (
+            <Link
+              href={`/courses/${plan.slug}/watch`}
+              className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl font-bold text-xs text-gray-600 bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-colors"
+            >
+              ▶ شاهد دروساً مجانية
+            </Link>
+          )}
         </div>
 
         <p className="text-center text-gray-400 text-[11px] mt-3 font-semibold">
-          ✓ نتائج مضمونة · ✓ إلغاء في أي وقت
+          ✓ دروس مدى الحياة · ✓ 50 مقعد فقط شهرياً
         </p>
       </div>
 
-      <SubscribeModal
-        open={subOpen}
-        onClose={() => setSubOpen(false)}
-        courseTitle={plan.title}
-        coursePrice={`${plan.price.toLocaleString()} ${plan.currency}`}
-      />
+      {canonical && (
+        <SubscribeModal
+          open={subOpen}
+          onClose={() => setSubOpen(false)}
+          plan={canonical}
+        />
+      )}
     </motion.div>
   )
 }

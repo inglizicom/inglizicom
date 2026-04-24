@@ -151,8 +151,8 @@ export const COURSES: Course[] = [
     hook: 'حوّل جملتك الأولى إلى محادثة يومية حقيقية ومستمرة',
     description:
       'إذا كنت تعرف بعض الأساسيات لكن لا تستطيع المحادثة بطلاقة، هذا الكورس يأخذك خطوة أعمق ويعلمك كيف تتحدث في مواقف يومية متنوعة دون توقف أو تردد.',
-    price: 950,
-    originalPrice: 1400,
+    price: 1400,
+    originalPrice: 1900,
     currency: 'درهم',
     image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80',
     badge: 'الأكثر طلباً',
@@ -213,8 +213,8 @@ export const COURSES: Course[] = [
     hook: 'تكلم الإنجليزية بطلاقة حقيقية وتوقف عن الترجمة في رأسك',
     description:
       'مرحلة التحول الحقيقية. هنا تنتقل من "أعرف الإنجليزية" إلى "أتكلم الإنجليزية". ستتوقف عن الترجمة في ذهنك وتبدأ التفكير مباشرة بالإنجليزية بطريقة طبيعية وعفوية.',
-    price: 1200,
-    originalPrice: 1800,
+    price: 1800,
+    originalPrice: 2400,
     currency: 'درهم',
     image: 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=800&q=80',
     badge: '✨ الأفضل قيمة',
@@ -275,8 +275,8 @@ export const COURSES: Course[] = [
     hook: 'تحدث كالمحترفين في العمل والمقابلات والسفر الدولي',
     description:
       'للذين يريدون الوصول إلى المستوى الاحترافي الكامل. تعلم الإنجليزية التجارية والمهنية وعبّر عن أفكار معقدة بدقة وأناقة تُبهر من حولك.',
-    price: 1500,
-    originalPrice: 2200,
+    price: 3000,
+    originalPrice: 3900,
     currency: 'درهم',
     image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800&q=80',
     badge: 'للمحترفين',
