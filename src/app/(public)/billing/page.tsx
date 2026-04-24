@@ -130,13 +130,15 @@ export default function BillingPage() {
                       الأكثر طلباً
                     </div>
                   )}
-                  <h3 className="text-white font-black text-lg mb-1">{p.label_ar}</h3>
+                  <h3 className="text-white font-black text-lg mb-1">{p.title_ar}</h3>
                   <div className="flex items-baseline gap-1 mb-1">
                     <span className="text-white font-black text-3xl">{p.amount_mad}</span>
                     <span className="text-gray-400 text-sm font-bold">درهم</span>
                   </div>
-                  {p.savings_label && (
-                    <div className="text-emerald-400 text-xs font-bold">{p.savings_label}</div>
+                  {p.originalAmount && p.originalAmount > p.amount_mad && (
+                    <div className="text-emerald-400 text-xs font-bold">
+                      وفّر {p.originalAmount - p.amount_mad} درهم
+                    </div>
                   )}
                   <div className="mt-4 pt-4 border-t border-gray-800">
                     <div className="inline-flex items-center gap-1.5 text-brand-400 text-sm font-bold">
@@ -217,7 +219,7 @@ function CheckoutFlow({
   }
 
   const waUrl = `https://wa.me/${PAYMENT_WHATSAPP.replace(/[^\d]/g, '')}?text=${
-    encodeURIComponent(`مرحباً، أود الاشتراك في ${plan.label_ar} (${plan.amount_mad} درهم)`)
+    encodeURIComponent(`مرحباً، أود الاشتراك في ${plan.title_ar} (${plan.amount_mad} درهم)`)
   }`
 
   return (
@@ -231,7 +233,7 @@ function CheckoutFlow({
       </button>
 
       <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-        <h2 className="text-white font-black text-lg mb-1">{plan.label_ar}</h2>
+        <h2 className="text-white font-black text-lg mb-1">{plan.title_ar}</h2>
         <div className="flex items-baseline gap-1">
           <span className="text-white font-black text-2xl">{plan.amount_mad}</span>
           <span className="text-gray-400 text-sm font-bold">درهم</span>
@@ -349,7 +351,7 @@ function PaymentRow({ payment }: { payment: Payment }) {
       <div className="flex items-start justify-between gap-3 mb-1.5">
         <div className="min-w-0">
           <div className="text-white font-bold text-sm">
-            {plan?.label_ar ?? payment.plan_requested}
+            {plan?.title_ar ?? payment.plan_requested}
           </div>
           <div className="text-gray-400 text-xs mt-0.5 font-semibold">
             {payment.amount} {payment.currency} ·{' '}

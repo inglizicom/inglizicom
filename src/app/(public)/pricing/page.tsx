@@ -106,7 +106,7 @@ export default function PricingPage() {
                 </div>
               )}
 
-              <h3 className="text-white font-black text-xl mb-2">{p.label_ar}</h3>
+              <h3 className="text-white font-black text-xl mb-2">{p.title_ar}</h3>
               <div className="flex items-baseline gap-1 mb-1">
                 <span className="text-white font-black text-4xl">{p.amount_mad}</span>
                 <span className="text-gray-400 text-sm font-bold">درهم</span>
@@ -114,9 +114,9 @@ export default function PricingPage() {
               <div className="text-gray-500 text-xs font-semibold mb-3">
                 {p.duration_months === 1 ? 'شهرياً' : `لمدة ${p.duration_months} أشهر`}
               </div>
-              {p.savings_label && (
+              {p.originalAmount && p.originalAmount > p.amount_mad && (
                 <div className="inline-block bg-emerald-500/10 text-emerald-400 text-xs font-black px-2 py-1 rounded-md mb-4">
-                  {p.savings_label}
+                  وفّر {p.originalAmount - p.amount_mad} درهم
                 </div>
               )}
 

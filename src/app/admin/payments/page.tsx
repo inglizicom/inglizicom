@@ -142,7 +142,7 @@ export default function AdminPaymentsPage() {
                       </span>
                     </div>
                     <div className="text-xs text-gray-500 font-semibold">
-                      {plan?.label_ar ?? p.plan_requested} ·{' '}
+                      {plan?.title_ar ?? p.plan_requested} ·{' '}
                       {new Date(p.created_at).toLocaleString('en', { dateStyle: 'short', timeStyle: 'short' })}
                     </div>
                   </div>
@@ -220,7 +220,7 @@ function ReviewModal({
               {payment.profile?.email || '—'}
             </InfoRow>
             <InfoRow icon={CreditCard} label="Plan">
-              {plan?.label_ar ?? payment.plan_requested}
+              {plan?.title_ar ?? payment.plan_requested}
             </InfoRow>
             <InfoRow icon={CreditCard} label="Amount">
               {payment.amount} {payment.currency} · {payment.duration_months} month(s)
