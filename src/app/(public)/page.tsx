@@ -51,33 +51,27 @@ const PLAN_VIEW: Record<
     recentBuyers?:  number | null
   }
 > = {
-  "free": {
-    emoji: "🎁", badge: "مجاني",
-    desc:  "الوصول التمهيدي — ابدأ من الصفر بدون أي التزام",
-    color: "slate",  gradient: "from-slate-500 to-slate-700",
-    rating: 4.8, ratingCount: 212, recentBuyers: 9,
-  },
   "basic": {
     emoji: "🌱",
-    desc:  "قاعدة قوية للمبتدئين + متابعة أسبوعية",
+    desc:  "ابدأ من الصفر المطلق وبنِ أول جُمَلك بثقة",
     color: "green",  gradient: "from-green-500 to-emerald-600",
     rating: 4.9, ratingCount: 184, recentBuyers: 7,
   },
   "pro": {
     emoji: "💬", popular: true, badge: "🔥 الأكثر طلباً",
-    desc:  "تحدث بطلاقة + متابعة شخصية من الأستاذ",
+    desc:  "حوّل الجملة إلى محادثة يومية + متابعة أسبوعية",
     color: "blue",   gradient: "from-blue-500 to-blue-600",
     rating: 4.9, ratingCount: 96, recentBuyers: 4,
   },
   "premium": {
     emoji: "🚀", badge: "⭐ الأفضل قيمة",
-    desc:  "إتقان متقدم (C1) + 3 لايفات شهرياً",
+    desc:  "تحدث بطلاقة احترافية (B1-B2) + 3 لايفات شهرياً",
     color: "purple", gradient: "from-purple-500 to-purple-600",
     rating: 5.0, ratingCount: 48, recentBuyers: 2,
   },
   "vip": {
     emoji: "👑", badge: "⭐ الأكثر تحوّلاً",
-    desc:  "برنامج التحوّل: كوتشينغ 1:1 يومي مع الأستاذ",
+    desc:  "برنامج التحوّل الكامل: كوتشينغ 1:1 + متابعة يومية",
     color: "gold",   gradient: "from-yellow-500 to-amber-600",
     rating: 5.0, ratingCount: 34, recentBuyers: null,
   },
