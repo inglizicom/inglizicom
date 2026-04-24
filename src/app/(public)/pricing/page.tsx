@@ -1,18 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { Crown, Check, ArrowLeft, Sparkles, MessageCircle, Clock, Shield, RefreshCw, Star, Users, Globe } from 'lucide-react'
+import {
+  Crown, Check, ArrowLeft, Sparkles, MessageCircle, Clock, Shield,
+  RefreshCw, Star, Users, Globe, BookOpen, Calendar, Target, Flame,
+} from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { useProfile } from '@/lib/profile-context'
-import { PLANS, PAYMENT_WHATSAPP } from '@/data/plans'
+import { PLANS, PAYMENT_WHATSAPP, type Plan } from '@/data/plans'
 import { TESTIMONIALS, STATS } from '@/data/testimonials'
-
-const BENEFITS = [
-  'دخول كامل لجميع الكورسات',
-  'دروس جديدة كل أسبوع',
-  'متابعة شخصية من الأستاذ',
-  'إلغاء في أي وقت',
-]
 
 const FAQ: { q: string; a: string }[] = [
   {
@@ -31,6 +27,14 @@ const FAQ: { q: string; a: string }[] = [
     q: 'هل يوجد فترة تجريبية؟',
     a: 'نعم، كل كورس يحتوي على دروس مجانية تجريبية قبل الاشتراك.',
   },
+  {
+    q: 'كيف أختار الباقة المناسبة؟',
+    a: 'إذا كنت مبتدئاً تماماً ابدأ بالأساسية. لو عندك كلمات متفرقة لكن لا تستطيع المحادثة اختر الاحترافية. لو تفهم جيداً وتريد الطلاقة الممتازة. وإذا تبحث عن تحول شامل مع الأستاذ شخصياً فالـ VIP.',
+  },
+  {
+    q: 'ما الفرق بين الباقات؟',
+    a: 'كل باقة تشمل كل محتوى الباقة الأدنى منها وتضيف مستوى جديد من المحتوى + متابعة أعمق. الباقة الممتازة مثلاً تشمل كل دروس الأساسية والاحترافية بالإضافة لدروس B1-B2 ومراجعات أسبوعية.',
+  },
 ]
 
 export default function PricingPage() {
@@ -39,7 +43,7 @@ export default function PricingPage() {
 
   return (
     <main className="min-h-screen bg-gray-950 pt-[80px] pb-16 px-4" dir="rtl">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-6xl mx-auto">
 
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold px-3 py-1 rounded-full mb-4">
@@ -50,7 +54,7 @@ export default function PricingPage() {
             افتح كل الكورسات والمميزات
           </h1>
           <p className="text-gray-400 text-base max-w-xl mx-auto">
-            اختر المدة المناسبة لك، وابدأ التعلم فوراً بعد تأكيد الدفع
+            4 باقات متدرجة — كل واحدة تبني على التي قبلها، مع محتوى أعمق ومتابعة أقرب من الأستاذ
           </p>
 
           <div className="mt-6 inline-flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-gray-400 text-xs sm:text-sm">
@@ -90,67 +94,19 @@ export default function PricingPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-14 items-stretch">
           {PLANS.map(p => (
-            <div
-              key={p.id}
-              className={`relative bg-gray-900 border-2 rounded-2xl p-6 transition-all ${
-                p.highlight
-                  ? 'border-amber-500 ring-2 ring-amber-500/20 md:scale-105'
-                  : 'border-gray-800'
-              }`}
-            >
-              {p.highlight && (
-                <div className="absolute -top-3 right-5 text-[10px] font-black px-2.5 py-1 rounded-full bg-amber-500 text-gray-900 uppercase tracking-wider">
-                  الأكثر طلباً
-                </div>
-              )}
-
-              <h3 className="text-white font-black text-xl mb-2">{p.title_ar}</h3>
-              <div className="flex items-baseline gap-1 mb-1">
-                <span className="text-white font-black text-4xl">{p.amount_mad}</span>
-                <span className="text-gray-400 text-sm font-bold">درهم</span>
-              </div>
-              <div className="text-gray-500 text-xs font-semibold mb-3">
-                {p.duration_months === 1 ? 'شهرياً' : `لمدة ${p.duration_months} أشهر`}
-              </div>
-              {p.originalAmount && p.originalAmount > p.amount_mad && (
-                <div className="inline-block bg-emerald-500/10 text-emerald-400 text-xs font-black px-2 py-1 rounded-md mb-4">
-                  وفّر {p.originalAmount - p.amount_mad} درهم
-                </div>
-              )}
-
-              <ul className="space-y-2 mb-6 mt-5">
-                {BENEFITS.map(b => (
-                  <li key={b} className="flex items-start gap-2 text-gray-300 text-sm">
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>{b}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <Link
-                href={user ? '/billing' : `/login?next=${encodeURIComponent('/billing')}`}
-                className={`flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-black transition-all ${
-                  p.highlight
-                    ? 'bg-amber-500 hover:bg-amber-400 text-gray-900'
-                    : 'bg-white/10 hover:bg-white/20 text-white'
-                }`}
-              >
-                اشترك الآن
-                <ArrowLeft className="w-4 h-4" />
-              </Link>
-            </div>
+            <DetailedPlanCard key={p.id} plan={p} ctaHref={user ? '/billing' : `/login?next=${encodeURIComponent('/billing')}`} />
           ))}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-12 max-w-3xl mx-auto">
-          <TrustBadge icon={Shield}    title="دفع آمن"        subtitle="تحويل بنكي مغربي" />
-          <TrustBadge icon={Clock}     title="تفعيل خلال 24h" subtitle="مراجعة يدوية للطلب" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-14 max-w-3xl mx-auto">
+          <TrustBadge icon={Shield}    title="دفع آمن"           subtitle="تحويل بنكي مغربي" />
+          <TrustBadge icon={Clock}     title="تفعيل خلال 24h"    subtitle="مراجعة يدوية للطلب" />
           <TrustBadge icon={RefreshCw} title="بدون تجديد تلقائي" subtitle="أنت تتحكم دائماً" />
         </div>
 
-        <div className="max-w-5xl mx-auto mb-12">
+        <div className="max-w-5xl mx-auto mb-14">
           <div className="text-center mb-6">
             <h2 className="text-white font-black text-xl mb-1">ماذا يقول الطلاب؟</h2>
             <div className="inline-flex items-center gap-1 text-amber-400 text-sm">
@@ -223,6 +179,149 @@ export default function PricingPage() {
 
       </div>
     </main>
+  )
+}
+
+/* ────────── Detailed pricing card (dark theme) ────────── */
+
+const COLOR_STYLES: Record<Plan['color'], {
+  ring: string; border: string; accent: string; pillBg: string; pillText: string; ctaBg: string;
+}> = {
+  emerald: { ring: 'ring-emerald-500/20', border: 'border-emerald-500/60', accent: 'text-emerald-400', pillBg: 'bg-emerald-500/10', pillText: 'text-emerald-300', ctaBg: 'bg-emerald-500 hover:bg-emerald-400 text-gray-900' },
+  blue:    { ring: 'ring-blue-500/20',    border: 'border-blue-500/60',    accent: 'text-blue-400',    pillBg: 'bg-blue-500/10',    pillText: 'text-blue-300',    ctaBg: 'bg-blue-500 hover:bg-blue-400 text-white' },
+  violet:  { ring: 'ring-violet-500/20',  border: 'border-violet-500/60',  accent: 'text-violet-400',  pillBg: 'bg-violet-500/10',  pillText: 'text-violet-300',  ctaBg: 'bg-violet-500 hover:bg-violet-400 text-white' },
+  orange:  { ring: 'ring-orange-500/20',  border: 'border-orange-500/60',  accent: 'text-orange-400',  pillBg: 'bg-orange-500/10',  pillText: 'text-orange-300',  ctaBg: 'bg-orange-500 hover:bg-orange-400 text-gray-900' },
+  amber:   { ring: 'ring-amber-500/20',   border: 'border-amber-500/70',   accent: 'text-amber-400',   pillBg: 'bg-amber-500/10',   pillText: 'text-amber-300',   ctaBg: 'bg-amber-500 hover:bg-amber-400 text-gray-900' },
+  slate:   { ring: 'ring-slate-500/20',   border: 'border-slate-500/60',   accent: 'text-slate-300',   pillBg: 'bg-slate-500/10',   pillText: 'text-slate-300',   ctaBg: 'bg-slate-200 hover:bg-white text-gray-900' },
+}
+
+function DetailedPlanCard({ plan, ctaHref }: { plan: Plan; ctaHref: string }) {
+  const c = COLOR_STYLES[plan.color]
+  const levelBadge =
+    plan.levelFrom && plan.levelTo
+      ? plan.levelFrom === plan.levelTo
+        ? plan.levelFrom
+        : `${plan.levelFrom} → ${plan.levelTo}`
+      : 'مخصّص'
+  const savings =
+    plan.originalAmount && plan.originalAmount > plan.amount_mad
+      ? plan.originalAmount - plan.amount_mad
+      : null
+
+  return (
+    <div
+      className={`relative flex flex-col bg-gray-900 border-2 rounded-2xl p-6 transition-all ${
+        plan.highlight ? `${c.border} ring-2 ${c.ring} xl:scale-[1.02]` : 'border-gray-800'
+      }`}
+    >
+      {plan.badge_ar && (
+        <div
+          className={`absolute -top-3 right-5 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider ${
+            plan.highlight
+              ? 'bg-amber-500 text-gray-900'
+              : plan.isPremium
+              ? 'bg-white text-gray-900'
+              : `${c.pillBg} ${c.pillText}`
+          }`}
+        >
+          {plan.badge_ar}
+        </div>
+      )}
+
+      <div className={`inline-flex self-start items-center gap-1.5 ${c.pillBg} ${c.pillText} text-[11px] font-black px-2.5 py-1 rounded-full mb-3`}>
+        <Target className="w-3 h-3" />
+        المستوى {levelBadge}
+      </div>
+
+      <h3 className="text-white font-black text-xl leading-tight">{plan.title_ar}</h3>
+      <p className="text-gray-400 text-xs font-semibold mt-0.5">{plan.subtitle_ar}</p>
+
+      <div className="mt-5 flex items-baseline gap-2">
+        <span className="text-white font-black text-4xl tracking-tight">{plan.amount_mad.toLocaleString()}</span>
+        <span className="text-gray-400 text-sm font-bold">درهم</span>
+        {plan.originalAmount && plan.originalAmount > plan.amount_mad && (
+          <span className="text-gray-500 text-sm font-bold line-through">{plan.originalAmount.toLocaleString()}</span>
+        )}
+      </div>
+      <div className="text-gray-500 text-xs font-semibold mt-1">
+        {plan.duration_months === 1 ? 'دفعة واحدة' : `دفعة واحدة · وصول ${plan.duration_months} أشهر`}
+      </div>
+      {savings && (
+        <div className="mt-2 inline-flex self-start items-center gap-1 bg-emerald-500/10 text-emerald-400 text-xs font-black px-2 py-1 rounded-md">
+          <Flame className="w-3 h-3" /> وفّر {savings.toLocaleString()} درهم
+        </div>
+      )}
+
+      <div className={`mt-5 ${c.pillBg} border border-white/5 rounded-xl p-3`}>
+        <div className="flex items-center gap-1.5 text-[11px] font-black text-gray-300 uppercase tracking-wider mb-0.5">
+          <Calendar className={`w-3 h-3 ${c.accent}`} />
+          المتابعة
+        </div>
+        <div className="text-white text-sm font-bold leading-snug">{plan.followUpLabel_ar}</div>
+        <div className="text-gray-400 text-xs font-semibold mt-0.5">المدة · {plan.followUpDuration_ar}</div>
+      </div>
+
+      {plan.includesPrevious_ar && (
+        <div className="mt-4 text-[12px] font-black text-gray-300">
+          <span className={c.accent}>✓</span> {plan.includesPrevious_ar}
+        </div>
+      )}
+
+      <div className="mt-4 space-y-3 flex-1">
+        <FeatureGroup
+          icon={BookOpen}
+          title="محتوى التعلّم"
+          accent={c.accent}
+          items={plan.lifetimePerks}
+        />
+        {plan.monthlyPerks.length > 0 && (
+          <FeatureGroup
+            icon={Calendar}
+            title="المتابعة المستمرّة"
+            accent={c.accent}
+            items={plan.monthlyPerks}
+          />
+        )}
+      </div>
+
+      {plan.idealFor_ar && (
+        <div className="mt-4 bg-white/5 border border-white/5 rounded-xl p-3 text-gray-300 text-xs leading-relaxed">
+          <span className={`${c.accent} font-black`}>✦ </span>
+          {plan.idealFor_ar}
+        </div>
+      )}
+
+      <Link
+        href={ctaHref}
+        className={`mt-5 flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-black transition-all ${
+          plan.highlight || plan.isPremium ? c.ctaBg : 'bg-white/10 hover:bg-white/20 text-white'
+        }`}
+      >
+        اشترك الآن
+        <ArrowLeft className="w-4 h-4" />
+      </Link>
+    </div>
+  )
+}
+
+function FeatureGroup({
+  icon: Icon, title, accent, items,
+}: { icon: typeof Crown; title: string; accent: string; items: string[] }) {
+  return (
+    <div>
+      <div className="flex items-center gap-1.5 text-[11px] font-black text-gray-400 uppercase tracking-wider mb-2">
+        <Icon className={`w-3.5 h-3.5 ${accent}`} />
+        {title}
+      </div>
+      <ul className="space-y-1.5">
+        {items.map(item => (
+          <li key={item} className="flex items-start gap-2 text-gray-300 text-[13px] leading-snug">
+            <Check className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${accent}`} />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
 

@@ -79,28 +79,41 @@ const PLAN_VIEW: Record<
 
 const PLANS = CANONICAL_PLANS.map(p => {
   const v = PLAN_VIEW[p.id]
+  const levelLabel =
+    p.levelFrom && p.levelTo
+      ? p.levelFrom === p.levelTo
+        ? p.levelFrom
+        : `${p.levelFrom} → ${p.levelTo}`
+      : 'مخصّص'
   return {
-    id:           p.id,
-    canonicalId:  p.id,
-    slug:         p.courseSlug,
-    title:        p.levelFrom && p.levelTo
-                    ? `${p.levelFrom} → ${p.levelTo}`
-                    : p.title_ar,
-    subtitle:     p.subtitle_ar,
-    price:        p.amount_mad,
-    isHourly:     !!p.isHourly,
-    followUp:     `${p.followUpLabel_ar} · ${p.followUpDuration_ar}`,
-    currency:     "DH",
-    features:     [...p.lifetimePerks, ...p.monthlyPerks],
-    emoji:        v?.emoji    ?? "⭐",
-    popular:      v?.popular  ?? false,
-    badge:        v?.badge    ?? p.badge_ar ?? null,
-    desc:         v?.desc     ?? p.subtitle_ar,
-    color:        v?.color    ?? "blue",
-    gradient:     v?.gradient ?? "from-blue-500 to-blue-600",
-    rating:       v?.rating,
-    ratingCount:  v?.ratingCount,
-    recentBuyers: v?.recentBuyers,
+    id:                  p.id,
+    canonicalId:          p.id,
+    slug:                 p.courseSlug,
+    title:                p.title_ar,
+    subtitle:             p.subtitle_ar,
+    levelLabel,
+    price:                p.amount_mad,
+    originalPrice:        p.originalAmount,
+    isHourly:             !!p.isHourly,
+    followUpLabel:        p.followUpLabel_ar,
+    followUpDuration:     p.followUpDuration_ar,
+    durationMonths:       p.duration_months,
+    currency:             "DH",
+    lifetimePerks:        p.lifetimePerks,
+    monthlyPerks:         p.monthlyPerks,
+    includesPrevious:     p.includesPrevious_ar,
+    idealFor:             p.idealFor_ar,
+    emoji:                v?.emoji    ?? "⭐",
+    popular:              v?.popular  ?? false,
+    highlight:            !!p.highlight,
+    isPremium:            !!p.isPremium,
+    badge:                v?.badge    ?? p.badge_ar ?? null,
+    desc:                 v?.desc     ?? p.subtitle_ar,
+    color:                v?.color    ?? "blue",
+    gradient:             v?.gradient ?? "from-blue-500 to-blue-600",
+    rating:               v?.rating,
+    ratingCount:          v?.ratingCount,
+    recentBuyers:         v?.recentBuyers,
   }
 })
 
@@ -552,18 +565,22 @@ function StatsStrip() {
 ═══════════════════════════════════════════════════ */
 
 function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
-  const colorMap: Record<string, { bg: string; text: string; light: string; border: string; shadow: string; ring: string }> = {
-    green:  { bg: "from-green-500 to-emerald-600", text: "text-green-600", light: "bg-green-50", border: "border-green-400", shadow: "shadow-green-200/60", ring: "ring-green-400/20" },
-    blue:   { bg: "from-blue-500 to-blue-600", text: "text-blue-600", light: "bg-blue-50", border: "border-blue-300", shadow: "shadow-blue-200/40", ring: "ring-blue-400/20" },
-    purple: { bg: "from-purple-500 to-purple-600", text: "text-purple-600", light: "bg-purple-50", border: "border-purple-300", shadow: "shadow-purple-200/40", ring: "ring-purple-400/20" },
-    orange: { bg: "from-orange-500 to-amber-500", text: "text-orange-600", light: "bg-orange-50", border: "border-orange-300", shadow: "shadow-orange-200/40", ring: "ring-orange-400/20" },
-    gold:   { bg: "from-yellow-500 to-amber-600", text: "text-amber-600", light: "bg-amber-50", border: "border-amber-400", shadow: "shadow-amber-200/50", ring: "ring-amber-400/20" },
-    slate:  { bg: "from-slate-600 to-slate-800", text: "text-slate-700", light: "bg-slate-50", border: "border-slate-400", shadow: "shadow-slate-200/50", ring: "ring-slate-400/20" },
+  const colorMap: Record<string, { bg: string; text: string; light: string; lightBorder: string; border: string; shadow: string; ring: string; tint: string }> = {
+    green:  { bg: "from-green-500 to-emerald-600",   text: "text-green-700",  light: "bg-green-50",  lightBorder: "border-green-100",  border: "border-green-400",  shadow: "shadow-green-200/60",  ring: "ring-green-400/20",  tint: "bg-green-50/60"  },
+    blue:   { bg: "from-blue-500 to-blue-600",       text: "text-blue-700",   light: "bg-blue-50",   lightBorder: "border-blue-100",   border: "border-blue-300",   shadow: "shadow-blue-200/40",   ring: "ring-blue-400/20",   tint: "bg-blue-50/60"   },
+    purple: { bg: "from-purple-500 to-purple-600",   text: "text-purple-700", light: "bg-purple-50", lightBorder: "border-purple-100", border: "border-purple-300", shadow: "shadow-purple-200/40", ring: "ring-purple-400/20", tint: "bg-purple-50/60" },
+    orange: { bg: "from-orange-500 to-amber-500",    text: "text-orange-700", light: "bg-orange-50", lightBorder: "border-orange-100", border: "border-orange-300", shadow: "shadow-orange-200/40", ring: "ring-orange-400/20", tint: "bg-orange-50/60" },
+    gold:   { bg: "from-yellow-500 to-amber-600",    text: "text-amber-700",  light: "bg-amber-50",  lightBorder: "border-amber-100",  border: "border-amber-400",  shadow: "shadow-amber-200/50",  ring: "ring-amber-400/20",  tint: "bg-amber-50/60"  },
+    slate:  { bg: "from-slate-600 to-slate-800",     text: "text-slate-700",  light: "bg-slate-50",  lightBorder: "border-slate-100",  border: "border-slate-400",  shadow: "shadow-slate-200/50",  ring: "ring-slate-400/20",  tint: "bg-slate-50/60"  },
   }
   const c = colorMap[plan.color] || colorMap.blue
 
   const [subOpen, setSubOpen] = useState(false)
   const canonical = getPlan(plan.canonicalId)
+  const savings =
+    plan.originalPrice && plan.originalPrice > plan.price
+      ? plan.originalPrice - plan.price
+      : null
 
   return (
     <motion.div
@@ -592,7 +609,7 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
         </div>
       )}
 
-      <div className="flex flex-col flex-1 p-5 sm:p-6 md:p-7">
+      <div className="flex flex-col flex-1 p-5 sm:p-6">
         {/* emoji + title */}
         <div className="flex items-center gap-3 mb-3">
           <motion.div
@@ -603,6 +620,9 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
             {plan.emoji}
           </motion.div>
           <div className="min-w-0">
+            <div className={`inline-flex items-center gap-1 ${c.light} ${c.text} text-[10px] font-black px-2 py-0.5 rounded-full mb-0.5 border ${c.lightBorder}`}>
+              المستوى {plan.levelLabel}
+            </div>
             <h3 className="font-black text-gray-900 text-lg leading-tight">{plan.title}</h3>
             <p className="text-gray-500 text-xs font-semibold">{plan.subtitle}</p>
           </div>
@@ -630,30 +650,84 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
           </div>
         )}
 
-        <p className="text-gray-600 text-sm leading-[1.7] mb-5">{plan.desc}</p>
-
         {/* price block */}
-        <div className={`${c.light} rounded-2xl p-4 mb-5 text-center border border-gray-100/50`}>
+        <div className={`${c.light} rounded-2xl p-4 mb-4 text-center border ${c.lightBorder}`}>
           <div className="flex items-baseline justify-center gap-2">
             <span className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">{plan.price.toLocaleString()}</span>
             <span className={`${c.text} text-base font-extrabold`}>
               {plan.currency}{plan.isHourly ? ' / الساعة' : ''}
             </span>
+            {plan.originalPrice && plan.originalPrice > plan.price && (
+              <span className="text-gray-400 text-sm font-bold line-through">{plan.originalPrice.toLocaleString()}</span>
+            )}
           </div>
-          <div className="flex items-center justify-center gap-1.5 mt-1.5">
-            <span className="text-gray-500 text-[11px] font-bold">{plan.followUp}</span>
+          <div className="text-gray-500 text-[11px] font-bold mt-1">
+            {plan.durationMonths === 1 ? 'دفعة واحدة' : `دفعة واحدة · وصول ${plan.durationMonths} أشهر`}
           </div>
+          {savings && (
+            <div className="mt-2 inline-flex items-center gap-1 bg-emerald-500 text-white text-[11px] font-black px-2 py-0.5 rounded-full">
+              🔥 وفّر {savings.toLocaleString()} درهم
+            </div>
+          )}
         </div>
 
-        {/* features list */}
-        <ul className="space-y-2.5 mb-6 flex-1">
-          {plan.features.slice(0, 5).map((f, j) => (
-            <li key={j} className="flex items-start gap-2.5 text-sm">
-              <span className="mt-0.5 text-green-600 flex-shrink-0">✓</span>
-              <span className="text-gray-700 font-bold leading-snug">{f}</span>
-            </li>
-          ))}
-        </ul>
+        {/* follow-up */}
+        <div className={`${c.tint} ${c.lightBorder} border rounded-xl p-3 mb-4`}>
+          <div className={`${c.text} text-[10px] font-black uppercase tracking-wider mb-0.5`}>
+            📅 المتابعة
+          </div>
+          <div className="text-gray-900 text-sm font-black leading-snug">{plan.followUpLabel}</div>
+          <div className="text-gray-500 text-xs font-semibold mt-0.5">المدة · {plan.followUpDuration}</div>
+        </div>
+
+        {/* cumulative hint */}
+        {plan.includesPrevious && (
+          <div className="mb-3 text-[12px] font-black text-gray-700">
+            <span className={c.text}>✓</span> {plan.includesPrevious}
+          </div>
+        )}
+
+        {/* lifetime perks */}
+        <div className="mb-3">
+          <div className={`${c.text} text-[10px] font-black uppercase tracking-wider mb-2 flex items-center gap-1.5`}>
+            <span>📚</span> محتوى التعلّم
+          </div>
+          <ul className="space-y-1.5">
+            {plan.lifetimePerks.map((f, j) => (
+              <li key={j} className="flex items-start gap-2 text-[13px] leading-snug">
+                <span className={`mt-0.5 ${c.text} flex-shrink-0 font-black`}>✓</span>
+                <span className="text-gray-700 font-semibold">{f}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* monthly perks */}
+        {plan.monthlyPerks.length > 0 && (
+          <div className="mb-4">
+            <div className={`${c.text} text-[10px] font-black uppercase tracking-wider mb-2 flex items-center gap-1.5`}>
+              <span>🗓️</span> المتابعة المستمرّة
+            </div>
+            <ul className="space-y-1.5">
+              {plan.monthlyPerks.map((f, j) => (
+                <li key={j} className="flex items-start gap-2 text-[13px] leading-snug">
+                  <span className={`mt-0.5 ${c.text} flex-shrink-0 font-black`}>✓</span>
+                  <span className="text-gray-700 font-semibold">{f}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* ideal for */}
+        {plan.idealFor && (
+          <div className={`mb-4 ${c.tint} ${c.lightBorder} border rounded-xl p-3 text-gray-700 text-xs leading-relaxed`}>
+            <span className={`${c.text} font-black`}>✦ </span>
+            {plan.idealFor}
+          </div>
+        )}
+
+        <div className="flex-1" />
 
         {/* CTAs: subscribe primary + watch demo secondary */}
         <div className="flex flex-col gap-2">
@@ -700,9 +774,6 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
 }
 
 function CoursesSection() {
-  const mainPlans = PLANS.slice(0, 4)
-  const extraPlans = PLANS.slice(4)
-
   return (
     <section className="py-12 sm:py-20 px-4 sm:px-6 bg-gradient-to-b from-gray-50/80 via-white to-gray-50/50 relative overflow-hidden">
       <div className="absolute top-20 left-0 w-[500px] h-[500px] bg-green-100/20 rounded-full blur-3xl" />
@@ -764,34 +835,7 @@ function CoursesSection() {
           variants={stagger}
           className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 items-start"
         >
-          {mainPlans.map((plan, i) => (
-            <PlanCard key={plan.id} plan={plan} i={i} />
-          ))}
-        </motion.div>
-
-        {/* specialty courses label */}
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          custom={0}
-          className="text-center mt-16 mb-8"
-        >
-          <span className="inline-flex items-center gap-2 bg-amber-100/80 text-amber-700 px-5 py-2 rounded-full text-sm font-bold border border-amber-200/50">
-            ⭐ دورات متخصصة
-          </span>
-        </motion.div>
-
-        {/* specialty courses — 3 columns */}
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.05 }}
-          variants={stagger}
-          className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 items-start"
-        >
-          {extraPlans.map((plan, i) => (
+          {PLANS.map((plan, i) => (
             <PlanCard key={plan.id} plan={plan} i={i} />
           ))}
         </motion.div>
