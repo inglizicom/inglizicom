@@ -51,41 +51,35 @@ const PLAN_VIEW: Record<
     recentBuyers?:  number | null
   }
 > = {
-  "a0-a1": {
-    emoji: "🌱", popular: true, badge: "🔥 الأكثر طلباً",
-    desc:  "من الصفر المطلق إلى أول محادثة حقيقية",
+  "free": {
+    emoji: "🎁", badge: "مجاني",
+    desc:  "الوصول التمهيدي — ابدأ من الصفر بدون أي التزام",
+    color: "slate",  gradient: "from-slate-500 to-slate-700",
+    rating: 4.8, ratingCount: 212, recentBuyers: 9,
+  },
+  "basic": {
+    emoji: "🌱",
+    desc:  "قاعدة قوية للمبتدئين + متابعة أسبوعية",
     color: "green",  gradient: "from-green-500 to-emerald-600",
     rating: 4.9, ratingCount: 184, recentBuyers: 7,
   },
-  "a1-a2": {
-    emoji: "💬", badge: null,
-    desc:  "تحدث بثقة في المواقف اليومية + متابعة أسبوعية",
+  "pro": {
+    emoji: "💬", popular: true, badge: "🔥 الأكثر طلباً",
+    desc:  "تحدث بطلاقة + متابعة شخصية من الأستاذ",
     color: "blue",   gradient: "from-blue-500 to-blue-600",
-    rating: 4.8, ratingCount: 96, recentBuyers: 4,
+    rating: 4.9, ratingCount: 96, recentBuyers: 4,
   },
-  "a2-b1": {
+  "premium": {
     emoji: "🚀", badge: "⭐ الأفضل قيمة",
-    desc:  "اقفز إلى الطلاقة + متابعة شخصية من الأستاذ",
+    desc:  "إتقان متقدم (C1) + 3 لايفات شهرياً",
     color: "purple", gradient: "from-purple-500 to-purple-600",
-    rating: 4.9, ratingCount: 72, recentBuyers: 3,
+    rating: 5.0, ratingCount: 48, recentBuyers: 2,
   },
-  "b1-b2": {
-    emoji: "⚡", badge: null,
-    desc:  "إتقان احترافي + لايفان شهرياً للمشتركين",
-    color: "orange", gradient: "from-orange-500 to-amber-500",
-    rating: 5.0, ratingCount: 48, recentBuyers: null,
-  },
-  "a0-b2-full": {
-    emoji: "👑", badge: "⭐ الأكثر شمولاً",
-    desc:  "الباقة الكاملة: كل المستويات + كوتشينغ 1:1 + 3 لايفات شهرياً",
+  "vip": {
+    emoji: "👑", badge: "⭐ الأكثر تحوّلاً",
+    desc:  "برنامج التحوّل: كوتشينغ 1:1 يومي مع الأستاذ",
     color: "gold",   gradient: "from-yellow-500 to-amber-600",
     rating: 5.0, ratingCount: 34, recentBuyers: null,
-  },
-  "business": {
-    emoji: "💼", badge: "فردي 1:1",
-    desc:  "حصص فردية 1:30–2 ساعات، حد أدنى 5 حصص شهرياً",
-    color: "slate",  gradient: "from-slate-600 to-slate-800",
-    rating: 5.0, ratingCount: 22, recentBuyers: null,
   },
 }
 
