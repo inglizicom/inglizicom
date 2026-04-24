@@ -3,6 +3,9 @@
  *
  * Tiers are cumulative: each plan includes everything in the plan
  * below it, plus its own additional content and services.
+ * `lifetimePerks` and `monthlyPerks` list ONLY what is NEW at this
+ * tier — the view layer prepends an "everything in <previous> +" line
+ * from `includesPrevious_ar`.
  */
 
 export type PlanColor =
@@ -24,9 +27,9 @@ export interface Plan {
   followUpDuration_ar: string
   /** Kept for billing flow compatibility (extends profile.plan_expires_at). */
   duration_months: number
-  /** Lifetime / one-time perks — course access, book, group. */
+  /** Lifetime / one-time perks NEW at this tier. */
   lifetimePerks:   string[]
-  /** Recurring perks — lives, follow-up, coaching. */
+  /** Recurring perks NEW at this tier — lives, follow-up, coaching. */
   monthlyPerks:    string[]
   /** Short "ideal for …" line shown on pricing cards. */
   idealFor_ar?:    string
@@ -77,9 +80,9 @@ export const PLANS: Plan[] = [
     levelTo:             'A2',
     title_ar:            'الباقة الأساسية',
     subtitle_ar:         'بناء قاعدة المبتدئين',
-    amount_mad:          990,
-    originalAmount:      1400,
-    followUpLabel_ar:    'متابعة أسبوعية',
+    amount_mad:          750,
+    originalAmount:      1100,
+    followUpLabel_ar:    'متابعة أسبوعية في مجموعة الطلاب',
     followUpDuration_ar: '8 أسابيع',
     duration_months:     3,
     includesPrevious_ar: 'كل ما في الباقة المجانية +',
@@ -96,7 +99,8 @@ export const PLANS: Plan[] = [
       'أوراق عمل وتمارين تطبيقية',
     ],
     monthlyPerks: [
-      'لايف أسبوعي للمشتركين',
+      'لايف جماعي أسبوعي للمشتركين',
+      'الرد على الأسئلة داخل مجموعة الواتساب',
     ],
     idealFor_ar: 'مثالية لمن يريد التحدث بشكل صحيح وبناء قاعدة قوية.',
     color:       'emerald',
@@ -108,8 +112,8 @@ export const PLANS: Plan[] = [
     levelTo:             'B2',
     title_ar:            'الباقة الاحترافية',
     subtitle_ar:         'التواصل بطلاقة',
-    amount_mad:          2490,
-    originalAmount:      3500,
+    amount_mad:          1800,
+    originalAmount:      2400,
     followUpLabel_ar:    'متابعة شخصية من الأستاذ',
     followUpDuration_ar: '12 أسبوعاً',
     duration_months:     4,
@@ -126,11 +130,11 @@ export const PLANS: Plan[] = [
       'تقنيات تحسين اللهجة',
       'كتابة البريد الإلكتروني والتواصل المهني',
       'الثقة في المقابلات والاجتماعات',
-      'تحديات محادثة أسبوعية موجّهة',
     ],
     monthlyPerks: [
-      'لايفان شهرياً للمشتركين',
-      'مراجعات محادثة أسبوعية',
+      'لايفان شهرياً للمشتركين فقط',
+      'تحديات محادثة أسبوعية موجّهة',
+      'تصحيح صوتي شخصي لتسجيلاتك',
     ],
     idealFor_ar: 'مثالية لمن يفهم الإنجليزية لكن يصارع التحدث بطلاقة.',
     color:       'blue',
@@ -142,8 +146,8 @@ export const PLANS: Plan[] = [
     levelTo:             'C1',
     title_ar:            'الباقة الممتازة',
     subtitle_ar:         'الإتقان المتقدم',
-    amount_mad:          4990,
-    originalAmount:      6990,
+    amount_mad:          3000,
+    originalAmount:      3900,
     followUpLabel_ar:    'متابعة شخصية + لايفات شهرية',
     followUpDuration_ar: '6 أشهر',
     duration_months:     6,
@@ -160,13 +164,13 @@ export const PLANS: Plan[] = [
       'نظام كتابة احترافي',
       'لغة الإقناع وسيكولوجية التواصل',
       'تلميع اللهجة وثقة الصوت',
-      'إطار عمل للتصحيح الشخصي',
       'خارطة طريق للطلاقة النخبوية',
     ],
     monthlyPerks: [
       '3 لايفات شهرية للمشتركين',
-      'متابعة شخصية أسبوعية',
-      'تصحيح كتابة شخصي',
+      'مراجعة كتابة شخصية أسبوعية',
+      'جلسة تقييم تقدّم شهرية',
+      'إطار عمل للتصحيح الشخصي',
     ],
     idealFor_ar: 'مثالية للمتعلمين الجادين الذين يريدون مهارات تواصل نخبوية.',
     color:       'violet',
@@ -177,9 +181,9 @@ export const PLANS: Plan[] = [
     levelFrom:           null,
     levelTo:             null,
     title_ar:            'باقة VIP',
-    subtitle_ar:         'برنامج التحوّل',
-    amount_mad:          9990,
-    originalAmount:      14990,
+    subtitle_ar:         'برنامج التحوّل الكامل',
+    amount_mad:          5000,
+    originalAmount:      7000,
     followUpLabel_ar:    'كوتشينغ 1:1 + متابعة يومية',
     followUpDuration_ar: '12 شهراً',
     duration_months:     12,
@@ -188,20 +192,19 @@ export const PLANS: Plan[] = [
     includesPrevious_ar: 'كل ما في الباقة الممتازة +',
     lifetimePerks: [
       'خارطة طريق تعلم مخصصة لك',
-      'نظام تصحيح محادثة خاص',
       'أهداف مخصصة: سفر / عمل / IELTS / أعمال',
-      'كوتشينغ طلاقة عميق',
-      'إعادة برمجة الثقة للتغلب على رهبة التحدث',
-      'نظام مساءلة لتقدّم سريع',
       'استراتيجية مفردات شخصية',
-      'تدريب نطق متقدم',
       'محاكاة مواقف العالم الحقيقي',
-      'دعم وإرشاد مميز',
+      'دعم وإرشاد مميز مدى الحياة',
     ],
     monthlyPerks: [
-      'حصص 1:1 مع الأستاذ',
+      'حصة 1:1 أسبوعية مع الأستاذ',
+      'كوتشينغ طلاقة عميق',
+      'نظام تصحيح محادثة خاص',
+      'تدريب نطق متقدم فردي',
+      'إعادة برمجة الثقة للتغلب على رهبة التحدث',
       'متابعة يومية عبر واتساب',
-      'أولوية في الرد خلال 24 ساعة',
+      'أولوية في الرد خلال أقل من ساعة',
     ],
     idealFor_ar: 'مثالية لمن يريد أسرع تحوّل ممكن في الإنجليزية.',
     color:       'amber',
