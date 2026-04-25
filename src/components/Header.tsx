@@ -1,27 +1,37 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, ChevronDown } from 'lucide-react'
 import HeaderAuthButton from './HeaderAuthButton'
 
-const NAV = [
-  { href: '/',         label: 'الرئيسية' },
-  { href: '/courses',  label: 'الدورات' },
-  { href: '/pricing',  label: 'الأسعار' },
-  { href: '/blog',     label: 'المدونة' },
-  { href: '/listen',   label: 'الاستماع' },
-  { href: '/practice', label: 'تدرب الآن' },
-  { href: '/play',     label: 'العب' },
-  { href: '/map',      label: 'الخريطة' },
-  { href: '/exams',    label: 'الامتحانات' },
+/** Top-level desktop links — kept short to avoid bar cramping. */
+const PRIMARY_NAV = [
+  { href: '/',        label: 'الرئيسية' },
+  { href: '/courses', label: 'الدورات' },
+  { href: '/pricing', label: 'الأسعار' },
 ]
+
+/** Tools/content surfaced inside the "المزيد" dropdown. */
+const FEATURE_NAV = [
+  { href: '/blog',     label: 'المدونة',    icon: '📰', desc: 'مقالات ونصائح للتعلّم' },
+  { href: '/listen',   label: 'الاستماع',   icon: '🎧', desc: 'بودكاست ومحادثات' },
+  { href: '/practice', label: 'تدرب الآن', icon: '✍️', desc: 'تمارين تفاعلية يومية' },
+  { href: '/play',     label: 'العب',      icon: '🎮', desc: 'تعلّم باللعب' },
+  { href: '/map',      label: 'الخريطة',    icon: '🗺️', desc: 'تابع تقدّمك' },
+  { href: '/exams',    label: 'الامتحانات', icon: '📝', desc: 'اختبارات قصيرة' },
+]
+
+/** Flat list — used by the mobile drawer where horizontal width isn't a constraint. */
+const ALL_NAV = [...PRIMARY_NAV, ...FEATURE_NAV.map(({ href, label }) => ({ href, label }))]
 
 export default function Header() {
   const [open,     setOpen]     = useState(false)
+  const [moreOpen, setMoreOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
+  const moreRef  = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 8)
@@ -30,12 +40,29 @@ export default function Header() {
     return () => window.removeEventListener('scroll', fn)
   }, [])
 
-  useEffect(() => { setOpen(false) }, [pathname])
+  useEffect(() => { setOpen(false); setMoreOpen(false) }, [pathname])
 
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [open])
+
+  /* Close the desktop "more" panel when clicking outside or pressing Escape. */
+  useEffect(() => {
+    if (!moreOpen) return
+    const onDown = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMoreOpen(false)
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [moreOpen])
+
+  const moreActive = FEATURE_NAV.some(l => pathname === l.href || pathname.startsWith(l.href + '/'))
 
   return (
     <header
@@ -59,23 +86,83 @@ export default function Header() {
         </Link>
 
         {/* ── Desktop Nav ── */}
-        <nav className="hidden lg:flex items-center gap-0.5 flex-1 justify-center" dir="rtl">
-          {NAV.map(link => {
-            const active = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href))
+        <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center" dir="rtl">
+          {PRIMARY_NAV.map(link => {
+            const active = link.href === '/'
+              ? pathname === '/'
+              : pathname === link.href || pathname.startsWith(link.href + '/')
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-2.5 py-1.5 rounded-lg text-[13px] whitespace-nowrap no-underline transition-colors duration-150 ${
+                className={`px-3.5 py-2 rounded-lg text-[14px] whitespace-nowrap no-underline transition-colors duration-150 ${
                   active
-                    ? 'font-bold text-white bg-white/20'
-                    : 'font-semibold text-white/85 hover:text-white hover:bg-white/[0.12]'
+                    ? 'font-bold text-brand-900 bg-amber-300 shadow-sm shadow-amber-500/40'
+                    : 'font-semibold text-white/90 hover:text-white hover:bg-white/[0.12]'
                 }`}
               >
                 {link.label}
               </Link>
             )
           })}
+
+          {/* "المزيد" dropdown — features panel */}
+          <div ref={moreRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setMoreOpen(o => !o)}
+              aria-haspopup="true"
+              aria-expanded={moreOpen}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[14px] whitespace-nowrap no-underline transition-colors duration-150 cursor-pointer border-0 ${
+                moreActive || moreOpen
+                  ? 'font-bold text-brand-900 bg-amber-300 shadow-sm shadow-amber-500/40'
+                  : 'font-semibold text-white/90 hover:text-white hover:bg-white/[0.12]'
+              }`}
+            >
+              المزيد
+              <ChevronDown
+                size={15}
+                className={`transition-transform duration-200 ${moreOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+
+            <div
+              className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[420px] rounded-2xl bg-white shadow-[0_18px_48px_rgba(15,33,87,0.28)] border border-amber-200 overflow-hidden transition-all duration-200 origin-top ${
+                moreOpen
+                  ? 'opacity-100 translate-y-0 pointer-events-auto scale-100'
+                  : 'opacity-0 -translate-y-1 pointer-events-none scale-95'
+              }`}
+            >
+              <div className="bg-gradient-to-l from-amber-400 to-yellow-500 px-4 py-2.5">
+                <p className="font-black text-brand-900 text-[12px] uppercase tracking-wider">
+                  ✨ كل أدواتنا فبلاصة وحدة
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-1 p-2">
+                {FEATURE_NAV.map(link => {
+                  const active = pathname === link.href || pathname.startsWith(link.href + '/')
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setMoreOpen(false)}
+                      className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl no-underline transition-colors duration-150 ${
+                        active
+                          ? 'bg-brand-50 text-brand-700'
+                          : 'text-gray-700 hover:bg-amber-50 hover:text-brand-700'
+                      }`}
+                    >
+                      <span className="text-xl flex-shrink-0">{link.icon}</span>
+                      <div className="min-w-0">
+                        <div className="font-black text-[13px] leading-tight">{link.label}</div>
+                        <div className="text-[11px] font-semibold text-gray-500 truncate">{link.desc}</div>
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
         </nav>
 
         {/* ── Desktop CTA + Auth ── */}
@@ -116,7 +203,7 @@ export default function Header() {
       >
         <div className="mx-3 mt-2 mb-4 rounded-2xl overflow-hidden bg-white shadow-[0_12px_40px_rgba(0,0,0,0.25)] max-h-[calc(100vh-80px)] overflow-y-auto">
           <nav className="p-2.5 flex flex-col gap-0.5" dir="rtl">
-            {NAV.map(link => {
+            {ALL_NAV.map(link => {
               const active = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href))
               return (
                 <Link
