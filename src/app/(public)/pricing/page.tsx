@@ -9,6 +9,7 @@ import { useAuth } from '@/lib/auth-context'
 import { useProfile } from '@/lib/profile-context'
 import { PLANS, PAYMENT_WHATSAPP, type Plan } from '@/data/plans'
 import { TESTIMONIALS, STATS } from '@/data/testimonials'
+import { openSubscribe } from '@/lib/lead-source'
 
 const FAQ: { q: string; a: string }[] = [
   {
@@ -38,8 +39,8 @@ const FAQ: { q: string; a: string }[] = [
 ]
 
 export default function PricingPage() {
-  const { user } = useAuth()
   const { status } = useProfile()
+  useAuth()
 
   return (
     <main className="min-h-screen bg-gray-950 pt-[80px] pb-16 px-4" dir="rtl">
@@ -96,7 +97,7 @@ export default function PricingPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-14 items-stretch">
           {PLANS.map(p => (
-            <DetailedPlanCard key={p.id} plan={p} ctaHref={user ? '/billing' : `/login?next=${encodeURIComponent('/billing')}`} />
+            <DetailedPlanCard key={p.id} plan={p} />
           ))}
         </div>
 
@@ -127,7 +128,7 @@ export default function PricingPage() {
                 </div>
                 <p className="text-gray-200 text-sm leading-relaxed mb-4">{t.text}</p>
                 <div className="flex items-center gap-3 pt-3 border-t border-gray-800">
-                  <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${t.color} flex items-center justify-center text-lg`}>
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center text-lg shadow-lg shadow-blue-900/40">
                     {t.avatar}
                   </div>
                   <div className="min-w-0">
@@ -195,7 +196,7 @@ const COLOR_STYLES: Record<Plan['color'], {
   slate:   { ring: 'ring-slate-500/20',   border: 'border-slate-500/60',   accent: 'text-slate-300',   pillBg: 'bg-slate-500/10',   pillText: 'text-slate-300',   ctaBg: 'bg-slate-200 hover:bg-white text-gray-900' },
 }
 
-function DetailedPlanCard({ plan, ctaHref }: { plan: Plan; ctaHref: string }) {
+function DetailedPlanCard({ plan }: { plan: Plan }) {
   const c = COLOR_STYLES[plan.color]
   const levelBadge =
     plan.levelFrom && plan.levelTo
@@ -291,15 +292,20 @@ function DetailedPlanCard({ plan, ctaHref }: { plan: Plan; ctaHref: string }) {
         </div>
       )}
 
-      <Link
-        href={ctaHref}
+      <button
+        type="button"
+        id={plan.id}
+        onClick={() => openSubscribe({
+          source: `pricing_card_${plan.id}`,
+          planId: plan.id,
+        })}
         className={`mt-5 flex items-center justify-center gap-2 w-full py-3 rounded-xl text-sm font-black transition-all ${
           plan.highlight || plan.isPremium ? c.ctaBg : 'bg-white/10 hover:bg-white/20 text-white'
         }`}
       >
         اشترك الآن
         <ArrowLeft className="w-4 h-4" />
-      </Link>
+      </button>
     </div>
   )
 }

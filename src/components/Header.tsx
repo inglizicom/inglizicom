@@ -39,8 +39,8 @@ export default function Header() {
 
   return (
     <header
-      className={`fixed top-0 right-0 left-0 z-50 bg-brand-700 transition-shadow duration-300 ${
-        scrolled ? 'shadow-[0_2px_24px_rgba(0,0,0,0.22)] backdrop-blur-2xl' : 'shadow-[0_1px_12px_rgba(0,0,0,0.15)]'
+      className={`fixed top-0 right-0 left-0 z-50 bg-gradient-to-l from-brand-700 via-brand-700 to-brand-800 transition-shadow duration-300 border-b border-amber-400/30 ${
+        scrolled ? 'shadow-[0_4px_28px_rgba(29,78,216,0.35)] backdrop-blur-2xl' : 'shadow-[0_2px_16px_rgba(29,78,216,0.22)]'
       }`}
     >
       <div
@@ -50,11 +50,11 @@ export default function Header() {
       >
         {/* ── Logo ── */}
         <Link href="/" className="flex items-center gap-2 no-underline flex-shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-white/20 border border-white/30 flex items-center justify-center text-base font-black text-white">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-yellow-500 border border-amber-300 flex items-center justify-center text-base font-black text-brand-800 shadow-md shadow-amber-500/40">
             إ
           </div>
           <span className="font-black text-base sm:text-lg text-white whitespace-nowrap">
-            إنجليزي<span className="text-blue-300">.كوم</span>
+            إنجليزي<span className="text-amber-300">.كوم</span>
           </span>
         </Link>
 
@@ -82,7 +82,7 @@ export default function Header() {
         <div className="hidden lg:flex items-center gap-3 flex-shrink-0">
           <Link
             href="/onboarding"
-            className="px-5 py-2 rounded-lg text-[14px] font-extrabold no-underline bg-white text-brand-700 shadow-[0_2px_12px_rgba(0,0,0,0.18)] hover:scale-105 hover:shadow-[0_6px_20px_rgba(0,0,0,0.25)] transition-all duration-150 whitespace-nowrap"
+            className="px-5 py-2 rounded-lg text-[14px] font-extrabold no-underline bg-gradient-to-l from-amber-400 to-yellow-500 text-brand-900 border border-amber-300 shadow-[0_4px_16px_rgba(251,191,36,0.45)] hover:scale-105 hover:shadow-[0_6px_22px_rgba(251,191,36,0.65)] transition-all duration-150 whitespace-nowrap"
           >
             ابدأ الآن
           </Link>
@@ -102,7 +102,7 @@ export default function Header() {
       {/* ── Mobile Backdrop ── */}
       <div
         onClick={() => setOpen(false)}
-        className={`lg:hidden fixed inset-0 top-[60px] bg-black/40 transition-opacity duration-300 ${
+        className={`lg:hidden fixed inset-0 top-[60px] bg-brand-950/50 backdrop-blur-sm transition-opacity duration-300 ${
           open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
         aria-hidden="true"
@@ -135,7 +135,7 @@ export default function Header() {
             <div className="px-1 pt-2 pb-1 space-y-2">
               <Link
                 href="/onboarding"
-                className="flex items-center justify-center w-full py-3.5 rounded-xl text-base font-extrabold no-underline bg-brand-700 text-white shadow-[0_4px_16px_rgba(29,78,216,0.35)]"
+                className="flex items-center justify-center w-full py-3.5 rounded-xl text-base font-extrabold no-underline bg-gradient-to-l from-amber-400 to-yellow-500 text-brand-900 shadow-[0_4px_16px_rgba(251,191,36,0.45)] border border-amber-300"
               >
                 ابدأ الآن
               </Link>

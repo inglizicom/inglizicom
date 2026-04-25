@@ -3,16 +3,17 @@ export interface Testimonial {
   text:   string
   avatar: string
   level:  string
-  color:  string
+  /** Card theme — constrained to the brand palette so Tailwind always emits it. */
+  theme:  'blue' | 'gold' | 'blueDark'
 }
 
 export const TESTIMONIALS: Testimonial[] = [
-  { name: 'سارة م.',  text: 'من أحسن قرار خذيته — بديت نتكلم إنجليزية في أسبوعين!',           avatar: '👩‍🎓', level: 'A2', color: 'from-pink-400 to-rose-500'    },
-  { name: 'يوسف ب.',  text: 'الطريقة ممتعة بزاف وماكتحسش بالملل أبدا. شكرا حمزة!',           avatar: '👨‍💻', level: 'B1', color: 'from-blue-400 to-indigo-500'   },
-  { name: 'نادية ك.', text: 'ولادي كيتعلمو معايا — الموقع سهل ومفهوم للجميع',                 avatar: '👩‍🏫', level: 'A1', color: 'from-green-400 to-emerald-500' },
-  { name: 'مهدي ع.',  text: 'كنت خايف من الإنجليزية، دابا كنهضر مع أجانب بثقة كاملة',         avatar: '🧑‍🎓', level: 'B1', color: 'from-amber-400 to-orange-500'  },
-  { name: 'أسماء ل.', text: 'الدروس قصيرة ومركزة، وكنحس نتقدم كل أسبوع',                      avatar: '👩‍💼', level: 'A2', color: 'from-violet-400 to-purple-500' },
-  { name: 'كريم د.',  text: 'أحسن استثمار في نفسي. الأستاذ كيجاوب على كل أسئلتي',             avatar: '👨‍🏫', level: 'A2', color: 'from-teal-400 to-cyan-500'     },
+  { name: 'سارة م.',  text: 'من أحسن قرار خذيته — بديت نتكلم إنجليزية فأسبوعين. الأستاذ حمزة كيتابع معايا شخصياً فالواتساب.',        avatar: '👩‍🎓', level: 'A2', theme: 'blue'     },
+  { name: 'يوسف ب.',  text: 'الطريقة ممتعة بزاف وماكتحسش بالملل أبدا. فشهر واحد وليت كنتخيّل بالإنجليزية. شكراً حمزة!',               avatar: '👨‍💻', level: 'B1', theme: 'gold'     },
+  { name: 'نادية ك.', text: 'ولادي كيتعلمو معايا — الموقع سهل ومفهوم للجميع. الدروس المسجّلة + مجموعة الواتساب = كومبو قاتل.',       avatar: '👩‍🏫', level: 'A1', theme: 'blueDark' },
+  { name: 'مهدي ع.',  text: 'كنت خايف من الإنجليزية، دابا كنهضر مع أجانب بثقة كاملة. 30 يوم بدّلو حياتي — بلا مبالغة.',               avatar: '🧑‍🎓', level: 'B1', theme: 'blue'     },
+  { name: 'أسماء ل.', text: 'الدروس قصيرة ومركّزة، وكنحس نتقدّم كل أسبوع. المتابعة الشخصية كتعطيك دافع تكمّل.',                        avatar: '👩‍💼', level: 'A2', theme: 'gold'     },
+  { name: 'كريم د.',  text: 'أحسن استثمار درتو فنفسي. الأستاذ كيجاوب على كل أسئلتي — حتى فالليل. ما بقات عندي أعذار باش ما نتعلّم.',  avatar: '👨‍🏫', level: 'A2', theme: 'blueDark' },
 ]
 
 export const STATS = {

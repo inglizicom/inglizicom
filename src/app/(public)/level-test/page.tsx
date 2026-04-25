@@ -5,8 +5,12 @@ import Link from 'next/link'
 import {
   CheckCircle2, XCircle, Brain, Trophy, Volume2,
   ArrowLeft, ChevronRight, MessageCircle, RotateCcw,
-  AlertTriangle, Star, TrendingUp, BarChart2,
+  AlertTriangle, Star, TrendingUp, BarChart2, Play, Crown,
 } from 'lucide-react'
+import { getPlan } from '@/data/plans'
+import { COURSES } from '@/data/courses'
+import { openSubscribe } from '@/lib/lead-source'
+import { createSubscriptionLead, getAttribution } from '@/lib/leads-db'
 
 /* ══════════════════════════════════════════════════════════════
    TYPES
@@ -742,6 +746,32 @@ const EMPTY_SKILLS: Record<SkillKey, SkillStat> = {
 
 type Phase = 'intro' | 'testing' | 'levelComplete' | 'result'
 
+/** Map a CEFR result level → the plan we recommend. */
+function recommendPlanForLevel(level: string): string {
+  if (level === 'A1')               return 'basic'
+  if (level === 'A2' || level === 'B1') return 'pro'
+  if (level === 'B2' || level === 'C1') return 'premium'
+  return 'basic'
+}
+
+/** Three free sample lessons from the recommended plan's course. */
+function freeSamplesForPlan(planId: string): { title: string; duration: string; youtubeId: string }[] {
+  const plan = getPlan(planId)
+  if (!plan?.courseSlug) return []
+  const course = COURSES.find(c => c.slug === plan.courseSlug)
+  if (!course) return []
+  const free: { title: string; duration: string; youtubeId: string }[] = []
+  for (const section of course.curriculum) {
+    for (const lesson of section.lessons) {
+      if (lesson.isFree && lesson.youtubeId) {
+        free.push({ title: lesson.title, duration: lesson.duration, youtubeId: lesson.youtubeId })
+        if (free.length >= 3) return free
+      }
+    }
+  }
+  return free
+}
+
 export default function LevelTestPage() {
 
   /* ── Phase ── */
@@ -772,7 +802,7 @@ export default function LevelTestPage() {
   const totalInLevel   = levelQuestions.length
   const progressPct    = Math.round((questionIdx / totalInLevel) * 100)
 
-  /* ── Save result to localStorage when reaching result screen ── */
+  /* ── On reaching result screen: persist locally + save anon lead to Supabase ── */
   useEffect(() => {
     if (phase !== 'result') return
     const finalLevel = lastPassedLevelIdx >= 0 ? LEVEL_ORDER[lastPassedLevelIdx] : 'A1'
@@ -790,6 +820,19 @@ export default function LevelTestPage() {
       const prev = JSON.parse(localStorage.getItem('inglizi_results') || '[]') as unknown[]
       localStorage.setItem('inglizi_results', JSON.stringify([result, ...prev].slice(0, 10)))
     } catch { /* ignore storage errors */ }
+
+    /* Fire-and-forget anon lead save for attribution — even if the visitor
+       never clicks subscribe, we know they took the test. */
+    const recommended = recommendPlanForLevel(finalLevel)
+    createSubscriptionLead({
+      planId:          'test_completed',
+      fullName:        'Anonymous test-taker',
+      level:           finalLevel,
+      testScore:       score,
+      recommendedPlan: recommended,
+      source:          'test_completed',
+      ...getAttribution(),
+    }).catch(() => { /* silent — non-critical */ })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase])
 
@@ -1166,13 +1209,113 @@ export default function LevelTestPage() {
               <span className="text-white/30">{'}'}</span>
             </div>
 
-            <a href={waUrl(`مرحبا، أجريت اختبار المستوى وحصلت على مستوى ${finalLevel} — ${LEVEL_STYLE[finalLevel].label}. أريد البدء في التحسين!`)}
-              target="_blank" rel="noopener noreferrer"
-              className={`inline-flex items-center gap-3 ${style.bg} text-white font-black py-4 px-10 rounded-2xl shadow-2xl ${style.glow} text-lg hover:opacity-90 transition-opacity`}>
-              🚀 ابدأ خطة التحسين مع المعلم
-            </a>
-            <p className="text-white/25 text-sm mt-3">تواصل مع المعلم عبر واتساب — رد خلال دقائق</p>
+            <button
+              type="button"
+              onClick={() => openSubscribe({
+                source:          `test_result_${recommendPlanForLevel(finalLevel)}`,
+                planId:          recommendPlanForLevel(finalLevel),
+                recommendedPlan: recommendPlanForLevel(finalLevel),
+                testScore:       score,
+                defaultLevel:    finalLevel,
+              })}
+              className={`inline-flex items-center gap-3 ${style.bg} text-white font-black py-4 px-10 rounded-2xl shadow-2xl ${style.glow} text-lg hover:opacity-90 transition-opacity`}
+            >
+              🚀 سجّل الآن فالباقة المناسبة
+            </button>
+            <p className="text-white/25 text-sm mt-3">غتفتح واتساب — كنجاوبك شخصياً فأقل من ساعة</p>
           </div>
+
+          {/* Recommended plan card */}
+          {(() => {
+            const recId   = recommendPlanForLevel(finalLevel)
+            const rec     = getPlan(recId)
+            const samples = freeSamplesForPlan(recId)
+            if (!rec) return null
+            return (
+              <div className="bg-gradient-to-br from-emerald-500/10 via-white/[0.04] to-emerald-500/5 border border-emerald-500/30 rounded-3xl p-6 sm:p-8">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="inline-flex items-center gap-1.5 bg-emerald-500 text-white text-[11px] font-black px-3 py-1 rounded-full">
+                    <Crown size={12} /> الباقة المقترحة ليك
+                  </div>
+                </div>
+                <h2 className="text-white font-black text-2xl sm:text-3xl leading-tight mb-1">
+                  {rec.title_ar}
+                </h2>
+                <p className="text-white/60 text-sm font-semibold mb-5">{rec.subtitle_ar}</p>
+
+                <div className="flex items-baseline gap-3 mb-5">
+                  <span className="text-white font-black text-4xl">{rec.amount_mad.toLocaleString()}</span>
+                  <span className="text-white/60 text-sm font-bold">درهم</span>
+                  {rec.originalAmount && rec.originalAmount > rec.amount_mad && (
+                    <span className="text-white/30 text-sm font-bold line-through">
+                      {rec.originalAmount.toLocaleString()}
+                    </span>
+                  )}
+                </div>
+
+                <div className="mb-5">
+                  <p className="text-white/40 text-xs font-black uppercase tracking-wider mb-2">غتتعلّم:</p>
+                  <ul className="space-y-1.5">
+                    {rec.lifetimePerks.slice(0, 5).map((f, i) => (
+                      <li key={i} className="flex items-start gap-2 text-white/80 text-sm">
+                        <CheckCircle2 size={14} className="text-emerald-400 shrink-0 mt-0.5" />
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {samples.length > 0 && (
+                  <div className="mb-5">
+                    <p className="text-white/40 text-xs font-black uppercase tracking-wider mb-3">
+                      🎁 {samples.length} دروس مجانية باش تجرّب قبل ما تشترك:
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      {samples.map((s, i) => (
+                        <Link
+                          key={i}
+                          href={`/courses/${rec.courseSlug}/watch`}
+                          className="group flex items-center gap-3 bg-white/[0.04] border border-white/10 hover:border-emerald-400/50 rounded-xl p-3 transition-colors"
+                        >
+                          <div className="w-10 h-10 shrink-0 bg-emerald-500/20 border border-emerald-500/30 rounded-lg flex items-center justify-center">
+                            <Play size={14} className="text-emerald-400 fill-emerald-400" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-white text-xs font-bold leading-tight line-clamp-2">{s.title}</p>
+                            <p className="text-white/40 text-[10px] font-semibold mt-0.5">{s.duration}</p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
+                    type="button"
+                    onClick={() => openSubscribe({
+                      source:          `test_result_${recId}`,
+                      planId:          recId,
+                      recommendedPlan: recId,
+                      testScore:       score,
+                      defaultLevel:    finalLevel,
+                    })}
+                    className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-white font-black text-sm py-3.5 rounded-2xl inline-flex items-center justify-center gap-2 transition-colors shadow-lg shadow-emerald-900/30"
+                  >
+                    <MessageCircle size={16} />
+                    سجّل الآن — جاوبني فواتساب
+                  </button>
+                  <Link
+                    href="/pricing"
+                    onClick={() => { try { window.sessionStorage.setItem('inglizi.lead_source', 'test_result_browse') } catch {} }}
+                    className="flex-1 bg-white/10 hover:bg-white/15 border border-white/15 text-white font-bold text-sm py-3.5 rounded-2xl inline-flex items-center justify-center gap-2 transition-colors"
+                  >
+                    شوف باقي الباقات
+                  </Link>
+                </div>
+              </div>
+            )
+          })()}
 
           {/* Skill breakdown */}
           <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-6">
