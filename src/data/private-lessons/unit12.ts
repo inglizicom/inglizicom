@@ -1,0 +1,93 @@
+import type { Unit } from './types'
+
+export const unit12: Unit = {
+  id: 12,
+  slug: 'clinic',
+  emoji: '🩺',
+  level: 'A1 – A2',
+  title: { en: 'At the Clinic', ar: 'عند العيادة' },
+  sections: [
+    { kind: 'cover' },
+    {
+      kind: 'vocab',
+      title: 'تعابير عند الطبيب (جديدة)',
+      items: [
+        { en: 'I feel pain in my chest', ar: 'أشعر بألم في صدري' },
+        { en: 'I can’t sleep at night', ar: 'لا أستطيع النوم ليلاً' },
+        { en: 'I feel weak after walking', ar: 'أشعر بالضعف بعد المشي' },
+        { en: 'My hands are shaking', ar: 'يديّ ترتجفان' },
+        { en: 'I have no energy', ar: 'لا طاقة لي' },
+        { en: 'My legs hurt when I stand', ar: 'رجليّ تؤلماني عندما أقف' },
+        { en: 'My blood pressure is high', ar: 'ضغطي مرتفع' },
+        { en: 'I feel dizzy in the morning', ar: 'أشعر بالدوخة في الصباح' },
+        { en: 'I can’t eat. I feel sick', ar: 'لا أستطيع الأكل. أشعر بالمرض' },
+        { en: 'Sometimes my vision is not clear', ar: 'في بعض الأحيان رؤيتي ليست واضحة' },
+        { en: 'I feel dizzy when I stand', ar: 'أشعر بالدوخة عندما أقف' },
+        { en: 'My heart beats fast', ar: 'قلبي ينبض بسرعة' },
+        { en: 'I have a sore throat', ar: 'عندي التهاب في الحلق' },
+        { en: 'I have a stomach ache', ar: 'عندي ألم في البطن' },
+      ],
+    },
+    {
+      kind: 'vocabCategories',
+      title: 'المفردات الطبية',
+      categories: [
+        {
+          name: 'Symptoms',
+          nameAr: 'الأعراض',
+          items: [
+            { en: 'Chest pain', ar: 'ألم في الصدر' },
+            { en: 'Dizziness', ar: 'دوخة' },
+            { en: 'Weakness', ar: 'ضعف' },
+            { en: 'Shaking', ar: 'ارتجاف' },
+            { en: 'Fast heartbeat', ar: 'دقات قلب سريعة' },
+            { en: 'No appetite', ar: 'فقدان الشهية' },
+            { en: 'Blurry vision', ar: 'رؤية غير واضحة' },
+            { en: 'Insomnia', ar: 'صعوبة في النوم' },
+            { en: 'Low energy', ar: 'نقص في الطاقة' },
+            { en: 'Constipation', ar: 'إمساك / قبض المعدة' },
+          ],
+        },
+      ],
+    },
+    {
+      kind: 'staticSentences',
+      title: 'تعبيرات جاهزة تُستخدم كل يوم',
+      patterns: [
+        {
+          template: 'I feel + [symptom]',
+          templateAr: 'أحس بـ + (العَرض)',
+          examples: ['I feel weak.', 'I feel dizzy.'],
+        },
+        {
+          template: 'Since + [time]',
+          templateAr: 'من / منذ + (وقت)',
+          examples: ['Since yesterday.', 'Since this morning.'],
+        },
+      ],
+    },
+    {
+      kind: 'conversation',
+      title: 'Khadija visits the doctor',
+      lines: [
+        { speaker: 'Doctor',  text: 'Hello! How can I help you?' },
+        { speaker: 'Khadija', text: "Hi doctor. I don't feel well." },
+        { speaker: 'Doctor',  text: "What's wrong?" },
+        { speaker: 'Khadija', text: 'I have a headache and I feel dizzy.' },
+        { speaker: 'Doctor',  text: 'Since when?' },
+        { speaker: 'Khadija', text: 'Since yesterday morning.' },
+        { speaker: 'Doctor',  text: 'Do you eat well?' },
+        { speaker: 'Khadija', text: 'Not really. I have no appetite.' },
+        { speaker: 'Doctor',  text: 'And sleep?' },
+        { speaker: 'Khadija', text: "I can't sleep at night." },
+        { speaker: 'Doctor',  text: 'Let me check your blood pressure.' },
+        { speaker: 'Khadija', text: 'Is it high?' },
+        { speaker: 'Doctor',  text: 'A little. You need to rest more.' },
+        { speaker: 'Khadija', text: 'Should I take medicine?' },
+        { speaker: 'Doctor',  text: "Yes, I'll give you a prescription. Drink water and sleep eight hours." },
+        { speaker: 'Khadija', text: 'Thank you, doctor.' },
+        { speaker: 'Doctor',  text: "Come back next week if you don't feel better." },
+      ],
+    },
+  ],
+}

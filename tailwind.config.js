@@ -10,6 +10,7 @@ module.exports = {
       fontFamily: {
         sans: ['Tajawal', 'sans-serif'],
         arabic: ['Tajawal', 'sans-serif'],
+        display: ['Outfit', 'system-ui', 'sans-serif'],
       },
       colors: {
         brand: {

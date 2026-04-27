@@ -1,0 +1,90 @@
+import type { Unit } from './types'
+
+export const unit05: Unit = {
+  id: 5,
+  slug: 'restaurant',
+  emoji: '🍽️',
+  level: 'A1 – A2',
+  title: { en: 'In the Restaurant', ar: 'في المطعم' },
+  sections: [
+    { kind: 'cover' },
+    {
+      kind: 'vocab',
+      title: 'مفردات المطعم',
+      items: [
+        { en: 'A table for one, please', ar: 'طاولة لشخص واحد من فضلك' },
+        { en: 'Can I see the menu, please?', ar: 'هل يمكنني رؤية القائمة من فضلك؟' },
+        { en: 'I’m ready to order', ar: 'أنا جاهز للطلب' },
+        { en: 'Can I have the chicken with rice?', ar: 'هل يمكنني الحصول على الدجاج مع الأرز؟' },
+        { en: 'No onions, please', ar: 'بدون بصل من فضلك' },
+        { en: 'Can I have some water?', ar: 'هل يمكنني الحصول على بعض الماء؟' },
+        { en: 'This looks great!', ar: 'هذا يبدو رائعاً!' },
+        { en: 'Can I get the same as him / her?', ar: 'أريد نفس طلبه / طلبها' },
+        { en: 'Excuse me, I didn’t order this', ar: 'عذراً، لم أطلب هذا' },
+        { en: 'Can we get the bill, please?', ar: 'هل يمكننا الحصول على الفاتورة من فضلك؟' },
+        { en: 'Do you accept card?', ar: 'هل تقبلون البطاقة؟' },
+        { en: 'Keep the change', ar: 'احتفظ بالباقي' },
+        { en: 'Thanks, everything was delicious', ar: 'شكراً، كل شيء كان لذيذاً' },
+        { en: 'We’ll come again for sure', ar: 'سنعود بالتأكيد مرة أخرى' },
+      ],
+    },
+    {
+      kind: 'staticSentences',
+      title: 'جمل ثابتة قابلة للتغيير',
+      patterns: [
+        {
+          template: 'Can I have + [drink / snack], please?',
+          templateAr: 'هل يمكنني الحصول على + (مشروب / وجبة خفيفة) من فضلك؟',
+          examples: [
+            'Can I have a cappuccino, please?',
+            'Can I have a chicken pizza, please?',
+          ],
+        },
+        {
+          template: 'I’d like + [drink / food]',
+          templateAr: 'أود + (مشروب / طعام)',
+          examples: [
+            'I’d like some orange juice.',
+            'I’d like a chicken sandwich and some orange juice.',
+          ],
+        },
+        {
+          template: 'Do you have + [item]?',
+          templateAr: 'هل لديكم + (عنصر / طبق / شيء)؟',
+          examples: ['Do you have grilled chicken?', 'Do you have chicken rice?'],
+        },
+        {
+          template: 'How much is + [dish / item]?',
+          templateAr: 'كم سعر + (الطبق / العنصر)؟',
+          examples: ['How much is chicken pizza?', 'How much is orange juice?'],
+        },
+      ],
+    },
+    {
+      kind: 'conversation',
+      title: 'Nadia & Rachid — dinner at the restaurant',
+      lines: [
+        { speaker: 'Nadia',  text: 'Hello, do you have a table for two?' },
+        { speaker: 'Waiter', text: 'Yes, please follow me.' },
+        { speaker: 'Rachid', text: 'Thank you. Can we see the menu?' },
+        { speaker: 'Waiter', text: 'Here is the menu.' },
+        { speaker: 'Nadia',  text: 'Do you have grilled fish?' },
+        { speaker: 'Waiter', text: 'Yes, with rice or potatoes.' },
+        { speaker: 'Nadia',  text: "I'll take fish with rice, please. No onions." },
+        { speaker: 'Rachid', text: 'I want chicken with vegetables.' },
+        { speaker: 'Waiter', text: 'Anything to drink?' },
+        { speaker: 'Nadia',  text: 'Just water for me.' },
+        { speaker: 'Rachid', text: "I'll have orange juice." },
+        { speaker: 'Nadia',  text: 'Wow, this fish is delicious!', stage: 'food arrives' },
+        { speaker: 'Rachid', text: 'My chicken is very good too.' },
+        { speaker: 'Rachid', text: 'Excuse me, can we get the bill, please?', stage: 'after eating' },
+        { speaker: 'Waiter', text: 'Yes, here it is.' },
+        { speaker: 'Nadia',  text: 'Do you accept card?' },
+        { speaker: 'Waiter', text: 'Yes, both card and cash.' },
+        { speaker: 'Rachid', text: 'Card, please. Keep the change.' },
+        { speaker: 'Waiter', text: 'Thank you. Have a nice day!' },
+        { speaker: 'Nadia',  text: "Everything was perfect. We'll come back!" },
+      ],
+    },
+  ],
+}

@@ -1,0 +1,102 @@
+import type { Unit } from './types'
+
+export const unit13: Unit = {
+  id: 13,
+  slug: 'school-language-center',
+  emoji: '🎒',
+  level: 'A1 – A2',
+  title: { en: 'At School or Language Center', ar: 'في المدرسة أو المركز' },
+  sections: [
+    { kind: 'cover' },
+    {
+      kind: 'vocab',
+      title: 'تعابير عملية في المدرسة أو المركز',
+      items: [
+        { en: 'Where is my class?', ar: 'أين صفي؟' },
+        { en: 'What time is the English class?', ar: 'متى حصة اللغة الإنجليزية؟' },
+        { en: 'Who is the teacher today?', ar: 'من المعلم اليوم؟' },
+        { en: 'Can I come in?', ar: 'هل يمكنني الدخول؟' },
+        { en: 'Sorry, I’m late', ar: 'عذراً، لقد تأخرتُ' },
+        { en: 'I forgot my book', ar: 'نسيتُ كتابي' },
+        { en: 'Can I borrow a pen?', ar: 'هل يمكنني استعارة قلم؟' },
+        { en: 'What page are we on?', ar: 'في أي صفحة نحن؟' },
+        { en: 'Can you repeat, please?', ar: 'هل يمكنك إعادة ما قلته من فضلك؟' },
+        { en: 'I don’t understand', ar: 'لا أفهم' },
+        { en: 'How do you say this in English?', ar: 'كيف تقول هذا بالإنجليزية؟' },
+        { en: 'I finished the exercise', ar: 'انتهيت من التمرين' },
+        { en: 'Can I go to the bathroom?', ar: 'هل يمكنني الذهاب إلى الحمام؟' },
+        { en: 'See you in the next class', ar: 'أراك في الحصة القادمة' },
+      ],
+    },
+    {
+      kind: 'vocabCategories',
+      title: 'أماكن في المدرسة + طاقم العمل',
+      categories: [
+        {
+          name: 'Places',
+          nameAr: 'الأماكن',
+          items: [
+            { en: 'Stairs / Elevator', ar: 'الدرج / المصعد' },
+            { en: 'Office', ar: 'المكتب الإداري' },
+            { en: 'Library', ar: 'المكتبة' },
+            { en: 'Canteen / Cafeteria', ar: 'المقصف / الكافيتيريا' },
+            { en: 'Playground', ar: 'ساحة اللعب' },
+          ],
+        },
+        {
+          name: 'Staff',
+          nameAr: 'طاقم العمل',
+          items: [
+            { en: 'Director / Principal', ar: 'المدير / المديرة' },
+            { en: 'Receptionist', ar: 'موظف الاستقبال' },
+            { en: 'Cleaner', ar: 'عامل النظافة' },
+            { en: 'Security guard', ar: 'حارس المدرسة' },
+            { en: 'Secretary', ar: 'السكرتيرة' },
+          ],
+        },
+      ],
+    },
+    {
+      kind: 'staticSentences',
+      title: 'تعبيرات جاهزة تُستخدم كل يوم',
+      patterns: [
+        {
+          template: 'Can I + [action]?',
+          templateAr: 'هل يمكنني + (فعل)؟',
+          examples: ['Can I borrow your pen?', 'Can I come in?'],
+        },
+        {
+          template: 'Can I go to the + [place]? / Can I [verb] + [person]?',
+          templateAr: 'هل يمكنني الذهاب إلى + (مكان)؟ / هل يمكنني (فعل) + (شخص)؟',
+          examples: ['Can I go to the bathroom?', 'Can I see the director, please?'],
+        },
+      ],
+    },
+    {
+      kind: 'conversation',
+      title: 'Anas signs up at the language center',
+      lines: [
+        { speaker: 'Anas',         text: 'Hello, I want to learn English.' },
+        { speaker: 'Receptionist', text: "Welcome! What's your level?" },
+        { speaker: 'Anas',         text: "I'm a beginner." },
+        { speaker: 'Receptionist', text: 'We have classes for beginners.' },
+        { speaker: 'Anas',         text: 'When do they start?' },
+        { speaker: 'Receptionist', text: 'Next Monday, at 6 PM.' },
+        { speaker: 'Anas',         text: 'How many days a week?' },
+        { speaker: 'Receptionist', text: 'Three days: Monday, Wednesday, and Friday.' },
+        { speaker: 'Anas',         text: 'How long is each class?' },
+        { speaker: 'Receptionist', text: 'Two hours.' },
+        { speaker: 'Anas',         text: 'How much does it cost?' },
+        { speaker: 'Receptionist', text: '800 dirhams for three months.' },
+        { speaker: 'Anas',         text: "That's good. Can I pay monthly?" },
+        { speaker: 'Receptionist', text: 'Yes, no problem.' },
+        { speaker: 'Anas',         text: 'Where is the classroom?' },
+        { speaker: 'Receptionist', text: 'Second floor, room 203.' },
+        { speaker: 'Anas',         text: "Perfect. I'll come Monday at 5:45." },
+        { speaker: 'Receptionist', text: 'Bring your ID and the first payment.' },
+        { speaker: 'Anas',         text: 'Thank you. See you Monday!' },
+        { speaker: 'Receptionist', text: 'Welcome to the school!' },
+      ],
+    },
+  ],
+}
