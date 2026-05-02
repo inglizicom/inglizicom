@@ -44,6 +44,19 @@ export type QuizQuestion = {
   hint?: string
 }
 
+export type ReadingWord = {
+  word: string
+  ar: string
+  note?: string
+}
+
+export type BlankSentence = {
+  before: string
+  after: string
+  answer: string
+  options: string[]
+}
+
 export type Section =
   | { kind: 'cover'; subtitle?: string }
   | { kind: 'vocab'; title?: string; items: VocabItem[] }
@@ -52,6 +65,14 @@ export type Section =
   | { kind: 'conversation'; title: string; lines: DialogLine[]; note?: string }
   | { kind: 'quiz'; title?: string; questions: QuizQuestion[] }
   | { kind: 'review'; title?: string; items: VocabItem[] }
+  | {
+      kind: 'reading'
+      title: string
+      text: string
+      translations: Record<string, string>
+      vocab: ReadingWord[]
+      blanks: BlankSentence[]
+    }
 
 export type Unit = {
   id: number

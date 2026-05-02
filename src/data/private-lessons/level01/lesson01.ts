@@ -1,0 +1,120 @@
+import type { Unit } from '../types'
+
+const LOCAL = (slug: string) => `/lessons/lv1/01/${slug}.jpg`
+
+export const lesson01: Unit = {
+  id: 101,
+  slug: 'l1-greetings',
+  emoji: '👋',
+  level: 'A0 – A1',
+  title: { en: 'Greetings + The Alphabet', ar: 'التحيات + الأبجدية' },
+  sections: [
+    { kind: 'cover' },
+    {
+      kind: 'vocab',
+      title: 'عبارات التحية',
+      items: [
+        {
+          en: 'Hello! / Hi! / Hey!',
+          ar: 'مرحباً! / أهلاً!',
+          examples: ['Hello, my name is Hamza.', 'Hi! How are you?'],
+          tint: 'amber',
+          image: LOCAL('hello'),
+        },
+        {
+          en: 'Good morning.',
+          ar: 'صباح الخير.',
+          examples: ['Good morning, teacher!', 'Good morning, everyone.'],
+          tint: 'orange',
+          image: LOCAL('good-morning'),
+        },
+        {
+          en: 'Good afternoon. / Good evening.',
+          ar: 'مساء الخير.',
+          examples: ['Good afternoon, Sara.', 'Good evening, Mr. Hamza.'],
+          tint: 'amber',
+          image: LOCAL('good-afternoon'),
+        },
+        {
+          en: 'How are you?',
+          ar: 'كيف حالك؟',
+          examples: ['How are you today?', 'How are you, Ali?'],
+          tint: 'sky',
+          image: LOCAL('how-are-you'),
+        },
+        {
+          en: 'I am fine. / I am good.',
+          ar: 'أنا بخير. / أنا جيد.',
+          examples: ["I'm fine, thank you. And you?", "I'm good. How about you?"],
+          tint: 'sky',
+          image: LOCAL('im-fine'),
+        },
+        {
+          en: 'What is your name?',
+          ar: 'ما اسمك؟',
+          examples: ["What's your name?", 'What is your first name?'],
+          tint: 'violet',
+          image: LOCAL('whats-your-name'),
+        },
+        {
+          en: 'My name is _____.',
+          ar: 'اسمي _____.',
+          examples: ['My name is Hamza.', 'My name is Sara.'],
+          tint: 'violet',
+          image: LOCAL('my-name-is'),
+        },
+        {
+          en: 'Nice to meet you!',
+          ar: 'يسعدني لقاؤك!',
+          examples: ['Nice to meet you, Adil.', 'Nice to meet you too!'],
+          tint: 'emerald',
+          image: LOCAL('nice-to-meet-you'),
+        },
+        {
+          en: 'Goodbye! / Bye-bye!',
+          ar: 'وداعاً! / مع السلامة!',
+          examples: ['Goodbye! See you tomorrow.', 'Bye-bye, everyone!'],
+          tint: 'rose',
+          image: LOCAL('goodbye'),
+        },
+        {
+          en: 'See you tomorrow. / See you later.',
+          ar: 'أراك غداً. / أراك لاحقاً.',
+          examples: ['See you tomorrow, Sara.', 'See you later, Ali.'],
+          tint: 'sky',
+          image: LOCAL('see-you'),
+        },
+        {
+          en: 'Have a good day!',
+          ar: 'أتمنى لك يوماً سعيداً!',
+          examples: ['Have a good day at school!', 'Have a good night!'],
+          tint: 'amber',
+          image: LOCAL('have-a-good-day'),
+        },
+        {
+          en: 'How do you spell your name?',
+          ar: 'كيف تتهجى اسمك؟',
+          examples: ['How do you spell your name?', 'It is spelled H-A-M-Z-A.'],
+          tint: 'teal',
+          image: LOCAL('how-do-you-spell'),
+        },
+      ],
+    },
+    {
+      kind: 'conversation',
+      title: 'Hamza meets Adil — first day',
+      lines: [
+        { speaker: 'Hamza', text: 'Hello! Are you new here?' },
+        { speaker: 'Adil',  text: 'Yes! My name is Adil. And you?' },
+        { speaker: 'Hamza', text: 'I am Hamza. Nice to meet you.' },
+        { speaker: 'Adil',  text: 'Nice to meet you too. How are you today?' },
+        { speaker: 'Hamza', text: 'I am good, thank you. How do you spell your name?' },
+        { speaker: 'Adil',  text: 'A - D - I - L. Not difficult!' },
+        { speaker: 'Hamza', text: 'Good! My name is H - A - M - Z - A.' },
+        { speaker: 'Adil',  text: 'Hamza — nice name. See you tomorrow!' },
+        { speaker: 'Hamza', text: 'See you. Have a good day!' },
+      ],
+    },
+    { kind: 'review', title: 'مراجعة — خمّن العبارة', items: [] },
+  ],
+}

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, useInView } from "framer-motion"
 import Link from "next/link"
 import { TESTIMONIALS } from "@/data/testimonials"
-import { PLANS as CANONICAL_PLANS } from "@/data/plans"
+import { INDIVIDUAL_PLANS, PACK_PLANS } from "@/data/plans"
 import { openSubscribe } from "@/lib/lead-source"
 
 /* ═══════════════════════════════════════════════════
@@ -37,85 +37,51 @@ const SLIDES = [
  * from /data/plans.ts. Pricing, level, follow-up duration and perks
  * are the source of truth; emoji/gradient/popular/rating are UI extras.
  */
-const PLAN_VIEW: Record<
-  string,
-  {
-    emoji:    string
-    popular?: boolean
-    badge?:   string | null
-    desc:     string
-    color:    "green" | "blue" | "purple" | "orange" | "gold" | "slate"
-    gradient: string
-    rating?:        number
-    ratingCount?:   number
-    recentBuyers?:  number | null
-  }
-> = {
-  "basic": {
-    emoji: "🌱",
-    desc:  "ابدأ من الصفر المطلق وبنِ أول جُمَلك بثقة",
-    color: "green",  gradient: "from-green-500 to-emerald-600",
-    rating: 4.9, ratingCount: 184, recentBuyers: 7,
-  },
-  "pro": {
-    emoji: "💬", popular: true, badge: "🔥 الأكثر طلباً",
-    desc:  "حوّل الجملة إلى محادثة يومية + متابعة أسبوعية",
-    color: "blue",   gradient: "from-blue-500 to-blue-600",
-    rating: 4.9, ratingCount: 96, recentBuyers: 4,
-  },
-  "premium": {
-    emoji: "🚀", badge: "⭐ الأفضل قيمة",
-    desc:  "تحدث بطلاقة احترافية (B1-B2) + 3 لايفات شهرياً",
-    color: "purple", gradient: "from-purple-500 to-purple-600",
-    rating: 5.0, ratingCount: 48, recentBuyers: 2,
-  },
-  "vip": {
-    emoji: "👑", badge: "⭐ الأكثر تحوّلاً",
-    desc:  "برنامج التحوّل الكامل: كوتشينغ 1:1 + متابعة يومية",
-    color: "gold",   gradient: "from-yellow-500 to-amber-600",
-    rating: 5.0, ratingCount: 34, recentBuyers: null,
-  },
+type PlanColor = "green" | "blue" | "purple" | "orange" | "gold" | "slate"
+type PlanView = {
+  emoji: string; popular?: boolean; badge?: string | null
+  desc: string; color: PlanColor; gradient: string
+  rating?: number; ratingCount?: number; recentBuyers?: number | null
 }
 
-const PLANS = CANONICAL_PLANS.map(p => {
+const PLAN_VIEW: Record<string, PlanView> = {
+  // Individual levels
+  "basic":   { emoji:"🌱", desc:"ابدأ من الصفر وبنِ أول جُمَلك بثقة", color:"green",  gradient:"from-green-500 to-emerald-600",  rating:4.9, ratingCount:184, recentBuyers:7 },
+  "pro":     { emoji:"💬", popular:true, badge:"🔥 الأكثر طلباً", desc:"حوّل الجملة إلى محادثة يومية", color:"blue",   gradient:"from-blue-500 to-blue-600",      rating:4.9, ratingCount:96,  recentBuyers:4 },
+  "premium": { emoji:"🚀", badge:"⭐ الأفضل قيمة", desc:"تحدث بطلاقة احترافية B1-B2",  color:"purple", gradient:"from-purple-500 to-purple-600",    rating:5.0, ratingCount:48,  recentBuyers:2 },
+  "vip":     { emoji:"👑", badge:"⭐ الأكثر تحوّلاً", desc:"تحوّل كامل: كوتشينغ 1:1",  color:"gold",   gradient:"from-yellow-500 to-amber-600",    rating:5.0, ratingCount:34,  recentBuyers:null },
+  // Packs
+  "pack-starter":  { emoji:"🌿", desc:"مستويان متتاليان — وفّر 400 درهم",           color:"green",  gradient:"from-emerald-500 to-green-600" },
+  "pack-intensif": { emoji:"⚡", popular:true, badge:"🔥 الأوفر والأفضل", desc:"3 مستويات كاملة من الصفر إلى الطلاقة", color:"purple", gradient:"from-violet-600 to-purple-700" },
+  "pack-complet":  { emoji:"🏆", badge:"⭐ الأشمل", desc:"كل المستويات + إنجليزية الأعمال", color:"gold", gradient:"from-amber-500 to-yellow-600" },
+}
+
+function mapPlan(p: typeof INDIVIDUAL_PLANS[number] | typeof PACK_PLANS[number]) {
   const v = PLAN_VIEW[p.id]
-  const levelLabel =
-    p.levelFrom && p.levelTo
-      ? p.levelFrom === p.levelTo
-        ? p.levelFrom
-        : `${p.levelFrom} → ${p.levelTo}`
-      : 'مخصّص'
+  const levelLabel = p.levelFrom && p.levelTo
+    ? `${p.levelFrom} → ${p.levelTo}` : 'مخصّص'
   return {
-    id:                  p.id,
-    canonicalId:          p.id,
-    slug:                 p.courseSlug,
-    title:                p.title_ar,
-    subtitle:             p.subtitle_ar,
-    levelLabel,
-    price:                p.amount_mad,
-    originalPrice:        p.originalAmount,
-    isHourly:             !!p.isHourly,
-    followUpLabel:        p.followUpLabel_ar,
-    followUpDuration:     p.followUpDuration_ar,
-    durationMonths:       p.duration_months,
-    currency:             "DH",
-    lifetimePerks:        p.lifetimePerks,
-    monthlyPerks:         p.monthlyPerks,
-    includesPrevious:     p.includesPrevious_ar,
-    idealFor:             p.idealFor_ar,
-    emoji:                v?.emoji    ?? "⭐",
-    popular:              v?.popular  ?? false,
-    highlight:            !!p.highlight,
-    isPremium:            !!p.isPremium,
-    badge:                v?.badge    ?? p.badge_ar ?? null,
-    desc:                 v?.desc     ?? p.subtitle_ar,
-    color:                v?.color    ?? "blue",
-    gradient:             v?.gradient ?? "from-blue-500 to-blue-600",
-    rating:               v?.rating,
-    ratingCount:          v?.ratingCount,
-    recentBuyers:         v?.recentBuyers,
+    id: p.id, canonicalId: p.id, slug: p.courseSlug,
+    title: p.title_ar, subtitle: p.subtitle_ar, levelLabel,
+    price: p.amount_mad, originalPrice: p.originalAmount,
+    isHourly: !!p.isHourly,
+    followUpLabel: p.followUpLabel_ar, followUpDuration: p.followUpDuration_ar,
+    durationMonths: p.duration_months, currency: "DH",
+    lifetimePerks: p.lifetimePerks, monthlyPerks: p.monthlyPerks,
+    includesPrevious: p.includesPrevious_ar, idealFor: p.idealFor_ar,
+    levelsIncluded: (p as typeof PACK_PLANS[number]).levelsIncluded,
+    emoji: v?.emoji ?? "⭐", popular: v?.popular ?? false,
+    highlight: !!p.highlight, isPremium: !!p.isPremium,
+    badge: v?.badge ?? p.badge_ar ?? null,
+    desc: v?.desc ?? p.subtitle_ar,
+    color: v?.color ?? "blue" as PlanColor,
+    gradient: v?.gradient ?? "from-blue-500 to-blue-600",
+    rating: v?.rating, ratingCount: v?.ratingCount, recentBuyers: v?.recentBuyers,
   }
-})
+}
+
+const PACKS = PACK_PLANS.map(mapPlan)
+const PLANS = INDIVIDUAL_PLANS.map(mapPlan)
 
 const TOOLS = [
   { icon: "🎧", title: "الاستماع", desc: "بودكاست ومحادثات حقيقية بمستويات مختلفة", href: "/listen", gradient: "from-blue-500 to-cyan-400", glow: "shadow-blue-500/20" },
@@ -566,194 +532,122 @@ function StatsStrip() {
 ═══════════════════════════════════════════════════ */
 
 function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
-  const colorMap: Record<string, { bg: string; text: string; light: string; lightBorder: string; border: string; shadow: string; ring: string; tint: string }> = {
-    green:  { bg: "from-green-500 to-emerald-600",   text: "text-green-700",  light: "bg-green-50",  lightBorder: "border-green-100",  border: "border-green-400",  shadow: "shadow-green-200/60",  ring: "ring-green-400/20",  tint: "bg-green-50/60"  },
-    blue:   { bg: "from-blue-500 to-blue-600",       text: "text-blue-700",   light: "bg-blue-50",   lightBorder: "border-blue-100",   border: "border-blue-300",   shadow: "shadow-blue-200/40",   ring: "ring-blue-400/20",   tint: "bg-blue-50/60"   },
-    purple: { bg: "from-purple-500 to-purple-600",   text: "text-purple-700", light: "bg-purple-50", lightBorder: "border-purple-100", border: "border-purple-300", shadow: "shadow-purple-200/40", ring: "ring-purple-400/20", tint: "bg-purple-50/60" },
-    orange: { bg: "from-orange-500 to-amber-500",    text: "text-orange-700", light: "bg-orange-50", lightBorder: "border-orange-100", border: "border-orange-300", shadow: "shadow-orange-200/40", ring: "ring-orange-400/20", tint: "bg-orange-50/60" },
-    gold:   { bg: "from-yellow-500 to-amber-600",    text: "text-amber-700",  light: "bg-amber-50",  lightBorder: "border-amber-100",  border: "border-amber-400",  shadow: "shadow-amber-200/50",  ring: "ring-amber-400/20",  tint: "bg-amber-50/60"  },
-    slate:  { bg: "from-slate-600 to-slate-800",     text: "text-slate-700",  light: "bg-slate-50",  lightBorder: "border-slate-100",  border: "border-slate-400",  shadow: "shadow-slate-200/50",  ring: "ring-slate-400/20",  tint: "bg-slate-50/60"  },
+  const colorMap: Record<string, { bg: string; text: string; border: string; shadow: string; accent: string }> = {
+    green:  { bg: "from-green-500 to-emerald-600",  text: "text-emerald-700", border: "border-emerald-300", shadow: "shadow-emerald-100", accent: "bg-emerald-50" },
+    blue:   { bg: "from-blue-500 to-blue-600",      text: "text-blue-700",    border: "border-blue-300",    shadow: "shadow-blue-100",    accent: "bg-blue-50"    },
+    purple: { bg: "from-purple-500 to-purple-600",  text: "text-purple-700",  border: "border-purple-300",  shadow: "shadow-purple-100",  accent: "bg-purple-50"  },
+    orange: { bg: "from-orange-500 to-amber-500",   text: "text-orange-700",  border: "border-orange-300",  shadow: "shadow-orange-100",  accent: "bg-orange-50"  },
+    gold:   { bg: "from-yellow-500 to-amber-600",   text: "text-amber-700",   border: "border-amber-300",   shadow: "shadow-amber-100",   accent: "bg-amber-50"   },
+    slate:  { bg: "from-slate-600 to-slate-800",    text: "text-slate-700",   border: "border-slate-300",   shadow: "shadow-slate-100",   accent: "bg-slate-50"   },
   }
   const c = colorMap[plan.color] || colorMap.blue
-
-  const savings =
-    plan.originalPrice && plan.originalPrice > plan.price
-      ? plan.originalPrice - plan.price
-      : null
-
-  const highlights = plan.lifetimePerks.slice(0, 5)
-  const isZeroEnglish = plan.canonicalId === 'basic'
+  const savings = plan.originalPrice && plan.originalPrice > plan.price
+    ? plan.originalPrice - plan.price : null
 
   return (
     <motion.div
-      custom={i}
-      variants={fadeUp}
-      whileHover={{ y: -6, scale: 1.01 }}
-      className={`relative flex flex-col rounded-3xl overflow-hidden transition-all duration-400 group ${
-        plan.popular
-          ? `bg-white border-2 ${c.border} shadow-2xl ${c.shadow} ring-4 ${c.ring}`
-          : plan.badge
-          ? `bg-white border-2 ${c.border} shadow-xl ${c.shadow}`
-          : `bg-white border-2 border-gray-100 hover:border-gray-200 shadow-lg hover:shadow-xl`
+      custom={i} variants={fadeUp} whileHover={{ y: -4 }}
+      className={`relative flex flex-col bg-white rounded-2xl overflow-hidden border-2 transition-all duration-300 ${
+        plan.popular || plan.highlight
+          ? `${c.border} shadow-xl ${c.shadow}`
+          : `border-gray-100 shadow-md hover:shadow-lg`
       }`}
     >
+      {/* Badge stripe */}
       {plan.badge && (
-        <div className={`bg-gradient-to-l ${c.bg} px-6 py-2.5 text-center relative overflow-hidden`}>
-          <div className="absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.15)_50%,transparent_75%)] bg-[length:250%_100%] animate-shimmer" />
-          <motion.span
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="text-white text-xs font-extrabold inline-flex items-center gap-2 relative z-10"
-          >
-            {plan.badge}
-          </motion.span>
+        <div className={`bg-gradient-to-l ${c.bg} px-4 py-2 text-center`}>
+          <span className="text-white text-xs font-black">{plan.badge}</span>
         </div>
       )}
 
-      <div className="flex flex-col flex-1 p-5 sm:p-6">
+      <div className="p-5 flex flex-col flex-1">
+        {/* Header */}
         <div className="flex items-center gap-3 mb-4">
-          <motion.div
-            whileHover={{ rotate: [0, -10, 10, 0], scale: 1.15 }}
-            transition={{ duration: 0.5 }}
-            className={`w-11 h-11 bg-gradient-to-br ${c.bg} rounded-2xl flex items-center justify-center text-xl shadow-lg flex-shrink-0`}
-          >
+          <div className={`w-10 h-10 bg-gradient-to-br ${c.bg} rounded-xl flex items-center justify-center text-lg shadow flex-shrink-0`}>
             {plan.emoji}
-          </motion.div>
+          </div>
           <div className="min-w-0">
-            {isZeroEnglish ? (
-              <div className="inline-flex items-center gap-1 bg-gradient-to-l from-yellow-400 to-amber-500 text-gray-900 text-[10px] font-black px-2 py-0.5 rounded-full mb-0.5 border border-amber-300 shadow-sm shadow-amber-200">
-                ⭐ أحسن اختيار لي 0 إنجليزية
-              </div>
-            ) : (
-              <div className={`inline-flex items-center gap-1 ${c.light} ${c.text} text-[10px] font-black px-2 py-0.5 rounded-full mb-0.5 border ${c.lightBorder}`}>
-                المستوى {plan.levelLabel}
-              </div>
-            )}
-            <h3 className="font-black text-gray-900 text-lg leading-tight">{plan.title}</h3>
+            <div className={`text-[10px] font-black ${c.text} uppercase tracking-wider`}>
+              {plan.levelLabel}
+            </div>
+            <h3 className="font-black text-gray-900 text-base leading-tight truncate">{plan.title}</h3>
           </div>
         </div>
 
-        <div className={`${c.light} rounded-2xl p-4 mb-4 text-center border ${c.lightBorder}`}>
-          <div className="flex items-baseline justify-center gap-2">
-            <span className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">{plan.price.toLocaleString()}</span>
-            <span className={`${c.text} text-base font-extrabold`}>
-              {plan.currency}{plan.isHourly ? ' / الساعة' : ''}
-            </span>
+        {/* Price */}
+        <div className={`${c.accent} rounded-xl px-4 py-3 mb-4 text-center`}>
+          <div className="flex items-baseline justify-center gap-1.5">
+            <span className="text-3xl font-black text-gray-900">{plan.price.toLocaleString()}</span>
+            <span className={`text-sm font-bold ${c.text}`}>DH</span>
             {plan.originalPrice && plan.originalPrice > plan.price && (
-              <span className="text-gray-400 text-sm font-bold line-through">{plan.originalPrice.toLocaleString()}</span>
+              <span className="text-gray-400 text-xs line-through">{plan.originalPrice.toLocaleString()}</span>
             )}
           </div>
           {savings && (
-            <div className="mt-2 inline-flex items-center gap-1 bg-emerald-500 text-white text-[11px] font-black px-2 py-0.5 rounded-full">
-              🔥 وفّر {savings.toLocaleString()} درهم
-            </div>
+            <p className="text-emerald-600 text-[11px] font-black mt-1">وفّر {savings.toLocaleString()} درهم</p>
           )}
         </div>
 
-        {plan.includesPrevious && (
-          <div className={`mb-3 flex items-start gap-1.5 text-[12px] font-black ${c.text} leading-snug`}>
-            <span className="text-sm leading-none">✦</span>
-            <span>{plan.includesPrevious}</span>
-          </div>
-        )}
-
-        <ul className="space-y-1.5 mb-4">
-          {highlights.map((f, j) => (
-            <li key={j} className="flex items-start gap-2 text-[13px] leading-snug">
-              <span className={`mt-0.5 ${c.text} flex-shrink-0 font-black`}>✓</span>
-              <span className="text-gray-700 font-semibold">{f}</span>
+        {/* 3 key perks */}
+        <ul className="space-y-1.5 mb-5 flex-1">
+          {plan.lifetimePerks.slice(0, 3).map((f, j) => (
+            <li key={j} className="flex items-start gap-2 text-[12px] text-gray-600 leading-snug">
+              <span className={`${c.text} font-black flex-shrink-0`}>✓</span>
+              {f}
             </li>
           ))}
         </ul>
 
-        <div className={`mb-4 ${c.light} border ${c.lightBorder} rounded-xl px-3 py-2`}>
-          <div className={`text-[10px] font-black ${c.text} uppercase tracking-wider mb-0.5`}>
-            📅 المتابعة
-          </div>
-          <div className="text-gray-800 text-[13px] font-bold leading-snug">
-            {plan.followUpLabel}
-          </div>
-          <div className="text-gray-500 text-[11px] font-semibold mt-0.5">
-            المدة · {plan.followUpDuration}
-          </div>
-        </div>
-
-        <div className="flex-1" />
-
-        <div className="flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={() => openSubscribe({
-              source: `home_plan_${plan.id}_subscribe`,
-              planId: plan.canonicalId,
-            })}
-            className={`flex items-center justify-center gap-1.5 w-full text-center py-3.5 rounded-2xl font-extrabold text-sm transition-all duration-300 ${
-              plan.popular
-                ? `bg-gradient-to-l ${c.bg} text-white shadow-xl ${c.shadow} hover:shadow-2xl`
-                : plan.badge
-                ? `bg-gradient-to-l ${c.bg} text-white shadow-lg ${c.shadow} hover:shadow-xl`
-                : `bg-gray-900 text-white hover:bg-gray-800 shadow-lg shadow-gray-200/50 hover:shadow-xl`
-            }`}
-          >
-            💬 اشترك الآن — جاوبني فواتساب
-          </button>
-          <Link
-            href={`/pricing#${plan.id}`}
-            onClick={() => {
-              try { window.sessionStorage.setItem('inglizi.lead_source', `home_plan_${plan.id}_readmore`) } catch {}
-            }}
-            className="flex items-center justify-center gap-1 text-gray-500 hover:text-gray-900 font-bold text-xs py-1 transition-colors"
-          >
-            اعرف المزيد على الباقة
-            <span className="text-sm">←</span>
-          </Link>
-        </div>
+        {/* CTA */}
+        <button
+          type="button"
+          onClick={() => openSubscribe({ source: `home_plan_${plan.id}_subscribe`, planId: plan.canonicalId })}
+          className={`w-full py-3 rounded-xl font-black text-sm transition-all ${
+            plan.popular || plan.highlight
+              ? `bg-gradient-to-l ${c.bg} text-white shadow-lg hover:opacity-90`
+              : `bg-gray-900 text-white hover:bg-gray-700`
+          }`}
+        >
+          اشترك الآن
+        </button>
+        <Link
+          href={`/pricing#${plan.id}`}
+          className="text-center text-gray-400 hover:text-gray-700 text-xs font-bold mt-2 transition-colors"
+        >
+          التفاصيل ←
+        </Link>
       </div>
+    </motion.div>
+  )
+}
+
+function HomeSectionTitle({ tag, en, ar, sub }: { tag: string; en: string; ar: string; sub: string }) {
+  return (
+    <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
+      className="text-center mb-10"
+    >
+      <span className="inline-block text-[11px] font-black tracking-[0.4em] uppercase text-blue-600 mb-3">
+        — {tag} —
+      </span>
+      <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-gray-900 leading-none tracking-tight mb-2">
+        {en}
+      </h2>
+      <p className="text-gray-700 font-black text-lg sm:text-xl mb-2">{ar}</p>
+      <p className="text-gray-500 text-sm max-w-lg mx-auto">{sub}</p>
     </motion.div>
   )
 }
 
 function CoursesSection() {
   return (
-    <section className="py-12 sm:py-20 px-4 sm:px-6 bg-gradient-to-b from-gray-50/80 via-white to-gray-50/50 relative overflow-hidden">
-      <div className="absolute top-20 left-0 w-[500px] h-[500px] bg-green-100/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-0 w-[400px] h-[400px] bg-blue-100/15 rounded-full blur-3xl" />
+    <section className="bg-gradient-to-b from-gray-50/80 via-white to-gray-50/50 relative overflow-hidden">
+      <div className="absolute top-20 left-0 w-[500px] h-[500px] bg-green-100/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-20 right-0 w-[400px] h-[400px] bg-blue-100/15 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-[1200px] mx-auto relative z-10">
-        {/* heading */}
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          custom={0}
-          className="text-center mb-6"
-        >
-          <span className="inline-flex items-center gap-2 bg-gradient-to-l from-amber-400 to-yellow-500 text-gray-900 px-4 py-2 rounded-full text-xs font-black mb-5 shadow-xl shadow-amber-400/40 uppercase tracking-wider">
-            📚 الدورات والأسعار
-          </span>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 leading-tight">
-            اختار الباقة المناسبة{' '}
-            <span className="relative inline-block">
-              <span className="relative z-10 bg-gradient-to-l from-blue-600 via-blue-700 to-blue-900 bg-clip-text text-transparent">
-                لمستواك
-              </span>
-              <span className="absolute -bottom-1 left-0 right-0 h-3 bg-amber-300/70 -skew-x-6 z-0" />
-            </span>
-          </h2>
-          <p className="text-gray-600 mt-4 text-base sm:text-lg font-semibold max-w-2xl mx-auto">
-            دروس مسجّلة + متابعة شخصية من حمزة + مجموعة واتساب — كلشي مع ضمان استرجاع
-          </p>
-        </motion.div>
-
-        {/* trust badges */}
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          custom={1}
-          className="flex flex-wrap justify-center gap-3 md:gap-5 mb-14"
+      {/* trust badges */}
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 pt-12 sm:pt-20 relative z-10">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
+          className="flex flex-wrap justify-center gap-3 mb-6"
         >
           {[
             { icon: "📹", text: "دروس مسجلة" },
@@ -762,74 +656,97 @@ function CoursesSection() {
             { icon: "✅", text: "نتائج مضمونة" },
             { icon: "♾️", text: "وصول مدى الحياة" },
           ].map((b, i) => (
-            <motion.span
-              key={i}
-              whileHover={{ scale: 1.05, y: -2 }}
-              className="inline-flex items-center gap-2 text-sm text-gray-600 font-semibold bg-white px-4 py-2.5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow duration-200"
+            <motion.span key={i} whileHover={{ scale: 1.05, y: -2 }}
+              className="inline-flex items-center gap-2 text-sm text-gray-600 font-semibold bg-white px-4 py-2.5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
             >
               <span className="text-base">{b.icon}</span> {b.text}
             </motion.span>
           ))}
         </motion.div>
+      </div>
 
-        {/* main pricing grid — 4 columns on desktop */}
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.05 }}
-          variants={stagger}
-          className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 items-start"
-        >
-          {PLANS.map((plan, i) => (
-            <PlanCard key={plan.id} plan={plan} i={i} />
-          ))}
-        </motion.div>
+      {/* ── PACKS SECTION ─────────────────────────────── */}
+      <div className="w-full border-t border-b border-violet-200 bg-gradient-to-b from-violet-50/60 to-white py-14 relative z-10">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
+          <HomeSectionTitle
+            tag="Our Packs"
+            en="Explore Our Packs"
+            ar="أقصى قيمة — رحلة متصلة"
+            sub="كلما زاد التزامك زادت توفيراتك. الباكات مصممة لمن يريد تحوّلاً حقيقياً بلا انقطاع."
+          />
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} variants={stagger}
+            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 items-start"
+          >
+            {PACKS.map((plan, i) => <PlanCard key={plan.id} plan={plan} i={i} />)}
+          </motion.div>
+        </div>
+      </div>
 
-        {/* bundle offer */}
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          custom={2}
-          className="mt-12 sm:mt-14 bg-gradient-to-br from-blue-600 via-blue-800 to-blue-900 rounded-3xl shadow-2xl shadow-blue-900/50 p-6 sm:p-8 md:p-10 relative overflow-hidden border-2 border-amber-400/30"
-        >
-          <Particles count={12} className="opacity-50" />
-          <div className="absolute top-0 right-0 w-48 h-48 bg-amber-400/10 rounded-full blur-3xl" />
+      {/* ── INDIVIDUAL LEVELS SECTION ─────────────────── */}
+      <div className="w-full border-b border-blue-200 bg-white py-14 relative z-10">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
+          <HomeSectionTitle
+            tag="Individual Levels"
+            en="Level by Level"
+            ar="المستويات الفردية"
+            sub="ابدأ بمستوى واحد وانتقل للتالي. كل مستوى مبني على السابق."
+          />
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} variants={stagger}
+            className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 items-start"
+          >
+            {PLANS.map((plan, i) => <PlanCard key={plan.id} plan={plan} i={i} />)}
+          </motion.div>
+        </div>
+      </div>
 
-          <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10 relative z-10">
-            <motion.div
-              animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }}
-              transition={{ duration: 3, repeat: Infinity }}
-              className="flex-shrink-0 text-6xl drop-shadow-2xl"
-            >
-              🎁
-            </motion.div>
-            <div className="flex-1 text-center md:text-right text-white">
-              <span className="inline-flex items-center gap-1.5 bg-amber-400/20 border border-amber-400/50 text-amber-300 text-[10px] font-black px-3 py-1 rounded-full mb-3 uppercase tracking-wider">
-                💰 عرض الباقة الكاملة
-              </span>
-              <h3 className="font-black text-2xl sm:text-3xl mb-2 leading-tight">
-                اشترك ف2 باقات ولا أكثر واربح{' '}
-                <span className="bg-gradient-to-l from-amber-300 to-yellow-500 bg-clip-text text-transparent">
-                  خصم خاص
-                </span>
-              </h3>
-              <p className="text-blue-100/80 text-sm sm:text-base leading-relaxed font-semibold">
-                تواصل معنا فواتساب باش نعطيوك عرض مخصّص على حساب الباقات اللي بغيتي
-              </p>
+      {/* ── CLASSES + BUSINESS CTA ────────────────────── */}
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-14 relative z-10">
+        <div className="grid sm:grid-cols-2 gap-5">
+          {/* Classes teaser */}
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
+            className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-3xl p-7 flex flex-col gap-4"
+          >
+            <div className="text-4xl">🎓</div>
+            <div>
+              <div className="text-[11px] font-black tracking-widest uppercase text-amber-600 mb-1">1:1 Private Classes</div>
+              <h3 className="font-black text-2xl text-gray-900 mb-1">الحصص الفردية</h3>
+              <p className="text-gray-600 text-sm font-semibold">400 درهم / الحصة · 1h30 · مباشر مع الأستاذ</p>
+              <p className="text-gray-500 text-xs mt-2">كلما اشتريت حصصاً أكثر، كان سعر الحصة أرخص.</p>
             </div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-shrink-0">
-              <Link
-                href="https://wa.me/212707902091?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D8%8C%20%D8%A3%D8%B1%D9%8A%D8%AF%20%D8%A7%D9%84%D8%A7%D8%B3%D8%AA%D9%81%D8%B3%D8%A7%D8%B1%20%D8%B9%D9%86%20%D8%A7%D9%84%D8%A8%D8%A7%D9%82%D8%A9%20%D8%A7%D9%84%D9%83%D8%A7%D9%85%D9%84%D8%A9"
-                target="_blank"
-                className="inline-flex items-center gap-2 bg-gradient-to-l from-amber-400 to-yellow-500 text-blue-900 font-black px-8 py-4 rounded-2xl shadow-2xl shadow-amber-500/40 hover:shadow-amber-500/60 hover:scale-105 transition-all duration-300 text-base border-2 border-amber-300"
-              >
-                💬 تواصل الآن
-              </Link>
-            </motion.div>
-          </div>
-        </motion.div>
+            <Link href="/pricing#classes"
+              className="self-start inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-white font-black px-5 py-2.5 rounded-xl text-sm transition-colors"
+            >
+              شوف العروض ←
+            </Link>
+          </motion.div>
+
+          {/* Business teaser */}
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
+            className="bg-gradient-to-br from-cyan-50 to-sky-50 border-2 border-cyan-200 rounded-3xl p-7 flex flex-col gap-4"
+          >
+            <div className="text-4xl">💼</div>
+            <div>
+              <div className="text-[11px] font-black tracking-widest uppercase text-cyan-600 mb-1">Business English</div>
+              <h3 className="font-black text-2xl text-gray-900 mb-1">الإنجليزية المهنية</h3>
+              <p className="text-gray-600 text-sm font-semibold">3,500 درهم · برنامج متخصص للمحترفين</p>
+              <p className="text-gray-500 text-xs mt-2">تكلّم، أقنع، وابهر في بيئة العمل — بدون قواعد.</p>
+            </div>
+            <Link href="/pricing#business"
+              className="self-start inline-flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white font-black px-5 py-2.5 rounded-xl text-sm transition-colors"
+            >
+              اعرف المزيد ←
+            </Link>
+          </motion.div>
+        </div>
+
+        {/* Full pricing link */}
+        <div className="text-center mt-10">
+          <Link href="/pricing"
+            className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-800 text-sm font-bold underline underline-offset-4 transition-colors"
+          >
+            شوف جميع الخطط والأسعار بالتفصيل ←
+          </Link>
+        </div>
       </div>
     </section>
   )

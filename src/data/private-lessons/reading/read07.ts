@@ -1,0 +1,83 @@
+import type { Unit } from '../types'
+
+export const read07: Unit = {
+  id: 207,
+  slug: 'r-my-home',
+  emoji: '🏠',
+  level: 'A0',
+  title: { en: 'My Home', ar: 'منزلي' },
+  sections: [
+    { kind: 'cover' },
+    {
+      kind: 'reading',
+      title: 'My Home',
+      text:
+        'I live in a small apartment in Casablanca. I love my home. It is small, but it has everything I need.\n\n' +
+        'The living room is my favourite room. There is a big sofa and a television. The television is in front of the sofa. There is also a small table between the sofa and the window. I put my books on this table.\n\n' +
+        'The bedroom is not big, but it is comfortable. The bed is next to the window. The lamp is on the small table, next to the bed. The wardrobe is behind the door. My clothes are inside the wardrobe.\n\n' +
+        'The kitchen is small. The fridge is on the left and the stove is next to it. I cook every evening in my kitchen. I love cooking.\n\n' +
+        'The bathroom has a mirror and a washing machine. The mirror is above the sink. The washing machine is under the shelf.\n\n' +
+        'My apartment is not big. But when I am at home, I am happy.',
+      translations: {
+        small: 'صغير',
+        apartment: 'شقة',
+        everything: 'كل شيء',
+        need: 'أحتاج',
+        living: 'المعيشة',
+        room: 'غرفة',
+        favourite: 'المفضل',
+        sofa: 'أريكة',
+        television: 'التلفاز',
+        front: 'أمام',
+        table: 'طاولة',
+        between: 'بين',
+        window: 'النافذة',
+        books: 'كتب',
+        bedroom: 'غرفة النوم',
+        comfortable: 'مريح',
+        bed: 'السرير',
+        next: 'بجانب',
+        lamp: 'مصباح',
+        wardrobe: 'خزانة ملابس',
+        behind: 'خلف',
+        door: 'الباب',
+        clothes: 'الملابس',
+        inside: 'داخل',
+        kitchen: 'المطبخ',
+        fridge: 'الثلاجة',
+        left: 'اليسار',
+        stove: 'الموقد',
+        cooking: 'الطبخ',
+        bathroom: 'الحمام',
+        mirror: 'المرآة',
+        washing: 'الغسالة',
+        machine: 'آلة',
+        above: 'فوق',
+        sink: 'الحوض',
+        under: 'تحت',
+        shelf: 'الرف',
+        happy: 'سعيد',
+      },
+      vocab: [
+        { word: 'apartment', ar: 'شقة', note: 'noun' },
+        { word: 'comfortable', ar: 'مريح', note: 'adjective' },
+        { word: 'wardrobe', ar: 'خزانة الملابس', note: 'noun' },
+        { word: 'mirror', ar: 'مرآة', note: 'noun' },
+        { word: 'shelf', ar: 'الرف', note: 'noun' },
+        { word: 'sink', ar: 'حوض الغسيل', note: 'noun' },
+        { word: 'above', ar: 'فوق', note: 'preposition' },
+        { word: 'inside', ar: 'داخل', note: 'preposition' },
+        { word: 'between', ar: 'بين', note: 'preposition' },
+        { word: 'behind', ar: 'خلف', note: 'preposition' },
+      ],
+      blanks: [
+        { before: 'The television is in', after: 'of the sofa.', answer: 'front', options: ['front', 'next', 'behind', 'under'] },
+        { before: 'The bed is', after: 'to the window.', answer: 'next', options: ['next', 'in front', 'behind', 'above'] },
+        { before: 'The wardrobe is', after: 'the door.', answer: 'behind', options: ['behind', 'next to', 'above', 'under'] },
+        { before: 'The fridge is on the', after: 'and the stove is next to it.', answer: 'left', options: ['left', 'right', 'front', 'top'] },
+        { before: 'The mirror is', after: 'the sink.', answer: 'above', options: ['above', 'under', 'next to', 'behind'] },
+        { before: 'The washing machine is', after: 'the shelf.', answer: 'under', options: ['under', 'above', 'inside', 'next to'] },
+      ],
+    },
+  ],
+}

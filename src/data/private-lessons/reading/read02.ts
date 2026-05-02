@@ -1,0 +1,110 @@
+import type { Unit } from '../types'
+
+export const read02: Unit = {
+  id: 202,
+  slug: 'r-my-family',
+  emoji: '👨‍👩‍👧‍👦',
+  level: 'A0',
+  title: { en: 'My Family', ar: 'عائلتي' },
+  sections: [
+    { kind: 'cover' },
+    {
+      kind: 'reading',
+      title: 'My Family',
+      text:
+        'My name is Sara. I have a big family.\n\n' +
+        'My father is tall and smart. His name is Hassan. He is fifty years old. He is a doctor. He works at a hospital in Rabat.\n\n' +
+        'My mother is kind and generous. Her name is Fatima. She is forty-five years old. She is a housewife. She cooks very well.\n\n' +
+        'I have two brothers. My older brother is Karim. He is twenty-five years old. He is married. His wife is a teacher. My younger brother is Youssef. He is nineteen years old. He is a student.\n\n' +
+        'I also have one sister. Her name is Nadia. She is sixteen years old. She is funny and friendly. She goes to school every day.\n\n' +
+        'We live together in Casablanca. Our house is big. I love my family.',
+      translations: {
+        big: 'كبير',
+        father: 'الأب',
+        tall: 'طويل',
+        smart: 'ذكي',
+        his: 'خاص به / اسمه',
+        fifty: 'خمسون',
+        doctor: 'طبيب',
+        works: 'يعمل',
+        hospital: 'مستشفى',
+        mother: 'الأم',
+        kind: 'طيب / لطيف',
+        generous: 'كريم',
+        her: 'خاص بها / اسمها',
+        housewife: 'ربة بيت',
+        cooks: 'تطبخ',
+        well: 'بشكل جيد',
+        brothers: 'أخوان',
+        older: 'الأكبر',
+        younger: 'الأصغر',
+        student: 'طالب',
+        sister: 'أخت',
+        funny: 'مضحك',
+        friendly: 'ودود',
+        school: 'المدرسة',
+        together: 'معاً',
+        house: 'المنزل / البيت',
+        love: 'أحب',
+        family: 'العائلة',
+        married: 'متزوج',
+        wife: 'الزوجة',
+        also: 'أيضاً',
+        sixteen: 'ستة عشر',
+        nineteen: 'تسعة عشر',
+        twenty: 'عشرون',
+        five: 'خمسة',
+      },
+      vocab: [
+        { word: 'doctor', ar: 'طبيب', note: 'noun' },
+        { word: 'hospital', ar: 'مستشفى', note: 'noun' },
+        { word: 'housewife', ar: 'ربة بيت', note: 'noun' },
+        { word: 'generous', ar: 'كريم', note: 'adjective' },
+        { word: 'older', ar: 'الأكبر سناً', note: 'adjective' },
+        { word: 'younger', ar: 'الأصغر سناً', note: 'adjective' },
+        { word: 'student', ar: 'طالب / طالبة', note: 'noun' },
+        { word: 'friendly', ar: 'ودود', note: 'adjective' },
+        { word: 'together', ar: 'معاً', note: 'adverb' },
+        { word: 'funny', ar: 'مضحك', note: 'adjective' },
+      ],
+      blanks: [
+        {
+          before: "Sara's father is a",
+          after: '. He works at a hospital.',
+          answer: 'doctor',
+          options: ['doctor', 'teacher', 'nurse', 'driver'],
+        },
+        {
+          before: "Her mother's name is",
+          after: '.',
+          answer: 'Fatima',
+          options: ['Fatima', 'Sara', 'Nadia', 'Khadija'],
+        },
+        {
+          before: 'Her mother is a',
+          after: '. She cooks very well.',
+          answer: 'housewife',
+          options: ['housewife', 'nurse', 'teacher', 'doctor'],
+        },
+        {
+          before: 'Karim is her',
+          after: 'brother. He is twenty-five.',
+          answer: 'older',
+          options: ['older', 'younger', 'married', 'smart'],
+        },
+        {
+          before: 'Nadia is',
+          after: 'and friendly.',
+          answer: 'funny',
+          options: ['funny', 'tall', 'old', 'smart'],
+        },
+        {
+          before: 'They all live',
+          after: 'in Casablanca.',
+          answer: 'together',
+          options: ['together', 'alone', 'outside', 'here'],
+        },
+      ],
+    },
+  ],
+}

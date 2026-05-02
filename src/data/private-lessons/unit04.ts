@@ -1,5 +1,7 @@
 import type { Unit } from './types'
 
+const LOCAL = (slug: string) => `/lessons/unit04/${slug}.jpg`
+
 export const unit04: Unit = {
   id: 4,
   slug: 'cafe',
@@ -12,20 +14,20 @@ export const unit04: Unit = {
       kind: 'vocab',
       title: 'مفردات المقهى',
       items: [
-        { en: 'I go to the café in the morning', ar: 'أذهب إلى المقهى في الصباح' },
-        { en: 'I order a cup of coffee', ar: 'أطلب كوب قهوة' },
-        { en: 'I ask the waiter for a menu', ar: 'أطلب القائمة من النادل' },
-        { en: 'I read the menu carefully', ar: 'أقرأ قائمة الطعام بعناية' },
-        { en: 'I choose a cappuccino and a croissant', ar: 'أختار كابتشينو وكرواسون' },
-        { en: 'I sit next to the window', ar: 'أجلس بجانب النافذة' },
-        { en: 'I drink my coffee slowly', ar: 'أشرب قهوتي ببطء' },
-        { en: 'I eat a piece of cake with my coffee', ar: 'آكل قطعة كعك مع قهوتي' },
-        { en: 'I talk to a friend while drinking', ar: 'أتحدث مع صديقي أثناء الشرب' },
-        { en: 'I take a photo of my coffee', ar: 'ألتقط صورة لقهوتي' },
-        { en: 'The bill, please', ar: 'الفاتورة من فضلك' },
-        { en: 'I pay in cash', ar: 'أدفع نقداً' },
-        { en: 'I thank the waiter', ar: 'أشكر النادل' },
-        { en: 'I leave the café after 30 minutes', ar: 'أُغادر المقهى بعد 30 دقيقة' },
+        { en: 'I go to the café in the morning', ar: 'أذهب إلى المقهى في الصباح',   tint: 'amber',   image: LOCAL('go-cafe') },
+        { en: 'I order a cup of coffee', ar: 'أطلب كوب قهوة',                        tint: 'orange',  image: LOCAL('order-coffee') },
+        { en: 'I ask the waiter for a menu', ar: 'أطلب القائمة من النادل',           tint: 'amber',   image: LOCAL('ask-menu') },
+        { en: 'I read the menu carefully', ar: 'أقرأ قائمة الطعام بعناية',           tint: 'sky',     image: LOCAL('read-menu') },
+        { en: 'I choose a cappuccino and a croissant', ar: 'أختار كابتشينو وكرواسون', tint: 'orange', image: LOCAL('cappuccino-croissant') },
+        { en: 'I sit next to the window', ar: 'أجلس بجانب النافذة',                  tint: 'sky',     image: LOCAL('sit-window') },
+        { en: 'I drink my coffee slowly', ar: 'أشرب قهوتي ببطء',                     tint: 'amber',   image: LOCAL('drink-coffee') },
+        { en: 'I eat a piece of cake with my coffee', ar: 'آكل قطعة كعك مع قهوتي',  tint: 'rose',    image: LOCAL('eat-cake') },
+        { en: 'I talk to a friend while drinking', ar: 'أتحدث مع صديقي أثناء الشرب', tint: 'violet', image: LOCAL('talk-friend') },
+        { en: 'I take a photo of my coffee', ar: 'ألتقط صورة لقهوتي',               tint: 'violet',  image: LOCAL('photo-coffee') },
+        { en: 'The bill, please', ar: 'الفاتورة من فضلك',                            tint: 'emerald', image: LOCAL('the-bill') },
+        { en: 'I pay in cash', ar: 'أدفع نقداً',                                     tint: 'emerald', image: LOCAL('pay-cash') },
+        { en: 'I thank the waiter', ar: 'أشكر النادل',                               tint: 'teal',    image: LOCAL('thank-waiter') },
+        { en: 'I leave the café after 30 minutes', ar: 'أُغادر المقهى بعد 30 دقيقة', tint: 'sky',    image: LOCAL('leave-cafe') },
       ],
     },
     {

@@ -1,5 +1,7 @@
 import type { Unit } from './types'
 
+const LOCAL = (slug: string) => `/lessons/unit03/${slug}.jpg`
+
 export const unit03: Unit = {
   id: 3,
   slug: 'kitchen',
@@ -12,20 +14,20 @@ export const unit03: Unit = {
       kind: 'vocab',
       title: 'مفردات المطبخ',
       items: [
-        { en: 'I open the fridge to get some milk', ar: 'أفتح الثلاجة لآخذ بعض الحليب' },
-        { en: 'I boil water to make tea', ar: 'أغلي الماء لأصنع الشاي' },
-        { en: 'I cut vegetables for the salad', ar: 'أقطع الخضروات لتحضير السلطة' },
-        { en: 'I use a pan to fry eggs for breakfast', ar: 'أستخدم مقلاة لقلي البيض في وجبة الإفطار' },
-        { en: 'I make a sandwich with cheese and tomato', ar: 'أُحضّر ساندويتش بالجبن والطماطم' },
-        { en: 'I wash the dishes after eating', ar: 'أغسل الصحون بعد الأكل' },
-        { en: 'I use a spoon to stir the soup', ar: 'أستخدم الملعقة لتحريك الحساء' },
-        { en: 'I clean the kitchen every night', ar: 'أنظف المطبخ كل ليلة' },
-        { en: 'I use the blender to mix the fruit', ar: 'أستخدم الخلاط في خلط الفاكهة' },
-        { en: 'I put the food on the table', ar: 'أضع الطعام على الطاولة' },
-        { en: 'I cook rice with chicken', ar: 'أطبخ الأرز مع الدجاج' },
-        { en: 'I use a knife to cut the meat', ar: 'أستخدم السكين لتقطيع اللحم' },
-        { en: 'I put the tea on the stove', ar: 'أضع الشاي على الموقد' },
-        { en: 'I use the dishwasher to wash the dishes', ar: 'أستعمل غسالة الأطباق لغسل الأطباق' },
+        { en: 'I open the fridge to get some milk', ar: 'أفتح الثلاجة لآخذ بعض الحليب', tint: 'sky',     image: LOCAL('fridge-milk') },
+        { en: 'I boil water to make tea', ar: 'أغلي الماء لأصنع الشاي', tint: 'amber',                   image: LOCAL('boil-water') },
+        { en: 'I cut vegetables for the salad', ar: 'أقطع الخضروات لتحضير السلطة', tint: 'emerald',       image: LOCAL('cut-vegetables') },
+        { en: 'I use a pan to fry eggs for breakfast', ar: 'أستخدم مقلاة لقلي البيض في وجبة الإفطار', tint: 'orange', image: LOCAL('fry-eggs') },
+        { en: 'I make a sandwich with cheese and tomato', ar: 'أُحضّر ساندويتش بالجبن والطماطم', tint: 'amber', image: LOCAL('sandwich') },
+        { en: 'I wash the dishes after eating', ar: 'أغسل الصحون بعد الأكل', tint: 'sky',                image: LOCAL('wash-dishes') },
+        { en: 'I use a spoon to stir the soup', ar: 'أستخدم الملعقة لتحريك الحساء', tint: 'orange',      image: LOCAL('stir-soup') },
+        { en: 'I clean the kitchen every night', ar: 'أنظف المطبخ كل ليلة', tint: 'teal',                image: LOCAL('clean-kitchen') },
+        { en: 'I use the blender to mix the fruit', ar: 'أستخدم الخلاط في خلط الفاكهة', tint: 'violet',  image: LOCAL('blender') },
+        { en: 'I put the food on the table', ar: 'أضع الطعام على الطاولة', tint: 'amber',                image: LOCAL('food-on-table') },
+        { en: 'I cook rice with chicken', ar: 'أطبخ الأرز مع الدجاج', tint: 'orange',                    image: LOCAL('rice-chicken') },
+        { en: 'I use a knife to cut the meat', ar: 'أستخدم السكين لتقطيع اللحم', tint: 'rose',           image: LOCAL('cut-meat') },
+        { en: 'I put the tea on the stove', ar: 'أضع الشاي على الموقد', tint: 'amber',                   image: LOCAL('tea-stove') },
+        { en: 'I use the dishwasher to wash the dishes', ar: 'أستعمل غسالة الأطباق لغسل الأطباق', tint: 'sky', image: LOCAL('dishwasher') },
       ],
     },
     {

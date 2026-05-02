@@ -12,6 +12,7 @@ import StaticSentencesSection from './StaticSentencesSection'
 import ConversationSection from './ConversationSection'
 import QuizSection from './QuizSection'
 import ReviewSection from './ReviewSection'
+import ReadingSection from './ReadingSection'
 import Annotator from './Annotator'
 
 export default function LessonPlayer({ unit }: { unit: Unit }) {
@@ -369,6 +370,8 @@ function sectionLabel(s: Section): string {
       return s.title || 'Quiz'
     case 'review':
       return s.title || 'Quick Review'
+    case 'reading':
+      return s.title
   }
 }
 
@@ -388,6 +391,8 @@ function stepCountForSection(s: Section): number {
       return 1
     case 'review':
       return 1 // review owns its own internal navigation
+    case 'reading':
+      return 3 // text → vocab → blanks
   }
 }
 
@@ -415,5 +420,7 @@ function SectionRenderer({
       return <QuizSection section={section} step={step} />
     case 'review':
       return <ReviewSection section={section} step={step} />
+    case 'reading':
+      return <ReadingSection section={section} step={step} />
   }
 }
