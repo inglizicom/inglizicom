@@ -44,10 +44,10 @@ export default function VocabSection({
     return (
       <div className="flex-1 flex items-center justify-center px-6">
         <div className="text-center max-w-3xl">
-          <div className="inline-block px-4 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold tracking-[0.3em] uppercase mb-6 font-display">
+          <div className="inline-block px-4 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold tracking-[0.3em] uppercase mb-6 font-ui">
             Vocabulary
           </div>
-          <h2 className="font-display text-5xl md:text-7xl font-black text-slate-900 mb-4 tracking-tight">
+          <h2 className="font-ui text-5xl md:text-7xl font-black text-slate-900 mb-4 tracking-tight">
             {section.items.length} new sentences
           </h2>
           <p className="text-2xl md:text-3xl text-slate-500 font-bold" dir="rtl">
@@ -114,13 +114,13 @@ function FlashCard({
               className="px-6 sm:px-10 md:px-12 py-7 md:py-10 flex flex-col justify-center"
             >
               {/* Counter */}
-              <div className={`font-display font-bold tracking-[0.35em] uppercase text-[11px] md:text-xs mb-4 md:mb-5 ${tint.accent}`}>
+              <div className={`font-ui font-bold tracking-[0.35em] uppercase text-[11px] md:text-xs mb-4 md:mb-5 ${tint.accent}`}>
                 {String(index).padStart(2, '0')} / {String(total).padStart(2, '0')}
               </div>
 
               {/* Main sentence — single line, scales down for long text */}
               <h2
-                className={`font-display font-black text-slate-900 leading-none tracking-tight whitespace-nowrap overflow-hidden text-ellipsis ${singleLineSize(item.en)}`}
+                className={`font-ui font-black text-slate-900 leading-none tracking-tight whitespace-nowrap overflow-hidden text-ellipsis ${singleLineSize(item.en)}`}
               >
                 {item.en}
               </h2>
@@ -203,7 +203,7 @@ export function VocabImage({
   // Designed placeholder when all sources fail — stylized typographic card
   return (
     <div className={`absolute inset-0 flex flex-col items-center justify-center gap-3 ${tint.soft} p-6`}>
-      <div className={`font-display font-black text-5xl md:text-6xl ${tint.accent} text-center leading-tight`}>
+      <div className={`font-ui font-black text-5xl md:text-6xl ${tint.accent} text-center leading-tight`}>
         {firstWord(item.en)}
       </div>
       <div className={`h-0.5 w-12 ${tint.stripe} rounded-full opacity-70`} />

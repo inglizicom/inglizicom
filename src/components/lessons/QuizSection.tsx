@@ -53,10 +53,10 @@ export default function QuizSection({ section }: { section: QuizSectionType; ste
     return (
       <div className="flex-1 flex items-center justify-center px-6">
         <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center max-w-2xl">
-          <div className="text-amber-600 font-bold tracking-widest uppercase text-sm mb-3 font-display">
+          <div className="text-amber-600 font-bold tracking-widest uppercase text-sm mb-3 font-ui">
             Quiz complete
           </div>
-          <h2 className="font-display text-5xl md:text-6xl font-black text-slate-900 mb-4">
+          <h2 className="font-ui text-5xl md:text-6xl font-black text-slate-900 mb-4">
             {score} / {total}
           </h2>
           <button onClick={restart} className="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-bold shadow-lg transition">
@@ -71,11 +71,11 @@ export default function QuizSection({ section }: { section: QuizSectionType; ste
   return (
     <div className="flex-1 flex flex-col px-6 max-w-4xl mx-auto w-full">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
-        <div className="inline-flex items-center gap-2 px-5 py-1.5 rounded-full bg-violet-100 text-violet-800 text-sm font-bold tracking-wider uppercase mb-3 font-display">
+        <div className="inline-flex items-center gap-2 px-5 py-1.5 rounded-full bg-violet-100 text-violet-800 text-sm font-bold tracking-wider uppercase mb-3 font-ui">
           <Trophy className="w-4 h-4" />
           Quiz
         </div>
-        <h2 className="font-display text-3xl md:text-4xl font-black text-slate-900" dir="rtl">
+        <h2 className="font-ui text-3xl md:text-4xl font-black text-slate-900" dir="rtl">
           {section.title || 'اختبار قصير'}
         </h2>
         <div className="mt-3 text-sm text-slate-500 font-mono">
@@ -88,7 +88,7 @@ export default function QuizSection({ section }: { section: QuizSectionType; ste
           {question.promptAr && (
             <div className="text-sm text-slate-500 mb-2 text-center" dir="rtl">{question.promptAr}</div>
           )}
-          <div className="font-display text-2xl md:text-4xl font-bold text-slate-900 text-center mb-8 leading-snug" dir={question.promptDir || 'ltr'}>
+          <div className="font-ui text-2xl md:text-4xl font-bold text-slate-900 text-center mb-8 leading-snug" dir={question.promptDir || 'ltr'}>
             {question.prompt}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

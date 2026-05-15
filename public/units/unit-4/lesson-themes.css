@@ -1,0 +1,545 @@
+/* =====================================================================
+   Lesson themes — applied via body class. Each theme remaps the brand
+   accent colors so each lesson feels distinct while sharing the layout.
+   ===================================================================== */
+
+/* ── 🌅 Warm theme (Lesson 7 · Daily Routine) ───────────────────────── */
+
+.theme-warm {
+  --c-bg:           #fef9ed;        /* warm cream */
+  --c-card:         #ffffff;
+
+  /* shift verb → amber and time → orange for a sunrise feel */
+  --c-verb:         #d97706;
+  --c-verb-soft:    #fef3c7;
+  --c-verb-ring:    #fcd34d;
+
+  --c-time:         #ea580c;
+  --c-time-soft:    #ffedd5;
+  --c-time-ring:    #fdba74;
+
+  --c-action:       #16a34a;
+  --c-subject:      #0891b2;
+  --c-subject-soft: #cffafe;
+  --c-subject-ring: #67e8f9;
+
+  --c-linker:       #be185d;
+  --c-linker-soft:  #fce7f3;
+  --c-linker-ring:  #f9a8d4;
+
+  --c-ending:       #7c3aed;
+  --c-ending-soft:  #ede9fe;
+  --c-ending-ring:  #c4b5fd;
+}
+
+/* ── 💖 Rose theme (Lesson 9 · Likes & Dislikes) ───────────────────── */
+
+.theme-rose {
+  --c-bg:           #fdf2f8;        /* soft pink */
+  --c-card:         #ffffff;
+
+  /* Feeling = rose, activity = teal, when = indigo */
+  --c-verb:         #e11d48;
+  --c-verb-soft:    #ffe4e6;
+  --c-verb-ring:    #fda4af;
+
+  --c-action:       #0d9488;
+  --c-action-soft:  #ccfbf1;
+  --c-action-ring:  #5eead4;
+
+  --c-time:         #4f46e5;
+  --c-time-soft:    #e0e7ff;
+  --c-time-ring:    #a5b4fc;
+
+  --c-subject:      #7c3aed;
+  --c-subject-soft: #ede9fe;
+  --c-subject-ring: #c4b5fd;
+
+  --c-linker:       #ea580c;
+  --c-linker-soft:  #ffedd5;
+  --c-linker-ring:  #fdba74;
+
+  --c-ending:       #f59e0b;
+  --c-ending-soft:  #fef3c7;
+  --c-ending-ring:  #fcd34d;
+}
+
+/* ── ⏮️ Sepia theme (Lesson 10 · Past Stories) ───────────────────── */
+
+.theme-sepia {
+  --c-bg:           #fdf8f3;        /* warm parchment */
+  --c-card:         #ffffff;
+
+  /* Subject = warm slate, past verb = deep amber, detail = burgundy, time = chocolate */
+  --c-subject:      #475569;
+  --c-subject-soft: #e2e8f0;
+  --c-subject-ring: #cbd5e1;
+
+  --c-verb:         #b45309;
+  --c-verb-soft:    #fef3c7;
+  --c-verb-ring:    #fcd34d;
+
+  --c-action:       #9f1239;
+  --c-action-soft:  #ffe4e6;
+  --c-action-ring:  #fda4af;
+
+  --c-time:         #78350f;
+  --c-time-soft:    #fed7aa;
+  --c-time-ring:    #fdba74;
+
+  --c-linker:       #0e7490;
+  --c-linker-soft:  #cffafe;
+  --c-linker-ring:  #67e8f9;
+
+  --c-ending:       #15803d;
+  --c-ending-soft:  #dcfce7;
+  --c-ending-ring:  #86efac;
+}
+
+/* ── ❓ Curious theme (Lesson 11 · Asking Questions) ───────────────── */
+
+.theme-cyan {
+  --c-bg:           #f0fdfa;        /* very light cyan */
+  --c-card:         #ffffff;
+
+  /* Q opener = teal, adverb = indigo, action = orange, time = purple */
+  --c-subject:      #0d9488;
+  --c-subject-soft: #ccfbf1;
+  --c-subject-ring: #5eead4;
+
+  --c-verb:         #4338ca;
+  --c-verb-soft:    #e0e7ff;
+  --c-verb-ring:    #a5b4fc;
+
+  --c-action:       #c2410c;
+  --c-action-soft:  #ffedd5;
+  --c-action-ring:  #fdba74;
+
+  --c-time:         #7c3aed;
+  --c-time-soft:    #ede9fe;
+  --c-time-ring:    #c4b5fd;
+
+  --c-linker:       #be185d;
+  --c-linker-soft:  #fce7f3;
+  --c-linker-ring:  #f9a8d4;
+
+  --c-ending:       #0891b2;
+  --c-ending-soft:  #cffafe;
+  --c-ending-ring:  #67e8f9;
+}
+
+/* ── 🚫 Slate theme (Lesson 14 · Negation — don't / didn't / won't) ── */
+
+.theme-slate {
+  --c-bg:           #f8fafc;        /* cool light slate */
+  --c-card:         #ffffff;
+
+  /* Subject = dark slate, negative aux = red, verb = blue, time = violet */
+  --c-subject:      #334155;
+  --c-subject-soft: #e2e8f0;
+  --c-subject-ring: #cbd5e1;
+
+  --c-verb:         #dc2626;
+  --c-verb-soft:    #fee2e2;
+  --c-verb-ring:    #fca5a5;
+
+  --c-action:       #2563eb;
+  --c-action-soft:  #dbeafe;
+  --c-action-ring:  #93c5fd;
+
+  --c-time:         #7c3aed;
+  --c-time-soft:    #ede9fe;
+  --c-time-ring:    #c4b5fd;
+
+  --c-linker:       #d97706;
+  --c-linker-soft:  #fef3c7;
+  --c-linker-ring:  #fcd34d;
+
+  --c-ending:       #059669;
+  --c-ending-soft:  #d1fae5;
+  --c-ending-ring:  #6ee7b7;
+}
+
+/* ── 📍 Forest theme (Lesson 16 · Prepositions of Place) ──────────── */
+
+.theme-forest {
+  --c-bg:           #f0fdf4;        /* very light forest */
+  --c-card:         #ffffff;
+
+  /* Subject = chocolate, verb = forest green, preposition = teal, place = amber */
+  --c-subject:      #78350f;
+  --c-subject-soft: #fef3c7;
+  --c-subject-ring: #fcd34d;
+
+  --c-verb:         #166534;
+  --c-verb-soft:    #dcfce7;
+  --c-verb-ring:    #86efac;
+
+  --c-action:       #0d9488;
+  --c-action-soft:  #ccfbf1;
+  --c-action-ring:  #5eead4;
+
+  --c-time:         #ca8a04;
+  --c-time-soft:    #fef9c3;
+  --c-time-ring:    #fde047;
+
+  --c-linker:       #be185d;
+  --c-linker-soft:  #fce7f3;
+  --c-linker-ring:  #f9a8d4;
+
+  --c-ending:       #4338ca;
+  --c-ending-soft:  #e0e7ff;
+  --c-ending-ring:  #a5b4fc;
+}
+
+/* ── ⏰ Gold theme (Lesson 17 · Prepositions of Time) ──────────────── */
+
+.theme-gold {
+  --c-bg:           #fffbeb;        /* warm honey */
+  --c-card:         #ffffff;
+
+  /* Subject = bronze, verb = russet, preposition = gold, time = deep amber */
+  --c-subject:      #92400e;
+  --c-subject-soft: #fed7aa;
+  --c-subject-ring: #fdba74;
+
+  --c-verb:         #b45309;
+  --c-verb-soft:    #fef3c7;
+  --c-verb-ring:    #fcd34d;
+
+  --c-action:       #ca8a04;
+  --c-action-soft:  #fef9c3;
+  --c-action-ring:  #fde047;
+
+  --c-time:         #c2410c;
+  --c-time-soft:    #ffedd5;
+  --c-time-ring:    #fdba74;
+
+  --c-linker:       #7c3aed;
+  --c-linker-soft:  #ede9fe;
+  --c-linker-ring:  #c4b5fd;
+
+  --c-ending:       #059669;
+  --c-ending-soft:  #d1fae5;
+  --c-ending-ring:  #6ee7b7;
+}
+
+/* ── 💪 Mint theme (Lesson 19 · Can / Could — Abilities) ──────────── */
+
+.theme-mint {
+  --c-bg:           #ecfdf5;        /* fresh mint */
+  --c-card:         #ffffff;
+
+  /* Subject = teal, modal = cyan, verb = amber, context = violet */
+  --c-subject:      #047857;
+  --c-subject-soft: #d1fae5;
+  --c-subject-ring: #6ee7b7;
+
+  --c-verb:         #0891b2;
+  --c-verb-soft:    #cffafe;
+  --c-verb-ring:    #67e8f9;
+
+  --c-action:       #d97706;
+  --c-action-soft:  #fef3c7;
+  --c-action-ring:  #fcd34d;
+
+  --c-time:         #7c3aed;
+  --c-time-soft:    #ede9fe;
+  --c-time-ring:    #c4b5fd;
+
+  --c-linker:       #be185d;
+  --c-linker-soft:  #fce7f3;
+  --c-linker-ring:  #f9a8d4;
+
+  --c-ending:       #4338ca;
+  --c-ending-soft:  #e0e7ff;
+  --c-ending-ring:  #a5b4fc;
+}
+
+/* ── 🏠 Peach theme (Lesson 20 · There is / There are) ─────────────── */
+
+.theme-peach {
+  --c-bg:           #fff7ed;        /* warm peach */
+  --c-card:         #ffffff;
+
+  /* Subject (There+be) = rust, quantity = red, noun = green, place = violet */
+  --c-subject:      #c2410c;
+  --c-subject-soft: #ffedd5;
+  --c-subject-ring: #fdba74;
+
+  --c-verb:         #dc2626;
+  --c-verb-soft:    #fee2e2;
+  --c-verb-ring:    #fca5a5;
+
+  --c-action:       #059669;
+  --c-action-soft:  #d1fae5;
+  --c-action-ring:  #6ee7b7;
+
+  --c-time:         #7c3aed;
+  --c-time-soft:    #ede9fe;
+  --c-time-ring:    #c4b5fd;
+
+  --c-linker:       #2563eb;
+  --c-linker-soft:  #dbeafe;
+  --c-linker-ring:  #93c5fd;
+
+  --c-ending:       #ca8a04;
+  --c-ending-soft:  #fef9c3;
+  --c-ending-ring:  #fde047;
+}
+
+/* ── 📣 Crimson theme (Lesson 21 · Imperatives & Commands) ────────── */
+
+.theme-crimson {
+  --c-bg:           #fef2f2;        /* light blush */
+  --c-card:         #ffffff;
+
+  /* Tone marker = dark red, verb = red, object = orange, manner = violet */
+  --c-subject:      #991b1b;
+  --c-subject-soft: #fee2e2;
+  --c-subject-ring: #fca5a5;
+
+  --c-verb:         #dc2626;
+  --c-verb-soft:    #fee2e2;
+  --c-verb-ring:    #fca5a5;
+
+  --c-action:       #ea580c;
+  --c-action-soft:  #ffedd5;
+  --c-action-ring:  #fdba74;
+
+  --c-time:         #7c3aed;
+  --c-time-soft:    #ede9fe;
+  --c-time-ring:    #c4b5fd;
+
+  --c-linker:       #0d9488;
+  --c-linker-soft:  #ccfbf1;
+  --c-linker-ring:  #5eead4;
+
+  --c-ending:       #4338ca;
+  --c-ending-soft:  #e0e7ff;
+  --c-ending-ring:  #a5b4fc;
+}
+
+/* ── 🧭 Sky theme (Lesson 18 · Prepositions of Direction) ─────────── */
+
+.theme-sky {
+  --c-bg:           #f0f9ff;        /* very light sky */
+  --c-card:         #ffffff;
+
+  /* Subject = ocean, verb = sky, preposition = bright blue, destination = indigo */
+  --c-subject:      #0c4a6e;
+  --c-subject-soft: #e0f2fe;
+  --c-subject-ring: #7dd3fc;
+
+  --c-verb:         #0284c7;
+  --c-verb-soft:    #e0f2fe;
+  --c-verb-ring:    #7dd3fc;
+
+  --c-action:       #2563eb;
+  --c-action-soft:  #dbeafe;
+  --c-action-ring:  #93c5fd;
+
+  --c-time:         #4338ca;
+  --c-time-soft:    #e0e7ff;
+  --c-time-ring:    #a5b4fc;
+
+  --c-linker:       #db2777;
+  --c-linker-soft:  #fce7f3;
+  --c-linker-ring:  #f9a8d4;
+
+  --c-ending:       #059669;
+  --c-ending-soft:  #d1fae5;
+  --c-ending-ring:  #6ee7b7;
+}
+
+/* ── 🌈 Lime theme (Lesson 15 · Describing & Comparing things) ─────── */
+
+.theme-lime {
+  --c-bg:           #f7fee7;        /* fresh lime */
+  --c-card:         #ffffff;
+
+  /* Subject = deep teal, linking verb = slate, adjective = amber, context = violet */
+  --c-subject:      #0f766e;
+  --c-subject-soft: #ccfbf1;
+  --c-subject-ring: #5eead4;
+
+  --c-verb:         #475569;
+  --c-verb-soft:    #f1f5f9;
+  --c-verb-ring:    #cbd5e1;
+
+  --c-action:       #d97706;
+  --c-action-soft:  #fef3c7;
+  --c-action-ring:  #fcd34d;
+
+  --c-time:         #7c3aed;
+  --c-time-soft:    #ede9fe;
+  --c-time-ring:    #c4b5fd;
+
+  --c-linker:       #db2777;
+  --c-linker-soft:  #fce7f3;
+  --c-linker-ring:  #f9a8d4;
+
+  --c-ending:       #2563eb;
+  --c-ending-soft:  #dbeafe;
+  --c-ending-ring:  #93c5fd;
+}
+
+/* ── 🔎 Indigo theme (Lesson 13 · WH Questions — past/present/future) */
+
+.theme-indigo {
+  --c-bg:           #f5f3ff;        /* light indigo */
+  --c-card:         #ffffff;
+
+  /* WH word = indigo, aux+subject = teal, verb = orange, time = violet */
+  --c-subject:      #4338ca;
+  --c-subject-soft: #e0e7ff;
+  --c-subject-ring: #a5b4fc;
+
+  --c-verb:         #0d9488;
+  --c-verb-soft:    #ccfbf1;
+  --c-verb-ring:    #5eead4;
+
+  --c-action:       #ea580c;
+  --c-action-soft:  #ffedd5;
+  --c-action-ring:  #fdba74;
+
+  --c-time:         #7c3aed;
+  --c-time-soft:    #ede9fe;
+  --c-time-ring:    #c4b5fd;
+
+  --c-linker:       #e11d48;
+  --c-linker-soft:  #ffe4e6;
+  --c-linker-ring:  #fda4af;
+
+  --c-ending:       #d97706;
+  --c-ending-soft:  #fef3c7;
+  --c-ending-ring:  #fcd34d;
+}
+
+/* ── 🚀 Future theme (Lesson 12 · Future Plans) ──────────────────── */
+
+.theme-emerald {
+  --c-bg:           #f0fdf4;        /* fresh mint */
+  --c-card:         #ffffff;
+
+  /* Subject = blue sky, future marker = emerald, action = orange, time = violet */
+  --c-subject:      #2563eb;
+  --c-subject-soft: #dbeafe;
+  --c-subject-ring: #93c5fd;
+
+  --c-verb:         #059669;
+  --c-verb-soft:    #d1fae5;
+  --c-verb-ring:    #6ee7b7;
+
+  --c-action:       #ea580c;
+  --c-action-soft:  #ffedd5;
+  --c-action-ring:  #fdba74;
+
+  --c-time:         #7c3aed;
+  --c-time-soft:    #ede9fe;
+  --c-time-ring:    #c4b5fd;
+
+  --c-linker:       #db2777;
+  --c-linker-soft:  #fce7f3;
+  --c-linker-ring:  #f9a8d4;
+
+  --c-ending:       #d97706;
+  --c-ending-soft:  #fef3c7;
+  --c-ending-ring:  #fcd34d;
+}
+
+/* ── 🎬 Coral theme (Lesson 22 · Present Continuous) ──────────────── */
+
+.theme-coral {
+  --c-bg:           #fff1f2;        /* coral mist */
+  --c-card:         #ffffff;
+
+  /* Subject = coral, am/is/are = teal, verb-ing = orange, now = violet */
+  --c-subject:      #e11d48;
+  --c-subject-soft: #ffe4e6;
+  --c-subject-ring: #fda4af;
+
+  --c-verb:         #0d9488;
+  --c-verb-soft:    #ccfbf1;
+  --c-verb-ring:    #5eead4;
+
+  --c-action:       #ea580c;
+  --c-action-soft:  #ffedd5;
+  --c-action-ring:  #fdba74;
+
+  --c-time:         #7c3aed;
+  --c-time-soft:    #ede9fe;
+  --c-time-ring:    #c4b5fd;
+
+  --c-linker:       #0284c7;
+  --c-linker-soft:  #e0f2fe;
+  --c-linker-ring:  #7dd3fc;
+
+  --c-ending:       #b45309;
+  --c-ending-soft:  #fef3c7;
+  --c-ending-ring:  #fcd34d;
+}
+
+/* ── 💎 Lavender theme (Lesson 23 · Have / Has got — Possessions) ── */
+
+.theme-lavender {
+  --c-bg:           #f5f3ff;        /* light lavender */
+  --c-card:         #ffffff;
+
+  /* Subject = violet, have/has = indigo, item = pink, who = teal */
+  --c-subject:      #6d28d9;
+  --c-subject-soft: #ede9fe;
+  --c-subject-ring: #c4b5fd;
+
+  --c-verb:         #4338ca;
+  --c-verb-soft:    #e0e7ff;
+  --c-verb-ring:    #a5b4fc;
+
+  --c-action:       #db2777;
+  --c-action-soft:  #fce7f3;
+  --c-action-ring:  #f9a8d4;
+
+  --c-time:         #0d9488;
+  --c-time-soft:    #ccfbf1;
+  --c-time-ring:    #5eead4;
+
+  --c-linker:       #c2410c;
+  --c-linker-soft:  #ffedd5;
+  --c-linker-ring:  #fdba74;
+
+  --c-ending:       #059669;
+  --c-ending-soft:  #d1fae5;
+  --c-ending-ring:  #6ee7b7;
+}
+
+/* ── 🛡️ Bronze theme (Lesson 24 · Should / Must / Have to) ───────── */
+
+.theme-bronze {
+  --c-bg:           #fffbeb;        /* warm bronze */
+  --c-card:         #ffffff;
+
+  /* Subject = bronze, modal = red, verb = teal, context = violet */
+  --c-subject:      #92400e;
+  --c-subject-soft: #fef3c7;
+  --c-subject-ring: #fcd34d;
+
+  --c-verb:         #b91c1c;
+  --c-verb-soft:    #fee2e2;
+  --c-verb-ring:    #fca5a5;
+
+  --c-action:       #0f766e;
+  --c-action-soft:  #ccfbf1;
+  --c-action-ring:  #5eead4;
+
+  --c-time:         #6d28d9;
+  --c-time-soft:    #ede9fe;
+  --c-time-ring:    #c4b5fd;
+
+  --c-linker:       #2563eb;
+  --c-linker-soft:  #dbeafe;
+  --c-linker-ring:  #93c5fd;
+
+  --c-ending:       #c2410c;
+  --c-ending-soft:  #ffedd5;
+  --c-ending-ring:  #fdba74;
+}

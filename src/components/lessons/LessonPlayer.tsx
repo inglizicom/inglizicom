@@ -157,7 +157,7 @@ export default function LessonPlayer({ unit }: { unit: Unit }) {
               ←
             </Link>
             <span className="hidden sm:inline text-slate-300">/</span>
-            <span className="font-display font-bold text-slate-900 truncate">
+            <span className="font-ui font-bold text-slate-900 truncate">
               Unit {unit.id}
               <span className="hidden md:inline">: {unit.title.en}</span>
             </span>
@@ -234,7 +234,7 @@ export default function LessonPlayer({ unit }: { unit: Unit }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -24 }}
               transition={{ duration: 0.45, ease: 'easeOut' }}
-              className="flex-1 flex flex-col py-6 md:py-10"
+              className="flex-1 flex flex-col py-0"
             >
               <div
                 className="flex-1 flex flex-col transition-transform duration-200"
@@ -421,6 +421,6 @@ function SectionRenderer({
     case 'review':
       return <ReviewSection section={section} step={step} />
     case 'reading':
-      return <ReadingSection section={section} step={step} />
+      return <ReadingSection section={section} step={step} unit={unit} />
   }
 }

@@ -68,7 +68,9 @@ export type Section =
   | {
       kind: 'reading'
       title: string
+      titleAr?: string
       text: string
+      textAr?: string
       translations: Record<string, string>
       vocab: ReadingWord[]
       blanks: BlankSentence[]

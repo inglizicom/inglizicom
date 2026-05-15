@@ -69,10 +69,10 @@ export default function ReviewSection({ section }: { section: ReviewSectionType;
     <div className="flex-1 flex flex-col px-3 sm:px-6 md:px-10 max-w-7xl mx-auto w-full">
       {/* Section header */}
       <div className="text-center mb-4 md:mb-6 flex-shrink-0">
-        <div className="inline-block px-4 py-1 rounded-full bg-violet-100 text-violet-800 text-xs font-bold tracking-[0.3em] uppercase mb-2 font-display">
+        <div className="inline-block px-4 py-1 rounded-full bg-violet-100 text-violet-800 text-xs font-bold tracking-[0.3em] uppercase mb-2 font-ui">
           Quick Review
         </div>
-        <h2 className="font-display text-xl md:text-2xl font-black text-slate-900" dir="rtl">
+        <h2 className="font-ui text-xl md:text-2xl font-black text-slate-900" dir="rtl">
           {section.title || 'مراجعة سريعة — خمّن الجملة'}
         </h2>
         <div className="mt-1 text-xs text-slate-500 font-mono">
@@ -112,10 +112,10 @@ export default function ReviewSection({ section }: { section: ReviewSectionType;
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <div className="font-display font-bold tracking-[0.35em] uppercase text-[11px] md:text-xs text-slate-400 mb-5 md:mb-7">
+                    <div className="font-ui font-bold tracking-[0.35em] uppercase text-[11px] md:text-xs text-slate-400 mb-5 md:mb-7">
                       Guess
                     </div>
-                    <div className="font-display text-5xl md:text-7xl font-black text-slate-300 mb-4 leading-none whitespace-nowrap">
+                    <div className="font-ui text-5xl md:text-7xl font-black text-slate-300 mb-4 leading-none whitespace-nowrap">
                       ? ? ? ? ?
                     </div>
                     <div className="text-base md:text-lg text-slate-500 mb-8" dir="rtl">
@@ -138,11 +138,11 @@ export default function ReviewSection({ section }: { section: ReviewSectionType;
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.35 }}
                   >
-                    <div className={`font-display font-bold tracking-[0.35em] uppercase text-[11px] md:text-xs mb-5 md:mb-7 ${tint.accent}`}>
+                    <div className={`font-ui font-bold tracking-[0.35em] uppercase text-[11px] md:text-xs mb-5 md:mb-7 ${tint.accent}`}>
                       Answer
                     </div>
                     <h3
-                      className={`font-display font-black text-slate-900 leading-none tracking-tight whitespace-nowrap overflow-hidden text-ellipsis ${singleLineSize(item.en)}`}
+                      className={`font-ui font-black text-slate-900 leading-none tracking-tight whitespace-nowrap overflow-hidden text-ellipsis ${singleLineSize(item.en)}`}
                     >
                       {item.en}
                     </h3>
@@ -216,7 +216,7 @@ function ReviewImage({ item }: { item: VocabItem }) {
 
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-slate-50">
-      <div className="text-slate-300 font-display font-black text-[6rem] md:text-[8rem] leading-none">?</div>
+      <div className="text-slate-300 font-ui font-black text-[6rem] md:text-[8rem] leading-none">?</div>
     </div>
   )
 }

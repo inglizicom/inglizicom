@@ -11,6 +11,8 @@ module.exports = {
         sans: ['Tajawal', 'sans-serif'],
         arabic: ['Tajawal', 'sans-serif'],
         display: ['Outfit', 'system-ui', 'sans-serif'],
+        serif: ['Lora', 'Georgia', 'serif'],
+        ui: ['"DM Sans"', 'system-ui', 'sans-serif'],
       },
       colors: {
         brand: {

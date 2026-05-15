@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>سهلة · Sahla — أكاديمية إنجليزي.كوم الخاصة</title>
+  <meta name="description" content="كل دروسك الخاصة في مكان واحد — بناء الجمل، القراءة، القواعد، والمواقف الحياتية.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { font-family: 'Tajawal', 'DM Sans', system-ui, sans-serif; background: #f8fafc; color: #0f172a; min-height: 100%; }
+    body { padding: 32px 20px 60px; }
+
+    .page { max-width: 1280px; margin: 0 auto; }
+
+    /* ── Top bar ────────────────────────────────────────────── */
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 36px; }
+    .brand-block { display: flex; flex-direction: column; gap: 2px; }
+    .brand-en { font-family: 'DM Sans', sans-serif; font-weight: 900; font-size: 22px; color: #1e293b; letter-spacing: -0.02em; }
+    .brand-ar { font-size: 13px; color: #64748b; font-weight: 500; }
+    .badge { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; font-family: 'DM Sans', sans-serif; }
+    .badge-dot { width: 8px; height: 8px; border-radius: 999px; background: #d97706; }
+
+    /* ── Hero ────────────────────────────────────────────────── */
+    .hero { background: #ffffff; border: 2px solid #e2e8f0; border-radius: 24px; padding: 44px 36px; margin-bottom: 36px; position: relative; overflow: hidden; }
+    .hero::before { content: ""; position: absolute; top: -120px; left: -120px; width: 320px; height: 320px; background: radial-gradient(circle, rgba(217,119,6,0.12) 0%, transparent 70%); }
+    .hero::after { content: ""; position: absolute; bottom: -160px; right: -120px; width: 360px; height: 360px; background: radial-gradient(circle, rgba(37,99,235,0.10) 0%, transparent 70%); }
+    .hero-inner { position: relative; z-index: 1; }
+    .hero-eyebrow { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 12px; color: #d97706; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 12px; }
+    .hero-title { font-size: 48px; font-weight: 900; line-height: 1.1; color: #0f172a; letter-spacing: -0.02em; margin-bottom: 14px; }
+    .hero-title .en { font-family: 'DM Sans', sans-serif; color: #d97706; display: inline-block; margin-right: 12px; }
+    .hero-sub { font-size: 17px; color: #475569; max-width: 640px; line-height: 1.6; font-weight: 500; }
+    .hero-stats { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 26px; }
+    .stat { background: #f1f5f9; border-radius: 12px; padding: 10px 16px; font-size: 13px; color: #334155; font-weight: 600; }
+    .stat b { color: #d97706; margin-left: 4px; }
+
+    /* ── Section heads ──────────────────────────────────────── */
+    .section { margin-bottom: 40px; }
+    .section-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 2px solid #e2e8f0; }
+    .section-title { font-size: 24px; font-weight: 900; color: #0f172a; letter-spacing: -0.01em; }
+    .section-sub { font-size: 13px; color: #94a3b8; font-weight: 500; }
+    .section-pill { margin-right: auto; font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; background: #e0f2fe; color: #0369a1; letter-spacing: 0.06em; }
+
+    /* ── Cards ──────────────────────────────────────────────── */
+    .cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+
+    .card { --accent: #2563eb; --accent-soft: #eff6ff; display: flex; flex-direction: column; gap: 10px; padding: 22px 22px 18px; background: #ffffff; border: 2px solid #e2e8f0; border-radius: 18px; text-decoration: none; color: inherit; transition: all 0.18s ease; position: relative; overflow: hidden; }
+    .card:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 14px 30px -12px rgba(15,23,42,0.18); }
+    .card::before { content: ""; position: absolute; top: 0; right: 0; left: 0; height: 4px; background: var(--accent); opacity: 0.85; }
+    .card-head { display: flex; align-items: center; gap: 10px; }
+    .card-num { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 800; color: var(--accent); letter-spacing: 0.16em; text-transform: uppercase; }
+    .card-emoji { font-size: 28px; margin-right: auto; }
+    .card-title { font-size: 18px; font-weight: 900; color: #0f172a; line-height: 1.25; }
+    .card-title-ar { font-size: 13px; color: #64748b; font-weight: 500; line-height: 1.5; }
+    .card-pattern { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; background: var(--accent-soft); border-radius: 10px; padding: 9px 12px; font-family: 'DM Sans', sans-serif; font-size: 11px; color: #334155; font-weight: 600; margin-top: 4px; direction: ltr; }
+    .card-pattern .plus { color: var(--accent); font-weight: 700; opacity: 0.6; }
+    .card-example { font-family: 'DM Sans', sans-serif; font-size: 12px; color: #64748b; font-style: italic; direction: ltr; padding: 8px 12px; background: #f8fafc; border-radius: 8px; border-right: 3px solid var(--accent); }
+    .card-cta { margin-top: auto; padding-top: 8px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 800; color: var(--accent); letter-spacing: 0.04em; display: flex; align-items: center; gap: 6px; }
+    .card-cta::after { content: "←"; transition: transform 0.18s ease; }
+    .card:hover .card-cta::after { transform: translateX(-4px); }
+
+    .card.c-orange   { --accent: #ea580c; --accent-soft: #fff7ed; }
+    .card.c-blue     { --accent: #2563eb; --accent-soft: #eff6ff; }
+    .card.c-rose     { --accent: #e11d48; --accent-soft: #ffe4e6; }
+    .card.c-sepia    { --accent: #b45309; --accent-soft: #fef3c7; }
+    .card.c-cyan     { --accent: #0d9488; --accent-soft: #ccfbf1; }
+    .card.c-emerald  { --accent: #059669; --accent-soft: #d1fae5; }
+    .card.c-indigo   { --accent: #4338ca; --accent-soft: #e0e7ff; }
+    .card.c-slate    { --accent: #334155; --accent-soft: #e2e8f0; }
+    .card.c-lime     { --accent: #65a30d; --accent-soft: #ecfccb; }
+    .card.c-forest   { --accent: #166534; --accent-soft: #dcfce7; }
+    .card.c-gold     { --accent: #b45309; --accent-soft: #fef3c7; }
+    .card.c-sky      { --accent: #0284c7; --accent-soft: #e0f2fe; }
+    .card.c-mint     { --accent: #047857; --accent-soft: #d1fae5; }
+    .card.c-peach    { --accent: #c2410c; --accent-soft: #ffedd5; }
+    .card.c-crimson  { --accent: #991b1b; --accent-soft: #fee2e2; }
+    .card.c-coral    { --accent: #e11d48; --accent-soft: #ffe4e6; }
+    .card.c-lavender { --accent: #6d28d9; --accent-soft: #ede9fe; }
+    .card.c-bronze   { --accent: #92400e; --accent-soft: #fef3c7; }
+
+    /* ── External cards (link out to main domain) ───────────── */
+    .ext-cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+    .ext-card { display: flex; flex-direction: column; gap: 8px; padding: 22px; background: #ffffff; border: 2px dashed #cbd5e1; border-radius: 16px; text-decoration: none; color: inherit; transition: all 0.18s ease; }
+    .ext-card:hover { border-color: #94a3b8; border-style: solid; transform: translateY(-2px); }
+    .ext-card-emoji { font-size: 32px; }
+    .ext-card-title { font-size: 17px; font-weight: 900; color: #0f172a; }
+    .ext-card-title-ar { font-size: 13px; color: #64748b; font-weight: 500; }
+    .ext-card-meta { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; color: #94a3b8; letter-spacing: 0.06em; text-transform: uppercase; margin-top: auto; padding-top: 8px; }
+
+    /* ── Footer ─────────────────────────────────────────────── */
+    .page-footer { margin-top: 50px; padding: 22px; background: #0f172a; color: #cbd5e1; border-radius: 18px; text-align: center; font-size: 13px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px; }
+    .ft-brand { font-family: 'DM Sans', sans-serif; font-weight: 900; color: #fbbf24; letter-spacing: -0.01em; }
+    .ft-sep { opacity: 0.4; }
+    .ft-wa { font-family: 'DM Sans', sans-serif; font-weight: 700; color: #34d399; }
+
+    /* ── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      body { padding: 20px 14px 40px; }
+      .hero { padding: 28px 22px; }
+      .hero-title { font-size: 34px; }
+      .hero-sub { font-size: 15px; }
+      .section-title { font-size: 20px; }
+      .topbar { flex-direction: column; align-items: flex-start; gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- Top bar -->
+    <header class="topbar">
+      <div class="brand-block">
+        <span class="brand-en">Inglizi.com</span>
+        <span class="brand-ar">أكاديمية إنجليزي دوت كوم</span>
+      </div>
+      <span class="badge"><span class="badge-dot"></span>sahla.inglizi.com · Private</span>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-inner">
+        <p class="hero-eyebrow">منصة التعلم الخاصة</p>
+        <h1 class="hero-title"><span class="en">Sahla</span>سهلة</h1>
+        <p class="hero-sub">كل دروسك الخاصة في مكان واحد — بناء الجمل خطوة بخطوة، القواعد، القراءة، والمواقف الحياتية. مصممة للتسجيل والتدريس عبر الإنترنت.</p>
+        <div class="hero-stats">
+          <span class="stat">بناء الجمل<b>١٨</b></span>
+          <span class="stat">القواعد<b>٣٠+</b></span>
+          <span class="stat">القراءة<b>١٢</b></span>
+          <span class="stat">المستوى الأول<b>١٩</b></span>
+          <span class="stat">المواقف الحياتية<b>٢٠</b></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Sentence Builder section ────────────────────────── -->
+    <section class="section">
+      <header class="section-head">
+        <h2 class="section-title">🧩 Sentence Builder</h2>
+        <span class="section-sub" dir="rtl">ابني جملك الإنجليزية</span>
+        <span class="section-pill">18 LESSONS</span>
+      </header>
+      <div class="cards">
+
+        <a class="card c-orange" href="units/unit-4/lesson-7.html">
+          <header class="card-head"><span class="card-num">LESSON 07</span><span class="card-emoji">☀️</span></header>
+          <div><div class="card-title">Daily Routine</div><div class="card-title-ar">روتيني اليومي</div></div>
+          <div class="card-pattern"><span>I</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>object</span><span class="plus">+</span><span>time</span></div>
+          <p class="card-example">I drink coffee every morning</p>
+          <span class="card-cta">ابدأ الدرس</span>
+        </a>
+
+        <a class="card c-blue" href="units/unit-4/index.html">
+          <header class="card-head"><span class="card-num">LESSON 08</span><span class="card-emoji">🎯</span></header>
+          <div><div class="card-title">Wants & Plans</div><div class="card-title-ar">ما أريد وما أنوي فعله</div></div>
+          <div class="card-pattern"><span>I</span><span class="plus">+</span><span>want / need</span><span class="plus">+</span><span>to verb</span></div>
+          <p class="card-example">I want to learn English fast</p>
+          <span class="card-cta">ابدأ الدرس</span>
+        </a>
+
+        <a class="card c-rose" href="units/unit-4/lesson-9.html">
+          <header class="card-head"><span class="card-num">LESSON 09</span><span class="card-emoji">❤️</span></header>
+          <div><div class="card-title">Likes & Dislikes</div><div class="card-title-ar">أحب وأكره</div></div>
+          <div class="card-pattern"><span>I</span><span class="plus">+</span><span>like / love</span><span class="plus">+</span><span>noun</span></div>
+          <p class="card-example">I love playing football with friends</p>
+          <span class="card-cta">ابدأ الدرس</span>
+        </a>
+
+        <a class="card c-sepia" href="units/unit-4/lesson-10.html">
+          <header class="card-head"><span class="card-num">LESSON 10</span><span class="card-emoji">📖</span></header>
+          <div><div class="card-title">Past Stories</div><div class="card-title-ar">قصص الأمس</div></div>
+          <div class="card-pattern"><span>I</span><span class="plus">+</span><span>verb-ed</span><span class="plus">+</span><span>yesterday</span></div>
+          <p class="card-example">I watched a movie last night</p>
+          <span class="card-cta">ابدأ الدرس</span>
+        </a>
+
+        <a class="card c-cyan" href="units/unit-4/lesson-11.html">
+          <header class="card-head"><span class="card-num">LESSON 11</span><span class="card-emoji">❓</span></header>
+          <div><div class="card-title">Asking Questions</div><div class="card-title-ar">طرح الأسئلة</div></div>
+          <div class="card-pattern"><span>Do</span><span class="plus">+</span><span>you</span><span class="plus">+</span><span>verb...?</span></div>
+          <p class="card-example">Do you speak English?</p>
+          <span class="card-cta">ابدأ الدرس</span>
+        </a>
+
+        <a class="card c-emerald" href="units/unit-4/lesson-12.html">
+          <header class="card-head"><span class="card-num">LESSON 12</span><span class="card-emoji">🔮</span></header>
+          <div><div class="card-title">Future Plans</div><div class="card-title-ar">خطط المستقبل</div></div>
+          <div class="card-pattern"><span>I</span><span class="plus">+</span><span>will / going to</span><span class="plus">+</span><span>verb</span></div>
+          <p class="card-example">I will travel to London next year</p>
+          <span class="card-cta">ابدأ الدرس</span>
+        </a>
+
+        <a class="card c-indigo" href="units/unit-4/lesson-13.html">
+          <header class="card-head"><span class="card-num">LESSON 13</span><span class="card-emoji">🔎</span></header>
+          <div><div class="card-title">WH Questions</div><div class="card-title-ar">أسئلة بـ WH</div></div>
+          <div class="card-pattern"><span>What</span><span class="plus">+</span><span>do</span><span class="plus">+</span><span>you</span><span class="plus">+</span><span>verb</span></div>
+          <p class="card-example">Where did you go yesterday?</p>
+          <span class="card-cta">ابدأ الدرس</span>
+        </a>
+
+        <a class="card c-slate" href="units/unit-4/lesson-14.html">
+          <header class="card-head"><span class="card-num">LESSON 14</span><span class="card-emoji">🚫</span></header>
+          <div><div class="card-title">Negative Sentences</div><div class="card-title-ar">جمل النفي</div></div>
+          <div class="card-pattern"><span>I</span><span class="plus">+</span><span>don't / didn't / won't</span><span class="plus">+</span><span>verb</span></div>
+          <p class="card-example">I don't drink coffee in the morning</p>
+          <span class="card-cta">ابدأ الدرس</span>
+        </a>
+
+        <a class="card c-lime" href="units/unit-4/lesson-15.html">
+          <header class="card-head"><span class="card-num">LESSON 15</span><span class="card-emoji">🎨</span></header>
+          <div><div class="card-title">Describing & Comparing</div><div class="card-title-ar">الوصف والمقارنة</div></div>
+          <div class="card-pattern"><span>It is</span><span class="plus">+</span><span>adj / -er than</span><span class="plus">+</span><span>noun</span></div>
+          <p class="card-example">My phone is faster than yours</p>
+          <span class="card-cta">ابدأ الدرس</span>
+        </a>
+
+        <a class="card c-forest" href="units/unit-4/lesson-16.html">
+          <header class="card-head"><span class="card-num">LESSON 16</span><span class="card-emoji">📍</span></header>
+          <div><div class="card-title">Prepositions of Place</div><div class="card-title-ar">حروف جر المكان</div></div>
+          <div class="card-pattern"><span>noun</span><span class="plus">+</span><span>is</span><span class="plus">+</span><span>on / in / under</span><span class="plus">+</span><span>place</span></div>
+          <p class="card-example">My keys are on the table</p>
+          <span class="card-cta">ابدأ الدرس</span>
+        </a>
+
+        <a class="card c-gold" href="units/unit-4/lesson-17.html">
+          <header class="card-head"><span class="card-num">LESSON 17</span><span class="card-emoji">⏰</span></header>
+          <div><div class="card-title">Prepositions of Time</div><div class="card-title-ar">حروف جر الزمن</div></div>
+          <div class="card-pattern"><span>subject</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>at / on / in</span><span class="plus">+</span><span>time</span></div>
+          <p class="card-example">The meeting starts at 5pm</p>
+          <span class="card-cta">ابدأ الدرس</span>
+        </a>
+
+        <a class="card c-sky" href="units/unit-4/lesson-18.html">
+          <header class="card-head"><span class="card-num">LESSON 18</span><span class="card-emoji">🧭</span></header>
+          <div><div class="card-title">Prepositions of Direction</div><div class="card-title-ar">حروف جر الاتجاه</div></div>
+          <div class="card-pattern"><span>subject</span><span class="plus">+</span><span>go / run</span><span class="plus">+</span><span>to / through</span><span class="plus">+</span><span>place</span></div>
+          <p class="card-example">I go to school every day</p>
+          <span class="card-cta">ابدأ الدرس</span>
+        </a>
+
+        <a class="card c-mint" href="units/unit-4/lesson-19.html">
+          <header class="card-head"><span class="card-num">LESSON 19</span><span class="card-emoji">💪</span></header>
+          <div><div class="card-title">Can / Could</div><div class="card-title-ar">القدرة والطلب المؤدب</div></div>
+          <div class="card-pattern"><span>subject</span><span class="plus">+</span><span>can / could</span><span class="plus">+</span><span>verb</span></div>
+          <p class="card-example">Could you help me, please?</p>
+          <span class="card-cta">ابدأ الدرس</span>
+        </a>
+
+        <a class="card c-peach" href="units/unit-4/lesson-20.html">
+          <header class="card-head"><span class="card-num">LESSON 20</span><span class="card-emoji">🏠</span></header>
+          <div><div class="card-title">There is / There are</div><div class="card-title-ar">يوجد · لا يوجد</div></div>
+          <div class="card-pattern"><span>There is / are</span><span class="plus">+</span><span>quantity</span><span class="plus">+</span><span>noun</span></div>
+          <p class="card-example">There are two cats in the garden</p>
+          <span class="card-cta">ابدأ الدرس</span>
+        </a>
+
+        <a class="card c-crimson" href="units/unit-4/lesson-21.html">
+          <header class="card-head"><span class="card-num">LESSON 21</span><span class="card-emoji">📣</span></header>
+          <div><div class="card-title">Imperatives & Commands</div><div class="card-title-ar">الأوامر والنواهي</div></div>
+          <div class="card-pattern"><span>(Please / Don't)</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>object</span></div>
+          <p class="card-example">Please open the door · Don't be late</p>
+          <span class="card-cta">ابدأ الدرس</span>
+        </a>
+
+        <a class="card c-coral" href="units/unit-4/lesson-22.html">
+          <header class="card-head"><span class="card-num">LESSON 22</span><span class="card-emoji">🎬</span></header>
+          <div><div class="card-title">Present Continuous</div><div class="card-title-ar">المضارع المستمر</div></div>
+          <div class="card-pattern"><span>subject</span><span class="plus">+</span><span>am / is / are</span><span class="plus">+</span><span>verb-ing</span></div>
+          <p class="card-example">I am studying English now</p>
+          <span class="card-cta">ابدأ الدرس</span>
+        </a>
+
+        <a class="card c-lavender" href="units/unit-4/lesson-23.html">
+          <header class="card-head"><span class="card-num">LESSON 23</span><span class="card-emoji">💎</span></header>
+          <div><div class="card-title">Have / Has — Possessions</div><div class="card-title-ar">الملكية والعائلة</div></div>
+          <div class="card-pattern"><span>subject</span><span class="plus">+</span><span>have / has</span><span class="plus">+</span><span>noun</span></div>
+          <p class="card-example">I have two brothers · She has blue eyes</p>
+          <span class="card-cta">ابدأ الدرس</span>
+        </a>
+
+        <a class="card c-bronze" href="units/unit-4/lesson-24.html">
+          <header class="card-head"><span class="card-num">LESSON 24</span><span class="card-emoji">🛡️</span></header>
+          <div><div class="card-title">Should / Must / Have to</div><div class="card-title-ar">النصيحة والواجب</div></div>
+          <div class="card-pattern"><span>subject</span><span class="plus">+</span><span>should / must</span><span class="plus">+</span><span>verb</span></div>
+          <p class="card-example">You should study hard</p>
+          <span class="card-cta">ابدأ الدرس</span>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- ── Other private resources (link to main domain) ──── -->
+    <section class="section">
+      <header class="section-head">
+        <h2 class="section-title">📚 المزيد من الدروس الخاصة</h2>
+        <span class="section-sub">على المنصة الرئيسية inglizi.com</span>
+      </header>
+      <div class="ext-cards">
+
+        <a class="ext-card" href="https://inglizi.com/private/lessons/level01">
+          <span class="ext-card-emoji">📗</span>
+          <div class="ext-card-title">Level 01 — A0 / A1</div>
+          <div class="ext-card-title-ar">من الصفر إلى المحادثة في 30 يوماً</div>
+          <div class="ext-card-meta">19 lessons · inglizi.com</div>
+        </a>
+
+        <a class="ext-card" href="https://inglizi.com/private/lessons/reading">
+          <span class="ext-card-emoji">📖</span>
+          <div class="ext-card-title">Reading — A0</div>
+          <div class="ext-card-title-ar">نصوص تفاعلية · ترجمة بالضغط</div>
+          <div class="ext-card-meta">12 texts · inglizi.com</div>
+        </a>
+
+        <a class="ext-card" href="https://inglizi.com/private/lessons/grammar">
+          <span class="ext-card-emoji">⚡</span>
+          <div class="ext-card-title">Grammar — A0 / A1</div>
+          <div class="ext-card-title-ar">شرح مبسط · ألوان · تدريب فوري</div>
+          <div class="ext-card-meta">30+ lessons · inglizi.com</div>
+        </a>
+
+        <a class="ext-card" href="https://inglizi.com/private/lessons">
+          <span class="ext-card-emoji">🏙️</span>
+          <div class="ext-card-title">Real Life English 1</div>
+          <div class="ext-card-title-ar">الإنجليزية للمواقف اليومية</div>
+          <div class="ext-card-meta">20 units · inglizi.com</div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="page-footer">
+      <span class="ft-brand">Inglizi.com</span>
+      <span class="ft-sep">·</span>
+      <span dir="rtl">الأستاذ حمزة القصراوي</span>
+      <span class="ft-sep">·</span>
+      <span class="ft-wa">WhatsApp 0707902091</span>
+    </footer>
+
+  </div>
+</body>
+</html>

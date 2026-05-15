@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sentence Builder Lessons | Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body { background: #f5f3ed; }
+    .hub-hero {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 48px 20px 28px;
+      text-align: center;
+    }
+    .hub-eyebrow {
+      display: inline-block;
+      font-weight: 800; font-size: 11px;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      color: #ea580c;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      padding: 5px 14px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+    }
+    .hub-title {
+      font-weight: 900;
+      font-size: clamp(28px, 5vw, 44px);
+      line-height: 1.12;
+      letter-spacing: -0.025em;
+      color: #0f172a;
+      margin-bottom: 12px;
+    }
+    .hub-sub {
+      font-family: 'Tajawal', sans-serif;
+      font-size: 16px;
+      color: #64748b;
+      max-width: 540px;
+      margin: 0 auto 28px;
+      line-height: 1.7;
+    }
+    .hub-grid {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 8px 20px 60px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+    @media (min-width: 720px)  { .hub-grid { grid-template-columns: 1fr 1fr; } }
+    @media (min-width: 1100px) { .hub-grid { grid-template-columns: 1fr 1fr 1fr; } }
+
+    .hub-card {
+      display: flex; flex-direction: column;
+      gap: 12px;
+      padding: 22px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 18px;
+      box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 4px 8px -4px rgba(15,23,42,.05);
+      text-decoration: none;
+      color: #0f172a;
+      transition: all .2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .hub-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px -10px rgba(15,23,42,.18); }
+    .hub-card::before {
+      content: ''; position: absolute; inset: 0 0 auto 0;
+      height: 4px; background: var(--accent);
+    }
+
+    .hub-card-head { display: flex; align-items: center; gap: 12px; }
+    .hub-num {
+      font-weight: 900; font-size: 12px; letter-spacing: 0.18em;
+      color: var(--accent); padding: 3px 10px;
+      background: var(--accent-soft); border-radius: 999px;
+    }
+    .hub-emoji { font-size: 30px; margin-left: auto; }
+
+    .hub-card-title {
+      font-weight: 800; font-size: 22px; letter-spacing: -0.02em;
+      line-height: 1.2; margin-top: 4px;
+    }
+    .hub-card-title-ar {
+      font-family: 'Tajawal', sans-serif;
+      font-weight: 700; font-size: 16px;
+      color: #64748b;
+      margin-top: -2px;
+    }
+
+    .hub-pattern {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      padding: 10px 12px;
+      background: #fafaf7; border: 1px dashed #e2e8f0;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700; font-size: 13px;
+    }
+    .hub-pattern span {
+      padding: 2px 8px; border-radius: 999px;
+      background: var(--accent-soft); color: var(--accent);
+    }
+    .hub-pattern .plus { background: transparent; color: #cbd5e1; padding: 2px 0; }
+
+    .hub-example {
+      font-style: italic; color: #475569; font-size: 14px;
+      line-height: 1.6;
+    }
+    .hub-example::before { content: '"'; color: #cbd5e1; font-size: 22px; vertical-align: -4px; margin-right: 2px; }
+    .hub-example::after  { content: '"'; color: #cbd5e1; font-size: 22px; vertical-align: -4px; margin-left: 2px; }
+
+    .hub-cta {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: auto;
+      font-weight: 700; font-size: 14px;
+      color: var(--accent);
+      padding-top: 10px;
+      border-top: 1px dashed #e5e7eb;
+    }
+
+    .hub-card.c-blue    { --accent: #2563eb; --accent-soft: #eff6ff; }
+    .hub-card.c-orange  { --accent: #ea580c; --accent-soft: #fff7ed; }
+    .hub-card.c-rose    { --accent: #e11d48; --accent-soft: #ffe4e6; }
+    .hub-card.c-sepia   { --accent: #b45309; --accent-soft: #fef3c7; }
+    .hub-card.c-cyan    { --accent: #0d9488; --accent-soft: #ccfbf1; }
+    .hub-card.c-emerald { --accent: #059669; --accent-soft: #d1fae5; }
+    .hub-card.c-indigo  { --accent: #4338ca; --accent-soft: #e0e7ff; }
+    .hub-card.c-slate   { --accent: #334155; --accent-soft: #e2e8f0; }
+    .hub-card.c-lime    { --accent: #0f766e; --accent-soft: #ccfbf1; }
+    .hub-card.c-forest  { --accent: #166534; --accent-soft: #dcfce7; }
+    .hub-card.c-gold    { --accent: #b45309; --accent-soft: #fef3c7; }
+    .hub-card.c-sky     { --accent: #0284c7; --accent-soft: #e0f2fe; }
+    .hub-card.c-mint    { --accent: #047857; --accent-soft: #d1fae5; }
+    .hub-card.c-peach   { --accent: #c2410c; --accent-soft: #ffedd5; }
+    .hub-card.c-crimson { --accent: #991b1b; --accent-soft: #fee2e2; }
+    .hub-card.c-coral    { --accent: #e11d48; --accent-soft: #ffe4e6; }
+    .hub-card.c-lavender { --accent: #6d28d9; --accent-soft: #ede9fe; }
+    .hub-card.c-bronze   { --accent: #92400e; --accent-soft: #fef3c7; }
+    .hub-card.c-coming  { --accent: #64748b; --accent-soft: #f1f5f9; opacity: 0.7; pointer-events: none; }
+
+    .hub-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 999px;
+      font-weight: 700; font-size: 13px;
+      color: #475569; text-decoration: none;
+      margin-top: 12px;
+    }
+    .hub-back:hover { background: #f1f5f9; }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <h1 class="brand-name">Inglizi.com</h1>
+      <p class="brand-sub" dir="rtl">أكاديمية إنجليزي دوت كوم</p>
+    </div>
+    <div class="topbar-tools">
+      <nav class="lesson-nav">
+        <a class="lesson-btn" href="lesson-7.html">07</a>
+        <a class="lesson-btn" href="index.html">08</a>
+        <a class="lesson-btn" href="lesson-9.html">09</a>
+        <a class="lesson-btn" href="lesson-10.html">10</a>
+        <a class="lesson-btn" href="lesson-11.html">11</a>
+        <a class="lesson-btn" href="lesson-12.html">12</a>
+        <a class="lesson-btn" href="lesson-13.html">13</a>
+        <a class="lesson-btn" href="lesson-14.html">14</a>
+        <a class="lesson-btn" href="lesson-15.html">15</a>
+        <a class="lesson-btn" href="lesson-16.html">16</a>
+        <a class="lesson-btn" href="lesson-17.html">17</a>
+        <a class="lesson-btn" href="lesson-18.html">18</a>
+        <a class="lesson-btn" href="lesson-19.html">19</a>
+        <a class="lesson-btn" href="lesson-20.html">20</a>
+        <a class="lesson-btn" href="lesson-21.html">21</a>
+        <a class="lesson-btn" href="lesson-22.html">22</a>
+        <a class="lesson-btn" href="lesson-23.html">23</a>
+        <a class="lesson-btn" href="lesson-24.html">24</a>
+        <a class="lesson-btn lesson-hub active" href="lessons.html">⊞</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hub-hero">
+    <span class="hub-eyebrow">Sentence Builder · ابني جملك</span>
+    <h1 class="hub-title">Build real English sentences,<br>step by step</h1>
+    <p class="hub-sub" dir="rtl">
+      ١٨ درساً تفاعلياً لبناء جمل إنجليزية حقيقية — من الإثبات والنفي إلى الأسئلة والمقارنة وحروف الجر والقدرة والأوامر والاستمراري والملكية والوجوب.
+      كل درس يعلمك نمط جملة مختلف، ويمكنك ربط الجمل بكلمات الربط لتكوين جمل أطول.
+    </p>
+  </section>
+
+  <main class="hub-grid">
+
+    <!-- Lesson 7 -->
+    <a class="hub-card c-orange" href="lesson-7.html">
+      <header class="hub-card-head">
+        <span class="hub-num">LESSON 07</span>
+        <span class="hub-emoji">🌅</span>
+      </header>
+      <div>
+        <div class="hub-card-title">Daily Routine</div>
+        <div class="hub-card-title-ar" dir="rtl">روتيني اليومي</div>
+      </div>
+      <div class="hub-pattern">
+        <span>I</span><span class="plus">+</span><span>always</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>time</span>
+      </div>
+      <p class="hub-example">I always wake up at 7 in the morning</p>
+      <span class="hub-cta">Open lesson →</span>
+    </a>
+
+    <!-- Lesson 8 -->
+    <a class="hub-card c-blue" href="index.html">
+      <header class="hub-card-head">
+        <span class="hub-num">LESSON 08</span>
+        <span class="hub-emoji">⚡</span>
+      </header>
+      <div>
+        <div class="hub-card-title">Wants & Plans</div>
+        <div class="hub-card-title-ar" dir="rtl">ما أريد وما أنوي فعله</div>
+      </div>
+      <div class="hub-pattern">
+        <span>I</span><span class="plus">+</span><span>want to</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>time</span>
+      </div>
+      <p class="hub-example">I want to eat breakfast now because I'm hungry</p>
+      <span class="hub-cta">Open lesson →</span>
+    </a>
+
+    <!-- Lesson 9 -->
+    <a class="hub-card c-rose" href="lesson-9.html">
+      <header class="hub-card-head">
+        <span class="hub-num">LESSON 09</span>
+        <span class="hub-emoji">💖</span>
+      </header>
+      <div>
+        <div class="hub-card-title">Likes & Dislikes</div>
+        <div class="hub-card-title-ar" dir="rtl">أحب وأكره</div>
+      </div>
+      <div class="hub-pattern">
+        <span>I</span><span class="plus">+</span><span>love</span><span class="plus">+</span><span>verb-ing</span><span class="plus">+</span><span>because</span>
+      </div>
+      <p class="hub-example">I love watching movies because it's fun</p>
+      <span class="hub-cta">Open lesson →</span>
+    </a>
+
+    <!-- Lesson 10 — Past Stories -->
+    <a class="hub-card c-sepia" href="lesson-10.html">
+      <header class="hub-card-head">
+        <span class="hub-num">LESSON 10</span>
+        <span class="hub-emoji">⏮️</span>
+      </header>
+      <div>
+        <div class="hub-card-title">Past Stories</div>
+        <div class="hub-card-title-ar" dir="rtl">قصص الأمس</div>
+      </div>
+      <div class="hub-pattern">
+        <span>I</span><span class="plus">+</span><span>past verb</span><span class="plus">+</span><span>detail</span><span class="plus">+</span><span>yesterday</span>
+      </div>
+      <p class="hub-example">I watched a movie last night because it was fun</p>
+      <span class="hub-cta">Open lesson →</span>
+    </a>
+
+    <!-- Lesson 11 — Asking Questions -->
+    <a class="hub-card c-cyan" href="lesson-11.html">
+      <header class="hub-card-head">
+        <span class="hub-num">LESSON 11</span>
+        <span class="hub-emoji">❓</span>
+      </header>
+      <div>
+        <div class="hub-card-title">Asking Questions</div>
+        <div class="hub-card-title-ar" dir="rtl">طرح الأسئلة</div>
+      </div>
+      <div class="hub-pattern">
+        <span>Do you</span><span class="plus">+</span><span>usually</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>time</span>
+      </div>
+      <p class="hub-example">Do you usually drink coffee in the morning?</p>
+      <span class="hub-cta">Open lesson →</span>
+    </a>
+
+    <!-- Lesson 12 — Future Plans -->
+    <a class="hub-card c-emerald" href="lesson-12.html">
+      <header class="hub-card-head">
+        <span class="hub-num">LESSON 12</span>
+        <span class="hub-emoji">🚀</span>
+      </header>
+      <div>
+        <div class="hub-card-title">Future Plans</div>
+        <div class="hub-card-title-ar" dir="rtl">خطط المستقبل</div>
+      </div>
+      <div class="hub-pattern">
+        <span>I</span><span class="plus">+</span><span>am going to</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>next year</span>
+      </div>
+      <p class="hub-example">I am going to travel to Spain next year because it's my dream</p>
+      <span class="hub-cta">Open lesson →</span>
+    </a>
+
+    <!-- Lesson 13 — WH Questions (Past · Present · Future) -->
+    <a class="hub-card c-indigo" href="lesson-13.html">
+      <header class="hub-card-head">
+        <span class="hub-num">LESSON 13</span>
+        <span class="hub-emoji">🔎</span>
+      </header>
+      <div>
+        <div class="hub-card-title">WH Questions</div>
+        <div class="hub-card-title-ar" dir="rtl">أسئلة بـ WH (ماذا · أين · متى · لماذا · كيف)</div>
+      </div>
+      <div class="hub-pattern">
+        <span>WH</span><span class="plus">+</span><span>aux+subject</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>time</span>
+      </div>
+      <p class="hub-example">Where did you travel last year? · What will you do tomorrow?</p>
+      <span class="hub-cta">Open lesson →</span>
+    </a>
+
+    <!-- Lesson 14 — Negative Sentences -->
+    <a class="hub-card c-slate" href="lesson-14.html">
+      <header class="hub-card-head">
+        <span class="hub-num">LESSON 14</span>
+        <span class="hub-emoji">🚫</span>
+      </header>
+      <div>
+        <div class="hub-card-title">Negative Sentences</div>
+        <div class="hub-card-title-ar" dir="rtl">جمل النفي (لا · لم · لن)</div>
+      </div>
+      <div class="hub-pattern">
+        <span>I</span><span class="plus">+</span><span>don't / didn't / won't</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>time</span>
+      </div>
+      <p class="hub-example">I don't drink coffee anymore because I prefer tea</p>
+      <span class="hub-cta">Open lesson →</span>
+    </a>
+
+    <!-- Lesson 15 — Describing & Comparing -->
+    <a class="hub-card c-lime" href="lesson-15.html">
+      <header class="hub-card-head">
+        <span class="hub-num">LESSON 15</span>
+        <span class="hub-emoji">🌈</span>
+      </header>
+      <div>
+        <div class="hub-card-title">Describing & Comparing</div>
+        <div class="hub-card-title-ar" dir="rtl">الوصف والمقارنة (الصفات والتفضيل)</div>
+      </div>
+      <div class="hub-pattern">
+        <span>noun</span><span class="plus">+</span><span>is / looks</span><span class="plus">+</span><span>adjective</span><span class="plus">+</span><span>than / in</span>
+      </div>
+      <p class="hub-example">My brother is taller than me · This phone is the most expensive in the shop</p>
+      <span class="hub-cta">Open lesson →</span>
+    </a>
+
+    <!-- Lesson 16 — Prepositions of Place -->
+    <a class="hub-card c-forest" href="lesson-16.html">
+      <header class="hub-card-head">
+        <span class="hub-num">LESSON 16</span>
+        <span class="hub-emoji">📍</span>
+      </header>
+      <div>
+        <div class="hub-card-title">Prepositions of Place</div>
+        <div class="hub-card-title-ar" dir="rtl">حروف جر المكان (on · in · under · next to)</div>
+      </div>
+      <div class="hub-pattern">
+        <span>noun</span><span class="plus">+</span><span>is / are</span><span class="plus">+</span><span>on / in / under</span><span class="plus">+</span><span>place</span>
+      </div>
+      <p class="hub-example">My keys are on the table · The cat is under the bed</p>
+      <span class="hub-cta">Open lesson →</span>
+    </a>
+
+    <!-- Lesson 17 — Prepositions of Time -->
+    <a class="hub-card c-gold" href="lesson-17.html">
+      <header class="hub-card-head">
+        <span class="hub-num">LESSON 17</span>
+        <span class="hub-emoji">⏰</span>
+      </header>
+      <div>
+        <div class="hub-card-title">Prepositions of Time</div>
+        <div class="hub-card-title-ar" dir="rtl">حروف جر الزمن (at · on · in · before · after)</div>
+      </div>
+      <div class="hub-pattern">
+        <span>subject</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>at / on / in</span><span class="plus">+</span><span>time</span>
+      </div>
+      <p class="hub-example">The meeting starts at 5pm · School opens in September</p>
+      <span class="hub-cta">Open lesson →</span>
+    </a>
+
+    <!-- Lesson 18 — Prepositions of Direction -->
+    <a class="hub-card c-sky" href="lesson-18.html">
+      <header class="hub-card-head">
+        <span class="hub-num">LESSON 18</span>
+        <span class="hub-emoji">🧭</span>
+      </header>
+      <div>
+        <div class="hub-card-title">Prepositions of Direction</div>
+        <div class="hub-card-title-ar" dir="rtl">حروف جر الاتجاه (to · from · into · through)</div>
+      </div>
+      <div class="hub-pattern">
+        <span>subject</span><span class="plus">+</span><span>go / run</span><span class="plus">+</span><span>to / through</span><span class="plus">+</span><span>place</span>
+      </div>
+      <p class="hub-example">I go to school every day · The car drives through the tunnel</p>
+      <span class="hub-cta">Open lesson →</span>
+    </a>
+
+    <!-- Lesson 19 — Can / Could (Abilities & Requests) -->
+    <a class="hub-card c-mint" href="lesson-19.html">
+      <header class="hub-card-head">
+        <span class="hub-num">LESSON 19</span>
+        <span class="hub-emoji">💪</span>
+      </header>
+      <div>
+        <div class="hub-card-title">Can / Could — Abilities</div>
+        <div class="hub-card-title-ar" dir="rtl">القدرة والطلب المؤدب (can · could · may)</div>
+      </div>
+      <div class="hub-pattern">
+        <span>subject</span><span class="plus">+</span><span>can / could</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>object</span>
+      </div>
+      <p class="hub-example">I can speak English · Could you help me, please?</p>
+      <span class="hub-cta">Open lesson →</span>
+    </a>
+
+    <!-- Lesson 20 — There is / There are -->
+    <a class="hub-card c-peach" href="lesson-20.html">
+      <header class="hub-card-head">
+        <span class="hub-num">LESSON 20</span>
+        <span class="hub-emoji">🏠</span>
+      </header>
+      <div>
+        <div class="hub-card-title">There is / There are</div>
+        <div class="hub-card-title-ar" dir="rtl">يوجد · لا يوجد · هل يوجد؟</div>
+      </div>
+      <div class="hub-pattern">
+        <span>There is / are</span><span class="plus">+</span><span>quantity</span><span class="plus">+</span><span>noun</span><span class="plus">+</span><span>place</span>
+      </div>
+      <p class="hub-example">There is a book on the table · There are two cats in the garden</p>
+      <span class="hub-cta">Open lesson →</span>
+    </a>
+
+    <!-- Lesson 21 — Imperatives & Commands -->
+    <a class="hub-card c-crimson" href="lesson-21.html">
+      <header class="hub-card-head">
+        <span class="hub-num">LESSON 21</span>
+        <span class="hub-emoji">📣</span>
+      </header>
+      <div>
+        <div class="hub-card-title">Imperatives & Commands</div>
+        <div class="hub-card-title-ar" dir="rtl">الأوامر والنواهي (open · don't · please · let's)</div>
+      </div>
+      <div class="hub-pattern">
+        <span>(Please / Don't)</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>object</span><span class="plus">+</span><span>manner</span>
+      </div>
+      <p class="hub-example">Please open the door · Don't be late · Let's go home</p>
+      <span class="hub-cta">Open lesson →</span>
+    </a>
+
+    <!-- Lesson 22 — Present Continuous -->
+    <a class="hub-card c-coral" href="lesson-22.html">
+      <header class="hub-card-head">
+        <span class="hub-num">LESSON 22</span>
+        <span class="hub-emoji">🎬</span>
+      </header>
+      <div>
+        <div class="hub-card-title">Present Continuous</div>
+        <div class="hub-card-title-ar" dir="rtl">المضارع المستمر (am/is/are + ing)</div>
+      </div>
+      <div class="hub-pattern">
+        <span>subject</span><span class="plus">+</span><span>am / is / are</span><span class="plus">+</span><span>verb-ing</span><span class="plus">+</span><span>now</span>
+      </div>
+      <p class="hub-example">I am studying English now · She is cooking dinner</p>
+      <span class="hub-cta">Open lesson →</span>
+    </a>
+
+    <!-- Lesson 23 — Have / Has got -->
+    <a class="hub-card c-lavender" href="lesson-23.html">
+      <header class="hub-card-head">
+        <span class="hub-num">LESSON 23</span>
+        <span class="hub-emoji">💎</span>
+      </header>
+      <div>
+        <div class="hub-card-title">Have / Has — Possessions</div>
+        <div class="hub-card-title-ar" dir="rtl">الملكية والعائلة (have · has · have got)</div>
+      </div>
+      <div class="hub-pattern">
+        <span>subject</span><span class="plus">+</span><span>have / has</span><span class="plus">+</span><span>detail</span><span class="plus">+</span><span>noun</span>
+      </div>
+      <p class="hub-example">I have two brothers · She has blue eyes</p>
+      <span class="hub-cta">Open lesson →</span>
+    </a>
+
+    <!-- Lesson 24 — Should / Must / Have to -->
+    <a class="hub-card c-bronze" href="lesson-24.html">
+      <header class="hub-card-head">
+        <span class="hub-num">LESSON 24</span>
+        <span class="hub-emoji">🛡️</span>
+      </header>
+      <div>
+        <div class="hub-card-title">Should / Must / Have to</div>
+        <div class="hub-card-title-ar" dir="rtl">النصيحة والواجب (should · must · have to)</div>
+      </div>
+      <div class="hub-pattern">
+        <span>subject</span><span class="plus">+</span><span>should / must</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>object</span>
+      </div>
+      <p class="hub-example">You should study hard · We must follow the rules</p>
+      <span class="hub-cta">Open lesson →</span>
+    </a>
+
+  </main>
+
+  <footer class="page-footer">
+    <span class="ft-brand">Inglizi.com</span><span class="ft-sep">·</span>
+    <span class="ft-name" dir="rtl">الأستاذ حمزة القصراوي</span><span class="ft-sep">·</span>
+    <span class="ft-wa">WhatsApp 0707902091</span>
+  </footer>
+
+</body>
+</html>

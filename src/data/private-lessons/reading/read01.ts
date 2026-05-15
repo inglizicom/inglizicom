@@ -17,6 +17,12 @@ export const read01: Unit = {
         'I am married. My wife is a nurse. Her name is Sara. We have two children — a son and a daughter.\n\n' +
         'My son is five years old. My daughter is three years old. They are young.\n\n' +
         'In the morning I wake up at six. I have breakfast — bread and tea. Then I go to work. I come home at five. In the evening I eat dinner with my family. I go to sleep at ten.',
+      textAr:
+        'اسمي حمزة. عمري ثمانية وعشرون سنة. أنا من المغرب. أنا مغربي. أسكن في الدار البيضاء. الدار البيضاء مدينة كبيرة.\n\n' +
+        'أنا أستاذ. أُدرّس الإنجليزية في مدرسة. أحب عملي.\n\n' +
+        'أنا متزوج. زوجتي ممرضة. اسمها سارة. لدينا طفلان — ابن وابنة.\n\n' +
+        'ابني عمره خمس سنوات. ابنتي عمرها ثلاث سنوات. هما صغيران.\n\n' +
+        'في الصباح أستيقظ في السادسة. أتناول الفطور — خبزاً وشاياً. ثم أذهب إلى العمل. أعود إلى البيت في الخامسة. في المساء أتعشى مع عائلتي. أنام في العاشرة.',
       translations: {
         my: 'مـتاعي / الخاص بي',
         name: 'الاسم',

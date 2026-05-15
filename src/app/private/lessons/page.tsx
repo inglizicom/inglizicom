@@ -9,14 +9,14 @@ export default function PrivateLessonsIndex() {
         {/* ── Header ──────────────────────────────────────────── */}
         <div>
           <div className="inline-block px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold tracking-widest uppercase mb-3">
-            Private · Recording Tool
+            sahla.inglizi.com · Private Hub
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900">Inglizi.com</h1>
-          <p className="mt-1 text-slate-500 text-sm" dir="rtl">اختر القسم الذي تريد التسجيل فيه</p>
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900">سهلة · Sahla</h1>
+          <p className="mt-1 text-slate-500 text-sm" dir="rtl">كل دروسك الخاصة في مكان واحد — اختر القسم الذي تريد التسجيل فيه</p>
         </div>
 
-        {/* ── Three course sections ─────────────────────────────── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* ── Course sections ───────────────────────────────────── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
 
           {/* Level 01 A0/A1 */}
           <Link
@@ -50,11 +50,43 @@ export default function PrivateLessonsIndex() {
             </div>
           </Link>
 
+          {/* Grammar */}
+          <Link
+            href="/private/lessons/grammar"
+            className="group flex flex-col gap-3 bg-white rounded-2xl border-2 border-amber-200 hover:border-amber-500 hover:shadow-xl transition-all p-6"
+          >
+            <span className="text-4xl">⚡</span>
+            <div>
+              <div className="text-xs font-bold text-amber-600 uppercase tracking-widest mb-1">القواعد</div>
+              <div className="text-xl font-black text-slate-900">Grammar — A0 / A1</div>
+              <div className="text-sm text-slate-500 mt-1" dir="rtl">شرح مبسط · ألوان · تدريب فوري</div>
+            </div>
+            <div className="mt-auto text-sm font-bold text-amber-600 group-hover:translate-x-1 transition-transform">
+              ٣٠ درساً + ١٠ مراجعات ←
+            </div>
+          </Link>
+
+          {/* Sentence Builder */}
+          <a
+            href="/units/unit-4/lessons.html"
+            className="group flex flex-col gap-3 bg-white rounded-2xl border-2 border-rose-200 hover:border-rose-500 hover:shadow-xl transition-all p-6"
+          >
+            <span className="text-4xl">🧩</span>
+            <div>
+              <div className="text-xs font-bold text-rose-600 uppercase tracking-widest mb-1">بناء الجمل</div>
+              <div className="text-xl font-black text-slate-900">Sentence Builder</div>
+              <div className="text-sm text-slate-500 mt-1" dir="rtl">ابني جملة إنجليزية حقيقية خطوة بخطوة · ترجمة فورية · نطق صوتي</div>
+            </div>
+            <div className="mt-auto text-sm font-bold text-rose-600 group-hover:translate-x-1 transition-transform">
+              ١٨ درساً تفاعلياً ←
+            </div>
+          </a>
+
           {/* Real Life English */}
-          <div className="flex flex-col gap-3 bg-white rounded-2xl border-2 border-amber-200 p-6">
+          <div className="flex flex-col gap-3 bg-white rounded-2xl border-2 border-violet-200 p-6">
             <span className="text-4xl">🏙️</span>
             <div>
-              <div className="text-xs font-bold text-amber-600 uppercase tracking-widest mb-1">المواقف الحياتية</div>
+              <div className="text-xs font-bold text-violet-600 uppercase tracking-widest mb-1">المواقف الحياتية</div>
               <div className="text-xl font-black text-slate-900">Real Life English 1</div>
               <div className="text-sm text-slate-500 mt-1" dir="rtl">الإنجليزية للمواقف اليومية — A1/A2</div>
             </div>

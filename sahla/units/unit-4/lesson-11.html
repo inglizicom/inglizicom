@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asking Questions — Lesson 11 | Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="lesson-themes.css">
+</head>
+<body class="theme-cyan">
+
+  <header class="topbar">
+    <div class="brand">
+      <h1 class="brand-name">Inglizi.com</h1>
+      <p class="brand-sub" dir="rtl">أكاديمية إنجليزي دوت كوم</p>
+    </div>
+    <div class="topbar-tools">
+      <div class="zoom-group" role="group" aria-label="Zoom">
+        <button class="tool-btn" id="zoom-out">−</button>
+        <button class="tool-btn zoom-pct" id="zoom-reset">100%</button>
+        <button class="tool-btn" id="zoom-in">+</button>
+      </div>
+      <button class="tool-btn tool-icon" id="fullscreen-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/></svg>
+      </button>
+      <nav class="lesson-nav">
+        <a class="lesson-btn" href="lesson-7.html">07</a>
+        <a class="lesson-btn" href="index.html">08</a>
+        <a class="lesson-btn" href="lesson-9.html">09</a>
+        <a class="lesson-btn" href="lesson-10.html">10</a>
+        <a class="lesson-btn active" href="lesson-11.html">11</a>
+        <a class="lesson-btn" href="lesson-12.html">12</a>
+        <a class="lesson-btn" href="lesson-13.html">13</a>
+        <a class="lesson-btn" href="lesson-14.html">14</a>
+        <a class="lesson-btn" href="lesson-15.html">15</a>
+        <a class="lesson-btn" href="lesson-16.html">16</a>
+        <a class="lesson-btn" href="lesson-17.html">17</a>
+        <a class="lesson-btn" href="lesson-18.html">18</a>
+        <a class="lesson-btn" href="lesson-19.html">19</a>
+        <a class="lesson-btn" href="lesson-20.html">20</a>
+        <a class="lesson-btn" href="lesson-21.html">21</a>
+        <a class="lesson-btn" href="lesson-22.html">22</a>
+        <a class="lesson-btn" href="lesson-23.html">23</a>
+        <a class="lesson-btn" href="lesson-24.html">24</a>
+        <a class="lesson-btn lesson-hub" href="lessons.html">⊞</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <div class="grid">
+
+      <section class="col col-subject" data-col="subject">
+        <header class="col-head">
+          <span class="col-num col-num-subject">1</span>
+          <div class="col-text"><h3 class="col-title">Question Opener</h3><p class="col-sub" dir="rtl">بداية السؤال</p></div>
+          <span class="col-status is-done" id="status-subject">✓</span>
+        </header>
+        <p class="col-tip" dir="rtl">💡 في الإنجليزية، السؤال يبدأ بفعل مساعد</p>
+        <div class="chips chips-stack" id="subjects">
+          <button class="chip chip-subject is-selected" data-value="Do you"><span class="chip-en">Do you</span><span class="chip-ar" dir="rtl">هل أنت</span></button>
+          <button class="chip chip-subject" data-value="Does he"><span class="chip-en">Does he</span><span class="chip-ar" dir="rtl">هل هو</span></button>
+          <button class="chip chip-subject" data-value="Does she"><span class="chip-en">Does she</span><span class="chip-ar" dir="rtl">هل هي</span></button>
+          <button class="chip chip-subject" data-value="Are you"><span class="chip-en">Are you</span><span class="chip-ar" dir="rtl">هل أنت (حال)</span></button>
+          <button class="chip chip-subject" data-value="Is he"><span class="chip-en">Is he</span><span class="chip-ar" dir="rtl">هل هو (حال)</span></button>
+          <button class="chip chip-subject" data-value="Did you"><span class="chip-en">Did you</span><span class="chip-ar" dir="rtl">هل فعلت</span></button>
+          <button class="chip chip-subject" data-value="Can you"><span class="chip-en">Can you</span><span class="chip-ar" dir="rtl">هل تستطيع</span></button>
+        </div>
+      </section>
+
+      <section class="col col-verb" data-col="intention">
+        <header class="col-head">
+          <span class="col-num col-num-verb">2</span>
+          <div class="col-text"><h3 class="col-title">Frequency <span class="col-opt">opt</span></h3><p class="col-sub" dir="rtl">كم مرة</p></div>
+          <span class="col-status" id="status-intention"></span>
+        </header>
+        <div class="chips chips-stack" id="intentions">
+          <button class="chip chip-verb" data-value="always"><span class="chip-en">always</span><span class="chip-ar" dir="rtl">دائماً</span></button>
+          <button class="chip chip-verb" data-value="usually"><span class="chip-en">usually</span><span class="chip-ar" dir="rtl">عادةً</span></button>
+          <button class="chip chip-verb" data-value="sometimes"><span class="chip-en">sometimes</span><span class="chip-ar" dir="rtl">أحياناً</span></button>
+          <button class="chip chip-verb" data-value="often"><span class="chip-en">often</span><span class="chip-ar" dir="rtl">غالباً</span></button>
+          <button class="chip chip-verb" data-value="never"><span class="chip-en">never</span><span class="chip-ar" dir="rtl">أبداً</span></button>
+        </div>
+      </section>
+
+      <section class="col col-time" data-col="time">
+        <header class="col-head">
+          <span class="col-num col-num-time">4</span>
+          <div class="col-text"><h3 class="col-title">When <span class="col-opt">opt</span></h3><p class="col-sub" dir="rtl">متى</p></div>
+          <span class="col-status" id="status-time"></span>
+        </header>
+        <div class="chips chips-stack" id="times">
+          <button class="chip chip-time" data-value="today"><span class="chip-en">today</span><span class="chip-ar" dir="rtl">اليوم</span></button>
+          <button class="chip chip-time" data-value="every day"><span class="chip-en">every day</span><span class="chip-ar" dir="rtl">كل يوم</span></button>
+          <button class="chip chip-time" data-value="in the morning"><span class="chip-en">in the morning</span><span class="chip-ar" dir="rtl">في الصباح</span></button>
+          <button class="chip chip-time" data-value="on weekends"><span class="chip-en">on weekends</span><span class="chip-ar" dir="rtl">في العطل</span></button>
+          <button class="chip chip-time" data-value="yesterday"><span class="chip-en">yesterday</span><span class="chip-ar" dir="rtl">أمس</span></button>
+        </div>
+      </section>
+
+      <section class="col col-action" data-col="action">
+        <header class="col-head">
+          <span class="col-num col-num-action">3</span>
+          <div class="col-text"><h3 class="col-title">What about?</h3><p class="col-sub" dir="rtl">عن ماذا تسأل</p></div>
+          <span class="col-status" id="status-action"></span>
+        </header>
+        <div class="cats">
+          <article class="cat">
+            <h4 class="cat-title">🍽️ Food & Drink<span class="cat-ar" dir="rtl">طعام وشراب</span></h4>
+            <div class="chips chips-wrap">
+              <button class="chip chip-action" data-value="like coffee"><span class="chip-en">like coffee</span><span class="chip-ar" dir="rtl">تحب القهوة</span></button>
+              <button class="chip chip-action" data-value="drink tea"><span class="chip-en">drink tea</span><span class="chip-ar" dir="rtl">تشرب الشاي</span></button>
+              <button class="chip chip-action" data-value="eat breakfast"><span class="chip-en">eat breakfast</span><span class="chip-ar" dir="rtl">تأكل الفطور</span></button>
+              <button class="chip chip-action" data-value="cook at home"><span class="chip-en">cook at home</span><span class="chip-ar" dir="rtl">تطبخ بالبيت</span></button>
+            </div>
+          </article>
+          <article class="cat">
+            <h4 class="cat-title">📚 Habits<span class="cat-ar" dir="rtl">عادات</span></h4>
+            <div class="chips chips-wrap">
+              <button class="chip chip-action" data-value="study English"><span class="chip-en">study English</span><span class="chip-ar" dir="rtl">تدرس الإنجليزية</span></button>
+              <button class="chip chip-action" data-value="read books"><span class="chip-en">read books</span><span class="chip-ar" dir="rtl">تقرأ الكتب</span></button>
+              <button class="chip chip-action" data-value="exercise"><span class="chip-en">exercise</span><span class="chip-ar" dir="rtl">تتمرن</span></button>
+              <button class="chip chip-action" data-value="wake up early"><span class="chip-en">wake up early</span><span class="chip-ar" dir="rtl">تستيقظ مبكراً</span></button>
+            </div>
+          </article>
+          <article class="cat">
+            <h4 class="cat-title">🎬 Leisure<span class="cat-ar" dir="rtl">ترفيه</span></h4>
+            <div class="chips chips-wrap">
+              <button class="chip chip-action" data-value="watch TV"><span class="chip-en">watch TV</span><span class="chip-ar" dir="rtl">تشاهد التلفاز</span></button>
+              <button class="chip chip-action" data-value="play soccer"><span class="chip-en">play soccer</span><span class="chip-ar" dir="rtl">تلعب كرة</span></button>
+              <button class="chip chip-action" data-value="listen to music"><span class="chip-en">listen to music</span><span class="chip-ar" dir="rtl">تسمع موسيقى</span></button>
+              <button class="chip chip-action" data-value="travel"><span class="chip-en">travel</span><span class="chip-ar" dir="rtl">تسافر</span></button>
+            </div>
+          </article>
+          <article class="cat">
+            <h4 class="cat-title">💬 State<span class="cat-ar" dir="rtl">حالة</span></h4>
+            <div class="chips chips-wrap">
+              <button class="chip chip-action" data-value="tired"><span class="chip-en">tired</span><span class="chip-ar" dir="rtl">متعب</span></button>
+              <button class="chip chip-action" data-value="happy"><span class="chip-en">happy</span><span class="chip-ar" dir="rtl">سعيد</span></button>
+              <button class="chip chip-action" data-value="busy today"><span class="chip-en">busy today</span><span class="chip-ar" dir="rtl">مشغول اليوم</span></button>
+              <button class="chip chip-action" data-value="ready"><span class="chip-en">ready</span><span class="chip-ar" dir="rtl">جاهز</span></button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="continue-bar" data-col="continue">
+        <header class="cb-head">
+          <span class="col-num col-num-linker">5</span>
+          <div class="col-text"><h3 class="col-title">Follow-up <span class="col-opt">opt</span></h3><p class="col-sub" dir="rtl">سؤال إضافي</p></div>
+          <span class="col-status" id="status-linker"></span>
+        </header>
+        <div class="cb-body">
+          <div class="cb-section">
+            <p class="cb-label">LINK <span dir="rtl">· رابط</span></p>
+            <div class="chips chips-wrap" id="linkers">
+              <button class="chip chip-linker" data-value="or"><span class="chip-en">or</span><span class="chip-ar" dir="rtl">أم</span></button>
+              <button class="chip chip-linker" data-value="and"><span class="chip-en">and</span><span class="chip-ar" dir="rtl">و</span></button>
+              <button class="chip chip-linker" data-value="but"><span class="chip-en">but</span><span class="chip-ar" dir="rtl">لكن</span></button>
+            </div>
+          </div>
+          <div class="cb-section">
+            <p class="cb-label">EXTRA <span dir="rtl">· إضافة</span></p>
+            <div class="chips chips-wrap" id="endings">
+              <button class="chip chip-ending" data-value="are you busy?"><span class="chip-en">are you busy?</span><span class="chip-ar" dir="rtl">هل أنت مشغول؟</span></button>
+              <button class="chip chip-ending" data-value="do you prefer tea?"><span class="chip-en">do you prefer tea?</span><span class="chip-ar" dir="rtl">هل تفضل الشاي؟</span></button>
+              <button class="chip chip-ending" data-value="why not?"><span class="chip-en">why not?</span><span class="chip-ar" dir="rtl">لمَ لا؟</span></button>
+              <button class="chip chip-ending" data-value="how often?"><span class="chip-en">how often?</span><span class="chip-ar" dir="rtl">كم مرة؟</span></button>
+              <button class="chip chip-ending" data-value="really?"><span class="chip-en">really?</span><span class="chip-ar" dir="rtl">حقاً؟</span></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <aside class="quick-words">
+      <header class="qw-head">
+        <span class="qw-emoji">❓</span>
+        <h4 class="qw-title">Question words</h4>
+        <span class="qw-sub" dir="rtl">كلمات السؤال</span>
+      </header>
+      <div class="qw-list">
+        <span class="qw"><b>what</b><em dir="rtl">ماذا</em></span>
+        <span class="qw"><b>where</b><em dir="rtl">أين</em></span>
+        <span class="qw"><b>when</b><em dir="rtl">متى</em></span>
+        <span class="qw"><b>why</b><em dir="rtl">لماذا</em></span>
+        <span class="qw"><b>how</b><em dir="rtl">كيف</em></span>
+        <span class="qw"><b>who</b><em dir="rtl">من</em></span>
+      </div>
+      <div class="qw-counter"><span class="counter-icon">🔥</span><span id="counter-text">Start your first sentence</span></div>
+    </aside>
+  </main>
+
+  <section class="preview" aria-live="polite">
+    <div class="preview-inner">
+      <div class="preview-row">
+        <div class="preview-text">
+          <span class="preview-label">❓ ASKING QUESTIONS</span>
+          <div class="sentence" id="sentence"></div>
+        </div>
+        <div class="preview-actions">
+          <button id="reset-btn" class="reset-btn" disabled>↺ Reset</button>
+          <button id="speak-btn" class="speak-btn" disabled>
+            <span class="speak-icon">🎤</span><span>Say it out loud</span>
+          </button>
+        </div>
+      </div>
+      <div id="speak-feedback" class="speak-feedback" hidden></div>
+    </div>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>

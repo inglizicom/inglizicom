@@ -84,10 +84,10 @@ export default function ConversationSection({
 
       {/* Header */}
       <div className="text-center mb-4 md:mb-5 flex-shrink-0">
-        <div className="inline-block px-4 py-1 rounded-full bg-rose-100 text-rose-800 text-xs font-bold tracking-[0.3em] uppercase mb-2 font-display">
+        <div className="inline-block px-4 py-1 rounded-full bg-rose-100 text-rose-800 text-xs font-bold tracking-[0.3em] uppercase mb-2 font-ui">
           Conversation
         </div>
-        <h2 className="font-display text-2xl md:text-3xl font-black text-slate-900">
+        <h2 className="font-ui text-3xl md:text-4xl lg:text-5xl font-black text-slate-900">
           {section.title}
         </h2>
         {section.note && (
@@ -130,7 +130,7 @@ export default function ConversationSection({
                   <div className={`w-2.5 h-2.5 shrink-0 rounded-full ${s.dot} ${visible ? '' : 'opacity-25'}`} />
                   <span
                     className={[
-                      'font-display font-extrabold uppercase tracking-wide leading-none truncate',
+                      'font-ui font-extrabold uppercase tracking-wide leading-none truncate',
                       'text-[11px] md:text-[13px]',
                       visible ? s.name : 'text-slate-300',
                     ].join(' ')}
@@ -143,7 +143,7 @@ export default function ConversationSection({
                 <div className="flex items-start justify-between gap-3 min-w-0">
                   <p
                     className={[
-                      'text-lg md:text-2xl leading-snug flex-1',
+                      'text-lg md:text-2xl lg:text-3xl leading-snug flex-1',
                       isFocused ? 'font-bold text-slate-900' : 'font-medium',
                       visible ? 'text-slate-800' : 'text-slate-300',
                     ].join(' ')}
