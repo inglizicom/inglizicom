@@ -1,0 +1,321 @@
+/* ── Inglizi.com Ebook · Print-Optimized ──────────────────── */
+
+@page {
+  size: A4;
+  margin: 18mm 15mm 22mm 15mm;
+  @bottom-center {
+    content: "Hamza El Qasraoui  ·  0707902091  ·  inglizi.com  ·  " counter(page);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 9pt;
+    color: #94a3b8;
+    letter-spacing: 0.06em;
+  }
+}
+
+/* Per-section first page = no footer (cover-like) */
+@page :first {
+  margin: 0;
+  @bottom-center { content: ""; }
+}
+
+* { box-sizing: border-box; }
+
+.eb {
+  font-family: 'Tajawal', 'DM Sans', system-ui, sans-serif;
+  color: #0f172a;
+  background: #ffffff;
+  line-height: 1.55;
+  font-size: 11pt;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.eb-page {
+  break-after: page;
+  page-break-after: always;
+  padding: 24px 0;
+}
+.eb-page:last-child { break-after: auto; page-break-after: auto; }
+
+/* ── Cover ───────────────────────────────────────────────── */
+.eb-cover {
+  height: 100vh;
+  min-height: 980px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px 40px;
+  background: linear-gradient(160deg, #fef3c7 0%, #ffffff 55%, #dbeafe 100%);
+  break-after: page;
+  page-break-after: always;
+  position: relative;
+  overflow: hidden;
+}
+.eb-cover::before {
+  content: ""; position: absolute; top: -100px; right: -80px;
+  width: 360px; height: 360px; border-radius: 999px;
+  background: radial-gradient(circle, rgba(217,119,6,0.16), transparent 70%);
+}
+.eb-cover::after {
+  content: ""; position: absolute; bottom: -120px; left: -100px;
+  width: 420px; height: 420px; border-radius: 999px;
+  background: radial-gradient(circle, rgba(37,99,235,0.14), transparent 70%);
+}
+.eb-cover-inner { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 22px; }
+.eb-brand {
+  font-family: 'DM Sans', sans-serif; font-weight: 900; font-size: 32pt;
+  color: #d97706; letter-spacing: -0.03em;
+}
+.eb-cover-sub { font-size: 14pt; color: #64748b; font-weight: 600; margin-top: -4px; }
+.eb-cover-title-ar {
+  font-size: 36pt; font-weight: 900; line-height: 1.2;
+  color: #0f172a; letter-spacing: -0.02em; margin-top: 30px;
+  direction: rtl;
+}
+.eb-cover-title-en {
+  font-family: 'DM Sans', sans-serif; font-size: 22pt; font-weight: 800;
+  color: #475569; line-height: 1.3; margin-top: 8px;
+}
+.eb-cover-divider { width: 80px; height: 4px; background: #d97706; border-radius: 999px; margin-top: 12px; }
+.eb-cover-tag {
+  display: inline-block; padding: 6px 14px; border-radius: 999px;
+  background: #fef3c7; color: #92400e;
+  font-family: 'DM Sans', sans-serif; font-size: 10pt; font-weight: 800;
+  letter-spacing: 0.1em; text-transform: uppercase; width: fit-content;
+}
+.eb-cover-footer {
+  position: relative; z-index: 1; display: flex; flex-direction: column; gap: 4px;
+  padding-top: 24px; border-top: 2px solid #e2e8f0;
+}
+.eb-cover-author { font-size: 14pt; font-weight: 800; color: #0f172a; }
+.eb-cover-author-en { font-family: 'DM Sans', sans-serif; font-size: 11pt; color: #64748b; font-weight: 700; }
+.eb-cover-contact {
+  display: flex; gap: 18px; margin-top: 8px; flex-wrap: wrap;
+  font-family: 'DM Sans', sans-serif; font-size: 10pt; color: #475569; font-weight: 700;
+}
+.eb-cover-contact b { color: #16a34a; }
+
+/* ── Section divider page ───────────────────────────────── */
+.eb-divider {
+  height: 100vh; min-height: 980px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 18px;
+  background: linear-gradient(135deg, var(--div-bg, #fef3c7) 0%, #ffffff 100%);
+  break-after: page; page-break-after: always;
+  text-align: center; padding: 60px 40px;
+}
+.eb-div-num {
+  font-family: 'DM Sans', sans-serif; font-size: 80pt; font-weight: 900;
+  color: var(--div-color, #d97706); line-height: 1; letter-spacing: -0.04em;
+}
+.eb-div-emoji { font-size: 64pt; line-height: 1; }
+.eb-div-title-en {
+  font-family: 'DM Sans', sans-serif; font-size: 28pt; font-weight: 900;
+  color: #0f172a; letter-spacing: -0.02em;
+}
+.eb-div-title-ar {
+  font-size: 24pt; font-weight: 800; color: #475569; direction: rtl;
+}
+.eb-div-meta {
+  font-family: 'DM Sans', sans-serif; font-size: 11pt; color: #64748b;
+  margin-top: 14px; letter-spacing: 0.08em; text-transform: uppercase;
+}
+
+/* ── TOC ─────────────────────────────────────────────────── */
+.eb-toc {
+  padding: 40px 30px;
+  break-after: page; page-break-after: always;
+}
+.eb-toc-title {
+  font-family: 'DM Sans', sans-serif; font-size: 22pt; font-weight: 900;
+  margin-bottom: 6px;
+}
+.eb-toc-title-ar { direction: rtl; font-size: 18pt; font-weight: 800; color: #64748b; margin-bottom: 28px; }
+.eb-toc-section {
+  margin-top: 22px; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0;
+  display: flex; align-items: baseline; gap: 12px;
+}
+.eb-toc-section-num {
+  font-family: 'DM Sans', sans-serif; font-weight: 800; color: var(--toc-color, #d97706);
+  font-size: 11pt; letter-spacing: 0.16em;
+}
+.eb-toc-section-title-en { font-family: 'DM Sans', sans-serif; font-size: 15pt; font-weight: 800; color: #0f172a; }
+.eb-toc-section-title-ar { font-size: 12pt; color: #64748b; direction: rtl; margin-right: auto; }
+.eb-toc-list { list-style: none; padding: 0; margin: 10px 0 0 0; columns: 2; column-gap: 24px; }
+.eb-toc-item {
+  break-inside: avoid; padding: 4px 0; font-size: 10pt;
+  display: flex; gap: 10px; align-items: baseline;
+}
+.eb-toc-item-emoji { width: 18px; }
+.eb-toc-item-en { font-family: 'DM Sans', sans-serif; font-weight: 600; color: #0f172a; flex: 1; }
+.eb-toc-item-ar { color: #64748b; font-size: 9pt; direction: rtl; }
+
+/* ── Generic lesson card ────────────────────────────────── */
+.eb-lesson {
+  padding: 24px 24px 32px;
+  break-inside: avoid; page-break-inside: avoid;
+  break-after: page; page-break-after: always;
+}
+.eb-lesson-head {
+  display: flex; align-items: flex-end; gap: 14px;
+  padding-bottom: 10px; margin-bottom: 16px;
+  border-bottom: 3px solid var(--ls-color, #d97706);
+}
+.eb-lesson-num {
+  font-family: 'DM Sans', sans-serif; font-weight: 900; font-size: 10pt;
+  color: var(--ls-color, #d97706); letter-spacing: 0.18em;
+  padding: 3px 9px; border-radius: 5px; background: var(--ls-soft, #fef3c7);
+  text-transform: uppercase;
+}
+.eb-lesson-emoji { font-size: 28pt; line-height: 1; }
+.eb-lesson-title-en {
+  font-family: 'DM Sans', sans-serif; font-weight: 900; font-size: 19pt;
+  color: #0f172a; letter-spacing: -0.02em; margin-bottom: 2px;
+}
+.eb-lesson-title-ar { font-size: 13pt; color: #64748b; direction: rtl; font-weight: 700; }
+
+.eb-pattern {
+  background: var(--ls-soft, #fef3c7);
+  border-radius: 10px; padding: 11px 14px;
+  font-family: 'DM Sans', sans-serif; font-weight: 700;
+  color: #1e293b; margin: 10px 0; font-size: 10pt;
+  border-left: 4px solid var(--ls-color, #d97706);
+  direction: ltr;
+}
+.eb-pattern-label {
+  display: inline-block; font-size: 8pt; font-weight: 800;
+  color: var(--ls-color, #d97706); letter-spacing: 0.1em;
+  margin-right: 8px; text-transform: uppercase;
+}
+
+.eb-examples {
+  margin: 6px 0 14px; padding: 0 0 0 16px;
+  font-family: 'DM Sans', sans-serif; color: #334155; font-size: 10pt;
+}
+.eb-examples li { padding: 2px 0; }
+
+.eb-section-block {
+  margin: 12px 0; break-inside: avoid; page-break-inside: avoid;
+}
+.eb-block-title {
+  font-family: 'DM Sans', sans-serif; font-size: 11pt; font-weight: 800;
+  color: #0f172a; padding: 4px 0 6px 0; margin-bottom: 4px;
+  display: flex; align-items: baseline; gap: 10px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.eb-block-title-ar { color: #94a3b8; font-size: 9pt; direction: rtl; }
+
+.eb-chip-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px 8px;
+  margin-top: 6px;
+}
+.eb-chip {
+  break-inside: avoid;
+  padding: 5px 9px; border-radius: 6px; background: var(--ls-soft, #fef3c7);
+  border: 1px solid color-mix(in srgb, var(--ls-color, #d97706) 20%, transparent);
+  font-size: 9pt; line-height: 1.3;
+  display: flex; flex-direction: column; gap: 1px;
+}
+.eb-chip-en { font-family: 'DM Sans', sans-serif; font-weight: 700; color: #0f172a; }
+.eb-chip-ar { color: #64748b; font-size: 8pt; direction: rtl; }
+
+.eb-sub-group { margin-top: 8px; }
+.eb-sub-label {
+  font-family: 'DM Sans', sans-serif; font-size: 9pt; font-weight: 800;
+  color: var(--ls-color, #d97706); letter-spacing: 0.08em;
+  text-transform: uppercase; margin-bottom: 3px;
+}
+.eb-sub-label-ar { color: #94a3b8; font-weight: 600; direction: rtl; }
+
+.eb-rules {
+  margin-top: 16px; padding: 12px 14px;
+  background: #f8fafc; border-radius: 10px;
+  border-left: 4px solid var(--ls-color, #d97706);
+  break-inside: avoid;
+}
+.eb-rules-title {
+  font-family: 'DM Sans', sans-serif; font-size: 9pt; font-weight: 800;
+  color: var(--ls-color, #d97706); letter-spacing: 0.1em;
+  text-transform: uppercase; margin-bottom: 5px;
+}
+.eb-rules ul { margin: 0; padding-left: 16px; font-size: 9pt; color: #334155; }
+.eb-rules li { padding: 2px 0; }
+
+/* ── Grammar lesson layout ─────────────────────────────── */
+.eb-hook { padding: 12px 16px; background: #fffbeb; border-radius: 10px; border-left: 4px solid #d97706; direction: rtl; font-size: 10pt; margin: 10px 0; }
+.eb-hook-title { font-weight: 800; color: #b45309; margin-bottom: 6px; font-size: 11pt; }
+.eb-hook-eg { background: #fef3c7; padding: 8px 10px; border-radius: 6px; margin-top: 8px; font-family: 'DM Sans', sans-serif; direction: ltr; font-weight: 700; color: #0f172a; font-size: 10pt; }
+.eb-pattern-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 9pt; break-inside: avoid; }
+.eb-pattern-table th, .eb-pattern-table td { padding: 6px 8px; border: 1px solid #e2e8f0; text-align: left; vertical-align: top; }
+.eb-pattern-table th { background: #f1f5f9; font-family: 'DM Sans', sans-serif; font-weight: 800; color: #334155; font-size: 8pt; letter-spacing: 0.06em; text-transform: uppercase; }
+.eb-pattern-table .verb { font-family: 'DM Sans', sans-serif; font-weight: 800; color: #d97706; }
+.eb-pattern-table .eg-en { font-family: 'DM Sans', sans-serif; font-weight: 700; }
+.eb-pattern-table .eg-ar { color: #64748b; direction: rtl; font-size: 9pt; }
+
+.eb-grammar-sentence { display: flex; align-items: baseline; gap: 8px; padding: 5px 8px; background: #f8fafc; border-radius: 6px; margin: 4px 0; font-size: 10pt; }
+.eb-grammar-sentence-tokens { font-family: 'DM Sans', sans-serif; font-weight: 600; color: #0f172a; flex: 1; }
+.eb-grammar-sentence-ar { color: #64748b; direction: rtl; font-size: 9pt; }
+
+.eb-quiz-q { margin: 8px 0; padding: 8px 10px; background: #fef9c3; border-radius: 8px; font-size: 10pt; break-inside: avoid; }
+.eb-quiz-prompt { font-weight: 700; color: #92400e; direction: rtl; margin-bottom: 4px; }
+.eb-quiz-choices { display: flex; gap: 6px; flex-wrap: wrap; }
+.eb-quiz-choice { padding: 3px 8px; background: #ffffff; border: 1px solid #fcd34d; border-radius: 5px; font-family: 'DM Sans', sans-serif; font-size: 9pt; }
+.eb-quiz-choice.correct { background: #d1fae5; border-color: #34d399; font-weight: 800; }
+
+/* ── Reading layout ─────────────────────────────────────── */
+.eb-reading-body { columns: 2; column-gap: 22px; font-family: 'DM Sans', sans-serif; font-size: 10pt; line-height: 1.65; color: #1e293b; margin-top: 8px; text-align: justify; }
+.eb-reading-body p { margin: 0 0 10px 0; break-inside: avoid; }
+.eb-reading-ar { direction: rtl; font-family: 'Tajawal', sans-serif; columns: 2; column-gap: 22px; font-size: 10pt; line-height: 1.75; color: #334155; margin-top: 14px; padding-top: 14px; border-top: 2px dashed #cbd5e1; }
+.eb-reading-ar p { margin: 0 0 10px 0; break-inside: avoid; }
+.eb-vocab-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 16px; margin-top: 10px; font-size: 9pt; }
+.eb-vocab-row { display: flex; gap: 8px; padding: 3px 0; border-bottom: 1px dotted #e2e8f0; }
+.eb-vocab-en { font-family: 'DM Sans', sans-serif; font-weight: 700; color: #0f172a; min-width: 95px; }
+.eb-vocab-ar { color: #475569; direction: rtl; flex: 1; }
+
+/* ── Unit (level01 + real life english) layout ──────────── */
+.eb-unit-vocab { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 14px; margin: 6px 0; }
+.eb-unit-vocab-item {
+  break-inside: avoid; padding: 6px 8px;
+  background: #f8fafc; border-radius: 6px; font-size: 9pt;
+  border-left: 3px solid var(--ls-color, #d97706);
+}
+.eb-unit-vocab-en { font-family: 'DM Sans', sans-serif; font-weight: 700; color: #0f172a; font-size: 10pt; }
+.eb-unit-vocab-ar { color: #64748b; direction: rtl; margin-top: 2px; }
+.eb-unit-vocab-eg { font-family: 'DM Sans', sans-serif; color: #475569; font-size: 8pt; font-style: italic; margin-top: 3px; }
+
+.eb-dialog { font-size: 10pt; margin: 6px 0; }
+.eb-dialog-line { display: flex; gap: 10px; padding: 4px 0; }
+.eb-dialog-speaker { font-family: 'DM Sans', sans-serif; font-weight: 800; color: var(--ls-color, #d97706); min-width: 56px; }
+.eb-dialog-text { font-family: 'DM Sans', sans-serif; color: #0f172a; flex: 1; }
+
+.eb-credit-strip {
+  margin-top: 20px; padding: 8px 14px;
+  background: #0f172a; color: #cbd5e1; border-radius: 8px;
+  font-family: 'DM Sans', sans-serif; font-size: 8pt;
+  display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+  text-align: center; letter-spacing: 0.06em;
+}
+.eb-credit-strip b { color: #fbbf24; }
+.eb-credit-strip i { font-style: normal; color: #34d399; }
+
+/* ── Print-only behaviour ──────────────────────────────── */
+@media screen {
+  body { background: #e5e7eb; }
+  .eb { max-width: 794px; margin: 0 auto; box-shadow: 0 0 20px rgba(0,0,0,0.08); min-height: 100vh; }
+  .eb-toolbar {
+    position: fixed; top: 14px; right: 14px; z-index: 100;
+    background: #0f172a; color: #fff; padding: 10px 16px; border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700;
+    display: flex; flex-direction: column; gap: 4px; align-items: flex-start;
+  }
+  .eb-toolbar b { font-size: 13px; color: #fbbf24; }
+  .eb-toolbar kbd { background: #334155; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 11px; }
+}
+@media print {
+  body { background: #ffffff; }
+  .eb { max-width: 100%; box-shadow: none; }
+  .eb-toolbar { display: none; }
+  .eb-cover { break-after: page; }
+}
