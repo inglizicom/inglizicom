@@ -8,6 +8,7 @@ import type { Unit, Section } from '@/data/private-lessons/types'
 import CoverSlide from './CoverSlide'
 import VocabSection from './VocabSection'
 import VocabCategoriesSection from './VocabCategoriesSection'
+import BusinessVocabCategoriesSection from './BusinessVocabCategoriesSection'
 import StaticSentencesSection from './StaticSentencesSection'
 import ConversationSection from './ConversationSection'
 import QuizSection from './QuizSection'
@@ -411,6 +412,10 @@ function SectionRenderer({
     case 'vocab':
       return <VocabSection section={section} step={step} />
     case 'vocabCategories':
+      // Business English units (id 301-399) get the premium "executive" treatment
+      if (unit.id >= 301 && unit.id < 400) {
+        return <BusinessVocabCategoriesSection section={section} step={step} />
+      }
       return <VocabCategoriesSection section={section} step={step} />
     case 'staticSentences':
       return <StaticSentencesSection section={section} step={step} />
