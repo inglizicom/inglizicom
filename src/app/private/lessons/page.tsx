@@ -82,6 +82,22 @@ export default function PrivateLessonsIndex() {
             </div>
           </a>
 
+          {/* Business English */}
+          <Link
+            href="/private/lessons/business"
+            className="group flex flex-col gap-3 bg-white rounded-2xl border-2 border-amber-200 hover:border-amber-500 hover:shadow-xl transition-all p-6"
+          >
+            <span className="text-4xl">💼</span>
+            <div>
+              <div className="text-xs font-bold text-amber-600 uppercase tracking-widest mb-1">الإنجليزية المهنية</div>
+              <div className="text-xl font-black text-slate-900">Business English</div>
+              <div className="text-sm text-slate-500 mt-1" dir="rtl">للعمل والشركات — اجتماعات · إيميل · مكالمات · عروض · مقابلات</div>
+            </div>
+            <div className="mt-auto text-sm font-bold text-amber-600 group-hover:translate-x-1 transition-transform">
+              ٦ وحدات احترافية ←
+            </div>
+          </Link>
+
           {/* Real Life English */}
           <div className="flex flex-col gap-3 bg-white rounded-2xl border-2 border-violet-200 p-6">
             <span className="text-4xl">🏙️</span>

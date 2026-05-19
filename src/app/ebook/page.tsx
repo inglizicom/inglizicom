@@ -2,6 +2,7 @@ import { sentenceLessons, type SentenceLesson } from '@/data/sentence-builder'
 import { grammarLessons } from '@/data/private-lessons/grammar'
 import { read01 } from '@/data/private-lessons/reading/read01'
 import { level01Units } from '@/data/private-lessons/level01'
+import { businessUnits } from '@/data/private-lessons/business'
 import { units } from '@/data/private-lessons'
 import type { GrammarLesson, GrammarSection } from '@/data/private-lessons/grammar/types'
 import type { Unit, Section } from '@/data/private-lessons/types'
@@ -426,7 +427,7 @@ export default function EbookPage() {
             <div className="eb-cover-divider"></div>
             <p style={{ marginTop: 14, fontSize: '11pt', color: '#475569' }} dir="rtl">
               <b>{sentenceLessons.length}</b> درس بناء جمل · <b>{grammarLessons.length}</b> درس قواعد · <b>{readingUnits.length}</b> نص قراءة ·
-              <b> {level01Units.length}</b> درس مستوى أول · <b>{units.length}</b> وحدة محادثة
+              <b> {level01Units.length}</b> درس مستوى أول · <b>{units.length}</b> وحدة محادثة · <b>{businessUnits.length}</b> وحدة إنجليزية مهنية
             </p>
           </div>
         </div>
@@ -519,6 +520,21 @@ export default function EbookPage() {
             </li>
           ))}
         </ul>
+
+        <div className="eb-toc-section" style={{ ['--toc-color' as string]: '#b45309' } as React.CSSProperties}>
+          <span className="eb-toc-section-num">PART 06</span>
+          <span className="eb-toc-section-title-en">Business English</span>
+          <span className="eb-toc-section-title-ar">الإنجليزية المهنية</span>
+        </div>
+        <ul className="eb-toc-list">
+          {businessUnits.map((u) => (
+            <li className="eb-toc-item" key={u.id}>
+              <span className="eb-toc-item-emoji">{u.emoji}</span>
+              <span className="eb-toc-item-en">{u.title.en}</span>
+              <span className="eb-toc-item-ar">{u.title.ar}</span>
+            </li>
+          ))}
+        </ul>
       </section>
 
       {/* ── PART 01: SENTENCE BUILDER ── */}
@@ -540,6 +556,10 @@ export default function EbookPage() {
       {/* ── PART 05: REAL LIFE ENGLISH ── */}
       <SectionDivider num="05" emoji="🏙️" en="Real Life English 1" ar="المواقف الحياتية" meta={`${units.length} life-situation units`} bg="#ede9fe" color="#7c3aed" />
       {units.map((u) => <UnitSummaryCard key={u.id} unit={u} label="Real Life English" color="#7c3aed" />)}
+
+      {/* ── PART 06: BUSINESS ENGLISH ── */}
+      <SectionDivider num="06" emoji="💼" en="Business English" ar="الإنجليزية المهنية" meta={`${businessUnits.length} professional units`} bg="#fef3c7" color="#b45309" />
+      {businessUnits.map((u) => <UnitSummaryCard key={u.id} unit={u} label="Business English" color="#b45309" />)}
 
       {/* ── Closing ── */}
       <section className="eb-cover" style={{ background: 'linear-gradient(160deg, #0f172a 0%, #1e293b 100%)', color: '#f1f5f9' }}>
