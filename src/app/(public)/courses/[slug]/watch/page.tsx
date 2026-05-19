@@ -5,6 +5,9 @@ import { fetchCourseLessons, groupLessonsIntoSections } from '@/lib/course-lesso
 import { fetchCourseMeta } from '@/lib/course-meta-db'
 import WatchClient from './WatchClient'
 
+// This page hits Supabase at request time — must not be statically generated
+export const dynamic = 'force-dynamic'
+
 interface Params {
   params: { slug: string }
 }
