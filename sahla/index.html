@@ -8,58 +8,66 @@
   <meta name="description" content="كل دروسك الخاصة في مكان واحد — بناء الجمل، القراءة، القواعد، والمواقف الحياتية.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { font-family: 'Tajawal', 'DM Sans', system-ui, sans-serif; background: #f8fafc; color: #0f172a; min-height: 100%; }
-    body { padding: 32px 20px 60px; }
+    html, body { font-family: 'DM Sans', 'Cairo', system-ui, sans-serif; background: #f5efe0; color: #1c1917; min-height: 100%; }
+    body { padding: 32px 20px 60px; position: relative; }
+    body::before {
+      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse 50% 35% at 85% 5%, rgba(180, 83, 9, 0.06), transparent 60%),
+        radial-gradient(ellipse 50% 35% at 5% 95%, rgba(30, 58, 138, 0.05), transparent 60%);
+    }
+    .page { position: relative; z-index: 1; }
+    [dir="rtl"], [lang="ar"] { font-family: 'Cairo', 'Tajawal', sans-serif; }
 
     .page { max-width: 1280px; margin: 0 auto; }
 
     /* ── Top bar ────────────────────────────────────────────── */
     .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 36px; }
     .brand-block { display: flex; flex-direction: column; gap: 2px; }
-    .brand-en { font-family: 'DM Sans', sans-serif; font-weight: 900; font-size: 22px; color: #1e293b; letter-spacing: -0.02em; }
-    .brand-ar { font-size: 13px; color: #64748b; font-weight: 500; }
+    .brand-en { font-family: 'Outfit', 'DM Sans', sans-serif; font-weight: 900; font-size: 22px; color: #1c1917; letter-spacing: -0.02em; }
+    .brand-ar { font-family: 'Cairo', sans-serif; font-size: 13px; color: #78716c; font-weight: 600; }
     .badge { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; font-family: 'DM Sans', sans-serif; }
     .badge-dot { width: 8px; height: 8px; border-radius: 999px; background: #d97706; }
 
     /* ── Hero ────────────────────────────────────────────────── */
-    .hero { background: #ffffff; border: 2px solid #e2e8f0; border-radius: 24px; padding: 44px 36px; margin-bottom: 36px; position: relative; overflow: hidden; }
-    .hero::before { content: ""; position: absolute; top: -120px; left: -120px; width: 320px; height: 320px; background: radial-gradient(circle, rgba(217,119,6,0.12) 0%, transparent 70%); }
-    .hero::after { content: ""; position: absolute; bottom: -160px; right: -120px; width: 360px; height: 360px; background: radial-gradient(circle, rgba(37,99,235,0.10) 0%, transparent 70%); }
+    .hero { background: #fdfaf0; border: 1px solid #e0d4b2; border-radius: 24px; padding: 44px 36px; margin-bottom: 36px; position: relative; overflow: hidden; box-shadow: 0 18px 50px -22px rgba(115, 99, 53, 0.15); }
+    .hero::before { content: ""; position: absolute; top: -120px; left: -120px; width: 320px; height: 320px; background: radial-gradient(circle, rgba(180, 83, 9, 0.10) 0%, transparent 70%); }
+    .hero::after { content: ""; position: absolute; bottom: -160px; right: -120px; width: 360px; height: 360px; background: radial-gradient(circle, rgba(30, 58, 138, 0.08) 0%, transparent 70%); }
     .hero-inner { position: relative; z-index: 1; }
-    .hero-eyebrow { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 12px; color: #d97706; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 12px; }
-    .hero-title { font-size: 48px; font-weight: 900; line-height: 1.1; color: #0f172a; letter-spacing: -0.02em; margin-bottom: 14px; }
-    .hero-title .en { font-family: 'DM Sans', sans-serif; color: #d97706; display: inline-block; margin-right: 12px; }
-    .hero-sub { font-size: 17px; color: #475569; max-width: 640px; line-height: 1.6; font-weight: 500; }
+    .hero-eyebrow { font-family: 'Outfit', 'DM Sans', sans-serif; font-weight: 800; font-size: 12px; color: #b45309; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 14px; }
+    .hero-title { font-family: 'Outfit', 'DM Sans', sans-serif; font-size: 48px; font-weight: 900; line-height: 1.1; color: #1c1917; letter-spacing: -0.03em; margin-bottom: 14px; }
+    .hero-title .en { font-family: 'Outfit', 'DM Sans', sans-serif; color: #b45309; display: inline-block; margin-right: 12px; }
+    .hero-sub { font-family: 'Cairo', sans-serif; font-size: 17px; color: #44403c; max-width: 640px; line-height: 1.75; font-weight: 500; }
     .hero-stats { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 26px; }
     .stat { background: #f1f5f9; border-radius: 12px; padding: 10px 16px; font-size: 13px; color: #334155; font-weight: 600; }
     .stat b { color: #d97706; margin-left: 4px; }
 
     /* ── Section heads ──────────────────────────────────────── */
     .section { margin-bottom: 40px; }
-    .section-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 2px solid #e2e8f0; }
-    .section-title { font-size: 24px; font-weight: 900; color: #0f172a; letter-spacing: -0.01em; }
+    .section-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid #e0d4b2; }
+    .section-title { font-family: 'Outfit', 'DM Sans', sans-serif; font-size: 24px; font-weight: 900; color: #1c1917; letter-spacing: -0.02em; }
     .section-sub { font-size: 13px; color: #94a3b8; font-weight: 500; }
     .section-pill { margin-right: auto; font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; background: #e0f2fe; color: #0369a1; letter-spacing: 0.06em; }
 
     /* ── Cards ──────────────────────────────────────────────── */
     .cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
 
-    .card { --accent: #2563eb; --accent-soft: #eff6ff; display: flex; flex-direction: column; gap: 10px; padding: 22px 22px 18px; background: #ffffff; border: 2px solid #e2e8f0; border-radius: 18px; text-decoration: none; color: inherit; transition: all 0.18s ease; position: relative; overflow: hidden; }
-    .card:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 14px 30px -12px rgba(15,23,42,0.18); }
-    .card::before { content: ""; position: absolute; top: 0; right: 0; left: 0; height: 4px; background: var(--accent); opacity: 0.85; }
+    .card { --accent: #2563eb; --accent-soft: #f0e6cd; display: flex; flex-direction: column; gap: 10px; padding: 24px 24px 20px; background: #fdfaf0; border: 1px solid #e0d4b2; border-radius: 18px; text-decoration: none; color: inherit; transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; box-shadow: 0 2px 0 rgba(115, 99, 53, 0.04); }
+    .card:hover { transform: translateY(-4px); border-color: var(--accent); background: #faf3e0; box-shadow: 0 18px 36px -14px rgba(115, 99, 53, 0.20), 0 0 0 1px var(--accent); }
+    .card::before { content: ""; position: absolute; top: 0; right: 0; left: 0; height: 4px; background: var(--accent); }
     .card-head { display: flex; align-items: center; gap: 10px; }
-    .card-num { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 800; color: var(--accent); letter-spacing: 0.16em; text-transform: uppercase; }
-    .card-emoji { font-size: 28px; margin-right: auto; }
-    .card-title { font-size: 18px; font-weight: 900; color: #0f172a; line-height: 1.25; }
-    .card-title-ar { font-size: 13px; color: #64748b; font-weight: 500; line-height: 1.5; }
-    .card-pattern { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; background: var(--accent-soft); border-radius: 10px; padding: 9px 12px; font-family: 'DM Sans', sans-serif; font-size: 11px; color: #334155; font-weight: 600; margin-top: 4px; direction: ltr; }
-    .card-pattern .plus { color: var(--accent); font-weight: 700; opacity: 0.6; }
-    .card-example { font-family: 'DM Sans', sans-serif; font-size: 12px; color: #64748b; font-style: italic; direction: ltr; padding: 8px 12px; background: #f8fafc; border-radius: 8px; border-right: 3px solid var(--accent); }
-    .card-cta { margin-top: auto; padding-top: 8px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 800; color: var(--accent); letter-spacing: 0.04em; display: flex; align-items: center; gap: 6px; }
-    .card-cta::after { content: "←"; transition: transform 0.18s ease; }
+    .card-num { font-family: 'Outfit', 'DM Sans', sans-serif; font-size: 11px; font-weight: 800; color: var(--accent); letter-spacing: 0.16em; text-transform: uppercase; }
+    .card-emoji { font-size: 30px; margin-right: auto; }
+    .card-title { font-family: 'Outfit', 'DM Sans', sans-serif; font-size: 19px; font-weight: 800; color: #1c1917; line-height: 1.22; letter-spacing: -0.01em; }
+    .card-title-ar { font-family: 'Cairo', sans-serif; font-size: 14px; color: #78716c; font-weight: 600; line-height: 1.7; }
+    .card-pattern { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; background: rgba(255, 255, 255, 0.6); border: 1px dashed var(--accent); border-radius: 10px; padding: 10px 12px; font-family: 'DM Sans', sans-serif; font-size: 11px; color: #44403c; font-weight: 600; margin-top: 6px; direction: ltr; }
+    .card-pattern .plus { color: var(--accent); font-weight: 700; opacity: 0.55; }
+    .card-example { font-family: 'DM Sans', sans-serif; font-size: 12px; color: #78716c; font-style: italic; direction: ltr; padding: 9px 12px; background: rgba(240, 230, 205, 0.5); border-radius: 8px; border-right: 3px solid var(--accent); }
+    .card-cta { margin-top: auto; padding-top: 10px; border-top: 1px dashed #e0d4b2; font-family: 'Outfit', 'DM Sans', sans-serif; font-size: 12px; font-weight: 800; color: var(--accent); letter-spacing: 0.02em; display: flex; align-items: center; gap: 6px; }
+    .card-cta::after { content: "←"; transition: transform 0.2s ease; }
     .card:hover .card-cta::after { transform: translateX(-4px); }
 
     .card.c-orange   { --accent: #ea580c; --accent-soft: #fff7ed; }
@@ -83,12 +91,12 @@
 
     /* ── External cards (link out to main domain) ───────────── */
     .ext-cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-    .ext-card { display: flex; flex-direction: column; gap: 8px; padding: 22px; background: #ffffff; border: 2px dashed #cbd5e1; border-radius: 16px; text-decoration: none; color: inherit; transition: all 0.18s ease; }
-    .ext-card:hover { border-color: #94a3b8; border-style: solid; transform: translateY(-2px); }
+    .ext-card { display: flex; flex-direction: column; gap: 8px; padding: 22px; background: #fdfaf0; border: 1px dashed #d4c4a0; border-radius: 16px; text-decoration: none; color: inherit; transition: all 0.18s ease; }
+    .ext-card:hover { border-color: #b45309; border-style: solid; transform: translateY(-2px); background: #faf3e0; }
     .ext-card-emoji { font-size: 32px; }
-    .ext-card-title { font-size: 17px; font-weight: 900; color: #0f172a; }
-    .ext-card-title-ar { font-size: 13px; color: #64748b; font-weight: 500; }
-    .ext-card-meta { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; color: #94a3b8; letter-spacing: 0.06em; text-transform: uppercase; margin-top: auto; padding-top: 8px; }
+    .ext-card-title { font-family: 'Outfit', 'DM Sans', sans-serif; font-size: 17px; font-weight: 800; color: #1c1917; letter-spacing: -0.01em; }
+    .ext-card-title-ar { font-family: 'Cairo', sans-serif; font-size: 13px; color: #78716c; font-weight: 600; }
+    .ext-card-meta { font-family: 'Outfit', 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; color: #a8a29e; letter-spacing: 0.06em; text-transform: uppercase; margin-top: auto; padding-top: 8px; }
 
     /* ── Footer ─────────────────────────────────────────────── */
     .page-footer { margin-top: 50px; padding: 22px; background: #0f172a; color: #cbd5e1; border-radius: 18px; text-align: center; font-size: 13px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px; }
@@ -289,6 +297,45 @@
         </a>
 
       </div>
+    </section>
+
+    <!-- ── Business English banner ──────────────────────────── -->
+    <section class="section" style="margin-bottom: 50px;">
+      <a href="business/" style="
+        display: block; padding: 36px 38px;
+        background: linear-gradient(135deg, #1e3a8a 0%, #172554 65%, #4338ca 100%);
+        border-radius: 24px; border: none;
+        text-decoration: none; color: #ffffff; position: relative; overflow: hidden;
+        box-shadow: 0 28px 60px -22px rgba(30,58,138,0.45);
+        transition: transform .25s ease, box-shadow .25s ease;
+      "
+      onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 36px 80px -22px rgba(30,58,138,0.55)'"
+      onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 28px 60px -22px rgba(30,58,138,0.45)'">
+        <span style="position: absolute; top: -80px; right: -40px; width: 280px; height: 280px; border-radius: 50%; background: radial-gradient(circle, rgba(245,158,11,0.32), transparent 70%); pointer-events: none;"></span>
+        <span style="position: absolute; bottom: -100px; left: -60px; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.06), transparent 70%); pointer-events: none;"></span>
+        <div style="position: relative; display: grid; grid-template-columns: 1fr auto; gap: 28px; align-items: center;">
+          <div>
+            <div style="display: inline-flex; align-items: center; gap: 10px; padding: 6px 14px; border-radius: 999px; background: rgba(245,158,11,0.16); border: 1px solid rgba(245,158,11,0.3); font-family: 'DM Sans','Outfit',sans-serif; font-size: 11px; color: #f59e0b; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 800; margin-bottom: 18px;">
+              <span style="width:6px; height:6px; border-radius:50%; background:#f59e0b;"></span>
+              Premium · NEW
+            </div>
+            <h2 style="font-family: 'Outfit','DM Sans',sans-serif; font-size: clamp(32px, 5vw, 52px); font-weight: 900; letter-spacing: -0.025em; margin-bottom: 10px; line-height: 1.05;">
+              Business <span style="color: #f59e0b;">English</span>
+            </h2>
+            <p style="font-family: 'Tajawal', sans-serif; font-size: 16px; color: rgba(255,255,255,0.85); direction: rtl; line-height: 1.6; max-width: 580px; font-weight: 500;">
+              ٦ وحدات احترافية للاجتماعات والإيميل والعروض ومقابلات العمل — حوارات حقيقية ومفردات مهنية للناطقين بالعربية.
+            </p>
+            <div style="display: flex; gap: 24px; margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.12); font-family: 'DM Sans','Outfit',sans-serif; font-size: 11px; color: rgba(255,255,255,0.65); letter-spacing: 0.16em; text-transform: uppercase; font-weight: 700;">
+              <span><b style="color:#f59e0b; margin-right:4px; font-weight:900;">6</b>Units</span>
+              <span><b style="color:#f59e0b; margin-right:4px; font-weight:900;">150+</b>Phrases</span>
+              <span><b style="color:#f59e0b; margin-right:4px; font-weight:900;">B1·B2</b>Level</span>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-radius: 14px; background: rgba(255,255,255,0.12); backdrop-filter: blur(8px); font-family: 'DM Sans','Outfit',sans-serif; font-size: 13px; font-weight: 800; letter-spacing: -0.01em; color: white; white-space: nowrap;">
+            Enter Collection <span style="font-size: 18px;">→</span>
+          </div>
+        </div>
+      </a>
     </section>
 
     <!-- ── Other private resources (link to main domain) ──── -->

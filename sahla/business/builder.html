@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Business Sentence Builder — Sahla · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    img, svg { display: block; max-width: 100%; }
+    button { font-family: inherit; cursor: pointer; }
+
+    :root {
+      /* Brand "ink" — warm dark replaces the previous blue everywhere */
+      --blue:        #1c1917;   /* primary ink (matches focus-bar top) */
+      --blue-deep:   #0c0a09;   /* deepest ink */
+      --blue-bright: #44403c;   /* lighter ink (was bright blue) */
+
+      --bg:          #f5efe0;
+      --paper:       #fdfaf0;
+      --paper-soft:  #faf3e0;
+      --paper-deep:  #f0e6cd;
+      --border:      #e0d4b2;
+      --border-soft: #ece2c5;
+
+      --gold:        #b45309;
+      --gold-bright: #d97706;
+      --gold-soft:   #fef3c7;
+
+      --text:        #1c1917;
+      --text-2:      #44403c;
+      --text-muted:  #78716c;
+      --text-dim:    #a8a29e;
+
+      --green:       #15803d;
+
+      --display:     'Outfit', 'DM Sans', system-ui, sans-serif;
+      --sans:        'DM Sans', system-ui, -apple-system, sans-serif;
+      --arabic:      'Cairo', 'Tajawal', system-ui, sans-serif;
+      --mono:        'JetBrains Mono', ui-monospace, monospace;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100%;
+    }
+    body::before {
+      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse 50% 35% at 85% 5%, rgba(180, 83, 9, 0.06), transparent 60%),
+        radial-gradient(ellipse 50% 35% at 5% 95%, rgba(28, 25, 23, 0.05), transparent 60%);
+    }
+
+    /* Top bar */
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(245, 239, 224, 0.82);
+      backdrop-filter: blur(18px) saturate(180%);
+      border-bottom: 1px solid var(--border-soft);
+      padding: 14px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+    .crest {
+      width: 38px; height: 38px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--blue), var(--blue-deep));
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--display); font-weight: 800; font-size: 17px;
+      letter-spacing: -0.02em;
+      box-shadow: 0 6px 16px -4px rgba(28, 25, 23, 0.3);
+    }
+    .brand-stack { display: flex; flex-direction: column; }
+    .brand-name { font-family: var(--display); font-size: 16px; font-weight: 800; color: var(--text); letter-spacing: -0.02em; line-height: 1.1; }
+    .brand-sub { font-size: 10px; color: var(--text-muted); letter-spacing: 0.18em; text-transform: uppercase; font-weight: 700; line-height: 1.4; }
+    .topbar-right { display: flex; align-items: center; gap: 6px; }
+    .pill-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: 999px;
+      color: var(--text-2); text-decoration: none;
+      font-family: var(--display); font-size: 13px; font-weight: 700;
+      transition: all 0.18s ease;
+    }
+    .pill-link:hover { background: var(--paper); color: var(--blue); }
+    .pill-link.is-active { background: var(--blue); color: white; box-shadow: 0 4px 12px -3px rgba(28, 25, 23, 0.35); }
+
+    /* Page */
+    .page { position: relative; z-index: 2; max-width: 1240px; margin: 0 auto; padding: 36px 28px 60px; }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, var(--blue) 0%, var(--blue-deep) 60%, #292524 100%);
+      color: white;
+      border-radius: 24px;
+      padding: 44px 40px;
+      margin-bottom: 40px;
+      position: relative; overflow: hidden;
+      box-shadow: 0 24px 50px -22px rgba(28, 25, 23, 0.4);
+    }
+    .hero::before {
+      content: ""; position: absolute; top: -100px; right: -60px;
+      width: 320px; height: 320px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(217, 119, 6, 0.32), transparent 70%);
+      pointer-events: none;
+    }
+    .hero-inner { position: relative; z-index: 1; display: grid; gap: 28px; grid-template-columns: 1fr; }
+    @media (min-width: 800px) { .hero-inner { grid-template-columns: 1fr auto; align-items: end; gap: 40px; } }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 5px 14px; border-radius: 999px;
+      background: rgba(217, 119, 6, 0.16); color: #fbbf24;
+      font-family: var(--display); font-size: 11px; font-weight: 800;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      margin-bottom: 16px; border: 1px solid rgba(217, 119, 6, 0.32);
+    }
+    .hero-title {
+      font-family: var(--display); font-weight: 900;
+      font-size: clamp(32px, 5vw, 52px); line-height: 1.05; letter-spacing: -0.025em;
+      margin-bottom: 10px;
+    }
+    .hero-title .accent { color: #fbbf24; }
+    .hero-sub {
+      font-family: var(--arabic); font-weight: 600;
+      font-size: clamp(15px, 1.8vw, 18px); color: rgba(253, 250, 240, 0.85); direction: rtl;
+      max-width: 600px; line-height: 1.75;
+    }
+    .hero-stats {
+      display: flex; gap: 24px; align-items: flex-end;
+    }
+    .hero-stat-num {
+      font-family: var(--display); font-size: 32px; font-weight: 900;
+      color: #fbbf24; line-height: 1; letter-spacing: -0.02em;
+    }
+    .hero-stat-label {
+      font-family: var(--display); font-size: 10px; font-weight: 700;
+      color: rgba(255, 255, 255, 0.6);
+      letter-spacing: 0.22em; text-transform: uppercase;
+    }
+
+    /* Pattern picker grid */
+    .picker-head {
+      display: flex; align-items: center; gap: 16px;
+      margin-bottom: 20px;
+    }
+    .picker-head h2 {
+      font-family: var(--display); font-size: clamp(22px, 2.8vw, 28px); font-weight: 800;
+      color: var(--text); letter-spacing: -0.02em; flex: 1;
+    }
+    .picker-head .section-sub {
+      font-family: var(--arabic); font-size: 14px; color: var(--text-muted);
+      direction: rtl; font-weight: 600;
+    }
+    .picker-grid {
+      display: grid; gap: 14px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      margin-bottom: 40px;
+    }
+    .picker-card {
+      padding: 22px 22px 18px;
+      background: var(--paper); border: 1px solid var(--border);
+      border-radius: 16px;
+      display: flex; flex-direction: column; gap: 10px;
+      text-align: left;
+      transition: all 0.2s ease;
+      color: inherit; font: inherit;
+      position: relative; overflow: hidden;
+    }
+    .picker-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--p-color, var(--blue)); }
+    .picker-card:hover { transform: translateY(-3px); border-color: var(--p-color, var(--blue-bright)); background: var(--paper-soft); box-shadow: 0 14px 32px -14px rgba(115, 99, 53, 0.18); }
+    .picker-card.is-active { border-color: var(--p-color, var(--blue)); background: var(--paper-soft); box-shadow: 0 0 0 2px var(--p-color, var(--blue)); }
+    .picker-card-head { display: flex; align-items: center; justify-content: space-between; }
+    .picker-card-num {
+      font-family: var(--mono); font-size: 11px; font-weight: 700;
+      color: var(--p-color, var(--blue)); letter-spacing: 0.16em;
+      padding: 3px 9px; background: var(--paper-deep); border-radius: 5px;
+    }
+    .picker-card-emoji { font-size: 26px; }
+    .picker-card-title {
+      font-family: var(--display); font-size: 17px; font-weight: 800;
+      color: var(--text); letter-spacing: -0.01em; line-height: 1.25; margin-top: 6px;
+    }
+    .picker-card-title-ar {
+      font-family: var(--arabic); font-size: 13px; color: var(--text-muted);
+      direction: rtl; font-weight: 600; line-height: 1.6;
+    }
+    .picker-card-meta {
+      font-family: var(--display); font-size: 11px; color: var(--text-dim); font-weight: 700;
+      letter-spacing: 0.06em; padding-top: 8px;
+      border-top: 1px dashed var(--border);
+    }
+
+    /* Builder area */
+    .builder {
+      display: grid; gap: 16px; grid-template-columns: 1fr;
+    }
+
+    /* Preview bar — docked at the BOTTOM of the viewport */
+    .preview {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      z-index: 50;
+      background: linear-gradient(180deg, var(--paper) 0%, var(--paper-soft) 100%);
+      border-top: 3px solid var(--gold);
+      border-radius: 18px 18px 0 0;
+      padding: 16px 28px 18px;
+      box-shadow: 0 -18px 40px -14px rgba(28, 25, 23, 0.18);
+    }
+    .preview-inner { max-width: 1200px; margin: 0 auto; }
+    /* Reserve space at page bottom so slots aren't hidden behind the docked bar */
+    body { padding-bottom: 220px; }
+    @media (max-width: 640px) { body { padding-bottom: 260px; } }
+    .preview-meta {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px; gap: 14px; flex-wrap: wrap;
+    }
+    .preview-label {
+      font-family: var(--display); font-size: 10px; font-weight: 800;
+      color: var(--gold); letter-spacing: 0.22em; text-transform: uppercase;
+    }
+    .preview-actions { display: flex; gap: 8px; }
+    .preview-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 13px; border-radius: 999px;
+      background: var(--paper); border: 1px solid var(--border);
+      font-family: var(--display); font-size: 11px; font-weight: 700;
+      color: var(--text-2); transition: all 0.18s ease;
+    }
+    .preview-btn:hover:not(:disabled) { background: var(--blue); color: white; border-color: var(--blue); }
+    .preview-btn.is-primary { background: var(--blue); color: white; border-color: var(--blue); }
+    .preview-btn.is-primary:hover:not(:disabled) { background: var(--blue-bright); }
+    .preview-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .preview-btn svg { width: 13px; height: 13px; }
+    .preview-btn.is-wa { background: var(--green); color: white; border-color: var(--green); }
+    .preview-btn.is-wa:hover { background: #166534; }
+
+    .preview-sentence {
+      font-family: var(--display); font-size: clamp(18px, 2.2vw, 24px); font-weight: 600;
+      color: var(--text); line-height: 1.5; letter-spacing: -0.005em;
+      min-height: 36px;
+    }
+    .preview-sentence .placeholder {
+      color: var(--text-dim); font-style: italic; font-weight: 500; font-size: 16px;
+    }
+    .preview-sentence .slot-chip {
+      display: inline-block;
+      padding: 1px 8px;
+      margin: 0 2px;
+      border-radius: 6px;
+      background: var(--slot-soft, var(--paper-deep));
+      color: var(--slot-color, var(--blue));
+      font-weight: 700;
+    }
+    .preview-sentence .slot-empty {
+      display: inline-block;
+      padding: 2px 14px;
+      margin: 0 2px;
+      border-radius: 6px;
+      background: rgba(180, 83, 9, 0.08);
+      color: var(--gold);
+      font-weight: 600;
+      font-style: italic;
+      font-size: 0.85em;
+      border: 1px dashed rgba(180, 83, 9, 0.3);
+    }
+
+    .preview-translation {
+      font-family: var(--arabic); font-size: 15px; color: var(--text-muted);
+      direction: rtl; font-weight: 500; line-height: 1.7;
+      margin-top: 8px; padding-top: 10px; border-top: 1px dashed var(--border);
+    }
+
+    /* Slots */
+    .slot-list { display: grid; gap: 12px; }
+    .slot {
+      background: var(--paper); border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 22px;
+      position: relative; overflow: hidden;
+      transition: border-color 0.2s ease;
+    }
+    .slot::before { content: ""; position: absolute; top: 0; left: 0; bottom: 0; width: 4px; background: var(--slot-color, var(--blue)); }
+    .slot.is-filled { background: var(--paper-soft); }
+
+    .slot-head {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+    }
+    .slot-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; border-radius: 9px;
+      background: var(--slot-soft, var(--paper-deep)); color: var(--slot-color, var(--blue));
+      font-family: var(--display); font-weight: 900; font-size: 13px;
+      flex-shrink: 0;
+    }
+    .slot-label-en {
+      font-family: var(--display); font-size: 14px; font-weight: 800; color: var(--text);
+      letter-spacing: -0.005em;
+    }
+    .slot-label-ar {
+      font-family: var(--arabic); font-size: 12px; color: var(--text-muted);
+      direction: rtl; font-weight: 600;
+    }
+    .slot-titles { flex: 1; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+    .slot-status {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 9px; border-radius: 999px;
+      font-family: var(--display); font-size: 10px; font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .slot-status.is-empty { background: var(--gold-soft); color: var(--gold); }
+    .slot-status.is-filled { background: rgba(21, 128, 61, 0.1); color: var(--green); }
+    .slot-status svg { width: 11px; height: 11px; }
+
+    .chips {
+      display: flex; gap: 6px; flex-wrap: wrap;
+    }
+    .chip {
+      display: inline-flex; flex-direction: column; gap: 2px;
+      padding: 9px 14px; border-radius: 12px;
+      background: var(--paper-soft); border: 1px solid var(--border-soft);
+      font: inherit; text-align: left;
+      transition: all 0.18s ease;
+      color: var(--text);
+      max-width: 100%;
+    }
+    .chip:hover {
+      background: var(--paper); border-color: var(--slot-color, var(--blue-bright));
+      transform: translateY(-1px);
+    }
+    .chip.is-selected {
+      background: var(--slot-color, var(--blue)); color: white;
+      border-color: var(--slot-color, var(--blue));
+      box-shadow: 0 4px 12px -3px rgba(28, 25, 23, 0.35);
+    }
+    .chip-en {
+      font-family: var(--display); font-weight: 700; font-size: 13.5px;
+      line-height: 1.3; letter-spacing: -0.005em;
+    }
+    .chip-ar {
+      font-family: var(--arabic); font-size: 11px; font-weight: 500;
+      color: var(--text-muted); direction: rtl; line-height: 1.4;
+    }
+    .chip.is-selected .chip-ar { color: rgba(255, 255, 255, 0.75); }
+
+    .clear-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 20px; border-radius: 14px;
+      background: var(--paper); border: 1px solid var(--border);
+      margin-top: 16px;
+    }
+    .clear-bar-text {
+      font-family: var(--display); font-size: 12px; color: var(--text-muted); font-weight: 600;
+    }
+    .clear-btn {
+      padding: 7px 14px; border-radius: 9px;
+      background: transparent; border: 1px solid var(--border);
+      font-family: var(--display); font-size: 11px; font-weight: 700;
+      color: var(--text-2); letter-spacing: 0.04em;
+      transition: all 0.18s ease;
+    }
+    .clear-btn:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-soft); }
+
+    /* Pattern overview */
+    .pattern-intro {
+      padding: 18px 22px; border-radius: 16px;
+      background: rgba(217, 119, 6, 0.06); border: 1px solid rgba(217, 119, 6, 0.18);
+      margin-bottom: 16px;
+    }
+    .pattern-intro-text {
+      font-family: var(--display); font-size: 14px; color: var(--text-2); line-height: 1.6;
+    }
+    .pattern-intro-ar {
+      font-family: var(--arabic); font-size: 13px; color: var(--text-muted);
+      direction: rtl; font-weight: 500; margin-top: 6px; line-height: 1.7;
+    }
+
+    .pattern-examples {
+      padding: 16px 20px; border-radius: 14px;
+      background: var(--paper); border: 1px dashed var(--border);
+      margin-bottom: 16px;
+    }
+    .pattern-examples-label {
+      font-family: var(--display); font-size: 10px; font-weight: 800;
+      color: var(--gold); letter-spacing: 0.22em; text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .pattern-example {
+      font-family: var(--display); font-style: italic; font-size: 14px;
+      color: var(--text-2); line-height: 1.6; padding: 4px 0;
+    }
+    .pattern-example::before { content: "“"; color: var(--gold); margin-right: 4px; font-size: 1.2em; }
+    .pattern-example::after { content: "”"; color: var(--gold); margin-left: 4px; font-size: 1.2em; }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      background: var(--text); color: var(--paper);
+      padding: 12px 22px; border-radius: 999px;
+      font-family: var(--display); font-size: 13px; font-weight: 700;
+      box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.3);
+      animation: toastIn 0.3s ease, toastOut 0.3s ease 1.8s both;
+      z-index: 200; pointer-events: none;
+    }
+    @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+    @keyframes toastOut { to { opacity: 0; transform: translate(-50%, -10px); } }
+
+    /* Footer */
+    .page-footer {
+      max-width: 1240px; margin: 60px auto 0; padding: 24px 28px;
+      border-top: 1px solid var(--border-soft);
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 18px; flex-wrap: wrap;
+    }
+    .footer-brand {
+      font-family: var(--display); font-weight: 900; font-size: 16px;
+      color: var(--blue); letter-spacing: -0.02em;
+    }
+    .footer-contact {
+      display: flex; gap: 20px; flex-wrap: wrap; align-items: center;
+      font-family: var(--display); font-size: 12px; color: var(--text-muted); font-weight: 600;
+    }
+    .footer-contact b { color: var(--green); margin-right: 4px; }
+    .footer-contact span[dir="rtl"] { font-family: var(--arabic); font-size: 14px; }
+
+    /* ── Fullscreen / Focus Mode ───────────────────────────── */
+    .fs-btn {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--paper); border: 1px solid var(--border);
+      color: var(--text-2);
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: all 0.18s ease;
+    }
+    .fs-btn:hover { background: var(--blue); color: white; border-color: var(--blue); }
+    .fs-btn.is-active { background: var(--blue); color: white; border-color: var(--blue); }
+    .fs-btn svg { width: 16px; height: 16px; }
+
+    body.is-focus .topbar,
+    body.is-focus .page-footer,
+    body.is-focus .hero,
+    body.is-focus #picker,
+    body.is-focus .picker-head:first-of-type {
+      display: none !important;
+    }
+    body.is-focus .page { padding-top: 18px; max-width: 1400px; }
+    body.is-focus .pattern-intro,
+    body.is-focus .pattern-examples { display: none; }
+
+    .focus-bar {
+      display: none;
+      position: sticky; top: 0; z-index: 60;
+      background: var(--text); color: var(--paper);
+      padding: 10px 18px;
+      border-radius: 0 0 14px 14px;
+      align-items: center; justify-content: space-between;
+      gap: 14px; flex-wrap: wrap;
+      margin: 0 -28px 22px;
+      font-family: var(--display);
+    }
+    body.is-focus .focus-bar { display: flex; }
+    .focus-bar-title { font-size: 13px; font-weight: 800; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
+    .focus-bar-title .num { font-family: var(--mono); color: var(--gold-bright); }
+    .focus-bar-tip { font-size: 11px; color: var(--paper-deep); letter-spacing: 0.04em; }
+    .focus-bar-tip kbd { background: rgba(255, 255, 255, 0.12); padding: 2px 6px; border-radius: 4px; font-family: var(--mono); font-size: 10px; }
+    .focus-bar-exit {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 999px;
+      background: rgba(255, 255, 255, 0.16); color: white;
+      font-family: var(--display); font-size: 11px; font-weight: 700;
+      letter-spacing: 0.04em; border: none;
+    }
+    .focus-bar-exit:hover { background: var(--gold-bright); color: var(--text); }
+
+    @media (max-width: 640px) {
+      .topbar { padding: 12px 16px; }
+      .page { padding: 24px 16px; }
+      .hero { padding: 30px 22px; }
+      .slot { padding: 16px 18px; }
+      .chip { padding: 8px 12px; }
+      .preview { padding: 16px 18px; top: 64px; }
+      .topbar-right .pill-link:nth-child(1) { display: none; }
+      body.is-focus .preview { top: 60px; }
+      .focus-bar { margin: 0 -16px 16px; padding: 10px 14px; }
+      .focus-bar-tip { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="topbar">
+  <a href="../" class="topbar-left">
+    <div class="crest">S</div>
+    <div class="brand-stack">
+      <span class="brand-name">Sahla</span>
+      <span class="brand-sub">Inglizi · Private</span>
+    </div>
+  </a>
+  <div class="topbar-right">
+    <a href="../" class="pill-link">← Home</a>
+    <a href="./" class="pill-link">📚 Units</a>
+    <a href="#" class="pill-link is-active">🧩 Builder</a>
+  </div>
+</nav>
+
+<main class="page" id="app">
+  <header class="hero">
+    <div class="hero-inner">
+      <div>
+        <span class="hero-eyebrow"><span style="width:6px;height:6px;border-radius:50%;background:#fbbf24"></span>Sentence Builder · Long-form</span>
+        <h1 class="hero-title">Build Business <span class="accent">Sentences</span></h1>
+        <p class="hero-sub">10 أنماط جملة احترافية للأعمال — اختر كلمة من كل مجموعة لبناء جملة كاملة من 4-6 أجزاء. مع نطق طبيعي وترجمة فورية.</p>
+      </div>
+      <div class="hero-stats">
+        <div><div class="hero-stat-num" id="stat-patterns">10</div><div class="hero-stat-label">Patterns</div></div>
+        <div><div class="hero-stat-num" id="stat-built">0</div><div class="hero-stat-label">Built</div></div>
+      </div>
+    </div>
+  </header>
+
+  <section>
+    <div class="picker-head">
+      <h2>Choose a Pattern</h2>
+      <span class="section-sub">اختر نمط الجملة</span>
+    </div>
+    <div class="picker-grid" id="picker"></div>
+  </section>
+
+  <section id="builder-area" hidden>
+    <!-- Sticky focus-mode bar (only visible when fullscreen is on) -->
+    <div class="focus-bar">
+      <div class="focus-bar-title">
+        🧩 <span class="num" id="focus-num">01</span>
+        <span id="focus-title">Pattern</span>
+      </div>
+      <div class="focus-bar-tip"><kbd>F</kbd> exit focus · <kbd>Esc</kbd> close</div>
+      <button class="focus-bar-exit" id="focus-exit">✕ Exit focus</button>
+    </div>
+
+    <div class="picker-head" style="margin-top: 32px;">
+      <h2 id="active-title">Pattern</h2>
+      <span class="section-sub" id="active-title-ar"></span>
+    </div>
+
+    <div class="pattern-intro">
+      <div class="pattern-intro-text" id="active-intro"></div>
+      <div class="pattern-intro-ar" id="active-intro-ar"></div>
+    </div>
+
+    <div class="pattern-examples">
+      <div class="pattern-examples-label">Example sentences · أمثلة</div>
+      <div id="active-examples"></div>
+    </div>
+
+    <div class="preview" id="preview">
+      <div class="preview-inner">
+      <div class="preview-meta">
+        <span class="preview-label">Your sentence · جملتك</span>
+        <div class="preview-actions">
+          <button class="preview-btn is-primary" id="preview-speak">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+            <span>Listen</span>
+          </button>
+          <button class="preview-btn" id="preview-copy">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span>Copy</span>
+          </button>
+          <a class="preview-btn is-wa" id="preview-wa" target="_blank" rel="noopener" href="https://wa.me/212707902091">
+            <span>📱</span><span>Send</span>
+          </a>
+          <button class="fs-btn" id="fs-toggle" title="Focus mode (F) — hide everything except the builder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="preview-sentence" id="preview-sentence"></div>
+      <div class="preview-translation" id="preview-translation"></div>
+      </div>
+    </div>
+
+    <div class="slot-list" id="slots" style="margin-top: 22px;"></div>
+
+    <div class="clear-bar">
+      <span class="clear-bar-text">Built <b id="built-count">0</b> sentences with this pattern</span>
+      <button class="clear-btn" id="clear-btn">↺ Clear selections</button>
+    </div>
+  </section>
+</main>
+
+<footer class="page-footer">
+  <div class="footer-brand">Inglizi.com</div>
+  <div class="footer-contact">
+    <span dir="rtl">الأستاذ حمزة القصراوي</span>
+    <span><b>WA</b> 0707 902 091</span>
+  </div>
+</footer>
+
+<script>
+// 10 long-form business sentence patterns
+const PATTERNS = [
+  {
+    id: 1, emoji: '👋', color: '#2563eb', soft: '#dde7ff',
+    titleEn: 'Professional Introduction', titleAr: 'تقديم احترافي شامل',
+    intro: 'Build a complete introduction in one sentence — opener, name, role, company, and a hook about your experience or focus.',
+    introAr: 'ابنِ جملة تقديم كاملة في عبارة واحدة — التحية، الاسم، المنصب، الشركة، ولمسة عن خبرتك.',
+    examples: [
+      "Hi, I'm Karim, a Marketing Manager at Atlas Tech, and I've been leading B2B campaigns in the European market for five years.",
+      "Hello, my name is Sara, I work as a Senior Product Designer at Bloom Studio, and I specialize in mobile-first user experiences.",
+    ],
+    slots: [
+      { label: 'Opener', labelAr: 'افتتاح', chips: [
+        { en: 'Hi,', ar: 'مرحباً،' },
+        { en: 'Hello,', ar: 'مرحباً (رسمي)،' },
+        { en: 'Good morning,', ar: 'صباح الخير،' },
+        { en: 'Pleased to meet you.', ar: 'تشرفت بلقائك.' },
+      ]},
+      { label: 'Name', labelAr: 'الاسم', chips: [
+        { en: "I'm Karim,", ar: 'أنا كريم،' },
+        { en: 'my name is Sara,', ar: 'اسمي سارة،' },
+        { en: "I'm Hassan Belhaj,", ar: 'أنا حسن بلحاج،' },
+        { en: 'this is Layla speaking,', ar: 'معك ليلى،' },
+      ]},
+      { label: 'Role', labelAr: 'المنصب', chips: [
+        { en: 'a Marketing Manager', ar: 'مدير تسويق' },
+        { en: 'a Senior Product Designer', ar: 'مصمم منتجات أول' },
+        { en: 'the Head of Sales', ar: 'رئيس قسم المبيعات' },
+        { en: 'a Junior Strategist', ar: 'استراتيجي مبتدئ' },
+        { en: 'a Software Engineer', ar: 'مهندس برمجيات' },
+      ]},
+      { label: 'Company', labelAr: 'الشركة', chips: [
+        { en: 'at Atlas Tech,', ar: 'في أطلس تك،' },
+        { en: 'at NorthBridge Logistics,', ar: 'في نورثبريدج،' },
+        { en: 'at Bloom Studio,', ar: 'في بلوم ستوديو،' },
+        { en: 'at a fintech startup,', ar: 'في شركة فنتك ناشئة،' },
+      ]},
+      { label: 'Hook', labelAr: 'لمسة شخصية', chips: [
+        { en: "and I've been leading B2B campaigns for five years.", ar: 'وأقود حملات B2B منذ خمس سنوات.' },
+        { en: 'and I specialize in mobile-first user experiences.', ar: 'ومتخصص في تجارب المستخدم على الجوال أولاً.' },
+        { en: 'and I focus on the European market.', ar: 'وأركّز على السوق الأوروبية.' },
+        { en: "and I'm passionate about turning data into stories.", ar: 'وشغوف بتحويل البيانات إلى قصص.' },
+        { en: 'and we are hiring across three departments.', ar: 'ونحن نوظّف في ثلاث أقسام.' },
+      ]},
+    ],
+  },
+  {
+    id: 2, emoji: '✉️', color: '#b45309', soft: '#fef3c7',
+    titleEn: 'Polite Email Request', titleAr: 'طلب مهذب في البريد الإلكتروني',
+    intro: 'Craft a complete polite email request — greeting, purpose, the ask itself, the timeline, and a courteous closing.',
+    introAr: 'ابنِ طلباً كاملاً مهذباً في البريد — التحية، الغرض، الطلب، الموعد، الختام.',
+    examples: [
+      "Dear Sara, I hope this email finds you well. I'm writing to ask if you could send me the latest version of the report by Friday, as we need it for the executive review on Monday.",
+      "Hi Hassan, I hope you're doing well. I would appreciate it if you could review the attached proposal before our meeting on Tuesday, so we can discuss any concerns in person.",
+    ],
+    slots: [
+      { label: 'Greeting', labelAr: 'تحية', chips: [
+        { en: 'Dear Sara,', ar: 'عزيزتي سارة،' },
+        { en: 'Hi Hassan,', ar: 'مرحباً حسن،' },
+        { en: 'Dear Mr. Belhaj,', ar: 'السيد بلحاج المحترم،' },
+        { en: 'Hello team,', ar: 'مرحباً بالفريق،' },
+      ]},
+      { label: 'Opener', labelAr: 'افتتاح', chips: [
+        { en: 'I hope this email finds you well.', ar: 'أرجو أن تصلك الرسالة وأنت بخير.' },
+        { en: "I hope you're doing well.", ar: 'أرجو أن تكون بخير.' },
+        { en: 'Thank you for your prompt reply.', ar: 'شكراً لردك السريع.' },
+        { en: 'Thanks for taking the time to meet last week.', ar: 'شكراً لوقتك في الاجتماع الأسبوع الماضي.' },
+      ]},
+      { label: 'Purpose', labelAr: 'الغرض', chips: [
+        { en: "I'm writing to ask if you could", ar: 'أكتب إليك لأطلب منك أن' },
+        { en: 'I would appreciate it if you could', ar: 'سأكون ممتناً إن تمكنت من' },
+        { en: "I'm following up on our conversation about", ar: 'أتابع معك بخصوص محادثتنا حول' },
+        { en: 'I wanted to confirm', ar: 'أردت تأكيد' },
+      ]},
+      { label: 'Action', labelAr: 'الطلب', chips: [
+        { en: 'send me the latest version of the report', ar: 'ترسل لي أحدث نسخة من التقرير' },
+        { en: 'review the attached proposal', ar: 'تراجع المقترح المرفق' },
+        { en: 'schedule a 30-minute call', ar: 'تحدد مكالمة لمدة 30 دقيقة' },
+        { en: 'share your availability', ar: 'تشاركني الأوقات المتاحة لديك' },
+        { en: 'forward the invoice', ar: 'تحوّل الفاتورة' },
+      ]},
+      { label: 'When', labelAr: 'متى', chips: [
+        { en: 'by Friday,', ar: 'بحلول الجمعة،' },
+        { en: 'by end of day,', ar: 'بنهاية اليوم،' },
+        { en: 'before our meeting on Tuesday,', ar: 'قبل اجتماعنا يوم الثلاثاء،' },
+        { en: 'at your earliest convenience,', ar: 'في أقرب وقت يناسبك،' },
+        { en: 'sometime next week,', ar: 'في وقت ما الأسبوع المقبل،' },
+      ]},
+      { label: 'Why', labelAr: 'السبب', chips: [
+        { en: 'as we need it for the executive review on Monday.', ar: 'لأننا بحاجة إليه للمراجعة التنفيذية يوم الاثنين.' },
+        { en: 'so we can discuss any concerns in person.', ar: 'لنناقش أي مخاوف شخصياً.' },
+        { en: 'so we can finalize the contract this week.', ar: 'لننهي العقد هذا الأسبوع.' },
+        { en: 'to keep the project on schedule.', ar: 'لإبقاء المشروع في موعده.' },
+      ]},
+    ],
+  },
+  {
+    id: 3, emoji: '🗂️', color: '#15803d', soft: '#dcfce7',
+    titleEn: 'Meeting Opinion', titleAr: 'إبداء الرأي في الاجتماع',
+    intro: 'Express a structured opinion: acknowledge the previous point, state your view, give a reason, and propose a next step.',
+    introAr: 'عبّر عن رأي منظّم: اعترف بالنقطة السابقة، عبّر عن رأيك، اذكر السبب، اقترح خطوة تالية.',
+    examples: [
+      "I see your point, Sara, but I think we should postpone the launch, because the analytics team needs another week, so I'd suggest we revisit this on Friday.",
+      "I completely agree with Hassan, and in my opinion we should also increase the budget by 15%, since customer acquisition costs have risen, so let's review the numbers in the next sync.",
+    ],
+    slots: [
+      { label: 'Acknowledge', labelAr: 'اعتراف', chips: [
+        { en: 'I see your point, Sara,', ar: 'أتفهم وجهة نظرك يا سارة،' },
+        { en: 'I completely agree with Hassan,', ar: 'أتفق تماماً مع حسن،' },
+        { en: "That's a fair point,", ar: 'هذه نقطة عادلة،' },
+        { en: 'I hear what you\'re saying,', ar: 'أسمع ما تقول،' },
+      ]},
+      { label: 'Bridge', labelAr: 'انتقال', chips: [
+        { en: 'but', ar: 'لكن' },
+        { en: 'and', ar: 'و' },
+        { en: 'however,', ar: 'مع ذلك،' },
+        { en: 'that said,', ar: 'مع ذلك،' },
+      ]},
+      { label: 'Opinion', labelAr: 'الرأي', chips: [
+        { en: 'I think we should postpone the launch,', ar: 'أعتقد أنه يجب علينا تأجيل الإطلاق،' },
+        { en: 'in my opinion we should also increase the budget by 15%,', ar: 'في رأيي يجب أيضاً زيادة الميزانية بنسبة 15٪،' },
+        { en: 'I believe we need to talk to the client first,', ar: 'أعتقد أن علينا التحدث مع العميل أولاً،' },
+        { en: 'from my perspective, this requires more data,', ar: 'من وجهة نظري، هذا يتطلب مزيداً من البيانات،' },
+      ]},
+      { label: 'Reason', labelAr: 'السبب', chips: [
+        { en: 'because the analytics team needs another week,', ar: 'لأن فريق التحليلات يحتاج أسبوعاً آخر،' },
+        { en: 'since customer acquisition costs have risen,', ar: 'حيث ارتفعت تكاليف اكتساب العملاء،' },
+        { en: 'as the feedback from beta users was mixed,', ar: 'بما أن ملاحظات المستخدمين التجريبيين كانت متباينة،' },
+        { en: 'given the timeline constraints,', ar: 'نظراً لقيود الجدول الزمني،' },
+      ]},
+      { label: 'Next step', labelAr: 'خطوة تالية', chips: [
+        { en: "so I'd suggest we revisit this on Friday.", ar: 'لذا أقترح أن نعيد النظر في هذا يوم الجمعة.' },
+        { en: "so let's review the numbers in the next sync.", ar: 'لذا لنراجع الأرقام في الاجتماع التالي.' },
+        { en: 'so could we agree on a follow-up call this week?', ar: 'فهل يمكننا الاتفاق على مكالمة متابعة هذا الأسبوع؟' },
+        { en: "so I'd propose we ask Sophie to lead this.", ar: 'لذا أقترح أن نطلب من صوفي قيادة هذا.' },
+      ]},
+    ],
+  },
+  {
+    id: 4, emoji: '🤝', color: '#7c3aed', soft: '#ede9fe',
+    titleEn: 'Negotiation Offer', titleAr: 'تقديم عرض تفاوضي',
+    intro: 'Make a counter-offer with a clear condition — open the offer, state what you give, state what you want in return, and time-bound it.',
+    introAr: 'قدّم عرضاً مضاداً بشرط واضح — افتتاح العرض، ما تعطيه، ما تطلبه مقابل ذلك، وحدّد الوقت.',
+    examples: [
+      "I can offer you a 15% discount on the standard rate if you commit to an 18-month contract, with delivery starting next month, and we close the deal by end of this week.",
+      "We're prepared to extend the timeline by two weeks, provided that you cover the additional shipping costs, on the condition that the design is finalized by Monday.",
+    ],
+    slots: [
+      { label: 'Offer opener', labelAr: 'افتتاح العرض', chips: [
+        { en: 'I can offer you', ar: 'يمكنني أن أعرض عليك' },
+        { en: "We're prepared to", ar: 'نحن مستعدون أن' },
+        { en: 'How about we', ar: 'ما رأيك أن' },
+        { en: "I'd be willing to", ar: 'سأكون مستعداً أن' },
+      ]},
+      { label: 'What you give', labelAr: 'ما تقدمه', chips: [
+        { en: 'a 15% discount on the standard rate', ar: 'خصم 15٪ عن السعر القياسي' },
+        { en: 'extend the timeline by two weeks', ar: 'تمديد الموعد بأسبوعين' },
+        { en: 'include free onboarding for your team', ar: 'تضمين تدريب الفريق مجاناً' },
+        { en: 'waive the setup fee', ar: 'إلغاء رسوم الإعداد' },
+        { en: 'add 50 extra user seats', ar: 'إضافة 50 مقعد مستخدم إضافي' },
+      ]},
+      { label: 'Condition link', labelAr: 'الشرط', chips: [
+        { en: 'if you commit to', ar: 'إذا التزمت بـ' },
+        { en: 'provided that', ar: 'بشرط أن' },
+        { en: 'on the condition that', ar: 'شريطة أن' },
+        { en: 'as long as you', ar: 'طالما أنك' },
+      ]},
+      { label: 'What you want', labelAr: 'ما تطلبه', chips: [
+        { en: 'an 18-month contract,', ar: 'عقد لمدة 18 شهراً،' },
+        { en: 'cover the additional shipping costs,', ar: 'تتحمّل تكاليف الشحن الإضافية،' },
+        { en: 'sign the master agreement first,', ar: 'توقّع الاتفاقية الرئيسية أولاً،' },
+        { en: 'provide a 30% upfront payment,', ar: 'تدفع 30٪ مقدماً،' },
+        { en: 'agree to a non-disclosure clause,', ar: 'توافق على بند عدم الإفصاح،' },
+      ]},
+      { label: 'Sweetener / time bound', labelAr: 'إغراء أو موعد', chips: [
+        { en: 'with delivery starting next month, and we close the deal by end of this week.', ar: 'مع بدء التسليم الشهر القادم، وننهي الصفقة بنهاية هذا الأسبوع.' },
+        { en: 'and that the design is finalized by Monday.', ar: 'وأن يُنتهى من التصميم بحلول الاثنين.' },
+        { en: 'and this offer is good through Friday.', ar: 'وهذا العرض صالح حتى الجمعة.' },
+        { en: 'and we can review terms again after six months.', ar: 'ويمكننا مراجعة الشروط مرة أخرى بعد ستة أشهر.' },
+      ]},
+    ],
+  },
+  {
+    id: 5, emoji: '🎤', color: '#be185d', soft: '#fce7f3',
+    titleEn: 'Presentation Opening', titleAr: 'افتتاح العرض التقديمي',
+    intro: 'Open a presentation with structure — greeting, intro, hook, what you\'ll cover, and how long it takes.',
+    introAr: 'افتتح عرضاً تقديمياً بهيكلية — التحية، التعريف، خطّاف، ما ستغطيه، والمدة.',
+    examples: [
+      "Good morning everyone, and thank you for being here. I'm Karim from Atlas Tech, and today I want to start with a simple question: how many hours did your team waste on internal email last week? Over the next 15 minutes, I'll show you a tool that could cut that number in half, followed by a short Q&A.",
+      "Hello and welcome. My name is Sara Belhaj, and I lead product at Bloom Studio. Today I'd like to walk you through how we redesigned our onboarding flow, and what we learned along the way. I'll cover the problem, our approach, and the results, in about 10 minutes.",
+    ],
+    slots: [
+      { label: 'Greeting', labelAr: 'تحية', chips: [
+        { en: 'Good morning everyone, and thank you for being here.', ar: 'صباح الخير للجميع، وشكراً لحضوركم.' },
+        { en: 'Hello and welcome.', ar: 'مرحباً وأهلاً وسهلاً.' },
+        { en: 'Thanks for joining today.', ar: 'شكراً لانضمامكم اليوم.' },
+      ]},
+      { label: 'Self intro', labelAr: 'تعريف بالنفس', chips: [
+        { en: "I'm Karim from Atlas Tech,", ar: 'أنا كريم من أطلس تك،' },
+        { en: 'My name is Sara Belhaj, and I lead product at Bloom Studio.', ar: 'اسمي سارة بلحاج، وأقود المنتج في بلوم ستوديو.' },
+        { en: 'For those who don\'t know me, I head the marketing team.', ar: 'لمن لا يعرفني، أنا أرأس فريق التسويق.' },
+      ]},
+      { label: 'Hook / topic', labelAr: 'خطّاف', chips: [
+        { en: 'and today I want to start with a simple question: how many hours did your team waste on internal email last week?', ar: 'واليوم أريد أن أبدأ بسؤال بسيط: كم ساعة أهدر فريقك على الإيميل الداخلي الأسبوع الماضي؟' },
+        { en: "and today I'd like to walk you through how we redesigned our onboarding flow.", ar: 'واليوم أود أن أصحبكم عبر كيفية إعادة تصميمنا لمسار الإعداد.' },
+        { en: 'and what I have to share today could change how you think about pricing.', ar: 'وما سأشاركه اليوم قد يغيّر طريقة تفكيركم في التسعير.' },
+      ]},
+      { label: 'Structure', labelAr: 'هيكل', chips: [
+        { en: "Over the next 15 minutes, I'll show you a tool that could cut that number in half,", ar: 'خلال الـ 15 دقيقة القادمة، سأريكم أداة قد تخفض هذا الرقم إلى النصف،' },
+        { en: "I'll cover the problem, our approach, and the results,", ar: 'سأتناول المشكلة ونهجنا والنتائج،' },
+        { en: "We'll go through three case studies,", ar: 'سنستعرض ثلاث دراسات حالة،' },
+      ]},
+      { label: 'Time / Q&A', labelAr: 'الوقت والأسئلة', chips: [
+        { en: 'followed by a short Q&A.', ar: 'تليها جلسة أسئلة قصيرة.' },
+        { en: 'in about 10 minutes.', ar: 'في حوالي 10 دقائق.' },
+        { en: 'with time at the end for your questions.', ar: 'مع وقت في النهاية لأسئلتكم.' },
+      ]},
+    ],
+  },
+  {
+    id: 6, emoji: '🎧', color: '#0891b2', soft: '#cffafe',
+    titleEn: 'Customer Service Apology', titleAr: 'اعتذار في خدمة العملاء',
+    intro: 'Handle a complaint with the full apology arc — acknowledge, apologize, take responsibility, offer the solution, and confirm next step.',
+    introAr: 'تعامل مع شكوى بدورة اعتذار كاملة — الاعتراف، الاعتذار، تحمّل المسؤولية، تقديم الحل، تأكيد الخطوة التالية.',
+    examples: [
+      "I completely understand how frustrating that must be, and I'm very sorry for the inconvenience this has caused you, this shouldn't have happened and we take full responsibility, here's what I can do for you right now: I'll issue a full refund within 24 hours and dispatch a replacement with express delivery today, and you'll receive a confirmation email with the tracking number within the next 10 minutes.",
+    ],
+    slots: [
+      { label: 'Acknowledge', labelAr: 'اعتراف', chips: [
+        { en: 'I completely understand how frustrating that must be,', ar: 'أتفهم تماماً كم هذا محبط،' },
+        { en: 'I hear you, and I see why you\'re upset,', ar: 'أسمعك، وأفهم لماذا أنت منزعج،' },
+        { en: 'Thank you for bringing this to our attention,', ar: 'شكراً لإحضار هذا إلى علمنا،' },
+      ]},
+      { label: 'Apologize', labelAr: 'الاعتذار', chips: [
+        { en: "and I'm very sorry for the inconvenience this has caused you,", ar: 'وأعتذر بشدة عن الإزعاج الذي سببناه لك،' },
+        { en: 'and on behalf of the whole team, I apologize sincerely,', ar: 'ونيابةً عن الفريق بأكمله، أعتذر بصدق،' },
+        { en: "and please accept my sincere apologies for the delay,", ar: 'وأرجو قبول اعتذاري الصادق عن التأخير،' },
+      ]},
+      { label: 'Take responsibility', labelAr: 'تحمّل المسؤولية', chips: [
+        { en: "this shouldn't have happened and we take full responsibility,", ar: 'ما كان ينبغي أن يحدث هذا ونحن نتحمل المسؤولية الكاملة،' },
+        { en: 'this is on us, not on you,', ar: 'هذا خطؤنا، لا خطؤك،' },
+        { en: "we made a mistake and we'll make it right,", ar: 'لقد أخطأنا وسنصلح الأمر،' },
+      ]},
+      { label: 'Solution', labelAr: 'الحل', chips: [
+        { en: "here's what I can do for you right now: I'll issue a full refund within 24 hours and dispatch a replacement with express delivery today,", ar: 'إليك ما يمكنني فعله الآن: سأصدر استرداداً كاملاً خلال 24 ساعة وأرسل بديلاً بتسليم سريع اليوم،' },
+        { en: "I'll personally escalate this to our director and we'll have an answer for you by end of day,", ar: 'سأرفع هذا شخصياً إلى مديرنا وسيكون لدينا جواب لك بنهاية اليوم،' },
+        { en: "we'll waive this month's fee and credit your account with an additional 20%,", ar: 'سنلغي رسوم هذا الشهر ونضيف 20٪ إضافية إلى حسابك،' },
+      ]},
+      { label: 'Next step', labelAr: 'خطوة تالية', chips: [
+        { en: "and you'll receive a confirmation email with the tracking number within the next 10 minutes.", ar: 'وستتلقى رسالة تأكيد برقم التتبع خلال العشر دقائق القادمة.' },
+        { en: "and I'll personally follow up with you tomorrow morning to make sure everything is resolved.", ar: 'وسأتابع معك شخصياً صباح الغد للتأكد من حل كل شيء.' },
+        { en: 'and please reach back out to me directly if anything else comes up.', ar: 'ورجاءً تواصل معي مباشرة إذا ظهر أي شيء آخر.' },
+      ]},
+    ],
+  },
+  {
+    id: 7, emoji: '💬', color: '#dc2626', soft: '#fee2e2',
+    titleEn: 'Constructive Feedback', titleAr: 'ملاحظات بنّاءة',
+    intro: 'Deliver feedback that lands — set up the moment, name what worked, name what to improve with a specific example, and propose what success looks like.',
+    introAr: 'قدّم ملاحظات تصل — هيّئ اللحظة، اذكر ما نجح، اذكر ما يحتاج تحسين بمثال محدد، اقترح ما يشبه النجاح.',
+    examples: [
+      "Karim, I'd like to share some feedback on the Q3 report, is now a good time? Your data visualization was excellent and clearly the best I've seen this year, but I noticed the executive summary buried the most important number on page three, for example the 22% growth should be the headline, so next time I'd love to see the top finding in the first paragraph.",
+    ],
+    slots: [
+      { label: 'Setup', labelAr: 'تهيئة', chips: [
+        { en: "Karim, I'd like to share some feedback on the Q3 report, is now a good time?", ar: 'كريم، أود مشاركة بعض الملاحظات حول تقرير الربع الثالث، هل الوقت مناسب الآن؟' },
+        { en: 'Sara, do you have a few minutes for some feedback on yesterday\'s presentation?', ar: 'سارة، هل لديك بضع دقائق لملاحظات حول عرض الأمس؟' },
+        { en: "Hassan, can we talk about the client meeting? I'd like to share what I observed.", ar: 'حسن، هل يمكننا الحديث عن اجتماع العميل؟ أود مشاركة ما لاحظته.' },
+      ]},
+      { label: 'Positive specific', labelAr: 'إيجابي محدد', chips: [
+        { en: "Your data visualization was excellent and clearly the best I've seen this year,", ar: 'تصورك للبيانات كان ممتازاً وبوضوح الأفضل الذي رأيته هذا العام،' },
+        { en: 'The way you handled the difficult question was very professional,', ar: 'الطريقة التي تعاملت بها مع السؤال الصعب كانت احترافية جداً،' },
+        { en: 'Your introduction set the right tone immediately,', ar: 'مقدمتك حدّدت النبرة الصحيحة فوراً،' },
+      ]},
+      { label: 'Bridge', labelAr: 'انتقال', chips: [
+        { en: 'but I noticed', ar: 'لكنني لاحظت' },
+        { en: 'one thing I\'d like to flag is', ar: 'شيء أود الإشارة إليه هو' },
+        { en: 'on the other hand,', ar: 'من ناحية أخرى،' },
+      ]},
+      { label: 'Improvement', labelAr: 'تحسين', chips: [
+        { en: 'the executive summary buried the most important number on page three,', ar: 'الملخص التنفيذي دفن الرقم الأهم في الصفحة الثالثة،' },
+        { en: 'the slides had too much text — it pulled attention away from you,', ar: 'الشرائح فيها نص أكثر مما ينبغي — سحبت الانتباه منك،' },
+        { en: "you waited until minute 40 to raise the key concern, and by then the decision was made,", ar: 'انتظرت حتى الدقيقة 40 لإثارة الشاغل الرئيسي، وبحلول ذلك كان القرار قد اتخذ،' },
+      ]},
+      { label: 'Example', labelAr: 'مثال', chips: [
+        { en: 'for example the 22% growth should be the headline,', ar: 'مثلاً، نمو 22٪ يجب أن يكون العنوان الرئيسي،' },
+        { en: 'for instance the AI workflow slide had nine bullet points,', ar: 'على سبيل المثال، شريحة سير عمل الذكاء الاصطناعي بها تسع نقاط،' },
+        { en: 'specifically, the client asked about pricing twice and we didn\'t answer directly,', ar: 'بالتحديد، سأل العميل عن السعر مرتين ولم نجب مباشرة،' },
+      ]},
+      { label: 'Success looks like', labelAr: 'النجاح يبدو', chips: [
+        { en: "so next time I'd love to see the top finding in the first paragraph.", ar: 'لذا في المرة القادمة، أحب أن أرى أهم نتيجة في الفقرة الأولى.' },
+        { en: 'so going forward, three bullets max per slide would help the audience focus.', ar: 'لذا للمستقبل، ثلاث نقاط كحد أقصى لكل شريحة ستساعد الجمهور على التركيز.' },
+        { en: "so I'd suggest jumping in within the first 15 minutes of the next meeting, even with an incomplete thought.", ar: 'لذا أقترح التدخل خلال أول 15 دقيقة من الاجتماع القادم، حتى لو بفكرة غير مكتملة.' },
+      ]},
+    ],
+  },
+  {
+    id: 8, emoji: '📊', color: '#0d9488', soft: '#ccfbf1',
+    titleEn: 'Reporting Results', titleAr: 'تقديم النتائج',
+    intro: 'Report a metric with full context — what it is, how much it changed, the time period, the driver, and the implication.',
+    introAr: 'قدّم مؤشراً بسياق كامل — ما هو، كم تغيّر، الفترة الزمنية، المحرّك، والتداعيات.',
+    examples: [
+      "Revenue increased by 22% quarter over quarter, reaching 4.2 million dollars, mostly driven by stronger demand in the European market, which means we are on track to exceed our annual target by 8%.",
+    ],
+    slots: [
+      { label: 'Metric', labelAr: 'المقياس', chips: [
+        { en: 'Revenue', ar: 'الإيرادات' },
+        { en: 'Monthly active users', ar: 'المستخدمون النشطون شهرياً' },
+        { en: 'Customer acquisition cost', ar: 'تكلفة اكتساب العميل' },
+        { en: 'Customer churn', ar: 'معدل ترك العملاء' },
+        { en: 'Average order value', ar: 'متوسط قيمة الطلب' },
+      ]},
+      { label: 'Movement', labelAr: 'الحركة', chips: [
+        { en: 'increased by 22%', ar: 'زادت بنسبة 22٪' },
+        { en: 'dropped by 18%', ar: 'انخفضت بنسبة 18٪' },
+        { en: 'remained stable at around 18%', ar: 'استقرت حول 18٪' },
+        { en: 'grew by 42%', ar: 'نمت بنسبة 42٪' },
+        { en: 'declined slightly by 3%', ar: 'انخفضت قليلاً بنسبة 3٪' },
+      ]},
+      { label: 'Period', labelAr: 'الفترة', chips: [
+        { en: 'quarter over quarter,', ar: 'مقارنة بالربع السابق،' },
+        { en: 'year over year,', ar: 'مقارنة بالعام السابق،' },
+        { en: 'in the last 30 days,', ar: 'في آخر 30 يوماً،' },
+        { en: 'since the new campaign launched,', ar: 'منذ إطلاق الحملة الجديدة،' },
+      ]},
+      { label: 'Absolute / context', labelAr: 'الرقم المطلق', chips: [
+        { en: 'reaching 4.2 million dollars,', ar: 'لتصل إلى 4.2 مليون دولار،' },
+        { en: 'which is roughly 12,000 new sign-ups,', ar: 'أي ما يقارب 12,000 تسجيل جديد،' },
+        { en: 'compared to 18% last quarter,', ar: 'مقارنة بـ 18٪ في الربع الماضي،' },
+        { en: 'crossing the 50 million mark for the first time,', ar: 'متخطّياً حاجز الـ 50 مليون للمرة الأولى،' },
+      ]},
+      { label: 'Driver', labelAr: 'المحرّك', chips: [
+        { en: 'mostly driven by stronger demand in the European market,', ar: 'مدفوعة بشكل أساسي بطلب أقوى في السوق الأوروبية،' },
+        { en: 'primarily due to the new onboarding flow,', ar: 'بشكل رئيسي بسبب مسار الإعداد الجديد،' },
+        { en: 'thanks to the partnership we signed in January,', ar: 'بفضل الشراكة التي وقعناها في يناير،' },
+        { en: 'after we paused the underperforming ad channels,', ar: 'بعد إيقافنا للقنوات الإعلانية ضعيفة الأداء،' },
+      ]},
+      { label: 'Implication', labelAr: 'النتيجة', chips: [
+        { en: 'which means we are on track to exceed our annual target by 8%.', ar: 'مما يعني أننا في الطريق لتجاوز هدفنا السنوي بنسبة 8٪.' },
+        { en: 'so we should double down on European expansion in Q4.', ar: 'لذا يجب أن نضاعف توسعنا في أوروبا في الربع الرابع.' },
+        { en: 'so we can reallocate budget toward retention initiatives.', ar: 'لذا يمكننا إعادة توزيع الميزانية نحو مبادرات الاحتفاظ.' },
+        { en: 'which gives us room to invest in product hires.', ar: 'مما يعطينا مجالاً للاستثمار في توظيف فريق المنتج.' },
+      ]},
+    ],
+  },
+  {
+    id: 9, emoji: '💼', color: '#92400e', soft: '#fef3c7',
+    titleEn: 'Interview Answer', titleAr: 'إجابة في مقابلة عمل',
+    intro: 'Tell-me-about-yourself, the STAR way — current role, past experience, specific achievement, transferable skill, and tie to the role.',
+    introAr: 'حدثني عن نفسك بطريقة STAR — المنصب الحالي، الخبرة السابقة، إنجاز محدد، مهارة قابلة للنقل، وربط بالوظيفة.',
+    examples: [
+      "Currently I lead a team of three at Atlas Tech, before that I worked at NorthBridge as a junior strategist for two years, where I built our affiliate program from zero to 1.2 million dollars in annual revenue, which taught me how to combine data analysis with creative campaign design, and that's exactly the combination your job description calls for.",
+    ],
+    slots: [
+      { label: 'Current role', labelAr: 'المنصب الحالي', chips: [
+        { en: 'Currently I lead a team of three at Atlas Tech,', ar: 'حالياً أقود فريقاً من ثلاثة في أطلس تك،' },
+        { en: 'Right now I work as a senior product designer at Bloom Studio,', ar: 'الآن أعمل كمصمم منتجات أول في بلوم ستوديو،' },
+        { en: 'In my current role I manage three regional accounts worth $4M in annual revenue,', ar: 'في منصبي الحالي، أدير ثلاثة حسابات إقليمية بقيمة 4 ملايين دولار سنوياً،' },
+      ]},
+      { label: 'Past role', labelAr: 'منصب سابق', chips: [
+        { en: 'before that I worked at NorthBridge as a junior strategist for two years,', ar: 'قبل ذلك عملت في نورثبريدج كاستراتيجي مبتدئ لعامين،' },
+        { en: 'previously I spent three years at a fintech startup as a product lead,', ar: 'سابقاً قضيت ثلاث سنوات في شركة فنتك ناشئة كقائد منتج،' },
+        { en: 'I started my career as an analyst at a consulting firm in 2020,', ar: 'بدأت مسيرتي محللاً في شركة استشارية في 2020،' },
+      ]},
+      { label: 'Specific achievement', labelAr: 'إنجاز محدد', chips: [
+        { en: 'where I built our affiliate program from zero to 1.2 million dollars in annual revenue,', ar: 'حيث بنيت برنامج الشراكة لدينا من الصفر إلى 1.2 مليون دولار سنوياً،' },
+        { en: 'where I cut customer churn by 18% in 12 months through onboarding redesign,', ar: 'حيث خفّضت معدل ترك العملاء بنسبة 18٪ في 12 شهراً عبر إعادة تصميم الإعداد،' },
+        { en: 'where I designed and shipped a feature that 40% of monthly users now rely on,', ar: 'حيث صمّمت وأطلقت ميزة يعتمد عليها الآن 40٪ من المستخدمين شهرياً،' },
+      ]},
+      { label: 'Transferable skill', labelAr: 'مهارة قابلة للنقل', chips: [
+        { en: 'which taught me how to combine data analysis with creative campaign design,', ar: 'مما علّمني كيف أجمع بين تحليل البيانات وتصميم الحملات الإبداعي،' },
+        { en: 'which sharpened my ability to lead cross-functional teams under tight deadlines,', ar: 'مما صقل قدرتي على قيادة فرق متعددة الوظائف ضمن مواعيد ضيقة،' },
+        { en: 'which gave me a deep understanding of B2B customer behavior,', ar: 'مما أعطاني فهماً عميقاً لسلوك عملاء B2B،' },
+      ]},
+      { label: 'Tie to the role', labelAr: 'الربط بالوظيفة', chips: [
+        { en: "and that's exactly the combination your job description calls for.", ar: 'وهذا بالضبط ما يطلبه وصف وظيفتكم.' },
+        { en: "and that's why this Senior Marketing Strategist role caught my attention immediately.", ar: 'ولهذا لفت دور استراتيجي تسويق أول انتباهي فوراً.' },
+        { en: 'and I see a clear path to bring those skills to your team starting day one.', ar: 'وأرى مساراً واضحاً لإحضار تلك المهارات إلى فريقكم من اليوم الأول.' },
+      ]},
+    ],
+  },
+  {
+    id: 10, emoji: '✅', color: '#059669', soft: '#dcfce7',
+    titleEn: 'Closing a Meeting', titleAr: 'إنهاء اجتماع',
+    intro: 'Close a meeting clearly — summarize the decision, assign the action, name the deadline, schedule the follow-up, and thank everyone.',
+    introAr: 'أنهِ الاجتماع بوضوح — لخّص القرار، عيّن المسؤولية، حدّد الموعد النهائي، خطّط للمتابعة، اشكر الجميع.',
+    examples: [
+      "To summarize, we've agreed to launch the new pricing on May 1st, Sara will own the email rollout to existing customers, with all updates due by April 25th at the latest, let's reconvene next Thursday at 10am for a status check, and thank you all for the focused discussion today.",
+    ],
+    slots: [
+      { label: 'Summary opener', labelAr: 'افتتاح الملخص', chips: [
+        { en: "To summarize,", ar: 'للتلخيص،' },
+        { en: 'Let me wrap up what we\'ve covered:', ar: 'دعوني أختتم ما تناولناه:' },
+        { en: 'So the key takeaway is this:', ar: 'إذن الخلاصة الرئيسية هي:' },
+      ]},
+      { label: 'Decision', labelAr: 'القرار', chips: [
+        { en: "we've agreed to launch the new pricing on May 1st,", ar: 'اتفقنا على إطلاق التسعير الجديد في 1 مايو،' },
+        { en: 'we will move forward with the European vendor,', ar: 'سنمضي قدماً مع المورّد الأوروبي،' },
+        { en: 'we\'re postponing the campaign until we get final approval,', ar: 'سنؤجّل الحملة حتى نحصل على الموافقة النهائية،' },
+        { en: 'the decision is to invest in the new analytics tool,', ar: 'القرار هو الاستثمار في أداة التحليلات الجديدة،' },
+      ]},
+      { label: 'Owner', labelAr: 'المسؤول', chips: [
+        { en: 'Sara will own the email rollout to existing customers,', ar: 'سارة ستتولى إرسال الإيميلات للعملاء الحاليين،' },
+        { en: 'Hassan will draft the announcement and circulate it for review,', ar: 'حسن سيصيغ الإعلان ويعمّمه للمراجعة،' },
+        { en: 'Sophie will coordinate with the dev team on the technical side,', ar: 'صوفي ستنسّق مع فريق التطوير على الجانب التقني،' },
+        { en: "I'll personally take care of the contract details,", ar: 'سأتولى شخصياً تفاصيل العقد،' },
+      ]},
+      { label: 'Deadline', labelAr: 'الموعد النهائي', chips: [
+        { en: 'with all updates due by April 25th at the latest,', ar: 'مع تسليم جميع التحديثات بحلول 25 أبريل كحد أقصى،' },
+        { en: "by end of next week,", ar: 'بنهاية الأسبوع المقبل،' },
+        { en: 'before our next board meeting on the 15th,', ar: 'قبل اجتماع مجلس الإدارة القادم في الـ 15،' },
+        { en: 'in time for the Monday morning sync,', ar: 'في الوقت المناسب للاجتماع صباح الاثنين،' },
+      ]},
+      { label: 'Follow-up', labelAr: 'متابعة', chips: [
+        { en: "let's reconvene next Thursday at 10am for a status check,", ar: 'لنجتمع مجدداً يوم الخميس القادم الساعة 10 صباحاً للمراجعة،' },
+        { en: "I'll send the meeting minutes within two hours,", ar: 'سأرسل محضر الاجتماع خلال ساعتين،' },
+        { en: 'we will sync briefly every Tuesday until launch,', ar: 'سنتزامن بسرعة كل ثلاثاء حتى الإطلاق،' },
+      ]},
+      { label: 'Close', labelAr: 'ختام', chips: [
+        { en: 'and thank you all for the focused discussion today.', ar: 'وشكراً للجميع على النقاش المركّز اليوم.' },
+        { en: 'thanks everyone, really productive session.', ar: 'شكراً للجميع، جلسة مثمرة فعلاً.' },
+        { en: 'great work team, see you all on Thursday.', ar: 'عمل رائع يا فريق، أراكم جميعاً يوم الخميس.' },
+      ]},
+    ],
+  },
+]
+
+// ── TTS (HD via inglizi.com, browser fallback) ────────────
+const TTS_ENDPOINT = 'https://inglizi.com/api/tts'
+const audioCache = new Map()
+let currentAudio = null
+let preferredEnVoice = null
+function loadVoices() {
+  if (!window.speechSynthesis) return
+  const voices = speechSynthesis.getVoices()
+  preferredEnVoice =
+    voices.find(v => v.lang === 'en-US' && /Samantha|Allison|Karen|Daniel/i.test(v.name)) ||
+    voices.find(v => v.lang === 'en-US') ||
+    voices.find(v => v.lang?.startsWith('en')) || null
+}
+if (window.speechSynthesis) {
+  loadVoices()
+  speechSynthesis.onvoiceschanged = loadVoices
+}
+function browserSpeak(text, rate = 1) {
+  if (!window.speechSynthesis) return Promise.resolve()
+  return new Promise((resolve) => {
+    speechSynthesis.cancel()
+    const u = new SpeechSynthesisUtterance(text)
+    u.lang = 'en-US'
+    if (preferredEnVoice) u.voice = preferredEnVoice
+    u.rate = rate
+    u.onend = resolve; u.onerror = resolve
+    speechSynthesis.speak(u)
+  })
+}
+async function speak(text) {
+  stopSpeak()
+  try {
+    let url = audioCache.get(text)
+    if (!url) {
+      const res = await fetch(TTS_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      })
+      if (!res.ok) throw new Error('TTS ' + res.status)
+      const blob = await res.blob()
+      url = URL.createObjectURL(blob)
+      audioCache.set(text, url)
+    }
+    return new Promise((resolve) => {
+      const a = new Audio(url)
+      currentAudio = a
+      a.onended = resolve
+      a.onerror = () => browserSpeak(text).then(resolve)
+      a.play().catch(() => browserSpeak(text).then(resolve))
+    })
+  } catch {
+    return browserSpeak(text)
+  }
+}
+function stopSpeak() {
+  try { speechSynthesis.cancel() } catch {}
+  if (currentAudio) { try { currentAudio.pause() } catch {}; currentAudio = null }
+}
+
+// ── State & rendering ──────────────────────────────────
+let activePattern = null
+let selections = []  // [chipIndex per slot] — null if not selected
+let builtCount = 0
+
+function esc(s = '') {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
+function renderPicker() {
+  const picker = document.getElementById('picker')
+  picker.innerHTML = PATTERNS.map((p) => `
+    <button class="picker-card ${activePattern?.id === p.id ? 'is-active' : ''}" data-pick="${p.id}" style="--p-color: ${p.color};">
+      <div class="picker-card-head">
+        <span class="picker-card-num">${String(p.id).padStart(2, '0')}</span>
+        <span class="picker-card-emoji">${p.emoji}</span>
+      </div>
+      <div class="picker-card-title">${esc(p.titleEn)}</div>
+      <div class="picker-card-title-ar">${esc(p.titleAr)}</div>
+      <div class="picker-card-meta">${p.slots.length} parts · ${p.slots.reduce((c, s) => c + s.chips.length, 0)} options</div>
+    </button>
+  `).join('')
+  picker.querySelectorAll('[data-pick]').forEach(b => b.addEventListener('click', () => choosePattern(Number(b.dataset.pick))))
+}
+
+function choosePattern(id) {
+  activePattern = PATTERNS.find(p => p.id === id)
+  selections = new Array(activePattern.slots.length).fill(null)
+  builtCount = 0
+  renderPicker()
+  renderBuilder()
+  document.getElementById('builder-area').hidden = false
+  // Update focus-bar title
+  document.getElementById('focus-num').textContent = String(activePattern.id).padStart(2, '0')
+  document.getElementById('focus-title').textContent = activePattern.titleEn
+  if (!document.body.classList.contains('is-focus')) {
+    setTimeout(() => document.getElementById('builder-area').scrollIntoView({ behavior: 'smooth', block: 'start' }), 100)
+  }
+}
+
+function renderBuilder() {
+  if (!activePattern) return
+  const p = activePattern
+  document.getElementById('active-title').textContent = p.titleEn
+  document.getElementById('active-title-ar').textContent = p.titleAr
+  document.getElementById('active-intro').textContent = p.intro
+  document.getElementById('active-intro-ar').textContent = p.introAr
+  document.getElementById('active-examples').innerHTML = p.examples.map(ex => `<div class="pattern-example">${esc(ex)}</div>`).join('')
+  document.getElementById('built-count').textContent = builtCount
+
+  // Slots
+  const slotsEl = document.getElementById('slots')
+  slotsEl.innerHTML = p.slots.map((slot, si) => {
+    const sel = selections[si]
+    const isFilled = sel !== null
+    return `
+      <div class="slot ${isFilled ? 'is-filled' : ''}" style="--slot-color: ${p.color}; --slot-soft: ${p.soft};">
+        <div class="slot-head">
+          <span class="slot-num">${si + 1}</span>
+          <div class="slot-titles">
+            <span class="slot-label-en">${esc(slot.label)}</span>
+            <span class="slot-label-ar">${esc(slot.labelAr)}</span>
+          </div>
+          <span class="slot-status ${isFilled ? 'is-filled' : 'is-empty'}">
+            ${isFilled ? '✓ Done' : 'Pick one'}
+          </span>
+        </div>
+        <div class="chips">
+          ${slot.chips.map((c, ci) => `
+            <button class="chip ${sel === ci ? 'is-selected' : ''}" data-slot="${si}" data-chip="${ci}">
+              <span class="chip-en">${esc(c.en)}</span>
+              <span class="chip-ar">${esc(c.ar)}</span>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    `
+  }).join('')
+  slotsEl.querySelectorAll('[data-slot]').forEach(b => {
+    b.addEventListener('click', () => {
+      const si = Number(b.dataset.slot), ci = Number(b.dataset.chip)
+      selections[si] = (selections[si] === ci) ? null : ci
+      renderBuilder()
+      if (selections.every(s => s !== null)) bumpBuilt()
+    })
+  })
+
+  renderPreview()
+}
+
+function buildSentenceParts() {
+  if (!activePattern) return { parts: [], allFilled: false }
+  return {
+    parts: activePattern.slots.map((slot, si) => ({
+      slot,
+      chip: selections[si] !== null ? slot.chips[selections[si]] : null,
+    })),
+    allFilled: selections.every(s => s !== null),
+  }
+}
+
+function renderPreview() {
+  const { parts, allFilled } = buildSentenceParts()
+  const en = parts.map(p => p.chip ? p.chip.en : null)
+  const ar = parts.map(p => p.chip ? p.chip.ar : null)
+
+  const previewEl = document.getElementById('preview-sentence')
+  const transEl = document.getElementById('preview-translation')
+
+  if (en.every(x => x === null)) {
+    previewEl.innerHTML = '<span class="placeholder">Pick a chip in each slot to build your sentence…</span>'
+    transEl.textContent = ''
+  } else {
+    previewEl.innerHTML = parts.map((part, i) => {
+      if (part.chip) {
+        return `<span class="slot-chip" style="--slot-color: ${activePattern.color}; --slot-soft: ${activePattern.soft};">${esc(part.chip.en)}</span>`
+      } else {
+        return `<span class="slot-empty">${esc(part.slot.label)}</span>`
+      }
+    }).join(' ')
+
+    if (allFilled) {
+      transEl.textContent = ar.join(' ')
+    } else {
+      transEl.textContent = ''
+    }
+  }
+
+  // Buttons enabled state
+  const sentenceText = en.filter(x => x).join(' ')
+  document.getElementById('preview-speak').disabled = !allFilled
+  document.getElementById('preview-copy').disabled = !allFilled
+  document.getElementById('preview-wa').style.opacity = allFilled ? '1' : '0.4'
+  document.getElementById('preview-wa').style.pointerEvents = allFilled ? '' : 'none'
+  document.getElementById('preview-wa').href = 'https://wa.me/212707902091?text=' + encodeURIComponent(sentenceText)
+}
+
+let lastBuiltTrack = ''
+function bumpBuilt() {
+  const text = buildSentenceParts().parts.map(p => p.chip?.en).filter(Boolean).join(' ')
+  if (text && text !== lastBuiltTrack) {
+    lastBuiltTrack = text
+    builtCount++
+    document.getElementById('built-count').textContent = builtCount
+    const totalEl = document.getElementById('stat-built')
+    totalEl.textContent = (Number(totalEl.textContent) || 0) + 1
+  }
+}
+
+function toast(msg) {
+  const t = document.createElement('div')
+  t.className = 'toast'
+  t.textContent = msg
+  document.body.appendChild(t)
+  setTimeout(() => t.remove(), 2400)
+}
+
+// Wire preview buttons
+document.getElementById('preview-speak').addEventListener('click', async () => {
+  const { parts, allFilled } = buildSentenceParts()
+  if (!allFilled) return
+  const sentence = parts.map(p => p.chip.en).join(' ')
+  const btn = document.getElementById('preview-speak')
+  btn.disabled = true
+  await speak(sentence)
+  btn.disabled = false
+})
+document.getElementById('preview-copy').addEventListener('click', async () => {
+  const { parts, allFilled } = buildSentenceParts()
+  if (!allFilled) return
+  const sentence = parts.map(p => p.chip.en).join(' ')
+  try { await navigator.clipboard.writeText(sentence); toast('Copied! ✓') }
+  catch { toast('Copy failed.') }
+})
+document.getElementById('clear-btn').addEventListener('click', () => {
+  if (!activePattern) return
+  selections = new Array(activePattern.slots.length).fill(null)
+  renderBuilder()
+})
+
+// ── Focus / Fullscreen mode ──────────────────────────────
+function toggleFocus(force) {
+  const want = (typeof force === 'boolean') ? force : !document.body.classList.contains('is-focus')
+  document.body.classList.toggle('is-focus', want)
+  document.getElementById('fs-toggle').classList.toggle('is-active', want)
+  if (want) {
+    // Scroll to top of builder area so user sees workspace
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }
+}
+document.getElementById('fs-toggle').addEventListener('click', () => toggleFocus())
+document.getElementById('focus-exit').addEventListener('click', () => toggleFocus(false))
+window.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return
+  if (e.key === 'f' || e.key === 'F') { e.preventDefault(); toggleFocus() }
+  if (e.key === 'Escape' && document.body.classList.contains('is-focus')) toggleFocus(false)
+})
+
+// Boot
+renderPicker()
+// Auto-open the first pattern on load for a richer first impression
+choosePattern(1)
+</script>
+</body>
+</html>
