@@ -1,391 +1,688 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>سهلة · Sahla — أكاديمية إنجليزي.كوم الخاصة</title>
-  <meta name="description" content="كل دروسك الخاصة في مكان واحد — بناء الجمل، القراءة، القواعد، والمواقف الحياتية.">
+  <title>Sahla — Inglizi.com · Private Learning Platform</title>
+  <meta name="description" content="Sahla — your premium English learning platform. Sentence Builder, Real Life English, Level 01, and Business English in one place.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { font-family: 'DM Sans', 'Cairo', system-ui, sans-serif; background: #f5efe0; color: #1c1917; min-height: 100%; }
-    body { padding: 32px 20px 60px; position: relative; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    img, svg { display: block; max-width: 100%; }
+    button { font-family: inherit; cursor: pointer; }
+    a { text-decoration: none; color: inherit; }
+
+    :root {
+      /* Same palette as Business Sentence Builder */
+      --ink:         #1c1917;
+      --ink-deep:    #0c0a09;
+      --ink-bright:  #44403c;
+
+      --bg:          #f5efe0;
+      --paper:       #fdfaf0;
+      --paper-soft:  #faf3e0;
+      --paper-deep:  #f0e6cd;
+      --border:      #e0d4b2;
+      --border-soft: #ece2c5;
+
+      --gold:        #b45309;
+      --gold-bright: #d97706;
+      --gold-soft:   #fef3c7;
+      --gold-glow:   rgba(180, 83, 9, 0.18);
+
+      --text:        #1c1917;
+      --text-2:      #44403c;
+      --text-muted:  #78716c;
+      --text-dim:    #a8a29e;
+
+      --green:       #15803d;
+
+      --display:     'Outfit', 'DM Sans', system-ui, sans-serif;
+      --sans:        'DM Sans', system-ui, -apple-system, sans-serif;
+      --arabic:      'Cairo', 'Tajawal', system-ui, sans-serif;
+      --mono:        'JetBrains Mono', ui-monospace, monospace;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100%;
+      overflow-x: hidden;
+    }
+
+    /* Decorative texture */
     body::before {
       content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
       background:
-        radial-gradient(ellipse 50% 35% at 85% 5%, rgba(180, 83, 9, 0.06), transparent 60%),
-        radial-gradient(ellipse 50% 35% at 5% 95%, rgba(30, 58, 138, 0.05), transparent 60%);
+        radial-gradient(ellipse 60% 40% at 80% 0%, rgba(180, 83, 9, 0.08), transparent 60%),
+        radial-gradient(ellipse 50% 35% at 20% 100%, rgba(28, 25, 23, 0.05), transparent 60%);
     }
-    .page { position: relative; z-index: 1; }
-    [dir="rtl"], [lang="ar"] { font-family: 'Cairo', 'Tajawal', sans-serif; }
 
-    .page { max-width: 1280px; margin: 0 auto; }
+    body::after {
+      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.4;
+      background-image: radial-gradient(rgba(180, 83, 9, 0.08) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
 
-    /* ── Top bar ────────────────────────────────────────────── */
-    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 36px; }
-    .brand-block { display: flex; flex-direction: column; gap: 2px; }
-    .brand-en { font-family: 'Outfit', 'DM Sans', sans-serif; font-weight: 900; font-size: 22px; color: #1c1917; letter-spacing: -0.02em; }
-    .brand-ar { font-family: 'Cairo', sans-serif; font-size: 13px; color: #78716c; font-weight: 600; }
-    .badge { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; background: #fef3c7; color: #92400e; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; font-family: 'DM Sans', sans-serif; }
-    .badge-dot { width: 8px; height: 8px; border-radius: 999px; background: #d97706; }
+    /* ── Top bar ───────────────────────────────────────────── */
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(245, 239, 224, 0.82);
+      backdrop-filter: blur(18px) saturate(180%);
+      -webkit-backdrop-filter: blur(18px) saturate(180%);
+      border-bottom: 1px solid var(--border-soft);
+      padding: 16px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 14px;
+    }
+    .crest {
+      width: 44px; height: 44px; border-radius: 14px;
+      background: linear-gradient(135deg, var(--ink), var(--ink-deep));
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--display); font-weight: 800; font-size: 19px;
+      letter-spacing: -0.02em;
+      box-shadow: 0 8px 20px -4px rgba(28, 25, 23, 0.35),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      position: relative;
+    }
+    .crest::after {
+      content: ""; position: absolute; top: 4px; right: 4px;
+      width: 6px; height: 6px; border-radius: 50%; background: var(--gold-bright);
+      box-shadow: 0 0 12px var(--gold-bright);
+    }
+    .brand-stack { display: flex; flex-direction: column; gap: 2px; }
+    .brand-name {
+      font-family: var(--display); font-size: 19px; font-weight: 900;
+      color: var(--text); letter-spacing: -0.025em; line-height: 1;
+    }
+    .brand-sub {
+      font-size: 10px; color: var(--text-muted);
+      letter-spacing: 0.22em; text-transform: uppercase; font-weight: 700;
+    }
+    .topbar-actions {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .top-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 18px; border-radius: 999px;
+      color: var(--text-2); font-family: var(--display); font-size: 13px; font-weight: 700;
+      transition: all 0.18s ease;
+    }
+    .top-link:hover { background: var(--paper); color: var(--ink); }
+    .top-link.is-wa {
+      background: var(--green); color: white;
+      box-shadow: 0 6px 14px -4px rgba(21, 128, 61, 0.32);
+    }
+    .top-link.is-wa:hover { background: #166534; transform: translateY(-1px); }
 
-    /* ── Hero ────────────────────────────────────────────────── */
-    .hero { background: #fdfaf0; border: 1px solid #e0d4b2; border-radius: 24px; padding: 44px 36px; margin-bottom: 36px; position: relative; overflow: hidden; box-shadow: 0 18px 50px -22px rgba(115, 99, 53, 0.15); }
-    .hero::before { content: ""; position: absolute; top: -120px; left: -120px; width: 320px; height: 320px; background: radial-gradient(circle, rgba(180, 83, 9, 0.10) 0%, transparent 70%); }
-    .hero::after { content: ""; position: absolute; bottom: -160px; right: -120px; width: 360px; height: 360px; background: radial-gradient(circle, rgba(30, 58, 138, 0.08) 0%, transparent 70%); }
-    .hero-inner { position: relative; z-index: 1; }
-    .hero-eyebrow { font-family: 'Outfit', 'DM Sans', sans-serif; font-weight: 800; font-size: 12px; color: #b45309; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 14px; }
-    .hero-title { font-family: 'Outfit', 'DM Sans', sans-serif; font-size: 48px; font-weight: 900; line-height: 1.1; color: #1c1917; letter-spacing: -0.03em; margin-bottom: 14px; }
-    .hero-title .en { font-family: 'Outfit', 'DM Sans', sans-serif; color: #b45309; display: inline-block; margin-right: 12px; }
-    .hero-sub { font-family: 'Cairo', sans-serif; font-size: 17px; color: #44403c; max-width: 640px; line-height: 1.75; font-weight: 500; }
-    .hero-stats { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 26px; }
-    .stat { background: #f1f5f9; border-radius: 12px; padding: 10px 16px; font-size: 13px; color: #334155; font-weight: 600; }
-    .stat b { color: #d97706; margin-left: 4px; }
+    /* ── Page ──────────────────────────────────────────────── */
+    .page { position: relative; z-index: 2; max-width: 1280px; margin: 0 auto; padding: 48px 32px 60px; }
 
-    /* ── Section heads ──────────────────────────────────────── */
-    .section { margin-bottom: 40px; }
-    .section-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid #e0d4b2; }
-    .section-title { font-family: 'Outfit', 'DM Sans', sans-serif; font-size: 24px; font-weight: 900; color: #1c1917; letter-spacing: -0.02em; }
-    .section-sub { font-size: 13px; color: #94a3b8; font-weight: 500; }
-    .section-pill { margin-right: auto; font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; background: #e0f2fe; color: #0369a1; letter-spacing: 0.06em; }
+    /* ── Hero ──────────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      background: linear-gradient(135deg, var(--ink) 0%, var(--ink-deep) 55%, #292524 100%);
+      color: white;
+      border-radius: 32px;
+      padding: 64px 56px;
+      overflow: hidden;
+      margin-bottom: 72px;
+      box-shadow: 0 32px 70px -24px rgba(28, 25, 23, 0.5);
+    }
+    .hero::before {
+      content: ""; position: absolute; top: -120px; right: -80px;
+      width: 480px; height: 480px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(217, 119, 6, 0.32), transparent 70%);
+      pointer-events: none;
+    }
+    .hero::after {
+      content: ""; position: absolute; bottom: -160px; left: -100px;
+      width: 380px; height: 380px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(253, 250, 240, 0.06), transparent 70%);
+      pointer-events: none;
+    }
+    .hero-shapes {
+      position: absolute; inset: 0; pointer-events: none; opacity: 0.5;
+    }
+    .hero-shape {
+      position: absolute; border-radius: 50%;
+      background: linear-gradient(135deg, transparent, rgba(217, 119, 6, 0.15));
+      border: 1px solid rgba(217, 119, 6, 0.2);
+    }
+    .hero-shape-1 { top: 12%; right: 8%; width: 80px; height: 80px; }
+    .hero-shape-2 { top: 60%; right: 20%; width: 36px; height: 36px; background: rgba(217, 119, 6, 0.18); border: none; }
+    .hero-shape-3 { bottom: 18%; right: 12%; width: 120px; height: 120px; opacity: 0.6; }
 
-    /* ── Cards ──────────────────────────────────────────────── */
-    .cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    .hero-inner { position: relative; z-index: 1; max-width: 760px; }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 12px;
+      padding: 7px 16px; border-radius: 999px;
+      background: rgba(217, 119, 6, 0.16); color: #fbbf24;
+      font-family: var(--display); font-size: 11px; font-weight: 800;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      margin-bottom: 28px; border: 1px solid rgba(217, 119, 6, 0.32);
+    }
+    .hero-eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: #fbbf24; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.4); } }
 
-    .card { --accent: #2563eb; --accent-soft: #f0e6cd; display: flex; flex-direction: column; gap: 10px; padding: 24px 24px 20px; background: #fdfaf0; border: 1px solid #e0d4b2; border-radius: 18px; text-decoration: none; color: inherit; transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; box-shadow: 0 2px 0 rgba(115, 99, 53, 0.04); }
-    .card:hover { transform: translateY(-4px); border-color: var(--accent); background: #faf3e0; box-shadow: 0 18px 36px -14px rgba(115, 99, 53, 0.20), 0 0 0 1px var(--accent); }
-    .card::before { content: ""; position: absolute; top: 0; right: 0; left: 0; height: 4px; background: var(--accent); }
-    .card-head { display: flex; align-items: center; gap: 10px; }
-    .card-num { font-family: 'Outfit', 'DM Sans', sans-serif; font-size: 11px; font-weight: 800; color: var(--accent); letter-spacing: 0.16em; text-transform: uppercase; }
-    .card-emoji { font-size: 30px; margin-right: auto; }
-    .card-title { font-family: 'Outfit', 'DM Sans', sans-serif; font-size: 19px; font-weight: 800; color: #1c1917; line-height: 1.22; letter-spacing: -0.01em; }
-    .card-title-ar { font-family: 'Cairo', sans-serif; font-size: 14px; color: #78716c; font-weight: 600; line-height: 1.7; }
-    .card-pattern { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; background: rgba(255, 255, 255, 0.6); border: 1px dashed var(--accent); border-radius: 10px; padding: 10px 12px; font-family: 'DM Sans', sans-serif; font-size: 11px; color: #44403c; font-weight: 600; margin-top: 6px; direction: ltr; }
-    .card-pattern .plus { color: var(--accent); font-weight: 700; opacity: 0.55; }
-    .card-example { font-family: 'DM Sans', sans-serif; font-size: 12px; color: #78716c; font-style: italic; direction: ltr; padding: 9px 12px; background: rgba(240, 230, 205, 0.5); border-radius: 8px; border-right: 3px solid var(--accent); }
-    .card-cta { margin-top: auto; padding-top: 10px; border-top: 1px dashed #e0d4b2; font-family: 'Outfit', 'DM Sans', sans-serif; font-size: 12px; font-weight: 800; color: var(--accent); letter-spacing: 0.02em; display: flex; align-items: center; gap: 6px; }
-    .card-cta::after { content: "←"; transition: transform 0.2s ease; }
-    .card:hover .card-cta::after { transform: translateX(-4px); }
+    .hero-title {
+      font-family: var(--display); font-weight: 900;
+      font-size: clamp(44px, 8vw, 88px); line-height: 0.98; letter-spacing: -0.035em;
+      margin-bottom: 20px;
+    }
+    .hero-title-ar {
+      font-family: var(--arabic); font-weight: 700;
+      font-size: clamp(18px, 2.6vw, 28px); color: rgba(253, 250, 240, 0.78); direction: rtl;
+      line-height: 1.65; max-width: 600px;
+    }
+    .hero-stats {
+      display: flex; gap: 36px; flex-wrap: wrap;
+      margin-top: 40px; padding-top: 28px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .hero-stat { display: flex; flex-direction: column; gap: 4px; }
+    .hero-stat-num {
+      font-family: var(--display); font-size: clamp(28px, 3.5vw, 38px); font-weight: 900;
+      color: #fbbf24; line-height: 1; letter-spacing: -0.025em;
+    }
+    .hero-stat-label {
+      font-family: var(--display); font-size: 10px; font-weight: 700;
+      color: rgba(255, 255, 255, 0.6);
+      letter-spacing: 0.22em; text-transform: uppercase;
+    }
 
-    .card.c-orange   { --accent: #ea580c; --accent-soft: #fff7ed; }
-    .card.c-blue     { --accent: #2563eb; --accent-soft: #eff6ff; }
-    .card.c-rose     { --accent: #e11d48; --accent-soft: #ffe4e6; }
-    .card.c-sepia    { --accent: #b45309; --accent-soft: #fef3c7; }
-    .card.c-cyan     { --accent: #0d9488; --accent-soft: #ccfbf1; }
-    .card.c-emerald  { --accent: #059669; --accent-soft: #d1fae5; }
-    .card.c-indigo   { --accent: #4338ca; --accent-soft: #e0e7ff; }
-    .card.c-slate    { --accent: #334155; --accent-soft: #e2e8f0; }
-    .card.c-lime     { --accent: #65a30d; --accent-soft: #ecfccb; }
-    .card.c-forest   { --accent: #166534; --accent-soft: #dcfce7; }
-    .card.c-gold     { --accent: #b45309; --accent-soft: #fef3c7; }
-    .card.c-sky      { --accent: #0284c7; --accent-soft: #e0f2fe; }
-    .card.c-mint     { --accent: #047857; --accent-soft: #d1fae5; }
-    .card.c-peach    { --accent: #c2410c; --accent-soft: #ffedd5; }
-    .card.c-crimson  { --accent: #991b1b; --accent-soft: #fee2e2; }
-    .card.c-coral    { --accent: #e11d48; --accent-soft: #ffe4e6; }
-    .card.c-lavender { --accent: #6d28d9; --accent-soft: #ede9fe; }
-    .card.c-bronze   { --accent: #92400e; --accent-soft: #fef3c7; }
+    /* ── Section header ────────────────────────────────────── */
+    .section-head {
+      display: flex; align-items: baseline; gap: 18px; margin-bottom: 30px;
+    }
+    .section-num {
+      font-family: var(--display); font-size: 11px; font-weight: 800;
+      color: var(--gold); letter-spacing: 0.24em; text-transform: uppercase;
+      padding: 6px 14px; background: var(--gold-soft); border-radius: 8px;
+    }
+    .section-head h2 {
+      font-family: var(--display); font-size: clamp(26px, 3.4vw, 38px); font-weight: 800;
+      color: var(--text); letter-spacing: -0.025em; line-height: 1.1;
+    }
+    .section-head .section-sub {
+      font-family: var(--arabic); font-size: 15px; color: var(--text-muted);
+      direction: rtl; font-weight: 600; margin-left: auto;
+    }
 
-    /* ── External cards (link out to main domain) ───────────── */
-    .ext-cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-    .ext-card { display: flex; flex-direction: column; gap: 8px; padding: 22px; background: #fdfaf0; border: 1px dashed #d4c4a0; border-radius: 16px; text-decoration: none; color: inherit; transition: all 0.18s ease; }
-    .ext-card:hover { border-color: #b45309; border-style: solid; transform: translateY(-2px); background: #faf3e0; }
-    .ext-card-emoji { font-size: 32px; }
-    .ext-card-title { font-family: 'Outfit', 'DM Sans', sans-serif; font-size: 17px; font-weight: 800; color: #1c1917; letter-spacing: -0.01em; }
-    .ext-card-title-ar { font-family: 'Cairo', sans-serif; font-size: 13px; color: #78716c; font-weight: 600; }
-    .ext-card-meta { font-family: 'Outfit', 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; color: #a8a29e; letter-spacing: 0.06em; text-transform: uppercase; margin-top: auto; padding-top: 8px; }
+    /* ── Pillars grid ──────────────────────────────────────── */
+    .pillars {
+      display: grid; gap: 22px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 760px) {
+      .pillars { grid-template-columns: 1fr 1fr; }
+      /* Make the Business English card span both columns so its two CTAs breathe */
+      .pillar.span-2 { grid-column: span 2; }
+    }
 
-    /* ── Footer ─────────────────────────────────────────────── */
-    .page-footer { margin-top: 50px; padding: 22px; background: #0f172a; color: #cbd5e1; border-radius: 18px; text-align: center; font-size: 13px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px; }
-    .ft-brand { font-family: 'DM Sans', sans-serif; font-weight: 900; color: #fbbf24; letter-spacing: -0.01em; }
-    .ft-sep { opacity: 0.4; }
-    .ft-wa { font-family: 'DM Sans', sans-serif; font-weight: 700; color: #34d399; }
+    .pillar {
+      position: relative;
+      background: var(--paper);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 36px 36px 32px;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 0 rgba(115, 99, 53, 0.05);
+    }
+    .pillar:hover {
+      transform: translateY(-6px);
+      border-color: var(--p-accent, var(--gold));
+      box-shadow: 0 28px 56px -16px rgba(115, 99, 53, 0.25);
+    }
+    .pillar::before {
+      content: ""; position: absolute; top: 0; left: 0; right: 0; height: 6px;
+      background: linear-gradient(90deg, var(--p-accent, var(--gold)), var(--p-accent-2, var(--gold-bright)));
+      opacity: 0.85;
+    }
 
-    /* ── Responsive ─────────────────────────────────────────── */
+    /* Decorative ornament inside each pillar */
+    .pillar-shape {
+      position: absolute; top: -40px; right: -40px;
+      width: 220px; height: 220px; border-radius: 50%;
+      background: radial-gradient(circle, var(--p-soft, var(--gold-soft)), transparent 65%);
+      opacity: 0.85;
+      pointer-events: none;
+    }
+
+    .pillar-emoji {
+      width: 80px; height: 80px; border-radius: 20px;
+      background: linear-gradient(135deg, var(--p-accent, var(--gold)), var(--p-accent-2, var(--gold-bright)));
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 38px;
+      box-shadow: 0 14px 30px -8px rgba(28, 25, 23, 0.25),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .pillar-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--display); font-size: 10px; font-weight: 800;
+      color: var(--p-accent, var(--gold));
+      letter-spacing: 0.22em; text-transform: uppercase;
+      margin-bottom: 10px;
+      position: relative;
+    }
+    .pillar-eyebrow::before { content: ""; width: 16px; height: 1px; background: currentColor; opacity: 0.6; }
+
+    .pillar-title {
+      font-family: var(--display); font-size: clamp(24px, 2.6vw, 32px); font-weight: 900;
+      color: var(--text); letter-spacing: -0.025em; line-height: 1.1;
+      margin-bottom: 6px;
+      position: relative;
+    }
+    .pillar-title-ar {
+      font-family: var(--arabic); font-size: 15px; color: var(--text-muted);
+      direction: rtl; font-weight: 600; line-height: 1.65;
+      position: relative;
+    }
+    .pillar-desc {
+      font-family: var(--sans); font-size: 14px; color: var(--text-2);
+      line-height: 1.7; margin-top: 14px;
+      position: relative;
+    }
+
+    .pillar-meta {
+      display: flex; gap: 16px; flex-wrap: wrap; align-items: center;
+      margin: 22px 0 26px;
+      padding: 14px 18px; border-radius: 12px;
+      background: var(--paper-soft); border: 1px solid var(--border-soft);
+      position: relative;
+    }
+    .meta-stat {
+      display: flex; align-items: baseline; gap: 6px;
+      font-family: var(--display); font-size: 12px; color: var(--text-muted); font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .meta-stat b {
+      font-size: 18px; color: var(--text); font-weight: 900; letter-spacing: -0.01em;
+      font-family: var(--display);
+    }
+    .meta-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--text-dim); }
+
+    .pillar-actions {
+      display: flex; gap: 10px; flex-wrap: wrap;
+      position: relative;
+    }
+    .pillar-btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 14px 24px; border-radius: 14px;
+      font-family: var(--display); font-size: 13px; font-weight: 800;
+      letter-spacing: -0.005em;
+      transition: all 0.2s ease;
+    }
+    .pillar-btn.is-primary {
+      background: linear-gradient(135deg, var(--p-accent, var(--gold)), var(--p-accent-2, var(--gold-bright)));
+      color: white;
+      box-shadow: 0 8px 20px -6px rgba(28, 25, 23, 0.25);
+    }
+    .pillar-btn.is-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px -8px rgba(28, 25, 23, 0.32);
+    }
+    .pillar-btn.is-secondary {
+      background: var(--paper);
+      color: var(--p-accent, var(--gold));
+      border: 1.5px solid var(--p-accent, var(--gold));
+    }
+    .pillar-btn.is-secondary:hover {
+      background: var(--p-accent, var(--gold));
+      color: white;
+      transform: translateY(-2px);
+    }
+    .pillar-btn-arrow {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: rgba(255, 255, 255, 0.18);
+      transition: transform 0.2s ease;
+    }
+    .pillar-btn:hover .pillar-btn-arrow { transform: translateX(4px); }
+    .pillar-btn.is-secondary .pillar-btn-arrow { background: var(--p-soft, var(--gold-soft)); color: var(--p-accent, var(--gold)); }
+    .pillar-btn.is-secondary:hover .pillar-btn-arrow { background: rgba(255,255,255,0.22); color: white; }
+
+    .pillar-ext-note {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border);
+      font-family: var(--display); font-size: 11px; color: var(--text-muted); font-weight: 600;
+      letter-spacing: 0.08em;
+    }
+    .pillar-ext-note svg { width: 11px; height: 11px; opacity: 0.7; }
+
+    /* Per-pillar color themes */
+    .pillar.p-rose {
+      --p-accent: #b45309;
+      --p-accent-2: #d97706;
+      --p-soft: #fef3c7;
+    }
+    .pillar.p-blue {
+      --p-accent: #1c1917;
+      --p-accent-2: #44403c;
+      --p-soft: #f0e6cd;
+    }
+    .pillar.p-green {
+      --p-accent: #15803d;
+      --p-accent-2: #166534;
+      --p-soft: #dcfce7;
+    }
+    .pillar.p-violet {
+      --p-accent: #6d28d9;
+      --p-accent-2: #7c3aed;
+      --p-soft: #ede9fe;
+    }
+
+    /* ── Two-up CTA inside Business English card ───────────── */
+    .biz-tracks {
+      display: grid; gap: 12px;
+      grid-template-columns: 1fr;
+      margin: 22px 0 0;
+      position: relative;
+    }
+    @media (min-width: 600px) { .biz-tracks { grid-template-columns: 1fr 1fr; } }
+
+    .biz-track {
+      display: flex; align-items: center; gap: 16px;
+      padding: 20px 22px; border-radius: 16px;
+      background: var(--paper-soft);
+      border: 1.5px solid var(--border);
+      transition: all 0.22s ease;
+    }
+    .biz-track:hover {
+      border-color: var(--p-accent, var(--gold));
+      background: var(--paper);
+      transform: translateX(4px);
+    }
+    .biz-track-emoji {
+      width: 52px; height: 52px; border-radius: 14px;
+      background: var(--p-soft, var(--gold-soft));
+      color: var(--p-accent, var(--gold));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; flex-shrink: 0;
+    }
+    .biz-track-text { flex: 1; min-width: 0; }
+    .biz-track-title {
+      font-family: var(--display); font-size: 16px; font-weight: 800;
+      color: var(--text); letter-spacing: -0.01em; margin-bottom: 2px;
+    }
+    .biz-track-ar {
+      font-family: var(--arabic); font-size: 13px; color: var(--text-muted);
+      direction: rtl; font-weight: 500;
+    }
+    .biz-track-meta {
+      font-family: var(--display); font-size: 11px; color: var(--text-dim); font-weight: 700;
+      letter-spacing: 0.04em; margin-top: 4px;
+    }
+    .biz-track-arrow {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--paper-deep);
+      color: var(--p-accent, var(--gold));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      transition: all 0.2s ease;
+    }
+    .biz-track:hover .biz-track-arrow {
+      background: var(--p-accent, var(--gold));
+      color: white;
+      transform: rotate(-12deg);
+    }
+
+    /* ── Quick-access strip (extra resources) ───────────────── */
+    .quick-strip {
+      margin-top: 56px;
+      padding: 28px 32px; border-radius: 20px;
+      background: linear-gradient(135deg, var(--paper) 0%, var(--paper-soft) 100%);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 24px;
+      flex-wrap: wrap;
+    }
+    .quick-strip-text { flex: 1; min-width: 240px; }
+    .quick-strip-h {
+      font-family: var(--display); font-size: 20px; font-weight: 800;
+      color: var(--text); letter-spacing: -0.01em; margin-bottom: 4px;
+    }
+    .quick-strip-ar {
+      font-family: var(--arabic); font-size: 14px; color: var(--text-muted);
+      direction: rtl; font-weight: 500;
+    }
+    .quick-strip-btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 13px 22px; border-radius: 12px;
+      background: var(--green); color: white;
+      font-family: var(--display); font-size: 13px; font-weight: 800;
+      letter-spacing: -0.01em;
+      box-shadow: 0 8px 18px -5px rgba(21, 128, 61, 0.35);
+      transition: all 0.2s ease;
+    }
+    .quick-strip-btn:hover { background: #166534; transform: translateY(-2px); }
+
+    /* ── Footer ────────────────────────────────────────────── */
+    .page-footer {
+      max-width: 1280px; margin: 60px auto 0; padding: 32px;
+      border-top: 1px solid var(--border-soft);
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 18px; flex-wrap: wrap;
+    }
+    .footer-brand {
+      font-family: var(--display); font-weight: 900; font-size: 18px;
+      color: var(--ink); letter-spacing: -0.025em;
+    }
+    .footer-contact {
+      display: flex; gap: 24px; flex-wrap: wrap; align-items: center;
+      font-family: var(--display); font-size: 12px; color: var(--text-muted); font-weight: 600;
+    }
+    .footer-contact b { color: var(--green); margin-right: 4px; }
+    .footer-contact span[dir="rtl"] { font-family: var(--arabic); font-size: 14px; font-weight: 500; }
+
     @media (max-width: 640px) {
-      body { padding: 20px 14px 40px; }
-      .hero { padding: 28px 22px; }
-      .hero-title { font-size: 34px; }
-      .hero-sub { font-size: 15px; }
-      .section-title { font-size: 20px; }
-      .topbar { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .topbar { padding: 14px 18px; }
+      .page { padding: 32px 18px 40px; }
+      .hero { padding: 40px 24px; border-radius: 24px; }
+      .hero-stats { gap: 22px; }
+      .pillar { padding: 28px 24px; }
+      .pillar-emoji { width: 64px; height: 64px; font-size: 30px; }
+      .quick-strip { padding: 22px; flex-direction: column; align-items: flex-start; }
+      .top-link:not(.is-wa) { display: none; }
     }
   </style>
 </head>
 <body>
-  <div class="page">
 
-    <!-- Top bar -->
-    <header class="topbar">
-      <div class="brand-block">
-        <span class="brand-en">Inglizi.com</span>
-        <span class="brand-ar">أكاديمية إنجليزي دوت كوم</span>
+<!-- ── Top bar ─────────────────────────────────────────────── -->
+<nav class="topbar">
+  <a href="#" class="brand">
+    <div class="crest">S</div>
+    <div class="brand-stack">
+      <span class="brand-name">Sahla</span>
+      <span class="brand-sub">Inglizi · Private</span>
+    </div>
+  </a>
+  <div class="topbar-actions">
+    <a href="https://inglizi.com" class="top-link">🌍 inglizi.com</a>
+    <a href="https://wa.me/212707902091?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D8%8C%20%D9%84%D8%AF%D9%8A%20%D8%B3%D8%A4%D8%A7%D9%84%20%D8%AD%D9%88%D9%84%20%D8%A7%D9%84%D8%AF%D9%88%D8%B1%D8%A7%D8%AA" target="_blank" rel="noopener" class="top-link is-wa">📱 WhatsApp</a>
+  </div>
+</nav>
+
+<main class="page">
+
+  <!-- ── HERO ─────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero-shapes">
+      <div class="hero-shape hero-shape-1"></div>
+      <div class="hero-shape hero-shape-2"></div>
+      <div class="hero-shape hero-shape-3"></div>
+    </div>
+    <div class="hero-inner">
+      <span class="hero-eyebrow"><span class="dot"></span>Sahla · Private Learning Hub</span>
+      <h1 class="hero-title">Learn English<br>the <em style="color: #fbbf24; font-style: normal;">premium</em> way.</h1>
+      <p class="hero-title-ar">منصة تعلم الإنجليزية الخاصة — أربعة أقسام متكاملة تأخذك من المستوى الأول إلى الإنجليزية المهنية.</p>
+      <div class="hero-stats">
+        <div class="hero-stat"><span class="hero-stat-num">4</span><span class="hero-stat-label">Sections</span></div>
+        <div class="hero-stat"><span class="hero-stat-num">60+</span><span class="hero-stat-label">Lessons</span></div>
+        <div class="hero-stat"><span class="hero-stat-num">300+</span><span class="hero-stat-label">Phrases</span></div>
+        <div class="hero-stat"><span class="hero-stat-num">A0→B2</span><span class="hero-stat-label">CEFR Range</span></div>
       </div>
-      <span class="badge"><span class="badge-dot"></span>sahla.inglizi.com · Private</span>
+    </div>
+  </section>
+
+  <!-- ── PILLARS ──────────────────────────────────────────── -->
+  <section>
+    <header class="section-head">
+      <span class="section-num">01 · Curriculum</span>
+      <h2>Choose your track</h2>
+      <span class="section-sub">اختر مسارك</span>
     </header>
 
-    <!-- Hero -->
-    <section class="hero">
-      <div class="hero-inner">
-        <p class="hero-eyebrow">منصة التعلم الخاصة</p>
-        <h1 class="hero-title"><span class="en">Sahla</span>سهلة</h1>
-        <p class="hero-sub">كل دروسك الخاصة في مكان واحد — بناء الجمل خطوة بخطوة، القواعد، القراءة، والمواقف الحياتية. مصممة للتسجيل والتدريس عبر الإنترنت.</p>
-        <div class="hero-stats">
-          <span class="stat">بناء الجمل<b>١٨</b></span>
-          <span class="stat">القواعد<b>٣٠+</b></span>
-          <span class="stat">القراءة<b>١٢</b></span>
-          <span class="stat">المستوى الأول<b>١٩</b></span>
-          <span class="stat">المواقف الحياتية<b>٢٠</b></span>
+    <div class="pillars">
+
+      <!-- 1. Sentence Builder (basic) -->
+      <a class="pillar p-rose" href="units/unit-4/lessons.html">
+        <div class="pillar-shape"></div>
+        <div class="pillar-emoji">🧩</div>
+        <div class="pillar-eyebrow">Section 01 · A1</div>
+        <h3 class="pillar-title">Sentence Builder</h3>
+        <p class="pillar-title-ar">بناء الجمل خطوة بخطوة</p>
+        <p class="pillar-desc">Build real English sentences by clicking colored chips. Subject + verb + object — perfect for absolute beginners learning sentence structure.</p>
+        <div class="pillar-meta">
+          <span class="meta-stat"><b>18</b>lessons</span>
+          <span class="meta-dot"></span>
+          <span class="meta-stat"><b>5</b>themes</span>
+          <span class="meta-dot"></span>
+          <span class="meta-stat"><b>~5min</b>each</span>
         </div>
-      </div>
-    </section>
-
-    <!-- ── Sentence Builder section ────────────────────────── -->
-    <section class="section">
-      <header class="section-head">
-        <h2 class="section-title">🧩 Sentence Builder</h2>
-        <span class="section-sub" dir="rtl">ابني جملك الإنجليزية</span>
-        <span class="section-pill">18 LESSONS</span>
-      </header>
-      <div class="cards">
-
-        <a class="card c-orange" href="units/unit-4/lesson-7.html">
-          <header class="card-head"><span class="card-num">LESSON 07</span><span class="card-emoji">☀️</span></header>
-          <div><div class="card-title">Daily Routine</div><div class="card-title-ar">روتيني اليومي</div></div>
-          <div class="card-pattern"><span>I</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>object</span><span class="plus">+</span><span>time</span></div>
-          <p class="card-example">I drink coffee every morning</p>
-          <span class="card-cta">ابدأ الدرس</span>
-        </a>
-
-        <a class="card c-blue" href="units/unit-4/index.html">
-          <header class="card-head"><span class="card-num">LESSON 08</span><span class="card-emoji">🎯</span></header>
-          <div><div class="card-title">Wants & Plans</div><div class="card-title-ar">ما أريد وما أنوي فعله</div></div>
-          <div class="card-pattern"><span>I</span><span class="plus">+</span><span>want / need</span><span class="plus">+</span><span>to verb</span></div>
-          <p class="card-example">I want to learn English fast</p>
-          <span class="card-cta">ابدأ الدرس</span>
-        </a>
-
-        <a class="card c-rose" href="units/unit-4/lesson-9.html">
-          <header class="card-head"><span class="card-num">LESSON 09</span><span class="card-emoji">❤️</span></header>
-          <div><div class="card-title">Likes & Dislikes</div><div class="card-title-ar">أحب وأكره</div></div>
-          <div class="card-pattern"><span>I</span><span class="plus">+</span><span>like / love</span><span class="plus">+</span><span>noun</span></div>
-          <p class="card-example">I love playing football with friends</p>
-          <span class="card-cta">ابدأ الدرس</span>
-        </a>
-
-        <a class="card c-sepia" href="units/unit-4/lesson-10.html">
-          <header class="card-head"><span class="card-num">LESSON 10</span><span class="card-emoji">📖</span></header>
-          <div><div class="card-title">Past Stories</div><div class="card-title-ar">قصص الأمس</div></div>
-          <div class="card-pattern"><span>I</span><span class="plus">+</span><span>verb-ed</span><span class="plus">+</span><span>yesterday</span></div>
-          <p class="card-example">I watched a movie last night</p>
-          <span class="card-cta">ابدأ الدرس</span>
-        </a>
-
-        <a class="card c-cyan" href="units/unit-4/lesson-11.html">
-          <header class="card-head"><span class="card-num">LESSON 11</span><span class="card-emoji">❓</span></header>
-          <div><div class="card-title">Asking Questions</div><div class="card-title-ar">طرح الأسئلة</div></div>
-          <div class="card-pattern"><span>Do</span><span class="plus">+</span><span>you</span><span class="plus">+</span><span>verb...?</span></div>
-          <p class="card-example">Do you speak English?</p>
-          <span class="card-cta">ابدأ الدرس</span>
-        </a>
-
-        <a class="card c-emerald" href="units/unit-4/lesson-12.html">
-          <header class="card-head"><span class="card-num">LESSON 12</span><span class="card-emoji">🔮</span></header>
-          <div><div class="card-title">Future Plans</div><div class="card-title-ar">خطط المستقبل</div></div>
-          <div class="card-pattern"><span>I</span><span class="plus">+</span><span>will / going to</span><span class="plus">+</span><span>verb</span></div>
-          <p class="card-example">I will travel to London next year</p>
-          <span class="card-cta">ابدأ الدرس</span>
-        </a>
-
-        <a class="card c-indigo" href="units/unit-4/lesson-13.html">
-          <header class="card-head"><span class="card-num">LESSON 13</span><span class="card-emoji">🔎</span></header>
-          <div><div class="card-title">WH Questions</div><div class="card-title-ar">أسئلة بـ WH</div></div>
-          <div class="card-pattern"><span>What</span><span class="plus">+</span><span>do</span><span class="plus">+</span><span>you</span><span class="plus">+</span><span>verb</span></div>
-          <p class="card-example">Where did you go yesterday?</p>
-          <span class="card-cta">ابدأ الدرس</span>
-        </a>
-
-        <a class="card c-slate" href="units/unit-4/lesson-14.html">
-          <header class="card-head"><span class="card-num">LESSON 14</span><span class="card-emoji">🚫</span></header>
-          <div><div class="card-title">Negative Sentences</div><div class="card-title-ar">جمل النفي</div></div>
-          <div class="card-pattern"><span>I</span><span class="plus">+</span><span>don't / didn't / won't</span><span class="plus">+</span><span>verb</span></div>
-          <p class="card-example">I don't drink coffee in the morning</p>
-          <span class="card-cta">ابدأ الدرس</span>
-        </a>
-
-        <a class="card c-lime" href="units/unit-4/lesson-15.html">
-          <header class="card-head"><span class="card-num">LESSON 15</span><span class="card-emoji">🎨</span></header>
-          <div><div class="card-title">Describing & Comparing</div><div class="card-title-ar">الوصف والمقارنة</div></div>
-          <div class="card-pattern"><span>It is</span><span class="plus">+</span><span>adj / -er than</span><span class="plus">+</span><span>noun</span></div>
-          <p class="card-example">My phone is faster than yours</p>
-          <span class="card-cta">ابدأ الدرس</span>
-        </a>
-
-        <a class="card c-forest" href="units/unit-4/lesson-16.html">
-          <header class="card-head"><span class="card-num">LESSON 16</span><span class="card-emoji">📍</span></header>
-          <div><div class="card-title">Prepositions of Place</div><div class="card-title-ar">حروف جر المكان</div></div>
-          <div class="card-pattern"><span>noun</span><span class="plus">+</span><span>is</span><span class="plus">+</span><span>on / in / under</span><span class="plus">+</span><span>place</span></div>
-          <p class="card-example">My keys are on the table</p>
-          <span class="card-cta">ابدأ الدرس</span>
-        </a>
-
-        <a class="card c-gold" href="units/unit-4/lesson-17.html">
-          <header class="card-head"><span class="card-num">LESSON 17</span><span class="card-emoji">⏰</span></header>
-          <div><div class="card-title">Prepositions of Time</div><div class="card-title-ar">حروف جر الزمن</div></div>
-          <div class="card-pattern"><span>subject</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>at / on / in</span><span class="plus">+</span><span>time</span></div>
-          <p class="card-example">The meeting starts at 5pm</p>
-          <span class="card-cta">ابدأ الدرس</span>
-        </a>
-
-        <a class="card c-sky" href="units/unit-4/lesson-18.html">
-          <header class="card-head"><span class="card-num">LESSON 18</span><span class="card-emoji">🧭</span></header>
-          <div><div class="card-title">Prepositions of Direction</div><div class="card-title-ar">حروف جر الاتجاه</div></div>
-          <div class="card-pattern"><span>subject</span><span class="plus">+</span><span>go / run</span><span class="plus">+</span><span>to / through</span><span class="plus">+</span><span>place</span></div>
-          <p class="card-example">I go to school every day</p>
-          <span class="card-cta">ابدأ الدرس</span>
-        </a>
-
-        <a class="card c-mint" href="units/unit-4/lesson-19.html">
-          <header class="card-head"><span class="card-num">LESSON 19</span><span class="card-emoji">💪</span></header>
-          <div><div class="card-title">Can / Could</div><div class="card-title-ar">القدرة والطلب المؤدب</div></div>
-          <div class="card-pattern"><span>subject</span><span class="plus">+</span><span>can / could</span><span class="plus">+</span><span>verb</span></div>
-          <p class="card-example">Could you help me, please?</p>
-          <span class="card-cta">ابدأ الدرس</span>
-        </a>
-
-        <a class="card c-peach" href="units/unit-4/lesson-20.html">
-          <header class="card-head"><span class="card-num">LESSON 20</span><span class="card-emoji">🏠</span></header>
-          <div><div class="card-title">There is / There are</div><div class="card-title-ar">يوجد · لا يوجد</div></div>
-          <div class="card-pattern"><span>There is / are</span><span class="plus">+</span><span>quantity</span><span class="plus">+</span><span>noun</span></div>
-          <p class="card-example">There are two cats in the garden</p>
-          <span class="card-cta">ابدأ الدرس</span>
-        </a>
-
-        <a class="card c-crimson" href="units/unit-4/lesson-21.html">
-          <header class="card-head"><span class="card-num">LESSON 21</span><span class="card-emoji">📣</span></header>
-          <div><div class="card-title">Imperatives & Commands</div><div class="card-title-ar">الأوامر والنواهي</div></div>
-          <div class="card-pattern"><span>(Please / Don't)</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>object</span></div>
-          <p class="card-example">Please open the door · Don't be late</p>
-          <span class="card-cta">ابدأ الدرس</span>
-        </a>
-
-        <a class="card c-coral" href="units/unit-4/lesson-22.html">
-          <header class="card-head"><span class="card-num">LESSON 22</span><span class="card-emoji">🎬</span></header>
-          <div><div class="card-title">Present Continuous</div><div class="card-title-ar">المضارع المستمر</div></div>
-          <div class="card-pattern"><span>subject</span><span class="plus">+</span><span>am / is / are</span><span class="plus">+</span><span>verb-ing</span></div>
-          <p class="card-example">I am studying English now</p>
-          <span class="card-cta">ابدأ الدرس</span>
-        </a>
-
-        <a class="card c-lavender" href="units/unit-4/lesson-23.html">
-          <header class="card-head"><span class="card-num">LESSON 23</span><span class="card-emoji">💎</span></header>
-          <div><div class="card-title">Have / Has — Possessions</div><div class="card-title-ar">الملكية والعائلة</div></div>
-          <div class="card-pattern"><span>subject</span><span class="plus">+</span><span>have / has</span><span class="plus">+</span><span>noun</span></div>
-          <p class="card-example">I have two brothers · She has blue eyes</p>
-          <span class="card-cta">ابدأ الدرس</span>
-        </a>
-
-        <a class="card c-bronze" href="units/unit-4/lesson-24.html">
-          <header class="card-head"><span class="card-num">LESSON 24</span><span class="card-emoji">🛡️</span></header>
-          <div><div class="card-title">Should / Must / Have to</div><div class="card-title-ar">النصيحة والواجب</div></div>
-          <div class="card-pattern"><span>subject</span><span class="plus">+</span><span>should / must</span><span class="plus">+</span><span>verb</span></div>
-          <p class="card-example">You should study hard</p>
-          <span class="card-cta">ابدأ الدرس</span>
-        </a>
-
-      </div>
-    </section>
-
-    <!-- ── Business English banner ──────────────────────────── -->
-    <section class="section" style="margin-bottom: 50px;">
-      <a href="business/" style="
-        display: block; padding: 36px 38px;
-        background: linear-gradient(135deg, #1e3a8a 0%, #172554 65%, #4338ca 100%);
-        border-radius: 24px; border: none;
-        text-decoration: none; color: #ffffff; position: relative; overflow: hidden;
-        box-shadow: 0 28px 60px -22px rgba(30,58,138,0.45);
-        transition: transform .25s ease, box-shadow .25s ease;
-      "
-      onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 36px 80px -22px rgba(30,58,138,0.55)'"
-      onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 28px 60px -22px rgba(30,58,138,0.45)'">
-        <span style="position: absolute; top: -80px; right: -40px; width: 280px; height: 280px; border-radius: 50%; background: radial-gradient(circle, rgba(245,158,11,0.32), transparent 70%); pointer-events: none;"></span>
-        <span style="position: absolute; bottom: -100px; left: -60px; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.06), transparent 70%); pointer-events: none;"></span>
-        <div style="position: relative; display: grid; grid-template-columns: 1fr auto; gap: 28px; align-items: center;">
-          <div>
-            <div style="display: inline-flex; align-items: center; gap: 10px; padding: 6px 14px; border-radius: 999px; background: rgba(245,158,11,0.16); border: 1px solid rgba(245,158,11,0.3); font-family: 'DM Sans','Outfit',sans-serif; font-size: 11px; color: #f59e0b; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 800; margin-bottom: 18px;">
-              <span style="width:6px; height:6px; border-radius:50%; background:#f59e0b;"></span>
-              Premium · NEW
-            </div>
-            <h2 style="font-family: 'Outfit','DM Sans',sans-serif; font-size: clamp(32px, 5vw, 52px); font-weight: 900; letter-spacing: -0.025em; margin-bottom: 10px; line-height: 1.05;">
-              Business <span style="color: #f59e0b;">English</span>
-            </h2>
-            <p style="font-family: 'Tajawal', sans-serif; font-size: 16px; color: rgba(255,255,255,0.85); direction: rtl; line-height: 1.6; max-width: 580px; font-weight: 500;">
-              ٦ وحدات احترافية للاجتماعات والإيميل والعروض ومقابلات العمل — حوارات حقيقية ومفردات مهنية للناطقين بالعربية.
-            </p>
-            <div style="display: flex; gap: 24px; margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.12); font-family: 'DM Sans','Outfit',sans-serif; font-size: 11px; color: rgba(255,255,255,0.65); letter-spacing: 0.16em; text-transform: uppercase; font-weight: 700;">
-              <span><b style="color:#f59e0b; margin-right:4px; font-weight:900;">6</b>Units</span>
-              <span><b style="color:#f59e0b; margin-right:4px; font-weight:900;">150+</b>Phrases</span>
-              <span><b style="color:#f59e0b; margin-right:4px; font-weight:900;">B1·B2</b>Level</span>
-            </div>
-          </div>
-          <div style="display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-radius: 14px; background: rgba(255,255,255,0.12); backdrop-filter: blur(8px); font-family: 'DM Sans','Outfit',sans-serif; font-size: 13px; font-weight: 800; letter-spacing: -0.01em; color: white; white-space: nowrap;">
-            Enter Collection <span style="font-size: 18px;">→</span>
-          </div>
+        <div class="pillar-actions">
+          <span class="pillar-btn is-primary">
+            Open lessons
+            <span class="pillar-btn-arrow">→</span>
+          </span>
         </div>
       </a>
-    </section>
 
-    <!-- ── Other private resources (link to main domain) ──── -->
-    <section class="section">
-      <header class="section-head">
-        <h2 class="section-title">📚 المزيد من الدروس الخاصة</h2>
-        <span class="section-sub">على المنصة الرئيسية inglizi.com</span>
-      </header>
-      <div class="ext-cards">
+      <!-- 2. Real Life English -->
+      <a class="pillar p-green" href="https://inglizi.com/private/lessons" target="_blank" rel="noopener">
+        <div class="pillar-shape"></div>
+        <div class="pillar-emoji">🏙️</div>
+        <div class="pillar-eyebrow">Section 02 · A1·A2</div>
+        <h3 class="pillar-title">Real Life English</h3>
+        <p class="pillar-title-ar">الإنجليزية للمواقف اليومية</p>
+        <p class="pillar-desc">20 themed units covering everyday situations: ordering food, asking directions, meeting new people, shopping, travel, and more.</p>
+        <div class="pillar-meta">
+          <span class="meta-stat"><b>20</b>units</span>
+          <span class="meta-dot"></span>
+          <span class="meta-stat"><b>200+</b>dialog lines</span>
+          <span class="meta-dot"></span>
+          <span class="meta-stat"><b>A1·A2</b>level</span>
+        </div>
+        <div class="pillar-actions">
+          <span class="pillar-btn is-primary">
+            Open lessons
+            <span class="pillar-btn-arrow">→</span>
+          </span>
+        </div>
+        <div class="pillar-ext-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          On inglizi.com
+        </div>
+      </a>
 
-        <a class="ext-card" href="https://inglizi.com/private/lessons/level01">
-          <span class="ext-card-emoji">📗</span>
-          <div class="ext-card-title">Level 01 — A0 / A1</div>
-          <div class="ext-card-title-ar">من الصفر إلى المحادثة في 30 يوماً</div>
-          <div class="ext-card-meta">19 lessons · inglizi.com</div>
-        </a>
+      <!-- 3. Level 01 — A0/A1 -->
+      <a class="pillar p-blue" href="https://inglizi.com/private/lessons/level01" target="_blank" rel="noopener">
+        <div class="pillar-shape"></div>
+        <div class="pillar-emoji">📗</div>
+        <div class="pillar-eyebrow">Section 03 · A0 → A1</div>
+        <h3 class="pillar-title">Level 01 — A0/A1</h3>
+        <p class="pillar-title-ar">المستوى الأول · من الصفر إلى المحادثة</p>
+        <p class="pillar-desc">From zero to first conversation. 19 foundational lessons covering greetings, numbers, family, daily routine, food, and basic verbs.</p>
+        <div class="pillar-meta">
+          <span class="meta-stat"><b>19</b>lessons</span>
+          <span class="meta-dot"></span>
+          <span class="meta-stat"><b>500+</b>words</span>
+          <span class="meta-dot"></span>
+          <span class="meta-stat"><b>30</b>days</span>
+        </div>
+        <div class="pillar-actions">
+          <span class="pillar-btn is-primary">
+            Open lessons
+            <span class="pillar-btn-arrow">→</span>
+          </span>
+        </div>
+        <div class="pillar-ext-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          On inglizi.com
+        </div>
+      </a>
 
-        <a class="ext-card" href="https://inglizi.com/private/lessons/reading">
-          <span class="ext-card-emoji">📖</span>
-          <div class="ext-card-title">Reading — A0</div>
-          <div class="ext-card-title-ar">نصوص تفاعلية · ترجمة بالضغط</div>
-          <div class="ext-card-meta">12 texts · inglizi.com</div>
-        </a>
+      <!-- 4. Business English — spans 2 cols with TWO tracks -->
+      <div class="pillar p-violet span-2">
+        <div class="pillar-shape"></div>
+        <div class="pillar-emoji">💼</div>
+        <div class="pillar-eyebrow">Section 04 · B1 · B2 · Premium</div>
+        <h3 class="pillar-title">Business English</h3>
+        <p class="pillar-title-ar">الإنجليزية المهنية للعمل والشركات</p>
+        <p class="pillar-desc">Professional communication for the modern workplace: meetings, emails, presentations, negotiations, job interviews, and customer service. Available in two complementary formats.</p>
 
-        <a class="ext-card" href="https://inglizi.com/private/lessons/grammar">
-          <span class="ext-card-emoji">⚡</span>
-          <div class="ext-card-title">Grammar — A0 / A1</div>
-          <div class="ext-card-title-ar">شرح مبسط · ألوان · تدريب فوري</div>
-          <div class="ext-card-meta">30+ lessons · inglizi.com</div>
-        </a>
-
-        <a class="ext-card" href="https://inglizi.com/private/lessons">
-          <span class="ext-card-emoji">🏙️</span>
-          <div class="ext-card-title">Real Life English 1</div>
-          <div class="ext-card-title-ar">الإنجليزية للمواقف اليومية</div>
-          <div class="ext-card-meta">20 units · inglizi.com</div>
-        </a>
-
+        <div class="biz-tracks">
+          <a class="biz-track" href="business/">
+            <div class="biz-track-emoji">📚</div>
+            <div class="biz-track-text">
+              <div class="biz-track-title">Units</div>
+              <div class="biz-track-ar">١٢ وحدة تفاعلية</div>
+              <div class="biz-track-meta">Slides · Audio · Quizzes</div>
+            </div>
+            <div class="biz-track-arrow">→</div>
+          </a>
+          <a class="biz-track" href="business/builder">
+            <div class="biz-track-emoji">🧩</div>
+            <div class="biz-track-text">
+              <div class="biz-track-title">Sentence Builder</div>
+              <div class="biz-track-ar">١٠ أنماط جملة طويلة</div>
+              <div class="biz-track-meta">Click chips · Build long sentences</div>
+            </div>
+            <div class="biz-track-arrow">→</div>
+          </a>
+        </div>
       </div>
-    </section>
 
-    <!-- Footer -->
-    <footer class="page-footer">
-      <span class="ft-brand">Inglizi.com</span>
-      <span class="ft-sep">·</span>
-      <span dir="rtl">الأستاذ حمزة القصراوي</span>
-      <span class="ft-sep">·</span>
-      <span class="ft-wa">WhatsApp 0707902091</span>
-    </footer>
+    </div>
+  </section>
 
+  <!-- ── WhatsApp strip ─────────────────────────────────────── -->
+  <section class="quick-strip">
+    <div class="quick-strip-text">
+      <div class="quick-strip-h">Need personal guidance?</div>
+      <div class="quick-strip-ar">تواصل مع الأستاذ حمزة القصراوي مباشرة على واتساب</div>
+    </div>
+    <a href="https://wa.me/212707902091?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%20%D8%A3%D8%B3%D8%AA%D8%A7%D8%B0%20%D8%AD%D9%85%D8%B2%D8%A9%D8%8C%20%D8%A3%D8%B1%D9%8A%D8%AF%20%D8%A7%D9%84%D8%AA%D8%B3%D8%AC%D9%8A%D9%84%20%D9%81%D9%8A%20%D8%AF%D9%88%D8%B1%D8%A9" target="_blank" rel="noopener" class="quick-strip-btn">
+      📱 WhatsApp 0707 902 091
+      <span style="font-size: 16px;">→</span>
+    </a>
+  </section>
+
+</main>
+
+<footer class="page-footer">
+  <div class="footer-brand">Inglizi.com</div>
+  <div class="footer-contact">
+    <span dir="rtl">الأستاذ حمزة القصراوي</span>
+    <span><b>WA</b> 0707 902 091</span>
+    <span style="color: var(--text-dim);">© Sahla 2026</span>
   </div>
+</footer>
+
 </body>
 </html>
