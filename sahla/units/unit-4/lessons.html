@@ -3,514 +3,707 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sentence Builder Lessons | Inglizi.com</title>
+  <meta name="robots" content="noindex, nofollow">
+  <title>Sentence Builder · Sahla — Inglizi.com</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    body { background: #f5f3ed; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    button { font-family: inherit; cursor: pointer; }
+    a { text-decoration: none; color: inherit; }
+
+    :root {
+      --ink:         #1c1917;
+      --ink-deep:    #0c0a09;
+      --ink-bright:  #44403c;
+      --bg:          #f5efe0;
+      --paper:       #fdfaf0;
+      --paper-soft:  #faf3e0;
+      --paper-deep:  #f0e6cd;
+      --border:      #e0d4b2;
+      --border-soft: #ece2c5;
+      --gold:        #b45309;
+      --gold-bright: #d97706;
+      --gold-soft:   #fef3c7;
+      --text:        #1c1917;
+      --text-2:      #44403c;
+      --text-muted:  #78716c;
+      --text-dim:    #a8a29e;
+      --green:       #15803d;
+      --display: 'Outfit', 'DM Sans', system-ui, sans-serif;
+      --sans:    'DM Sans', system-ui, sans-serif;
+      --arabic:  'Cairo', 'Tajawal', sans-serif;
+      --mono:    'JetBrains Mono', ui-monospace, monospace;
+    }
+
+    html, body {
+      background: var(--bg); color: var(--text);
+      font-family: var(--sans); font-size: 16px; line-height: 1.6;
+      -webkit-font-smoothing: antialiased; min-height: 100%;
+    }
+    body::before {
+      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 80% 0%, rgba(180, 83, 9, 0.08), transparent 60%),
+        radial-gradient(ellipse 50% 35% at 20% 100%, rgba(28, 25, 23, 0.05), transparent 60%);
+    }
+    body::after {
+      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.4;
+      background-image: radial-gradient(rgba(180, 83, 9, 0.08) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    /* ── Top bar ───────────────────────────────────────────── */
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(245, 239, 224, 0.85);
+      backdrop-filter: blur(18px) saturate(180%);
+      border-bottom: 1px solid var(--border-soft);
+      padding: 14px 28px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      flex-wrap: wrap;
+    }
+    .brand {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .crest {
+      width: 40px; height: 40px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--ink), var(--ink-deep));
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--display); font-weight: 800; font-size: 17px;
+      box-shadow: 0 8px 18px -4px rgba(28, 25, 23, 0.32);
+      position: relative;
+    }
+    .crest::after {
+      content: ""; position: absolute; top: 4px; right: 4px;
+      width: 6px; height: 6px; border-radius: 50%; background: var(--gold-bright);
+      box-shadow: 0 0 10px var(--gold-bright);
+    }
+    .brand-stack { display: flex; flex-direction: column; }
+    .brand-name {
+      font-family: var(--display); font-size: 16px; font-weight: 900;
+      color: var(--text); letter-spacing: -0.02em;
+    }
+    .brand-sub {
+      font-size: 10px; color: var(--text-muted);
+      letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700;
+    }
+    .top-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 13px; border-radius: 999px;
+      font-family: var(--display); font-size: 12px; font-weight: 700;
+      color: var(--text-2); transition: all 0.18s ease;
+    }
+    .pill:hover { background: var(--paper); color: var(--ink); }
+    .pill.is-active { background: var(--ink); color: var(--gold-bright); box-shadow: 0 4px 12px -3px rgba(28, 25, 23, 0.32); }
+
+    /* Lesson number grid mini-nav */
+    .lesson-nav {
+      display: flex; gap: 4px; flex-wrap: wrap;
+    }
+    .lesson-btn {
+      width: 30px; height: 30px; border-radius: 8px;
+      background: var(--paper); border: 1px solid var(--border);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: 11px; font-weight: 700;
+      color: var(--text-2);
+      transition: all 0.15s ease;
+    }
+    .lesson-btn:hover {
+      background: var(--gold); color: white; border-color: var(--gold);
+      transform: translateY(-1px);
+    }
+    .lesson-btn.lesson-hub.active {
+      background: var(--ink); color: var(--gold-bright); border-color: var(--ink);
+    }
+
+    /* ── Page ──────────────────────────────────────────────── */
+    .page { position: relative; z-index: 2; max-width: 1240px; margin: 0 auto; padding: 40px 28px 60px; }
+
+    /* ── HERO ─────────────────────────────────────────────── */
     .hub-hero {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 48px 20px 28px;
-      text-align: center;
+      position: relative;
+      background: linear-gradient(135deg, var(--ink) 0%, var(--ink-deep) 55%, #292524 100%);
+      color: white;
+      border-radius: 28px;
+      padding: 52px 44px;
+      margin-bottom: 48px;
+      overflow: hidden;
+      box-shadow: 0 28px 60px -22px rgba(28, 25, 23, 0.45);
     }
+    .hub-hero::before {
+      content: ""; position: absolute; top: -120px; right: -80px;
+      width: 420px; height: 420px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(217, 119, 6, 0.32), transparent 70%);
+      pointer-events: none;
+    }
+    .hub-hero::after {
+      content: ""; position: absolute; bottom: -140px; left: -80px;
+      width: 320px; height: 320px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(253, 250, 240, 0.06), transparent 70%);
+      pointer-events: none;
+    }
+    .hub-inner { position: relative; z-index: 1; }
     .hub-eyebrow {
-      display: inline-block;
-      font-weight: 800; font-size: 11px;
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 6px 14px; border-radius: 999px;
+      background: rgba(217, 119, 6, 0.16); color: #fbbf24;
+      font-family: var(--display); font-size: 11px; font-weight: 800;
       letter-spacing: 0.22em; text-transform: uppercase;
-      color: #ea580c;
-      background: #fff7ed;
-      border: 1px solid #fed7aa;
-      padding: 5px 14px;
-      border-radius: 999px;
-      margin-bottom: 14px;
+      margin-bottom: 24px; border: 1px solid rgba(217, 119, 6, 0.32);
     }
+    .hub-eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: #fbbf24; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.4); } }
     .hub-title {
-      font-weight: 900;
-      font-size: clamp(28px, 5vw, 44px);
-      line-height: 1.12;
-      letter-spacing: -0.025em;
-      color: #0f172a;
-      margin-bottom: 12px;
+      font-family: var(--display); font-weight: 900;
+      font-size: clamp(36px, 6vw, 64px); line-height: 1.02; letter-spacing: -0.03em;
+      margin-bottom: 16px; color: white;
     }
-    .hub-sub {
-      font-family: 'Tajawal', sans-serif;
-      font-size: 16px;
-      color: #64748b;
-      max-width: 540px;
-      margin: 0 auto 28px;
-      line-height: 1.7;
+    .hub-title em { color: #fbbf24; font-style: normal; }
+    .hub-title-ar {
+      font-family: var(--arabic); font-weight: 600;
+      font-size: clamp(15px, 1.9vw, 18px); color: rgba(253, 250, 240, 0.82);
+      direction: rtl; line-height: 1.75; max-width: 760px;
     }
+    .hub-stats {
+      display: flex; gap: 32px; flex-wrap: wrap;
+      margin-top: 32px; padding-top: 26px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .hero-stat { display: flex; flex-direction: column; gap: 4px; }
+    .hero-stat-num { font-family: var(--display); font-size: 28px; font-weight: 900; color: #fbbf24; line-height: 1; letter-spacing: -0.025em; }
+    .hero-stat-label { font-family: var(--display); font-size: 10px; font-weight: 700; color: rgba(255, 255, 255, 0.6); letter-spacing: 0.22em; text-transform: uppercase; }
+
+    /* ── Section head ──────────────────────────────────────── */
+    .section-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 24px; }
+    .section-num {
+      font-family: var(--display); font-size: 11px; font-weight: 800; color: var(--gold);
+      letter-spacing: 0.22em; text-transform: uppercase;
+      padding: 5px 12px; background: var(--gold-soft); border-radius: 7px;
+    }
+    .section-head h2 { font-family: var(--display); font-size: clamp(22px, 2.8vw, 28px); font-weight: 800; color: var(--text); letter-spacing: -0.02em; flex: 1; line-height: 1.15; }
+    .section-head .section-sub { font-family: var(--arabic); font-size: 13px; color: var(--text-muted); direction: rtl; font-weight: 600; }
+
+    /* ── Lesson cards grid ─────────────────────────────────── */
     .hub-grid {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 8px 20px 60px;
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 18px;
+      display: grid; gap: 18px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     }
-    @media (min-width: 720px)  { .hub-grid { grid-template-columns: 1fr 1fr; } }
-    @media (min-width: 1100px) { .hub-grid { grid-template-columns: 1fr 1fr 1fr; } }
 
     .hub-card {
-      display: flex; flex-direction: column;
-      gap: 12px;
-      padding: 22px;
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 18px;
-      box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 4px 8px -4px rgba(15,23,42,.05);
-      text-decoration: none;
-      color: #0f172a;
-      transition: all .2s;
       position: relative;
+      background:
+        radial-gradient(ellipse 70% 50% at 100% 0%, rgba(217, 119, 6, 0.08), transparent 60%),
+        linear-gradient(160deg, var(--paper) 0%, var(--paper-soft) 100%);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px 22px 20px;
       overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.6) inset,
+        0 4px 12px -3px rgba(115, 99, 53, 0.10),
+        0 12px 28px -10px rgba(28, 25, 23, 0.08);
+      display: flex; flex-direction: column; gap: 12px;
+      min-height: 220px;
     }
-    .hub-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px -10px rgba(15,23,42,.18); }
+    .hub-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--gold);
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.7) inset,
+        0 14px 26px -8px rgba(180, 83, 9, 0.18),
+        0 28px 56px -18px rgba(28, 25, 23, 0.22);
+    }
     .hub-card::before {
-      content: ''; position: absolute; inset: 0 0 auto 0;
-      height: 4px; background: var(--accent);
+      content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, var(--ink), var(--gold), var(--gold-bright));
+      z-index: 2;
     }
+    /* Decorative blurred glow in corner */
+    .hub-card::after {
+      content: ""; position: absolute; top: -60px; right: -60px;
+      width: 180px; height: 180px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(217, 119, 6, 0.16), transparent 65%);
+      pointer-events: none;
+      transition: transform 0.4s ease;
+    }
+    .hub-card:hover::after { transform: scale(1.3) rotate(15deg); }
 
-    .hub-card-head { display: flex; align-items: center; gap: 12px; }
+    .hub-card-head {
+      display: flex; align-items: center; justify-content: space-between;
+      position: relative; z-index: 1;
+    }
     .hub-num {
-      font-weight: 900; font-size: 12px; letter-spacing: 0.18em;
-      color: var(--accent); padding: 3px 10px;
-      background: var(--accent-soft); border-radius: 999px;
+      font-family: var(--mono); font-size: 10px; font-weight: 700;
+      color: var(--gold); letter-spacing: 0.18em;
+      padding: 4px 9px; background: var(--gold-soft);
+      border-radius: 6px; border: 1px solid rgba(180, 83, 9, 0.18);
     }
-    .hub-emoji { font-size: 30px; margin-left: auto; }
-
+    .hub-emoji {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--ink), var(--ink-deep));
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        0 6px 14px -3px rgba(28, 25, 23, 0.32),
+        0 2px 4px -1px rgba(180, 83, 9, 0.15);
+    }
     .hub-card-title {
-      font-weight: 800; font-size: 22px; letter-spacing: -0.02em;
-      line-height: 1.2; margin-top: 4px;
+      font-family: var(--display); font-size: 18px; font-weight: 900;
+      color: var(--text); letter-spacing: -0.018em; line-height: 1.2;
+      position: relative; z-index: 1;
     }
     .hub-card-title-ar {
-      font-family: 'Tajawal', sans-serif;
-      font-weight: 700; font-size: 16px;
-      color: #64748b;
-      margin-top: -2px;
+      font-family: var(--arabic); font-size: 13px; color: var(--text-muted);
+      direction: rtl; font-weight: 600; line-height: 1.6; margin-top: 2px;
+      position: relative; z-index: 1;
     }
 
     .hub-pattern {
-      display: flex; flex-wrap: wrap; gap: 6px;
-      padding: 10px 12px;
-      background: #fafaf7; border: 1px dashed #e2e8f0;
-      border-radius: 10px;
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 700; font-size: 13px;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+      padding: 9px 12px; border-radius: 9px;
+      background: linear-gradient(135deg, rgba(180, 83, 9, 0.05), rgba(180, 83, 9, 0.10));
+      border: 1px solid rgba(180, 83, 9, 0.14);
+      font-family: var(--display); font-size: 11px; font-weight: 700;
+      color: var(--text-2); direction: ltr;
+      margin-top: auto;
+      position: relative; z-index: 1;
     }
-    .hub-pattern span {
-      padding: 2px 8px; border-radius: 999px;
-      background: var(--accent-soft); color: var(--accent);
-    }
-    .hub-pattern .plus { background: transparent; color: #cbd5e1; padding: 2px 0; }
-
+    .hub-pattern .plus { color: var(--gold); opacity: 0.6; font-weight: 700; }
     .hub-example {
-      font-style: italic; color: #475569; font-size: 14px;
-      line-height: 1.6;
+      font-family: var(--display); font-style: italic; font-size: 12.5px;
+      color: var(--text-muted); line-height: 1.5;
+      padding: 0 4px;
+      position: relative; z-index: 1;
     }
-    .hub-example::before { content: '"'; color: #cbd5e1; font-size: 22px; vertical-align: -4px; margin-right: 2px; }
-    .hub-example::after  { content: '"'; color: #cbd5e1; font-size: 22px; vertical-align: -4px; margin-left: 2px; }
+    .hub-example::before { content: "“"; color: var(--gold); font-weight: 700; margin-right: 3px; }
+    .hub-example::after { content: "”"; color: var(--gold); font-weight: 700; margin-left: 3px; }
 
     .hub-cta {
-      display: inline-flex; align-items: center; gap: 6px;
-      margin-top: auto;
-      font-weight: 700; font-size: 14px;
-      color: var(--accent);
-      padding-top: 10px;
-      border-top: 1px dashed #e5e7eb;
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-top: 4px; padding-top: 12px;
+      border-top: 1px dashed var(--border);
+      font-family: var(--display); font-size: 12px; font-weight: 800;
+      color: var(--gold); letter-spacing: -0.01em;
+      position: relative; z-index: 1;
     }
-
-    .hub-card.c-blue    { --accent: #2563eb; --accent-soft: #eff6ff; }
-    .hub-card.c-orange  { --accent: #ea580c; --accent-soft: #fff7ed; }
-    .hub-card.c-rose    { --accent: #e11d48; --accent-soft: #ffe4e6; }
-    .hub-card.c-sepia   { --accent: #b45309; --accent-soft: #fef3c7; }
-    .hub-card.c-cyan    { --accent: #0d9488; --accent-soft: #ccfbf1; }
-    .hub-card.c-emerald { --accent: #059669; --accent-soft: #d1fae5; }
-    .hub-card.c-indigo  { --accent: #4338ca; --accent-soft: #e0e7ff; }
-    .hub-card.c-slate   { --accent: #334155; --accent-soft: #e2e8f0; }
-    .hub-card.c-lime    { --accent: #0f766e; --accent-soft: #ccfbf1; }
-    .hub-card.c-forest  { --accent: #166534; --accent-soft: #dcfce7; }
-    .hub-card.c-gold    { --accent: #b45309; --accent-soft: #fef3c7; }
-    .hub-card.c-sky     { --accent: #0284c7; --accent-soft: #e0f2fe; }
-    .hub-card.c-mint    { --accent: #047857; --accent-soft: #d1fae5; }
-    .hub-card.c-peach   { --accent: #c2410c; --accent-soft: #ffedd5; }
-    .hub-card.c-crimson { --accent: #991b1b; --accent-soft: #fee2e2; }
-    .hub-card.c-coral    { --accent: #e11d48; --accent-soft: #ffe4e6; }
-    .hub-card.c-lavender { --accent: #6d28d9; --accent-soft: #ede9fe; }
-    .hub-card.c-bronze   { --accent: #92400e; --accent-soft: #fef3c7; }
-    .hub-card.c-coming  { --accent: #64748b; --accent-soft: #f1f5f9; opacity: 0.7; pointer-events: none; }
-
-    .hub-back {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 8px 14px;
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 999px;
-      font-weight: 700; font-size: 13px;
-      color: #475569; text-decoration: none;
-      margin-top: 12px;
+    .hub-cta::after {
+      content: ""; display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+      color: white;
+      background-image: linear-gradient(135deg, var(--gold), var(--gold-bright));
+      transition: transform 0.22s ease;
     }
-    .hub-back:hover { background: #f1f5f9; }
+    .hub-card:hover .hub-cta { color: var(--ink); }
+    .hub-card:hover .hub-cta::after { transform: translateX(4px) rotate(-8deg); }
+
+    .hub-cta-arrow {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+      color: white; font-size: 12px;
+      box-shadow: 0 4px 8px -2px rgba(180, 83, 9, 0.35);
+      transition: transform 0.22s ease;
+    }
+    .hub-card:hover .hub-cta-arrow { transform: translateX(4px) rotate(-8deg); }
+
+    /* ── Footer ────────────────────────────────────────────── */
+    .page-footer {
+      max-width: 1240px; margin: 60px auto 0; padding: 26px 28px;
+      border-top: 1px solid var(--border-soft);
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 16px; flex-wrap: wrap;
+    }
+    .footer-brand { font-family: var(--display); font-weight: 900; font-size: 16px; color: var(--ink); letter-spacing: -0.025em; }
+    .footer-contact {
+      display: flex; gap: 18px; flex-wrap: wrap; align-items: center;
+      font-family: var(--display); font-size: 12px; color: var(--text-muted); font-weight: 600;
+    }
+    .footer-contact b { color: var(--green); margin-right: 4px; }
+    .footer-contact span[dir="rtl"] { font-family: var(--arabic); font-size: 13px; font-weight: 500; }
+
+    @media (max-width: 640px) {
+      .topbar { padding: 12px 16px; }
+      .page { padding: 28px 16px; }
+      .hub-hero { padding: 36px 24px; border-radius: 22px; }
+      .hub-card { padding: 22px 20px; min-height: 200px; }
+      .lesson-nav { gap: 3px; }
+      .lesson-btn { width: 28px; height: 28px; font-size: 10px; }
+    }
   </style>
 </head>
 <body>
 
+  <!-- ── Top bar ─────────────────────────────────────────── -->
   <header class="topbar">
-    <div class="brand">
-      <h1 class="brand-name">Inglizi.com</h1>
-      <p class="brand-sub" dir="rtl">أكاديمية إنجليزي دوت كوم</p>
-    </div>
-    <div class="topbar-tools">
-      <nav class="lesson-nav">
-        <a class="lesson-btn" href="lesson-7.html">07</a>
-        <a class="lesson-btn" href="index.html">08</a>
-        <a class="lesson-btn" href="lesson-9.html">09</a>
-        <a class="lesson-btn" href="lesson-10.html">10</a>
-        <a class="lesson-btn" href="lesson-11.html">11</a>
-        <a class="lesson-btn" href="lesson-12.html">12</a>
-        <a class="lesson-btn" href="lesson-13.html">13</a>
-        <a class="lesson-btn" href="lesson-14.html">14</a>
-        <a class="lesson-btn" href="lesson-15.html">15</a>
-        <a class="lesson-btn" href="lesson-16.html">16</a>
-        <a class="lesson-btn" href="lesson-17.html">17</a>
-        <a class="lesson-btn" href="lesson-18.html">18</a>
-        <a class="lesson-btn" href="lesson-19.html">19</a>
-        <a class="lesson-btn" href="lesson-20.html">20</a>
-        <a class="lesson-btn" href="lesson-21.html">21</a>
-        <a class="lesson-btn" href="lesson-22.html">22</a>
-        <a class="lesson-btn" href="lesson-23.html">23</a>
-        <a class="lesson-btn" href="lesson-24.html">24</a>
-        <a class="lesson-btn lesson-hub active" href="lessons.html">⊞</a>
-      </nav>
+    <a href="../../" class="brand">
+      <div class="crest">S</div>
+      <div class="brand-stack">
+        <span class="brand-name">Inglizi.com</span>
+        <span class="brand-sub">Sentence Builder · Sahla</span>
+      </div>
+    </a>
+    <div class="top-actions">
+      <a href="../../" class="pill">← Sahla Home</a>
+      <a href="https://wa.me/212707902091" target="_blank" rel="noopener" class="pill" style="color: var(--green);">📱 WhatsApp</a>
     </div>
   </header>
 
-  <section class="hub-hero">
-    <span class="hub-eyebrow">Sentence Builder · ابني جملك</span>
-    <h1 class="hub-title">Build real English sentences,<br>step by step</h1>
-    <p class="hub-sub" dir="rtl">
-      ١٨ درساً تفاعلياً لبناء جمل إنجليزية حقيقية — من الإثبات والنفي إلى الأسئلة والمقارنة وحروف الجر والقدرة والأوامر والاستمراري والملكية والوجوب.
-      كل درس يعلمك نمط جملة مختلف، ويمكنك ربط الجمل بكلمات الربط لتكوين جمل أطول.
-    </p>
-  </section>
+  <main class="page">
 
-  <main class="hub-grid">
+    <!-- ── HERO ───────────────────────────────────────────── -->
+    <section class="hub-hero">
+      <div class="hub-inner">
+        <span class="hub-eyebrow"><span class="dot"></span>Sentence Builder · ابني جملك</span>
+        <h1 class="hub-title">Build real English<br>sentences, <em>step by step</em></h1>
+        <p class="hub-title-ar">
+          ١٨ درساً تفاعلياً لبناء جمل إنجليزية حقيقية — من الإثبات والنفي إلى الأسئلة والمقارنة وحروف الجر والقدرة والأوامر والاستمراري والملكية والوجوب. كل درس يعلمك نمط جملة مختلف.
+        </p>
+        <div class="hub-stats">
+          <div class="hero-stat"><span class="hero-stat-num">18</span><span class="hero-stat-label">Lessons</span></div>
+          <div class="hero-stat"><span class="hero-stat-num">~5</span><span class="hero-stat-label">Min each</span></div>
+          <div class="hero-stat"><span class="hero-stat-num">A1</span><span class="hero-stat-label">CEFR Level</span></div>
+          <div class="hero-stat"><span class="hero-stat-num">EN+AR</span><span class="hero-stat-label">Bilingual</span></div>
+        </div>
+      </div>
+    </section>
 
-    <!-- Lesson 7 -->
-    <a class="hub-card c-orange" href="lesson-7.html">
-      <header class="hub-card-head">
-        <span class="hub-num">LESSON 07</span>
-        <span class="hub-emoji">🌅</span>
-      </header>
-      <div>
-        <div class="hub-card-title">Daily Routine</div>
-        <div class="hub-card-title-ar" dir="rtl">روتيني اليومي</div>
-      </div>
-      <div class="hub-pattern">
-        <span>I</span><span class="plus">+</span><span>always</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>time</span>
-      </div>
-      <p class="hub-example">I always wake up at 7 in the morning</p>
-      <span class="hub-cta">Open lesson →</span>
-    </a>
+    <!-- ── Section title + quick nav ──────────────────────── -->
+    <header class="section-head">
+      <span class="section-num">01 · Curriculum</span>
+      <h2>Choose a lesson</h2>
+      <span class="section-sub">اختر درساً</span>
+    </header>
 
-    <!-- Lesson 8 -->
-    <a class="hub-card c-blue" href="index.html">
-      <header class="hub-card-head">
-        <span class="hub-num">LESSON 08</span>
-        <span class="hub-emoji">⚡</span>
-      </header>
-      <div>
-        <div class="hub-card-title">Wants & Plans</div>
-        <div class="hub-card-title-ar" dir="rtl">ما أريد وما أنوي فعله</div>
-      </div>
-      <div class="hub-pattern">
-        <span>I</span><span class="plus">+</span><span>want to</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>time</span>
-      </div>
-      <p class="hub-example">I want to eat breakfast now because I'm hungry</p>
-      <span class="hub-cta">Open lesson →</span>
-    </a>
+    <nav class="lesson-nav" style="margin-bottom: 28px;">
+      <a class="lesson-btn" href="lesson-7.html">07</a>
+      <a class="lesson-btn" href="index.html">08</a>
+      <a class="lesson-btn" href="lesson-9.html">09</a>
+      <a class="lesson-btn" href="lesson-10.html">10</a>
+      <a class="lesson-btn" href="lesson-11.html">11</a>
+      <a class="lesson-btn" href="lesson-12.html">12</a>
+      <a class="lesson-btn" href="lesson-13.html">13</a>
+      <a class="lesson-btn" href="lesson-14.html">14</a>
+      <a class="lesson-btn" href="lesson-15.html">15</a>
+      <a class="lesson-btn" href="lesson-16.html">16</a>
+      <a class="lesson-btn" href="lesson-17.html">17</a>
+      <a class="lesson-btn" href="lesson-18.html">18</a>
+      <a class="lesson-btn" href="lesson-19.html">19</a>
+      <a class="lesson-btn" href="lesson-20.html">20</a>
+      <a class="lesson-btn" href="lesson-21.html">21</a>
+      <a class="lesson-btn" href="lesson-22.html">22</a>
+      <a class="lesson-btn" href="lesson-23.html">23</a>
+      <a class="lesson-btn" href="lesson-24.html">24</a>
+    </nav>
 
-    <!-- Lesson 9 -->
-    <a class="hub-card c-rose" href="lesson-9.html">
-      <header class="hub-card-head">
-        <span class="hub-num">LESSON 09</span>
-        <span class="hub-emoji">💖</span>
-      </header>
-      <div>
-        <div class="hub-card-title">Likes & Dislikes</div>
-        <div class="hub-card-title-ar" dir="rtl">أحب وأكره</div>
-      </div>
-      <div class="hub-pattern">
-        <span>I</span><span class="plus">+</span><span>love</span><span class="plus">+</span><span>verb-ing</span><span class="plus">+</span><span>because</span>
-      </div>
-      <p class="hub-example">I love watching movies because it's fun</p>
-      <span class="hub-cta">Open lesson →</span>
-    </a>
+    <!-- ── Lesson cards ───────────────────────────────────── -->
+    <div class="hub-grid">
 
-    <!-- Lesson 10 — Past Stories -->
-    <a class="hub-card c-sepia" href="lesson-10.html">
-      <header class="hub-card-head">
-        <span class="hub-num">LESSON 10</span>
-        <span class="hub-emoji">⏮️</span>
-      </header>
-      <div>
-        <div class="hub-card-title">Past Stories</div>
-        <div class="hub-card-title-ar" dir="rtl">قصص الأمس</div>
-      </div>
-      <div class="hub-pattern">
-        <span>I</span><span class="plus">+</span><span>past verb</span><span class="plus">+</span><span>detail</span><span class="plus">+</span><span>yesterday</span>
-      </div>
-      <p class="hub-example">I watched a movie last night because it was fun</p>
-      <span class="hub-cta">Open lesson →</span>
-    </a>
+      <a class="hub-card" href="lesson-7.html">
+        <header class="hub-card-head">
+          <span class="hub-num">LESSON 07</span>
+          <span class="hub-emoji">🌅</span>
+        </header>
+        <div>
+          <div class="hub-card-title">Daily Routine</div>
+          <div class="hub-card-title-ar">روتيني اليومي</div>
+        </div>
+        <div class="hub-pattern">
+          <span>I</span><span class="plus">+</span><span>always</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>time</span>
+        </div>
+        <p class="hub-example">I always wake up at 7 in the morning</p>
+        <span class="hub-cta">Open lesson<span class="hub-cta-arrow">→</span></span>
+      </a>
 
-    <!-- Lesson 11 — Asking Questions -->
-    <a class="hub-card c-cyan" href="lesson-11.html">
-      <header class="hub-card-head">
-        <span class="hub-num">LESSON 11</span>
-        <span class="hub-emoji">❓</span>
-      </header>
-      <div>
-        <div class="hub-card-title">Asking Questions</div>
-        <div class="hub-card-title-ar" dir="rtl">طرح الأسئلة</div>
-      </div>
-      <div class="hub-pattern">
-        <span>Do you</span><span class="plus">+</span><span>usually</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>time</span>
-      </div>
-      <p class="hub-example">Do you usually drink coffee in the morning?</p>
-      <span class="hub-cta">Open lesson →</span>
-    </a>
+      <a class="hub-card" href="index.html">
+        <header class="hub-card-head">
+          <span class="hub-num">LESSON 08</span>
+          <span class="hub-emoji">⚡</span>
+        </header>
+        <div>
+          <div class="hub-card-title">Wants & Plans</div>
+          <div class="hub-card-title-ar">ما أريد وما أنوي فعله</div>
+        </div>
+        <div class="hub-pattern">
+          <span>I</span><span class="plus">+</span><span>want to</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>time</span>
+        </div>
+        <p class="hub-example">I want to eat breakfast now because I'm hungry</p>
+        <span class="hub-cta">Open lesson<span class="hub-cta-arrow">→</span></span>
+      </a>
 
-    <!-- Lesson 12 — Future Plans -->
-    <a class="hub-card c-emerald" href="lesson-12.html">
-      <header class="hub-card-head">
-        <span class="hub-num">LESSON 12</span>
-        <span class="hub-emoji">🚀</span>
-      </header>
-      <div>
-        <div class="hub-card-title">Future Plans</div>
-        <div class="hub-card-title-ar" dir="rtl">خطط المستقبل</div>
-      </div>
-      <div class="hub-pattern">
-        <span>I</span><span class="plus">+</span><span>am going to</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>next year</span>
-      </div>
-      <p class="hub-example">I am going to travel to Spain next year because it's my dream</p>
-      <span class="hub-cta">Open lesson →</span>
-    </a>
+      <a class="hub-card" href="lesson-9.html">
+        <header class="hub-card-head">
+          <span class="hub-num">LESSON 09</span>
+          <span class="hub-emoji">💖</span>
+        </header>
+        <div>
+          <div class="hub-card-title">Likes & Dislikes</div>
+          <div class="hub-card-title-ar">أحب وأكره</div>
+        </div>
+        <div class="hub-pattern">
+          <span>I</span><span class="plus">+</span><span>love</span><span class="plus">+</span><span>verb-ing</span><span class="plus">+</span><span>because</span>
+        </div>
+        <p class="hub-example">I love watching movies because it's fun</p>
+        <span class="hub-cta">Open lesson<span class="hub-cta-arrow">→</span></span>
+      </a>
 
-    <!-- Lesson 13 — WH Questions (Past · Present · Future) -->
-    <a class="hub-card c-indigo" href="lesson-13.html">
-      <header class="hub-card-head">
-        <span class="hub-num">LESSON 13</span>
-        <span class="hub-emoji">🔎</span>
-      </header>
-      <div>
-        <div class="hub-card-title">WH Questions</div>
-        <div class="hub-card-title-ar" dir="rtl">أسئلة بـ WH (ماذا · أين · متى · لماذا · كيف)</div>
-      </div>
-      <div class="hub-pattern">
-        <span>WH</span><span class="plus">+</span><span>aux+subject</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>time</span>
-      </div>
-      <p class="hub-example">Where did you travel last year? · What will you do tomorrow?</p>
-      <span class="hub-cta">Open lesson →</span>
-    </a>
+      <a class="hub-card" href="lesson-10.html">
+        <header class="hub-card-head">
+          <span class="hub-num">LESSON 10</span>
+          <span class="hub-emoji">⏮️</span>
+        </header>
+        <div>
+          <div class="hub-card-title">Past Stories</div>
+          <div class="hub-card-title-ar">قصص الأمس</div>
+        </div>
+        <div class="hub-pattern">
+          <span>I</span><span class="plus">+</span><span>past verb</span><span class="plus">+</span><span>detail</span><span class="plus">+</span><span>yesterday</span>
+        </div>
+        <p class="hub-example">I went to the park with my family yesterday</p>
+        <span class="hub-cta">Open lesson<span class="hub-cta-arrow">→</span></span>
+      </a>
 
-    <!-- Lesson 14 — Negative Sentences -->
-    <a class="hub-card c-slate" href="lesson-14.html">
-      <header class="hub-card-head">
-        <span class="hub-num">LESSON 14</span>
-        <span class="hub-emoji">🚫</span>
-      </header>
-      <div>
-        <div class="hub-card-title">Negative Sentences</div>
-        <div class="hub-card-title-ar" dir="rtl">جمل النفي (لا · لم · لن)</div>
-      </div>
-      <div class="hub-pattern">
-        <span>I</span><span class="plus">+</span><span>don't / didn't / won't</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>time</span>
-      </div>
-      <p class="hub-example">I don't drink coffee anymore because I prefer tea</p>
-      <span class="hub-cta">Open lesson →</span>
-    </a>
+      <a class="hub-card" href="lesson-11.html">
+        <header class="hub-card-head">
+          <span class="hub-num">LESSON 11</span>
+          <span class="hub-emoji">❓</span>
+        </header>
+        <div>
+          <div class="hub-card-title">Asking Questions</div>
+          <div class="hub-card-title-ar">طرح الأسئلة</div>
+        </div>
+        <div class="hub-pattern">
+          <span>Do</span><span class="plus">+</span><span>you</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>?</span>
+        </div>
+        <p class="hub-example">Do you speak English every day?</p>
+        <span class="hub-cta">Open lesson<span class="hub-cta-arrow">→</span></span>
+      </a>
 
-    <!-- Lesson 15 — Describing & Comparing -->
-    <a class="hub-card c-lime" href="lesson-15.html">
-      <header class="hub-card-head">
-        <span class="hub-num">LESSON 15</span>
-        <span class="hub-emoji">🌈</span>
-      </header>
-      <div>
-        <div class="hub-card-title">Describing & Comparing</div>
-        <div class="hub-card-title-ar" dir="rtl">الوصف والمقارنة (الصفات والتفضيل)</div>
-      </div>
-      <div class="hub-pattern">
-        <span>noun</span><span class="plus">+</span><span>is / looks</span><span class="plus">+</span><span>adjective</span><span class="plus">+</span><span>than / in</span>
-      </div>
-      <p class="hub-example">My brother is taller than me · This phone is the most expensive in the shop</p>
-      <span class="hub-cta">Open lesson →</span>
-    </a>
+      <a class="hub-card" href="lesson-12.html">
+        <header class="hub-card-head">
+          <span class="hub-num">LESSON 12</span>
+          <span class="hub-emoji">🔮</span>
+        </header>
+        <div>
+          <div class="hub-card-title">Future Plans</div>
+          <div class="hub-card-title-ar">خطط المستقبل</div>
+        </div>
+        <div class="hub-pattern">
+          <span>I</span><span class="plus">+</span><span>will</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>tomorrow</span>
+        </div>
+        <p class="hub-example">I will travel to London next year</p>
+        <span class="hub-cta">Open lesson<span class="hub-cta-arrow">→</span></span>
+      </a>
 
-    <!-- Lesson 16 — Prepositions of Place -->
-    <a class="hub-card c-forest" href="lesson-16.html">
-      <header class="hub-card-head">
-        <span class="hub-num">LESSON 16</span>
-        <span class="hub-emoji">📍</span>
-      </header>
-      <div>
-        <div class="hub-card-title">Prepositions of Place</div>
-        <div class="hub-card-title-ar" dir="rtl">حروف جر المكان (on · in · under · next to)</div>
-      </div>
-      <div class="hub-pattern">
-        <span>noun</span><span class="plus">+</span><span>is / are</span><span class="plus">+</span><span>on / in / under</span><span class="plus">+</span><span>place</span>
-      </div>
-      <p class="hub-example">My keys are on the table · The cat is under the bed</p>
-      <span class="hub-cta">Open lesson →</span>
-    </a>
+      <a class="hub-card" href="lesson-13.html">
+        <header class="hub-card-head">
+          <span class="hub-num">LESSON 13</span>
+          <span class="hub-emoji">🤔</span>
+        </header>
+        <div>
+          <div class="hub-card-title">WH Questions</div>
+          <div class="hub-card-title-ar">أسئلة بـ WH</div>
+        </div>
+        <div class="hub-pattern">
+          <span>What</span><span class="plus">+</span><span>did</span><span class="plus">+</span><span>you</span><span class="plus">+</span><span>verb</span>
+        </div>
+        <p class="hub-example">Where did you go yesterday?</p>
+        <span class="hub-cta">Open lesson<span class="hub-cta-arrow">→</span></span>
+      </a>
 
-    <!-- Lesson 17 — Prepositions of Time -->
-    <a class="hub-card c-gold" href="lesson-17.html">
-      <header class="hub-card-head">
-        <span class="hub-num">LESSON 17</span>
-        <span class="hub-emoji">⏰</span>
-      </header>
-      <div>
-        <div class="hub-card-title">Prepositions of Time</div>
-        <div class="hub-card-title-ar" dir="rtl">حروف جر الزمن (at · on · in · before · after)</div>
-      </div>
-      <div class="hub-pattern">
-        <span>subject</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>at / on / in</span><span class="plus">+</span><span>time</span>
-      </div>
-      <p class="hub-example">The meeting starts at 5pm · School opens in September</p>
-      <span class="hub-cta">Open lesson →</span>
-    </a>
+      <a class="hub-card" href="lesson-14.html">
+        <header class="hub-card-head">
+          <span class="hub-num">LESSON 14</span>
+          <span class="hub-emoji">🚫</span>
+        </header>
+        <div>
+          <div class="hub-card-title">Negative Sentences</div>
+          <div class="hub-card-title-ar">جمل النفي</div>
+        </div>
+        <div class="hub-pattern">
+          <span>I</span><span class="plus">+</span><span>don't</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>object</span>
+        </div>
+        <p class="hub-example">I don't drink coffee in the morning</p>
+        <span class="hub-cta">Open lesson<span class="hub-cta-arrow">→</span></span>
+      </a>
 
-    <!-- Lesson 18 — Prepositions of Direction -->
-    <a class="hub-card c-sky" href="lesson-18.html">
-      <header class="hub-card-head">
-        <span class="hub-num">LESSON 18</span>
-        <span class="hub-emoji">🧭</span>
-      </header>
-      <div>
-        <div class="hub-card-title">Prepositions of Direction</div>
-        <div class="hub-card-title-ar" dir="rtl">حروف جر الاتجاه (to · from · into · through)</div>
-      </div>
-      <div class="hub-pattern">
-        <span>subject</span><span class="plus">+</span><span>go / run</span><span class="plus">+</span><span>to / through</span><span class="plus">+</span><span>place</span>
-      </div>
-      <p class="hub-example">I go to school every day · The car drives through the tunnel</p>
-      <span class="hub-cta">Open lesson →</span>
-    </a>
+      <a class="hub-card" href="lesson-15.html">
+        <header class="hub-card-head">
+          <span class="hub-num">LESSON 15</span>
+          <span class="hub-emoji">🎨</span>
+        </header>
+        <div>
+          <div class="hub-card-title">Describing & Comparing</div>
+          <div class="hub-card-title-ar">الوصف والمقارنة</div>
+        </div>
+        <div class="hub-pattern">
+          <span>It is</span><span class="plus">+</span><span>more</span><span class="plus">+</span><span>adj</span><span class="plus">+</span><span>than</span>
+        </div>
+        <p class="hub-example">My phone is faster than yours</p>
+        <span class="hub-cta">Open lesson<span class="hub-cta-arrow">→</span></span>
+      </a>
 
-    <!-- Lesson 19 — Can / Could (Abilities & Requests) -->
-    <a class="hub-card c-mint" href="lesson-19.html">
-      <header class="hub-card-head">
-        <span class="hub-num">LESSON 19</span>
-        <span class="hub-emoji">💪</span>
-      </header>
-      <div>
-        <div class="hub-card-title">Can / Could — Abilities</div>
-        <div class="hub-card-title-ar" dir="rtl">القدرة والطلب المؤدب (can · could · may)</div>
-      </div>
-      <div class="hub-pattern">
-        <span>subject</span><span class="plus">+</span><span>can / could</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>object</span>
-      </div>
-      <p class="hub-example">I can speak English · Could you help me, please?</p>
-      <span class="hub-cta">Open lesson →</span>
-    </a>
+      <a class="hub-card" href="lesson-16.html">
+        <header class="hub-card-head">
+          <span class="hub-num">LESSON 16</span>
+          <span class="hub-emoji">📍</span>
+        </header>
+        <div>
+          <div class="hub-card-title">Prepositions of Place</div>
+          <div class="hub-card-title-ar">حروف جر المكان</div>
+        </div>
+        <div class="hub-pattern">
+          <span>noun</span><span class="plus">+</span><span>is</span><span class="plus">+</span><span>on / in / under</span><span class="plus">+</span><span>place</span>
+        </div>
+        <p class="hub-example">My keys are on the table</p>
+        <span class="hub-cta">Open lesson<span class="hub-cta-arrow">→</span></span>
+      </a>
 
-    <!-- Lesson 20 — There is / There are -->
-    <a class="hub-card c-peach" href="lesson-20.html">
-      <header class="hub-card-head">
-        <span class="hub-num">LESSON 20</span>
-        <span class="hub-emoji">🏠</span>
-      </header>
-      <div>
-        <div class="hub-card-title">There is / There are</div>
-        <div class="hub-card-title-ar" dir="rtl">يوجد · لا يوجد · هل يوجد؟</div>
-      </div>
-      <div class="hub-pattern">
-        <span>There is / are</span><span class="plus">+</span><span>quantity</span><span class="plus">+</span><span>noun</span><span class="plus">+</span><span>place</span>
-      </div>
-      <p class="hub-example">There is a book on the table · There are two cats in the garden</p>
-      <span class="hub-cta">Open lesson →</span>
-    </a>
+      <a class="hub-card" href="lesson-17.html">
+        <header class="hub-card-head">
+          <span class="hub-num">LESSON 17</span>
+          <span class="hub-emoji">⏰</span>
+        </header>
+        <div>
+          <div class="hub-card-title">Prepositions of Time</div>
+          <div class="hub-card-title-ar">حروف جر الزمن</div>
+        </div>
+        <div class="hub-pattern">
+          <span>verb</span><span class="plus">+</span><span>at / on / in</span><span class="plus">+</span><span>time</span>
+        </div>
+        <p class="hub-example">The meeting starts at 5pm</p>
+        <span class="hub-cta">Open lesson<span class="hub-cta-arrow">→</span></span>
+      </a>
 
-    <!-- Lesson 21 — Imperatives & Commands -->
-    <a class="hub-card c-crimson" href="lesson-21.html">
-      <header class="hub-card-head">
-        <span class="hub-num">LESSON 21</span>
-        <span class="hub-emoji">📣</span>
-      </header>
-      <div>
-        <div class="hub-card-title">Imperatives & Commands</div>
-        <div class="hub-card-title-ar" dir="rtl">الأوامر والنواهي (open · don't · please · let's)</div>
-      </div>
-      <div class="hub-pattern">
-        <span>(Please / Don't)</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>object</span><span class="plus">+</span><span>manner</span>
-      </div>
-      <p class="hub-example">Please open the door · Don't be late · Let's go home</p>
-      <span class="hub-cta">Open lesson →</span>
-    </a>
+      <a class="hub-card" href="lesson-18.html">
+        <header class="hub-card-head">
+          <span class="hub-num">LESSON 18</span>
+          <span class="hub-emoji">🧭</span>
+        </header>
+        <div>
+          <div class="hub-card-title">Prepositions of Direction</div>
+          <div class="hub-card-title-ar">حروف جر الاتجاه</div>
+        </div>
+        <div class="hub-pattern">
+          <span>I</span><span class="plus">+</span><span>go</span><span class="plus">+</span><span>to / from / through</span><span class="plus">+</span><span>place</span>
+        </div>
+        <p class="hub-example">I go to school every day</p>
+        <span class="hub-cta">Open lesson<span class="hub-cta-arrow">→</span></span>
+      </a>
 
-    <!-- Lesson 22 — Present Continuous -->
-    <a class="hub-card c-coral" href="lesson-22.html">
-      <header class="hub-card-head">
-        <span class="hub-num">LESSON 22</span>
-        <span class="hub-emoji">🎬</span>
-      </header>
-      <div>
-        <div class="hub-card-title">Present Continuous</div>
-        <div class="hub-card-title-ar" dir="rtl">المضارع المستمر (am/is/are + ing)</div>
-      </div>
-      <div class="hub-pattern">
-        <span>subject</span><span class="plus">+</span><span>am / is / are</span><span class="plus">+</span><span>verb-ing</span><span class="plus">+</span><span>now</span>
-      </div>
-      <p class="hub-example">I am studying English now · She is cooking dinner</p>
-      <span class="hub-cta">Open lesson →</span>
-    </a>
+      <a class="hub-card" href="lesson-19.html">
+        <header class="hub-card-head">
+          <span class="hub-num">LESSON 19</span>
+          <span class="hub-emoji">💪</span>
+        </header>
+        <div>
+          <div class="hub-card-title">Can / Could</div>
+          <div class="hub-card-title-ar">القدرة والطلب المؤدب</div>
+        </div>
+        <div class="hub-pattern">
+          <span>I</span><span class="plus">+</span><span>can / could</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>object</span>
+        </div>
+        <p class="hub-example">Could you help me, please?</p>
+        <span class="hub-cta">Open lesson<span class="hub-cta-arrow">→</span></span>
+      </a>
 
-    <!-- Lesson 23 — Have / Has got -->
-    <a class="hub-card c-lavender" href="lesson-23.html">
-      <header class="hub-card-head">
-        <span class="hub-num">LESSON 23</span>
-        <span class="hub-emoji">💎</span>
-      </header>
-      <div>
-        <div class="hub-card-title">Have / Has — Possessions</div>
-        <div class="hub-card-title-ar" dir="rtl">الملكية والعائلة (have · has · have got)</div>
-      </div>
-      <div class="hub-pattern">
-        <span>subject</span><span class="plus">+</span><span>have / has</span><span class="plus">+</span><span>detail</span><span class="plus">+</span><span>noun</span>
-      </div>
-      <p class="hub-example">I have two brothers · She has blue eyes</p>
-      <span class="hub-cta">Open lesson →</span>
-    </a>
+      <a class="hub-card" href="lesson-20.html">
+        <header class="hub-card-head">
+          <span class="hub-num">LESSON 20</span>
+          <span class="hub-emoji">🏠</span>
+        </header>
+        <div>
+          <div class="hub-card-title">There is / There are</div>
+          <div class="hub-card-title-ar">يوجد · لا يوجد</div>
+        </div>
+        <div class="hub-pattern">
+          <span>There is / are</span><span class="plus">+</span><span>quantity</span><span class="plus">+</span><span>noun</span>
+        </div>
+        <p class="hub-example">There are two cats in the garden</p>
+        <span class="hub-cta">Open lesson<span class="hub-cta-arrow">→</span></span>
+      </a>
 
-    <!-- Lesson 24 — Should / Must / Have to -->
-    <a class="hub-card c-bronze" href="lesson-24.html">
-      <header class="hub-card-head">
-        <span class="hub-num">LESSON 24</span>
-        <span class="hub-emoji">🛡️</span>
-      </header>
-      <div>
-        <div class="hub-card-title">Should / Must / Have to</div>
-        <div class="hub-card-title-ar" dir="rtl">النصيحة والواجب (should · must · have to)</div>
-      </div>
-      <div class="hub-pattern">
-        <span>subject</span><span class="plus">+</span><span>should / must</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>object</span>
-      </div>
-      <p class="hub-example">You should study hard · We must follow the rules</p>
-      <span class="hub-cta">Open lesson →</span>
-    </a>
+      <a class="hub-card" href="lesson-21.html">
+        <header class="hub-card-head">
+          <span class="hub-num">LESSON 21</span>
+          <span class="hub-emoji">📣</span>
+        </header>
+        <div>
+          <div class="hub-card-title">Imperatives & Commands</div>
+          <div class="hub-card-title-ar">الأوامر والنواهي</div>
+        </div>
+        <div class="hub-pattern">
+          <span>(Please / Don't)</span><span class="plus">+</span><span>verb</span><span class="plus">+</span><span>object</span>
+        </div>
+        <p class="hub-example">Please open the door · Don't be late</p>
+        <span class="hub-cta">Open lesson<span class="hub-cta-arrow">→</span></span>
+      </a>
 
+      <a class="hub-card" href="lesson-22.html">
+        <header class="hub-card-head">
+          <span class="hub-num">LESSON 22</span>
+          <span class="hub-emoji">🎬</span>
+        </header>
+        <div>
+          <div class="hub-card-title">Present Continuous</div>
+          <div class="hub-card-title-ar">المضارع المستمر</div>
+        </div>
+        <div class="hub-pattern">
+          <span>I</span><span class="plus">+</span><span>am / is / are</span><span class="plus">+</span><span>verb-ing</span>
+        </div>
+        <p class="hub-example">I am studying English now</p>
+        <span class="hub-cta">Open lesson<span class="hub-cta-arrow">→</span></span>
+      </a>
+
+      <a class="hub-card" href="lesson-23.html">
+        <header class="hub-card-head">
+          <span class="hub-num">LESSON 23</span>
+          <span class="hub-emoji">💎</span>
+        </header>
+        <div>
+          <div class="hub-card-title">Have / Has — Possessions</div>
+          <div class="hub-card-title-ar">الملكية والعائلة</div>
+        </div>
+        <div class="hub-pattern">
+          <span>I</span><span class="plus">+</span><span>have / has</span><span class="plus">+</span><span>noun</span>
+        </div>
+        <p class="hub-example">I have two brothers and a sister</p>
+        <span class="hub-cta">Open lesson<span class="hub-cta-arrow">→</span></span>
+      </a>
+
+      <a class="hub-card" href="lesson-24.html">
+        <header class="hub-card-head">
+          <span class="hub-num">LESSON 24</span>
+          <span class="hub-emoji">🛡️</span>
+        </header>
+        <div>
+          <div class="hub-card-title">Should / Must / Have to</div>
+          <div class="hub-card-title-ar">النصيحة والواجب</div>
+        </div>
+        <div class="hub-pattern">
+          <span>I</span><span class="plus">+</span><span>should / must</span><span class="plus">+</span><span>verb</span>
+        </div>
+        <p class="hub-example">You should study hard every day</p>
+        <span class="hub-cta">Open lesson<span class="hub-cta-arrow">→</span></span>
+      </a>
+
+    </div>
   </main>
 
   <footer class="page-footer">
-    <span class="ft-brand">Inglizi.com</span><span class="ft-sep">·</span>
-    <span class="ft-name" dir="rtl">الأستاذ حمزة القصراوي</span><span class="ft-sep">·</span>
-    <span class="ft-wa">WhatsApp 0707902091</span>
+    <div class="footer-brand">Inglizi.com</div>
+    <div class="footer-contact">
+      <span dir="rtl">الأستاذ حمزة القصراوي</span>
+      <span><b>WA</b> 0707 902 091</span>
+      <span style="color: var(--text-dim);">© Sahla 2026</span>
+    </div>
   </footer>
 
 </body>
