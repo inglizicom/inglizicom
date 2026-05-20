@@ -221,225 +221,272 @@
 
     /* ── Pillars grid ──────────────────────────────────────── */
     .pillars {
-      display: grid; gap: 22px;
+      display: grid; gap: 28px;
       grid-template-columns: 1fr;
     }
     @media (min-width: 760px) {
       .pillars { grid-template-columns: 1fr 1fr; }
-      /* Make the Business English card span both columns so its two CTAs breathe */
       .pillar.span-2 { grid-column: span 2; }
     }
 
     .pillar {
       position: relative;
-      background: var(--paper);
+      background:
+        radial-gradient(ellipse 80% 60% at 100% 0%, rgba(217, 119, 6, 0.10), transparent 60%),
+        radial-gradient(ellipse 60% 50% at 0% 100%, rgba(28, 25, 23, 0.04), transparent 60%),
+        linear-gradient(160deg, var(--paper) 0%, var(--paper-soft) 100%);
       border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 36px 36px 32px;
+      border-radius: 28px;
+      padding: 38px 36px 32px;
       overflow: hidden;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 4px 0 rgba(115, 99, 53, 0.05);
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.6) inset,
+        0 1px 3px rgba(115, 99, 53, 0.08),
+        0 8px 20px -6px rgba(115, 99, 53, 0.10),
+        0 20px 50px -16px rgba(28, 25, 23, 0.12);
+      isolation: isolate;
     }
     .pillar:hover {
-      transform: translateY(-6px);
-      border-color: var(--p-accent, var(--gold));
-      box-shadow: 0 28px 56px -16px rgba(115, 99, 53, 0.25);
+      transform: translateY(-8px) scale(1.005);
+      border-color: var(--gold);
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.7) inset,
+        0 4px 8px rgba(115, 99, 53, 0.10),
+        0 24px 40px -10px rgba(180, 83, 9, 0.20),
+        0 40px 80px -20px rgba(28, 25, 23, 0.25);
     }
+
+    /* Layered top accent bar — ink to gold gradient */
     .pillar::before {
       content: ""; position: absolute; top: 0; left: 0; right: 0; height: 6px;
-      background: linear-gradient(90deg, var(--p-accent, var(--gold)), var(--p-accent-2, var(--gold-bright)));
-      opacity: 0.85;
+      background: linear-gradient(90deg, var(--ink) 0%, var(--gold) 50%, var(--gold-bright) 100%);
+      z-index: 2;
     }
 
-    /* Decorative ornament inside each pillar */
-    .pillar-shape {
-      position: absolute; top: -40px; right: -40px;
-      width: 220px; height: 220px; border-radius: 50%;
-      background: radial-gradient(circle, var(--p-soft, var(--gold-soft)), transparent 65%);
-      opacity: 0.85;
-      pointer-events: none;
+    /* Decorative giant blurred orb in the corner — adds depth */
+    .pillar::after {
+      content: ""; position: absolute; top: -100px; right: -80px;
+      width: 320px; height: 320px; border-radius: 50%;
+      background: radial-gradient(circle, var(--gold-glow), transparent 65%);
+      pointer-events: none; z-index: 0;
+      transition: transform 0.5s ease;
+    }
+    .pillar:hover::after {
+      transform: scale(1.2) rotate(20deg);
     }
 
+    /* Decorative SVG graphic — unique per card */
+    .pillar-graphic {
+      position: absolute; top: 24px; right: 24px;
+      width: 140px; height: 140px;
+      opacity: 0.18;
+      pointer-events: none; z-index: 1;
+      transition: all 0.4s ease;
+    }
+    .pillar:hover .pillar-graphic {
+      opacity: 0.32;
+      transform: rotate(-6deg) scale(1.08);
+    }
+
+    /* Main content sits above the decorative layers */
+    .pillar-content { position: relative; z-index: 3; }
+
+    /* Big emoji badge with proper depth */
     .pillar-emoji {
-      width: 80px; height: 80px; border-radius: 20px;
-      background: linear-gradient(135deg, var(--p-accent, var(--gold)), var(--p-accent-2, var(--gold-bright)));
+      width: 88px; height: 88px; border-radius: 22px;
+      background:
+        linear-gradient(135deg, var(--ink) 0%, var(--ink-deep) 100%);
       color: white;
       display: flex; align-items: center; justify-content: center;
-      font-size: 38px;
-      box-shadow: 0 14px 30px -8px rgba(28, 25, 23, 0.25),
-                  inset 0 1px 0 rgba(255, 255, 255, 0.15);
-      margin-bottom: 24px;
+      font-size: 42px;
+      margin-bottom: 26px;
       position: relative;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        inset 0 -2px 6px rgba(0, 0, 0, 0.2),
+        0 12px 24px -6px rgba(28, 25, 23, 0.35),
+        0 4px 8px -2px rgba(180, 83, 9, 0.2);
+    }
+    .pillar-emoji::after {
+      content: ""; position: absolute; inset: 0; border-radius: 22px;
+      background: linear-gradient(135deg, rgba(217, 119, 6, 0.18), transparent 50%);
+      pointer-events: none;
+    }
+    .pillar-emoji::before {
+      content: ""; position: absolute; top: -4px; right: -4px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: var(--gold-bright);
+      box-shadow: 0 0 14px var(--gold-bright);
     }
 
     .pillar-eyebrow {
-      display: inline-flex; align-items: center; gap: 8px;
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 5px 12px; border-radius: 999px;
+      background: rgba(217, 119, 6, 0.10); border: 1px solid rgba(217, 119, 6, 0.22);
       font-family: var(--display); font-size: 10px; font-weight: 800;
-      color: var(--p-accent, var(--gold));
+      color: var(--gold);
       letter-spacing: 0.22em; text-transform: uppercase;
-      margin-bottom: 10px;
-      position: relative;
+      margin-bottom: 14px;
     }
-    .pillar-eyebrow::before { content: ""; width: 16px; height: 1px; background: currentColor; opacity: 0.6; }
+    .pillar-eyebrow::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--gold-bright); }
 
     .pillar-title {
-      font-family: var(--display); font-size: clamp(24px, 2.6vw, 32px); font-weight: 900;
-      color: var(--text); letter-spacing: -0.025em; line-height: 1.1;
-      margin-bottom: 6px;
-      position: relative;
+      font-family: var(--display); font-size: clamp(26px, 2.8vw, 34px); font-weight: 900;
+      color: var(--text); letter-spacing: -0.028em; line-height: 1.05;
+      margin-bottom: 8px;
     }
     .pillar-title-ar {
-      font-family: var(--arabic); font-size: 15px; color: var(--text-muted);
-      direction: rtl; font-weight: 600; line-height: 1.65;
-      position: relative;
+      font-family: var(--arabic); font-size: 16px; color: var(--text-2);
+      direction: rtl; font-weight: 700; line-height: 1.65;
     }
     .pillar-desc {
-      font-family: var(--sans); font-size: 14px; color: var(--text-2);
-      line-height: 1.7; margin-top: 14px;
-      position: relative;
+      font-family: var(--sans); font-size: 14.5px; color: var(--text-2);
+      line-height: 1.7; margin-top: 16px;
     }
 
     .pillar-meta {
-      display: flex; gap: 16px; flex-wrap: wrap; align-items: center;
-      margin: 22px 0 26px;
-      padding: 14px 18px; border-radius: 12px;
-      background: var(--paper-soft); border: 1px solid var(--border-soft);
-      position: relative;
+      display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+      margin: 24px 0 28px;
+      padding: 16px 20px; border-radius: 14px;
+      background: linear-gradient(135deg, rgba(180, 83, 9, 0.04), rgba(180, 83, 9, 0.10));
+      border: 1px solid rgba(180, 83, 9, 0.16);
+      backdrop-filter: blur(4px);
     }
     .meta-stat {
-      display: flex; align-items: baseline; gap: 6px;
+      display: flex; align-items: baseline; gap: 7px;
       font-family: var(--display); font-size: 12px; color: var(--text-muted); font-weight: 700;
       letter-spacing: 0.04em;
     }
     .meta-stat b {
-      font-size: 18px; color: var(--text); font-weight: 900; letter-spacing: -0.01em;
+      font-size: 20px; color: var(--ink); font-weight: 900; letter-spacing: -0.02em;
       font-family: var(--display);
+      background: linear-gradient(135deg, var(--ink), var(--gold));
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
-    .meta-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--text-dim); }
+    .meta-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--gold); opacity: 0.5; }
 
     .pillar-actions {
       display: flex; gap: 10px; flex-wrap: wrap;
-      position: relative;
     }
     .pillar-btn {
-      display: inline-flex; align-items: center; gap: 10px;
-      padding: 14px 24px; border-radius: 14px;
-      font-family: var(--display); font-size: 13px; font-weight: 800;
+      display: inline-flex; align-items: center; gap: 12px;
+      padding: 16px 28px; border-radius: 16px;
+      font-family: var(--display); font-size: 14px; font-weight: 800;
       letter-spacing: -0.005em;
-      transition: all 0.2s ease;
+      transition: all 0.22s ease;
+      position: relative; overflow: hidden;
     }
     .pillar-btn.is-primary {
-      background: linear-gradient(135deg, var(--p-accent, var(--gold)), var(--p-accent-2, var(--gold-bright)));
+      background: linear-gradient(135deg, var(--ink) 0%, var(--ink-deep) 100%);
       color: white;
-      box-shadow: 0 8px 20px -6px rgba(28, 25, 23, 0.25);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 10px 24px -6px rgba(28, 25, 23, 0.4),
+        0 4px 8px -2px rgba(180, 83, 9, 0.2);
+    }
+    .pillar-btn.is-primary::before {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(135deg, transparent 0%, rgba(217, 119, 6, 0.25) 100%);
+      opacity: 0; transition: opacity 0.22s ease;
     }
     .pillar-btn.is-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 14px 28px -8px rgba(28, 25, 23, 0.32);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        0 16px 32px -8px rgba(28, 25, 23, 0.5),
+        0 8px 16px -4px rgba(180, 83, 9, 0.3);
     }
-    .pillar-btn.is-secondary {
-      background: var(--paper);
-      color: var(--p-accent, var(--gold));
-      border: 1.5px solid var(--p-accent, var(--gold));
-    }
-    .pillar-btn.is-secondary:hover {
-      background: var(--p-accent, var(--gold));
-      color: white;
-      transform: translateY(-2px);
-    }
+    .pillar-btn.is-primary:hover::before { opacity: 1; }
     .pillar-btn-arrow {
       display: inline-flex; align-items: center; justify-content: center;
-      width: 22px; height: 22px; border-radius: 50%;
-      background: rgba(255, 255, 255, 0.18);
-      transition: transform 0.2s ease;
+      width: 26px; height: 26px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+      color: white; font-size: 14px;
+      transition: transform 0.22s ease;
+      box-shadow: 0 4px 8px -2px rgba(180, 83, 9, 0.4);
     }
-    .pillar-btn:hover .pillar-btn-arrow { transform: translateX(4px); }
-    .pillar-btn.is-secondary .pillar-btn-arrow { background: var(--p-soft, var(--gold-soft)); color: var(--p-accent, var(--gold)); }
-    .pillar-btn.is-secondary:hover .pillar-btn-arrow { background: rgba(255,255,255,0.22); color: white; }
+    .pillar-btn:hover .pillar-btn-arrow { transform: translateX(4px) rotate(-8deg); }
 
     .pillar-ext-note {
       display: inline-flex; align-items: center; gap: 6px;
-      margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border);
-      font-family: var(--display); font-size: 11px; color: var(--text-muted); font-weight: 600;
-      letter-spacing: 0.08em;
+      margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border);
+      font-family: var(--display); font-size: 11px; color: var(--text-muted); font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
     }
-    .pillar-ext-note svg { width: 11px; height: 11px; opacity: 0.7; }
-
-    /* Per-pillar color themes */
-    .pillar.p-rose {
-      --p-accent: #b45309;
-      --p-accent-2: #d97706;
-      --p-soft: #fef3c7;
-    }
-    .pillar.p-blue {
-      --p-accent: #1c1917;
-      --p-accent-2: #44403c;
-      --p-soft: #f0e6cd;
-    }
-    .pillar.p-green {
-      --p-accent: #15803d;
-      --p-accent-2: #166534;
-      --p-soft: #dcfce7;
-    }
-    .pillar.p-violet {
-      --p-accent: #6d28d9;
-      --p-accent-2: #7c3aed;
-      --p-soft: #ede9fe;
-    }
+    .pillar-ext-note svg { width: 11px; height: 11px; opacity: 0.7; color: var(--gold); }
 
     /* ── Two-up CTA inside Business English card ───────────── */
     .biz-tracks {
-      display: grid; gap: 12px;
+      display: grid; gap: 14px;
       grid-template-columns: 1fr;
-      margin: 22px 0 0;
-      position: relative;
+      margin: 26px 0 0;
     }
     @media (min-width: 600px) { .biz-tracks { grid-template-columns: 1fr 1fr; } }
 
     .biz-track {
       display: flex; align-items: center; gap: 16px;
-      padding: 20px 22px; border-radius: 16px;
-      background: var(--paper-soft);
+      padding: 22px 24px; border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(217, 119, 6, 0.04), rgba(28, 25, 23, 0.02)),
+        var(--paper);
       border: 1.5px solid var(--border);
-      transition: all 0.22s ease;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative; overflow: hidden;
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.6) inset,
+        0 4px 12px -2px rgba(115, 99, 53, 0.08);
+    }
+    .biz-track::before {
+      content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 3px;
+      background: linear-gradient(180deg, var(--gold), var(--gold-bright));
+      transform: scaleY(0); transform-origin: top;
+      transition: transform 0.25s ease;
     }
     .biz-track:hover {
-      border-color: var(--p-accent, var(--gold));
-      background: var(--paper);
-      transform: translateX(4px);
+      border-color: var(--gold);
+      background: linear-gradient(135deg, rgba(217, 119, 6, 0.08), rgba(28, 25, 23, 0.04)), var(--paper-soft);
+      transform: translateX(6px);
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.7) inset,
+        0 16px 30px -10px rgba(180, 83, 9, 0.18);
     }
+    .biz-track:hover::before { transform: scaleY(1); }
+
     .biz-track-emoji {
-      width: 52px; height: 52px; border-radius: 14px;
-      background: var(--p-soft, var(--gold-soft));
-      color: var(--p-accent, var(--gold));
+      width: 56px; height: 56px; border-radius: 16px;
+      background: linear-gradient(135deg, var(--ink), var(--ink-deep));
+      color: var(--gold-bright);
       display: flex; align-items: center; justify-content: center;
-      font-size: 26px; flex-shrink: 0;
+      font-size: 28px; flex-shrink: 0;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 6px 14px -3px rgba(28, 25, 23, 0.3);
     }
     .biz-track-text { flex: 1; min-width: 0; }
     .biz-track-title {
-      font-family: var(--display); font-size: 16px; font-weight: 800;
-      color: var(--text); letter-spacing: -0.01em; margin-bottom: 2px;
+      font-family: var(--display); font-size: 17px; font-weight: 800;
+      color: var(--text); letter-spacing: -0.012em; margin-bottom: 2px;
     }
     .biz-track-ar {
       font-family: var(--arabic); font-size: 13px; color: var(--text-muted);
-      direction: rtl; font-weight: 500;
+      direction: rtl; font-weight: 600;
     }
     .biz-track-meta {
-      font-family: var(--display); font-size: 11px; color: var(--text-dim); font-weight: 700;
-      letter-spacing: 0.04em; margin-top: 4px;
+      font-family: var(--display); font-size: 10px; color: var(--gold); font-weight: 700;
+      letter-spacing: 0.16em; text-transform: uppercase; margin-top: 6px;
     }
     .biz-track-arrow {
-      width: 30px; height: 30px; border-radius: 50%;
-      background: var(--paper-deep);
-      color: var(--p-accent, var(--gold));
+      width: 34px; height: 34px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+      color: white; font-size: 16px; font-weight: 700;
       display: flex; align-items: center; justify-content: center;
-      font-size: 16px;
-      transition: all 0.2s ease;
+      transition: all 0.22s ease;
+      box-shadow: 0 6px 12px -3px rgba(180, 83, 9, 0.4);
     }
     .biz-track:hover .biz-track-arrow {
-      background: var(--p-accent, var(--gold));
-      color: white;
-      transform: rotate(-12deg);
+      transform: rotate(-12deg) scale(1.1);
     }
 
     /* ── Quick-access strip (extra resources) ───────────────── */
@@ -551,110 +598,161 @@
     <div class="pillars">
 
       <!-- 1. Sentence Builder (basic) -->
-      <a class="pillar p-rose" href="units/unit-4/lessons.html">
-        <div class="pillar-shape"></div>
-        <div class="pillar-emoji">🧩</div>
-        <div class="pillar-eyebrow">Section 01 · A1</div>
-        <h3 class="pillar-title">Sentence Builder</h3>
-        <p class="pillar-title-ar">بناء الجمل خطوة بخطوة</p>
-        <p class="pillar-desc">Build real English sentences by clicking colored chips. Subject + verb + object — perfect for absolute beginners learning sentence structure.</p>
-        <div class="pillar-meta">
-          <span class="meta-stat"><b>18</b>lessons</span>
-          <span class="meta-dot"></span>
-          <span class="meta-stat"><b>5</b>themes</span>
-          <span class="meta-dot"></span>
-          <span class="meta-stat"><b>~5min</b>each</span>
-        </div>
-        <div class="pillar-actions">
-          <span class="pillar-btn is-primary">
-            Open lessons
-            <span class="pillar-btn-arrow">→</span>
-          </span>
+      <a class="pillar" href="units/unit-4/lessons.html">
+        <!-- Decorative SVG: stacked chips representing sentence parts -->
+        <svg class="pillar-graphic" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="10" y="20" width="140" height="22" rx="11" fill="#1c1917"/>
+          <rect x="22" y="56" width="116" height="22" rx="11" fill="#b45309" opacity="0.85"/>
+          <rect x="38" y="92" width="84" height="22" rx="11" fill="#1c1917" opacity="0.65"/>
+          <rect x="54" y="128" width="52" height="22" rx="11" fill="#b45309"/>
+        </svg>
+        <div class="pillar-content">
+          <div class="pillar-emoji">🧩</div>
+          <div class="pillar-eyebrow">Section 01 · A1</div>
+          <h3 class="pillar-title">Sentence Builder</h3>
+          <p class="pillar-title-ar">بناء الجمل خطوة بخطوة</p>
+          <p class="pillar-desc">Build real English sentences by clicking colored chips. Subject + verb + object + time — perfect for absolute beginners learning sentence structure.</p>
+          <div class="pillar-meta">
+            <span class="meta-stat"><b>18</b>lessons</span>
+            <span class="meta-dot"></span>
+            <span class="meta-stat"><b>5</b>themes</span>
+            <span class="meta-dot"></span>
+            <span class="meta-stat"><b>~5min</b>each</span>
+          </div>
+          <div class="pillar-actions">
+            <span class="pillar-btn is-primary">
+              Open lessons
+              <span class="pillar-btn-arrow">→</span>
+            </span>
+          </div>
         </div>
       </a>
 
       <!-- 2. Real Life English -->
-      <a class="pillar p-green" href="https://inglizi.com/private/lessons" target="_blank" rel="noopener">
-        <div class="pillar-shape"></div>
-        <div class="pillar-emoji">🏙️</div>
-        <div class="pillar-eyebrow">Section 02 · A1·A2</div>
-        <h3 class="pillar-title">Real Life English</h3>
-        <p class="pillar-title-ar">الإنجليزية للمواقف اليومية</p>
-        <p class="pillar-desc">20 themed units covering everyday situations: ordering food, asking directions, meeting new people, shopping, travel, and more.</p>
-        <div class="pillar-meta">
-          <span class="meta-stat"><b>20</b>units</span>
-          <span class="meta-dot"></span>
-          <span class="meta-stat"><b>200+</b>dialog lines</span>
-          <span class="meta-dot"></span>
-          <span class="meta-stat"><b>A1·A2</b>level</span>
-        </div>
-        <div class="pillar-actions">
-          <span class="pillar-btn is-primary">
-            Open lessons
-            <span class="pillar-btn-arrow">→</span>
-          </span>
-        </div>
-        <div class="pillar-ext-note">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          On inglizi.com
+      <a class="pillar" href="https://inglizi.com/private/lessons" target="_blank" rel="noopener">
+        <!-- Decorative SVG: city skyline -->
+        <svg class="pillar-graphic" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="10" y="60" width="22" height="90" rx="2" fill="#1c1917"/>
+          <rect x="38" y="40" width="26" height="110" rx="2" fill="#b45309"/>
+          <rect x="70" y="20" width="22" height="130" rx="2" fill="#1c1917" opacity="0.7"/>
+          <rect x="98" y="50" width="24" height="100" rx="2" fill="#b45309" opacity="0.7"/>
+          <rect x="128" y="70" width="22" height="80" rx="2" fill="#1c1917"/>
+          <!-- windows -->
+          <circle cx="21" cy="80" r="2" fill="#fef3c7"/>
+          <circle cx="21" cy="100" r="2" fill="#fef3c7"/>
+          <circle cx="51" cy="65" r="2" fill="#fef3c7"/>
+          <circle cx="51" cy="85" r="2" fill="#fef3c7"/>
+          <circle cx="81" cy="45" r="2" fill="#fef3c7"/>
+          <circle cx="139" cy="90" r="2" fill="#fef3c7"/>
+        </svg>
+        <div class="pillar-content">
+          <div class="pillar-emoji">🏙️</div>
+          <div class="pillar-eyebrow">Section 02 · A1·A2</div>
+          <h3 class="pillar-title">Real Life English</h3>
+          <p class="pillar-title-ar">الإنجليزية للمواقف اليومية</p>
+          <p class="pillar-desc">20 themed units covering everyday situations: ordering food, asking directions, meeting new people, shopping, travel, and more.</p>
+          <div class="pillar-meta">
+            <span class="meta-stat"><b>20</b>units</span>
+            <span class="meta-dot"></span>
+            <span class="meta-stat"><b>200+</b>dialog lines</span>
+            <span class="meta-dot"></span>
+            <span class="meta-stat"><b>A1·A2</b>level</span>
+          </div>
+          <div class="pillar-actions">
+            <span class="pillar-btn is-primary">
+              Open lessons
+              <span class="pillar-btn-arrow">→</span>
+            </span>
+          </div>
+          <div class="pillar-ext-note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            On inglizi.com
+          </div>
         </div>
       </a>
 
       <!-- 3. Level 01 — A0/A1 -->
-      <a class="pillar p-blue" href="https://inglizi.com/private/lessons/level01" target="_blank" rel="noopener">
-        <div class="pillar-shape"></div>
-        <div class="pillar-emoji">📗</div>
-        <div class="pillar-eyebrow">Section 03 · A0 → A1</div>
-        <h3 class="pillar-title">Level 01 — A0/A1</h3>
-        <p class="pillar-title-ar">المستوى الأول · من الصفر إلى المحادثة</p>
-        <p class="pillar-desc">From zero to first conversation. 19 foundational lessons covering greetings, numbers, family, daily routine, food, and basic verbs.</p>
-        <div class="pillar-meta">
-          <span class="meta-stat"><b>19</b>lessons</span>
-          <span class="meta-dot"></span>
-          <span class="meta-stat"><b>500+</b>words</span>
-          <span class="meta-dot"></span>
-          <span class="meta-stat"><b>30</b>days</span>
-        </div>
-        <div class="pillar-actions">
-          <span class="pillar-btn is-primary">
-            Open lessons
-            <span class="pillar-btn-arrow">→</span>
-          </span>
-        </div>
-        <div class="pillar-ext-note">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          On inglizi.com
+      <a class="pillar" href="https://inglizi.com/private/lessons/level01" target="_blank" rel="noopener">
+        <!-- Decorative SVG: ascending staircase / steps -->
+        <svg class="pillar-graphic" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="20" y="120" width="30" height="30" rx="3" fill="#1c1917"/>
+          <rect x="50" y="95" width="30" height="55" rx="3" fill="#b45309" opacity="0.85"/>
+          <rect x="80" y="65" width="30" height="85" rx="3" fill="#1c1917" opacity="0.75"/>
+          <rect x="110" y="30" width="30" height="120" rx="3" fill="#b45309"/>
+          <!-- star at top -->
+          <path d="M125 18 L127 22 L131 22 L128 25 L129 29 L125 27 L121 29 L122 25 L119 22 L123 22 Z" fill="#fbbf24"/>
+        </svg>
+        <div class="pillar-content">
+          <div class="pillar-emoji">📗</div>
+          <div class="pillar-eyebrow">Section 03 · A0 → A1</div>
+          <h3 class="pillar-title">Level 01 — A0/A1</h3>
+          <p class="pillar-title-ar">المستوى الأول · من الصفر إلى المحادثة</p>
+          <p class="pillar-desc">From zero to first conversation. 19 foundational lessons covering greetings, numbers, family, daily routine, food, and basic verbs.</p>
+          <div class="pillar-meta">
+            <span class="meta-stat"><b>19</b>lessons</span>
+            <span class="meta-dot"></span>
+            <span class="meta-stat"><b>500+</b>words</span>
+            <span class="meta-dot"></span>
+            <span class="meta-stat"><b>30</b>days</span>
+          </div>
+          <div class="pillar-actions">
+            <span class="pillar-btn is-primary">
+              Open lessons
+              <span class="pillar-btn-arrow">→</span>
+            </span>
+          </div>
+          <div class="pillar-ext-note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            On inglizi.com
+          </div>
         </div>
       </a>
 
       <!-- 4. Business English — spans 2 cols with TWO tracks -->
-      <div class="pillar p-violet span-2">
-        <div class="pillar-shape"></div>
-        <div class="pillar-emoji">💼</div>
-        <div class="pillar-eyebrow">Section 04 · B1 · B2 · Premium</div>
-        <h3 class="pillar-title">Business English</h3>
-        <p class="pillar-title-ar">الإنجليزية المهنية للعمل والشركات</p>
-        <p class="pillar-desc">Professional communication for the modern workplace: meetings, emails, presentations, negotiations, job interviews, and customer service. Available in two complementary formats.</p>
+      <div class="pillar span-2">
+        <!-- Decorative SVG: briefcase + chart -->
+        <svg class="pillar-graphic" viewBox="0 0 200 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- briefcase -->
+          <rect x="20" y="50" width="80" height="60" rx="6" fill="#1c1917"/>
+          <rect x="40" y="38" width="40" height="14" rx="3" fill="#1c1917"/>
+          <rect x="22" y="75" width="76" height="3" fill="#b45309"/>
+          <rect x="55" y="70" width="10" height="14" rx="2" fill="#b45309"/>
+          <!-- bar chart -->
+          <rect x="120" y="100" width="14" height="20" rx="2" fill="#1c1917" opacity="0.6"/>
+          <rect x="140" y="80" width="14" height="40" rx="2" fill="#b45309" opacity="0.85"/>
+          <rect x="160" y="60" width="14" height="60" rx="2" fill="#1c1917"/>
+          <rect x="180" y="40" width="14" height="80" rx="2" fill="#b45309"/>
+          <!-- trending arrow -->
+          <path d="M120 95 L195 30" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M195 30 L188 30 M195 30 L195 37" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        <div class="pillar-content">
+          <div class="pillar-emoji">💼</div>
+          <div class="pillar-eyebrow">Section 04 · B1 · B2 · Premium</div>
+          <h3 class="pillar-title">Business English</h3>
+          <p class="pillar-title-ar">الإنجليزية المهنية للعمل والشركات</p>
+          <p class="pillar-desc">Professional communication for the modern workplace: meetings, emails, presentations, negotiations, job interviews, and customer service. Available in two complementary formats.</p>
 
-        <div class="biz-tracks">
-          <a class="biz-track" href="business/">
-            <div class="biz-track-emoji">📚</div>
-            <div class="biz-track-text">
-              <div class="biz-track-title">Units</div>
-              <div class="biz-track-ar">١٢ وحدة تفاعلية</div>
-              <div class="biz-track-meta">Slides · Audio · Quizzes</div>
-            </div>
-            <div class="biz-track-arrow">→</div>
-          </a>
-          <a class="biz-track" href="business/builder">
-            <div class="biz-track-emoji">🧩</div>
-            <div class="biz-track-text">
-              <div class="biz-track-title">Sentence Builder</div>
-              <div class="biz-track-ar">١٠ أنماط جملة طويلة</div>
-              <div class="biz-track-meta">Click chips · Build long sentences</div>
-            </div>
-            <div class="biz-track-arrow">→</div>
-          </a>
+          <div class="biz-tracks">
+            <a class="biz-track" href="business/">
+              <div class="biz-track-emoji">📚</div>
+              <div class="biz-track-text">
+                <div class="biz-track-title">Units</div>
+                <div class="biz-track-ar">١٢ وحدة تفاعلية</div>
+                <div class="biz-track-meta">Slides · Audio · Quizzes</div>
+              </div>
+              <div class="biz-track-arrow">→</div>
+            </a>
+            <a class="biz-track" href="business/builder">
+              <div class="biz-track-emoji">🧩</div>
+              <div class="biz-track-text">
+                <div class="biz-track-title">Sentence Builder</div>
+                <div class="biz-track-ar">١٠ أنماط جملة طويلة</div>
+                <div class="biz-track-meta">Click chips · Build long sentences</div>
+              </div>
+              <div class="biz-track-arrow">→</div>
+            </a>
+          </div>
         </div>
       </div>
 
