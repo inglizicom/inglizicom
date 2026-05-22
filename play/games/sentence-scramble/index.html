@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Sentence Scramble — Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    button { font-family: inherit; cursor: pointer; }
+    a { text-decoration: none; color: inherit; }
+
+    :root {
+      --ink:#1c1917; --ink-deep:#0c0a09;
+      --bg:#f5efe0; --paper:#fdfaf0; --paper-soft:#faf3e0; --paper-deep:#f0e6cd;
+      --border:#e0d4b2; --border-soft:#ece2c5;
+      --gold:#b45309; --gold-bright:#d97706; --gold-soft:#fef3c7;
+      --text:#1c1917; --text-2:#44403c; --text-muted:#78716c;
+      --green:#15803d; --red:#b91c1c;
+      --display:'Outfit','DM Sans',system-ui,sans-serif;
+      --sans:'DM Sans',sans-serif;
+      --arabic:'Cairo','Tajawal',sans-serif;
+      --mono:'JetBrains Mono',ui-monospace,monospace;
+    }
+    html, body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; min-height: 100%; -webkit-font-smoothing: antialiased; }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 60% 40% at 80% 0%, rgba(180, 83, 9, 0.08), transparent 60%); }
+
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(245, 239, 224, 0.85);
+      backdrop-filter: blur(18px) saturate(180%);
+      border-bottom: 1px solid var(--border-soft);
+      padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 8px 14px; border-radius: 999px;
+      background: var(--paper); border: 1px solid var(--border);
+      font-family: var(--display); font-size: 13px; font-weight: 700; color: var(--text-2);
+      transition: all 0.18s ease;
+    }
+    .back-link:hover { background: var(--ink); color: white; border-color: var(--ink); }
+    .game-title { font-family: var(--display); font-weight: 900; font-size: 18px; letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; }
+    .scoreboard { display: flex; gap: 12px; font-family: var(--display); font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+    .scoreboard b { color: var(--ink); font-family: var(--mono); font-size: 16px; font-weight: 800; margin-left: 4px; }
+
+    .page { position: relative; z-index: 2; max-width: 900px; margin: 0 auto; padding: 32px 24px 60px; }
+
+    .intro {
+      background: radial-gradient(ellipse 70% 50% at 100% 0%, rgba(217, 119, 6, 0.10), transparent 60%), linear-gradient(160deg, var(--paper), var(--paper-soft));
+      border: 1px solid var(--border); border-radius: 22px; padding: 24px 28px;
+      margin-bottom: 32px; position: relative;
+      box-shadow: 0 8px 22px -8px rgba(115, 99, 53, 0.12);
+    }
+    .intro::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--ink), var(--gold), var(--gold-bright)); }
+    .intro-eyebrow { font-family: var(--display); font-size: 11px; font-weight: 800; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 6px; }
+    .intro h1 { font-family: var(--display); font-size: clamp(22px, 3vw, 28px); font-weight: 900; letter-spacing: -0.025em; line-height: 1.15; }
+    .intro-sub { font-family: var(--arabic); font-size: 14px; color: var(--text-muted); direction: rtl; font-weight: 600; margin-top: 4px; }
+
+    /* Hint card */
+    .hint-card {
+      background: linear-gradient(135deg, rgba(180, 83, 9, 0.06), rgba(180, 83, 9, 0.10));
+      border: 1px solid rgba(180, 83, 9, 0.20);
+      border-radius: 16px; padding: 18px 22px; margin-bottom: 22px;
+    }
+    .hint-label {
+      font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--gold);
+      letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 6px;
+    }
+    .hint-ar {
+      font-family: var(--arabic); font-size: 18px; color: var(--text); font-weight: 700;
+      direction: rtl; line-height: 1.7;
+    }
+
+    /* Answer slot */
+    .answer-slot {
+      min-height: 88px;
+      padding: 18px 20px; border-radius: 16px;
+      background: var(--paper); border: 2px dashed var(--border);
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      margin-bottom: 14px;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+    .answer-slot.is-correct { border-color: var(--green); border-style: solid; background: rgba(21, 128, 61, 0.06); }
+    .answer-slot.is-wrong { border-color: var(--red); border-style: solid; background: rgba(185, 28, 28, 0.06); animation: shake 0.4s ease; }
+    @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+    .answer-empty {
+      font-family: var(--display); font-style: italic; color: var(--text-muted); font-size: 14px;
+    }
+
+    /* Word pool */
+    .word-pool {
+      padding: 18px 20px; border-radius: 16px;
+      background: var(--paper-soft); border: 1px solid var(--border-soft);
+      display: flex; flex-wrap: wrap; gap: 8px;
+      min-height: 80px;
+      margin-bottom: 22px;
+    }
+
+    /* Word chip */
+    .chip {
+      padding: 11px 18px; border-radius: 12px;
+      background: linear-gradient(160deg, var(--paper), var(--paper-deep));
+      border: 1.5px solid var(--border);
+      font-family: var(--display); font-size: 15px; font-weight: 700;
+      color: var(--text); letter-spacing: -0.005em;
+      transition: all 0.18s ease;
+      cursor: pointer;
+      box-shadow: 0 4px 8px -2px rgba(115, 99, 53, 0.10);
+    }
+    .chip:hover { transform: translateY(-2px); border-color: var(--gold); box-shadow: 0 8px 14px -3px rgba(180, 83, 9, 0.22); }
+    .chip:active { transform: translateY(0); }
+    .chip.in-slot { background: linear-gradient(135deg, var(--ink), var(--ink-deep)); color: white; border-color: var(--ink); box-shadow: 0 6px 14px -3px rgba(28, 25, 23, 0.32); }
+    .chip.in-slot:hover { border-color: var(--gold); }
+
+    /* Feedback line */
+    .feedback {
+      min-height: 24px; margin-bottom: 18px; padding: 0 4px;
+      font-family: var(--display); font-size: 14px; font-weight: 700;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .feedback.is-correct { color: var(--green); }
+    .feedback.is-wrong { color: var(--red); }
+    .feedback-ar { font-family: var(--arabic); font-weight: 600; font-size: 14px; opacity: 0.85; }
+
+    /* Actions */
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 13px 22px; border-radius: 12px;
+      font-family: var(--display); font-size: 13px; font-weight: 800; letter-spacing: -0.005em;
+      transition: all 0.18s ease; border: none;
+    }
+    .btn.is-primary {
+      background: linear-gradient(135deg, var(--ink), var(--ink-deep)); color: white;
+      box-shadow: 0 8px 18px -5px rgba(28, 25, 23, 0.32);
+    }
+    .btn.is-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 22px -6px rgba(28, 25, 23, 0.4); }
+    .btn.is-secondary { background: var(--paper); color: var(--text-2); border: 1.5px solid var(--border); }
+    .btn.is-secondary:hover { border-color: var(--gold); color: var(--gold); }
+    .btn.is-gold { background: linear-gradient(135deg, var(--gold), var(--gold-bright)); color: white; box-shadow: 0 8px 18px -5px rgba(180, 83, 9, 0.35); }
+    .btn.is-gold:hover { transform: translateY(-2px); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+    @media (max-width: 640px) {
+      .topbar { padding: 12px 16px; }
+      .page { padding: 24px 14px; }
+      .intro { padding: 20px 18px; }
+      .chip { padding: 9px 14px; font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">🧩 Sentence Scramble</div>
+  <div class="scoreboard">
+    <span>Sentence<b id="counter">1/12</b></span>
+    <span>Score<b id="score">0</b></span>
+  </div>
+</nav>
+
+<main class="page">
+
+  <div class="intro">
+    <div class="intro-eyebrow">Game 02 · Word Order</div>
+    <h1>Build the sentence in the right order</h1>
+    <p class="intro-sub">رتّب الكلمات لتبني جملة إنجليزية صحيحة — انقر الكلمات لتنقلها بين القسمين.</p>
+  </div>
+
+  <div class="hint-card">
+    <div class="hint-label">Translate this · ترجم هذه</div>
+    <div class="hint-ar" id="hint"></div>
+  </div>
+
+  <div class="answer-slot" id="answer">
+    <span class="answer-empty">Click words below to build your sentence...</span>
+  </div>
+
+  <div class="word-pool" id="pool"></div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <div class="actions">
+    <button class="btn is-primary" id="check-btn">✓ Check answer</button>
+    <button class="btn is-gold" id="next-btn" style="display:none;">Next sentence →</button>
+    <button class="btn is-secondary" id="reset-btn">↻ Reset</button>
+    <button class="btn is-secondary" id="hint-btn">💡 Show answer</button>
+  </div>
+
+</main>
+
+<script>
+const SENTENCES = [
+  { en: 'I drink coffee every morning', ar: 'أشرب القهوة كل صباح' },
+  { en: 'She is reading a new book', ar: 'هي تقرأ كتاباً جديداً' },
+  { en: 'We go to school by bus', ar: 'نذهب إلى المدرسة بالحافلة' },
+  { en: 'He works at a big company', ar: 'هو يعمل في شركة كبيرة' },
+  { en: 'I want to learn English fast', ar: 'أريد أن أتعلم الإنجليزية بسرعة' },
+  { en: 'The meeting starts at five', ar: 'يبدأ الاجتماع في الخامسة' },
+  { en: 'My sister loves to travel', ar: 'أختي تحب السفر' },
+  { en: 'They live in a quiet city', ar: 'هم يعيشون في مدينة هادئة' },
+  { en: 'Could you please send me the report', ar: 'هل يمكنك أن ترسل لي التقرير من فضلك' },
+  { en: 'I have two brothers and one sister', ar: 'لدي أخوان وأخت واحدة' },
+  { en: 'We will travel to London next year', ar: 'سنسافر إلى لندن السنة القادمة' },
+  { en: 'She did not come to the office today', ar: 'هي لم تأت إلى المكتب اليوم' },
+]
+
+const hintEl = document.getElementById('hint')
+const answerEl = document.getElementById('answer')
+const poolEl = document.getElementById('pool')
+const feedbackEl = document.getElementById('feedback')
+const counterEl = document.getElementById('counter')
+const scoreEl = document.getElementById('score')
+const checkBtn = document.getElementById('check-btn')
+const nextBtn = document.getElementById('next-btn')
+const resetBtn = document.getElementById('reset-btn')
+const hintBtn = document.getElementById('hint-btn')
+
+let idx = 0
+let score = 0
+let answer = []  // array of word strings in user-built order
+let pool = []    // remaining words to choose from
+let solved = false
+
+function shuffle(arr) {
+  const a = arr.slice()
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+function loadSentence() {
+  solved = false
+  feedbackEl.textContent = ''
+  feedbackEl.className = 'feedback'
+  answerEl.className = 'answer-slot'
+  checkBtn.disabled = false
+  checkBtn.style.display = ''
+  nextBtn.style.display = 'none'
+
+  const s = SENTENCES[idx]
+  hintEl.textContent = s.ar
+  const words = s.en.split(' ')
+  // Avoid trivially-already-correct shuffle
+  let shuffled
+  do { shuffled = shuffle(words) } while (shuffled.join(' ') === s.en && words.length > 2)
+  pool = shuffled
+  answer = []
+  counterEl.textContent = `${idx + 1}/${SENTENCES.length}`
+  render()
+}
+
+function render() {
+  // Answer slot
+  if (answer.length === 0) {
+    answerEl.innerHTML = '<span class="answer-empty">Click words below to build your sentence...</span>'
+  } else {
+    answerEl.innerHTML = answer.map((w, i) =>
+      `<button class="chip in-slot" data-slot="${i}">${esc(w)}</button>`
+    ).join('')
+  }
+  // Pool
+  poolEl.innerHTML = pool.map((w, i) =>
+    `<button class="chip" data-pool="${i}">${esc(w)}</button>`
+  ).join('')
+
+  // Bind
+  answerEl.querySelectorAll('[data-slot]').forEach(el => {
+    el.addEventListener('click', () => {
+      if (solved) return
+      const i = Number(el.dataset.slot)
+      pool.push(answer[i])
+      answer.splice(i, 1)
+      render()
+    })
+  })
+  poolEl.querySelectorAll('[data-pool]').forEach(el => {
+    el.addEventListener('click', () => {
+      if (solved) return
+      const i = Number(el.dataset.pool)
+      answer.push(pool[i])
+      pool.splice(i, 1)
+      render()
+    })
+  })
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;') }
+
+function checkAnswer() {
+  const userText = answer.join(' ').trim()
+  const correct = SENTENCES[idx].en.trim()
+  if (userText === correct) {
+    score++
+    scoreEl.textContent = String(score)
+    feedbackEl.innerHTML = '✓ Correct! <span class="feedback-ar">إجابة صحيحة</span>'
+    feedbackEl.className = 'feedback is-correct'
+    answerEl.classList.add('is-correct')
+    solved = true
+    checkBtn.disabled = true
+    nextBtn.style.display = ''
+  } else {
+    feedbackEl.innerHTML = '✗ Not quite. Try again. <span class="feedback-ar">حاول مرة أخرى</span>'
+    feedbackEl.className = 'feedback is-wrong'
+    answerEl.classList.add('is-wrong')
+    setTimeout(() => answerEl.classList.remove('is-wrong'), 500)
+  }
+}
+
+function showAnswer() {
+  answer = SENTENCES[idx].en.split(' ')
+  pool = []
+  render()
+  feedbackEl.innerHTML = '💡 Here\'s the answer'
+  feedbackEl.className = 'feedback'
+  answerEl.classList.add('is-correct')
+  solved = true
+  checkBtn.disabled = true
+  nextBtn.style.display = ''
+}
+
+function nextSentence() {
+  idx = (idx + 1) % SENTENCES.length
+  loadSentence()
+}
+
+checkBtn.addEventListener('click', checkAnswer)
+nextBtn.addEventListener('click', nextSentence)
+resetBtn.addEventListener('click', loadSentence)
+hintBtn.addEventListener('click', showAnswer)
+
+// Shuffle sentences once at start
+SENTENCES.sort(() => Math.random() - 0.5)
+loadSentence()
+</script>
+</body>
+</html>

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Play — Inglizi.com · English Learning Games</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    button { font-family: inherit; cursor: pointer; }
+    a { text-decoration: none; color: inherit; }
+
+    :root {
+      --ink:#1c1917; --ink-deep:#0c0a09; --ink-bright:#44403c;
+      --bg:#f5efe0; --paper:#fdfaf0; --paper-soft:#faf3e0; --paper-deep:#f0e6cd;
+      --border:#e0d4b2; --border-soft:#ece2c5;
+      --gold:#b45309; --gold-bright:#d97706; --gold-soft:#fef3c7;
+      --text:#1c1917; --text-2:#44403c; --text-muted:#78716c; --text-dim:#a8a29e;
+      --green:#15803d;
+      --display:'Outfit','DM Sans',system-ui,sans-serif;
+      --sans:'DM Sans',system-ui,sans-serif;
+      --arabic:'Cairo','Tajawal',sans-serif;
+      --mono:'JetBrains Mono',ui-monospace,monospace;
+    }
+    html, body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; min-height: 100%; }
+    body::before {
+      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 80% 0%, rgba(180, 83, 9, 0.08), transparent 60%),
+        radial-gradient(ellipse 50% 35% at 20% 100%, rgba(28, 25, 23, 0.05), transparent 60%);
+    }
+    body::after {
+      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.4;
+      background-image: radial-gradient(rgba(180, 83, 9, 0.08) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(245, 239, 224, 0.85);
+      backdrop-filter: blur(18px) saturate(180%);
+      border-bottom: 1px solid var(--border-soft);
+      padding: 16px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .crest {
+      width: 44px; height: 44px; border-radius: 14px;
+      background: linear-gradient(135deg, var(--ink), var(--ink-deep));
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--display); font-weight: 800; font-size: 19px;
+      box-shadow: 0 8px 20px -4px rgba(28, 25, 23, 0.35);
+      position: relative;
+    }
+    .crest::after {
+      content: ""; position: absolute; top: 4px; right: 4px;
+      width: 6px; height: 6px; border-radius: 50%; background: var(--gold-bright);
+      box-shadow: 0 0 12px var(--gold-bright);
+    }
+    .brand-stack { display: flex; flex-direction: column; gap: 2px; }
+    .brand-name { font-family: var(--display); font-size: 19px; font-weight: 900; letter-spacing: -0.025em; line-height: 1; }
+    .brand-sub { font-size: 10px; color: var(--text-muted); letter-spacing: 0.22em; text-transform: uppercase; font-weight: 700; }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 18px; border-radius: 999px;
+      color: var(--text-2); font-family: var(--display); font-size: 13px; font-weight: 700;
+      transition: all 0.18s ease;
+    }
+    .pill:hover { background: var(--paper); color: var(--ink); }
+    .pill.is-wa { background: var(--green); color: white; box-shadow: 0 6px 14px -4px rgba(21, 128, 61, 0.32); }
+    .pill.is-wa:hover { background: #166534; transform: translateY(-1px); }
+
+    .page { position: relative; z-index: 2; max-width: 1240px; margin: 0 auto; padding: 48px 32px 60px; }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      background: linear-gradient(135deg, var(--ink) 0%, var(--ink-deep) 55%, #292524 100%);
+      color: white; border-radius: 32px; padding: 56px 48px;
+      overflow: hidden; margin-bottom: 56px;
+      box-shadow: 0 28px 60px -22px rgba(28, 25, 23, 0.45);
+    }
+    .hero::before {
+      content: ""; position: absolute; top: -120px; right: -80px;
+      width: 420px; height: 420px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(217, 119, 6, 0.32), transparent 70%);
+      pointer-events: none;
+    }
+    .hero::after {
+      content: ""; position: absolute; bottom: -160px; left: -100px;
+      width: 380px; height: 380px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(253, 250, 240, 0.06), transparent 70%);
+      pointer-events: none;
+    }
+    .hero-inner { position: relative; z-index: 1; max-width: 720px; }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 12px;
+      padding: 7px 16px; border-radius: 999px;
+      background: rgba(217, 119, 6, 0.16); color: #fbbf24;
+      font-family: var(--display); font-size: 11px; font-weight: 800;
+      letter-spacing: 0.22em; text-transform: uppercase;
+      margin-bottom: 24px; border: 1px solid rgba(217, 119, 6, 0.32);
+    }
+    .hero-eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: #fbbf24; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.4); } }
+    .hero-title {
+      font-family: var(--display); font-weight: 900;
+      font-size: clamp(40px, 7vw, 76px); line-height: 1.02; letter-spacing: -0.03em;
+      margin-bottom: 18px;
+    }
+    .hero-title em { color: #fbbf24; font-style: normal; }
+    .hero-title-ar {
+      font-family: var(--arabic); font-weight: 600;
+      font-size: clamp(16px, 2.2vw, 22px); color: rgba(253, 250, 240, 0.82);
+      direction: rtl; line-height: 1.75; max-width: 600px;
+    }
+    .hero-stats { display: flex; gap: 32px; flex-wrap: wrap; margin-top: 36px; padding-top: 26px; border-top: 1px solid rgba(255, 255, 255, 0.12); }
+    .hero-stat { display: flex; flex-direction: column; gap: 4px; }
+    .hero-stat-num { font-family: var(--display); font-size: 28px; font-weight: 900; color: #fbbf24; line-height: 1; letter-spacing: -0.025em; }
+    .hero-stat-label { font-family: var(--display); font-size: 10px; font-weight: 700; color: rgba(255, 255, 255, 0.6); letter-spacing: 0.22em; text-transform: uppercase; }
+
+    .section-head { display: flex; align-items: baseline; gap: 18px; margin-bottom: 28px; }
+    .section-num { font-family: var(--display); font-size: 11px; font-weight: 800; color: var(--gold); letter-spacing: 0.24em; text-transform: uppercase; padding: 6px 14px; background: var(--gold-soft); border-radius: 8px; }
+    .section-head h2 { font-family: var(--display); font-size: clamp(24px, 3vw, 32px); font-weight: 800; letter-spacing: -0.025em; line-height: 1.1; }
+    .section-head .section-sub { font-family: var(--arabic); font-size: 14px; color: var(--text-muted); direction: rtl; font-weight: 600; margin-left: auto; }
+
+    /* Game cards grid */
+    .games {
+      display: grid; gap: 22px;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    }
+    .game-card {
+      position: relative;
+      background:
+        radial-gradient(ellipse 70% 50% at 100% 0%, rgba(217, 119, 6, 0.10), transparent 60%),
+        linear-gradient(160deg, var(--paper) 0%, var(--paper-soft) 100%);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px 30px 26px;
+      overflow: hidden; isolation: isolate;
+      transition: all 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.6) inset,
+        0 4px 12px -3px rgba(115, 99, 53, 0.10),
+        0 16px 36px -12px rgba(28, 25, 23, 0.10);
+    }
+    .game-card:hover {
+      transform: translateY(-6px);
+      border-color: var(--gold);
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.7) inset,
+        0 18px 36px -10px rgba(180, 83, 9, 0.22),
+        0 28px 60px -20px rgba(28, 25, 23, 0.25);
+    }
+    .game-card::before {
+      content: ""; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+      background: linear-gradient(90deg, var(--ink), var(--gold), var(--gold-bright));
+      z-index: 2;
+    }
+    .game-card::after {
+      content: ""; position: absolute; top: -80px; right: -60px;
+      width: 240px; height: 240px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(217, 119, 6, 0.14), transparent 65%);
+      pointer-events: none; transition: transform 0.5s ease;
+    }
+    .game-card:hover::after { transform: scale(1.25) rotate(20deg); }
+
+    .game-emoji {
+      width: 76px; height: 76px; border-radius: 20px;
+      background: linear-gradient(135deg, var(--ink), var(--ink-deep));
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 38px;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        0 12px 24px -6px rgba(28, 25, 23, 0.32),
+        0 4px 8px -2px rgba(180, 83, 9, 0.2);
+      margin-bottom: 22px;
+      position: relative;
+    }
+    .game-emoji::before {
+      content: ""; position: absolute; top: -4px; right: -4px;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--gold-bright); box-shadow: 0 0 12px var(--gold-bright);
+    }
+    .game-card-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 4px 11px; border-radius: 999px;
+      background: rgba(217, 119, 6, 0.10); border: 1px solid rgba(217, 119, 6, 0.22);
+      font-family: var(--display); font-size: 10px; font-weight: 800;
+      color: var(--gold); letter-spacing: 0.22em; text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .game-card-eyebrow::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--gold-bright); }
+
+    .game-title {
+      font-family: var(--display); font-size: 22px; font-weight: 900;
+      letter-spacing: -0.022em; line-height: 1.15;
+      margin-bottom: 4px;
+    }
+    .game-title-ar {
+      font-family: var(--arabic); font-size: 14px; color: var(--text-muted);
+      direction: rtl; font-weight: 600; line-height: 1.6;
+    }
+    .game-desc {
+      font-family: var(--sans); font-size: 13.5px; color: var(--text-2);
+      line-height: 1.65; margin-top: 12px;
+    }
+    .game-meta {
+      display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+      margin: 18px 0 20px;
+    }
+    .game-tag {
+      padding: 4px 10px; border-radius: 999px;
+      background: var(--paper-deep); color: var(--text-2);
+      font-family: var(--display); font-size: 10px; font-weight: 700;
+      letter-spacing: 0.04em;
+      border: 1px solid var(--border-soft);
+    }
+    .game-tag.is-level { background: var(--gold-soft); color: var(--gold); border-color: rgba(180, 83, 9, 0.18); }
+    .game-cta {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 12px 22px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--ink), var(--ink-deep));
+      color: white;
+      font-family: var(--display); font-size: 13px; font-weight: 800;
+      letter-spacing: -0.005em;
+      box-shadow: 0 10px 22px -6px rgba(28, 25, 23, 0.35);
+      transition: all 0.22s ease;
+      position: relative; overflow: hidden;
+    }
+    .game-card:hover .game-cta { transform: translateX(3px); box-shadow: 0 14px 28px -8px rgba(28, 25, 23, 0.5); }
+    .game-cta-arrow {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+      color: white; font-size: 13px;
+      transition: transform 0.22s ease;
+    }
+    .game-card:hover .game-cta .game-cta-arrow { transform: rotate(-12deg); }
+
+    /* Footer */
+    .page-footer {
+      max-width: 1240px; margin: 60px auto 0; padding: 28px 32px;
+      border-top: 1px solid var(--border-soft);
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 18px; flex-wrap: wrap;
+    }
+    .footer-brand { font-family: var(--display); font-weight: 900; font-size: 18px; color: var(--ink); letter-spacing: -0.025em; }
+    .footer-contact { display: flex; gap: 24px; flex-wrap: wrap; align-items: center; font-family: var(--display); font-size: 12px; color: var(--text-muted); font-weight: 600; }
+    .footer-contact b { color: var(--green); margin-right: 4px; }
+    .footer-contact span[dir="rtl"] { font-family: var(--arabic); font-size: 14px; }
+
+    @media (max-width: 640px) {
+      .topbar { padding: 14px 18px; }
+      .page { padding: 32px 18px 40px; }
+      .hero { padding: 40px 24px; border-radius: 24px; }
+      .game-card { padding: 26px 22px; }
+      .topbar-actions .pill:not(.is-wa) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="topbar">
+  <a href="#" class="brand">
+    <div class="crest">P</div>
+    <div class="brand-stack">
+      <span class="brand-name">Play</span>
+      <span class="brand-sub">Inglizi · Games</span>
+    </div>
+  </a>
+  <div class="topbar-actions">
+    <a href="https://inglizi.com" class="pill">🌍 inglizi.com</a>
+    <a href="https://sahla.inglizi.com" class="pill">📚 Sahla</a>
+    <a href="https://wa.me/212707902091" target="_blank" rel="noopener" class="pill is-wa">📱 WhatsApp</a>
+  </div>
+</nav>
+
+<main class="page">
+
+  <section class="hero">
+    <div class="hero-inner">
+      <span class="hero-eyebrow"><span class="dot"></span>Play · Learn English by Playing</span>
+      <h1 class="hero-title">Learn English<br>by <em>playing</em>.</h1>
+      <p class="hero-title-ar">ألعاب تفاعلية لتعلم الإنجليزية — كلمات، جمل، نطق، وقت محدد. تعلم بمتعة ومرح.</p>
+      <div class="hero-stats">
+        <div class="hero-stat"><span class="hero-stat-num">4</span><span class="hero-stat-label">Games</span></div>
+        <div class="hero-stat"><span class="hero-stat-num">200+</span><span class="hero-stat-label">Words</span></div>
+        <div class="hero-stat"><span class="hero-stat-num">A0→B2</span><span class="hero-stat-label">Levels</span></div>
+        <div class="hero-stat"><span class="hero-stat-num">FREE</span><span class="hero-stat-label">to play</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <header class="section-head">
+      <span class="section-num">01 · Games</span>
+      <h2>Pick a game</h2>
+      <span class="section-sub">اختر لعبة</span>
+    </header>
+
+    <div class="games">
+
+      <a class="game-card" href="games/word-match/">
+        <div class="game-emoji">🃏</div>
+        <div class="game-card-eyebrow">Game 01 · Memory</div>
+        <div class="game-title">Word Match</div>
+        <div class="game-title-ar">طابق الكلمات</div>
+        <p class="game-desc">Flip cards to pair each English word with its Arabic translation. Train your memory and vocabulary.</p>
+        <div class="game-meta">
+          <span class="game-tag is-level">A0 · A1</span>
+          <span class="game-tag">5 min</span>
+          <span class="game-tag">16 pairs</span>
+        </div>
+        <span class="game-cta">Play now <span class="game-cta-arrow">→</span></span>
+      </a>
+
+      <a class="game-card" href="games/sentence-scramble/">
+        <div class="game-emoji">🧩</div>
+        <div class="game-card-eyebrow">Game 02 · Grammar</div>
+        <div class="game-title">Sentence Scramble</div>
+        <div class="game-title-ar">رتّب الجمل</div>
+        <p class="game-desc">The words are mixed up. Click them in the right order to build a correct English sentence.</p>
+        <div class="game-meta">
+          <span class="game-tag is-level">A1 · B1</span>
+          <span class="game-tag">~5 min</span>
+          <span class="game-tag">12 sentences</span>
+        </div>
+        <span class="game-cta">Play now <span class="game-cta-arrow">→</span></span>
+      </a>
+
+      <a class="game-card" href="games/hangman/">
+        <div class="game-emoji">🪢</div>
+        <div class="game-card-eyebrow">Game 03 · Spelling</div>
+        <div class="game-title">Hangman</div>
+        <div class="game-title-ar">المشنقة</div>
+        <p class="game-desc">Guess the English word one letter at a time. Six wrong guesses and you lose. Hint shown in Arabic.</p>
+        <div class="game-meta">
+          <span class="game-tag is-level">A1 · B1</span>
+          <span class="game-tag">~3 min</span>
+          <span class="game-tag">100+ words</span>
+        </div>
+        <span class="game-cta">Play now <span class="game-cta-arrow">→</span></span>
+      </a>
+
+      <a class="game-card" href="games/speed-translate/">
+        <div class="game-emoji">⚡</div>
+        <div class="game-card-eyebrow">Game 04 · Time Attack</div>
+        <div class="game-title">Speed Translate</div>
+        <div class="game-title-ar">ترجمة سريعة</div>
+        <p class="game-desc">60 seconds. As many translations as you can. Speed reading + quick recall. Try to beat your best score.</p>
+        <div class="game-meta">
+          <span class="game-tag is-level">A1 · B2</span>
+          <span class="game-tag">60 sec</span>
+          <span class="game-tag">High scores</span>
+        </div>
+        <span class="game-cta">Play now <span class="game-cta-arrow">→</span></span>
+      </a>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="page-footer">
+  <div class="footer-brand">Inglizi.com</div>
+  <div class="footer-contact">
+    <span dir="rtl">الأستاذ حمزة القصراوي</span>
+    <span><b>WA</b> 0707 902 091</span>
+    <span style="color: var(--text-dim);">© Play 2026</span>
+  </div>
+</footer>
+
+</body>
+</html>

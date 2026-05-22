@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Hangman — Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    button { font-family: inherit; cursor: pointer; }
+    a { text-decoration: none; color: inherit; }
+
+    :root {
+      --ink:#1c1917; --ink-deep:#0c0a09;
+      --bg:#f5efe0; --paper:#fdfaf0; --paper-soft:#faf3e0; --paper-deep:#f0e6cd;
+      --border:#e0d4b2; --border-soft:#ece2c5;
+      --gold:#b45309; --gold-bright:#d97706; --gold-soft:#fef3c7;
+      --text:#1c1917; --text-2:#44403c; --text-muted:#78716c;
+      --green:#15803d; --red:#b91c1c;
+      --display:'Outfit','DM Sans',system-ui,sans-serif;
+      --sans:'DM Sans',sans-serif;
+      --arabic:'Cairo','Tajawal',sans-serif;
+      --mono:'JetBrains Mono',ui-monospace,monospace;
+    }
+    html, body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; min-height: 100%; -webkit-font-smoothing: antialiased; }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 60% 40% at 80% 0%, rgba(180, 83, 9, 0.08), transparent 60%); }
+
+    .topbar { position: sticky; top: 0; z-index: 100; background: rgba(245, 239, 224, 0.85); backdrop-filter: blur(18px) saturate(180%); border-bottom: 1px solid var(--border-soft); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+    .back-link { display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 999px; background: var(--paper); border: 1px solid var(--border); font-family: var(--display); font-size: 13px; font-weight: 700; color: var(--text-2); transition: all 0.18s ease; }
+    .back-link:hover { background: var(--ink); color: white; border-color: var(--ink); }
+    .game-title { font-family: var(--display); font-weight: 900; font-size: 18px; letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; }
+    .scoreboard { display: flex; gap: 12px; font-family: var(--display); font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+    .scoreboard b { color: var(--ink); font-family: var(--mono); font-size: 16px; font-weight: 800; margin-left: 4px; }
+
+    .page { position: relative; z-index: 2; max-width: 800px; margin: 0 auto; padding: 32px 24px 60px; }
+
+    .intro {
+      background: radial-gradient(ellipse 70% 50% at 100% 0%, rgba(217, 119, 6, 0.10), transparent 60%), linear-gradient(160deg, var(--paper), var(--paper-soft));
+      border: 1px solid var(--border); border-radius: 22px; padding: 24px 28px;
+      margin-bottom: 24px; position: relative;
+      box-shadow: 0 8px 22px -8px rgba(115, 99, 53, 0.12);
+    }
+    .intro::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--ink), var(--gold), var(--gold-bright)); }
+    .intro-eyebrow { font-family: var(--display); font-size: 11px; font-weight: 800; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 6px; }
+    .intro h1 { font-family: var(--display); font-size: clamp(22px, 3vw, 28px); font-weight: 900; letter-spacing: -0.025em; line-height: 1.15; }
+    .intro-sub { font-family: var(--arabic); font-size: 14px; color: var(--text-muted); direction: rtl; font-weight: 600; margin-top: 4px; }
+
+    /* Hint card */
+    .hint-card { background: linear-gradient(135deg, rgba(180, 83, 9, 0.06), rgba(180, 83, 9, 0.10)); border: 1px solid rgba(180, 83, 9, 0.20); border-radius: 16px; padding: 18px 22px; margin-bottom: 24px; }
+    .hint-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--gold); letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 6px; }
+    .hint-ar { font-family: var(--arabic); font-size: 19px; color: var(--text); font-weight: 700; direction: rtl; line-height: 1.6; }
+    .hint-meta { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-top: 6px; letter-spacing: 0.05em; }
+
+    /* Lives indicator */
+    .lives {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 20px; padding: 14px 18px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--ink), var(--ink-deep));
+      color: white;
+      box-shadow: 0 8px 18px -5px rgba(28, 25, 23, 0.32);
+    }
+    .lives-label { font-family: var(--display); font-size: 11px; font-weight: 800; color: var(--gold-bright); letter-spacing: 0.16em; text-transform: uppercase; }
+    .lives-hearts { display: flex; gap: 4px; flex: 1; }
+    .heart { font-size: 20px; transition: opacity 0.3s ease, transform 0.3s ease; }
+    .heart.is-gone { opacity: 0.18; transform: scale(0.85); filter: grayscale(1); }
+
+    /* Word slots */
+    .word-slots {
+      display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+      padding: 28px 18px; margin-bottom: 26px;
+      background: var(--paper); border: 1px solid var(--border); border-radius: 18px;
+      min-height: 90px; align-items: center;
+      box-shadow: 0 4px 14px -4px rgba(115, 99, 53, 0.10);
+    }
+    .slot {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 38px; height: 50px;
+      border-bottom: 3px solid var(--text);
+      font-family: var(--display); font-size: 26px; font-weight: 900;
+      color: var(--text); letter-spacing: -0.01em;
+      transition: all 0.25s ease;
+    }
+    .slot.is-revealed { border-color: var(--gold); animation: pop 0.25s ease; }
+    .slot.is-space { border-bottom: none; width: 14px; }
+    @keyframes pop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+    /* Keyboard */
+    .keyboard {
+      display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px;
+      margin-bottom: 22px;
+    }
+    @media (max-width: 640px) {
+      .keyboard { grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    }
+    .key {
+      aspect-ratio: 1 / 1.1;
+      max-height: 52px;
+      border: 1px solid var(--border);
+      background: linear-gradient(160deg, var(--paper), var(--paper-deep));
+      border-radius: 10px;
+      font-family: var(--display); font-size: 15px; font-weight: 800;
+      color: var(--text); letter-spacing: -0.01em;
+      transition: all 0.15s ease;
+      box-shadow: 0 2px 4px rgba(115, 99, 53, 0.08);
+    }
+    .key:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--gold); box-shadow: 0 6px 12px -2px rgba(180, 83, 9, 0.25); }
+    .key:active:not(:disabled) { transform: translateY(0); }
+    .key:disabled { cursor: not-allowed; opacity: 0.3; transform: none !important; box-shadow: none; }
+    .key.is-right {
+      background: linear-gradient(160deg, #dcfce7, #bbf7d0);
+      border-color: var(--green); color: var(--green);
+    }
+    .key.is-wrong {
+      background: var(--paper-deep);
+      border-color: var(--red); color: var(--red);
+      text-decoration: line-through;
+      opacity: 0.5;
+    }
+
+    /* Banner */
+    .banner { display: none; padding: 22px 26px; border-radius: 18px; color: white; margin-bottom: 24px; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .banner.is-shown { display: flex; }
+    .banner.is-win { background: linear-gradient(135deg, var(--green), #166534); box-shadow: 0 12px 26px -10px rgba(21, 128, 61, 0.4); }
+    .banner.is-lose { background: linear-gradient(135deg, var(--red), #7f1d1d); box-shadow: 0 12px 26px -10px rgba(185, 28, 28, 0.4); }
+    .banner-text { font-family: var(--display); font-weight: 800; font-size: 18px; }
+    .banner-text small { display: block; font-weight: 600; font-size: 13px; opacity: 0.88; margin-top: 2px; }
+    .banner-text small.solution { font-family: var(--mono); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 6px; }
+    .banner-btn { padding: 11px 22px; border-radius: 12px; background: white; color: var(--text); border: none; font-family: var(--display); font-size: 13px; font-weight: 800; box-shadow: 0 6px 14px -4px rgba(0, 0, 0, 0.2); transition: transform 0.18s ease; }
+    .banner-btn:hover { transform: translateY(-2px); }
+
+    /* Actions */
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 10px; padding: 13px 22px; border-radius: 12px; font-family: var(--display); font-size: 13px; font-weight: 800; letter-spacing: -0.005em; transition: all 0.18s ease; border: none; }
+    .btn.is-secondary { background: var(--paper); color: var(--text-2); border: 1.5px solid var(--border); }
+    .btn.is-secondary:hover { border-color: var(--gold); color: var(--gold); }
+
+    @media (max-width: 640px) {
+      .topbar { padding: 12px 16px; }
+      .page { padding: 24px 14px; }
+      .intro { padding: 20px 18px; }
+      .slot { width: 28px; height: 40px; font-size: 20px; }
+      .key { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">🪢 Hangman</div>
+  <div class="scoreboard">
+    <span>Wins<b id="wins">0</b></span>
+    <span>Losses<b id="losses">0</b></span>
+  </div>
+</nav>
+
+<main class="page">
+
+  <div class="intro">
+    <div class="intro-eyebrow">Game 03 · Spelling</div>
+    <h1>Guess the English word</h1>
+    <p class="intro-sub">خمّن الكلمة الإنجليزية حرفاً حرفاً — لديك 6 محاولات خاطئة قبل أن تخسر.</p>
+  </div>
+
+  <div class="hint-card">
+    <div class="hint-label">Meaning · المعنى</div>
+    <div class="hint-ar" id="hint-ar"></div>
+    <div class="hint-meta" id="hint-meta"></div>
+  </div>
+
+  <div class="lives">
+    <span class="lives-label">Lives · حياتك</span>
+    <div class="lives-hearts" id="hearts"></div>
+    <span style="font-family: var(--mono); font-size: 13px; opacity: 0.7;"><span id="lives-num">6</span>/6</span>
+  </div>
+
+  <div class="banner" id="banner">
+    <div class="banner-text"><span id="banner-msg"></span><small id="banner-stats"></small><small class="solution" id="banner-solution"></small></div>
+    <button class="banner-btn" id="banner-restart">New word →</button>
+  </div>
+
+  <div class="word-slots" id="slots"></div>
+
+  <div class="keyboard" id="keyboard"></div>
+
+  <div class="actions">
+    <button class="btn is-secondary" id="new-btn">↻ New word</button>
+    <button class="btn is-secondary" id="reveal-btn">💡 Reveal answer</button>
+  </div>
+
+</main>
+
+<script>
+const WORDS = [
+  // A1 basics
+  { en: 'morning',   ar: 'صباح' },
+  { en: 'family',    ar: 'عائلة' },
+  { en: 'school',    ar: 'مدرسة' },
+  { en: 'kitchen',   ar: 'مطبخ' },
+  { en: 'window',    ar: 'نافذة' },
+  { en: 'friend',    ar: 'صديق' },
+  { en: 'teacher',   ar: 'معلم' },
+  { en: 'doctor',    ar: 'طبيب' },
+  { en: 'student',   ar: 'طالب' },
+  { en: 'breakfast', ar: 'فطور' },
+  { en: 'dinner',    ar: 'عشاء' },
+  { en: 'language',  ar: 'لغة' },
+  { en: 'computer',  ar: 'حاسوب' },
+  { en: 'address',   ar: 'عنوان' },
+  // Verbs
+  { en: 'travel',    ar: 'يسافر' },
+  { en: 'learn',     ar: 'يتعلم' },
+  { en: 'remember',  ar: 'يتذكر' },
+  { en: 'explain',   ar: 'يشرح' },
+  { en: 'understand',ar: 'يفهم' },
+  { en: 'develop',   ar: 'يطور' },
+  // Business
+  { en: 'meeting',   ar: 'اجتماع' },
+  { en: 'company',   ar: 'شركة' },
+  { en: 'manager',   ar: 'مدير' },
+  { en: 'employee',  ar: 'موظف' },
+  { en: 'customer',  ar: 'عميل' },
+  { en: 'invoice',   ar: 'فاتورة' },
+  { en: 'budget',    ar: 'ميزانية' },
+  { en: 'salary',    ar: 'راتب' },
+  { en: 'project',   ar: 'مشروع' },
+  // Adjectives
+  { en: 'important', ar: 'مهم' },
+  { en: 'difficult', ar: 'صعب' },
+  { en: 'beautiful', ar: 'جميل' },
+  { en: 'expensive', ar: 'غالي' },
+  { en: 'comfortable', ar: 'مريح' },
+  { en: 'tired',     ar: 'متعب' },
+  // Travel
+  { en: 'airport',   ar: 'مطار' },
+  { en: 'station',   ar: 'محطة' },
+  { en: 'ticket',    ar: 'تذكرة' },
+  { en: 'hotel',     ar: 'فندق' },
+  { en: 'passport',  ar: 'جواز سفر' },
+  // Time
+  { en: 'tomorrow',  ar: 'غداً' },
+  { en: 'yesterday', ar: 'أمس' },
+  { en: 'evening',   ar: 'مساء' },
+  // Body / health
+  { en: 'hospital',  ar: 'مستشفى' },
+  { en: 'medicine',  ar: 'دواء' },
+  { en: 'shoulder',  ar: 'كتف' },
+  // Food
+  { en: 'chicken',   ar: 'دجاج' },
+  { en: 'vegetable', ar: 'خضار' },
+  { en: 'orange',    ar: 'برتقال' },
+]
+
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
+const MAX_LIVES = 6
+
+const slotsEl    = document.getElementById('slots')
+const keyboardEl = document.getElementById('keyboard')
+const heartsEl   = document.getElementById('hearts')
+const livesNumEl = document.getElementById('lives-num')
+const hintArEl   = document.getElementById('hint-ar')
+const hintMetaEl = document.getElementById('hint-meta')
+const banner     = document.getElementById('banner')
+const bannerMsg  = document.getElementById('banner-msg')
+const bannerStats= document.getElementById('banner-stats')
+const bannerSolution = document.getElementById('banner-solution')
+const winsEl     = document.getElementById('wins')
+const lossesEl   = document.getElementById('losses')
+
+let word = ''
+let wordAr = ''
+let revealed = new Set()
+let used = new Set()
+let lives = MAX_LIVES
+let wins = 0
+let losses = 0
+let over = false
+
+function newRound() {
+  over = false
+  banner.classList.remove('is-shown', 'is-win', 'is-lose')
+
+  const choice = WORDS[Math.floor(Math.random() * WORDS.length)]
+  word = choice.en.toUpperCase()
+  wordAr = choice.ar
+  revealed = new Set()
+  used = new Set()
+  lives = MAX_LIVES
+
+  hintArEl.textContent = wordAr
+  hintMetaEl.textContent = `${word.replace(/[^A-Z]/g, '').length} letters` + (word.includes(' ') ? ' · contains a space' : '')
+  livesNumEl.textContent = String(lives)
+  renderSlots()
+  renderHearts()
+  renderKeyboard()
+}
+
+function renderSlots() {
+  slotsEl.innerHTML = word.split('').map(ch => {
+    if (ch === ' ') return `<div class="slot is-space"></div>`
+    const shown = revealed.has(ch) ? ch : ''
+    return `<div class="slot ${shown ? 'is-revealed' : ''}">${shown}</div>`
+  }).join('')
+}
+
+function renderHearts() {
+  let html = ''
+  for (let i = 0; i < MAX_LIVES; i++) {
+    html += `<span class="heart ${i >= lives ? 'is-gone' : ''}">❤️</span>`
+  }
+  heartsEl.innerHTML = html
+  livesNumEl.textContent = String(lives)
+}
+
+function renderKeyboard() {
+  keyboardEl.innerHTML = ALPHABET.map(letter => {
+    let cls = 'key'
+    if (used.has(letter)) {
+      cls += word.includes(letter) ? ' is-right' : ' is-wrong'
+    }
+    return `<button class="${cls}" data-letter="${letter}" ${used.has(letter) || over ? 'disabled' : ''}>${letter}</button>`
+  }).join('')
+  keyboardEl.querySelectorAll('[data-letter]').forEach(b => {
+    b.addEventListener('click', () => guess(b.dataset.letter))
+  })
+}
+
+function guess(letter) {
+  if (over || used.has(letter)) return
+  used.add(letter)
+  if (word.includes(letter)) {
+    revealed.add(letter)
+    renderSlots()
+    renderKeyboard()
+    // Check win
+    const all = word.split('').filter(c => c !== ' ').every(c => revealed.has(c))
+    if (all) finish(true)
+  } else {
+    lives--
+    renderHearts()
+    renderKeyboard()
+    if (lives === 0) finish(false)
+  }
+}
+
+function finish(won) {
+  over = true
+  // reveal all letters
+  word.split('').forEach(c => { if (c !== ' ') revealed.add(c) })
+  renderSlots()
+  renderKeyboard()
+  banner.classList.add('is-shown', won ? 'is-win' : 'is-lose')
+  if (won) {
+    wins++
+    winsEl.textContent = String(wins)
+    bannerMsg.textContent = '🎉 You won!'
+    bannerStats.textContent = `${lives} lives left out of ${MAX_LIVES}`
+  } else {
+    losses++
+    lossesEl.textContent = String(losses)
+    bannerMsg.textContent = '😞 You lost'
+    bannerStats.textContent = 'Don\'t worry, try the next word!'
+  }
+  bannerSolution.textContent = `Answer: ${word.toLowerCase()}`
+}
+
+function reveal() {
+  if (over) return
+  finish(false)
+}
+
+// Bindings
+document.getElementById('new-btn').addEventListener('click', newRound)
+document.getElementById('reveal-btn').addEventListener('click', reveal)
+document.getElementById('banner-restart').addEventListener('click', newRound)
+
+// Physical keyboard support
+window.addEventListener('keydown', e => {
+  if (e.key.length !== 1) return
+  const u = e.key.toUpperCase()
+  if (ALPHABET.includes(u)) guess(u)
+})
+
+newRound()
+</script>
+</body>
+</html>
