@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>Speed Translate — Play · Inglizi.com</title>
+  <title>Speed Quiz — Play · Inglizi.com</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -19,7 +19,7 @@
       --border:#e0d4b2; --border-soft:#ece2c5;
       --gold:#b45309; --gold-bright:#d97706; --gold-soft:#fef3c7;
       --text:#1c1917; --text-2:#44403c; --text-muted:#78716c;
-      --green:#15803d; --red:#b91c1c;
+      --green:#15803d; --red:#b91c1c; --blue:#1e40af;
       --display:'Outfit','DM Sans',system-ui,sans-serif;
       --sans:'DM Sans',sans-serif;
       --arabic:'Cairo','Tajawal',sans-serif;
@@ -36,121 +36,120 @@
     .scoreboard b { color: var(--ink); font-family: var(--mono); font-size: 16px; font-weight: 800; margin-left: 4px; }
     .scoreboard b.best { color: var(--gold); }
 
-    .page { position: relative; z-index: 2; max-width: 800px; margin: 0 auto; padding: 32px 24px 60px; }
+    .page { position: relative; z-index: 2; max-width: 860px; margin: 0 auto; padding: 32px 24px 60px; }
 
-    /* Pre-game screen */
-    .pregame {
-      background: radial-gradient(ellipse 70% 50% at 100% 0%, rgba(217, 119, 6, 0.10), transparent 60%), linear-gradient(160deg, var(--paper), var(--paper-soft));
-      border: 1px solid var(--border); border-radius: 24px;
-      padding: 40px 36px; position: relative; overflow: hidden;
-      box-shadow: 0 16px 40px -16px rgba(115, 99, 53, 0.20);
+    /* Mascot */
+    .mascot-wrap { position: relative; display: inline-flex; }
+    .mascot {
+      filter: drop-shadow(0 6px 12px rgba(28, 25, 23, 0.25));
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
+    .mascot.is-bounce { animation: bounce 0.5s ease; }
+    @keyframes bounce { 50% { transform: translateY(-12px) rotate(-4deg); } }
+    .mascot.is-shake { animation: shake 0.4s ease; }
+    @keyframes shake { 25% { transform: translateX(-6px) rotate(-3deg); } 75% { transform: translateX(6px) rotate(3deg); } }
+    .speech-bubble {
+      position: absolute; top: -10px; right: -88px;
+      background: white;
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 8px 14px;
+      font-family: var(--display); font-size: 12px; font-weight: 700; color: var(--text);
+      white-space: nowrap;
+      box-shadow: 0 6px 14px -3px rgba(115, 99, 53, 0.18);
+    }
+    .speech-bubble::before {
+      content: ""; position: absolute; left: -10px; top: 14px;
+      width: 0; height: 0;
+      border-top: 8px solid transparent;
+      border-bottom: 8px solid transparent;
+      border-right: 10px solid white;
+    }
+    @media (max-width: 580px) {
+      .speech-bubble { display: none; }
+    }
+
+    /* Pre-game */
+    .pregame { background: radial-gradient(ellipse 70% 50% at 100% 0%, rgba(217, 119, 6, 0.10), transparent 60%), linear-gradient(160deg, var(--paper), var(--paper-soft)); border: 1px solid var(--border); border-radius: 24px; padding: 36px 32px; position: relative; overflow: hidden; box-shadow: 0 16px 40px -16px rgba(115, 99, 53, 0.20); }
     .pregame::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, var(--ink), var(--gold), var(--gold-bright)); }
-    .pregame-eyebrow { font-family: var(--display); font-size: 11px; font-weight: 800; color: var(--gold); letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 12px; }
-    .pregame h1 { font-family: var(--display); font-size: clamp(28px, 4vw, 38px); font-weight: 900; letter-spacing: -0.03em; line-height: 1.08; margin-bottom: 10px; }
-    .pregame-sub { font-family: var(--arabic); font-size: 15px; color: var(--text-muted); direction: rtl; font-weight: 600; line-height: 1.7; margin-bottom: 22px; }
 
-    .pregame-rules {
-      display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      margin-bottom: 28px;
-    }
-    .rule {
-      padding: 14px 16px; border-radius: 12px;
-      background: var(--paper); border: 1px solid var(--border-soft);
-      display: flex; gap: 12px; align-items: flex-start;
-    }
-    .rule-icon { font-size: 22px; flex-shrink: 0; }
-    .rule-text { font-family: var(--display); font-size: 13px; font-weight: 700; color: var(--text-2); line-height: 1.45; }
-    .rule-text small { display: block; font-family: var(--arabic); font-weight: 500; color: var(--text-muted); font-size: 12px; margin-top: 2px; }
+    .pregame-header { display: flex; align-items: center; gap: 22px; margin-bottom: 22px; flex-wrap: wrap; }
+    .pregame-title-group { flex: 1; min-width: 240px; }
+    .pregame-eyebrow { font-family: var(--display); font-size: 11px; font-weight: 800; color: var(--gold); letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 8px; }
+    .pregame h1 { font-family: var(--display); font-size: clamp(26px, 3.6vw, 34px); font-weight: 900; letter-spacing: -0.025em; line-height: 1.1; }
+    .pregame-sub { font-family: var(--arabic); font-size: 14px; color: var(--text-muted); direction: rtl; font-weight: 600; margin-top: 6px; line-height: 1.7; }
 
-    .start-btn {
-      display: inline-flex; align-items: center; gap: 14px;
-      padding: 20px 36px; border-radius: 18px;
-      background: linear-gradient(135deg, var(--ink), var(--ink-deep));
-      color: white;
-      font-family: var(--display); font-size: 16px; font-weight: 800; letter-spacing: -0.01em;
-      box-shadow: 0 14px 30px -8px rgba(28, 25, 23, 0.4);
-      border: none; transition: all 0.22s ease;
+    /* Selector groups */
+    .selector-group { margin-bottom: 18px; }
+    .selector-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 8px; display: flex; align-items: baseline; gap: 10px; }
+    .selector-label .ar { font-family: var(--arabic); font-size: 12px; color: var(--text-dim); direction: rtl; font-weight: 600; letter-spacing: normal; text-transform: none; margin-left: auto; }
+    .selector-options { display: flex; gap: 8px; flex-wrap: wrap; }
+    .sel-btn {
+      padding: 12px 18px; border-radius: 12px;
+      background: var(--paper); border: 1.5px solid var(--border);
+      font-family: var(--display); font-size: 13px; font-weight: 700; color: var(--text-2);
+      transition: all 0.18s ease;
+      display: flex; flex-direction: column; gap: 2px; align-items: flex-start;
+      min-width: 100px;
     }
+    .sel-btn .sub { font-family: var(--arabic); font-size: 11px; color: var(--text-muted); font-weight: 500; }
+    .sel-btn:hover { border-color: var(--gold); }
+    .sel-btn.is-active { background: linear-gradient(135deg, var(--ink), var(--ink-deep)); color: white; border-color: var(--ink); box-shadow: 0 8px 16px -4px rgba(28, 25, 23, 0.32); }
+    .sel-btn.is-active .sub { color: var(--gold-bright); }
+
+    .start-btn { display: inline-flex; align-items: center; gap: 14px; padding: 18px 32px; border-radius: 18px; background: linear-gradient(135deg, var(--ink), var(--ink-deep)); color: white; font-family: var(--display); font-size: 15px; font-weight: 800; letter-spacing: -0.01em; box-shadow: 0 14px 30px -8px rgba(28, 25, 23, 0.4); border: none; transition: all 0.22s ease; margin-top: 8px; }
     .start-btn:hover { transform: translateY(-3px); box-shadow: 0 18px 38px -10px rgba(28, 25, 23, 0.5); }
-    .start-btn-arrow {
-      display: inline-flex; align-items: center; justify-content: center;
-      width: 32px; height: 32px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--gold), var(--gold-bright));
-      color: white; font-size: 16px;
-      box-shadow: 0 4px 8px -2px rgba(180, 83, 9, 0.4);
-      transition: transform 0.22s ease;
-    }
+    .start-btn-arrow { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), var(--gold-bright)); color: white; font-size: 15px; box-shadow: 0 4px 8px -2px rgba(180, 83, 9, 0.4); transition: transform 0.22s ease; }
     .start-btn:hover .start-btn-arrow { transform: rotate(-12deg); }
 
     /* Game screen */
     .game { display: none; }
     .game.is-active { display: block; }
 
-    /* Timer ring */
-    .timer-row {
-      display: flex; align-items: center; gap: 22px;
-      padding: 18px 22px; border-radius: 18px;
-      background: linear-gradient(135deg, var(--ink), var(--ink-deep));
-      color: white;
-      margin-bottom: 20px;
-      box-shadow: 0 10px 24px -6px rgba(28, 25, 23, 0.32);
-    }
-    .timer-ring {
-      width: 70px; height: 70px;
-      position: relative;
-      flex-shrink: 0;
-    }
+    /* Timer */
+    .timer-row { display: flex; align-items: center; gap: 20px; padding: 16px 22px; border-radius: 18px; background: linear-gradient(135deg, var(--ink), var(--ink-deep)); color: white; margin-bottom: 22px; box-shadow: 0 10px 24px -6px rgba(28, 25, 23, 0.32); }
+    .timer-ring { width: 64px; height: 64px; position: relative; flex-shrink: 0; }
     .timer-ring svg { transform: rotate(-90deg); }
     .timer-ring .bg { stroke: rgba(255, 255, 255, 0.12); }
     .timer-ring .fg { stroke: var(--gold-bright); transition: stroke-dashoffset 0.45s linear, stroke 0.4s ease; }
     .timer-ring.is-warning .fg { stroke: #fbbf24; }
     .timer-ring.is-danger .fg { stroke: var(--red); animation: pulse-ring 0.8s ease-in-out infinite; }
     @keyframes pulse-ring { 50% { opacity: 0.5; } }
-    .timer-text {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--mono); font-size: 22px; font-weight: 700; color: white;
-    }
+    .timer-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 20px; font-weight: 700; color: white; }
     .timer-info { flex: 1; }
     .timer-info-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--gold-bright); letter-spacing: 0.22em; text-transform: uppercase; }
     .timer-info-score { font-family: var(--display); font-size: 22px; font-weight: 900; color: white; letter-spacing: -0.02em; margin-top: 2px; }
     .timer-info-score small { font-family: var(--display); font-size: 11px; font-weight: 700; color: rgba(255, 255, 255, 0.6); letter-spacing: 0.06em; margin-left: 6px; }
 
-    /* Question card */
+    /* Question card with mascot */
     .qcard {
-      padding: 36px 30px; border-radius: 22px;
+      padding: 32px 28px; border-radius: 22px;
       background: radial-gradient(ellipse 70% 50% at 100% 0%, rgba(217, 119, 6, 0.10), transparent 60%), linear-gradient(160deg, var(--paper), var(--paper-soft));
       border: 1px solid var(--border);
       margin-bottom: 20px;
-      text-align: center;
       box-shadow: 0 12px 30px -12px rgba(115, 99, 53, 0.18);
+      position: relative;
     }
-    .qcard-prompt-label {
-      font-family: var(--display); font-size: 10px; font-weight: 800;
-      color: var(--gold); letter-spacing: 0.22em; text-transform: uppercase;
-      margin-bottom: 14px;
-    }
-    .qcard-en {
-      font-family: var(--display); font-size: clamp(26px, 4vw, 38px); font-weight: 900;
-      letter-spacing: -0.025em; line-height: 1.15;
-      color: var(--text);
-    }
+    .qcard-top { display: flex; align-items: center; gap: 22px; margin-bottom: 18px; min-height: 100px; }
+    .qcard-prompt-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--gold); letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 10px; }
+    .qcard-prompt-label .ar { font-family: var(--arabic); font-size: 11px; color: var(--text-muted); margin-left: 8px; letter-spacing: normal; text-transform: none; font-weight: 500; }
+    .qcard-en { font-family: var(--display); font-size: clamp(22px, 3.4vw, 32px); font-weight: 900; letter-spacing: -0.025em; line-height: 1.2; color: var(--text); }
+    .qcard-def { font-family: var(--sans); font-size: clamp(15px, 2vw, 18px); color: var(--text); line-height: 1.5; font-weight: 500; font-style: italic; }
+    .qcard-meta { flex: 1; }
 
     /* Choices */
-    .choices {
-      display: grid; gap: 10px; grid-template-columns: 1fr 1fr;
-    }
+    .choices { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
     @media (max-width: 480px) { .choices { grid-template-columns: 1fr; } }
     .choice {
-      padding: 18px 20px; border-radius: 14px;
+      padding: 16px 18px; border-radius: 14px;
       background: linear-gradient(160deg, var(--paper), var(--paper-soft));
       border: 1.5px solid var(--border);
-      font-family: var(--arabic); font-size: 18px; font-weight: 700;
-      color: var(--text); direction: rtl; text-align: right;
-      transition: all 0.18s ease;
-      cursor: pointer;
+      font-size: 17px; font-weight: 700;
+      color: var(--text); text-align: center;
+      transition: all 0.18s ease; cursor: pointer;
     }
+    .choice.is-arabic { font-family: var(--arabic); direction: rtl; }
+    .choice.is-english { font-family: var(--display); letter-spacing: -0.005em; }
     .choice:hover:not(:disabled) { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 8px 18px -4px rgba(180, 83, 9, 0.22); }
     .choice.is-right { background: linear-gradient(160deg, #dcfce7, #bbf7d0); border-color: var(--green); color: var(--green); }
     .choice.is-wrong { background: linear-gradient(160deg, #fee2e2, #fecaca); border-color: var(--red); color: var(--red); }
@@ -159,20 +158,10 @@
     /* Endgame */
     .endgame { display: none; }
     .endgame.is-shown { display: block; }
-    .endgame-card {
-      padding: 40px 36px; border-radius: 24px; text-align: center;
-      background: linear-gradient(135deg, var(--ink) 0%, var(--ink-deep) 55%, #292524 100%);
-      color: white; overflow: hidden; position: relative;
-      box-shadow: 0 22px 50px -18px rgba(28, 25, 23, 0.4);
-    }
-    .endgame-card::before {
-      content: ""; position: absolute; top: -100px; right: -60px;
-      width: 320px; height: 320px; border-radius: 50%;
-      background: radial-gradient(circle, rgba(217, 119, 6, 0.32), transparent 70%);
-      pointer-events: none;
-    }
+    .endgame-card { padding: 40px 36px; border-radius: 24px; text-align: center; background: linear-gradient(135deg, var(--ink) 0%, var(--ink-deep) 55%, #292524 100%); color: white; overflow: hidden; position: relative; box-shadow: 0 22px 50px -18px rgba(28, 25, 23, 0.4); }
+    .endgame-card::before { content: ""; position: absolute; top: -100px; right: -60px; width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(217, 119, 6, 0.32), transparent 70%); pointer-events: none; }
     .endgame-inner { position: relative; z-index: 1; }
-    .endgame-emoji { font-size: 56px; margin-bottom: 16px; }
+    .endgame-mascot { margin-bottom: 8px; }
     .endgame-title { font-family: var(--display); font-size: 28px; font-weight: 900; letter-spacing: -0.025em; margin-bottom: 8px; }
     .endgame-sub { font-family: var(--arabic); font-size: 14px; color: rgba(253, 250, 240, 0.78); direction: rtl; font-weight: 600; margin-bottom: 28px; }
     .endgame-score { font-family: var(--display); font-size: 72px; font-weight: 900; color: var(--gold-bright); line-height: 1; letter-spacing: -0.04em; }
@@ -186,13 +175,13 @@
     .endgame-btn.is-primary { background: linear-gradient(135deg, var(--gold), var(--gold-bright)); color: white; box-shadow: 0 8px 18px -4px rgba(180, 83, 9, 0.45); }
     .endgame-btn.is-primary:hover { transform: translateY(-2px); }
     .endgame-btn.is-secondary { background: rgba(255, 255, 255, 0.10); color: white; border: 1px solid rgba(255, 255, 255, 0.18); }
-    .endgame-btn.is-secondary:hover { background: rgba(255, 255, 255, 0.18); }
 
     @media (max-width: 640px) {
       .topbar { padding: 12px 16px; }
       .page { padding: 24px 14px; }
-      .pregame { padding: 30px 22px; }
-      .qcard { padding: 28px 20px; }
+      .pregame { padding: 28px 22px; }
+      .qcard { padding: 24px 18px; }
+      .sel-btn { min-width: 0; flex: 1; padding: 10px 12px; font-size: 12px; }
     }
   </style>
 </head>
@@ -200,7 +189,7 @@
 
 <nav class="topbar">
   <a href="../../" class="back-link">← All games</a>
-  <div class="game-title">⚡ Speed Translate</div>
+  <div class="game-title">⚡ Speed Quiz</div>
   <div class="scoreboard">
     <span>Best<b class="best" id="best-score">0</b></span>
   </div>
@@ -210,15 +199,35 @@
 
   <!-- ─── PRE-GAME ─── -->
   <section class="pregame" id="pregame">
-    <div class="pregame-eyebrow">Game 04 · Time Attack</div>
-    <h1>You have 60 seconds.<br>Translate as many as you can.</h1>
-    <p class="pregame-sub">٦٠ ثانية فقط — ترجم أكبر عدد ممكن من الكلمات. كل إجابة صحيحة = نقطة. حاول أن تتجاوز أفضل نتيجتك.</p>
+    <div class="pregame-header">
+      <div class="mascot-wrap">
+        <svg width="84" height="100" viewBox="0 0 100 120" class="mascot" id="pre-mascot"></svg>
+      </div>
+      <div class="pregame-title-group">
+        <div class="pregame-eyebrow">Game 04 · Time Attack</div>
+        <h1>Pick a mode + level. 60 seconds. Go!</h1>
+        <p class="pregame-sub">اختر نمط الاختبار والمستوى. لديك 60 ثانية لتجمع أكبر عدد من الإجابات الصحيحة.</p>
+      </div>
+    </div>
 
-    <div class="pregame-rules">
-      <div class="rule"><div class="rule-icon">⏱️</div><div class="rule-text">60 seconds<small dir="rtl">ستون ثانية فقط</small></div></div>
-      <div class="rule"><div class="rule-icon">✅</div><div class="rule-text">+1 per correct<small dir="rtl">نقطة لكل إجابة صحيحة</small></div></div>
-      <div class="rule"><div class="rule-icon">⚡</div><div class="rule-text">Wrong = skip<small dir="rtl">الخطأ ينقلك للسؤال التالي</small></div></div>
-      <div class="rule"><div class="rule-icon">🏆</div><div class="rule-text">Beat your best<small dir="rtl">تحدّ نفسك</small></div></div>
+    <div class="selector-group">
+      <div class="selector-label"><span>Question mode</span><span class="ar">نمط السؤال</span></div>
+      <div class="selector-options" id="mode-options">
+        <button class="sel-btn is-active" data-mode="translate">Translate<span class="sub">EN → AR</span></button>
+        <button class="sel-btn" data-mode="antonym">Antonym<span class="sub">عكس الكلمة</span></button>
+        <button class="sel-btn" data-mode="synonym">Synonym<span class="sub">مرادف الكلمة</span></button>
+        <button class="sel-btn" data-mode="definition">Definition<span class="sub">المعنى</span></button>
+        <button class="sel-btn" data-mode="mixed">Mixed<span class="sub">جميع الأنماط</span></button>
+      </div>
+    </div>
+
+    <div class="selector-group">
+      <div class="selector-label"><span>Level</span><span class="ar">المستوى</span></div>
+      <div class="selector-options" id="level-options">
+        <button class="sel-btn is-active" data-level="A1">Beginner<span class="sub">A0 · A1</span></button>
+        <button class="sel-btn" data-level="A2">Intermediate<span class="sub">A2 · B1</span></button>
+        <button class="sel-btn" data-level="B2">Advanced<span class="sub">B1+ · B2</span></button>
+      </div>
     </div>
 
     <button class="start-btn" id="start-btn">
@@ -231,21 +240,28 @@
   <section class="game" id="game">
     <div class="timer-row">
       <div class="timer-ring" id="timer-ring">
-        <svg width="70" height="70">
-          <circle class="bg" cx="35" cy="35" r="30" fill="none" stroke-width="6"/>
-          <circle class="fg" id="ring-fg" cx="35" cy="35" r="30" fill="none" stroke-width="6" stroke-dasharray="188.5" stroke-dashoffset="0" stroke-linecap="round"/>
+        <svg width="64" height="64">
+          <circle class="bg" cx="32" cy="32" r="27" fill="none" stroke-width="6"/>
+          <circle class="fg" id="ring-fg" cx="32" cy="32" r="27" fill="none" stroke-width="6" stroke-dasharray="169.65" stroke-dashoffset="0" stroke-linecap="round"/>
         </svg>
         <div class="timer-text" id="timer-text">60</div>
       </div>
       <div class="timer-info">
-        <div class="timer-info-label">Score</div>
+        <div class="timer-info-label">Score · <span id="mode-label">Translate</span></div>
         <div class="timer-info-score"><span id="score">0</span><small id="rounds">0 played</small></div>
       </div>
     </div>
 
     <div class="qcard">
-      <div class="qcard-prompt-label">Translate to Arabic · ترجم إلى العربية</div>
-      <div class="qcard-en" id="prompt"></div>
+      <div class="qcard-top">
+        <div class="mascot-wrap">
+          <svg width="80" height="96" viewBox="0 0 100 120" class="mascot" id="game-mascot"></svg>
+        </div>
+        <div class="qcard-meta">
+          <div class="qcard-prompt-label"><span id="prompt-label">Translate to Arabic</span><span class="ar" id="prompt-label-ar">ترجم إلى العربية</span></div>
+          <div class="qcard-en" id="prompt"></div>
+        </div>
+      </div>
     </div>
 
     <div class="choices" id="choices"></div>
@@ -255,7 +271,9 @@
   <section class="endgame" id="endgame">
     <div class="endgame-card">
       <div class="endgame-inner">
-        <div class="endgame-emoji" id="end-emoji">🎉</div>
+        <div class="endgame-mascot">
+          <svg width="100" height="120" viewBox="0 0 100 120" id="end-mascot"></svg>
+        </div>
         <h2 class="endgame-title" id="end-title">Time's up!</h2>
         <p class="endgame-sub" id="end-sub">انتهى الوقت! إليك نتيجتك</p>
         <div class="endgame-score" id="end-score">0</div>
@@ -263,7 +281,7 @@
         <div class="endgame-stats">
           <div class="endgame-stat"><b id="end-rounds">0</b><span>Played</span></div>
           <div class="endgame-stat"><b id="end-accuracy">0%</b><span>Accuracy</span></div>
-          <div class="endgame-stat"><b id="end-best">0</b><span>Personal best</span></div>
+          <div class="endgame-stat"><b id="end-best">0</b><span>Best</span></div>
         </div>
         <div class="endgame-actions">
           <button class="endgame-btn is-primary" id="play-again">↻ Play again</button>
@@ -276,121 +294,192 @@
 </main>
 
 <script>
-// 80 high-frequency translations — pulled from sahla sentence-builder vocabulary
-const WORDS = [
-  { en:'water',     ar:'ماء' },
-  { en:'food',      ar:'طعام' },
-  { en:'house',     ar:'بيت' },
-  { en:'car',       ar:'سيارة' },
-  { en:'book',      ar:'كتاب' },
-  { en:'school',    ar:'مدرسة' },
-  { en:'morning',   ar:'صباح' },
-  { en:'evening',   ar:'مساء' },
-  { en:'today',     ar:'اليوم' },
-  { en:'tomorrow',  ar:'غداً' },
-  { en:'yesterday', ar:'أمس' },
-  { en:'family',    ar:'عائلة' },
-  { en:'friend',    ar:'صديق' },
-  { en:'teacher',   ar:'معلم' },
-  { en:'student',   ar:'طالب' },
-  { en:'doctor',    ar:'طبيب' },
-  { en:'big',       ar:'كبير' },
-  { en:'small',     ar:'صغير' },
-  { en:'happy',     ar:'سعيد' },
-  { en:'sad',       ar:'حزين' },
-  { en:'tired',     ar:'متعب' },
-  { en:'hungry',    ar:'جائع' },
-  { en:'work',      ar:'عمل' },
-  { en:'office',    ar:'مكتب' },
-  { en:'company',   ar:'شركة' },
-  { en:'meeting',   ar:'اجتماع' },
-  { en:'manager',   ar:'مدير' },
-  { en:'customer',  ar:'عميل' },
-  { en:'project',   ar:'مشروع' },
-  { en:'email',     ar:'بريد إلكتروني' },
-  { en:'phone',     ar:'هاتف' },
-  { en:'time',      ar:'وقت' },
-  { en:'week',      ar:'أسبوع' },
-  { en:'month',     ar:'شهر' },
-  { en:'year',      ar:'سنة' },
-  { en:'eat',       ar:'يأكل' },
-  { en:'drink',     ar:'يشرب' },
-  { en:'sleep',     ar:'ينام' },
-  { en:'wake up',   ar:'يستيقظ' },
-  { en:'read',      ar:'يقرأ' },
-  { en:'write',     ar:'يكتب' },
-  { en:'speak',     ar:'يتحدث' },
-  { en:'listen',    ar:'يستمع' },
-  { en:'travel',    ar:'يسافر' },
-  { en:'walk',      ar:'يمشي' },
-  { en:'run',       ar:'يجري' },
-  { en:'drive',     ar:'يقود' },
-  { en:'fly',       ar:'يطير' },
-  { en:'study',     ar:'يدرس' },
-  { en:'learn',     ar:'يتعلم' },
-  { en:'remember',  ar:'يتذكر' },
-  { en:'forget',    ar:'ينسى' },
-  { en:'understand',ar:'يفهم' },
-  { en:'help',      ar:'يساعد' },
-  { en:'buy',       ar:'يشتري' },
-  { en:'sell',      ar:'يبيع' },
-  { en:'open',      ar:'يفتح' },
-  { en:'close',     ar:'يغلق' },
-  { en:'go',        ar:'يذهب' },
-  { en:'come',      ar:'يأتي' },
-  { en:'leave',     ar:'يغادر' },
-  { en:'arrive',    ar:'يصل' },
-  { en:'city',      ar:'مدينة' },
-  { en:'village',   ar:'قرية' },
-  { en:'street',    ar:'شارع' },
-  { en:'park',      ar:'حديقة' },
-  { en:'airport',   ar:'مطار' },
-  { en:'hotel',     ar:'فندق' },
-  { en:'hospital',  ar:'مستشفى' },
-  { en:'market',    ar:'سوق' },
-  { en:'restaurant',ar:'مطعم' },
-  { en:'beautiful', ar:'جميل' },
-  { en:'important', ar:'مهم' },
-  { en:'difficult', ar:'صعب' },
-  { en:'easy',      ar:'سهل' },
-  { en:'expensive', ar:'غالي' },
-  { en:'cheap',     ar:'رخيص' },
-  { en:'fast',      ar:'سريع' },
-  { en:'slow',      ar:'بطيء' },
-  { en:'new',       ar:'جديد' },
-  { en:'old',       ar:'قديم' },
-]
+// ─── Mascot SVG factory (shared character) ──────────────
+function mascotSVG(mood) {
+  const EYES = {
+    default: '<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="38" cy="59" r="3" fill="#1c1917"/><circle cx="62" cy="59" r="3" fill="#1c1917"/><circle cx="39" cy="57" r="1" fill="#fdfaf0"/><circle cx="63" cy="57" r="1" fill="#fdfaf0"/>',
+    happy:   '<path d="M 32 60 Q 38 53 44 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M 56 60 Q 62 53 68 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+    sad:     '<circle cx="38" cy="60" r="6" fill="#fdfaf0"/><circle cx="62" cy="60" r="6" fill="#fdfaf0"/><circle cx="38" cy="62" r="3" fill="#1c1917"/><circle cx="62" cy="62" r="3" fill="#1c1917"/>',
+    thinking:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="40" cy="55" r="3" fill="#1c1917"/><circle cx="64" cy="55" r="3" fill="#1c1917"/>',
+    surprised:'<circle cx="38" cy="58" r="8" fill="#fdfaf0"/><circle cx="62" cy="58" r="8" fill="#fdfaf0"/><circle cx="38" cy="59" r="4" fill="#1c1917"/><circle cx="62" cy="59" r="4" fill="#1c1917"/>',
+  }
+  const MOUTHS = {
+    default:'<path d="M 40 75 Q 50 80 60 75" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+    happy:  '<path d="M 32 72 Q 50 88 68 72 Q 50 80 32 72 Z" fill="#fdfaf0"/>',
+    sad:    '<path d="M 40 80 Q 50 73 60 80" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+    thinking:'<path d="M 42 78 L 58 78" stroke="#fdfaf0" stroke-width="2.5" stroke-linecap="round"/>',
+    surprised:'<ellipse cx="50" cy="78" rx="5" ry="7" fill="#fdfaf0"/>',
+  }
+  const m = mood || 'default'
+  return `
+    <!-- cap tassel -->
+    <line x1="50" y1="14" x2="74" y2="6" stroke="#fbbf24" stroke-width="2"/>
+    <circle cx="74" cy="6" r="3" fill="#fbbf24"/>
+    <!-- cap top -->
+    <rect x="32" y="12" width="36" height="14" rx="3" fill="#d97706"/>
+    <!-- cap brim -->
+    <rect x="14" y="24" width="72" height="6" rx="2" fill="#b45309"/>
+    <!-- head -->
+    <circle cx="50" cy="62" r="34" fill="#1c1917"/>
+    <!-- shoulders -->
+    <path d="M 18 112 Q 50 92 82 112 L 82 120 L 18 120 Z" fill="#1c1917"/>
+    <!-- eyes -->
+    ${EYES[m] || EYES.default}
+    <!-- mouth -->
+    ${MOUTHS[m] || MOUTHS.default}
+  `
+}
+function setMascot(elId, mood, bounce) {
+  const el = document.getElementById(elId)
+  if (!el) return
+  el.innerHTML = mascotSVG(mood)
+  if (bounce) {
+    el.classList.remove('is-bounce', 'is-shake')
+    void el.offsetWidth
+    el.classList.add(bounce === 'shake' ? 'is-shake' : 'is-bounce')
+  }
+}
 
-const BEST_KEY = 'play.speed-translate.best.v1'
+// ─── Vocabulary pools by level ───────────────────────────
+// Each entry: { en, ar, syn?, ant?, def? }
+const VOCAB = {
+  A1: [
+    { en:'big', ar:'كبير', syn:'large', ant:'small', def:'of greater than average size' },
+    { en:'small', ar:'صغير', syn:'little', ant:'big', def:'of less than average size' },
+    { en:'happy', ar:'سعيد', syn:'glad', ant:'sad', def:'feeling pleased and joyful' },
+    { en:'sad', ar:'حزين', syn:'unhappy', ant:'happy', def:'feeling sorrow or unhappiness' },
+    { en:'fast', ar:'سريع', syn:'quick', ant:'slow', def:'moving with great speed' },
+    { en:'slow', ar:'بطيء', syn:'sluggish', ant:'fast', def:'moving without great speed' },
+    { en:'hot', ar:'حار', syn:'warm', ant:'cold', def:'having high temperature' },
+    { en:'cold', ar:'بارد', syn:'chilly', ant:'hot', def:'having low temperature' },
+    { en:'new', ar:'جديد', syn:'recent', ant:'old', def:'made or created recently' },
+    { en:'old', ar:'قديم', syn:'ancient', ant:'new', def:'made long ago' },
+    { en:'good', ar:'جيد', syn:'great', ant:'bad', def:'of high quality' },
+    { en:'bad', ar:'سيئ', syn:'poor', ant:'good', def:'of low quality' },
+    { en:'easy', ar:'سهل', syn:'simple', ant:'difficult', def:'requiring little effort' },
+    { en:'difficult', ar:'صعب', syn:'hard', ant:'easy', def:'requiring much effort' },
+    { en:'open', ar:'مفتوح', syn:'unlocked', ant:'closed', def:'not shut' },
+    { en:'closed', ar:'مغلق', syn:'shut', ant:'open', def:'not open' },
+    { en:'rich', ar:'غني', syn:'wealthy', ant:'poor', def:'having a lot of money' },
+    { en:'poor', ar:'فقير', syn:'broke', ant:'rich', def:'having little money' },
+    { en:'strong', ar:'قوي', syn:'powerful', ant:'weak', def:'having great physical power' },
+    { en:'weak', ar:'ضعيف', syn:'feeble', ant:'strong', def:'lacking physical strength' },
+    { en:'young', ar:'صغير السن', syn:'youthful', ant:'old', def:'having lived a short time' },
+    { en:'clean', ar:'نظيف', syn:'tidy', ant:'dirty', def:'free from dirt' },
+    { en:'dirty', ar:'متسخ', syn:'filthy', ant:'clean', def:'covered with dirt' },
+    { en:'full', ar:'ممتلئ', syn:'packed', ant:'empty', def:'containing as much as possible' },
+    { en:'empty', ar:'فارغ', syn:'vacant', ant:'full', def:'containing nothing' },
+  ],
+  A2: [
+    { en:'beautiful', ar:'جميل', syn:'pretty', ant:'ugly', def:'pleasing to the senses' },
+    { en:'expensive', ar:'غالٍ', syn:'costly', ant:'cheap', def:'costing a lot of money' },
+    { en:'cheap', ar:'رخيص', syn:'inexpensive', ant:'expensive', def:'low in price' },
+    { en:'careful', ar:'حذر', syn:'cautious', ant:'careless', def:'taking care to avoid mistakes' },
+    { en:'careless', ar:'مهمل', syn:'reckless', ant:'careful', def:'not giving sufficient attention' },
+    { en:'safe', ar:'آمن', syn:'secure', ant:'dangerous', def:'free from harm' },
+    { en:'dangerous', ar:'خطر', syn:'unsafe', ant:'safe', def:'able to cause harm' },
+    { en:'brave', ar:'شجاع', syn:'courageous', ant:'cowardly', def:'ready to face danger' },
+    { en:'polite', ar:'مهذب', syn:'courteous', ant:'rude', def:'showing good manners' },
+    { en:'rude', ar:'وقح', syn:'impolite', ant:'polite', def:'showing bad manners' },
+    { en:'quiet', ar:'هادئ', syn:'silent', ant:'noisy', def:'making little sound' },
+    { en:'noisy', ar:'مزعج', syn:'loud', ant:'quiet', def:'making a lot of noise' },
+    { en:'patient', ar:'صبور', syn:'tolerant', ant:'impatient', def:'able to wait calmly' },
+    { en:'lazy', ar:'كسول', syn:'idle', ant:'hardworking', def:'unwilling to work' },
+    { en:'honest', ar:'صادق', syn:'truthful', ant:'dishonest', def:'telling the truth' },
+    { en:'busy', ar:'مشغول', syn:'occupied', ant:'free', def:'having much to do' },
+    { en:'remember', ar:'يتذكر', syn:'recall', ant:'forget', def:'to keep in your mind' },
+    { en:'forget', ar:'ينسى', syn:'overlook', ant:'remember', def:'to fail to remember' },
+    { en:'accept', ar:'يقبل', syn:'agree', ant:'reject', def:'to consent to receive' },
+    { en:'reject', ar:'يرفض', syn:'refuse', ant:'accept', def:'to refuse to accept' },
+    { en:'arrive', ar:'يصل', syn:'reach', ant:'leave', def:'to come to a place' },
+    { en:'allow', ar:'يسمح', syn:'permit', ant:'forbid', def:'to give permission' },
+    { en:'forbid', ar:'يمنع', syn:'prohibit', ant:'allow', def:'to refuse to allow' },
+    { en:'borrow', ar:'يستعير', syn:'take', ant:'lend', def:'to take something to use temporarily' },
+    { en:'lend', ar:'يعير', syn:'loan', ant:'borrow', def:'to give for temporary use' },
+    { en:'increase', ar:'يزيد', syn:'raise', ant:'decrease', def:'to make larger' },
+    { en:'decrease', ar:'ينقص', syn:'reduce', ant:'increase', def:'to make smaller' },
+    { en:'enter', ar:'يدخل', syn:'come in', ant:'exit', def:'to come or go into' },
+    { en:'export', ar:'يصدّر', syn:'send abroad', ant:'import', def:'to send goods to another country' },
+    { en:'attractive', ar:'جذّاب', syn:'appealing', ant:'unattractive', def:'pleasing to look at' },
+  ],
+  B2: [
+    { en:'abundant', ar:'وفير', syn:'plentiful', ant:'scarce', def:'existing or available in large quantities' },
+    { en:'scarce', ar:'نادر', syn:'rare', ant:'abundant', def:'insufficient for the demand' },
+    { en:'reluctant', ar:'متردد', syn:'hesitant', ant:'eager', def:'unwilling and hesitant' },
+    { en:'eager', ar:'متحمس', syn:'enthusiastic', ant:'reluctant', def:'wanting to do something very much' },
+    { en:'fragile', ar:'هشّ', syn:'delicate', ant:'sturdy', def:'easily broken or damaged' },
+    { en:'sturdy', ar:'متين', syn:'robust', ant:'fragile', def:'strongly built' },
+    { en:'conceal', ar:'يخفي', syn:'hide', ant:'reveal', def:'to keep from sight' },
+    { en:'reveal', ar:'يكشف', syn:'disclose', ant:'conceal', def:'to make known' },
+    { en:'genuine', ar:'حقيقي', syn:'authentic', ant:'fake', def:'truly what it appears to be' },
+    { en:'tedious', ar:'مُمل', syn:'boring', ant:'exciting', def:'too long or slow; boring' },
+    { en:'lucrative', ar:'مربح', syn:'profitable', ant:'unprofitable', def:'producing a lot of money' },
+    { en:'imminent', ar:'وشيك', syn:'impending', ant:'distant', def:'about to happen' },
+    { en:'arduous', ar:'شاق', syn:'difficult', ant:'easy', def:'involving strenuous effort' },
+    { en:'meticulous', ar:'دقيق', syn:'careful', ant:'careless', def:'showing great attention to detail' },
+    { en:'ambiguous', ar:'غامض', syn:'unclear', ant:'clear', def:'open to more than one interpretation' },
+    { en:'unanimous', ar:'بالإجماع', syn:'united', ant:'divided', def:'agreed by everyone' },
+    { en:'plausible', ar:'معقول', syn:'reasonable', ant:'implausible', def:'seeming reasonable or probable' },
+    { en:'opaque', ar:'معتم', syn:'cloudy', ant:'transparent', def:'not able to be seen through' },
+    { en:'concise', ar:'موجز', syn:'brief', ant:'lengthy', def:'giving info clearly and briefly' },
+    { en:'deteriorate', ar:'يتدهور', syn:'worsen', ant:'improve', def:'to become progressively worse' },
+    { en:'mitigate', ar:'يخفف', syn:'reduce', ant:'aggravate', def:'to make less severe' },
+    { en:'frugal', ar:'مقتصد', syn:'thrifty', ant:'extravagant', def:'sparing or economical' },
+    { en:'spontaneous', ar:'تلقائي', syn:'unplanned', ant:'planned', def:'happening without planning' },
+    { en:'tenacious', ar:'مثابر', syn:'persistent', ant:'irresolute', def:'holding firmly to something' },
+    { en:'verbose', ar:'مسهب', syn:'wordy', ant:'concise', def:'using more words than needed' },
+    { en:'profound', ar:'عميق', syn:'deep', ant:'shallow', def:'very great or intense' },
+    { en:'redundant', ar:'زائد', syn:'unnecessary', ant:'essential', def:'not needed or useful' },
+    { en:'cease', ar:'يتوقف', syn:'stop', ant:'continue', def:'to bring to an end' },
+    { en:'curtail', ar:'يقلص', syn:'cut short', ant:'extend', def:'to reduce in extent' },
+    { en:'lavish', ar:'فاخر', syn:'luxurious', ant:'modest', def:'sumptuously rich or elaborate' },
+  ],
+}
+
+const MODE_LABELS = {
+  translate:  { en: 'Translate to Arabic', ar: 'ترجم إلى العربية' },
+  antonym:    { en: 'Find the opposite (antonym)', ar: 'اختر العكس (المضاد)' },
+  synonym:    { en: 'Find the synonym (similar)', ar: 'اختر المرادف' },
+  definition: { en: 'Match the definition', ar: 'اختر الكلمة المناسبة للمعنى' },
+  mixed:      { en: 'Mixed challenge', ar: 'تحدٍ شامل' },
+}
 const ROUND_SECONDS = 60
+const BEST_KEY = 'play.speed-quiz.best.v2'
 
-const pregame  = document.getElementById('pregame')
-const gameEl   = document.getElementById('game')
-const endgame  = document.getElementById('endgame')
-const promptEl = document.getElementById('prompt')
-const choicesEl= document.getElementById('choices')
-const scoreEl  = document.getElementById('score')
-const roundsEl = document.getElementById('rounds')
-const timerText= document.getElementById('timer-text')
-const timerRing= document.getElementById('timer-ring')
-const ringFg   = document.getElementById('ring-fg')
-const bestEl   = document.getElementById('best-score')
-
-const RING_CIRCUMFERENCE = 188.5  // 2*π*30
+// State
+let mode = 'translate'
+let level = 'A1'
+let pool = []
 let score = 0
 let rounds = 0
 let correctCount = 0
 let timeLeft = ROUND_SECONDS
 let timerId = null
-let currentWord = null
 let locked = false
 
-function readBest() {
-  return Number(localStorage.getItem(BEST_KEY) || 0)
-}
-function writeBest(v) {
-  try { localStorage.setItem(BEST_KEY, String(v)) } catch {}
-}
+// DOM
+const pregame   = document.getElementById('pregame')
+const gameEl    = document.getElementById('game')
+const endgame   = document.getElementById('endgame')
+const promptEl  = document.getElementById('prompt')
+const choicesEl = document.getElementById('choices')
+const scoreEl   = document.getElementById('score')
+const roundsEl  = document.getElementById('rounds')
+const timerText = document.getElementById('timer-text')
+const timerRing = document.getElementById('timer-ring')
+const ringFg    = document.getElementById('ring-fg')
+const bestEl    = document.getElementById('best-score')
+const modeLabel = document.getElementById('mode-label')
+const promptLabel = document.getElementById('prompt-label')
+const promptLabelAr = document.getElementById('prompt-label-ar')
+const RING_CIRCUMFERENCE = 169.65
+
+// Init mascots
+setMascot('pre-mascot', 'happy')
+setMascot('game-mascot', 'default')
+
+function readBest() { return Number(localStorage.getItem(BEST_KEY + '.' + mode + '.' + level) || 0) }
+function writeBest(v) { try { localStorage.setItem(BEST_KEY + '.' + mode + '.' + level, String(v)) } catch {} }
 bestEl.textContent = String(readBest())
 
 function shuffle(arr) {
@@ -402,21 +491,62 @@ function shuffle(arr) {
   return a
 }
 
-function pickQuestion() {
-  currentWord = WORDS[Math.floor(Math.random() * WORDS.length)]
-  // 3 distractors from words that aren't the answer
-  const distractors = shuffle(WORDS.filter(w => w.ar !== currentWord.ar)).slice(0, 3)
-  const choices = shuffle([currentWord, ...distractors])
+function pickMode() {
+  if (mode !== 'mixed') return mode
+  const opts = ['translate', 'antonym', 'synonym', 'definition']
+  return opts[Math.floor(Math.random() * opts.length)]
+}
 
-  promptEl.textContent = currentWord.en
-  choicesEl.innerHTML = choices.map((c, i) =>
-    `<button class="choice" data-i="${i}" data-correct="${c.ar === currentWord.ar ? '1' : '0'}">${c.ar.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</button>`
+function buildQuestion() {
+  const activeMode = pickMode()
+  // Filter pool by mode requirement
+  let available = pool
+  if (activeMode === 'antonym')    available = pool.filter(w => w.ant)
+  if (activeMode === 'synonym')    available = pool.filter(w => w.syn)
+  if (activeMode === 'definition') available = pool.filter(w => w.def)
+  if (available.length < 4) available = pool  // fallback
+
+  const word = available[Math.floor(Math.random() * available.length)]
+  const answerKey = activeMode === 'translate' ? 'ar'
+                 : activeMode === 'antonym'    ? 'ant'
+                 : activeMode === 'synonym'    ? 'syn'
+                 : activeMode === 'definition' ? 'en'
+                 : 'ar'
+  const answer = word[answerKey]
+  // Build distractors from same pool, different words
+  const others = shuffle(available.filter(w => w !== word))
+  const distractors = []
+  for (const o of others) {
+    const v = o[answerKey]
+    if (v && v !== answer && !distractors.includes(v)) {
+      distractors.push(v)
+      if (distractors.length === 3) break
+    }
+  }
+  const choices = shuffle([answer, ...distractors])
+
+  // Set prompt
+  let promptText
+  if (activeMode === 'definition') promptText = word.def
+  else                              promptText = word.en
+
+  const labels = MODE_LABELS[activeMode]
+  promptLabel.textContent = labels.en
+  promptLabelAr.textContent = labels.ar
+  promptEl.className = activeMode === 'definition' ? 'qcard-def' : 'qcard-en'
+  promptEl.textContent = promptText
+
+  const isArabicChoice = activeMode === 'translate'
+  choicesEl.innerHTML = choices.map(c =>
+    `<button class="choice ${isArabicChoice ? 'is-arabic' : 'is-english'}" data-correct="${c === answer ? '1' : '0'}">${esc(c)}</button>`
   ).join('')
-  choicesEl.querySelectorAll('.choice').forEach(b => {
-    b.addEventListener('click', () => handlePick(b))
-  })
+  choicesEl.querySelectorAll('.choice').forEach(b => b.addEventListener('click', () => handlePick(b)))
+
+  setMascot('game-mascot', 'thinking')
   locked = false
 }
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;') }
 
 function handlePick(btn) {
   if (locked) return
@@ -424,19 +554,19 @@ function handlePick(btn) {
   rounds++
   roundsEl.textContent = `${rounds} played`
   if (btn.dataset.correct === '1') {
-    score++
-    correctCount++
+    score++; correctCount++
     scoreEl.textContent = String(score)
     btn.classList.add('is-right')
+    setMascot('game-mascot', 'happy', 'bounce')
   } else {
     btn.classList.add('is-wrong')
     choicesEl.querySelectorAll('.choice').forEach(b => {
       if (b.dataset.correct === '1') b.classList.add('is-right')
     })
+    setMascot('game-mascot', 'sad', 'shake')
   }
   choicesEl.querySelectorAll('.choice').forEach(b => b.disabled = true)
-  // Quick transition to next
-  setTimeout(() => { if (timeLeft > 0) pickQuestion() }, 480)
+  setTimeout(() => { if (timeLeft > 0) buildQuestion() }, 480)
 }
 
 function startTimer() {
@@ -444,7 +574,6 @@ function startTimer() {
   timerText.textContent = String(timeLeft)
   ringFg.setAttribute('stroke-dashoffset', '0')
   timerRing.classList.remove('is-warning', 'is-danger')
-
   timerId = setInterval(() => {
     timeLeft--
     timerText.textContent = String(timeLeft)
@@ -460,60 +589,58 @@ function endRound() {
   clearInterval(timerId)
   gameEl.classList.remove('is-active')
   endgame.classList.add('is-shown')
-
   const prevBest = readBest()
   const isNewBest = score > prevBest
-  if (isNewBest) {
-    writeBest(score)
-    bestEl.textContent = String(score)
-  }
-
+  if (isNewBest) { writeBest(score); bestEl.textContent = String(score) }
   document.getElementById('end-score').textContent = String(score)
   document.getElementById('end-rounds').textContent = String(rounds)
-  document.getElementById('end-accuracy').textContent =
-    rounds === 0 ? '0%' : Math.round((correctCount / rounds) * 100) + '%'
+  document.getElementById('end-accuracy').textContent = rounds === 0 ? '0%' : Math.round((correctCount / rounds) * 100) + '%'
   document.getElementById('end-best').textContent = String(Math.max(prevBest, score))
-
-  const endEmoji = document.getElementById('end-emoji')
+  let mood
   const endTitle = document.getElementById('end-title')
   const endSub   = document.getElementById('end-sub')
-
-  if (isNewBest && score > 0) {
-    endEmoji.textContent = '🏆'
-    endTitle.textContent = 'New personal best!'
-    endSub.textContent = 'رقم قياسي شخصي جديد — مبروك!'
-  } else if (score >= 15) {
-    endEmoji.textContent = '🔥'
-    endTitle.textContent = 'Excellent round!'
-    endSub.textContent = 'جولة ممتازة — استمر بهذا المستوى'
-  } else if (score >= 8) {
-    endEmoji.textContent = '👍'
-    endTitle.textContent = 'Good job!'
-    endSub.textContent = 'أداء جيد — يمكنك التحسن أكثر'
-  } else {
-    endEmoji.textContent = '💪'
-    endTitle.textContent = 'Keep practicing'
-    endSub.textContent = 'استمر بالتدريب — كل محاولة تحسّنك'
-  }
-
+  if (isNewBest && score > 0) { mood = 'happy'; endTitle.textContent = '🏆 New personal best!'; endSub.textContent = 'رقم قياسي جديد — مبروك!' }
+  else if (score >= 15) { mood = 'happy'; endTitle.textContent = '🔥 Excellent round!'; endSub.textContent = 'جولة ممتازة — استمر' }
+  else if (score >= 8) { mood = 'default'; endTitle.textContent = '👍 Good job!'; endSub.textContent = 'أداء جيد — يمكنك التحسن أكثر' }
+  else { mood = 'sad'; endTitle.textContent = '💪 Keep practicing'; endSub.textContent = 'استمر بالتدريب' }
+  setMascot('end-mascot', mood)
   endgame.scrollIntoView({ behavior: 'smooth', block: 'center' })
 }
 
 function startGame() {
   score = 0; rounds = 0; correctCount = 0
-  scoreEl.textContent = '0'
-  roundsEl.textContent = '0 played'
+  scoreEl.textContent = '0'; roundsEl.textContent = '0 played'
+  pool = VOCAB[level]
+  modeLabel.textContent = MODE_LABELS[mode].en.split(' ')[0]
+  bestEl.textContent = String(readBest())
   pregame.style.display = 'none'
   endgame.classList.remove('is-shown')
   gameEl.classList.add('is-active')
-  pickQuestion()
+  buildQuestion()
   startTimer()
 }
+
+// Selectors
+document.getElementById('mode-options').addEventListener('click', e => {
+  if (e.target.dataset.mode) {
+    document.querySelectorAll('#mode-options .sel-btn').forEach(b => b.classList.remove('is-active'))
+    e.target.classList.add('is-active')
+    mode = e.target.dataset.mode
+  }
+})
+document.getElementById('level-options').addEventListener('click', e => {
+  if (e.target.dataset.level) {
+    document.querySelectorAll('#level-options .sel-btn').forEach(b => b.classList.remove('is-active'))
+    e.target.classList.add('is-active')
+    level = e.target.dataset.level
+  }
+})
 
 document.getElementById('start-btn').addEventListener('click', startGame)
 document.getElementById('play-again').addEventListener('click', () => {
   endgame.classList.remove('is-shown')
   pregame.style.display = ''
+  setMascot('pre-mascot', 'happy')
 })
 </script>
 </body>

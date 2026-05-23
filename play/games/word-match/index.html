@@ -119,6 +119,9 @@
       box-shadow: 0 6px 14px -3px rgba(28, 25, 23, 0.32);
     }
     .diff-btn b { font-family: var(--mono); font-size: 11px; font-weight: 700; margin-left: 4px; opacity: 0.7; }
+    .lev-btn { padding: 8px 14px; border-radius: 10px; background: transparent; border: 1.5px solid var(--border); font-family: var(--display); font-size: 12px; font-weight: 700; color: var(--text-2); transition: all 0.18s ease; }
+    .lev-btn:hover { border-color: var(--gold); }
+    .lev-btn.is-active { background: var(--ink); color: white; border-color: var(--ink); }
 
     /* Game board */
     .board {
@@ -260,7 +263,13 @@
   </div>
 
   <div class="difficulty">
-    <span class="difficulty-label">Difficulty · مستوى الصعوبة</span>
+    <span class="difficulty-label">Vocab level · مستوى الكلمات</span>
+    <button class="lev-btn is-active" data-level="A1">A0/A1</button>
+    <button class="lev-btn" data-level="A2">A2/B1</button>
+    <button class="lev-btn" data-level="B2">B2 advanced</button>
+  </div>
+  <div class="difficulty">
+    <span class="difficulty-label">Pairs · عدد الأزواج</span>
     <button class="diff-btn is-active" data-pairs="8">Easy <b>8 pairs</b></button>
     <button class="diff-btn" data-pairs="12">Medium <b>12 pairs</b></button>
     <button class="diff-btn" data-pairs="16">Hard <b>16 pairs</b></button>
@@ -282,54 +291,39 @@
 
 <script>
 // ─── Vocabulary pool (curated for Word Match) ──────────────
-const VOCAB = [
-  // Daily routine
-  { en: 'morning', ar: 'صباح' },
-  { en: 'evening', ar: 'مساء' },
-  { en: 'breakfast', ar: 'فطور' },
-  { en: 'sleep', ar: 'ينام' },
-  { en: 'wake up', ar: 'يستيقظ' },
-  { en: 'coffee', ar: 'قهوة' },
-  { en: 'water', ar: 'ماء' },
-  // Family
-  { en: 'father', ar: 'أب' },
-  { en: 'mother', ar: 'أم' },
-  { en: 'brother', ar: 'أخ' },
-  { en: 'sister', ar: 'أخت' },
-  { en: 'friend', ar: 'صديق' },
-  // School / work
-  { en: 'school', ar: 'مدرسة' },
-  { en: 'teacher', ar: 'معلم' },
-  { en: 'book', ar: 'كتاب' },
-  { en: 'office', ar: 'مكتب' },
-  { en: 'meeting', ar: 'اجتماع' },
-  // Places
-  { en: 'house', ar: 'بيت' },
-  { en: 'city', ar: 'مدينة' },
-  { en: 'street', ar: 'شارع' },
-  { en: 'park', ar: 'حديقة' },
-  { en: 'hospital', ar: 'مستشفى' },
-  // Time
-  { en: 'today', ar: 'اليوم' },
-  { en: 'tomorrow', ar: 'غداً' },
-  { en: 'yesterday', ar: 'أمس' },
-  { en: 'week', ar: 'أسبوع' },
-  { en: 'month', ar: 'شهر' },
-  // Common verbs
-  { en: 'eat', ar: 'يأكل' },
-  { en: 'drink', ar: 'يشرب' },
-  { en: 'read', ar: 'يقرأ' },
-  { en: 'write', ar: 'يكتب' },
-  { en: 'listen', ar: 'يستمع' },
-  { en: 'speak', ar: 'يتحدث' },
-  { en: 'travel', ar: 'يسافر' },
-  // Adjectives
-  { en: 'big', ar: 'كبير' },
-  { en: 'small', ar: 'صغير' },
-  { en: 'happy', ar: 'سعيد' },
-  { en: 'tired', ar: 'متعب' },
-  { en: 'hungry', ar: 'جائع' },
-]
+const VOCAB_BY_LEVEL = {
+  A1: [
+    { en:'morning', ar:'صباح' }, { en:'evening', ar:'مساء' }, { en:'water', ar:'ماء' },
+    { en:'food', ar:'طعام' }, { en:'house', ar:'بيت' }, { en:'friend', ar:'صديق' },
+    { en:'father', ar:'أب' }, { en:'mother', ar:'أم' }, { en:'brother', ar:'أخ' },
+    { en:'sister', ar:'أخت' }, { en:'book', ar:'كتاب' }, { en:'school', ar:'مدرسة' },
+    { en:'big', ar:'كبير' }, { en:'small', ar:'صغير' }, { en:'happy', ar:'سعيد' },
+    { en:'tired', ar:'متعب' }, { en:'today', ar:'اليوم' }, { en:'eat', ar:'يأكل' },
+    { en:'drink', ar:'يشرب' }, { en:'sleep', ar:'ينام' }, { en:'read', ar:'يقرأ' },
+    { en:'write', ar:'يكتب' },
+  ],
+  A2: [
+    { en:'teacher', ar:'معلم' }, { en:'office', ar:'مكتب' }, { en:'meeting', ar:'اجتماع' },
+    { en:'street', ar:'شارع' }, { en:'park', ar:'حديقة' }, { en:'hospital', ar:'مستشفى' },
+    { en:'tomorrow', ar:'غداً' }, { en:'yesterday', ar:'أمس' }, { en:'week', ar:'أسبوع' },
+    { en:'month', ar:'شهر' }, { en:'speak', ar:'يتحدث' }, { en:'travel', ar:'يسافر' },
+    { en:'remember', ar:'يتذكر' }, { en:'explain', ar:'يشرح' }, { en:'understand', ar:'يفهم' },
+    { en:'expensive', ar:'غالٍ' }, { en:'beautiful', ar:'جميل' }, { en:'difficult', ar:'صعب' },
+    { en:'important', ar:'مهم' }, { en:'language', ar:'لغة' }, { en:'culture', ar:'ثقافة' },
+    { en:'computer', ar:'حاسوب' },
+  ],
+  B2: [
+    { en:'opportunity', ar:'فرصة' }, { en:'experience', ar:'خبرة' }, { en:'achievement', ar:'إنجاز' },
+    { en:'environment', ar:'بيئة' }, { en:'consequence', ar:'نتيجة' }, { en:'recommend', ar:'يوصي' },
+    { en:'negotiate', ar:'يتفاوض' }, { en:'investigate', ar:'يحقق' }, { en:'authentic', ar:'أصلي' },
+    { en:'abundant', ar:'وفير' }, { en:'meticulous', ar:'دقيق' }, { en:'reluctant', ar:'متردد' },
+    { en:'ambiguous', ar:'غامض' }, { en:'profound', ar:'عميق' }, { en:'tenacious', ar:'مثابر' },
+    { en:'collaborate', ar:'يتعاون' }, { en:'spontaneous', ar:'تلقائي' }, { en:'strategy', ar:'استراتيجية' },
+    { en:'leadership', ar:'قيادة' }, { en:'innovation', ar:'ابتكار' }, { en:'compromise', ar:'تسوية' },
+  ],
+}
+let currentLevel = 'A1'
+let VOCAB = VOCAB_BY_LEVEL[currentLevel]
 
 const board    = document.getElementById('board')
 const movesEl  = document.getElementById('moves')
@@ -431,12 +425,28 @@ function showWin() {
   banner.scrollIntoView({ behavior: 'smooth', block: 'center' })
 }
 
-// Difficulty
+// Difficulty (pair count)
 document.querySelectorAll('.diff-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('is-active'))
     btn.classList.add('is-active')
     pairsCount = Number(btn.dataset.pairs)
+    setupGame()
+  })
+})
+// Level (vocab tier)
+document.querySelectorAll('.lev-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.lev-btn').forEach(b => b.classList.remove('is-active'))
+    btn.classList.add('is-active')
+    currentLevel = btn.dataset.level
+    VOCAB = VOCAB_BY_LEVEL[currentLevel]
+    // Auto-adjust pairsCount if vocab pool too small
+    if (pairsCount > VOCAB.length) {
+      pairsCount = Math.min(VOCAB.length, 8)
+      document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('is-active'))
+      document.querySelector(`.diff-btn[data-pairs="${pairsCount}"]`)?.classList.add('is-active')
+    }
     setupGame()
   })
 })

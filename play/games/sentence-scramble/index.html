@@ -146,6 +146,23 @@
     .btn.is-gold:hover { transform: translateY(-2px); }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
 
+    /* Level bar */
+    .level-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; padding: 14px 18px; border-radius: 14px; background: var(--paper); border: 1px solid var(--border); }
+    .level-bar-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.18em; text-transform: uppercase; }
+    .lev-btn { padding: 8px 14px; border-radius: 10px; background: transparent; border: 1.5px solid var(--border); font-family: var(--display); font-size: 12px; font-weight: 700; color: var(--text-2); transition: all 0.18s ease; }
+    .lev-btn:hover { border-color: var(--gold); }
+    .lev-btn.is-active { background: var(--ink); color: white; border-color: var(--ink); }
+
+    /* Mascot integrated in hint */
+    .hint-card { display: flex; align-items: center; gap: 22px; }
+    .hint-card-inner { flex: 1; }
+    .mascot-wrap { position: relative; display: inline-flex; }
+    .mascot { filter: drop-shadow(0 6px 12px rgba(28, 25, 23, 0.25)); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .mascot.is-bounce { animation: bounce 0.5s ease; }
+    @keyframes bounce { 50% { transform: translateY(-12px) rotate(-4deg); } }
+    .mascot.is-shake { animation: shake-m 0.4s ease; }
+    @keyframes shake-m { 25% { transform: translateX(-6px) rotate(-3deg); } 75% { transform: translateX(6px) rotate(3deg); } }
+
     @media (max-width: 640px) {
       .topbar { padding: 12px 16px; }
       .page { padding: 24px 14px; }
@@ -173,9 +190,21 @@
     <p class="intro-sub">رتّب الكلمات لتبني جملة إنجليزية صحيحة — انقر الكلمات لتنقلها بين القسمين.</p>
   </div>
 
+  <div class="level-bar">
+    <span class="level-bar-label">Level · المستوى</span>
+    <button class="lev-btn is-active" data-level="A1">Beginner · A0/A1</button>
+    <button class="lev-btn" data-level="A2">Intermediate · A2/B1</button>
+    <button class="lev-btn" data-level="B2">Advanced · B2</button>
+  </div>
+
   <div class="hint-card">
-    <div class="hint-label">Translate this · ترجم هذه</div>
-    <div class="hint-ar" id="hint"></div>
+    <div class="mascot-wrap">
+      <svg width="76" height="92" viewBox="0 0 100 120" class="mascot" id="mascot"></svg>
+    </div>
+    <div class="hint-card-inner">
+      <div class="hint-label">Translate this · ترجم هذه</div>
+      <div class="hint-ar" id="hint"></div>
+    </div>
   </div>
 
   <div class="answer-slot" id="answer">
@@ -196,20 +225,74 @@
 </main>
 
 <script>
-const SENTENCES = [
-  { en: 'I drink coffee every morning', ar: 'أشرب القهوة كل صباح' },
-  { en: 'She is reading a new book', ar: 'هي تقرأ كتاباً جديداً' },
-  { en: 'We go to school by bus', ar: 'نذهب إلى المدرسة بالحافلة' },
-  { en: 'He works at a big company', ar: 'هو يعمل في شركة كبيرة' },
-  { en: 'I want to learn English fast', ar: 'أريد أن أتعلم الإنجليزية بسرعة' },
-  { en: 'The meeting starts at five', ar: 'يبدأ الاجتماع في الخامسة' },
-  { en: 'My sister loves to travel', ar: 'أختي تحب السفر' },
-  { en: 'They live in a quiet city', ar: 'هم يعيشون في مدينة هادئة' },
-  { en: 'Could you please send me the report', ar: 'هل يمكنك أن ترسل لي التقرير من فضلك' },
-  { en: 'I have two brothers and one sister', ar: 'لدي أخوان وأخت واحدة' },
-  { en: 'We will travel to London next year', ar: 'سنسافر إلى لندن السنة القادمة' },
-  { en: 'She did not come to the office today', ar: 'هي لم تأت إلى المكتب اليوم' },
-]
+const SENTENCES_BY_LEVEL = {
+  A1: [
+    { en: 'I drink coffee every morning', ar: 'أشرب القهوة كل صباح' },
+    { en: 'She is reading a new book', ar: 'هي تقرأ كتاباً جديداً' },
+    { en: 'We go to school by bus', ar: 'نذهب إلى المدرسة بالحافلة' },
+    { en: 'He works at a big company', ar: 'هو يعمل في شركة كبيرة' },
+    { en: 'I want to learn English fast', ar: 'أريد أن أتعلم الإنجليزية بسرعة' },
+    { en: 'My sister loves to travel', ar: 'أختي تحب السفر' },
+    { en: 'I have two brothers and one sister', ar: 'لدي أخوان وأخت واحدة' },
+    { en: 'They are very happy today', ar: 'هم سعداء جداً اليوم' },
+    { en: 'The dog is in the garden', ar: 'الكلب في الحديقة' },
+    { en: 'We eat dinner at seven', ar: 'نتناول العشاء في السابعة' },
+  ],
+  A2: [
+    { en: 'The meeting starts at five tomorrow', ar: 'يبدأ الاجتماع في الخامسة غداً' },
+    { en: 'They live in a quiet city by the sea', ar: 'هم يعيشون في مدينة هادئة قرب البحر' },
+    { en: 'Could you please send me the report', ar: 'هل يمكنك أن ترسل لي التقرير من فضلك' },
+    { en: 'We will travel to London next year', ar: 'سنسافر إلى لندن السنة القادمة' },
+    { en: 'She did not come to the office today', ar: 'هي لم تأت إلى المكتب اليوم' },
+    { en: 'I have been working here for five years', ar: 'أعمل هنا منذ خمس سنوات' },
+    { en: 'My brother is studying at the university', ar: 'أخي يدرس في الجامعة' },
+    { en: 'We need to finish this project by Friday', ar: 'علينا أن ننهي هذا المشروع بحلول الجمعة' },
+    { en: 'She drives to work every weekday', ar: 'تقود إلى العمل كل يوم عمل' },
+    { en: 'The children are playing in the park', ar: 'الأطفال يلعبون في الحديقة' },
+  ],
+  B2: [
+    { en: 'If I had known earlier I would have changed my plans', ar: 'لو كنت قد عرفت في وقت أبكر لكنت قد غيّرت خططي' },
+    { en: 'Despite the heavy rain the conference went ahead', ar: 'رغم الأمطار الغزيرة استمر المؤتمر' },
+    { en: 'She has been promoted to senior manager this month', ar: 'تمت ترقيتها إلى مدير أول هذا الشهر' },
+    { en: 'We are looking for someone with excellent communication skills', ar: 'نبحث عن شخص يتمتع بمهارات تواصل ممتازة' },
+    { en: 'The company plans to expand into the European market', ar: 'تخطط الشركة للتوسع في السوق الأوروبية' },
+    { en: 'I would appreciate it if you could review the contract by Monday', ar: 'سأكون ممتناً لو تمكنت من مراجعة العقد بحلول الاثنين' },
+    { en: 'Although the project was complex the team delivered on time', ar: 'رغم تعقيد المشروع سلّم الفريق في الموعد' },
+    { en: 'The new policy will be implemented across all departments', ar: 'ستُطبَّق السياسة الجديدة في جميع الأقسام' },
+    { en: 'We must reduce our operational costs without compromising quality', ar: 'يجب أن نخفض تكاليف التشغيل دون التضحية بالجودة' },
+  ],
+}
+
+let currentLevel = 'A1'
+let SENTENCES = SENTENCES_BY_LEVEL[currentLevel].slice()
+
+// ─── Mascot character ─────────────────────────────────────
+function mascotSVG(mood) {
+  const EYES = {
+    default: '<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="38" cy="59" r="3" fill="#1c1917"/><circle cx="62" cy="59" r="3" fill="#1c1917"/><circle cx="39" cy="57" r="1" fill="#fdfaf0"/><circle cx="63" cy="57" r="1" fill="#fdfaf0"/>',
+    happy:   '<path d="M 32 60 Q 38 53 44 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M 56 60 Q 62 53 68 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+    sad:     '<circle cx="38" cy="60" r="6" fill="#fdfaf0"/><circle cx="62" cy="60" r="6" fill="#fdfaf0"/><circle cx="38" cy="62" r="3" fill="#1c1917"/><circle cx="62" cy="62" r="3" fill="#1c1917"/>',
+    thinking:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="40" cy="55" r="3" fill="#1c1917"/><circle cx="64" cy="55" r="3" fill="#1c1917"/>',
+  }
+  const MOUTHS = {
+    default:'<path d="M 40 75 Q 50 80 60 75" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+    happy:  '<path d="M 32 72 Q 50 88 68 72 Q 50 80 32 72 Z" fill="#fdfaf0"/>',
+    sad:    '<path d="M 40 80 Q 50 73 60 80" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+    thinking:'<path d="M 42 78 L 58 78" stroke="#fdfaf0" stroke-width="2.5" stroke-linecap="round"/>',
+  }
+  const m = mood || 'default'
+  return `<line x1="50" y1="14" x2="74" y2="6" stroke="#fbbf24" stroke-width="2"/><circle cx="74" cy="6" r="3" fill="#fbbf24"/><rect x="32" y="12" width="36" height="14" rx="3" fill="#d97706"/><rect x="14" y="24" width="72" height="6" rx="2" fill="#b45309"/><circle cx="50" cy="62" r="34" fill="#1c1917"/><path d="M 18 112 Q 50 92 82 112 L 82 120 L 18 120 Z" fill="#1c1917"/>${EYES[m] || EYES.default}${MOUTHS[m] || MOUTHS.default}`
+}
+function setMascot(mood, bounce) {
+  const el = document.getElementById('mascot')
+  if (!el) return
+  el.innerHTML = mascotSVG(mood)
+  if (bounce) {
+    el.classList.remove('is-bounce', 'is-shake')
+    void el.offsetWidth
+    el.classList.add(bounce === 'shake' ? 'is-shake' : 'is-bounce')
+  }
+}
 
 const hintEl = document.getElementById('hint')
 const answerEl = document.getElementById('answer')
@@ -245,6 +328,7 @@ function loadSentence() {
   checkBtn.disabled = false
   checkBtn.style.display = ''
   nextBtn.style.display = 'none'
+  setMascot('thinking')
 
   const s = SENTENCES[idx]
   hintEl.textContent = s.ar
@@ -307,11 +391,14 @@ function checkAnswer() {
     solved = true
     checkBtn.disabled = true
     nextBtn.style.display = ''
+    setMascot('happy', 'bounce')
   } else {
     feedbackEl.innerHTML = '✗ Not quite. Try again. <span class="feedback-ar">حاول مرة أخرى</span>'
     feedbackEl.className = 'feedback is-wrong'
     answerEl.classList.add('is-wrong')
     setTimeout(() => answerEl.classList.remove('is-wrong'), 500)
+    setMascot('sad', 'shake')
+    setTimeout(() => { if (!solved) setMascot('thinking') }, 700)
   }
 }
 
@@ -336,6 +423,20 @@ checkBtn.addEventListener('click', checkAnswer)
 nextBtn.addEventListener('click', nextSentence)
 resetBtn.addEventListener('click', loadSentence)
 hintBtn.addEventListener('click', showAnswer)
+
+// Level selector
+document.querySelectorAll('.lev-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.lev-btn').forEach(x => x.classList.remove('is-active'))
+    b.classList.add('is-active')
+    currentLevel = b.dataset.level
+    SENTENCES = SENTENCES_BY_LEVEL[currentLevel].slice()
+    SENTENCES.sort(() => Math.random() - 0.5)
+    idx = 0; score = 0
+    scoreEl.textContent = '0'
+    loadSentence()
+  })
+})
 
 // Shuffle sentences once at start
 SENTENCES.sort(() => Math.random() - 0.5)

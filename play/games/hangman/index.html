@@ -138,6 +138,25 @@
     .btn.is-secondary { background: var(--paper); color: var(--text-2); border: 1.5px solid var(--border); }
     .btn.is-secondary:hover { border-color: var(--gold); color: var(--gold); }
 
+    /* Level bar */
+    .level-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; padding: 14px 18px; border-radius: 14px; background: var(--paper); border: 1px solid var(--border); }
+    .level-bar-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.18em; text-transform: uppercase; }
+    .lev-btn { padding: 8px 14px; border-radius: 10px; background: transparent; border: 1.5px solid var(--border); font-family: var(--display); font-size: 12px; font-weight: 700; color: var(--text-2); transition: all 0.18s ease; }
+    .lev-btn:hover { border-color: var(--gold); }
+    .lev-btn.is-active { background: var(--ink); color: white; border-color: var(--ink); }
+
+    /* Mascot */
+    .mascot-wrap { position: relative; display: inline-flex; }
+    .mascot { filter: drop-shadow(0 6px 12px rgba(28, 25, 23, 0.25)); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .mascot.is-bounce { animation: bounce 0.5s ease; }
+    @keyframes bounce { 50% { transform: translateY(-12px) rotate(-4deg); } }
+    .mascot.is-shake { animation: shake-mascot 0.4s ease; }
+    @keyframes shake-mascot { 25% { transform: translateX(-6px) rotate(-3deg); } 75% { transform: translateX(6px) rotate(3deg); } }
+
+    /* Hint card with mascot layout */
+    .hint-card { display: flex; align-items: center; gap: 22px; }
+    .hint-card-inner { flex: 1; }
+
     @media (max-width: 640px) {
       .topbar { padding: 12px 16px; }
       .page { padding: 24px 14px; }
@@ -166,10 +185,22 @@
     <p class="intro-sub">خمّن الكلمة الإنجليزية حرفاً حرفاً — لديك 6 محاولات خاطئة قبل أن تخسر.</p>
   </div>
 
+  <div class="level-bar">
+    <span class="level-bar-label">Level · المستوى</span>
+    <button class="lev-btn is-active" data-level="A1">Beginner · A0/A1</button>
+    <button class="lev-btn" data-level="A2">Intermediate · A2/B1</button>
+    <button class="lev-btn" data-level="B2">Advanced · B2</button>
+  </div>
+
   <div class="hint-card">
-    <div class="hint-label">Meaning · المعنى</div>
-    <div class="hint-ar" id="hint-ar"></div>
-    <div class="hint-meta" id="hint-meta"></div>
+    <div class="mascot-wrap">
+      <svg width="76" height="92" viewBox="0 0 100 120" class="mascot" id="mascot"></svg>
+    </div>
+    <div class="hint-card-inner">
+      <div class="hint-label">Meaning · المعنى</div>
+      <div class="hint-ar" id="hint-ar"></div>
+      <div class="hint-meta" id="hint-meta"></div>
+    </div>
   </div>
 
   <div class="lives">
@@ -195,65 +226,71 @@
 </main>
 
 <script>
-const WORDS = [
-  // A1 basics
-  { en: 'morning',   ar: 'صباح' },
-  { en: 'family',    ar: 'عائلة' },
-  { en: 'school',    ar: 'مدرسة' },
-  { en: 'kitchen',   ar: 'مطبخ' },
-  { en: 'window',    ar: 'نافذة' },
-  { en: 'friend',    ar: 'صديق' },
-  { en: 'teacher',   ar: 'معلم' },
-  { en: 'doctor',    ar: 'طبيب' },
-  { en: 'student',   ar: 'طالب' },
-  { en: 'breakfast', ar: 'فطور' },
-  { en: 'dinner',    ar: 'عشاء' },
-  { en: 'language',  ar: 'لغة' },
-  { en: 'computer',  ar: 'حاسوب' },
-  { en: 'address',   ar: 'عنوان' },
-  // Verbs
-  { en: 'travel',    ar: 'يسافر' },
-  { en: 'learn',     ar: 'يتعلم' },
-  { en: 'remember',  ar: 'يتذكر' },
-  { en: 'explain',   ar: 'يشرح' },
-  { en: 'understand',ar: 'يفهم' },
-  { en: 'develop',   ar: 'يطور' },
-  // Business
-  { en: 'meeting',   ar: 'اجتماع' },
-  { en: 'company',   ar: 'شركة' },
-  { en: 'manager',   ar: 'مدير' },
-  { en: 'employee',  ar: 'موظف' },
-  { en: 'customer',  ar: 'عميل' },
-  { en: 'invoice',   ar: 'فاتورة' },
-  { en: 'budget',    ar: 'ميزانية' },
-  { en: 'salary',    ar: 'راتب' },
-  { en: 'project',   ar: 'مشروع' },
-  // Adjectives
-  { en: 'important', ar: 'مهم' },
-  { en: 'difficult', ar: 'صعب' },
-  { en: 'beautiful', ar: 'جميل' },
-  { en: 'expensive', ar: 'غالي' },
-  { en: 'comfortable', ar: 'مريح' },
-  { en: 'tired',     ar: 'متعب' },
-  // Travel
-  { en: 'airport',   ar: 'مطار' },
-  { en: 'station',   ar: 'محطة' },
-  { en: 'ticket',    ar: 'تذكرة' },
-  { en: 'hotel',     ar: 'فندق' },
-  { en: 'passport',  ar: 'جواز سفر' },
-  // Time
-  { en: 'tomorrow',  ar: 'غداً' },
-  { en: 'yesterday', ar: 'أمس' },
-  { en: 'evening',   ar: 'مساء' },
-  // Body / health
-  { en: 'hospital',  ar: 'مستشفى' },
-  { en: 'medicine',  ar: 'دواء' },
-  { en: 'shoulder',  ar: 'كتف' },
-  // Food
-  { en: 'chicken',   ar: 'دجاج' },
-  { en: 'vegetable', ar: 'خضار' },
-  { en: 'orange',    ar: 'برتقال' },
-]
+// Word pools by level
+const WORDS_BY_LEVEL = {
+  A1: [
+    { en:'morning', ar:'صباح' }, { en:'family', ar:'عائلة' }, { en:'school', ar:'مدرسة' },
+    { en:'kitchen', ar:'مطبخ' }, { en:'window', ar:'نافذة' }, { en:'friend', ar:'صديق' },
+    { en:'teacher', ar:'معلم' }, { en:'doctor', ar:'طبيب' }, { en:'student', ar:'طالب' },
+    { en:'breakfast', ar:'فطور' }, { en:'dinner', ar:'عشاء' }, { en:'water', ar:'ماء' },
+    { en:'house', ar:'بيت' }, { en:'street', ar:'شارع' }, { en:'happy', ar:'سعيد' },
+    { en:'tired', ar:'متعب' }, { en:'evening', ar:'مساء' }, { en:'today', ar:'اليوم' },
+    { en:'tomorrow', ar:'غداً' }, { en:'orange', ar:'برتقال' },
+  ],
+  A2: [
+    { en:'language', ar:'لغة' }, { en:'computer', ar:'حاسوب' }, { en:'address', ar:'عنوان' },
+    { en:'travel', ar:'يسافر' }, { en:'learn', ar:'يتعلم' }, { en:'remember', ar:'يتذكر' },
+    { en:'explain', ar:'يشرح' }, { en:'understand', ar:'يفهم' }, { en:'develop', ar:'يطور' },
+    { en:'meeting', ar:'اجتماع' }, { en:'company', ar:'شركة' }, { en:'manager', ar:'مدير' },
+    { en:'employee', ar:'موظف' }, { en:'customer', ar:'عميل' }, { en:'invoice', ar:'فاتورة' },
+    { en:'budget', ar:'ميزانية' }, { en:'salary', ar:'راتب' }, { en:'project', ar:'مشروع' },
+    { en:'important', ar:'مهم' }, { en:'difficult', ar:'صعب' }, { en:'beautiful', ar:'جميل' },
+    { en:'expensive', ar:'غالي' }, { en:'airport', ar:'مطار' }, { en:'station', ar:'محطة' },
+    { en:'ticket', ar:'تذكرة' }, { en:'hotel', ar:'فندق' }, { en:'passport', ar:'جواز سفر' },
+    { en:'hospital', ar:'مستشفى' }, { en:'medicine', ar:'دواء' }, { en:'chicken', ar:'دجاج' },
+    { en:'vegetable', ar:'خضار' },
+  ],
+  B2: [
+    { en:'opportunity', ar:'فرصة' }, { en:'experience', ar:'خبرة' }, { en:'achievement', ar:'إنجاز' },
+    { en:'environment', ar:'بيئة' }, { en:'consequence', ar:'نتيجة' }, { en:'recommend', ar:'يوصي' },
+    { en:'negotiate', ar:'يتفاوض' }, { en:'investigate', ar:'يحقق' }, { en:'authentic', ar:'أصلي' },
+    { en:'abundant', ar:'وفير' }, { en:'meticulous', ar:'دقيق' }, { en:'reluctant', ar:'متردد' },
+    { en:'ambiguous', ar:'غامض' }, { en:'profound', ar:'عميق' }, { en:'tenacious', ar:'مثابر' },
+    { en:'collaborate', ar:'يتعاون' }, { en:'demonstrate', ar:'يبرهن' }, { en:'spontaneous', ar:'تلقائي' },
+    { en:'efficiency', ar:'كفاءة' }, { en:'strategy', ar:'استراتيجية' }, { en:'partnership', ar:'شراكة' },
+    { en:'leadership', ar:'قيادة' }, { en:'innovation', ar:'ابتكار' }, { en:'compromise', ar:'تسوية' },
+  ],
+}
+let currentLevel = 'A1'
+let WORDS = WORDS_BY_LEVEL[currentLevel]
+
+// ─── Mascot character ─────────────────────────────────────
+function mascotSVG(mood) {
+  const EYES = {
+    default: '<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="38" cy="59" r="3" fill="#1c1917"/><circle cx="62" cy="59" r="3" fill="#1c1917"/><circle cx="39" cy="57" r="1" fill="#fdfaf0"/><circle cx="63" cy="57" r="1" fill="#fdfaf0"/>',
+    happy:   '<path d="M 32 60 Q 38 53 44 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M 56 60 Q 62 53 68 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+    sad:     '<circle cx="38" cy="60" r="6" fill="#fdfaf0"/><circle cx="62" cy="60" r="6" fill="#fdfaf0"/><circle cx="38" cy="62" r="3" fill="#1c1917"/><circle cx="62" cy="62" r="3" fill="#1c1917"/>',
+    thinking:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="40" cy="55" r="3" fill="#1c1917"/><circle cx="64" cy="55" r="3" fill="#1c1917"/>',
+  }
+  const MOUTHS = {
+    default:'<path d="M 40 75 Q 50 80 60 75" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+    happy:  '<path d="M 32 72 Q 50 88 68 72 Q 50 80 32 72 Z" fill="#fdfaf0"/>',
+    sad:    '<path d="M 40 80 Q 50 73 60 80" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+    thinking:'<path d="M 42 78 L 58 78" stroke="#fdfaf0" stroke-width="2.5" stroke-linecap="round"/>',
+  }
+  const m = mood || 'default'
+  return `<line x1="50" y1="14" x2="74" y2="6" stroke="#fbbf24" stroke-width="2"/><circle cx="74" cy="6" r="3" fill="#fbbf24"/><rect x="32" y="12" width="36" height="14" rx="3" fill="#d97706"/><rect x="14" y="24" width="72" height="6" rx="2" fill="#b45309"/><circle cx="50" cy="62" r="34" fill="#1c1917"/><path d="M 18 112 Q 50 92 82 112 L 82 120 L 18 120 Z" fill="#1c1917"/>${EYES[m] || EYES.default}${MOUTHS[m] || MOUTHS.default}`
+}
+function setMascot(mood, bounce) {
+  const el = document.getElementById('mascot')
+  if (!el) return
+  el.innerHTML = mascotSVG(mood)
+  if (bounce) {
+    el.classList.remove('is-bounce', 'is-shake')
+    void el.offsetWidth
+    el.classList.add(bounce === 'shake' ? 'is-shake' : 'is-bounce')
+  }
+}
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
 const MAX_LIVES = 6
@@ -297,6 +334,7 @@ function newRound() {
   renderSlots()
   renderHearts()
   renderKeyboard()
+  setMascot('thinking')
 }
 
 function renderSlots() {
@@ -336,13 +374,16 @@ function guess(letter) {
     revealed.add(letter)
     renderSlots()
     renderKeyboard()
-    // Check win
+    setMascot('happy', 'bounce')
+    setTimeout(() => { if (!over) setMascot('thinking') }, 800)
     const all = word.split('').filter(c => c !== ' ').every(c => revealed.has(c))
     if (all) finish(true)
   } else {
     lives--
     renderHearts()
     renderKeyboard()
+    setMascot('sad', 'shake')
+    setTimeout(() => { if (!over) setMascot('thinking') }, 800)
     if (lives === 0) finish(false)
   }
 }
@@ -366,7 +407,19 @@ function finish(won) {
     bannerStats.textContent = 'Don\'t worry, try the next word!'
   }
   bannerSolution.textContent = `Answer: ${word.toLowerCase()}`
+  setMascot(won ? 'happy' : 'sad', won ? 'bounce' : 'shake')
 }
+
+// Level selector
+document.querySelectorAll('.lev-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.lev-btn').forEach(x => x.classList.remove('is-active'))
+    b.classList.add('is-active')
+    currentLevel = b.dataset.level
+    WORDS = WORDS_BY_LEVEL[currentLevel]
+    newRound()
+  })
+})
 
 function reveal() {
   if (over) return

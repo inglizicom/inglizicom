@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Word Builder — Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    button { font-family: inherit; cursor: pointer; }
+    a { text-decoration: none; color: inherit; }
+
+    :root {
+      --ink:#1c1917; --ink-deep:#0c0a09;
+      --bg:#f5efe0; --paper:#fdfaf0; --paper-soft:#faf3e0; --paper-deep:#f0e6cd;
+      --border:#e0d4b2; --border-soft:#ece2c5;
+      --gold:#b45309; --gold-bright:#d97706; --gold-soft:#fef3c7;
+      --text:#1c1917; --text-2:#44403c; --text-muted:#78716c;
+      --green:#15803d; --red:#b91c1c;
+      --display:'Outfit','DM Sans',system-ui,sans-serif;
+      --sans:'DM Sans',sans-serif;
+      --arabic:'Cairo','Tajawal',sans-serif;
+      --mono:'JetBrains Mono',ui-monospace,monospace;
+    }
+    html, body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; min-height: 100%; -webkit-font-smoothing: antialiased; }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 60% 40% at 80% 0%, rgba(180, 83, 9, 0.08), transparent 60%); }
+
+    .topbar { position: sticky; top: 0; z-index: 100; background: rgba(245, 239, 224, 0.85); backdrop-filter: blur(18px) saturate(180%); border-bottom: 1px solid var(--border-soft); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+    .back-link { display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 999px; background: var(--paper); border: 1px solid var(--border); font-family: var(--display); font-size: 13px; font-weight: 700; color: var(--text-2); transition: all 0.18s ease; }
+    .back-link:hover { background: var(--ink); color: white; border-color: var(--ink); }
+    .game-title { font-family: var(--display); font-weight: 900; font-size: 18px; letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; }
+    .scoreboard { display: flex; gap: 12px; font-family: var(--display); font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+    .scoreboard b { color: var(--ink); font-family: var(--mono); font-size: 16px; font-weight: 800; margin-left: 4px; }
+    .scoreboard b.streak { color: var(--gold); }
+
+    .page { position: relative; z-index: 2; max-width: 800px; margin: 0 auto; padding: 32px 24px 60px; }
+
+    .mascot-wrap { position: relative; display: inline-flex; }
+    .mascot { filter: drop-shadow(0 6px 12px rgba(28, 25, 23, 0.25)); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .mascot.is-bounce { animation: bounce 0.5s ease; }
+    @keyframes bounce { 50% { transform: translateY(-12px) rotate(-4deg); } }
+    .mascot.is-shake { animation: shake 0.4s ease; }
+    @keyframes shake { 25% { transform: translateX(-6px) rotate(-3deg); } 75% { transform: translateX(6px) rotate(3deg); } }
+
+    /* Level selector */
+    .level-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 22px; padding: 14px 18px; border-radius: 14px; background: var(--paper); border: 1px solid var(--border); }
+    .level-bar-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.18em; text-transform: uppercase; }
+    .lev-btn { padding: 8px 14px; border-radius: 10px; background: transparent; border: 1.5px solid var(--border); font-family: var(--display); font-size: 12px; font-weight: 700; color: var(--text-2); transition: all 0.18s ease; }
+    .lev-btn:hover { border-color: var(--gold); }
+    .lev-btn.is-active { background: var(--ink); color: white; border-color: var(--ink); }
+
+    /* Hint card */
+    .hint-card { display: flex; align-items: center; gap: 22px; padding: 24px 26px; border-radius: 22px; background: radial-gradient(ellipse 70% 50% at 100% 0%, rgba(217, 119, 6, 0.10), transparent 60%), linear-gradient(160deg, var(--paper), var(--paper-soft)); border: 1px solid var(--border); margin-bottom: 22px; box-shadow: 0 8px 24px -8px rgba(115, 99, 53, 0.15); position: relative; overflow: hidden; }
+    .hint-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--ink), var(--gold), var(--gold-bright)); }
+    .hint-info { flex: 1; }
+    .hint-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--gold); letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 8px; }
+    .hint-meaning { font-family: var(--arabic); font-size: 22px; color: var(--text); direction: rtl; font-weight: 700; line-height: 1.6; }
+    .hint-meta { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-top: 8px; letter-spacing: 0.05em; display: flex; gap: 12px; flex-wrap: wrap; }
+    .hint-meta span { padding: 3px 8px; background: var(--paper-deep); border-radius: 5px; }
+
+    /* Answer slots (target word) */
+    .answer-slots { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; padding: 22px 18px; margin-bottom: 18px; background: var(--paper); border: 2px dashed var(--border); border-radius: 18px; min-height: 90px; align-items: center; transition: all 0.25s ease; }
+    .answer-slots.is-correct { border-color: var(--green); border-style: solid; background: rgba(21, 128, 61, 0.06); }
+    .answer-slots.is-wrong { border-color: var(--red); border-style: solid; animation: shake-board 0.4s ease; }
+    @keyframes shake-board { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+    .ans-slot {
+      width: 50px; height: 60px; border-radius: 10px;
+      background: var(--paper-soft); border: 1.5px solid var(--border);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-family: var(--display); font-size: 26px; font-weight: 900;
+      color: var(--text); cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .ans-slot.is-filled { background: linear-gradient(135deg, var(--ink), var(--ink-deep)); color: white; border-color: var(--ink); box-shadow: 0 4px 10px -2px rgba(28, 25, 23, 0.3); }
+    .ans-slot.is-filled:hover { background: linear-gradient(135deg, var(--red), #991b1b); border-color: var(--red); }
+
+    /* Letter pool */
+    .letter-pool { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; padding: 16px 14px; background: var(--paper-soft); border: 1px solid var(--border-soft); border-radius: 16px; margin-bottom: 18px; min-height: 70px; }
+    .letter {
+      width: 42px; height: 52px; border-radius: 10px;
+      background: linear-gradient(160deg, var(--paper), var(--paper-deep));
+      border: 1.5px solid var(--border);
+      font-family: var(--display); font-size: 22px; font-weight: 800; color: var(--text);
+      transition: all 0.18s ease;
+      box-shadow: 0 2px 6px rgba(115, 99, 53, 0.10);
+    }
+    .letter:hover:not(:disabled) { transform: translateY(-3px); border-color: var(--gold); box-shadow: 0 8px 14px -2px rgba(180, 83, 9, 0.25); }
+    .letter:disabled { opacity: 0.25; cursor: not-allowed; transform: none !important; }
+
+    /* Feedback */
+    .feedback { min-height: 26px; margin-bottom: 16px; padding: 0 4px; font-family: var(--display); font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .feedback.is-right { color: var(--green); }
+    .feedback.is-wrong { color: var(--red); }
+    .feedback-ar { font-family: var(--arabic); font-weight: 600; font-size: 14px; opacity: 0.85; }
+
+    /* Actions */
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 10px; padding: 13px 22px; border-radius: 12px; font-family: var(--display); font-size: 13px; font-weight: 800; letter-spacing: -0.005em; transition: all 0.18s ease; border: none; }
+    .btn.is-primary { background: linear-gradient(135deg, var(--ink), var(--ink-deep)); color: white; box-shadow: 0 8px 18px -5px rgba(28, 25, 23, 0.32); }
+    .btn.is-primary:hover { transform: translateY(-2px); }
+    .btn.is-gold { background: linear-gradient(135deg, var(--gold), var(--gold-bright)); color: white; box-shadow: 0 8px 18px -5px rgba(180, 83, 9, 0.35); }
+    .btn.is-gold:hover { transform: translateY(-2px); }
+    .btn.is-secondary { background: var(--paper); color: var(--text-2); border: 1.5px solid var(--border); }
+    .btn.is-secondary:hover { border-color: var(--gold); color: var(--gold); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+    @media (max-width: 640px) {
+      .topbar { padding: 12px 16px; }
+      .page { padding: 24px 14px; }
+      .hint-card { padding: 18px 18px; flex-direction: column; align-items: flex-start; }
+      .ans-slot { width: 38px; height: 48px; font-size: 20px; }
+      .letter { width: 36px; height: 44px; font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">🔡 Word Builder</div>
+  <div class="scoreboard">
+    <span>Score<b id="score">0</b></span>
+    <span>Streak<b class="streak" id="streak">0</b></span>
+  </div>
+</nav>
+
+<main class="page">
+
+  <div class="level-bar">
+    <span class="level-bar-label">Level · المستوى</span>
+    <button class="lev-btn is-active" data-level="A1">Beginner · A0/A1</button>
+    <button class="lev-btn" data-level="A2">Intermediate · A2/B1</button>
+    <button class="lev-btn" data-level="B2">Advanced · B2</button>
+  </div>
+
+  <div class="hint-card">
+    <div class="mascot-wrap">
+      <svg width="80" height="96" viewBox="0 0 100 120" class="mascot" id="mascot"></svg>
+    </div>
+    <div class="hint-info">
+      <div class="hint-label">Unscramble the letters · رتّب الحروف</div>
+      <div class="hint-meaning" id="hint"></div>
+      <div class="hint-meta">
+        <span id="meta-len">— letters</span>
+        <span id="meta-pos">Word 1</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="answer-slots" id="answer"></div>
+
+  <div class="letter-pool" id="pool"></div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <div class="actions">
+    <button class="btn is-primary" id="check-btn">✓ Check</button>
+    <button class="btn is-gold" id="next-btn" style="display:none;">Next word →</button>
+    <button class="btn is-secondary" id="hint-btn">💡 Show answer</button>
+    <button class="btn is-secondary" id="clear-btn">↻ Clear</button>
+  </div>
+
+</main>
+
+<script>
+// Mascot SVG (shared character system) ─────────────────────
+function mascotSVG(mood) {
+  const EYES = {
+    default: '<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="38" cy="59" r="3" fill="#1c1917"/><circle cx="62" cy="59" r="3" fill="#1c1917"/><circle cx="39" cy="57" r="1" fill="#fdfaf0"/><circle cx="63" cy="57" r="1" fill="#fdfaf0"/>',
+    happy:   '<path d="M 32 60 Q 38 53 44 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M 56 60 Q 62 53 68 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+    sad:     '<circle cx="38" cy="60" r="6" fill="#fdfaf0"/><circle cx="62" cy="60" r="6" fill="#fdfaf0"/><circle cx="38" cy="62" r="3" fill="#1c1917"/><circle cx="62" cy="62" r="3" fill="#1c1917"/>',
+    thinking:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="40" cy="55" r="3" fill="#1c1917"/><circle cx="64" cy="55" r="3" fill="#1c1917"/>',
+  }
+  const MOUTHS = {
+    default:'<path d="M 40 75 Q 50 80 60 75" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+    happy:  '<path d="M 32 72 Q 50 88 68 72 Q 50 80 32 72 Z" fill="#fdfaf0"/>',
+    sad:    '<path d="M 40 80 Q 50 73 60 80" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+    thinking:'<path d="M 42 78 L 58 78" stroke="#fdfaf0" stroke-width="2.5" stroke-linecap="round"/>',
+  }
+  const m = mood || 'default'
+  return `
+    <line x1="50" y1="14" x2="74" y2="6" stroke="#fbbf24" stroke-width="2"/>
+    <circle cx="74" cy="6" r="3" fill="#fbbf24"/>
+    <rect x="32" y="12" width="36" height="14" rx="3" fill="#d97706"/>
+    <rect x="14" y="24" width="72" height="6" rx="2" fill="#b45309"/>
+    <circle cx="50" cy="62" r="34" fill="#1c1917"/>
+    <path d="M 18 112 Q 50 92 82 112 L 82 120 L 18 120 Z" fill="#1c1917"/>
+    ${EYES[m] || EYES.default}
+    ${MOUTHS[m] || MOUTHS.default}
+  `
+}
+function setMascot(mood, bounce) {
+  const el = document.getElementById('mascot')
+  el.innerHTML = mascotSVG(mood)
+  if (bounce) {
+    el.classList.remove('is-bounce', 'is-shake')
+    void el.offsetWidth
+    el.classList.add(bounce === 'shake' ? 'is-shake' : 'is-bounce')
+  }
+}
+
+// Word pools by level ─────────────────────────────────────
+const WORDS = {
+  A1: [
+    { en:'morning', ar:'الصباح' }, { en:'school', ar:'المدرسة' }, { en:'family', ar:'العائلة' },
+    { en:'water', ar:'الماء' }, { en:'house', ar:'البيت' }, { en:'friend', ar:'الصديق' },
+    { en:'book', ar:'الكتاب' }, { en:'teacher', ar:'المعلم' }, { en:'student', ar:'الطالب' },
+    { en:'coffee', ar:'القهوة' }, { en:'kitchen', ar:'المطبخ' }, { en:'window', ar:'النافذة' },
+    { en:'food', ar:'الطعام' }, { en:'door', ar:'الباب' }, { en:'happy', ar:'سعيد' },
+    { en:'small', ar:'صغير' }, { en:'today', ar:'اليوم' }, { en:'always', ar:'دائماً' },
+  ],
+  A2: [
+    { en:'meeting', ar:'الاجتماع' }, { en:'company', ar:'الشركة' }, { en:'project', ar:'المشروع' },
+    { en:'manager', ar:'المدير' }, { en:'customer', ar:'الزبون' }, { en:'invoice', ar:'الفاتورة' },
+    { en:'salary', ar:'الراتب' }, { en:'office', ar:'المكتب' }, { en:'language', ar:'اللغة' },
+    { en:'culture', ar:'الثقافة' }, { en:'develop', ar:'يطوّر' }, { en:'arrive', ar:'يصل' },
+    { en:'explain', ar:'يشرح' }, { en:'travel', ar:'يسافر' }, { en:'remember', ar:'يتذكر' },
+    { en:'beautiful', ar:'جميل' }, { en:'important', ar:'مهم' }, { en:'difficult', ar:'صعب' },
+    { en:'computer', ar:'الحاسوب' }, { en:'airport', ar:'المطار' },
+  ],
+  B2: [
+    { en:'opportunity', ar:'الفرصة' }, { en:'experience', ar:'الخبرة' }, { en:'achievement', ar:'الإنجاز' },
+    { en:'environment', ar:'البيئة' }, { en:'consequence', ar:'النتيجة' }, { en:'recommend', ar:'يوصي' },
+    { en:'negotiate', ar:'يتفاوض' }, { en:'investigate', ar:'يحقق' }, { en:'authentic', ar:'أصلي' },
+    { en:'abundant', ar:'وفير' }, { en:'meticulous', ar:'دقيق' }, { en:'reluctant', ar:'متردد' },
+    { en:'ambiguous', ar:'غامض' }, { en:'profound', ar:'عميق' }, { en:'tenacious', ar:'مثابر' },
+    { en:'collaborate', ar:'يتعاون' }, { en:'demonstrate', ar:'يبرهن' }, { en:'spontaneous', ar:'تلقائي' },
+  ],
+}
+
+let level = 'A1'
+let pool = WORDS[level]
+let currentIdx = 0
+let currentWord = null
+let scrambled = []   // array of {ch, idx} — available letters
+let placed = []      // array of {ch, origIdx} — letters placed in answer
+let score = 0
+let streak = 0
+let solved = false
+
+const hintEl     = document.getElementById('hint')
+const metaLenEl  = document.getElementById('meta-len')
+const metaPosEl  = document.getElementById('meta-pos')
+const answerEl   = document.getElementById('answer')
+const poolEl     = document.getElementById('pool')
+const feedbackEl = document.getElementById('feedback')
+const scoreEl    = document.getElementById('score')
+const streakEl   = document.getElementById('streak')
+const checkBtn   = document.getElementById('check-btn')
+const nextBtn    = document.getElementById('next-btn')
+const hintBtn    = document.getElementById('hint-btn')
+const clearBtn   = document.getElementById('clear-btn')
+
+function shuffle(arr) {
+  const a = arr.slice()
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+function loadWord() {
+  solved = false
+  feedbackEl.textContent = ''; feedbackEl.className = 'feedback'
+  answerEl.className = 'answer-slots'
+  checkBtn.disabled = false; checkBtn.style.display = ''
+  nextBtn.style.display = 'none'
+
+  currentWord = pool[currentIdx]
+  hintEl.textContent = currentWord.ar
+  const letters = currentWord.en.toLowerCase().split('')
+  let s
+  do { s = shuffle(letters) } while (s.join('') === currentWord.en.toLowerCase() && letters.length > 2)
+  scrambled = s.map((ch, i) => ({ ch, idx: i }))
+  placed = []
+  metaLenEl.textContent = `${letters.length} letters`
+  metaPosEl.textContent = `Word ${currentIdx + 1}`
+  setMascot('thinking')
+  render()
+}
+
+function render() {
+  // Answer slots
+  const totalLetters = currentWord.en.length
+  let slotsHtml = ''
+  for (let i = 0; i < totalLetters; i++) {
+    const p = placed[i]
+    if (p) {
+      slotsHtml += `<button class="ans-slot is-filled" data-placed="${i}">${p.ch.toUpperCase()}</button>`
+    } else {
+      slotsHtml += `<div class="ans-slot"></div>`
+    }
+  }
+  answerEl.innerHTML = slotsHtml
+  answerEl.querySelectorAll('[data-placed]').forEach(b => b.addEventListener('click', () => {
+    if (solved) return
+    const i = Number(b.dataset.placed)
+    const removed = placed[i]
+    scrambled.push(removed)
+    placed.splice(i, 1)
+    render()
+  }))
+
+  // Pool
+  poolEl.innerHTML = scrambled.map((s, i) =>
+    `<button class="letter" data-pool="${i}">${s.ch.toUpperCase()}</button>`
+  ).join('')
+  poolEl.querySelectorAll('[data-pool]').forEach(b => b.addEventListener('click', () => {
+    if (solved) return
+    if (placed.length >= currentWord.en.length) return
+    const i = Number(b.dataset.pool)
+    placed.push(scrambled[i])
+    scrambled.splice(i, 1)
+    render()
+  }))
+}
+
+function checkAnswer() {
+  const user = placed.map(p => p.ch).join('')
+  if (user === currentWord.en.toLowerCase()) {
+    score++; streak++
+    scoreEl.textContent = String(score)
+    streakEl.textContent = String(streak)
+    feedbackEl.innerHTML = `✓ Correct! <span class="feedback-ar">إجابة صحيحة — ${currentWord.en}</span>`
+    feedbackEl.className = 'feedback is-right'
+    answerEl.classList.add('is-correct')
+    solved = true
+    checkBtn.disabled = true
+    nextBtn.style.display = ''
+    setMascot('happy', 'bounce')
+  } else {
+    streak = 0
+    streakEl.textContent = '0'
+    feedbackEl.innerHTML = `✗ Not right. Try again. <span class="feedback-ar">حاول مرة أخرى</span>`
+    feedbackEl.className = 'feedback is-wrong'
+    answerEl.classList.add('is-wrong')
+    setTimeout(() => answerEl.classList.remove('is-wrong'), 500)
+    setMascot('sad', 'shake')
+    setTimeout(() => setMascot('thinking'), 700)
+  }
+}
+
+function showAnswer() {
+  // Fill placed with correct letters in order
+  const letters = currentWord.en.toLowerCase().split('')
+  placed = letters.map((ch, i) => ({ ch, idx: i }))
+  scrambled = []
+  render()
+  feedbackEl.innerHTML = `💡 The word is "${currentWord.en}"`
+  feedbackEl.className = 'feedback'
+  answerEl.classList.add('is-correct')
+  solved = true
+  checkBtn.disabled = true
+  nextBtn.style.display = ''
+  streak = 0
+  streakEl.textContent = '0'
+  setMascot('sad')
+}
+
+function nextWord() {
+  currentIdx = (currentIdx + 1) % pool.length
+  loadWord()
+}
+
+function clearAnswer() {
+  if (solved) return
+  scrambled = scrambled.concat(placed)
+  placed = []
+  render()
+}
+
+// Level selector
+document.querySelectorAll('.lev-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.lev-btn').forEach(x => x.classList.remove('is-active'))
+    b.classList.add('is-active')
+    level = b.dataset.level
+    pool = shuffle(WORDS[level])
+    currentIdx = 0
+    score = 0; streak = 0
+    scoreEl.textContent = '0'; streakEl.textContent = '0'
+    loadWord()
+  })
+})
+
+checkBtn.addEventListener('click', checkAnswer)
+nextBtn.addEventListener('click', nextWord)
+hintBtn.addEventListener('click', showAnswer)
+clearBtn.addEventListener('click', clearAnswer)
+
+// Boot
+pool = shuffle(WORDS[level])
+loadWord()
+</script>
+</body>
+</html>
