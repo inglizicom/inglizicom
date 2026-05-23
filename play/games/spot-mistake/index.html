@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Spot the Mistake — Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    button { font-family: inherit; cursor: pointer; }
+    a { text-decoration: none; color: inherit; }
+    :root {
+      --ink:#1c1917; --ink-deep:#0c0a09;
+      --bg:#f5efe0; --paper:#fdfaf0; --paper-soft:#faf3e0; --paper-deep:#f0e6cd;
+      --border:#e0d4b2; --border-soft:#ece2c5;
+      --gold:#b45309; --gold-bright:#d97706; --gold-soft:#fef3c7;
+      --text:#1c1917; --text-2:#44403c; --text-muted:#78716c;
+      --green:#15803d; --red:#b91c1c;
+      --display:'Outfit','DM Sans',system-ui,sans-serif; --sans:'DM Sans',sans-serif;
+      --arabic:'Cairo','Tajawal',sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+    }
+    html, body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; min-height: 100%; -webkit-font-smoothing: antialiased; }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 60% 40% at 80% 0%, rgba(180, 83, 9, 0.08), transparent 60%); }
+
+    .topbar { position: sticky; top: 0; z-index: 100; background: rgba(245, 239, 224, 0.85); backdrop-filter: blur(18px) saturate(180%); border-bottom: 1px solid var(--border-soft); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+    .back-link { display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 999px; background: var(--paper); border: 1px solid var(--border); font-family: var(--display); font-size: 13px; font-weight: 700; color: var(--text-2); transition: all 0.18s ease; }
+    .back-link:hover { background: var(--ink); color: white; border-color: var(--ink); }
+    .game-title { font-family: var(--display); font-weight: 900; font-size: 18px; letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; }
+    .scoreboard { display: flex; gap: 12px; font-family: var(--display); font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+    .scoreboard b { color: var(--ink); font-family: var(--mono); font-size: 16px; font-weight: 800; margin-left: 4px; }
+    .scoreboard b.streak { color: var(--gold); }
+
+    .page { position: relative; z-index: 2; max-width: 820px; margin: 0 auto; padding: 32px 24px 60px; }
+
+    .mascot-wrap { position: relative; display: inline-flex; }
+    .mascot { filter: drop-shadow(0 6px 12px rgba(28, 25, 23, 0.25)); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .mascot.is-bounce { animation: bounce 0.5s ease; }
+    @keyframes bounce { 50% { transform: translateY(-12px) rotate(-4deg); } }
+    .mascot.is-shake { animation: shake-m 0.4s ease; }
+    @keyframes shake-m { 25% { transform: translateX(-6px) rotate(-3deg); } 75% { transform: translateX(6px) rotate(3deg); } }
+
+    .level-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 22px; padding: 14px 18px; border-radius: 14px; background: var(--paper); border: 1px solid var(--border); }
+    .level-bar-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.18em; text-transform: uppercase; }
+    .lev-btn { padding: 8px 14px; border-radius: 10px; background: transparent; border: 1.5px solid var(--border); font-family: var(--display); font-size: 12px; font-weight: 700; color: var(--text-2); transition: all 0.18s ease; }
+    .lev-btn:hover { border-color: var(--gold); }
+    .lev-btn.is-active { background: var(--ink); color: white; border-color: var(--ink); }
+
+    /* Hint */
+    .hint-card { display: flex; align-items: center; gap: 22px; padding: 22px 26px; border-radius: 18px; background: linear-gradient(135deg, rgba(180, 83, 9, 0.06), rgba(180, 83, 9, 0.10)); border: 1px solid rgba(180, 83, 9, 0.20); margin-bottom: 22px; }
+    .hint-info { flex: 1; }
+    .hint-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--gold); letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 8px; }
+    .hint-instr { font-family: var(--arabic); font-size: 17px; color: var(--text); direction: rtl; font-weight: 700; line-height: 1.65; }
+    .hint-meta { font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-top: 8px; }
+
+    /* Sentence display */
+    .sentence-card {
+      padding: 36px 32px; border-radius: 22px;
+      background: radial-gradient(ellipse 70% 50% at 100% 0%, rgba(217, 119, 6, 0.08), transparent 60%), linear-gradient(160deg, var(--paper), var(--paper-soft));
+      border: 1px solid var(--border); margin-bottom: 22px;
+      box-shadow: 0 12px 30px -12px rgba(115, 99, 53, 0.18);
+      text-align: center;
+    }
+    .sentence {
+      font-family: var(--display); font-size: clamp(20px, 2.8vw, 28px); font-weight: 800;
+      line-height: 1.65; letter-spacing: -0.005em; color: var(--text);
+      display: flex; flex-wrap: wrap; gap: 8px 6px; justify-content: center;
+    }
+    .word-btn {
+      padding: 4px 10px; border-radius: 8px;
+      background: transparent; border: 2px solid transparent;
+      font: inherit; color: inherit;
+      transition: all 0.15s ease;
+    }
+    .word-btn:hover:not(:disabled) { background: var(--gold-soft); border-color: var(--gold); transform: translateY(-2px); }
+    .word-btn:disabled { cursor: not-allowed; }
+    .word-btn.is-right { background: rgba(21, 128, 61, 0.15); border-color: var(--green); color: var(--green); }
+    .word-btn.is-wrong { background: rgba(185, 28, 28, 0.15); border-color: var(--red); color: var(--red); text-decoration: line-through; }
+    .word-btn.is-revealed-right { background: rgba(21, 128, 61, 0.10); border-color: var(--green); color: var(--green); }
+    .word-static { padding: 4px 4px; }
+
+    /* Correction reveal */
+    .correction {
+      margin-top: 20px; padding: 14px 18px; border-radius: 12px;
+      background: rgba(21, 128, 61, 0.06); border: 1px solid rgba(21, 128, 61, 0.25);
+      display: none;
+    }
+    .correction.is-shown { display: block; }
+    .correction-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--green); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 6px; }
+    .correction-text { font-family: var(--display); font-size: 16px; font-weight: 700; color: var(--text); }
+    .correction-ar { font-family: var(--arabic); font-size: 14px; color: var(--text-muted); direction: rtl; margin-top: 4px; font-weight: 600; }
+
+    .feedback { min-height: 26px; margin-bottom: 16px; padding: 0 4px; font-family: var(--display); font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .feedback.is-right { color: var(--green); }
+    .feedback.is-wrong { color: var(--red); }
+    .feedback-ar { font-family: var(--arabic); font-weight: 600; font-size: 14px; opacity: 0.85; }
+
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 10px; padding: 13px 22px; border-radius: 12px; font-family: var(--display); font-size: 13px; font-weight: 800; letter-spacing: -0.005em; transition: all 0.18s ease; border: none; }
+    .btn.is-gold { background: linear-gradient(135deg, var(--gold), var(--gold-bright)); color: white; box-shadow: 0 8px 18px -5px rgba(180, 83, 9, 0.35); }
+    .btn.is-gold:hover { transform: translateY(-2px); }
+    .btn.is-secondary { background: var(--paper); color: var(--text-2); border: 1.5px solid var(--border); }
+    .btn.is-secondary:hover { border-color: var(--gold); color: var(--gold); }
+
+    @media (max-width: 640px) {
+      .topbar { padding: 12px 16px; }
+      .page { padding: 24px 14px; }
+      .sentence-card { padding: 26px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">🎯 Spot the Mistake</div>
+  <div class="scoreboard">
+    <span>Score<b id="score">0</b></span>
+    <span>Streak<b class="streak" id="streak">0</b></span>
+  </div>
+</nav>
+
+<main class="page">
+
+  <div class="level-bar">
+    <span class="level-bar-label">Level · المستوى</span>
+    <button class="lev-btn is-active" data-level="A1">Beginner · A0/A1</button>
+    <button class="lev-btn" data-level="A2">Intermediate · A2/B1</button>
+    <button class="lev-btn" data-level="B2">Advanced · B2</button>
+  </div>
+
+  <div class="hint-card">
+    <div class="mascot-wrap">
+      <svg width="68" height="82" viewBox="0 0 100 120" class="mascot" id="mascot"></svg>
+    </div>
+    <div class="hint-info">
+      <div class="hint-label">Click the wrong word · انقر الكلمة الخاطئة</div>
+      <div class="hint-instr">في الجملة التالية كلمة واحدة خاطئة (في القواعد أو المعنى). اضغط عليها لتجد الخطأ.</div>
+      <div class="hint-meta" id="meta">Sentence 1</div>
+    </div>
+  </div>
+
+  <div class="sentence-card">
+    <div class="sentence" id="sentence"></div>
+    <div class="correction" id="correction">
+      <div class="correction-label">✓ Correct version</div>
+      <div class="correction-text" id="correction-text"></div>
+      <div class="correction-ar" id="correction-ar"></div>
+    </div>
+  </div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <div class="actions">
+    <button class="btn is-gold" id="next-btn" style="display:none;">Next sentence →</button>
+    <button class="btn is-secondary" id="reveal-btn">💡 Reveal mistake</button>
+  </div>
+
+</main>
+
+<script>
+function mascotSVG(mood) {
+  const EYES = { default:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="38" cy="59" r="3" fill="#1c1917"/><circle cx="62" cy="59" r="3" fill="#1c1917"/><circle cx="39" cy="57" r="1" fill="#fdfaf0"/><circle cx="63" cy="57" r="1" fill="#fdfaf0"/>', happy:'<path d="M 32 60 Q 38 53 44 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M 56 60 Q 62 53 68 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>', sad:'<circle cx="38" cy="60" r="6" fill="#fdfaf0"/><circle cx="62" cy="60" r="6" fill="#fdfaf0"/><circle cx="38" cy="62" r="3" fill="#1c1917"/><circle cx="62" cy="62" r="3" fill="#1c1917"/>', thinking:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="40" cy="55" r="3" fill="#1c1917"/><circle cx="64" cy="55" r="3" fill="#1c1917"/>' }
+  const MOUTHS = { default:'<path d="M 40 75 Q 50 80 60 75" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>', happy:'<path d="M 32 72 Q 50 88 68 72 Q 50 80 32 72 Z" fill="#fdfaf0"/>', sad:'<path d="M 40 80 Q 50 73 60 80" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>', thinking:'<path d="M 42 78 L 58 78" stroke="#fdfaf0" stroke-width="2.5" stroke-linecap="round"/>' }
+  const m = mood || 'default'
+  return `<line x1="50" y1="14" x2="74" y2="6" stroke="#fbbf24" stroke-width="2"/><circle cx="74" cy="6" r="3" fill="#fbbf24"/><rect x="32" y="12" width="36" height="14" rx="3" fill="#d97706"/><rect x="14" y="24" width="72" height="6" rx="2" fill="#b45309"/><circle cx="50" cy="62" r="34" fill="#1c1917"/><path d="M 18 112 Q 50 92 82 112 L 82 120 L 18 120 Z" fill="#1c1917"/>${EYES[m]||EYES.default}${MOUTHS[m]||MOUTHS.default}`
+}
+function setMascot(mood, bounce) {
+  const el = document.getElementById('mascot')
+  el.innerHTML = mascotSVG(mood)
+  if (bounce) { el.classList.remove('is-bounce','is-shake'); void el.offsetWidth; el.classList.add(bounce === 'shake' ? 'is-shake' : 'is-bounce') }
+}
+
+// Sentences with mistakes by level
+// Format: words[] = sentence as words, mistakeIdx = index of wrong word, correct = right word, correctAr = Arabic of fixed sentence
+const SENTENCES_BY_LEVEL = {
+  A1: [
+    { words:['I','am','go','to','school','today'], mistakeIdx:2, correct:'going', ar:'أنا ذاهب إلى المدرسة اليوم' },
+    { words:['She','have','a','red','car'], mistakeIdx:1, correct:'has', ar:'هي لديها سيارة حمراء' },
+    { words:['He','don\'t','like','coffee'], mistakeIdx:1, correct:'doesn\'t', ar:'هو لا يحب القهوة' },
+    { words:['I','live','at','Casablanca'], mistakeIdx:2, correct:'in', ar:'أسكن في الدار البيضاء' },
+    { words:['We','is','very','tired'], mistakeIdx:1, correct:'are', ar:'نحن متعبون جداً' },
+    { words:['She','eat','breakfast','every','day'], mistakeIdx:1, correct:'eats', ar:'هي تأكل الفطور كل يوم' },
+    { words:['They','was','at','the','park'], mistakeIdx:1, correct:'were', ar:'كانوا في الحديقة' },
+    { words:['My','sister','have','two','dogs'], mistakeIdx:2, correct:'has', ar:'أختي لديها كلبان' },
+    { words:['I','am','student'], mistakeIdx:2, correct:'a student', ar:'أنا طالب' },
+    { words:['He','can','speaks','English'], mistakeIdx:2, correct:'speak', ar:'يستطيع التحدث بالإنجليزية' },
+  ],
+  A2: [
+    { words:['I','have','been','working','here','since','five','years'], mistakeIdx:5, correct:'for', ar:'أعمل هنا منذ خمس سنوات' },
+    { words:['She','said','me','that','she','was','tired'], mistakeIdx:2, correct:'told me', ar:'قالت لي إنها متعبة' },
+    { words:['We','will','go','to','the','beach','if','it','will','be','sunny'], mistakeIdx:9, correct:'is', ar:'سنذهب للشاطئ إذا كان الجو مشمساً' },
+    { words:['I','don\'t','have','no','time','today'], mistakeIdx:3, correct:'any', ar:'ليس لدي أي وقت اليوم' },
+    { words:['He','is','more','tall','than','his','brother'], mistakeIdx:3, correct:'taller', ar:'هو أطول من أخيه' },
+    { words:['Please','to','send','me','the','report'], mistakeIdx:1, correct:'send', ar:'من فضلك أرسل لي التقرير' },
+    { words:['She','enjoys','to','swim','every','morning'], mistakeIdx:2, correct:'swimming', ar:'تستمتع بالسباحة كل صباح' },
+    { words:['I','have','meet','him','before'], mistakeIdx:2, correct:'met', ar:'قابلته من قبل' },
+    { words:['The','book','what','I','read','was','great'], mistakeIdx:2, correct:'that', ar:'الكتاب الذي قرأته كان رائعاً' },
+    { words:['She','goes','to','work','by','her','car'], mistakeIdx:5, correct:'in', ar:'تذهب إلى العمل في سيارتها' },
+  ],
+  B2: [
+    { words:['If','I','would','have','known','I','wouldn\'t','have','come'], mistakeIdx:2, correct:'had', ar:'لو كنت قد عرفت لما أتيت' },
+    { words:['The','meeting','was','postponed','due','of','the','weather'], mistakeIdx:5, correct:'to', ar:'تم تأجيل الاجتماع بسبب الطقس' },
+    { words:['I','look','forward','to','hear','from','you','soon'], mistakeIdx:4, correct:'hearing', ar:'أتطلع لسماع ردك قريباً' },
+    { words:['He','suggested','me','to','take','the','train'], mistakeIdx:2, correct:'that I', ar:'اقترح أن أركب القطار' },
+    { words:['She','is','used','to','wake','up','early'], mistakeIdx:4, correct:'waking', ar:'اعتادت على الاستيقاظ مبكراً' },
+    { words:['Despite','of','the','rain','we','enjoyed','the','trip'], mistakeIdx:1, correct:'—', ar:'رغم المطر استمتعنا بالرحلة' },
+    { words:['The','project','was','finished','since','two','weeks'], mistakeIdx:4, correct:'two weeks ago', ar:'انتهى المشروع منذ أسبوعين' },
+    { words:['Can','you','please','to','help','me','with','this'], mistakeIdx:3, correct:'—', ar:'هل يمكنك مساعدتي في هذا' },
+    { words:['I\'m','interesting','in','learning','German'], mistakeIdx:1, correct:'interested', ar:'أنا مهتم بتعلم الألمانية' },
+    { words:['Neither','my','sister','or','my','brother','came','to','the','party'], mistakeIdx:3, correct:'nor', ar:'لا أختي ولا أخي حضرا الحفلة' },
+  ],
+}
+
+let currentLevel = 'A1'
+let pool = SENTENCES_BY_LEVEL[currentLevel].slice()
+let idx = 0
+let score = 0, streak = 0
+let solved = false
+
+const sentenceEl = document.getElementById('sentence')
+const correctionEl = document.getElementById('correction')
+const correctionText = document.getElementById('correction-text')
+const correctionAr = document.getElementById('correction-ar')
+const feedbackEl = document.getElementById('feedback')
+const scoreEl = document.getElementById('score')
+const streakEl = document.getElementById('streak')
+const nextBtn = document.getElementById('next-btn')
+const revealBtn = document.getElementById('reveal-btn')
+const metaEl = document.getElementById('meta')
+
+function shuffle(arr) {
+  const a = arr.slice()
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+function loadSentence() {
+  solved = false
+  feedbackEl.textContent = ''; feedbackEl.className = 'feedback'
+  correctionEl.classList.remove('is-shown')
+  nextBtn.style.display = 'none'
+  setMascot('thinking')
+
+  const s = pool[idx]
+  metaEl.textContent = `Sentence ${idx + 1}`
+  sentenceEl.innerHTML = s.words.map((w, i) =>
+    `<button class="word-btn" data-i="${i}">${esc(w)}</button>`
+  ).join('')
+  sentenceEl.querySelectorAll('.word-btn').forEach(b =>
+    b.addEventListener('click', () => handleClick(Number(b.dataset.i)))
+  )
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;') }
+
+function handleClick(i) {
+  if (solved) return
+  const s = pool[idx]
+  const btn = sentenceEl.querySelector(`[data-i="${i}"]`)
+  if (i === s.mistakeIdx) {
+    btn.classList.add('is-right')
+    score++; streak++
+    scoreEl.textContent = String(score); streakEl.textContent = String(streak)
+    feedbackEl.innerHTML = `✓ You found it! <span class="feedback-ar">أحسنت!</span>`
+    feedbackEl.className = 'feedback is-right'
+    showCorrection()
+    setMascot('happy', 'bounce')
+  } else {
+    btn.classList.add('is-wrong')
+    streak = 0; streakEl.textContent = '0'
+    feedbackEl.innerHTML = `✗ Not that one. Try again. <span class="feedback-ar">ليست هذه — جرّب أخرى</span>`
+    feedbackEl.className = 'feedback is-wrong'
+    setMascot('sad', 'shake')
+    setTimeout(() => { if (!solved) setMascot('thinking') }, 700)
+    setTimeout(() => btn.classList.remove('is-wrong'), 1200)
+  }
+}
+
+function showCorrection() {
+  solved = true
+  const s = pool[idx]
+  // Mark the wrong word
+  const wrongBtn = sentenceEl.querySelector(`[data-i="${s.mistakeIdx}"]`)
+  if (!wrongBtn.classList.contains('is-right')) wrongBtn.classList.add('is-wrong')
+  // Build corrected sentence text
+  const fixed = s.words.map((w, i) => i === s.mistakeIdx
+    ? (s.correct === '—' ? '' : s.correct)
+    : w
+  ).filter(Boolean).join(' ')
+  correctionText.textContent = fixed
+  correctionAr.textContent = s.ar
+  correctionEl.classList.add('is-shown')
+  sentenceEl.querySelectorAll('.word-btn').forEach(b => b.disabled = true)
+  nextBtn.style.display = ''
+  revealBtn.style.display = 'none'
+}
+
+function reveal() {
+  if (solved) return
+  streak = 0; streakEl.textContent = '0'
+  feedbackEl.innerHTML = `💡 Here's the mistake`
+  feedbackEl.className = 'feedback'
+  showCorrection()
+  setMascot('sad')
+}
+
+function next() {
+  idx = (idx + 1) % pool.length
+  revealBtn.style.display = ''
+  loadSentence()
+}
+
+nextBtn.addEventListener('click', next)
+revealBtn.addEventListener('click', reveal)
+document.querySelectorAll('.lev-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.lev-btn').forEach(x => x.classList.remove('is-active'))
+    b.classList.add('is-active')
+    currentLevel = b.dataset.level
+    pool = shuffle(SENTENCES_BY_LEVEL[currentLevel])
+    idx = 0; score = 0; streak = 0
+    scoreEl.textContent = '0'; streakEl.textContent = '0'
+    revealBtn.style.display = ''
+    loadSentence()
+  })
+})
+
+pool = shuffle(SENTENCES_BY_LEVEL[currentLevel])
+loadSentence()
+</script>
+</body>
+</html>

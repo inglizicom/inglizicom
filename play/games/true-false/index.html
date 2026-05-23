@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>True or False — Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    button { font-family: inherit; cursor: pointer; }
+    a { text-decoration: none; color: inherit; }
+    :root {
+      --ink:#1c1917; --ink-deep:#0c0a09;
+      --bg:#f5efe0; --paper:#fdfaf0; --paper-soft:#faf3e0; --paper-deep:#f0e6cd;
+      --border:#e0d4b2; --border-soft:#ece2c5;
+      --gold:#b45309; --gold-bright:#d97706; --gold-soft:#fef3c7;
+      --text:#1c1917; --text-2:#44403c; --text-muted:#78716c;
+      --green:#15803d; --red:#b91c1c;
+      --display:'Outfit','DM Sans',system-ui,sans-serif; --sans:'DM Sans',sans-serif;
+      --arabic:'Cairo','Tajawal',sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+    }
+    html, body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; min-height: 100%; -webkit-font-smoothing: antialiased; }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 60% 40% at 80% 0%, rgba(180, 83, 9, 0.08), transparent 60%); }
+
+    .topbar { position: sticky; top: 0; z-index: 100; background: rgba(245, 239, 224, 0.85); backdrop-filter: blur(18px) saturate(180%); border-bottom: 1px solid var(--border-soft); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+    .back-link { display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 999px; background: var(--paper); border: 1px solid var(--border); font-family: var(--display); font-size: 13px; font-weight: 700; color: var(--text-2); transition: all 0.18s ease; }
+    .back-link:hover { background: var(--ink); color: white; border-color: var(--ink); }
+    .game-title { font-family: var(--display); font-weight: 900; font-size: 18px; letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; }
+    .scoreboard { display: flex; gap: 12px; font-family: var(--display); font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+    .scoreboard b { color: var(--ink); font-family: var(--mono); font-size: 16px; font-weight: 800; margin-left: 4px; }
+    .scoreboard b.streak { color: var(--gold); }
+
+    .page { position: relative; z-index: 2; max-width: 760px; margin: 0 auto; padding: 32px 24px 60px; }
+
+    .mascot-wrap { position: relative; display: inline-flex; }
+    .mascot { filter: drop-shadow(0 6px 12px rgba(28, 25, 23, 0.25)); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .mascot.is-bounce { animation: bounce 0.5s ease; }
+    @keyframes bounce { 50% { transform: translateY(-12px) rotate(-4deg); } }
+    .mascot.is-shake { animation: shake-m 0.4s ease; }
+    @keyframes shake-m { 25% { transform: translateX(-6px) rotate(-3deg); } 75% { transform: translateX(6px) rotate(3deg); } }
+
+    .level-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 22px; padding: 14px 18px; border-radius: 14px; background: var(--paper); border: 1px solid var(--border); }
+    .level-bar-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.18em; text-transform: uppercase; }
+    .lev-btn { padding: 8px 14px; border-radius: 10px; background: transparent; border: 1.5px solid var(--border); font-family: var(--display); font-size: 12px; font-weight: 700; color: var(--text-2); transition: all 0.18s ease; }
+    .lev-btn:hover { border-color: var(--gold); }
+    .lev-btn.is-active { background: var(--ink); color: white; border-color: var(--ink); }
+
+    /* Statement card */
+    .statement-card {
+      position: relative;
+      padding: 40px 36px; border-radius: 24px;
+      background: radial-gradient(ellipse 70% 50% at 100% 0%, rgba(217, 119, 6, 0.10), transparent 60%), linear-gradient(160deg, var(--paper), var(--paper-soft));
+      border: 1px solid var(--border); margin-bottom: 22px;
+      box-shadow: 0 16px 36px -14px rgba(115, 99, 53, 0.20);
+      text-align: center; min-height: 260px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+    }
+    .statement-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, var(--ink), var(--gold), var(--gold-bright)); border-radius: 24px 24px 0 0; }
+    .statement-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--gold); letter-spacing: 0.22em; text-transform: uppercase; }
+    .statement-label .ar { font-family: var(--arabic); font-size: 11px; color: var(--text-muted); margin-left: 8px; letter-spacing: normal; text-transform: none; font-weight: 500; }
+    .statement {
+      font-family: var(--display); font-size: clamp(20px, 3vw, 28px); font-weight: 700;
+      line-height: 1.5; letter-spacing: -0.005em; color: var(--text);
+      max-width: 600px;
+    }
+    .statement em { font-style: italic; color: var(--gold); }
+
+    /* TF buttons */
+    .tf-buttons {
+      display: grid; gap: 14px; grid-template-columns: 1fr 1fr;
+      margin-bottom: 16px;
+    }
+    .tf-btn {
+      padding: 28px 22px; border-radius: 18px;
+      border: 2px solid var(--border);
+      font-family: var(--display); font-size: 20px; font-weight: 900;
+      letter-spacing: -0.01em;
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      transition: all 0.2s ease;
+      background: var(--paper);
+    }
+    .tf-btn .ico { font-size: 38px; line-height: 1; }
+    .tf-btn .lbl-ar { font-family: var(--arabic); font-size: 14px; color: var(--text-muted); font-weight: 600; direction: rtl; }
+    .tf-btn.is-true { color: var(--green); }
+    .tf-btn.is-false { color: var(--red); }
+    .tf-btn:hover:not(:disabled) { transform: translateY(-3px); border-color: currentColor; box-shadow: 0 12px 24px -8px rgba(28, 25, 23, 0.18); }
+    .tf-btn.is-true:hover:not(:disabled) { background: rgba(21, 128, 61, 0.06); }
+    .tf-btn.is-false:hover:not(:disabled) { background: rgba(185, 28, 28, 0.06); }
+    .tf-btn.is-picked-right { background: rgba(21, 128, 61, 0.12); border-color: var(--green); }
+    .tf-btn.is-picked-wrong { background: rgba(185, 28, 28, 0.12); border-color: var(--red); animation: shake-i 0.4s ease; }
+    @keyframes shake-i { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+    .tf-btn.is-correct-answer { background: rgba(21, 128, 61, 0.08); border-color: var(--green); }
+    .tf-btn:disabled { cursor: not-allowed; }
+
+    /* Explanation */
+    .explanation {
+      display: none;
+      padding: 18px 22px; border-radius: 14px;
+      background: var(--gold-soft); border: 1px solid rgba(180, 83, 9, 0.2);
+      margin-bottom: 14px;
+    }
+    .explanation.is-shown { display: block; }
+    .explanation-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--gold); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 6px; }
+    .explanation-text { font-family: var(--arabic); font-size: 15px; color: var(--text); direction: rtl; font-weight: 600; line-height: 1.65; }
+    .explanation-correct {
+      margin-top: 8px; padding-top: 8px;
+      border-top: 1px dashed rgba(180, 83, 9, 0.25);
+      font-family: var(--display); font-size: 14px; font-weight: 700; color: var(--green);
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .feedback { min-height: 26px; margin-bottom: 14px; padding: 0 4px; font-family: var(--display); font-size: 14px; font-weight: 700; text-align: center; }
+    .feedback.is-right { color: var(--green); }
+    .feedback.is-wrong { color: var(--red); }
+
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 24px; border-radius: 12px; font-family: var(--display); font-size: 13px; font-weight: 800; letter-spacing: -0.005em; transition: all 0.18s ease; border: none; }
+    .btn.is-gold { background: linear-gradient(135deg, var(--gold), var(--gold-bright)); color: white; box-shadow: 0 8px 18px -5px rgba(180, 83, 9, 0.35); }
+    .btn.is-gold:hover { transform: translateY(-2px); }
+
+    /* Floating mascot positioned on the card */
+    .card-mascot { position: absolute; top: -22px; left: 28px; }
+
+    @media (max-width: 640px) {
+      .topbar { padding: 12px 16px; }
+      .page { padding: 24px 14px; }
+      .statement-card { padding: 32px 22px 28px; }
+      .tf-btn { padding: 22px 16px; }
+      .card-mascot { left: 50%; transform: translateX(-50%); }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">✓✗ True or False</div>
+  <div class="scoreboard">
+    <span>Score<b id="score">0</b></span>
+    <span>Streak<b class="streak" id="streak">0</b></span>
+  </div>
+</nav>
+
+<main class="page">
+
+  <div class="level-bar">
+    <span class="level-bar-label">Level · المستوى</span>
+    <button class="lev-btn is-active" data-level="A1">Beginner · A0/A1</button>
+    <button class="lev-btn" data-level="A2">Intermediate · A2/B1</button>
+    <button class="lev-btn" data-level="B2">Advanced · B2</button>
+  </div>
+
+  <div class="statement-card">
+    <div class="card-mascot">
+      <svg width="68" height="82" viewBox="0 0 100 120" class="mascot" id="mascot"></svg>
+    </div>
+    <div class="statement-label">Is this correct?<span class="ar">هل هذا صحيح؟</span></div>
+    <div class="statement" id="statement"></div>
+  </div>
+
+  <div class="tf-buttons">
+    <button class="tf-btn is-true" id="btn-true">
+      <span class="ico">✓</span>
+      <span>TRUE</span>
+      <span class="lbl-ar">صحيح</span>
+    </button>
+    <button class="tf-btn is-false" id="btn-false">
+      <span class="ico">✗</span>
+      <span>FALSE</span>
+      <span class="lbl-ar">خطأ</span>
+    </button>
+  </div>
+
+  <div class="explanation" id="explanation">
+    <div class="explanation-label">💡 Why?</div>
+    <div class="explanation-text" id="explanation-text"></div>
+    <div class="explanation-correct" id="explanation-correct"></div>
+  </div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <div class="actions">
+    <button class="btn is-gold" id="next-btn" style="display:none;">Next →</button>
+  </div>
+
+</main>
+
+<script>
+function mascotSVG(mood) {
+  const EYES = { default:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="38" cy="59" r="3" fill="#1c1917"/><circle cx="62" cy="59" r="3" fill="#1c1917"/><circle cx="39" cy="57" r="1" fill="#fdfaf0"/><circle cx="63" cy="57" r="1" fill="#fdfaf0"/>', happy:'<path d="M 32 60 Q 38 53 44 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M 56 60 Q 62 53 68 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>', sad:'<circle cx="38" cy="60" r="6" fill="#fdfaf0"/><circle cx="62" cy="60" r="6" fill="#fdfaf0"/><circle cx="38" cy="62" r="3" fill="#1c1917"/><circle cx="62" cy="62" r="3" fill="#1c1917"/>', thinking:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="40" cy="55" r="3" fill="#1c1917"/><circle cx="64" cy="55" r="3" fill="#1c1917"/>' }
+  const MOUTHS = { default:'<path d="M 40 75 Q 50 80 60 75" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>', happy:'<path d="M 32 72 Q 50 88 68 72 Q 50 80 32 72 Z" fill="#fdfaf0"/>', sad:'<path d="M 40 80 Q 50 73 60 80" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>', thinking:'<path d="M 42 78 L 58 78" stroke="#fdfaf0" stroke-width="2.5" stroke-linecap="round"/>' }
+  const m = mood || 'default'
+  return `<line x1="50" y1="14" x2="74" y2="6" stroke="#fbbf24" stroke-width="2"/><circle cx="74" cy="6" r="3" fill="#fbbf24"/><rect x="32" y="12" width="36" height="14" rx="3" fill="#d97706"/><rect x="14" y="24" width="72" height="6" rx="2" fill="#b45309"/><circle cx="50" cy="62" r="34" fill="#1c1917"/><path d="M 18 112 Q 50 92 82 112 L 82 120 L 18 120 Z" fill="#1c1917"/>${EYES[m]||EYES.default}${MOUTHS[m]||MOUTHS.default}`
+}
+function setMascot(mood, bounce) {
+  const el = document.getElementById('mascot')
+  el.innerHTML = mascotSVG(mood)
+  if (bounce) { el.classList.remove('is-bounce','is-shake'); void el.offsetWidth; el.classList.add(bounce === 'shake' ? 'is-shake' : 'is-bounce') }
+}
+
+// Statements with truth value + explanation
+const STATEMENTS_BY_LEVEL = {
+  A1: [
+    { s:'A <em>doctor</em> works in a hospital.', t:true, why:'الطبيب يعمل في المستشفى — صحيح.' },
+    { s:'<em>"Banana"</em> is a vegetable.', t:false, why:'الموز فاكهة (fruit) وليس خضاراً.', fix:'A banana is a fruit.' },
+    { s:'A cat says <em>"meow"</em>.', t:true, why:'القطة تقول "ميو" — صحيح.' },
+    { s:'<em>"December"</em> is a day of the week.', t:false, why:'ديسمبر شهر، وليس يوم في الأسبوع.', fix:'December is a month.' },
+    { s:'<em>"Cold"</em> is the opposite of <em>"hot"</em>.', t:true, why:'بارد عكس ساخن — صحيح.' },
+    { s:'You drive a car with <em>your feet only</em>.', t:false, why:'نقود السيارة باليدين والقدمين معاً (steering wheel + pedals).', fix:'You drive a car with your hands and feet.' },
+    { s:'Fish live in <em>water</em>.', t:true, why:'الأسماك تعيش في الماء — صحيح.' },
+    { s:'<em>Two plus two</em> equals five.', t:false, why:'2 + 2 = 4 وليس 5.', fix:'Two plus two equals four.' },
+    { s:'<em>"Happy"</em> means feeling good.', t:true, why:'"Happy" تعني سعيد — صحيح.' },
+    { s:'A teacher works in a <em>kitchen</em>.', t:false, why:'المعلم يعمل في المدرسة (school)، وليس المطبخ.', fix:'A teacher works in a school.' },
+    { s:'You read a <em>book</em> with your eyes.', t:true, why:'صحيح — نقرأ الكتاب بأعيننا.' },
+    { s:'The sun rises in the <em>west</em>.', t:false, why:'الشمس تشرق من الشرق (east) لا الغرب.', fix:'The sun rises in the east.' },
+  ],
+  A2: [
+    { s:'The past tense of <em>"go"</em> is <em>"goed"</em>.', t:false, why:'فعل "go" شاذ، وماضيه "went".', fix:'The past tense of "go" is "went".' },
+    { s:'We use <em>"is"</em> with the pronoun <em>"they"</em>.', t:false, why:'نستخدم "are" مع "they" (جمع).', fix:'We use "are" with "they".' },
+    { s:'In English, adjectives come <em>before</em> the noun.', t:true, why:'صحيح — في الإنجليزية الصفة قبل الموصوف: "a red car".' },
+    { s:'<em>"Did"</em> is the past form of <em>"do"</em>.', t:true, why:'صحيح — ماضي "do" هو "did".' },
+    { s:'The plural of <em>"child"</em> is <em>"childs"</em>.', t:false, why:'جمع "child" هو "children" (شاذ).', fix:'The plural of "child" is "children".' },
+    { s:'<em>"Their"</em> shows possession (مثل: their car).', t:true, why:'صحيح — "their" للملكية (سيارتهم).' },
+    { s:'We say <em>"a apple"</em>, not <em>"an apple"</em>.', t:false, why:'قبل حرف علة نستخدم "an": an apple.', fix:'We say "an apple".' },
+    { s:'<em>"Quickly"</em> is an adverb.', t:true, why:'صحيح — "quickly" ظرف (adverb).' },
+    { s:'The opposite of <em>"buy"</em> is <em>"sell"</em>.', t:true, why:'صحيح — "buy" يشتري و"sell" يبيع.' },
+    { s:'<em>"Tomorrow"</em> means yesterday.', t:false, why:'"Tomorrow" تعني "غداً"، و"yesterday" تعني "أمس".', fix:'"Tomorrow" means the day after today.' },
+    { s:'We use <em>"have to"</em> to talk about obligation.', t:true, why:'صحيح — "have to" تستخدم للوجوب.' },
+    { s:'<em>"Hardly"</em> means <em>"very hard"</em>.', t:false, why:'"hardly" تعني "بالكاد" (almost not)، ليست "بصعوبة شديدة".', fix:'"Hardly" means "almost not".' },
+  ],
+  B2: [
+    { s:'The sentence <em>"If I would have known…"</em> is grammatically correct.', t:false, why:'الصواب هو "If I HAD known", لا "would have".', fix:'If I had known, I would have come.' },
+    { s:'<em>"I look forward to hearing from you"</em> is correct.', t:true, why:'صحيح — بعد "look forward to" نستخدم الفعل بصيغة -ing.' },
+    { s:'<em>"Each of the students have a book"</em> is correct.', t:false, why:'مع "Each of" نستخدم "has" (مفرد).', fix:'Each of the students has a book.' },
+    { s:'<em>"Despite the rain"</em> is grammatically correct (no "of").', t:true, why:'صحيح — "despite" تأتي بدون "of"، بخلاف "in spite of".' },
+    { s:'<em>"Neither he or his brother came"</em> is correct.', t:false, why:'مع "neither" نستخدم "nor"، لا "or".', fix:'Neither he nor his brother came.' },
+    { s:'<em>"Affect"</em> is usually a verb; <em>"effect"</em> is usually a noun.', t:true, why:'صحيح — affect (يؤثر) فعل، effect (تأثير) اسم.' },
+    { s:'You can say <em>"It depends of"</em> in formal English.', t:false, why:'الصواب "depends on"، ليس "of".', fix:'It depends on the situation.' },
+    { s:'<em>"Whom"</em> is the object form of <em>"who"</em>.', t:true, why:'صحيح — "whom" هي صيغة المفعول من "who".' },
+    { s:'You should use <em>"less"</em> with countable nouns like <em>"people"</em>.', t:false, why:'مع الأسماء المعدودة نستخدم "fewer"، ولـ غير المعدودة "less".', fix:'Fewer people, less water.' },
+    { s:'In British English, <em>"the team are playing"</em> is acceptable.', t:true, why:'صحيح — في البريطانية الفرق (collective nouns) قد تأخذ فعلاً جمع.' },
+    { s:'<em>"Compromise"</em> means stubborn refusal.', t:false, why:'"Compromise" تعني تسوية أو حل وسط، ليس رفضاً.', fix:'"Compromise" means meeting in the middle.' },
+    { s:'A <em>"red herring"</em> is a misleading clue.', t:true, why:'صحيح — تعبير اصطلاحي يعني "تضليل" أو دليل خاطئ يصرف الانتباه.' },
+  ],
+}
+
+let currentLevel = 'A1'
+let pool = STATEMENTS_BY_LEVEL[currentLevel].slice()
+let idx = 0
+let score = 0, streak = 0
+let answered = false
+
+const stmtEl = document.getElementById('statement')
+const btnTrue = document.getElementById('btn-true')
+const btnFalse = document.getElementById('btn-false')
+const explEl = document.getElementById('explanation')
+const explText = document.getElementById('explanation-text')
+const explCorrect = document.getElementById('explanation-correct')
+const feedbackEl = document.getElementById('feedback')
+const scoreEl = document.getElementById('score')
+const streakEl = document.getElementById('streak')
+const nextBtn = document.getElementById('next-btn')
+
+function shuffle(arr) {
+  const a = arr.slice()
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+function loadStatement() {
+  answered = false
+  feedbackEl.textContent = ''; feedbackEl.className = 'feedback'
+  explEl.classList.remove('is-shown')
+  nextBtn.style.display = 'none'
+  ;[btnTrue, btnFalse].forEach(b => {
+    b.disabled = false
+    b.classList.remove('is-picked-right', 'is-picked-wrong', 'is-correct-answer')
+  })
+  setMascot('thinking')
+  const s = pool[idx]
+  stmtEl.innerHTML = s.s
+}
+
+function pick(value) {
+  if (answered) return
+  answered = true
+  const s = pool[idx]
+  const correctBtn = s.t ? btnTrue : btnFalse
+  const pickedBtn  = value ? btnTrue : btnFalse
+  if (value === s.t) {
+    pickedBtn.classList.add('is-picked-right')
+    score++; streak++
+    scoreEl.textContent = String(score); streakEl.textContent = String(streak)
+    feedbackEl.innerHTML = `✓ Correct! +1`
+    feedbackEl.className = 'feedback is-right'
+    setMascot('happy', 'bounce')
+  } else {
+    pickedBtn.classList.add('is-picked-wrong')
+    correctBtn.classList.add('is-correct-answer')
+    streak = 0; streakEl.textContent = '0'
+    feedbackEl.innerHTML = `✗ Wrong. The answer was <b style="color: var(--green)">${s.t ? 'TRUE' : 'FALSE'}</b>.`
+    feedbackEl.className = 'feedback is-wrong'
+    setMascot('sad', 'shake')
+  }
+  ;[btnTrue, btnFalse].forEach(b => b.disabled = true)
+  // Show explanation
+  explText.textContent = s.why
+  if (s.fix) explCorrect.innerHTML = `✓ <span>${esc(s.fix)}</span>`
+  else explCorrect.innerHTML = ''
+  explEl.classList.add('is-shown')
+  nextBtn.style.display = ''
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;') }
+
+function next() {
+  idx = (idx + 1) % pool.length
+  loadStatement()
+}
+
+btnTrue.addEventListener('click', () => pick(true))
+btnFalse.addEventListener('click', () => pick(false))
+nextBtn.addEventListener('click', next)
+
+document.querySelectorAll('.lev-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.lev-btn').forEach(x => x.classList.remove('is-active'))
+    b.classList.add('is-active')
+    currentLevel = b.dataset.level
+    pool = shuffle(STATEMENTS_BY_LEVEL[currentLevel])
+    idx = 0; score = 0; streak = 0
+    scoreEl.textContent = '0'; streakEl.textContent = '0'
+    loadStatement()
+  })
+})
+
+pool = shuffle(STATEMENTS_BY_LEVEL[currentLevel])
+loadStatement()
+</script>
+</body>
+</html>
