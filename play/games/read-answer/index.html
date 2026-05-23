@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Read &amp; Answer — Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    button { font-family: inherit; cursor: pointer; }
+    a { text-decoration: none; color: inherit; }
+    :root {
+      --ink:#1c1917; --ink-deep:#0c0a09;
+      --bg:#f5efe0; --paper:#fdfaf0; --paper-soft:#faf3e0; --paper-deep:#f0e6cd;
+      --border:#e0d4b2; --border-soft:#ece2c5;
+      --gold:#b45309; --gold-bright:#d97706; --gold-soft:#fef3c7;
+      --text:#1c1917; --text-2:#44403c; --text-muted:#78716c;
+      --green:#15803d; --red:#b91c1c;
+      --display:'Outfit','DM Sans',system-ui,sans-serif; --sans:'DM Sans',sans-serif;
+      --arabic:'Cairo','Tajawal',sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+    }
+    html, body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; min-height: 100%; -webkit-font-smoothing: antialiased; }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 60% 40% at 80% 0%, rgba(180, 83, 9, 0.08), transparent 60%); }
+
+    .topbar { position: sticky; top: 0; z-index: 100; background: rgba(245, 239, 224, 0.85); backdrop-filter: blur(18px) saturate(180%); border-bottom: 1px solid var(--border-soft); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+    .back-link { display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 999px; background: var(--paper); border: 1px solid var(--border); font-family: var(--display); font-size: 13px; font-weight: 700; color: var(--text-2); transition: all 0.18s ease; }
+    .back-link:hover { background: var(--ink); color: white; border-color: var(--ink); }
+    .game-title { font-family: var(--display); font-weight: 900; font-size: 18px; letter-spacing: -0.02em; }
+    .scoreboard { display: flex; gap: 12px; font-family: var(--display); font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+    .scoreboard b { color: var(--ink); font-family: var(--mono); font-size: 16px; font-weight: 800; margin-left: 4px; }
+
+    .page { position: relative; z-index: 2; max-width: 820px; margin: 0 auto; padding: 32px 24px 60px; }
+
+    .mascot-wrap { position: relative; display: inline-flex; }
+    .mascot { filter: drop-shadow(0 6px 12px rgba(28, 25, 23, 0.25)); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .mascot.is-bounce { animation: bounce 0.5s ease; }
+    @keyframes bounce { 50% { transform: translateY(-12px) rotate(-4deg); } }
+    .mascot.is-shake { animation: shake-m 0.4s ease; }
+    @keyframes shake-m { 25% { transform: translateX(-6px) rotate(-3deg); } 75% { transform: translateX(6px) rotate(3deg); } }
+
+    .level-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 22px; padding: 14px 18px; border-radius: 14px; background: var(--paper); border: 1px solid var(--border); }
+    .level-bar-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.18em; text-transform: uppercase; }
+    .lev-btn { padding: 8px 14px; border-radius: 10px; background: transparent; border: 1.5px solid var(--border); font-family: var(--display); font-size: 12px; font-weight: 700; color: var(--text-2); transition: all 0.18s ease; }
+    .lev-btn:hover { border-color: var(--gold); }
+    .lev-btn.is-active { background: var(--ink); color: white; border-color: var(--ink); }
+
+    /* Passage card */
+    .passage-card {
+      padding: 36px 34px; border-radius: 22px;
+      background: radial-gradient(ellipse 70% 50% at 100% 0%, rgba(217, 119, 6, 0.08), transparent 60%), linear-gradient(160deg, var(--paper), var(--paper-soft));
+      border: 1px solid var(--border); margin-bottom: 22px;
+      position: relative;
+      box-shadow: 0 12px 28px -12px rgba(115, 99, 53, 0.18);
+    }
+    .passage-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--ink), var(--gold), var(--gold-bright)); border-radius: 22px 22px 0 0; }
+    .passage-header { display: flex; align-items: center; gap: 18px; margin-bottom: 18px; }
+    .passage-emoji { font-size: 36px; }
+    .passage-meta { flex: 1; }
+    .passage-title { font-family: var(--display); font-size: 20px; font-weight: 900; letter-spacing: -0.015em; color: var(--text); }
+    .passage-info { font-family: var(--display); font-size: 11px; color: var(--text-muted); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 4px; }
+    .passage-text {
+      font-family: var(--display); font-size: clamp(15px, 1.9vw, 17px); line-height: 1.8;
+      color: var(--text-2); font-weight: 500;
+    }
+    .passage-text p { margin-bottom: 12px; }
+    .passage-text mark {
+      background: rgba(217, 119, 6, 0.15); padding: 1px 5px; border-radius: 4px;
+      font-weight: 700; color: var(--gold);
+    }
+
+    /* Question card */
+    .questions-section { margin-top: 22px; }
+    .questions-header { display: flex; align-items: center; gap: 18px; margin-bottom: 18px; padding: 18px 22px; border-radius: 16px; background: linear-gradient(135deg, rgba(180, 83, 9, 0.06), rgba(180, 83, 9, 0.10)); border: 1px solid rgba(180, 83, 9, 0.20); }
+    .questions-header-info { flex: 1; }
+    .questions-header-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--gold); letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 4px; }
+    .questions-header-instr { font-family: var(--arabic); font-size: 14px; color: var(--text); direction: rtl; font-weight: 600; }
+
+    .q-card {
+      padding: 22px 24px; border-radius: 18px;
+      background: var(--paper); border: 1px solid var(--border);
+      margin-bottom: 14px;
+      transition: border-color 0.25s ease;
+    }
+    .q-card.is-revealed-right { border-color: var(--green); background: rgba(21, 128, 61, 0.04); }
+    .q-card.is-revealed-wrong { border-color: var(--red); background: rgba(185, 28, 28, 0.04); }
+    .q-num { font-family: var(--display); font-size: 11px; font-weight: 800; color: var(--gold); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 8px; }
+    .q-text { font-family: var(--display); font-size: 16px; font-weight: 700; color: var(--text); line-height: 1.5; margin-bottom: 14px; }
+    .q-choices { display: grid; gap: 8px; }
+    .q-choice {
+      padding: 14px 18px; border-radius: 12px;
+      background: var(--paper-soft); border: 1.5px solid var(--border-soft);
+      font-family: var(--display); font-size: 14px; font-weight: 600; color: var(--text-2);
+      text-align: left;
+      transition: all 0.18s ease;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .q-choice:hover:not(:disabled) { border-color: var(--gold); background: var(--paper); transform: translateY(-1px); }
+    .q-choice-letter {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; border-radius: 6px;
+      background: var(--paper-deep); color: var(--text-muted);
+      font-family: var(--mono); font-size: 11px; font-weight: 700;
+      flex-shrink: 0; border: 1px solid var(--border-soft);
+    }
+    .q-choice.is-right { background: rgba(21, 128, 61, 0.08); border-color: var(--green); color: var(--green); font-weight: 700; }
+    .q-choice.is-right .q-choice-letter { background: var(--green); color: white; border-color: var(--green); }
+    .q-choice.is-wrong { background: rgba(185, 28, 28, 0.08); border-color: var(--red); color: var(--red); }
+    .q-choice.is-wrong .q-choice-letter { background: var(--red); color: white; border-color: var(--red); }
+    .q-choice:disabled { cursor: not-allowed; }
+
+    .summary-card {
+      display: none;
+      padding: 24px 28px; border-radius: 18px;
+      background: linear-gradient(135deg, var(--ink), var(--ink-deep)); color: white;
+      box-shadow: 0 12px 28px -10px rgba(28, 25, 23, 0.4);
+      margin-top: 22px;
+    }
+    .summary-card.is-shown { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+    .summary-info { flex: 1; min-width: 200px; }
+    .summary-result { font-family: var(--display); font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+    .summary-result-ar { font-family: var(--arabic); font-size: 14px; color: rgba(253, 250, 240, 0.78); direction: rtl; font-weight: 600; }
+    .summary-score { font-family: var(--display); font-size: 36px; font-weight: 900; color: #fbbf24; letter-spacing: -0.025em; line-height: 1; }
+    .summary-score small { font-family: var(--display); font-size: 13px; color: rgba(255, 255, 255, 0.6); font-weight: 700; margin-left: 6px; }
+    .summary-btn {
+      padding: 13px 24px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-bright)); color: white;
+      border: none; font-family: var(--display); font-size: 13px; font-weight: 800; letter-spacing: -0.005em;
+      box-shadow: 0 8px 18px -4px rgba(180, 83, 9, 0.45);
+      transition: transform 0.18s ease;
+    }
+    .summary-btn:hover { transform: translateY(-2px); }
+
+    @media (max-width: 640px) {
+      .topbar { padding: 12px 16px; }
+      .page { padding: 24px 14px; }
+      .passage-card { padding: 26px 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">📖 Read &amp; Answer</div>
+  <div class="scoreboard">
+    <span>Correct<b id="correct">0</b></span>
+    <span>Passage<b id="pass-num">1/?</b></span>
+  </div>
+</nav>
+
+<main class="page">
+
+  <div class="level-bar">
+    <span class="level-bar-label">Level · المستوى</span>
+    <button class="lev-btn is-active" data-level="A1">Beginner · A0/A1</button>
+    <button class="lev-btn" data-level="A2">Intermediate · A2/B1</button>
+    <button class="lev-btn" data-level="B2">Advanced · B2</button>
+  </div>
+
+  <div class="passage-card">
+    <div class="passage-header">
+      <div class="mascot-wrap">
+        <svg width="68" height="82" viewBox="0 0 100 120" class="mascot" id="mascot"></svg>
+      </div>
+      <span class="passage-emoji" id="passage-emoji">📖</span>
+      <div class="passage-meta">
+        <div class="passage-title" id="passage-title">—</div>
+        <div class="passage-info"><span id="word-count">— words</span></div>
+      </div>
+    </div>
+    <div class="passage-text" id="passage-text"></div>
+  </div>
+
+  <div class="questions-section">
+    <div class="questions-header">
+      <div class="questions-header-info">
+        <div class="questions-header-label">Answer the questions · أجب عن الأسئلة</div>
+        <div class="questions-header-instr">اقرأ النص ثم اختر الإجابة الصحيحة لكل سؤال.</div>
+      </div>
+    </div>
+    <div id="questions"></div>
+    <div class="summary-card" id="summary">
+      <div class="summary-info">
+        <div class="summary-result" id="summary-result"></div>
+        <div class="summary-result-ar" id="summary-result-ar"></div>
+      </div>
+      <div class="summary-score" id="summary-score">0<small>/3</small></div>
+      <button class="summary-btn" id="next-btn">Next passage →</button>
+    </div>
+  </div>
+
+</main>
+
+<script>
+function mascotSVG(mood) {
+  const EYES = { default:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="38" cy="59" r="3" fill="#1c1917"/><circle cx="62" cy="59" r="3" fill="#1c1917"/><circle cx="39" cy="57" r="1" fill="#fdfaf0"/><circle cx="63" cy="57" r="1" fill="#fdfaf0"/>', happy:'<path d="M 32 60 Q 38 53 44 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M 56 60 Q 62 53 68 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>', sad:'<circle cx="38" cy="60" r="6" fill="#fdfaf0"/><circle cx="62" cy="60" r="6" fill="#fdfaf0"/><circle cx="38" cy="62" r="3" fill="#1c1917"/><circle cx="62" cy="62" r="3" fill="#1c1917"/>', thinking:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="40" cy="55" r="3" fill="#1c1917"/><circle cx="64" cy="55" r="3" fill="#1c1917"/>' }
+  const MOUTHS = { default:'<path d="M 40 75 Q 50 80 60 75" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>', happy:'<path d="M 32 72 Q 50 88 68 72 Q 50 80 32 72 Z" fill="#fdfaf0"/>', sad:'<path d="M 40 80 Q 50 73 60 80" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>', thinking:'<path d="M 42 78 L 58 78" stroke="#fdfaf0" stroke-width="2.5" stroke-linecap="round"/>' }
+  const m = mood || 'default'
+  return `<line x1="50" y1="14" x2="74" y2="6" stroke="#fbbf24" stroke-width="2"/><circle cx="74" cy="6" r="3" fill="#fbbf24"/><rect x="32" y="12" width="36" height="14" rx="3" fill="#d97706"/><rect x="14" y="24" width="72" height="6" rx="2" fill="#b45309"/><circle cx="50" cy="62" r="34" fill="#1c1917"/><path d="M 18 112 Q 50 92 82 112 L 82 120 L 18 120 Z" fill="#1c1917"/>${EYES[m]||EYES.default}${MOUTHS[m]||MOUTHS.default}`
+}
+function setMascot(mood, bounce) {
+  const el = document.getElementById('mascot')
+  el.innerHTML = mascotSVG(mood)
+  if (bounce) { el.classList.remove('is-bounce','is-shake'); void el.offsetWidth; el.classList.add(bounce === 'shake' ? 'is-shake' : 'is-bounce') }
+}
+
+// Passages by level — each with 3 MCQ comprehension questions
+const PASSAGES_BY_LEVEL = {
+  A1: [
+    { emoji:'☀️', title:'Ali\'s Morning',
+      text:`<p>Ali wakes up at six o'clock every morning. He brushes his teeth and washes his face. Then he eats breakfast with his family. He likes bread, cheese, and tea.</p><p>After breakfast, Ali walks to school. The school is near his house. His best friend is Karim. They sit together in class.</p>`,
+      qs:[
+        { q:'What time does Ali wake up?', a:1, c:['Five o\'clock','Six o\'clock','Seven o\'clock','Eight o\'clock'] },
+        { q:'What does Ali eat for breakfast?', a:2, c:['Pizza','Rice and chicken','Bread, cheese, and tea','Pasta'] },
+        { q:'How does Ali go to school?', a:0, c:['He walks','By bus','By bike','By car'] },
+      ]},
+    { emoji:'🐈', title:'My Cat',
+      text:`<p>I have a small cat. Her name is Luna. She is white and black. Luna is two years old.</p><p>Luna loves milk and fish. She sleeps on my bed every night. In the morning, she wakes me up. I love my cat very much.</p>`,
+      qs:[
+        { q:'What is the cat\'s name?', a:0, c:['Luna','Milo','Suki','Coco'] },
+        { q:'What colors is Luna?', a:2, c:['Only white','Only black','White and black','Brown'] },
+        { q:'Where does Luna sleep?', a:1, c:['On the floor','On the bed','In the kitchen','Outside'] },
+      ]},
+    { emoji:'🍕', title:'Family Dinner',
+      text:`<p>On Saturday, my family eats pizza together. My mother makes the pizza. My father helps her.</p><p>We have four people in my family: my mother, my father, my sister, and me. My sister is ten years old. She loves cheese pizza. I prefer pizza with vegetables.</p>`,
+      qs:[
+        { q:'When does the family eat pizza?', a:2, c:['Sunday','Monday','Saturday','Friday'] },
+        { q:'How many people are in the family?', a:1, c:['Three','Four','Five','Two'] },
+        { q:'What kind of pizza does the sister love?', a:0, c:['Cheese','Vegetable','Meat','Plain'] },
+      ]},
+  ],
+  A2: [
+    { emoji:'🏢', title:'A New Job',
+      text:`<p>Sara started a new job at a small marketing company last month. She works in an open office with eight other people. Most of them are friendly, but the office can be a bit noisy in the afternoon.</p><p>Her job is to design social media posts and write short articles for the company blog. She enjoys the creative work, but she sometimes finds the deadlines stressful. Last week, she had to finish three articles in two days.</p><p>Sara hopes that, in six months, she will be promoted to senior designer.</p>`,
+      qs:[
+        { q:'When did Sara start the job?', a:1, c:['Last week','Last month','Last year','Two months ago'] },
+        { q:'How many people work in the office with her?', a:2, c:['Five','Six','Eight','Ten'] },
+        { q:'What stresses Sara at work?', a:3, c:['The salary','Her boss','Her colleagues','The deadlines'] },
+      ]},
+    { emoji:'✈️', title:'A Trip to London',
+      text:`<p>Karim travelled to London for the first time last summer. He flew from Casablanca on a Friday evening and arrived early Saturday morning. The flight took about four hours.</p><p>He stayed at a small hotel near Hyde Park. During the week, he visited many famous places: the British Museum, Big Ben, and the London Eye. The weather was rainy most days, but he still enjoyed the trip.</p><p>The thing he liked most was a guided walking tour through old neighbourhoods. He plans to return next year with his wife.</p>`,
+      qs:[
+        { q:'Where did Karim stay in London?', a:0, c:['A hotel near Hyde Park','His friend\'s house','An Airbnb','A youth hostel'] },
+        { q:'What was the weather like?', a:2, c:['Sunny every day','Cold and snowy','Mostly rainy','Very hot'] },
+        { q:'What did Karim enjoy most?', a:3, c:['The British Museum','Big Ben','The London Eye','A guided walking tour'] },
+      ]},
+    { emoji:'🍳', title:'Learning to Cook',
+      text:`<p>Last year, I decided to learn how to cook. I had eaten in restaurants almost every day, but it was getting expensive — and not very healthy. So I bought a cookbook and started with simple dishes.</p><p>The first thing I learned was how to make pasta with tomato sauce. It is easy, fast, and tastes good. After two months, I could cook five different meals. My friends started coming to my house on Fridays for dinner.</p><p>Now I cook almost every evening. I save money and I feel much healthier.</p>`,
+      qs:[
+        { q:'Why did the writer decide to learn to cook?', a:1, c:['Their family asked them to','Eating out was expensive and unhealthy','They wanted to open a restaurant','To impress someone'] },
+        { q:'What was the first dish they learned?', a:0, c:['Pasta with tomato sauce','Roast chicken','Pizza','Soup'] },
+        { q:'When do their friends come for dinner?', a:2, c:['Every day','Weekends','Fridays','Once a month'] },
+      ]},
+  ],
+  B2: [
+    { emoji:'💻', title:'Remote Work Trends',
+      text:`<p>The widespread shift toward remote work, accelerated during the early 2020s, has reshaped how companies operate. While productivity in many industries actually increased, businesses also faced unforeseen challenges: maintaining team cohesion, onboarding new employees effectively, and ensuring fair career progression for those who choose not to come into the office.</p><p>Recent surveys suggest that the majority of knowledge workers now prefer a hybrid model — typically two or three days at home each week. However, leadership opinions remain divided. Some executives argue that in-person collaboration is essential for innovation, while others highlight the cost savings and broader talent pool that remote work makes possible.</p><p>What is increasingly clear is that the old default of five days in the office is unlikely to return for most office-based roles.</p>`,
+      qs:[
+        { q:'According to the passage, what happened to productivity?', a:2, c:['It dropped sharply','It stayed the same','It actually increased in many industries','Only IT saw gains'] },
+        { q:'What model do most knowledge workers prefer?', a:1, c:['Fully remote','Hybrid (2-3 days at home)','Fully in-office','It varies by age'] },
+        { q:'What is the writer\'s overall conclusion?', a:3, c:['Remote work will replace offices entirely','Companies should force everyone back','The debate is unresolved','The 5-day office week probably won\'t return for most'] },
+      ]},
+    { emoji:'🌱', title:'Sustainable Fashion',
+      text:`<p>The fashion industry is one of the largest polluters in the world, responsible for roughly 10% of global carbon emissions — more than international flights and shipping combined. Fast fashion brands, which produce new collections almost weekly, have made stylish clothing cheap and abundant. But this affordability comes at an environmental cost that consumers are only now beginning to recognize.</p><p>In response, a growing number of brands are experimenting with "circular" models: repairing, reselling, and recycling garments rather than encouraging disposal. Major retailers have launched take-back schemes, where customers return old clothes for store credit. Yet critics argue that without substantial regulatory change — such as taxes on virgin materials or mandatory transparency in supply chains — these efforts will remain a drop in the ocean.</p>`,
+      qs:[
+        { q:'What percentage of global carbon emissions comes from fashion?', a:0, c:['About 10%','About 25%','Less than 5%','About 50%'] },
+        { q:'What is a key feature of the new "circular" model?', a:2, c:['Producing more clothes','Charging more','Repairing and reselling garments','Outsourcing production'] },
+        { q:'According to critics, what is needed for real change?', a:3, c:['More consumer education','Bigger fashion brands','Less expensive clothes','Regulatory change like taxes and transparency'] },
+      ]},
+    { emoji:'🧠', title:'How Habits Form',
+      text:`<p>Habits — those automatic behaviours we perform with little conscious thought — emerge through a remarkable neurological process. When we repeat an action in response to a particular cue and receive some kind of reward, our brain begins to encode the sequence as a "habit loop." Over time, the conscious decision-making fades, and the behaviour becomes routine.</p><p>Researchers have shown that breaking a long-standing habit is rarely about willpower alone. Far more effective is identifying the cue and the reward, then substituting a new behaviour that responds to the same cue and delivers a comparable reward. For example, if stress (the cue) leads someone to snack (the behaviour) and feel temporarily calmer (the reward), replacing the snack with a short walk can satisfy the same loop without the unwanted consequence.</p>`,
+      qs:[
+        { q:'What three elements make up a habit loop?', a:1, c:['Action, time, reward','Cue, behaviour, reward','Plan, action, review','Thought, feeling, action'] },
+        { q:'According to research, why is willpower alone often not enough?', a:2, c:['It does not exist','Habits are unbreakable','You need to change the cue or reward, not just resist','Willpower hurts the brain'] },
+        { q:'What replacement is suggested for stress-snacking in the example?', a:0, c:['A short walk','Sleeping more','Watching TV','Drinking coffee'] },
+      ]},
+  ],
+}
+
+let currentLevel = 'A1'
+let pool = PASSAGES_BY_LEVEL[currentLevel].slice()
+let idx = 0
+let currentPassage = null
+let answeredCount = 0
+let correctInPassage = 0
+let totalCorrect = 0
+
+const passEmoji = document.getElementById('passage-emoji')
+const passTitle = document.getElementById('passage-title')
+const wordCount = document.getElementById('word-count')
+const passText = document.getElementById('passage-text')
+const questionsEl = document.getElementById('questions')
+const summaryEl = document.getElementById('summary')
+const summaryResult = document.getElementById('summary-result')
+const summaryResultAr = document.getElementById('summary-result-ar')
+const summaryScore = document.getElementById('summary-score')
+const nextBtn = document.getElementById('next-btn')
+const passNumEl = document.getElementById('pass-num')
+const correctEl = document.getElementById('correct')
+
+function shuffle(arr) {
+  const a = arr.slice()
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+function loadPassage() {
+  answeredCount = 0
+  correctInPassage = 0
+  summaryEl.classList.remove('is-shown')
+  setMascot('thinking')
+
+  currentPassage = pool[idx]
+  passEmoji.textContent = currentPassage.emoji
+  passTitle.textContent = currentPassage.title
+  passText.innerHTML = currentPassage.text
+  passNumEl.textContent = `${idx + 1}/${pool.length}`
+  // Word count
+  const words = currentPassage.text.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean)
+  wordCount.textContent = `${words.length} words`
+
+  questionsEl.innerHTML = currentPassage.qs.map((q, i) => `
+    <div class="q-card" data-q="${i}">
+      <div class="q-num">Question ${i + 1}</div>
+      <div class="q-text">${esc(q.q)}</div>
+      <div class="q-choices">
+        ${q.c.map((c, ci) => `
+          <button class="q-choice" data-correct="${ci === q.a ? '1' : '0'}">
+            <span class="q-choice-letter">${'ABCD'[ci]}</span>
+            <span>${esc(c)}</span>
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  `).join('')
+
+  questionsEl.querySelectorAll('.q-card').forEach(card => {
+    card.querySelectorAll('.q-choice').forEach(btn => {
+      btn.addEventListener('click', () => handleAnswer(card, btn))
+    })
+  })
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;') }
+
+function handleAnswer(card, btn) {
+  if (card.classList.contains('is-revealed-right') || card.classList.contains('is-revealed-wrong')) return
+  const correct = btn.dataset.correct === '1'
+  if (correct) {
+    btn.classList.add('is-right')
+    card.classList.add('is-revealed-right')
+    correctInPassage++; totalCorrect++
+    correctEl.textContent = String(totalCorrect)
+  } else {
+    btn.classList.add('is-wrong')
+    card.classList.add('is-revealed-wrong')
+    // Reveal correct answer too
+    card.querySelectorAll('.q-choice').forEach(b => {
+      if (b.dataset.correct === '1') b.classList.add('is-right')
+    })
+  }
+  // Disable all choices in this card
+  card.querySelectorAll('.q-choice').forEach(b => b.disabled = true)
+  answeredCount++
+
+  if (answeredCount === currentPassage.qs.length) {
+    finishPassage()
+  }
+}
+
+function finishPassage() {
+  const total = currentPassage.qs.length
+  summaryScore.innerHTML = `${correctInPassage}<small>/${total}</small>`
+  if (correctInPassage === total) {
+    summaryResult.textContent = '🎉 Perfect comprehension!'
+    summaryResultAr.textContent = 'ممتاز — فهمت النص بالكامل'
+    setMascot('happy', 'bounce')
+  } else if (correctInPassage >= total - 1) {
+    summaryResult.textContent = '👍 Almost perfect!'
+    summaryResultAr.textContent = 'تقريباً ممتاز — فقط سؤال واحد'
+    setMascot('happy')
+  } else if (correctInPassage > 0) {
+    summaryResult.textContent = '👌 Good effort'
+    summaryResultAr.textContent = 'حاول مرة أخرى لتحصل على نتيجة أفضل'
+    setMascot('default')
+  } else {
+    summaryResult.textContent = '💪 Keep practicing'
+    summaryResultAr.textContent = 'اقرأ النص مجدداً وحاول مرة أخرى'
+    setMascot('sad')
+  }
+  summaryEl.classList.add('is-shown')
+}
+
+nextBtn.addEventListener('click', () => {
+  idx = (idx + 1) % pool.length
+  loadPassage()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+})
+
+document.querySelectorAll('.lev-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.lev-btn').forEach(x => x.classList.remove('is-active'))
+    b.classList.add('is-active')
+    currentLevel = b.dataset.level
+    pool = shuffle(PASSAGES_BY_LEVEL[currentLevel])
+    idx = 0; totalCorrect = 0
+    correctEl.textContent = '0'
+    loadPassage()
+  })
+})
+
+pool = shuffle(PASSAGES_BY_LEVEL[currentLevel])
+loadPassage()
+</script>
+</body>
+</html>

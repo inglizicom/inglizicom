@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Verb Conjugate — Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    button { font-family: inherit; cursor: pointer; }
+    a { text-decoration: none; color: inherit; }
+    :root {
+      --ink:#1c1917; --ink-deep:#0c0a09;
+      --bg:#f5efe0; --paper:#fdfaf0; --paper-soft:#faf3e0; --paper-deep:#f0e6cd;
+      --border:#e0d4b2; --border-soft:#ece2c5;
+      --gold:#b45309; --gold-bright:#d97706; --gold-soft:#fef3c7;
+      --text:#1c1917; --text-2:#44403c; --text-muted:#78716c;
+      --green:#15803d; --red:#b91c1c;
+      --display:'Outfit','DM Sans',system-ui,sans-serif; --sans:'DM Sans',sans-serif;
+      --arabic:'Cairo','Tajawal',sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+    }
+    html, body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; min-height: 100%; -webkit-font-smoothing: antialiased; }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 60% 40% at 80% 0%, rgba(180, 83, 9, 0.08), transparent 60%); }
+
+    .topbar { position: sticky; top: 0; z-index: 100; background: rgba(245, 239, 224, 0.85); backdrop-filter: blur(18px) saturate(180%); border-bottom: 1px solid var(--border-soft); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+    .back-link { display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 999px; background: var(--paper); border: 1px solid var(--border); font-family: var(--display); font-size: 13px; font-weight: 700; color: var(--text-2); transition: all 0.18s ease; }
+    .back-link:hover { background: var(--ink); color: white; border-color: var(--ink); }
+    .game-title { font-family: var(--display); font-weight: 900; font-size: 18px; letter-spacing: -0.02em; }
+    .scoreboard { display: flex; gap: 12px; font-family: var(--display); font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+    .scoreboard b { color: var(--ink); font-family: var(--mono); font-size: 16px; font-weight: 800; margin-left: 4px; }
+    .scoreboard b.streak { color: var(--gold); }
+
+    .page { position: relative; z-index: 2; max-width: 760px; margin: 0 auto; padding: 32px 24px 60px; }
+
+    .mascot-wrap { position: relative; display: inline-flex; }
+    .mascot { filter: drop-shadow(0 6px 12px rgba(28, 25, 23, 0.25)); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .mascot.is-bounce { animation: bounce 0.5s ease; }
+    @keyframes bounce { 50% { transform: translateY(-12px) rotate(-4deg); } }
+    .mascot.is-shake { animation: shake-m 0.4s ease; }
+    @keyframes shake-m { 25% { transform: translateX(-6px) rotate(-3deg); } 75% { transform: translateX(6px) rotate(3deg); } }
+
+    .level-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 22px; padding: 14px 18px; border-radius: 14px; background: var(--paper); border: 1px solid var(--border); }
+    .level-bar-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.18em; text-transform: uppercase; }
+    .lev-btn { padding: 8px 14px; border-radius: 10px; background: transparent; border: 1.5px solid var(--border); font-family: var(--display); font-size: 12px; font-weight: 700; color: var(--text-2); transition: all 0.18s ease; }
+    .lev-btn:hover { border-color: var(--gold); }
+    .lev-btn.is-active { background: var(--ink); color: white; border-color: var(--ink); }
+
+    /* Prompt card */
+    .prompt-card {
+      display: flex; align-items: center; gap: 22px;
+      padding: 28px 30px; border-radius: 22px;
+      background: radial-gradient(ellipse 70% 50% at 100% 0%, rgba(217, 119, 6, 0.10), transparent 60%), linear-gradient(160deg, var(--paper), var(--paper-soft));
+      border: 1px solid var(--border); margin-bottom: 22px;
+      box-shadow: 0 12px 28px -12px rgba(115, 99, 53, 0.18);
+      position: relative;
+    }
+    .prompt-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--ink), var(--gold), var(--gold-bright)); border-radius: 22px 22px 0 0; }
+    .prompt-info { flex: 1; }
+    .prompt-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--gold); letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 10px; }
+
+    .prompt-line {
+      display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .verb-tag {
+      padding: 8px 16px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--ink), var(--ink-deep)); color: var(--gold-bright);
+      font-family: var(--mono); font-size: 22px; font-weight: 700; letter-spacing: -0.01em;
+      box-shadow: 0 6px 14px -3px rgba(28, 25, 23, 0.32);
+    }
+    .arrow { font-family: var(--display); font-size: 22px; color: var(--gold); font-weight: 800; }
+    .tense-tag {
+      padding: 8px 14px; border-radius: 10px;
+      background: var(--gold-soft); color: var(--gold);
+      font-family: var(--display); font-size: 14px; font-weight: 800; letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border: 1px solid rgba(180, 83, 9, 0.25);
+    }
+    .tense-tag .ar { font-family: var(--arabic); font-size: 12px; color: var(--text-muted); margin-left: 6px; font-weight: 600; letter-spacing: normal; text-transform: none; }
+
+    .prompt-context {
+      font-family: var(--display); font-size: 14px; color: var(--text-muted);
+      font-style: italic;
+    }
+    .prompt-context b { color: var(--text); font-style: normal; font-weight: 700; }
+
+    /* Input */
+    .input-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    .conjugate-input {
+      flex: 1; min-width: 200px;
+      padding: 18px 22px; border-radius: 14px;
+      background: var(--paper); border: 2px solid var(--border);
+      font-family: var(--display); font-size: clamp(20px, 3vw, 26px); font-weight: 800;
+      color: var(--text); letter-spacing: -0.01em;
+      transition: border-color 0.2s ease;
+      text-align: center; text-transform: lowercase;
+    }
+    .conjugate-input:focus { outline: none; border-color: var(--gold); }
+    .conjugate-input.is-correct { border-color: var(--green); background: rgba(21, 128, 61, 0.06); color: var(--green); }
+    .conjugate-input.is-wrong { border-color: var(--red); background: rgba(185, 28, 28, 0.06); color: var(--red); animation: shake-i 0.4s ease; }
+    @keyframes shake-i { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+    .feedback { min-height: 28px; margin-bottom: 16px; padding: 0 4px; font-family: var(--display); font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .feedback.is-right { color: var(--green); }
+    .feedback.is-wrong { color: var(--red); }
+    .feedback-ar { font-family: var(--arabic); font-weight: 600; font-size: 14px; opacity: 0.85; }
+
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 22px; border-radius: 12px; font-family: var(--display); font-size: 13px; font-weight: 800; letter-spacing: -0.005em; transition: all 0.18s ease; border: none; }
+    .btn.is-primary { background: linear-gradient(135deg, var(--ink), var(--ink-deep)); color: white; box-shadow: 0 8px 18px -5px rgba(28, 25, 23, 0.32); }
+    .btn.is-primary:hover { transform: translateY(-2px); }
+    .btn.is-gold { background: linear-gradient(135deg, var(--gold), var(--gold-bright)); color: white; box-shadow: 0 8px 18px -5px rgba(180, 83, 9, 0.35); }
+    .btn.is-gold:hover { transform: translateY(-2px); }
+    .btn.is-secondary { background: var(--paper); color: var(--text-2); border: 1.5px solid var(--border); }
+    .btn.is-secondary:hover { border-color: var(--gold); color: var(--gold); }
+
+    @media (max-width: 640px) {
+      .topbar { padding: 12px 16px; }
+      .page { padding: 24px 14px; }
+      .prompt-card { flex-direction: column; align-items: flex-start; padding: 22px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">🔄 Verb Conjugate</div>
+  <div class="scoreboard">
+    <span>Score<b id="score">0</b></span>
+    <span>Streak<b class="streak" id="streak">0</b></span>
+  </div>
+</nav>
+
+<main class="page">
+
+  <div class="level-bar">
+    <span class="level-bar-label">Level · المستوى</span>
+    <button class="lev-btn is-active" data-level="A1">Beginner · A0/A1</button>
+    <button class="lev-btn" data-level="A2">Intermediate · A2/B1</button>
+    <button class="lev-btn" data-level="B2">Advanced · B2</button>
+  </div>
+
+  <div class="prompt-card">
+    <div class="mascot-wrap">
+      <svg width="80" height="96" viewBox="0 0 100 120" class="mascot" id="mascot"></svg>
+    </div>
+    <div class="prompt-info">
+      <div class="prompt-label">Conjugate the verb · صرّف الفعل</div>
+      <div class="prompt-line">
+        <span class="verb-tag" id="verb-tag"></span>
+        <span class="arrow">→</span>
+        <span class="tense-tag" id="tense-tag"></span>
+      </div>
+      <div class="prompt-context" id="context"></div>
+    </div>
+  </div>
+
+  <div class="input-row">
+    <input type="text" class="conjugate-input" id="conj-input" placeholder="type the form…" autocomplete="off" autocapitalize="off" spellcheck="false">
+  </div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <div class="actions">
+    <button class="btn is-primary" id="check-btn">✓ Check</button>
+    <button class="btn is-gold" id="next-btn" style="display:none;">Next verb →</button>
+    <button class="btn is-secondary" id="reveal-btn">💡 Show answer</button>
+  </div>
+
+</main>
+
+<script>
+function mascotSVG(mood) {
+  const EYES = { default:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="38" cy="59" r="3" fill="#1c1917"/><circle cx="62" cy="59" r="3" fill="#1c1917"/><circle cx="39" cy="57" r="1" fill="#fdfaf0"/><circle cx="63" cy="57" r="1" fill="#fdfaf0"/>', happy:'<path d="M 32 60 Q 38 53 44 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M 56 60 Q 62 53 68 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>', sad:'<circle cx="38" cy="60" r="6" fill="#fdfaf0"/><circle cx="62" cy="60" r="6" fill="#fdfaf0"/><circle cx="38" cy="62" r="3" fill="#1c1917"/><circle cx="62" cy="62" r="3" fill="#1c1917"/>', thinking:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="40" cy="55" r="3" fill="#1c1917"/><circle cx="64" cy="55" r="3" fill="#1c1917"/>' }
+  const MOUTHS = { default:'<path d="M 40 75 Q 50 80 60 75" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>', happy:'<path d="M 32 72 Q 50 88 68 72 Q 50 80 32 72 Z" fill="#fdfaf0"/>', sad:'<path d="M 40 80 Q 50 73 60 80" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>', thinking:'<path d="M 42 78 L 58 78" stroke="#fdfaf0" stroke-width="2.5" stroke-linecap="round"/>' }
+  const m = mood || 'default'
+  return `<line x1="50" y1="14" x2="74" y2="6" stroke="#fbbf24" stroke-width="2"/><circle cx="74" cy="6" r="3" fill="#fbbf24"/><rect x="32" y="12" width="36" height="14" rx="3" fill="#d97706"/><rect x="14" y="24" width="72" height="6" rx="2" fill="#b45309"/><circle cx="50" cy="62" r="34" fill="#1c1917"/><path d="M 18 112 Q 50 92 82 112 L 82 120 L 18 120 Z" fill="#1c1917"/>${EYES[m]||EYES.default}${MOUTHS[m]||MOUTHS.default}`
+}
+function setMascot(mood, bounce) {
+  const el = document.getElementById('mascot')
+  el.innerHTML = mascotSVG(mood)
+  if (bounce) { el.classList.remove('is-bounce','is-shake'); void el.offsetWidth; el.classList.add(bounce === 'shake' ? 'is-shake' : 'is-bounce') }
+}
+
+// Verb conjugation data
+// Each verb has: infinitive, third-person singular present (s/es), past simple, past participle (for B2)
+// Plus example sentence for context
+const VERBS_BY_LEVEL = {
+  A1: [
+    // Regular verbs
+    { v:'walk',   s:'walks',   past:'walked',  pp:'walked',  ex:'Every day she ___ to school.', tenseHint:'present (he/she)', answer: { past:'walked', present3:'walks' } },
+    { v:'play',   s:'plays',   past:'played',  pp:'played',  ex:'Yesterday he ___ football.', answer: { past:'played', present3:'plays' } },
+    { v:'work',   s:'works',   past:'worked',  pp:'worked',  ex:'She ___ in a hospital.', answer: { past:'worked', present3:'works' } },
+    { v:'talk',   s:'talks',   past:'talked',  pp:'talked',  ex:'We ___ for an hour yesterday.', answer: { past:'talked', present3:'talks' } },
+    { v:'help',   s:'helps',   past:'helped',  pp:'helped',  ex:'My brother ___ me last night.', answer: { past:'helped', present3:'helps' } },
+    { v:'open',   s:'opens',   past:'opened',  pp:'opened',  ex:'He ___ the door this morning.', answer: { past:'opened', present3:'opens' } },
+    // Irregular common
+    { v:'go',     s:'goes',    past:'went',    pp:'gone',    ex:'They ___ to Paris last week.', answer: { past:'went', present3:'goes' } },
+    { v:'eat',    s:'eats',    past:'ate',     pp:'eaten',   ex:'I ___ pizza yesterday.', answer: { past:'ate', present3:'eats' } },
+    { v:'drink',  s:'drinks',  past:'drank',   pp:'drunk',   ex:'She ___ tea every morning.', answer: { past:'drank', present3:'drinks' } },
+    { v:'see',    s:'sees',    past:'saw',     pp:'seen',    ex:'We ___ a movie last night.', answer: { past:'saw', present3:'sees' } },
+    { v:'have',   s:'has',     past:'had',     pp:'had',     ex:'My sister ___ two cats.', answer: { past:'had', present3:'has' } },
+    { v:'do',     s:'does',    past:'did',     pp:'done',    ex:'He ___ his homework already.', answer: { past:'did', present3:'does' } },
+  ],
+  A2: [
+    { v:'come',    s:'comes',    past:'came',     pp:'come',     ex:'She ___ home late last night.', answer: { past:'came', present3:'comes', pp:'come' } },
+    { v:'take',    s:'takes',    past:'took',     pp:'taken',    ex:'He ___ the bus to work yesterday.', answer: { past:'took', present3:'takes', pp:'taken' } },
+    { v:'give',    s:'gives',    past:'gave',     pp:'given',    ex:'They ___ us a present last week.', answer: { past:'gave', present3:'gives', pp:'given' } },
+    { v:'write',   s:'writes',   past:'wrote',    pp:'written',  ex:'She ___ a letter yesterday.', answer: { past:'wrote', present3:'writes', pp:'written' } },
+    { v:'read',    s:'reads',    past:'read',     pp:'read',     ex:'I ___ that book last month. (same spelling, different pron.)', answer: { past:'read', present3:'reads', pp:'read' } },
+    { v:'speak',   s:'speaks',   past:'spoke',    pp:'spoken',   ex:'He ___ with the manager yesterday.', answer: { past:'spoke', present3:'speaks', pp:'spoken' } },
+    { v:'meet',    s:'meets',    past:'met',      pp:'met',      ex:'We ___ at the cafe an hour ago.', answer: { past:'met', present3:'meets', pp:'met' } },
+    { v:'buy',     s:'buys',     past:'bought',   pp:'bought',   ex:'She ___ a new phone last week.', answer: { past:'bought', present3:'buys', pp:'bought' } },
+    { v:'bring',   s:'brings',   past:'brought',  pp:'brought',  ex:'He ___ a gift to the party.', answer: { past:'brought', present3:'brings', pp:'brought' } },
+    { v:'teach',   s:'teaches',  past:'taught',   pp:'taught',   ex:'She ___ English for ten years.', answer: { past:'taught', present3:'teaches', pp:'taught' } },
+    { v:'think',   s:'thinks',   past:'thought',  pp:'thought',  ex:'I ___ about it all night.', answer: { past:'thought', present3:'thinks', pp:'thought' } },
+    { v:'feel',    s:'feels',    past:'felt',     pp:'felt',     ex:'He ___ tired yesterday evening.', answer: { past:'felt', present3:'feels', pp:'felt' } },
+  ],
+  B2: [
+    { v:'arise',    s:'arises',    past:'arose',     pp:'arisen',     ex:'A problem ___ during the meeting.', answer: { past:'arose', present3:'arises', pp:'arisen' } },
+    { v:'forbid',   s:'forbids',   past:'forbade',   pp:'forbidden',  ex:'The policy ___ employees from sharing files.', answer: { past:'forbade', present3:'forbids', pp:'forbidden' } },
+    { v:'forsake',  s:'forsakes',  past:'forsook',   pp:'forsaken',   ex:'He never ___ his principles.', answer: { past:'forsook', present3:'forsakes', pp:'forsaken' } },
+    { v:'lay',      s:'lays',      past:'laid',      pp:'laid',       ex:'She ___ the book on the table earlier.', answer: { past:'laid', present3:'lays', pp:'laid' } },
+    { v:'lie',      s:'lies',      past:'lay',       pp:'lain',       ex:'The dog ___ on the carpet all morning. (recline, not deceive)', answer: { past:'lay', present3:'lies', pp:'lain' } },
+    { v:'overcome', s:'overcomes', past:'overcame',  pp:'overcome',   ex:'She ___ many challenges last year.', answer: { past:'overcame', present3:'overcomes', pp:'overcome' } },
+    { v:'undertake',s:'undertakes',past:'undertook', pp:'undertaken', ex:'They ___ the project despite the risk.', answer: { past:'undertook', present3:'undertakes', pp:'undertaken' } },
+    { v:'withdraw', s:'withdraws', past:'withdrew',  pp:'withdrawn',  ex:'He ___ his application yesterday.', answer: { past:'withdrew', present3:'withdraws', pp:'withdrawn' } },
+    { v:'foresee',  s:'foresees',  past:'foresaw',   pp:'foreseen',   ex:'No one ___ the market crash.', answer: { past:'foresaw', present3:'foresees', pp:'foreseen' } },
+    { v:'shrink',   s:'shrinks',   past:'shrank',    pp:'shrunk',     ex:'My new shirt ___ in the wash.', answer: { past:'shrank', present3:'shrinks', pp:'shrunk' } },
+    { v:'strive',   s:'strives',   past:'strove',    pp:'striven',    ex:'They ___ to deliver quality.', answer: { past:'strove', present3:'strives', pp:'striven' } },
+    { v:'swear',    s:'swears',    past:'swore',     pp:'sworn',      ex:'She ___ she would never lie again.', answer: { past:'swore', present3:'swears', pp:'sworn' } },
+  ],
+}
+
+const TENSES = [
+  { key:'past',     label:'Past simple',    ar:'الماضي البسيط' },
+  { key:'present3', label:'Present (he/she/it)', ar:'المضارع (هو/هي/it)' },
+  { key:'pp',       label:'Past participle (have ___)', ar:'اسم المفعول' },
+]
+
+let currentLevel = 'A1'
+let pool = VERBS_BY_LEVEL[currentLevel].slice()
+let idx = 0
+let currentVerb = null
+let currentTense = null
+let score = 0, streak = 0
+let solved = false
+
+const verbTag = document.getElementById('verb-tag')
+const tenseTag = document.getElementById('tense-tag')
+const contextEl = document.getElementById('context')
+const inputEl = document.getElementById('conj-input')
+const feedbackEl = document.getElementById('feedback')
+const scoreEl = document.getElementById('score')
+const streakEl = document.getElementById('streak')
+const checkBtn = document.getElementById('check-btn')
+const nextBtn = document.getElementById('next-btn')
+const revealBtn = document.getElementById('reveal-btn')
+
+function shuffle(arr) {
+  const a = arr.slice()
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+function loadVerb() {
+  solved = false
+  feedbackEl.textContent = ''; feedbackEl.className = 'feedback'
+  inputEl.className = 'conjugate-input'; inputEl.value = ''; inputEl.disabled = false
+  checkBtn.disabled = false; checkBtn.style.display = ''
+  nextBtn.style.display = 'none'
+
+  currentVerb = pool[idx]
+  // Pick a tense available for this verb (A1 doesn't ask for pp)
+  const availableTenses = TENSES.filter(t => currentVerb.answer[t.key])
+  // Skip pp for A1 to keep it simple
+  const validTenses = currentLevel === 'A1' ? availableTenses.filter(t => t.key !== 'pp') : availableTenses
+  currentTense = validTenses[Math.floor(Math.random() * validTenses.length)]
+
+  verbTag.textContent = currentVerb.v
+  tenseTag.innerHTML = `${currentTense.label}<span class="ar">${currentTense.ar}</span>`
+  // Build context with blank instead of __ depending on tense
+  contextEl.innerHTML = `e.g., <b>${currentVerb.ex.replace('___', '<span style="color: var(--gold); border-bottom: 2px dotted var(--gold); padding: 0 4px;">___</span>')}</b>`
+  setMascot('thinking')
+  inputEl.focus()
+}
+
+function check() {
+  if (solved) return
+  const user = inputEl.value.trim().toLowerCase()
+  const correct = currentVerb.answer[currentTense.key].toLowerCase()
+  if (user === correct) {
+    score++; streak++
+    scoreEl.textContent = String(score); streakEl.textContent = String(streak)
+    feedbackEl.innerHTML = `✓ Correct! <span class="feedback-ar">إجابة صحيحة — ${currentVerb.v} → ${correct}</span>`
+    feedbackEl.className = 'feedback is-right'
+    inputEl.classList.add('is-correct'); inputEl.disabled = true
+    solved = true; checkBtn.disabled = true; nextBtn.style.display = ''
+    setMascot('happy', 'bounce')
+  } else {
+    streak = 0; streakEl.textContent = '0'
+    feedbackEl.innerHTML = `✗ Not quite. Try again. <span class="feedback-ar">حاول مرة أخرى</span>`
+    feedbackEl.className = 'feedback is-wrong'
+    inputEl.classList.add('is-wrong')
+    setTimeout(() => inputEl.classList.remove('is-wrong'), 500)
+    setMascot('sad', 'shake')
+    setTimeout(() => { if (!solved) setMascot('thinking') }, 700)
+    inputEl.select()
+  }
+}
+
+function reveal() {
+  if (solved) return
+  const correct = currentVerb.answer[currentTense.key]
+  inputEl.value = correct
+  inputEl.classList.add('is-correct'); inputEl.disabled = true
+  feedbackEl.innerHTML = `💡 ${currentVerb.v} → <b>${correct}</b>`
+  feedbackEl.className = 'feedback'
+  solved = true; checkBtn.disabled = true; nextBtn.style.display = ''
+  streak = 0; streakEl.textContent = '0'
+  setMascot('sad')
+}
+
+function next() {
+  idx = (idx + 1) % pool.length
+  loadVerb()
+}
+
+checkBtn.addEventListener('click', check)
+nextBtn.addEventListener('click', next)
+revealBtn.addEventListener('click', reveal)
+inputEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); if (solved) next(); else check() }
+})
+
+document.querySelectorAll('.lev-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.lev-btn').forEach(x => x.classList.remove('is-active'))
+    b.classList.add('is-active')
+    currentLevel = b.dataset.level
+    pool = shuffle(VERBS_BY_LEVEL[currentLevel])
+    idx = 0; score = 0; streak = 0
+    scoreEl.textContent = '0'; streakEl.textContent = '0'
+    loadVerb()
+  })
+})
+
+pool = shuffle(VERBS_BY_LEVEL[currentLevel])
+loadVerb()
+</script>
+</body>
+</html>

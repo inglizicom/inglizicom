@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Categorize — Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    button { font-family: inherit; cursor: pointer; }
+    a { text-decoration: none; color: inherit; }
+    :root {
+      --ink:#1c1917; --ink-deep:#0c0a09;
+      --bg:#f5efe0; --paper:#fdfaf0; --paper-soft:#faf3e0; --paper-deep:#f0e6cd;
+      --border:#e0d4b2; --border-soft:#ece2c5;
+      --gold:#b45309; --gold-bright:#d97706; --gold-soft:#fef3c7;
+      --text:#1c1917; --text-2:#44403c; --text-muted:#78716c;
+      --green:#15803d; --red:#b91c1c;
+      --bucket-a:#0e7490; --bucket-a-soft:#cffafe;
+      --bucket-b:#7c2d12; --bucket-b-soft:#fed7aa;
+      --bucket-c:#581c87; --bucket-c-soft:#e9d5ff;
+      --display:'Outfit','DM Sans',system-ui,sans-serif; --sans:'DM Sans',sans-serif;
+      --arabic:'Cairo','Tajawal',sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+    }
+    html, body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; min-height: 100%; -webkit-font-smoothing: antialiased; }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 60% 40% at 80% 0%, rgba(180, 83, 9, 0.08), transparent 60%); }
+
+    .topbar { position: sticky; top: 0; z-index: 100; background: rgba(245, 239, 224, 0.85); backdrop-filter: blur(18px) saturate(180%); border-bottom: 1px solid var(--border-soft); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+    .back-link { display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 999px; background: var(--paper); border: 1px solid var(--border); font-family: var(--display); font-size: 13px; font-weight: 700; color: var(--text-2); transition: all 0.18s ease; }
+    .back-link:hover { background: var(--ink); color: white; border-color: var(--ink); }
+    .game-title { font-family: var(--display); font-weight: 900; font-size: 18px; letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; }
+    .scoreboard { display: flex; gap: 12px; font-family: var(--display); font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+    .scoreboard b { color: var(--ink); font-family: var(--mono); font-size: 16px; font-weight: 800; margin-left: 4px; }
+    .scoreboard b.streak { color: var(--gold); }
+
+    .page { position: relative; z-index: 2; max-width: 1080px; margin: 0 auto; padding: 28px 24px 60px; }
+
+    .mascot { filter: drop-shadow(0 6px 12px rgba(28, 25, 23, 0.25)); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .mascot.is-bounce { animation: bounce 0.5s ease; }
+    @keyframes bounce { 50% { transform: translateY(-12px) rotate(-4deg); } }
+    .mascot.is-shake { animation: shake-m 0.4s ease; }
+    @keyframes shake-m { 25% { transform: translateX(-6px) rotate(-3deg); } 75% { transform: translateX(6px) rotate(3deg); } }
+
+    .level-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 22px; padding: 14px 18px; border-radius: 14px; background: var(--paper); border: 1px solid var(--border); }
+    .level-bar-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.18em; text-transform: uppercase; }
+    .lev-btn { padding: 8px 14px; border-radius: 10px; background: transparent; border: 1.5px solid var(--border); font-family: var(--display); font-size: 12px; font-weight: 700; color: var(--text-2); transition: all 0.18s ease; }
+    .lev-btn:hover { border-color: var(--gold); }
+    .lev-btn.is-active { background: var(--ink); color: white; border-color: var(--ink); }
+    .round-info { margin-left: auto; font-family: var(--display); font-size: 12px; font-weight: 700; color: var(--text-muted); }
+    .round-info b { color: var(--ink); }
+
+    /* Mascot card on top */
+    .mascot-card {
+      display: flex; align-items: center; gap: 18px;
+      padding: 20px 24px; border-radius: 18px;
+      background: linear-gradient(160deg, var(--paper), var(--paper-soft));
+      border: 1px solid var(--border);
+      margin-bottom: 20px;
+      box-shadow: 0 10px 24px -10px rgba(115, 99, 53, 0.20);
+    }
+    .mascot-card .prompt { flex: 1; }
+    .prompt-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--gold); letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 6px; }
+    .prompt-text { font-family: var(--display); font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: -0.01em; }
+    .prompt-text-ar { font-family: var(--arabic); font-size: 13px; color: var(--text-muted); direction: rtl; margin-top: 4px; font-weight: 600; }
+
+    /* Buckets */
+    .buckets {
+      display: grid; gap: 16px;
+      grid-template-columns: repeat(3, 1fr);
+      margin-bottom: 22px;
+    }
+    .bucket {
+      position: relative;
+      padding: 22px 18px 18px;
+      border-radius: 18px;
+      background: var(--paper);
+      border: 2px dashed var(--border);
+      min-height: 200px;
+      transition: all 0.2s ease;
+    }
+    .bucket.is-hover { transform: translateY(-3px); border-style: solid; }
+    .bucket[data-bucket="0"] { background: linear-gradient(160deg, var(--bucket-a-soft), var(--paper)); border-color: var(--bucket-a); }
+    .bucket[data-bucket="1"] { background: linear-gradient(160deg, var(--bucket-b-soft), var(--paper)); border-color: var(--bucket-b); }
+    .bucket[data-bucket="2"] { background: linear-gradient(160deg, var(--bucket-c-soft), var(--paper)); border-color: var(--bucket-c); }
+    .bucket-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px dashed rgba(0,0,0,0.1); }
+    .bucket-icon { font-size: 26px; }
+    .bucket-name { font-family: var(--display); font-size: 16px; font-weight: 900; letter-spacing: -0.01em; }
+    .bucket[data-bucket="0"] .bucket-name { color: var(--bucket-a); }
+    .bucket[data-bucket="1"] .bucket-name { color: var(--bucket-b); }
+    .bucket[data-bucket="2"] .bucket-name { color: var(--bucket-c); }
+    .bucket-name-ar { font-family: var(--arabic); font-size: 12px; color: var(--text-muted); margin-top: 2px; font-weight: 600; }
+    .bucket-count { margin-left: auto; padding: 3px 9px; border-radius: 999px; background: rgba(255,255,255,0.7); font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--text-2); }
+    .bucket-items { display: flex; flex-direction: column; gap: 8px; min-height: 100px; }
+    .placed {
+      padding: 8px 12px; border-radius: 10px;
+      background: rgba(255,255,255,0.85);
+      font-family: var(--display); font-size: 14px; font-weight: 700;
+      display: flex; align-items: center; gap: 8px;
+      border: 1px solid rgba(0,0,0,0.06);
+      animation: pop 0.3s ease;
+    }
+    .placed.is-wrong { background: rgba(185, 28, 28, 0.12); color: var(--red); border-color: rgba(185,28,28,0.25); }
+    .placed .check { font-size: 14px; }
+    @keyframes pop { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    /* Word tray */
+    .tray-wrap { padding: 18px 18px 14px; border-radius: 18px; background: var(--paper); border: 1px solid var(--border); margin-bottom: 18px; }
+    .tray-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 12px; }
+    .tray { display: flex; flex-wrap: wrap; gap: 10px; min-height: 56px; align-items: center; }
+    .chip {
+      padding: 11px 18px; border-radius: 12px;
+      background: linear-gradient(160deg, #fff, var(--paper-soft));
+      border: 1.5px solid var(--border);
+      font-family: var(--display); font-size: 15px; font-weight: 800;
+      color: var(--text); letter-spacing: -0.005em;
+      box-shadow: 0 4px 10px -3px rgba(115, 99, 53, 0.14);
+      transition: all 0.18s ease;
+      user-select: none;
+    }
+    .chip:hover { transform: translateY(-3px); border-color: var(--gold); box-shadow: 0 10px 18px -6px rgba(180, 83, 9, 0.25); }
+    .chip:active { transform: translateY(-1px); }
+    .chip.is-dragging { opacity: 0.45; transform: scale(0.92); }
+    .tray:empty::after { content: "All sorted! Tap Next."; font-family: var(--display); font-size: 13px; font-weight: 600; color: var(--text-muted); padding: 12px; }
+
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+    .btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 26px; border-radius: 12px; font-family: var(--display); font-size: 14px; font-weight: 800; letter-spacing: -0.005em; transition: all 0.18s ease; border: none; }
+    .btn.is-gold { background: linear-gradient(135deg, var(--gold), var(--gold-bright)); color: white; box-shadow: 0 8px 18px -5px rgba(180, 83, 9, 0.35); }
+    .btn.is-gold:hover { transform: translateY(-2px); }
+    .btn.is-ghost { background: transparent; color: var(--text-2); border: 1.5px solid var(--border); }
+    .btn.is-ghost:hover { border-color: var(--gold); color: var(--gold); }
+
+    .feedback { min-height: 30px; margin-top: 14px; padding: 0 4px; font-family: var(--display); font-size: 14px; font-weight: 700; text-align: center; }
+    .feedback.is-right { color: var(--green); }
+    .feedback.is-wrong { color: var(--red); }
+
+    /* Round summary */
+    .summary { display: none; padding: 36px 28px; border-radius: 24px; background: linear-gradient(160deg, var(--paper), var(--paper-soft)); border: 1px solid var(--border); text-align: center; margin-top: 24px; box-shadow: 0 16px 36px -14px rgba(115, 99, 53, 0.20); }
+    .summary.is-shown { display: block; }
+    .summary-trophy { font-size: 56px; margin-bottom: 10px; }
+    .summary-title { font-family: var(--display); font-size: 26px; font-weight: 900; letter-spacing: -0.02em; margin-bottom: 8px; }
+    .summary-sub { font-family: var(--arabic); font-size: 14px; color: var(--text-muted); direction: rtl; margin-bottom: 22px; }
+    .summary-stats { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+    .stat { display: flex; flex-direction: column; gap: 4px; }
+    .stat-num { font-family: var(--display); font-size: 28px; font-weight: 900; color: var(--gold); letter-spacing: -0.02em; line-height: 1; }
+    .stat-lbl { font-family: var(--display); font-size: 10px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.18em; text-transform: uppercase; }
+
+    @media (max-width: 640px) {
+      .topbar { padding: 12px 16px; }
+      .page { padding: 22px 14px; }
+      .buckets { grid-template-columns: 1fr; }
+      .mascot-card { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">🏷️ Categorize</div>
+  <div class="scoreboard">
+    <span>Score<b id="score">0</b></span>
+    <span>Streak<b class="streak" id="streak">0</b></span>
+  </div>
+</nav>
+
+<main class="page">
+
+  <div class="level-bar">
+    <span class="level-bar-label">Level · المستوى</span>
+    <button class="lev-btn is-active" data-level="A1">A1 · Words</button>
+    <button class="lev-btn" data-level="A2">A2 · Themes</button>
+    <button class="lev-btn" data-level="B2">B2 · Grammar</button>
+    <span class="round-info">Round <b id="round-num">1</b>/<b id="round-total">5</b></span>
+  </div>
+
+  <div class="mascot-card">
+    <svg width="68" height="82" viewBox="0 0 100 120" class="mascot" id="mascot"></svg>
+    <div class="prompt">
+      <div class="prompt-label" id="prompt-label">Sort the words</div>
+      <div class="prompt-text" id="prompt-text">Drag or tap each word into the right bucket.</div>
+      <div class="prompt-text-ar" id="prompt-ar">صنّف الكلمات إلى السلال الصحيحة</div>
+    </div>
+  </div>
+
+  <div class="buckets" id="buckets"></div>
+
+  <div class="tray-wrap">
+    <div class="tray-label">Words to sort · الكلمات</div>
+    <div class="tray" id="tray"></div>
+  </div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <div class="actions">
+    <button class="btn is-ghost" id="reset-btn">↺ Reset round</button>
+    <button class="btn is-gold" id="next-btn" style="display:none;">Next round →</button>
+  </div>
+
+  <div class="summary" id="summary">
+    <div class="summary-trophy" id="summary-trophy">🏆</div>
+    <div class="summary-title" id="summary-title">Brilliant!</div>
+    <div class="summary-sub" id="summary-sub">أحسنت! انتقل لجولة أخرى.</div>
+    <div class="summary-stats">
+      <div class="stat"><span class="stat-num" id="final-score">0</span><span class="stat-lbl">Score</span></div>
+      <div class="stat"><span class="stat-num" id="final-acc">0%</span><span class="stat-lbl">Accuracy</span></div>
+      <div class="stat"><span class="stat-num" id="final-rounds">5</span><span class="stat-lbl">Rounds</span></div>
+    </div>
+    <button class="btn is-gold" id="play-again-btn">Play again</button>
+  </div>
+
+</main>
+
+<script>
+function mascotSVG(mood) {
+  const EYES = {
+    default:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="38" cy="59" r="3" fill="#1c1917"/><circle cx="62" cy="59" r="3" fill="#1c1917"/><circle cx="39" cy="57" r="1" fill="#fdfaf0"/><circle cx="63" cy="57" r="1" fill="#fdfaf0"/>',
+    happy:'<path d="M 32 60 Q 38 53 44 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M 56 60 Q 62 53 68 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+    sad:'<circle cx="38" cy="60" r="6" fill="#fdfaf0"/><circle cx="62" cy="60" r="6" fill="#fdfaf0"/><circle cx="38" cy="62" r="3" fill="#1c1917"/><circle cx="62" cy="62" r="3" fill="#1c1917"/>',
+    thinking:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="40" cy="55" r="3" fill="#1c1917"/><circle cx="64" cy="55" r="3" fill="#1c1917"/>'
+  }
+  const MOUTHS = {
+    default:'<path d="M 40 75 Q 50 80 60 75" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+    happy:'<path d="M 32 72 Q 50 88 68 72 Q 50 80 32 72 Z" fill="#fdfaf0"/>',
+    sad:'<path d="M 40 80 Q 50 73 60 80" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+    thinking:'<path d="M 42 78 L 58 78" stroke="#fdfaf0" stroke-width="2.5" stroke-linecap="round"/>'
+  }
+  const m = mood || 'default'
+  return `<line x1="50" y1="14" x2="74" y2="6" stroke="#fbbf24" stroke-width="2"/><circle cx="74" cy="6" r="3" fill="#fbbf24"/><rect x="32" y="12" width="36" height="14" rx="3" fill="#d97706"/><rect x="14" y="24" width="72" height="6" rx="2" fill="#b45309"/><circle cx="50" cy="62" r="34" fill="#1c1917"/><path d="M 18 112 Q 50 92 82 112 L 82 120 L 18 120 Z" fill="#1c1917"/>${EYES[m]||EYES.default}${MOUTHS[m]||MOUTHS.default}`
+}
+function setMascot(mood, bounce) {
+  const el = document.getElementById('mascot')
+  el.innerHTML = mascotSVG(mood)
+  if (bounce) { el.classList.remove('is-bounce','is-shake'); void el.offsetWidth; el.classList.add(bounce === 'shake' ? 'is-shake' : 'is-bounce') }
+}
+
+// Rounds by level. Each round = { promptEn, promptAr, buckets: [{name, nameAr, icon}], items: [{w, b (bucket index)}] }
+const ROUNDS_BY_LEVEL = {
+  A1: [
+    {
+      promptEn:'Sort by part of speech',
+      promptAr:'صنّف حسب نوع الكلمة (فعل / اسم / صفة)',
+      buckets:[
+        { name:'Verb', nameAr:'فعل', icon:'🏃' },
+        { name:'Noun', nameAr:'اسم', icon:'📦' },
+        { name:'Adjective', nameAr:'صفة', icon:'🎨' },
+      ],
+      items:[
+        {w:'run', b:0},{w:'eat', b:0},{w:'sleep', b:0},
+        {w:'house', b:1},{w:'apple', b:1},{w:'teacher', b:1},
+        {w:'happy', b:2},{w:'big', b:2},{w:'cold', b:2},
+      ]
+    },
+    {
+      promptEn:'Sort by category',
+      promptAr:'صنّف حسب الفئة (طعام / مكان / حيوان)',
+      buckets:[
+        { name:'Food', nameAr:'طعام', icon:'🍎' },
+        { name:'Place', nameAr:'مكان', icon:'📍' },
+        { name:'Animal', nameAr:'حيوان', icon:'🐾' },
+      ],
+      items:[
+        {w:'bread', b:0},{w:'rice', b:0},{w:'cheese', b:0},
+        {w:'school', b:1},{w:'beach', b:1},{w:'market', b:1},
+        {w:'dog', b:2},{w:'horse', b:2},{w:'lion', b:2},
+      ]
+    },
+    {
+      promptEn:'Sort the colors, numbers, days',
+      promptAr:'صنّف حسب اللون / الرقم / اليوم',
+      buckets:[
+        { name:'Color', nameAr:'لون', icon:'🌈' },
+        { name:'Number', nameAr:'رقم', icon:'🔢' },
+        { name:'Day', nameAr:'يوم', icon:'📅' },
+      ],
+      items:[
+        {w:'red', b:0},{w:'blue', b:0},{w:'green', b:0},
+        {w:'seven', b:1},{w:'twenty', b:1},{w:'hundred', b:1},
+        {w:'Monday', b:2},{w:'Friday', b:2},{w:'Sunday', b:2},
+      ]
+    },
+    {
+      promptEn:'Sort by body, family, or clothes',
+      promptAr:'صنّف حسب الجسم / العائلة / الملابس',
+      buckets:[
+        { name:'Body', nameAr:'جسم', icon:'🫀' },
+        { name:'Family', nameAr:'عائلة', icon:'👨‍👩‍👧' },
+        { name:'Clothes', nameAr:'ملابس', icon:'👕' },
+      ],
+      items:[
+        {w:'hand', b:0},{w:'eye', b:0},{w:'leg', b:0},
+        {w:'mother', b:1},{w:'brother', b:1},{w:'uncle', b:1},
+        {w:'shirt', b:2},{w:'shoes', b:2},{w:'hat', b:2},
+      ]
+    },
+    {
+      promptEn:'Sort the verbs by tense',
+      promptAr:'صنّف الأفعال حسب الزمن',
+      buckets:[
+        { name:'Past', nameAr:'ماضٍ', icon:'⏮️' },
+        { name:'Present', nameAr:'مضارع', icon:'⏺️' },
+        { name:'Future', nameAr:'مستقبل', icon:'⏭️' },
+      ],
+      items:[
+        {w:'went', b:0},{w:'ate', b:0},{w:'saw', b:0},
+        {w:'eats', b:1},{w:'goes', b:1},{w:'plays', b:1},
+        {w:'will go', b:2},{w:'will eat', b:2},{w:'will see', b:2},
+      ]
+    },
+  ],
+  A2: [
+    {
+      promptEn:'Sort by job / hobby / sport',
+      promptAr:'صنّف حسب المهنة / الهواية / الرياضة',
+      buckets:[
+        { name:'Job', nameAr:'مهنة', icon:'💼' },
+        { name:'Hobby', nameAr:'هواية', icon:'🎨' },
+        { name:'Sport', nameAr:'رياضة', icon:'⚽' },
+      ],
+      items:[
+        {w:'doctor', b:0},{w:'engineer', b:0},{w:'chef', b:0},
+        {w:'reading', b:1},{w:'painting', b:1},{w:'cooking', b:1},
+        {w:'tennis', b:2},{w:'swimming', b:2},{w:'boxing', b:2},
+      ]
+    },
+    {
+      promptEn:'Sort by weather, transport, or feelings',
+      promptAr:'صنّف حسب الطقس / النقل / المشاعر',
+      buckets:[
+        { name:'Weather', nameAr:'طقس', icon:'☀️' },
+        { name:'Transport', nameAr:'نقل', icon:'🚗' },
+        { name:'Feeling', nameAr:'شعور', icon:'😊' },
+      ],
+      items:[
+        {w:'sunny', b:0},{w:'windy', b:0},{w:'snowy', b:0},
+        {w:'bus', b:1},{w:'train', b:1},{w:'plane', b:1},
+        {w:'tired', b:2},{w:'excited', b:2},{w:'nervous', b:2},
+      ]
+    },
+    {
+      promptEn:'Sort by countable / uncountable / both',
+      promptAr:'معدود / غير معدود / يمكن الاثنين',
+      buckets:[
+        { name:'Countable', nameAr:'معدود', icon:'🔢' },
+        { name:'Uncountable', nameAr:'غير معدود', icon:'💧' },
+        { name:'Both', nameAr:'الاثنين', icon:'⚖️' },
+      ],
+      items:[
+        {w:'book', b:0},{w:'chair', b:0},{w:'apple', b:0},
+        {w:'water', b:1},{w:'rice', b:1},{w:'advice', b:1},
+        {w:'hair', b:2},{w:'coffee', b:2},{w:'time', b:2},
+      ]
+    },
+    {
+      promptEn:'Sort by adjective / adverb / preposition',
+      promptAr:'صنّف: صفة / ظرف / حرف جر',
+      buckets:[
+        { name:'Adjective', nameAr:'صفة', icon:'🎨' },
+        { name:'Adverb', nameAr:'ظرف', icon:'⏱️' },
+        { name:'Preposition', nameAr:'حرف جر', icon:'➡️' },
+      ],
+      items:[
+        {w:'beautiful', b:0},{w:'careful', b:0},{w:'quick', b:0},
+        {w:'quickly', b:1},{w:'carefully', b:1},{w:'often', b:1},
+        {w:'on', b:2},{w:'between', b:2},{w:'under', b:2},
+      ]
+    },
+    {
+      promptEn:'Sort by emotion: positive / negative / neutral',
+      promptAr:'صنّف حسب المشاعر: إيجابي / سلبي / محايد',
+      buckets:[
+        { name:'Positive', nameAr:'إيجابي', icon:'😄' },
+        { name:'Negative', nameAr:'سلبي', icon:'😞' },
+        { name:'Neutral', nameAr:'محايد', icon:'😐' },
+      ],
+      items:[
+        {w:'joyful', b:0},{w:'grateful', b:0},{w:'proud', b:0},
+        {w:'angry', b:1},{w:'jealous', b:1},{w:'lonely', b:1},
+        {w:'okay', b:2},{w:'calm', b:2},{w:'fine', b:2},
+      ]
+    },
+  ],
+  B2: [
+    {
+      promptEn:'Sort by tense: present perfect / past simple / past perfect',
+      promptAr:'حسب الزمن: مضارع تام / ماضٍ بسيط / ماضٍ تام',
+      buckets:[
+        { name:'Present perfect', nameAr:'مضارع تام', icon:'⏳' },
+        { name:'Past simple', nameAr:'ماضٍ بسيط', icon:'⏮️' },
+        { name:'Past perfect', nameAr:'ماضٍ تام', icon:'⏪' },
+      ],
+      items:[
+        {w:'has eaten', b:0},{w:'have gone', b:0},{w:'has seen', b:0},
+        {w:'ate', b:1},{w:'went', b:1},{w:'saw', b:1},
+        {w:'had eaten', b:2},{w:'had gone', b:2},{w:'had seen', b:2},
+      ]
+    },
+    {
+      promptEn:'Formal / informal / slang',
+      promptAr:'رسمي / غير رسمي / عامي',
+      buckets:[
+        { name:'Formal', nameAr:'رسمي', icon:'🎩' },
+        { name:'Informal', nameAr:'غير رسمي', icon:'💬' },
+        { name:'Slang', nameAr:'عامي', icon:'😎' },
+      ],
+      items:[
+        {w:'request', b:0},{w:'commence', b:0},{w:'inform', b:0},
+        {w:'ask', b:1},{w:'start', b:1},{w:'tell', b:1},
+        {w:'wanna', b:2},{w:'gonna', b:2},{w:'gotcha', b:2},
+      ]
+    },
+    {
+      promptEn:'Sort by intensity: mild / medium / strong',
+      promptAr:'حسب الشدة: خفيف / متوسط / قوي',
+      buckets:[
+        { name:'Mild', nameAr:'خفيف', icon:'🌤️' },
+        { name:'Medium', nameAr:'متوسط', icon:'☁️' },
+        { name:'Strong', nameAr:'قوي', icon:'⛈️' },
+      ],
+      items:[
+        {w:'good', b:0},{w:'nice', b:0},{w:'okay', b:0},
+        {w:'great', b:1},{w:'happy', b:1},{w:'tired', b:1},
+        {w:'fantastic', b:2},{w:'thrilled', b:2},{w:'exhausted', b:2},
+      ]
+    },
+    {
+      promptEn:'Idioms: time / money / effort',
+      promptAr:'تعابير اصطلاحية: وقت / مال / جهد',
+      buckets:[
+        { name:'Time', nameAr:'وقت', icon:'⏰' },
+        { name:'Money', nameAr:'مال', icon:'💰' },
+        { name:'Effort', nameAr:'جهد', icon:'💪' },
+      ],
+      items:[
+        {w:'in the nick of time', b:0},{w:'around the clock', b:0},{w:'kill time', b:0},
+        {w:'break the bank', b:1},{w:'cost an arm and a leg', b:1},{w:'pay through the nose', b:1},
+        {w:'pull your weight', b:2},{w:'go the extra mile', b:2},{w:'roll up your sleeves', b:2},
+      ]
+    },
+    {
+      promptEn:'Word forms: noun / verb / adjective',
+      promptAr:'حسب الصيغة: اسم / فعل / صفة',
+      buckets:[
+        { name:'Noun', nameAr:'اسم', icon:'📦' },
+        { name:'Verb', nameAr:'فعل', icon:'🏃' },
+        { name:'Adjective', nameAr:'صفة', icon:'🎨' },
+      ],
+      items:[
+        {w:'decision', b:0},{w:'beauty', b:0},{w:'success', b:0},
+        {w:'decide', b:1},{w:'beautify', b:1},{w:'succeed', b:1},
+        {w:'decisive', b:2},{w:'beautiful', b:2},{w:'successful', b:2},
+      ]
+    },
+  ],
+}
+
+let currentLevel = 'A1'
+let rounds = ROUNDS_BY_LEVEL[currentLevel].slice()
+let roundIdx = 0
+let score = 0, streak = 0
+let attempts = 0, correctAttempts = 0
+let pickedChip = null
+let currentRound = null
+
+const bucketsEl = document.getElementById('buckets')
+const trayEl = document.getElementById('tray')
+const promptText = document.getElementById('prompt-text')
+const promptAr = document.getElementById('prompt-ar')
+const feedbackEl = document.getElementById('feedback')
+const scoreEl = document.getElementById('score')
+const streakEl = document.getElementById('streak')
+const nextBtn = document.getElementById('next-btn')
+const resetBtn = document.getElementById('reset-btn')
+const roundNumEl = document.getElementById('round-num')
+const roundTotalEl = document.getElementById('round-total')
+const summaryEl = document.getElementById('summary')
+
+function shuffle(arr) {
+  const a = arr.slice()
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+function startLevel(level) {
+  currentLevel = level
+  rounds = shuffle(ROUNDS_BY_LEVEL[level])
+  roundIdx = 0
+  score = 0; streak = 0
+  attempts = 0; correctAttempts = 0
+  scoreEl.textContent = '0'; streakEl.textContent = '0'
+  summaryEl.classList.remove('is-shown')
+  roundTotalEl.textContent = String(rounds.length)
+  loadRound()
+}
+
+function loadRound() {
+  const r = rounds[roundIdx]
+  currentRound = r
+  pickedChip = null
+  feedbackEl.textContent = ''; feedbackEl.className = 'feedback'
+  nextBtn.style.display = 'none'
+  setMascot('thinking')
+  promptText.textContent = r.promptEn
+  promptAr.textContent = r.promptAr
+  roundNumEl.textContent = String(roundIdx + 1)
+
+  // Render buckets
+  bucketsEl.innerHTML = ''
+  r.buckets.forEach((b, i) => {
+    const div = document.createElement('div')
+    div.className = 'bucket'
+    div.dataset.bucket = String(i)
+    div.innerHTML = `
+      <div class="bucket-head">
+        <span class="bucket-icon">${b.icon}</span>
+        <div>
+          <div class="bucket-name">${b.name}</div>
+          <div class="bucket-name-ar">${b.nameAr}</div>
+        </div>
+        <span class="bucket-count" data-count="${i}">0</span>
+      </div>
+      <div class="bucket-items" data-items="${i}"></div>
+    `
+    // tap-to-drop
+    div.addEventListener('click', () => placeInto(i))
+    // drag-and-drop
+    div.addEventListener('dragover', e => { e.preventDefault(); div.classList.add('is-hover') })
+    div.addEventListener('dragleave', () => div.classList.remove('is-hover'))
+    div.addEventListener('drop', e => {
+      e.preventDefault()
+      div.classList.remove('is-hover')
+      const w = e.dataTransfer.getData('text/plain')
+      if (w) { pickedChip = trayEl.querySelector(`[data-w="${CSS.escape(w)}"]`); placeInto(i) }
+    })
+    bucketsEl.appendChild(div)
+  })
+
+  // Render tray (shuffled chips)
+  trayEl.innerHTML = ''
+  const chips = shuffle(r.items)
+  chips.forEach(it => {
+    const c = document.createElement('div')
+    c.className = 'chip'
+    c.draggable = true
+    c.dataset.w = it.w
+    c.dataset.b = String(it.b)
+    c.textContent = it.w
+    c.addEventListener('click', () => {
+      // mark as picked
+      trayEl.querySelectorAll('.chip').forEach(x => x.classList.remove('is-dragging'))
+      pickedChip = c
+      c.classList.add('is-dragging')
+      feedbackEl.textContent = `Tap a bucket to place "${it.w}"`
+      feedbackEl.className = 'feedback'
+    })
+    c.addEventListener('dragstart', e => {
+      pickedChip = c
+      c.classList.add('is-dragging')
+      e.dataTransfer.setData('text/plain', it.w)
+    })
+    c.addEventListener('dragend', () => c.classList.remove('is-dragging'))
+    trayEl.appendChild(c)
+  })
+}
+
+function placeInto(bucketIndex) {
+  if (!pickedChip) {
+    feedbackEl.textContent = 'Pick a word first ✋'
+    feedbackEl.className = 'feedback'
+    return
+  }
+  const correctBucket = parseInt(pickedChip.dataset.b, 10)
+  const word = pickedChip.dataset.w
+  const isRight = bucketIndex === correctBucket
+  attempts++
+
+  const bucketItems = bucketsEl.querySelector(`[data-items="${bucketIndex}"]`)
+  const placed = document.createElement('div')
+  placed.className = 'placed' + (isRight ? '' : ' is-wrong')
+  placed.innerHTML = `<span class="check">${isRight ? '✓' : '✗'}</span> ${word}`
+  bucketItems.appendChild(placed)
+  const countEl = bucketsEl.querySelector(`[data-count="${bucketIndex}"]`)
+  countEl.textContent = String(bucketItems.children.length)
+
+  pickedChip.remove()
+  pickedChip = null
+
+  if (isRight) {
+    correctAttempts++
+    score++; streak++
+    scoreEl.textContent = String(score); streakEl.textContent = String(streak)
+    feedbackEl.textContent = `✓ Correct! "${word}"`
+    feedbackEl.className = 'feedback is-right'
+    setMascot('happy', 'bounce')
+  } else {
+    streak = 0
+    streakEl.textContent = '0'
+    feedbackEl.textContent = `✗ "${word}" doesn't go there`
+    feedbackEl.className = 'feedback is-wrong'
+    setMascot('sad', 'shake')
+  }
+
+  // Check if tray empty
+  if (trayEl.children.length === 0) {
+    nextBtn.style.display = 'inline-flex'
+    setMascot('happy', 'bounce')
+    feedbackEl.textContent = '🎉 Round complete!'
+    feedbackEl.className = 'feedback is-right'
+  }
+}
+
+function showSummary() {
+  const acc = attempts ? Math.round((correctAttempts / attempts) * 100) : 0
+  document.getElementById('final-score').textContent = String(score)
+  document.getElementById('final-acc').textContent = acc + '%'
+  document.getElementById('final-rounds').textContent = String(rounds.length)
+  let trophy = '🏆', title = 'Brilliant!', sub = 'أحسنت! أداء ممتاز.'
+  if (acc < 60) { trophy = '💪'; title = 'Keep practicing'; sub = 'استمر! المرة القادمة أفضل.' }
+  else if (acc < 85) { trophy = '👍'; title = 'Good job'; sub = 'أداء جيد جدا.' }
+  document.getElementById('summary-trophy').textContent = trophy
+  document.getElementById('summary-title').textContent = title
+  document.getElementById('summary-sub').textContent = sub
+  summaryEl.classList.add('is-shown')
+  setMascot(acc >= 70 ? 'happy' : 'sad', 'bounce')
+}
+
+nextBtn.addEventListener('click', () => {
+  roundIdx++
+  if (roundIdx >= rounds.length) { showSummary(); return }
+  loadRound()
+})
+resetBtn.addEventListener('click', () => loadRound())
+document.getElementById('play-again-btn').addEventListener('click', () => startLevel(currentLevel))
+
+document.querySelectorAll('.lev-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.lev-btn').forEach(b => b.classList.remove('is-active'))
+    btn.classList.add('is-active')
+    startLevel(btn.dataset.level)
+  })
+})
+
+startLevel('A1')
+</script>
+
+</body>
+</html>
