@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Build a Sentence — Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    button { font-family: inherit; cursor: pointer; }
+    a { text-decoration: none; color: inherit; }
+    :root { --ink:#1c1917;--ink-deep:#0c0a09;--bg:#f5efe0;--paper:#fdfaf0;--paper-soft:#faf3e0;--paper-deep:#f0e6cd;--border:#e0d4b2;--border-soft:#ece2c5;--gold:#b45309;--gold-bright:#d97706;--gold-soft:#fef3c7;--text:#1c1917;--text-2:#44403c;--text-muted:#78716c;--green:#15803d;--red:#b91c1c;--blue:#1d4ed8;--purple:#7c3aed;--display:'Outfit','DM Sans',system-ui,sans-serif;--sans:'DM Sans',sans-serif;--arabic:'Cairo','Tajawal',sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace;}
+    html, body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; min-height: 100%; -webkit-font-smoothing: antialiased; }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 60% 40% at 80% 0%, rgba(180, 83, 9, 0.08), transparent 60%); }
+    .topbar { position: sticky; top: 0; z-index: 100; background: rgba(245, 239, 224, 0.85); backdrop-filter: blur(18px) saturate(180%); border-bottom: 1px solid var(--border-soft); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+    .back-link { display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 999px; background: var(--paper); border: 1px solid var(--border); font-family: var(--display); font-size: 13px; font-weight: 700; color: var(--text-2); }
+    .back-link:hover { background: var(--ink); color: white; border-color: var(--ink); }
+    .game-title { font-family: var(--display); font-weight: 900; font-size: 18px; }
+    .scoreboard { display: flex; gap: 12px; font-family: var(--display); font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+    .scoreboard b { color: var(--ink); font-family: var(--mono); font-size: 16px; font-weight: 800; margin-left: 4px; }
+    .scoreboard b.streak { color: var(--gold); }
+    .page { position: relative; z-index: 2; max-width: 880px; margin: 0 auto; padding: 28px 24px 60px; }
+    .mascot { filter: drop-shadow(0 6px 12px rgba(28, 25, 23, 0.25)); }
+    .mascot.is-bounce { animation: bounce 0.5s ease; } @keyframes bounce { 50% { transform: translateY(-12px) rotate(-4deg); } }
+    .mascot.is-shake { animation: shake-m 0.4s ease; } @keyframes shake-m { 25% { transform: translateX(-6px) rotate(-3deg); } 75% { transform: translateX(6px) rotate(3deg); } }
+    .level-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; padding: 14px 18px; border-radius: 14px; background: var(--paper); border: 1px solid var(--border); }
+    .level-bar-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.18em; text-transform: uppercase; }
+    .lev-btn { padding: 8px 14px; border-radius: 10px; background: transparent; border: 1.5px solid var(--border); font-family: var(--display); font-size: 12px; font-weight: 700; color: var(--text-2); transition: all 0.18s ease; }
+    .lev-btn:hover { border-color: var(--gold); } .lev-btn.is-active { background: var(--ink); color: white; border-color: var(--ink); }
+    .round-info { margin-left: auto; font-family: var(--display); font-size: 12px; font-weight: 700; color: var(--text-muted); } .round-info b { color: var(--ink); }
+    .progress-bar { height: 6px; background: var(--paper-deep); border-radius: 999px; overflow: hidden; margin-bottom: 18px; } .progress-bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-bright)); transition: width 0.3s ease; width: 0%; }
+
+    .mascot-card { display: flex; align-items: center; gap: 18px; padding: 18px 24px; border-radius: 16px; background: linear-gradient(160deg, var(--paper), var(--paper-soft)); border: 1px solid var(--border); margin-bottom: 18px; box-shadow: 0 8px 20px -8px rgba(115, 99, 53, 0.20); }
+    .mascot-card .prompt { flex: 1; } .prompt-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--gold); letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 4px; }
+    .prompt-text { font-family: var(--display); font-size: 17px; font-weight: 800; color: var(--text); letter-spacing: -0.01em; }
+    .prompt-ar { font-family: var(--arabic); font-size: 13px; color: var(--text-muted); direction: rtl; margin-top: 4px; }
+
+    .built { padding: 20px 22px; border-radius: 18px; background: var(--paper); border: 2px dashed var(--border); margin-bottom: 18px; min-height: 76px; display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; font-family: var(--display); font-size: clamp(20px, 3vw, 28px); font-weight: 900; color: var(--text); letter-spacing: -0.01em; }
+    .built .slot { padding: 6px 16px; border-radius: 12px; background: var(--paper-soft); border: 1.5px solid var(--border); color: var(--text-muted); font-style: italic; min-width: 90px; text-align: center; }
+    .built .slot.is-filled { background: var(--gold-soft); border-color: var(--gold); color: var(--text); font-style: normal; }
+    .built .slot[data-col="0"].is-filled { background: rgba(29, 78, 216, 0.10); border-color: var(--blue); color: var(--blue); }
+    .built .slot[data-col="1"].is-filled { background: rgba(180, 83, 9, 0.10); border-color: var(--gold); color: var(--gold); }
+    .built .slot[data-col="2"].is-filled { background: rgba(124, 58, 237, 0.10); border-color: var(--purple); color: var(--purple); }
+    .built.is-correct { border-style: solid; border-color: var(--green); background: rgba(21,128,61,0.05); }
+    .built.is-wrong { border-style: solid; border-color: var(--red); background: rgba(185,28,28,0.05); animation: shake-i 0.4s ease; }
+    @keyframes shake-i { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+    .columns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; }
+    .column { padding: 16px 14px; border-radius: 16px; background: var(--paper); border: 1px solid var(--border); }
+    .col-head { font-family: var(--display); font-size: 10px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px dashed var(--border); display: flex; align-items: center; gap: 8px; }
+    .col-head .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .column[data-col="0"] .col-head { color: var(--blue); } .column[data-col="0"] .col-head .dot { background: var(--blue); }
+    .column[data-col="1"] .col-head { color: var(--gold); } .column[data-col="1"] .col-head .dot { background: var(--gold); }
+    .column[data-col="2"] .col-head { color: var(--purple); } .column[data-col="2"] .col-head .dot { background: var(--purple); }
+    .col-options { display: flex; flex-direction: column; gap: 8px; }
+    .opt-btn { padding: 10px 14px; border-radius: 10px; background: var(--paper-soft); border: 1.5px solid var(--border); font-family: var(--display); font-size: 14px; font-weight: 700; color: var(--text); text-align: center; transition: all 0.15s ease; }
+    .opt-btn:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--gold); }
+    .opt-btn.is-picked { background: var(--ink); color: white; border-color: var(--ink); }
+    .opt-btn:disabled { cursor: not-allowed; opacity: 0.5; }
+
+    .feedback { min-height: 26px; padding: 0 4px; font-family: var(--display); font-size: 14px; font-weight: 700; text-align: center; margin-bottom: 12px; }
+    .feedback.is-right { color: var(--green); } .feedback.is-wrong { color: var(--red); }
+
+    .explain { display: none; padding: 14px 18px; border-radius: 12px; background: var(--gold-soft); border: 1px solid rgba(180,83,9,0.2); margin-bottom: 14px; }
+    .explain.is-shown { display: block; }
+    .explain-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--gold); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 6px; }
+    .explain-text { font-family: var(--display); font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.55; }
+    .explain-text em { color: var(--gold); font-style: normal; font-weight: 800; }
+
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 26px; border-radius: 12px; font-family: var(--display); font-size: 14px; font-weight: 800; transition: all 0.18s ease; border: none; }
+    .btn.is-gold { background: linear-gradient(135deg, var(--gold), var(--gold-bright)); color: white; box-shadow: 0 8px 18px -5px rgba(180, 83, 9, 0.35); }
+    .btn.is-gold:hover { transform: translateY(-2px); }
+    .btn.is-ghost { background: transparent; color: var(--text-2); border: 1.5px solid var(--border); }
+    .btn.is-ghost:hover { border-color: var(--gold); color: var(--gold); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .summary { display: none; padding: 36px 28px; border-radius: 24px; background: linear-gradient(160deg, var(--paper), var(--paper-soft)); border: 1px solid var(--border); text-align: center; box-shadow: 0 16px 36px -14px rgba(115, 99, 53, 0.20); }
+    .summary.is-shown { display: block; }
+    .summary-trophy { font-size: 56px; margin-bottom: 10px; } .summary-title { font-family: var(--display); font-size: 26px; font-weight: 900; letter-spacing: -0.02em; margin-bottom: 6px; }
+    .summary-sub { font-family: var(--arabic); font-size: 14px; color: var(--text-muted); direction: rtl; margin-bottom: 18px; }
+    .summary-stats { display: flex; gap: 22px; justify-content: center; flex-wrap: wrap; margin-bottom: 18px; padding: 18px; border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border); }
+    .stat { display: flex; flex-direction: column; gap: 4px; } .stat-num { font-family: var(--display); font-size: 26px; font-weight: 900; color: var(--gold); letter-spacing: -0.02em; line-height: 1; }
+    .stat-lbl { font-family: var(--display); font-size: 10px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.18em; text-transform: uppercase; }
+    .new-best { display: inline-block; margin-top: 10px; padding: 5px 14px; border-radius: 999px; background: var(--gold); color: white; font-family: var(--display); font-size: 11px; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; }
+
+    @media (max-width: 720px) {
+      .columns { grid-template-columns: 1fr; }
+      .topbar { padding: 12px 16px; }
+      .page { padding: 22px 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">🧩 Build a Sentence</div>
+  <div class="scoreboard"><span>Score<b id="score">0</b></span><span>Streak<b class="streak" id="streak">0</b></span></div>
+</nav>
+
+<main class="page">
+
+  <div class="level-bar" id="level-bar">
+    <span class="level-bar-label">Level</span>
+    <button class="lev-btn is-active" data-level="A1">A1 · Present</button>
+    <button class="lev-btn" data-level="A2">A2 · Past / Future</button>
+    <button class="lev-btn" data-level="B1">B1 · Conditionals</button>
+    <span class="round-info">Round <b id="round-num">1</b>/<b id="round-total">10</b></span>
+  </div>
+  <div class="progress-bar"><span id="progress"></span></div>
+
+  <div id="game-area">
+    <div class="mascot-card">
+      <svg width="56" height="68" viewBox="0 0 100 120" class="mascot" id="mascot"></svg>
+      <div class="prompt">
+        <div class="prompt-label">Pick 1 from each column</div>
+        <div class="prompt-text" id="prompt-text">Build a correct sentence about daily routines.</div>
+        <div class="prompt-ar" id="prompt-ar">كوّن جملة صحيحة عن الأنشطة اليومية</div>
+      </div>
+    </div>
+
+    <div class="built" id="built">
+      <span class="slot" data-col="0">subject</span>
+      <span class="slot" data-col="1">verb</span>
+      <span class="slot" data-col="2">object</span>
+    </div>
+
+    <div class="columns" id="columns"></div>
+
+    <div class="explain" id="explain">
+      <div class="explain-label">💡 Why?</div>
+      <div class="explain-text" id="explain-text"></div>
+    </div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <div class="actions">
+      <button class="btn is-ghost" id="check-btn" disabled>Check sentence</button>
+      <button class="btn is-gold" id="next-btn" style="display:none;">Next →</button>
+    </div>
+  </div>
+
+  <div class="summary" id="summary">
+    <div class="summary-trophy" id="summary-trophy">🏆</div>
+    <div class="summary-title" id="summary-title">Brilliant!</div>
+    <div class="summary-sub" id="summary-sub">ممتاز!</div>
+    <div class="summary-stats">
+      <div class="stat"><span class="stat-num" id="final-score">0</span><span class="stat-lbl">Score</span></div>
+      <div class="stat"><span class="stat-num" id="final-acc">0%</span><span class="stat-lbl">Accuracy</span></div>
+      <div class="stat"><span class="stat-num" id="final-best">0</span><span class="stat-lbl">Best</span></div>
+    </div>
+    <div id="new-best-banner"></div>
+    <div style="margin-top:14px;"><button class="btn is-gold" id="play-again-btn">Play again</button></div>
+  </div>
+
+</main>
+
+<script src="../../_shared/progress.js"></script>
+<script>
+const GAME_ID = 'build-sentence'
+function mascotSVG(m){const E={default:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="38" cy="59" r="3" fill="#1c1917"/><circle cx="62" cy="59" r="3" fill="#1c1917"/><circle cx="39" cy="57" r="1" fill="#fdfaf0"/><circle cx="63" cy="57" r="1" fill="#fdfaf0"/>',happy:'<path d="M 32 60 Q 38 53 44 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M 56 60 Q 62 53 68 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',sad:'<circle cx="38" cy="60" r="6" fill="#fdfaf0"/><circle cx="62" cy="60" r="6" fill="#fdfaf0"/><circle cx="38" cy="62" r="3" fill="#1c1917"/><circle cx="62" cy="62" r="3" fill="#1c1917"/>',thinking:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="40" cy="55" r="3" fill="#1c1917"/><circle cx="64" cy="55" r="3" fill="#1c1917"/>'};const M={default:'<path d="M 40 75 Q 50 80 60 75" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',happy:'<path d="M 32 72 Q 50 88 68 72 Q 50 80 32 72 Z" fill="#fdfaf0"/>',sad:'<path d="M 40 80 Q 50 73 60 80" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',thinking:'<path d="M 42 78 L 58 78" stroke="#fdfaf0" stroke-width="2.5" stroke-linecap="round"/>'};const x=m||'default';return `<line x1="50" y1="14" x2="74" y2="6" stroke="#fbbf24" stroke-width="2"/><circle cx="74" cy="6" r="3" fill="#fbbf24"/><rect x="32" y="12" width="36" height="14" rx="3" fill="#d97706"/><rect x="14" y="24" width="72" height="6" rx="2" fill="#b45309"/><circle cx="50" cy="62" r="34" fill="#1c1917"/><path d="M 18 112 Q 50 92 82 112 L 82 120 L 18 120 Z" fill="#1c1917"/>${E[x]||E.default}${M[x]||M.default}`}
+function setMascot(m,b){const el=document.getElementById('mascot');el.innerHTML=mascotSVG(m);if(b){el.classList.remove('is-bounce','is-shake');void el.offsetWidth;el.classList.add(b==='shake'?'is-shake':'is-bounce')}}
+
+/* Each round provides 3 columns. Validate via a function that knows the rules per round.
+ * Rules: A1 = subject-verb agreement. A2 = tense matching. B1 = if-conditional.
+ */
+const ROUNDS_BY_LEVEL = {
+  A1: [
+    { topic:'Daily routine', topicAr:'الأنشطة اليومية',
+      cols:[
+        { label:'Subject', items:['I','You','We','He','She'] },
+        { label:'Verb', items:['eat','eats','drink','drinks','play','plays'] },
+        { label:'Object', items:['breakfast','water','football','English','TV'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; const thirdSing=(s==='He'||s==='She'); const isVerbS=v.endsWith('s'); return thirdSing===isVerbS; },
+      ok:'Subject-verb agreement is correct.',
+      bad:'He/She → verb + s · I/You/We → verb (no s).'
+    },
+    { topic:'Family', topicAr:'العائلة',
+      cols:[
+        { label:'Subject', items:['My mother','My father','I','My parents'] },
+        { label:'Verb', items:['is','are','am','cook','cooks'] },
+        { label:'Object', items:['a teacher','engineers','tired','dinner','lunch'] },
+      ],
+      check:(p)=>{const [s,v,o]=p
+        const sing=['My mother','My father'].includes(s), pl=['My parents'].includes(s), iSub=(s==='I')
+        if(v==='is') return sing && ['a teacher','tired'].includes(o)
+        if(v==='are') return pl && ['engineers','tired'].includes(o)
+        if(v==='am') return iSub && ['tired'].includes(o)
+        if(v==='cook') return (iSub||pl) && ['dinner','lunch'].includes(o)
+        if(v==='cooks') return sing && ['dinner','lunch'].includes(o)
+        return false
+      },
+      ok:'Verb + noun agree correctly.',
+      bad:'Check: am/is/are agreement, and cook/cooks (he/she+s).'
+    },
+    { topic:'School', topicAr:'المدرسة',
+      cols:[
+        { label:'Subject', items:['I','The teacher','We','The students'] },
+        { label:'Verb', items:['study','studies','write','writes','read','reads'] },
+        { label:'Object', items:['English','a book','homework','math'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; const third=['The teacher'].includes(s); const isS=v.endsWith('s'); return third===isS; },
+      ok:'Third person singular needs verb + s.',
+      bad:'The teacher writes / studies (verb + s). We / I write (no s).'
+    },
+    { topic:'Hobbies', topicAr:'الهوايات',
+      cols:[
+        { label:'Subject', items:['I','You','My sister','My brothers'] },
+        { label:'Verb', items:['like','likes','love','loves','hate','hates'] },
+        { label:'Object', items:['reading','swimming','football','vegetables'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; const third=['My sister'].includes(s); const isS=v.endsWith('s'); return third===isS; },
+      ok:'My sister likes (third person +s).',
+      bad:'I/You/My brothers + like (no s). My sister + likes.'
+    },
+    { topic:'Place', topicAr:'الأمكنة',
+      cols:[
+        { label:'Subject', items:['The book','The books','The cat','The cats'] },
+        { label:'Verb', items:['is','are'] },
+        { label:'Object', items:['on the table','under the chair','in the garden'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; const pl=s.endsWith('s'); return pl ? v==='are' : v==='is'; },
+      ok:'Singular + is, plural + are.',
+      bad:'Singular noun → is. Plural noun → are.'
+    },
+    { topic:'Weather', topicAr:'الطقس',
+      cols:[
+        { label:'Subject', items:['It','Today','The weather'] },
+        { label:'Verb', items:['is','are'] },
+        { label:'Object', items:['sunny','cold','rainy','windy'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; return v==='is'; },
+      ok:'Weather uses "is".',
+      bad:'All these subjects are singular — use "is".'
+    },
+    { topic:'Time', topicAr:'الوقت',
+      cols:[
+        { label:'Subject', items:['I','We','He','She'] },
+        { label:'Verb', items:['get up','gets up','go','goes'] },
+        { label:'Object', items:['at 7','to school','to work','early'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; const third=['He','She'].includes(s); const isS=v.endsWith('s')||v.endsWith('es'); return third===isS; },
+      ok:'He/She + gets up / goes.',
+      bad:'He/She needs verb + s/es. I/We without s.'
+    },
+    { topic:'Possession', topicAr:'الملكية',
+      cols:[
+        { label:'Subject', items:['I','You','He','She','We'] },
+        { label:'Verb', items:['have','has'] },
+        { label:'Object', items:['a car','two children','a brother','a dog'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; const third=['He','She'].includes(s); return third ? v==='has' : v==='have'; },
+      ok:'He/She + has · others + have.',
+      bad:'He/She + has. I/You/We + have.'
+    },
+    { topic:'Food', topicAr:'الأكل',
+      cols:[
+        { label:'Subject', items:['I','He','She','They'] },
+        { label:'Verb', items:['want','wants','need','needs'] },
+        { label:'Object', items:['water','an apple','some bread','tea'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; const third=['He','She'].includes(s); const isS=v.endsWith('s'); return third===isS; },
+      ok:'He/She + wants/needs. Others + want/need.',
+      bad:'Forgot the -s on He/She? Or added -s to They/I?'
+    },
+    { topic:'Feelings', topicAr:'المشاعر',
+      cols:[
+        { label:'Subject', items:['I','You','He','She','We'] },
+        { label:'Verb', items:['am','is','are'] },
+        { label:'Object', items:['happy','tired','hungry','cold'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; if(s==='I') return v==='am'; if(['He','She'].includes(s)) return v==='is'; return v==='are'; },
+      ok:'I am · He/She is · You/We are.',
+      bad:'I → am, He/She → is, You/We → are.'
+    },
+  ],
+  A2: [
+    { topic:'Yesterday', topicAr:'أمس',
+      cols:[
+        { label:'Subject', items:['I','You','We','He','She'] },
+        { label:'Verb', items:['went','goes','ate','eats','saw','sees'] },
+        { label:'Object', items:['to school','breakfast','a movie','to the park'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; const past=['went','ate','saw'].includes(v); return past; },
+      ok:'Past tense forms used correctly.',
+      bad:'Yesterday means past — use went / ate / saw, not the present forms.'
+    },
+    { topic:'Tomorrow plan', topicAr:'خطة الغد',
+      cols:[
+        { label:'Subject', items:['I','You','We','He','She'] },
+        { label:'Modal', items:['will','am','is','are'] },
+        { label:'Verb-phrase', items:['call you','visit a friend','study English','watch a film'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; return v==='will'; },
+      ok:'"Will + verb" expresses future.',
+      bad:'For a future plan, use "will + verb": I will call you tomorrow.'
+    },
+    { topic:'Last weekend', topicAr:'العطلة الماضية',
+      cols:[
+        { label:'Subject', items:['I','My brother','We','My parents'] },
+        { label:'Verb', items:['was','were','am','is','are'] },
+        { label:'Object', items:['at the beach','at home','tired','happy'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; const past=['was','were'].includes(v); if(!past) return false; const sing=['I','My brother'].includes(s); return sing ? v==='was' : v==='were'; },
+      ok:'Past: was (singular/I) · were (plural/you).',
+      bad:'Last weekend is past — use was / were. I/he + was, we/they + were.'
+    },
+    { topic:'Past habit', topicAr:'عادة قديمة',
+      cols:[
+        { label:'Subject', items:['I','He','She','They'] },
+        { label:'Verb', items:['used to','use to','uses to'] },
+        { label:'Verb-base', items:['play football','read comics','live in Casablanca','watch cartoons'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; return v==='used to'; },
+      ok:'"Used to + verb" describes a past habit.',
+      bad:'The fixed form is "used to + base verb" for past habits — same for all subjects.'
+    },
+    { topic:'Going to', topicAr:'سأفعل (going to)',
+      cols:[
+        { label:'Subject', items:['I','You','He','She','We'] },
+        { label:'Be + going to', items:['am going to','is going to','are going to'] },
+        { label:'Verb-base', items:['travel','study abroad','start a job','buy a car'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; if(s==='I') return v==='am going to'; if(['He','She'].includes(s)) return v==='is going to'; return v==='are going to'; },
+      ok:'am/is/are going to + verb = future plan.',
+      bad:'I am · He/She is · You/We are + going to + verb.'
+    },
+    { topic:'Already done', topicAr:'لقد فعلت',
+      cols:[
+        { label:'Subject', items:['I','He','She','They','We'] },
+        { label:'Have + pp', items:['have eaten','has eaten','have went'] },
+        { label:'Time', items:['already','just','today','this morning'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; const sing=['He','She'].includes(s); if(v==='have went') return false; return sing ? v==='has eaten' : v==='have eaten'; },
+      ok:'Present perfect: has/have + past participle.',
+      bad:'He/She → has + pp. Others → have + pp. "went" is past simple, not pp ("gone").'
+    },
+    { topic:'Last year', topicAr:'العام الماضي',
+      cols:[
+        { label:'Subject', items:['I','My family','We','He'] },
+        { label:'Verb', items:['visited','visit','traveled','travel'] },
+        { label:'Object', items:['Spain','Egypt','to Marrakech','grandma'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; return v.endsWith('ed'); },
+      ok:'Past tense uses -ed (visited / traveled).',
+      bad:'Last year = past. Add -ed to regular verbs.'
+    },
+    { topic:'Comparison', topicAr:'المقارنة',
+      cols:[
+        { label:'Subject', items:['My phone','English','Math','This book'] },
+        { label:'Verb', items:['is','are'] },
+        { label:'Comparative', items:['bigger than yours','more difficult','easier than French','interesting'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; return v==='is'; },
+      ok:'Singular subjects + is.',
+      bad:'All subjects here are singular → use "is".'
+    },
+    { topic:'Can / Can\'t', topicAr:'يستطيع / لا يستطيع',
+      cols:[
+        { label:'Subject', items:['I','He','She','We','They'] },
+        { label:'Modal', items:['can','can\'t','cans','cants'] },
+        { label:'Verb-base', items:['swim','speak French','cook pasta','drive'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; return v==='can' || v==='can\'t'; },
+      ok:'Can / Can\'t never change form.',
+      bad:'"can" never becomes "cans" — modals stay the same for all subjects.'
+    },
+    { topic:'Right now', topicAr:'الآن مباشرة',
+      cols:[
+        { label:'Subject', items:['I','You','He','She','They'] },
+        { label:'Be + verb-ing', items:['am studying','is studying','are studying'] },
+        { label:'Place', items:['at the library','in my room','at school'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; if(s==='I') return v==='am studying'; if(['He','She'].includes(s)) return v==='is studying'; return v==='are studying'; },
+      ok:'Present continuous: am/is/are + verb-ing.',
+      bad:'I am · He/She is · You/We/They are + verb-ing.'
+    },
+  ],
+  B1: [
+    { topic:'If conditional (type 1)', topicAr:'الشرط النوع الأول',
+      cols:[
+        { label:'If-clause', items:['If you study','If you sleep','If it rains','If I am free'] },
+        { label:'Comma', items:[','] },
+        { label:'Main clause', items:['you will pass','you will feel better','we will stay home','I will call you'] },
+      ],
+      check:(p)=>true, // any combo is grammatical
+      ok:'First conditional: If + present, … will + verb.',
+      bad:''
+    },
+    { topic:'If conditional (type 2)', topicAr:'الشرط النوع الثاني',
+      cols:[
+        { label:'If-clause', items:['If I were rich','If I had time','If she knew','If we lived nearer'] },
+        { label:'Comma', items:[','] },
+        { label:'Main clause', items:['I would travel','I would help you','she would tell us','we would visit more'] },
+      ],
+      check:(p)=>true,
+      ok:'Second conditional: If + past, … would + verb (hypothetical).',
+      bad:''
+    },
+    { topic:'Reported speech', topicAr:'الكلام المنقول',
+      cols:[
+        { label:'Subject + said', items:['He said','She said','They said'] },
+        { label:'That', items:['that he','that she','that they'] },
+        { label:'Reported verb', items:['was tired','had eaten','would come tomorrow','was studying'] },
+      ],
+      check:(p)=>{const [s,t,r]=p; const who=s.startsWith('He')?'he':s.startsWith('She')?'she':'they'; return t.endsWith(who); },
+      ok:'Pronoun matches the reporter (he said that he…).',
+      bad:'Match: "He said that he" / "She said that she" / "They said that they".'
+    },
+    { topic:'Relative clauses', topicAr:'الجمل الموصولة',
+      cols:[
+        { label:'Noun', items:['The man','The book','The city','The teacher'] },
+        { label:'Relative pronoun', items:['who','which','where','whose'] },
+        { label:'Clause', items:['lives next door','I read last week','we visited','car was stolen'] },
+      ],
+      check:(p)=>{const [n,r,c]=p
+        const person=['The man','The teacher'].includes(n)
+        const thing=['The book'].includes(n)
+        const place=['The city'].includes(n)
+        if(r==='who') return person && ['lives next door'].includes(c)
+        if(r==='which') return thing && ['I read last week'].includes(c)
+        if(r==='where') return place && ['we visited'].includes(c)
+        if(r==='whose') return person && ['car was stolen'].includes(c)
+        return false
+      },
+      ok:'Right relative pronoun + matching clause.',
+      bad:'who → person · which → thing · where → place · whose → possession.'
+    },
+    { topic:'Have to / must', topicAr:'يجب',
+      cols:[
+        { label:'Subject', items:['I','You','He','We'] },
+        { label:'Modal', items:['must','have to','has to'] },
+        { label:'Verb-base', items:['leave now','finish this','call my mom','wear a uniform'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; if(v==='has to') return s==='He'; if(v==='have to') return s!=='He'; return true; },
+      ok:'must (any) · have to (I/You/We) · has to (He/She).',
+      bad:'He has to (third person) — others use "have to" or "must".'
+    },
+    { topic:'Should advice', topicAr:'نصيحة',
+      cols:[
+        { label:'Subject', items:['You','He','She','We','They'] },
+        { label:'Modal', items:['should','shouldn\'t','shoulds'] },
+        { label:'Verb-base', items:['take a break','eat junk food','study harder','say sorry'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; return v==='should' || v==='shouldn\'t'; },
+      ok:'should / shouldn\'t never changes form.',
+      bad:'"shoulds" doesn\'t exist — modal stays the same.'
+    },
+    { topic:'Passive voice', topicAr:'المبني للمجهول',
+      cols:[
+        { label:'Subject', items:['The cake','The cars','The letter','The houses'] },
+        { label:'Be + pp', items:['was eaten','were eaten','was sent','were built'] },
+        { label:'Agent', items:['by the kids','by the company','yesterday','last century'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; const sing=['The cake','The letter'].includes(s); const isWas=v.startsWith('was'); return sing===isWas; },
+      ok:'Singular + was + pp · Plural + were + pp.',
+      bad:'Passive: subject + was/were + past participle.'
+    },
+    { topic:'Used to / would', topicAr:'كنت اعتدت',
+      cols:[
+        { label:'Subject', items:['I','He','We','They'] },
+        { label:'Past habit', items:['used to','would','use to'] },
+        { label:'Verb-base', items:['play outside','watch cartoons','spend hours reading','swim every day'] },
+      ],
+      check:(p)=>{const [s,v,o]=p; return v==='used to' || v==='would'; },
+      ok:'used to / would + verb = past habit.',
+      bad:'Correct forms: "used to" or "would" — never "use to" in past meaning.'
+    },
+    { topic:'Wish + past', topicAr:'أتمنى',
+      cols:[
+        { label:'Wish', items:['I wish','We wish','She wishes'] },
+        { label:'Subject + verb', items:['I had','we had','she had','I knew'] },
+        { label:'Object', items:['more money','more time','the answer','a car'] },
+      ],
+      check:(p)=>true,
+      ok:'wish + past tense expresses a present-time wish.',
+      bad:''
+    },
+    { topic:'Time clauses', topicAr:'جمل الزمن',
+      cols:[
+        { label:'Time word', items:['When','Before','After','As soon as'] },
+        { label:'Subject + verb', items:['I finish work','she arrives','we eat','it stops raining'] },
+        { label:'Main clause', items:['I will call you','we will leave','we go home','we will go out'] },
+      ],
+      check:(p)=>true,
+      ok:'Time clause + present (not future), main clause + will.',
+      bad:''
+    },
+  ],
+}
+
+let currentLevel='A1', rounds=[], roundIdx=0, picks=[null,null,null]
+let score=0, streak=0, answered=false
+
+const builtEl=document.getElementById('built')
+const columnsEl=document.getElementById('columns')
+const promptText=document.getElementById('prompt-text')
+const promptAr=document.getElementById('prompt-ar')
+const explainEl=document.getElementById('explain')
+const explainText=document.getElementById('explain-text')
+const feedbackEl=document.getElementById('feedback')
+const scoreEl=document.getElementById('score')
+const streakEl=document.getElementById('streak')
+const checkBtn=document.getElementById('check-btn')
+const nextBtn=document.getElementById('next-btn')
+const progressEl=document.getElementById('progress')
+const gameAreaEl=document.getElementById('game-area')
+const summaryEl=document.getElementById('summary')
+const roundNumEl=document.getElementById('round-num')
+const roundTotalEl=document.getElementById('round-total')
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function startLevel(lv){
+  currentLevel=lv
+  rounds=shuffle(ROUNDS_BY_LEVEL[lv]).slice(0,8)
+  roundIdx=0; score=0; streak=0
+  scoreEl.textContent='0'; streakEl.textContent='0'
+  summaryEl.classList.remove('is-shown'); gameAreaEl.style.display=''
+  roundTotalEl.textContent=String(rounds.length)
+  if(window.PlayProgress) PlayProgress.injectBestPill(document.getElementById('level-bar'),GAME_ID,currentLevel)
+  loadRound()
+}
+
+function loadRound(){
+  if(roundIdx>=rounds.length){ finish(); return }
+  answered=false; picks=[null,null,null]
+  feedbackEl.textContent=''; feedbackEl.className='feedback'
+  explainEl.classList.remove('is-shown'); nextBtn.style.display='none'
+  setMascot('thinking'); progressEl.style.width=((roundIdx/rounds.length)*100)+'%'
+  const r=rounds[roundIdx]
+  promptText.textContent='Build a sentence — '+r.topic
+  promptAr.textContent=r.topicAr
+  roundNumEl.textContent=String(roundIdx+1)
+  builtEl.classList.remove('is-correct','is-wrong')
+  builtEl.querySelectorAll('.slot').forEach((s,i)=>{s.textContent=r.cols[i].label.toLowerCase(); s.classList.remove('is-filled')})
+  columnsEl.innerHTML=''
+  r.cols.forEach((c,i)=>{
+    const d=document.createElement('div')
+    d.className='column'; d.dataset.col=String(i)
+    d.innerHTML=`<div class="col-head"><span class="dot"></span>${c.label}</div><div class="col-options"></div>`
+    const opts=d.querySelector('.col-options')
+    c.items.forEach(item=>{
+      const b=document.createElement('button')
+      b.className='opt-btn'; b.textContent=item
+      b.addEventListener('click',()=>{pickOpt(i,item,d)})
+      opts.appendChild(b)
+    })
+    columnsEl.appendChild(d)
+  })
+  checkBtn.disabled=true
+}
+
+function pickOpt(colIdx,item,colDiv){
+  if(answered) return
+  picks[colIdx]=item
+  colDiv.querySelectorAll('.opt-btn').forEach(b=>b.classList.toggle('is-picked',b.textContent===item))
+  const slot=builtEl.querySelector(`.slot[data-col="${colIdx}"]`)
+  slot.textContent=item; slot.classList.add('is-filled')
+  if(picks.every(x=>x!==null)) checkBtn.disabled=false
+}
+
+checkBtn.addEventListener('click',()=>{
+  if(answered) return
+  answered=true
+  const r=rounds[roundIdx]
+  const ok=r.check(picks)
+  if(ok){
+    builtEl.classList.add('is-correct')
+    score++; streak++
+    scoreEl.textContent=score; streakEl.textContent=streak
+    feedbackEl.textContent='✓ Grammatically correct!'
+    feedbackEl.className='feedback is-right'
+    setMascot('happy','bounce')
+    explainText.innerHTML='✓ '+(r.ok||'Well done!')
+  } else {
+    builtEl.classList.add('is-wrong')
+    streak=0; streakEl.textContent='0'
+    feedbackEl.textContent='✗ Grammar issue — try again next round'
+    feedbackEl.className='feedback is-wrong'
+    setMascot('sad','shake')
+    explainText.innerHTML='💡 '+(r.bad||'Check the agreement and try again.')
+  }
+  explainEl.classList.add('is-shown')
+  checkBtn.disabled=true
+  nextBtn.style.display='inline-flex'
+})
+
+nextBtn.addEventListener('click',()=>{roundIdx++; loadRound()})
+
+function finish(){
+  const prevBest=window.PlayProgress?PlayProgress.getLevel(GAME_ID,currentLevel).best:0
+  const lv=window.PlayProgress?PlayProgress.record(GAME_ID,currentLevel,score,rounds.length):{best:score}
+  const acc=Math.round((score/rounds.length)*100)
+  document.getElementById('final-score').textContent=`${score}/${rounds.length}`
+  document.getElementById('final-acc').textContent=acc+'%'
+  document.getElementById('final-best').textContent=lv.best
+  let t='🏆',ti='Brilliant!',su='ممتاز!'
+  if(acc<50){t='💪';ti='Keep practicing';su='استمر!'} else if(acc<80){t='👍';ti='Good job';su='أداء جيد.'}
+  document.getElementById('summary-trophy').textContent=t
+  document.getElementById('summary-title').textContent=ti
+  document.getElementById('summary-sub').textContent=su
+  document.getElementById('new-best-banner').innerHTML=(score>prevBest&&prevBest>0)?'<span class="new-best">🌟 New best!</span>':''
+  gameAreaEl.style.display='none'; summaryEl.classList.add('is-shown')
+  if(window.PlayProgress) PlayProgress.injectBestPill(document.getElementById('level-bar'),GAME_ID,currentLevel)
+}
+
+document.getElementById('play-again-btn').addEventListener('click',()=>startLevel(currentLevel))
+document.querySelectorAll('.lev-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.lev-btn').forEach(x=>x.classList.remove('is-active'));b.classList.add('is-active');startLevel(b.dataset.level)}))
+startLevel('A1')
+</script>
+
+</body>
+</html>

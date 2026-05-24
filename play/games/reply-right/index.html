@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex, nofollow">
+  <title>Reply Right — Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; } button { font-family: inherit; cursor: pointer; } a { text-decoration: none; color: inherit; }
+    :root { --ink:#1c1917;--bg:#f5efe0;--paper:#fdfaf0;--paper-soft:#faf3e0;--paper-deep:#f0e6cd;--border:#e0d4b2;--border-soft:#ece2c5;--gold:#b45309;--gold-bright:#d97706;--gold-soft:#fef3c7;--text:#1c1917;--text-2:#44403c;--text-muted:#78716c;--green:#15803d;--red:#b91c1c;--display:'Outfit','DM Sans',system-ui,sans-serif;--sans:'DM Sans',sans-serif;--arabic:'Cairo','Tajawal',sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace;}
+    html, body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; min-height: 100%; -webkit-font-smoothing: antialiased; }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 60% 40% at 80% 0%, rgba(180, 83, 9, 0.08), transparent 60%); }
+    .topbar { position: sticky; top: 0; z-index: 100; background: rgba(245, 239, 224, 0.85); backdrop-filter: blur(18px) saturate(180%); border-bottom: 1px solid var(--border-soft); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+    .back-link { display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 999px; background: var(--paper); border: 1px solid var(--border); font-family: var(--display); font-size: 13px; font-weight: 700; color: var(--text-2); } .back-link:hover { background: var(--ink); color: white; border-color: var(--ink); }
+    .game-title { font-family: var(--display); font-weight: 900; font-size: 18px; }
+    .scoreboard { display: flex; gap: 12px; font-family: var(--display); font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+    .scoreboard b { color: var(--ink); font-family: var(--mono); font-size: 16px; font-weight: 800; margin-left: 4px; } .scoreboard b.streak { color: var(--gold); }
+    .page { position: relative; z-index: 2; max-width: 800px; margin: 0 auto; padding: 28px 24px 60px; }
+    .mascot { filter: drop-shadow(0 6px 12px rgba(28, 25, 23, 0.25)); } .mascot.is-bounce { animation: bounce 0.5s ease; } @keyframes bounce { 50% { transform: translateY(-12px) rotate(-4deg); } } .mascot.is-shake { animation: shake-m 0.4s ease; } @keyframes shake-m { 25% { transform: translateX(-6px) rotate(-3deg); } 75% { transform: translateX(6px) rotate(3deg); } }
+    .level-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; padding: 14px 18px; border-radius: 14px; background: var(--paper); border: 1px solid var(--border); }
+    .level-bar-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.18em; text-transform: uppercase; }
+    .lev-btn { padding: 8px 14px; border-radius: 10px; background: transparent; border: 1.5px solid var(--border); font-family: var(--display); font-size: 12px; font-weight: 700; color: var(--text-2); transition: all 0.18s ease; } .lev-btn:hover { border-color: var(--gold); } .lev-btn.is-active { background: var(--ink); color: white; border-color: var(--ink); }
+    .progress-bar { height: 6px; background: var(--paper-deep); border-radius: 999px; overflow: hidden; margin-bottom: 18px; } .progress-bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-bright)); transition: width 0.3s ease; width: 0%; }
+    .situation { padding: 18px 22px; border-radius: 14px; background: var(--gold-soft); border: 1px solid rgba(180,83,9,0.18); margin-bottom: 16px; font-family: var(--display); font-size: 14px; font-weight: 600; color: var(--text-2); display: flex; align-items: center; gap: 12px; }
+    .situation .ico { font-size: 22px; flex-shrink: 0; }
+    .bubble-row { display: flex; gap: 14px; margin-bottom: 18px; align-items: flex-end; }
+    .avatar { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, var(--ink), #44403c); display: inline-flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; box-shadow: 0 4px 10px -3px rgba(28,25,23,0.4); }
+    .bubble { position: relative; flex: 1; padding: 18px 22px; border-radius: 18px 18px 18px 4px; background: var(--paper); border: 1px solid var(--border); box-shadow: 0 6px 14px -4px rgba(115, 99, 53, 0.18); }
+    .bubble::before { content: ""; position: absolute; bottom: 0; left: -8px; width: 14px; height: 14px; background: var(--paper); border-left: 1px solid var(--border); border-bottom: 1px solid var(--border); transform: rotate(45deg); }
+    .speaker-name { font-family: var(--display); font-size: 11px; font-weight: 800; color: var(--gold); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 4px; }
+    .speech { font-family: var(--display); font-size: 17px; font-weight: 700; color: var(--text); line-height: 1.5; letter-spacing: -0.005em; }
+    .reply-label { font-family: var(--display); font-size: 11px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 10px; text-align: center; }
+    .choices { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+    .choice { padding: 16px 20px; border-radius: 14px; background: var(--paper); border: 2px solid var(--border); font-family: var(--display); font-size: 15px; font-weight: 700; color: var(--text); text-align: left; transition: all 0.18s ease; display: flex; align-items: center; gap: 12px; line-height: 1.45; }
+    .choice .lbl { width: 28px; height: 28px; flex-shrink: 0; border-radius: 8px; background: var(--paper-deep); display: inline-flex; align-items: center; justify-content: center; font-family: var(--mono); font-weight: 700; font-size: 13px; color: var(--text-2); }
+    .choice:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--gold); } .choice:hover:not(:disabled) .lbl { background: var(--gold-soft); color: var(--gold); }
+    .choice.is-correct { background: rgba(21,128,61,0.12); border-color: var(--green); color: var(--green); } .choice.is-correct .lbl { background: var(--green); color: white; }
+    .choice.is-wrong { background: rgba(185,28,28,0.12); border-color: var(--red); color: var(--red); animation: shake-i 0.4s ease; } @keyframes shake-i { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+    .feedback { min-height: 24px; padding: 0 4px; font-family: var(--display); font-size: 14px; font-weight: 700; text-align: center; margin-bottom: 12px; } .feedback.is-right { color: var(--green); } .feedback.is-wrong { color: var(--red); }
+    .explain { display: none; padding: 14px 18px; border-radius: 12px; background: var(--gold-soft); border: 1px solid rgba(180,83,9,0.2); margin-bottom: 14px; } .explain.is-shown { display: block; }
+    .explain-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--gold); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 6px; } .explain-text { font-family: var(--display); font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.55; }
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 26px; border-radius: 12px; font-family: var(--display); font-size: 14px; font-weight: 800; transition: all 0.18s ease; border: none; }
+    .btn.is-gold { background: linear-gradient(135deg, var(--gold), var(--gold-bright)); color: white; box-shadow: 0 8px 18px -5px rgba(180, 83, 9, 0.35); } .btn.is-gold:hover { transform: translateY(-2px); }
+    .summary { display: none; padding: 36px 28px; border-radius: 24px; background: linear-gradient(160deg, var(--paper), var(--paper-soft)); border: 1px solid var(--border); text-align: center; box-shadow: 0 16px 36px -14px rgba(115, 99, 53, 0.20); } .summary.is-shown { display: block; } .summary-trophy { font-size: 56px; margin-bottom: 10px; } .summary-title { font-family: var(--display); font-size: 26px; font-weight: 900; letter-spacing: -0.02em; margin-bottom: 6px; } .summary-sub { font-family: var(--arabic); font-size: 14px; color: var(--text-muted); direction: rtl; margin-bottom: 18px; } .summary-stats { display: flex; gap: 22px; justify-content: center; flex-wrap: wrap; margin-bottom: 18px; padding: 18px; border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border); } .stat { display: flex; flex-direction: column; gap: 4px; } .stat-num { font-family: var(--display); font-size: 26px; font-weight: 900; color: var(--gold); letter-spacing: -0.02em; line-height: 1; } .stat-lbl { font-family: var(--display); font-size: 10px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.18em; text-transform: uppercase; } .new-best { display: inline-block; margin-top: 10px; padding: 5px 14px; border-radius: 999px; background: var(--gold); color: white; font-family: var(--display); font-size: 11px; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; }
+    @media (max-width: 640px) { .topbar { padding: 12px 16px; } .page { padding: 22px 14px; } .avatar { width: 44px; height: 44px; font-size: 22px; } }
+  </style>
+</head>
+<body>
+<nav class="topbar"><a href="../../" class="back-link">← All games</a><div class="game-title">💬 Reply Right</div><div class="scoreboard"><span>Score<b id="score">0</b></span><span>Streak<b class="streak" id="streak">0</b></span></div></nav>
+<main class="page">
+  <div class="level-bar" id="level-bar"><span class="level-bar-label">Level</span><button class="lev-btn is-active" data-level="A2">A2 · Greetings</button><button class="lev-btn" data-level="B1">B1 · Daily</button><button class="lev-btn" data-level="B2">B2 · Polite & work</button></div>
+  <div class="progress-bar"><span id="progress"></span></div>
+  <div id="game-area">
+    <div class="situation"><span class="ico" id="situ-ico">🎯</span><span id="situ-text">Situation here.</span></div>
+    <div class="bubble-row">
+      <div class="avatar" id="avatar">👤</div>
+      <div class="bubble"><div class="speaker-name" id="speaker">Sam says</div><div class="speech" id="speech">"How are you?"</div></div>
+    </div>
+    <div class="reply-label">Choose the best reply ↓</div>
+    <div class="choices" id="choices"></div>
+    <div class="explain" id="explain"><div class="explain-label">💡 Why this reply</div><div class="explain-text" id="explain-text"></div></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="actions"><button class="btn is-gold" id="next-btn" style="display:none;">Next →</button></div>
+  </div>
+  <div class="summary" id="summary">
+    <div class="summary-trophy" id="summary-trophy">🏆</div><div class="summary-title" id="summary-title">Brilliant!</div><div class="summary-sub" id="summary-sub">ممتاز!</div>
+    <div class="summary-stats"><div class="stat"><span class="stat-num" id="final-score">0</span><span class="stat-lbl">Score</span></div><div class="stat"><span class="stat-num" id="final-acc">0%</span><span class="stat-lbl">Accuracy</span></div><div class="stat"><span class="stat-num" id="final-best">0</span><span class="stat-lbl">Best</span></div></div>
+    <div id="new-best-banner"></div><div style="margin-top:14px;"><button class="btn is-gold" id="play-again-btn">Play again</button></div>
+  </div>
+</main>
+<script src="../../_shared/progress.js"></script>
+<script>
+const GAME_ID='reply-right'
+function mascotSVG(m){const E={default:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="38" cy="59" r="3" fill="#1c1917"/><circle cx="62" cy="59" r="3" fill="#1c1917"/>',happy:'<path d="M 32 60 Q 38 53 44 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M 56 60 Q 62 53 68 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',sad:'<circle cx="38" cy="60" r="6" fill="#fdfaf0"/><circle cx="62" cy="60" r="6" fill="#fdfaf0"/>',thinking:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/>'};const M={default:'<path d="M 40 75 Q 50 80 60 75" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',happy:'<path d="M 32 72 Q 50 88 68 72 Q 50 80 32 72 Z" fill="#fdfaf0"/>',sad:'<path d="M 40 80 Q 50 73 60 80" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',thinking:'<path d="M 42 78 L 58 78" stroke="#fdfaf0" stroke-width="2.5" stroke-linecap="round"/>'};const x=m||'default';return `<line x1="50" y1="14" x2="74" y2="6" stroke="#fbbf24" stroke-width="2"/><circle cx="74" cy="6" r="3" fill="#fbbf24"/><rect x="32" y="12" width="36" height="14" rx="3" fill="#d97706"/><rect x="14" y="24" width="72" height="6" rx="2" fill="#b45309"/><circle cx="50" cy="62" r="34" fill="#1c1917"/><path d="M 18 112 Q 50 92 82 112 L 82 120 L 18 120 Z" fill="#1c1917"/>${E[x]||E.default}${M[x]||M.default}`}
+function setMascot(m,b){/* unused on this game, but for consistency */}
+
+// { ico, situation, avatar, speaker, speech, reply (correct), distractors[3], why }
+const SCENES = {
+  A2: [
+    {ico:'☀️',situation:'You meet your friend in the morning.',avatar:'🙂',speaker:'Sara',speech:'Good morning! How are you?',reply:'I\'m fine, thank you. And you?',distractors:['Yes, I am.','Goodbye!','My name is Sara.'],why:'A polite reply to "How are you?" includes a status and returns the question.'},
+    {ico:'👋',situation:'A new classmate greets you.',avatar:'😊',speaker:'New student',speech:'Nice to meet you.',reply:'Nice to meet you too.',distractors:['You\'re welcome.','I\'m sorry.','See you later.'],why:'The standard mirror reply is "Nice to meet you too."'},
+    {ico:'🙏',situation:'Someone holds the door open for you.',avatar:'🚪',speaker:'A stranger',speech:'Here you go.',reply:'Thank you very much.',distractors:['No, I\'m not.','Please.','Goodbye.'],why:'Thank politely for a small kindness.'},
+    {ico:'🍽️',situation:'A friend offers you a snack.',avatar:'🍎',speaker:'Friend',speech:'Would you like an apple?',reply:'Yes, please.',distractors:['I am Sara.','Goodnight.','You are welcome.'],why:'"Yes, please" / "No, thank you" — standard accept/decline.'},
+    {ico:'🙅',situation:'You bump into someone in the street.',avatar:'😟',speaker:'Stranger',speech:'Ouch! Watch out!',reply:'Sorry, I didn\'t see you.',distractors:['You\'re welcome.','See you tomorrow.','Nice to meet you.'],why:'Apologize when you cause discomfort.'},
+    {ico:'📞',situation:'You answer the phone.',avatar:'📱',speaker:'Caller',speech:'Hello, is this Ahmed?',reply:'Yes, speaking. How can I help?',distractors:['No, thank you.','Goodbye, see you later.','I am fine, thanks.'],why:'"Speaking" identifies yourself on the phone.'},
+    {ico:'🛒',situation:'A shop assistant approaches you.',avatar:'🛍️',speaker:'Assistant',speech:'Can I help you?',reply:'Yes, I\'m looking for a black shirt.',distractors:['I am from Morocco.','How old are you?','Goodnight.'],why:'Tell them what you\'re looking for to start the help.'},
+    {ico:'🍰',situation:'It\'s your friend\'s birthday today.',avatar:'🎂',speaker:'Friend',speech:'Today is my birthday!',reply:'Happy birthday! Have a great day.',distractors:['Goodbye.','You\'re welcome.','I\'m sorry.'],why:'A birthday wish is the expected reply.'},
+    {ico:'🤧',situation:'Your colleague sneezes loudly.',avatar:'🤧',speaker:'Colleague',speech:'Achoo!',reply:'Bless you!',distractors:['Thank you.','Good night.','Please.'],why:'"Bless you" is said after someone sneezes (English custom).'},
+    {ico:'🌙',situation:'You are going to bed.',avatar:'😴',speaker:'Family member',speech:'I\'m off to bed. Goodnight.',reply:'Goodnight! Sleep well.',distractors:['Hello!','Excuse me.','Bless you.'],why:'Return the goodnight with a sleep wish.'},
+    {ico:'❓',situation:'Tourist asks for directions.',avatar:'🗺️',speaker:'Tourist',speech:'Excuse me, where is the bus station?',reply:'It\'s just down this street, on the left.',distractors:['I\'m fine, thanks.','You\'re welcome.','Bless you.'],why:'Give a direction in response to a question about location.'},
+    {ico:'🎁',situation:'You receive a gift.',avatar:'🎀',speaker:'Friend',speech:'This is for you.',reply:'Wow, thank you so much!',distractors:['Goodbye.','I don\'t know.','See you later.'],why:'Thank warmly when receiving a gift.'},
+  ],
+  B1: [
+    {ico:'🤝',situation:'Job interview ending.',avatar:'💼',speaker:'Interviewer',speech:'Thank you for coming in today.',reply:'Thank you for the opportunity.',distractors:['No problem at all.','I don\'t mind.','See you later.'],why:'In formal settings, mirror the thanks and acknowledge the chance.'},
+    {ico:'📅',situation:'A colleague suggests a meeting time.',avatar:'🗓️',speaker:'Colleague',speech:'Can we meet Thursday at 2?',reply:'Thursday at 2 works for me.',distractors:['I am hungry.','You\'re welcome.','Bless you.'],why:'Confirm a time clearly.'},
+    {ico:'🚗',situation:'You\'re asked for a ride.',avatar:'🛣️',speaker:'Friend',speech:'Could you give me a lift home?',reply:'Sure, no problem. Hop in.',distractors:['I am happy.','Goodnight.','No, thank you.'],why:'Agreeing casually + welcoming them in is natural.'},
+    {ico:'💔',situation:'Friend tells you bad news.',avatar:'😢',speaker:'Friend',speech:'My grandma passed away last night.',reply:'I\'m so sorry to hear that.',distractors:['Congratulations!','Don\'t worry, be happy.','It\'s funny.'],why:'Express sympathy for a loss.'},
+    {ico:'🎓',situation:'Friend just graduated.',avatar:'🎉',speaker:'Friend',speech:'I just got my degree!',reply:'Congratulations! You worked hard for it.',distractors:['I\'m sorry to hear that.','Bless you.','See you tomorrow.'],why:'Celebrate their achievement.'},
+    {ico:'❤️',situation:'You receive an apology.',avatar:'🙏',speaker:'Friend',speech:'I\'m really sorry for being late.',reply:'No worries, it happens.',distractors:['Thank you very much.','Goodbye.','I\'m fine, and you?'],why:'Accept the apology and reassure them.'},
+    {ico:'🤔',situation:'Someone asks a hard question.',avatar:'❓',speaker:'Colleague',speech:'What do you think we should do?',reply:'Let me think for a moment.',distractors:['I love pizza.','It\'s sunny today.','Goodnight!'],why:'Buy yourself time politely.'},
+    {ico:'💡',situation:'Boss asks if you can take on extra work.',avatar:'🏢',speaker:'Boss',speech:'Could you handle this project too?',reply:'I\'d be happy to. When do you need it?',distractors:['No, never.','I don\'t care.','Bless you.'],why:'Agree positively and clarify the timeline.'},
+    {ico:'😷',situation:'A colleague calls in sick.',avatar:'🤒',speaker:'Colleague',speech:'I won\'t make it to work today, I\'m sick.',reply:'Get well soon. Rest up.',distractors:['Congratulations!','Welcome aboard.','Goodbye forever.'],why:'Wish them a speedy recovery.'},
+    {ico:'🍕',situation:'A friend invites you out.',avatar:'🍴',speaker:'Friend',speech:'Want to grab dinner tonight?',reply:'Sounds great. What time?',distractors:['I\'m sorry to hear that.','Please don\'t.','Bless you!'],why:'Accept enthusiastically and ask for details.'},
+    {ico:'🌧️',situation:'Coworker enters the office soaked from rain.',avatar:'☔',speaker:'Coworker',speech:'It\'s pouring out there!',reply:'I know — I almost didn\'t make it in.',distractors:['Happy birthday!','I love sunshine.','Yes, it\'s sunny.'],why:'Share the experience to build rapport.'},
+    {ico:'🤷',situation:'You don\'t know an answer.',avatar:'❓',speaker:'Colleague',speech:'Do you know who fixed this bug?',reply:'Sorry, I have no idea — try asking Maya.',distractors:['Yes, you\'re welcome.','See you Monday.','Goodnight.'],why:'Be honest about not knowing and suggest help.'},
+  ],
+  B2: [
+    {ico:'🎤',situation:'Meeting with senior management.',avatar:'👔',speaker:'Director',speech:'Could you give us a quick update on the project?',reply:'Of course. We\'ve completed phase one and we\'re on track for phase two.',distractors:['I am doing well, thank you.','I love pizza too.','Goodbye for now.'],why:'Give a brief, professional status update.'},
+    {ico:'⚠️',situation:'Client points out an issue.',avatar:'😟',speaker:'Client',speech:'The report you sent has some errors.',reply:'I sincerely apologize. I\'ll review and resend it shortly.',distractors:['That\'s not my problem.','No worries, it happens.','Congratulations!'],why:'Take responsibility and offer a fix.'},
+    {ico:'🤝',situation:'Networking event introduction.',avatar:'💼',speaker:'New contact',speech:'I\'ve heard great things about your work.',reply:'That\'s very kind of you to say. Likewise.',distractors:['No problem.','Bless you!','See you later.'],why:'Accept the compliment graciously and return it.'},
+    {ico:'💵',situation:'Negotiating a salary.',avatar:'📊',speaker:'Manager',speech:'We can offer you 45,000.',reply:'I was hoping for closer to 50,000 given my experience.',distractors:['Okay, no problem.','I love this job.','Goodbye!'],why:'Counter-offer politely with justification.'},
+    {ico:'🆘',situation:'Colleague asks for help during their crunch time.',avatar:'😩',speaker:'Colleague',speech:'I\'m completely swamped — any chance you could help?',reply:'I have a bit of bandwidth this afternoon. What do you need?',distractors:['Not my job.','I\'m busy too.','Welcome aboard!'],why:'Offer help with specific availability.'},
+    {ico:'🎉',situation:'Boss announces team got a bonus.',avatar:'🏆',speaker:'Boss',speech:'Great news — we\'re giving everyone a bonus this quarter.',reply:'That\'s wonderful! Thank you for recognizing the team.',distractors:['I don\'t need money.','I\'m so sorry to hear that.','Goodnight!'],why:'Express gratitude and credit the team.'},
+    {ico:'🤔',situation:'Disagreement in a meeting.',avatar:'💭',speaker:'Coworker',speech:'I really don\'t think your approach will work.',reply:'I understand your concern. Could we walk through it together?',distractors:['You\'re wrong.','I quit.','Bless you.'],why:'Acknowledge their view and propose collaboration.'},
+    {ico:'📧',situation:'Polite email follow-up.',avatar:'✉️',speaker:'Client',speech:'I haven\'t heard back about my request.',reply:'Apologies for the delay. I\'ll get back to you by end of day.',distractors:['I never got the email.','Please stop emailing me.','Welcome!'],why:'Apologize briefly and commit to action.'},
+    {ico:'🎁',situation:'Receiving an unexpected promotion.',avatar:'🚀',speaker:'CEO',speech:'We\'re promoting you to senior manager.',reply:'I\'m truly honored. Thank you for the opportunity.',distractors:['Are you sure?','I don\'t want it.','Bless you!'],why:'Accept honors with humility and gratitude.'},
+    {ico:'🕰️',situation:'Asking for a deadline extension.',avatar:'⏳',speaker:'You to your boss',speech:'(You need to ask): "I need more time."',reply:'Would it be possible to extend the deadline by a few days?',distractors:['I won\'t finish.','Whatever.','It\'s done already.'],why:'Use a polite, indirect formulation for requests.'},
+    {ico:'😬',situation:'Apologizing for a serious mistake.',avatar:'💔',speaker:'You to client',speech:'(You need to apologize)',reply:'I take full responsibility for what happened, and here is what I\'m doing to fix it.',distractors:['It wasn\'t my fault.','Get over it.','Bless you!'],why:'Own the mistake fully and present a remedy.'},
+    {ico:'🌐',situation:'Declining an invitation politely.',avatar:'📅',speaker:'Friend',speech:'Want to come to my party Saturday?',reply:'I\'d love to, but I have another commitment. Maybe next time?',distractors:['No way.','Boring.','I\'ll come, but I\'ll be late on purpose.'],why:'Decline warmly, give a brief reason, leave the door open.'},
+  ],
+}
+
+let currentLevel='A2',pool=[],idx=0,score=0,streak=0,answered=false
+const ico=document.getElementById('situ-ico'),situText=document.getElementById('situ-text'),avatar=document.getElementById('avatar'),speaker=document.getElementById('speaker'),speech=document.getElementById('speech'),choicesEl=document.getElementById('choices'),feedbackEl=document.getElementById('feedback'),explainEl=document.getElementById('explain'),explainText=document.getElementById('explain-text'),scoreEl=document.getElementById('score'),streakEl=document.getElementById('streak'),nextBtn=document.getElementById('next-btn'),progressEl=document.getElementById('progress'),gameAreaEl=document.getElementById('game-area'),summaryEl=document.getElementById('summary')
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function startLevel(lv){currentLevel=lv;pool=shuffle(SCENES[lv]).slice(0,10);idx=0;score=0;streak=0;scoreEl.textContent='0';streakEl.textContent='0';summaryEl.classList.remove('is-shown');gameAreaEl.style.display='';if(window.PlayProgress)PlayProgress.injectBestPill(document.getElementById('level-bar'),GAME_ID,currentLevel);loadQ()}
+function loadQ(){answered=false;feedbackEl.textContent='';feedbackEl.className='feedback';explainEl.classList.remove('is-shown');nextBtn.style.display='none';progressEl.style.width=((idx/pool.length)*100)+'%';if(idx>=pool.length){finish();return}
+  const s=pool[idx];ico.textContent=s.ico;situText.textContent=s.situation;avatar.textContent=s.avatar;speaker.textContent=s.speaker+' says';speech.textContent='"'+s.speech+'"'
+  const opts=shuffle([{t:s.reply,c:true},...s.distractors.map(t=>({t,c:false}))])
+  const labels=['A','B','C','D']
+  choicesEl.innerHTML=''
+  opts.forEach((o,i)=>{const b=document.createElement('button');b.className='choice';b.innerHTML=`<span class="lbl">${labels[i]}</span><span>${o.t}</span>`;b.addEventListener('click',()=>pick(b,o.c));choicesEl.appendChild(b)})
+}
+function pick(btn,correct){if(answered)return;answered=true;const s=pool[idx];const all=choicesEl.querySelectorAll('.choice');all.forEach(b=>b.disabled=true)
+  if(correct){btn.classList.add('is-correct');score++;streak++;scoreEl.textContent=score;streakEl.textContent=streak;feedbackEl.textContent='✓ Natural reply!';feedbackEl.className='feedback is-right'}
+  else{btn.classList.add('is-wrong');streak=0;streakEl.textContent='0';all.forEach(b=>{if(b.querySelector('span:last-child').textContent===s.reply)b.classList.add('is-correct')});feedbackEl.textContent='✗ Not the best fit';feedbackEl.className='feedback is-wrong'}
+  explainText.textContent=s.why; explainEl.classList.add('is-shown')
+  nextBtn.style.display='inline-flex'
+}
+function finish(){const prevBest=window.PlayProgress?PlayProgress.getLevel(GAME_ID,currentLevel).best:0;const lv=window.PlayProgress?PlayProgress.record(GAME_ID,currentLevel,score,pool.length):{best:score};const acc=Math.round((score/pool.length)*100);document.getElementById('final-score').textContent=`${score}/${pool.length}`;document.getElementById('final-acc').textContent=acc+'%';document.getElementById('final-best').textContent=lv.best;let t='🏆',ti='Brilliant!',su='ممتاز!';if(acc<50){t='💪';ti='Keep practicing';su='استمر!'}else if(acc<80){t='👍';ti='Good job';su='أداء جيد.'}document.getElementById('summary-trophy').textContent=t;document.getElementById('summary-title').textContent=ti;document.getElementById('summary-sub').textContent=su;document.getElementById('new-best-banner').innerHTML=(score>prevBest&&prevBest>0)?'<span class="new-best">🌟 New best!</span>':'';gameAreaEl.style.display='none';summaryEl.classList.add('is-shown');if(window.PlayProgress)PlayProgress.injectBestPill(document.getElementById('level-bar'),GAME_ID,currentLevel)}
+nextBtn.addEventListener('click',()=>{idx++;loadQ()})
+document.getElementById('play-again-btn').addEventListener('click',()=>startLevel(currentLevel))
+document.querySelectorAll('.lev-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.lev-btn').forEach(x=>x.classList.remove('is-active'));b.classList.add('is-active');startLevel(b.dataset.level)}))
+startLevel('A2')
+</script>
+</body>
+</html>

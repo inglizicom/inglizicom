@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex, nofollow">
+  <title>Plural Trainer — Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; } button { font-family: inherit; cursor: pointer; } a { text-decoration: none; color: inherit; }
+    :root { --ink:#1c1917;--bg:#f5efe0;--paper:#fdfaf0;--paper-soft:#faf3e0;--paper-deep:#f0e6cd;--border:#e0d4b2;--border-soft:#ece2c5;--gold:#b45309;--gold-bright:#d97706;--gold-soft:#fef3c7;--text:#1c1917;--text-2:#44403c;--text-muted:#78716c;--green:#15803d;--red:#b91c1c;--display:'Outfit','DM Sans',system-ui,sans-serif;--sans:'DM Sans',sans-serif;--arabic:'Cairo','Tajawal',sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace;}
+    html, body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; min-height: 100%; -webkit-font-smoothing: antialiased; }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 60% 40% at 80% 0%, rgba(180, 83, 9, 0.08), transparent 60%); }
+    .topbar { position: sticky; top: 0; z-index: 100; background: rgba(245, 239, 224, 0.85); backdrop-filter: blur(18px) saturate(180%); border-bottom: 1px solid var(--border-soft); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+    .back-link { display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 999px; background: var(--paper); border: 1px solid var(--border); font-family: var(--display); font-size: 13px; font-weight: 700; color: var(--text-2); } .back-link:hover { background: var(--ink); color: white; border-color: var(--ink); }
+    .game-title { font-family: var(--display); font-weight: 900; font-size: 18px; }
+    .scoreboard { display: flex; gap: 12px; font-family: var(--display); font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+    .scoreboard b { color: var(--ink); font-family: var(--mono); font-size: 16px; font-weight: 800; margin-left: 4px; } .scoreboard b.streak { color: var(--gold); }
+    .page { position: relative; z-index: 2; max-width: 720px; margin: 0 auto; padding: 28px 24px 60px; }
+    .mascot { filter: drop-shadow(0 6px 12px rgba(28, 25, 23, 0.25)); } .mascot.is-bounce { animation: bounce 0.5s ease; } @keyframes bounce { 50% { transform: translateY(-12px) rotate(-4deg); } } .mascot.is-shake { animation: shake-m 0.4s ease; } @keyframes shake-m { 25% { transform: translateX(-6px) rotate(-3deg); } 75% { transform: translateX(6px) rotate(3deg); } }
+    .level-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; padding: 14px 18px; border-radius: 14px; background: var(--paper); border: 1px solid var(--border); }
+    .level-bar-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.18em; text-transform: uppercase; }
+    .lev-btn { padding: 8px 14px; border-radius: 10px; background: transparent; border: 1.5px solid var(--border); font-family: var(--display); font-size: 12px; font-weight: 700; color: var(--text-2); transition: all 0.18s ease; } .lev-btn:hover { border-color: var(--gold); } .lev-btn.is-active { background: var(--ink); color: white; border-color: var(--ink); }
+    .progress-bar { height: 6px; background: var(--paper-deep); border-radius: 999px; overflow: hidden; margin-bottom: 18px; } .progress-bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-bright)); transition: width 0.3s ease; width: 0%; }
+    .puzzle-card { position: relative; padding: 44px 30px 32px; border-radius: 24px; background: radial-gradient(ellipse 70% 50% at 100% 0%, rgba(217, 119, 6, 0.10), transparent 60%), linear-gradient(160deg, var(--paper), var(--paper-soft)); border: 1px solid var(--border); margin-bottom: 18px; box-shadow: 0 16px 36px -14px rgba(115, 99, 53, 0.20); text-align: center; }
+    .puzzle-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, var(--ink), var(--gold), var(--gold-bright)); border-radius: 24px 24px 0 0; } .card-mascot { position: absolute; top: -26px; left: 28px; }
+    .puzzle-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--gold); letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 16px; }
+    .one-many { display: flex; gap: 16px; justify-content: center; align-items: center; margin-bottom: 6px; flex-wrap: wrap; }
+    .count { padding: 4px 12px; border-radius: 8px; background: var(--paper-deep); color: var(--text-2); font-family: var(--display); font-size: 11px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; }
+    .singular { font-family: var(--display); font-size: clamp(34px, 5vw, 50px); font-weight: 900; color: var(--text); letter-spacing: -0.02em; }
+    .arrow { font-size: 28px; color: var(--gold); }
+    .blank { padding: 8px 22px; border-radius: 14px; border: 3px dashed var(--gold); color: var(--gold); font-family: var(--display); font-size: clamp(32px, 5vw, 48px); font-weight: 900; }
+    .blank.is-filled { border-style: solid; }
+    .hint-row { font-family: var(--display); font-size: 13px; color: var(--text-muted); font-weight: 600; margin-top: 12px; font-style: italic; }
+    .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+    .choice { padding: 18px; border-radius: 14px; background: var(--paper); border: 2px solid var(--border); font-family: var(--display); font-size: 18px; font-weight: 800; color: var(--text); text-align: center; transition: all 0.18s ease; }
+    .choice:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--gold); color: var(--gold); } .choice.is-correct { background: rgba(21,128,61,0.12); border-color: var(--green); color: var(--green); } .choice.is-wrong { background: rgba(185,28,28,0.12); border-color: var(--red); color: var(--red); animation: shake-i 0.4s ease; } @keyframes shake-i { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+    .feedback { min-height: 24px; padding: 0 4px; font-family: var(--display); font-size: 14px; font-weight: 700; text-align: center; margin-bottom: 12px; } .feedback.is-right { color: var(--green); } .feedback.is-wrong { color: var(--red); }
+    .explain { display: none; padding: 14px 18px; border-radius: 12px; background: var(--gold-soft); border: 1px solid rgba(180,83,9,0.2); margin-bottom: 14px; } .explain.is-shown { display: block; }
+    .explain-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--gold); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 6px; } .explain-text { font-family: var(--display); font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.55; }
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 26px; border-radius: 12px; font-family: var(--display); font-size: 14px; font-weight: 800; transition: all 0.18s ease; border: none; }
+    .btn.is-gold { background: linear-gradient(135deg, var(--gold), var(--gold-bright)); color: white; box-shadow: 0 8px 18px -5px rgba(180, 83, 9, 0.35); } .btn.is-gold:hover { transform: translateY(-2px); }
+    .summary { display: none; padding: 36px 28px; border-radius: 24px; background: linear-gradient(160deg, var(--paper), var(--paper-soft)); border: 1px solid var(--border); text-align: center; box-shadow: 0 16px 36px -14px rgba(115, 99, 53, 0.20); } .summary.is-shown { display: block; } .summary-trophy { font-size: 56px; margin-bottom: 10px; } .summary-title { font-family: var(--display); font-size: 26px; font-weight: 900; letter-spacing: -0.02em; margin-bottom: 6px; } .summary-sub { font-family: var(--arabic); font-size: 14px; color: var(--text-muted); direction: rtl; margin-bottom: 18px; } .summary-stats { display: flex; gap: 22px; justify-content: center; flex-wrap: wrap; margin-bottom: 18px; padding: 18px; border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border); } .stat { display: flex; flex-direction: column; gap: 4px; } .stat-num { font-family: var(--display); font-size: 26px; font-weight: 900; color: var(--gold); letter-spacing: -0.02em; line-height: 1; } .stat-lbl { font-family: var(--display); font-size: 10px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.18em; text-transform: uppercase; } .new-best { display: inline-block; margin-top: 10px; padding: 5px 14px; border-radius: 999px; background: var(--gold); color: white; font-family: var(--display); font-size: 11px; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; }
+    @media (max-width: 640px) { .topbar { padding: 12px 16px; } .page { padding: 22px 14px; } .card-mascot { left: 50%; transform: translateX(-50%); top: -32px; } }
+  </style>
+</head>
+<body>
+<nav class="topbar"><a href="../../" class="back-link">← All games</a><div class="game-title">🔢 Plural Trainer</div><div class="scoreboard"><span>Score<b id="score">0</b></span><span>Streak<b class="streak" id="streak">0</b></span></div></nav>
+<main class="page">
+  <div class="level-bar" id="level-bar"><span class="level-bar-label">Level</span><button class="lev-btn is-active" data-level="A1">A1 · Regular +s</button><button class="lev-btn" data-level="A2">A2 · -es / -ies</button><button class="lev-btn" data-level="B1">B1 · Irregular</button></div>
+  <div class="progress-bar"><span id="progress"></span></div>
+  <div id="game-area">
+    <div class="puzzle-card">
+      <div class="card-mascot"><svg width="68" height="82" viewBox="0 0 100 120" class="mascot" id="mascot"></svg></div>
+      <div class="puzzle-label">Singular → Plural</div>
+      <div class="one-many">
+        <span class="count">1</span>
+        <div class="singular" id="singular">child</div>
+        <span class="arrow">→</span>
+        <span class="count">many</span>
+        <div class="blank" id="blank">???</div>
+      </div>
+      <div class="hint-row" id="hint"></div>
+    </div>
+    <div class="choices" id="choices"></div>
+    <div class="explain" id="explain"><div class="explain-label">💡 Rule</div><div class="explain-text" id="explain-text"></div></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="actions"><button class="btn is-gold" id="next-btn" style="display:none;">Next →</button></div>
+  </div>
+  <div class="summary" id="summary">
+    <div class="summary-trophy" id="summary-trophy">🏆</div><div class="summary-title" id="summary-title">Brilliant!</div><div class="summary-sub" id="summary-sub">ممتاز!</div>
+    <div class="summary-stats"><div class="stat"><span class="stat-num" id="final-score">0</span><span class="stat-lbl">Score</span></div><div class="stat"><span class="stat-num" id="final-acc">0%</span><span class="stat-lbl">Accuracy</span></div><div class="stat"><span class="stat-num" id="final-best">0</span><span class="stat-lbl">Best</span></div></div>
+    <div id="new-best-banner"></div><div style="margin-top:14px;"><button class="btn is-gold" id="play-again-btn">Play again</button></div>
+  </div>
+</main>
+<script src="../../_shared/progress.js"></script>
+<script>
+const GAME_ID='plural-trainer'
+function mascotSVG(m){const E={default:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="38" cy="59" r="3" fill="#1c1917"/><circle cx="62" cy="59" r="3" fill="#1c1917"/><circle cx="39" cy="57" r="1" fill="#fdfaf0"/><circle cx="63" cy="57" r="1" fill="#fdfaf0"/>',happy:'<path d="M 32 60 Q 38 53 44 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M 56 60 Q 62 53 68 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',sad:'<circle cx="38" cy="60" r="6" fill="#fdfaf0"/><circle cx="62" cy="60" r="6" fill="#fdfaf0"/><circle cx="38" cy="62" r="3" fill="#1c1917"/><circle cx="62" cy="62" r="3" fill="#1c1917"/>',thinking:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="40" cy="55" r="3" fill="#1c1917"/><circle cx="64" cy="55" r="3" fill="#1c1917"/>'};const M={default:'<path d="M 40 75 Q 50 80 60 75" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',happy:'<path d="M 32 72 Q 50 88 68 72 Q 50 80 32 72 Z" fill="#fdfaf0"/>',sad:'<path d="M 40 80 Q 50 73 60 80" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',thinking:'<path d="M 42 78 L 58 78" stroke="#fdfaf0" stroke-width="2.5" stroke-linecap="round"/>'};const x=m||'default';return `<line x1="50" y1="14" x2="74" y2="6" stroke="#fbbf24" stroke-width="2"/><circle cx="74" cy="6" r="3" fill="#fbbf24"/><rect x="32" y="12" width="36" height="14" rx="3" fill="#d97706"/><rect x="14" y="24" width="72" height="6" rx="2" fill="#b45309"/><circle cx="50" cy="62" r="34" fill="#1c1917"/><path d="M 18 112 Q 50 92 82 112 L 82 120 L 18 120 Z" fill="#1c1917"/>${E[x]||E.default}${M[x]||M.default}`}
+function setMascot(m,b){const el=document.getElementById('mascot');el.innerHTML=mascotSVG(m);if(b){el.classList.remove('is-bounce','is-shake');void el.offsetWidth;el.classList.add(b==='shake'?'is-shake':'is-bounce')}}
+
+// {s, p, rule, hint}
+const NOUNS = {
+  A1: [
+    {s:'cat',p:'cats',hint:'+s'},{s:'dog',p:'dogs',hint:'+s'},{s:'book',p:'books',hint:'+s'},{s:'chair',p:'chairs',hint:'+s'},
+    {s:'apple',p:'apples',hint:'+s'},{s:'pen',p:'pens',hint:'+s'},{s:'phone',p:'phones',hint:'+s'},{s:'shoe',p:'shoes',hint:'+s'},
+    {s:'house',p:'houses',hint:'+s'},{s:'car',p:'cars',hint:'+s'},{s:'tree',p:'trees',hint:'+s'},{s:'flower',p:'flowers',hint:'+s'},
+    {s:'window',p:'windows',hint:'+s'},{s:'table',p:'tables',hint:'+s'},{s:'bag',p:'bags',hint:'+s'},{s:'cup',p:'cups',hint:'+s'},
+    {s:'bird',p:'birds',hint:'+s'},{s:'school',p:'schools',hint:'+s'},{s:'friend',p:'friends',hint:'+s'},{s:'day',p:'days',hint:'+s'},
+  ],
+  A2: [
+    {s:'box',p:'boxes',hint:'-x → -xes'},{s:'bus',p:'buses',hint:'-s → -ses'},{s:'class',p:'classes',hint:'-ss → -sses'},
+    {s:'dish',p:'dishes',hint:'-sh → -shes'},{s:'church',p:'churches',hint:'-ch → -ches'},{s:'watch',p:'watches',hint:'-ch → -ches'},
+    {s:'fox',p:'foxes',hint:'-x → -xes'},{s:'brush',p:'brushes',hint:'-sh → -shes'},{s:'glass',p:'glasses',hint:'-ss → -sses'},
+    {s:'baby',p:'babies',hint:'-y → -ies (consonant + y)'},{s:'city',p:'cities',hint:'-y → -ies'},{s:'family',p:'families',hint:'-y → -ies'},
+    {s:'country',p:'countries',hint:'-y → -ies'},{s:'lady',p:'ladies',hint:'-y → -ies'},{s:'story',p:'stories',hint:'-y → -ies'},
+    {s:'boy',p:'boys',hint:'vowel + y → +s'},{s:'day',p:'days',hint:'vowel + y → +s'},{s:'key',p:'keys',hint:'vowel + y → +s'},
+    {s:'leaf',p:'leaves',hint:'-f → -ves'},{s:'wife',p:'wives',hint:'-fe → -ves'},{s:'knife',p:'knives',hint:'-fe → -ves'},
+  ],
+  B1: [
+    {s:'child',p:'children',hint:'irregular'},{s:'man',p:'men',hint:'irregular'},{s:'woman',p:'women',hint:'irregular'},
+    {s:'foot',p:'feet',hint:'irregular'},{s:'tooth',p:'teeth',hint:'irregular'},{s:'mouse',p:'mice',hint:'irregular'},
+    {s:'goose',p:'geese',hint:'irregular'},{s:'person',p:'people',hint:'irregular'},{s:'ox',p:'oxen',hint:'irregular'},
+    {s:'fish',p:'fish',hint:'same'},{s:'sheep',p:'sheep',hint:'same'},{s:'deer',p:'deer',hint:'same'},
+    {s:'cactus',p:'cacti',hint:'Latin -us → -i'},{s:'fungus',p:'fungi',hint:'Latin -us → -i'},{s:'syllabus',p:'syllabi',hint:'Latin -us → -i'},
+    {s:'analysis',p:'analyses',hint:'Greek -is → -es'},{s:'crisis',p:'crises',hint:'Greek -is → -es'},{s:'thesis',p:'theses',hint:'Greek -is → -es'},
+    {s:'phenomenon',p:'phenomena',hint:'Greek -on → -a'},{s:'criterion',p:'criteria',hint:'Greek -on → -a'},
+    {s:'datum',p:'data',hint:'Latin -um → -a'},{s:'medium',p:'media',hint:'Latin -um → -a'},
+  ],
+}
+
+let currentLevel='A1',pool=[],idx=0,score=0,streak=0,answered=false
+const sEl=document.getElementById('singular'),blankEl=document.getElementById('blank'),hintEl=document.getElementById('hint'),choicesEl=document.getElementById('choices'),feedbackEl=document.getElementById('feedback'),explainEl=document.getElementById('explain'),explainText=document.getElementById('explain-text'),scoreEl=document.getElementById('score'),streakEl=document.getElementById('streak'),nextBtn=document.getElementById('next-btn'),progressEl=document.getElementById('progress'),gameAreaEl=document.getElementById('game-area'),summaryEl=document.getElementById('summary')
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function startLevel(lv){currentLevel=lv;pool=shuffle(NOUNS[lv]).slice(0,12);idx=0;score=0;streak=0;scoreEl.textContent='0';streakEl.textContent='0';summaryEl.classList.remove('is-shown');gameAreaEl.style.display='';if(window.PlayProgress)PlayProgress.injectBestPill(document.getElementById('level-bar'),GAME_ID,currentLevel);loadQ()}
+function loadQ(){answered=false;feedbackEl.textContent='';feedbackEl.className='feedback';explainEl.classList.remove('is-shown');nextBtn.style.display='none';setMascot('thinking');progressEl.style.width=((idx/pool.length)*100)+'%';if(idx>=pool.length){finish();return}
+  const n=pool[idx];sEl.textContent=n.s;blankEl.textContent='???';blankEl.classList.remove('is-filled');hintEl.textContent='Rule: '+n.hint
+  const all=NOUNS[currentLevel].map(x=>x.p).filter(p=>p!==n.p)
+  // generate plausible distractors per noun
+  let dists=shuffle(all).slice(0,3)
+  // mix in a naive "+s" distractor if not equal
+  const naive=n.s+'s'; if(naive!==n.p && !dists.includes(naive)) dists[0]=naive
+  const opts=shuffle([{w:n.p,c:true},...dists.map(w=>({w,c:false}))])
+  choicesEl.innerHTML=''
+  opts.forEach(o=>{const b=document.createElement('button');b.className='choice';b.textContent=o.w;b.addEventListener('click',()=>pick(b,o.c,o.w));choicesEl.appendChild(b)})
+}
+function pick(btn,correct,picked){if(answered)return;answered=true;const n=pool[idx];const all=choicesEl.querySelectorAll('.choice');all.forEach(b=>b.disabled=true);blankEl.textContent=picked;blankEl.classList.add('is-filled')
+  if(correct){btn.classList.add('is-correct');score++;streak++;scoreEl.textContent=score;streakEl.textContent=streak;feedbackEl.textContent='✓ Correct!';feedbackEl.className='feedback is-right';setMascot('happy','bounce')}
+  else{btn.classList.add('is-wrong');streak=0;streakEl.textContent='0';all.forEach(b=>{if(b.textContent===n.p)b.classList.add('is-correct')});blankEl.textContent=n.p;feedbackEl.textContent=`✗ Plural is "${n.p}"`;feedbackEl.className='feedback is-wrong';setMascot('sad','shake')}
+  explainText.textContent=n.hint+' · '+n.s+' → '+n.p; explainEl.classList.add('is-shown')
+  nextBtn.style.display='inline-flex'
+}
+function finish(){const prevBest=window.PlayProgress?PlayProgress.getLevel(GAME_ID,currentLevel).best:0;const lv=window.PlayProgress?PlayProgress.record(GAME_ID,currentLevel,score,pool.length):{best:score};const acc=Math.round((score/pool.length)*100);document.getElementById('final-score').textContent=`${score}/${pool.length}`;document.getElementById('final-acc').textContent=acc+'%';document.getElementById('final-best').textContent=lv.best;let t='🏆',ti='Brilliant!',su='ممتاز!';if(acc<50){t='💪';ti='Keep practicing';su='استمر!'}else if(acc<80){t='👍';ti='Good job';su='أداء جيد.'}document.getElementById('summary-trophy').textContent=t;document.getElementById('summary-title').textContent=ti;document.getElementById('summary-sub').textContent=su;document.getElementById('new-best-banner').innerHTML=(score>prevBest&&prevBest>0)?'<span class="new-best">🌟 New best!</span>':'';gameAreaEl.style.display='none';summaryEl.classList.add('is-shown');if(window.PlayProgress)PlayProgress.injectBestPill(document.getElementById('level-bar'),GAME_ID,currentLevel)}
+nextBtn.addEventListener('click',()=>{idx++;loadQ()})
+document.getElementById('play-again-btn').addEventListener('click',()=>startLevel(currentLevel))
+document.querySelectorAll('.lev-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.lev-btn').forEach(x=>x.classList.remove('is-active'));b.classList.add('is-active');startLevel(b.dataset.level)}))
+startLevel('A1')
+</script>
+</body>
+</html>
