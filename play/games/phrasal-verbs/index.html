@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Phrasal Verbs — Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800;900&family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    button { font-family: inherit; cursor: pointer; }
+    a { text-decoration: none; color: inherit; }
+    :root {
+      --ink:#1c1917; --ink-deep:#0c0a09;
+      --bg:#f5efe0; --paper:#fdfaf0; --paper-soft:#faf3e0; --paper-deep:#f0e6cd;
+      --border:#e0d4b2; --border-soft:#ece2c5;
+      --gold:#b45309; --gold-bright:#d97706; --gold-soft:#fef3c7;
+      --text:#1c1917; --text-2:#44403c; --text-muted:#78716c;
+      --green:#15803d; --red:#b91c1c;
+      --display:'Outfit','DM Sans',system-ui,sans-serif; --sans:'DM Sans',sans-serif;
+      --arabic:'Cairo','Tajawal',sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+    }
+    html, body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 16px; min-height: 100%; -webkit-font-smoothing: antialiased; }
+    body::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse 60% 40% at 80% 0%, rgba(180, 83, 9, 0.08), transparent 60%); }
+
+    .topbar { position: sticky; top: 0; z-index: 100; background: rgba(245, 239, 224, 0.85); backdrop-filter: blur(18px) saturate(180%); border-bottom: 1px solid var(--border-soft); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+    .back-link { display: inline-flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 999px; background: var(--paper); border: 1px solid var(--border); font-family: var(--display); font-size: 13px; font-weight: 700; color: var(--text-2); transition: all 0.18s ease; }
+    .back-link:hover { background: var(--ink); color: white; border-color: var(--ink); }
+    .game-title { font-family: var(--display); font-weight: 900; font-size: 18px; letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; }
+    .scoreboard { display: flex; gap: 12px; font-family: var(--display); font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+    .scoreboard b { color: var(--ink); font-family: var(--mono); font-size: 16px; font-weight: 800; margin-left: 4px; }
+    .scoreboard b.streak { color: var(--gold); }
+
+    .page { position: relative; z-index: 2; max-width: 760px; margin: 0 auto; padding: 28px 24px 60px; }
+
+    .mascot { filter: drop-shadow(0 6px 12px rgba(28, 25, 23, 0.25)); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .mascot.is-bounce { animation: bounce 0.5s ease; }
+    @keyframes bounce { 50% { transform: translateY(-12px) rotate(-4deg); } }
+    .mascot.is-shake { animation: shake-m 0.4s ease; }
+    @keyframes shake-m { 25% { transform: translateX(-6px) rotate(-3deg); } 75% { transform: translateX(6px) rotate(3deg); } }
+
+    .level-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 22px; padding: 14px 18px; border-radius: 14px; background: var(--paper); border: 1px solid var(--border); }
+    .level-bar-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--text-muted); letter-spacing: 0.18em; text-transform: uppercase; }
+    .lev-btn { padding: 8px 14px; border-radius: 10px; background: transparent; border: 1.5px solid var(--border); font-family: var(--display); font-size: 12px; font-weight: 700; color: var(--text-2); transition: all 0.18s ease; }
+    .lev-btn:hover { border-color: var(--gold); }
+    .lev-btn.is-active { background: var(--ink); color: white; border-color: var(--ink); }
+    .english-only { margin-left: auto; padding: 5px 12px; border-radius: 999px; background: var(--gold-soft); color: var(--gold); font-family: var(--display); font-size: 10px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; }
+
+    .sentence-card {
+      position: relative;
+      padding: 44px 36px 36px; border-radius: 24px;
+      background: radial-gradient(ellipse 70% 50% at 100% 0%, rgba(217, 119, 6, 0.10), transparent 60%), linear-gradient(160deg, var(--paper), var(--paper-soft));
+      border: 1px solid var(--border); margin-bottom: 22px;
+      box-shadow: 0 16px 36px -14px rgba(115, 99, 53, 0.20);
+      text-align: center;
+    }
+    .sentence-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, var(--ink), var(--gold), var(--gold-bright)); border-radius: 24px 24px 0 0; }
+    .card-mascot { position: absolute; top: -26px; left: 30px; }
+    .prompt-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--gold); letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 14px; }
+    .sentence { font-family: var(--display); font-size: clamp(20px, 3vw, 26px); font-weight: 700; line-height: 1.55; color: var(--text); margin-bottom: 4px; letter-spacing: -0.005em; max-width: 600px; margin-left: auto; margin-right: auto; }
+    .blank { display: inline-block; min-width: 110px; padding: 2px 12px; margin: 0 4px; border-bottom: 3px dashed var(--gold); color: var(--gold); font-weight: 900; }
+    .blank.is-filled { border-bottom-style: solid; }
+    .hint { margin-top: 14px; font-family: var(--display); font-size: 13px; color: var(--text-muted); font-weight: 600; }
+    .hint b { color: var(--ink); font-style: italic; font-weight: 800; }
+
+    .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+    .choice {
+      padding: 18px 18px; border-radius: 14px;
+      background: var(--paper); border: 2px solid var(--border);
+      font-family: var(--display); font-size: 16px; font-weight: 800;
+      color: var(--text); text-align: center;
+      transition: all 0.18s ease;
+      letter-spacing: -0.005em;
+    }
+    .choice:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--gold); color: var(--gold); }
+    .choice.is-correct { background: rgba(21,128,61,0.12); border-color: var(--green); color: var(--green); }
+    .choice.is-wrong { background: rgba(185,28,28,0.12); border-color: var(--red); color: var(--red); animation: shake-i 0.4s ease; }
+    @keyframes shake-i { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+    .choice:disabled { cursor: not-allowed; }
+
+    .feedback { min-height: 26px; margin-bottom: 14px; padding: 0 4px; font-family: var(--display); font-size: 14px; font-weight: 700; text-align: center; }
+    .feedback.is-right { color: var(--green); }
+    .feedback.is-wrong { color: var(--red); }
+
+    .explain { display: none; padding: 16px 20px; border-radius: 14px; background: var(--gold-soft); border: 1px solid rgba(180,83,9,0.2); margin-bottom: 14px; }
+    .explain.is-shown { display: block; }
+    .explain-label { font-family: var(--display); font-size: 10px; font-weight: 800; color: var(--gold); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 6px; }
+    .explain-text { font-family: var(--display); font-size: 14.5px; color: var(--text); font-weight: 600; line-height: 1.55; }
+    .explain-text em { color: var(--gold); font-style: normal; font-weight: 800; }
+
+    .actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 26px; border-radius: 12px; font-family: var(--display); font-size: 14px; font-weight: 800; transition: all 0.18s ease; border: none; }
+    .btn.is-gold { background: linear-gradient(135deg, var(--gold), var(--gold-bright)); color: white; box-shadow: 0 8px 18px -5px rgba(180, 83, 9, 0.35); }
+    .btn.is-gold:hover { transform: translateY(-2px); }
+
+    @media (max-width: 640px) {
+      .topbar { padding: 12px 16px; }
+      .page { padding: 22px 14px; }
+      .sentence-card { padding: 36px 22px 26px; }
+      .card-mascot { left: 50%; transform: translateX(-50%); top: -32px; }
+      .choices { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">✂️ Phrasal Verbs</div>
+  <div class="scoreboard">
+    <span>Score<b id="score">0</b></span>
+    <span>Streak<b class="streak" id="streak">0</b></span>
+  </div>
+</nav>
+
+<main class="page">
+
+  <div class="level-bar">
+    <span class="level-bar-label">Level</span>
+    <button class="lev-btn is-active" data-level="B1">B1 · Intermediate</button>
+    <button class="lev-btn" data-level="B2">B2 · Upper-Int</button>
+    <button class="lev-btn" data-level="C1">C1 · Advanced</button>
+    <span class="english-only">English only</span>
+  </div>
+
+  <div class="sentence-card">
+    <div class="card-mascot">
+      <svg width="68" height="82" viewBox="0 0 100 120" class="mascot" id="mascot"></svg>
+    </div>
+    <div class="prompt-label">Complete the sentence</div>
+    <div class="sentence" id="sentence"></div>
+    <div class="hint">Hint · <b id="hint"></b></div>
+  </div>
+
+  <div class="choices" id="choices"></div>
+
+  <div class="explain" id="explain">
+    <div class="explain-label">💡 Meaning</div>
+    <div class="explain-text" id="explain-text"></div>
+  </div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <div class="actions">
+    <button class="btn is-gold" id="next-btn" style="display:none;">Next →</button>
+  </div>
+
+</main>
+
+<script>
+function mascotSVG(mood) {
+  const EYES = {
+    default:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="38" cy="59" r="3" fill="#1c1917"/><circle cx="62" cy="59" r="3" fill="#1c1917"/><circle cx="39" cy="57" r="1" fill="#fdfaf0"/><circle cx="63" cy="57" r="1" fill="#fdfaf0"/>',
+    happy:'<path d="M 32 60 Q 38 53 44 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M 56 60 Q 62 53 68 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+    sad:'<circle cx="38" cy="60" r="6" fill="#fdfaf0"/><circle cx="62" cy="60" r="6" fill="#fdfaf0"/><circle cx="38" cy="62" r="3" fill="#1c1917"/><circle cx="62" cy="62" r="3" fill="#1c1917"/>',
+    thinking:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="40" cy="55" r="3" fill="#1c1917"/><circle cx="64" cy="55" r="3" fill="#1c1917"/>'
+  }
+  const MOUTHS = {
+    default:'<path d="M 40 75 Q 50 80 60 75" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+    happy:'<path d="M 32 72 Q 50 88 68 72 Q 50 80 32 72 Z" fill="#fdfaf0"/>',
+    sad:'<path d="M 40 80 Q 50 73 60 80" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',
+    thinking:'<path d="M 42 78 L 58 78" stroke="#fdfaf0" stroke-width="2.5" stroke-linecap="round"/>'
+  }
+  const m = mood || 'default'
+  return `<line x1="50" y1="14" x2="74" y2="6" stroke="#fbbf24" stroke-width="2"/><circle cx="74" cy="6" r="3" fill="#fbbf24"/><rect x="32" y="12" width="36" height="14" rx="3" fill="#d97706"/><rect x="14" y="24" width="72" height="6" rx="2" fill="#b45309"/><circle cx="50" cy="62" r="34" fill="#1c1917"/><path d="M 18 112 Q 50 92 82 112 L 82 120 L 18 120 Z" fill="#1c1917"/>${EYES[m]||EYES.default}${MOUTHS[m]||MOUTHS.default}`
+}
+function setMascot(mood, bounce) {
+  const el = document.getElementById('mascot')
+  el.innerHTML = mascotSVG(mood)
+  if (bounce) { el.classList.remove('is-bounce','is-shake'); void el.offsetWidth; el.classList.add(bounce === 'shake' ? 'is-shake' : 'is-bounce') }
+}
+
+// { before, after, answer, distractors:[3], hint, meaning }
+const QS_BY_LEVEL = {
+  B1: [
+    { before:'I usually ', after:' at 7 a.m. on weekdays.', answer:'get up', distractors:['take off','put on','look up'], hint:'leave your bed', meaning:'<em>get up</em> = rise from bed in the morning.' },
+    { before:'Please ', after:' your shoes before entering.', answer:'take off', distractors:['put on','give up','turn on'], hint:'remove clothing', meaning:'<em>take off</em> = remove clothes or shoes.' },
+    { before:'Can you ', after:' the light? It’s dark in here.', answer:'turn on', distractors:['turn down','look after','find out'], hint:'start a device', meaning:'<em>turn on</em> = activate a light or machine.' },
+    { before:'I ', after:' my mother — we look very similar.', answer:'take after', distractors:['look up','run into','put off'], hint:'resemble in family', meaning:'<em>take after</em> = resemble an older relative.' },
+    { before:'She ', after:' her grandmother every weekend.', answer:'looks after', distractors:['looks up','looks for','looks into'], hint:'care for someone', meaning:'<em>look after</em> = take care of someone or something.' },
+    { before:'Sorry, I have to ', after:' our meeting until Friday.', answer:'put off', distractors:['put on','put up','put down'], hint:'delay', meaning:'<em>put off</em> = postpone, delay something.' },
+    { before:'He decided to ', after:' smoking last year.', answer:'give up', distractors:['get up','keep up','go on'], hint:'stop a habit', meaning:'<em>give up</em> = stop doing something (a habit).' },
+    { before:'I ran into an old friend ', after:' shopping yesterday.', answer:'while', distractors:['for','during','when'], hint:'time conjunction', meaning:'<em>while + verb-ing</em> introduces simultaneous action.' },
+    { before:'Could you ', after:' that word in the dictionary?', answer:'look up', distractors:['look for','look after','look out'], hint:'search information', meaning:'<em>look up</em> = search for information (in a book, online).' },
+    { before:'I ', after:' an old friend at the supermarket.', answer:'ran into', distractors:['ran out','ran away','ran over'], hint:'unexpected meeting', meaning:'<em>run into someone</em> = meet someone unexpectedly.' },
+    { before:'We’ve ', after:' of milk — can you buy some?', answer:'run out', distractors:['run after','run over','ran into'], hint:'used it all', meaning:'<em>run out (of)</em> = have no more left.' },
+    { before:'Don’t forget to ', after:' the TV before you leave.', answer:'turn off', distractors:['turn up','turn into','turn around'], hint:'stop a device', meaning:'<em>turn off</em> = stop a light or machine.' },
+  ],
+  B2: [
+    { before:'The meeting was ', after:' until next Monday.', answer:'called off', distractors:['called up','called for','called in'], hint:'cancelled', meaning:'<em>call off</em> = cancel something planned.' },
+    { before:'I ', after:' an interesting article about AI yesterday.', answer:'came across', distractors:['came up','came down','came over'], hint:'found by chance', meaning:'<em>come across</em> = find or meet by chance.' },
+    { before:'You should ', after:' your boss for a raise.', answer:'bring up', distractors:['bring on','bring back','bring down'], hint:'mention a topic', meaning:'<em>bring up</em> = introduce a subject in conversation.' },
+    { before:'The thieves ', after:' with thousands of dollars.', answer:'got away', distractors:['got over','got off','got around'], hint:'escaped', meaning:'<em>get away</em> = escape successfully.' },
+    { before:'It took her months to ', after:' her divorce.', answer:'get over', distractors:['get on','get into','get through'], hint:'recover from', meaning:'<em>get over</em> = recover from an illness or sad event.' },
+    { before:'Can you ', after:' the music? It’s too loud.', answer:'turn down', distractors:['turn up','turn off','turn out'], hint:'reduce volume', meaning:'<em>turn down</em> = lower the volume, or refuse an offer.' },
+    { before:'Please ', after:' the form and return it tomorrow.', answer:'fill in', distractors:['fill up','fill out','fill on'], hint:'complete a form', meaning:'<em>fill in</em> = complete a form (or replace someone temporarily).' },
+    { before:'They had to ', after:' the project due to lack of funds.', answer:'put off', distractors:['put up','put down','put through'], hint:'delay', meaning:'<em>put off</em> = postpone something.' },
+    { before:'I can’t ', after:' your behavior any longer!', answer:'put up with', distractors:['put off','put down','put on'], hint:'tolerate', meaning:'<em>put up with</em> = tolerate, endure something annoying.' },
+    { before:'The new colleague ', after:' very well with everyone.', answer:'gets along', distractors:['gets up','gets off','gets in'], hint:'has good relations', meaning:'<em>get along (with)</em> = have a friendly relationship.' },
+    { before:'She ', after:' her parents to let her go to the party.', answer:'talked into', distractors:['talked out','talked over','talked about'], hint:'persuaded', meaning:'<em>talk someone into</em> = persuade someone to do something.' },
+    { before:'My alarm didn’t go off, so I ', after:' for work.', answer:'was late', distractors:['took off','got off','set off'], hint:'arrived after the time', meaning:'When something <em>doesn\'t go off</em>, an alarm fails to sound; the result was being late.' },
+  ],
+  C1: [
+    { before:'The economic crisis ', after:' a wave of protests.', answer:'brought about', distractors:['brought up','brought back','brought down'], hint:'caused', meaning:'<em>bring about</em> = cause something to happen.' },
+    { before:'Despite all the criticism, she ', after:' her stance.', answer:'stood by', distractors:['stood up','stood out','stood for'], hint:'remained loyal to', meaning:'<em>stand by</em> = remain loyal to or support a person or position.' },
+    { before:'They ', after:' the contract after weeks of negotiation.', answer:'hammered out', distractors:['hammered down','hammered through','hammered on'], hint:'finalized after effort', meaning:'<em>hammer out</em> = produce an agreement after detailed discussion.' },
+    { before:'It’s hard to ', after:' the truth from the lies in his story.', answer:'tease out', distractors:['tease apart','tease over','tease up'], hint:'extract carefully', meaning:'<em>tease out</em> = gradually extract information or meaning.' },
+    { before:'The senator ', after:' under pressure from lobbyists.', answer:'caved in', distractors:['caved out','caved over','caved up'], hint:'yielded', meaning:'<em>cave in</em> = stop resisting and agree.' },
+    { before:'New evidence has ', after:' the prosecution’s case.', answer:'undermined', distractors:['underwritten','underscored','undertook'], hint:'weakened', meaning:'<em>undermine</em> = weaken something gradually.' },
+    { before:'Investigators are still trying to ', after:' what happened that night.', answer:'piece together', distractors:['piece up','piece out','piece off'], hint:'reconstruct from fragments', meaning:'<em>piece together</em> = combine fragments to understand the whole.' },
+    { before:'The author ', after:' on themes of identity and exile.', answer:'touches', distractors:['picks','grabs','holds'], hint:'briefly mentions', meaning:'<em>touch on</em> = mention briefly in writing or speech.' },
+    { before:'We need to ', after:' all available options before deciding.', answer:'weigh up', distractors:['weigh in','weigh on','weigh down'], hint:'evaluate carefully', meaning:'<em>weigh up</em> = consider all factors before making a decision.' },
+    { before:'The committee finally ', after:' a compromise.', answer:'hit upon', distractors:['hit up','hit out','hit off'], hint:'discovered by chance', meaning:'<em>hit upon</em> = suddenly discover or think of something.' },
+    { before:'He ', after:' the offer without hesitation.', answer:'turned down', distractors:['turned up','turned over','turned in'], hint:'refused', meaning:'<em>turn down</em> = refuse or reject (a job, offer).' },
+    { before:'The recession ', after:' many small businesses.', answer:'wiped out', distractors:['wiped down','wiped over','wiped off'], hint:'destroyed completely', meaning:'<em>wipe out</em> = destroy or eliminate completely.' },
+  ],
+}
+
+let currentLevel = 'B1'
+let pool = []
+let idx = 0
+let score = 0, streak = 0
+let answered = false
+
+const sentenceEl = document.getElementById('sentence')
+const hintEl = document.getElementById('hint')
+const choicesEl = document.getElementById('choices')
+const explainEl = document.getElementById('explain')
+const explainText = document.getElementById('explain-text')
+const feedbackEl = document.getElementById('feedback')
+const scoreEl = document.getElementById('score')
+const streakEl = document.getElementById('streak')
+const nextBtn = document.getElementById('next-btn')
+
+function shuffle(arr) {
+  const a = arr.slice()
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+function startLevel(level) {
+  currentLevel = level
+  pool = shuffle(QS_BY_LEVEL[level])
+  idx = 0
+  score = 0; streak = 0
+  scoreEl.textContent = '0'; streakEl.textContent = '0'
+  loadQ()
+}
+
+function loadQ() {
+  answered = false
+  feedbackEl.textContent = ''; feedbackEl.className = 'feedback'
+  explainEl.classList.remove('is-shown')
+  nextBtn.style.display = 'none'
+  setMascot('thinking')
+
+  if (idx >= pool.length) {
+    pool = shuffle(QS_BY_LEVEL[currentLevel])
+    idx = 0
+  }
+  const q = pool[idx]
+  sentenceEl.innerHTML = `${escapeHtml(q.before)}<span class="blank" id="blank">____</span>${escapeHtml(q.after)}`
+  hintEl.textContent = q.hint
+
+  const opts = shuffle([
+    { text: q.answer, correct: true },
+    ...q.distractors.map(d => ({ text: d, correct: false })),
+  ])
+  choicesEl.innerHTML = ''
+  opts.forEach(o => {
+    const b = document.createElement('button')
+    b.className = 'choice'
+    b.textContent = o.text
+    b.addEventListener('click', () => pick(b, o.correct, o.text))
+    choicesEl.appendChild(b)
+  })
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]))
+}
+
+function pick(btn, correct, picked) {
+  if (answered) return
+  answered = true
+  const q = pool[idx]
+  const blank = document.getElementById('blank')
+  blank.textContent = picked
+  blank.classList.add('is-filled')
+  const allBtns = choicesEl.querySelectorAll('.choice')
+  allBtns.forEach(b => b.disabled = true)
+
+  if (correct) {
+    btn.classList.add('is-correct')
+    score++; streak++
+    scoreEl.textContent = String(score); streakEl.textContent = String(streak)
+    feedbackEl.textContent = '✓ Correct!'
+    feedbackEl.className = 'feedback is-right'
+    setMascot('happy', 'bounce')
+  } else {
+    btn.classList.add('is-wrong')
+    streak = 0
+    streakEl.textContent = '0'
+    feedbackEl.textContent = `✗ Correct answer: "${q.answer}"`
+    feedbackEl.className = 'feedback is-wrong'
+    setMascot('sad', 'shake')
+    allBtns.forEach(b => { if (b.textContent === q.answer) b.classList.add('is-correct') })
+    blank.textContent = q.answer
+  }
+  explainText.innerHTML = q.meaning
+  explainEl.classList.add('is-shown')
+  nextBtn.style.display = 'inline-flex'
+}
+
+nextBtn.addEventListener('click', () => { idx++; loadQ() })
+
+document.querySelectorAll('.lev-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.lev-btn').forEach(b => b.classList.remove('is-active'))
+    btn.classList.add('is-active')
+    startLevel(btn.dataset.level)
+  })
+})
+
+startLevel('B1')
+</script>
+
+</body>
+</html>
