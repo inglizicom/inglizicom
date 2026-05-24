@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex, nofollow">
+  <title>Tic Tac Toe English — 2P · Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Press+Start+2P&family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}button{font-family:inherit;cursor:pointer}a{text-decoration:none;color:inherit}
+    :root{--ink:#0c0a09;--bg:#0c0a09;--paper:#1c1917;--paper-2:#292524;--border:#44403c;--gold:#fbbf24;--gold-2:#fcd34d;--text:#fafaf9;--text-2:#d6d3d1;--text-muted:#a8a29e;--neon:#22d3ee;--pink:#ec4899;--pink-2:#f472b6;--green:#4ade80;--red:#f87171;--display:'Outfit',sans-serif;--arcade:'Press Start 2P',monospace;--arabic:'Cairo',sans-serif}
+    html,body{background:var(--bg);color:var(--text);font-family:var(--display);font-size:16px;min-height:100%;-webkit-font-smoothing:antialiased}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 60% 40% at 80% 0%,rgba(34,211,238,.10),transparent 60%),radial-gradient(ellipse 50% 35% at 20% 100%,rgba(236,72,153,.10),transparent 60%)}
+    body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:40px 40px}
+    .topbar{position:sticky;top:0;z-index:100;background:rgba(12,10,9,.92);backdrop-filter:blur(18px) saturate(180%);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .back-link{display:inline-flex;align-items:center;gap:10px;padding:8px 14px;border-radius:999px;background:var(--paper);border:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text-2)}
+    .back-link:hover{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+    .game-title{font-family:var(--arcade);font-size:12px;color:var(--gold);letter-spacing:.05em}
+    .mode-pill{font-family:var(--arcade);font-size:9px;padding:5px 12px;border-radius:999px;background:rgba(236,72,153,.15);color:var(--pink);border:1px solid rgba(236,72,153,.4);letter-spacing:.15em}
+    .page{position:relative;z-index:2;max-width:680px;margin:0 auto;padding:24px 18px 60px}
+
+    /* Setup screen */
+    .setup{padding:30px;border-radius:18px;background:var(--paper);border:2px solid var(--border);text-align:center;margin-bottom:14px}
+    .setup h2{font-family:var(--arcade);font-size:16px;color:var(--gold);margin-bottom:18px;letter-spacing:.05em}
+    .player-inputs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+    .player-input{padding:14px;border-radius:12px;background:var(--paper-2);border:2px solid var(--border)}
+    .player-input.p1{border-color:rgba(34,211,238,.4)}
+    .player-input.p2{border-color:rgba(236,72,153,.4)}
+    .player-input label{display:block;font-family:var(--arcade);font-size:9px;letter-spacing:.15em;margin-bottom:6px}
+    .player-input.p1 label{color:var(--neon)}
+    .player-input.p2 label{color:var(--pink)}
+    .player-input input{width:100%;padding:10px;border-radius:8px;background:var(--ink);border:1px solid var(--border);color:var(--text);font-family:var(--display);font-size:15px;font-weight:700;text-align:center;outline:none}
+    .player-input input:focus{border-color:var(--gold)}
+    .level-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
+    .lev-btn{padding:8px 14px;border-radius:10px;background:transparent;border:1.5px solid var(--border);font-size:12px;font-weight:700;color:var(--text-2);transition:all .18s ease}
+    .lev-btn:hover{border-color:var(--gold);color:var(--gold)}
+    .lev-btn.is-active{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+
+    /* Game screen */
+    .game-area{display:none}
+    .game-area.is-shown{display:block}
+    .scoreboard{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;margin-bottom:18px;align-items:center}
+    .pscore{padding:14px;border-radius:14px;background:var(--paper);border:2px solid var(--border);text-align:center}
+    .pscore.p1{border-color:rgba(34,211,238,.4)}
+    .pscore.p1.is-turn{border-color:var(--neon);box-shadow:0 0 18px -4px rgba(34,211,238,.45)}
+    .pscore.p2{border-color:rgba(236,72,153,.4)}
+    .pscore.p2.is-turn{border-color:var(--pink);box-shadow:0 0 18px -4px rgba(236,72,153,.45)}
+    .pscore-name{font-family:var(--arcade);font-size:10px;letter-spacing:.1em;margin-bottom:6px}
+    .pscore.p1 .pscore-name{color:var(--neon)} .pscore.p2 .pscore-name{color:var(--pink)}
+    .pscore-mark{font-family:var(--display);font-size:34px;font-weight:900;line-height:1;margin:4px 0}
+    .pscore.p1 .pscore-mark{color:var(--neon)} .pscore.p2 .pscore-mark{color:var(--pink)}
+    .pscore-num{font-family:var(--arcade);font-size:12px;color:var(--text-muted)}
+    .vs-pill{font-family:var(--arcade);font-size:10px;color:var(--gold);letter-spacing:.18em;padding:6px 12px;border-radius:6px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3)}
+
+    .board{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:14px;border-radius:18px;background:linear-gradient(180deg,#0c0a09,#1c1917);border:2px solid var(--border);margin-bottom:14px;box-shadow:0 0 40px -10px rgba(34,211,238,.15) inset}
+    .cell{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;background:var(--paper);border:2px solid var(--border);border-radius:12px;font-family:var(--display);font-size:64px;font-weight:900;color:var(--text-muted);cursor:pointer;transition:all .2s ease;position:relative}
+    .cell:hover:not(.is-filled):not(:disabled){border-color:var(--gold);background:var(--paper-2);transform:scale(1.03)}
+    .cell.is-x{color:var(--neon);border-color:rgba(34,211,238,.5);background:rgba(34,211,238,.08);text-shadow:0 0 12px rgba(34,211,238,.6)}
+    .cell.is-o{color:var(--pink);border-color:rgba(236,72,153,.5);background:rgba(236,72,153,.08);text-shadow:0 0 12px rgba(236,72,153,.6)}
+    .cell.is-win{animation:winPulse 1s ease infinite}
+    @keyframes winPulse{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,.6)}50%{box-shadow:0 0 20px 6px rgba(251,191,36,.4)}}
+
+    .question-overlay{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);padding:20px}
+    .question-overlay.is-shown{display:flex}
+    .question-card{padding:28px 24px;background:var(--paper);border:2px solid var(--gold);border-radius:18px;max-width:480px;width:100%;text-align:center;box-shadow:0 0 40px rgba(251,191,36,.3)}
+    .q-pid{font-family:var(--arcade);font-size:10px;letter-spacing:.15em;margin-bottom:10px;padding:4px 12px;border-radius:999px;display:inline-block}
+    .q-pid.p1{background:rgba(34,211,238,.12);color:var(--neon);border:1px solid rgba(34,211,238,.3)}
+    .q-pid.p2{background:rgba(236,72,153,.12);color:var(--pink);border:1px solid rgba(236,72,153,.3)}
+    .q-prompt{font-family:var(--arcade);font-size:11px;color:var(--gold);letter-spacing:.1em;margin:8px 0 12px}
+    .q-arabic{font-family:var(--arabic);font-size:24px;font-weight:700;color:var(--text);direction:rtl;margin:8px 0 18px}
+    .q-choices{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .q-choice{padding:14px;border-radius:10px;background:var(--paper-2);border:2px solid var(--border);font-family:var(--display);font-size:15px;font-weight:800;color:var(--text);transition:all .18s ease}
+    .q-choice:hover:not(:disabled){border-color:var(--gold);color:var(--gold);transform:translateY(-2px)}
+    .q-choice.is-correct{background:rgba(74,222,128,.18);border-color:var(--green);color:var(--green)}
+    .q-choice.is-wrong{background:rgba(248,113,113,.18);border-color:var(--red);color:var(--red)}
+    .q-timer{font-family:var(--arcade);font-size:9px;color:var(--text-muted);margin-top:12px;letter-spacing:.12em}
+    .q-timer b{color:var(--gold)}
+
+    .result-overlay{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.92);backdrop-filter:blur(10px);padding:20px}
+    .result-overlay.is-shown{display:flex}
+    .result-card{padding:36px 28px;background:var(--paper);border:3px solid var(--gold);border-radius:20px;text-align:center;max-width:420px;box-shadow:0 0 60px rgba(251,191,36,.4)}
+    .winner-banner{font-size:60px;margin-bottom:8px;animation:bounce 1s ease infinite alternate}
+    @keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-10px)}}
+    .winner-text{font-family:var(--arcade);font-size:16px;color:var(--gold);letter-spacing:.08em;margin-bottom:10px}
+    .winner-sub{font-family:var(--arcade);font-size:10px;color:var(--text-2);margin-bottom:20px;letter-spacing:.1em}
+
+    .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+    .btn{padding:12px 22px;border-radius:10px;font-family:var(--display);font-size:13px;font-weight:800;transition:all .18s ease;border:none;cursor:pointer}
+    .btn.is-gold{background:linear-gradient(135deg,var(--gold),var(--gold-2));color:var(--ink);box-shadow:0 6px 14px -4px rgba(251,191,36,.45)}
+    .btn.is-gold:hover{transform:translateY(-2px)}
+    .btn.is-ghost{background:transparent;color:var(--text-2);border:1.5px solid var(--border)}
+    .btn.is-ghost:hover{border-color:var(--neon);color:var(--neon)}
+    .feedback{min-height:24px;font-family:var(--arcade);font-size:10px;text-align:center;color:var(--text-muted);margin-bottom:8px;letter-spacing:.1em}
+    .feedback.is-right{color:var(--green)} .feedback.is-wrong{color:var(--red)}
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">⭕ TIC TAC TOE</div>
+  <div class="mode-pill">2P · LOCAL</div>
+</nav>
+<main class="page">
+  <div class="setup" id="setup">
+    <h2>2 PLAYERS · 1 DEVICE</h2>
+    <p style="color:var(--text-2);margin-bottom:18px;font-size:14px">Take turns. Click a square, answer the English question correctly to claim it.<br>First to 3 in a row wins!</p>
+    <div class="player-inputs">
+      <div class="player-input p1">
+        <label>PLAYER 1 (X)</label>
+        <input id="p1-name" type="text" value="Player 1" maxlength="10">
+      </div>
+      <div class="player-input p2">
+        <label>PLAYER 2 (O)</label>
+        <input id="p2-name" type="text" value="Player 2" maxlength="10">
+      </div>
+    </div>
+    <div style="font-family:var(--arcade);font-size:9px;color:var(--text-muted);letter-spacing:.15em;margin-bottom:8px">DIFFICULTY</div>
+    <div class="level-row">
+      <button class="lev-btn is-active" data-level="A1">A1 · EASY</button>
+      <button class="lev-btn" data-level="A2">A2 · MEDIUM</button>
+      <button class="lev-btn" data-level="B1">B1 · HARD</button>
+    </div>
+    <button class="btn is-gold" id="start-btn">▶ START GAME</button>
+  </div>
+
+  <div class="game-area" id="game-area">
+    <div class="scoreboard">
+      <div class="pscore p1" id="ps1">
+        <div class="pscore-name" id="n1">PLAYER 1</div>
+        <div class="pscore-mark">X</div>
+        <div class="pscore-num"><b id="w1">0</b> WINS</div>
+      </div>
+      <div class="vs-pill" id="turn-label">P1 TURN</div>
+      <div class="pscore p2" id="ps2">
+        <div class="pscore-name" id="n2">PLAYER 2</div>
+        <div class="pscore-mark">O</div>
+        <div class="pscore-num"><b id="w2">0</b> WINS</div>
+      </div>
+    </div>
+    <div class="board" id="board"></div>
+    <div class="actions">
+      <button class="btn is-ghost" id="restart-btn">↺ NEW ROUND</button>
+      <button class="btn is-ghost" id="setup-btn">⚙ CHANGE PLAYERS</button>
+    </div>
+  </div>
+</main>
+
+<div class="question-overlay" id="qOverlay">
+  <div class="question-card">
+    <div class="q-pid" id="q-pid">PLAYER 1 (X)</div>
+    <div class="q-prompt">TRANSLATE TO ENGLISH</div>
+    <div class="q-arabic" id="q-arabic">قطة</div>
+    <div class="q-choices" id="q-choices"></div>
+    <div class="q-timer">⏱ <b id="q-timer">10</b>s</div>
+  </div>
+</div>
+
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-card">
+    <div class="winner-banner" id="winnerEmoji">🏆</div>
+    <div class="winner-text" id="winnerText">PLAYER 1 WINS!</div>
+    <div class="winner-sub" id="winnerSub">Total wins · P1 1 — P2 0</div>
+    <div class="actions">
+      <button class="btn is-gold" id="next-round-btn">▶ NEXT ROUND</button>
+      <button class="btn is-ghost" id="result-setup-btn">⚙ NEW PLAYERS</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../_shared/progress.js"></script>
+<script>
+const GAME_ID='tic-tac-toe'
+const BANK={
+  A1:[{a:'قطة',e:'cat',d:['dog','cow','bird']},{a:'كلب',e:'dog',d:['cat','cow','fish']},{a:'بيت',e:'house',d:['car','bed','book']},{a:'كتاب',e:'book',d:['pen','desk','chair']},{a:'سيارة',e:'car',d:['bus','bike','boat']},{a:'شمس',e:'sun',d:['moon','star','sky']},{a:'ماء',e:'water',d:['milk','juice','tea']},{a:'خبز',e:'bread',d:['rice','egg','cake']},{a:'تفاحة',e:'apple',d:['banana','orange','pear']},{a:'باب',e:'door',d:['window','wall','floor']},{a:'مدرسة',e:'school',d:['shop','park','bank']},{a:'يد',e:'hand',d:['foot','head','eye']},{a:'أحمر',e:'red',d:['blue','green','black']},{a:'كبير',e:'big',d:['small','old','new']},{a:'سعيد',e:'happy',d:['sad','tired','angry']},{a:'يأكل',e:'eat',d:['drink','sleep','run']},{a:'يقرأ',e:'read',d:['write','speak','listen']},{a:'يلعب',e:'play',d:['work','study','rest']}],
+  A2:[{a:'طبيب',e:'doctor',d:['teacher','lawyer','engineer']},{a:'معلم',e:'teacher',d:['student','doctor','farmer']},{a:'مستشفى',e:'hospital',d:['library','market','airport']},{a:'مكتبة',e:'library',d:['museum','cinema','restaurant']},{a:'إجابة',e:'answer',d:['question','problem','solution']},{a:'سؤال',e:'question',d:['answer','idea','reply']},{a:'صعب',e:'difficult',d:['easy','simple','clear']},{a:'سهل',e:'easy',d:['hard','tough','strict']},{a:'مهم',e:'important',d:['useful','simple','famous']},{a:'مشغول',e:'busy',d:['free','lazy','tired']},{a:'مدهش',e:'amazing',d:['boring','normal','strange']},{a:'يسافر',e:'travel',d:['stay','sleep','wait']},{a:'يكتب',e:'write',d:['read','speak','draw']},{a:'يطبخ',e:'cook',d:['eat','serve','bake']},{a:'يفهم',e:'understand',d:['forget','remember','ignore']},{a:'يكسب',e:'win',d:['lose','tie','quit']},{a:'يحاول',e:'try',d:['give up','succeed','fail']},{a:'يساعد',e:'help',d:['hurt','ignore','refuse']}],
+  B1:[{a:'فرصة',e:'opportunity',d:['danger','problem','accident']},{a:'يقنع',e:'persuade',d:['confuse','reject','ignore']},{a:'قديم',e:'ancient',d:['modern','new','recent']},{a:'فعّال',e:'efficient',d:['wasteful','slow','lazy']},{a:'متردد',e:'reluctant',d:['eager','ready','willing']},{a:'هش',e:'fragile',d:['strong','solid','tough']},{a:'فضول',e:'curiosity',d:['boredom','fear','anger']},{a:'تدريجياً',e:'gradually',d:['suddenly','quickly','rarely']},{a:'يزدهر',e:'thrive',d:['fade','collapse','wither']},{a:'يقدر',e:'estimate',d:['ignore','reject','count']},{a:'متواضع',e:'modest',d:['boastful','proud','rude']},{a:'حاسم',e:'crucial',d:['minor','trivial','optional']},{a:'يوصي',e:'recommend',d:['forbid','reject','warn']},{a:'حقيقي',e:'authentic',d:['fake','false','copy']},{a:'يتوسع',e:'expand',d:['shrink','reduce','close']},{a:'حاد',e:'severe',d:['mild','soft','light']},{a:'نتيجة',e:'consequence',d:['cause','reason','origin']},{a:'يتغلب',e:'overcome',d:['surrender','give up','fail']}]
+}
+const WIN_LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]
+
+let level='A1', p1Name='Player 1', p2Name='Player 2', wins=[0,0]
+let board=Array(9).fill(''), turn=0, pendingCell=-1, timerInterval=null
+
+const setup=document.getElementById('setup'), gameArea=document.getElementById('game-area')
+const boardEl=document.getElementById('board')
+const ps1=document.getElementById('ps1'), ps2=document.getElementById('ps2')
+const n1=document.getElementById('n1'), n2=document.getElementById('n2'), w1=document.getElementById('w1'), w2=document.getElementById('w2')
+const turnLabel=document.getElementById('turn-label')
+const qOverlay=document.getElementById('qOverlay'), qPid=document.getElementById('q-pid'), qArabic=document.getElementById('q-arabic'), qChoices=document.getElementById('q-choices'), qTimer=document.getElementById('q-timer')
+const resultOverlay=document.getElementById('resultOverlay'), winnerEmoji=document.getElementById('winnerEmoji'), winnerText=document.getElementById('winnerText'), winnerSub=document.getElementById('winnerSub')
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function startGame(){
+  p1Name=(document.getElementById('p1-name').value||'P1').slice(0,10).toUpperCase()
+  p2Name=(document.getElementById('p2-name').value||'P2').slice(0,10).toUpperCase()
+  n1.textContent=p1Name; n2.textContent=p2Name
+  setup.style.display='none'; gameArea.classList.add('is-shown')
+  if(window.PlayProgress) PlayProgress.record(GAME_ID,level,0,1)
+  newRound()
+}
+
+function newRound(){
+  board=Array(9).fill(''); turn=0
+  pendingCell=-1
+  resultOverlay.classList.remove('is-shown')
+  renderBoard(); updateTurnUI()
+}
+
+function renderBoard(){
+  boardEl.innerHTML=''
+  board.forEach((v,i)=>{
+    const c=document.createElement('button')
+    c.className='cell'+(v==='X'?' is-x':v==='O'?' is-o':'')
+    c.textContent=v||''
+    if(v) c.classList.add('is-filled')
+    c.addEventListener('click',()=>onCell(i))
+    boardEl.appendChild(c)
+  })
+}
+
+function updateTurnUI(){
+  ps1.classList.toggle('is-turn',turn===0)
+  ps2.classList.toggle('is-turn',turn===1)
+  turnLabel.textContent=(turn===0?p1Name:p2Name)+' TURN'
+  turnLabel.style.background=turn===0?'rgba(34,211,238,.12)':'rgba(236,72,153,.12)'
+  turnLabel.style.color=turn===0?'var(--neon)':'var(--pink)'
+  turnLabel.style.borderColor=turn===0?'rgba(34,211,238,.3)':'rgba(236,72,153,.3)'
+}
+
+function onCell(i){
+  if(board[i]) return
+  pendingCell=i
+  askQuestion()
+}
+
+function askQuestion(){
+  const pool=BANK[level]
+  const q=pool[Math.floor(Math.random()*pool.length)]
+  qPid.textContent=(turn===0?p1Name+' (X)':p2Name+' (O)')
+  qPid.className='q-pid '+(turn===0?'p1':'p2')
+  qArabic.textContent=q.a
+  const opts=shuffle([{w:q.e,c:true},...q.d.map(w=>({w,c:false}))])
+  qChoices.innerHTML=''
+  opts.forEach(o=>{
+    const b=document.createElement('button')
+    b.className='q-choice'; b.textContent=o.w
+    b.addEventListener('click',()=>answer(b,o.c,q.e))
+    qChoices.appendChild(b)
+  })
+  qOverlay.classList.add('is-shown')
+  // timer
+  let t=10; qTimer.textContent=t
+  if(timerInterval) clearInterval(timerInterval)
+  timerInterval=setInterval(()=>{
+    t--; qTimer.textContent=t
+    if(t<=0){clearInterval(timerInterval); timeoutAnswer(q.e)}
+  },1000)
+}
+
+function timeoutAnswer(correct){
+  qChoices.querySelectorAll('.q-choice').forEach(b=>{b.disabled=true; if(b.textContent===correct) b.classList.add('is-correct')})
+  setTimeout(()=>{qOverlay.classList.remove('is-shown'); pendingCell=-1; switchTurn()},1200)
+}
+
+function answer(btn,correct,right){
+  if(timerInterval) clearInterval(timerInterval)
+  qChoices.querySelectorAll('.q-choice').forEach(b=>{b.disabled=true; if(b.textContent===right) b.classList.add('is-correct')})
+  if(!correct) btn.classList.add('is-wrong')
+  setTimeout(()=>{
+    qOverlay.classList.remove('is-shown')
+    if(correct){
+      board[pendingCell]=turn===0?'X':'O'
+      renderBoard()
+      const w=checkWin()
+      if(w){endRound('win',w); return}
+      if(board.every(v=>v)){endRound('draw'); return}
+    }
+    pendingCell=-1
+    switchTurn()
+  },1100)
+}
+
+function switchTurn(){turn=1-turn; updateTurnUI()}
+
+function checkWin(){
+  for(const ln of WIN_LINES){
+    const [a,b,c]=ln
+    if(board[a] && board[a]===board[b] && board[a]===board[c]) return {mark:board[a],line:ln}
+  }
+  return null
+}
+
+function endRound(kind,info){
+  if(kind==='win'){
+    const winner=info.mark==='X'?0:1
+    wins[winner]++
+    if(winner===0) w1.textContent=wins[0]; else w2.textContent=wins[1]
+    info.line.forEach(i=>boardEl.children[i].classList.add('is-win'))
+    winnerEmoji.textContent=winner===0?'🥇':'🥈'
+    winnerText.textContent=(winner===0?p1Name:p2Name)+' WINS!'
+    winnerSub.textContent='SCORE · '+p1Name+' '+wins[0]+' — '+p2Name+' '+wins[1]
+  } else {
+    winnerEmoji.textContent='🤝'
+    winnerText.textContent='IT\'S A DRAW!'
+    winnerSub.textContent='SCORE · '+p1Name+' '+wins[0]+' — '+p2Name+' '+wins[1]
+  }
+  setTimeout(()=>resultOverlay.classList.add('is-shown'),900)
+  if(window.PlayProgress) PlayProgress.record(GAME_ID,level,wins[0]+wins[1],wins[0]+wins[1]+1)
+}
+
+document.getElementById('start-btn').addEventListener('click',startGame)
+document.getElementById('restart-btn').addEventListener('click',newRound)
+document.getElementById('setup-btn').addEventListener('click',()=>{setup.style.display='block';gameArea.classList.remove('is-shown');wins=[0,0];w1.textContent='0';w2.textContent='0'})
+document.getElementById('next-round-btn').addEventListener('click',newRound)
+document.getElementById('result-setup-btn').addEventListener('click',()=>{resultOverlay.classList.remove('is-shown');setup.style.display='block';gameArea.classList.remove('is-shown');wins=[0,0];w1.textContent='0';w2.textContent='0'})
+document.querySelectorAll('.lev-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.lev-btn').forEach(x=>x.classList.remove('is-active'));b.classList.add('is-active');level=b.dataset.level}))
+</script>
+</body>
+</html>

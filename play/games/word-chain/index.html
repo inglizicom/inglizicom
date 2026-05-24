@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex, nofollow">
+  <title>Word Chain Battle — 2P · Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Press+Start+2P&family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}button,input{font-family:inherit}a{text-decoration:none;color:inherit}
+    :root{--ink:#0c0a09;--bg:#0c0a09;--paper:#1c1917;--paper-2:#292524;--border:#44403c;--gold:#fbbf24;--gold-2:#fcd34d;--text:#fafaf9;--text-2:#d6d3d1;--text-muted:#a8a29e;--neon:#22d3ee;--pink:#ec4899;--green:#4ade80;--red:#f87171;--display:'Outfit',sans-serif;--arcade:'Press Start 2P',monospace;--arabic:'Cairo',sans-serif}
+    html,body{background:var(--bg);color:var(--text);font-family:var(--display);font-size:16px;min-height:100%;-webkit-font-smoothing:antialiased}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 60% 40% at 80% 0%,rgba(34,211,238,.10),transparent 60%),radial-gradient(ellipse 50% 35% at 20% 100%,rgba(236,72,153,.10),transparent 60%)}
+    .topbar{position:sticky;top:0;z-index:100;background:rgba(12,10,9,.92);backdrop-filter:blur(18px);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .back-link{display:inline-flex;align-items:center;gap:10px;padding:8px 14px;border-radius:999px;background:var(--paper);border:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text-2)}
+    .back-link:hover{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+    .game-title{font-family:var(--arcade);font-size:12px;color:var(--gold);letter-spacing:.05em}
+    .mode-pill{font-family:var(--arcade);font-size:9px;padding:5px 12px;border-radius:999px;background:rgba(236,72,153,.15);color:var(--pink);border:1px solid rgba(236,72,153,.4);letter-spacing:.15em}
+    .page{position:relative;z-index:2;max-width:720px;margin:0 auto;padding:24px 18px 60px}
+    .setup{padding:28px;border-radius:18px;background:var(--paper);border:2px solid var(--border);text-align:center;margin-bottom:14px}
+    .setup h2{font-family:var(--arcade);font-size:14px;color:var(--gold);margin-bottom:12px;letter-spacing:.05em}
+    .setup p{color:var(--text-2);margin-bottom:18px;font-size:14px}
+    .player-inputs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+    .player-input{padding:14px;border-radius:12px;background:var(--paper-2);border:2px solid var(--border)}
+    .player-input.p1{border-color:rgba(34,211,238,.4)} .player-input.p2{border-color:rgba(236,72,153,.4)}
+    .player-input label{display:block;font-family:var(--arcade);font-size:9px;letter-spacing:.15em;margin-bottom:6px}
+    .player-input.p1 label{color:var(--neon)} .player-input.p2 label{color:var(--pink)}
+    .player-input input{width:100%;padding:10px;border-radius:8px;background:var(--ink);border:1px solid var(--border);color:var(--text);font-family:var(--display);font-size:15px;font-weight:700;text-align:center;outline:none}
+    .player-input input:focus{border-color:var(--gold)}
+    .level-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
+    .lev-btn{padding:8px 14px;border-radius:10px;background:transparent;border:1.5px solid var(--border);font-size:12px;font-weight:700;color:var(--text-2);transition:all .18s ease}
+    .lev-btn:hover{border-color:var(--gold);color:var(--gold)}
+    .lev-btn.is-active{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+    .btn{padding:12px 22px;border-radius:10px;font-family:var(--display);font-size:13px;font-weight:800;transition:all .18s ease;border:none;cursor:pointer}
+    .btn.is-gold{background:linear-gradient(135deg,var(--gold),var(--gold-2));color:var(--ink);box-shadow:0 6px 14px -4px rgba(251,191,36,.45)}
+    .btn.is-gold:hover{transform:translateY(-2px)}
+    .btn.is-ghost{background:transparent;color:var(--text-2);border:1.5px solid var(--border)}
+    .btn.is-ghost:hover{border-color:var(--neon);color:var(--neon)}
+
+    .game-area{display:none}
+    .game-area.is-shown{display:block}
+    .scoreboard{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;margin-bottom:18px;align-items:center}
+    .pscore{padding:14px;border-radius:14px;background:var(--paper);border:2px solid var(--border);text-align:center;transition:all .25s ease}
+    .pscore.p1{border-color:rgba(34,211,238,.4)} .pscore.p2{border-color:rgba(236,72,153,.4)}
+    .pscore.is-turn{box-shadow:0 0 22px -4px rgba(251,191,36,.5);border-color:var(--gold);transform:scale(1.03)}
+    .pscore-name{font-family:var(--arcade);font-size:10px;letter-spacing:.1em;margin-bottom:6px}
+    .pscore.p1 .pscore-name{color:var(--neon)} .pscore.p2 .pscore-name{color:var(--pink)}
+    .pscore-num{font-family:var(--arcade);font-size:18px;color:var(--gold)}
+    .timer-pill{padding:14px;border-radius:14px;background:var(--paper);border:2px solid var(--border);text-align:center;min-width:80px}
+    .timer-lbl{font-family:var(--arcade);font-size:8px;color:var(--text-muted);letter-spacing:.15em;margin-bottom:4px}
+    .timer-val{font-family:var(--arcade);font-size:22px;color:var(--gold);text-shadow:0 0 12px rgba(251,191,36,.4)}
+    .timer-pill.is-low .timer-val{color:var(--red);text-shadow:0 0 12px rgba(248,113,113,.5);animation:blink .4s infinite alternate}
+    @keyframes blink{from{opacity:1}to{opacity:.4}}
+
+    .chain-area{padding:18px;border-radius:14px;background:linear-gradient(180deg,#0c0a09,#1c1917);border:2px solid var(--border);margin-bottom:14px;min-height:120px;display:flex;flex-direction:column;gap:10px}
+    .chain-label{font-family:var(--arcade);font-size:9px;color:var(--text-muted);letter-spacing:.12em;text-align:center}
+    .chain-list{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center}
+    .chain-word{padding:8px 14px;border-radius:8px;background:var(--paper-2);font-family:var(--display);font-size:15px;font-weight:700;border:1px solid var(--border);position:relative}
+    .chain-word.p1{color:var(--neon);border-color:rgba(34,211,238,.4)}
+    .chain-word.p2{color:var(--pink);border-color:rgba(236,72,153,.4)}
+    .chain-word .last-letter{color:var(--gold);text-shadow:0 0 6px rgba(251,191,36,.5);font-weight:900}
+    .chain-arrow{color:var(--text-muted);font-size:14px}
+
+    .turn-prompt{padding:14px;border-radius:14px;background:var(--paper);border:2px solid var(--gold);text-align:center;margin-bottom:14px;box-shadow:0 0 22px -8px rgba(251,191,36,.5)}
+    .turn-prompt b{color:var(--gold)}
+    .turn-prompt .next-letter{display:inline-block;padding:4px 12px;border-radius:8px;background:rgba(251,191,36,.15);color:var(--gold);font-family:var(--arcade);font-size:16px;letter-spacing:.05em;margin-left:8px;text-transform:uppercase}
+
+    .input-area{display:flex;gap:8px;margin-bottom:10px}
+    .input-area input{flex:1;padding:14px;border-radius:10px;background:var(--paper);border:2px solid var(--border);color:var(--text);font-family:var(--display);font-size:18px;font-weight:700;text-align:center;outline:none;text-transform:lowercase}
+    .input-area input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(251,191,36,.15)}
+    .input-area input:disabled{opacity:.5}
+
+    .feedback{min-height:24px;font-family:var(--arcade);font-size:10px;text-align:center;color:var(--text-muted);margin-bottom:14px;letter-spacing:.1em}
+    .feedback.is-right{color:var(--green)} .feedback.is-wrong{color:var(--red)}
+    .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+    .result-overlay{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.92);backdrop-filter:blur(10px);padding:20px}
+    .result-overlay.is-shown{display:flex}
+    .result-card{padding:36px 28px;background:var(--paper);border:3px solid var(--gold);border-radius:20px;text-align:center;max-width:420px;box-shadow:0 0 60px rgba(251,191,36,.4)}
+    .winner-banner{font-size:60px;margin-bottom:8px}
+    .winner-text{font-family:var(--arcade);font-size:16px;color:var(--gold);letter-spacing:.08em;margin-bottom:10px}
+    .winner-sub{font-family:var(--arcade);font-size:10px;color:var(--text-2);margin-bottom:20px;letter-spacing:.1em}
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">⛓️ WORD CHAIN</div>
+  <div class="mode-pill">2P · LOCAL</div>
+</nav>
+<main class="page">
+  <div class="setup" id="setup">
+    <h2>2 PLAYERS · 1 DEVICE</h2>
+    <p>Take turns. Each new word must start with the LAST letter of the previous word. 15 seconds per turn. Don't repeat. Miss your turn and you lose the point.</p>
+    <div class="player-inputs">
+      <div class="player-input p1">
+        <label>PLAYER 1</label>
+        <input id="p1-name" type="text" value="Player 1" maxlength="10">
+      </div>
+      <div class="player-input p2">
+        <label>PLAYER 2</label>
+        <input id="p2-name" type="text" value="Player 2" maxlength="10">
+      </div>
+    </div>
+    <div style="font-family:var(--arcade);font-size:9px;color:var(--text-muted);letter-spacing:.15em;margin-bottom:8px">DIFFICULTY (word list size)</div>
+    <div class="level-row">
+      <button class="lev-btn is-active" data-level="A1">A1 · 100 WORDS</button>
+      <button class="lev-btn" data-level="A2">A2 · 200 WORDS</button>
+      <button class="lev-btn" data-level="B1">B1 · 350 WORDS</button>
+    </div>
+    <button class="btn is-gold" id="start-btn">▶ START BATTLE</button>
+  </div>
+
+  <div class="game-area" id="game-area">
+    <div class="scoreboard">
+      <div class="pscore p1" id="ps1">
+        <div class="pscore-name" id="n1">PLAYER 1</div>
+        <div class="pscore-num"><b id="s1">0</b></div>
+      </div>
+      <div class="timer-pill" id="timerPill">
+        <div class="timer-lbl">TIME</div>
+        <div class="timer-val" id="timerVal">15</div>
+      </div>
+      <div class="pscore p2" id="ps2">
+        <div class="pscore-name" id="n2">PLAYER 2</div>
+        <div class="pscore-num"><b id="s2">0</b></div>
+      </div>
+    </div>
+
+    <div class="turn-prompt"><b id="turnPlayer">PLAYER 1</b>'s turn — type a word starting with<span class="next-letter" id="nextLetter">C</span></div>
+
+    <div class="chain-area">
+      <div class="chain-label">⛓️ CHAIN</div>
+      <div class="chain-list" id="chainList"></div>
+    </div>
+
+    <div class="input-area">
+      <input id="wordInput" type="text" placeholder="Type a word..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="20">
+      <button class="btn is-gold" id="submitBtn">SUBMIT</button>
+    </div>
+
+    <div class="feedback" id="feedback">Press SUBMIT or hit Enter</div>
+
+    <div class="actions">
+      <button class="btn is-ghost" id="restartBtn">↺ NEW BATTLE</button>
+      <button class="btn is-ghost" id="setupBtn">⚙ CHANGE PLAYERS</button>
+    </div>
+  </div>
+</main>
+
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-card">
+    <div class="winner-banner" id="wEmoji">🏆</div>
+    <div class="winner-text" id="wText">PLAYER 1 WINS!</div>
+    <div class="winner-sub" id="wSub">3 — 2</div>
+    <div class="actions">
+      <button class="btn is-gold" id="againBtn">▶ REMATCH</button>
+      <button class="btn is-ghost" id="rSetupBtn">⚙ NEW PLAYERS</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../_shared/progress.js"></script>
+<script>
+const GAME_ID='word-chain'
+// Tiered curated word lists. Larger pool = easier (more options).
+const A1_WORDS='apple ant arm air ball bag bird boy book bus cat car cow cup chair child day desk dog door duck eat ear egg eye face fish food foot four friend game garden girl glass green hand happy hat head help home hot ice idea ink jam job juice jump key kid king kitchen lamp leaf leg lemon library light long man map mat milk moon mother name new night nine no nose nurse open orange paper pen people pet phone picture pink play pot question queen quick rain red ride river road room run sad school sea ship shoe sister sit small smile snow son song star stop sun table tea ten three tiger tooth top toy train tree truck two umbrella uncle up van view want warm wash water week white window wing wolf year yellow yes yesterday zoo'.split(/\s+/)
+const A2_WORDS=A1_WORDS.concat('absent action active address advice afraid age agree airport answer arrive ask attack autumn awake away balance bath beach beauty become begin behind believe bicycle birthday borrow bottle bottom box brave breakfast bring brother brown busy butter button capital castle ceiling center cheap chemistry chocolate church cinema city clean climb clock cloud color compare computer cousin culture cut dance danger dark date decide deep defend dentist dictionary difficult dinner direction discover doctor doubt drive drop dry early earth east easy effort empty enemy enjoy enough enter equal evening exam example excellent excited expensive experience extra factory fall family famous fast father feel field finger finish fire flower fly forest forget free fresh fruit funny gentle gift give glad gold government grandfather guest guide hair half head healthy heart heavy hello honest honey hospital hotel hungry hurry husband ill important industry inside interest interview invite island journey joy jungle keep knife knot knowledge ladder language late laugh lazy leader learn level life listen lonely lose love luck market market marry meat medicine memory message middle minute mistake modern money month morning mother mountain movie museum music necessary needle nervous noisy normal number nurse office often onion opinion outside paint pair parents parent past peace perfect picnic plate poem police polite poor present price proud public quick quiet radio reach read ready real really reason recipe remember rest rice right ring rock roof round rule safe salt sand save science scientist secret send senior service shape sharp short show side silver simple sing sister situation skill slow soft sometimes special spend spend spring station stomach storm strange street student summer sweet swim teach team teacher thank theatre think tired traffic train travel true uncle understand uniform usually village voice voice wait warm weather wedding weekend welcome wide wife winter wonder world young'.split(/\s+/))
+const B1_WORDS=A2_WORDS.concat('absorb academic accept achieve acquire adapt adequate adjust admire affair afford agency agriculture alternative ambition analyse ancient anniversary anxious appeal apply appoint approach approve architect argue arrange artificial assemble assist assume athlete atmosphere attempt attitude attract authority available average awareness background balance behaviour belief benefit beyond border breath broadcast budget calculation campaign capacity celebrate ceremony challenge chapter character chase chemistry citizen civilization claim climate combine commit communicate community comparison compete complete complex complicated concept concern conclusion condition conduct confidence confirm conflict confuse congress connect conscious consider constant construct contain contemporary continue contract contribute control convert convince cooperate corner correspond council courage create credit crime crisis criticism crucial cultivate curiosity damage debate decade decline define delicate deliver demand demonstrate department depend depress describe deserve desire destination detail determine develop device dialogue diet difference dimension disappear disaster discipline discover discrimination disease distance distinguish distribute disturb diverse domain dominate emphasize encourage engineer ensure environment establish estimate evaluate evident exclude experiment explore expression external extreme factor familiar fascinate fate feature fiction fictional financial flavor flourish forbid foreign formal foundation framework function fundamental gather generation genius genuine government gradually grateful gravity guarantee guideline harbor harvest healthy hesitate horizon host humble identical identify illusion imagine immediate impact imply impose improve include independence indicate individual industry inherit innovation insight inspire institution intelligence intense interpret invest investigate involve isolate journal journey kingdom landscape leadership legend liberation liquid literature locate logical luxury maintain manage maneuver manufacture margin meaningful measure mention merchant minister modify monitor moreover motive multiple mystery negotiate neutral network notable notion objective obstacle obtain obvious occasion occur opportunity oppose orientation original outcome overcome participate passion patient patient peculiar perform persist phenomenon philosophy phrase pioneer plain pleasant plenty pollution potential precise prefer preserve prevent previous primary prior procedure progress prominent promote propose protect provide publish purchase pursue quality quote rare reaction realize recognize recommend reduce reflect reform refuse register regret regulate reject relax release rely remain remarkable repair represent require research resource respect respond responsibility restore restrict reveal review revolution rural sacrifice satisfy scale scenario secure seek select sequence shelter significant similar situation sketch solve sophisticated stability steady strategy strict struggle subject submit substitute succeed sufficient suggest summit superior support surface survey survive sustain symbol symbolic talent target temperature temporary tendency thorough thought thrive tradition translate transparent treasure tremendous trigger ultimate unique universal unusual urgent vacant valid vanish vary vegetable vehicle venture verify version victim violence virtual visible vision visit vital volunteer wisdom withdraw witness wonder workforce worth yearn youth'.split(/\s+/))
+const VOCAB={A1:new Set(A1_WORDS), A2:new Set(A2_WORDS), B1:new Set(B1_WORDS)}
+
+let level='A1', p1Name='Player 1', p2Name='Player 2', scores=[0,0], turn=0
+let chain=[], usedSet=new Set(), nextLetter='', timer=15, timerInt=null, roundActive=false
+const WIN_SCORE=3
+
+const setup=document.getElementById('setup'), gameArea=document.getElementById('game-area')
+const ps1=document.getElementById('ps1'), ps2=document.getElementById('ps2'), n1=document.getElementById('n1'), n2=document.getElementById('n2'), s1=document.getElementById('s1'), s2=document.getElementById('s2')
+const timerPill=document.getElementById('timerPill'), timerVal=document.getElementById('timerVal')
+const turnPlayer=document.getElementById('turnPlayer'), nextLetterEl=document.getElementById('nextLetter')
+const chainList=document.getElementById('chainList')
+const wordInput=document.getElementById('wordInput'), submitBtn=document.getElementById('submitBtn'), feedbackEl=document.getElementById('feedback')
+const resultOverlay=document.getElementById('resultOverlay'), wEmoji=document.getElementById('wEmoji'), wText=document.getElementById('wText'), wSub=document.getElementById('wSub')
+
+function startBattle(){
+  p1Name=(document.getElementById('p1-name').value||'P1').slice(0,10).toUpperCase()
+  p2Name=(document.getElementById('p2-name').value||'P2').slice(0,10).toUpperCase()
+  n1.textContent=p1Name; n2.textContent=p2Name
+  scores=[0,0]; s1.textContent='0'; s2.textContent='0'
+  setup.style.display='none'; gameArea.classList.add('is-shown')
+  if(window.PlayProgress) PlayProgress.record(GAME_ID,level,0,1)
+  newRound()
+}
+
+function newRound(){
+  chain=[]; usedSet=new Set(); turn=0
+  // pick random starting letter
+  const letters='abcdefghiklmnoprstuvw'; nextLetter=letters[Math.floor(Math.random()*letters.length)]
+  renderChain(); updateTurnUI(); startTimer()
+  wordInput.value=''; wordInput.disabled=false; wordInput.focus(); submitBtn.disabled=false
+  feedbackEl.textContent='Type a word starting with '+nextLetter.toUpperCase()
+  feedbackEl.className='feedback'
+  roundActive=true
+}
+
+function startTimer(){
+  timer=15; timerVal.textContent=timer; timerPill.classList.remove('is-low')
+  if(timerInt) clearInterval(timerInt)
+  timerInt=setInterval(()=>{
+    timer--; timerVal.textContent=timer
+    if(timer<=5) timerPill.classList.add('is-low')
+    if(timer<=0){clearInterval(timerInt); timeoutLose()}
+  },1000)
+}
+
+function timeoutLose(){
+  if(!roundActive) return
+  roundActive=false; wordInput.disabled=true; submitBtn.disabled=true
+  // current player loses the round
+  const loser=turn, winner=1-turn
+  scores[winner]++; if(winner===0) s1.textContent=scores[0]; else s2.textContent=scores[1]
+  feedbackEl.textContent='⏰ TIME UP! '+(winner===0?p1Name:p2Name)+' wins this round'
+  feedbackEl.className='feedback is-wrong'
+  if(scores[winner]>=WIN_SCORE){setTimeout(endBattle,1500); return}
+  setTimeout(newRound,1800)
+}
+
+function updateTurnUI(){
+  ps1.classList.toggle('is-turn',turn===0); ps2.classList.toggle('is-turn',turn===1)
+  turnPlayer.textContent=(turn===0?p1Name:p2Name)
+  nextLetterEl.textContent=nextLetter.toUpperCase()
+}
+
+function renderChain(){
+  if(chain.length===0){chainList.innerHTML='<span style="color:var(--text-muted);font-family:var(--arcade);font-size:10px">empty — start the chain!</span>'; return}
+  chainList.innerHTML=chain.map((c,i)=>{
+    const w=c.w, last=w.slice(-1)
+    const html=w.slice(0,-1)+'<span class="last-letter">'+last+'</span>'
+    const arrow=i<chain.length-1?'<span class="chain-arrow">→</span>':''
+    return `<span class="chain-word p${c.by+1}">${html}</span>${arrow}`
+  }).join('')
+}
+
+function submit(){
+  if(!roundActive) return
+  const v=wordInput.value.trim().toLowerCase()
+  if(!v){feedbackEl.textContent='Type a word!'; feedbackEl.className='feedback is-wrong'; return}
+  if(v[0]!==nextLetter){feedbackEl.textContent='✗ Must start with '+nextLetter.toUpperCase(); feedbackEl.className='feedback is-wrong'; return}
+  if(usedSet.has(v)){feedbackEl.textContent='✗ Already used!'; feedbackEl.className='feedback is-wrong'; return}
+  if(!VOCAB[level].has(v)){feedbackEl.textContent='✗ Not in our '+level+' word list'; feedbackEl.className='feedback is-wrong'; return}
+  // valid!
+  chain.push({w:v,by:turn})
+  usedSet.add(v)
+  nextLetter=v.slice(-1)
+  turn=1-turn
+  wordInput.value=''
+  renderChain(); updateTurnUI()
+  feedbackEl.textContent='✓ '+v+' added! Next: starts with '+nextLetter.toUpperCase()
+  feedbackEl.className='feedback is-right'
+  startTimer()
+  wordInput.focus()
+}
+
+function endBattle(){
+  roundActive=false
+  if(timerInt) clearInterval(timerInt)
+  let emoji='🏆', text='', sub=p1Name+' '+scores[0]+' — '+p2Name+' '+scores[1]
+  if(scores[0]>scores[1]){emoji='🥇';text=p1Name+' WINS!'}
+  else if(scores[1]>scores[0]){emoji='🥇';text=p2Name+' WINS!'}
+  else{emoji='🤝';text='TIE!'}
+  wEmoji.textContent=emoji; wText.textContent=text; wSub.textContent=sub
+  resultOverlay.classList.add('is-shown')
+  if(window.PlayProgress) PlayProgress.record(GAME_ID,level,Math.max(...scores),WIN_SCORE)
+}
+
+submitBtn.addEventListener('click',submit)
+wordInput.addEventListener('keydown',e=>{if(e.key==='Enter')submit()})
+document.getElementById('start-btn').addEventListener('click',startBattle)
+document.getElementById('restartBtn').addEventListener('click',startBattle)
+document.getElementById('setupBtn').addEventListener('click',()=>{setup.style.display='block';gameArea.classList.remove('is-shown');if(timerInt)clearInterval(timerInt)})
+document.getElementById('againBtn').addEventListener('click',()=>{resultOverlay.classList.remove('is-shown');startBattle()})
+document.getElementById('rSetupBtn').addEventListener('click',()=>{resultOverlay.classList.remove('is-shown');setup.style.display='block';gameArea.classList.remove('is-shown')})
+document.querySelectorAll('.lev-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.lev-btn').forEach(x=>x.classList.remove('is-active'));b.classList.add('is-active');level=b.dataset.level}))
+</script>
+</body>
+</html>

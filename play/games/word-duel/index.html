@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex, nofollow">
+  <title>Word Duel — 2P · Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Press+Start+2P&family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}button{font-family:inherit;cursor:pointer}a{text-decoration:none;color:inherit}
+    :root{--ink:#0c0a09;--bg:#0c0a09;--paper:#1c1917;--paper-2:#292524;--border:#44403c;--gold:#fbbf24;--gold-2:#fcd34d;--text:#fafaf9;--text-2:#d6d3d1;--text-muted:#a8a29e;--neon:#22d3ee;--pink:#ec4899;--green:#4ade80;--red:#f87171;--display:'Outfit',sans-serif;--arcade:'Press Start 2P',monospace;--arabic:'Cairo',sans-serif}
+    html,body{background:var(--bg);color:var(--text);font-family:var(--display);font-size:16px;min-height:100%;-webkit-font-smoothing:antialiased}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:linear-gradient(180deg,rgba(34,211,238,.10) 0%,transparent 40%,transparent 60%,rgba(236,72,153,.10) 100%)}
+    .topbar{position:sticky;top:0;z-index:100;background:rgba(12,10,9,.92);backdrop-filter:blur(18px);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .back-link{display:inline-flex;align-items:center;gap:10px;padding:8px 14px;border-radius:999px;background:var(--paper);border:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text-2)}
+    .back-link:hover{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+    .game-title{font-family:var(--arcade);font-size:12px;color:var(--gold);letter-spacing:.05em}
+    .mode-pill{font-family:var(--arcade);font-size:9px;padding:5px 12px;border-radius:999px;background:rgba(236,72,153,.15);color:var(--pink);border:1px solid rgba(236,72,153,.4);letter-spacing:.15em}
+    .page{position:relative;z-index:2;max-width:760px;margin:0 auto;padding:20px 14px 50px}
+
+    /* Setup */
+    .setup{padding:28px;border-radius:18px;background:var(--paper);border:2px solid var(--border);text-align:center;margin-bottom:14px}
+    .setup h2{font-family:var(--arcade);font-size:14px;color:var(--gold);margin-bottom:12px;letter-spacing:.05em}
+    .setup p{color:var(--text-2);margin-bottom:18px;font-size:14px}
+    .player-inputs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+    .player-input{padding:14px;border-radius:12px;background:var(--paper-2);border:2px solid var(--border)}
+    .player-input.p1{border-color:rgba(34,211,238,.4)}
+    .player-input.p2{border-color:rgba(236,72,153,.4)}
+    .player-input label{display:block;font-family:var(--arcade);font-size:9px;letter-spacing:.15em;margin-bottom:6px}
+    .player-input.p1 label{color:var(--neon)} .player-input.p2 label{color:var(--pink)}
+    .player-input input{width:100%;padding:10px;border-radius:8px;background:var(--ink);border:1px solid var(--border);color:var(--text);font-family:var(--display);font-size:15px;font-weight:700;text-align:center;outline:none}
+    .player-input input:focus{border-color:var(--gold)}
+    .level-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
+    .lev-btn{padding:8px 14px;border-radius:10px;background:transparent;border:1.5px solid var(--border);font-size:12px;font-weight:700;color:var(--text-2);transition:all .18s ease}
+    .lev-btn:hover{border-color:var(--gold);color:var(--gold)}
+    .lev-btn.is-active{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+    .btn{padding:12px 22px;border-radius:10px;font-family:var(--display);font-size:13px;font-weight:800;transition:all .18s ease;border:none;cursor:pointer}
+    .btn.is-gold{background:linear-gradient(135deg,var(--gold),var(--gold-2));color:var(--ink);box-shadow:0 6px 14px -4px rgba(251,191,36,.45)}
+    .btn.is-gold:hover{transform:translateY(-2px)}
+    .btn.is-ghost{background:transparent;color:var(--text-2);border:1.5px solid var(--border)}
+    .btn.is-ghost:hover{border-color:var(--neon);color:var(--neon)}
+
+    /* Game */
+    .game-area{display:none}
+    .game-area.is-shown{display:flex;flex-direction:column;gap:10px}
+
+    .center-clue{padding:14px;border-radius:14px;background:var(--paper);border:2px dashed var(--gold);text-align:center;box-shadow:0 0 22px -8px rgba(251,191,36,.4)}
+    .clue-label{font-family:var(--arcade);font-size:9px;color:var(--gold);letter-spacing:.18em;margin-bottom:6px}
+    .clue-word{font-family:var(--arabic);font-size:32px;font-weight:800;color:var(--text);direction:rtl;line-height:1.2}
+    .round-pill{display:inline-block;margin-top:8px;padding:4px 10px;border-radius:6px;background:rgba(0,0,0,.4);font-family:var(--arcade);font-size:9px;color:var(--text-muted);letter-spacing:.12em}
+    .round-pill b{color:var(--gold)}
+
+    .player-zone{padding:14px;border-radius:14px;background:var(--paper);border:2px solid var(--border);transition:all .25s ease;position:relative}
+    .player-zone.p1{border-color:rgba(34,211,238,.4)}
+    .player-zone.p2{border-color:rgba(236,72,153,.4)}
+    .player-zone.is-correct{animation:flashCorrect .8s ease}
+    .player-zone.is-wrong{animation:flashWrong .5s ease}
+    @keyframes flashCorrect{0%{background:rgba(74,222,128,.25)}100%{background:var(--paper)}}
+    @keyframes flashWrong{0%{background:rgba(248,113,113,.25)}100%{background:var(--paper)}}
+    .player-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .player-zone.p2 .player-head{flex-direction:row-reverse}
+    .player-name{font-family:var(--arcade);font-size:10px;letter-spacing:.1em}
+    .player-zone.p1 .player-name{color:var(--neon)} .player-zone.p2 .player-name{color:var(--pink)}
+    .player-score{font-family:var(--arcade);font-size:14px;color:var(--gold);letter-spacing:.1em}
+    .player-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .pb-choice{padding:14px;border-radius:10px;background:var(--paper-2);border:2px solid var(--border);font-family:var(--display);font-size:15px;font-weight:800;color:var(--text);transition:all .15s ease;min-height:54px}
+    .pb-choice:hover:not(:disabled){transform:translateY(-2px)}
+    .player-zone.p1 .pb-choice:hover:not(:disabled){border-color:var(--neon);color:var(--neon)}
+    .player-zone.p2 .pb-choice:hover:not(:disabled){border-color:var(--pink);color:var(--pink)}
+    .pb-choice.is-right{background:rgba(74,222,128,.18);border-color:var(--green);color:var(--green)}
+    .pb-choice.is-wrong{background:rgba(248,113,113,.18);border-color:var(--red);color:var(--red)}
+
+    /* Rotate P1 zone so two players face each other across a tablet */
+    .player-zone.p1{transform:rotate(180deg)}
+    .player-zone.p1 .player-head{transform:rotate(0)}
+
+    .actions{display:flex;gap:10px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+
+    /* Result */
+    .result-overlay{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.92);backdrop-filter:blur(10px);padding:20px}
+    .result-overlay.is-shown{display:flex}
+    .result-card{padding:36px 28px;background:var(--paper);border:3px solid var(--gold);border-radius:20px;text-align:center;max-width:420px;box-shadow:0 0 60px rgba(251,191,36,.4)}
+    .winner-banner{font-size:60px;margin-bottom:8px;animation:bounce 1s ease infinite alternate}
+    @keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-10px)}}
+    .winner-text{font-family:var(--arcade);font-size:16px;color:var(--gold);letter-spacing:.08em;margin-bottom:10px}
+    .winner-sub{font-family:var(--arcade);font-size:10px;color:var(--text-2);margin-bottom:20px;letter-spacing:.1em}
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">⚔️ WORD DUEL</div>
+  <div class="mode-pill">2P · LOCAL</div>
+</nav>
+<main class="page">
+  <div class="setup" id="setup">
+    <h2>2 PLAYERS · 1 DEVICE</h2>
+    <p>Hold the device flat between you. The Arabic word appears in the middle. Tap the correct English word on your side first to score!</p>
+    <div class="player-inputs">
+      <div class="player-input p1">
+        <label>PLAYER 1 (TOP)</label>
+        <input id="p1-name" type="text" value="Player 1" maxlength="10">
+      </div>
+      <div class="player-input p2">
+        <label>PLAYER 2 (BOTTOM)</label>
+        <input id="p2-name" type="text" value="Player 2" maxlength="10">
+      </div>
+    </div>
+    <div style="font-family:var(--arcade);font-size:9px;color:var(--text-muted);letter-spacing:.15em;margin-bottom:8px">DIFFICULTY</div>
+    <div class="level-row">
+      <button class="lev-btn is-active" data-level="A1">A1 · EASY</button>
+      <button class="lev-btn" data-level="A2">A2 · MEDIUM</button>
+      <button class="lev-btn" data-level="B1">B1 · HARD</button>
+    </div>
+    <div style="font-family:var(--arcade);font-size:9px;color:var(--text-muted);letter-spacing:.15em;margin-bottom:8px">ROUNDS</div>
+    <div class="level-row" style="margin-bottom:18px">
+      <button class="rd-btn is-active" data-rounds="5">5</button>
+      <button class="rd-btn" data-rounds="10">10</button>
+      <button class="rd-btn" data-rounds="15">15</button>
+    </div>
+    <button class="btn is-gold" id="start-btn">▶ START DUEL</button>
+  </div>
+
+  <div class="game-area" id="game-area">
+    <div class="player-zone p1" id="zone1">
+      <div class="player-head">
+        <span class="player-name" id="n1">PLAYER 1</span>
+        <span class="player-score" id="s1">0</span>
+      </div>
+      <div class="player-buttons" id="buttons1"></div>
+    </div>
+    <div class="center-clue">
+      <div class="clue-label">TRANSLATE</div>
+      <div class="clue-word" id="clue">قطة</div>
+      <span class="round-pill">ROUND <b id="rnd">1</b>/<b id="total">5</b></span>
+    </div>
+    <div class="player-zone p2" id="zone2">
+      <div class="player-head">
+        <span class="player-name" id="n2">PLAYER 2</span>
+        <span class="player-score" id="s2">0</span>
+      </div>
+      <div class="player-buttons" id="buttons2"></div>
+    </div>
+    <div class="actions">
+      <button class="btn is-ghost" id="restart-btn">↺ NEW DUEL</button>
+      <button class="btn is-ghost" id="setup-btn">⚙ CHANGE PLAYERS</button>
+    </div>
+  </div>
+</main>
+
+<div class="result-overlay" id="resultOverlay">
+  <div class="result-card">
+    <div class="winner-banner" id="wEmoji">🏆</div>
+    <div class="winner-text" id="wText">PLAYER 1 WINS!</div>
+    <div class="winner-sub" id="wSub">3 — 2</div>
+    <div class="actions">
+      <button class="btn is-gold" id="again-btn">▶ REMATCH</button>
+      <button class="btn is-ghost" id="r-setup-btn">⚙ NEW PLAYERS</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../_shared/progress.js"></script>
+<script>
+const GAME_ID='word-duel'
+const BANK={
+  A1:[{a:'قطة',e:'cat'},{a:'كلب',e:'dog'},{a:'بيت',e:'house'},{a:'كتاب',e:'book'},{a:'سيارة',e:'car'},{a:'شمس',e:'sun'},{a:'ماء',e:'water'},{a:'خبز',e:'bread'},{a:'تفاحة',e:'apple'},{a:'باب',e:'door'},{a:'مدرسة',e:'school'},{a:'يد',e:'hand'},{a:'قلم',e:'pen'},{a:'حليب',e:'milk'},{a:'موزة',e:'banana'},{a:'بقرة',e:'cow'},{a:'حصان',e:'horse'},{a:'سمكة',e:'fish'},{a:'طائر',e:'bird'},{a:'قمر',e:'moon'},{a:'نجمة',e:'star'},{a:'كرسي',e:'chair'},{a:'طاولة',e:'table'},{a:'سرير',e:'bed'}],
+  A2:[{a:'طبيب',e:'doctor'},{a:'معلم',e:'teacher'},{a:'طبّاخ',e:'chef'},{a:'مهندس',e:'engineer'},{a:'فلاح',e:'farmer'},{a:'طيار',e:'pilot'},{a:'مستشفى',e:'hospital'},{a:'مكتبة',e:'library'},{a:'مطعم',e:'restaurant'},{a:'مطار',e:'airport'},{a:'محطة',e:'station'},{a:'سهل',e:'easy'},{a:'صعب',e:'difficult'},{a:'مهم',e:'important'},{a:'مشهور',e:'famous'},{a:'متعب',e:'tired'},{a:'مشغول',e:'busy'},{a:'يسافر',e:'travel'},{a:'يفهم',e:'understand'},{a:'يبدأ',e:'begin'},{a:'ينتهي',e:'finish'},{a:'يساعد',e:'help'},{a:'يحاول',e:'try'},{a:'ينسى',e:'forget'}],
+  B1:[{a:'فرصة',e:'opportunity'},{a:'يقنع',e:'persuade'},{a:'قديم',e:'ancient'},{a:'فعّال',e:'efficient'},{a:'متردد',e:'reluctant'},{a:'هش',e:'fragile'},{a:'فضول',e:'curiosity'},{a:'تدريجياً',e:'gradually'},{a:'يزدهر',e:'thrive'},{a:'يقدر',e:'estimate'},{a:'متواضع',e:'modest'},{a:'حاسم',e:'crucial'},{a:'يوصي',e:'recommend'},{a:'حقيقي',e:'authentic'},{a:'يتوسع',e:'expand'},{a:'حاد',e:'severe'},{a:'نتيجة',e:'consequence'},{a:'يتغلب',e:'overcome'},{a:'مرن',e:'flexible'},{a:'سخي',e:'generous'},{a:'فضولي',e:'curious'},{a:'مستدام',e:'sustainable'}]
+}
+
+let level='A1', totalRounds=5, p1Name='Player 1', p2Name='Player 2', rnd=0, scores=[0,0]
+let currentWord=null, currentOpts=null, locked=false
+const setup=document.getElementById('setup'), gameArea=document.getElementById('game-area')
+const n1=document.getElementById('n1'), n2=document.getElementById('n2'), s1=document.getElementById('s1'), s2=document.getElementById('s2')
+const clueEl=document.getElementById('clue'), rndEl=document.getElementById('rnd'), totalEl=document.getElementById('total')
+const zone1=document.getElementById('zone1'), zone2=document.getElementById('zone2')
+const buttons1=document.getElementById('buttons1'), buttons2=document.getElementById('buttons2')
+const resultOverlay=document.getElementById('resultOverlay'), wEmoji=document.getElementById('wEmoji'), wText=document.getElementById('wText'), wSub=document.getElementById('wSub')
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function startDuel(){
+  p1Name=(document.getElementById('p1-name').value||'P1').slice(0,10).toUpperCase()
+  p2Name=(document.getElementById('p2-name').value||'P2').slice(0,10).toUpperCase()
+  n1.textContent=p1Name; n2.textContent=p2Name
+  scores=[0,0]; s1.textContent='0'; s2.textContent='0'; rnd=0
+  totalEl.textContent=totalRounds
+  setup.style.display='none'; gameArea.classList.add('is-shown')
+  if(window.PlayProgress) PlayProgress.record(GAME_ID,level,0,1)
+  loadRound()
+}
+
+function loadRound(){
+  if(rnd>=totalRounds){endDuel(); return}
+  rnd++; rndEl.textContent=rnd
+  locked=false
+  zone1.classList.remove('is-correct','is-wrong')
+  zone2.classList.remove('is-correct','is-wrong')
+  const pool=BANK[level]
+  currentWord=pool[Math.floor(Math.random()*pool.length)]
+  clueEl.textContent=currentWord.a
+  const distractors=shuffle(pool.filter(p=>p.e!==currentWord.e)).slice(0,3).map(p=>p.e)
+  currentOpts=shuffle([currentWord.e,...distractors])
+  buttons1.innerHTML=''; buttons2.innerHTML=''
+  currentOpts.forEach(w=>{
+    const b1=document.createElement('button'); b1.className='pb-choice'; b1.textContent=w
+    b1.addEventListener('click',()=>tap(0,b1,w))
+    buttons1.appendChild(b1)
+    const b2=document.createElement('button'); b2.className='pb-choice'; b2.textContent=w
+    b2.addEventListener('click',()=>tap(1,b2,w))
+    buttons2.appendChild(b2)
+  })
+}
+
+function tap(player,btn,word){
+  if(locked) return
+  const ok=word===currentWord.e
+  const zone=player===0?zone1:zone2
+  if(ok){
+    locked=true
+    btn.classList.add('is-right')
+    zone.classList.add('is-correct')
+    scores[player]++
+    if(player===0) s1.textContent=scores[0]; else s2.textContent=scores[1]
+    // show correct on the other side too
+    const otherBtns=(player===0?buttons2:buttons1).querySelectorAll('.pb-choice')
+    otherBtns.forEach(b=>{if(b.textContent===word) b.classList.add('is-right'); b.disabled=true})
+    buttons1.querySelectorAll('.pb-choice').forEach(b=>b.disabled=true)
+    buttons2.querySelectorAll('.pb-choice').forEach(b=>b.disabled=true)
+    setTimeout(loadRound,1100)
+  } else {
+    btn.classList.add('is-wrong')
+    btn.disabled=true
+    zone.classList.add('is-wrong')
+    setTimeout(()=>zone.classList.remove('is-wrong'),500)
+  }
+}
+
+function endDuel(){
+  let emoji='🏆', text='', sub=p1Name+' '+scores[0]+' — '+p2Name+' '+scores[1]
+  if(scores[0]>scores[1]){emoji='🥇'; text=p1Name+' WINS!'}
+  else if(scores[1]>scores[0]){emoji='🥇'; text=p2Name+' WINS!'}
+  else{emoji='🤝'; text='IT\'S A TIE!'}
+  wEmoji.textContent=emoji; wText.textContent=text; wSub.textContent=sub
+  resultOverlay.classList.add('is-shown')
+  if(window.PlayProgress) PlayProgress.record(GAME_ID,level,Math.max(...scores),totalRounds)
+}
+
+document.getElementById('start-btn').addEventListener('click',startDuel)
+document.getElementById('restart-btn').addEventListener('click',startDuel)
+document.getElementById('setup-btn').addEventListener('click',()=>{setup.style.display='block';gameArea.classList.remove('is-shown')})
+document.getElementById('again-btn').addEventListener('click',()=>{resultOverlay.classList.remove('is-shown');startDuel()})
+document.getElementById('r-setup-btn').addEventListener('click',()=>{resultOverlay.classList.remove('is-shown');setup.style.display='block';gameArea.classList.remove('is-shown')})
+document.querySelectorAll('.lev-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.lev-btn').forEach(x=>x.classList.remove('is-active'));b.classList.add('is-active');level=b.dataset.level}))
+document.querySelectorAll('.rd-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.rd-btn').forEach(x=>x.classList.remove('is-active'));b.classList.add('is-active');totalRounds=parseInt(b.dataset.rounds,10)}))
+</script>
+</body>
+</html>
