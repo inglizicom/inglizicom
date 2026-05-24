@@ -56,11 +56,20 @@
     .pscore-name{font-family:var(--arcade);font-size:18px;letter-spacing:.1em;margin-bottom:12px}
     .pscore.p1 .pscore-name{color:var(--neon)} .pscore.p2 .pscore-name{color:var(--pink)}
     .pscore-num{font-family:var(--arcade);font-size:40px;color:var(--gold);text-shadow:0 0 14px rgba(251,191,36,.4)}
-    .timer-pill{padding:22px;border-radius:18px;background:var(--paper);border:3px solid var(--border);text-align:center;min-width:140px}
+    .timer-pill{padding:18px;border-radius:18px;background:var(--paper);border:3px solid var(--border);text-align:center;min-width:160px;position:relative;overflow:hidden}
     .timer-lbl{font-family:var(--arcade);font-size:13px;color:var(--text-muted);letter-spacing:.15em;margin-bottom:8px}
     .timer-val{font-family:var(--arcade);font-size:42px;color:var(--gold);text-shadow:0 0 16px rgba(251,191,36,.5)}
     .timer-pill.is-low .timer-val{color:var(--red);text-shadow:0 0 16px rgba(248,113,113,.5);animation:blink .4s infinite alternate}
     @keyframes blink{from{opacity:1}to{opacity:.4}}
+    .timer-bar{position:absolute;left:0;right:0;bottom:0;height:6px;background:rgba(0,0,0,.4)}
+    .timer-bar>span{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--gold),var(--red));transform-origin:left;transform:scaleX(1);transition:transform 1s linear}
+
+    /* Bigger progress bar between scoreboard and challenge */
+    .round-progress{height:10px;border-radius:999px;background:var(--paper);border:1px solid var(--border);overflow:hidden;margin-bottom:18px;position:relative}
+    .round-progress>span{display:block;height:100%;background:linear-gradient(90deg,var(--green) 0%,var(--gold) 60%,var(--red) 100%);transform-origin:left;transform:scaleX(1);transition:transform 1s linear}
+    .round-progress .who{position:absolute;top:50%;transform:translateY(-50%);font-family:var(--arcade);font-size:9px;letter-spacing:.15em;color:var(--ink);text-shadow:0 0 6px rgba(0,0,0,.6);pointer-events:none}
+    .round-progress .who.l{left:14px}
+    .round-progress .who.r{right:14px}
 
     /* Challenge card — shows current constraints */
     .challenge{padding:24px;border-radius:18px;background:linear-gradient(180deg,rgba(251,191,36,.06),rgba(0,0,0,.20));border:3px solid var(--gold);margin-bottom:20px;box-shadow:0 0 30px -8px rgba(251,191,36,.4);transition:transform .4s cubic-bezier(.34,1.56,.64,1)}
@@ -196,11 +205,17 @@
       <div class="timer-pill" id="timerPill">
         <div class="timer-lbl">TIME</div>
         <div class="timer-val" id="timerVal">15</div>
+        <div class="timer-bar"><span id="timerBar"></span></div>
       </div>
       <div class="pscore p2" id="ps2">
         <div class="pscore-name" id="n2">PLAYER 2</div>
         <div class="pscore-num"><b id="s2">0</b></div>
       </div>
+    </div>
+
+    <div class="round-progress" aria-hidden="true">
+      <span id="roundProgressBar"></span>
+      <span class="who l">⏳ TURN PROGRESS</span>
     </div>
 
     <div class="challenge" id="challengeCard">
@@ -361,12 +376,22 @@ function newRound(){
   roundActive=true
 }
 
+const TURN_TIME=15
+const timerBar=document.getElementById('timerBar')
+const roundProgressBar=document.getElementById('roundProgressBar')
+function paintTimerBars(){
+  const pct = Math.max(0, timer / TURN_TIME)
+  if(timerBar) timerBar.style.transform='scaleX('+pct+')'
+  if(roundProgressBar) roundProgressBar.style.transform='scaleX('+pct+')'
+}
 function startTimer(){
-  timer=15; timerVal.textContent=timer; timerPill.classList.remove('is-low')
+  timer=TURN_TIME; timerVal.textContent=timer; timerPill.classList.remove('is-low')
+  paintTimerBars()
   if(timerInt) clearInterval(timerInt)
   timerInt=setInterval(()=>{
-    timer--; timerVal.textContent=timer
-    if(timer<=5){ timerPill.classList.add('is-low'); if(window.PlaySounds && timer>0) PlaySounds.tick() }
+    timer--; timerVal.textContent=Math.max(0,timer)
+    paintTimerBars()
+    if(timer<=5 && timer>0){ timerPill.classList.add('is-low'); if(window.PlaySounds) PlaySounds.tick() }
     if(timer<=0){clearInterval(timerInt); timeoutLose()}
   },1000)
 }
@@ -414,8 +439,25 @@ function submit(){
   const v=wordInput.value.trim().toLowerCase()
   const res = validateWord(v, constraint, usedSet)
   if(!res.ok){
-    feedbackEl.textContent='✗ '+res.reason; feedbackEl.className='feedback is-wrong'
+    // Bug fix: wrong answer ENDS your turn — opponent now plays the same constraint.
+    // (Previously it left the same player typing forever until the timer ran out.)
+    feedbackEl.textContent='✗ '+res.reason+' — turn passes to '+(turn===0?p2Name:p1Name)
+    feedbackEl.className='feedback is-wrong'
     if(window.PlaySounds) PlaySounds.wrong()
+    wordInput.value=''
+    if(timerInt) clearInterval(timerInt)
+    // Brief pause so the student can read the error, then swap
+    setTimeout(()=>{
+      turn = 1 - turn
+      // Constraint keeps the same start letter (chain continuity) — extras can re-roll
+      const lastWord = chain.length>0 ? chain[chain.length-1].w : null
+      const startLetter = lastWord ? lastWord.slice(-1) : constraint.startLetter
+      constraint = genConstraint(level, startLetter)
+      renderChallenge()
+      if(window.PlaySounds) PlaySounds.turn()
+      startTimer()
+      wordInput.focus()
+    }, 1500)
     return
   }
   chain.push({w:v,by:turn})

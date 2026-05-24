@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex, nofollow">
+  <title>Category Wheel — Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Press+Start+2P&family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}button{font-family:inherit;cursor:pointer}a{text-decoration:none;color:inherit}
+    :root{--ink:#0c0a09;--bg:#0c0a09;--paper:#1c1917;--paper-2:#292524;--border:#44403c;--gold:#fbbf24;--gold-2:#fcd34d;--text:#fafaf9;--text-2:#d6d3d1;--text-muted:#a8a29e;--neon:#22d3ee;--pink:#ec4899;--green:#4ade80;--red:#f87171;--orange:#fb923c;--purple:#a78bfa;--display:'Outfit',sans-serif;--arcade:'Press Start 2P',monospace;--arabic:'Cairo',sans-serif}
+    html,body{background:var(--bg);color:var(--text);font-family:var(--display);font-size:16px;min-height:100%;-webkit-font-smoothing:antialiased}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(167,139,250,.10),transparent 60%)}
+    .topbar{position:sticky;top:0;z-index:100;background:rgba(12,10,9,.92);backdrop-filter:blur(18px);border-bottom:1px solid var(--border);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .back-link{display:inline-flex;align-items:center;gap:10px;padding:12px 20px;border-radius:999px;background:var(--paper);border:1px solid var(--border);font-size:16px;font-weight:700;color:var(--text-2)}
+    .back-link:hover{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+    .game-title{font-family:var(--arcade);font-size:18px;color:var(--gold);letter-spacing:.05em;display:flex;align-items:center;gap:10px}
+    .mode-pill{font-family:var(--arcade);font-size:13px;padding:8px 18px;border-radius:999px;background:rgba(167,139,250,.15);color:var(--purple);border:1px solid rgba(167,139,250,.4);letter-spacing:.15em}
+    .scoreboard{display:flex;gap:14px;font-family:var(--arcade);font-size:13px;color:var(--text-muted);letter-spacing:.08em;align-items:center}
+    .scoreboard b{color:var(--gold);font-size:18px;margin-left:6px}
+    .page{position:relative;z-index:2;max-width:1100px;margin:0 auto;padding:28px 24px 60px}
+
+    .layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+    @media (max-width:880px){.layout{grid-template-columns:1fr}}
+    .wheel-side{position:relative;display:flex;flex-direction:column;align-items:center;gap:18px}
+    .wheel-container{position:relative;width:100%;max-width:440px;aspect-ratio:1/1}
+    .wheel-pointer{position:absolute;top:-6px;left:50%;transform:translateX(-50%);z-index:10;width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent;border-top:32px solid var(--gold);filter:drop-shadow(0 4px 8px rgba(0,0,0,.5))}
+    .wheel{width:100%;height:100%;border-radius:50%;border:8px solid var(--gold);box-shadow:0 0 40px -8px rgba(251,191,36,.5),0 0 0 4px var(--ink),0 0 0 8px var(--gold);transition:transform 4s cubic-bezier(.17,.67,.16,1)}
+    .wheel-hub{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:80px;height:80px;border-radius:50%;background:radial-gradient(circle at 35% 35%,var(--gold-2),#b45309);border:4px solid var(--ink);box-shadow:0 4px 12px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:5;font-family:var(--arcade);font-size:10px;color:var(--ink);letter-spacing:.1em;text-align:center;line-height:1.2}
+    .spin-btn{padding:18px 36px;border-radius:14px;background:linear-gradient(135deg,var(--gold),var(--gold-2));color:var(--ink);font-family:var(--display);font-size:20px;font-weight:900;letter-spacing:.02em;border:none;cursor:pointer;box-shadow:0 10px 24px -6px rgba(251,191,36,.5);transition:all .18s ease}
+    .spin-btn:hover:not(:disabled){transform:translateY(-3px)}
+    .spin-btn:disabled{opacity:.5;cursor:wait}
+
+    .quiz-side{display:flex;flex-direction:column;gap:14px}
+    .level-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding:14px 18px;border-radius:14px;background:var(--paper);border:2px solid var(--border)}
+    .level-bar-label{font-family:var(--arcade);font-size:12px;color:var(--text-muted);letter-spacing:.15em}
+    .lev-btn{padding:10px 16px;border-radius:10px;background:transparent;border:2px solid var(--border);font-size:13px;font-weight:700;color:var(--text-2);transition:all .18s ease}
+    .lev-btn:hover{border-color:var(--gold);color:var(--gold)}
+    .lev-btn.is-active{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+
+    .quiz-card{padding:22px;border-radius:18px;background:var(--paper);border:3px solid var(--border);min-height:280px;display:flex;flex-direction:column;justify-content:center;gap:14px;text-align:center}
+    .quiz-empty{font-family:var(--arcade);font-size:13px;color:var(--text-muted);letter-spacing:.12em;line-height:1.7}
+    .quiz-empty .arrow{display:inline-block;font-size:32px;color:var(--gold);margin-bottom:10px}
+    .cat-banner{display:inline-block;padding:8px 16px;border-radius:8px;font-family:var(--arcade);font-size:11px;letter-spacing:.18em;margin:0 auto}
+    .q-prompt-label{font-family:var(--arcade);font-size:11px;color:var(--gold);letter-spacing:.15em;margin-bottom:10px}
+    .q-prompt{font-family:var(--arabic);font-size:34px;font-weight:700;color:var(--text);direction:rtl;line-height:1.3;margin-bottom:10px}
+    .choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .choice{padding:16px 14px;border-radius:12px;background:var(--paper-2);border:2px solid var(--border);font-family:var(--display);font-size:17px;font-weight:800;color:var(--text);transition:all .18s ease;cursor:pointer;min-height:64px}
+    .choice:hover:not(:disabled){border-color:var(--purple);color:var(--purple);transform:translateY(-2px)}
+    .choice.is-right{background:rgba(74,222,128,.20);border-color:var(--green);color:var(--green)}
+    .choice.is-wrong{background:rgba(248,113,113,.20);border-color:var(--red);color:var(--red)}
+
+    .feedback{min-height:24px;font-family:var(--arcade);font-size:12px;text-align:center;color:var(--text-muted);letter-spacing:.1em}
+    .feedback.is-right{color:var(--green)} .feedback.is-wrong{color:var(--red)}
+    .progress{height:8px;background:var(--paper);border:1px solid var(--border);border-radius:999px;overflow:hidden}
+    .progress>span{display:block;height:100%;background:linear-gradient(90deg,var(--purple),var(--gold));transition:width .3s ease;width:0%}
+    .stats-row{display:flex;justify-content:space-around;gap:14px;font-family:var(--arcade);font-size:11px;color:var(--text-muted);letter-spacing:.12em;padding:14px;border-radius:12px;background:var(--paper);border:1px solid var(--border)}
+    .stats-row b{color:var(--gold);font-size:15px;margin-left:4px}
+
+    .summary{display:none;padding:36px 28px;border-radius:18px;background:var(--paper);border:3px solid var(--gold);text-align:center;box-shadow:0 0 40px rgba(251,191,36,.3)}
+    .summary.is-shown{display:block}
+    .summary h2{font-family:var(--arcade);font-size:20px;color:var(--gold);margin-bottom:14px;letter-spacing:.05em}
+    .summary .stats{display:flex;gap:22px;justify-content:center;margin-bottom:18px;flex-wrap:wrap}
+    .stat-num{font-family:var(--arcade);font-size:22px;color:var(--gold)}
+    .stat-lbl{font-family:var(--arcade);font-size:9px;color:var(--text-muted);letter-spacing:.12em}
+    .btn{padding:14px 24px;border-radius:12px;font-family:var(--display);font-size:14px;font-weight:800;transition:all .18s ease;border:none;cursor:pointer}
+    .btn.is-gold{background:linear-gradient(135deg,var(--gold),var(--gold-2));color:var(--ink);box-shadow:0 6px 14px -4px rgba(251,191,36,.45)}
+    .btn.is-ghost{background:transparent;color:var(--text-2);border:2px solid var(--border)}
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">
+    <svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true">
+      <circle cx="32" cy="32" r="26" fill="none" stroke="#fbbf24" stroke-width="4"/>
+      <path d="M 32 6 L 36 14 L 28 14 Z" fill="#fbbf24"/>
+      <g fill="none" stroke="#fbbf24" stroke-width="2">
+        <line x1="32" y1="8" x2="32" y2="20"/>
+        <line x1="50" y1="20" x2="42" y2="26"/>
+        <line x1="56" y1="40" x2="46" y2="38"/>
+        <line x1="32" y1="56" x2="32" y2="46"/>
+        <line x1="14" y1="40" x2="22" y2="38"/>
+        <line x1="14" y1="20" x2="22" y2="26"/>
+      </g>
+      <circle cx="32" cy="32" r="4" fill="#fbbf24"/>
+    </svg>
+    CATEGORY WHEEL
+  </div>
+  <div class="scoreboard"><span>SCORE<b id="score">0</b></span><span>BEST<b id="best">0</b></span><div id="muteHost"></div></div>
+</nav>
+
+<main class="page">
+  <div class="layout">
+    <div class="wheel-side">
+      <div class="wheel-container">
+        <div class="wheel-pointer"></div>
+        <svg class="wheel" id="wheel" viewBox="0 0 200 200"></svg>
+        <div class="wheel-hub">SPIN<br>TO<br>PLAY</div>
+      </div>
+      <button class="spin-btn" id="spinBtn">▶ SPIN THE WHEEL</button>
+    </div>
+
+    <div class="quiz-side">
+      <div class="level-bar">
+        <span class="level-bar-label">LEVEL</span>
+        <button class="lev-btn is-active" data-level="A1">A1 · EASY</button>
+        <button class="lev-btn" data-level="A2">A2 · MEDIUM</button>
+        <button class="lev-btn" data-level="B1">B1 · HARD</button>
+      </div>
+
+      <div class="progress"><span id="progressBar"></span></div>
+
+      <div class="quiz-card" id="quizCard">
+        <div class="quiz-empty">
+          <div class="arrow">←</div>
+          Spin the wheel to pick a category, then answer 5 quick MCQ questions about it. Build your score!
+        </div>
+      </div>
+
+      <div class="feedback" id="feedback">Spin to begin · 5 questions per spin</div>
+
+      <div class="stats-row">
+        <span>SPINS<b id="spins">0</b></span>
+        <span>Q<b id="qNum">0</b>/<b id="qTotal">5</b></span>
+        <span>STREAK<b id="streak">0</b></span>
+      </div>
+
+      <div class="summary" id="summary">
+        <h2 id="sumTitle">🏆 SESSION COMPLETE</h2>
+        <div class="stats">
+          <div><div class="stat-num" id="sumScore">0</div><div class="stat-lbl">SCORE</div></div>
+          <div><div class="stat-num" id="sumAcc">0%</div><div class="stat-lbl">ACCURACY</div></div>
+          <div><div class="stat-num" id="sumBest">0</div><div class="stat-lbl">BEST</div></div>
+        </div>
+        <button class="btn is-gold" id="resetBtn">↺ RESET SCORE</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="../../_shared/progress.js"></script>
+<script src="../../_shared/sounds.js"></script>
+<script>
+const GAME_ID='category-wheel'
+if(window.PlaySounds) PlaySounds.injectMuteButton(document.getElementById('muteHost'))
+
+const CATEGORIES = [
+  { name:'ANIMALS',    em:'🐾', color:'#ef4444', light:'#fecaca' },
+  { name:'FOODS',      em:'🍎', color:'#fbbf24', light:'#fde68a' },
+  { name:'JOBS',       em:'💼', color:'#22d3ee', light:'#cffafe' },
+  { name:'COLORS',     em:'🌈', color:'#ec4899', light:'#fbcfe8' },
+  { name:'BODY PARTS', em:'🫀', color:'#a78bfa', light:'#e9d5ff' },
+  { name:'SPORTS',     em:'⚽', color:'#4ade80', light:'#bbf7d0' },
+  { name:'WEATHER',    em:'☀️', color:'#fb923c', light:'#fed7aa' },
+  { name:'HOUSE',      em:'🏠', color:'#0ea5e9', light:'#bae6fd' },
+]
+const QUESTIONS = {
+  ANIMALS:{
+    A1:[{a:'قطة',e:'cat',d:['dog','cow','bird']},{a:'كلب',e:'dog',d:['cat','fish','horse']},{a:'بقرة',e:'cow',d:['sheep','horse','goat']},{a:'سمكة',e:'fish',d:['bird','frog','snake']},{a:'حصان',e:'horse',d:['donkey','cow','goat']},{a:'دجاجة',e:'chicken',d:['duck','turkey','goose']},{a:'أرنب',e:'rabbit',d:['mouse','squirrel','hamster']},{a:'فيل',e:'elephant',d:['rhino','hippo','giraffe']}],
+    A2:[{a:'زرافة',e:'giraffe',d:['camel','horse','deer']},{a:'تمساح',e:'crocodile',d:['lizard','snake','frog']},{a:'دب',e:'bear',d:['wolf','fox','tiger']},{a:'بطريق',e:'penguin',d:['seal','duck','swan']},{a:'فراشة',e:'butterfly',d:['bee','moth','dragonfly']},{a:'سلحفاة',e:'turtle',d:['tortoise','crocodile','snail']}],
+    B1:[{a:'ضفدع',e:'frog',d:['toad','newt','salamander']},{a:'دلفين',e:'dolphin',d:['whale','shark','seal']},{a:'صقر',e:'falcon',d:['eagle','hawk','owl']},{a:'سحلية',e:'lizard',d:['snake','iguana','gecko']},{a:'خفاش',e:'bat',d:['mouse','owl','rat']}]
+  },
+  FOODS:{
+    A1:[{a:'خبز',e:'bread',d:['cake','rice','egg']},{a:'حليب',e:'milk',d:['water','juice','tea']},{a:'تفاحة',e:'apple',d:['banana','orange','grape']},{a:'بيضة',e:'egg',d:['cheese','milk','butter']},{a:'موزة',e:'banana',d:['orange','lemon','apple']},{a:'دجاج',e:'chicken',d:['beef','fish','lamb']},{a:'سمك',e:'fish',d:['meat','egg','rice']}],
+    A2:[{a:'بطاطس',e:'potato',d:['carrot','onion','tomato']},{a:'بصل',e:'onion',d:['garlic','potato','pepper']},{a:'فلفل',e:'pepper',d:['salt','sugar','chili']},{a:'جبنة',e:'cheese',d:['butter','yogurt','cream']},{a:'لحم',e:'meat',d:['fish','chicken','beef']}],
+    B1:[{a:'عدس',e:'lentils',d:['beans','peas','chickpeas']},{a:'حبوب',e:'cereal',d:['oats','rice','wheat']},{a:'لوز',e:'almond',d:['walnut','peanut','pistachio']},{a:'زبيب',e:'raisin',d:['date','fig','prune']}]
+  },
+  JOBS:{
+    A1:[{a:'طبيب',e:'doctor',d:['teacher','farmer','baker']},{a:'معلم',e:'teacher',d:['student','doctor','nurse']},{a:'طباخ',e:'chef',d:['baker','farmer','waiter']},{a:'شرطي',e:'police',d:['soldier','firefighter','guard']},{a:'مزارع',e:'farmer',d:['gardener','chef','baker']}],
+    A2:[{a:'محامي',e:'lawyer',d:['judge','politician','officer']},{a:'مهندس',e:'engineer',d:['architect','technician','builder']},{a:'صحفي',e:'journalist',d:['writer','editor','author']},{a:'طيار',e:'pilot',d:['driver','sailor','astronaut']}],
+    B1:[{a:'عالم',e:'scientist',d:['researcher','professor','engineer']},{a:'فلكي',e:'astronomer',d:['astronaut','scientist','physicist']},{a:'دبلوماسي',e:'diplomat',d:['ambassador','minister','consultant']}]
+  },
+  COLORS:{
+    A1:[{a:'أحمر',e:'red',d:['blue','green','black']},{a:'أزرق',e:'blue',d:['red','green','yellow']},{a:'أخضر',e:'green',d:['yellow','blue','pink']},{a:'أصفر',e:'yellow',d:['orange','gold','green']},{a:'أسود',e:'black',d:['white','grey','brown']},{a:'أبيض',e:'white',d:['black','grey','silver']},{a:'بني',e:'brown',d:['black','grey','tan']}],
+    A2:[{a:'وردي',e:'pink',d:['red','purple','rose']},{a:'بنفسجي',e:'purple',d:['violet','pink','indigo']},{a:'برتقالي',e:'orange',d:['red','yellow','gold']},{a:'رمادي',e:'grey',d:['silver','white','black']},{a:'فضي',e:'silver',d:['grey','white','platinum']}],
+    B1:[{a:'فيروزي',e:'turquoise',d:['cyan','teal','aqua']},{a:'قرمزي',e:'crimson',d:['scarlet','red','maroon']},{a:'بيج',e:'beige',d:['cream','tan','ivory']},{a:'كهرماني',e:'amber',d:['gold','yellow','orange']}]
+  },
+  'BODY PARTS':{
+    A1:[{a:'يد',e:'hand',d:['foot','arm','leg']},{a:'قدم',e:'foot',d:['hand','leg','toe']},{a:'رأس',e:'head',d:['hair','face','neck']},{a:'عين',e:'eye',d:['ear','nose','mouth']},{a:'أذن',e:'ear',d:['eye','nose','mouth']},{a:'أنف',e:'nose',d:['mouth','eye','ear']},{a:'فم',e:'mouth',d:['lip','tongue','teeth']}],
+    A2:[{a:'كتف',e:'shoulder',d:['arm','elbow','back']},{a:'كوع',e:'elbow',d:['shoulder','wrist','knee']},{a:'ركبة',e:'knee',d:['elbow','ankle','hip']},{a:'إصبع',e:'finger',d:['toe','thumb','nail']},{a:'لسان',e:'tongue',d:['teeth','lip','throat']}],
+    B1:[{a:'كبد',e:'liver',d:['kidney','heart','lung']},{a:'كلى',e:'kidney',d:['liver','bladder','spleen']},{a:'دماغ',e:'brain',d:['heart','mind','skull']},{a:'عظم',e:'bone',d:['muscle','joint','skull']}]
+  },
+  SPORTS:{
+    A1:[{a:'كرة القدم',e:'football',d:['basketball','tennis','rugby']},{a:'كرة السلة',e:'basketball',d:['football','volleyball','tennis']},{a:'تنس',e:'tennis',d:['badminton','football','golf']},{a:'سباحة',e:'swimming',d:['running','cycling','diving']},{a:'جري',e:'running',d:['walking','jogging','sprinting']}],
+    A2:[{a:'ركوب الدراجة',e:'cycling',d:['running','skating','rowing']},{a:'ملاكمة',e:'boxing',d:['karate','judo','wrestling']},{a:'كاراتيه',e:'karate',d:['judo','boxing','taekwondo']},{a:'يوغا',e:'yoga',d:['pilates','meditation','dance']}],
+    B1:[{a:'مبارزة',e:'fencing',d:['wrestling','boxing','archery']},{a:'رماية',e:'archery',d:['shooting','fencing','target']},{a:'تجديف',e:'rowing',d:['sailing','kayaking','canoeing']}]
+  },
+  WEATHER:{
+    A1:[{a:'مشمس',e:'sunny',d:['cloudy','rainy','windy']},{a:'ممطر',e:'rainy',d:['snowy','sunny','foggy']},{a:'غائم',e:'cloudy',d:['sunny','clear','starry']},{a:'ثلجي',e:'snowy',d:['icy','rainy','foggy']},{a:'حار',e:'hot',d:['cold','warm','cool']},{a:'بارد',e:'cold',d:['hot','warm','cool']}],
+    A2:[{a:'عاصف',e:'windy',d:['breezy','calm','still']},{a:'ضبابي',e:'foggy',d:['misty','smoky','hazy']},{a:'دافئ',e:'warm',d:['hot','cool','mild']},{a:'رطب',e:'humid',d:['dry','muggy','damp']}],
+    B1:[{a:'إعصار',e:'tornado',d:['hurricane','typhoon','storm']},{a:'فيضان',e:'flood',d:['drought','tsunami','storm']},{a:'جفاف',e:'drought',d:['flood','famine','heatwave']}]
+  },
+  HOUSE:{
+    A1:[{a:'باب',e:'door',d:['window','wall','floor']},{a:'نافذة',e:'window',d:['door','wall','curtain']},{a:'كرسي',e:'chair',d:['table','sofa','bed']},{a:'طاولة',e:'table',d:['desk','chair','shelf']},{a:'سرير',e:'bed',d:['sofa','chair','rug']},{a:'مطبخ',e:'kitchen',d:['bedroom','bathroom','garage']}],
+    A2:[{a:'حمام',e:'bathroom',d:['kitchen','bedroom','garage']},{a:'سقف',e:'ceiling',d:['floor','wall','roof']},{a:'مرآة',e:'mirror',d:['glass','window','frame']},{a:'مصباح',e:'lamp',d:['light','bulb','candle']},{a:'ستارة',e:'curtain',d:['blind','sheet','cloth']}],
+    B1:[{a:'موقد',e:'stove',d:['oven','grill','heater']},{a:'فرن',e:'oven',d:['stove','microwave','grill']},{a:'ثلاجة',e:'fridge',d:['freezer','cooler','pantry']}]
+  },
+}
+
+const SEG_ANGLE = 360 / CATEGORIES.length
+let level='A1', score=0, streak=0, qIdx=0, qTotal=5, spins=0, currentCat=null, sessionQuestions=[]
+let totalAttempts=0, totalCorrect=0, wheelAngle=0, spinning=false
+const wheel=document.getElementById('wheel'), spinBtn=document.getElementById('spinBtn')
+const quizCard=document.getElementById('quizCard'), feedbackEl=document.getElementById('feedback')
+const scoreEl=document.getElementById('score'), bestEl=document.getElementById('best'), spinsEl=document.getElementById('spins'), streakEl=document.getElementById('streak'), qNumEl=document.getElementById('qNum'), qTotalEl=document.getElementById('qTotal')
+const progressBar=document.getElementById('progressBar')
+const summary=document.getElementById('summary')
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function drawWheel(){
+  let svg = ''
+  CATEGORIES.forEach((cat, i) => {
+    const startAngle = i * SEG_ANGLE - 90
+    const endAngle = (i+1) * SEG_ANGLE - 90
+    const startRad = startAngle * Math.PI / 180
+    const endRad = endAngle * Math.PI / 180
+    const x1 = 100 + 100 * Math.cos(startRad)
+    const y1 = 100 + 100 * Math.sin(startRad)
+    const x2 = 100 + 100 * Math.cos(endRad)
+    const y2 = 100 + 100 * Math.sin(endRad)
+    const large = SEG_ANGLE > 180 ? 1 : 0
+    svg += `<path d="M 100 100 L ${x1} ${y1} A 100 100 0 ${large} 1 ${x2} ${y2} Z" fill="${cat.color}" stroke="#0c0a09" stroke-width="2"/>`
+    // emoji + label at center of segment
+    const midAngle = (startAngle + endAngle) / 2
+    const midRad = midAngle * Math.PI / 180
+    const tx = 100 + 62 * Math.cos(midRad)
+    const ty = 100 + 62 * Math.sin(midRad)
+    svg += `<text x="${tx}" y="${ty}" text-anchor="middle" dominant-baseline="central" font-size="22" transform="rotate(${midAngle + 90}, ${tx}, ${ty})">${cat.em}</text>`
+    const lx = 100 + 38 * Math.cos(midRad)
+    const ly = 100 + 38 * Math.sin(midRad)
+    svg += `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="central" font-family="Press Start 2P,monospace" font-size="5" fill="#0c0a09" transform="rotate(${midAngle + 90}, ${lx}, ${ly})">${cat.name}</text>`
+  })
+  wheel.innerHTML = svg
+}
+
+function spin(){
+  if(spinning) return
+  spinning=true
+  spinBtn.disabled=true; spinBtn.textContent='SPINNING…'
+  const winnerIdx = Math.floor(Math.random() * CATEGORIES.length)
+  // angle to make pointer (top, 0deg in wheel coords) align with winnerIdx center
+  const targetCenter = winnerIdx * SEG_ANGLE + SEG_ANGLE / 2
+  const rotations = 5 + Math.floor(Math.random() * 3)
+  // wheel currently at wheelAngle. We need new total such that (new % 360) places center at top (0).
+  // Top is at -90 in our svg coords; segments start at -90. Center of segment i is at i*SEG_ANGLE + SEG_ANGLE/2 from start.
+  // Rotating wheel by -targetCenter brings that center to the top.
+  const finalAngle = rotations * 360 - targetCenter
+  wheelAngle = finalAngle
+  wheel.style.transform = 'rotate(' + finalAngle + 'deg)'
+  if(window.PlaySounds){
+    // Simulated tick during spin
+    let n = 18
+    const tickInt = setInterval(() => { if(!--n) clearInterval(tickInt); PlaySounds.tickLow() }, 180)
+  }
+  setTimeout(() => { spinning=false; spinBtn.disabled=false; spinBtn.textContent='▶ SPIN AGAIN'; onLanded(CATEGORIES[winnerIdx]) }, 4100)
+}
+
+function onLanded(cat){
+  currentCat = cat
+  if(window.PlaySounds) PlaySounds.win()
+  // build 5 questions from this category and level
+  const pool = QUESTIONS[cat.name] && (QUESTIONS[cat.name][level] || QUESTIONS[cat.name].A1) || []
+  if(pool.length === 0){ feedbackEl.textContent = 'No questions for this category yet — spin again!'; return }
+  sessionQuestions = shuffle(pool).slice(0, qTotal)
+  qIdx = 0; spins++; spinsEl.textContent = spins
+  qTotalEl.textContent = sessionQuestions.length
+  feedbackEl.textContent = '🎰 Landed on ' + cat.name + '! Answer ' + sessionQuestions.length + ' questions.'
+  feedbackEl.className = 'feedback'
+  loadQ()
+}
+
+function loadQ(){
+  if(qIdx >= sessionQuestions.length){ doneSession(); return }
+  const q = sessionQuestions[qIdx]
+  qNumEl.textContent = qIdx + 1
+  const banner = currentCat.color
+  const labelColor = currentCat.light
+  const opts = shuffle([{w:q.e,c:true},...q.d.map(w=>({w,c:false}))])
+  quizCard.innerHTML = `
+    <div><span class="cat-banner" style="background:${labelColor}25;color:${banner};border:1px solid ${banner}66">${currentCat.em} ${currentCat.name}</span></div>
+    <div class="q-prompt-label">TRANSLATE TO ENGLISH</div>
+    <div class="q-prompt">${q.a}</div>
+    <div class="choices">${opts.map(o=>`<button class="choice" data-w="${o.w}" data-c="${o.c?'1':'0'}">${o.w}</button>`).join('')}</div>
+  `
+  quizCard.querySelectorAll('.choice').forEach(b=>b.addEventListener('click',()=>{
+    const isRight = b.dataset.c === '1'
+    quizCard.querySelectorAll('.choice').forEach(x=>x.disabled=true)
+    totalAttempts++
+    if(isRight){
+      b.classList.add('is-right')
+      score += 10 + streak * 2; streak++; totalCorrect++
+      scoreEl.textContent = score; streakEl.textContent = streak
+      feedbackEl.textContent = '✓ Correct! +' + (10 + (streak-1)*2)
+      feedbackEl.className = 'feedback is-right'
+      if(window.PlaySounds) PlaySounds.correct()
+    } else {
+      b.classList.add('is-wrong')
+      streak = 0; streakEl.textContent = '0'
+      quizCard.querySelectorAll('.choice').forEach(x=>{if(x.dataset.w===q.e)x.classList.add('is-right')})
+      feedbackEl.textContent = '✗ Answer: ' + q.e
+      feedbackEl.className = 'feedback is-wrong'
+      if(window.PlaySounds) PlaySounds.wrong()
+    }
+    setTimeout(()=>{qIdx++; updateProgress(); loadQ()}, 1100)
+  }))
+  updateProgress()
+}
+
+function updateProgress(){
+  progressBar.style.width = ((qIdx / qTotal) * 100) + '%'
+}
+
+function doneSession(){
+  // session done — invite to spin again
+  quizCard.innerHTML = `
+    <div class="quiz-empty">
+      <div class="arrow">🎉</div>
+      Round complete! Spin the wheel for a new category.
+    </div>
+  `
+  qIdx = 0; updateProgress()
+  if(window.PlaySounds) PlaySounds.win()
+  // update summary
+  const acc = totalAttempts ? Math.round(totalCorrect / totalAttempts * 100) : 0
+  document.getElementById('sumScore').textContent = score
+  document.getElementById('sumAcc').textContent = acc + '%'
+  // record progress
+  if(window.PlayProgress){
+    PlayProgress.record(GAME_ID, level, score, score || 1)
+    const lv = PlayProgress.getLevel(GAME_ID, level)
+    document.getElementById('sumBest').textContent = lv.best
+    bestEl.textContent = lv.best
+  }
+  summary.classList.add('is-shown')
+}
+
+document.getElementById('resetBtn').addEventListener('click',()=>{score=0;streak=0;qIdx=0;spins=0;totalAttempts=0;totalCorrect=0;scoreEl.textContent='0';streakEl.textContent='0';spinsEl.textContent='0';qNumEl.textContent='0';summary.classList.remove('is-shown')})
+spinBtn.addEventListener('click',spin)
+document.querySelectorAll('.lev-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.lev-btn').forEach(x=>x.classList.remove('is-active'));b.classList.add('is-active');level=b.dataset.level; if(window.PlayProgress) bestEl.textContent=PlayProgress.getLevel(GAME_ID,level).best||0}))
+
+drawWheel()
+if(window.PlayProgress) bestEl.textContent = PlayProgress.getLevel(GAME_ID, level).best || 0
+</script>
+</body>
+</html>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex, nofollow">
+  <title>Guess the Job — Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Press+Start+2P&family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}button{font-family:inherit;cursor:pointer}a{text-decoration:none;color:inherit}
+    :root{--ink:#0c0a09;--bg:#0c0a09;--paper:#1c1917;--paper-2:#292524;--border:#44403c;--gold:#fbbf24;--gold-2:#fcd34d;--text:#fafaf9;--text-2:#d6d3d1;--text-muted:#a8a29e;--neon:#22d3ee;--pink:#ec4899;--green:#4ade80;--red:#f87171;--orange:#fb923c;--display:'Outfit',sans-serif;--arcade:'Press Start 2P',monospace;--arabic:'Cairo',sans-serif}
+    html,body{background:var(--bg);color:var(--text);font-family:var(--display);font-size:16px;min-height:100%;-webkit-font-smoothing:antialiased}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 60% 40% at 80% 0%,rgba(251,146,60,.10),transparent 60%)}
+    body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:40px 40px}
+    .topbar{position:sticky;top:0;z-index:100;background:rgba(12,10,9,.92);backdrop-filter:blur(18px);border-bottom:1px solid var(--border);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .back-link{display:inline-flex;align-items:center;gap:10px;padding:12px 20px;border-radius:999px;background:var(--paper);border:1px solid var(--border);font-size:16px;font-weight:700;color:var(--text-2)}
+    .back-link:hover{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+    .game-title{font-family:var(--arcade);font-size:18px;color:var(--gold);letter-spacing:.05em;display:flex;align-items:center;gap:10px}
+    .scoreboard{display:flex;gap:14px;font-family:var(--arcade);font-size:13px;color:var(--text-muted);letter-spacing:.08em;align-items:center}
+    .scoreboard b{color:var(--gold);font-size:18px;margin-left:6px;text-shadow:0 0 8px rgba(251,191,36,.4)}
+    .page{position:relative;z-index:2;max-width:1100px;margin:0 auto;padding:28px 28px 60px}
+
+    .level-bar{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:18px;padding:16px 22px;border-radius:16px;background:var(--paper);border:2px solid var(--border)}
+    .level-bar-label{font-family:var(--arcade);font-size:13px;color:var(--text-muted);letter-spacing:.15em}
+    .lev-btn{padding:12px 20px;border-radius:12px;background:transparent;border:2px solid var(--border);font-size:15px;font-weight:700;color:var(--text-2);transition:all .18s ease}
+    .lev-btn:hover{border-color:var(--gold);color:var(--gold)}
+    .lev-btn.is-active{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+
+    /* Round progress bar */
+    .round-bar{height:8px;background:var(--paper);border:1px solid var(--border);border-radius:999px;overflow:hidden;margin-bottom:18px}
+    .round-bar>span{display:block;height:100%;background:linear-gradient(90deg,var(--orange),var(--gold));transition:width .4s ease;width:0%}
+
+    .scene{padding:36px 28px;border-radius:22px;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(251,146,60,.10),transparent 70%),linear-gradient(180deg,#0c0a09,#1c1917);border:3px solid var(--border);text-align:center;margin-bottom:20px;box-shadow:0 0 40px -10px rgba(251,146,60,.25) inset}
+    .scene::before{content:"";display:block;width:100%;height:3px;background:linear-gradient(90deg,var(--orange),var(--gold),var(--orange));position:absolute;top:0;left:0;border-radius:22px 22px 0 0;opacity:.6}
+    .scene{position:relative}
+    .prompt-label{font-family:var(--arcade);font-size:12px;color:var(--orange);letter-spacing:.18em;margin-bottom:18px;display:inline-block;padding:6px 16px;border-radius:8px;background:rgba(251,146,60,.10);border:1px solid rgba(251,146,60,.3)}
+    .emoji-row{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin:16px 0 26px}
+    .emoji-tile{width:120px;height:120px;border-radius:18px;background:linear-gradient(160deg,var(--paper-2),var(--paper));border:3px solid var(--border);display:inline-flex;align-items:center;justify-content:center;font-size:64px;box-shadow:0 10px 22px -8px rgba(0,0,0,.6);animation:tilePop .5s cubic-bezier(.34,1.56,.64,1) backwards}
+    .emoji-tile:nth-child(1){animation-delay:.0s} .emoji-tile:nth-child(2){animation-delay:.1s} .emoji-tile:nth-child(3){animation-delay:.2s} .emoji-tile:nth-child(4){animation-delay:.3s}
+    @keyframes tilePop{from{opacity:0;transform:scale(.6) translateY(-12px)}to{opacity:1;transform:scale(1) translateY(0)}}
+    .scene-q{font-family:var(--arcade);font-size:14px;color:var(--text-muted);font-weight:400;letter-spacing:.12em}
+    .scene-q b{color:var(--gold)}
+
+    .choices{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:18px}
+    .choice{padding:22px 18px;border-radius:14px;background:var(--paper);border:3px solid var(--border);font-family:var(--display);font-size:22px;font-weight:800;color:var(--text);transition:all .18s ease;min-height:80px;display:flex;align-items:center;justify-content:center}
+    .choice:hover:not(:disabled){border-color:var(--orange);color:var(--orange);transform:translateY(-3px)}
+    .choice.is-right{background:rgba(74,222,128,.20);border-color:var(--green);color:var(--green);box-shadow:0 0 24px rgba(74,222,128,.4)}
+    .choice.is-wrong{background:rgba(248,113,113,.20);border-color:var(--red);color:var(--red);animation:shake .4s ease}
+    @keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+    .feedback{min-height:28px;font-family:var(--arcade);font-size:14px;text-align:center;color:var(--text-muted);margin-bottom:14px;letter-spacing:.1em}
+    .feedback.is-right{color:var(--green)} .feedback.is-wrong{color:var(--red)}
+    .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+    .btn{padding:16px 28px;border-radius:12px;font-family:var(--display);font-size:16px;font-weight:800;transition:all .18s ease;border:none;cursor:pointer}
+    .btn.is-gold{background:linear-gradient(135deg,var(--gold),var(--gold-2));color:var(--ink);box-shadow:0 8px 18px -4px rgba(251,191,36,.5)}
+    .btn.is-gold:hover{transform:translateY(-2px)}
+    .btn.is-ghost{background:transparent;color:var(--text-2);border:2px solid var(--border)}
+    .btn.is-ghost:hover{border-color:var(--orange);color:var(--orange)}
+
+    .summary{display:none;padding:48px 36px;border-radius:24px;background:var(--paper);border:4px solid var(--gold);text-align:center;box-shadow:0 0 80px rgba(251,191,36,.4)}
+    .summary.is-shown{display:block}
+    .summary-trophy{font-size:120px;margin-bottom:14px;animation:bounce 1s ease infinite alternate}
+    @keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-14px)}}
+    .summary-title{font-family:var(--arcade);font-size:28px;color:var(--gold);letter-spacing:.05em;margin-bottom:18px;text-shadow:0 0 20px rgba(251,191,36,.5)}
+    .stats{display:flex;gap:32px;justify-content:center;margin-bottom:28px;flex-wrap:wrap;padding:22px;border-top:1px dashed var(--border);border-bottom:1px dashed var(--border)}
+    .stat{display:flex;flex-direction:column;gap:6px}
+    .stat-num{font-family:var(--arcade);font-size:30px;color:var(--gold);text-shadow:0 0 14px rgba(251,191,36,.4)}
+    .stat-lbl{font-family:var(--arcade);font-size:10px;color:var(--text-muted);letter-spacing:.15em}
+    .new-best{display:inline-block;margin-bottom:18px;padding:8px 18px;border-radius:999px;background:var(--gold);color:var(--ink);font-family:var(--arcade);font-size:11px;letter-spacing:.15em}
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">
+    <svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true">
+      <defs><linearGradient id="jg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#b45309"/></linearGradient></defs>
+      <!-- briefcase -->
+      <rect x="10" y="22" width="44" height="32" rx="4" fill="url(#jg)" stroke="#0c0a09" stroke-width="2"/>
+      <rect x="22" y="14" width="20" height="10" rx="2" fill="none" stroke="#0c0a09" stroke-width="2"/>
+      <rect x="28" y="36" width="8" height="6" rx="1" fill="#0c0a09"/>
+      <line x1="10" y1="34" x2="54" y2="34" stroke="#0c0a09" stroke-width="1.5"/>
+    </svg>
+    GUESS THE JOB
+  </div>
+  <div class="scoreboard"><span>SCORE<b id="score">0</b></span><span>BEST<b id="best">0</b></span><div id="muteHost"></div></div>
+</nav>
+<main class="page">
+  <div class="level-bar" id="level-bar">
+    <span class="level-bar-label">LEVEL</span>
+    <button class="lev-btn is-active" data-level="A1">A1 · COMMON</button>
+    <button class="lev-btn" data-level="A2">A2 · MORE</button>
+    <button class="lev-btn" data-level="B1">B1 · SPECIALIZED</button>
+  </div>
+  <div class="round-bar"><span id="roundBar"></span></div>
+
+  <div id="game-area">
+    <div class="scene">
+      <span class="prompt-label">🧑‍💼 WHO IS THIS?</span>
+      <div class="emoji-row" id="emojiRow"></div>
+      <div class="scene-q">Round <b id="rnd">1</b>/<b id="total">10</b> · Pick the job below ↓</div>
+    </div>
+    <div class="choices" id="choices"></div>
+    <div class="feedback" id="feedback">Look at the clues and tap the right job</div>
+    <div class="actions"><button class="btn is-ghost" id="skipBtn">⏭ Skip</button></div>
+  </div>
+
+  <div class="summary" id="summary">
+    <div class="summary-trophy" id="trophy">🏆</div>
+    <div id="newBest"></div>
+    <div class="summary-title" id="title">GREAT JOB!</div>
+    <div class="stats">
+      <div class="stat"><span class="stat-num" id="finalScore">0</span><span class="stat-lbl">SCORE</span></div>
+      <div class="stat"><span class="stat-num" id="finalAcc">0%</span><span class="stat-lbl">ACCURACY</span></div>
+      <div class="stat"><span class="stat-num" id="finalBest">0</span><span class="stat-lbl">BEST</span></div>
+    </div>
+    <button class="btn is-gold" id="againBtn">▶ PLAY AGAIN</button>
+  </div>
+</main>
+
+<script src="../../_shared/progress.js"></script>
+<script src="../../_shared/sounds.js"></script>
+<script>
+const GAME_ID='guess-job'
+if(window.PlaySounds) PlaySounds.injectMuteButton(document.getElementById('muteHost'))
+
+// {clues:[4 emojis], job:'doctor', distractors:[3 jobs]}
+const JOBS = {
+  A1: [
+    {clues:['🥼','💉','🩺','🏥'], j:'doctor', d:['teacher','chef','farmer']},
+    {clues:['📚','✏️','🍎','🧑‍🏫'], j:'teacher', d:['student','librarian','writer']},
+    {clues:['🚓','🚨','👮','🛑'], j:'police officer', d:['soldier','firefighter','guard']},
+    {clues:['🚒','🔥','🪜','🧯'], j:'firefighter', d:['mechanic','soldier','plumber']},
+    {clues:['👨‍🍳','🍳','🥘','🔪'], j:'chef', d:['waiter','baker','farmer']},
+    {clues:['✈️','🧳','🛫','🌍'], j:'pilot', d:['driver','sailor','astronaut']},
+    {clues:['🌾','🚜','🐄','🌽'], j:'farmer', d:['gardener','chef','fisherman']},
+    {clues:['🎨','🖌️','🖼️','🎭'], j:'artist', d:['designer','writer','musician']},
+    {clues:['🎤','🎸','🎵','🎶'], j:'singer', d:['dancer','musician','actor']},
+    {clues:['📷','📸','🖼️','💡'], j:'photographer', d:['journalist','painter','designer']},
+    {clues:['📰','✍️','📝','📖'], j:'journalist', d:['author','editor','blogger']},
+    {clues:['💼','💻','📊','📈'], j:'businessman', d:['accountant','manager','banker']},
+    {clues:['🚌','🛣️','🚦','🔑'], j:'bus driver', d:['taxi driver','mechanic','pilot']},
+    {clues:['💻','⌨️','🖥️','📱'], j:'programmer', d:['gamer','designer','engineer']},
+    {clues:['🎬','🎥','🎞️','📽️'], j:'film director', d:['actor','editor','writer']},
+    {clues:['🍞','🥖','🥐','👨‍🍳'], j:'baker', d:['chef','farmer','grocer']},
+  ],
+  A2: [
+    {clues:['💇','✂️','💈','🪞'], j:'hairdresser', d:['stylist','barber','tailor']},
+    {clues:['🔧','🛠️','⚙️','🚗'], j:'mechanic', d:['plumber','engineer','technician']},
+    {clues:['💊','🧪','💉','📋'], j:'pharmacist', d:['nurse','chemist','doctor']},
+    {clues:['🦷','🪥','🩺','😬'], j:'dentist', d:['doctor','surgeon','nurse']},
+    {clues:['👷','🏗️','🧱','🦺'], j:'builder', d:['architect','carpenter','engineer']},
+    {clues:['📐','📏','🏛️','✏️'], j:'architect', d:['engineer','builder','designer']},
+    {clues:['🛍️','💳','🏪','💸'], j:'cashier', d:['shopkeeper','manager','salesperson']},
+    {clues:['🍷','🍴','🍝','💁'], j:'waiter', d:['chef','host','manager']},
+    {clues:['💰','🏦','💳','📊'], j:'banker', d:['accountant','cashier','manager']},
+    {clues:['🚢','⚓','🌊','🧭'], j:'sailor', d:['fisherman','pilot','captain']},
+    {clues:['🎣','🐟','🚣','🌊'], j:'fisherman', d:['sailor','swimmer','sea biologist']},
+    {clues:['🐕','🐈','🩺','🦴'], j:'vet', d:['doctor','farmer','zookeeper']},
+    {clues:['📜','⚖️','👨‍⚖️','💼'], j:'lawyer', d:['judge','politician','secretary']},
+    {clues:['⚖️','👨‍⚖️','🔨','📜'], j:'judge', d:['lawyer','politician','officer']},
+    {clues:['🚕','🛣️','📱','💵'], j:'taxi driver', d:['bus driver','pilot','tour guide']},
+    {clues:['🏊','🌊','🦺','🆘'], j:'lifeguard', d:['swimmer','sailor','rescuer']},
+    {clues:['📦','🚚','🛒','🚪'], j:'delivery driver', d:['postman','courier','trucker']},
+    {clues:['💄','💋','👁️','🪞'], j:'makeup artist', d:['hairdresser','model','designer']},
+    {clues:['🧹','🪣','🧽','✨'], j:'cleaner', d:['housekeeper','janitor','maid']},
+    {clues:['🐝','🍯','🌼','🌻'], j:'beekeeper', d:['farmer','gardener','botanist']},
+  ],
+  B1: [
+    {clues:['🔭','🌌','🚀','👨‍🚀'], j:'astronaut', d:['scientist','pilot','engineer']},
+    {clues:['⚗️','🧪','🔬','📓'], j:'scientist', d:['chemist','researcher','doctor']},
+    {clues:['💼','🌐','🤝','✈️'], j:'diplomat', d:['ambassador','minister','consultant']},
+    {clues:['📡','💻','🛰️','🔌'], j:'engineer', d:['programmer','technician','architect']},
+    {clues:['🎻','🎼','🎹','🎵'], j:'musician', d:['composer','conductor','singer']},
+    {clues:['🎼','🎷','🎺','👨‍🎤'], j:'composer', d:['musician','conductor','singer']},
+    {clues:['📊','💹','📈','💼'], j:'economist', d:['accountant','banker','investor']},
+    {clues:['🦠','🔬','🧬','💊'], j:'biologist', d:['doctor','chemist','researcher']},
+    {clues:['🧠','🗣️','🛋️','📓'], j:'therapist', d:['psychologist','doctor','counsellor']},
+    {clues:['📚','✒️','💭','📖'], j:'novelist', d:['poet','journalist','editor']},
+    {clues:['🕊️','📜','🤝','🌍'], j:'peacekeeper', d:['diplomat','soldier','activist']},
+    {clues:['🌋','🪨','🗻','🧭'], j:'geologist', d:['scientist','explorer','climber']},
+    {clues:['📸','🎙️','📰','🎤'], j:'reporter', d:['journalist','presenter','anchor']},
+    {clues:['🏛️','📜','📚','🗳️'], j:'historian', d:['politician','professor','librarian']},
+    {clues:['💉','🐀','🧬','🥼'], j:'researcher', d:['scientist','biologist','doctor']},
+    {clues:['🧗','⛏️','🗻','🪢'], j:'mountain climber', d:['hiker','explorer','athlete']},
+    {clues:['👮','🕵️','🔍','📂'], j:'detective', d:['police officer','spy','reporter']},
+    {clues:['💍','💒','💐','🥂'], j:'wedding planner', d:['event organizer','florist','caterer']},
+    {clues:['🍷','🍇','🥂','🍾'], j:'sommelier', d:['waiter','chef','barista']},
+    {clues:['🎢','🎡','🎠','🎟️'], j:'theme park worker', d:['cashier','operator','clown']},
+  ],
+}
+
+let level='A1', pool=[], idx=0, score=0, correct=0, total=10, ttsCache={}
+const emojiRow=document.getElementById('emojiRow'), choicesEl=document.getElementById('choices'), feedbackEl=document.getElementById('feedback'), scoreEl=document.getElementById('score'), bestEl=document.getElementById('best'), rndEl=document.getElementById('rnd'), totalEl=document.getElementById('total'), roundBar=document.getElementById('roundBar')
+const gameArea=document.getElementById('game-area'), summary=document.getElementById('summary')
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function refreshBest(){ if(window.PlayProgress){ bestEl.textContent = (PlayProgress.getLevel(GAME_ID,level).best||0) } }
+
+function startLevel(){
+  pool=shuffle(JOBS[level]).slice(0,total)
+  idx=0; score=0; correct=0
+  scoreEl.textContent='0'; totalEl.textContent=total
+  summary.classList.remove('is-shown'); gameArea.style.display='block'
+  refreshBest()
+  loadRound()
+}
+
+function loadRound(){
+  if(idx>=pool.length){finish(); return}
+  const q=pool[idx]
+  rndEl.textContent=idx+1
+  emojiRow.innerHTML=q.clues.map(e=>`<div class="emoji-tile">${e}</div>`).join('')
+  const opts=shuffle([{w:q.j,c:true},...q.d.map(w=>({w,c:false}))])
+  choicesEl.innerHTML=''
+  opts.forEach(o=>{const b=document.createElement('button');b.className='choice';b.textContent=o.w;b.addEventListener('click',()=>pick(b,o.c,q));choicesEl.appendChild(b)})
+  feedbackEl.textContent='Look at the clues and tap the right job'; feedbackEl.className='feedback'
+  roundBar.style.width = ((idx/total)*100)+'%'
+}
+
+async function speakJob(text){
+  try{
+    if(!ttsCache[text]){
+      const r=await fetch('https://inglizi.com/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,voice:'nova'})})
+      if(!r.ok) throw 0
+      ttsCache[text]=URL.createObjectURL(await r.blob())
+    }
+    await new Audio(ttsCache[text]).play()
+  }catch(e){try{const u=new SpeechSynthesisUtterance(text);u.lang='en-US';window.speechSynthesis.speak(u)}catch(_){}}
+}
+
+function pick(btn,correctly,q){
+  const all=choicesEl.querySelectorAll('.choice'); all.forEach(b=>b.disabled=true)
+  if(correctly){
+    btn.classList.add('is-right')
+    score+=10; correct++; scoreEl.textContent=score
+    feedbackEl.textContent='✓ Correct — '+q.j; feedbackEl.className='feedback is-right'
+    if(window.PlaySounds) PlaySounds.correct()
+    speakJob(q.j)
+  } else {
+    btn.classList.add('is-wrong')
+    all.forEach(b=>{if(b.textContent===q.j) b.classList.add('is-right')})
+    feedbackEl.textContent='✗ It was '+q.j; feedbackEl.className='feedback is-wrong'
+    if(window.PlaySounds) PlaySounds.wrong()
+  }
+  setTimeout(()=>{idx++; loadRound()}, 1500)
+}
+
+document.getElementById('skipBtn').addEventListener('click',()=>{idx++; loadRound()})
+
+function finish(){
+  const prev=window.PlayProgress?PlayProgress.getLevel(GAME_ID,level).best:0
+  const lv=window.PlayProgress?PlayProgress.record(GAME_ID,level,score,score||1):{best:score}
+  const acc=Math.round((correct/total)*100)
+  document.getElementById('finalScore').textContent=score
+  document.getElementById('finalAcc').textContent=acc+'%'
+  document.getElementById('finalBest').textContent=lv.best
+  let trophy='🏆', title='GREAT JOB!'
+  if(acc<50){trophy='💪';title='KEEP TRYING'} else if(acc<80){trophy='👍';title='NICE WORK'}
+  document.getElementById('trophy').textContent=trophy
+  document.getElementById('title').textContent=title
+  document.getElementById('newBest').innerHTML=(score>prev&&prev>0)?'<span class="new-best">★ NEW BEST ★</span>':''
+  gameArea.style.display='none'; summary.classList.add('is-shown')
+  if(window.PlaySounds){ if(acc>=70) PlaySounds.win(); else PlaySounds.lose() }
+}
+
+document.getElementById('againBtn').addEventListener('click',startLevel)
+document.querySelectorAll('.lev-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.lev-btn').forEach(x=>x.classList.remove('is-active'));b.classList.add('is-active');level=b.dataset.level;startLevel()}))
+
+startLevel()
+</script>
+</body>
+</html>
