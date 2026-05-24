@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex, nofollow">
+  <title>Falling Words — Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Press+Start+2P&family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}button,input{font-family:inherit}a{text-decoration:none;color:inherit}
+    :root{--ink:#0c0a09;--bg:#1c1917;--paper:#292524;--paper-2:#1c1917;--border:#44403c;--gold:#fbbf24;--gold-bright:#fcd34d;--text:#fafaf9;--text-2:#d6d3d1;--text-muted:#a8a29e;--neon:#22d3ee;--neon-2:#67e8f9;--green:#4ade80;--red:#f87171;--display:'Outfit',sans-serif;--arcade:'Press Start 2P',monospace;--arabic:'Cairo',sans-serif;--mono:'JetBrains Mono',monospace}
+    html,body{background:var(--bg);color:var(--text);font-family:var(--display);font-size:16px;min-height:100%;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 60% 40% at 80% 0%,rgba(34,211,238,0.10),transparent 60%),radial-gradient(ellipse 50% 35% at 20% 100%,rgba(251,191,36,0.06),transparent 60%)}
+    body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:32px 32px}
+    .topbar{position:sticky;top:0;z-index:100;background:rgba(28,25,23,.85);backdrop-filter:blur(18px) saturate(180%);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .back-link{display:inline-flex;align-items:center;gap:10px;padding:8px 14px;border-radius:999px;background:var(--paper);border:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text-2)}
+    .back-link:hover{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+    .game-title{font-family:var(--arcade);font-size:12px;color:var(--gold);letter-spacing:0.05em}
+    .scoreboard{display:flex;gap:12px;font-family:var(--arcade);font-size:9px;color:var(--text-muted);letter-spacing:0.08em}
+    .scoreboard b{color:var(--gold);font-size:11px;margin-left:6px}
+    .page{position:relative;z-index:2;max-width:880px;margin:0 auto;padding:24px 18px 60px}
+    .level-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;padding:12px 16px;border-radius:14px;background:var(--paper);border:1px solid var(--border)}
+    .level-bar-label{font-family:var(--arcade);font-size:9px;color:var(--text-muted);letter-spacing:0.12em}
+    .lev-btn{padding:8px 14px;border-radius:10px;background:transparent;border:1.5px solid var(--border);font-size:12px;font-weight:700;color:var(--text-2);transition:all .18s ease}
+    .lev-btn:hover{border-color:var(--neon);color:var(--neon)}
+    .lev-btn.is-active{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+    .arena-wrap{position:relative;border-radius:18px;overflow:hidden;background:linear-gradient(180deg,#0c0a09 0%,#1c1917 100%);border:2px solid var(--border);box-shadow:0 0 40px -10px rgba(34,211,238,.25) inset,0 20px 50px -20px rgba(0,0,0,.6);margin-bottom:14px}
+    .arena{position:relative;height:520px;overflow:hidden}
+    .arena::after{content:"";position:absolute;left:0;right:0;bottom:0;height:60px;background:linear-gradient(to top,rgba(248,113,113,.30),transparent);pointer-events:none}
+    .ground-line{position:absolute;left:0;right:0;bottom:60px;height:2px;background:repeating-linear-gradient(90deg,var(--red) 0,var(--red) 12px,transparent 12px,transparent 22px);opacity:.6}
+    .falling{position:absolute;padding:10px 16px;background:rgba(34,211,238,.10);border:2px solid var(--neon);border-radius:10px;color:var(--text);font-family:var(--display);font-weight:800;font-size:18px;box-shadow:0 0 18px -4px rgba(34,211,238,.45);white-space:nowrap;transition:transform .15s ease}
+    .falling.is-hot{background:rgba(248,113,113,.18);border-color:var(--red);box-shadow:0 0 22px -4px rgba(248,113,113,.55)}
+    .falling.is-correct{background:rgba(74,222,128,.25);border-color:var(--green);color:#fff;transform:scale(1.12);box-shadow:0 0 30px rgba(74,222,128,.7)}
+    .clue-pill{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:5;padding:6px 14px;border-radius:999px;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);font-family:var(--arcade);font-size:10px;color:var(--gold);letter-spacing:.1em;border:1px solid rgba(251,191,36,.4)}
+    .lives{position:absolute;top:14px;left:14px;z-index:5;display:flex;gap:4px;font-size:18px}
+    .lives .heart{filter:drop-shadow(0 0 4px rgba(248,113,113,.5))}
+    .lives .heart.is-out{opacity:.15;filter:none}
+    .combo{position:absolute;top:14px;right:14px;z-index:5;padding:6px 12px;border-radius:8px;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);font-family:var(--arcade);font-size:10px;color:var(--neon);letter-spacing:.1em;border:1px solid rgba(34,211,238,.4)}
+    .input-row{display:flex;gap:8px;padding:14px;background:var(--paper);border-radius:0 0 16px 16px;border-top:1px solid var(--border)}
+    .input-row input{flex:1;padding:14px 16px;border-radius:10px;background:var(--paper-2);border:2px solid var(--border);color:var(--text);font-family:var(--display);font-size:16px;font-weight:700;letter-spacing:.02em;outline:none}
+    .input-row input:focus{border-color:var(--neon);box-shadow:0 0 0 3px rgba(34,211,238,.15)}
+    .actions{display:flex;gap:10px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+    .btn{padding:12px 22px;border-radius:10px;font-family:var(--display);font-size:13px;font-weight:800;transition:all .18s ease;border:none;letter-spacing:-.005em;cursor:pointer}
+    .btn.is-gold{background:linear-gradient(135deg,var(--gold),var(--gold-bright));color:var(--ink);box-shadow:0 6px 14px -4px rgba(251,191,36,.45)}
+    .btn.is-gold:hover{transform:translateY(-2px)}
+    .btn.is-ghost{background:transparent;color:var(--text-2);border:1.5px solid var(--border)}
+    .btn.is-ghost:hover{border-color:var(--neon);color:var(--neon)}
+    .splash{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);z-index:30;text-align:center;padding:30px}
+    .splash.is-hidden{display:none}
+    .splash h2{font-family:var(--arcade);font-size:clamp(18px,4vw,28px);color:var(--gold);margin-bottom:12px;letter-spacing:0.05em}
+    .splash p{font-size:14px;color:var(--text-2);max-width:380px;margin-bottom:18px;line-height:1.6}
+    .splash .stat-grid{display:flex;gap:24px;margin:14px 0 20px;justify-content:center;flex-wrap:wrap}
+    .splash .stat{display:flex;flex-direction:column;gap:4px}
+    .splash .stat-num{font-family:var(--arcade);font-size:18px;color:var(--gold)}
+    .splash .stat-lbl{font-family:var(--arcade);font-size:8px;color:var(--text-muted);letter-spacing:.12em}
+    .new-best{display:inline-block;margin-bottom:10px;padding:6px 14px;border-radius:999px;background:var(--gold);color:var(--ink);font-family:var(--arcade);font-size:9px;letter-spacing:.15em;animation:pulseBest 1s ease infinite alternate}
+    @keyframes pulseBest{from{transform:scale(1)}to{transform:scale(1.06)}}
+    @media (max-width:640px){.arena{height:420px}.falling{font-size:14px;padding:8px 12px}}
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">🎈 FALLING WORDS</div>
+  <div class="scoreboard"><span>SCORE<b id="score">0</b></span><span>BEST<b id="best">0</b></span></div>
+</nav>
+<main class="page">
+  <div class="level-bar" id="level-bar">
+    <span class="level-bar-label">LEVEL</span>
+    <button class="lev-btn is-active" data-level="A1">A1 · SLOW</button>
+    <button class="lev-btn" data-level="A2">A2 · FAST</button>
+    <button class="lev-btn" data-level="B1">B1 · CHAOS</button>
+  </div>
+  <div class="arena-wrap">
+    <div class="arena" id="arena">
+      <div class="clue-pill" id="clue">type the word</div>
+      <div class="lives" id="lives"><span class="heart">❤</span><span class="heart">❤</span><span class="heart">❤</span></div>
+      <div class="combo" id="combo">×1</div>
+      <div class="ground-line"></div>
+      <div class="splash" id="splash">
+        <h2 id="splash-title">🎈 FALLING WORDS</h2>
+        <p id="splash-text">English words fall from the sky. Type each one before it hits the ground. 3 lives, build a combo!</p>
+        <div class="stat-grid" id="splash-stats" style="display:none">
+          <div class="stat"><span class="stat-num" id="final-score">0</span><span class="stat-lbl">SCORE</span></div>
+          <div class="stat"><span class="stat-num" id="final-best">0</span><span class="stat-lbl">BEST</span></div>
+          <div class="stat"><span class="stat-num" id="final-combo">0</span><span class="stat-lbl">MAX×</span></div>
+        </div>
+        <div id="new-best-line"></div>
+        <button class="btn is-gold" id="start-btn">▶ START</button>
+      </div>
+    </div>
+    <div class="input-row">
+      <input id="input" type="text" placeholder="Type the falling word…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" disabled>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="btn is-ghost" id="restart-btn">↺ Restart</button>
+  </div>
+</main>
+<script src="../../_shared/progress.js"></script>
+<script>
+const GAME_ID='falling-words'
+const WORDS={
+  A1:['cat','dog','car','book','sun','moon','rain','tree','sea','door','bed','pen','milk','egg','bird','red','blue','green','one','two','five','ten','mom','dad','hand','foot','eye','ear','run','eat','sleep','play','open','close','big','small','hot','cold','new','old','yes','no'],
+  A2:['apple','banana','school','teacher','window','garden','market','bridge','river','mountain','holiday','journey','answer','question','silver','golden','quickly','slowly','happy','clever','strong','quiet','bright','simple','expensive','dangerous','beautiful','polite','careful','friendly','important','difficult'],
+  B1:['environment','democracy','adventure','knowledge','literature','astronaut','satellite','government','economy','industry','population','generation','technology','community','revolution','agriculture','manufacture','independent','remarkable','consequence','sustainable','authentic','genuinely','accidentally','optimistic','spectacular','responsibility','characteristic']
+}
+const SPEED={A1:60,A2:90,B1:130}
+const SPAWN={A1:1800,A2:1300,B1:900}
+
+let currentLevel='A1', score=0, best=0, lives=3, combo=1, maxCombo=1
+let running=false, fallers=[], lastSpawn=0, lastTick=0, anim=0
+let targetWord=null
+const arena=document.getElementById('arena')
+const inp=document.getElementById('input')
+const scoreEl=document.getElementById('score'), bestEl=document.getElementById('best')
+const livesEl=document.getElementById('lives'), comboEl=document.getElementById('combo')
+const splash=document.getElementById('splash')
+const clueEl=document.getElementById('clue')
+
+function refreshBest(){if(window.PlayProgress){const lv=PlayProgress.getLevel(GAME_ID,currentLevel); best=lv.best||0; bestEl.textContent=best}}
+function renderLives(){livesEl.innerHTML=Array.from({length:3},(_,i)=>`<span class="heart${i<lives?'':' is-out'}">❤</span>`).join('')}
+
+function spawn(){
+  const list=WORDS[currentLevel]
+  const w=list[Math.floor(Math.random()*list.length)]
+  const el=document.createElement('div')
+  el.className='falling'; el.textContent=w
+  el.style.left=Math.floor(20+Math.random()*60)+'%'
+  el.style.top='-30px'
+  arena.appendChild(el)
+  fallers.push({el,w,y:-30,speed:SPEED[currentLevel]/60})
+}
+
+function loop(t){
+  if(!running) return
+  const dt=t-lastTick; lastTick=t
+  if(t-lastSpawn>SPAWN[currentLevel]){spawn(); lastSpawn=t}
+  const H=arena.clientHeight-60
+  fallers.forEach(f=>{
+    f.y+=f.speed*(dt/16)
+    f.el.style.top=f.y+'px'
+    if(f.y>H*0.7) f.el.classList.add('is-hot')
+    if(f.y>H){
+      // lost a life
+      f.el.remove(); lives--; combo=1; comboEl.textContent='×1'; renderLives()
+      if(lives<=0){endGame(); return}
+    }
+  })
+  fallers=fallers.filter(f=>f.el.isConnected)
+  // pick target = lowest one (closest to ground)
+  if(fallers.length){
+    let lowest=fallers[0]
+    fallers.forEach(f=>{if(f.y>lowest.y) lowest=f})
+    if(lowest.w!==targetWord){
+      targetWord=lowest.w
+      clueEl.textContent='type: '+lowest.w
+    }
+  } else { targetWord=null; clueEl.textContent='type the word' }
+  anim=requestAnimationFrame(loop)
+}
+
+inp.addEventListener('input',()=>{
+  const v=inp.value.trim().toLowerCase()
+  if(!v) return
+  // find matching faller (lowest first)
+  const sorted=fallers.slice().sort((a,b)=>b.y-a.y)
+  const match=sorted.find(f=>f.w.toLowerCase()===v)
+  if(match){
+    match.el.classList.add('is-correct')
+    setTimeout(()=>match.el.remove(),250)
+    score += 10*combo
+    combo++; maxCombo=Math.max(maxCombo,combo)
+    scoreEl.textContent=score
+    comboEl.textContent='×'+combo
+    inp.value=''
+  }
+})
+
+function startGame(){
+  score=0; lives=3; combo=1; maxCombo=1; fallers=[]; targetWord=null
+  scoreEl.textContent='0'; comboEl.textContent='×1'; renderLives()
+  arena.querySelectorAll('.falling').forEach(e=>e.remove())
+  splash.classList.add('is-hidden')
+  inp.disabled=false; inp.value=''; inp.focus()
+  running=true; lastTick=performance.now(); lastSpawn=lastTick
+  anim=requestAnimationFrame(loop)
+}
+
+function endGame(){
+  running=false; cancelAnimationFrame(anim)
+  inp.disabled=true
+  const prev=window.PlayProgress?PlayProgress.getLevel(GAME_ID,currentLevel).best:0
+  const lv=window.PlayProgress?PlayProgress.record(GAME_ID,currentLevel,score,Math.max(score,1)):{best:score}
+  best=lv.best; bestEl.textContent=best
+  document.getElementById('splash-title').textContent='GAME OVER'
+  document.getElementById('splash-text').textContent='Your run is over. Try again for a higher combo!'
+  document.getElementById('splash-stats').style.display='flex'
+  document.getElementById('final-score').textContent=score
+  document.getElementById('final-best').textContent=best
+  document.getElementById('final-combo').textContent=maxCombo
+  document.getElementById('new-best-line').innerHTML=(score>prev&&prev>0)?'<span class="new-best">★ NEW BEST ★</span>':''
+  document.getElementById('start-btn').textContent='▶ PLAY AGAIN'
+  splash.classList.remove('is-hidden')
+}
+
+document.getElementById('start-btn').addEventListener('click',startGame)
+document.getElementById('restart-btn').addEventListener('click',()=>{endGame();startGame()})
+document.querySelectorAll('.lev-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.lev-btn').forEach(x=>x.classList.remove('is-active'));b.classList.add('is-active');currentLevel=b.dataset.level;refreshBest()}))
+
+refreshBest()
+</script>
+</body>
+</html>

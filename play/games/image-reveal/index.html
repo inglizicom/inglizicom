@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex, nofollow">
+  <title>Image Reveal — Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Press+Start+2P&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}button,input{font-family:inherit}a{text-decoration:none;color:inherit}
+    :root{--ink:#0c0a09;--bg:#1c1917;--paper:#292524;--paper-2:#1c1917;--border:#44403c;--gold:#fbbf24;--gold-bright:#fcd34d;--text:#fafaf9;--text-2:#d6d3d1;--text-muted:#a8a29e;--neon:#22d3ee;--green:#4ade80;--red:#f87171;--display:'Outfit',sans-serif;--arcade:'Press Start 2P',monospace;--mono:'JetBrains Mono',monospace}
+    html,body{background:var(--bg);color:var(--text);font-family:var(--display);font-size:16px;min-height:100%;-webkit-font-smoothing:antialiased}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 60% 40% at 80% 0%,rgba(34,211,238,.10),transparent 60%)}
+    body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:32px 32px}
+    .topbar{position:sticky;top:0;z-index:100;background:rgba(28,25,23,.85);backdrop-filter:blur(18px) saturate(180%);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .back-link{display:inline-flex;align-items:center;gap:10px;padding:8px 14px;border-radius:999px;background:var(--paper);border:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text-2)}
+    .back-link:hover{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+    .game-title{font-family:var(--arcade);font-size:12px;color:var(--gold);letter-spacing:.05em}
+    .scoreboard{display:flex;gap:12px;font-family:var(--arcade);font-size:9px;color:var(--text-muted);letter-spacing:.08em}
+    .scoreboard b{color:var(--gold);font-size:11px;margin-left:6px}
+    .page{position:relative;z-index:2;max-width:720px;margin:0 auto;padding:24px 18px 60px}
+    .level-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;padding:12px 16px;border-radius:14px;background:var(--paper);border:1px solid var(--border)}
+    .level-bar-label{font-family:var(--arcade);font-size:9px;color:var(--text-muted);letter-spacing:.12em}
+    .lev-btn{padding:8px 14px;border-radius:10px;background:transparent;border:1.5px solid var(--border);font-size:12px;font-weight:700;color:var(--text-2);transition:all .18s ease}
+    .lev-btn:hover{border-color:var(--neon);color:var(--neon)}
+    .lev-btn.is-active{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+
+    .stage{position:relative;padding:24px;border-radius:18px;background:linear-gradient(180deg,#0c0a09,#1c1917);border:2px solid var(--border);text-align:center;margin-bottom:14px;box-shadow:0 0 40px -10px rgba(34,211,238,.20) inset}
+    .reveal-area{position:relative;width:260px;height:260px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:linear-gradient(135deg,#fef3c7,#fde68a);border:3px solid var(--gold);overflow:hidden}
+    .emoji-img{font-size:180px;line-height:1;filter:drop-shadow(0 6px 18px rgba(0,0,0,.3));position:relative;z-index:1}
+    .reveal-mask{position:absolute;inset:0;z-index:2;display:grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr)}
+    .tile{background:#1c1917;border:1px solid #0c0a09;transition:opacity .35s ease;opacity:1}
+    .tile.is-cleared{opacity:0;pointer-events:none}
+    .timer-pill{position:absolute;top:16px;right:16px;z-index:5;padding:6px 12px;border-radius:8px;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);font-family:var(--arcade);font-size:10px;color:var(--neon);letter-spacing:.1em;border:1px solid rgba(34,211,238,.4)}
+    .reveal-pct{position:absolute;top:16px;left:16px;z-index:5;padding:6px 12px;border-radius:8px;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);font-family:var(--arcade);font-size:10px;color:var(--gold);letter-spacing:.1em;border:1px solid rgba(251,191,36,.4)}
+
+    .input-row{display:flex;gap:8px;margin-bottom:14px}
+    .input-row input{flex:1;padding:14px 16px;border-radius:10px;background:var(--paper-2);border:2px solid var(--border);color:var(--text);font-family:var(--display);font-size:16px;font-weight:700;outline:none}
+    .input-row input:focus{border-color:var(--neon);box-shadow:0 0 0 3px rgba(34,211,238,.15)}
+    .input-row input:disabled{opacity:.5}
+
+    .feedback{min-height:24px;font-family:var(--arcade);font-size:10px;text-align:center;color:var(--text-muted);margin-bottom:10px;letter-spacing:.1em}
+    .feedback.is-right{color:var(--green)}
+    .feedback.is-wrong{color:var(--red)}
+
+    .choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+    .choice{padding:14px;border-radius:10px;background:var(--paper);border:2px solid var(--border);font-family:var(--display);font-size:15px;font-weight:800;color:var(--text);transition:all .18s ease;cursor:pointer}
+    .choice:hover:not(:disabled){border-color:var(--neon);color:var(--neon);transform:translateY(-2px)}
+    .choice.is-correct{background:rgba(74,222,128,.18);border-color:var(--green);color:var(--green)}
+    .choice.is-wrong{background:rgba(248,113,113,.18);border-color:var(--red);color:var(--red)}
+
+    .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+    .btn{padding:12px 22px;border-radius:10px;font-family:var(--display);font-size:13px;font-weight:800;transition:all .18s ease;border:none;cursor:pointer}
+    .btn.is-gold{background:linear-gradient(135deg,var(--gold),var(--gold-bright));color:var(--ink);box-shadow:0 6px 14px -4px rgba(251,191,36,.45)}
+    .btn.is-gold:hover{transform:translateY(-2px)}
+    .btn.is-ghost{background:transparent;color:var(--text-2);border:1.5px solid var(--border)}
+    .btn.is-ghost:hover{border-color:var(--neon);color:var(--neon)}
+
+    .summary{display:none;padding:28px;border-radius:18px;background:var(--paper);border:2px solid var(--gold);text-align:center;box-shadow:0 0 40px rgba(251,191,36,.2)}
+    .summary.is-shown{display:block}
+    .summary h2{font-family:var(--arcade);font-size:18px;color:var(--gold);margin-bottom:10px;letter-spacing:.05em}
+    .summary p{color:var(--text-2);margin-bottom:14px}
+    .stats{display:flex;gap:18px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
+    .stat{display:flex;flex-direction:column;gap:4px}
+    .stat-num{font-family:var(--arcade);font-size:18px;color:var(--gold)}
+    .stat-lbl{font-family:var(--arcade);font-size:8px;color:var(--text-muted);letter-spacing:.12em}
+    .new-best{display:inline-block;padding:5px 12px;border-radius:999px;background:var(--gold);color:var(--ink);font-family:var(--arcade);font-size:8px;letter-spacing:.15em;margin-bottom:12px}
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">🎨 IMAGE REVEAL</div>
+  <div class="scoreboard"><span>SCORE<b id="score">0</b></span><span>R<b id="rnd">1</b>/<b id="total">10</b></span></div>
+</nav>
+<main class="page">
+  <div class="level-bar" id="level-bar">
+    <span class="level-bar-label">LEVEL</span>
+    <button class="lev-btn is-active" data-level="A1">A1 · Easy</button>
+    <button class="lev-btn" data-level="A2">A2 · Medium</button>
+    <button class="lev-btn" data-level="B1">B1 · Hard</button>
+  </div>
+
+  <div id="game-area">
+    <div class="stage">
+      <div class="reveal-pct" id="pct">0%</div>
+      <div class="timer-pill" id="bonus">+200</div>
+      <div class="reveal-area">
+        <span class="emoji-img" id="emoji">🐱</span>
+        <div class="reveal-mask" id="mask"></div>
+      </div>
+      <div class="feedback" id="feedback">Guess as quickly as you can!</div>
+    </div>
+    <div class="input-row">
+      <input id="input" type="text" placeholder="Type your guess…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <button class="btn is-gold" id="guess-btn">GUESS</button>
+    </div>
+    <div class="choices" id="choices"></div>
+    <div class="actions">
+      <button class="btn is-ghost" id="skip-btn">⏭ Skip</button>
+    </div>
+  </div>
+
+  <div class="summary" id="summary">
+    <div id="new-best-banner"></div>
+    <h2>🏆 GAME COMPLETE</h2>
+    <p>Nice run!</p>
+    <div class="stats">
+      <div class="stat"><span class="stat-num" id="final-score">0</span><span class="stat-lbl">SCORE</span></div>
+      <div class="stat"><span class="stat-num" id="final-correct">0</span><span class="stat-lbl">CORRECT</span></div>
+      <div class="stat"><span class="stat-num" id="final-best">0</span><span class="stat-lbl">BEST</span></div>
+    </div>
+    <button class="btn is-gold" id="again-btn">▶ PLAY AGAIN</button>
+  </div>
+</main>
+<script src="../../_shared/progress.js"></script>
+<script>
+const GAME_ID='image-reveal'
+const ITEMS={
+  A1:[{e:'🐱',w:'cat'},{e:'🐶',w:'dog'},{e:'🐴',w:'horse'},{e:'🐮',w:'cow'},{e:'🐟',w:'fish'},{e:'🐝',w:'bee'},{e:'🐍',w:'snake'},{e:'🍎',w:'apple'},{e:'🍌',w:'banana'},{e:'🍞',w:'bread'},{e:'🥚',w:'egg'},{e:'🥛',w:'milk'},{e:'🏠',w:'house'},{e:'🚗',w:'car'},{e:'📚',w:'book'},{e:'⭐',w:'star'},{e:'☀️',w:'sun'},{e:'🌙',w:'moon'},{e:'❄️',w:'snow'},{e:'🌈',w:'rainbow'}],
+  A2:[{e:'👨‍⚕️',w:'doctor'},{e:'👩‍🏫',w:'teacher'},{e:'👨‍🍳',w:'chef'},{e:'👮',w:'police'},{e:'🚓',w:'police car'},{e:'🚂',w:'train'},{e:'✈️',w:'plane'},{e:'🚲',w:'bicycle'},{e:'⚽',w:'football'},{e:'🏀',w:'basketball'},{e:'🎻',w:'violin'},{e:'🎸',w:'guitar'},{e:'🎹',w:'piano'},{e:'📷',w:'camera'},{e:'⌚',w:'watch'},{e:'🍕',w:'pizza'},{e:'🍔',w:'burger'},{e:'🍣',w:'sushi'},{e:'🎂',w:'cake'},{e:'🌹',w:'rose'},{e:'🌳',w:'tree'},{e:'🏖️',w:'beach'},{e:'🏔️',w:'mountain'}],
+  B1:[{e:'🔬',w:'microscope'},{e:'🔭',w:'telescope'},{e:'🚀',w:'rocket'},{e:'🛰️',w:'satellite'},{e:'⚖️',w:'scale'},{e:'🧭',w:'compass'},{e:'🧪',w:'experiment'},{e:'🏛️',w:'museum'},{e:'🏟️',w:'stadium'},{e:'🌋',w:'volcano'},{e:'🏝️',w:'island'},{e:'⛪',w:'church'},{e:'🕌',w:'mosque'},{e:'🦒',w:'giraffe'},{e:'🦁',w:'lion'},{e:'🦓',w:'zebra'},{e:'🐊',w:'crocodile'},{e:'🦅',w:'eagle'},{e:'⚓',w:'anchor'},{e:'⚔️',w:'sword'},{e:'🛡️',w:'shield'},{e:'🎺',w:'trumpet'},{e:'🎷',w:'saxophone'}]
+}
+const REVEAL_SPEED={A1:380,A2:520,B1:720} // ms per tile
+const TILES=64
+
+let currentLevel='A1', pool=[], idx=0, score=0, correct=0, total=10
+let current=null, cleared=0, ttsCache={}
+let revealInterval=null, bonus=200
+
+const emojiEl=document.getElementById('emoji'), maskEl=document.getElementById('mask'), pctEl=document.getElementById('pct'), bonusEl=document.getElementById('bonus')
+const inp=document.getElementById('input'), feedbackEl=document.getElementById('feedback'), choicesEl=document.getElementById('choices'), scoreEl=document.getElementById('score'), rndEl=document.getElementById('rnd'), totalEl=document.getElementById('total')
+const gameArea=document.getElementById('game-area'), summary=document.getElementById('summary')
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function buildMask(){
+  maskEl.innerHTML=''
+  for(let i=0;i<TILES;i++){const t=document.createElement('div'); t.className='tile'; maskEl.appendChild(t)}
+}
+
+function startLevel(){
+  pool=shuffle(ITEMS[currentLevel]).slice(0,total)
+  idx=0; score=0; correct=0
+  scoreEl.textContent='0'
+  totalEl.textContent=total
+  summary.classList.remove('is-shown')
+  gameArea.style.display='block'
+  loadRound()
+}
+
+function loadRound(){
+  if(idx>=pool.length){finish(); return}
+  current=pool[idx]
+  emojiEl.textContent=current.e
+  cleared=0; bonus=200
+  pctEl.textContent='0%'
+  bonusEl.textContent='+'+bonus
+  feedbackEl.textContent='Guess as quickly as you can!'
+  feedbackEl.className='feedback'
+  inp.value=''; inp.disabled=false; inp.focus()
+  rndEl.textContent=idx+1
+  buildMask()
+  // build distractor choices
+  const others=shuffle(ITEMS[currentLevel].filter(x=>x.w!==current.w)).slice(0,3).map(x=>x.w)
+  const opts=shuffle([current.w,...others])
+  choicesEl.innerHTML=opts.map(w=>`<button class="choice" data-w="${w}">${w}</button>`).join('')
+  choicesEl.querySelectorAll('.choice').forEach(b=>b.addEventListener('click',()=>submit(b.dataset.w)))
+  // start revealing tiles
+  const order=shuffle(Array.from({length:TILES},(_,i)=>i))
+  let i=0
+  if(revealInterval) clearInterval(revealInterval)
+  revealInterval=setInterval(()=>{
+    if(i>=order.length){clearInterval(revealInterval); return}
+    maskEl.children[order[i]].classList.add('is-cleared')
+    cleared++; pctEl.textContent=Math.round((cleared/TILES)*100)+'%'
+    bonus=Math.max(20,200-Math.round((cleared/TILES)*180))
+    bonusEl.textContent='+'+bonus
+    i++
+  },REVEAL_SPEED[currentLevel]/4)
+}
+
+async function playTTS(text){
+  try{
+    if(!ttsCache[text]){
+      const res=await fetch('https://inglizi.com/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,voice:'nova'})})
+      if(!res.ok) throw 0
+      const url=URL.createObjectURL(await res.blob())
+      ttsCache[text]=url
+    }
+    await new Audio(ttsCache[text]).play()
+  }catch(e){try{const u=new SpeechSynthesisUtterance(text);u.lang='en-US';window.speechSynthesis.speak(u)}catch(_){}}
+}
+
+function submit(guess){
+  if(!current||!guess) return
+  const g=guess.trim().toLowerCase()
+  if(!g) return
+  const ok=(g===current.w.toLowerCase())
+  inp.disabled=true
+  if(ok){
+    score+=bonus; correct++
+    scoreEl.textContent=score
+    feedbackEl.textContent='✓ CORRECT! +'+bonus
+    feedbackEl.className='feedback is-right'
+    // reveal all
+    maskEl.querySelectorAll('.tile').forEach(t=>t.classList.add('is-cleared'))
+    if(revealInterval) clearInterval(revealInterval)
+    playTTS(current.w)
+  } else {
+    feedbackEl.textContent='✗ Answer: '+current.w
+    feedbackEl.className='feedback is-wrong'
+  }
+  setTimeout(()=>{idx++; loadRound()}, ok?900:1500)
+}
+
+inp.addEventListener('keydown',e=>{if(e.key==='Enter') submit(inp.value)})
+document.getElementById('guess-btn').addEventListener('click',()=>submit(inp.value))
+document.getElementById('skip-btn').addEventListener('click',()=>{if(revealInterval)clearInterval(revealInterval); idx++; loadRound()})
+
+function finish(){
+  if(revealInterval) clearInterval(revealInterval)
+  const prev=window.PlayProgress?PlayProgress.getLevel(GAME_ID,currentLevel).best:0
+  const lv=window.PlayProgress?PlayProgress.record(GAME_ID,currentLevel,score,score||1):{best:score}
+  document.getElementById('final-score').textContent=score
+  document.getElementById('final-correct').textContent=correct+'/'+total
+  document.getElementById('final-best').textContent=lv.best
+  document.getElementById('new-best-banner').innerHTML=(score>prev&&prev>0)?'<span class="new-best">★ NEW BEST ★</span>':''
+  gameArea.style.display='none'; summary.classList.add('is-shown')
+}
+
+document.getElementById('again-btn').addEventListener('click',startLevel)
+document.querySelectorAll('.lev-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.lev-btn').forEach(x=>x.classList.remove('is-active'));b.classList.add('is-active');currentLevel=b.dataset.level;startLevel()}))
+
+startLevel()
+</script>
+</body>
+</html>

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex, nofollow">
+  <title>Word Search — Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Press+Start+2P&family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}button{font-family:inherit;cursor:pointer}a{text-decoration:none;color:inherit}
+    :root{--ink:#0c0a09;--bg:#1c1917;--paper:#292524;--paper-2:#1c1917;--border:#44403c;--gold:#fbbf24;--gold-bright:#fcd34d;--text:#fafaf9;--text-2:#d6d3d1;--text-muted:#a8a29e;--neon:#22d3ee;--green:#4ade80;--red:#f87171;--display:'Outfit',sans-serif;--arcade:'Press Start 2P',monospace;--mono:'JetBrains Mono',monospace}
+    html,body{background:var(--bg);color:var(--text);font-family:var(--display);font-size:16px;min-height:100%;-webkit-font-smoothing:antialiased;overflow-x:hidden;user-select:none}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 60% 40% at 80% 0%,rgba(34,211,238,.10),transparent 60%)}
+    body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:32px 32px}
+    .topbar{position:sticky;top:0;z-index:100;background:rgba(28,25,23,.85);backdrop-filter:blur(18px) saturate(180%);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .back-link{display:inline-flex;align-items:center;gap:10px;padding:8px 14px;border-radius:999px;background:var(--paper);border:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text-2)}
+    .back-link:hover{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+    .game-title{font-family:var(--arcade);font-size:12px;color:var(--gold);letter-spacing:.05em}
+    .scoreboard{display:flex;gap:12px;font-family:var(--arcade);font-size:9px;color:var(--text-muted);letter-spacing:.08em}
+    .scoreboard b{color:var(--gold);font-size:11px;margin-left:6px}
+    .page{position:relative;z-index:2;max-width:980px;margin:0 auto;padding:24px 18px 60px}
+    .level-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;padding:12px 16px;border-radius:14px;background:var(--paper);border:1px solid var(--border)}
+    .level-bar-label{font-family:var(--arcade);font-size:9px;color:var(--text-muted);letter-spacing:.12em}
+    .lev-btn{padding:8px 14px;border-radius:10px;background:transparent;border:1.5px solid var(--border);font-size:12px;font-weight:700;color:var(--text-2);transition:all .18s ease}
+    .lev-btn:hover{border-color:var(--neon);color:var(--neon)}
+    .lev-btn.is-active{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+    .layout{display:grid;grid-template-columns:1fr 240px;gap:18px;align-items:start}
+    @media (max-width:760px){.layout{grid-template-columns:1fr}}
+    .board-wrap{padding:16px;border-radius:18px;background:linear-gradient(180deg,#0c0a09,#1c1917);border:2px solid var(--border);box-shadow:0 0 40px -10px rgba(34,211,238,.20) inset}
+    .board{display:grid;gap:4px;touch-action:none}
+    .cell{aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;background:var(--paper);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-weight:700;font-size:clamp(11px,2.2vw,17px);color:var(--text);transition:all .12s ease}
+    .cell.is-hover{background:var(--neon);color:var(--ink);border-color:var(--neon);transform:scale(1.05)}
+    .cell.is-found{background:rgba(74,222,128,.25);color:var(--green);border-color:var(--green)}
+    .sidebar{padding:16px;border-radius:18px;background:var(--paper);border:1px solid var(--border)}
+    .sidebar h3{font-family:var(--arcade);font-size:10px;color:var(--gold);letter-spacing:.12em;margin-bottom:12px}
+    .word-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;max-height:300px;overflow:auto}
+    .word-item{padding:8px 12px;border-radius:8px;background:var(--paper-2);font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text-2);letter-spacing:.05em;transition:all .2s ease;display:flex;align-items:center;justify-content:space-between}
+    .word-item.is-found{background:rgba(74,222,128,.15);color:var(--green);text-decoration:line-through;opacity:.8}
+    .progress-text{font-family:var(--arcade);font-size:9px;color:var(--text-muted);letter-spacing:.1em;text-align:center}
+    .progress-text b{color:var(--gold);font-size:11px}
+    .actions{display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+    .btn{padding:12px 22px;border-radius:10px;font-family:var(--display);font-size:13px;font-weight:800;transition:all .18s ease;border:none}
+    .btn.is-gold{background:linear-gradient(135deg,var(--gold),var(--gold-bright));color:var(--ink);box-shadow:0 6px 14px -4px rgba(251,191,36,.45)}
+    .btn.is-gold:hover{transform:translateY(-2px)}
+    .btn.is-ghost{background:transparent;color:var(--text-2);border:1.5px solid var(--border)}
+    .btn.is-ghost:hover{border-color:var(--neon);color:var(--neon)}
+    .splash{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);padding:30px}
+    .splash.is-shown{display:flex}
+    .splash-card{padding:32px 28px;background:var(--paper);border:2px solid var(--gold);border-radius:18px;text-align:center;max-width:380px;box-shadow:0 0 40px rgba(251,191,36,.3)}
+    .splash-card h2{font-family:var(--arcade);font-size:18px;color:var(--gold);margin-bottom:12px;letter-spacing:.05em}
+    .splash-card p{color:var(--text-2);margin-bottom:20px;line-height:1.6}
+    .splash-stats{display:flex;gap:18px;justify-content:center;margin-bottom:18px}
+    .stat{display:flex;flex-direction:column;gap:4px}
+    .stat-num{font-family:var(--arcade);font-size:16px;color:var(--gold)}
+    .stat-lbl{font-family:var(--arcade);font-size:8px;color:var(--text-muted);letter-spacing:.12em}
+    .new-best{display:inline-block;padding:5px 12px;border-radius:999px;background:var(--gold);color:var(--ink);font-family:var(--arcade);font-size:8px;letter-spacing:.15em;margin-bottom:14px}
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">🔍 WORD SEARCH</div>
+  <div class="scoreboard"><span>FOUND<b id="found">0</b>/<b id="total">0</b></span><span>TIME<b id="timer">00:00</b></span></div>
+</nav>
+<main class="page">
+  <div class="level-bar" id="level-bar">
+    <span class="level-bar-label">LEVEL</span>
+    <button class="lev-btn is-active" data-level="A1">A1 · 8×8</button>
+    <button class="lev-btn" data-level="A2">A2 · 10×10</button>
+    <button class="lev-btn" data-level="B1">B1 · 12×12</button>
+  </div>
+  <div class="layout">
+    <div class="board-wrap"><div class="board" id="board"></div></div>
+    <div class="sidebar">
+      <h3>📋 FIND THESE</h3>
+      <div class="word-list" id="word-list"></div>
+      <div class="progress-text">FOUND <b id="found-2">0</b>/<b id="total-2">0</b></div>
+      <div class="actions"><button class="btn is-ghost" id="new-btn">🎲 New puzzle</button></div>
+    </div>
+  </div>
+</main>
+<div class="splash" id="splash">
+  <div class="splash-card">
+    <div id="splash-best"></div>
+    <h2>🏆 ALL FOUND!</h2>
+    <p>You solved the puzzle. Faster next time?</p>
+    <div class="splash-stats">
+      <div class="stat"><span class="stat-num" id="splash-time">--</span><span class="stat-lbl">TIME</span></div>
+      <div class="stat"><span class="stat-num" id="splash-best-time">--</span><span class="stat-lbl">BEST</span></div>
+    </div>
+    <button class="btn is-gold" id="splash-next">▶ NEXT PUZZLE</button>
+  </div>
+</div>
+<script src="../../_shared/progress.js"></script>
+<script>
+const GAME_ID='word-search'
+const POOLS={
+  A1:['cat','dog','sun','book','car','bird','tree','milk','egg','red','blue','one','two','sea','door','bed','pen'],
+  A2:['apple','school','window','garden','bridge','river','market','holiday','answer','silver','quickly','happy','quiet','strong','clever','simple'],
+  B1:['ancient','journey','knowledge','mountain','astronaut','democracy','industry','generation','remarkable','authentic','spectacular','adventure','community']
+}
+const SIZES={A1:8,A2:10,B1:12}
+const COUNTS={A1:6,A2:8,B1:10}
+const DIRS=[[1,0],[0,1],[1,1],[1,-1]] // right, down, diag-down-right, diag-up-right (no reverse for beginners)
+
+let currentLevel='A1', grid=[], size=8, words=[], found=new Set()
+let startTime=0, timerInt=null
+let dragging=false, dragStart=null, dragEnd=null
+
+const boardEl=document.getElementById('board')
+const listEl=document.getElementById('word-list')
+const foundEl=document.getElementById('found'), totalEl=document.getElementById('total')
+const found2=document.getElementById('found-2'), total2=document.getElementById('total-2')
+const timerEl=document.getElementById('timer')
+const splash=document.getElementById('splash')
+
+function rand(n){return Math.floor(Math.random()*n)}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=rand(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function placeWord(g,w){
+  const N=g.length
+  for(let tries=0;tries<200;tries++){
+    const d=DIRS[rand(DIRS.length)]
+    const dx=d[0], dy=d[1]
+    const r=rand(N), c=rand(N)
+    const er=r+dy*(w.length-1), ec=c+dx*(w.length-1)
+    if(er<0||er>=N||ec<0||ec>=N) continue
+    let ok=true
+    for(let i=0;i<w.length;i++){
+      const rr=r+dy*i, cc=c+dx*i
+      if(g[rr][cc]!=='' && g[rr][cc]!==w[i].toUpperCase()){ok=false;break}
+    }
+    if(!ok) continue
+    for(let i=0;i<w.length;i++){
+      const rr=r+dy*i, cc=c+dx*i
+      g[rr][cc]=w[i].toUpperCase()
+    }
+    return [[r,c],[er,ec]]
+  }
+  return null
+}
+
+function buildPuzzle(){
+  size=SIZES[currentLevel]
+  const count=COUNTS[currentLevel]
+  const pool=shuffle(POOLS[currentLevel])
+  words=[]
+  grid=Array.from({length:size},()=>Array(size).fill(''))
+  for(const w of pool){
+    if(words.length>=count) break
+    if(w.length>size) continue
+    if(placeWord(grid,w)) words.push(w.toUpperCase())
+  }
+  // fill empties with random letters
+  const A='ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  for(let r=0;r<size;r++) for(let c=0;c<size;c++) if(!grid[r][c]) grid[r][c]=A[rand(26)]
+  found=new Set()
+  renderBoard(); renderList(); resetTimer()
+}
+
+function renderBoard(){
+  boardEl.style.gridTemplateColumns=`repeat(${size},1fr)`
+  boardEl.innerHTML=''
+  for(let r=0;r<size;r++) for(let c=0;c<size;c++){
+    const d=document.createElement('div')
+    d.className='cell'; d.dataset.r=r; d.dataset.c=c
+    d.textContent=grid[r][c]
+    boardEl.appendChild(d)
+  }
+}
+
+function renderList(){
+  totalEl.textContent=words.length; total2.textContent=words.length
+  foundEl.textContent=found.size; found2.textContent=found.size
+  listEl.innerHTML=words.map(w=>`<div class="word-item${found.has(w)?' is-found':''}">${w}<span>${found.has(w)?'✓':''}</span></div>`).join('')
+}
+
+function getCell(e){
+  const t=e.touches?e.touches[0]:e
+  const el=document.elementFromPoint(t.clientX,t.clientY)
+  if(el && el.classList.contains('cell')) return [parseInt(el.dataset.r),parseInt(el.dataset.c)]
+  return null
+}
+
+function clearHover(){boardEl.querySelectorAll('.cell.is-hover').forEach(c=>c.classList.remove('is-hover'))}
+
+function getLine(a,b){
+  if(!a||!b) return []
+  const [r1,c1]=a, [r2,c2]=b
+  const dr=r2-r1, dc=c2-c1
+  const len=Math.max(Math.abs(dr),Math.abs(dc))+1
+  if(dr!==0 && dc!==0 && Math.abs(dr)!==Math.abs(dc)) return []
+  const sr=dr===0?0:dr/Math.max(1,Math.abs(dr)), sc=dc===0?0:dc/Math.max(1,Math.abs(dc))
+  const out=[]
+  for(let i=0;i<len;i++) out.push([r1+sr*i, c1+sc*i])
+  return out
+}
+
+function highlight(cells){
+  clearHover()
+  cells.forEach(([r,c])=>{const el=boardEl.children[r*size+c]; if(el) el.classList.add('is-hover')})
+}
+
+function getWordFromLine(cells){
+  return cells.map(([r,c])=>grid[r][c]).join('')
+}
+
+function tryMatch(line){
+  const w=getWordFromLine(line)
+  const rev=w.split('').reverse().join('')
+  let match=null
+  if(words.includes(w) && !found.has(w)) match=w
+  else if(words.includes(rev) && !found.has(rev)) match=rev
+  if(match){
+    found.add(match)
+    line.forEach(([r,c])=>{const el=boardEl.children[r*size+c]; el.classList.add('is-found')})
+    renderList()
+    if(found.size===words.length) finish()
+    return true
+  }
+  return false
+}
+
+boardEl.addEventListener('pointerdown',e=>{e.preventDefault(); const cell=getCell(e); if(!cell)return; dragging=true; dragStart=cell; dragEnd=cell; highlight([cell])})
+boardEl.addEventListener('pointermove',e=>{if(!dragging)return; e.preventDefault(); const cell=getCell(e); if(!cell)return; dragEnd=cell; highlight(getLine(dragStart,dragEnd))})
+boardEl.addEventListener('pointerup',e=>{if(!dragging)return; dragging=false; const line=getLine(dragStart,dragEnd); clearHover(); if(line.length>=2) tryMatch(line); dragStart=dragEnd=null})
+boardEl.addEventListener('pointercancel',()=>{dragging=false;clearHover()})
+
+function resetTimer(){
+  startTime=Date.now()
+  if(timerInt) clearInterval(timerInt)
+  timerInt=setInterval(()=>{
+    const s=Math.floor((Date.now()-startTime)/1000)
+    timerEl.textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')
+  },500)
+}
+
+function finish(){
+  clearInterval(timerInt)
+  const s=Math.floor((Date.now()-startTime)/1000)
+  // best = fastest time stored as negative-points trick: we store -seconds, so higher "best" = faster.
+  // Actually, just record found count for progress; track best time separately in localStorage.
+  if(window.PlayProgress) PlayProgress.record(GAME_ID,currentLevel,words.length,words.length)
+  const key='play:ws-best:'+currentLevel
+  let bestS=parseInt(localStorage.getItem(key)||'0',10)
+  const isNew=(bestS===0||s<bestS)
+  if(isNew) localStorage.setItem(key,String(s))
+  document.getElementById('splash-time').textContent=fmt(s)
+  document.getElementById('splash-best-time').textContent=fmt(isNew?s:bestS)
+  document.getElementById('splash-best').innerHTML=isNew?'<span class="new-best">★ NEW BEST ★</span>':''
+  splash.classList.add('is-shown')
+}
+function fmt(s){return String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+
+document.getElementById('new-btn').addEventListener('click',buildPuzzle)
+document.getElementById('splash-next').addEventListener('click',()=>{splash.classList.remove('is-shown'); buildPuzzle()})
+document.querySelectorAll('.lev-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.lev-btn').forEach(x=>x.classList.remove('is-active'));b.classList.add('is-active');currentLevel=b.dataset.level;buildPuzzle()}))
+
+buildPuzzle()
+</script>
+</body>
+</html>

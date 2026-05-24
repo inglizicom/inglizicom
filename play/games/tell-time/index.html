@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex, nofollow">
+  <title>Tell the Time — Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Press+Start+2P&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}button{font-family:inherit;cursor:pointer}a{text-decoration:none;color:inherit}
+    :root{--ink:#0c0a09;--bg:#1c1917;--paper:#292524;--paper-2:#1c1917;--border:#44403c;--gold:#fbbf24;--gold-bright:#fcd34d;--text:#fafaf9;--text-2:#d6d3d1;--text-muted:#a8a29e;--neon:#22d3ee;--green:#4ade80;--red:#f87171;--display:'Outfit',sans-serif;--arcade:'Press Start 2P',monospace;--mono:'JetBrains Mono',monospace}
+    html,body{background:var(--bg);color:var(--text);font-family:var(--display);font-size:16px;min-height:100%;-webkit-font-smoothing:antialiased}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 60% 40% at 80% 0%,rgba(34,211,238,.10),transparent 60%)}
+    body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:32px 32px}
+    .topbar{position:sticky;top:0;z-index:100;background:rgba(28,25,23,.85);backdrop-filter:blur(18px) saturate(180%);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .back-link{display:inline-flex;align-items:center;gap:10px;padding:8px 14px;border-radius:999px;background:var(--paper);border:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text-2)}
+    .back-link:hover{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+    .game-title{font-family:var(--arcade);font-size:12px;color:var(--gold);letter-spacing:.05em}
+    .scoreboard{display:flex;gap:12px;font-family:var(--arcade);font-size:9px;color:var(--text-muted);letter-spacing:.08em}
+    .scoreboard b{color:var(--gold);font-size:11px;margin-left:6px}
+    .page{position:relative;z-index:2;max-width:720px;margin:0 auto;padding:24px 18px 60px}
+    .level-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;padding:12px 16px;border-radius:14px;background:var(--paper);border:1px solid var(--border)}
+    .level-bar-label{font-family:var(--arcade);font-size:9px;color:var(--text-muted);letter-spacing:.12em}
+    .lev-btn{padding:8px 14px;border-radius:10px;background:transparent;border:1.5px solid var(--border);font-size:12px;font-weight:700;color:var(--text-2);transition:all .18s ease}
+    .lev-btn:hover{border-color:var(--neon);color:var(--neon)}
+    .lev-btn.is-active{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+    .stage{padding:28px 20px;border-radius:18px;background:linear-gradient(180deg,#0c0a09,#1c1917);border:2px solid var(--border);text-align:center;margin-bottom:14px;box-shadow:0 0 40px -10px rgba(34,211,238,.15) inset}
+    .clock-svg{width:260px;height:260px;display:block;margin:0 auto 14px;filter:drop-shadow(0 0 24px rgba(251,191,36,.25))}
+    .clock-bg{fill:#fef3c7;stroke:#b45309;stroke-width:8}
+    .clock-num{fill:#1c1917;font-family:'JetBrains Mono',monospace;font-weight:700}
+    .clock-tick{stroke:#1c1917;stroke-linecap:round}
+    .hand-h{stroke:#1c1917;stroke-linecap:round}
+    .hand-m{stroke:#b45309;stroke-linecap:round}
+    .center-pin{fill:#b45309;stroke:#1c1917;stroke-width:2}
+    .prompt{font-family:var(--arcade);font-size:10px;color:var(--text-muted);letter-spacing:.1em;margin-bottom:8px}
+    .choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+    .choice{padding:16px;border-radius:10px;background:var(--paper);border:2px solid var(--border);font-family:var(--display);font-size:15px;font-weight:800;color:var(--text);transition:all .18s ease}
+    .choice:hover:not(:disabled){border-color:var(--neon);color:var(--neon);transform:translateY(-2px)}
+    .choice.is-correct{background:rgba(74,222,128,.18);border-color:var(--green);color:var(--green)}
+    .choice.is-wrong{background:rgba(248,113,113,.18);border-color:var(--red);color:var(--red)}
+    .feedback{min-height:24px;font-family:var(--arcade);font-size:10px;text-align:center;color:var(--text-muted);margin-bottom:10px;letter-spacing:.1em}
+    .feedback.is-right{color:var(--green)} .feedback.is-wrong{color:var(--red)}
+    .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+    .btn{padding:12px 22px;border-radius:10px;font-family:var(--display);font-size:13px;font-weight:800;transition:all .18s ease;border:none}
+    .btn.is-gold{background:linear-gradient(135deg,var(--gold),var(--gold-bright));color:var(--ink);box-shadow:0 6px 14px -4px rgba(251,191,36,.45)}
+    .btn.is-gold:hover{transform:translateY(-2px)}
+    .btn.is-ghost{background:transparent;color:var(--text-2);border:1.5px solid var(--border)}
+    .progress-pill{display:inline-block;padding:5px 12px;border-radius:999px;background:var(--paper);font-family:var(--arcade);font-size:9px;color:var(--text-muted);letter-spacing:.1em;margin-bottom:14px}
+    .progress-pill b{color:var(--gold)}
+    .summary{display:none;padding:28px;border-radius:18px;background:var(--paper);border:2px solid var(--gold);text-align:center;box-shadow:0 0 40px rgba(251,191,36,.2)}
+    .summary.is-shown{display:block}
+    .summary h2{font-family:var(--arcade);font-size:18px;color:var(--gold);margin-bottom:10px;letter-spacing:.05em}
+    .stats{display:flex;gap:18px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
+    .stat{display:flex;flex-direction:column;gap:4px}
+    .stat-num{font-family:var(--arcade);font-size:18px;color:var(--gold)}
+    .stat-lbl{font-family:var(--arcade);font-size:8px;color:var(--text-muted);letter-spacing:.12em}
+    .new-best{display:inline-block;padding:5px 12px;border-radius:999px;background:var(--gold);color:var(--ink);font-family:var(--arcade);font-size:8px;letter-spacing:.15em;margin-bottom:12px}
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">⏰ TELL THE TIME</div>
+  <div class="scoreboard"><span>SCORE<b id="score">0</b></span><span>R<b id="rnd">1</b>/<b id="total">10</b></span></div>
+</nav>
+<main class="page">
+  <div class="level-bar" id="level-bar">
+    <span class="level-bar-label">LEVEL</span>
+    <button class="lev-btn is-active" data-level="A1">A1 · O'clock + half</button>
+    <button class="lev-btn" data-level="A2">A2 · Quarters</button>
+    <button class="lev-btn" data-level="B1">B1 · Any minute</button>
+  </div>
+  <div id="game-area">
+    <div class="stage">
+      <div class="progress-pill">ROUND <b id="rnd2">1</b>/<b id="total2">10</b></div>
+      <svg class="clock-svg" viewBox="0 0 200 200" id="clock">
+        <circle class="clock-bg" cx="100" cy="100" r="92"/>
+        <g id="nums"></g>
+        <g id="ticks"></g>
+        <line class="hand-h" id="hand-h" x1="100" y1="100" x2="100" y2="55" stroke-width="6"/>
+        <line class="hand-m" id="hand-m" x1="100" y1="100" x2="100" y2="30" stroke-width="4"/>
+        <circle class="center-pin" cx="100" cy="100" r="6"/>
+      </svg>
+      <div class="prompt">What time is it?</div>
+      <div class="choices" id="choices"></div>
+      <div class="feedback" id="feedback">Pick the correct time</div>
+    </div>
+    <div class="actions"><button class="btn is-ghost" id="skip-btn">⏭ Skip</button></div>
+  </div>
+  <div class="summary" id="summary">
+    <div id="new-best-banner"></div>
+    <h2>🏆 NICE!</h2>
+    <div class="stats">
+      <div class="stat"><span class="stat-num" id="final-score">0</span><span class="stat-lbl">SCORE</span></div>
+      <div class="stat"><span class="stat-num" id="final-correct">0</span><span class="stat-lbl">CORRECT</span></div>
+      <div class="stat"><span class="stat-num" id="final-best">0</span><span class="stat-lbl">BEST</span></div>
+    </div>
+    <button class="btn is-gold" id="again-btn">▶ PLAY AGAIN</button>
+  </div>
+</main>
+<script src="../../_shared/progress.js"></script>
+<script>
+const GAME_ID='tell-time'
+let currentLevel='A1', idx=0, score=0, correct=0, total=10
+let curH=0, curM=0
+const scoreEl=document.getElementById('score'), rndEl=document.getElementById('rnd'), totalEl=document.getElementById('total'), rnd2=document.getElementById('rnd2'), total2=document.getElementById('total2')
+const handH=document.getElementById('hand-h'), handM=document.getElementById('hand-m')
+const choicesEl=document.getElementById('choices'), feedbackEl=document.getElementById('feedback'), gameArea=document.getElementById('game-area'), summary=document.getElementById('summary')
+
+// build clock numbers
+const nums=document.getElementById('nums'), ticks=document.getElementById('ticks')
+for(let n=1;n<=12;n++){
+  const a=(n*30-90)*Math.PI/180
+  const x=100+72*Math.cos(a), y=100+72*Math.sin(a)+5
+  const t=document.createElementNS('http://www.w3.org/2000/svg','text')
+  t.setAttribute('x',x); t.setAttribute('y',y); t.setAttribute('text-anchor','middle'); t.setAttribute('class','clock-num'); t.setAttribute('font-size','14')
+  t.textContent=n
+  nums.appendChild(t)
+}
+for(let i=0;i<60;i++){
+  const a=(i*6-90)*Math.PI/180
+  const r1=i%5===0?80:84, r2=88
+  const l=document.createElementNS('http://www.w3.org/2000/svg','line')
+  l.setAttribute('x1',100+r1*Math.cos(a)); l.setAttribute('y1',100+r1*Math.sin(a))
+  l.setAttribute('x2',100+r2*Math.cos(a)); l.setAttribute('y2',100+r2*Math.sin(a))
+  l.setAttribute('class','clock-tick'); l.setAttribute('stroke-width',i%5===0?2.5:1)
+  ticks.appendChild(l)
+}
+
+function setClock(h,m){
+  curH=h; curM=m
+  const mAng=m*6-90
+  const hAng=(h%12)*30+m*0.5-90
+  handM.setAttribute('transform',`rotate(${mAng+90} 100 100)`)
+  handH.setAttribute('transform',`rotate(${hAng+90} 100 100)`)
+}
+
+function rand(n){return Math.floor(Math.random()*n)}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=rand(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function genTime(){
+  let m
+  if(currentLevel==='A1') m=[0,30][rand(2)]
+  else if(currentLevel==='A2') m=[0,15,30,45][rand(4)]
+  else m=[0,5,10,15,20,25,30,35,40,45,50,55][rand(12)]
+  const h=1+rand(12)
+  return [h,m]
+}
+
+const NUMBERS={1:'one',2:'two',3:'three',4:'four',5:'five',6:'six',7:'seven',8:'eight',9:'nine',10:'ten',11:'eleven',12:'twelve'}
+function timeToEnglish(h,m){
+  if(m===0) return NUMBERS[h]+" o'clock"
+  if(m===15) return 'quarter past '+NUMBERS[h]
+  if(m===30) return 'half past '+NUMBERS[h]
+  if(m===45) {const nh=h===12?1:h+1; return 'quarter to '+NUMBERS[nh]}
+  if(m<=30) return NUMBERS[h]+(m<10?' '+NUMBERS[m]:' '+m)
+  const nh=h===12?1:h+1
+  return (60-m)+' to '+NUMBERS[nh]
+}
+
+function startLevel(){
+  idx=0; score=0; correct=0
+  scoreEl.textContent='0'; totalEl.textContent=total; total2.textContent=total
+  summary.classList.remove('is-shown'); gameArea.style.display=''
+  loadRound()
+}
+
+function loadRound(){
+  if(idx>=total){finish(); return}
+  const [h,m]=genTime()
+  setClock(h,m)
+  const right=timeToEnglish(h,m)
+  // build distractors
+  const distractors=new Set()
+  while(distractors.size<3){
+    const [h2,m2]=genTime()
+    const t=timeToEnglish(h2,m2)
+    if(t!==right) distractors.add(t)
+  }
+  const opts=shuffle([right,...distractors])
+  choicesEl.innerHTML=opts.map(o=>`<button class="choice" data-w="${o}">${o}</button>`).join('')
+  choicesEl.querySelectorAll('.choice').forEach(b=>b.addEventListener('click',()=>pick(b,right)))
+  feedbackEl.textContent='Pick the correct time'; feedbackEl.className='feedback'
+  rndEl.textContent=idx+1; rnd2.textContent=idx+1
+}
+
+function pick(btn,right){
+  const all=choicesEl.querySelectorAll('.choice'); all.forEach(b=>b.disabled=true)
+  if(btn.dataset.w===right){
+    btn.classList.add('is-correct'); correct++; score+=10
+    scoreEl.textContent=score
+    feedbackEl.textContent='✓ '+right; feedbackEl.className='feedback is-right'
+  } else {
+    btn.classList.add('is-wrong')
+    all.forEach(b=>{if(b.dataset.w===right) b.classList.add('is-correct')})
+    feedbackEl.textContent='✗ '+right; feedbackEl.className='feedback is-wrong'
+  }
+  setTimeout(()=>{idx++; loadRound()}, 1100)
+}
+
+document.getElementById('skip-btn').addEventListener('click',()=>{idx++; loadRound()})
+
+function finish(){
+  const prev=window.PlayProgress?PlayProgress.getLevel(GAME_ID,currentLevel).best:0
+  const lv=window.PlayProgress?PlayProgress.record(GAME_ID,currentLevel,correct,total):{best:correct}
+  document.getElementById('final-score').textContent=score
+  document.getElementById('final-correct').textContent=correct+'/'+total
+  document.getElementById('final-best').textContent=lv.best
+  document.getElementById('new-best-banner').innerHTML=(correct>prev&&prev>0)?'<span class="new-best">★ NEW BEST ★</span>':''
+  gameArea.style.display='none'; summary.classList.add('is-shown')
+}
+
+document.getElementById('again-btn').addEventListener('click',startLevel)
+document.querySelectorAll('.lev-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.lev-btn').forEach(x=>x.classList.remove('is-active'));b.classList.add('is-active');currentLevel=b.dataset.level;startLevel()}))
+
+startLevel()
+</script>
+</body>
+</html>
