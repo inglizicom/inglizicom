@@ -102,8 +102,21 @@
 <body>
 <nav class="topbar">
   <a href="../../" class="back-link">← All games</a>
-  <div class="game-title">⭕ TIC TAC TOE</div>
-  <div class="mode-pill">2P · LOCAL</div>
+  <div class="game-title">
+    <svg width="32" height="32" viewBox="0 0 64 64" style="vertical-align:middle;margin-right:8px" aria-hidden="true">
+      <rect x="20" y="6" width="4" height="52" fill="#fbbf24"/>
+      <rect x="40" y="6" width="4" height="52" fill="#fbbf24"/>
+      <rect x="6" y="20" width="52" height="4" fill="#fbbf24"/>
+      <rect x="6" y="40" width="52" height="4" fill="#fbbf24"/>
+      <text x="14" y="18" font-family="Press Start 2P,monospace" font-size="9" fill="#22d3ee">X</text>
+      <text x="46" y="56" font-family="Press Start 2P,monospace" font-size="9" fill="#ec4899">O</text>
+    </svg>
+    TIC TAC TOE
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="mode-pill">2P · LOCAL</div>
+    <div id="muteHost"></div>
+  </div>
 </nav>
 <main class="page">
   <div class="setup" id="setup">
@@ -175,8 +188,10 @@
 </div>
 
 <script src="../../_shared/progress.js"></script>
+<script src="../../_shared/sounds.js"></script>
 <script>
 const GAME_ID='tic-tac-toe'
+if(window.PlaySounds) PlaySounds.injectMuteButton(document.getElementById('muteHost'))
 const BANK={
   A1:[{a:'قطة',e:'cat',d:['dog','cow','bird']},{a:'كلب',e:'dog',d:['cat','cow','fish']},{a:'بيت',e:'house',d:['car','bed','book']},{a:'كتاب',e:'book',d:['pen','desk','chair']},{a:'سيارة',e:'car',d:['bus','bike','boat']},{a:'شمس',e:'sun',d:['moon','star','sky']},{a:'ماء',e:'water',d:['milk','juice','tea']},{a:'خبز',e:'bread',d:['rice','egg','cake']},{a:'تفاحة',e:'apple',d:['banana','orange','pear']},{a:'باب',e:'door',d:['window','wall','floor']},{a:'مدرسة',e:'school',d:['shop','park','bank']},{a:'يد',e:'hand',d:['foot','head','eye']},{a:'أحمر',e:'red',d:['blue','green','black']},{a:'كبير',e:'big',d:['small','old','new']},{a:'سعيد',e:'happy',d:['sad','tired','angry']},{a:'يأكل',e:'eat',d:['drink','sleep','run']},{a:'يقرأ',e:'read',d:['write','speak','listen']},{a:'يلعب',e:'play',d:['work','study','rest']}],
   A2:[{a:'طبيب',e:'doctor',d:['teacher','lawyer','engineer']},{a:'معلم',e:'teacher',d:['student','doctor','farmer']},{a:'مستشفى',e:'hospital',d:['library','market','airport']},{a:'مكتبة',e:'library',d:['museum','cinema','restaurant']},{a:'إجابة',e:'answer',d:['question','problem','solution']},{a:'سؤال',e:'question',d:['answer','idea','reply']},{a:'صعب',e:'difficult',d:['easy','simple','clear']},{a:'سهل',e:'easy',d:['hard','tough','strict']},{a:'مهم',e:'important',d:['useful','simple','famous']},{a:'مشغول',e:'busy',d:['free','lazy','tired']},{a:'مدهش',e:'amazing',d:['boring','normal','strange']},{a:'يسافر',e:'travel',d:['stay','sleep','wait']},{a:'يكتب',e:'write',d:['read','speak','draw']},{a:'يطبخ',e:'cook',d:['eat','serve','bake']},{a:'يفهم',e:'understand',d:['forget','remember','ignore']},{a:'يكسب',e:'win',d:['lose','tie','quit']},{a:'يحاول',e:'try',d:['give up','succeed','fail']},{a:'يساعد',e:'help',d:['hurt','ignore','refuse']}],
@@ -203,6 +218,7 @@ function startGame(){
   n1.textContent=p1Name; n2.textContent=p2Name
   setup.style.display='none'; gameArea.classList.add('is-shown')
   if(window.PlayProgress) PlayProgress.record(GAME_ID,level,0,1)
+  if(window.PlaySounds) PlaySounds.click()
   newRound()
 }
 
@@ -243,6 +259,7 @@ function onCell(i){
 }
 
 function askQuestion(){
+  if(window.PlaySounds) PlaySounds.click()
   const pool=BANK[level]
   const q=pool[Math.floor(Math.random()*pool.length)]
   qPid.textContent=(turn===0?p1Name+' (X)':p2Name+' (O)')
@@ -262,6 +279,7 @@ function askQuestion(){
   if(timerInterval) clearInterval(timerInterval)
   timerInterval=setInterval(()=>{
     t--; qTimer.textContent=t
+    if(t<=3 && t>0 && window.PlaySounds) PlaySounds.tick()
     if(t<=0){clearInterval(timerInterval); timeoutAnswer(q.e)}
   },1000)
 }
@@ -274,12 +292,14 @@ function timeoutAnswer(correct){
 function answer(btn,correct,right){
   if(timerInterval) clearInterval(timerInterval)
   qChoices.querySelectorAll('.q-choice').forEach(b=>{b.disabled=true; if(b.textContent===right) b.classList.add('is-correct')})
-  if(!correct) btn.classList.add('is-wrong')
+  if(correct){ if(window.PlaySounds) PlaySounds.correct() }
+  else { btn.classList.add('is-wrong'); if(window.PlaySounds) PlaySounds.wrong() }
   setTimeout(()=>{
     qOverlay.classList.remove('is-shown')
     if(correct){
       board[pendingCell]=turn===0?'X':'O'
       renderBoard()
+      if(window.PlaySounds) PlaySounds.place()
       const w=checkWin()
       if(w){endRound('win',w); return}
       if(board.every(v=>v)){endRound('draw'); return}
@@ -289,7 +309,7 @@ function answer(btn,correct,right){
   },1100)
 }
 
-function switchTurn(){turn=1-turn; updateTurnUI()}
+function switchTurn(){turn=1-turn; updateTurnUI(); if(window.PlaySounds) PlaySounds.turn()}
 
 function checkWin(){
   for(const ln of WIN_LINES){
@@ -313,7 +333,7 @@ function endRound(kind,info){
     winnerText.textContent='IT\'S A DRAW!'
     winnerSub.textContent='SCORE · '+p1Name+' '+wins[0]+' — '+p2Name+' '+wins[1]
   }
-  setTimeout(()=>resultOverlay.classList.add('is-shown'),900)
+  setTimeout(()=>{ resultOverlay.classList.add('is-shown'); if(window.PlaySounds) PlaySounds.win() },900)
   if(window.PlayProgress) PlayProgress.record(GAME_ID,level,wins[0]+wins[1],wins[0]+wins[1]+1)
 }
 

@@ -85,8 +85,19 @@
 <body>
 <nav class="topbar">
   <a href="../../" class="back-link">← All games</a>
-  <div class="game-title">⚔️ WORD DUEL</div>
-  <div class="mode-pill">2P · LOCAL</div>
+  <div class="game-title">
+    <svg width="34" height="34" viewBox="0 0 64 64" style="vertical-align:middle;margin-right:8px" aria-hidden="true">
+      <!-- two crossed swords -->
+      <defs><linearGradient id="b1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#0e7490"/></linearGradient><linearGradient id="b2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#9d174d"/></linearGradient></defs>
+      <g transform="rotate(45 32 32)"><rect x="30" y="6" width="4" height="40" fill="url(#b1)" stroke="#0c0a09" stroke-width="1.5"/><rect x="26" y="44" width="12" height="4" fill="#fbbf24" stroke="#0c0a09" stroke-width="1.5"/><rect x="29" y="48" width="6" height="10" fill="#b45309" stroke="#0c0a09" stroke-width="1.5"/></g>
+      <g transform="rotate(-45 32 32)"><rect x="30" y="6" width="4" height="40" fill="url(#b2)" stroke="#0c0a09" stroke-width="1.5"/><rect x="26" y="44" width="12" height="4" fill="#fbbf24" stroke="#0c0a09" stroke-width="1.5"/><rect x="29" y="48" width="6" height="10" fill="#b45309" stroke="#0c0a09" stroke-width="1.5"/></g>
+    </svg>
+    WORD DUEL
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="mode-pill">2P · LOCAL</div>
+    <div id="muteHost"></div>
+  </div>
 </nav>
 <main class="page">
   <div class="setup" id="setup">
@@ -159,8 +170,10 @@
 </div>
 
 <script src="../../_shared/progress.js"></script>
+<script src="../../_shared/sounds.js"></script>
 <script>
 const GAME_ID='word-duel'
+if(window.PlaySounds) PlaySounds.injectMuteButton(document.getElementById('muteHost'))
 const BANK={
   A1:[{a:'قطة',e:'cat'},{a:'كلب',e:'dog'},{a:'بيت',e:'house'},{a:'كتاب',e:'book'},{a:'سيارة',e:'car'},{a:'شمس',e:'sun'},{a:'ماء',e:'water'},{a:'خبز',e:'bread'},{a:'تفاحة',e:'apple'},{a:'باب',e:'door'},{a:'مدرسة',e:'school'},{a:'يد',e:'hand'},{a:'قلم',e:'pen'},{a:'حليب',e:'milk'},{a:'موزة',e:'banana'},{a:'بقرة',e:'cow'},{a:'حصان',e:'horse'},{a:'سمكة',e:'fish'},{a:'طائر',e:'bird'},{a:'قمر',e:'moon'},{a:'نجمة',e:'star'},{a:'كرسي',e:'chair'},{a:'طاولة',e:'table'},{a:'سرير',e:'bed'}],
   A2:[{a:'طبيب',e:'doctor'},{a:'معلم',e:'teacher'},{a:'طبّاخ',e:'chef'},{a:'مهندس',e:'engineer'},{a:'فلاح',e:'farmer'},{a:'طيار',e:'pilot'},{a:'مستشفى',e:'hospital'},{a:'مكتبة',e:'library'},{a:'مطعم',e:'restaurant'},{a:'مطار',e:'airport'},{a:'محطة',e:'station'},{a:'سهل',e:'easy'},{a:'صعب',e:'difficult'},{a:'مهم',e:'important'},{a:'مشهور',e:'famous'},{a:'متعب',e:'tired'},{a:'مشغول',e:'busy'},{a:'يسافر',e:'travel'},{a:'يفهم',e:'understand'},{a:'يبدأ',e:'begin'},{a:'ينتهي',e:'finish'},{a:'يساعد',e:'help'},{a:'يحاول',e:'try'},{a:'ينسى',e:'forget'}],
@@ -221,16 +234,17 @@ function tap(player,btn,word){
     zone.classList.add('is-correct')
     scores[player]++
     if(player===0) s1.textContent=scores[0]; else s2.textContent=scores[1]
-    // show correct on the other side too
     const otherBtns=(player===0?buttons2:buttons1).querySelectorAll('.pb-choice')
     otherBtns.forEach(b=>{if(b.textContent===word) b.classList.add('is-right'); b.disabled=true})
     buttons1.querySelectorAll('.pb-choice').forEach(b=>b.disabled=true)
     buttons2.querySelectorAll('.pb-choice').forEach(b=>b.disabled=true)
+    if(window.PlaySounds) PlaySounds.correct()
     setTimeout(loadRound,1100)
   } else {
     btn.classList.add('is-wrong')
     btn.disabled=true
     zone.classList.add('is-wrong')
+    if(window.PlaySounds) PlaySounds.wrong()
     setTimeout(()=>zone.classList.remove('is-wrong'),500)
   }
 }
@@ -242,6 +256,7 @@ function endDuel(){
   else{emoji='🤝'; text='IT\'S A TIE!'}
   wEmoji.textContent=emoji; wText.textContent=text; wSub.textContent=sub
   resultOverlay.classList.add('is-shown')
+  if(window.PlaySounds) PlaySounds.win()
   if(window.PlayProgress) PlayProgress.record(GAME_ID,level,Math.max(...scores),totalRounds)
 }
 
