@@ -19,7 +19,11 @@
       --border:#44403c; --border-2:#57534e;
       --gold:#fbbf24; --gold-2:#fcd34d;
       --text:#fafaf9; --text-2:#d6d3d1; --text-muted:#a8a29e; --text-dim:#78716c;
-      --neon:#22d3ee; --neon-2:#67e8f9;
+      /* Palette: Blue + Gold + Dark Brown (per user direction).
+       * The legacy --neon var is kept as an alias so existing rules stay valid. */
+      --blue:#3b82f6; --blue-2:#60a5fa; --blue-deep:#1d4ed8;
+      --neon:#3b82f6; --neon-2:#60a5fa;
+      --brown:#78350f; --brown-2:#92400e;
       --pink:#ec4899; --pink-2:#f472b6;
       --green:#4ade80; --red:#f87171; --orange:#fb923c; --purple:#a78bfa;
       --display:'Outfit',system-ui,sans-serif;
@@ -33,7 +37,7 @@
     body::before {
       content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
       background:
-        radial-gradient(ellipse 60% 40% at 80% 0%, rgba(34, 211, 238, 0.14), transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 0%, rgba(59, 130, 246, 0.14), transparent 60%),
         radial-gradient(ellipse 50% 35% at 20% 100%, rgba(236, 72, 153, 0.10), transparent 60%),
         radial-gradient(ellipse 50% 50% at 50% 50%, rgba(251, 191, 36, 0.04), transparent 70%);
     }
@@ -87,7 +91,7 @@
     .hero {
       position: relative; overflow: hidden;
       background:
-        radial-gradient(ellipse 80% 60% at 50% 100%, rgba(34, 211, 238, 0.18), transparent 70%),
+        radial-gradient(ellipse 80% 60% at 50% 100%, rgba(59, 130, 246, 0.18), transparent 70%),
         linear-gradient(160deg, #1c1917 0%, #0c0a09 100%);
       border-radius: 26px;
       padding: 48px 40px 38px;
@@ -96,7 +100,7 @@
       box-shadow:
         0 0 0 2px rgba(251, 191, 36, 0.05),
         0 28px 60px -22px rgba(0, 0, 0, 0.7),
-        0 0 60px -20px rgba(34, 211, 238, 0.35) inset;
+        0 0 60px -20px rgba(59, 130, 246, 0.35) inset;
     }
     .hero::before {
       content: ""; position: absolute; inset: 0; pointer-events: none;
@@ -114,9 +118,9 @@
     .hero-eyebrow {
       display: inline-flex; align-items: center; gap: 10px;
       padding: 8px 16px; border-radius: 999px;
-      background: rgba(34, 211, 238, 0.12); color: var(--neon);
+      background: rgba(59, 130, 246, 0.12); color: var(--neon);
       font-family: var(--arcade); font-size: 9px; letter-spacing: 0.22em;
-      margin-bottom: 22px; border: 1px solid rgba(34, 211, 238, 0.3);
+      margin-bottom: 22px; border: 1px solid rgba(59, 130, 246, 0.3);
     }
     .hero-eyebrow .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--neon); animation: pulse 1.4s infinite; box-shadow: 0 0 8px var(--neon); }
     @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.4); } }
@@ -131,7 +135,7 @@
     .hero-title-ar { font-family: var(--arabic); font-weight: 600; font-size: clamp(14px, 1.8vw, 18px); color: rgba(253, 250, 240, 0.72); direction: rtl; line-height: 1.7; max-width: 540px; }
 
     .hero-cabinet { width: 200px; height: 200px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-    .hero-cabinet svg { width: 100%; height: 100%; filter: drop-shadow(0 12px 30px rgba(34, 211, 238, 0.4)); }
+    .hero-cabinet svg { width: 100%; height: 100%; filter: drop-shadow(0 12px 30px rgba(59, 130, 246, 0.4)); }
 
     .hero-stats { display: flex; gap: 32px; flex-wrap: wrap; margin-top: 28px; padding-top: 22px; border-top: 1px dashed var(--border-2); }
     .hero-stat { display: flex; flex-direction: column; gap: 4px; }
@@ -206,10 +210,10 @@
       border-color: var(--neon);
       box-shadow:
         0 0 0 1px var(--neon) inset,
-        0 14px 30px -8px rgba(34, 211, 238, 0.4),
+        0 14px 30px -8px rgba(59, 130, 246, 0.4),
         0 22px 50px -16px rgba(0, 0, 0, 0.6);
     }
-    .game-card:hover::after { transform: scale(1.4) rotate(15deg); background: radial-gradient(circle, rgba(34, 211, 238, 0.18), transparent 70%); }
+    .game-card:hover::after { transform: scale(1.4) rotate(15deg); background: radial-gradient(circle, rgba(59, 130, 246, 0.18), transparent 70%); }
 
     .game-mascot {
       width: 64px; height: 78px;
@@ -240,7 +244,7 @@
     .game-cat {
       font-family: var(--arcade); font-size: 8px; letter-spacing: 0.18em;
       padding: 4px 8px; border-radius: 6px;
-      color: var(--neon); background: rgba(34, 211, 238, 0.08); border: 1px solid rgba(34, 211, 238, 0.25);
+      color: var(--neon); background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25);
     }
     .game-cat[data-cat="vocab"] { color: var(--gold); background: rgba(251,191,36,.08); border-color: rgba(251,191,36,.25); }
     .game-cat[data-cat="grammar"] { color: var(--purple); background: rgba(167,139,250,.10); border-color: rgba(167,139,250,.3); }
@@ -318,12 +322,12 @@
         <rect x="18" y="29" width="4" height="14" rx="1" fill="#0c0a09"/>
         <!-- buttons -->
         <circle cx="42" cy="32" r="3" fill="#0c0a09"/>
-        <circle cx="50" cy="38" r="3" fill="#22d3ee"/>
+        <circle cx="50" cy="38" r="3" fill="#3b82f6"/>
         <circle cx="42" cy="44" r="3" fill="#ec4899"/>
         <circle cx="38" cy="38" r="3" fill="#4ade80"/>
         <!-- antenna -->
         <line x1="32" y1="22" x2="32" y2="8" stroke="#fbbf24" stroke-width="2"/>
-        <circle cx="32" cy="6" r="3" fill="#22d3ee"/>
+        <circle cx="32" cy="6" r="3" fill="#3b82f6"/>
       </svg>
     </div>
     <div class="brand-stack">
@@ -344,7 +348,7 @@
     <div class="hero-inner">
       <div class="hero-row">
         <div class="hero-text">
-          <span class="hero-eyebrow"><span class="dot"></span>37 GAMES · 1P + 2P · CLASSROOM-READY</span>
+          <span class="hero-eyebrow"><span class="dot"></span>39 GAMES · 1P + 2P · CLASSROOM-READY</span>
           <h1 class="hero-title">English<br><em>Arcade.</em></h1>
           <div class="hero-arcade-line">► INSERT COIN TO START ◄</div>
           <p class="hero-title-ar">منصة ألعاب تعليمية لتعلم الإنجليزية كأنك في صالة ألعاب — من المبتدئ حتى المتقدم، 29 لعبة، 3 مستويات لكل لعبة.</p>
@@ -367,13 +371,13 @@
             <!-- screen -->
             <rect x="55" y="38" width="90" height="64" rx="6" fill="url(#screenGrad)" stroke="#0c0a09" stroke-width="2"/>
             <!-- pixel art "P" on screen -->
-            <text x="100" y="78" text-anchor="middle" font-family="Press Start 2P, monospace" font-size="22" fill="#22d3ee">P</text>
+            <text x="100" y="78" text-anchor="middle" font-family="Press Start 2P, monospace" font-size="22" fill="#3b82f6">P</text>
             <!-- control panel -->
             <rect x="55" y="118" width="90" height="44" rx="4" fill="#0c0a09" stroke="#44403c" stroke-width="1"/>
             <!-- joystick -->
             <circle cx="72" cy="140" r="10" fill="#ec4899" stroke="#0c0a09" stroke-width="2"/>
             <!-- buttons -->
-            <circle cx="108" cy="135" r="6" fill="#22d3ee" stroke="#0c0a09" stroke-width="1.5"/>
+            <circle cx="108" cy="135" r="6" fill="#3b82f6" stroke="#0c0a09" stroke-width="1.5"/>
             <circle cx="124" cy="140" r="6" fill="#4ade80" stroke="#0c0a09" stroke-width="1.5"/>
             <circle cx="116" cy="150" r="6" fill="#fbbf24" stroke="#0c0a09" stroke-width="1.5"/>
             <!-- coin slot -->
@@ -385,7 +389,7 @@
         </div>
       </div>
       <div class="hero-stats">
-        <div class="hero-stat"><span class="hero-stat-num">37</span><span class="hero-stat-label">GAMES</span></div>
+        <div class="hero-stat"><span class="hero-stat-num">39</span><span class="hero-stat-label">GAMES</span></div>
         <div class="hero-stat"><span class="hero-stat-num">7</span><span class="hero-stat-label">2P MODES</span></div>
         <div class="hero-stat"><span class="hero-stat-num">A0—C1</span><span class="hero-stat-label">CEFR</span></div>
         <div class="hero-stat"><span class="hero-stat-num">∞</span><span class="hero-stat-label">REPLAYS</span></div>
@@ -395,22 +399,22 @@
 
   <div class="marquee">
     <div class="marquee-track">
-      <span class="marquee-item">NEW · QUICK BUZZ · CLASSROOM BUZZER</span>
-      <span class="marquee-item">NEW · LIGHTNING ROUND · 30s SOLO</span>
-      <span class="marquee-item">NEW · CATEGORY WHEEL</span>
-      <span class="marquee-item">NEW · GUESS THE JOB</span>
-      <span class="marquee-item">37 GAMES · 3 LEVELS</span>
-      <span class="marquee-item">7 MULTIPLAYER MODES</span>
+      <span class="marquee-item">NEW · VERB HUNT · WHACK-A-VERB</span>
+      <span class="marquee-item">NEW · SENTENCE PUZZLE WITH DECOYS</span>
+      <span class="marquee-item">NEW · 12 CATEGORY WHEEL</span>
+      <span class="marquee-item">NEW · DICTIONARY-CHECKED WORD CHAIN</span>
+      <span class="marquee-item">39 GAMES · 3 LEVELS</span>
+      <span class="marquee-item">BLUE · GOLD · DARK BROWN</span>
       <span class="marquee-item">FREE · NO SIGNUP</span>
       <span class="marquee-item">CLASSROOM WHITEBOARD READY</span>
       <span class="marquee-item">A0 TO C1 · BEGINNER TO ADVANCED</span>
       <!-- duplicate for seamless loop -->
-      <span class="marquee-item">NEW · QUICK BUZZ · CLASSROOM BUZZER</span>
-      <span class="marquee-item">NEW · LIGHTNING ROUND · 30s SOLO</span>
-      <span class="marquee-item">NEW · CATEGORY WHEEL</span>
-      <span class="marquee-item">NEW · GUESS THE JOB</span>
-      <span class="marquee-item">37 GAMES · 3 LEVELS</span>
-      <span class="marquee-item">7 MULTIPLAYER MODES</span>
+      <span class="marquee-item">NEW · VERB HUNT · WHACK-A-VERB</span>
+      <span class="marquee-item">NEW · SENTENCE PUZZLE WITH DECOYS</span>
+      <span class="marquee-item">NEW · 12 CATEGORY WHEEL</span>
+      <span class="marquee-item">NEW · DICTIONARY-CHECKED WORD CHAIN</span>
+      <span class="marquee-item">39 GAMES · 3 LEVELS</span>
+      <span class="marquee-item">BLUE · GOLD · DARK BROWN</span>
       <span class="marquee-item">FREE · NO SIGNUP</span>
       <span class="marquee-item">CLASSROOM WHITEBOARD READY</span>
       <span class="marquee-item">A0 TO C1 · BEGINNER TO ADVANCED</span>
@@ -419,7 +423,7 @@
 
   <div class="global-progress" id="global-progress-card">
     <span>YOUR PROGRESS</span>
-    <span><b id="gp-played">0</b>/37 GAMES</span>
+    <span><b id="gp-played">0</b>/39 GAMES</span>
     <div class="bar"><span id="gp-bar"></span></div>
     <span>BEST <b id="gp-best">0</b></span>
     <button class="reset-progress" id="reset-progress-btn" title="Clear all scores">↺ RESET</button>
@@ -823,6 +827,24 @@
         <div class="game-title-ar">حزّر فزّر</div>
         <div class="game-desc">Classic English riddles. "I speak without a mouth and hear without ears."</div>
         <div class="game-foot"><span class="level-chip">A2·B1·B2</span><span class="play-btn">▶ PLAY</span></div>
+      </a>
+
+      <a class="game-card" href="games/verb-hunt/" data-game="verb-hunt">
+        <div class="game-emoji">🎯</div>
+        <div class="game-tag-row"><span class="game-num is-new">G38 · NEW</span><span class="game-cat" data-cat="grammar">GRAMMAR</span><span class="multi-banner">WHACK-A-VERB</span></div>
+        <div class="game-title">Verb Hunt</div>
+        <div class="game-title-ar">صيد الأفعال</div>
+        <div class="game-desc">Verb forms pop up on the field. Tap ONLY the ones that match the target tense (past / -ing / past participle). Wrong taps = penalty.</div>
+        <div class="game-foot"><span class="level-chip">A1·A2·B1 · 45s</span><span class="play-btn">▶ HUNT</span></div>
+      </a>
+
+      <a class="game-card" href="games/sentence-puzzle/" data-game="sentence-puzzle">
+        <div class="game-emoji">🧩</div>
+        <div class="game-tag-row"><span class="game-num is-new">G39 · NEW</span><span class="game-cat" data-cat="grammar">GRAMMAR</span><span class="multi-banner">JIGSAW</span></div>
+        <div class="game-title">Sentence Puzzle</div>
+        <div class="game-title-ar">لغز الجملة</div>
+        <div class="game-desc">Arabic prompt shown; tap puzzle pieces to assemble the correct English sentence. B1 adds decoy tiles to trick you!</div>
+        <div class="game-foot"><span class="level-chip">A1·A2·B1 · with decoys</span><span class="play-btn">▶ SOLVE</span></div>
       </a>
 
     </div>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex, nofollow">
+  <title>Verb Hunt — Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Press+Start+2P&family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}button{font-family:inherit;cursor:pointer}a{text-decoration:none;color:inherit}
+    :root{--ink:#0c0a09;--bg:#0c0a09;--paper:#1c1917;--paper-2:#292524;--border:#44403c;--gold:#fbbf24;--gold-2:#fcd34d;--text:#fafaf9;--text-2:#d6d3d1;--text-muted:#a8a29e;--blue:#3b82f6;--neon:#3b82f6;--green:#4ade80;--red:#f87171;--display:'Outfit',sans-serif;--arcade:'Press Start 2P',monospace;--arabic:'Cairo',sans-serif}
+    html,body{background:var(--bg);color:var(--text);font-family:var(--display);font-size:16px;min-height:100%;-webkit-font-smoothing:antialiased}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(59,130,246,.10),transparent 60%)}
+    .topbar{position:sticky;top:0;z-index:100;background:rgba(12,10,9,.92);backdrop-filter:blur(18px);border-bottom:1px solid var(--border);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .back-link{display:inline-flex;align-items:center;gap:10px;padding:12px 20px;border-radius:999px;background:var(--paper);border:1px solid var(--border);font-size:16px;font-weight:700;color:var(--text-2)}
+    .back-link:hover{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+    .game-title{font-family:var(--arcade);font-size:18px;color:var(--gold);letter-spacing:.05em;display:flex;align-items:center;gap:10px}
+    .scoreboard{display:flex;gap:14px;font-family:var(--arcade);font-size:13px;color:var(--text-muted);letter-spacing:.08em;align-items:center}
+    .scoreboard b{color:var(--gold);font-size:20px;margin-left:6px}
+    .page{position:relative;z-index:2;max-width:1200px;margin:0 auto;padding:24px 24px 50px}
+    .level-bar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:16px;padding:14px 22px;border-radius:14px;background:var(--paper);border:2px solid var(--border)}
+    .level-bar-label{font-family:var(--arcade);font-size:13px;color:var(--text-muted);letter-spacing:.15em}
+    .lev-btn{padding:10px 16px;border-radius:10px;background:transparent;border:2px solid var(--border);font-size:14px;font-weight:700;color:var(--text-2);transition:all .18s ease}
+    .lev-btn:hover{border-color:var(--gold);color:var(--gold)} .lev-btn.is-active{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+
+    .target-banner{padding:24px;border-radius:18px;background:linear-gradient(180deg,rgba(59,130,246,.10),rgba(0,0,0,.3));border:3px solid var(--blue);text-align:center;margin-bottom:16px;box-shadow:0 0 30px -8px rgba(59,130,246,.5)}
+    .target-lbl{font-family:var(--arcade);font-size:13px;color:var(--blue);letter-spacing:.18em;margin-bottom:10px}
+    .target-name{font-family:var(--display);font-size:clamp(28px,3.5vw,42px);font-weight:900;color:var(--text);margin-bottom:6px}
+    .target-hint{font-family:var(--arabic);font-size:18px;color:var(--text-muted);direction:rtl}
+
+    .top-row{display:grid;grid-template-columns:1fr auto;gap:14px;margin-bottom:14px;align-items:center}
+    .progress{height:14px;background:var(--paper);border:2px solid var(--border);border-radius:999px;overflow:hidden}
+    .progress>span{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--gold),var(--red));transform-origin:left;transform:scaleX(1);transition:transform 1s linear}
+    .timer-pill{padding:14px 22px;border-radius:14px;background:var(--paper);border:2px solid var(--border);text-align:center;min-width:120px}
+    .timer-lbl{font-family:var(--arcade);font-size:10px;color:var(--text-muted);letter-spacing:.15em;margin-bottom:4px}
+    .timer-val{font-family:var(--arcade);font-size:26px;color:var(--gold)}
+    .timer-pill.is-low .timer-val{color:var(--red)}
+
+    .field{position:relative;width:100%;height:540px;background:radial-gradient(ellipse 80% 60% at 50% 100%,rgba(59,130,246,.12),transparent 70%),linear-gradient(180deg,#0c0a09,#1c1917);border:3px solid var(--border);border-radius:22px;overflow:hidden;box-shadow:0 0 40px -10px rgba(59,130,246,.2) inset}
+    .mole{position:absolute;padding:14px 22px;border-radius:14px;background:var(--paper-2);border:3px solid var(--border);font-family:var(--display);font-size:22px;font-weight:800;color:var(--text);cursor:pointer;transition:all .15s ease;animation:rise .35s cubic-bezier(.34,1.56,.64,1)}
+    @keyframes rise{from{opacity:0;transform:scale(.6) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+    .mole.is-good{border-color:var(--green);background:rgba(74,222,128,.08);color:var(--green)}
+    .mole.is-bad{border-color:var(--red);background:rgba(248,113,113,.08);color:var(--red)}
+    .mole:hover{transform:scale(1.08)}
+    .mole.is-hit{animation:hit .5s ease forwards}
+    @keyframes hit{50%{transform:scale(1.4);background:rgba(74,222,128,.4)}100%{transform:scale(0);opacity:0}}
+    .mole.is-miss{animation:miss .4s ease forwards}
+    @keyframes miss{50%{transform:scale(1.2);background:rgba(248,113,113,.4)}100%{opacity:0}}
+
+    .feedback{min-height:28px;font-family:var(--arcade);font-size:13px;text-align:center;color:var(--text-muted);margin:14px 0;letter-spacing:.1em}
+    .feedback.is-right{color:var(--green)} .feedback.is-wrong{color:var(--red)}
+    .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+    .btn{padding:14px 26px;border-radius:12px;font-family:var(--display);font-size:15px;font-weight:800;transition:all .18s ease;border:none;cursor:pointer}
+    .btn.is-gold{background:linear-gradient(135deg,var(--gold),var(--gold-2));color:var(--ink);box-shadow:0 6px 14px -4px rgba(251,191,36,.45)}
+    .btn.is-gold:hover{transform:translateY(-2px)}
+    .btn.is-ghost{background:transparent;color:var(--text-2);border:2px solid var(--border)}
+
+    .splash{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.92);backdrop-filter:blur(8px);z-index:50;text-align:center;padding:30px}
+    .splash.is-hidden{display:none}
+    .splash h2{font-family:var(--arcade);font-size:clamp(22px,4vw,32px);color:var(--gold);margin-bottom:14px}
+    .splash p{font-size:16px;color:var(--text-2);max-width:420px;margin-bottom:22px;line-height:1.6}
+    .splash .stats{display:flex;gap:28px;margin-bottom:24px;flex-wrap:wrap;justify-content:center}
+    .splash .stat{display:flex;flex-direction:column;gap:6px}
+    .splash .stat-num{font-family:var(--arcade);font-size:24px;color:var(--gold)}
+    .splash .stat-lbl{font-family:var(--arcade);font-size:9px;color:var(--text-muted);letter-spacing:.15em}
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">
+    <svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true">
+      <defs><linearGradient id="vhg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#b45309"/></linearGradient></defs>
+      <!-- target with arrow -->
+      <circle cx="32" cy="32" r="26" fill="none" stroke="url(#vhg)" stroke-width="4"/>
+      <circle cx="32" cy="32" r="18" fill="none" stroke="#3b82f6" stroke-width="3"/>
+      <circle cx="32" cy="32" r="9" fill="#3b82f6"/>
+      <circle cx="32" cy="32" r="4" fill="#fbbf24"/>
+      <!-- arrow -->
+      <line x1="10" y1="10" x2="30" y2="30" stroke="#fbbf24" stroke-width="3"/>
+      <path d="M 30 30 L 26 24 L 24 26 Z" fill="#fbbf24"/>
+    </svg>
+    VERB HUNT
+  </div>
+  <div class="scoreboard"><span>SCORE<b id="score">0</b></span><span>BEST<b id="best">0</b></span><div id="muteHost"></div></div>
+</nav>
+
+<main class="page">
+  <div class="level-bar" id="level-bar">
+    <span class="level-bar-label">LEVEL</span>
+    <button class="lev-btn is-active" data-level="A1">A1 · BASIC TENSES</button>
+    <button class="lev-btn" data-level="A2">A2 · ADD ING/-ED</button>
+    <button class="lev-btn" data-level="B1">B1 · ALL FORMS</button>
+  </div>
+
+  <div class="target-banner">
+    <div class="target-lbl">🎯 HUNT ONLY THIS FORM</div>
+    <div class="target-name" id="targetName">PAST TENSE</div>
+    <div class="target-hint" id="targetHint">صيد الأفعال في الماضي فقط</div>
+  </div>
+
+  <div class="top-row">
+    <div class="progress"><span id="progressBar"></span></div>
+    <div class="timer-pill" id="timerPill"><div class="timer-lbl">TIME</div><div class="timer-val" id="timerVal">45</div></div>
+  </div>
+
+  <div class="field" id="field">
+    <div class="splash" id="splash">
+      <h2>🎯 VERB HUNT</h2>
+      <p>Verbs pop up across the field. Tap <b style="color:var(--green)">only</b> the ones that match the target tense at the top. Hitting the wrong form = penalty!</p>
+      <button class="btn is-gold" id="startBtn">▶ START HUNT</button>
+    </div>
+    <div class="splash is-hidden" id="endSplash">
+      <h2 id="endTitle">⏰ TIME UP</h2>
+      <div class="stats">
+        <div class="stat"><div class="stat-num" id="finalScore">0</div><div class="stat-lbl">SCORE</div></div>
+        <div class="stat"><div class="stat-num" id="finalAcc">0%</div><div class="stat-lbl">ACCURACY</div></div>
+        <div class="stat"><div class="stat-num" id="finalBest">0</div><div class="stat-lbl">BEST</div></div>
+      </div>
+      <div class="actions">
+        <button class="btn is-gold" id="againBtn">▶ HUNT AGAIN</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="feedback" id="feedback">Wait for verbs to pop up</div>
+</main>
+
+<script src="../../_shared/progress.js"></script>
+<script src="../../_shared/sounds.js"></script>
+<script>
+const GAME_ID='verb-hunt'
+if(window.PlaySounds) PlaySounds.injectMuteButton(document.getElementById('muteHost'))
+
+// Each verb has all common forms. Game asks for ONE target form (e.g. 'past'),
+// spawns verb instances tagged with their form. Player taps only matching ones.
+const VERBS = [
+  // [base, past, pastp, ing, -s]
+  {b:'go',pa:'went',pp:'gone',ing:'going',s:'goes'},
+  {b:'eat',pa:'ate',pp:'eaten',ing:'eating',s:'eats'},
+  {b:'see',pa:'saw',pp:'seen',ing:'seeing',s:'sees'},
+  {b:'do',pa:'did',pp:'done',ing:'doing',s:'does'},
+  {b:'come',pa:'came',pp:'come',ing:'coming',s:'comes'},
+  {b:'take',pa:'took',pp:'taken',ing:'taking',s:'takes'},
+  {b:'write',pa:'wrote',pp:'written',ing:'writing',s:'writes'},
+  {b:'read',pa:'read',pp:'read',ing:'reading',s:'reads'},
+  {b:'speak',pa:'spoke',pp:'spoken',ing:'speaking',s:'speaks'},
+  {b:'drive',pa:'drove',pp:'driven',ing:'driving',s:'drives'},
+  {b:'sing',pa:'sang',pp:'sung',ing:'singing',s:'sings'},
+  {b:'swim',pa:'swam',pp:'swum',ing:'swimming',s:'swims'},
+  {b:'know',pa:'knew',pp:'known',ing:'knowing',s:'knows'},
+  {b:'give',pa:'gave',pp:'given',ing:'giving',s:'gives'},
+  {b:'find',pa:'found',pp:'found',ing:'finding',s:'finds'},
+  {b:'buy',pa:'bought',pp:'bought',ing:'buying',s:'buys'},
+  {b:'bring',pa:'brought',pp:'brought',ing:'bringing',s:'brings'},
+  {b:'catch',pa:'caught',pp:'caught',ing:'catching',s:'catches'},
+  {b:'teach',pa:'taught',pp:'taught',ing:'teaching',s:'teaches'},
+  {b:'think',pa:'thought',pp:'thought',ing:'thinking',s:'thinks'},
+  {b:'leave',pa:'left',pp:'left',ing:'leaving',s:'leaves'},
+  {b:'feel',pa:'felt',pp:'felt',ing:'feeling',s:'feels'},
+  {b:'sleep',pa:'slept',pp:'slept',ing:'sleeping',s:'sleeps'},
+  {b:'meet',pa:'met',pp:'met',ing:'meeting',s:'meets'},
+  {b:'lose',pa:'lost',pp:'lost',ing:'losing',s:'loses'},
+  {b:'sell',pa:'sold',pp:'sold',ing:'selling',s:'sells'},
+  {b:'tell',pa:'told',pp:'told',ing:'telling',s:'tells'},
+  {b:'play',pa:'played',pp:'played',ing:'playing',s:'plays'},
+  {b:'work',pa:'worked',pp:'worked',ing:'working',s:'works'},
+  {b:'help',pa:'helped',pp:'helped',ing:'helping',s:'helps'},
+  {b:'walk',pa:'walked',pp:'walked',ing:'walking',s:'walks'},
+  {b:'cook',pa:'cooked',pp:'cooked',ing:'cooking',s:'cooks'},
+]
+
+// Levels enable different target forms
+const LEVELS = {
+  A1: [
+    {target:'past', name:'PAST TENSE', hint:'صيد الأفعال في الماضي فقط', key:'pa', forms:['b','pa']},
+    {target:'base', name:'BASE FORM', hint:'صيد الأفعال في صيغتها الأساسية', key:'b', forms:['b','pa']},
+  ],
+  A2: [
+    {target:'past', name:'PAST TENSE', hint:'صيد الأفعال في الماضي', key:'pa', forms:['b','pa','ing']},
+    {target:'ing', name:'-ING FORM', hint:'صيد الأفعال بصيغة ing', key:'ing', forms:['b','pa','ing']},
+    {target:'base', name:'BASE FORM', hint:'صيد الأفعال في الأساس', key:'b', forms:['b','pa','ing']},
+  ],
+  B1: [
+    {target:'past', name:'PAST TENSE', hint:'صيد الأفعال في الماضي', key:'pa', forms:['b','pa','pp','ing','s']},
+    {target:'pp', name:'PAST PARTICIPLE', hint:'صيد التصريف الثالث', key:'pp', forms:['b','pa','pp','ing','s']},
+    {target:'ing', name:'-ING FORM', hint:'صيد الأفعال بصيغة ing', key:'ing', forms:['b','pa','pp','ing','s']},
+    {target:'s', name:'3RD PERSON -S', hint:'صيغة المخاطب الغائب (he/she +s)', key:'s', forms:['b','pa','pp','ing','s']},
+  ],
+}
+
+const FIELD_TIME = 45
+let level='A1', score=0, hits=0, misses=0, target=null, running=false
+let spawnInt=null, gameInt=null, timeLeft=FIELD_TIME
+
+const field=document.getElementById('field'), feedbackEl=document.getElementById('feedback'), targetName=document.getElementById('targetName'), targetHint=document.getElementById('targetHint')
+const scoreEl=document.getElementById('score'), bestEl=document.getElementById('best')
+const timerPill=document.getElementById('timerPill'), timerVal=document.getElementById('timerVal'), progressBar=document.getElementById('progressBar')
+const splash=document.getElementById('splash'), endSplash=document.getElementById('endSplash')
+
+function refreshBest(){ if(window.PlayProgress){ bestEl.textContent=PlayProgress.getLevel(GAME_ID,level).best||0 } }
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function pickTarget(){
+  const opts=LEVELS[level]
+  target=opts[Math.floor(Math.random()*opts.length)]
+  targetName.textContent=target.name
+  targetHint.textContent=target.hint
+}
+
+function startGame(){
+  splash.classList.add('is-hidden'); endSplash.classList.add('is-hidden')
+  score=0; hits=0; misses=0; scoreEl.textContent='0'
+  field.querySelectorAll('.mole').forEach(m=>m.remove())
+  pickTarget()
+  timeLeft=FIELD_TIME; timerVal.textContent=timeLeft; timerPill.classList.remove('is-low')
+  progressBar.style.transition='none'; progressBar.style.transform='scaleX(1)'; void progressBar.offsetWidth
+  progressBar.style.transition='transform '+FIELD_TIME+'s linear'; progressBar.style.transform='scaleX(0)'
+  running=true
+  feedbackEl.textContent='Tap only '+target.name+'!'; feedbackEl.className='feedback'
+  if(window.PlaySounds) PlaySounds.click()
+  // pop a new mole every 800-1100ms
+  if(spawnInt) clearInterval(spawnInt)
+  spawnInt=setInterval(spawnMole, level==='A1'?1100:level==='A2'?900:750)
+  if(gameInt) clearInterval(gameInt)
+  gameInt=setInterval(()=>{
+    timeLeft--; timerVal.textContent=Math.max(0,timeLeft)
+    if(timeLeft<=10) timerPill.classList.add('is-low')
+    if(timeLeft<=5 && timeLeft>0 && window.PlaySounds) PlaySounds.tick()
+    if(timeLeft<=0){ endGame() }
+  },1000)
+  // also re-pick target every ~10s for variety
+  setTimeout(rotateTarget, 10000)
+}
+
+function rotateTarget(){
+  if(!running) return
+  pickTarget()
+  feedbackEl.textContent='🎯 NEW TARGET: '+target.name; feedbackEl.className='feedback'
+  if(window.PlaySounds) PlaySounds.turn()
+  setTimeout(rotateTarget, 10000)
+}
+
+function spawnMole(){
+  if(!running) return
+  // limit on-field moles
+  if(field.querySelectorAll('.mole').length>=6) return
+  // 60% chance of correct-form mole, 40% wrong-form
+  const verb=VERBS[Math.floor(Math.random()*VERBS.length)]
+  const correctForm=Math.random()<0.6
+  let formKey
+  if(correctForm) formKey=target.key
+  else { const wrongForms=target.forms.filter(f=>f!==target.key); formKey=wrongForms[Math.floor(Math.random()*wrongForms.length)] }
+  const text=verb[formKey]
+  if(!text) return
+  const m=document.createElement('button')
+  m.className='mole'
+  m.textContent=text
+  m.dataset.correct=correctForm?'1':'0'
+  // random position
+  const r=field.getBoundingClientRect()
+  const x=Math.floor(40+Math.random()*(r.width-200))
+  const y=Math.floor(40+Math.random()*(r.height-100))
+  m.style.left=x+'px'; m.style.top=y+'px'
+  m.addEventListener('click',()=>onHit(m))
+  field.appendChild(m)
+  // auto-remove after 2.5-3s
+  setTimeout(()=>{ if(m.isConnected){ m.classList.add('is-miss'); setTimeout(()=>m.remove(),400) } }, 2500+Math.random()*600)
+}
+
+function onHit(m){
+  if(!running||m.classList.contains('is-hit')||m.classList.contains('is-miss')) return
+  const correct=m.dataset.correct==='1'
+  if(correct){
+    m.classList.add('is-good','is-hit')
+    score+=10; hits++; scoreEl.textContent=score
+    feedbackEl.textContent='✓ Hit!'; feedbackEl.className='feedback is-right'
+    if(window.PlaySounds) PlaySounds.correct()
+  } else {
+    m.classList.add('is-bad','is-miss')
+    score=Math.max(0,score-5); misses++; scoreEl.textContent=score
+    feedbackEl.textContent='✗ Wrong form! -5'; feedbackEl.className='feedback is-wrong'
+    if(window.PlaySounds) PlaySounds.wrong()
+  }
+  setTimeout(()=>m.remove(),500)
+}
+
+function endGame(){
+  running=false
+  if(spawnInt) clearInterval(spawnInt)
+  if(gameInt) clearInterval(gameInt)
+  field.querySelectorAll('.mole').forEach(m=>m.remove())
+  const total=hits+misses
+  const acc=total?Math.round(hits/total*100):0
+  if(window.PlayProgress) PlayProgress.record(GAME_ID,level,score,score||1)
+  const best=window.PlayProgress?PlayProgress.getLevel(GAME_ID,level).best:score
+  document.getElementById('finalScore').textContent=score
+  document.getElementById('finalAcc').textContent=acc+'%'
+  document.getElementById('finalBest').textContent=best
+  bestEl.textContent=best
+  if(window.PlaySounds){ if(acc>=70) PlaySounds.win(); else PlaySounds.lose() }
+  endSplash.classList.remove('is-hidden')
+}
+
+document.getElementById('startBtn').addEventListener('click',startGame)
+document.getElementById('againBtn').addEventListener('click',startGame)
+document.querySelectorAll('.lev-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.lev-btn').forEach(x=>x.classList.remove('is-active'));b.classList.add('is-active');level=b.dataset.level;refreshBest()}))
+
+refreshBest()
+</script>
+</body>
+</html>

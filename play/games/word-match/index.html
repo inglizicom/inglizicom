@@ -60,20 +60,25 @@
     }
     .scoreboard b { color: var(--ink); font-family: var(--mono); font-size: 16px; font-weight: 800; margin-left: 4px; }
 
-    .page { position: relative; z-index: 2; max-width: 1100px; margin: 0 auto; padding: 32px 24px 60px; }
+    .page { position: relative; z-index: 2; max-width: 1180px; margin: 0 auto; padding: 20px 24px 40px; }
 
-    /* Intro / instructions */
+    /* Intro / instructions — compact so the board fits without scroll */
     .intro {
       background:
         radial-gradient(ellipse 70% 50% at 100% 0%, rgba(217, 119, 6, 0.10), transparent 60%),
         linear-gradient(160deg, var(--paper), var(--paper-soft));
       border: 1px solid var(--border);
-      border-radius: 22px;
-      padding: 24px 28px;
-      margin-bottom: 32px;
+      border-radius: 18px;
+      padding: 14px 20px;
+      margin-bottom: 14px;
       position: relative;
       box-shadow: 0 8px 22px -8px rgba(115, 99, 53, 0.12);
+      display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
     }
+    .intro-text { flex: 1; min-width: 200px; }
+    .intro h1 { font-size: clamp(18px, 2.2vw, 22px) !important; }
+    .intro-rules { display: none !important; }
+    @media (min-width: 1100px) { .intro-rules { display: flex !important; } }
     .intro::before {
       content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px;
       background: linear-gradient(90deg, var(--ink), var(--gold), var(--gold-bright));
@@ -100,7 +105,7 @@
     /* Difficulty selector */
     .difficulty {
       display: flex; gap: 8px; align-items: center;
-      margin-bottom: 22px; flex-wrap: wrap;
+      margin-bottom: 12px; flex-wrap: wrap;
     }
     .difficulty-label {
       font-family: var(--display); font-size: 11px; font-weight: 800;
@@ -123,23 +128,27 @@
     .lev-btn:hover { border-color: var(--gold); }
     .lev-btn.is-active { background: var(--ink); color: white; border-color: var(--ink); }
 
-    /* Game board */
+    /* Game board — fits in viewport without scrolling on desktop */
     .board {
       display: grid;
-      gap: 12px;
-      margin-bottom: 28px;
+      gap: 10px;
+      margin-bottom: 16px;
       perspective: 800px;
+      max-width: min(100%, calc((100vh - 280px) * var(--ratio, 1.6)));
+      margin-left: auto;
+      margin-right: auto;
     }
-    .board.cols-4 { grid-template-columns: repeat(4, 1fr); }
-    .board.cols-5 { grid-template-columns: repeat(5, 1fr); }
-    .board.cols-6 { grid-template-columns: repeat(6, 1fr); }
-    @media (max-width: 640px) {
-      .board.cols-4, .board.cols-5, .board.cols-6 { grid-template-columns: repeat(4, 1fr); }
+    .board.cols-4 { grid-template-columns: repeat(4, 1fr); --ratio: 1.0; }
+    .board.cols-5 { grid-template-columns: repeat(5, 1fr); --ratio: 1.25; }
+    .board.cols-6 { grid-template-columns: repeat(6, 1fr); --ratio: 1.5; }
+    @media (max-width: 760px) {
+      .board { max-width: 100%; }
+      .board.cols-4, .board.cols-5, .board.cols-6 { grid-template-columns: repeat(4, 1fr); --ratio: 1.0; }
     }
 
     /* Memory card */
     .mcard {
-      aspect-ratio: 1 / 1.15;
+      aspect-ratio: 1 / 1;
       position: relative;
       transform-style: preserve-3d;
       transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -252,13 +261,14 @@
 <main class="page">
 
   <div class="intro">
-    <div class="intro-eyebrow">Game 01 · Memory Pair</div>
-    <h1>Match every English word with its Arabic translation</h1>
-    <p class="intro-sub">طابق كل كلمة إنجليزية مع ترجمتها العربية — اقلب البطاقات وحاول أن تتذكر مواقعها.</p>
+    <div class="intro-text">
+      <div class="intro-eyebrow">Game · Memory Pair</div>
+      <h1>Match every English word with its Arabic translation</h1>
+      <p class="intro-sub">طابق كل كلمة إنجليزية مع ترجمتها العربية</p>
+    </div>
     <div class="intro-rules">
       <span>🎯 Find all pairs</span>
       <span>♻️ Fewer moves = better</span>
-      <span>🧠 Train memory + vocab</span>
     </div>
   </div>
 

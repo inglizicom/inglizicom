@@ -79,33 +79,88 @@ const GAME_ID='plural-trainer'
 function mascotSVG(m){const E={default:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="38" cy="59" r="3" fill="#1c1917"/><circle cx="62" cy="59" r="3" fill="#1c1917"/><circle cx="39" cy="57" r="1" fill="#fdfaf0"/><circle cx="63" cy="57" r="1" fill="#fdfaf0"/>',happy:'<path d="M 32 60 Q 38 53 44 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M 56 60 Q 62 53 68 60" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',sad:'<circle cx="38" cy="60" r="6" fill="#fdfaf0"/><circle cx="62" cy="60" r="6" fill="#fdfaf0"/><circle cx="38" cy="62" r="3" fill="#1c1917"/><circle cx="62" cy="62" r="3" fill="#1c1917"/>',thinking:'<circle cx="38" cy="58" r="6" fill="#fdfaf0"/><circle cx="62" cy="58" r="6" fill="#fdfaf0"/><circle cx="40" cy="55" r="3" fill="#1c1917"/><circle cx="64" cy="55" r="3" fill="#1c1917"/>'};const M={default:'<path d="M 40 75 Q 50 80 60 75" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',happy:'<path d="M 32 72 Q 50 88 68 72 Q 50 80 32 72 Z" fill="#fdfaf0"/>',sad:'<path d="M 40 80 Q 50 73 60 80" stroke="#fdfaf0" stroke-width="2.5" fill="none" stroke-linecap="round"/>',thinking:'<path d="M 42 78 L 58 78" stroke="#fdfaf0" stroke-width="2.5" stroke-linecap="round"/>'};const x=m||'default';return `<line x1="50" y1="14" x2="74" y2="6" stroke="#fbbf24" stroke-width="2"/><circle cx="74" cy="6" r="3" fill="#fbbf24"/><rect x="32" y="12" width="36" height="14" rx="3" fill="#d97706"/><rect x="14" y="24" width="72" height="6" rx="2" fill="#b45309"/><circle cx="50" cy="62" r="34" fill="#1c1917"/><path d="M 18 112 Q 50 92 82 112 L 82 120 L 18 120 Z" fill="#1c1917"/>${E[x]||E.default}${M[x]||M.default}`}
 function setMascot(m,b){const el=document.getElementById('mascot');el.innerHTML=mascotSVG(m);if(b){el.classList.remove('is-bounce','is-shake');void el.offsetWidth;el.classList.add(b==='shake'?'is-shake':'is-bounce')}}
 
-// {s, p, rule, hint}
+// {s, p, rule, hint, distractors[3]} — distractors are common WRONG spellings of the SAME word's plural
 const NOUNS = {
   A1: [
-    {s:'cat',p:'cats',hint:'+s'},{s:'dog',p:'dogs',hint:'+s'},{s:'book',p:'books',hint:'+s'},{s:'chair',p:'chairs',hint:'+s'},
-    {s:'apple',p:'apples',hint:'+s'},{s:'pen',p:'pens',hint:'+s'},{s:'phone',p:'phones',hint:'+s'},{s:'shoe',p:'shoes',hint:'+s'},
-    {s:'house',p:'houses',hint:'+s'},{s:'car',p:'cars',hint:'+s'},{s:'tree',p:'trees',hint:'+s'},{s:'flower',p:'flowers',hint:'+s'},
-    {s:'window',p:'windows',hint:'+s'},{s:'table',p:'tables',hint:'+s'},{s:'bag',p:'bags',hint:'+s'},{s:'cup',p:'cups',hint:'+s'},
-    {s:'bird',p:'birds',hint:'+s'},{s:'school',p:'schools',hint:'+s'},{s:'friend',p:'friends',hint:'+s'},{s:'day',p:'days',hint:'+s'},
+    {s:'cat',p:'cats',hint:'+s',d:['cates','catz','cati']},
+    {s:'dog',p:'dogs',hint:'+s',d:['doges','dogz','dogi']},
+    {s:'book',p:'books',hint:'+s',d:['bookes','bookz','booki']},
+    {s:'chair',p:'chairs',hint:'+s',d:['chaires','chairz','chairi']},
+    {s:'apple',p:'apples',hint:'+s',d:['applees','applez','appli']},
+    {s:'pen',p:'pens',hint:'+s',d:['penes','penz','peni']},
+    {s:'phone',p:'phones',hint:'+s',d:['phonees','phonez','phoni']},
+    {s:'shoe',p:'shoes',hint:'+s',d:['shoees','shoez','shoesi']},
+    {s:'house',p:'houses',hint:'+s',d:['housez','housi','houseses']},
+    {s:'car',p:'cars',hint:'+s',d:['cares','carz','carsi']},
+    {s:'tree',p:'trees',hint:'+s',d:['treees','treez','tres']},
+    {s:'flower',p:'flowers',hint:'+s',d:['floweres','flowerz','floweries']},
+    {s:'window',p:'windows',hint:'+s',d:['windoes','windowes','windowies']},
+    {s:'table',p:'tables',hint:'+s',d:['tablez','tabli','tableses']},
+    {s:'bag',p:'bags',hint:'+s',d:['bages','bagz','bagi']},
+    {s:'cup',p:'cups',hint:'+s',d:['cupes','cupz','cupi']},
+    {s:'bird',p:'birds',hint:'+s',d:['birdes','birdz','birdi']},
+    {s:'school',p:'schools',hint:'+s',d:['schooles','schoolz','schooli']},
+    {s:'friend',p:'friends',hint:'+s',d:['friendes','friendz','friendies']},
+    {s:'pencil',p:'pencils',hint:'+s',d:['pencilles','pencilez','penciles']},
   ],
   A2: [
-    {s:'box',p:'boxes',hint:'-x → -xes'},{s:'bus',p:'buses',hint:'-s → -ses'},{s:'class',p:'classes',hint:'-ss → -sses'},
-    {s:'dish',p:'dishes',hint:'-sh → -shes'},{s:'church',p:'churches',hint:'-ch → -ches'},{s:'watch',p:'watches',hint:'-ch → -ches'},
-    {s:'fox',p:'foxes',hint:'-x → -xes'},{s:'brush',p:'brushes',hint:'-sh → -shes'},{s:'glass',p:'glasses',hint:'-ss → -sses'},
-    {s:'baby',p:'babies',hint:'-y → -ies (consonant + y)'},{s:'city',p:'cities',hint:'-y → -ies'},{s:'family',p:'families',hint:'-y → -ies'},
-    {s:'country',p:'countries',hint:'-y → -ies'},{s:'lady',p:'ladies',hint:'-y → -ies'},{s:'story',p:'stories',hint:'-y → -ies'},
-    {s:'boy',p:'boys',hint:'vowel + y → +s'},{s:'day',p:'days',hint:'vowel + y → +s'},{s:'key',p:'keys',hint:'vowel + y → +s'},
-    {s:'leaf',p:'leaves',hint:'-f → -ves'},{s:'wife',p:'wives',hint:'-fe → -ves'},{s:'knife',p:'knives',hint:'-fe → -ves'},
+    // -x → -xes confusable with naive +s
+    {s:'box',p:'boxes',hint:'-x → -xes',d:['boxs','boxs’','boxies']},
+    {s:'fox',p:'foxes',hint:'-x → -xes',d:['foxs','foxies','foxs’']},
+    // -s → -ses
+    {s:'bus',p:'buses',hint:'-s → -ses',d:['buss','busses','busies']},
+    {s:'class',p:'classes',hint:'-ss → -sses',d:['class','clasess','classies']},
+    {s:'glass',p:'glasses',hint:'-ss → -sses',d:['glass','glasess','glassies']},
+    // -sh / -ch → -shes / -ches
+    {s:'dish',p:'dishes',hint:'-sh → -shes',d:['dishs','dishies','dishez']},
+    {s:'brush',p:'brushes',hint:'-sh → -shes',d:['brushs','brushies','brushez']},
+    {s:'church',p:'churches',hint:'-ch → -ches',d:['churchs','churchies','churchez']},
+    {s:'watch',p:'watches',hint:'-ch → -ches',d:['watchs','watchies','watchz']},
+    // -y → -ies (consonant + y)
+    {s:'baby',p:'babies',hint:'consonant+y → -ies',d:['babys','babys','babyies']},
+    {s:'city',p:'cities',hint:'consonant+y → -ies',d:['citys','citys','cityies']},
+    {s:'family',p:'families',hint:'consonant+y → -ies',d:['familys','familyies','familyes']},
+    {s:'country',p:'countries',hint:'consonant+y → -ies',d:['countrys','countryies','countryes']},
+    {s:'lady',p:'ladies',hint:'consonant+y → -ies',d:['ladys','ladyies','ladyes']},
+    {s:'story',p:'stories',hint:'consonant+y → -ies',d:['storys','storyies','storyes']},
+    // vowel + y → +s (tricky — students think it's -ies)
+    {s:'boy',p:'boys',hint:'vowel+y → just +s',d:['boies','boyies','boy’s']},
+    {s:'key',p:'keys',hint:'vowel+y → just +s',d:['kies','keyies','keyes']},
+    {s:'toy',p:'toys',hint:'vowel+y → just +s',d:['toies','toyies','toyes']},
+    // -f / -fe → -ves
+    {s:'leaf',p:'leaves',hint:'-f → -ves',d:['leafs','leafes','leafies']},
+    {s:'wife',p:'wives',hint:'-fe → -ves',d:['wifes','wifees','wifies']},
+    {s:'knife',p:'knives',hint:'-fe → -ves',d:['knifes','knifees','knifies']},
+    {s:'half',p:'halves',hint:'-f → -ves',d:['halfs','halfes','halfies']},
   ],
   B1: [
-    {s:'child',p:'children',hint:'irregular'},{s:'man',p:'men',hint:'irregular'},{s:'woman',p:'women',hint:'irregular'},
-    {s:'foot',p:'feet',hint:'irregular'},{s:'tooth',p:'teeth',hint:'irregular'},{s:'mouse',p:'mice',hint:'irregular'},
-    {s:'goose',p:'geese',hint:'irregular'},{s:'person',p:'people',hint:'irregular'},{s:'ox',p:'oxen',hint:'irregular'},
-    {s:'fish',p:'fish',hint:'same'},{s:'sheep',p:'sheep',hint:'same'},{s:'deer',p:'deer',hint:'same'},
-    {s:'cactus',p:'cacti',hint:'Latin -us → -i'},{s:'fungus',p:'fungi',hint:'Latin -us → -i'},{s:'syllabus',p:'syllabi',hint:'Latin -us → -i'},
-    {s:'analysis',p:'analyses',hint:'Greek -is → -es'},{s:'crisis',p:'crises',hint:'Greek -is → -es'},{s:'thesis',p:'theses',hint:'Greek -is → -es'},
-    {s:'phenomenon',p:'phenomena',hint:'Greek -on → -a'},{s:'criterion',p:'criteria',hint:'Greek -on → -a'},
-    {s:'datum',p:'data',hint:'Latin -um → -a'},{s:'medium',p:'media',hint:'Latin -um → -a'},
+    {s:'child',p:'children',hint:'irregular',d:['childs','childes','childerns']},
+    {s:'man',p:'men',hint:'irregular',d:['mans','manes','mens']},
+    {s:'woman',p:'women',hint:'irregular',d:['womans','womens','womanes']},
+    {s:'foot',p:'feet',hint:'irregular',d:['foots','footes','feets']},
+    {s:'tooth',p:'teeth',hint:'irregular',d:['tooths','teeths','toothes']},
+    {s:'mouse',p:'mice',hint:'irregular',d:['mouses','mices','mousies']},
+    {s:'goose',p:'geese',hint:'irregular',d:['gooses','geeses','goosies']},
+    {s:'person',p:'people',hint:'irregular',d:['persons','peoples','personies']},
+    {s:'ox',p:'oxen',hint:'irregular',d:['oxes','oxs','oxies']},
+    // same form
+    {s:'fish',p:'fish',hint:'same form',d:['fishes','fishs','fishies']},
+    {s:'sheep',p:'sheep',hint:'same form',d:['sheeps','sheepes','sheepies']},
+    {s:'deer',p:'deer',hint:'same form',d:['deers','deeres','deeries']},
+    // Latin -us → -i
+    {s:'cactus',p:'cacti',hint:'Latin -us → -i',d:['cactuses','cactus','cactusi']},
+    {s:'fungus',p:'fungi',hint:'Latin -us → -i',d:['funguses','fungus','funguss']},
+    {s:'syllabus',p:'syllabi',hint:'Latin -us → -i',d:['syllabuses','syllabus','syllabusi']},
+    // Greek -is → -es
+    {s:'analysis',p:'analyses',hint:'Greek -is → -es',d:['analysises','analysis','analysies']},
+    {s:'crisis',p:'crises',hint:'Greek -is → -es',d:['crisises','crisis','crisies']},
+    {s:'thesis',p:'theses',hint:'Greek -is → -es',d:['thesises','thesis','thesies']},
+    // Greek -on → -a
+    {s:'phenomenon',p:'phenomena',hint:'Greek -on → -a',d:['phenomenons','phenomenones','phenomenas']},
+    {s:'criterion',p:'criteria',hint:'Greek -on → -a',d:['criterions','criterionses','criterias']},
+    // Latin -um → -a
+    {s:'datum',p:'data',hint:'Latin -um → -a',d:['datums','datumes','datas']},
+    {s:'medium',p:'media',hint:'Latin -um → -a',d:['mediums','mediumes','medias']},
   ],
 }
 
@@ -115,11 +170,14 @@ function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor
 function startLevel(lv){currentLevel=lv;pool=shuffle(NOUNS[lv]).slice(0,12);idx=0;score=0;streak=0;scoreEl.textContent='0';streakEl.textContent='0';summaryEl.classList.remove('is-shown');gameAreaEl.style.display='';if(window.PlayProgress)PlayProgress.injectBestPill(document.getElementById('level-bar'),GAME_ID,currentLevel);loadQ()}
 function loadQ(){answered=false;feedbackEl.textContent='';feedbackEl.className='feedback';explainEl.classList.remove('is-shown');nextBtn.style.display='none';setMascot('thinking');progressEl.style.width=((idx/pool.length)*100)+'%';if(idx>=pool.length){finish();return}
   const n=pool[idx];sEl.textContent=n.s;blankEl.textContent='???';blankEl.classList.remove('is-filled');hintEl.textContent='Rule: '+n.hint
-  const all=NOUNS[currentLevel].map(x=>x.p).filter(p=>p!==n.p)
-  // generate plausible distractors per noun
-  let dists=shuffle(all).slice(0,3)
-  // mix in a naive "+s" distractor if not equal
-  const naive=n.s+'s'; if(naive!==n.p && !dists.includes(naive)) dists[0]=naive
+  // Use the per-noun misspelling distractors so all 4 options are SAME-WORD variants.
+  let dists=(n.d||[]).slice(0,3)
+  // Safety fallback: if no curated distractors, fabricate spelling variants.
+  while(dists.length<3){
+    const variants=[n.s+'s',n.s+'es',n.s+'z',n.s.slice(0,-1)+'ies']
+    const candidate=variants.find(v=>v!==n.p && !dists.includes(v))
+    if(candidate) dists.push(candidate); else break
+  }
   const opts=shuffle([{w:n.p,c:true},...dists.map(w=>({w,c:false}))])
   choicesEl.innerHTML=''
   opts.forEach(o=>{const b=document.createElement('button');b.className='choice';b.textContent=o.w;b.addEventListener('click',()=>pick(b,o.c,o.w));choicesEl.appendChild(b)})

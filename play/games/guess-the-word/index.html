@@ -82,7 +82,6 @@
       <div class="card-mascot"><svg width="68" height="82" viewBox="0 0 100 120" class="mascot" id="mascot"></svg></div>
       <div class="puzzle-label">3 clues · 1 word</div>
       <div class="emoji-row" id="emoji-row"></div>
-      <div class="hint-row">First letter · <b id="hint"></b></div>
     </div>
     <div class="choices" id="choices"></div>
     <div class="feedback" id="feedback"></div>
@@ -177,15 +176,22 @@ const PUZZLES = {
 }
 
 let currentLevel='A1', pool=[], idx=0, score=0, streak=0, answered=false
-const emojiRow=document.getElementById('emoji-row'),hintEl=document.getElementById('hint'),choicesEl=document.getElementById('choices'),feedbackEl=document.getElementById('feedback'),scoreEl=document.getElementById('score'),streakEl=document.getElementById('streak'),nextBtn=document.getElementById('next-btn'),progressEl=document.getElementById('progress'),gameAreaEl=document.getElementById('game-area'),summaryEl=document.getElementById('summary')
+const emojiRow=document.getElementById('emoji-row'),choicesEl=document.getElementById('choices'),feedbackEl=document.getElementById('feedback'),scoreEl=document.getElementById('score'),streakEl=document.getElementById('streak'),nextBtn=document.getElementById('next-btn'),progressEl=document.getElementById('progress'),gameAreaEl=document.getElementById('game-area'),summaryEl=document.getElementById('summary')
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function startLevel(lv){currentLevel=lv;pool=shuffle(PUZZLES[lv]).slice(0,12);idx=0;score=0;streak=0;scoreEl.textContent='0';streakEl.textContent='0';summaryEl.classList.remove('is-shown');gameAreaEl.style.display='';if(window.PlayProgress)PlayProgress.injectBestPill(document.getElementById('level-bar'),GAME_ID,currentLevel);loadQ()}
 function loadQ(){answered=false;feedbackEl.textContent='';feedbackEl.className='feedback';nextBtn.style.display='none';setMascot('thinking');progressEl.style.width=((idx/pool.length)*100)+'%';if(idx>=pool.length){finish();return}
   const p=pool[idx]
   emojiRow.innerHTML=p.clues.map(e=>`<div class="emoji-clue">${e}</div>`).join('')
-  hintEl.textContent=p.w[0].toUpperCase()
+  // Prefer distractors that START WITH THE SAME LETTER so the hint doesn't give the answer away.
+  // Fall back to any words if not enough same-letter candidates exist.
+  const startLetter=p.w[0].toLowerCase()
   const allWords=PUZZLES[currentLevel].map(x=>x.w).filter(w=>w!==p.w)
-  const dists=shuffle(allWords).slice(0,3)
+  const sameLetter=allWords.filter(w=>w[0].toLowerCase()===startLetter)
+  let dists=shuffle(sameLetter).slice(0,3)
+  if(dists.length<3){
+    const more=shuffle(allWords.filter(w=>w[0].toLowerCase()!==startLetter)).slice(0,3-dists.length)
+    dists=dists.concat(more)
+  }
   const opts=shuffle([{w:p.w,c:true},...dists.map(w=>({w,c:false}))])
   choicesEl.innerHTML=''
   opts.forEach(o=>{const b=document.createElement('button');b.className='choice';b.textContent=o.w;b.addEventListener('click',()=>pick(b,o.c));choicesEl.appendChild(b)})

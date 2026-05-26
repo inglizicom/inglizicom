@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex, nofollow">
+  <title>Sentence Puzzle — Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Press+Start+2P&family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}button{font-family:inherit;cursor:pointer}a{text-decoration:none;color:inherit}
+    :root{--ink:#0c0a09;--bg:#0c0a09;--paper:#1c1917;--paper-2:#292524;--border:#44403c;--gold:#fbbf24;--gold-2:#fcd34d;--text:#fafaf9;--text-2:#d6d3d1;--text-muted:#a8a29e;--blue:#3b82f6;--neon:#3b82f6;--green:#4ade80;--red:#f87171;--display:'Outfit',sans-serif;--arcade:'Press Start 2P',monospace;--arabic:'Cairo',sans-serif}
+    html,body{background:var(--bg);color:var(--text);font-family:var(--display);font-size:16px;min-height:100%;-webkit-font-smoothing:antialiased}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(59,130,246,.12),transparent 60%)}
+    .topbar{position:sticky;top:0;z-index:100;background:rgba(12,10,9,.92);backdrop-filter:blur(18px);border-bottom:1px solid var(--border);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .back-link{display:inline-flex;align-items:center;gap:10px;padding:12px 20px;border-radius:999px;background:var(--paper);border:1px solid var(--border);font-size:16px;font-weight:700;color:var(--text-2)}
+    .back-link:hover{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+    .game-title{font-family:var(--arcade);font-size:18px;color:var(--gold);letter-spacing:.05em;display:flex;align-items:center;gap:10px}
+    .scoreboard{display:flex;gap:14px;font-family:var(--arcade);font-size:13px;color:var(--text-muted);letter-spacing:.08em;align-items:center}
+    .scoreboard b{color:var(--gold);font-size:20px;margin-left:6px}
+    .page{position:relative;z-index:2;max-width:1200px;margin:0 auto;padding:24px 24px 50px}
+
+    .level-bar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:16px;padding:14px 22px;border-radius:14px;background:var(--paper);border:2px solid var(--border)}
+    .level-bar-label{font-family:var(--arcade);font-size:13px;color:var(--text-muted);letter-spacing:.15em}
+    .lev-btn{padding:10px 16px;border-radius:10px;background:transparent;border:2px solid var(--border);font-size:14px;font-weight:700;color:var(--text-2);transition:all .18s ease}
+    .lev-btn:hover{border-color:var(--gold);color:var(--gold)} .lev-btn.is-active{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+
+    .top-row{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;margin-bottom:18px}
+    .progress{height:12px;background:var(--paper);border:2px solid var(--border);border-radius:999px;overflow:hidden}
+    .progress>span{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--gold));transition:width .3s ease;width:0%}
+    .round-pill{padding:10px 18px;border-radius:14px;background:var(--paper);border:2px solid var(--border);font-family:var(--arcade);font-size:13px;color:var(--text-muted);letter-spacing:.12em}
+    .round-pill b{color:var(--gold);font-size:18px;margin:0 4px}
+
+    .clue-card{padding:24px 28px;border-radius:18px;background:linear-gradient(180deg,rgba(59,130,246,.10),rgba(0,0,0,.3));border:3px dashed var(--blue);text-align:center;margin-bottom:18px;box-shadow:0 0 24px -8px rgba(59,130,246,.4)}
+    .clue-lbl{font-family:var(--arcade);font-size:12px;color:var(--blue);letter-spacing:.18em;margin-bottom:12px}
+    .clue-ar{font-family:var(--arabic);font-size:clamp(28px,4vw,42px);font-weight:700;direction:rtl;color:var(--text);line-height:1.4;margin-bottom:6px}
+    .clue-en-blank{font-family:var(--display);font-size:18px;color:var(--text-muted);font-style:italic}
+
+    .built-area{padding:22px;border-radius:18px;background:linear-gradient(180deg,#0c0a09,#1c1917);border:3px solid var(--border);min-height:130px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;margin-bottom:14px}
+    .built-word{padding:14px 22px;border-radius:14px;background:var(--paper-2);font-family:var(--display);font-size:24px;font-weight:800;color:var(--blue);border:3px solid var(--blue);cursor:pointer;animation:popIn .25s ease}
+    .built-area.is-correct .built-word{color:var(--green);border-color:var(--green);background:rgba(74,222,128,.10)}
+    .built-area.is-wrong{border-color:var(--red);animation:shakeX .35s ease}
+    @keyframes shakeX{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+    @keyframes popIn{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+    .built-empty{font-family:var(--arcade);font-size:12px;color:var(--text-muted);letter-spacing:.12em}
+
+    .tray{padding:22px;border-radius:18px;background:var(--paper);border:2px solid var(--border);display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:110px;margin-bottom:14px}
+    .tile{padding:16px 22px;border-radius:14px;background:var(--paper-2);border:3px solid var(--border);font-family:var(--display);font-size:22px;font-weight:800;color:var(--text);cursor:pointer;transition:all .15s ease}
+    .tile:hover:not(:disabled){border-color:var(--gold);color:var(--gold);transform:translateY(-3px)}
+    .tile:disabled{opacity:.2;cursor:not-allowed}
+
+    .feedback{min-height:28px;font-family:var(--arcade);font-size:14px;text-align:center;color:var(--text-muted);margin-bottom:14px;letter-spacing:.1em}
+    .feedback.is-right{color:var(--green)} .feedback.is-wrong{color:var(--red)}
+    .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+    .btn{padding:14px 26px;border-radius:12px;font-family:var(--display);font-size:15px;font-weight:800;transition:all .18s ease;border:none;cursor:pointer}
+    .btn.is-gold{background:linear-gradient(135deg,var(--gold),var(--gold-2));color:var(--ink);box-shadow:0 6px 14px -4px rgba(251,191,36,.45)}
+    .btn.is-gold:hover{transform:translateY(-2px)}
+    .btn.is-ghost{background:transparent;color:var(--text-2);border:2px solid var(--border)}
+    .btn.is-ghost:hover{border-color:var(--blue);color:var(--blue)}
+
+    .summary{display:none;padding:48px 36px;border-radius:22px;background:var(--paper);border:4px solid var(--gold);text-align:center;box-shadow:0 0 80px rgba(251,191,36,.4)}
+    .summary.is-shown{display:block}
+    .summary h2{font-family:var(--arcade);font-size:24px;color:var(--gold);margin-bottom:18px}
+    .stats{display:flex;gap:28px;justify-content:center;margin-bottom:28px;flex-wrap:wrap;padding:20px;border-top:1px dashed var(--border);border-bottom:1px dashed var(--border)}
+    .stat-num{font-family:var(--arcade);font-size:28px;color:var(--gold)}
+    .stat-lbl{font-family:var(--arcade);font-size:10px;color:var(--text-muted);letter-spacing:.15em}
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">
+    <svg width="34" height="34" viewBox="0 0 64 64" aria-hidden="true">
+      <defs><linearGradient id="sp1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient><linearGradient id="sp2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#b45309"/></linearGradient></defs>
+      <!-- 3 jigsaw pieces with locking tabs -->
+      <path d="M 6 14 L 22 14 L 22 18 Q 26 18 26 22 Q 26 26 22 26 L 22 30 L 6 30 Z" fill="url(#sp1)" stroke="#0c0a09" stroke-width="1.5"/>
+      <path d="M 24 14 Q 24 10 28 10 Q 32 10 32 14 L 48 14 L 48 30 L 32 30 Q 32 34 28 34 Q 24 34 24 30 L 24 26 Q 28 26 28 22 Q 28 18 24 18 Z" fill="url(#sp2)" stroke="#0c0a09" stroke-width="1.5"/>
+      <path d="M 38 36 L 54 36 L 54 52 L 38 52 Q 34 52 34 48 Q 34 44 38 44 Z" fill="url(#sp1)" stroke="#0c0a09" stroke-width="1.5"/>
+    </svg>
+    SENTENCE PUZZLE
+  </div>
+  <div class="scoreboard"><span>SCORE<b id="score">0</b></span><span>BEST<b id="best">0</b></span><div id="muteHost"></div></div>
+</nav>
+
+<main class="page">
+  <div class="level-bar" id="level-bar">
+    <span class="level-bar-label">LEVEL</span>
+    <button class="lev-btn is-active" data-level="A1">A1 · SHORT</button>
+    <button class="lev-btn" data-level="A2">A2 · MEDIUM</button>
+    <button class="lev-btn" data-level="B1">B1 · LONG + DECOYS</button>
+  </div>
+
+  <div class="top-row">
+    <div class="progress"><span id="progressBar"></span></div>
+    <div class="round-pill">ROUND <b id="rnd">1</b>/<b id="total">10</b></div>
+  </div>
+
+  <div id="game-area">
+    <div class="clue-card">
+      <div class="clue-lbl">🧩 BUILD THIS SENTENCE</div>
+      <div class="clue-ar" id="clueAr">…</div>
+      <div class="clue-en-blank">Tap the puzzle pieces below in the right order</div>
+    </div>
+
+    <div class="built-area" id="builtArea"><span class="built-empty">tap pieces below ↓</span></div>
+    <div class="tray" id="tray"></div>
+
+    <div class="feedback" id="feedback">Tap the tiles in the correct order</div>
+
+    <div class="actions">
+      <button class="btn is-ghost" id="undoBtn">↶ UNDO</button>
+      <button class="btn is-gold" id="checkBtn">✓ CHECK</button>
+      <button class="btn is-ghost" id="skipBtn">⏭ SKIP</button>
+    </div>
+  </div>
+
+  <div class="summary" id="summary">
+    <div id="trophy" style="font-size:96px;margin-bottom:8px">🏆</div>
+    <h2 id="title">PUZZLE COMPLETE!</h2>
+    <div class="stats">
+      <div><div class="stat-num" id="finalScore">0</div><div class="stat-lbl">SCORE</div></div>
+      <div><div class="stat-num" id="finalAcc">0%</div><div class="stat-lbl">ACCURACY</div></div>
+      <div><div class="stat-num" id="finalBest">0</div><div class="stat-lbl">BEST</div></div>
+    </div>
+    <button class="btn is-gold" id="againBtn">▶ PLAY AGAIN</button>
+  </div>
+</main>
+
+<script src="../../_shared/progress.js"></script>
+<script src="../../_shared/sounds.js"></script>
+<script>
+const GAME_ID='sentence-puzzle'
+if(window.PlaySounds) PlaySounds.injectMuteButton(document.getElementById('muteHost'))
+
+// Each puzzle: arabic prompt + correct words[]. B1 puzzles also include "decoys" — distractor tiles that shouldn't be placed.
+const PUZZLES = {
+  A1: [
+    {ar:'أنا أحب التفاح',e:['I','like','apples']},
+    {ar:'هو يلعب كرة القدم',e:['He','plays','football']},
+    {ar:'إنها تذهب إلى المدرسة',e:['She','goes','to','school']},
+    {ar:'نحن نأكل الخبز',e:['We','eat','bread']},
+    {ar:'الكتاب على الطاولة',e:['The','book','is','on','the','table']},
+    {ar:'القطة تشرب الحليب',e:['The','cat','drinks','milk']},
+    {ar:'لدي صديق طيب',e:['I','have','a','good','friend']},
+    {ar:'البيت كبير',e:['The','house','is','big']},
+    {ar:'الجو حار اليوم',e:['It','is','hot','today']},
+    {ar:'إنه يقرأ كتاباً',e:['He','reads','a','book']},
+    {ar:'إنها تحب اللون الأزرق',e:['She','likes','the','color','blue']},
+    {ar:'نحن أصدقاء',e:['We','are','friends']},
+  ],
+  A2: [
+    {ar:'سأذهب إلى المتجر غداً',e:['I','will','go','to','the','shop','tomorrow']},
+    {ar:'ذهبت إلى المدرسة أمس',e:['I','went','to','school','yesterday']},
+    {ar:'إنه يستطيع التحدث بالإنجليزية',e:['He','can','speak','English']},
+    {ar:'هي تريد تعلم القيادة',e:['She','wants','to','learn','driving']},
+    {ar:'نحن نشاهد فيلماً الآن',e:['We','are','watching','a','movie','now']},
+    {ar:'لا أستطيع رؤيتك جيداً',e:['I','cannot','see','you','well']},
+    {ar:'كم الساعة الآن؟',e:['What','time','is','it','now']},
+    {ar:'هل تحب الشاي أم القهوة؟',e:['Do','you','like','tea','or','coffee']},
+    {ar:'إنها تعمل في المستشفى',e:['She','works','in','the','hospital']},
+    {ar:'أين تسكن؟',e:['Where','do','you','live']},
+    {ar:'متى تستيقظ عادةً؟',e:['When','do','you','usually','wake','up']},
+    {ar:'لقد رأيت هذا الفيلم من قبل',e:['I','have','seen','this','movie','before']},
+  ],
+  B1: [
+    // B1 sentences include 1-2 decoy tiles (words that don't belong)
+    {ar:'لو كان لدي وقت لزرتك',e:['If','I','had','time','I','would','visit','you'],decoys:['for','because']},
+    {ar:'لقد عشت هنا منذ خمس سنوات',e:['I','have','lived','here','for','five','years'],decoys:['since','during']},
+    {ar:'الكتاب الذي قرأته كان ممتازاً',e:['The','book','that','I','read','was','excellent'],decoys:['who','which']},
+    {ar:'يجب أن أنهي واجبي قبل العشاء',e:['I','must','finish','my','homework','before','dinner'],decoys:['after','during']},
+    {ar:'كانت تطبخ عندما وصلت',e:['She','was','cooking','when','I','arrived'],decoys:['has','were']},
+    {ar:'لم أكن أعلم أنك ستأتي',e:['I','did','not','know','you','were','coming'],decoys:['would','will']},
+    {ar:'سنسافر إلى لندن الأسبوع المقبل',e:['We','are','going','to','travel','to','London','next','week'],decoys:['have','will']},
+    {ar:'الجو أبرد من الأمس',e:['The','weather','is','colder','than','yesterday'],decoys:['cold','more']},
+    {ar:'إنه أذكى طالب في الفصل',e:['He','is','the','smartest','student','in','the','class'],decoys:['most','than']},
+    {ar:'هل يمكنني أن أسألك سؤالاً؟',e:['Could','I','ask','you','a','question'],decoys:['the','some']},
+    {ar:'إن لم تدرس، لن تنجح',e:['If','you','do','not','study','you','will','not','pass'],decoys:['would','did']},
+    {ar:'يجب أن أتصل بأمي عندما أصل',e:['I','must','call','my','mother','when','I','arrive'],decoys:['would','will']},
+  ],
+}
+
+let level='A1', pool=[], idx=0, score=0, correct=0, total=10
+let target=[], decoys=[], picked=[], tilePool=[]
+
+const builtArea=document.getElementById('builtArea'), tray=document.getElementById('tray')
+const clueAr=document.getElementById('clueAr'), feedbackEl=document.getElementById('feedback')
+const scoreEl=document.getElementById('score'), bestEl=document.getElementById('best'), rndEl=document.getElementById('rnd'), totalEl=document.getElementById('total'), progressBar=document.getElementById('progressBar')
+const summary=document.getElementById('summary')
+
+function refreshBest(){ if(window.PlayProgress){ bestEl.textContent=PlayProgress.getLevel(GAME_ID,level).best||0 } }
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function startLevel(){
+  pool=shuffle(PUZZLES[level]).slice(0,total)
+  idx=0; score=0; correct=0
+  scoreEl.textContent='0'; totalEl.textContent=total
+  summary.classList.remove('is-shown')
+  document.getElementById('game-area').style.display=''
+  refreshBest()
+  loadRound()
+}
+
+function loadRound(){
+  if(idx>=pool.length){ finish(); return }
+  const p=pool[idx]
+  target=p.e.slice()
+  decoys=(p.decoys||[]).slice()
+  picked=[]
+  // tile pool = shuffle(target + decoys)
+  tilePool=shuffle(target.concat(decoys))
+  clueAr.textContent=p.ar
+  rndEl.textContent=idx+1
+  progressBar.style.width=((idx/total)*100)+'%'
+  builtArea.classList.remove('is-correct','is-wrong')
+  feedbackEl.textContent=decoys.length?'⚠ Some tiles are DECOYS — choose carefully!':'Tap the tiles in order'
+  feedbackEl.className='feedback'
+  renderBuilt(); renderTray()
+}
+
+function renderBuilt(){
+  if(picked.length===0){ builtArea.innerHTML='<span class="built-empty">tap pieces below ↓</span>'; return }
+  builtArea.innerHTML=picked.map((p,i)=>`<span class="built-word" data-i="${i}">${p.w}</span>`).join('')
+  builtArea.querySelectorAll('.built-word').forEach(el=>el.addEventListener('click',()=>{
+    const i=parseInt(el.dataset.i,10)
+    const removed=picked.splice(i,1)[0]
+    // put back into first null slot
+    const slot=tilePool.indexOf(null)
+    if(slot>=0) tilePool[slot]=removed.w
+    else tilePool.push(removed.w)
+    renderBuilt(); renderTray()
+  }))
+}
+
+function renderTray(){
+  tray.innerHTML=tilePool.map((w,i)=>w===null?'':`<button class="tile" data-i="${i}">${w}</button>`).join('')
+  tray.querySelectorAll('.tile').forEach(b=>{
+    const i=parseInt(b.dataset.i,10)
+    b.addEventListener('click',()=>{
+      if(tilePool[i]===null) return
+      picked.push({w:tilePool[i]})
+      tilePool[i]=null
+      if(window.PlaySounds) PlaySounds.click()
+      renderBuilt(); renderTray()
+    })
+  })
+}
+
+document.getElementById('undoBtn').addEventListener('click',()=>{
+  if(picked.length===0) return
+  const removed=picked.pop()
+  const slot=tilePool.indexOf(null)
+  if(slot>=0) tilePool[slot]=removed.w
+  else tilePool.push(removed.w)
+  renderBuilt(); renderTray()
+})
+
+document.getElementById('checkBtn').addEventListener('click',()=>{
+  const built=picked.map(p=>p.w).join(' ').toLowerCase()
+  const right=target.join(' ').toLowerCase()
+  if(built===right){
+    builtArea.classList.add('is-correct')
+    score++; correct++; scoreEl.textContent=score
+    feedbackEl.textContent='✓ Perfect! '+target.join(' '); feedbackEl.className='feedback is-right'
+    if(window.PlaySounds) PlaySounds.correct()
+    setTimeout(()=>{idx++; loadRound()},1300)
+  } else {
+    builtArea.classList.add('is-wrong')
+    feedbackEl.textContent='✗ Not quite. Correct: '+target.join(' '); feedbackEl.className='feedback is-wrong'
+    if(window.PlaySounds) PlaySounds.wrong()
+    setTimeout(()=>builtArea.classList.remove('is-wrong'),500)
+  }
+})
+
+document.getElementById('skipBtn').addEventListener('click',()=>{idx++; loadRound()})
+
+function finish(){
+  if(window.PlayProgress) PlayProgress.record(GAME_ID,level,score,total)
+  const best=window.PlayProgress?PlayProgress.getLevel(GAME_ID,level).best:score
+  const acc=Math.round(correct/total*100)
+  document.getElementById('finalScore').textContent=score+'/'+total
+  document.getElementById('finalAcc').textContent=acc+'%'
+  document.getElementById('finalBest').textContent=best
+  let trophy='🏆', title='PUZZLE COMPLETE!'
+  if(acc<50){trophy='💪';title='KEEP PRACTICING'} else if(acc<80){trophy='👍';title='NICE WORK!'}
+  document.getElementById('trophy').textContent=trophy
+  document.getElementById('title').textContent=title
+  document.getElementById('game-area').style.display='none'
+  summary.classList.add('is-shown')
+  if(window.PlaySounds){ if(acc>=70) PlaySounds.win(); else PlaySounds.lose() }
+}
+
+document.getElementById('againBtn').addEventListener('click',startLevel)
+document.querySelectorAll('.lev-btn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.lev-btn').forEach(x=>x.classList.remove('is-active'));b.classList.add('is-active');level=b.dataset.level;startLevel()}))
+
+startLevel()
+</script>
+</body>
+</html>
