@@ -181,6 +181,78 @@ export async function fetchLeadsBySource(daysBack = 90): Promise<{ source: strin
     .sort((a, b) => b.count - a.count)
 }
 
+/** Lead-pipeline stats shown above the Kanban board on /admin/leads.
+ *  All counts include the legacy 'converted'/'rejected' aliases via
+ *  normalizeStatus so the numbers always tie out with the rest of the UI. */
+export interface LeadPipelineStats {
+  total:           number          // every lead ever
+  newToday:        number          // captured since midnight
+  hot:             number          // confirmed + delayed + vip (likely to close)
+  overdue:         number          // follow_up date in the past
+  pipelineValueMad: number         // sum(amount_mad) across active (non-paid, non-cancelled)
+  closedValueMad:  number          // sum(amount_mad) across paid
+  perStatus:       Record<string, number>
+  perSource:       { source: string; count: number }[]
+  conversionPct:   number          // paid / total
+}
+
+/** One round-trip pull of every numbers needed for the Leads top strip. */
+export async function fetchLeadPipelineStats(): Promise<LeadPipelineStats> {
+  const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0)
+  const { data, error } = await supabase
+    .from('subscription_leads')
+    .select('status, created_at, amount_mad, source, next_followup_at, is_vip')
+  if (error || !data) {
+    return {
+      total: 0, newToday: 0, hot: 0, overdue: 0,
+      pipelineValueMad: 0, closedValueMad: 0,
+      perStatus: {}, perSource: [], conversionPct: 0,
+    }
+  }
+  const perStatus: Record<string, number> = {}
+  const sourceMap = new Map<string, number>()
+  let newToday   = 0
+  let hot        = 0
+  let overdue    = 0
+  let pipeline   = 0
+  let closed     = 0
+  let paid       = 0
+  const now = Date.now()
+
+  for (const row of data) {
+    const status = row.status === 'converted' ? 'paid'
+                : row.status === 'rejected'  ? 'cancelled'
+                : (row.status as string)
+    perStatus[status] = (perStatus[status] ?? 0) + 1
+    if (new Date(row.created_at as string).getTime() >= todayStart.getTime()) newToday++
+    if (row.is_vip || status === 'confirmed' || status === 'delayed') hot++
+    if (row.next_followup_at && new Date(row.next_followup_at as string).getTime() < now &&
+        status !== 'paid' && status !== 'cancelled') overdue++
+    const amount = Number(row.amount_mad ?? 0)
+    if (status === 'paid') { paid++; closed += amount }
+    else if (status !== 'cancelled') pipeline += amount
+    const src = row.source ?? 'direct'
+    sourceMap.set(src, (sourceMap.get(src) ?? 0) + 1)
+  }
+
+  const perSource = [...sourceMap.entries()]
+    .map(([source, count]) => ({ source, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 6)
+
+  return {
+    total:            data.length,
+    newToday,
+    hot,
+    overdue,
+    pipelineValueMad: pipeline,
+    closedValueMad:   closed,
+    perStatus,
+    perSource,
+    conversionPct:    data.length > 0 ? Math.round((paid / data.length) * 100) : 0,
+  }
+}
+
 /* ─────────────────────────────────────────────────────────────
  * Today inbox — the "what should I do right now" surface.
  * Designed for the Today page; queries are cheap enough to run
