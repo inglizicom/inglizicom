@@ -1,15 +1,15 @@
-import AdminGuard from './AdminGuard'
+import StaffGuard from '@/components/StaffGuard'
 import AdminShell from './AdminShell'
 
 /**
- * /admin/* uses a left sidebar + page content layout (Hubspot/Pipedrive style).
- * AdminShell is a client component because the sidebar reads from <StaffContext>
- * and needs interactivity (mobile toggle, sign-out button).
+ * /admin/* — the founder command center.
+ * Restricted to role='founder'. Assistants are auto-redirected to /sales by
+ * the guard (no scary "Access denied" screen for daily users).
  */
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
-    <AdminGuard>
+    <StaffGuard mode="founder" loginNext="/admin">
       <AdminShell>{children}</AdminShell>
-    </AdminGuard>
+    </StaffGuard>
   )
 }

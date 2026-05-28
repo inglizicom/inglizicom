@@ -17,7 +17,7 @@ import {
 } from '@/lib/leads-db'
 import { fetchLeadPipelineStats, type LeadPipelineStats } from '@/lib/crm-stats'
 import { logActivity } from '@/lib/activity-log-db'
-import { useStaff } from '../StaffContext'
+import { useStaff } from '@/lib/staff-context'
 import LeadDetailDrawer from './LeadDetailDrawer'
 import AddLeadDrawer from './AddLeadDrawer'
 
@@ -53,12 +53,12 @@ export default function LeadsPipelinePage() {
 
   useEffect(() => { loadAll() ; fetchLeadSources().then(setSources) }, [])
 
-  // Deep-link: /admin/leads?add=1 opens the AddLeadDrawer
+  // Deep-link: /sales/leads?add=1 opens the AddLeadDrawer
   useEffect(() => {
     if (searchParams?.get('add') === '1') {
       setAddOpen(true)
       // Strip the param so refreshing doesn't re-open the drawer
-      router.replace('/admin/leads')
+      router.replace('/sales/leads')
     }
   }, [searchParams, router])
 
@@ -162,7 +162,7 @@ export default function LeadsPipelinePage() {
             <RotateCcw size={14} />
           </button>
           <Link
-            href="/admin/analytics"
+            href="/sales/analytics"
             className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50"
           >
             <TrendingUp size={14} /> Analytics

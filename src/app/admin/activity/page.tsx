@@ -6,7 +6,7 @@ import {
   User as UserIcon, FileText, CreditCard, LifeBuoy, BellRing, KanbanSquare,
 } from 'lucide-react'
 import { fetchRecentActivity, describeActivity, type ActivityLog } from '@/lib/activity-log-db'
-import { useStaff } from '../StaffContext'
+import { useStaff } from '@/lib/staff-context'
 
 /**
  * Full activity feed — every audit row across leads, payments, profiles,

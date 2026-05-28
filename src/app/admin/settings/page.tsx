@@ -10,7 +10,7 @@ import {
   ROLE_BADGE, type StaffRow, type StaffRole,
 } from '@/lib/staff-db'
 import { logActivity } from '@/lib/activity-log-db'
-import { useStaff } from '../StaffContext'
+import { useStaff } from '@/lib/staff-context'
 
 /**
  * Settings — founder-only management of who is staff.

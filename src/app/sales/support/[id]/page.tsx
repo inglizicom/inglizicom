@@ -94,7 +94,7 @@ export default function AdminThreadPage() {
     return (
       <main className="max-w-3xl mx-auto px-4 py-16 text-center">
         <p className="text-gray-700 font-bold">Thread not found</p>
-        <Link href="/admin/support" className="inline-block mt-4 text-indigo-600 text-sm font-bold">
+        <Link href="/sales/support" className="inline-block mt-4 text-indigo-600 text-sm font-bold">
           Back to inbox
         </Link>
       </main>
@@ -106,7 +106,7 @@ export default function AdminThreadPage() {
 
       <div className="mb-4">
         <Link
-          href="/admin/support"
+          href="/sales/support"
           className="inline-flex items-center gap-1.5 text-gray-400 hover:text-gray-900 text-xs font-semibold mb-3"
         >
           <ArrowLeft className="w-3.5 h-3.5" /> Inbox

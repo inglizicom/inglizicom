@@ -10,7 +10,7 @@ import {
   fetchAssistantStats, type AssistantStat,
 } from '@/lib/crm-stats'
 import { LEAD_STATUS_META, type LeadStatus } from '@/lib/leads-db'
-import { useStaff } from '../StaffContext'
+import { useStaff } from '@/lib/staff-context'
 
 /**
  * Founder-only analytics. Charts are hand-rolled inline SVG (no library)

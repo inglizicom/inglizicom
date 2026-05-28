@@ -10,7 +10,7 @@ import {
   type LeadStatus,
 } from '@/lib/leads-db'
 import { logActivity } from '@/lib/activity-log-db'
-import { useStaff } from '../StaffContext'
+import { useStaff } from '@/lib/staff-context'
 
 /**
  * Manual lead entry — slide-in drawer used by assistants when a prospect

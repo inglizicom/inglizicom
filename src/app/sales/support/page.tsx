@@ -74,7 +74,7 @@ export default function AdminSupportPage() {
           {filtered.map(t => (
             <Link
               key={t.id}
-              href={`/admin/support/${t.id}`}
+              href={`/sales/support/${t.id}`}
               className={`block bg-white rounded-2xl border p-5 hover:shadow-sm transition-all ${
                 t.unread_for_admin ? 'border-indigo-200 ring-1 ring-indigo-100' : 'border-gray-100'
               }`}

@@ -9,7 +9,7 @@ import {
 import { fetchRenewalCandidates, type RenewalRow } from '@/lib/crm-stats'
 import { logActivity } from '@/lib/activity-log-db'
 import { updateUser } from '@/lib/users-db'
-import { useStaff } from '../StaffContext'
+import { useStaff } from '@/lib/staff-context'
 
 /**
  * Renewals page — shows every paying student whose subscription is expiring
@@ -234,7 +234,7 @@ function RenewalRowItem({ row, onExtend }: { row: RenewalRow; onExtend: (r: Rene
             +90d
           </button>
           <Link
-            href={`/admin/users?focus=${row.id}`}
+            href={`/sales/students?focus=${row.id}`}
             className="inline-flex items-center gap-1 px-2 py-1 rounded border border-gray-200 text-gray-600 text-[11px] font-bold hover:bg-gray-50"
           >
             Open

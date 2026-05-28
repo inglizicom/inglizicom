@@ -1,13 +1,11 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import Sidebar from './Sidebar'
+import SalesSidebar from './SalesSidebar'
 import { useStaff } from '@/lib/staff-context'
 import { supabase } from '@/lib/supabase'
 
-/** Wraps every /admin/* page with the founder command-center sidebar.
- *  Reads the staff profile from the shared StaffContext. */
-export default function AdminShell({ children }: { children: React.ReactNode }) {
+export default function SalesShell({ children }: { children: React.ReactNode }) {
   const staff  = useStaff()
   const router = useRouter()
 
@@ -18,7 +16,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 
   return (
     <div className="min-h-screen flex bg-white" dir="ltr">
-      <Sidebar
+      <SalesSidebar
         userEmail={staff.email}
         userRole={staff.role}
         onSignOut={handleSignOut}

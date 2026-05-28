@@ -11,7 +11,7 @@ import {
   type SubscriptionLead, type LeadStatus,
 } from '@/lib/leads-db'
 import { logActivity } from '@/lib/activity-log-db'
-import { useStaff } from '../StaffContext'
+import { useStaff } from '@/lib/staff-context'
 
 /**
  * Slide-in drawer for viewing + editing one lead. Mirrors the right-edge

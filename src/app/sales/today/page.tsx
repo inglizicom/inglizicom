@@ -13,7 +13,7 @@ import {
   type OverdueLead, type PendingPaymentRow, type RenewalRow,
 } from '@/lib/crm-stats'
 import { whatsappLink } from '@/lib/leads-db'
-import { useStaff } from '../StaffContext'
+import { useStaff } from '@/lib/staff-context'
 
 /**
  * Today — the assistant's daily home base.
@@ -115,12 +115,12 @@ export default function TodayPage() {
             accent="orange"
             empty={pending.length === 0}
             count={pending.length}
-            href="/admin/payments"
+            href="/sales/payments"
           >
             {pending.slice(0, 8).map(p => (
               <Link
                 key={p.id}
-                href="/admin/payments"
+                href="/sales/payments"
                 className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
               >
                 <div className="w-9 h-9 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center">
@@ -147,12 +147,12 @@ export default function TodayPage() {
             accent="amber"
             empty={renewals.length === 0}
             count={renewals.length}
-            href="/admin/renewals"
+            href="/sales/renewals"
           >
             {renewals.slice(0, 8).map(r => (
               <Link
                 key={r.id}
-                href="/admin/renewals"
+                href="/sales/renewals"
                 className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
               >
                 <div className="w-9 h-9 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center">
@@ -250,7 +250,7 @@ function LeadItem({ lead, variant }: { lead: OverdueLead; variant: 'overdue' | '
       </div>
       <div className="flex-1 min-w-0">
         <Link
-          href={`/admin/leads`}
+          href={`/sales/leads`}
           className="text-[13px] font-semibold text-gray-900 hover:underline truncate block"
         >
           {lead.full_name}

@@ -5,38 +5,37 @@ import { useRouter } from 'next/navigation'
 import { Loader2, ShieldAlert } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
-import { StaffContext, type StaffProfile } from './StaffContext'
+import { StaffContext, type StaffProfile } from '@/lib/staff-context'
 
 type State = 'checking' | 'allowed' | 'denied' | 'unauthenticated'
 
-interface Diag {
-  userId?:    string
-  userEmail?: string
-  rowFound:   boolean
-  isAdmin?:   boolean
-  role?:      string
-  error?:     string
-}
-
-/**
- * Gate for /admin/*. Allows access when EITHER:
- *   - profiles.is_admin = true (legacy founder flag), OR
- *   - profiles.role IN ('founder', 'assistant') (new CRM role enum)
+/** Shared auth gate.
  *
- * Exposes the resolved profile via <StaffContext.Provider> so nested pages
- * can render different UI for founders vs assistants without re-querying.
- */
-export default function AdminGuard({ children }: { children: React.ReactNode }) {
+ * Modes:
+ *   - 'staff'  — allow founder OR assistant (used by /sales/*)
+ *   - 'founder' — allow founder only (used by /admin/*)
+ *
+ * If a non-founder hits a 'founder'-only area, they are redirected to /sales
+ * instead of seeing an access-denied screen, which is friendlier for daily
+ * use. Founders denied for any reason still get the diagnostic screen.
+ *
+ * Exposes the resolved profile via StaffContext for nested pages. */
+export default function StaffGuard({
+  children, mode = 'staff', loginNext,
+}: {
+  children:    React.ReactNode
+  mode?:       'staff' | 'founder'
+  loginNext?:  string
+}) {
   const router = useRouter()
   const { user, loading } = useAuth()
   const [state, setState] = useState<State>('checking')
-  const [diag, setDiag]   = useState<Diag | null>(null)
   const [staff, setStaff] = useState<StaffProfile | null>(null)
+  const [diag, setDiag]   = useState<{ userId?: string; email?: string; role?: string; isAdmin?: boolean; error?: string } | null>(null)
 
   useEffect(() => {
     if (loading) return
     if (!user) { setState('unauthenticated'); return }
-
     let cancelled = false
     supabase
       .from('profiles')
@@ -46,34 +45,43 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
       .then(({ data, error }) => {
         if (cancelled) return
         const role: StaffProfile['role'] = (data?.role as any) ?? 'student'
-        const allowed = !!data && (data.is_admin === true || role === 'founder' || role === 'assistant')
-        setDiag({
-          userId:    user.id,
-          userEmail: user.email ?? undefined,
-          rowFound:  !!data,
-          isAdmin:   data?.is_admin,
-          role,
-          error:     error?.message,
-        })
-        if (allowed) {
-          setStaff({
-            id:      user.id,
-            email:   user.email ?? null,
-            // is_admin=true users without a role are treated as founders
-            role:    role === 'student' && data.is_admin ? 'founder' : role,
-            isAdmin: !!data.is_admin,
-          })
-          setState('allowed')
-        } else {
-          setState('denied')
+        const isAdmin = !!data?.is_admin
+        // is_admin=true users without an explicit role count as founders.
+        const effectiveRole: StaffProfile['role'] =
+          role === 'student' && isAdmin ? 'founder' : role
+        const isFounder   = effectiveRole === 'founder'
+        const isStaff     = isFounder || effectiveRole === 'assistant'
+
+        setDiag({ userId: user.id, email: user.email ?? undefined, role: effectiveRole, isAdmin, error: error?.message })
+
+        if (mode === 'founder' && !isFounder) {
+          // Assistant trying to hit /admin/* — kick them to the sales workspace.
+          if (isStaff) {
+            router.replace('/sales')
+            return
+          }
+          setState('denied'); return
         }
+        if (mode === 'staff' && !isStaff) {
+          setState('denied'); return
+        }
+
+        setStaff({
+          id:      user.id,
+          email:   user.email ?? null,
+          role:    effectiveRole,
+          isAdmin,
+        })
+        setState('allowed')
       })
     return () => { cancelled = true }
-  }, [user, loading])
+  }, [user, loading, mode, router])
 
   useEffect(() => {
-    if (state === 'unauthenticated') router.replace('/login?next=/admin')
-  }, [state, router])
+    if (state === 'unauthenticated') {
+      router.replace('/login?next=' + encodeURIComponent(loginNext ?? '/sales'))
+    }
+  }, [state, router, loginNext])
 
   if (state === 'checking' || state === 'unauthenticated') {
     return (
@@ -95,21 +103,24 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
               <ShieldAlert size={26} className="text-red-500" />
             </div>
             <h1 className="text-gray-900 font-black text-lg mb-1">Access denied</h1>
-            <p className="text-gray-500 text-sm mb-5">This area is for Inglizi staff only.</p>
+            <p className="text-gray-500 text-sm mb-5">
+              {mode === 'founder'
+                ? 'This area is for the founder only.'
+                : 'This area is for Inglizi staff only.'}
+            </p>
           </div>
 
           {diag && (
             <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-5 text-xs font-mono text-gray-700 space-y-1">
               <div className="font-bold text-gray-900 mb-2 text-sm">Debug info</div>
               <div><span className="text-gray-400">User ID:</span> {diag.userId}</div>
-              <div><span className="text-gray-400">Email:</span> {diag.userEmail || '—'}</div>
-              <div><span className="text-gray-400">Profile row exists:</span> {diag.rowFound ? '✅ yes' : '❌ no'}</div>
-              <div><span className="text-gray-400">is_admin:</span> {diag.rowFound ? String(diag.isAdmin) : '—'}</div>
-              <div><span className="text-gray-400">role:</span> {diag.role ?? '—'}</div>
-              {diag.error && <div className="text-red-600"><span className="text-gray-400">Error:</span> {diag.error}</div>}
+              <div><span className="text-gray-400">Email:</span> {diag.email || '—'}</div>
+              <div><span className="text-gray-400">Role:</span> {diag.role}</div>
+              <div><span className="text-gray-400">is_admin:</span> {String(diag.isAdmin)}</div>
+              {diag.error && <div className="text-red-600">Error: {diag.error}</div>}
               <div className="pt-2 mt-2 border-t border-gray-200 text-[11px] text-gray-500 font-sans">
                 Run in the SQL editor:<br />
-                <code className="text-[11px] text-gray-700">update profiles set role = &apos;founder&apos; where id = &apos;{diag.userId}&apos;;</code>
+                <code className="text-[11px] text-gray-700">update profiles set role = &apos;assistant&apos; where id = &apos;{diag.userId}&apos;;</code>
               </div>
             </div>
           )}
