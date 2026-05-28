@@ -14,6 +14,7 @@ import {
   type PaymentWithProfile,
   type PaymentStatus,
 } from '@/lib/payments-db'
+import { logActivity } from '@/lib/activity-log-db'
 import { getPlan } from '@/data/plans'
 
 export default function AdminPaymentsPage() {
@@ -39,6 +40,14 @@ export default function AdminPaymentsPage() {
     setBusy(p.id)
     try {
       await approvePayment(p.id, user.id)
+      // Audit feed entry — picked up by /admin/activity + dashboard.
+      await logActivity({
+        action:     'payment_approved',
+        entityType: 'payment',
+        entityId:   p.id,
+        after:      { status: 'approved', amount: p.amount, currency: p.currency },
+        metadata:   { user_id: p.user_id, user_email: p.profile?.email ?? null },
+      })
       await load()
       setReviewing(null)
     } catch (e) {
@@ -54,6 +63,13 @@ export default function AdminPaymentsPage() {
     setBusy(p.id)
     try {
       await declinePayment(p.id, user.id, reason)
+      await logActivity({
+        action:     'payment_declined',
+        entityType: 'payment',
+        entityId:   p.id,
+        after:      { status: 'declined' },
+        metadata:   { user_id: p.user_id, user_email: p.profile?.email ?? null, reason },
+      })
       await load()
       setReviewing(null)
     } catch (e) {

@@ -181,6 +181,85 @@ export async function fetchLeadsBySource(daysBack = 90): Promise<{ source: strin
     .sort((a, b) => b.count - a.count)
 }
 
+/** Renewal candidates — every paid profile with an expiry date, grouped
+ *  into the same 7/15/30/expired buckets as the dashboard KPIs. */
+export interface RenewalRow {
+  id:              string
+  email:           string | null
+  full_name:       string | null
+  plan:            string
+  plan_expires_at: string | null
+  plan_note:       string | null
+  daysUntilExpiry: number
+  bucket:          'expired' | 'due7' | 'due15' | 'due30'
+}
+export async function fetchRenewalCandidates(): Promise<RenewalRow[]> {
+  const now    = new Date()
+  const in30   = new Date(now); in30.setDate(in30.getDate() + 30)
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, email, full_name, plan, plan_expires_at, plan_note')
+    .neq('plan', 'free')
+    .not('plan_expires_at', 'is', null)
+    .lte('plan_expires_at', in30.toISOString())
+    .order('plan_expires_at', { ascending: true })
+  if (error) {
+    console.error('fetchRenewalCandidates', error.message)
+    return []
+  }
+  return (data ?? []).map(row => {
+    const expiry = new Date(row.plan_expires_at as string)
+    const ms     = expiry.getTime() - now.getTime()
+    const days   = Math.ceil(ms / 86_400_000)
+    let bucket: RenewalRow['bucket']
+    if (days < 0)       bucket = 'expired'
+    else if (days <= 7)  bucket = 'due7'
+    else if (days <= 15) bucket = 'due15'
+    else                 bucket = 'due30'
+    return {
+      id:              row.id,
+      email:           row.email,
+      full_name:       row.full_name,
+      plan:            row.plan,
+      plan_expires_at: row.plan_expires_at,
+      plan_note:       row.plan_note,
+      daysUntilExpiry: days,
+      bucket,
+    } as RenewalRow
+  })
+}
+
+/** Assistant-performance summary — leads closed by each staff member. */
+export interface AssistantStat {
+  actor_email: string
+  total:       number
+  paid:        number
+  conversion:  number
+}
+export async function fetchAssistantStats(daysBack = 90): Promise<AssistantStat[]> {
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - daysBack)
+  const { data } = await supabase
+    .from('crm_activity_log')
+    .select('actor_email, action, after_value')
+    .eq('entity_type', 'lead')
+    .gte('created_at', cutoff.toISOString())
+  const counts = new Map<string, { total: number; paid: number }>()
+  for (const row of data ?? []) {
+    const email = row.actor_email ?? 'system'
+    if (!counts.has(email)) counts.set(email, { total: 0, paid: 0 })
+    const c = counts.get(email)!
+    c.total++
+    const status = (row.after_value as any)?.status
+    if (status === 'paid' || status === 'converted') c.paid++
+  }
+  return [...counts.entries()].map(([email, c]) => ({
+    actor_email: email,
+    total:       c.total,
+    paid:        c.paid,
+    conversion:  c.total > 0 ? Math.round((c.paid / c.total) * 100) : 0,
+  })).sort((a, b) => b.paid - a.paid)
+}
+
 /** Approved revenue per month for the last 12 months. */
 export async function fetchRevenuePerMonth(monthsBack = 12): Promise<{ month: string; mad: number }[]> {
   const cutoff = new Date()
