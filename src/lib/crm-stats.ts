@@ -14,7 +14,13 @@ export interface DashboardKpis {
   conversionRatePct:   number   // paid / total leads in the last 90 days
 }
 
-/** Fetch all dashboard KPIs in a single round-trip-ish batch. */
+/** Fetch all dashboard KPIs in a single round-trip-ish batch.
+ *
+ *  IMPORTANT: every lead-count on the main dashboard is scoped to prospects
+ *  who actually picked a pricing plan — i.e. amount_mad > 0. People who
+ *  filled out a contact form without selecting a plan are tracked separately
+ *  in the /admin/leads pipeline but don't pollute the founder's headline
+ *  numbers. This is what the founder asked for on 2026-05-29. */
 export async function fetchDashboardKpis(): Promise<DashboardKpis> {
   const now        = new Date()
   const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0)
@@ -22,7 +28,6 @@ export async function fetchDashboardKpis(): Promise<DashboardKpis> {
   const ninetyAgo  = new Date(now); ninetyAgo.setDate(ninetyAgo.getDate() - 90)
   const in30days   = new Date(now); in30days.setDate(in30days.getDate() + 30)
 
-  // Run all the count queries in parallel.
   const [
     newToday, newMonth,
     confirmed, paid, paidLegacy,
@@ -30,15 +35,15 @@ export async function fetchDashboardKpis(): Promise<DashboardKpis> {
     renewals, leads90d,
     revenue,
   ] = await Promise.all([
-    countLeadsSince(todayStart),
-    countLeadsSince(monthStart),
-    countLeadsWithStatus('confirmed'),
-    countLeadsWithStatus('paid'),
-    countLeadsWithStatus('converted'),                              // legacy 'converted' still counts as paid
+    countPlanLeadsSince(todayStart),
+    countPlanLeadsSince(monthStart),
+    countPlanLeadsWithStatus('confirmed'),
+    countPlanLeadsWithStatus('paid'),
+    countPlanLeadsWithStatus('converted'),
     countPaymentsWithStatus('pending'),
-    countLeadsWithStatus('delayed'),
+    countPlanLeadsWithStatus('delayed'),
     countRenewalsBefore(in30days),
-    countLeadsSince(ninetyAgo),
+    countPlanLeadsSince(ninetyAgo),
     sumApprovedPaymentsBetween(monthStart, now),
   ])
 
@@ -60,19 +65,21 @@ export async function fetchDashboardKpis(): Promise<DashboardKpis> {
   }
 }
 
-async function countLeadsSince(when: Date): Promise<number> {
+async function countPlanLeadsSince(when: Date): Promise<number> {
   const { count } = await supabase
     .from('subscription_leads')
     .select('*', { count: 'exact', head: true })
     .gte('created_at', when.toISOString())
+    .gt('amount_mad', 0)
   return count ?? 0
 }
 
-async function countLeadsWithStatus(status: string): Promise<number> {
+async function countPlanLeadsWithStatus(status: string): Promise<number> {
   const { count } = await supabase
     .from('subscription_leads')
     .select('*', { count: 'exact', head: true })
     .eq('status', status)
+    .gt('amount_mad', 0)
   return count ?? 0
 }
 

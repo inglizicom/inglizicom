@@ -6,7 +6,7 @@ import type { LucideIcon } from 'lucide-react'
 import {
   Users, UserCheck, CheckCircle2, Clock4,
   AlertTriangle, BellRing, TrendingUp, Wallet,
-  ArrowUpRight, Loader2,
+  ArrowUpRight, Loader2, Plus, Filter, Info,
 } from 'lucide-react'
 import { fetchDashboardKpis, type DashboardKpis } from '@/lib/crm-stats'
 import { fetchRecentActivity, describeActivity, type ActivityLog } from '@/lib/activity-log-db'
@@ -40,7 +40,7 @@ export default function AdminDashboardPage() {
   return (
     <div className="px-6 lg:px-10 py-8 max-w-[1600px] mx-auto">
       {/* Header */}
-      <header className="flex flex-wrap items-end justify-between gap-4 mb-8">
+      <header className="flex flex-wrap items-end justify-between gap-4 mb-3">
         <div>
           <div className="text-[11px] uppercase font-bold tracking-[0.18em] text-gray-400 mb-1">
             {staff.role === 'founder' ? 'Founder Dashboard' : 'Assistant Workspace'}
@@ -49,24 +49,35 @@ export default function AdminDashboardPage() {
             Welcome back{staff.email ? `, ${staff.email.split('@')[0]}` : ''}.
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Today&apos;s snapshot of every lead, payment and renewal across the business.
+            Snapshot of every prospect on a paid plan, plus payments and renewals.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Link
             href="/admin/leads"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-black text-white text-sm font-semibold hover:bg-zinc-800 transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors"
           >
             Open Leads <ArrowUpRight size={14} />
           </Link>
           <Link
-            href="/admin/payments"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors"
+            href="/admin/leads?add=1"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-black text-yellow-400 text-sm font-bold hover:bg-zinc-800 transition-colors shadow-sm"
           >
-            Review Payments
+            <Plus size={14} /> New lead
           </Link>
         </div>
       </header>
+
+      {/* Filter clarity banner — make it obvious these numbers exclude form-only signups */}
+      <div className="flex items-center gap-2 mb-7 px-3.5 py-2 rounded-lg bg-yellow-50 border border-yellow-200">
+        <Filter size={13} className="text-yellow-700 flex-shrink-0" />
+        <span className="text-[12.5px] text-yellow-900 leading-snug">
+          <b>Showing prospects on a paid plan only</b>
+          <span className="text-yellow-700"> · Leads who filled the contact form without picking a plan are not counted here. See them all in </span>
+          <Link href="/admin/leads" className="font-bold underline hover:text-yellow-900">Leads</Link>
+          <span className="text-yellow-700">.</span>
+        </span>
+      </div>
 
       {/* KPI grid */}
       <section className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">

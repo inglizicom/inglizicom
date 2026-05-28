@@ -119,6 +119,46 @@ export interface CreateLeadInput {
   pagePath?:       string | null
 }
 
+/** Input for an assistant manually entering a lead from TikTok/Instagram/etc.
+ *  Differs from CreateLeadInput in that the assistant can set status, notes,
+ *  is_vip and course_interested at creation time. Returns the new lead id. */
+export interface ManualLeadInput {
+  fullName:          string
+  phone?:            string
+  city?:             string
+  source:            string                // free text — common values: 'tiktok', 'instagram', 'whatsapp', 'facebook', 'referral', 'manual', 'walk-in'
+  planId:            string                // plan slug, eg 'basic' / 'pro' / 'premium' / 'vip'
+  amountMad:         number
+  status:            LeadStatus
+  notes?:            string
+  isVip?:            boolean
+  courseInterested?: string
+  assignedToId?:     string | null
+}
+
+export async function createManualLead(input: ManualLeadInput): Promise<string> {
+  const { data, error } = await supabase
+    .from('subscription_leads')
+    .insert({
+      plan_id:           input.planId,
+      full_name:         input.fullName,
+      phone:             input.phone || null,
+      city:              input.city  || null,
+      amount_mad:        input.amountMad,
+      source:            input.source,
+      status:            input.status === 'vip' ? 'new' : input.status,  // 'vip' isn't a DB enum value; flag via is_vip below
+      notes:             input.notes || null,
+      is_vip:            !!input.isVip || input.status === 'vip',
+      course_interested: input.courseInterested || null,
+      assigned_to_id:    input.assignedToId || null,
+      device:            'manual',
+    })
+    .select('id')
+    .single()
+  if (error) throw new Error(error.message)
+  return (data as { id: string }).id
+}
+
 export async function createSubscriptionLead(input: CreateLeadInput): Promise<void> {
   const { error } = await supabase.from('subscription_leads').insert({
     plan_id:          input.planId,

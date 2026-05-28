@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams, useRouter } from 'next/navigation'
 import {
   Search, Loader2, Filter, MessageCircle, Phone, Calendar,
   ExternalLink, RotateCcw, LayoutGrid, List, Crown,
@@ -18,6 +19,7 @@ import { fetchLeadPipelineStats, type LeadPipelineStats } from '@/lib/crm-stats'
 import { logActivity } from '@/lib/activity-log-db'
 import { useStaff } from '../StaffContext'
 import LeadDetailDrawer from './LeadDetailDrawer'
+import AddLeadDrawer from './AddLeadDrawer'
 
 /**
  * Lead Pipeline — e-commerce-style tracker for the founder's sales funnel.
@@ -45,8 +47,20 @@ export default function LeadsPipelinePage() {
   const [sources, setSources]     = useState<string[]>([])
   const [selected, setSelected]   = useState<SubscriptionLead | null>(null)
   const [dragging, setDragging]   = useState<string | null>(null)
+  const [addOpen, setAddOpen]     = useState(false)
+  const searchParams              = useSearchParams()
+  const router                    = useRouter()
 
   useEffect(() => { loadAll() ; fetchLeadSources().then(setSources) }, [])
+
+  // Deep-link: /admin/leads?add=1 opens the AddLeadDrawer
+  useEffect(() => {
+    if (searchParams?.get('add') === '1') {
+      setAddOpen(true)
+      // Strip the param so refreshing doesn't re-open the drawer
+      router.replace('/admin/leads')
+    }
+  }, [searchParams, router])
 
   async function loadAll() {
     setLoading(true)
@@ -153,6 +167,12 @@ export default function LeadsPipelinePage() {
           >
             <TrendingUp size={14} /> Analytics
           </Link>
+          <button
+            onClick={() => setAddOpen(true)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-black text-yellow-400 text-sm font-bold hover:bg-zinc-800 shadow-sm"
+          >
+            <Plus size={14} /> New lead
+          </button>
         </div>
       </header>
 
@@ -314,6 +334,13 @@ export default function LeadsPipelinePage() {
           lead={selected}
           onClose={() => setSelected(null)}
           onChange={async () => { await loadAll() }}
+        />
+      )}
+
+      {addOpen && (
+        <AddLeadDrawer
+          onClose={() => setAddOpen(false)}
+          onCreated={async () => { await loadAll() }}
         />
       )}
     </div>
