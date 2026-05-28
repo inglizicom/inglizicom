@@ -6,9 +6,9 @@ import { useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
   LayoutDashboard, Users, KanbanSquare, CreditCard, BellRing,
-  LifeBuoy, BarChart3, Activity, Zap,
+  LifeBuoy, BarChart3, Activity,
   Video, FileText, BookOpen, FileEdit, Database, Lock,
-  Menu, X, LogOut, Settings, Shield,
+  Menu, X, LogOut, Settings, Shield, CalendarCheck,
 } from 'lucide-react'
 
 /**
@@ -31,9 +31,15 @@ interface NavGroup {
 
 const groups: NavGroup[] = [
   {
-    title: 'Sales',
+    title: 'Workspace',
     items: [
       { href: '/admin',          label: 'Dashboard',  icon: LayoutDashboard },
+      { href: '/admin/today',    label: 'Today',      icon: CalendarCheck },
+    ],
+  },
+  {
+    title: 'Sales',
+    items: [
       { href: '/admin/leads',    label: 'Leads',      icon: KanbanSquare },
       { href: '/admin/payments', label: 'Payments',   icon: CreditCard },
       { href: '/admin/renewals', label: 'Renewals',   icon: BellRing },
@@ -67,7 +73,7 @@ const groups: NavGroup[] = [
     title: 'System',
     founderOnly: true,
     items: [
-      { href: '/admin/automation', label: 'Automation', icon: Zap },
+      { href: '/admin/settings',   label: 'Settings',   icon: Settings },
       { href: '/admin/access',     label: 'Access',     icon: Lock },
       { href: '/admin/bootstrap',  label: 'Bootstrap',  icon: Database },
     ],

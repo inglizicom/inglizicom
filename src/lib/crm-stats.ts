@@ -181,6 +181,67 @@ export async function fetchLeadsBySource(daysBack = 90): Promise<{ source: strin
     .sort((a, b) => b.count - a.count)
 }
 
+/* ─────────────────────────────────────────────────────────────
+ * Today inbox — the "what should I do right now" surface.
+ * Designed for the Today page; queries are cheap enough to run
+ * together on every page load.
+ * ───────────────────────────────────────────────────────────── */
+
+export interface OverdueLead {
+  id:               string
+  full_name:        string
+  phone:            string | null
+  status:           string
+  next_followup_at: string
+  is_vip:           boolean
+}
+export async function fetchOverdueFollowUps(staffId?: string | null): Promise<OverdueLead[]> {
+  const now = new Date()
+  let q = supabase
+    .from('subscription_leads')
+    .select('id, full_name, phone, status, next_followup_at, is_vip, assigned_to_id')
+    .lte('next_followup_at', now.toISOString())
+    .not('next_followup_at', 'is', null)
+    .in('status', ['new', 'contacted', 'interested', 'follow_up', 'confirmed', 'delayed'])
+    .order('next_followup_at', { ascending: true })
+    .limit(50)
+  if (staffId) q = q.eq('assigned_to_id', staffId)
+  const { data } = await q
+  return (data ?? []) as OverdueLead[]
+}
+
+export async function fetchTodaysFollowUps(staffId?: string | null): Promise<OverdueLead[]> {
+  const start = new Date(); start.setHours(0, 0, 0, 0)
+  const end   = new Date(start); end.setDate(end.getDate() + 1)
+  let q = supabase
+    .from('subscription_leads')
+    .select('id, full_name, phone, status, next_followup_at, is_vip, assigned_to_id')
+    .gte('next_followup_at', start.toISOString())
+    .lt('next_followup_at', end.toISOString())
+    .order('next_followup_at', { ascending: true })
+    .limit(50)
+  if (staffId) q = q.eq('assigned_to_id', staffId)
+  const { data } = await q
+  return (data ?? []) as OverdueLead[]
+}
+
+export interface PendingPaymentRow {
+  id:         string
+  user_id:    string
+  amount:     number
+  currency:   string | null
+  created_at: string
+}
+export async function fetchPendingPaymentsForToday(): Promise<PendingPaymentRow[]> {
+  const { data } = await supabase
+    .from('payments')
+    .select('id, user_id, amount, currency, created_at')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: true })
+    .limit(20)
+  return (data ?? []) as PendingPaymentRow[]
+}
+
 /** Renewal candidates — every paid profile with an expiry date, grouped
  *  into the same 7/15/30/expired buckets as the dashboard KPIs. */
 export interface RenewalRow {
