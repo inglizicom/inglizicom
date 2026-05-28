@@ -1,298 +1,243 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import type { LucideIcon } from 'lucide-react'
 import {
-  Users, Shield, UserCheck, Search, Loader2, AlertCircle,
-  RefreshCw, ShieldCheck, ShieldOff, CalendarDays,
+  Users, UserCheck, CheckCircle2, Clock4,
+  AlertTriangle, BellRing, TrendingUp, Wallet,
+  ArrowUpRight, Loader2,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/lib/auth-context'
+import { fetchDashboardKpis, type DashboardKpis } from '@/lib/crm-stats'
+import { fetchRecentActivity, describeActivity, type ActivityLog } from '@/lib/activity-log-db'
+import { useStaff } from './StaffContext'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+/**
+ * Main CRM dashboard — first thing the founder/assistant sees.
+ * Sections:
+ *   1. Welcome row + quick actions
+ *   2. KPI grid (the headline numbers)
+ *   3. Two-column: activity feed · quick links
+ */
+export default function AdminDashboardPage() {
+  const staff = useStaff()
+  const [kpis, setKpis]         = useState<DashboardKpis | null>(null)
+  const [activity, setActivity] = useState<ActivityLog[] | null>(null)
+  const [loading, setLoading]   = useState(true)
 
-interface Profile {
-  id:         string
-  email:      string | null
-  full_name:  string | null
-  avatar_url: string | null
-  is_admin:   boolean
-  created_at: string
-}
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    Promise.all([fetchDashboardKpis(), fetchRecentActivity(20)])
+      .then(([k, a]) => {
+        if (cancelled) return
+        setKpis(k); setActivity(a); setLoading(false)
+      })
+      .catch(err => { console.error('dashboard load', err); setLoading(false) })
+    return () => { cancelled = true }
+  }, [])
 
-// ─── Stat card ────────────────────────────────────────────────────────────────
-
-function StatCard({ label, value, icon, color }: {
-  label: string; value: string | number; icon: React.ReactNode; color: string
-}) {
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
-      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${color}`}>
-        {icon}
-      </div>
-      <div>
-        <p className="text-gray-400 text-xs font-semibold uppercase tracking-wide">{label}</p>
-        <p className="text-gray-900 text-2xl font-black">{value}</p>
-      </div>
+    <div className="px-6 lg:px-10 py-8 max-w-[1600px] mx-auto">
+      {/* Header */}
+      <header className="flex flex-wrap items-end justify-between gap-4 mb-8">
+        <div>
+          <div className="text-[11px] uppercase font-bold tracking-[0.18em] text-gray-400 mb-1">
+            {staff.role === 'founder' ? 'Founder Dashboard' : 'Assistant Workspace'}
+          </div>
+          <h1 className="text-[28px] font-black tracking-tight text-gray-900">
+            Welcome back{staff.email ? `, ${staff.email.split('@')[0]}` : ''}.
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Today&apos;s snapshot of every lead, payment and renewal across the business.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/leads"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-black text-white text-sm font-semibold hover:bg-zinc-800 transition-colors"
+          >
+            Open Leads <ArrowUpRight size={14} />
+          </Link>
+          <Link
+            href="/admin/payments"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors"
+          >
+            Review Payments
+          </Link>
+        </div>
+      </header>
+
+      {/* KPI grid */}
+      <section className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+        <KpiCard icon={Users}         label="New leads · today"  value={kpis?.newLeadsToday}     hint="from /subscribe + WhatsApp" accent="blue"    loading={loading} />
+        <KpiCard icon={TrendingUp}    label="New leads · month"  value={kpis?.newLeadsThisMonth} hint="month-to-date"             accent="indigo"  loading={loading} />
+        <KpiCard icon={UserCheck}     label="Confirmed"          value={kpis?.confirmedStudents} hint="awaiting payment"          accent="emerald" loading={loading} />
+        <KpiCard icon={CheckCircle2}  label="Paid students"      value={kpis?.paidStudents}      hint="all-time"                  accent="yellow"  loading={loading} />
+        <KpiCard icon={Clock4}        label="Pending payments"   value={kpis?.pendingPayments}   hint="action required"           accent="orange"  loading={loading} />
+        <KpiCard icon={AlertTriangle} label="Delayed"            value={kpis?.delayedStudents}   hint="promised, not paid"        accent="rose"    loading={loading} />
+        <KpiCard icon={BellRing}      label="Renewals due"       value={kpis?.renewalDueSoon}    hint="next 30 days"              accent="amber"   loading={loading} />
+        <KpiCard icon={Wallet}        label="Revenue · month"    value={kpis?.monthlyRevenueMad} hint="MAD, approved"             accent="yellow"  format="mad"     loading={loading} />
+        <KpiCard icon={TrendingUp}    label="Conversion rate"    value={kpis?.conversionRatePct} hint="paid / leads · 90d"        accent="emerald" format="pct"     loading={loading} />
+      </section>
+
+      {/* Activity + quick links */}
+      <section className="grid lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-white border border-gray-200 rounded-2xl">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h2 className="font-bold text-gray-900 text-base">Recent activity</h2>
+            <Link href="/admin/activity" className="text-xs font-semibold text-gray-500 hover:text-gray-900">
+              View all →
+            </Link>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {loading && (
+              <div className="px-5 py-10 flex items-center justify-center text-gray-400">
+                <Loader2 size={18} className="animate-spin" />
+              </div>
+            )}
+            {!loading && (!activity || activity.length === 0) && (
+              <div className="px-5 py-10 text-center text-sm text-gray-400">
+                No activity yet — actions will appear here as you work.
+              </div>
+            )}
+            {!loading && (activity ?? []).slice(0, 12).map(a => (
+              <div key={a.id} className="px-5 py-3 flex items-start gap-3">
+                <div className="w-7 h-7 rounded-full bg-yellow-50 text-yellow-700 flex items-center justify-center flex-shrink-0 mt-0.5 text-[11px] font-bold uppercase">
+                  {(a.actor_email?.[0] ?? '?').toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13px] text-gray-800 leading-tight">{describeActivity(a)}</div>
+                  <div className="text-[11px] text-gray-400 mt-0.5">
+                    {timeAgo(a.created_at)} · {a.entity_type}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <QuickLinkCard
+            title="Lead pipeline"
+            description="Kanban board of every lead, sorted by status."
+            href="/admin/leads"
+            count={kpis?.newLeadsThisMonth ?? 0}
+            label="this month"
+          />
+          <QuickLinkCard
+            title="Pending payments"
+            description="Approve / decline new submissions."
+            href="/admin/payments"
+            count={kpis?.pendingPayments ?? 0}
+            label="awaiting"
+            accent="orange"
+          />
+          <QuickLinkCard
+            title="Renewals due"
+            description="Subscriptions expiring soon — call them."
+            href="/admin/renewals"
+            count={kpis?.renewalDueSoon ?? 0}
+            label="next 30d"
+            accent="amber"
+          />
+        </div>
+      </section>
     </div>
   )
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+/* ───────────────────── components ───────────────────── */
 
-export default function AdminPage() {
-  const { user: me } = useAuth()
-  const [rows, setRows]         = useState<Profile[]>([])
-  const [loading, setLoading]   = useState(true)
-  const [error, setError]       = useState<string | null>(null)
-  const [search, setSearch]     = useState('')
-  const [toast, setToast]       = useState<string | null>(null)
-  const [updating, setUpdating] = useState<string | null>(null)
+interface KpiCardProps {
+  icon:     LucideIcon
+  label:    string
+  value?:   number
+  hint?:    string
+  accent?:  'blue' | 'indigo' | 'emerald' | 'yellow' | 'orange' | 'rose' | 'amber'
+  format?:  'number' | 'mad' | 'pct'
+  loading?: boolean
+}
 
-  async function fetchProfiles() {
-    setLoading(true)
-    setError(null)
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, email, full_name, avatar_url, is_admin, created_at')
-      .order('created_at', { ascending: false })
-
-    if (error) setError(error.message)
-    else       setRows((data ?? []) as Profile[])
-    setLoading(false)
+function KpiCard({ icon: Icon, label, value, hint, accent = 'yellow', format = 'number', loading }: KpiCardProps) {
+  const colors: Record<NonNullable<KpiCardProps['accent']>, string> = {
+    blue:    'bg-blue-50 text-blue-600',
+    indigo:  'bg-indigo-50 text-indigo-600',
+    emerald: 'bg-emerald-50 text-emerald-600',
+    yellow:  'bg-yellow-50 text-yellow-600',
+    orange:  'bg-orange-50 text-orange-600',
+    rose:    'bg-rose-50 text-rose-600',
+    amber:   'bg-amber-50 text-amber-700',
   }
-
-  useEffect(() => { fetchProfiles() }, [])
-
-  async function toggleAdmin(p: Profile) {
-    if (p.id === me?.id && p.is_admin) {
-      showToast('Error: you cannot demote yourself')
-      return
-    }
-    setUpdating(p.id)
-    const next = !p.is_admin
-    const { error } = await supabase
-      .from('profiles')
-      .update({ is_admin: next })
-      .eq('id', p.id)
-
-    if (error) {
-      showToast('Error: ' + error.message)
-    } else {
-      setRows(prev => prev.map(r => r.id === p.id ? { ...r, is_admin: next } : r))
-      showToast(next ? 'Promoted to admin ✓' : 'Demoted to user ✓')
-    }
-    setUpdating(null)
-  }
-
-  function showToast(msg: string) {
-    setToast(msg)
-    setTimeout(() => setToast(null), 2500)
-  }
-
-  // ── Derived ─────────────────────────────────────────────────────────────────
-
-  const q = search.toLowerCase()
-  const filtered = rows.filter(r =>
-    (r.email?.toLowerCase().includes(q) ?? false) ||
-    (r.full_name?.toLowerCase().includes(q) ?? false)
-  )
-  const totalAdmins = rows.filter(r => r.is_admin).length
-  const oneWeekAgo  = Date.now() - 7 * 24 * 60 * 60 * 1000
-  const newThisWeek = rows.filter(r => new Date(r.created_at).getTime() > oneWeekAgo).length
-
-  function fmtDate(s: string) {
-    const d = new Date(s)
-    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-  }
-
-  // ── Render ──────────────────────────────────────────────────────────────────
-
   return (
-    <main className="max-w-5xl mx-auto px-4 py-8 space-y-8">
-
-      {/* Page header row */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-gray-900 font-black text-xl leading-none">Dashboard</h1>
-          <p className="text-gray-400 text-xs mt-1">Manage users and admins</p>
+    <div className="bg-white border border-gray-200 rounded-2xl p-4 hover:border-gray-300 transition-colors">
+      <div className="flex items-center justify-between mb-2.5">
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${colors[accent]}`}>
+          <Icon size={15} />
         </div>
-        <button
-          onClick={fetchProfiles}
-          disabled={loading}
-          className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-indigo-600 transition-colors disabled:opacity-40"
-        >
-          <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
-          Refresh
-        </button>
       </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        <StatCard
-          label="Total Users" value={loading ? '—' : rows.length}
-          icon={<Users size={20} className="text-indigo-600" />}
-          color="bg-indigo-50"
-        />
-        <StatCard
-          label="Admins" value={loading ? '—' : totalAdmins}
-          icon={<ShieldCheck size={20} className="text-emerald-600" />}
-          color="bg-emerald-50"
-        />
-        <StatCard
-          label="New This Week" value={loading ? '—' : newThisWeek}
-          icon={<CalendarDays size={20} className="text-amber-600" />}
-          color="bg-amber-50"
-        />
+      <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-[0.12em] mb-1">{label}</div>
+      <div className="text-2xl font-black text-gray-900 tracking-tight tabular-nums leading-none">
+        {loading
+          ? <span className="inline-block w-12 h-6 bg-gray-100 rounded animate-pulse" />
+          : formatValue(value, format)}
       </div>
-
-      {/* Table card */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <UserCheck size={18} className="text-gray-500" />
-            <h2 className="font-bold text-gray-800">Users</h2>
-            {!loading && (
-              <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-semibold">
-                {filtered.length}
-              </span>
-            )}
-          </div>
-          <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search email or name..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              disabled={loading}
-              className="pl-8 pr-4 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-gray-50 w-56 disabled:opacity-50"
-            />
-          </div>
-        </div>
-
-        {loading && (
-          <div className="flex flex-col items-center justify-center py-20 gap-3 text-gray-400">
-            <Loader2 size={28} className="animate-spin text-indigo-400" />
-            <p className="text-sm font-medium">Loading users...</p>
-          </div>
-        )}
-
-        {!loading && error && (
-          <div className="flex flex-col items-center justify-center py-16 gap-3 text-red-400">
-            <AlertCircle size={28} />
-            <p className="text-sm font-semibold">Failed to load users</p>
-            <p className="text-xs text-gray-400 max-w-sm text-center">{error}</p>
-            <button
-              onClick={fetchProfiles}
-              className="mt-2 text-xs font-bold px-4 py-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition-colors"
-            >
-              Try again
-            </button>
-          </div>
-        )}
-
-        {!loading && !error && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-100">
-                  <th className="text-left px-6 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">User</th>
-                  <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Role</th>
-                  <th className="text-left px-4 py-3 text-gray-500 font-semibold text-xs uppercase tracking-wide">Joined</th>
-                  <th className="px-4 py-3" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {filtered.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="text-center py-16 text-gray-400">
-                      <Users size={32} className="mx-auto mb-3 opacity-30" />
-                      No users found.
-                    </td>
-                  </tr>
-                )}
-                {filtered.map(p => {
-                  const isBusy = updating === p.id
-                  const isMe   = p.id === me?.id
-                  const initial = (p.full_name || p.email || 'U').trim().charAt(0).toUpperCase()
-                  return (
-                    <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          {p.avatar_url ? (
-                            <img src={p.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover" />
-                          ) : (
-                            <div className="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 font-black text-sm flex items-center justify-center">
-                              {initial}
-                            </div>
-                          )}
-                          <div className="min-w-0">
-                            <p className="text-gray-900 font-semibold truncate">
-                              {p.full_name || '—'}
-                              {isMe && <span className="ml-2 text-[10px] text-indigo-500 font-bold uppercase">You</span>}
-                            </p>
-                            <p className="text-gray-400 text-xs truncate">{p.email || '—'}</p>
-                          </div>
-                        </div>
-                      </td>
-
-                      <td className="px-4 py-4">
-                        {p.is_admin ? (
-                          <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full">
-                            <Shield size={11} /> Admin
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-500 text-xs font-bold px-2.5 py-1 rounded-full">
-                            User
-                          </span>
-                        )}
-                      </td>
-
-                      <td className="px-4 py-4 text-gray-500 whitespace-nowrap">{fmtDate(p.created_at)}</td>
-
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-2 justify-end">
-                          {isBusy ? (
-                            <Loader2 size={16} className="animate-spin text-gray-400" />
-                          ) : p.is_admin ? (
-                            <button
-                              onClick={() => toggleAdmin(p)}
-                              disabled={isMe}
-                              title={isMe ? 'You cannot demote yourself' : ''}
-                              className="flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                            >
-                              <ShieldOff size={12} />
-                              Demote
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => toggleAdmin(p)}
-                              className="flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white transition-all"
-                            >
-                              <ShieldCheck size={12} />
-                              Make Admin
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {toast && (
-        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 text-white text-sm font-semibold px-5 py-3 rounded-xl shadow-xl z-50 ${
-          toast.startsWith('Error') ? 'bg-red-600' : 'bg-gray-900'
-        }`}>
-          {toast}
-        </div>
-      )}
-    </main>
+      {hint && <div className="text-[11px] text-gray-400 mt-1">{hint}</div>}
+    </div>
   )
+}
+
+function formatValue(v: number | undefined, format: KpiCardProps['format']): string {
+  if (v == null) return '—'
+  if (format === 'mad') return new Intl.NumberFormat('en-US').format(v) + ' MAD'
+  if (format === 'pct') return v + '%'
+  return new Intl.NumberFormat('en-US').format(v)
+}
+
+function QuickLinkCard({
+  title, description, href, count, label, accent = 'yellow',
+}: {
+  title:       string
+  description: string
+  href:        string
+  count:       number
+  label:       string
+  accent?:     'yellow' | 'orange' | 'amber'
+}) {
+  const colors = {
+    yellow: 'bg-yellow-400 text-black',
+    orange: 'bg-orange-500 text-white',
+    amber:  'bg-amber-500 text-white',
+  } as const
+  return (
+    <Link
+      href={href}
+      className="block bg-white border border-gray-200 rounded-2xl p-5 hover:border-gray-400 transition-all group"
+    >
+      <div className="flex items-start justify-between mb-2">
+        <div className="font-bold text-gray-900 text-[15px] group-hover:underline">{title}</div>
+        <ArrowUpRight size={16} className="text-gray-400 group-hover:text-gray-900 transition-colors" />
+      </div>
+      <p className="text-[13px] text-gray-500 mb-3 leading-relaxed">{description}</p>
+      <div className="flex items-baseline gap-1.5">
+        <span className={`text-2xl font-black px-2.5 py-0.5 rounded-md tabular-nums ${colors[accent]}`}>
+          {count}
+        </span>
+        <span className="text-[11px] uppercase font-bold tracking-[0.1em] text-gray-400">{label}</span>
+      </div>
+    </Link>
+  )
+}
+
+function timeAgo(iso: string): string {
+  const d = new Date(iso)
+  const diff = Date.now() - d.getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1)  return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const h = Math.floor(mins / 60)
+  if (h < 24) return `${h}h ago`
+  const days = Math.floor(h / 24)
+  if (days < 7) return `${days}d ago`
+  return d.toLocaleDateString()
 }
