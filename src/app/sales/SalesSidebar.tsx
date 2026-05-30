@@ -9,29 +9,34 @@ import {
   LifeBuoy, Users, Menu, X, LogOut, Shield, ArrowUpRight, Plus, Wallet,
 } from 'lucide-react'
 import GlobalSearch from './GlobalSearch'
+import { useCrmBasePath, useIsAdminDomain } from '@/lib/use-crm-path'
 
 /**
- * Sales workspace sidebar — focused, assistant-friendly.
+ * Sales / CRM sidebar.
  *
- * Just the 7 things an assistant uses every day. No content / no system /
- * no audit log clutter. Founders get a small "Admin tools →" link at the
- * bottom that pops them over to /admin for content + analytics.
+ * When served at admin.inglizi.com (via middleware rewrite), all hrefs
+ * use clean paths like /leads, /students, /payments — the /sales prefix
+ * is dropped so the URL in the address bar stays clean.
+ *
+ * When served at inglizi.com/sales/*, hrefs keep the /sales prefix.
  */
 interface NavItem {
-  href:    string
-  label:   string
-  icon:    LucideIcon
-  badge?:  string | number
+  /** Path segment without any prefix, e.g. "" | "leads" | "students" */
+  segment:  string
+  label:    string
+  icon:     LucideIcon
+  badge?:   string | number
 }
+
 const navItems: NavItem[] = [
-  { href: '/sales',          label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/sales/today',    label: 'Today',     icon: CalendarCheck },
-  { href: '/sales/leads',    label: 'Leads',     icon: KanbanSquare },
-  { href: '/sales/students', label: 'Students',  icon: Users },
-  { href: '/sales/payments', label: 'Payments',  icon: CreditCard },
-  { href: '/sales/revenue',  label: 'Revenue',   icon: Wallet },
-  { href: '/sales/renewals', label: 'Renewals',  icon: BellRing },
-  { href: '/sales/support',  label: 'Support',   icon: LifeBuoy },
+  { segment: '',         label: 'Dashboard', icon: LayoutDashboard },
+  { segment: 'today',    label: 'Today',     icon: CalendarCheck },
+  { segment: 'leads',    label: 'Leads',     icon: KanbanSquare },
+  { segment: 'students', label: 'Students',  icon: Users },
+  { segment: 'payments', label: 'Payments',  icon: CreditCard },
+  { segment: 'revenue',  label: 'Revenue',   icon: Wallet },
+  { segment: 'renewals', label: 'Renewals',  icon: BellRing },
+  { segment: 'support',  label: 'Support',   icon: LifeBuoy },
 ]
 
 interface Props {
@@ -41,17 +46,35 @@ interface Props {
 }
 
 export default function SalesSidebar({ userEmail, userRole, onSignOut }: Props) {
-  const pathname = usePathname()
+  const rawPathname  = usePathname() ?? '/'
+  const base         = useCrmBasePath()           // '' | '/sales'
+  const isAdmin      = useIsAdminDomain()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const isFounder = userRole === 'founder'
+  const isFounder    = userRole === 'founder'
 
-  function isActive(href: string): boolean {
-    if (href === '/sales') return pathname === '/sales'
-    return pathname?.startsWith(href) ?? false
+  /** Build the href for a given segment, using the correct base. */
+  function href(segment: string): string {
+    if (segment === '') return base || '/'
+    return `${base}/${segment}`
   }
+
+  /** Determine whether a segment is the current page.
+   *  Works for both the main site (/sales/leads) and the admin domain
+   *  where the rewritten internal path may be /sales/leads but the
+   *  browser path is /leads. We normalise both to the segment. */
+  function isActive(segment: string): boolean {
+    // Normalise: strip /sales prefix so we compare plain segments
+    const norm = rawPathname.replace(/^\/sales/, '') || '/'
+    if (segment === '') return norm === '/' || norm === ''
+    return norm.startsWith('/' + segment)
+  }
+
+  /** Admin-domain analytics / settings links map to different internal paths */
+  const adminToolsHref = isAdmin ? '/analytics' : '/admin/analytics'
 
   return (
     <>
+      {/* Mobile hamburger */}
       <button
         className="lg:hidden fixed top-3 left-3 z-50 w-10 h-10 rounded-lg bg-black text-white shadow-lg flex items-center justify-center"
         onClick={() => setMobileOpen(true)}
@@ -77,12 +100,14 @@ export default function SalesSidebar({ userEmail, userRole, onSignOut }: Props) 
       >
         {/* Brand */}
         <div className="flex items-center justify-between px-5 h-16 border-b border-zinc-900">
-          <Link href="/sales" className="flex items-center gap-2.5">
+          <Link href={href('')} className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-md bg-yellow-400 text-black flex items-center justify-center font-black text-base shadow-sm">
               I
             </div>
             <div className="leading-tight">
-              <div className="font-black text-[15px] tracking-tight">Sales</div>
+              <div className="font-black text-[15px] tracking-tight">
+                {isAdmin ? 'Admin CRM' : 'Sales'}
+              </div>
               <div className="text-[10px] text-zinc-500 uppercase tracking-[0.18em]">Inglizi · workspace</div>
             </div>
           </Link>
@@ -97,13 +122,13 @@ export default function SalesSidebar({ userEmail, userRole, onSignOut }: Props) 
 
         {/* Global search */}
         <div className="px-0 pt-3 pb-1">
-          <GlobalSearch />
+          <GlobalSearch base={base} />
         </div>
 
         {/* Quick CTA */}
         <div className="px-3 pb-1">
           <Link
-            href="/sales/leads?add=1"
+            href={`${href('leads')}?add=1`}
             onClick={() => setMobileOpen(false)}
             className="flex items-center justify-center gap-1.5 py-2.5 rounded-md bg-yellow-400 text-black font-bold text-[13px] shadow-sm hover:bg-yellow-300 transition-colors"
           >
@@ -115,11 +140,11 @@ export default function SalesSidebar({ userEmail, userRole, onSignOut }: Props) 
         <nav className="flex-1 overflow-y-auto px-3 py-4">
           <ul className="space-y-0.5">
             {navItems.map(item => {
-              const active = isActive(item.href)
+              const active = isActive(item.segment)
               return (
-                <li key={item.href}>
+                <li key={item.segment}>
                   <Link
-                    href={item.href}
+                    href={href(item.segment)}
                     onClick={() => setMobileOpen(false)}
                     className={[
                       'group flex items-center gap-2.5 px-3 py-2.5 rounded-md text-[14px] font-semibold transition-colors',
@@ -147,11 +172,11 @@ export default function SalesSidebar({ userEmail, userRole, onSignOut }: Props) 
             })}
           </ul>
 
-          {/* Founder-only shortcut to the admin command center */}
+          {/* Founder-only: Admin tools link */}
           {isFounder && (
             <div className="mt-6 px-3">
               <Link
-                href="/admin"
+                href={adminToolsHref}
                 className="group flex items-center gap-2 px-3 py-2 rounded-md text-[12px] font-semibold text-zinc-500 hover:text-yellow-400 hover:bg-zinc-900 transition-colors border border-zinc-900"
               >
                 <Shield size={13} />
@@ -179,7 +204,7 @@ export default function SalesSidebar({ userEmail, userRole, onSignOut }: Props) 
           </div>
           <div className="mt-2 flex gap-1.5">
             <Link
-              href="/"
+              href="https://inglizi.com"
               className="flex-1 text-center text-[11px] font-semibold py-2 rounded-md text-zinc-400 border border-zinc-800 hover:text-white hover:border-zinc-700 transition-colors"
             >
               ← Site

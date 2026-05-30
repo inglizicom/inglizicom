@@ -1,46 +1,100 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
 /**
- * Middleware for admin.inglizi.com
+ * admin.inglizi.com — CRM middleware
  *
- * When a request comes in on the admin subdomain, redirect the root
- * to /sales (the CRM workspace). Requests already targeting /sales/*
- * or /admin/* are let through untouched.
+ * When a request arrives on the admin subdomain, the URL is internally
+ * rewritten so the CRM pages are served at clean admin.inglizi.com paths.
+ * The visitor's address bar never shows /sales — it stays admin.inglizi.com.
  *
- * DOMAIN SETUP (Vercel + Hostinger DNS)
- * -------------------------------------
- * 1. In Vercel → Project → Settings → Domains:
- *    Add "admin.inglizi.com" and set DNS mode to "CNAME".
- * 2. In Hostinger DNS Manager:
- *    Add a CNAME record:  admin  →  cname.vercel-dns.com
- * 3. Deploy — done. Both inglizi.com and admin.inglizi.com now
- *    serve the same Next.js app, and this middleware routes the
- *    admin subdomain to the CRM workspace.
+ * Mapping:
+ *   admin.inglizi.com/           → /sales        (CRM dashboard)
+ *   admin.inglizi.com/leads      → /sales/leads
+ *   admin.inglizi.com/today      → /sales/today
+ *   admin.inglizi.com/students   → /sales/students
+ *   admin.inglizi.com/payments   → /sales/payments
+ *   admin.inglizi.com/renewals   → /sales/renewals
+ *   admin.inglizi.com/revenue    → /sales/revenue
+ *   admin.inglizi.com/support    → /sales/support
+ *   admin.inglizi.com/analytics  → /admin/analytics  (founder)
+ *   admin.inglizi.com/activity   → /admin/activity    (founder)
+ *   admin.inglizi.com/settings   → /admin/settings    (founder)
+ *   admin.inglizi.com/login      → /login
  */
+
+/** CRM routes — mapped to their internal Next.js path */
+const CRM_ROUTES: Record<string, string> = {
+  '/':           '/sales',
+  '/leads':      '/sales/leads',
+  '/today':      '/sales/today',
+  '/students':   '/sales/students',
+  '/payments':   '/sales/payments',
+  '/renewals':   '/sales/renewals',
+  '/revenue':    '/sales/revenue',
+  '/support':    '/sales/support',
+  // Founder-only sections
+  '/analytics':  '/admin/analytics',
+  '/activity':   '/admin/activity',
+  '/settings':   '/admin/settings',
+}
+
 export function middleware(request: NextRequest) {
-  const host = request.headers.get('host') ?? ''
+  const host     = request.headers.get('host') ?? ''
   const pathname = request.nextUrl.pathname
 
-  // Detect the admin subdomain (works in both prod and local preview)
-  const isAdminSubdomain =
+  /* ── detect the admin subdomain ────────────────────────────
+     Works in production (admin.inglizi.com) and locally
+     via the ?_admin=1 override for testing. */
+  const isAdmin =
     host === 'admin.inglizi.com' ||
-    host.startsWith('admin.') ||
-    request.nextUrl.searchParams.get('_admin') === '1'  // dev override: ?_admin=1
+    host.startsWith('admin.localhost') ||
+    request.nextUrl.searchParams.get('_admin') === '1'
 
-  if (!isAdminSubdomain) return NextResponse.next()
+  if (!isAdmin) return NextResponse.next()
 
-  // Already inside the CRM sections — pass through.
-  if (pathname.startsWith('/sales') || pathname.startsWith('/admin') || pathname.startsWith('/login')) {
+  /* ── auth pass-through ─────────────────────────────────────
+     The login page and Next.js internals must reach their
+     actual paths unchanged. */
+  if (
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/auth') ||
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api')
+  ) {
     return NextResponse.next()
   }
 
-  // Root or any unmatched path → redirect to the sales workspace.
-  const url = request.nextUrl.clone()
-  url.pathname = '/sales'
-  return NextResponse.redirect(url, 308)
+  /* ── already on an internal CRM path ───────────────────────
+     (happens when Next.js server-components fetch sub-paths) */
+  if (pathname.startsWith('/sales') || pathname.startsWith('/admin')) {
+    return NextResponse.next()
+  }
+
+  /* ── rewrite to the matching internal path ─────────────────
+     Exact match first, then prefix match for dynamic segments
+     like /leads/[id] or /support/[id]. */
+  const exact = CRM_ROUTES[pathname]
+  if (exact) {
+    const url = request.nextUrl.clone()
+    url.pathname = exact
+    return NextResponse.rewrite(url)
+  }
+
+  // Prefix match — e.g. /leads?add=1 or /support/123
+  for (const [prefix, target] of Object.entries(CRM_ROUTES)) {
+    if (prefix !== '/' && pathname.startsWith(prefix)) {
+      const url = request.nextUrl.clone()
+      url.pathname = target + pathname.slice(prefix.length)
+      return NextResponse.rewrite(url)
+    }
+  }
+
+  // Unknown path on admin subdomain → rewrite to CRM dashboard
+  const fallback = request.nextUrl.clone()
+  fallback.pathname = '/sales'
+  return NextResponse.rewrite(fallback)
 }
 
 export const config = {
-  // Run on all paths except static files and API routes.
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }
