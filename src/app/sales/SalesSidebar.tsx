@@ -6,8 +6,9 @@ import { useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
   LayoutDashboard, CalendarCheck, KanbanSquare, CreditCard, BellRing,
-  LifeBuoy, Users, Menu, X, LogOut, Shield, ArrowUpRight, Plus,
+  LifeBuoy, Users, Menu, X, LogOut, Shield, ArrowUpRight, Plus, Wallet,
 } from 'lucide-react'
+import GlobalSearch from './GlobalSearch'
 
 /**
  * Sales workspace sidebar — focused, assistant-friendly.
@@ -26,10 +27,11 @@ const navItems: NavItem[] = [
   { href: '/sales',          label: 'Dashboard', icon: LayoutDashboard },
   { href: '/sales/today',    label: 'Today',     icon: CalendarCheck },
   { href: '/sales/leads',    label: 'Leads',     icon: KanbanSquare },
+  { href: '/sales/students', label: 'Students',  icon: Users },
   { href: '/sales/payments', label: 'Payments',  icon: CreditCard },
+  { href: '/sales/revenue',  label: 'Revenue',   icon: Wallet },
   { href: '/sales/renewals', label: 'Renewals',  icon: BellRing },
   { href: '/sales/support',  label: 'Support',   icon: LifeBuoy },
-  { href: '/sales/students', label: 'Students',  icon: Users },
 ]
 
 interface Props {
@@ -93,8 +95,13 @@ export default function SalesSidebar({ userEmail, userRole, onSignOut }: Props) 
           </button>
         </div>
 
+        {/* Global search */}
+        <div className="px-0 pt-3 pb-1">
+          <GlobalSearch />
+        </div>
+
         {/* Quick CTA */}
-        <div className="px-3 pt-3">
+        <div className="px-3 pb-1">
           <Link
             href="/sales/leads?add=1"
             onClick={() => setMobileOpen(false)}

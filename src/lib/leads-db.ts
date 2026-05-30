@@ -88,6 +88,12 @@ export interface SubscriptionLead {
   last_contact_at:   string | null
   next_followup_at:  string | null
   is_vip:            boolean
+  // Migration 014 additions
+  lead_source:       string | null
+  course:            string | null
+  lead_type:         string | null
+  lost_reason:       string | null
+  pending_payment:   boolean
 }
 
 /** WhatsApp link from a phone number — used in lead cards. */

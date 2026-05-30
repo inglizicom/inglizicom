@@ -1,293 +1,303 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
-  Users, Search, Loader2, Shield, ShieldOff,
-  Crown, Ban, Check, X, Calendar,
+  GraduationCap, Loader2, Search, RotateCcw, Calendar,
+  Users, BookOpen, AlertTriangle, CheckCircle2,
+  MessageCircle, Phone, X, Save,
 } from 'lucide-react'
-import { fetchAllUsers, updateUser, type UserProfile } from '@/lib/users-db'
+import { fetchStudents, fetchStudentStats, patchStudent, type CrmStudent } from '@/lib/crm-db'
+import { getCourseMeta } from '@/lib/crm-types'
+import { whatsappLink } from '@/lib/leads-db'
+import { useStaff } from '@/lib/staff-context'
 
-type PlanFilter = 'all' | 'free' | 'paid' | 'admin' | 'blocked'
-
-export default function AdminUsersPage() {
-  const [users, setUsers]         = useState<UserProfile[]>([])
+export default function StudentsPage() {
+  const [students, setStudents]   = useState<CrmStudent[]>([])
   const [loading, setLoading]     = useState(true)
   const [query, setQuery]         = useState('')
-  const [filter, setFilter]       = useState<PlanFilter>('all')
-  const [editingId, setEditingId] = useState<string | null>(null)
+  const [typeFilter, setType]     = useState<'all' | 'course_student' | 'private_student'>('all')
+  const [selected, setSelected]   = useState<CrmStudent | null>(null)
+  const [stats, setStats]         = useState({ total: 0, course: 0, private: 0, overdue: 0, revenue: 0 })
 
-  useEffect(() => {
-    fetchAllUsers().then(rows => {
-      setUsers(rows)
-      setLoading(false)
-    })
-  }, [])
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return users.filter(u => {
-      if (filter === 'free'    && u.plan !== 'free')  return false
-      if (filter === 'paid'    && u.plan !== 'paid')  return false
-      if (filter === 'admin'   && !u.is_admin)        return false
-      if (filter === 'blocked' && !u.blocked)         return false
-      if (!q) return true
-      return (
-        u.email?.toLowerCase().includes(q) ||
-        u.full_name?.toLowerCase().includes(q) ||
-        u.id.toLowerCase().includes(q)
-      )
-    })
-  }, [users, query, filter])
-
-  async function apply(id: string, patch: Partial<UserProfile>) {
-    try {
-      const updated = await updateUser(id, patch)
-      setUsers(u => u.map(x => x.id === id ? updated : x))
-    } catch (e) {
-      alert(e instanceof Error ? e.message : 'failed')
-    }
+  async function load() {
+    setLoading(true)
+    const [rows, st] = await Promise.all([
+      fetchStudents({ type: typeFilter === 'all' ? undefined : typeFilter, active: true, search: query || undefined }),
+      fetchStudentStats(),
+    ])
+    setStudents(rows); setStats(st); setLoading(false)
   }
 
-  const stats = {
-    total:   users.length,
-    paid:    users.filter(u => u.plan === 'paid').length,
-    admin:   users.filter(u => u.is_admin).length,
-    blocked: users.filter(u => u.blocked).length,
+  useEffect(() => { load() }, [typeFilter])
+
+  function handleSearch(q: string) {
+    setQuery(q)
+    const id = setTimeout(load, 350)
+    return () => clearTimeout(id)
   }
+
+  const upcoming = students.filter(s =>
+    s.student_type === 'private_student' && s.next_payment_date &&
+    new Date(s.next_payment_date) <= new Date(Date.now() + 14 * 86_400_000)
+  )
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
-      <div>
-        <h1 className="text-gray-900 font-black text-xl leading-none">Users</h1>
-        <p className="text-gray-400 text-xs mt-1">
-          {stats.total} total · {stats.paid} paid · {stats.admin} admin · {stats.blocked} blocked
-        </p>
-      </div>
+    <div className="px-6 lg:px-10 py-8 max-w-[1600px] mx-auto">
+      {/* Header */}
+      <header className="flex flex-wrap items-end justify-between gap-4 mb-6">
+        <div>
+          <div className="text-[11px] uppercase font-bold tracking-[0.18em] text-gray-400 mb-1">Students</div>
+          <h1 className="text-[24px] font-black tracking-tight text-gray-900 flex items-center gap-2">
+            <GraduationCap size={20} className="text-yellow-600" /> Students
+          </h1>
+          <p className="text-sm text-gray-500 mt-0.5">Paid leads converted to enrolled students.</p>
+        </div>
+        <button onClick={load} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50">
+          <RotateCcw size={14} />
+        </button>
+      </header>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex-1 min-w-[220px] relative">
-          <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+      {/* KPI strip */}
+      <section className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+        <Tile icon={Users}         label="Total"   value={stats.total}   color="bg-yellow-50 text-yellow-600" />
+        <Tile icon={BookOpen}      label="Course"  value={stats.course}  color="bg-blue-50 text-blue-600" />
+        <Tile icon={Calendar}      label="Private" value={stats.private} color="bg-purple-50 text-purple-600" />
+        <Tile icon={AlertTriangle} label="Overdue" value={stats.overdue} color="bg-rose-50 text-rose-600" />
+      </section>
+
+      {/* Upcoming private payments alert */}
+      {upcoming.length > 0 && (
+        <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-xl flex items-center gap-3">
+          <AlertTriangle size={15} className="text-orange-600 flex-shrink-0" />
+          <span className="text-[13px] font-semibold text-orange-800">
+            {upcoming.length} private student{upcoming.length > 1 ? 's have' : ' has'} a payment due in the next 14 days.
+          </span>
+        </div>
+      )}
+
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
-            type="text"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Search by email, name, or id…"
-            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 pr-9 text-sm font-semibold outline-none focus:border-indigo-500"
+            placeholder="Search name, phone, notes…"
+            onChange={e => handleSearch(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 rounded-lg bg-white border border-gray-200 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
           />
         </div>
-        <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
-          {([
-            ['all',     'All'],
-            ['paid',    'Paid'],
-            ['free',    'Free'],
-            ['admin',   'Admin'],
-            ['blocked', 'Blocked'],
-          ] as const).map(([key, label]) => (
-            <button
-              key={key}
-              onClick={() => setFilter(key as PlanFilter)}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${
-                filter === key
-                  ? 'bg-white text-indigo-600 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-900'
-              }`}
-            >
+        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+          {([['all', 'All'], ['course_student', 'Course'], ['private_student', 'Private']] as const).map(([v, label]) => (
+            <button key={v} onClick={() => setType(v)}
+              className={`px-3 py-1.5 rounded-md text-xs font-bold ${typeFilter === v ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'}`}>
               {label}
             </button>
           ))}
         </div>
+        <div className="ml-auto text-xs text-gray-400 font-semibold">{students.length} students</div>
       </div>
 
+      {/* Table */}
       {loading ? (
-        <div className="text-center py-16">
-          <Loader2 className="w-6 h-6 animate-spin text-gray-400 mx-auto" />
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="bg-white border border-gray-200 rounded-2xl p-10 text-center">
-          <Users className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-700 font-bold">No users match</p>
+        <div className="py-16 flex justify-center"><Loader2 size={20} className="animate-spin text-gray-400" /></div>
+      ) : students.length === 0 ? (
+        <div className="bg-white border border-gray-200 rounded-2xl py-14 text-center">
+          <GraduationCap size={32} className="mx-auto text-gray-300 mb-2" />
+          <p className="text-sm text-gray-500 font-semibold">No students yet.</p>
+          <p className="text-xs text-gray-400 mt-1">When a lead is set to "Paid" and converted, they appear here.</p>
         </div>
       ) : (
-        <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-xs font-black uppercase tracking-wider text-gray-500">
+            <thead className="bg-gray-50 text-[11px] font-bold uppercase tracking-wider text-gray-500 border-b border-gray-200">
               <tr>
-                <th className="text-left px-4 py-3">User</th>
-                <th className="text-left px-4 py-3">Plan</th>
-                <th className="text-left px-4 py-3">Expires</th>
-                <th className="text-left px-4 py-3">Flags</th>
-                <th className="text-right px-4 py-3">Actions</th>
+                <th className="text-left px-4 py-2.5">Student</th>
+                <th className="text-left px-4 py-2.5 hidden md:table-cell">Course</th>
+                <th className="text-left px-4 py-2.5">Type</th>
+                <th className="text-left px-4 py-2.5 hidden lg:table-cell">Enrolled</th>
+                <th className="text-left px-4 py-2.5 hidden xl:table-cell">Next payment</th>
+                <th className="text-left px-4 py-2.5">Status</th>
+                <th className="px-4 py-2.5" />
               </tr>
             </thead>
-            <tbody>
-              {filtered.map(u => (
-                <UserRow
-                  key={u.id}
-                  user={u}
-                  editing={editingId === u.id}
-                  onEdit={() => setEditingId(u.id)}
-                  onCancel={() => setEditingId(null)}
-                  onSave={async (patch) => {
-                    await apply(u.id, patch)
-                    setEditingId(null)
-                  }}
-                  onToggleAdmin={() => apply(u.id, { is_admin: !u.is_admin })}
-                  onToggleBlock={() => apply(u.id, { blocked: !u.blocked })}
-                />
-              ))}
+            <tbody className="divide-y divide-gray-100">
+              {students.map(s => <StudentRow key={s.id} student={s} onSelect={() => setSelected(s)} />)}
             </tbody>
           </table>
         </div>
       )}
-    </main>
+
+      {selected && (
+        <StudentDrawer student={selected} onClose={() => setSelected(null)} onChange={() => { load(); setSelected(null) }} />
+      )}
+    </div>
   )
 }
 
-function UserRow({
-  user, editing, onEdit, onCancel, onSave, onToggleAdmin, onToggleBlock,
-}: {
-  user:            UserProfile
-  editing:         boolean
-  onEdit:          () => void
-  onCancel:        () => void
-  onSave:          (patch: Partial<UserProfile>) => Promise<void>
-  onToggleAdmin:   () => void
-  onToggleBlock:   () => void
-}) {
-  const [plan, setPlan]       = useState<UserProfile['plan']>(user.plan)
-  const [expires, setExpires] = useState(user.plan_expires_at?.slice(0, 10) ?? '')
-  const [note, setNote]       = useState(user.plan_note ?? '')
-
-  useEffect(() => {
-    if (editing) {
-      setPlan(user.plan)
-      setExpires(user.plan_expires_at?.slice(0, 10) ?? '')
-      setNote(user.plan_note ?? '')
-    }
-  }, [editing, user])
-
-  const expired = user.plan === 'paid'
-    && user.plan_expires_at
-    && new Date(user.plan_expires_at) < new Date()
+/* ── StudentRow ── */
+function StudentRow({ student: s, onSelect }: { student: CrmStudent; onSelect: () => void }) {
+  const wa = s.phone_number ? whatsappLink(s.phone_number, `مرحبا ${s.full_name}`) : null
+  const course = getCourseMeta(s.course)
+  const isPrivate = s.student_type === 'private_student'
+  const paymentSoon = isPrivate && s.next_payment_date &&
+    new Date(s.next_payment_date) <= new Date(Date.now() + 14 * 86_400_000)
 
   return (
-    <tr className={`border-t border-gray-100 ${user.blocked ? 'bg-red-50/40' : ''}`}>
-      <td className="px-4 py-3 align-middle">
-        <div className="font-bold text-gray-900 leading-tight">
-          {user.full_name || <span className="text-gray-400 font-normal">—</span>}
-        </div>
-        <div className="text-xs text-gray-500 truncate max-w-[260px]">{user.email || user.id.slice(0, 8)}</div>
+    <tr className="hover:bg-gray-50 cursor-pointer" onClick={onSelect}>
+      <td className="px-4 py-2.5">
+        <div className="font-semibold text-gray-900">{s.full_name}</div>
+        {s.phone_number && <div className="text-[11px] text-gray-400">{s.phone_number}</div>}
       </td>
-      <td className="px-4 py-3 align-middle">
-        {editing ? (
-          <select
-            value={plan}
-            onChange={e => setPlan(e.target.value as UserProfile['plan'])}
-            className="bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs font-bold focus:border-indigo-500 outline-none"
-          >
-            <option value="free">Free</option>
-            <option value="paid">Paid</option>
-          </select>
-        ) : user.plan === 'paid' ? (
-          <span className="inline-flex items-center gap-1 text-xs font-black px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
-            <Crown size={10} /> Paid
+      <td className="px-4 py-2.5 text-gray-600 hidden md:table-cell">{course.short}</td>
+      <td className="px-4 py-2.5">
+        <span className={`px-2 py-0.5 rounded text-[11px] font-bold border ${isPrivate ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-blue-50 text-blue-700 border-blue-200'}`}>
+          {isPrivate ? 'Private' : 'Course'}
+        </span>
+      </td>
+      <td className="px-4 py-2.5 text-gray-400 text-[12px] tabular-nums hidden lg:table-cell">
+        {new Date(s.enrollment_date).toLocaleDateString()}
+      </td>
+      <td className="px-4 py-2.5 hidden xl:table-cell">
+        {isPrivate && s.next_payment_date ? (
+          <span className={`text-[12px] font-bold flex items-center gap-1 ${paymentSoon ? 'text-orange-600' : 'text-gray-500'}`}>
+            {paymentSoon && <AlertTriangle size={11} />}
+            {new Date(s.next_payment_date).toLocaleDateString()}
           </span>
-        ) : (
-          <span className="text-xs font-bold text-gray-500">Free</span>
-        )}
+        ) : <span className="text-gray-300 text-[11px]">—</span>}
       </td>
-      <td className="px-4 py-3 align-middle">
-        {editing ? (
-          <input
-            type="date"
-            value={expires}
-            onChange={e => setExpires(e.target.value)}
-            className="bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs font-semibold focus:border-indigo-500 outline-none"
-          />
-        ) : user.plan_expires_at ? (
-          <span className={`inline-flex items-center gap-1 text-xs font-semibold ${
-            expired ? 'text-red-600' : 'text-gray-600'
-          }`}>
-            <Calendar size={10} />
-            {new Date(user.plan_expires_at).toLocaleDateString('en', { dateStyle: 'medium' })}
-            {expired && ' (expired)'}
-          </span>
-        ) : (
-          <span className="text-gray-400 text-xs">—</span>
-        )}
+      <td className="px-4 py-2.5">
+        <span className={`px-2 py-0.5 rounded text-[11px] font-bold border ${
+          s.payment_status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+          s.payment_status === 'overdue' ? 'bg-red-50 text-red-700 border-red-200' :
+          'bg-orange-50 text-orange-700 border-orange-200'}`}>
+          {s.payment_status}
+        </span>
       </td>
-      <td className="px-4 py-3 align-middle">
-        <div className="flex items-center gap-1.5">
-          {user.is_admin && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 uppercase">
-              <Shield size={10} /> Admin
-            </span>
-          )}
-          {user.blocked && (
-            <span className="inline-flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full bg-red-100 text-red-700 uppercase">
-              <Ban size={10} /> Blocked
-            </span>
-          )}
-          {!user.is_admin && !user.blocked && (
-            <span className="text-gray-300 text-xs">—</span>
-          )}
+      <td className="px-4 py-2.5 text-right" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-end gap-1.5">
+          {wa && <a href={wa} target="_blank" rel="noopener"
+            className="w-7 h-7 rounded flex items-center justify-center bg-green-50 text-green-700 hover:bg-green-100"><MessageCircle size={12} /></a>}
+          {s.phone_number && <a href={`tel:${s.phone_number}`}
+            className="w-7 h-7 rounded flex items-center justify-center bg-gray-100 text-gray-600 hover:bg-gray-200"><Phone size={12} /></a>}
         </div>
-      </td>
-      <td className="px-4 py-3 text-right align-middle">
-        {editing ? (
-          <div className="flex items-center justify-end gap-1.5">
-            <input
-              type="text"
-              value={note}
-              onChange={e => setNote(e.target.value)}
-              placeholder="Note (optional)"
-              className="bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs font-semibold focus:border-indigo-500 outline-none w-36"
-            />
-            <button
-              onClick={() => onSave({
-                plan,
-                plan_expires_at: expires ? new Date(expires).toISOString() : null,
-                plan_note:       note || null,
-              })}
-              className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
-            >
-              <Check size={12} /> Save
-            </button>
-            <button
-              onClick={onCancel}
-              className="inline-flex items-center text-gray-400 hover:text-gray-700 w-7 h-7 justify-center rounded-lg transition-colors"
-            >
-              <X size={14} />
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center justify-end gap-1">
-            <button
-              onClick={onEdit}
-              title="Set plan"
-              className="text-xs font-bold px-2.5 py-1.5 rounded-lg text-indigo-600 hover:bg-indigo-50 transition-colors"
-            >
-              Set plan
-            </button>
-            <button
-              onClick={onToggleAdmin}
-              title={user.is_admin ? 'Revoke admin' : 'Grant admin'}
-              className="text-gray-400 hover:text-indigo-600 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-50"
-            >
-              {user.is_admin ? <ShieldOff size={14} /> : <Shield size={14} />}
-            </button>
-            <button
-              onClick={onToggleBlock}
-              title={user.blocked ? 'Unblock' : 'Block'}
-              className={`w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-50 transition-colors ${
-                user.blocked ? 'text-red-600' : 'text-gray-400 hover:text-red-600'
-              }`}
-            >
-              <Ban size={14} />
-            </button>
-          </div>
-        )}
       </td>
     </tr>
   )
+}
+
+/* ── StudentDrawer ── */
+function StudentDrawer({ student, onClose, onChange }: { student: CrmStudent; onClose: () => void; onChange: () => void }) {
+  const [nextPayment, setNextPayment] = useState(student.next_payment_date ?? '')
+  const [notes, setNotes]             = useState(student.notes ?? '')
+  const [payStatus, setPayStatus]     = useState(student.payment_status)
+  const [saving, setSaving]           = useState(false)
+
+  async function save() {
+    setSaving(true)
+    try {
+      await patchStudent(student.id, {
+        next_payment_date: nextPayment || null as any,
+        notes: notes || null,
+        payment_status: payStatus as any,
+      })
+      onChange()
+    } catch (err: any) { alert(err?.message) }
+    finally { setSaving(false) }
+  }
+
+  const wa = student.phone_number ? whatsappLink(student.phone_number, `مرحبا ${student.full_name}`) : null
+  const course = getCourseMeta(student.course)
+  const isPrivate = student.student_type === 'private_student'
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <aside className="fixed right-0 top-0 bottom-0 z-50 w-full sm:w-[440px] bg-white border-l border-gray-200 shadow-2xl flex flex-col">
+        <header className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <GraduationCap size={16} className="text-yellow-600" />
+              <h2 className="font-black text-gray-900 text-lg">{student.full_name}</h2>
+            </div>
+            <div className="text-[11px] text-gray-400 mt-0.5">{isPrivate ? 'Private student' : 'Course student'} · {course.short}</div>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700"><X size={20} /></button>
+        </header>
+
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+          {/* Info grid */}
+          <div className="grid grid-cols-2 gap-3">
+            {student.phone_number && <Info label="Phone" value={student.phone_number} />}
+            <Info label="Enrolled" value={new Date(student.enrollment_date).toLocaleDateString()} />
+            {student.monthly_fee_mad && <Info label="Monthly fee" value={`${student.monthly_fee_mad} MAD`} />}
+            {(student.total_paid_mad ?? 0) > 0 && <Info label="Total paid" value={`${student.total_paid_mad} MAD`} />}
+          </div>
+
+          {/* Payment status */}
+          <div>
+            <div className="text-[10px] uppercase font-bold tracking-[0.15em] text-gray-500 mb-1.5">Payment status</div>
+            <div className="flex gap-2">
+              {(['paid', 'pending', 'overdue'] as const).map(s => (
+                <button key={s} onClick={() => setPayStatus(s)}
+                  className={`flex-1 py-2 rounded-lg border text-[12px] font-bold capitalize ${payStatus === s ? 'bg-black text-yellow-400 border-black' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Next payment — private students only */}
+          {isPrivate && (
+            <div>
+              <div className="text-[10px] uppercase font-bold tracking-[0.15em] text-gray-500 mb-1 flex items-center gap-1">
+                <Calendar size={10} /> Next payment date
+              </div>
+              <input type="date" value={nextPayment} onChange={e => setNextPayment(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900" />
+            </div>
+          )}
+
+          {/* Notes */}
+          <div>
+            <div className="text-[10px] uppercase font-bold tracking-[0.15em] text-gray-500 mb-1">Notes</div>
+            <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={5}
+              placeholder="Level, schedule, goals, interests…"
+              className="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm resize-y focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900" />
+          </div>
+
+          {/* Quick links */}
+          <div className="flex gap-2">
+            {wa && <a href={wa} target="_blank" rel="noopener"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-bold hover:bg-green-700">
+              <MessageCircle size={12} /> WhatsApp</a>}
+            {student.phone_number && <a href={`tel:${student.phone_number}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-bold hover:bg-gray-800">
+              <Phone size={12} /> Call</a>}
+          </div>
+        </div>
+
+        <footer className="px-5 py-3 border-t border-gray-100 bg-gray-50 flex justify-between items-center">
+          <div className="text-[11px] text-gray-400">Student since {new Date(student.created_at).toLocaleDateString()}</div>
+          <button onClick={save} disabled={saving}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-yellow-400 text-black text-sm font-bold hover:bg-yellow-500 disabled:opacity-50">
+            {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Save
+          </button>
+        </footer>
+      </aside>
+    </>
+  )
+}
+
+/* ── helpers ── */
+function Tile({ icon: Icon, label, value, color }: { icon: any; label: string; value: number; color: string }) {
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-3.5">
+      <div className={`w-8 h-8 rounded-lg ${color} flex items-center justify-center mb-2`}><Icon size={14} /></div>
+      <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-gray-500 mb-0.5">{label}</div>
+      <div className="text-2xl font-black text-gray-900 tabular-nums">{value}</div>
+    </div>
+  )
+}
+function Info({ label, value }: { label: string; value: string | null | undefined }) {
+  if (!value) return null
+  return <div><div className="text-[10px] uppercase font-bold text-gray-400 mb-0.5">{label}</div><div className="text-gray-800 font-semibold truncate">{value}</div></div>
 }
