@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react'
 import {
   GraduationCap, Loader2, Search, RotateCcw, Calendar,
-  Users, BookOpen, AlertTriangle, CheckCircle2,
-  MessageCircle, Phone, X, Save,
+  Users, BookOpen, AlertTriangle,
+  MessageCircle, Phone, X, Save, Plus,
 } from 'lucide-react'
 import { fetchStudents, fetchStudentStats, patchStudent, type CrmStudent } from '@/lib/crm-db'
 import { getCourseMeta } from '@/lib/crm-types'
 import { whatsappLink } from '@/lib/leads-db'
 import { useStaff } from '@/lib/staff-context'
+import AddStudentDrawer from './AddStudentDrawer'
 
 export default function StudentsPage() {
   const [students, setStudents]   = useState<CrmStudent[]>([])
@@ -17,6 +18,7 @@ export default function StudentsPage() {
   const [query, setQuery]         = useState('')
   const [typeFilter, setType]     = useState<'all' | 'course_student' | 'private_student'>('all')
   const [selected, setSelected]   = useState<CrmStudent | null>(null)
+  const [addOpen, setAddOpen]     = useState(false)
   const [stats, setStats]         = useState({ total: 0, course: 0, private: 0, overdue: 0, revenue: 0 })
 
   async function load() {
@@ -52,8 +54,12 @@ export default function StudentsPage() {
           </h1>
           <p className="text-sm text-gray-500 mt-0.5">Paid leads converted to enrolled students.</p>
         </div>
-        <button onClick={load} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50">
-          <RotateCcw size={14} />
+        <button onClick={load} className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors">
+          <RotateCcw size={15} />
+        </button>
+        <button onClick={() => setAddOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black text-yellow-400 text-sm font-bold hover:bg-gray-900 transition-colors shadow-sm">
+          <Plus size={14} /> Add student
         </button>
       </header>
 
@@ -128,6 +134,9 @@ export default function StudentsPage() {
 
       {selected && (
         <StudentDrawer student={selected} onClose={() => setSelected(null)} onChange={() => { load(); setSelected(null) }} />
+      )}
+      {addOpen && (
+        <AddStudentDrawer onClose={() => setAddOpen(false)} onCreated={() => { load(); setAddOpen(false) }} />
       )}
     </div>
   )
