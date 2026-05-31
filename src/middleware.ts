@@ -1,39 +1,32 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
 /**
- * admin.inglizi.com — CRM middleware (rewrite, not redirect)
+ * admin.inglizi.com — CRM routing middleware
  *
- * Requests on admin.inglizi.com are internally rewritten to their
- * /sales/* equivalents. The browser URL stays clean (no /sales prefix).
+ * On the admin subdomain every request is internally rewritten so the
+ * CRM pages serve at clean paths. The browser URL never shows /sales.
  *
- *   admin.inglizi.com/          → /sales        (CRM dashboard)
- *   admin.inglizi.com/login     → /sales/login  (CRM login — email/pass)
- *   admin.inglizi.com/leads     → /sales/leads
- *   admin.inglizi.com/today     → /sales/today
- *   admin.inglizi.com/students  → /sales/students
- *   admin.inglizi.com/payments  → /sales/payments
- *   admin.inglizi.com/renewals  → /sales/renewals
- *   admin.inglizi.com/revenue   → /sales/revenue
- *   admin.inglizi.com/support   → /sales/support
- *   admin.inglizi.com/analytics → /admin/analytics  (founder)
- *   admin.inglizi.com/activity  → /admin/activity    (founder)
- *   admin.inglizi.com/settings  → /admin/settings    (founder)
- *   admin.inglizi.com/auth/*    → /auth/*  (Supabase auth callbacks)
+ * UNAUTHENTICATED flow (fixed):
+ *   1. admin.inglizi.com/          → rewrite → /sales (StaffGuard runs)
+ *   2. Not signed in               → StaffGuard → router.replace('/crm-login')
+ *   3. admin.inglizi.com/crm-login → rewrite → /crm-login  ← unprotected ✓
+ *   4. Enter code → sign in        → router.replace('/sales')
+ *   5. admin.inglizi.com/sales     → passes through → CRM dashboard ✓
  */
 
-const CRM_ROUTES: Record<string, string> = {
-  '/':           '/sales',
-  '/login':      '/crm-login',
-  '/leads':      '/sales/leads',
-  '/today':      '/sales/today',
-  '/students':   '/sales/students',
-  '/payments':   '/sales/payments',
-  '/renewals':   '/sales/renewals',
-  '/revenue':    '/sales/revenue',
-  '/support':    '/sales/support',
-  '/analytics':  '/admin/analytics',
-  '/activity':   '/admin/activity',
-  '/settings':   '/admin/settings',
+const ADMIN_ROUTES: Record<string, string> = {
+  '/':            '/sales',
+  '/crm-login':   '/crm-login',   // CRM access gate — unprotected
+  '/leads':       '/sales/leads',
+  '/today':       '/sales/today',
+  '/students':    '/sales/students',
+  '/payments':    '/sales/payments',
+  '/renewals':    '/sales/renewals',
+  '/revenue':     '/sales/revenue',
+  '/support':     '/sales/support',
+  '/analytics':   '/admin/analytics',
+  '/activity':    '/admin/activity',
+  '/settings':    '/admin/settings',
 }
 
 export function middleware(request: NextRequest) {
@@ -47,41 +40,41 @@ export function middleware(request: NextRequest) {
 
   if (!isAdmin) return NextResponse.next()
 
-  // Auth callbacks and Next.js internals pass through unchanged
+  // Next.js internals + auth callbacks pass through unchanged
   if (
-    pathname.startsWith('/auth') ||
     pathname.startsWith('/_next') ||
-    pathname.startsWith('/api')
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/auth')
   ) {
     return NextResponse.next()
   }
 
-  // Already on an internal CRM path (happens during server-component fetches)
-  if (pathname.startsWith('/sales') || pathname.startsWith('/admin')) {
+  // Already on an internal CRM path — pass through
+  if (pathname.startsWith('/sales') || pathname.startsWith('/admin') || pathname.startsWith('/crm-login')) {
     return NextResponse.next()
   }
 
-  // Exact match
-  const exact = CRM_ROUTES[pathname]
-  if (exact) {
+  // Exact match in route table
+  const target = ADMIN_ROUTES[pathname]
+  if (target) {
     const url = request.nextUrl.clone()
-    url.pathname = exact
+    url.pathname = target
     return NextResponse.rewrite(url)
   }
 
   // Prefix match for dynamic sub-paths (/leads?add=1, /support/123, etc.)
-  for (const [prefix, target] of Object.entries(CRM_ROUTES)) {
-    if (prefix !== '/' && pathname.startsWith(prefix + '/')) {
+  for (const [prefix, dest] of Object.entries(ADMIN_ROUTES)) {
+    if (prefix.length > 1 && pathname.startsWith(prefix + '/')) {
       const url = request.nextUrl.clone()
-      url.pathname = target + pathname.slice(prefix.length)
+      url.pathname = dest + pathname.slice(prefix.length)
       return NextResponse.rewrite(url)
     }
   }
 
-  // Fallback: unknown path → CRM dashboard
-  const fallback = request.nextUrl.clone()
-  fallback.pathname = '/sales'
-  return NextResponse.rewrite(fallback)
+  // Unknown path → CRM dashboard
+  const url = request.nextUrl.clone()
+  url.pathname = '/sales'
+  return NextResponse.rewrite(url)
 }
 
 export const config = {

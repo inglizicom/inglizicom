@@ -79,13 +79,12 @@ export default function StaffGuard({
 
   useEffect(() => {
     if (state === 'unauthenticated') {
-      // On admin.inglizi.com, redirect to the dedicated CRM login page
-      // (avoids the infinite-loop issue where /sales/login is inside the
-      //  StaffGuard-protected /sales/ route group).
       const host = typeof window !== 'undefined' ? window.location.hostname : ''
       const isAdminDomain = host === 'admin.inglizi.com' || host.startsWith('admin.localhost')
+      // On the admin domain always go to /crm-login (unprotected top-level page).
+      // On the main site go to the standard /login page.
       const loginPath = isAdminDomain
-        ? '/crm-login?next=' + encodeURIComponent(loginNext ?? '/sales')
+        ? '/crm-login'
         : '/login?next=' + encodeURIComponent(loginNext ?? '/sales')
       router.replace(loginPath)
     }
