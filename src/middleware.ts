@@ -23,7 +23,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 const CRM_ROUTES: Record<string, string> = {
   '/':           '/sales',
-  '/login':      '/sales/login',
+  '/login':      '/crm-login',
   '/leads':      '/sales/leads',
   '/today':      '/sales/today',
   '/students':   '/sales/students',
