@@ -4,8 +4,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import {
   Search, Plus, RotateCcw, MessageCircle, Phone,
-  Crown, ChevronDown, Loader2, AlertCircle,
-  Clock, LayoutGrid, Rows3,
+  Crown, ChevronDown, Loader2, AlertTriangle,
+  Clock, LayoutGrid, List, ChevronUp, ChevronsUpDown,
+  SlidersHorizontal, X,
 } from 'lucide-react'
 import {
   LEAD_STATUSES, LEAD_STATUS_META, normalizeStatus,
@@ -19,39 +20,50 @@ import { useStaff } from '@/lib/staff-context'
 import LeadDetailDrawer from './LeadDetailDrawer'
 import AddLeadModal from './AddLeadModal'
 
-/* ─── tiny helpers ─────────────────────────────────────────── */
-const todayStr  = () => new Date().toISOString().slice(0, 10)
-const in7days   = () => { const d = new Date(); d.setDate(d.getDate() + 7); return d.toISOString().slice(0, 10) }
+/* ─── helpers ──────────────────────────────────────────────── */
+const toDateStr = (d: Date) => d.toISOString().slice(0, 10)
+const todayStr  = () => toDateStr(new Date())
 
-type Group = 'overdue' | 'today' | 'upcoming' | 'none' | 'paid' | 'cancelled'
-
-function getGroup(l: SubscriptionLead): Group {
+type Urgency = 0 | 1 | 2 | 3 | 4 | 5   // 0 = most urgent
+function urgencyOf(l: SubscriptionLead): Urgency {
   const s = normalizeStatus(l.status)
-  if (s === 'paid' || s === 'converted')    return 'paid'
-  if (s === 'cancelled' || s === 'rejected') return 'cancelled'
+  if (s === 'cancelled' || s === 'rejected') return 5
+  if (s === 'paid'      || s === 'converted') return 4
   const d = l.next_followup_at?.slice(0, 10)
-  if (!d) return 'none'
   const t = todayStr()
-  if (d < t)       return 'overdue'
-  if (d === t)     return 'today'
-  if (d <= in7days()) return 'upcoming'
-  return 'none'
+  if (d && d < t)  return 0   // overdue
+  if (d && d === t) return 1  // today
+  if (d)           return 2   // upcoming
+  return 3                     // no date
 }
 
-const fmtDate = (s?: string | null) => !s ? '' : new Date(s).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
-const daysOld = (s: string) => { const d = Math.floor((Date.now() - new Date(s).getTime()) / 86_400_000); return d === 0 ? 'today' : `${d}d` }
+const isOverdue = (l: SubscriptionLead) => urgencyOf(l) === 0
+const isToday   = (l: SubscriptionLead) => urgencyOf(l) === 1
 
-/* Status indicator dot */
-const DOT: Record<string, string> = {
-  new: 'bg-gray-300', contacted: 'bg-blue-400', interested: 'bg-violet-400',
-  follow_up: 'bg-amber-400', confirmed: 'bg-emerald-500', paid: 'bg-emerald-600',
-  delayed: 'bg-orange-400', cancelled: 'bg-gray-200', vip: 'bg-rose-500',
-  converted: 'bg-emerald-600', rejected: 'bg-gray-200',
+const fmtDate = (s?: string | null) =>
+  !s ? '' : new Date(s).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+
+type SortField = 'urgency' | 'name' | 'status' | 'amount' | 'created'
+type SortDir   = 'asc' | 'desc'
+
+/* Status pill colors */
+const STATUS_PILL: Record<string, string> = {
+  new:        'bg-gray-100 text-gray-600',
+  contacted:  'bg-blue-50 text-blue-700',
+  interested: 'bg-violet-50 text-violet-700',
+  follow_up:  'bg-amber-50 text-amber-800',
+  confirmed:  'bg-emerald-50 text-emerald-800',
+  paid:       'bg-green-100 text-green-800',
+  delayed:    'bg-orange-50 text-orange-800',
+  cancelled:  'bg-gray-100 text-gray-400',
+  vip:        'bg-rose-50 text-rose-700',
+  converted:  'bg-green-100 text-green-800',
+  rejected:   'bg-gray-100 text-gray-400',
 }
 
-/* ══════════════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════
    PAGE
-══════════════════════════════════════════════════════════════ */
+══════════════════════════════════════════════ */
 export default function LeadsPage() {
   const staff = useStaff()
   const [leads,    setLeads]    = useState<SubscriptionLead[] | null>(null)
@@ -59,12 +71,14 @@ export default function LeadsPage() {
   const [query,    setQuery]    = useState('')
   const [stFilter, setStFilter] = useState<LeadStatus | ''>('')
   const [srcFilter,setSrcFilter]= useState('')
+  const [sortField,setSortField]= useState<SortField>('urgency')
+  const [sortDir,  setSortDir]  = useState<SortDir>('asc')
   const [view,     setView]     = useState<'list' | 'board'>('list')
   const [selected, setSelected] = useState<SubscriptionLead | null>(null)
   const [addOpen,  setAddOpen]  = useState(false)
   const [dragging, setDragging] = useState<string | null>(null)
 
-  const sp = useSearchParams()
+  const sp     = useSearchParams()
   const router = useRouter()
 
   useEffect(() => {
@@ -76,12 +90,14 @@ export default function LeadsPage() {
     setLoading(true); setLeads(await fetchAllLeads()); setLoading(false)
   }
 
+  /* source list */
   const sources = useMemo(() => {
     const s = new Set<string>()
     for (const l of leads ?? []) { const v = l.lead_source ?? l.source; if (v) s.add(v) }
     return [...s].sort()
   }, [leads])
 
+  /* filter */
   const filtered = useMemo(() => {
     if (!leads) return []
     const q = query.trim().toLowerCase()
@@ -96,26 +112,28 @@ export default function LeadsPage() {
     })
   }, [leads, query, stFilter, srcFilter])
 
-  const summary = useMemo(() => ({
-    total:    filtered.length,
-    overdue:  filtered.filter(l => getGroup(l) === 'overdue').length,
-    today:    filtered.filter(l => getGroup(l) === 'today').length,
-    hot:      filtered.filter(l => l.is_vip || ['confirmed','delayed'].includes(normalizeStatus(l.status))).length,
-  }), [filtered])
+  /* sort */
+  const sorted = useMemo(() => [...filtered].sort((a, b) => {
+    let v = 0
+    if (sortField === 'urgency') v = urgencyOf(a) - urgencyOf(b)
+    else if (sortField === 'name')   v = a.full_name.localeCompare(b.full_name)
+    else if (sortField === 'status') v = normalizeStatus(a.status).localeCompare(normalizeStatus(b.status))
+    else if (sortField === 'amount') v = (a.amount_mad ?? 0) - (b.amount_mad ?? 0)
+    else if (sortField === 'created') v = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    return sortDir === 'asc' ? v : -v
+  }), [filtered, sortField, sortDir])
 
-  /* grouped list */
-  const sections = useMemo(() => {
-    const g: Record<Group, SubscriptionLead[]> = { overdue:[], today:[], upcoming:[], none:[], paid:[], cancelled:[] }
-    for (const l of filtered) g[getGroup(l)].push(l)
-    return [
-      { key: 'overdue' as Group,  label: 'Overdue',        color: 'text-red-500',    dot: 'bg-red-400',    leads: g.overdue,    open: true  },
-      { key: 'today' as Group,    label: 'Today',           color: 'text-orange-500', dot: 'bg-orange-400', leads: g.today,      open: true  },
-      { key: 'upcoming' as Group, label: 'This week',       color: 'text-blue-500',   dot: 'bg-blue-400',   leads: g.upcoming,   open: true  },
-      { key: 'none' as Group,     label: 'Active',          color: 'text-gray-500',   dot: 'bg-gray-400',   leads: g.none,       open: true  },
-      { key: 'paid' as Group,     label: 'Paid',            color: 'text-emerald-600',dot: 'bg-emerald-500',leads: g.paid,       open: false },
-      { key: 'cancelled' as Group,label: 'Cancelled',       color: 'text-gray-400',   dot: 'bg-gray-300',   leads: g.cancelled,  open: false },
-    ].filter(s => s.leads.length > 0)
-  }, [filtered])
+  function toggleSort(field: SortField) {
+    if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortField(field); setSortDir('asc') }
+  }
+
+  /* counts */
+  const counts = useMemo(() => ({
+    total:   filtered.length,
+    overdue: filtered.filter(isOverdue).length,
+    today:   filtered.filter(isToday).length,
+  }), [filtered])
 
   /* kanban */
   const kanbanCols = useMemo(() => {
@@ -138,276 +156,445 @@ export default function LeadsPage() {
     try {
       if (next === 'vip') await patchLead(id, { is_vip: true } as any)
       else { await updateLeadStatus(id, next, staff.id); if (t.is_vip) await patchLead(id, { is_vip: false } as any) }
-      await logLeadEvent({ leadId: id, eventType: 'status_changed', title: `${LEAD_STATUS_META[prev]?.label} → ${LEAD_STATUS_META[next]?.label}` })
-      await logActivity({ action: 'lead_status_changed', entityType: 'lead', entityId: id, before: { status: prev }, after: { status: next } })
+      await logLeadEvent({ leadId: id, eventType: 'status_changed',
+        title: `${LEAD_STATUS_META[prev]?.label} → ${LEAD_STATUS_META[next]?.label}` })
+      await logActivity({ action: 'lead_status_changed', entityType: 'lead', entityId: id,
+        before: { status: prev }, after: { status: next } })
     } catch { load() }
   }
 
-  return (
-    <div className="h-screen flex flex-col bg-white">
+  const hasFilter = !!(query || stFilter || srcFilter)
 
-      {/* ── Header ──────────────────────────────────────── */}
-      <div className="flex-shrink-0 border-b border-gray-100 px-8 py-4">
+  return (
+    <div className="flex flex-col h-screen bg-gray-50">
+
+      {/* ══ TOP BAR ══════════════════════════════════════════ */}
+      <div className="flex-shrink-0 bg-white border-b border-gray-200 px-6 py-4">
+
+        {/* Row 1: Title + button */}
         <div className="flex items-center justify-between mb-3">
-          <div>
-            <h1 className="text-xl font-black text-gray-900">Leads</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-bold text-gray-900">Leads</h1>
             {!loading && (
-              <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-2">
-                <span>{summary.total} leads</span>
-                {summary.overdue > 0 && <span className="text-red-500 font-semibold">· {summary.overdue} overdue</span>}
-                {summary.today   > 0 && <span className="text-orange-500 font-semibold">· {summary.today} today</span>}
-                {summary.hot     > 0 && <span className="text-amber-600">· {summary.hot} hot</span>}
-              </p>
+              <div className="flex items-center gap-1.5">
+                <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md text-xs font-semibold tabular-nums">
+                  {counts.total}
+                </span>
+                {counts.overdue > 0 && (
+                  <span className="flex items-center gap-1 px-2 py-0.5 bg-red-100 text-red-700 rounded-md text-xs font-semibold">
+                    <AlertTriangle size={10} /> {counts.overdue} overdue
+                  </span>
+                )}
+                {counts.today > 0 && (
+                  <span className="flex items-center gap-1 px-2 py-0.5 bg-orange-100 text-orange-700 rounded-md text-xs font-semibold">
+                    <Clock size={10} /> {counts.today} today
+                  </span>
+                )}
+              </div>
             )}
           </div>
+
           <div className="flex items-center gap-2">
-            <button onClick={load} className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 transition-colors">
+            <button onClick={load}
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors">
               <RotateCcw size={14} />
             </button>
             <button onClick={() => setAddOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-black text-yellow-400 text-sm font-bold hover:bg-gray-900 transition-colors">
-              <Plus size={14} /> New lead
+              className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-black transition-colors">
+              <Plus size={15} /> New lead
             </button>
           </div>
         </div>
 
-        {/* Filters */}
+        {/* Row 2: Filters */}
         <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-            <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search…"
-              className="pl-8 pr-3 py-1.5 text-sm rounded-lg border border-gray-200 w-56 focus:outline-none focus:border-gray-400 bg-gray-50 focus:bg-white transition-colors placeholder:text-gray-400" />
+          {/* Search */}
+          <div className="relative w-64">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <input value={query} onChange={e => setQuery(e.target.value)}
+              placeholder="Search name, phone, source…"
+              className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400" />
+            {query && (
+              <button onClick={() => setQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700">
+                <X size={13} />
+              </button>
+            )}
           </div>
+
+          {/* Status */}
           <select value={stFilter} onChange={e => setStFilter(e.target.value as any)}
-            className="text-sm py-1.5 px-2 rounded-lg border border-gray-200 bg-gray-50 text-gray-600 focus:outline-none focus:border-gray-400 cursor-pointer">
+            className="text-sm py-2 pl-3 pr-7 border border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:border-gray-400 appearance-none cursor-pointer">
             <option value="">All statuses</option>
             {LEAD_STATUSES.filter(s => !['vip','converted','rejected'].includes(s)).map(s =>
               <option key={s} value={s}>{LEAD_STATUS_META[s].label}</option>
             )}
           </select>
+
+          {/* Source */}
           {sources.length > 0 && (
             <select value={srcFilter} onChange={e => setSrcFilter(e.target.value)}
-              className="text-sm py-1.5 px-2 rounded-lg border border-gray-200 bg-gray-50 text-gray-600 focus:outline-none focus:border-gray-400 cursor-pointer">
+              className="text-sm py-2 pl-3 pr-7 border border-gray-200 rounded-lg bg-white text-gray-700 focus:outline-none focus:border-gray-400 appearance-none cursor-pointer">
               <option value="">All sources</option>
               {sources.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           )}
-          {(query || stFilter || srcFilter) && (
+
+          {hasFilter && (
             <button onClick={() => { setQuery(''); setStFilter(''); setSrcFilter('') }}
-              className="text-xs text-gray-400 hover:text-gray-700 font-medium">Clear</button>
+              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 font-medium underline">
+              <X size={12} /> Clear
+            </button>
           )}
-          <div className="ml-auto flex gap-0.5 bg-gray-100 p-0.5 rounded-lg">
-            {(['list','board'] as const).map(v => (
-              <button key={v} onClick={() => setView(v)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold transition-all ${view === v ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}>
-                {v === 'list' ? <Rows3 size={12}/> : <LayoutGrid size={12}/>}
-                {v === 'list' ? 'List' : 'Board'}
-              </button>
-            ))}
+
+          {/* View toggle */}
+          <div className="ml-auto flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
+            <button onClick={() => setView('list')}
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold transition-colors ${
+                view === 'list' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-50'
+              }`}>
+              <List size={13} /> List
+            </button>
+            <button onClick={() => setView('board')}
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-semibold border-l border-gray-200 transition-colors ${
+                view === 'board' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:bg-gray-50'
+              }`}>
+              <LayoutGrid size={13} /> Board
+            </button>
           </div>
         </div>
       </div>
 
-      {/* ── Content ─────────────────────────────────────── */}
+      {/* ══ BODY ═════════════════════════════════════════════ */}
       <div className="flex-1 overflow-auto">
         {loading ? (
           <div className="flex items-center justify-center h-64">
-            <Loader2 size={20} className="animate-spin text-gray-300" />
+            <Loader2 size={24} className="animate-spin text-gray-300" />
           </div>
-        ) : filtered.length === 0 ? (
-          <EmptyState onAdd={() => setAddOpen(true)} hasFilter={!!(query || stFilter || srcFilter)}
-            onClear={() => { setQuery(''); setStFilter(''); setSrcFilter('') }} />
         ) : view === 'list' ? (
-          <div className="px-8 py-5 space-y-5">
-            {sections.map(({ key, ...rest }) => (
-              <Section key={key} {...rest} onSelect={setSelected} onMove={move} />
-            ))}
-          </div>
+          <ListView
+            leads={sorted}
+            hasFilter={hasFilter}
+            sortField={sortField} sortDir={sortDir}
+            onSort={toggleSort}
+            onSelect={setSelected}
+            onMove={move}
+            onClear={() => { setQuery(''); setStFilter(''); setSrcFilter('') }}
+            onAdd={() => setAddOpen(true)}
+          />
         ) : (
-          <div className="px-8 py-5 overflow-x-auto">
-            <div className="flex gap-3 min-w-max pb-4">
-              {LEAD_STATUSES.filter(s => !['converted','rejected'].includes(s)).map(s => (
-                <Col key={s} status={s} leads={kanbanCols[s]} onSelect={setSelected}
-                  onDrop={id => move(id, s)} dragging={dragging} setDragging={setDragging} />
-              ))}
-            </div>
-          </div>
+          <BoardView
+            cols={kanbanCols}
+            onSelect={setSelected}
+            onDrop={move}
+            dragging={dragging}
+            setDragging={setDragging}
+          />
         )}
       </div>
 
-      {selected && <LeadDetailDrawer lead={selected} onClose={() => setSelected(null)} onChange={async () => load()} />}
-      {addOpen   && <AddLeadModal onClose={() => setAddOpen(false)} onCreated={() => load()} />}
-    </div>
-  )
-}
-
-/* ══════════════════════════════════════════════════════════════
-   SECTION
-══════════════════════════════════════════════════════════════ */
-function Section({ label, color, dot, leads, open: defaultOpen, onSelect, onMove }: {
-  label: string; color: string; dot: string; leads: SubscriptionLead[]
-  open: boolean; onSelect: (l: SubscriptionLead) => void; onMove: (id: string, s: LeadStatus) => void
-}) {
-  const [open, setOpen] = useState(defaultOpen)
-  return (
-    <div>
-      <button onClick={() => setOpen(o => !o)} className="flex items-center gap-2 mb-1 w-full text-left group">
-        <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-        <span className={`text-[11px] font-bold uppercase tracking-[0.1em] ${color}`}>{label}</span>
-        <span className="text-[11px] text-gray-400 tabular-nums">{leads.length}</span>
-        <span className={`ml-auto text-gray-300 group-hover:text-gray-400 transition-colors text-xs`}>
-          {open ? '▲' : '▼'}
-        </span>
-      </button>
-
-      {open && (
-        <div className="border border-gray-100 rounded-xl overflow-hidden divide-y divide-gray-50">
-          {leads.map(l => <Row key={l.id} lead={l} onSelect={() => onSelect(l)} onMove={onMove} />)}
-        </div>
+      {selected && (
+        <LeadDetailDrawer lead={selected} onClose={() => setSelected(null)} onChange={async () => load()} />
+      )}
+      {addOpen && (
+        <AddLeadModal onClose={() => setAddOpen(false)} onCreated={() => load()} />
       )}
     </div>
   )
 }
 
-/* ══════════════════════════════════════════════════════════════
-   ROW
-══════════════════════════════════════════════════════════════ */
-function Row({ lead: l, onSelect, onMove }: {
-  lead: SubscriptionLead; onSelect: () => void; onMove: (id: string, s: LeadStatus) => void
+/* ══════════════════════════════════════════════
+   LIST VIEW
+══════════════════════════════════════════════ */
+function ListView({
+  leads, hasFilter, sortField, sortDir, onSort, onSelect, onMove, onClear, onAdd,
+}: {
+  leads: SubscriptionLead[]
+  hasFilter: boolean
+  sortField: SortField; sortDir: SortDir
+  onSort: (f: SortField) => void
+  onSelect: (l: SubscriptionLead) => void
+  onMove:   (id: string, s: LeadStatus) => void
+  onClear:  () => void
+  onAdd:    () => void
 }) {
-  const s       = normalizeStatus(l.status)
-  const g       = getGroup(l)
-  const wa      = whatsappLink(l.phone, `مرحبا ${l.full_name}`)
-  const src     = LEAD_SOURCES.find(x => x.id === (l.lead_source ?? l.source))
-  const course  = getCourseMeta(l.course)
-  const [dd, setDd] = useState(false)
-  const ddRef   = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!dd) return
-    const h = (e: MouseEvent) => { if (!ddRef.current?.contains(e.target as Node)) setDd(false) }
-    document.addEventListener('mousedown', h)
-    return () => document.removeEventListener('mousedown', h)
-  }, [dd])
-
-  const stripe = g === 'overdue' ? 'border-l-red-400' : g === 'today' ? 'border-l-orange-400' : 'border-l-transparent'
+  if (leads.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 gap-3">
+        <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+          <Search size={20} className="text-gray-400" />
+        </div>
+        <p className="font-semibold text-gray-700 text-sm">
+          {hasFilter ? 'No leads match your filters' : 'No leads yet'}
+        </p>
+        <p className="text-gray-400 text-xs">
+          {hasFilter
+            ? <button onClick={onClear} className="text-blue-600 underline">Clear filters</button>
+            : <button onClick={onAdd} className="text-blue-600 underline">Add your first lead →</button>
+          }
+        </p>
+      </div>
+    )
+  }
 
   return (
-    <div
-      onClick={onSelect}
-      className={`group flex items-center gap-4 px-4 py-3 bg-white hover:bg-gray-50 cursor-pointer border-l-2 transition-colors ${stripe}`}
-    >
-      {/* Name */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5 min-w-0">
-          {l.is_vip && <Crown size={11} className="text-yellow-500 flex-shrink-0" />}
-          <span className="font-semibold text-gray-900 text-sm truncate">{l.full_name}</span>
-          {src && <span className="text-gray-400 text-xs flex-shrink-0 hidden sm:inline">{src.emoji}</span>}
-        </div>
-        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-gray-400">
-          {l.phone && <span className="font-mono">{l.phone}</span>}
-          {l.course && !l.phone && <span>{course.short}</span>}
-          {l.city && <span>{l.city}</span>}
-        </div>
-      </div>
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse min-w-[900px]">
+        {/* Head */}
+        <thead>
+          <tr className="bg-gray-50 border-b border-gray-200">
+            <Th onClick={() => onSort('status')} active={sortField === 'status'} dir={sortDir} className="w-36">Status</Th>
+            <Th onClick={() => onSort('name')}   active={sortField === 'name'}   dir={sortDir}>Contact</Th>
+            <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 whitespace-nowrap">Phone</th>
+            <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 whitespace-nowrap hidden lg:table-cell">Source</th>
+            <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 whitespace-nowrap hidden lg:table-cell">Course</th>
+            <Th onClick={() => onSort('urgency')} active={sortField === 'urgency'} dir={sortDir} className="hidden xl:table-cell">Follow-up</Th>
+            <Th onClick={() => onSort('amount')}  active={sortField === 'amount'}  dir={sortDir} className="hidden xl:table-cell">Amount</Th>
+            <Th onClick={() => onSort('created')} active={sortField === 'created'} dir={sortDir} className="hidden xl:table-cell">Added</Th>
+            <th className="w-20" />
+          </tr>
+        </thead>
 
-      {/* Amount */}
-      {l.amount_mad ? (
-        <span className="text-sm font-bold text-gray-700 tabular-nums flex-shrink-0 hidden md:block">
-          {l.amount_mad.toLocaleString()} MAD
-        </span>
-      ) : <span className="hidden md:block w-16" />}
-
-      {/* Status dropdown */}
-      <div className="flex-shrink-0" onClick={e => e.stopPropagation()} ref={ddRef}>
-        <button onClick={() => setDd(o => !o)}
-          className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 transition-colors">
-          <span className={`w-2 h-2 rounded-full flex-shrink-0 ${DOT[s] ?? 'bg-gray-300'}`} />
-          <span className="hidden sm:inline font-medium">{LEAD_STATUS_META[s]?.short}</span>
-          <ChevronDown size={10} className="text-gray-300" />
-        </button>
-        {dd && (
-          <div className="absolute z-40 mt-1 bg-white border border-gray-200 rounded-xl shadow-xl w-44 py-1 overflow-hidden">
-            <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400 border-b border-gray-100">
-              Move to
-            </div>
-            {LEAD_STATUSES.filter(x => !['vip','converted','rejected'].includes(x)).map(x => (
-              <button key={x} onClick={() => { onMove(l.id, x); setDd(false) }}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 text-left transition-colors ${x === s ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
-                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${DOT[x]}`} />
-                {LEAD_STATUS_META[x].label}
-                {x === s && <span className="ml-auto text-[10px] text-gray-400">now</span>}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Follow-up */}
-      <div className="flex-shrink-0 w-16 hidden lg:block">
-        {l.next_followup_at && (
-          <span className={`text-xs flex items-center gap-1 ${g === 'overdue' ? 'text-red-500 font-semibold' : g === 'today' ? 'text-orange-500 font-semibold' : 'text-gray-400'}`}>
-            {g === 'overdue' && <AlertCircle size={10}/>}
-            {g === 'today' && <Clock size={10}/>}
-            {fmtDate(l.next_followup_at)}
-          </span>
-        )}
-      </div>
-
-      {/* Age */}
-      <span className="flex-shrink-0 text-[11px] text-gray-300 hidden xl:block w-10 text-right">
-        {daysOld(l.created_at)}
-      </span>
-
-      {/* Actions — hover only */}
-      <div className="flex-shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
-        onClick={e => e.stopPropagation()}>
-        {wa && (
-          <a href={wa} target="_blank" rel="noopener"
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors">
-            <MessageCircle size={13}/>
-          </a>
-        )}
-        {l.phone && (
-          <a href={`tel:${l.phone}`}
-            className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors">
-            <Phone size={13}/>
-          </a>
-        )}
-      </div>
+        {/* Body */}
+        <tbody className="divide-y divide-gray-100 bg-white">
+          {leads.map(l => <LeadRow key={l.id} lead={l} onSelect={() => onSelect(l)} onMove={onMove} />)}
+        </tbody>
+      </table>
     </div>
   )
 }
 
-/* ══════════════════════════════════════════════════════════════
-   BOARD
-══════════════════════════════════════════════════════════════ */
-function Col({ status, leads, onSelect, onDrop, dragging, setDragging }: {
+/* Column header with sort */
+function Th({ children, onClick, active, dir, className = '' }: {
+  children: React.ReactNode; onClick: () => void; active: boolean; dir: SortDir; className?: string
+}) {
+  return (
+    <th onClick={onClick}
+      className={`text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 cursor-pointer hover:text-gray-800 whitespace-nowrap select-none ${className}`}>
+      <span className="flex items-center gap-1">
+        {children}
+        {active
+          ? (dir === 'asc' ? <ChevronUp size={12}/> : <ChevronDown size={12}/>)
+          : <ChevronsUpDown size={12} className="opacity-30"/>}
+      </span>
+    </th>
+  )
+}
+
+/* ══════════════════════════════════════════════
+   LEAD ROW
+══════════════════════════════════════════════ */
+function LeadRow({ lead: l, onSelect, onMove }: {
+  lead: SubscriptionLead; onSelect: () => void; onMove: (id: string, s: LeadStatus) => void
+}) {
+  const status  = normalizeStatus(l.status)
+  const overdue = isOverdue(l)
+  const today   = isToday(l)
+  const wa      = whatsappLink(l.phone, `مرحبا ${l.full_name}`)
+  const src     = LEAD_SOURCES.find(s => s.id === (l.lead_source ?? l.source))
+  const course  = getCourseMeta(l.course)
+  const [ddOpen, setDdOpen] = useState(false)
+  const ddRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!ddOpen) return
+    const fn = (e: MouseEvent) => { if (!ddRef.current?.contains(e.target as Node)) setDdOpen(false) }
+    document.addEventListener('mousedown', fn); return () => document.removeEventListener('mousedown', fn)
+  }, [ddOpen])
+
+  /* Left border urgency stripe */
+  const stripe = overdue ? 'border-l-2 border-l-red-400' : today ? 'border-l-2 border-l-orange-400' : 'border-l-2 border-l-transparent'
+
+  const daysAgo = Math.floor((Date.now() - new Date(l.created_at).getTime()) / 86_400_000)
+
+  return (
+    <tr className={`group hover:bg-gray-50 cursor-pointer transition-colors ${stripe}`} onClick={onSelect}>
+      {/* Status */}
+      <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+        <div className="relative" ref={ddRef}>
+          <button onClick={() => setDdOpen(o => !o)}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold whitespace-nowrap transition-colors hover:opacity-80 ${STATUS_PILL[status] ?? 'bg-gray-100 text-gray-600'}`}>
+            {LEAD_STATUS_META[status]?.short ?? status}
+            <ChevronDown size={10} className="opacity-60" />
+          </button>
+          {ddOpen && (
+            <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-44 py-1.5 overflow-hidden">
+              <p className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">Move to</p>
+              {LEAD_STATUSES.filter(s => !['vip','converted','rejected'].includes(s)).map(s => (
+                <button key={s} onClick={() => { onMove(l.id, s); setDdOpen(false) }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-gray-50 transition-colors text-left ${s === status ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
+                  <span className={`w-2 h-2 rounded-full flex-shrink-0 ${DOT[s]}`} />
+                  {LEAD_STATUS_META[s].label}
+                  {s === status && <span className="ml-auto text-[10px] text-gray-400">current</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </td>
+
+      {/* Contact */}
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-2.5">
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${avatarColor(l.full_name)}`}>
+            {l.full_name[0]?.toUpperCase()}
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1">
+              {l.is_vip && <Crown size={11} className="text-yellow-500 flex-shrink-0" />}
+              <span className="text-sm font-semibold text-gray-900 truncate">{l.full_name}</span>
+            </div>
+            {l.city && <span className="text-xs text-gray-400">{l.city}</span>}
+          </div>
+        </div>
+      </td>
+
+      {/* Phone */}
+      <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+        {l.phone ? (
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm text-gray-700 font-mono">{l.phone}</span>
+            {wa && (
+              <a href={wa} target="_blank" rel="noopener"
+                className="w-6 h-6 flex items-center justify-center rounded text-green-600 hover:bg-green-50 transition-colors opacity-0 group-hover:opacity-100">
+                <MessageCircle size={13} />
+              </a>
+            )}
+          </div>
+        ) : <span className="text-gray-300 text-sm">—</span>}
+      </td>
+
+      {/* Source */}
+      <td className="px-4 py-3 hidden lg:table-cell">
+        {src ? (
+          <span className="flex items-center gap-1.5 text-xs text-gray-600 font-medium">
+            <span>{src.emoji}</span>{src.label}
+          </span>
+        ) : <span className="text-gray-300 text-sm">—</span>}
+      </td>
+
+      {/* Course */}
+      <td className="px-4 py-3 hidden lg:table-cell">
+        {l.course ? (
+          <span className="text-xs text-gray-600 font-medium">{course.short}</span>
+        ) : <span className="text-gray-300 text-sm">—</span>}
+      </td>
+
+      {/* Follow-up */}
+      <td className="px-4 py-3 hidden xl:table-cell">
+        {l.next_followup_at ? (
+          <span className={`flex items-center gap-1 text-xs font-semibold whitespace-nowrap ${
+            overdue ? 'text-red-600' : today ? 'text-orange-600' : 'text-gray-500'
+          }`}>
+            {overdue && <AlertTriangle size={11}/>}
+            {today   && <Clock size={11}/>}
+            {fmtDate(l.next_followup_at)}
+          </span>
+        ) : <span className="text-gray-300 text-sm">—</span>}
+      </td>
+
+      {/* Amount */}
+      <td className="px-4 py-3 hidden xl:table-cell">
+        {l.amount_mad ? (
+          <span className="text-sm font-semibold text-gray-700 tabular-nums">
+            {l.amount_mad.toLocaleString()} MAD
+          </span>
+        ) : <span className="text-gray-300 text-sm">—</span>}
+      </td>
+
+      {/* Added */}
+      <td className="px-4 py-3 hidden xl:table-cell">
+        <span className="text-xs text-gray-400 tabular-nums">
+          {daysAgo === 0 ? 'Today' : `${daysAgo}d ago`}
+        </span>
+      </td>
+
+      {/* Actions */}
+      <td className="px-4 py-3 text-right" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          {l.phone && (
+            <a href={`tel:${l.phone}`}
+              className="w-7 h-7 flex items-center justify-center rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+              <Phone size={13} />
+            </a>
+          )}
+          <button onClick={onSelect}
+            className="px-2.5 py-1 rounded text-xs font-semibold text-gray-500 hover:text-gray-800 hover:bg-gray-100 transition-colors whitespace-nowrap">
+            Open →
+          </button>
+        </div>
+      </td>
+    </tr>
+  )
+}
+
+/* Status dot for kanban */
+const DOT: Record<string, string> = {
+  new:'bg-gray-300', contacted:'bg-blue-400', interested:'bg-violet-400',
+  follow_up:'bg-amber-400', confirmed:'bg-emerald-500', paid:'bg-green-600',
+  delayed:'bg-orange-400', cancelled:'bg-gray-200', vip:'bg-rose-500',
+  converted:'bg-green-600', rejected:'bg-gray-200',
+}
+
+/* Avatar color */
+const AV = ['bg-blue-500','bg-violet-500','bg-emerald-500','bg-orange-500','bg-rose-500','bg-indigo-500','bg-teal-500','bg-amber-600']
+function avatarColor(s: string) {
+  let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0
+  return AV[h % AV.length]
+}
+
+/* ══════════════════════════════════════════════
+   BOARD VIEW
+══════════════════════════════════════════════ */
+function BoardView({ cols, onSelect, onDrop, dragging, setDragging }: {
+  cols: Record<LeadStatus, SubscriptionLead[]>
+  onSelect:    (l: SubscriptionLead) => void
+  onDrop:      (id: string, s: LeadStatus) => void
+  dragging:    string | null
+  setDragging: (id: string | null) => void
+}) {
+  const visible: LeadStatus[] = ['new','contacted','interested','follow_up','confirmed','paid','delayed','cancelled']
+  return (
+    <div className="flex gap-3 px-6 py-5 overflow-x-auto min-h-full">
+      {visible.map(s => (
+        <BoardCol key={s} status={s} leads={cols[s]}
+          onSelect={onSelect} onDrop={onDrop}
+          dragging={dragging} setDragging={setDragging} />
+      ))}
+    </div>
+  )
+}
+
+function BoardCol({ status, leads, onSelect, onDrop, dragging, setDragging }: {
   status: LeadStatus; leads: SubscriptionLead[]
-  onSelect: (l: SubscriptionLead) => void; onDrop: (id: string) => void
+  onSelect: (l: SubscriptionLead) => void; onDrop: (id: string, s: LeadStatus) => void
   dragging: string | null; setDragging: (id: string | null) => void
 }) {
   const [over, setOver] = useState(false)
   const meta = LEAD_STATUS_META[status]
   const totalMad = leads.reduce((s, l) => s + (l.amount_mad ?? 0), 0)
-
   return (
-    <div className={`w-60 flex-shrink-0 flex flex-col rounded-xl border ${over ? 'border-yellow-300 bg-yellow-50/20' : 'border-gray-100 bg-gray-50'} transition-colors`}
+    <div className={`w-60 flex-shrink-0 flex flex-col rounded-xl border transition-all ${
+      over ? 'border-gray-400 bg-gray-100' : 'border-gray-200 bg-gray-50'
+    }`}
       onDragOver={e => { e.preventDefault(); setOver(true) }}
       onDragLeave={() => setOver(false)}
-      onDrop={e => { e.preventDefault(); setOver(false); const id = e.dataTransfer.getData('text/plain'); if (id) onDrop(id) }}>
-      <div className="px-3 py-2.5 border-b border-gray-100 bg-white rounded-t-xl">
-        <div className="flex items-center gap-1.5">
-          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${DOT[status]}`} />
-          <span className="font-semibold text-sm text-gray-800">{meta.label}</span>
-          <span className="ml-auto text-xs text-gray-400 tabular-nums">{leads.length}</span>
+      onDrop={e => { e.preventDefault(); setOver(false); const id = e.dataTransfer.getData('text/plain'); if (id) onDrop(id, status) }}>
+
+      {/* Column head */}
+      <div className="px-3 py-3 bg-white rounded-t-xl border-b border-gray-100">
+        <div className="flex items-center gap-2">
+          <span className={`w-2 h-2 rounded-full ${DOT[status]}`} />
+          <span className="text-sm font-semibold text-gray-800">{meta.label}</span>
+          <span className="ml-auto text-xs text-gray-400 tabular-nums font-medium">{leads.length}</span>
         </div>
-        {totalMad > 0 && <div className="text-[10px] text-gray-400 mt-0.5 tabular-nums">{totalMad.toLocaleString()} MAD</div>}
+        {totalMad > 0 && <p className="text-[11px] text-gray-400 mt-0.5 tabular-nums">{totalMad.toLocaleString()} MAD</p>}
       </div>
-      <div className="p-2 flex flex-col gap-1.5 flex-1 min-h-[100px]">
-        {leads.length === 0 && <p className="text-xs text-gray-300 text-center py-6">Drop here</p>}
+
+      {/* Cards */}
+      <div className="p-2 flex flex-col gap-1.5 flex-1 min-h-[80px]">
+        {leads.length === 0 && <p className="text-[11px] text-gray-400 text-center py-4">Drop here</p>}
         {leads.map(l => (
-          <ColCard key={l.id} lead={l} onClick={() => onSelect(l)}
+          <BoardCard key={l.id} lead={l} onClick={() => onSelect(l)}
             onDragStart={() => setDragging(l.id)} onDragEnd={() => setDragging(null)}
             isDragging={dragging === l.id} />
         ))}
@@ -416,60 +603,38 @@ function Col({ status, leads, onSelect, onDrop, dragging, setDragging }: {
   )
 }
 
-function ColCard({ lead: l, onClick, onDragStart, onDragEnd, isDragging }: {
+function BoardCard({ lead: l, onClick, onDragStart, onDragEnd, isDragging }: {
   lead: SubscriptionLead; onClick: () => void
   onDragStart: () => void; onDragEnd: () => void; isDragging: boolean
 }) {
   const wa  = whatsappLink(l.phone, `مرحبا ${l.full_name}`)
-  const g   = getGroup(l)
   const src = LEAD_SOURCES.find(s => s.id === (l.lead_source ?? l.source))
+  const overdue = isOverdue(l); const today = isToday(l)
   return (
-    <div draggable onDragStart={e => { e.dataTransfer.setData('text/plain', l.id); e.dataTransfer.effectAllowed = 'move'; onDragStart() }} onDragEnd={onDragEnd}
-      onClick={onClick}
-      className={`bg-white border border-gray-100 rounded-lg p-2.5 cursor-grab active:cursor-grabbing hover:border-gray-300 hover:shadow-sm transition-all select-none ${isDragging ? 'opacity-40 scale-95' : ''}`}>
-      <div className="flex items-start gap-1 mb-1.5">
-        {l.is_vip && <Crown size={10} className="text-yellow-500 mt-0.5 flex-shrink-0"/>}
-        <span className="font-semibold text-[13px] text-gray-900 leading-snug">{l.full_name}</span>
-      </div>
-      {src && <div className="text-[11px] text-gray-400 mb-1.5">{src.emoji} {src.label}</div>}
-      {l.amount_mad && <div className="text-[11px] font-bold text-gray-600 tabular-nums mb-1.5">{l.amount_mad.toLocaleString()} MAD</div>}
-      {l.next_followup_at && (
-        <div className={`text-[11px] flex items-center gap-1 mb-1.5 ${g === 'overdue' ? 'text-red-500' : g === 'today' ? 'text-orange-500' : 'text-gray-400'}`}>
-          {g === 'overdue' && <AlertCircle size={9}/>}
-          {g === 'today' && <Clock size={9}/>}
-          {fmtDate(l.next_followup_at)}
-        </div>
-      )}
-      <div className="flex gap-1.5 pt-1.5 border-t border-gray-50" onClick={e => e.stopPropagation()}>
-        {wa && <a href={wa} target="_blank" rel="noopener" className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 hover:underline"><MessageCircle size={10}/>WA</a>}
-        {l.phone && <a href={`tel:${l.phone}`} className="text-[11px] text-blue-500 font-semibold flex items-center gap-1 hover:underline ml-auto"><Phone size={10}/></a>}
-      </div>
-    </div>
-  )
-}
+    <div draggable
+      onDragStart={e => { e.dataTransfer.setData('text/plain', l.id); e.dataTransfer.effectAllowed = 'move'; onDragStart() }}
+      onDragEnd={onDragEnd} onClick={onClick}
+      className={`bg-white border border-gray-200 rounded-lg p-3 cursor-grab active:cursor-grabbing hover:border-gray-400 hover:shadow-sm transition-all select-none ${isDragging ? 'opacity-40 scale-95' : ''}`}>
 
-/* ══════════════════════════════════════════════════════════════
-   EMPTY
-══════════════════════════════════════════════════════════════ */
-function EmptyState({ onAdd, hasFilter, onClear }: { onAdd: () => void; hasFilter: boolean; onClear: () => void }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-28 text-center px-8">
-      <div className="text-4xl mb-4">🔍</div>
-      {hasFilter ? (
-        <>
-          <p className="font-semibold text-gray-800 mb-1">No leads match</p>
-          <p className="text-sm text-gray-400 mb-4">Try adjusting or clearing your filters.</p>
-          <button onClick={onClear} className="text-sm font-semibold text-gray-500 underline hover:text-gray-800">Clear filters</button>
-        </>
-      ) : (
-        <>
-          <p className="font-semibold text-gray-800 mb-1">No leads yet</p>
-          <p className="text-sm text-gray-400 mb-5">Start tracking prospects from TikTok, Instagram, and WhatsApp.</p>
-          <button onClick={onAdd} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-black text-yellow-400 text-sm font-bold hover:bg-gray-900 transition-colors">
-            <Plus size={14}/> Add first lead
-          </button>
-        </>
+      <div className="flex items-start gap-1 mb-2">
+        {l.is_vip && <Crown size={10} className="text-yellow-500 mt-0.5 flex-shrink-0" />}
+        <span className="text-sm font-semibold text-gray-900 leading-snug">{l.full_name}</span>
+      </div>
+
+      {src && <p className="text-[11px] text-gray-400 mb-1">{src.emoji} {src.label}</p>}
+      {l.amount_mad && <p className="text-xs font-bold text-gray-700 tabular-nums mb-1.5">{l.amount_mad.toLocaleString()} MAD</p>}
+
+      {l.next_followup_at && (
+        <p className={`text-[11px] flex items-center gap-1 mb-2 ${overdue ? 'text-red-500 font-semibold' : today ? 'text-orange-500 font-semibold' : 'text-gray-400'}`}>
+          {overdue && <AlertTriangle size={9}/>} {today && <Clock size={9}/>}
+          {fmtDate(l.next_followup_at)}
+        </p>
       )}
+
+      <div className="flex gap-1.5 pt-2 border-t border-gray-100" onClick={e => e.stopPropagation()}>
+        {wa && <a href={wa} target="_blank" rel="noopener" className="text-[11px] text-emerald-600 font-semibold flex items-center gap-0.5 hover:underline"><MessageCircle size={10}/>WA</a>}
+        {l.phone && <a href={`tel:${l.phone}`} className="text-[11px] text-blue-500 font-semibold flex items-center gap-0.5 hover:underline ml-auto"><Phone size={10}/></a>}
+      </div>
     </div>
   )
 }
