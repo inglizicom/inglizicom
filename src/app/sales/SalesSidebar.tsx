@@ -9,6 +9,7 @@ import {
   LifeBuoy, Users, Menu, X, LogOut, Shield, ArrowUpRight, Plus, Wallet,
 } from 'lucide-react'
 import GlobalSearch from './GlobalSearch'
+import NotificationBell from './NotificationBell'
 import { useCrmBasePath, useIsAdminDomain } from '@/lib/use-crm-path'
 
 /**
@@ -209,6 +210,7 @@ export default function SalesSidebar({ userEmail, userRole, onSignOut }: Props) 
             >
               ← Site
             </Link>
+            <NotificationBell basePath={base || '/sales'} />
             {onSignOut && (
               <button
                 onClick={onSignOut}

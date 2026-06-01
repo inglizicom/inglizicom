@@ -19,6 +19,7 @@ import { logLeadEvent } from '@/lib/crm-db'
 import { useStaff } from '@/lib/staff-context'
 import LeadDetailDrawer from './LeadDetailDrawer'
 import AddLeadModal from './AddLeadModal'
+import StatusDropdown from './StatusDropdown'
 
 /* ─── helpers ──────────────────────────────────────────────── */
 const toDateStr = (d: Date) => d.toISOString().slice(0, 10)
@@ -392,14 +393,6 @@ function LeadRow({ lead: l, onSelect, onMove }: {
   const wa      = whatsappLink(l.phone, `مرحبا ${l.full_name}`)
   const src     = LEAD_SOURCES.find(s => s.id === (l.lead_source ?? l.source))
   const course  = getCourseMeta(l.course)
-  const [ddOpen, setDdOpen] = useState(false)
-  const ddRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!ddOpen) return
-    const fn = (e: MouseEvent) => { if (!ddRef.current?.contains(e.target as Node)) setDdOpen(false) }
-    document.addEventListener('mousedown', fn); return () => document.removeEventListener('mousedown', fn)
-  }, [ddOpen])
 
   /* Left border urgency stripe */
   const stripe = overdue ? 'border-l-2 border-l-red-400' : today ? 'border-l-2 border-l-orange-400' : 'border-l-2 border-l-transparent'
@@ -408,28 +401,9 @@ function LeadRow({ lead: l, onSelect, onMove }: {
 
   return (
     <tr className={`group hover:bg-gray-50 cursor-pointer transition-colors ${stripe}`} onClick={onSelect}>
-      {/* Status */}
+      {/* Status — portal dropdown (no overflow clipping) */}
       <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-        <div className="relative" ref={ddRef}>
-          <button onClick={() => setDdOpen(o => !o)}
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold whitespace-nowrap transition-colors hover:opacity-80 ${STATUS_PILL[status] ?? 'bg-gray-100 text-gray-600'}`}>
-            {LEAD_STATUS_META[status]?.short ?? status}
-            <ChevronDown size={10} className="opacity-60" />
-          </button>
-          {ddOpen && (
-            <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-44 py-1.5 overflow-hidden">
-              <p className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-400">Move to</p>
-              {LEAD_STATUSES.filter(s => !['vip','converted','rejected'].includes(s)).map(s => (
-                <button key={s} onClick={() => { onMove(l.id, s); setDdOpen(false) }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-gray-50 transition-colors text-left ${s === status ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
-                  <span className={`w-2 h-2 rounded-full flex-shrink-0 ${DOT[s]}`} />
-                  {LEAD_STATUS_META[s].label}
-                  {s === status && <span className="ml-auto text-[10px] text-gray-400">current</span>}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <StatusDropdown status={status} onMove={s => onMove(l.id, s)} />
       </td>
 
       {/* Contact */}
