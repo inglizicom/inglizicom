@@ -17,7 +17,7 @@ import { logActivity } from '@/lib/activity-log-db'
 import { logLeadEvent } from '@/lib/crm-db'
 import { useStaff } from '@/lib/staff-context'
 import LeadDetailDrawer from './LeadDetailDrawer'
-import AddLeadDrawer from './AddLeadDrawer'
+import AddLeadModal from './AddLeadModal'
 
 /* ─── tiny helpers ─────────────────────────────────────────── */
 const todayStr  = () => new Date().toISOString().slice(0, 10)
@@ -236,7 +236,7 @@ export default function LeadsPage() {
       </div>
 
       {selected && <LeadDetailDrawer lead={selected} onClose={() => setSelected(null)} onChange={async () => load()} />}
-      {addOpen   && <AddLeadDrawer onClose={() => setAddOpen(false)} onCreated={async () => load()} />}
+      {addOpen   && <AddLeadModal onClose={() => setAddOpen(false)} onCreated={() => load()} />}
     </div>
   )
 }

@@ -3,14 +3,14 @@
 import { useEffect, useState } from 'react'
 import {
   GraduationCap, Loader2, Search, RotateCcw, Calendar,
-  Users, BookOpen, AlertTriangle,
-  MessageCircle, Phone, X, Save, Plus,
+  Users, BookOpen, AlertTriangle, Plus, MessageCircle, Phone,
 } from 'lucide-react'
-import { fetchStudents, fetchStudentStats, patchStudent, type CrmStudent } from '@/lib/crm-db'
+import { fetchStudents, fetchStudentStats, type CrmStudent } from '@/lib/crm-db'
 import { getCourseMeta } from '@/lib/crm-types'
 import { whatsappLink } from '@/lib/leads-db'
 import { useStaff } from '@/lib/staff-context'
 import AddStudentDrawer from './AddStudentDrawer'
+import StudentDetailDrawer from './StudentDetailDrawer'
 
 export default function StudentsPage() {
   const [students, setStudents]   = useState<CrmStudent[]>([])
@@ -133,7 +133,7 @@ export default function StudentsPage() {
       )}
 
       {selected && (
-        <StudentDrawer student={selected} onClose={() => setSelected(null)} onChange={() => { load(); setSelected(null) }} />
+        <StudentDetailDrawer student={selected} onClose={() => setSelected(null)} onChange={() => { load(); setSelected(null) }} />
       )}
       {addOpen && (
         <AddStudentDrawer onClose={() => setAddOpen(false)} onCreated={() => { load(); setAddOpen(false) }} />
@@ -190,109 +190,6 @@ function StudentRow({ student: s, onSelect }: { student: CrmStudent; onSelect: (
         </div>
       </td>
     </tr>
-  )
-}
-
-/* ── StudentDrawer ── */
-function StudentDrawer({ student, onClose, onChange }: { student: CrmStudent; onClose: () => void; onChange: () => void }) {
-  const [nextPayment, setNextPayment] = useState(student.next_payment_date ?? '')
-  const [notes, setNotes]             = useState(student.notes ?? '')
-  const [payStatus, setPayStatus]     = useState(student.payment_status)
-  const [saving, setSaving]           = useState(false)
-
-  async function save() {
-    setSaving(true)
-    try {
-      await patchStudent(student.id, {
-        next_payment_date: nextPayment || null as any,
-        notes: notes || null,
-        payment_status: payStatus as any,
-      })
-      onChange()
-    } catch (err: any) { alert(err?.message) }
-    finally { setSaving(false) }
-  }
-
-  const wa = student.phone_number ? whatsappLink(student.phone_number, `مرحبا ${student.full_name}`) : null
-  const course = getCourseMeta(student.course)
-  const isPrivate = student.student_type === 'private_student'
-
-  return (
-    <>
-      <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <aside className="fixed right-0 top-0 bottom-0 z-50 w-full sm:w-[440px] bg-white border-l border-gray-200 shadow-2xl flex flex-col">
-        <header className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <GraduationCap size={16} className="text-yellow-600" />
-              <h2 className="font-black text-gray-900 text-lg">{student.full_name}</h2>
-            </div>
-            <div className="text-[11px] text-gray-400 mt-0.5">{isPrivate ? 'Private student' : 'Course student'} · {course.short}</div>
-          </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700"><X size={20} /></button>
-        </header>
-
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
-          {/* Info grid */}
-          <div className="grid grid-cols-2 gap-3">
-            {student.phone_number && <Info label="Phone" value={student.phone_number} />}
-            <Info label="Enrolled" value={new Date(student.enrollment_date).toLocaleDateString()} />
-            {student.monthly_fee_mad && <Info label="Monthly fee" value={`${student.monthly_fee_mad} MAD`} />}
-            {(student.total_paid_mad ?? 0) > 0 && <Info label="Total paid" value={`${student.total_paid_mad} MAD`} />}
-          </div>
-
-          {/* Payment status */}
-          <div>
-            <div className="text-[10px] uppercase font-bold tracking-[0.15em] text-gray-500 mb-1.5">Payment status</div>
-            <div className="flex gap-2">
-              {(['paid', 'pending', 'overdue'] as const).map(s => (
-                <button key={s} onClick={() => setPayStatus(s)}
-                  className={`flex-1 py-2 rounded-lg border text-[12px] font-bold capitalize ${payStatus === s ? 'bg-black text-yellow-400 border-black' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Next payment — private students only */}
-          {isPrivate && (
-            <div>
-              <div className="text-[10px] uppercase font-bold tracking-[0.15em] text-gray-500 mb-1 flex items-center gap-1">
-                <Calendar size={10} /> Next payment date
-              </div>
-              <input type="date" value={nextPayment} onChange={e => setNextPayment(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900" />
-            </div>
-          )}
-
-          {/* Notes */}
-          <div>
-            <div className="text-[10px] uppercase font-bold tracking-[0.15em] text-gray-500 mb-1">Notes</div>
-            <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={5}
-              placeholder="Level, schedule, goals, interests…"
-              className="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-sm resize-y focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900" />
-          </div>
-
-          {/* Quick links */}
-          <div className="flex gap-2">
-            {wa && <a href={wa} target="_blank" rel="noopener"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-600 text-white text-xs font-bold hover:bg-green-700">
-              <MessageCircle size={12} /> WhatsApp</a>}
-            {student.phone_number && <a href={`tel:${student.phone_number}`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-900 text-white text-xs font-bold hover:bg-gray-800">
-              <Phone size={12} /> Call</a>}
-          </div>
-        </div>
-
-        <footer className="px-5 py-3 border-t border-gray-100 bg-gray-50 flex justify-between items-center">
-          <div className="text-[11px] text-gray-400">Student since {new Date(student.created_at).toLocaleDateString()}</div>
-          <button onClick={save} disabled={saving}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-yellow-400 text-black text-sm font-bold hover:bg-yellow-500 disabled:opacity-50">
-            {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Save
-          </button>
-        </footer>
-      </aside>
-    </>
   )
 }
 

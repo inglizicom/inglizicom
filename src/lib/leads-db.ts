@@ -174,6 +174,8 @@ export async function createSubscriptionLead(input: CreateLeadInput): Promise<vo
     city:             input.city          ?? null,
     amount_mad:       input.amountMad     ?? null,
     source:           input.source        ?? null,
+    // lead_source mirrors source so the CRM can identify these as website submissions
+    lead_source:      input.source        ?? 'website',
     goal:             input.goal          ?? null,
     plan_interest:    input.planInterest  ?? null,
     test_score:       input.testScore     ?? null,
@@ -184,6 +186,8 @@ export async function createSubscriptionLead(input: CreateLeadInput): Promise<vo
     referrer:         input.referrer      ?? null,
     device:           input.device        ?? null,
     page_path:        input.pagePath      ?? null,
+    // All website form submissions are NOT archived
+    is_archived:      false,
   })
   if (error) throw new Error(error.message)
 }
@@ -217,12 +221,13 @@ export async function fetchLatestLeadAt(): Promise<string | null> {
 }
 
 export async function fetchAllLeads(
-  opts: { status?: LeadStatus; source?: string } = {},
+  opts: { status?: LeadStatus; source?: string; includeArchived?: boolean } = {},
 ): Promise<SubscriptionLead[]> {
   let q = supabase
     .from('subscription_leads')
     .select('*')
     .order('created_at', { ascending: false })
+  if (!opts.includeArchived) q = q.eq('is_archived', false)
   if (opts.status) q = q.eq('status', opts.status)
   if (opts.source) q = q.eq('source', opts.source)
   const { data, error } = await q
