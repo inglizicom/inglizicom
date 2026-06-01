@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   Settings as SettingsIcon, Loader2, Crown, UserCheck, UserMinus,
-  Search, Plus, RotateCcw, ShieldAlert, X,
+  Search, Plus, RotateCcw, ShieldAlert, X, Mail, Lock, User as UserIcon,
+  Eye, EyeOff, Copy, Check,
 } from 'lucide-react'
 import {
-  fetchStaff, searchProfiles, setProfileRole,
+  fetchStaff, searchProfiles, setProfileRole, createAssistant,
   ROLE_BADGE, type StaffRow, type StaffRole,
 } from '@/lib/staff-db'
 import { logActivity } from '@/lib/activity-log-db'
@@ -147,11 +148,11 @@ export default function SettingsPage() {
         )}
       </section>
 
-      {/* Promote search modal */}
+      {/* Add-assistant modal (create new OR promote existing) */}
       {showAdd && isFounder && (
-        <PromoteModal
+        <AddAssistantModal
           onClose={() => setShowAdd(false)}
-          onPromoted={async () => { setShowAdd(false); await load() }}
+          onDone={async () => { await load() }}
         />
       )}
     </div>
@@ -234,9 +235,203 @@ function RoleBadge({ role }: { role: StaffRole }) {
   )
 }
 
-/* ───────────── promote modal ───────────── */
+/* ───────────── add-assistant modal ───────────── */
 
-function PromoteModal({ onClose, onPromoted }: { onClose: () => void; onPromoted: () => Promise<void> }) {
+type AddTab = 'create' | 'promote'
+
+function AddAssistantModal({ onClose, onDone }: { onClose: () => void; onDone: () => Promise<void> }) {
+  const [tab, setTab] = useState<AddTab>('create')
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
+          <header className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 className="font-bold text-gray-900">Add assistant</h3>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-700"><X size={18} /></button>
+          </header>
+
+          {/* Tabs */}
+          <div className="px-5 pt-4">
+            <div className="inline-flex rounded-lg bg-gray-100 p-0.5 text-[12px] font-bold">
+              <button
+                onClick={() => setTab('create')}
+                className={`px-3 py-1.5 rounded-md transition ${tab === 'create' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                Create new
+              </button>
+              <button
+                onClick={() => setTab('promote')}
+                className={`px-3 py-1.5 rounded-md transition ${tab === 'promote' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                Promote existing
+              </button>
+            </div>
+          </div>
+
+          {tab === 'create'
+            ? <CreatePanel onDone={onDone} onClose={onClose} />
+            : <PromotePanel onDone={onDone} />}
+        </div>
+      </div>
+    </>
+  )
+}
+
+/* Create a brand-new assistant with email + password. */
+function CreatePanel({ onDone, onClose }: { onDone: () => Promise<void>; onClose: () => void }) {
+  const [email, setEmail]       = useState('')
+  const [fullName, setFullName] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPw, setShowPw]     = useState(false)
+  const [busy, setBusy]         = useState(false)
+  const [error, setError]       = useState<string | null>(null)
+  const [done, setDone]         = useState(false)
+  const [copied, setCopied]     = useState(false)
+
+  function genPassword() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
+    let out = ''
+    const arr = new Uint32Array(14)
+    crypto.getRandomValues(arr)
+    for (const n of arr) out += chars[n % chars.length]
+    setPassword(out)
+    setShowPw(true)
+  }
+
+  async function submit() {
+    setError(null)
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) { setError('Enter a valid email address.'); return }
+    if (password.length < 8) { setError('Password must be at least 8 characters.'); return }
+    setBusy(true)
+    try {
+      const { id } = await createAssistant(email.trim(), password, fullName.trim() || undefined)
+      await logActivity({
+        action:     'profile_role_changed',
+        entityType: 'profile',
+        entityId:   id,
+        before:     { role: 'student' },
+        after:      { role: 'assistant' },
+        metadata:   { email: email.trim(), created: true },
+      })
+      await onDone()
+      setDone(true)
+    } catch (err: any) {
+      setError(err?.message ?? 'Could not create assistant.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (done) {
+    return (
+      <div className="p-5">
+        <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-sm">
+          <div className="font-bold text-green-800 flex items-center gap-1.5 mb-2">
+            <Check size={15} /> Assistant created
+          </div>
+          <p className="text-green-700 mb-3">
+            They can sign in right away at the CRM login with these credentials. Share them securely —
+            the password is shown only now.
+          </p>
+          <div className="bg-white border border-green-200 rounded-lg p-3 font-mono text-[12px] text-gray-800 space-y-1">
+            <div><span className="text-gray-400">email:</span> {email.trim()}</div>
+            <div className="flex items-center gap-2">
+              <span><span className="text-gray-400">password:</span> {password}</span>
+              <button
+                onClick={() => { navigator.clipboard.writeText(`${email.trim()} / ${password}`); setCopied(true); setTimeout(() => setCopied(false), 1500) }}
+                className="text-gray-400 hover:text-gray-700"
+                title="Copy email + password"
+              >
+                {copied ? <Check size={13} className="text-green-600" /> : <Copy size={13} />}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="flex justify-end mt-4">
+          <button onClick={onClose} className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800">
+            Done
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="p-5">
+      <p className="text-sm text-gray-500 mb-4">
+        Provision an account with a custom email and password — no sign-up needed on their end.
+        Assistants get leads, payments, support, and renewals, but not founder-only sections.
+      </p>
+
+      <label className="block text-[12px] font-bold text-gray-700 mb-1">Full name <span className="text-gray-400 font-normal">(optional)</span></label>
+      <div className="relative mb-3">
+        <UserIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          value={fullName}
+          onChange={e => setFullName(e.target.value)}
+          placeholder="Fatima Ezzahra"
+          className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-white border border-gray-200 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+        />
+      </div>
+
+      <label className="block text-[12px] font-bold text-gray-700 mb-1">Email</label>
+      <div className="relative mb-3">
+        <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          autoFocus
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          placeholder="assistant@example.com"
+          className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-white border border-gray-200 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+        />
+      </div>
+
+      <div className="flex items-center justify-between mb-1">
+        <label className="block text-[12px] font-bold text-gray-700">Password</label>
+        <button onClick={genPassword} className="text-[11px] font-bold text-blue-600 hover:text-blue-700">Generate</button>
+      </div>
+      <div className="relative mb-1">
+        <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          type={showPw ? 'text' : 'password'}
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          placeholder="At least 8 characters"
+          className="w-full pl-9 pr-10 py-2.5 rounded-lg bg-white border border-gray-200 text-sm font-mono focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+        />
+        <button
+          onClick={() => setShowPw(v => !v)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700"
+          tabIndex={-1}
+        >
+          {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+        </button>
+      </div>
+
+      {error && <div className="mt-3 text-[12px] text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</div>}
+
+      <div className="flex justify-end gap-2 mt-5">
+        <button onClick={onClose} className="px-4 py-2 rounded-lg bg-white border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50">
+          Cancel
+        </button>
+        <button
+          onClick={submit}
+          disabled={busy}
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-black text-white text-sm font-semibold hover:bg-zinc-800 disabled:opacity-50"
+        >
+          {busy ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
+          Create assistant
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* Promote an already signed-up user (the original flow). */
+function PromotePanel({ onDone }: { onDone: () => Promise<void> }) {
   const [query, setQuery]     = useState('')
   const [results, setResults] = useState<StaffRow[] | null>(null)
   const [searching, setSearch]= useState(false)
@@ -264,7 +459,7 @@ function PromoteModal({ onClose, onPromoted }: { onClose: () => void; onPromoted
         after:      { role: 'assistant' },
         metadata:   { email: row.email },
       })
-      await onPromoted()
+      await onDone()
     } catch (err: any) {
       alert('Could not promote: ' + (err?.message ?? 'unknown'))
     } finally {
@@ -273,64 +468,52 @@ function PromoteModal({ onClose, onPromoted }: { onClose: () => void; onPromoted
   }
 
   return (
-    <>
-      <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
-          <header className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 className="font-bold text-gray-900">Add assistant</h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-700"><X size={18} /></button>
-          </header>
-          <div className="p-5">
-            <p className="text-sm text-gray-500 mb-3">
-              Search any signed-up user by email. Promoting them gives access to leads, payments,
-              support, and renewals — but not founder-only sections (Insights, System).
-            </p>
-            <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                autoFocus
-                placeholder="email@example.com"
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-white border border-gray-200 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
-              />
-            </div>
-
-            <div className="mt-3 max-h-72 overflow-y-auto -mx-1">
-              {searching && (
-                <div className="py-6 flex items-center justify-center text-gray-400">
-                  <Loader2 size={16} className="animate-spin" />
-                </div>
-              )}
-              {!searching && results && results.length === 0 && (
-                <div className="py-6 text-center text-xs text-gray-400">No profiles match &quot;{query}&quot;.</div>
-              )}
-              {!searching && (results ?? []).map(row => (
-                <div key={row.id} className="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-gray-50">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 text-gray-700 flex items-center justify-center text-[12px] font-black">
-                    {(row.email?.[0] ?? '?').toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[13px] font-semibold text-gray-900 truncate">{row.email}</div>
-                    <div className="text-[11px] text-gray-400 truncate">{row.full_name ?? '—'}</div>
-                  </div>
-                  <RoleBadge role={row.role} />
-                  {row.role !== 'founder' && row.role !== 'assistant' && (
-                    <button
-                      onClick={() => promote(row)}
-                      disabled={savingId === row.id}
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-yellow-400 text-black text-[11px] font-bold hover:bg-yellow-500 disabled:opacity-50"
-                    >
-                      {savingId === row.id ? <Loader2 size={11} className="animate-spin" /> : 'Promote'}
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+    <div className="p-5">
+      <p className="text-sm text-gray-500 mb-3">
+        Search a user who already signed up, then promote them to assistant.
+      </p>
+      <div className="relative">
+        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          autoFocus
+          placeholder="email@example.com"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-white border border-gray-200 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900"
+        />
       </div>
-    </>
+
+      <div className="mt-3 max-h-72 overflow-y-auto -mx-1">
+        {searching && (
+          <div className="py-6 flex items-center justify-center text-gray-400">
+            <Loader2 size={16} className="animate-spin" />
+          </div>
+        )}
+        {!searching && results && results.length === 0 && (
+          <div className="py-6 text-center text-xs text-gray-400">No profiles match &quot;{query}&quot;.</div>
+        )}
+        {!searching && (results ?? []).map(row => (
+          <div key={row.id} className="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-gray-50">
+            <div className="w-8 h-8 rounded-full bg-gray-100 text-gray-700 flex items-center justify-center text-[12px] font-black">
+              {(row.email?.[0] ?? '?').toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-semibold text-gray-900 truncate">{row.email}</div>
+              <div className="text-[11px] text-gray-400 truncate">{row.full_name ?? '—'}</div>
+            </div>
+            <RoleBadge role={row.role} />
+            {row.role !== 'founder' && row.role !== 'assistant' && (
+              <button
+                onClick={() => promote(row)}
+                disabled={savingId === row.id}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-yellow-400 text-black text-[11px] font-bold hover:bg-yellow-500 disabled:opacity-50"
+              >
+                {savingId === row.id ? <Loader2 size={11} className="animate-spin" /> : 'Promote'}
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }

@@ -52,6 +52,30 @@ export async function searchProfiles(query: string): Promise<StaffRow[]> {
   } as StaffRow))
 }
 
+/**
+ * Create a brand-new assistant account (custom email + password) — the person
+ * does NOT need to have signed up first. Founder-only; enforced server-side.
+ * Returns the new profile id. Logging is done by the caller.
+ */
+export async function createAssistant(
+  email: string,
+  password: string,
+  fullName?: string,
+): Promise<{ id: string }> {
+  const { data: { session } } = await supabase.auth.getSession()
+  const token = session?.access_token
+  if (!token) throw new Error('Your session expired — please sign in again.')
+
+  const res = await fetch('/api/admin/create-assistant', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body:    JSON.stringify({ email, password, full_name: fullName }),
+  })
+  const json = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(json?.error ?? 'Could not create assistant.')
+  return { id: json.id as string }
+}
+
 /** Set the role on a profile. Logging is done by the caller. */
 export async function setProfileRole(id: string, role: StaffRole): Promise<void> {
   // is_admin is the legacy flag — we keep it in sync with founder for back-compat
