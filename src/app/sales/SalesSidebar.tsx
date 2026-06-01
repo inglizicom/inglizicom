@@ -188,8 +188,13 @@ export default function SalesSidebar({ userEmail, userRole, onSignOut }: Props) 
           )}
         </nav>
 
+        {/* Notification bell — full-width row so it's always visible */}
+        <div className="px-3 pb-1 border-t border-zinc-900 pt-3">
+          <NotificationBell basePath={base || '/sales'} />
+        </div>
+
         {/* User card */}
-        <div className="px-3 py-3 border-t border-zinc-900">
+        <div className="px-3 pb-3">
           <div className="flex items-center gap-2.5 px-3 py-2 rounded-md hover:bg-zinc-900 transition-colors">
             <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-yellow-400 font-black text-sm">
               {(userEmail?.[0] ?? '?').toUpperCase()}
@@ -210,7 +215,6 @@ export default function SalesSidebar({ userEmail, userRole, onSignOut }: Props) 
             >
               ← Site
             </Link>
-            <NotificationBell basePath={base || '/sales'} />
             {onSignOut && (
               <button
                 onClick={onSignOut}
