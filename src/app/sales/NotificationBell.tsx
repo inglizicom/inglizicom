@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Bell, X, MessageCircle, ExternalLink, Clock } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { supabase } from '@/lib/supabase'
-import { whatsappLink, LEAD_STATUS_META, normalizeStatus } from '@/lib/leads-db'
+import { whatsappLink, LEAD_STATUS_META, normalizeStatus, NON_LEAD_PLAN_IN, isRealLead } from '@/lib/leads-db'
 import { LEAD_SOURCES } from '@/lib/crm-types'
 import Link from 'next/link'
 
@@ -38,6 +38,7 @@ export default function NotificationBell({ basePath = '/sales' }: { basePath?: s
       .from('subscription_leads')
       .select('id,full_name,phone,source,lead_source,plan_id,amount_mad,status,created_at')
       .eq('is_archived', false)
+      .not('plan_id', 'in', NON_LEAD_PLAN_IN)   // only real plan selections
       .order('created_at', { ascending: false })
       .limit(50)
     const rows = (data ?? []) as Lead[]
@@ -51,6 +52,7 @@ export default function NotificationBell({ basePath = '/sales' }: { basePath?: s
     const ch = supabase.channel('notif-leads')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'subscription_leads' }, payload => {
         const lead = payload.new as Lead
+        if (!isRealLead(lead.plan_id)) return   // ignore test-takers / inquiries
         setLeads(prev => [lead, ...prev].slice(0, 50))
         setUnseenIds(prev => new Set([...prev, lead.id]))
       })
@@ -58,11 +60,19 @@ export default function NotificationBell({ basePath = '/sales' }: { basePath?: s
     return () => { supabase.removeChannel(ch) }
   }, [])
 
-  /* Open panel using portal — position to the right of the button */
+  /* Open panel using portal — to the right of the button. The button sits at
+   * the bottom of the sidebar, so anchor the panel's BOTTOM to the button and
+   * let it grow upward; that keeps the whole panel on-screen instead of being
+   * clipped off the bottom of the viewport. */
   function openPanel() {
     if (!btnRef.current) return
-    const r  = btnRef.current.getBoundingClientRect()
-    setPanelPos({ position: 'fixed', top: r.top, left: r.right + 8, zIndex: 99999 })
+    const r = btnRef.current.getBoundingClientRect()
+    setPanelPos({
+      position: 'fixed',
+      bottom:   Math.max(16, window.innerHeight - r.bottom),
+      left:     r.right + 8,
+      zIndex:   99999,
+    })
     setOpen(true)
   }
 

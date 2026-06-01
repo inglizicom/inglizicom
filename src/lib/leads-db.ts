@@ -220,12 +220,24 @@ export async function fetchLatestLeadAt(): Promise<string | null> {
   return data.created_at
 }
 
+/** plan_id values that are NOT real sales leads:
+ *  - 'test_completed' → anonymous level-test takers
+ *  - 'inquiry'        → clicked "start" but never chose a plan or paid
+ *  The CRM hides these so only people who actually chose a plan show up. */
+export const NON_LEAD_PLAN_IDS = ['test_completed', 'inquiry']
+/** PostgREST value for `.not('plan_id', 'in', NON_LEAD_PLAN_IN)`. */
+export const NON_LEAD_PLAN_IN = `("${NON_LEAD_PLAN_IDS.join('","')}")`
+/** True when a lead represents a real plan selection (not a test/inquiry). */
+export const isRealLead = (planId: string | null | undefined): boolean =>
+  !!planId && !NON_LEAD_PLAN_IDS.includes(planId)
+
 export async function fetchAllLeads(
   opts: { status?: LeadStatus; source?: string; includeArchived?: boolean } = {},
 ): Promise<SubscriptionLead[]> {
   let q = supabase
     .from('subscription_leads')
     .select('*')
+    .not('plan_id', 'in', NON_LEAD_PLAN_IN)   // only real plan selections (no tests/inquiries)
     .order('created_at', { ascending: false })
   if (!opts.includeArchived) q = q.eq('is_archived', false)
   if (opts.status) q = q.eq('status', opts.status)
