@@ -474,3 +474,198 @@ export async function fetchTeamOverview(): Promise<TeamMemberStat[]> {
 
   return [...map.values()].sort((a, b) => b.total - a.total)
 }
+
+/* ═══════════════════════════════════════════════════════════════
+ * OWNER BUSINESS METRICS
+ * ═══════════════════════════════════════════════════════════════
+ *
+ * Revenue source of truth = crm_payments WHERE payment_status = 'paid'.
+ * Pending / confirmed / interested leads are NEVER counted as revenue.
+ * Refunded payments must have payment_status changed to anything other
+ * than 'paid' — they are then automatically excluded from all totals.
+ *
+ * Every revenue entry is traceable to: payment, lead, student, assistant,
+ * course, and payment date.
+ * ─────────────────────────────────────────────────────────────── */
+
+export interface RevenueBreakdown {
+  label: string
+  mad:   number
+  count: number  // number of payments
+}
+
+export interface FunnelStep {
+  label:   string
+  count:   number
+  pct:     number   // percentage of the previous step (first step = 100%)
+  cumPct:  number   // percentage of total leads
+}
+
+export interface OwnerMetrics {
+  /* ── Revenue totals ───────────────────────────────────────── */
+  revenueTotal:     number
+  revenueToday:     number
+  revenueThisWeek:  number
+  revenueThisMonth: number
+  revenueThisYear:  number
+
+  /* ── Revenue breakdowns ───────────────────────────────────── */
+  revenueByMonth:     { month: string; mad: number }[]  // last 12 months
+  revenueByCourse:    RevenueBreakdown[]
+  revenueBySource:    RevenueBreakdown[]
+  revenueByAssistant: RevenueBreakdown[]
+
+  /* ── Conversion funnel ────────────────────────────────────── */
+  funnel: FunnelStep[]   // [Total → Contacted → Confirmed → Paid]
+
+  /* ── Per-unit averages ────────────────────────────────────── */
+  avgRevenuePerStudent: number
+  avgRevenuePerLead:    number
+
+  /* ── Top performers ───────────────────────────────────────── */
+  topCourse:    string | null
+  topSource:    string | null
+  topAssistant: string | null
+}
+
+export async function fetchOwnerMetrics(): Promise<OwnerMetrics> {
+  const now       = new Date()
+  const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0)
+  const weekStart  = new Date(now); weekStart.setDate(now.getDate() - now.getDay()); weekStart.setHours(0,0,0,0)
+  const monthStart = new Date(now); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0)
+  const yearStart  = new Date(now.getFullYear(), 0, 1)
+  const year12Ago  = new Date(now); year12Ago.setMonth(now.getMonth() - 11); year12Ago.setDate(1); year12Ago.setHours(0,0,0,0)
+
+  // ── Parallel queries ────────────────────────────────────────
+  const [paymentsRes, leadsRes] = await Promise.all([
+    // All paid CRM payments with lead + assistant joins
+    supabase
+      .from('crm_payments')
+      .select(`
+        amount_mad, payment_date, created_at, course_or_service,
+        subscription_leads!crm_payments_lead_id_fkey ( source, lead_source ),
+        profiles!crm_payments_added_by_id_fkey ( email, full_name )
+      `)
+      .eq('payment_status', 'paid'),
+
+    // All real plan leads for funnel
+    supabase
+      .from('subscription_leads')
+      .select('status')
+      .eq('is_archived', false)
+      .not('plan_id', 'in', '("test_completed","inquiry")'),
+  ])
+
+  type PaymentRow = {
+    amount_mad:   number | null
+    payment_date: string | null
+    created_at:   string
+    course_or_service: string | null
+    subscription_leads: { source: string | null; lead_source: string | null } | { source: string | null; lead_source: string | null }[] | null
+    profiles: { email: string | null; full_name: string | null } | { email: string | null; full_name: string | null }[] | null
+  }
+  const payments = (paymentsRes.data ?? []) as unknown as PaymentRow[]
+
+  const getLeadData = (row: PaymentRow) =>
+    Array.isArray(row.subscription_leads) ? row.subscription_leads[0] ?? null : row.subscription_leads
+  const getProfile  = (row: PaymentRow) =>
+    Array.isArray(row.profiles) ? row.profiles[0] ?? null : row.profiles
+
+  const leads = (leadsRes.data ?? []) as Array<{ status: string }>
+
+  // ── Revenue totals ──────────────────────────────────────────
+  let revenueTotal = 0, revenueToday = 0, revenueThisWeek = 0, revenueThisMonth = 0, revenueThisYear = 0
+
+  // ── Revenue breakdowns ──────────────────────────────────────
+  const byCourse    = new Map<string, { mad: number; count: number }>()
+  const bySource    = new Map<string, { mad: number; count: number }>()
+  const byAssistant = new Map<string, { mad: number; count: number }>()
+  const byMonth     = new Map<string, number>()
+
+  // Seed last 12 months
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(year12Ago); d.setMonth(d.getMonth() + i)
+    byMonth.set(monthKey(d), 0)
+  }
+
+  for (const p of payments) {
+    const mad    = Number(p.amount_mad ?? 0)
+    const date   = p.payment_date ? new Date(p.payment_date) : new Date(p.created_at)
+    const mKey   = monthKey(date)
+
+    revenueTotal += mad
+    if (date >= todayStart)  revenueToday     += mad
+    if (date >= weekStart)   revenueThisWeek  += mad
+    if (date >= monthStart)  revenueThisMonth += mad
+    if (date >= yearStart)   revenueThisYear  += mad
+
+    // By month (last 12)
+    if (byMonth.has(mKey)) byMonth.set(mKey, (byMonth.get(mKey) ?? 0) + mad)
+
+    // By course
+    const course = p.course_or_service ?? 'Unknown'
+    const bc = byCourse.get(course) ?? { mad: 0, count: 0 }
+    byCourse.set(course, { mad: bc.mad + mad, count: bc.count + 1 })
+
+    // By source
+    const lead = getLeadData(p)
+    const src = lead?.lead_source ?? lead?.source ?? 'Direct'
+    const bs = bySource.get(src) ?? { mad: 0, count: 0 }
+    bySource.set(src, { mad: bs.mad + mad, count: bs.count + 1 })
+
+    // By assistant
+    const prof = getProfile(p)
+    const asst = prof?.full_name?.split(' ')[0] ?? prof?.email?.split('@')[0] ?? 'Unknown'
+    const ba = byAssistant.get(asst) ?? { mad: 0, count: 0 }
+    byAssistant.set(asst, { mad: ba.mad + mad, count: ba.count + 1 })
+  }
+
+  const toBreakdown = (m: Map<string, { mad: number; count: number }>): RevenueBreakdown[] =>
+    [...m.entries()]
+      .map(([label, v]) => ({ label, ...v }))
+      .sort((a, b) => b.mad - a.mad)
+
+  // ── Funnel ──────────────────────────────────────────────────
+  const CONTACTED_STATUSES = new Set(['contacted','interested','follow_up','confirmed','paid','converted','delayed'])
+  const CONFIRMED_STATUSES = new Set(['confirmed','paid','converted','delayed'])
+  const PAID_STATUSES      = new Set(['paid','converted'])
+
+  let fTotal = 0, fContacted = 0, fConfirmed = 0, fPaid = 0
+  for (const l of leads) {
+    const s = l.status
+    fTotal++
+    if (CONTACTED_STATUSES.has(s)) fContacted++
+    if (CONFIRMED_STATUSES.has(s)) fConfirmed++
+    if (PAID_STATUSES.has(s))      fPaid++
+  }
+
+  const pct  = (n: number, d: number) => (d > 0 ? Math.round((n / d) * 100) : 0)
+  const cpct = (n: number) => pct(n, fTotal)
+  const funnel: FunnelStep[] = [
+    { label: 'Total leads',  count: fTotal,     pct: 100,                      cumPct: 100 },
+    { label: 'Contacted',    count: fContacted, pct: pct(fContacted, fTotal),  cumPct: cpct(fContacted) },
+    { label: 'Confirmed',    count: fConfirmed, pct: pct(fConfirmed, fContacted), cumPct: cpct(fConfirmed) },
+    { label: 'Paid',         count: fPaid,      pct: pct(fPaid, fConfirmed),   cumPct: cpct(fPaid) },
+  ]
+
+  // ── Averages ────────────────────────────────────────────────
+  const paidStudents = fPaid   // use lead paid count as proxy for students
+  const avgRevenuePerStudent = paidStudents > 0 ? Math.round(revenueTotal / paidStudents) : 0
+  const avgRevenuePerLead    = fTotal > 0        ? Math.round(revenueTotal / fTotal)       : 0
+
+  // ── Top performers ──────────────────────────────────────────
+  const revenueByCourse    = toBreakdown(byCourse)
+  const revenueBySource    = toBreakdown(bySource)
+  const revenueByAssistant = toBreakdown(byAssistant)
+
+  return {
+    revenueTotal, revenueToday, revenueThisWeek, revenueThisMonth, revenueThisYear,
+    revenueByMonth: [...byMonth.entries()].map(([month, mad]) => ({ month, mad })),
+    revenueByCourse, revenueBySource, revenueByAssistant,
+    funnel,
+    avgRevenuePerStudent, avgRevenuePerLead,
+    topCourse:    revenueByCourse[0]?.label    ?? null,
+    topSource:    revenueBySource[0]?.label    ?? null,
+    topAssistant: revenueByAssistant[0]?.label ?? null,
+  }
+}
