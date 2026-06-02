@@ -26,7 +26,8 @@ export default function LeadDetailDrawer({
   const [tab, setTab]             = useState<Tab>('overview')
   const [timeline, setTimeline]   = useState<LeadEvent[]>([])
   const [student, setStudent]     = useState<any>(null)
-  const [converting, setConverting] = useState(false)
+  const [converting,     setConverting]     = useState(false)
+  const [convertConfirm, setConvertConfirm] = useState(false)
   const [deleting, setDeleting]   = useState(false)
   const [saving, setSaving]       = useState(false)
   const [error, setError]         = useState('')
@@ -114,14 +115,14 @@ export default function LeadDetailDrawer({
   }
 
   async function handleConvert() {
-    if (!confirm(`Convert ${lead.full_name} to a student?`)) return
     setConverting(true)
     try {
       await convertLeadToStudent(lead.id)
+      setConvertConfirm(false)
       fetchStudentByLeadId(lead.id).then(setStudent)
       fetchLeadTimeline(lead.id).then(setTimeline)
       await onChange()
-    } catch (err: any) { alert(err?.message) }
+    } catch (err: any) { setError(err?.message ?? 'Conversion failed') }
     finally { setConverting(false) }
   }
 
@@ -177,12 +178,23 @@ export default function LeadDetailDrawer({
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-gray-700 text-xs font-bold hover:bg-gray-100 transition-colors">
             <Clock size={12} /> Log contact
           </button>
-          {normalizeStatus(lead.status) === 'paid' && !student && (
-            <button onClick={handleConvert} disabled={converting}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50 ml-auto">
-              {converting ? <Loader2 size={12} className="animate-spin" /> : <GraduationCap size={12} />}
-              Make student
+          {normalizeStatus(lead.status) === 'paid' && !student && !convertConfirm && (
+            <button onClick={() => setConvertConfirm(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition-colors ml-auto">
+              <GraduationCap size={12} /> Convert to student
             </button>
+          )}
+          {convertConfirm && (
+            <div className="ml-auto flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5">
+              <span className="text-xs font-bold text-emerald-800">Convert {lead.full_name}?</span>
+              <button onClick={() => setConvertConfirm(false)}
+                className="text-xs font-bold text-gray-500 hover:text-gray-800 px-1.5">Cancel</button>
+              <button onClick={handleConvert} disabled={converting}
+                className="flex items-center gap-1 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-2.5 py-1 rounded-md transition-colors disabled:opacity-50">
+                {converting ? <Loader2 size={10} className="animate-spin" /> : null}
+                Confirm
+              </button>
+            </div>
           )}
         </div>
 

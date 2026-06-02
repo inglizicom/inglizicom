@@ -15,9 +15,11 @@ import {
   type SubscriptionLead, type LeadStatus,
 } from '@/lib/leads-db'
 import { LEAD_SOURCES } from '@/lib/crm-types'
-import { fetchLeadTimeline, fetchStudentByLeadId } from '@/lib/crm-db'
+import { fetchLeadTimeline, fetchStudentByLeadId, convertLeadToStudent } from '@/lib/crm-db'
+import { logLeadEvent } from '@/lib/crm-db'
 import type { LeadEvent } from '@/lib/crm-types'
 import { useCrmBasePath } from '@/lib/use-crm-path'
+import { GraduationCap } from 'lucide-react'
 
 export default function LeadDetailPage() {
   const params = useParams()
@@ -25,11 +27,14 @@ export default function LeadDetailPage() {
   const base   = useCrmBasePath()
   const id     = params?.id as string
 
-  const [lead,     setLead]     = useState<SubscriptionLead | null>(null)
-  const [timeline, setTimeline] = useState<LeadEvent[]>([])
-  const [student,  setStudent]  = useState<{ id: string } | null>(null)
-  const [loading,  setLoading]  = useState(true)
-  const [notFound, setNotFound] = useState(false)
+  const [lead,           setLead]           = useState<SubscriptionLead | null>(null)
+  const [timeline,       setTimeline]       = useState<LeadEvent[]>([])
+  const [student,        setStudent]        = useState<{ id: string } | null>(null)
+  const [loading,        setLoading]        = useState(true)
+  const [notFound,       setNotFound]       = useState(false)
+  const [convertConfirm, setConvertConfirm] = useState(false)
+  const [converting,     setConverting]     = useState(false)
+  const [convertErr,     setConvertErr]     = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -66,12 +71,25 @@ export default function LeadDetailPage() {
     )
   }
 
-  const status    = normalizeStatus(lead.status)
+  const status     = normalizeStatus(lead.status)
   const statusMeta = LEAD_STATUS_META[status as LeadStatus]
-  const wa        = whatsappLink(lead.phone, `مرحبا ${lead.full_name}، أنا من إنجليزي.كوم`)
-  const srcMeta   = LEAD_SOURCES.find(s => s.id === (lead.lead_source ?? lead.source))
-  const isOverdue = lead.next_followup_at && new Date(lead.next_followup_at) < new Date()
+  const wa         = whatsappLink(lead.phone, `مرحبا ${lead.full_name}، أنا من إنجليزي.كوم`)
+  const srcMeta    = LEAD_SOURCES.find(s => s.id === (lead.lead_source ?? lead.source))
+  const isOverdue  = lead.next_followup_at && new Date(lead.next_followup_at) < new Date()
     && !['paid', 'cancelled'].includes(status)
+  const canConvert = status === 'paid' && !student
+
+  async function handleConvert() {
+    setConverting(true); setConvertErr(null)
+    try {
+      await convertLeadToStudent(id)
+      await logLeadEvent({ leadId: id, eventType: 'converted', title: 'Converted to student' })
+      const st = await fetchStudentByLeadId(id)
+      setStudent(st); setConvertConfirm(false)
+      const tl = await fetchLeadTimeline(id); setTimeline(tl)
+    } catch (e) { setConvertErr(e instanceof Error ? e.message : 'Conversion failed') }
+    finally { setConverting(false) }
+  }
 
   return (
     <div className="px-6 lg:px-10 py-8 max-w-[1100px] mx-auto">
@@ -126,10 +144,43 @@ export default function LeadDetailPage() {
               <CheckCircle2 size={14} /> View student
             </Link>
           )}
+          {canConvert && !convertConfirm && (
+            <button onClick={() => setConvertConfirm(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 text-white text-[13px] font-bold hover:bg-emerald-700 transition-colors">
+              <GraduationCap size={14} /> Convert to student
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-5">
+      {/* ── Convert confirmation banner ─────────────── */}
+      {convertConfirm && (
+        <div className="mt-4 bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-wrap items-center gap-3">
+          <GraduationCap size={16} className="text-emerald-700 flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-bold text-emerald-900">
+              Convert <span className="font-black">{lead.full_name}</span> to a student?
+            </p>
+            <p className="text-[11px] text-emerald-600 mt-0.5">
+              A student record will be created from this lead's name, phone, course and amount.
+            </p>
+          </div>
+          {convertErr && <p className="w-full text-xs font-bold text-red-600">{convertErr}</p>}
+          <div className="flex items-center gap-2">
+            <button onClick={() => { setConvertConfirm(false); setConvertErr(null) }}
+              className="px-3 py-1.5 rounded-lg border border-emerald-300 text-emerald-700 text-xs font-bold hover:bg-emerald-100 transition-colors">
+              Cancel
+            </button>
+            <button onClick={handleConvert} disabled={converting}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition-colors disabled:opacity-50">
+              {converting ? <Loader2 size={12} className="animate-spin" /> : <GraduationCap size={12} />}
+              Confirm conversion
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="grid lg:grid-cols-3 gap-5 mt-6">
 
         {/* ── Contact info ──────────────────────────── */}
         <div className="lg:col-span-1 space-y-4">

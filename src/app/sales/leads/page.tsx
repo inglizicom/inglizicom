@@ -16,6 +16,7 @@ import {
 import { LEAD_SOURCES, getCourseMeta } from '@/lib/crm-types'
 import { logActivity } from '@/lib/activity-log-db'
 import { logLeadEvent } from '@/lib/crm-db'
+import { fetchStaff, type StaffRow } from '@/lib/staff-db'
 import { useStaff } from '@/lib/staff-context'
 import LeadDetailDrawer from './LeadDetailDrawer'
 import AddLeadModal from './AddLeadModal'
@@ -78,6 +79,7 @@ export default function LeadsPage() {
   const [selected, setSelected] = useState<SubscriptionLead | null>(null)
   const [addOpen,  setAddOpen]  = useState(false)
   const [dragging, setDragging] = useState<string | null>(null)
+  const [staffMap, setStaffMap] = useState<Map<string, StaffRow>>(new Map())
 
   const sp     = useSearchParams()
   const router = useRouter()
@@ -88,7 +90,11 @@ export default function LeadsPage() {
   }, [])
 
   async function load() {
-    setLoading(true); setLeads(await fetchAllLeads()); setLoading(false)
+    setLoading(true)
+    const [rows, staffRows] = await Promise.all([fetchAllLeads(), fetchStaff()])
+    setLeads(rows)
+    setStaffMap(new Map(staffRows.map(s => [s.id, s])))
+    setLoading(false)
   }
 
   /* source list */
@@ -274,6 +280,7 @@ export default function LeadsPage() {
         ) : view === 'list' ? (
           <ListView
             leads={sorted}
+            staffMap={staffMap}
             hasFilter={hasFilter}
             sortField={sortField} sortDir={sortDir}
             onSort={toggleSort}
@@ -307,9 +314,10 @@ export default function LeadsPage() {
    LIST VIEW
 ══════════════════════════════════════════════ */
 function ListView({
-  leads, hasFilter, sortField, sortDir, onSort, onSelect, onMove, onClear, onAdd,
+  leads, staffMap, hasFilter, sortField, sortDir, onSort, onSelect, onMove, onClear, onAdd,
 }: {
   leads: SubscriptionLead[]
+  staffMap: Map<string, StaffRow>
   hasFilter: boolean
   sortField: SortField; sortDir: SortDir
   onSort: (f: SortField) => void
@@ -350,14 +358,14 @@ function ListView({
             <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 whitespace-nowrap hidden lg:table-cell">Course</th>
             <Th onClick={() => onSort('urgency')} active={sortField === 'urgency'} dir={sortDir} className="hidden xl:table-cell">Follow-up</Th>
             <Th onClick={() => onSort('amount')}  active={sortField === 'amount'}  dir={sortDir} className="hidden xl:table-cell">Amount</Th>
-            <Th onClick={() => onSort('created')} active={sortField === 'created'} dir={sortDir} className="hidden xl:table-cell">Added</Th>
+            <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 whitespace-nowrap hidden xl:table-cell">Last action</th>
             <th className="w-20" />
           </tr>
         </thead>
 
         {/* Body */}
         <tbody className="divide-y divide-gray-100 bg-white">
-          {leads.map(l => <LeadRow key={l.id} lead={l} onSelect={() => onSelect(l)} onMove={onMove} />)}
+          {leads.map(l => <LeadRow key={l.id} lead={l} staffMap={staffMap} onSelect={() => onSelect(l)} onMove={onMove} />)}
         </tbody>
       </table>
     </div>
@@ -384,20 +392,26 @@ function Th({ children, onClick, active, dir, className = '' }: {
 /* ══════════════════════════════════════════════
    LEAD ROW
 ══════════════════════════════════════════════ */
-function LeadRow({ lead: l, onSelect, onMove }: {
-  lead: SubscriptionLead; onSelect: () => void; onMove: (id: string, s: LeadStatus) => void
+function LeadRow({ lead: l, staffMap, onSelect, onMove }: {
+  lead: SubscriptionLead
+  staffMap: Map<string, StaffRow>
+  onSelect: () => void
+  onMove: (id: string, s: LeadStatus) => void
 }) {
-  const status  = normalizeStatus(l.status)
-  const overdue = isOverdue(l)
-  const today   = isToday(l)
-  const wa      = whatsappLink(l.phone, `مرحبا ${l.full_name}`)
-  const src     = LEAD_SOURCES.find(s => s.id === (l.lead_source ?? l.source))
-  const course  = getCourseMeta(l.course)
+  const status   = normalizeStatus(l.status)
+  const overdue  = isOverdue(l)
+  const today    = isToday(l)
+  const wa       = whatsappLink(l.phone, `مرحبا ${l.full_name}`)
+  const src      = LEAD_SOURCES.find(s => s.id === (l.lead_source ?? l.source))
+  const course   = getCourseMeta(l.course)
+  const assignee = l.assigned_to_id ? staffMap.get(l.assigned_to_id) : null
 
   /* Left border urgency stripe */
   const stripe = overdue ? 'border-l-2 border-l-red-400' : today ? 'border-l-2 border-l-orange-400' : 'border-l-2 border-l-transparent'
 
-  const daysAgo = Math.floor((Date.now() - new Date(l.created_at).getTime()) / 86_400_000)
+  /* Days since last meaningful action */
+  const lastActionDate = l.last_contact_at ?? l.created_at
+  const lastActionDays = Math.floor((Date.now() - new Date(lastActionDate).getTime()) / 86_400_000)
 
   return (
     <tr className={`group hover:bg-gray-50 cursor-pointer transition-colors ${stripe}`} onClick={onSelect}>
@@ -417,7 +431,14 @@ function LeadRow({ lead: l, onSelect, onMove }: {
               {l.is_vip && <Crown size={11} className="text-yellow-500 flex-shrink-0" />}
               <span className="text-sm font-semibold text-gray-900 truncate">{l.full_name}</span>
             </div>
-            {l.city && <span className="text-xs text-gray-400">{l.city}</span>}
+            <div className="flex items-center gap-1.5 mt-0.5">
+              {l.city && <span className="text-xs text-gray-400">{l.city}</span>}
+              {assignee && (
+                <span className="flex items-center gap-1 text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">
+                  {(assignee.email?.[0] ?? '?').toUpperCase()} {assignee.full_name?.split(' ')[0] ?? assignee.email?.split('@')[0]}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </td>
@@ -475,11 +496,16 @@ function LeadRow({ lead: l, onSelect, onMove }: {
         ) : <span className="text-gray-300 text-sm">—</span>}
       </td>
 
-      {/* Added */}
+      {/* Last action */}
       <td className="px-4 py-3 hidden xl:table-cell">
-        <span className="text-xs text-gray-400 tabular-nums">
-          {daysAgo === 0 ? 'Today' : `${daysAgo}d ago`}
+        <span className={`text-xs tabular-nums font-semibold ${
+          lastActionDays >= 7 ? 'text-amber-600' : lastActionDays >= 3 ? 'text-gray-500' : 'text-gray-400'
+        }`}>
+          {lastActionDays === 0 ? 'Today' : `${lastActionDays}d ago`}
         </span>
+        {l.last_contact_at && (
+          <div className="text-[10px] text-gray-400 mt-0.5">contacted</div>
+        )}
       </td>
 
       {/* Actions */}
