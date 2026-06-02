@@ -183,32 +183,31 @@ export default function TodayPage() {
 
               {/* Revenue — real money only */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <BizKpi label="Total revenue"    value={mad(ownerMetrics.revenueTotal)}     accent="yellow" large />
+                <BizKpi label="Total revenue"    value={mad(ownerMetrics.revenueTotal)}     accent="yellow" />
                 <BizKpi label="This month"       value={mad(ownerMetrics.revenueThisMonth)} accent="emerald" />
                 <BizKpi label="Avg per student"  value={mad(ownerMetrics.avgRevenuePerStudent)} accent="blue" />
                 <BizKpi label="Avg per lead"     value={mad(ownerMetrics.avgRevenuePerLead)}    accent="indigo" />
               </div>
 
               {/* Conversion funnel — the 3 rates */}
-              <div className="bg-white border border-gray-200 rounded-2xl p-5">
-                <h2 className="font-bold text-gray-900 text-[14px] mb-4">Conversion funnel</h2>
-                <div className="grid grid-cols-3 gap-4">
+              <div className="bg-gray-900 rounded-2xl p-5">
+                <h2 className="font-black text-white text-[13px] mb-4 uppercase tracking-[0.12em]">Conversion funnel</h2>
+                <div className="grid grid-cols-3 gap-3">
                   {ownerMetrics.funnel.slice(1).map((step, i) => {
                     const labels  = ['Lead → Contacted', 'Contacted → Confirmed', 'Confirmed → Paid']
-                    const accents = ['bg-indigo-500', 'bg-emerald-500', 'bg-yellow-500']
-                    const good    = [60, 40, 50]   // thresholds above which is "good"
+                    const bars    = ['bg-indigo-400', 'bg-emerald-400', 'bg-yellow-400']
+                    const good    = [60, 40, 50]
                     const isGood  = step.pct >= good[i]
                     return (
-                      <div key={step.label} className="text-center">
-                        <div className={`text-[26px] font-black tabular-nums ${isGood ? 'text-gray-900' : 'text-rose-600'}`}>
+                      <div key={step.label} className={`rounded-xl p-3.5 ${isGood ? 'bg-zinc-800' : 'bg-rose-900/60'}`}>
+                        <div className={`text-[30px] font-black tabular-nums leading-none ${isGood ? 'text-white' : 'text-rose-300'}`}>
                           {step.pct}%
                         </div>
-                        <div className="text-[11px] font-bold text-gray-500 mt-0.5">{labels[i]}</div>
-                        <div className="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                          <div className={`h-full ${accents[i]} rounded-full transition-all`}
-                            style={{ width: `${step.pct}%` }} />
+                        <div className="text-[11px] font-bold text-zinc-400 mt-1">{labels[i]}</div>
+                        <div className="mt-2.5 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
+                          <div className={`h-full ${bars[i]} rounded-full`} style={{ width: `${step.pct}%` }} />
                         </div>
-                        <div className="text-[10px] text-gray-400 mt-1">{step.count} leads</div>
+                        <div className="text-[10px] text-zinc-500 mt-1.5">{step.count} leads</div>
                       </div>
                     )
                   })}
@@ -371,20 +370,26 @@ function LeadRow({ lead, variant }: { lead: OverdueLead; variant: 'overdue' | 't
 
 const mad = (n: number) => new Intl.NumberFormat('en-US').format(Math.round(n)) + ' MAD'
 
-/* ─── BizKpi — business metric tile on Today founder section ─── */
-function BizKpi({ label, value, accent, large }: {
-  label: string; value: string; accent: string; large?: boolean
+/* ─── BizKpi ─────────────────────────────────────────────────── */
+function BizKpi({ label, value, accent }: {
+  label: string; value: string; accent: 'yellow' | 'emerald' | 'blue' | 'indigo'
 }) {
-  const colors: Record<string, string> = {
-    yellow:  'bg-yellow-50 border-yellow-200',
-    emerald: 'bg-emerald-50 border-emerald-200',
-    blue:    'bg-blue-50 border-blue-200',
-    indigo:  'bg-indigo-50 border-indigo-200',
+  const styles: Record<typeof accent, string> = {
+    yellow:  'bg-yellow-400 text-black',
+    emerald: 'bg-emerald-500 text-white',
+    blue:    'bg-blue-600 text-white',
+    indigo:  'bg-indigo-600 text-white',
+  }
+  const sub: Record<typeof accent, string> = {
+    yellow:  'text-yellow-900',
+    emerald: 'text-emerald-100',
+    blue:    'text-blue-200',
+    indigo:  'text-indigo-200',
   }
   return (
-    <div className={`rounded-2xl border p-4 ${colors[accent] ?? 'bg-gray-50 border-gray-200'}`}>
-      <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-gray-500 mb-1">{label}</div>
-      <div className={`font-black text-gray-900 tabular-nums leading-tight ${large ? 'text-xl' : 'text-[17px]'}`}>{value}</div>
+    <div className={`rounded-2xl p-4 ${styles[accent]}`}>
+      <div className={`text-[10px] font-bold uppercase tracking-[0.14em] mb-1 ${sub[accent]}`}>{label}</div>
+      <div className="font-black tabular-nums leading-tight text-[18px]">{value}</div>
     </div>
   )
 }
@@ -394,13 +399,13 @@ function TopPerformer({ icon: Icon, label, value }: {
   icon: LucideIcon; label: string; value: string | null
 }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-4 flex items-center gap-3">
-      <div className="w-9 h-9 rounded-xl bg-yellow-50 flex items-center justify-center flex-shrink-0">
-        <Icon size={16} className="text-yellow-600" />
+    <div className="bg-gray-900 rounded-2xl p-4 flex items-center gap-3">
+      <div className="w-9 h-9 rounded-xl bg-yellow-400 flex items-center justify-center flex-shrink-0">
+        <Icon size={16} className="text-black" />
       </div>
       <div className="min-w-0">
-        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-gray-400">{label}</div>
-        <div className="font-black text-gray-900 text-[15px] truncate">{value ?? '—'}</div>
+        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">{label}</div>
+        <div className="font-black text-white text-[15px] truncate">{value ?? '—'}</div>
       </div>
     </div>
   )
@@ -413,19 +418,20 @@ function BreakdownCard({ title, rows }: {
   if (!rows.length) return null
   const max = Math.max(1, ...rows.map(r => r.mad))
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-4">
-      <h3 className="text-[11px] font-bold uppercase tracking-[0.12em] text-gray-500 mb-3">{title}</h3>
-      <div className="space-y-2.5">
-        {rows.slice(0, 5).map(r => (
+    <div className="bg-white border-2 border-gray-100 rounded-2xl p-4">
+      <h3 className="text-[11px] font-black uppercase tracking-[0.12em] text-gray-400 mb-3">{title}</h3>
+      <div className="space-y-3">
+        {rows.slice(0, 5).map((r, i) => (
           <div key={r.label}>
-            <div className="flex items-center justify-between mb-0.5">
-              <span className="text-[12px] font-semibold text-gray-700 truncate max-w-[55%]">{r.label}</span>
-              <span className="text-[11px] font-bold text-gray-900 tabular-nums">
-                {new Intl.NumberFormat('en-US').format(Math.round(r.mad))} MAD
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[13px] font-bold text-gray-900 truncate max-w-[55%]">{r.label}</span>
+              <span className="text-[12px] font-black text-gray-900 tabular-nums">
+                {new Intl.NumberFormat('en-US').format(Math.round(r.mad))} <span className="text-gray-400 font-semibold text-[10px]">MAD</span>
               </span>
             </div>
-            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-              <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${(r.mad / max) * 100}%` }} />
+            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div className={`h-full rounded-full ${i === 0 ? 'bg-yellow-400' : 'bg-gray-300'}`}
+                style={{ width: `${(r.mad / max) * 100}%` }} />
             </div>
           </div>
         ))}
@@ -434,21 +440,24 @@ function BreakdownCard({ title, rows }: {
   )
 }
 
-/* ─── KpiTile ────────────────────────────────────────────────── */
+/* ─── KpiTile (queue section tiles) ─────────────────────────── */
 function KpiTile({ icon: Icon, label, value, accent, format }: {
   icon: LucideIcon
   label: string; value?: number; accent: string; format?: 'mad'
 }) {
   const colors: Record<string, string> = {
-    blue: 'bg-blue-50 text-blue-600', indigo: 'bg-indigo-50 text-indigo-600',
-    rose: 'bg-rose-50 text-rose-600', emerald: 'bg-emerald-50 text-emerald-600',
-    orange: 'bg-orange-50 text-orange-600', yellow: 'bg-yellow-50 text-yellow-600',
+    blue:    'bg-blue-500 text-white',
+    indigo:  'bg-indigo-500 text-white',
+    rose:    'bg-rose-500 text-white',
+    emerald: 'bg-emerald-500 text-white',
+    orange:  'bg-orange-500 text-white',
+    yellow:  'bg-yellow-400 text-black',
   }
   const display = value == null ? '—'
     : format === 'mad' ? new Intl.NumberFormat('en-US').format(value) + ' MAD'
     : new Intl.NumberFormat('en-US').format(value)
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-3.5">
+    <div className="bg-white border-2 border-gray-100 rounded-xl p-3.5">
       <div className={`w-7 h-7 rounded-md ${colors[accent]} flex items-center justify-center mb-2`}>
         <Icon size={13} />
       </div>

@@ -542,7 +542,7 @@ export async function fetchOwnerMetrics(): Promise<OwnerMetrics> {
     supabase
       .from('crm_payments')
       .select(`
-        amount_mad, payment_date, created_at, course_or_service,
+        amount_mad, payment_date, created_at, course_or_service, student_id,
         subscription_leads!crm_payments_lead_id_fkey ( source, lead_source ),
         profiles!crm_payments_added_by_id_fkey ( email, full_name )
       `)
@@ -561,6 +561,7 @@ export async function fetchOwnerMetrics(): Promise<OwnerMetrics> {
     payment_date: string | null
     created_at:   string
     course_or_service: string | null
+    student_id:   string | null
     subscription_leads: { source: string | null; lead_source: string | null } | { source: string | null; lead_source: string | null }[] | null
     profiles: { email: string | null; full_name: string | null } | { email: string | null; full_name: string | null }[] | null
   }
@@ -649,9 +650,10 @@ export async function fetchOwnerMetrics(): Promise<OwnerMetrics> {
   ]
 
   // ── Averages ────────────────────────────────────────────────
-  const paidStudents = fPaid   // use lead paid count as proxy for students
-  const avgRevenuePerStudent = paidStudents > 0 ? Math.round(revenueTotal / paidStudents) : 0
-  const avgRevenuePerLead    = fTotal > 0        ? Math.round(revenueTotal / fTotal)       : 0
+  // Distinct students = unique non-null student_ids across paid payments.
+  const distinctStudents     = new Set(payments.map(p => p.student_id).filter(Boolean)).size || payments.length
+  const avgRevenuePerStudent = distinctStudents > 0 ? Math.round(revenueTotal / distinctStudents) : 0
+  const avgRevenuePerLead    = fTotal > 0           ? Math.round(revenueTotal / fTotal)           : 0
 
   // ── Top performers ──────────────────────────────────────────
   const revenueByCourse    = toBreakdown(byCourse)

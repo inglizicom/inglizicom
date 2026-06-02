@@ -8,14 +8,14 @@ import {
   Users, BookOpen, AlertTriangle, Plus, MessageCircle, Phone,
   BellRing, ArrowRight,
 } from 'lucide-react'
-import { fetchStudents, fetchStudentStats, type CrmStudent } from '@/lib/crm-db'
+import { fetchStudents, fetchStudentStats, patchStudent, type CrmStudent } from '@/lib/crm-db'
 import { fetchRenewalCandidates, type RenewalRow } from '@/lib/crm-stats'
 import { getCourseMeta } from '@/lib/crm-types'
 import { whatsappLink } from '@/lib/leads-db'
 import AddStudentDrawer from './AddStudentDrawer'
 import StudentDetailDrawer from './StudentDetailDrawer'
 
-type Tab = 'active' | 'expiring'
+type Tab = 'active' | 'expiring' | 'archived'
 
 function StudentsInner() {
   const sp     = useSearchParams()
@@ -23,13 +23,14 @@ function StudentsInner() {
   const tab    = (sp?.get('tab') ?? 'active') as Tab
 
   /* active tab state */
-  const [students, setStudents] = useState<CrmStudent[]>([])
-  const [loadingS, setLoadingS] = useState(true)
-  const [query,    setQuery]    = useState('')
-  const [typeFilter, setType]   = useState<'all' | 'course_student' | 'private_student'>('all')
-  const [selected, setSelected] = useState<CrmStudent | null>(null)
-  const [addOpen,  setAddOpen]  = useState(false)
-  const [stats,    setStats]    = useState({ total: 0, course: 0, private: 0, overdue: 0, revenue: 0 })
+  const [students,   setStudents]   = useState<CrmStudent[]>([])
+  const [loadingS,   setLoadingS]   = useState(true)
+  const [query,      setQuery]      = useState('')
+  const [typeFilter, setType]       = useState<'all' | 'course_student' | 'private_student'>('all')
+  const [selected,   setSelected]   = useState<CrmStudent | null>(null)
+  const [addOpen,    setAddOpen]    = useState(false)
+  const [stats,      setStats]      = useState({ total: 0, course: 0, private: 0, overdue: 0, revenue: 0 })
+  const [unarchiving, setUnarchiving] = useState<string | null>(null)
 
   /* expiring tab state */
   const [renewals, setRenewals] = useState<RenewalRow[]>([])
@@ -37,11 +38,20 @@ function StudentsInner() {
 
   async function loadStudents() {
     setLoadingS(true)
+    const activeFilter = tab === 'archived' ? false : true
     const [rows, st] = await Promise.all([
-      fetchStudents({ type: typeFilter === 'all' ? undefined : typeFilter, active: true, search: query || undefined }),
+      fetchStudents({ type: typeFilter === 'all' ? undefined : typeFilter, active: activeFilter, search: query || undefined }),
       fetchStudentStats(),
     ])
     setStudents(rows); setStats(st); setLoadingS(false)
+  }
+
+  async function handleUnarchive(id: string, name: string) {
+    setUnarchiving(id)
+    try {
+      await patchStudent(id, { is_active: true })
+      await loadStudents()
+    } finally { setUnarchiving(null) }
   }
 
   async function loadRenewals() {
@@ -50,8 +60,8 @@ function StudentsInner() {
     setRenewals(rows); setLoadingR(false)
   }
 
-  useEffect(() => { loadStudents() }, [typeFilter])
-  useEffect(() => { if (tab === 'expiring') loadRenewals() }, [tab])
+  useEffect(() => { loadStudents() }, [typeFilter, tab])  // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (tab === 'expiring') loadRenewals() }, [tab])  // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleSearch(q: string) {
     setQuery(q)
@@ -91,8 +101,9 @@ function StudentsInner() {
       {/* Tabs */}
       <div className="flex items-center gap-1 border-b border-gray-200 mb-6">
         {([
-          ['active',   'Active', stats.total],
+          ['active',   'Active',   stats.total],
           ['expiring', 'Expiring', renewals.length],
+          ['archived', 'Archived', null],
         ] as const).map(([t, label, count]) => (
           <button key={t} onClick={() => router.replace(`/sales/students?tab=${t}`)}
             className={`px-4 py-2.5 text-[13px] font-bold border-b-2 transition-colors ${
@@ -101,11 +112,9 @@ function StudentsInner() {
                 : 'border-transparent text-gray-400 hover:text-gray-700'
             }`}>
             {label}
-            {count > 0 && (
+            {count !== null && count > 0 && (
               <span className={`ml-1.5 text-[11px] px-1.5 py-0.5 rounded font-bold ${
-                t === 'expiring' && count > 0
-                  ? 'bg-amber-100 text-amber-700'
-                  : 'bg-gray-100 text-gray-500'
+                t === 'expiring' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'
               }`}>{count}</span>
             )}
           </button>
@@ -198,6 +207,57 @@ function StudentsInner() {
               {expiring.length > 0 && (
                 <RenewalGroup title="Expiring soon" accent="amber" rows={expiring} />
               )}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ── Archived tab ───────────────────────────────── */}
+      {tab === 'archived' && (
+        <>
+          {loadingS ? (
+            <div className="py-16 flex justify-center"><Loader2 size={20} className="animate-spin text-gray-400" /></div>
+          ) : students.length === 0 ? (
+            <div className="bg-white border border-gray-200 rounded-2xl py-14 text-center">
+              <GraduationCap size={32} className="mx-auto text-gray-300 mb-2" />
+              <p className="text-sm text-gray-500 font-semibold">No archived students.</p>
+            </div>
+          ) : (
+            <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 text-[11px] font-bold uppercase tracking-wider text-gray-500 border-b border-gray-200">
+                  <tr>
+                    <th className="text-left px-4 py-2.5">Student</th>
+                    <th className="text-left px-4 py-2.5 hidden md:table-cell">Course</th>
+                    <th className="text-left px-4 py-2.5">Total paid</th>
+                    <th className="px-4 py-2.5" />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {students.map(s => (
+                    <tr key={s.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-2.5">
+                        <div className="font-semibold text-gray-700">{s.full_name}</div>
+                        {s.phone_number && <div className="text-[11px] text-gray-400">{s.phone_number}</div>}
+                      </td>
+                      <td className="px-4 py-2.5 text-gray-500 hidden md:table-cell text-[12px]">{s.course ?? '—'}</td>
+                      <td className="px-4 py-2.5 text-[12px] font-semibold text-gray-600 tabular-nums">
+                        {s.total_paid_mad ? `${Number(s.total_paid_mad).toLocaleString()} MAD` : '—'}
+                      </td>
+                      <td className="px-4 py-2.5 text-right">
+                        <button
+                          onClick={() => handleUnarchive(s.id, s.full_name)}
+                          disabled={unarchiving === s.id}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 text-[12px] font-bold hover:bg-emerald-100 transition-colors disabled:opacity-50 ml-auto"
+                        >
+                          {unarchiving === s.id ? <Loader2 size={11} className="animate-spin" /> : null}
+                          Restore
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </>
