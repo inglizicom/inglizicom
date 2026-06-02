@@ -12,28 +12,27 @@ import {
 import {
   fetchOverdueFollowUps, fetchTodaysFollowUps,
   fetchPendingPaymentsForToday, fetchRenewalCandidates,
-  fetchDashboardKpis, fetchLeadPipelineStats, fetchTeamOverview,
+  fetchOwnerMetrics, fetchTeamOverview,
   type OverdueLead, type PendingPaymentRow, type RenewalRow,
-  type DashboardKpis, type LeadPipelineStats, type TeamMemberStat,
+  type OwnerMetrics, type TeamMemberStat,
 } from '@/lib/crm-stats'
 import { whatsappLink } from '@/lib/leads-db'
 import { fetchStaff, type StaffRow } from '@/lib/staff-db'
 import { useStaff } from '@/lib/staff-context'
-import { Users } from 'lucide-react'
+import { Users, Award, Globe, BarChart3 } from 'lucide-react'
 
 export default function TodayPage() {
   const me = useStaff()
   const isFounder = me.role === 'founder'
 
-  const [overdue,    setOverdue]    = useState<OverdueLead[]>([])
-  const [todayQ,     setTodayQ]     = useState<OverdueLead[]>([])
-  const [pending,    setPending]    = useState<PendingPaymentRow[]>([])
-  const [renewals,   setRenewals]   = useState<RenewalRow[]>([])
-  const [kpis,       setKpis]       = useState<DashboardKpis | null>(null)
-  const [pipe,       setPipe]       = useState<LeadPipelineStats | null>(null)
-  const [teamStats,  setTeamStats]  = useState<TeamMemberStat[]>([])
-  const [staffMap,   setStaffMap]   = useState<Map<string, StaffRow>>(new Map())
-  const [loading,    setLoading]    = useState(true)
+  const [overdue,       setOverdue]       = useState<OverdueLead[]>([])
+  const [todayQ,        setTodayQ]        = useState<OverdueLead[]>([])
+  const [pending,       setPending]       = useState<PendingPaymentRow[]>([])
+  const [renewals,      setRenewals]      = useState<RenewalRow[]>([])
+  const [ownerMetrics,  setOwnerMetrics]  = useState<OwnerMetrics | null>(null)
+  const [teamStats,     setTeamStats]     = useState<TeamMemberStat[]>([])
+  const [staffMap,      setStaffMap]      = useState<Map<string, StaffRow>>(new Map())
+  const [loading,       setLoading]       = useState(true)
 
   async function load() {
     const assignedFilter = me.role === 'assistant' ? me.id : null
@@ -44,14 +43,14 @@ export default function TodayPage() {
       fetchRenewalCandidates(),
     ] as const
     if (isFounder) {
-      const [o, t, p, r, k, pi, team, staffRows] = await Promise.all([
+      const [o, t, p, r, metrics, team, staffRows] = await Promise.all([
         ...base,
-        fetchDashboardKpis(), fetchLeadPipelineStats(),
+        fetchOwnerMetrics(),
         fetchTeamOverview(), fetchStaff(),
       ])
       setOverdue(o); setTodayQ(t); setPending(p)
       setRenewals((r as RenewalRow[]).filter(x => x.bucket === 'due7' || x.bucket === 'expired'))
-      setKpis(k as DashboardKpis); setPipe(pi as LeadPipelineStats)
+      setOwnerMetrics(metrics as OwnerMetrics)
       setTeamStats(team as TeamMemberStat[])
       setStaffMap(new Map((staffRows as StaffRow[]).map(s => [s.id, s])))
     } else {
@@ -169,32 +168,66 @@ export default function TodayPage() {
             </div>
           )}
 
-          {/* ── Founder overview ──────────────────────── */}
-          {isFounder && (
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                <span className="text-[11px] uppercase font-bold tracking-[0.18em] text-gray-400">Business overview</span>
-                <div className="flex-1 h-px bg-gray-100" />
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 mb-4">
-                <KpiTile icon={Sparkles}     label="New today"      value={kpis?.newLeadsToday}     accent="blue"    />
-                <KpiTile icon={TrendingUp}   label="New this month" value={kpis?.newLeadsThisMonth} accent="indigo"  />
-                <KpiTile icon={Flame}        label="Confirmed"      value={kpis?.confirmedStudents} accent="rose"    />
-                <KpiTile icon={CheckCircle2} label="Paid"           value={kpis?.paidStudents}      accent="emerald" />
-                <KpiTile icon={AlertCircle}  label="Delayed"        value={kpis?.delayedStudents}   accent="orange"  />
-                <KpiTile icon={Wallet}       label="Revenue · month" value={kpis?.monthlyRevenueMad} accent="yellow" format="mad" />
-              </div>
-              {pipe && (
-                <div className="bg-white border border-gray-200 rounded-2xl p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="font-bold text-gray-900 text-[15px]">Pipeline</h2>
-                    <Link href="/sales/leads" className="text-xs font-semibold text-gray-400 hover:text-gray-900">
-                      Open leads →
-                    </Link>
-                  </div>
-                  <PipelineBar stats={pipe.perStatus} />
+          {/* ── Founder business metrics ──────────────── */}
+          {isFounder && ownerMetrics && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-[11px] uppercase font-bold tracking-[0.18em] text-gray-400">Business overview</span>
+                  <div className="w-24 h-px bg-gray-100" />
                 </div>
-              )}
+                <Link href="/analytics" className="text-[11px] font-bold text-gray-400 hover:text-gray-900 flex items-center gap-1">
+                  <BarChart3 size={11} /> Full analytics →
+                </Link>
+              </div>
+
+              {/* Revenue — real money only */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <BizKpi label="Total revenue"    value={mad(ownerMetrics.revenueTotal)}     accent="yellow" large />
+                <BizKpi label="This month"       value={mad(ownerMetrics.revenueThisMonth)} accent="emerald" />
+                <BizKpi label="Avg per student"  value={mad(ownerMetrics.avgRevenuePerStudent)} accent="blue" />
+                <BizKpi label="Avg per lead"     value={mad(ownerMetrics.avgRevenuePerLead)}    accent="indigo" />
+              </div>
+
+              {/* Conversion funnel — the 3 rates */}
+              <div className="bg-white border border-gray-200 rounded-2xl p-5">
+                <h2 className="font-bold text-gray-900 text-[14px] mb-4">Conversion funnel</h2>
+                <div className="grid grid-cols-3 gap-4">
+                  {ownerMetrics.funnel.slice(1).map((step, i) => {
+                    const labels  = ['Lead → Contacted', 'Contacted → Confirmed', 'Confirmed → Paid']
+                    const accents = ['bg-indigo-500', 'bg-emerald-500', 'bg-yellow-500']
+                    const good    = [60, 40, 50]   // thresholds above which is "good"
+                    const isGood  = step.pct >= good[i]
+                    return (
+                      <div key={step.label} className="text-center">
+                        <div className={`text-[26px] font-black tabular-nums ${isGood ? 'text-gray-900' : 'text-rose-600'}`}>
+                          {step.pct}%
+                        </div>
+                        <div className="text-[11px] font-bold text-gray-500 mt-0.5">{labels[i]}</div>
+                        <div className="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div className={`h-full ${accents[i]} rounded-full transition-all`}
+                            style={{ width: `${step.pct}%` }} />
+                        </div>
+                        <div className="text-[10px] text-gray-400 mt-1">{step.count} leads</div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Top performers */}
+              <div className="grid grid-cols-3 gap-3">
+                <TopPerformer icon={Award} label="Top course"    value={ownerMetrics.topCourse}    />
+                <TopPerformer icon={Globe} label="Top source"    value={ownerMetrics.topSource}    />
+                <TopPerformer icon={Users} label="Top assistant" value={ownerMetrics.topAssistant} />
+              </div>
+
+              {/* Revenue breakdowns — compact */}
+              <div className="grid sm:grid-cols-3 gap-3">
+                <BreakdownCard title="Revenue by course"    rows={ownerMetrics.revenueByCourse}    />
+                <BreakdownCard title="Revenue by source"    rows={ownerMetrics.revenueBySource}    />
+                <BreakdownCard title="Revenue by assistant" rows={ownerMetrics.revenueByAssistant} />
+              </div>
 
               {/* Team overview */}
               {teamStats.length > 0 && (
@@ -331,6 +364,71 @@ function LeadRow({ lead, variant }: { lead: OverdueLead; variant: 'overdue' | 't
             <Phone size={12} />
           </a>
         )}
+      </div>
+    </div>
+  )
+}
+
+const mad = (n: number) => new Intl.NumberFormat('en-US').format(Math.round(n)) + ' MAD'
+
+/* ─── BizKpi — business metric tile on Today founder section ─── */
+function BizKpi({ label, value, accent, large }: {
+  label: string; value: string; accent: string; large?: boolean
+}) {
+  const colors: Record<string, string> = {
+    yellow:  'bg-yellow-50 border-yellow-200',
+    emerald: 'bg-emerald-50 border-emerald-200',
+    blue:    'bg-blue-50 border-blue-200',
+    indigo:  'bg-indigo-50 border-indigo-200',
+  }
+  return (
+    <div className={`rounded-2xl border p-4 ${colors[accent] ?? 'bg-gray-50 border-gray-200'}`}>
+      <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-gray-500 mb-1">{label}</div>
+      <div className={`font-black text-gray-900 tabular-nums leading-tight ${large ? 'text-xl' : 'text-[17px]'}`}>{value}</div>
+    </div>
+  )
+}
+
+/* ─── TopPerformer ───────────────────────────────────────────── */
+function TopPerformer({ icon: Icon, label, value }: {
+  icon: LucideIcon; label: string; value: string | null
+}) {
+  return (
+    <div className="bg-white border border-gray-200 rounded-2xl p-4 flex items-center gap-3">
+      <div className="w-9 h-9 rounded-xl bg-yellow-50 flex items-center justify-center flex-shrink-0">
+        <Icon size={16} className="text-yellow-600" />
+      </div>
+      <div className="min-w-0">
+        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-gray-400">{label}</div>
+        <div className="font-black text-gray-900 text-[15px] truncate">{value ?? '—'}</div>
+      </div>
+    </div>
+  )
+}
+
+/* ─── BreakdownCard ──────────────────────────────────────────── */
+function BreakdownCard({ title, rows }: {
+  title: string; rows: { label: string; mad: number; count: number }[]
+}) {
+  if (!rows.length) return null
+  const max = Math.max(1, ...rows.map(r => r.mad))
+  return (
+    <div className="bg-white border border-gray-200 rounded-2xl p-4">
+      <h3 className="text-[11px] font-bold uppercase tracking-[0.12em] text-gray-500 mb-3">{title}</h3>
+      <div className="space-y-2.5">
+        {rows.slice(0, 5).map(r => (
+          <div key={r.label}>
+            <div className="flex items-center justify-between mb-0.5">
+              <span className="text-[12px] font-semibold text-gray-700 truncate max-w-[55%]">{r.label}</span>
+              <span className="text-[11px] font-bold text-gray-900 tabular-nums">
+                {new Intl.NumberFormat('en-US').format(Math.round(r.mad))} MAD
+              </span>
+            </div>
+            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${(r.mad / max) * 100}%` }} />
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )
