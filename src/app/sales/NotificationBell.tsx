@@ -204,10 +204,10 @@ export default function NotificationBell({ basePath = '/sales' }: { basePath?: s
                         <MessageCircle size={13} />
                       </a>
                     )}
-                    <Link href={`${basePath}/leads`}
+                    <Link href={`${basePath}/leads/${lead.id}`}
                       onClick={() => handleClickLead(lead.id)}
                       className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
-                      title="Open leads">
+                      title="Open lead">
                       <ExternalLink size={12} />
                     </Link>
                   </div>

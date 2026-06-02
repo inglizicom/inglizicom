@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import SalesSidebar from './SalesSidebar'
+import CrmSidebar from '@/components/CrmSidebar'
 import { useStaff } from '@/lib/staff-context'
 import { supabase } from '@/lib/supabase'
 
@@ -16,11 +16,7 @@ export default function SalesShell({ children }: { children: React.ReactNode }) 
 
   return (
     <div className="min-h-screen flex bg-white" dir="ltr">
-      <SalesSidebar
-        userEmail={staff.email}
-        userRole={staff.role}
-        onSignOut={handleSignOut}
-      />
+      <CrmSidebar userEmail={staff.email} userRole={staff.role} onSignOut={handleSignOut} />
       <main className="flex-1 min-w-0">{children}</main>
     </div>
   )
