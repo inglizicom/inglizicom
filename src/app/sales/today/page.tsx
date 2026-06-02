@@ -12,24 +12,28 @@ import {
 import {
   fetchOverdueFollowUps, fetchTodaysFollowUps,
   fetchPendingPaymentsForToday, fetchRenewalCandidates,
-  fetchDashboardKpis, fetchLeadPipelineStats,
+  fetchDashboardKpis, fetchLeadPipelineStats, fetchTeamOverview,
   type OverdueLead, type PendingPaymentRow, type RenewalRow,
-  type DashboardKpis, type LeadPipelineStats,
+  type DashboardKpis, type LeadPipelineStats, type TeamMemberStat,
 } from '@/lib/crm-stats'
 import { whatsappLink } from '@/lib/leads-db'
+import { fetchStaff, type StaffRow } from '@/lib/staff-db'
 import { useStaff } from '@/lib/staff-context'
+import { Users } from 'lucide-react'
 
 export default function TodayPage() {
   const me = useStaff()
   const isFounder = me.role === 'founder'
 
-  const [overdue,  setOverdue]  = useState<OverdueLead[]>([])
-  const [todayQ,   setTodayQ]   = useState<OverdueLead[]>([])
-  const [pending,  setPending]  = useState<PendingPaymentRow[]>([])
-  const [renewals, setRenewals] = useState<RenewalRow[]>([])
-  const [kpis,     setKpis]     = useState<DashboardKpis | null>(null)
-  const [pipe,     setPipe]     = useState<LeadPipelineStats | null>(null)
-  const [loading,  setLoading]  = useState(true)
+  const [overdue,    setOverdue]    = useState<OverdueLead[]>([])
+  const [todayQ,     setTodayQ]     = useState<OverdueLead[]>([])
+  const [pending,    setPending]    = useState<PendingPaymentRow[]>([])
+  const [renewals,   setRenewals]   = useState<RenewalRow[]>([])
+  const [kpis,       setKpis]       = useState<DashboardKpis | null>(null)
+  const [pipe,       setPipe]       = useState<LeadPipelineStats | null>(null)
+  const [teamStats,  setTeamStats]  = useState<TeamMemberStat[]>([])
+  const [staffMap,   setStaffMap]   = useState<Map<string, StaffRow>>(new Map())
+  const [loading,    setLoading]    = useState(true)
 
   async function load() {
     const assignedFilter = me.role === 'assistant' ? me.id : null
@@ -40,12 +44,16 @@ export default function TodayPage() {
       fetchRenewalCandidates(),
     ] as const
     if (isFounder) {
-      const [o, t, p, r, k, pi] = await Promise.all([
-        ...base, fetchDashboardKpis(), fetchLeadPipelineStats(),
+      const [o, t, p, r, k, pi, team, staffRows] = await Promise.all([
+        ...base,
+        fetchDashboardKpis(), fetchLeadPipelineStats(),
+        fetchTeamOverview(), fetchStaff(),
       ])
       setOverdue(o); setTodayQ(t); setPending(p)
       setRenewals((r as RenewalRow[]).filter(x => x.bucket === 'due7' || x.bucket === 'expired'))
       setKpis(k as DashboardKpis); setPipe(pi as LeadPipelineStats)
+      setTeamStats(team as TeamMemberStat[])
+      setStaffMap(new Map((staffRows as StaffRow[]).map(s => [s.id, s])))
     } else {
       const [o, t, p, r] = await Promise.all(base)
       setOverdue(o); setTodayQ(t); setPending(p)
@@ -185,6 +193,69 @@ export default function TodayPage() {
                     </Link>
                   </div>
                   <PipelineBar stats={pipe.perStatus} />
+                </div>
+              )}
+
+              {/* Team overview */}
+              {teamStats.length > 0 && (
+                <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+                  <div className="px-5 py-3.5 border-b border-gray-100 flex items-center gap-2">
+                    <Users size={14} className="text-gray-400" />
+                    <h2 className="font-bold text-gray-900 text-[15px]">Team</h2>
+                  </div>
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 border-b border-gray-100">
+                      <tr>
+                        <th className="text-left px-5 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">Member</th>
+                        <th className="text-center px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">Active</th>
+                        <th className="text-center px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-rose-400">Overdue</th>
+                        <th className="text-center px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-amber-500">Today</th>
+                        <th className="text-center px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-emerald-500">Paid</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {teamStats.map(row => {
+                        const member = row.unassigned ? null : staffMap.get(row.assignedToId)
+                        const name   = member
+                          ? (member.full_name?.split(' ')[0] ?? member.email?.split('@')[0] ?? '?')
+                          : 'Unassigned'
+                        const initial = name[0]?.toUpperCase() ?? '?'
+                        return (
+                          <tr key={row.assignedToId} className="hover:bg-gray-50">
+                            <td className="px-5 py-2.5">
+                              <div className="flex items-center gap-2">
+                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black text-white flex-shrink-0 ${row.unassigned ? 'bg-gray-300' : 'bg-indigo-500'}`}>
+                                  {initial}
+                                </div>
+                                <div>
+                                  <div className="text-[13px] font-semibold text-gray-900">{name}</div>
+                                  {member && <div className="text-[10px] text-gray-400">{member.role}</div>}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-3 py-2.5 text-center">
+                              <span className="text-[13px] font-bold text-gray-700 tabular-nums">{row.total}</span>
+                            </td>
+                            <td className="px-3 py-2.5 text-center">
+                              <span className={`text-[13px] font-bold tabular-nums ${row.overdue > 0 ? 'text-rose-600' : 'text-gray-300'}`}>
+                                {row.overdue > 0 ? row.overdue : '—'}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2.5 text-center">
+                              <span className={`text-[13px] font-bold tabular-nums ${row.todayCount > 0 ? 'text-amber-600' : 'text-gray-300'}`}>
+                                {row.todayCount > 0 ? row.todayCount : '—'}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2.5 text-center">
+                              <span className={`text-[13px] font-bold tabular-nums ${row.paid > 0 ? 'text-emerald-600' : 'text-gray-300'}`}>
+                                {row.paid > 0 ? row.paid : '—'}
+                              </span>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>

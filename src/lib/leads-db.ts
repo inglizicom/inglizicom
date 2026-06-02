@@ -304,6 +304,48 @@ export async function patchLead(id: string, patch: LeadPatch): Promise<void> {
   if (error) throw new Error(error.message)
 }
 
+/** Apply the same patch to multiple leads at once. */
+export async function bulkPatchLeads(ids: string[], patch: LeadPatch): Promise<void> {
+  const { error } = await supabase
+    .from('subscription_leads')
+    .update(patch)
+    .in('id', ids)
+  if (error) throw new Error(error.message)
+}
+
+/** Archive multiple leads (soft-delete from pipeline). */
+export async function bulkArchiveLeads(ids: string[], actorId: string): Promise<void> {
+  const { error } = await supabase
+    .from('subscription_leads')
+    .update({ is_archived: true, archived_at: new Date().toISOString(), archived_by: actorId })
+    .in('id', ids)
+  if (error) throw new Error(error.message)
+}
+
+/** Insert multiple leads from CSV import. Returns count of inserted rows. */
+export async function importLeadsFromRows(
+  rows: Pick<CreateLeadInput, 'fullName' | 'phone' | 'source' | 'planId' | 'amountMad' | 'level' | 'city'>[],
+): Promise<number> {
+  const inserts = rows.map(r => ({
+    full_name:  r.fullName,
+    phone:      r.phone    ?? null,
+    source:     r.source   ?? 'import',
+    lead_source:r.source   ?? 'import',
+    plan_id:    r.planId   ?? 'basic',
+    amount_mad: r.amountMad ?? null,
+    level:      r.level    ?? null,
+    city:       r.city     ?? null,
+    device:     'import',
+    is_archived: false,
+  }))
+  const { data, error } = await supabase
+    .from('subscription_leads')
+    .insert(inserts)
+    .select('id')
+  if (error) throw new Error(error.message)
+  return data?.length ?? rows.length
+}
+
 /** Bulk-fetch leads grouped by status for the Kanban view. */
 export async function fetchLeadsForKanban(): Promise<Record<LeadStatus, SubscriptionLead[]>> {
   const rows = await fetchAllLeads()

@@ -426,3 +426,51 @@ export async function fetchRevenuePerMonth(monthsBack = 12): Promise<{ month: st
 function monthKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
 }
+
+/** Per-assistant live pipeline stats — used on the founder Today page.
+ *  Single query; aggregation is done client-side. */
+export interface TeamMemberStat {
+  assignedToId: string
+  total:        number   // all active (non-cancelled, non-paid) assigned leads
+  overdue:      number   // next_followup_at in the past
+  todayCount:   number   // next_followup_at is today
+  paid:         number   // status = paid
+  unassigned?:  true     // sentinel for the "unassigned" bucket
+}
+
+export async function fetchTeamOverview(): Promise<TeamMemberStat[]> {
+  const now   = new Date()
+  const start = new Date(now); start.setHours(0, 0, 0, 0)
+  const end   = new Date(start); end.setDate(end.getDate() + 1)
+
+  const { data } = await supabase
+    .from('subscription_leads')
+    .select('id, status, assigned_to_id, next_followup_at')
+    .eq('is_archived', false)
+    .not('plan_id', 'in', '("test_completed","inquiry")')
+
+  const map = new Map<string, TeamMemberStat>()
+  const get = (id: string): TeamMemberStat => {
+    if (!map.has(id)) map.set(id, { assignedToId: id, total: 0, overdue: 0, todayCount: 0, paid: 0 })
+    return map.get(id)!
+  }
+
+  for (const row of data ?? []) {
+    const key = row.assigned_to_id ?? '__unassigned__'
+    const s   = get(key)
+    if (key === '__unassigned__') (s as any).unassigned = true
+
+    const status = row.status === 'converted' ? 'paid' : row.status === 'rejected' ? 'cancelled' : row.status
+    if (status === 'paid') { s.paid++; continue }
+    if (status === 'cancelled') continue
+    s.total++
+
+    if (row.next_followup_at) {
+      const d = new Date(row.next_followup_at as string)
+      if (d < now) s.overdue++
+      else if (d >= start && d < end) s.todayCount++
+    }
+  }
+
+  return [...map.values()].sort((a, b) => b.total - a.total)
+}

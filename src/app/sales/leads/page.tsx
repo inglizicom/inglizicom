@@ -17,7 +17,9 @@ import { LEAD_SOURCES, getCourseMeta } from '@/lib/crm-types'
 import { logActivity } from '@/lib/activity-log-db'
 import { logLeadEvent } from '@/lib/crm-db'
 import { fetchStaff, type StaffRow } from '@/lib/staff-db'
+import { bulkPatchLeads, bulkArchiveLeads } from '@/lib/leads-db'
 import { useStaff } from '@/lib/staff-context'
+import LeadImportModal from './LeadImportModal'
 import LeadDetailDrawer from './LeadDetailDrawer'
 import AddLeadModal from './AddLeadModal'
 import StatusDropdown from './StatusDropdown'
@@ -76,10 +78,13 @@ export default function LeadsPage() {
   const [sortField,setSortField]= useState<SortField>('urgency')
   const [sortDir,  setSortDir]  = useState<SortDir>('asc')
   const [view,     setView]     = useState<'list' | 'board'>('list')
-  const [selected, setSelected] = useState<SubscriptionLead | null>(null)
-  const [addOpen,  setAddOpen]  = useState(false)
-  const [dragging, setDragging] = useState<string | null>(null)
-  const [staffMap, setStaffMap] = useState<Map<string, StaffRow>>(new Map())
+  const [selected,    setSelected]    = useState<SubscriptionLead | null>(null)
+  const [addOpen,     setAddOpen]     = useState(false)
+  const [importOpen,  setImportOpen]  = useState(false)
+  const [dragging,    setDragging]    = useState<string | null>(null)
+  const [staffMap,    setStaffMap]    = useState<Map<string, StaffRow>>(new Map())
+  const [checkedIds,  setCheckedIds]  = useState<Set<string>>(new Set())
+  const [bulkBusy,    setBulkBusy]    = useState(false)
 
   const sp     = useSearchParams()
   const router = useRouter()
@@ -129,6 +134,35 @@ export default function LeadsPage() {
     else if (sortField === 'created') v = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
     return sortDir === 'asc' ? v : -v
   }), [filtered, sortField, sortDir])
+
+  /* bulk helpers — depend on sorted, so placed after it */
+  const allFilteredIds = useMemo(() => sorted.map(l => l.id), [sorted])
+  const allChecked     = checkedIds.size > 0 && checkedIds.size === allFilteredIds.length && allFilteredIds.every(id => checkedIds.has(id))
+
+  function toggleCheck(id: string) {
+    setCheckedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
+  }
+  function toggleAll() {
+    setCheckedIds(allChecked ? new Set() : new Set(allFilteredIds))
+  }
+  async function bulkAssign(assigneeId: string | null) {
+    if (!checkedIds.size) return
+    setBulkBusy(true)
+    try { await bulkPatchLeads([...checkedIds], { assigned_to_id: assigneeId }); setCheckedIds(new Set()); await load() }
+    finally { setBulkBusy(false) }
+  }
+  async function bulkStatus(status: LeadStatus) {
+    if (!checkedIds.size) return
+    setBulkBusy(true)
+    try { await bulkPatchLeads([...checkedIds], { status }); setCheckedIds(new Set()); await load() }
+    finally { setBulkBusy(false) }
+  }
+  async function bulkArchive() {
+    if (!checkedIds.size) return
+    setBulkBusy(true)
+    try { await bulkArchiveLeads([...checkedIds], staff.id); setCheckedIds(new Set()); await load() }
+    finally { setBulkBusy(false) }
+  }
 
   function toggleSort(field: SortField) {
     if (sortField === field) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
@@ -206,6 +240,10 @@ export default function LeadsPage() {
               className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors">
               <RotateCcw size={14} />
             </button>
+            <button onClick={() => setImportOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
+              <SlidersHorizontal size={14} /> Import CSV
+            </button>
             <button onClick={() => setAddOpen(true)}
               className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-black transition-colors">
               <Plus size={15} /> New lead
@@ -271,6 +309,57 @@ export default function LeadsPage() {
         </div>
       </div>
 
+      {/* ══ BULK ACTION BAR ══════════════════════════════════ */}
+      {checkedIds.size > 0 && (
+        <div className="flex-shrink-0 flex items-center gap-3 px-6 py-2.5 bg-indigo-50 border-b border-indigo-200">
+          {bulkBusy && <Loader2 size={14} className="animate-spin text-indigo-500" />}
+          <span className="text-[13px] font-bold text-indigo-800 tabular-nums">
+            {checkedIds.size} selected
+          </span>
+          <div className="h-4 w-px bg-indigo-200" />
+
+          {/* Assign */}
+          <select
+            onChange={e => bulkAssign(e.target.value || null)}
+            disabled={bulkBusy}
+            defaultValue=""
+            className="text-xs font-semibold py-1.5 pl-2 pr-6 rounded-md border border-indigo-200 bg-white text-indigo-700 focus:outline-none appearance-none cursor-pointer disabled:opacity-50"
+          >
+            <option value="" disabled>Assign to…</option>
+            <option value="">Unassign</option>
+            {[...staffMap.values()].map(s => (
+              <option key={s.id} value={s.id}>
+                {s.full_name?.split(' ')[0] ?? s.email?.split('@')[0]}
+              </option>
+            ))}
+          </select>
+
+          {/* Status */}
+          <select
+            onChange={e => bulkStatus(e.target.value as LeadStatus)}
+            disabled={bulkBusy}
+            defaultValue=""
+            className="text-xs font-semibold py-1.5 pl-2 pr-6 rounded-md border border-indigo-200 bg-white text-indigo-700 focus:outline-none appearance-none cursor-pointer disabled:opacity-50"
+          >
+            <option value="" disabled>Set status…</option>
+            {LEAD_STATUSES.filter(s => !['vip','converted','rejected'].includes(s)).map(s => (
+              <option key={s} value={s}>{LEAD_STATUS_META[s].label}</option>
+            ))}
+          </select>
+
+          {/* Archive */}
+          <button onClick={bulkArchive} disabled={bulkBusy}
+            className="text-xs font-bold py-1.5 px-3 rounded-md border border-indigo-200 bg-white text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-50">
+            Archive
+          </button>
+
+          <button onClick={() => setCheckedIds(new Set())}
+            className="ml-auto text-xs font-semibold text-indigo-500 hover:text-indigo-800">
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
       {/* ══ BODY ═════════════════════════════════════════════ */}
       <div className="flex-1 overflow-auto">
         {loading ? (
@@ -281,6 +370,10 @@ export default function LeadsPage() {
           <ListView
             leads={sorted}
             staffMap={staffMap}
+            checkedIds={checkedIds}
+            allChecked={allChecked}
+            onToggleAll={toggleAll}
+            onToggleCheck={toggleCheck}
             hasFilter={hasFilter}
             sortField={sortField} sortDir={sortDir}
             onSort={toggleSort}
@@ -306,6 +399,9 @@ export default function LeadsPage() {
       {addOpen && (
         <AddLeadModal onClose={() => setAddOpen(false)} onCreated={() => load()} />
       )}
+      {importOpen && (
+        <LeadImportModal onClose={() => setImportOpen(false)} onImported={() => { setImportOpen(false); load() }} />
+      )}
     </div>
   )
 }
@@ -314,10 +410,15 @@ export default function LeadsPage() {
    LIST VIEW
 ══════════════════════════════════════════════ */
 function ListView({
-  leads, staffMap, hasFilter, sortField, sortDir, onSort, onSelect, onMove, onClear, onAdd,
+  leads, staffMap, checkedIds, allChecked, onToggleAll, onToggleCheck,
+  hasFilter, sortField, sortDir, onSort, onSelect, onMove, onClear, onAdd,
 }: {
   leads: SubscriptionLead[]
   staffMap: Map<string, StaffRow>
+  checkedIds: Set<string>
+  allChecked: boolean
+  onToggleAll: () => void
+  onToggleCheck: (id: string) => void
   hasFilter: boolean
   sortField: SortField; sortDir: SortDir
   onSort: (f: SortField) => void
@@ -351,6 +452,10 @@ function ListView({
         {/* Head */}
         <thead>
           <tr className="bg-gray-50 border-b border-gray-200">
+            <th className="w-10 px-4 py-3">
+              <input type="checkbox" checked={allChecked} onChange={onToggleAll}
+                className="w-3.5 h-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
+            </th>
             <Th onClick={() => onSort('status')} active={sortField === 'status'} dir={sortDir} className="w-36">Status</Th>
             <Th onClick={() => onSort('name')}   active={sortField === 'name'}   dir={sortDir}>Contact</Th>
             <th className="text-left px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 whitespace-nowrap">Phone</th>
@@ -365,7 +470,11 @@ function ListView({
 
         {/* Body */}
         <tbody className="divide-y divide-gray-100 bg-white">
-          {leads.map(l => <LeadRow key={l.id} lead={l} staffMap={staffMap} onSelect={() => onSelect(l)} onMove={onMove} />)}
+          {leads.map(l => (
+            <LeadRow key={l.id} lead={l} staffMap={staffMap}
+              checked={checkedIds.has(l.id)} onToggleCheck={() => onToggleCheck(l.id)}
+              onSelect={() => onSelect(l)} onMove={onMove} />
+          ))}
         </tbody>
       </table>
     </div>
@@ -392,9 +501,11 @@ function Th({ children, onClick, active, dir, className = '' }: {
 /* ══════════════════════════════════════════════
    LEAD ROW
 ══════════════════════════════════════════════ */
-function LeadRow({ lead: l, staffMap, onSelect, onMove }: {
+function LeadRow({ lead: l, staffMap, checked, onToggleCheck, onSelect, onMove }: {
   lead: SubscriptionLead
   staffMap: Map<string, StaffRow>
+  checked: boolean
+  onToggleCheck: () => void
   onSelect: () => void
   onMove: (id: string, s: LeadStatus) => void
 }) {
@@ -406,15 +517,18 @@ function LeadRow({ lead: l, staffMap, onSelect, onMove }: {
   const course   = getCourseMeta(l.course)
   const assignee = l.assigned_to_id ? staffMap.get(l.assigned_to_id) : null
 
-  /* Left border urgency stripe */
   const stripe = overdue ? 'border-l-2 border-l-red-400' : today ? 'border-l-2 border-l-orange-400' : 'border-l-2 border-l-transparent'
 
-  /* Days since last meaningful action */
   const lastActionDate = l.last_contact_at ?? l.created_at
   const lastActionDays = Math.floor((Date.now() - new Date(lastActionDate).getTime()) / 86_400_000)
 
   return (
-    <tr className={`group hover:bg-gray-50 cursor-pointer transition-colors ${stripe}`} onClick={onSelect}>
+    <tr className={`group hover:bg-gray-50 cursor-pointer transition-colors ${stripe} ${checked ? 'bg-indigo-50' : ''}`} onClick={onSelect}>
+      {/* Checkbox */}
+      <td className="px-4 py-3" onClick={e => { e.stopPropagation(); onToggleCheck() }}>
+        <input type="checkbox" checked={checked} onChange={onToggleCheck}
+          className="w-3.5 h-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
+      </td>
       {/* Status — portal dropdown (no overflow clipping) */}
       <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
         <StatusDropdown status={status} onMove={s => onMove(l.id, s)} />
