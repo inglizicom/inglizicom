@@ -131,7 +131,9 @@ export default function SubscribeModal({
 
     try {
       await createSubscriptionLead({
-        planId:          interestPlanId ?? 'inquiry',
+        // These submissions now include name + phone + city → real leads.
+        // Use 'website' (not the filtered 'inquiry') so they always show in the CRM.
+        planId:          interestPlanId ?? 'website',
         fullName:        name.trim(),
         phone:           phone.trim(),
         city:            cityCountry.trim(),
