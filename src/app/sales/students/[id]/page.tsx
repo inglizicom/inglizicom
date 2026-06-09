@@ -17,9 +17,11 @@ import {
   createCrmPayment, patchStudent,
 } from '@/lib/crm-db'
 import {
-  fetchReceiptsForStudent, printReceipt, buildReceiptWhatsAppMessage, type CrmReceipt,
+  fetchReceiptsForStudent, printReceipt, buildReceiptWhatsAppMessage,
+  ensurePaymentReceipt, type CrmReceipt,
 } from '@/lib/crm-receipts'
 import { whatsappLink } from '@/lib/leads-db'
+import Avatar from '@/app/sales/_components/Avatar'
 
 const MAD = (n: number) => new Intl.NumberFormat('en-US').format(Math.round(n))
 const fmtDate = (s?: string | null) =>
@@ -108,6 +110,26 @@ export default function StudentProfilePage() {
   async function approve(pid: string) { setPayBusy(pid); await approveCrmPayment(pid, staff.id); await reloadPay(); setPayBusy(null) }
   async function decline(pid: string) { setPayBusy(pid); await declineCrmPayment(pid); await reloadPay(); setPayBusy(null) }
 
+  /** Ensure a receipt exists for this paid payment, then return it. */
+  async function getReceipt(p: CrmPayment): Promise<CrmReceipt | null> {
+    const found = receipts.find(r => r.payment_id === p.id)
+    if (found) return found
+    if (!student) return null
+    const r = await ensurePaymentReceipt({
+      paymentId: p.id, studentId: student.id, leadId: student.lead_id,
+      fullName: student.full_name, phoneNumber: student.phone_number, courseName: student.course,
+      paymentType: p.payment_type, amountMad: Number(p.amount_mad),
+      paymentDate: p.payment_date, notes: p.notes, issuedById: staff.id,
+    })
+    if (r) setReceipts(prev => [r, ...prev])
+    return r
+  }
+  async function downloadReceipt(p: CrmPayment) { const r = await getReceipt(p); if (r) printReceipt(r) }
+  async function sendReceipt(p: CrmPayment) {
+    const r = await getReceipt(p)
+    if (r && phone) window.open(`https://wa.me/${phone.replace(/\D/g,'')}?text=${buildReceiptWhatsAppMessage(r)}`, '_blank')
+  }
+
   if (loading) {
     return <div className="py-32 flex items-center justify-center text-zinc-300"><Loader2 size={28} className="animate-spin" /></div>
   }
@@ -187,9 +209,7 @@ export default function StudentProfilePage() {
           {/* Header card */}
           <div className="bg-white rounded-2xl border border-zinc-200/80 p-5">
             <div className="flex items-start gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-zinc-900 text-yellow-400 flex items-center justify-center font-black text-2xl flex-shrink-0">
-                {student.full_name[0]}
-              </div>
+              <Avatar name={student.full_name} size={64} square />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h2 className="text-[20px] font-black text-zinc-900">{student.full_name}</h2>
@@ -335,15 +355,15 @@ export default function StudentProfilePage() {
                                 className="flex items-center gap-1 text-[12px] px-3 py-1.5 rounded-lg border border-red-200 text-red-500"><XCircle size={11} /> رفض</button>
                             </>
                           )}
-                          {receipt && (
+                          {p.payment_status === 'paid' && (
                             <>
-                              <button onClick={() => printReceipt(receipt)}
-                                className="flex items-center gap-1 text-[12px] px-3 py-1.5 rounded-lg bg-zinc-100 text-zinc-600 hover:bg-zinc-200"><Printer size={11} /> طباعة الوصل</button>
+                              <button onClick={() => downloadReceipt(p)}
+                                className="flex items-center gap-1 text-[12px] font-semibold px-3 py-1.5 rounded-lg bg-black text-yellow-400 hover:bg-zinc-800"><Printer size={11} /> تحميل الوصل</button>
                               {phone && (
-                                <a href={`https://wa.me/${phone.replace(/\D/g,'')}?text=${buildReceiptWhatsAppMessage(receipt)}`} target="_blank" rel="noopener noreferrer"
-                                  className="flex items-center gap-1 text-[12px] px-3 py-1.5 rounded-lg bg-green-50 text-green-700"><MessageCircle size={11} /> إرسال الوصل</a>
+                                <button onClick={() => sendReceipt(p)}
+                                  className="flex items-center gap-1 text-[12px] font-semibold px-3 py-1.5 rounded-lg bg-green-50 text-green-700 hover:bg-green-100"><MessageCircle size={11} /> إرسال الوصل</button>
                               )}
-                              <span className="text-[11px] text-zinc-400 self-center">{receipt.receipt_number}</span>
+                              {receipt && <span className="text-[11px] text-zinc-400 self-center">{receipt.receipt_number}</span>}
                             </>
                           )}
                         </div>

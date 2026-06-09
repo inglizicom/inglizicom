@@ -6,7 +6,7 @@ import {
   Search, SlidersHorizontal, RefreshCw, Plus,
   Users, GraduationCap, CreditCard, CalendarClock, Archive,
   CheckCircle, XCircle, AlertTriangle, Clock, Loader2, Crown,
-  MessageCircle, Phone,
+  MessageCircle, Phone, Printer,
 } from 'lucide-react'
 
 import {
@@ -22,6 +22,8 @@ import { fetchStaff, type StaffRow } from '@/lib/staff-db'
 import { useStaff } from '@/lib/staff-context'
 import { whatsappLink } from '@/lib/leads-db'
 
+import Avatar from '@/app/sales/_components/Avatar'
+import { ensurePaymentReceipt, printReceipt, buildReceiptWhatsAppMessage } from '@/lib/crm-receipts'
 import UnifiedDetailDrawer from './UnifiedDetailDrawer'
 import StudentDrawer from './StudentDrawer'
 import FilterDrawer, { type FilterState } from './FilterDrawer'
@@ -554,6 +556,7 @@ function LeadCardNew({
       {/* Header */}
       <div className="px-4 pt-4 pb-3">
         <div className="flex items-start justify-between gap-2">
+          <Avatar name={lead.full_name} size={38} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 min-w-0">
               {lead.is_vip && <Crown size={12} className="text-rose-500 flex-shrink-0" />}
@@ -639,9 +642,9 @@ function StudentCardNew({ student, onClick }: { student: CrmStudent; onClick: (s
     >
       <div className="px-4 pt-4 pb-3">
         <div className="flex items-start justify-between gap-2">
+          <Avatar name={student.full_name} size={38} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
-              <GraduationCap size={13} className="text-zinc-400 flex-shrink-0" />
               <span className="font-bold text-[15px] text-zinc-900 truncate">{student.full_name}</span>
             </div>
             <div className="text-[12px] text-zinc-400 mt-0.5">
@@ -714,18 +717,43 @@ function PayRow({
 }) {
   const info = PAY_STATUS_AR[p.payment_status]
   const lead = leads.find(l => l.id === p.lead_id)
+  const name = lead?.full_name ?? 'طالب'
+
+  async function downloadReceipt() {
+    const r = await ensurePaymentReceipt({
+      paymentId: p.id, leadId: p.lead_id, studentId: p.student_id,
+      fullName: name, phoneNumber: lead?.phone, courseName: lead?.course ?? p.course_or_service,
+      paymentType: p.payment_type, amountMad: Number(p.amount_mad),
+      paymentDate: p.payment_date, notes: p.notes,
+    })
+    if (r) printReceipt(r)
+  }
+  async function sendReceipt() {
+    const r = await ensurePaymentReceipt({
+      paymentId: p.id, leadId: p.lead_id, studentId: p.student_id,
+      fullName: name, phoneNumber: lead?.phone, courseName: lead?.course ?? p.course_or_service,
+      paymentType: p.payment_type, amountMad: Number(p.amount_mad),
+      paymentDate: p.payment_date, notes: p.notes,
+    })
+    if (r && lead?.phone) window.open(`https://wa.me/${lead.phone.replace(/\D/g,'')}?text=${buildReceiptWhatsAppMessage(r)}`, '_blank')
+  }
+
   return (
     <div className="bg-white border border-zinc-200 rounded-xl p-4">
       <div className="flex items-start justify-between gap-3 mb-2">
-        <div className="flex-1">
-          <div className="font-bold text-[15px]">{lead?.full_name ?? 'طالب'}</div>
-          <div className="text-[13px] text-zinc-500">
-            {Number(p.amount_mad).toLocaleString('ar-MA')} درهم
-            {p.payment_date && ` · ${new Date(p.payment_date).toLocaleDateString('ar-MA', { month: 'short', day: 'numeric' })}`}
+        <div className="flex items-center gap-2.5 flex-1 min-w-0">
+          <Avatar name={name} size={36} />
+          <div className="min-w-0">
+            <div className="font-bold text-[15px] truncate">{name}</div>
+            <div className="text-[13px] text-zinc-500">
+              {Number(p.amount_mad).toLocaleString('ar-MA')} درهم
+              {p.payment_date && ` · ${new Date(p.payment_date).toLocaleDateString('ar-MA', { month: 'short', day: 'numeric' })}`}
+            </div>
           </div>
         </div>
-        <span className={`text-[11px] font-bold px-2 py-1 rounded-full ${info.cls}`}>{info.text}</span>
+        <span className={`text-[11px] font-bold px-2 py-1 rounded-full flex-shrink-0 ${info.cls}`}>{info.text}</span>
       </div>
+
       {p.payment_status === 'pending' && (
         <div className="flex gap-2 pt-2 border-t border-zinc-50">
           <button type="button" onClick={() => onApprove(p.id)} disabled={!!payBusy}
@@ -739,6 +767,21 @@ function PayRow({
           {lead && (
             <button type="button" onClick={() => onOpen(lead)}
               className="text-[13px] px-3 py-1.5 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-50">الملف</button>
+          )}
+        </div>
+      )}
+
+      {p.payment_status === 'paid' && (
+        <div className="flex gap-2 pt-2 border-t border-zinc-50">
+          <button type="button" onClick={downloadReceipt}
+            className="flex items-center gap-1 text-[13px] font-bold px-3 py-1.5 rounded-lg bg-black text-yellow-400 hover:bg-zinc-800">
+            <Printer size={12} /> تحميل الوصل
+          </button>
+          {lead?.phone && (
+            <button type="button" onClick={sendReceipt}
+              className="flex items-center gap-1 text-[13px] font-semibold px-3 py-1.5 rounded-lg bg-green-50 text-green-700 hover:bg-green-100">
+              <MessageCircle size={12} /> إرسال الوصل
+            </button>
           )}
         </div>
       )}

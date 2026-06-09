@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import {
-  X, User, Send, CheckCircle, Clock,
+  X, User, Send, CheckCircle, Clock, Phone, MapPin,
   Crown, AlertCircle, Loader2, Flame, Target, MessageCircle,
 } from 'lucide-react'
 import type { Plan } from '@/data/plans'
@@ -57,6 +57,9 @@ export default function SubscribeModal({
   open, onClose, plan, source, defaultLevel, defaultGoal, testScore, recommendedPlan,
 }: Props) {
   const [name,         setName]         = useState('')
+  const [phone,        setPhone]        = useState('')
+  const [whatsapp,     setWhatsapp]     = useState('')
+  const [cityCountry,  setCityCountry]  = useState('')
   const [level,        setLevel]        = useState(defaultLevel ?? '')
   const [goal,         setGoal]         = useState(defaultGoal  ?? '')
   const [planInterest, setPlanInterest] = useState(plan?.id ?? recommendedPlan ?? '')
@@ -84,7 +87,7 @@ export default function SubscribeModal({
   /* Reset whenever we reopen or the contextual plan changes */
   useEffect(() => {
     if (!open) return
-    setDone(false); setErr(null); setName('')
+    setDone(false); setErr(null); setName(''); setPhone(''); setWhatsapp(''); setCityCountry('')
     setLevel(defaultLevel ?? '')
     setGoal(defaultGoal  ?? '')
     setPlanInterest(plan?.id ?? recommendedPlan ?? '')
@@ -108,7 +111,11 @@ export default function SubscribeModal({
 
   const countdown = useCountdownToMonthEnd(open)
 
-  const canSubmit = name.trim().length >= 2 && !submitting
+  const canSubmit =
+    name.trim().length >= 2 &&
+    phone.trim().length >= 6 &&
+    cityCountry.trim().length >= 2 &&
+    !submitting
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -120,10 +127,15 @@ export default function SubscribeModal({
     const interestPlan      = interestPlanId ? PLANS.find(p => p.id === interestPlanId) : undefined
     const attribution       = getAttribution()
 
+    const waDiffers = whatsapp.trim() && whatsapp.trim() !== phone.trim()
+
     try {
       await createSubscriptionLead({
         planId:          interestPlanId ?? 'inquiry',
         fullName:        name.trim(),
+        phone:           phone.trim(),
+        city:            cityCountry.trim(),
+        notes:           waDiffers ? `واتساب: ${whatsapp.trim()}` : null,
         level:           level || null,
         goal:            goal  || null,
         planInterest:    interestPlanId,
@@ -138,6 +150,9 @@ export default function SubscribeModal({
       const waText =
         `السلام عليكم أستاذ حمزة 👋\n` +
         `الاسم: ${name.trim()}\n` +
+        `الهاتف: ${phone.trim()}\n` +
+        (waDiffers ? `واتساب: ${whatsapp.trim()}\n` : '') +
+        `المدينة/الدولة: ${cityCountry.trim()}\n` +
         (level ? `المستوى: ${level}\n` : '') +
         (goal  ? `الهدف: ${humanGoal(goal)}\n` : '') +
         (interestPlan ? `الباقة اللي تهمّني: ${interestPlan.title_ar} (${interestPlan.amount_mad} درهم)\n` : '') +
@@ -225,12 +240,48 @@ export default function SubscribeModal({
               </div>
             )}
 
-            <Field icon={User} label="الاسم الكامل" required>
+            <Field icon={User} label="الاسم الكامل (بالعربية أو الإنجليزية)" required>
               <input
                 type="text"
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="مثلاً: كريم العلمي"
+                required
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 text-sm font-semibold focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+              />
+            </Field>
+
+            <Field icon={Phone} label="رقم الهاتف" required>
+              <input
+                type="tel"
+                inputMode="tel"
+                value={phone}
+                onChange={e => setPhone(e.target.value)}
+                placeholder="+212 6 00 00 00 00"
+                required
+                dir="ltr"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 text-sm font-semibold text-right focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+              />
+            </Field>
+
+            <Field icon={MessageCircle} label="رقم واتساب (إذا كان مختلف)">
+              <input
+                type="tel"
+                inputMode="tel"
+                value={whatsapp}
+                onChange={e => setWhatsapp(e.target.value)}
+                placeholder="+212 6 00 00 00 00"
+                dir="ltr"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 text-sm font-semibold text-right focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+              />
+            </Field>
+
+            <Field icon={MapPin} label="المدينة (أو الدولة إن كنت خارج المغرب)" required>
+              <input
+                type="text"
+                value={cityCountry}
+                onChange={e => setCityCountry(e.target.value)}
+                placeholder="مثلاً: الدار البيضاء — أو: فرنسا"
                 required
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 text-sm font-semibold focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
               />

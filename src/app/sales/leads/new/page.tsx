@@ -107,7 +107,7 @@ export default function NewLeadPage() {
       <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr_280px] gap-4">
 
         {/* ── Step nav ─────────────────────────────────── */}
-        <div className="space-y-4">
+        <div className="space-y-4 order-2 lg:order-1">
           <div className="bg-white rounded-2xl border border-zinc-200/80 p-4">
             <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest mb-3 px-1">خطوات الإضافة</div>
             <div className="space-y-1">
@@ -143,7 +143,7 @@ export default function NewLeadPage() {
         </div>
 
         {/* ── Form ─────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-zinc-200/80 p-5 lg:p-6 min-h-[420px]">
+        <div className="bg-white rounded-2xl border border-zinc-200/80 p-5 lg:p-6 min-h-[420px] order-1 lg:order-2">
           {/* Step 1 */}
           {step === 1 && (
             <Section icon={User} title="المعلومات الأساسية" sub="أدخل المعلومات الأساسية للعميل">
@@ -227,11 +227,12 @@ export default function NewLeadPage() {
           {/* Step 4 */}
           {step === 4 && (
             <Section icon={Link2} title="مصدر العميل" sub="من أين تعرّف العميل علينا؟">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                 {LEAD_SOURCES.filter(s => s.id !== 'manual').map(s => (
                   <button key={s.id} type="button" onClick={() => setSource(s.id)}
-                    className={`flex items-center gap-2 px-3 py-3 rounded-xl border text-[13px] font-semibold transition ${source === s.id ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white border-zinc-200 text-zinc-600 hover:border-zinc-400'}`}>
-                    <span>{s.emoji}</span> {s.label}
+                    className={`flex flex-col items-center justify-center gap-1.5 py-4 rounded-xl border text-[13px] font-semibold transition ${source === s.id ? 'bg-zinc-900 text-white border-zinc-900 shadow-sm' : 'bg-white border-zinc-200 text-zinc-600 hover:border-zinc-400'}`}>
+                    <span className="text-[22px] leading-none">{s.emoji}</span>
+                    <span>{s.label}</span>
                   </button>
                 ))}
               </div>
@@ -297,7 +298,7 @@ export default function NewLeadPage() {
         </div>
 
         {/* ── Live preview ─────────────────────────────── */}
-        <div className="space-y-4">
+        <div className="space-y-4 order-3">
           <div className="bg-white rounded-2xl border border-zinc-200/80 p-5">
             <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest mb-4">ملخص العميل</div>
             <div className="flex flex-col items-center text-center">

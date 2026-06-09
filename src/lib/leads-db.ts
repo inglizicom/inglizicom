@@ -121,6 +121,7 @@ export interface CreateLeadInput {
   amountMad?:      number | null
   phone?:          string | null
   city?:           string | null
+  notes?:          string | null
   source?:         string | null
   testScore?:      number | null
   recommendedPlan?: string | null
@@ -179,6 +180,7 @@ export async function createSubscriptionLead(input: CreateLeadInput): Promise<vo
     full_name:        input.fullName,
     phone:            input.phone         ?? null,
     city:             input.city          ?? null,
+    notes:            input.notes         ?? null,
     amount_mad:       input.amountMad     ?? null,
     source:           input.source        ?? null,
     // lead_source mirrors source so the CRM can identify these as website submissions

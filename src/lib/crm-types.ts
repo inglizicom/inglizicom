@@ -28,12 +28,11 @@ export function getSourceMeta(id: string | null | undefined) {
 export type LeadCourse = 'a0a1' | 'a1a2' | 'a2b1' | 'private' | 'bootcamp' | 'other'
 
 export const LEAD_COURSES: { id: LeadCourse; label: string; short: string }[] = [
-  { id: 'a0a1',     label: 'A0/A1 — Total Beginners', short: 'A0/A1' },
-  { id: 'a1a2',     label: 'A1/A2 — Elementary',      short: 'A1/A2' },
-  { id: 'a2b1',     label: 'A2/B1 — Pre-Intermediate', short: 'A2/B1' },
-  { id: 'private',  label: 'Private Classes',          short: 'Private' },
-  { id: 'bootcamp', label: 'Bootcamp',                 short: 'Bootcamp' },
-  { id: 'other',    label: 'Other / TBD',              short: 'Other' },
+  { id: 'a0a1',     label: 'A0 - A1',    short: 'A0-A1' },
+  { id: 'a1a2',     label: 'A1 - A2',    short: 'A1-A2' },
+  { id: 'a2b1',     label: 'A2 - B1',    short: 'A2-B1' },
+  { id: 'private',  label: 'دروس خاصة',  short: 'خاص' },
+  { id: 'other',    label: 'أخرى',       short: 'أخرى' },
 ]
 
 export function getCourseMeta(id: string | null | undefined) {

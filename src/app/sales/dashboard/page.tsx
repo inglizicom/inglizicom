@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 
 import KpiCard from '../_components/KpiCard'
+import Avatar from '../_components/Avatar'
 import { ChartCard, AreaTrend, DonutBreakdown, Funnel } from '../_components/Charts'
 import { useStaff } from '@/lib/staff-context'
 import {
@@ -144,9 +145,7 @@ export default function DashboardPage() {
               const s = normalizeStatus(l.status)
               return (
                 <div key={l.id} className="flex items-center gap-3 py-2.5">
-                  <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 font-bold text-xs flex-shrink-0">
-                    {l.full_name[0]}
-                  </div>
+                  <Avatar name={l.full_name} size={32} />
                   <div className="flex-1 min-w-0">
                     <div className="text-[13px] font-semibold text-zinc-800 truncate">{l.full_name}</div>
                     <div className="text-[11px] text-zinc-400" dir="ltr">{l.phone ?? '—'}</div>
@@ -179,9 +178,7 @@ function FollowList({ items, empty }: { items: OverdueLead[]; empty: string }) {
     <div className="space-y-2">
       {items.map(l => (
         <div key={l.id} className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 font-bold text-xs flex-shrink-0">
-            {l.full_name[0]}
-          </div>
+          <Avatar name={l.full_name} size={32} />
           <div className="flex-1 min-w-0">
             <div className="text-[13px] font-semibold text-zinc-800 truncate">{l.full_name}</div>
             <div className="text-[11px] text-zinc-400" dir="ltr">{l.phone ?? '—'}</div>

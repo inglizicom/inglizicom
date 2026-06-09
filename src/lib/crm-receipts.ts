@@ -278,6 +278,48 @@ export function printReceipt(receipt: CrmReceipt, issuerName?: string) {
   document.getElementById('__receipt_close__')?.addEventListener('click', () => overlay.remove())
 }
 
+/**
+ * Ensure a receipt exists for a paid payment, then return it.
+ * Auto-creates one (with a real receipt number) if the DB trigger never ran
+ * (e.g. payments approved before the receipts system existed).
+ */
+export async function ensurePaymentReceipt(input: {
+  paymentId:     string
+  studentId?:    string | null
+  leadId?:       string | null
+  fullName:      string
+  phoneNumber?:  string | null
+  courseName?:   string | null
+  paymentType:   CrmReceipt['payment_type']
+  amountMad:     number
+  paymentDate?:  string | null
+  paymentMethod?: CrmReceipt['payment_method']
+  notes?:        string | null
+  issuedById?:   string | null
+}): Promise<CrmReceipt | null> {
+  const { data: existing } = await supabase
+    .from('crm_receipts')
+    .select('*')
+    .eq('payment_id', input.paymentId)
+    .maybeSingle()
+  if (existing) return existing as CrmReceipt
+
+  return createManualReceipt({
+    paymentId:     input.paymentId,
+    studentId:     input.studentId ?? undefined,
+    leadId:        input.leadId ?? undefined,
+    fullName:      input.fullName,
+    phoneNumber:   input.phoneNumber ?? undefined,
+    courseName:    input.courseName ?? undefined,
+    paymentType:   input.paymentType,
+    amountMad:     input.amountMad,
+    paymentDate:   input.paymentDate ?? new Date().toISOString().slice(0, 10),
+    paymentMethod: input.paymentMethod ?? 'cash',
+    notes:         input.notes ?? undefined,
+    issuedById:    input.issuedById ?? undefined,
+  })
+}
+
 /** Build a WhatsApp pre-filled message with receipt summary. */
 export function buildReceiptWhatsAppMessage(receipt: CrmReceipt): string {
   const fmtDate = (d: string) =>

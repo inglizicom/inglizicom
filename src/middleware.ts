@@ -17,6 +17,8 @@ import { NextResponse, type NextRequest } from 'next/server'
 const ADMIN_ROUTES: Record<string, string> = {
   '/':            '/sales',
   '/crm-login':   '/crm-login',   // CRM access gate — unprotected
+  '/dashboard':   '/sales/dashboard',
+  '/workspace':   '/sales/workspace',
   '/leads':       '/sales/leads',
   '/today':       '/sales/today',
   '/students':    '/sales/students',
