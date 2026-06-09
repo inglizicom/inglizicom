@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
@@ -15,12 +15,24 @@ import { useCrmBasePath, useIsAdminDomain } from '@/lib/use-crm-path'
 
 /* ─── Workspace items — all link into /sales/workspace?tab= ─── */
 interface NavItem {
-  id:          string           // tab name or unique key
+  id:          string
   labelAr:     string
   icon:        LucideIcon
   href:        (base: string) => string
-  activeMatch: (path: string, tab: string | null) => boolean
+  activeMatch: (path: string) => boolean
   mobileShow:  boolean
+}
+
+/* Active check: parse ?tab= directly from current window.location in browser.
+   Falls back to pathname-only check (safe for SSR, sidebar is client-only). */
+function tabActive(rawPath: string, tabId: string): boolean {
+  if (typeof window === 'undefined') return false
+  const params = new URLSearchParams(window.location.search)
+  const tab = params.get('tab')
+  const onWorkspace = rawPath.includes('/workspace')
+  if (!onWorkspace) return false
+  if (tabId === 'leads') return !tab || tab === 'leads'
+  return tab === tabId
 }
 
 const WORKSPACE_ITEMS: NavItem[] = [
@@ -29,7 +41,7 @@ const WORKSPACE_ITEMS: NavItem[] = [
     labelAr: 'العملاء المحتملون',
     icon: Users,
     href: (b) => `${b}/workspace`,
-    activeMatch: (p, t) => p.endsWith('/workspace') && (!t || t === 'leads'),
+    activeMatch: (p) => tabActive(p, 'leads'),
     mobileShow: true,
   },
   {
@@ -37,7 +49,7 @@ const WORKSPACE_ITEMS: NavItem[] = [
     labelAr: 'المتابعات',
     icon: CalendarClock,
     href: (b) => `${b}/workspace?tab=followups`,
-    activeMatch: (_, t) => t === 'followups',
+    activeMatch: (p) => tabActive(p, 'followups'),
     mobileShow: true,
   },
   {
@@ -45,7 +57,7 @@ const WORKSPACE_ITEMS: NavItem[] = [
     labelAr: 'الطلاب',
     icon: GraduationCap,
     href: (b) => `${b}/workspace?tab=students`,
-    activeMatch: (_, t) => t === 'students',
+    activeMatch: (p) => tabActive(p, 'students'),
     mobileShow: true,
   },
   {
@@ -53,7 +65,7 @@ const WORKSPACE_ITEMS: NavItem[] = [
     labelAr: 'المدفوعات',
     icon: CreditCard,
     href: (b) => `${b}/workspace?tab=payments`,
-    activeMatch: (_, t) => t === 'payments',
+    activeMatch: (p) => tabActive(p, 'payments'),
     mobileShow: false,
   },
   {
@@ -61,7 +73,7 @@ const WORKSPACE_ITEMS: NavItem[] = [
     labelAr: 'الأرشيف',
     icon: Archive,
     href: (b) => `${b}/workspace?tab=archive`,
-    activeMatch: (_, t) => t === 'archive',
+    activeMatch: (p) => tabActive(p, 'archive'),
     mobileShow: false,
   },
   {
@@ -86,10 +98,8 @@ interface Props {
 }
 
 export default function CrmSidebar({ userEmail, userRole, onSignOut }: Props) {
-  const rawPath       = usePathname() ?? '/'
-  const searchParams  = useSearchParams()
-  const currentTab    = searchParams?.get('tab') ?? null
-  const base          = useCrmBasePath()          // '' on admin domain, '/sales' on main
+  const rawPath  = usePathname() ?? '/'
+  const base     = useCrmBasePath()          // '' on admin domain, '/sales' on main
   const isAdminDomain = useIsAdminDomain()
   const [open, setOpen] = useState(false)
   const isFounder     = userRole === 'founder'
@@ -106,7 +116,7 @@ export default function CrmSidebar({ userEmail, userRole, onSignOut }: Props) {
 
   /* ── Shared nav link renderer ─────────────────────────── */
   function NavLink({ item, onClick }: { item: NavItem; onClick?: () => void }) {
-    const active = item.activeMatch(rawPath, currentTab)
+    const active = item.activeMatch(rawPath)
     return (
       <Link
         href={item.href(base)}
@@ -311,7 +321,7 @@ export default function CrmSidebar({ userEmail, userRole, onSignOut }: Props) {
         className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-black border-t border-zinc-800 flex items-center justify-around h-16"
       >
         {mobileItems.map(item => {
-          const active = item.activeMatch(rawPath, currentTab)
+          const active = item.activeMatch(rawPath)
           return (
             <Link
               key={item.id}
