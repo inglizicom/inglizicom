@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { CheckCircle, Star, Users, Clock, BookOpen } from 'lucide-react'
 import type { Course } from '@/data/courses'
+import SubscribeButton from '@/components/SubscribeButton'
 
 // All Tailwind classes defined here so the JIT scanner picks them up
 const COLOR_MAP = {
@@ -182,14 +183,12 @@ export default function CourseCard({ course }: CourseCardProps) {
 
         {/* CTA Buttons */}
         <div className="flex flex-col gap-2.5">
-          <a
-            href={waUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`w-full text-center py-3.5 px-6 rounded-2xl text-white font-black text-base ${c.btn} shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95`}
+          <SubscribeButton
+            source={`course_card_${course.slug}`}
+            className={`block w-full text-center py-3.5 px-6 rounded-2xl text-white font-black text-base ${c.btn} shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95`}
           >
             سجّل الآن عبر واتساب ←
-          </a>
+          </SubscribeButton>
           <Link
             href={`/courses/${course.slug}`}
             className="w-full text-center py-2.5 px-6 rounded-2xl text-gray-500 font-bold text-sm hover:text-gray-700 hover:bg-gray-50 transition-all duration-200 border border-gray-200"

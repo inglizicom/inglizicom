@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
+import { openSubscribe } from '@/lib/lead-source'
 
 function WhatsAppIcon() {
   return (
@@ -153,14 +154,14 @@ export default function HeroSlider() {
               <ArrowLeft size={20} />
             </Link>
             {slide.cta2.wa ? (
-              <a
-                href={slide.cta2.href}
-                target="_blank" rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={() => openSubscribe({ source: 'hero_whatsapp' })}
                 className="bg-[#25d366] hover:bg-[#20b858] active:scale-95 text-white font-black py-4 px-9 rounded-2xl shadow-xl hover:shadow-green-500/40 transition-all duration-300 flex items-center gap-2 text-lg"
               >
                 <WhatsAppIcon />
                 {slide.cta2.label}
-              </a>
+              </button>
             ) : (
               <Link
                 href={slide.cta2.href}

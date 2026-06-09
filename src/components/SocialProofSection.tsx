@@ -3,6 +3,7 @@
 import FadeIn from './FadeIn'
 import Link from 'next/link'
 import { ArrowLeft, TrendingUp, Briefcase, Star, Quote } from 'lucide-react'
+import { openSubscribe } from '@/lib/lead-source'
 
 /* ─────────────────────────────────────────────────────────
    SOCIAL PROOF SECTION
@@ -237,14 +238,14 @@ export default function SocialProofSection() {
                   ابدأ اختبار المستوى المجاني
                   <ArrowLeft size={20} />
                 </Link>
-                <a
-                  href="https://wa.me/212764189311?text=مرحبا،%20أريد%20معرفة%20كيف%20أبدأ"
-                  target="_blank" rel="noopener noreferrer"
+                <button
+                  type="button"
+                  onClick={() => openSubscribe({ source: 'social_proof' })}
                   className="bg-[#25d366] hover:bg-[#20b858] active:scale-95 text-white font-black py-4 px-10 rounded-2xl shadow-xl transition-all duration-300 flex items-center gap-2 text-lg"
                 >
                   <WAIcon />
                   تحدث مع حمزة مباشرة
-                </a>
+                </button>
               </div>
             </div>
           </div>
