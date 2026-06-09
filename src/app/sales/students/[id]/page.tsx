@@ -230,6 +230,7 @@ export default function StudentProfilePage() {
       fullName: student.full_name, phoneNumber: student.phone_number, courseName: student.course,
       paymentType: p.payment_type, amountMad: Number(p.amount_mad),
       paymentDate: p.payment_date, notes: p.notes, issuedById: staff.id,
+      verificationToken: student.verification_token,
     })
     if (r) setReceipts(prev => [r, ...prev])
     return r

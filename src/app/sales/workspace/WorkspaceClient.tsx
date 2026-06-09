@@ -511,13 +511,69 @@ export default function WorkspaceClient() {
 
             {/* Ledger */}
             {list.length === 0 ? <Empty text="لا توجد عمليات في هذا الفلتر" /> : (
-              <div className="space-y-3">
-                {list.map(p => (
-                  <PayRow key={p.id} p={p} leads={leads} studentById={studentById} staffMap={staffMap}
-                    payBusy={payBusy} onApprove={approvePayment} onDecline={declinePayment}
-                    onOpenStudent={id => router.push(`/sales/students/${id}`)} onOpenLead={setDrawerLead} />
-                ))}
-              </div>
+              <>
+                {/* Desktop table */}
+                <div className="hidden lg:block bg-white rounded-2xl border border-zinc-200/80 overflow-hidden">
+                  <table className="w-full text-right">
+                    <thead>
+                      <tr className="bg-zinc-50 border-b border-zinc-100 text-[11px] font-bold text-zinc-400 uppercase">
+                        <th className="px-4 py-3">الطالب</th>
+                        <th className="px-4 py-3">الدورة</th>
+                        <th className="px-4 py-3">النوع</th>
+                        <th className="px-4 py-3">الطريقة</th>
+                        <th className="px-4 py-3">المبلغ</th>
+                        <th className="px-4 py-3">التاريخ</th>
+                        <th className="px-4 py-3">الحالة</th>
+                        <th className="px-4 py-3">الوصل / الإجراء</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {list.map(p => {
+                        const { student, lead, name, phone, course } = resolvePayment(p, studentById, leads)
+                        const info = PAY_STATUS_AR[p.payment_status]
+                        const dateStr = new Date(p.payment_date ?? p.created_at).toLocaleDateString('ar-MA', { year: 'numeric', month: 'short', day: 'numeric' })
+                        return (
+                          <tr key={p.id} className="border-b border-zinc-50 last:border-none text-[13px] hover:bg-zinc-50">
+                            <td className="px-4 py-3">
+                              <button onClick={() => student ? router.push(`/sales/students/${student.id}`) : lead && setDrawerLead(lead)} className="flex items-center gap-2.5">
+                                <Avatar name={name} size={32} /><span className="font-semibold text-zinc-800">{name}</span>
+                              </button>
+                            </td>
+                            <td className="px-4 py-3 text-zinc-600 font-semibold">{course || '—'}</td>
+                            <td className="px-4 py-3 text-zinc-500">{p.payment_type === 'course_one_time' ? 'دفعة واحدة' : 'اشتراك شهري'}</td>
+                            <td className="px-4 py-3 text-zinc-500">{PAY_METHOD_AR[(p as any).payment_method] ?? 'نقدًا'}</td>
+                            <td className="px-4 py-3 font-black text-zinc-900">{Number(p.amount_mad).toLocaleString('en-US')} <span className="text-[10px] text-zinc-400">د.م</span></td>
+                            <td className="px-4 py-3 text-zinc-400 whitespace-nowrap">{dateStr}</td>
+                            <td className="px-4 py-3"><span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${info.cls}`}>{info.text}</span></td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              {p.payment_status === 'pending' ? (
+                                <div className="flex gap-1.5">
+                                  <button onClick={() => approvePayment(p.id)} disabled={!!payBusy} className="text-[12px] font-bold px-3 py-1.5 rounded-lg bg-green-500 text-white hover:bg-green-600 disabled:opacity-50">{payBusy === p.id ? '...' : 'قبول'}</button>
+                                  <button onClick={() => declinePayment(p.id)} disabled={!!payBusy} className="text-[12px] px-3 py-1.5 rounded-lg border border-red-200 text-red-500">رفض</button>
+                                </div>
+                              ) : p.payment_status === 'paid' ? (
+                                <div className="flex gap-1.5">
+                                  <button onClick={() => emitReceipt(p, { name, phone, course, student })} className="flex items-center gap-1 text-[12px] font-bold px-3 py-1.5 rounded-lg bg-black text-yellow-400 hover:bg-zinc-800"><Printer size={11} /> الوصل</button>
+                                  {phone && <button onClick={() => emitReceipt(p, { name, phone, course, student }, true)} className="flex items-center gap-1 text-[12px] px-3 py-1.5 rounded-lg bg-green-50 text-green-700"><MessageCircle size={11} /></button>}
+                                </div>
+                              ) : <span className="text-zinc-300">—</span>}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile cards */}
+                <div className="lg:hidden space-y-3">
+                  {list.map(p => (
+                    <PayRow key={p.id} p={p} leads={leads} studentById={studentById} staffMap={staffMap}
+                      payBusy={payBusy} onApprove={approvePayment} onDecline={declinePayment}
+                      onOpenStudent={id => router.push(`/sales/students/${id}`)} onOpenLead={setDrawerLead} />
+                  ))}
+                </div>
+              </>
             )}
           </div>
         )
@@ -1027,6 +1083,30 @@ function StudentCardNew({ student, onClick }: { student: CrmStudent; onClick: (s
 /* ── Payment row ─────────────────────────────────────────── */
 const PAY_METHOD_AR: Record<string, string> = { cash: 'نقدًا', bank_transfer: 'تحويل بنكي', card: 'بطاقة', other: 'أخرى' }
 
+/* Shared: resolve a payment's person, then print or WhatsApp the receipt with the
+   live name + token (overriding any stale stored snapshot). */
+function resolvePayment(p: CrmPayment, studentById: Map<string, CrmStudent>, leads: SubscriptionLead[]) {
+  const student = p.student_id ? studentById.get(p.student_id) : undefined
+  const lead    = p.lead_id ? leads.find(l => l.id === p.lead_id) : undefined
+  const name    = student?.full_name ?? lead?.full_name ?? 'غير محدّد'
+  const phone   = student?.phone_number ?? lead?.phone ?? undefined
+  const course  = (student?.course ?? lead?.course ?? p.course_or_service ?? '').toUpperCase()
+  return { student, lead, name, phone, course }
+}
+async function emitReceipt(p: CrmPayment, ctx: { name: string; phone?: string; course: string; student?: CrmStudent }, send = false) {
+  const r = await ensurePaymentReceipt({
+    paymentId: p.id, leadId: p.lead_id, studentId: p.student_id,
+    fullName: ctx.name, phoneNumber: ctx.phone, courseName: ctx.course || p.course_or_service,
+    paymentType: p.payment_type, amountMad: Number(p.amount_mad),
+    paymentDate: p.payment_date, notes: p.notes,
+    verificationToken: ctx.student?.verification_token ?? null,
+  })
+  if (!r) return
+  const fixed: any = { ...r, full_name: ctx.name, phone_number: ctx.phone ?? r.phone_number, course_name: ctx.course || r.course_name, verification_token: ctx.student?.verification_token ?? r.verification_token }
+  if (send && ctx.phone) window.open(`https://wa.me/${ctx.phone.replace(/\D/g,'')}?text=${buildReceiptWhatsAppMessage(fixed)}`, '_blank')
+  else printReceipt(fixed, { token: ctx.student?.verification_token, teacherName: ctx.student?.teacher_name })
+}
+
 function PayRow({
   p, leads, studentById, staffMap, payBusy, onApprove, onDecline, onOpenStudent, onOpenLead,
 }: {
@@ -1053,17 +1133,9 @@ function PayRow({
     else if (lead) onOpenLead(lead)
   }
 
-  const receiptInput = {
-    paymentId: p.id, leadId: p.lead_id, studentId: p.student_id,
-    fullName: name, phoneNumber: phone, courseName: course || p.course_or_service,
-    paymentType: p.payment_type, amountMad: Number(p.amount_mad),
-    paymentDate: p.payment_date, notes: p.notes,
-  }
-  async function downloadReceipt() { const r = await ensurePaymentReceipt(receiptInput); if (r) printReceipt(r, { token: student?.verification_token, teacherName: student?.teacher_name }) }
-  async function sendReceipt() {
-    const r = await ensurePaymentReceipt(receiptInput)
-    if (r && phone) window.open(`https://wa.me/${phone.replace(/\D/g,'')}?text=${buildReceiptWhatsAppMessage(r)}`, '_blank')
-  }
+  const ctx = { name, phone, course, student }
+  const downloadReceipt = () => emitReceipt(p, ctx, false)
+  const sendReceipt     = () => emitReceipt(p, ctx, true)
 
   const typeAr = p.payment_type === 'course_one_time' ? 'دفعة واحدة' : 'اشتراك شهري'
   const dateStr = p.payment_date

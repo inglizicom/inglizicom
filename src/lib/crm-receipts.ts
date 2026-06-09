@@ -69,6 +69,7 @@ export async function createManualReceipt(input: {
   paymentMethod: CrmReceipt['payment_method']
   notes?:        string
   issuedById?:   string
+  verificationToken?: string | null
 }): Promise<CrmReceipt | null> {
   const { data, error } = await supabase
     .from('crm_receipts')
@@ -85,6 +86,7 @@ export async function createManualReceipt(input: {
       payment_method: input.paymentMethod,
       notes:          input.notes,
       issued_by_id:   input.issuedById,
+      verification_token: input.verificationToken ?? null,
     })
     .select()
     .single()
@@ -306,13 +308,34 @@ export async function ensurePaymentReceipt(input: {
   paymentMethod?: CrmReceipt['payment_method']
   notes?:        string | null
   issuedById?:   string | null
+  verificationToken?: string | null
 }): Promise<CrmReceipt | null> {
   const { data: existing } = await supabase
     .from('crm_receipts')
     .select('*')
     .eq('payment_id', input.paymentId)
     .maybeSingle()
-  if (existing) return existing as CrmReceipt
+
+  if (existing) {
+    const e = existing as CrmReceipt
+    // Repair a stale receipt (generic name / missing token) from current data.
+    const needsFix = (!e.full_name || e.full_name === 'طالب') || (!e.verification_token && input.verificationToken)
+    if (needsFix && input.fullName) {
+      const { data: fixed } = await supabase
+        .from('crm_receipts')
+        .update({
+          full_name:          input.fullName,
+          phone_number:       input.phoneNumber ?? e.phone_number,
+          course_name:        input.courseName ?? e.course_name,
+          verification_token: input.verificationToken ?? e.verification_token,
+        })
+        .eq('id', e.id)
+        .select()
+        .single()
+      return (fixed ?? e) as CrmReceipt
+    }
+    return e
+  }
 
   return createManualReceipt({
     paymentId:     input.paymentId,
@@ -327,6 +350,7 @@ export async function ensurePaymentReceipt(input: {
     paymentMethod: input.paymentMethod ?? 'cash',
     notes:         input.notes ?? undefined,
     issuedById:    input.issuedById ?? undefined,
+    verificationToken: input.verificationToken ?? undefined,
   })
 }
 
