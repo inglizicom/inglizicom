@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import CrmSidebar from '@/components/CrmSidebar'
 import CrmTopHeader from '@/components/CrmTopHeader'
+import MobileBottomNav from '@/components/MobileBottomNav'
 import { useStaff } from '@/lib/staff-context'
 import { useCrmBasePath, useIsAdminDomain } from '@/lib/use-crm-path'
 import { supabase } from '@/lib/supabase'
@@ -54,8 +55,12 @@ export default function SalesShell({ children }: { children: React.ReactNode }) 
         <Suspense fallback={<div className="h-16 bg-white border-b border-zinc-200/80" />}>
           <HeaderForRoute userEmail={staff.email} roleLabel={roleLabel} notifCount={badges.followups} />
         </Suspense>
-        <main className="flex-1 min-w-0">{children}</main>
+        <main className="flex-1 min-w-0 pb-16 lg:pb-0">{children}</main>
       </div>
+
+      <Suspense fallback={null}>
+        <MobileBottomNav base={base} badges={badges} />
+      </Suspense>
     </div>
   )
 }
@@ -90,6 +95,9 @@ function HeaderForRoute({ userEmail, roleLabel, notifCount }: {
       : tab === 'archive'   ? 'الأرشيف'
       : 'العملاء المحتملون'
     crumb = ['لوحة التحكم', title]
+  } else if (pathname.includes('/verify')) {
+    title = 'التحقق من طالب'
+    crumb = ['لوحة التحكم', 'التحقق من طالب']
   } else if (pathname.includes('/support')) {
     title = 'الدعم'
     crumb = ['لوحة التحكم', 'الدعم']

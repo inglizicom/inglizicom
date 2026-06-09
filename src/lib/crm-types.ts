@@ -79,6 +79,10 @@ export interface CrmStudent {
   added_by_id:       string | null
   created_at:        string
   updated_at:        string
+  // Migration 016
+  verification_token: string | null
+  course_end_date:    string | null
+  teacher_name:       string | null
 }
 
 // ─── CRM Payment ────────────────────────────────────────────

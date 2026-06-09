@@ -1,17 +1,15 @@
 'use client'
 
-import { UserRound } from 'lucide-react'
-
-/* Soft gradient palette — picked deterministically from the name */
+/* Soft gradient backdrop — picked deterministically from the name */
 const PALETTE = [
-  'from-rose-400 to-rose-500',
-  'from-orange-400 to-amber-500',
-  'from-emerald-400 to-emerald-500',
-  'from-blue-400 to-blue-500',
-  'from-violet-400 to-violet-500',
-  'from-cyan-400 to-cyan-500',
-  'from-fuchsia-400 to-fuchsia-500',
-  'from-teal-400 to-teal-500',
+  'from-rose-300 to-rose-400',
+  'from-orange-300 to-amber-400',
+  'from-emerald-300 to-emerald-400',
+  'from-blue-300 to-blue-400',
+  'from-violet-300 to-violet-400',
+  'from-cyan-300 to-cyan-400',
+  'from-fuchsia-300 to-fuchsia-400',
+  'from-teal-300 to-teal-400',
 ]
 
 function hue(name: string): number {
@@ -27,15 +25,29 @@ interface Props {
   className?: string
 }
 
-/** Icon-style avatar — a person glyph on a soft per-name gradient. */
+/**
+ * Friendly illustrated-person avatar (DiceBear "avataaars"), deterministic by
+ * name, on a soft gradient backdrop — adds life without using real photos.
+ */
 export default function Avatar({ name, size = 36, square = false, className = '' }: Props) {
+  const seed = encodeURIComponent(name || '?')
+  const url  = `https://api.dicebear.com/9.x/avataaars/svg?seed=${seed}&radius=50&backgroundType=solid&backgroundColor=transparent`
   const grad = PALETTE[hue(name || '?')]
   return (
     <div
-      className={`${square ? 'rounded-2xl' : 'rounded-full'} bg-gradient-to-br ${grad} flex items-center justify-center text-white flex-shrink-0 ${className}`}
+      className={`${square ? 'rounded-2xl' : 'rounded-full'} bg-gradient-to-br ${grad} overflow-hidden flex-shrink-0 ${className}`}
       style={{ width: size, height: size }}
     >
-      <UserRound size={Math.round(size * 0.55)} strokeWidth={2.1} />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={url}
+        alt={name}
+        width={size}
+        height={size}
+        loading="lazy"
+        referrerPolicy="no-referrer"
+        className="w-full h-full object-cover"
+      />
     </div>
   )
 }

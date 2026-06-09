@@ -262,43 +262,6 @@ export default function WorkspaceClient() {
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
           </button>
         </div>
-
-        {/* Tabs */}
-        <div className="flex overflow-x-auto border-t border-zinc-100">
-          {TABS.map(t => {
-            const isActive = tab === t.id
-            const badge =
-              t.id === 'payments'  ? pendingPayCount
-              : t.id === 'followups' ? followupCount
-              : t.id === 'archive'   ? archived.length
-              : t.id === 'leads'     ? baseLeads.length
-              : t.id === 'students'  ? students.length : 0
-            return (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => switchTab(t.id)}
-                className={[
-                  'flex items-center gap-1.5 px-4 py-3 text-[13px] font-semibold whitespace-nowrap border-b-2 transition-colors flex-shrink-0',
-                  isActive ? 'border-yellow-400 text-zinc-900' : 'border-transparent text-zinc-400 hover:text-zinc-700',
-                ].join(' ')}
-              >
-                <t.icon size={14} />
-                {t.labelAr}
-                {badge > 0 && (
-                  <span className={[
-                    'text-[10px] font-bold px-1.5 rounded-full min-w-[18px] text-center',
-                    t.id === 'payments' && pendingPayCount > 0  ? 'bg-amber-400 text-black'
-                    : t.id === 'followups' && followupCount > 0 ? 'bg-red-500 text-white'
-                    : 'bg-zinc-100 text-zinc-600',
-                  ].join(' ')}>
-                    {badge}
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
       </header>
 
       {/* ── Loading ────────────────────────────────────── */}
@@ -418,13 +381,27 @@ export default function WorkspaceClient() {
       {/* ═══════════════ PAYMENTS TAB ════════════════════ */}
       {!loading && tab === 'payments' && (
         <div className="flex-1 px-4 py-4 space-y-4">
-          {/* Summary */}
-          <div className="flex gap-2 flex-wrap">
-            {(['pending','paid','declined'] as const).map(s => {
-              const cnt = payments.filter(p => p.payment_status === s).length
-              const info = PAY_STATUS_AR[s]
-              return <div key={s} className={`px-4 py-2 rounded-xl text-[13px] font-bold ${info.cls}`}>{info.text} ({cnt})</div>
-            })}
+          {/* Summary stat cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="bg-white rounded-2xl border border-emerald-100 p-4">
+              <div className="text-[11px] text-zinc-400 mb-1">إجمالي المقبوض</div>
+              <div className="text-[20px] font-black text-emerald-700">
+                {payments.filter(p => p.payment_status === 'paid').reduce((s, p) => s + Number(p.amount_mad), 0).toLocaleString('en-US')}
+                <span className="text-[12px] font-semibold text-zinc-400 mr-1">د.م</span>
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl border border-amber-100 p-4">
+              <div className="text-[11px] text-zinc-400 mb-1">بانتظار الموافقة</div>
+              <div className="text-[20px] font-black text-amber-600">{payments.filter(p => p.payment_status === 'pending').length}</div>
+            </div>
+            <div className="bg-white rounded-2xl border border-zinc-100 p-4">
+              <div className="text-[11px] text-zinc-400 mb-1">إجمالي العمليات</div>
+              <div className="text-[20px] font-black text-zinc-900">{payments.length}</div>
+            </div>
+            <div className="bg-white rounded-2xl border border-red-100 p-4">
+              <div className="text-[11px] text-zinc-400 mb-1">مرفوض</div>
+              <div className="text-[20px] font-black text-red-500">{payments.filter(p => p.payment_status === 'declined').length}</div>
+            </div>
           </div>
 
           {/* Pending first */}
@@ -738,21 +715,32 @@ function PayRow({
     if (r && lead?.phone) window.open(`https://wa.me/${lead.phone.replace(/\D/g,'')}?text=${buildReceiptWhatsAppMessage(r)}`, '_blank')
   }
 
+  const typeAr = p.payment_type === 'course_one_time' ? 'دورة (دفعة واحدة)' : 'دروس خاصة (شهرية)'
+  const methodAr: Record<string, string> = { cash: 'نقدًا', bank_transfer: 'تحويل بنكي', card: 'بطاقة', other: 'أخرى' }
+
   return (
     <div className="bg-white border border-zinc-200 rounded-xl p-4">
-      <div className="flex items-start justify-between gap-3 mb-2">
+      <div className="flex items-start justify-between gap-3 mb-2.5">
         <div className="flex items-center gap-2.5 flex-1 min-w-0">
-          <Avatar name={name} size={36} />
+          <Avatar name={name} size={38} />
           <div className="min-w-0">
             <div className="font-bold text-[15px] truncate">{name}</div>
-            <div className="text-[13px] text-zinc-500">
-              {Number(p.amount_mad).toLocaleString('ar-MA')} درهم
-              {p.payment_date && ` · ${new Date(p.payment_date).toLocaleDateString('ar-MA', { month: 'short', day: 'numeric' })}`}
+            <div className="text-[18px] font-black text-zinc-900 leading-tight">
+              {Number(p.amount_mad).toLocaleString('en-US')}<span className="text-[11px] font-semibold text-zinc-400 mr-1">د.م</span>
             </div>
           </div>
         </div>
         <span className={`text-[11px] font-bold px-2 py-1 rounded-full flex-shrink-0 ${info.cls}`}>{info.text}</span>
       </div>
+
+      {/* Detail chips */}
+      <div className="flex flex-wrap gap-1.5 mb-2 text-[11px]">
+        <span className="px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600">{typeAr}</span>
+        {(p as any).payment_method && <span className="px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600">{methodAr[(p as any).payment_method] ?? (p as any).payment_method}</span>}
+        {(lead?.course || p.course_or_service) && <span className="px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 font-semibold">{(lead?.course ?? p.course_or_service ?? '').toUpperCase()}</span>}
+        {p.payment_date && <span className="px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-500">{new Date(p.payment_date).toLocaleDateString('ar-MA', { year: 'numeric', month: 'short', day: 'numeric' })}</span>}
+      </div>
+      {p.notes && <div className="text-[12px] text-zinc-400 mb-2">📝 {p.notes}</div>}
 
       {p.payment_status === 'pending' && (
         <div className="flex gap-2 pt-2 border-t border-zinc-50">

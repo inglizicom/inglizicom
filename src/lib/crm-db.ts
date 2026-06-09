@@ -37,6 +37,18 @@ export async function fetchStudentById(id: string): Promise<CrmStudent | null> {
   return data as CrmStudent | null
 }
 
+/** Look up a student by their verification token (anti-scam check). */
+export async function fetchStudentByToken(token: string): Promise<CrmStudent | null> {
+  const clean = token.trim().toUpperCase()
+  if (!clean) return null
+  const { data } = await supabase
+    .from('crm_students')
+    .select('*')
+    .eq('verification_token', clean)
+    .maybeSingle()
+  return (data ?? null) as CrmStudent | null
+}
+
 export async function fetchStudentByLeadId(leadId: string): Promise<CrmStudent | null> {
   const { data } = await supabase.from('crm_students').select('*').eq('lead_id', leadId).maybeSingle()
   return data as CrmStudent | null

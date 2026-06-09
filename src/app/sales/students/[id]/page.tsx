@@ -7,7 +7,7 @@ import {
   ArrowRight, Phone, MessageCircle, Mail, MapPin, Loader2, GraduationCap,
   Wallet, Receipt, CreditCard, Printer, CheckCircle, XCircle, Plus,
   StickyNote, Activity, Edit3, Save, ChevronLeft, CalendarDays, BadgeCheck,
-  Clock, BookOpen, FileText,
+  Clock, BookOpen, FileText, ShieldCheck,
 } from 'lucide-react'
 
 import { useStaff } from '@/lib/staff-context'
@@ -36,12 +36,15 @@ const PAYMENT_TYPE_AR: Record<string, string> = {
   course_one_time: 'دورة (مرة واحدة)', private_monthly: 'شهري (خاص)',
 }
 
-type Tab = 'overview' | 'payments' | 'notes' | 'activity'
+type Tab = 'overview' | 'payments' | 'exams' | 'progress' | 'notes' | 'activity' | 'files'
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'نظرة عامة' },
   { id: 'payments', label: 'المدفوعات والفواتير' },
+  { id: 'exams',    label: 'الامتحانات' },
+  { id: 'progress', label: 'التقدم والدروس' },
   { id: 'notes',    label: 'الملاحظات' },
   { id: 'activity', label: 'النشاط داخل المنصة' },
+  { id: 'files',    label: 'الملفات' },
 ]
 
 export default function StudentProfilePage() {
@@ -56,6 +59,7 @@ export default function StudentProfilePage() {
   const [loading,  setLoading]  = useState(true)
   const [tab,      setTab]      = useState<Tab>('overview')
   const [payBusy,  setPayBusy]  = useState<string | null>(null)
+  const [copied,   setCopied]   = useState(false)
 
   // notes
   const [editNote, setEditNote] = useState(false)
@@ -124,7 +128,16 @@ export default function StudentProfilePage() {
     if (r) setReceipts(prev => [r, ...prev])
     return r
   }
-  async function downloadReceipt(p: CrmPayment) { const r = await getReceipt(p); if (r) printReceipt(r) }
+  function receiptOpts() {
+    return {
+      token:            student?.verification_token,
+      teacherName:      student?.teacher_name,
+      subscriptionDate: student?.enrollment_date,
+      endDate:          student?.course_end_date,
+      issuerName:       staff.email?.split('@')[0],
+    }
+  }
+  async function downloadReceipt(p: CrmPayment) { const r = await getReceipt(p); if (r) printReceipt(r, receiptOpts()) }
   async function sendReceipt(p: CrmPayment) {
     const r = await getReceipt(p)
     if (r && phone) window.open(`https://wa.me/${phone.replace(/\D/g,'')}?text=${buildReceiptWhatsAppMessage(r)}`, '_blank')
@@ -201,6 +214,24 @@ export default function StudentProfilePage() {
               <Receipt size={15} className="text-zinc-400" /> فاتورة جديدة
             </button>
           </div>
+
+          {/* Verification token */}
+          {student.verification_token && (
+            <div className="bg-zinc-900 rounded-2xl p-4 text-white">
+              <div className="flex items-center gap-1.5 text-[11px] text-zinc-400 font-bold uppercase tracking-widest mb-2">
+                <ShieldCheck size={13} /> رمز التحقق
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[18px] font-black tracking-[3px] text-yellow-400" dir="ltr">{student.verification_token}</span>
+                <button
+                  onClick={() => { navigator.clipboard?.writeText(student.verification_token!); setCopied(true); setTimeout(() => setCopied(false), 1500) }}
+                  className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20">
+                  {copied ? '✓ نُسخ' : 'نسخ'}
+                </button>
+              </div>
+              <p className="text-[10px] text-zinc-500 mt-2 leading-relaxed">يظهر هذا الرمز على وصولات الطالب ويُستخدم للتحقق من هويته ومنع الاحتيال.</p>
+            </div>
+          )}
         </div>
 
         {/* ── Main column ─────────────────────────────── */}
@@ -257,6 +288,32 @@ export default function StudentProfilePage() {
               {/* OVERVIEW */}
               {tab === 'overview' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Learning progress (placeholder until activity tracking lands) */}
+                  <Panel title="تقدم التعلّم">
+                    <div className="flex items-center gap-4 py-1">
+                      <div className="relative w-20 h-20 flex-shrink-0">
+                        <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                          <circle cx="18" cy="18" r="15.5" fill="none" stroke="#f1f1f1" strokeWidth="3" />
+                          <circle cx="18" cy="18" r="15.5" fill="none" stroke="#facc15" strokeWidth="3" strokeDasharray="0 100" strokeLinecap="round" />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center text-[12px] font-black text-zinc-300">—</div>
+                      </div>
+                      <div className="flex-1 space-y-1.5">
+                        {['الدروس', 'الاستماع', 'الامتحانات', 'الخريطة'].map(x => (
+                          <div key={x} className="flex items-center justify-between text-[12px]">
+                            <span className="text-zinc-500">{x}</span>
+                            <span className="text-amber-700 font-bold text-[10px] bg-amber-50 px-1.5 rounded-full">قريباً</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </Panel>
+                  <Panel title="آخر امتحان">
+                    <div className="flex flex-col items-center justify-center py-3 text-center text-zinc-400">
+                      <BadgeCheck size={22} className="mb-2 text-zinc-300" />
+                      <p className="text-[12px]">نتائج الامتحانات ستظهر هنا<br />بعد ربط حساب الطالب</p>
+                    </div>
+                  </Panel>
                   <Panel title="الدورة الحالية">
                     <Line label="المستوى" value={student.course?.toUpperCase() ?? '—'} />
                     <Line label="النوع" value={student.student_type === 'private_student' ? 'دروس خاصة' : 'دورة جماعية'} />
@@ -400,12 +457,24 @@ export default function StudentProfilePage() {
               )}
 
               {/* ACTIVITY */}
+              {tab === 'exams' && (
+                <ComingSoon icon={BadgeCheck} title="الامتحانات ونتائج المستوى"
+                  desc="ستظهر هنا محاولات الطالب في الامتحانات ونتائج تحديد المستوى ودرجاته بمجرد ربط حسابه على Inglizi.com." />
+              )}
+
+              {tab === 'progress' && (
+                <ComingSoon icon={BookOpen} title="التقدم والدروس"
+                  desc="ستظهر هنا نسبة إكمال الدروس، تقدّم خريطة التعلّم، نشاط الاستماع، والوقت المُستغرق في كل قسم." />
+              )}
+
               {tab === 'activity' && (
-                <div className="flex flex-col items-center justify-center py-12 text-center text-zinc-400">
-                  <Activity size={28} className="mb-3 text-zinc-300" />
-                  <p className="text-[14px] font-medium text-zinc-500">تتبّع النشاط داخل المنصة</p>
-                  <p className="text-[12px] mt-1 max-w-xs">سيظهر هنا نشاط الطالب على Inglizi.com: تسجيلات الدخول، مشاهدات الدروس، الامتحانات، ووقت التعلّم — بمجرد ربط حسابه.</p>
-                </div>
+                <ComingSoon icon={Activity} title="النشاط داخل المنصة"
+                  desc="سيظهر هنا نشاط الطالب على Inglizi.com: تسجيلات الدخول، مشاهدات الدروس والفيديوهات، والوقت الإجمالي للتعلّم." />
+              )}
+
+              {tab === 'files' && (
+                <ComingSoon icon={FileText} title="الملفات والمستندات"
+                  desc="يمكنك لاحقًا رفع عقود، وصولات، وشهادات الطالب هنا للوصول السريع إليها." />
               )}
             </div>
           </div>
@@ -416,6 +485,19 @@ export default function StudentProfilePage() {
 }
 
 /* ── Sub-components ─────────────────────────────────────── */
+function ComingSoon({ icon: Icon, title, desc }: { icon: any; title: string; desc: string }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <div className="w-14 h-14 rounded-2xl bg-zinc-100 flex items-center justify-center mb-3">
+        <Icon size={26} className="text-zinc-400" />
+      </div>
+      <p className="text-[15px] font-bold text-zinc-700">{title}</p>
+      <p className="text-[12px] text-zinc-400 mt-1.5 max-w-sm leading-relaxed">{desc}</p>
+      <span className="mt-3 text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">قريباً</span>
+    </div>
+  )
+}
+
 function InfoLine({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
   return (
     <div className="flex items-center justify-between">

@@ -17,6 +17,7 @@ export interface CrmReceipt {
   issued_by_id:   string | null
   issued_at:      string
   created_at:     string
+  verification_token?: string | null
 }
 
 export const PAYMENT_METHODS: { id: CrmReceipt['payment_method']; label: string; labelAr: string }[] = [
@@ -100,172 +101,182 @@ export async function fetchRecentReceipts(limit = 20): Promise<CrmReceipt[]> {
   if (error) { console.error('fetchRecentReceipts', error.message); return [] }
   return (data ?? []) as CrmReceipt[]
 }
+/** Build a bilingual (Arabic + English) two-page receipt as printable HTML. */
+export function buildReceiptHtml(
+  receipt: CrmReceipt,
+  opts?: {
+    token?:            string | null
+    teacherName?:      string | null
+    subscriptionDate?: string | null
+    endDate?:          string | null
+    issuerName?:       string | null
+  },
+): string {
+  const token   = ((receipt.verification_token || opts?.token || '') as string).toUpperCase() || '—'
+  const teacher = opts?.teacherName || 'الأستاذ حمزة'
+  const subDate = opts?.subscriptionDate || receipt.payment_date
+  const endDate = opts?.endDate || null
+  const issuer  = opts?.issuerName || ''
+  const amount  = Number(receipt.amount_mad)
 
-/** Build the full HTML string for a receipt. Used both in modal and in print. */
-export function buildReceiptHtml(receipt: CrmReceipt, issuerName?: string): string {
-  const fmtDate = (d: string) =>
-    new Date(d).toLocaleDateString('ar-MA', { year: 'numeric', month: 'long', day: 'numeric' })
+  const fmt = (d: string | null | undefined, locale: string) =>
+    d ? new Date(d).toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' }) : '—'
 
-  const courseLabel = receipt.course_name ?? '—'
-  const method      = PAYMENT_METHODS.find(m => m.id === receipt.payment_method)?.labelAr ?? receipt.payment_method
-  const typeLabel   = receipt.payment_type === 'course_one_time' ? 'دورة تدريبية (دفعة واحدة)' : 'دروس خاصة (شهرية)'
+  const methodAr = PAYMENT_METHODS.find(m => m.id === receipt.payment_method)?.labelAr ?? receipt.payment_method
+  const methodEn = PAYMENT_METHODS.find(m => m.id === receipt.payment_method)?.label   ?? receipt.payment_method
+  const typeAr   = receipt.payment_type === 'course_one_time' ? 'دورة (دفعة واحدة)' : 'دروس خاصة (شهرية)'
+  const typeEn   = receipt.payment_type === 'course_one_time' ? 'Course (one-time)'  : 'Private lessons (monthly)'
 
-  return `<!DOCTYPE html>
-<html dir="rtl" lang="ar">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>وصل دفع — ${receipt.receipt_number}</title>
+  const row = (label: string, value: string) =>
+    `<div class="row"><span class="rl">${label}</span><span class="rv">${value}</span></div>`
+
+  const L = {
+    ar: {
+      sub: 'منصة تعلّم اللغة الإنجليزية', title: 'وصل دفع', rno: 'رقم الوصل', issued: 'تاريخ الإصدار',
+      studentInfo: 'معلومات الطالب', name: 'الاسم الكامل', phone: 'رقم الهاتف',
+      serviceInfo: 'تفاصيل الاشتراك', course: 'الدورة / الخدمة', teacher: 'الأستاذ',
+      type: 'نوع الاشتراك', subDate: 'تاريخ الاشتراك', endDate: 'تاريخ انتهاء الدورة',
+      method: 'طريقة الدفع', issuedBy: 'سُجّل بواسطة', amount: 'المبلغ المدفوع', paid: 'مدفوع',
+      tokenL: 'رمز التحقق', note: 'يمكن التحقق من صحة هذا الوصل عبر رمز التحقق أعلاه على منصة Inglizi.com.',
+      thanks: 'شكراً لثقتك في Inglizi.com',
+    },
+    en: {
+      sub: 'English Learning Platform', title: 'Payment Receipt', rno: 'Receipt No.', issued: 'Issued on',
+      studentInfo: 'Student information', name: 'Full name', phone: 'Phone',
+      serviceInfo: 'Subscription details', course: 'Course / Service', teacher: 'Teacher',
+      type: 'Subscription type', subDate: 'Subscription date', endDate: 'Course end date',
+      method: 'Payment method', issuedBy: 'Registered by', amount: 'Amount paid', paid: 'PAID',
+      tokenL: 'Verification token', note: 'This receipt can be verified using the token above on the Inglizi.com platform.',
+      thanks: 'Thank you for trusting Inglizi.com',
+    },
+  }
+
+  function page(lang: 'ar' | 'en', last: boolean) {
+    const ar = lang === 'ar'
+    const t = L[lang]
+    const locale = ar ? 'ar-MA' : 'en-GB'
+    const method = ar ? methodAr : methodEn
+    const type   = ar ? typeAr : typeEn
+    const amountStr = ar ? `${amount.toLocaleString('ar-MA')} درهم` : `MAD ${amount.toLocaleString('en-US')}`
+    const rows = [
+      `<div class="sec">${t.studentInfo}</div>`,
+      row(t.name, receipt.full_name),
+      receipt.phone_number ? row(t.phone, receipt.phone_number) : '',
+      `<div class="sec">${t.serviceInfo}</div>`,
+      row(t.course, receipt.course_name ?? '—'),
+      row(t.teacher, teacher),
+      row(t.type, type),
+      row(t.subDate, fmt(subDate, locale)),
+      endDate ? row(t.endDate, fmt(endDate, locale)) : '',
+      row(t.method, method),
+      issuer ? row(t.issuedBy, issuer) : '',
+    ].join('')
+    return `<div class="page${last ? '' : ' brk'}" dir="${ar ? 'rtl' : 'ltr'}">
+      <div class="wm">${token}</div>
+      <div class="content">
+        <div class="head">
+          <div class="brand"><div class="logo">I</div><div><div class="bn">Inglizi.com</div><div class="bs">${t.sub}</div></div></div>
+          <div class="badge">✓ ${t.paid}</div>
+        </div>
+        <div class="meta">
+          <div class="rno">${t.rno}</div>
+          <div class="rnum">${receipt.receipt_number}</div>
+          <div class="rdate">${t.issued}: ${fmt(receipt.issued_at, locale)}</div>
+        </div>
+        <div class="rows">${rows}</div>
+        <div class="amt"><span class="amtl">${t.amount}</span><span class="amtv">${amountStr}</span></div>
+        <div class="tok"><span>${t.tokenL}</span><b>${token}</b></div>
+        <div class="note">${t.note}</div>
+        <div class="thanks">${t.thanks} 🎓</div>
+      </div>
+    </div>`
+  }
+
+  return `<!DOCTYPE html><html lang="ar"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${receipt.receipt_number}</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#f8f8f7;color:#111;padding:24px 16px}
-  .page{max-width:560px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08)}
-  .header{background:#111;padding:24px 28px;display:flex;align-items:center;justify-content:space-between}
+  body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#eceae7;color:#111;padding:20px 12px}
+  .page{position:relative;max-width:620px;margin:0 auto 20px;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:34px 36px;overflow:hidden}
+  .wm{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-22deg);font-size:58px;font-weight:900;color:rgba(17,17,17,.06);letter-spacing:5px;white-space:nowrap;pointer-events:none;z-index:0}
+  .content{position:relative;z-index:1}
+  .head{display:flex;align-items:center;justify-content:space-between;padding-bottom:18px;border-bottom:2px solid #111}
   .brand{display:flex;align-items:center;gap:12px}
-  .brand-icon{width:44px;height:44px;background:#facc15;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:#000;flex-shrink:0}
-  .brand-name{font-size:18px;font-weight:800;color:#fff}
-  .brand-sub{font-size:11px;color:#999;margin-top:2px}
-  .badge{background:#22c55e;color:#fff;padding:6px 14px;border-radius:20px;font-weight:700;font-size:13px;white-space:nowrap}
-  .body{padding:28px}
-  .receipt-meta{margin-bottom:24px}
-  .receipt-num-label{font-size:11px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:.08em}
-  .receipt-num{font-size:22px;font-weight:900;color:#111;margin:4px 0}
-  .receipt-date{font-size:13px;color:#6b7280}
-  .divider{border:none;border-top:1px solid #f3f4f6;margin:20px 0}
-  .section-label{font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px}
-  .row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f9fafb}
-  .row:last-child{border-bottom:none}
-  .row-label{font-size:13px;color:#6b7280}
-  .row-value{font-size:13px;font-weight:600;color:#111;text-align:left;direction:ltr}
-  .amount-block{background:#111;border-radius:12px;padding:20px 24px;margin:24px 0;display:flex;justify-content:space-between;align-items:center}
-  .amount-label{font-size:13px;color:#facc15;opacity:.8}
-  .amount-value{font-size:28px;font-weight:900;color:#facc15;letter-spacing:-1px}
-  .notes{background:#f9fafb;border-radius:10px;padding:12px 16px;font-size:13px;color:#374151;margin-top:8px}
-  .footer{text-align:center;color:#9ca3af;font-size:12px;padding:0 0 8px;line-height:1.8}
-  .print-btn{display:block;width:100%;margin-top:24px;padding:14px;background:#111;color:#facc15;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
-  .print-btn:hover{background:#222}
+  .logo{width:46px;height:46px;background:#facc15;border-radius:11px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;color:#000}
+  .bn{font-size:19px;font-weight:800}
+  .bs{font-size:11px;color:#6b7280;margin-top:2px}
+  .badge{background:#16a34a;color:#fff;padding:6px 16px;border-radius:20px;font-weight:800;font-size:13px;letter-spacing:.5px}
+  .meta{margin:20px 0 14px}
+  .rno{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#9ca3af}
+  .rnum{font-size:22px;font-weight:900;margin:2px 0}
+  .rdate{font-size:12px;color:#6b7280}
+  .sec{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:#9ca3af;margin:16px 0 8px}
+  .row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f3f4f6}
+  .rl{font-size:13px;color:#6b7280}
+  .rv{font-size:13px;font-weight:600;color:#111}
+  .amt{display:flex;justify-content:space-between;align-items:center;background:#111;border-radius:12px;padding:18px 22px;margin:20px 0 14px}
+  .amtl{font-size:13px;color:#facc15;opacity:.85}
+  .amtv{font-size:25px;font-weight:900;color:#facc15;letter-spacing:-.5px}
+  .tok{display:flex;justify-content:space-between;align-items:center;border:2px dashed #d4d4d8;border-radius:10px;padding:11px 16px;background:#fafafa}
+  .tok span{font-size:11px;color:#9ca3af;font-weight:700;text-transform:uppercase;letter-spacing:.1em}
+  .tok b{font-size:17px;font-weight:900;letter-spacing:2px;color:#111}
+  .note{font-size:11px;color:#9ca3af;text-align:center;margin-top:14px;line-height:1.7}
+  .thanks{font-size:13px;color:#374151;text-align:center;margin-top:6px;font-weight:600}
+  .print-btn{display:block;width:100%;max-width:620px;margin:4px auto 0;padding:14px;background:#111;color:#facc15;border:none;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit}
   @media print{
     body{background:#fff;padding:0}
-    .page{box-shadow:none;border-radius:0}
-    .print-btn{display:none}
+    .page{border:none;border-radius:0;margin:0;page-break-after:always}
+    .page:last-of-type,.page.last{page-break-after:auto}
+    .brk{page-break-after:always}
+    .no-print{display:none}
   }
-</style>
-</head>
+</style></head>
 <body>
-<div class="page">
-  <div class="header">
-    <div class="brand">
-      <div class="brand-icon">I</div>
-      <div>
-        <div class="brand-name">Inglizi.com</div>
-        <div class="brand-sub">منصة تعلم الإنجليزية</div>
-      </div>
-    </div>
-    <div class="badge">✓ مدفوع</div>
-  </div>
-
-  <div class="body">
-    <div class="receipt-meta">
-      <div class="receipt-num-label">رقم الوصل</div>
-      <div class="receipt-num">${receipt.receipt_number}</div>
-      <div class="receipt-date">تاريخ الإصدار: ${fmtDate(receipt.issued_at)}</div>
-    </div>
-
-    <hr class="divider">
-
-    <div class="section-label">معلومات الطالب</div>
-    <div class="row"><span class="row-label">الاسم الكامل</span><span class="row-value">${receipt.full_name}</span></div>
-    ${receipt.phone_number ? `<div class="row"><span class="row-label">رقم الهاتف</span><span class="row-value">${receipt.phone_number}</span></div>` : ''}
-
-    <hr class="divider">
-
-    <div class="section-label">تفاصيل الخدمة</div>
-    <div class="row"><span class="row-label">الخدمة / الدورة</span><span class="row-value">${courseLabel}</span></div>
-    <div class="row"><span class="row-label">نوع الدفع</span><span class="row-value">${typeLabel}</span></div>
-    <div class="row"><span class="row-label">طريقة الدفع</span><span class="row-value">${method}</span></div>
-    <div class="row"><span class="row-label">تاريخ الدفع</span><span class="row-value">${fmtDate(receipt.payment_date)}</span></div>
-    ${issuerName ? `<div class="row"><span class="row-label">سُجِّل بواسطة</span><span class="row-value">${issuerName}</span></div>` : ''}
-
-    <div class="amount-block">
-      <span class="amount-label">المبلغ المدفوع</span>
-      <span class="amount-value">${Number(receipt.amount_mad).toLocaleString('ar-MA')} درهم</span>
-    </div>
-
-    ${receipt.notes ? `<div class="section-label">ملاحظات</div><div class="notes">${receipt.notes}</div>` : ''}
-
-    <div class="footer">
-      <p>شكرًا لثقتك في Inglizi.com 🎓</p>
-      <p>هذا الوصل صادر تلقائيًا ويُعتبر دليل دفع رسمي</p>
-    </div>
-
-    <button class="print-btn" onclick="window.print()">🖨️ طباعة / تحميل PDF</button>
-  </div>
-</div>
-</body>
-</html>`
+  ${page('ar', false)}
+  ${page('en', true)}
+  <button class="print-btn no-print" onclick="window.print()">🖨️ طباعة / Print (AR + EN)</button>
+</body></html>`
 }
 
-/**
- * Show receipt in a fullscreen modal overlay inside the current page.
- * Avoids popup blockers. The modal contains an iframe with the receipt HTML.
- * Call from React: inject the iframe directly into the DOM.
- */
-export function printReceipt(receipt: CrmReceipt, issuerName?: string) {
-  const html = buildReceiptHtml(receipt, issuerName)
+/** Show the receipt in a fullscreen in-page modal (avoids popup blockers). */
+export function printReceipt(
+  receipt: CrmReceipt,
+  opts?: {
+    token?:            string | null
+    teacherName?:      string | null
+    subscriptionDate?: string | null
+    endDate?:          string | null
+    issuerName?:       string | null
+  },
+) {
+  const html = buildReceiptHtml(receipt, opts)
 
-  // Remove any existing receipt overlay
   document.getElementById('__receipt_overlay__')?.remove()
 
   const overlay = document.createElement('div')
-  overlay.id    = '__receipt_overlay__'
+  overlay.id = '__receipt_overlay__'
   Object.assign(overlay.style, {
-    position:        'fixed',
-    inset:           '0',
-    zIndex:          '9999',
-    background:      'rgba(0,0,0,0.7)',
-    display:         'flex',
-    alignItems:      'center',
-    justifyContent:  'center',
-    padding:         '16px',
+    position: 'fixed', inset: '0', zIndex: '9999', background: 'rgba(0,0,0,0.7)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px',
   })
 
   const container = document.createElement('div')
   Object.assign(container.style, {
-    background:    '#fff',
-    borderRadius:  '16px',
-    width:         '100%',
-    maxWidth:      '600px',
-    maxHeight:     '90vh',
-    overflow:      'hidden',
-    display:       'flex',
-    flexDirection: 'column',
-    boxShadow:     '0 25px 60px rgba(0,0,0,.4)',
+    background: '#fff', borderRadius: '16px', width: '100%', maxWidth: '660px',
+    maxHeight: '92vh', overflow: 'hidden', display: 'flex', flexDirection: 'column',
+    boxShadow: '0 25px 60px rgba(0,0,0,.4)',
   })
 
-  // Close bar
   const bar = document.createElement('div')
   Object.assign(bar.style, {
-    display:        'flex',
-    alignItems:     'center',
-    justifyContent: 'space-between',
-    padding:        '12px 16px',
-    borderBottom:   '1px solid #e5e7eb',
-    flexShrink:     '0',
-    direction:      'rtl',
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '12px 16px', borderBottom: '1px solid #e5e7eb', flexShrink: '0', direction: 'rtl',
   })
   bar.innerHTML = `
-    <span style="font-weight:700;font-size:14px">وصل الدفع</span>
-    <button id="__receipt_close__" style="background:#f3f4f6;border:none;cursor:pointer;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600">✕ إغلاق</button>
-  `
+    <span style="font-weight:700;font-size:14px">وصل الدفع · Receipt</span>
+    <button id="__receipt_close__" style="background:#f3f4f6;border:none;cursor:pointer;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600">✕ إغلاق</button>`
 
-  // iframe holds receipt HTML
   const iframe = document.createElement('iframe')
-  Object.assign(iframe.style, {
-    border:     'none',
-    width:      '100%',
-    flex:       '1',
-    minHeight:  '500px',
-  })
+  Object.assign(iframe.style, { border: 'none', width: '100%', flex: '1', minHeight: '540px' })
   iframe.srcdoc = html
 
   container.appendChild(bar)
@@ -273,7 +284,6 @@ export function printReceipt(receipt: CrmReceipt, issuerName?: string) {
   overlay.appendChild(container)
   document.body.appendChild(overlay)
 
-  // Close handlers
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove() })
   document.getElementById('__receipt_close__')?.addEventListener('click', () => overlay.remove())
 }

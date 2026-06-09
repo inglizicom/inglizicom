@@ -19,6 +19,7 @@ const ADMIN_ROUTES: Record<string, string> = {
   '/crm-login':   '/crm-login',   // CRM access gate — unprotected
   '/dashboard':   '/sales/dashboard',
   '/workspace':   '/sales/workspace',
+  '/verify':      '/sales/verify',
   '/leads':       '/sales/leads',
   '/today':       '/sales/today',
   '/students':    '/sales/students',
