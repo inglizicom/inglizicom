@@ -102,10 +102,12 @@ async function countRenewalsBefore(when: Date): Promise<number> {
 }
 
 async function sumApprovedPaymentsBetween(from: Date, to: Date): Promise<number> {
+  // Real CRM revenue = paid crm_payments not excluded (archived/removed students).
   const { data } = await supabase
-    .from('payments')
+    .from('crm_payments')
     .select('amount_mad')
-    .eq('status', 'approved')
+    .eq('payment_status', 'paid')
+    .eq('excluded_from_revenue', false)
     .gte('created_at', from.toISOString())
     .lte('created_at', to.toISOString())
   let total = 0
@@ -546,7 +548,8 @@ export async function fetchOwnerMetrics(): Promise<OwnerMetrics> {
         subscription_leads!crm_payments_lead_id_fkey ( source, lead_source ),
         profiles!crm_payments_added_by_id_fkey ( email, full_name )
       `)
-      .eq('payment_status', 'paid'),
+      .eq('payment_status', 'paid')
+      .eq('excluded_from_revenue', false),
 
     // All real plan leads for funnel
     supabase

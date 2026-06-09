@@ -83,6 +83,13 @@ export interface CrmStudent {
   verification_token: string | null
   course_end_date:    string | null
   teacher_name:       string | null
+  // Migration 018
+  source?:             string | null
+  billing_type?:       'one_time' | 'monthly'
+  subscription_start?: string | null
+  current_level?:      string | null
+  next_level?:         string | null
+  deleted_at?:         string | null
 }
 
 // ─── CRM Payment ────────────────────────────────────────────

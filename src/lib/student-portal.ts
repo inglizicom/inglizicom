@@ -24,9 +24,12 @@ export interface StudentSpace {
     id: string; full_name: string; course: string | null
     student_type: string; enrollment_date: string; course_end_date: string | null
     teacher_name: string | null; is_active: boolean; verification_token: string
+    current_level: string | null; next_level: string | null
+    subscription_start: string | null; billing_type: string | null
   }
   assignments?: StudentAssignment[]
   files?:       StudentFile[]
+  stats?:       { done: number; total: number }
 }
 
 const BUCKET = 'student-files'

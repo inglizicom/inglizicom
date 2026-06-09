@@ -20,6 +20,7 @@ export async function fetchStudents(opts: {
   let q = supabase
     .from('crm_students')
     .select('*')
+    .is('deleted_at', null)                 // exclude removed (bin) students
     .order('created_at', { ascending: false })
   if (opts.type)   q = q.eq('student_type', opts.type)
   if (opts.active !== undefined) q = q.eq('is_active', opts.active)
@@ -30,6 +31,107 @@ export async function fetchStudents(opts: {
   const { data, error } = await q
   if (error) { console.error('fetchStudents', error.message); return [] }
   return (data ?? []) as CrmStudent[]
+}
+
+/** Manually add a student (e.g. came from Instagram/Facebook, not the website). */
+export async function createStudent(input: {
+  fullName:      string
+  phoneNumber?:  string
+  course?:       string
+  studentType:   'course_student' | 'private_student'
+  source?:       string
+  billingType?:  'one_time' | 'monthly'
+  totalPaidMad?: number
+  monthlyFeeMad?: number
+  enrollmentDate?: string
+  nextPaymentDate?: string
+  notes?:        string
+  addedById?:    string
+}): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('crm_students')
+    .insert({
+      full_name:        input.fullName,
+      phone_number:     input.phoneNumber || null,
+      course:           input.course || null,
+      student_type:     input.studentType,
+      source:           input.source || null,
+      billing_type:     input.billingType ?? (input.studentType === 'private_student' ? 'monthly' : 'one_time'),
+      total_paid_mad:   input.totalPaidMad ?? 0,
+      monthly_fee_mad:  input.monthlyFeeMad ?? null,
+      enrollment_date:  input.enrollmentDate || new Date().toISOString().slice(0, 10),
+      subscription_start: input.studentType === 'private_student' ? (input.enrollmentDate || new Date().toISOString().slice(0, 10)) : null,
+      next_payment_date: input.nextPaymentDate || null,
+      payment_status:   (input.totalPaidMad ?? 0) > 0 ? 'paid' : 'pending',
+      notes:            input.notes || null,
+      is_active:        true,
+      added_by_id:      input.addedById || null,
+    })
+    .select('id')
+    .single()
+  if (error) { console.error('createStudent', error.message); return null }
+  return (data as { id: string }).id
+}
+
+/** Archive a student (paused, still recoverable) — and drop their revenue. */
+export async function archiveStudent(id: string): Promise<void> {
+  await supabase.from('crm_students').update({ is_active: false }).eq('id', id)
+  await supabase.from('crm_payments').update({ excluded_from_revenue: true }).eq('student_id', id)
+}
+export async function unarchiveStudent(id: string): Promise<void> {
+  await supabase.from('crm_students').update({ is_active: true }).eq('id', id)
+  await supabase.from('crm_payments').update({ excluded_from_revenue: false }).eq('student_id', id)
+}
+
+/** Soft-remove a student → bin (recoverable with full history). Drops revenue. */
+export async function softDeleteStudent(id: string, actorId?: string): Promise<void> {
+  await supabase.from('crm_students').update({ deleted_at: new Date().toISOString(), deleted_by_id: actorId ?? null, is_active: false }).eq('id', id)
+  await supabase.from('crm_payments').update({ excluded_from_revenue: true }).eq('student_id', id)
+}
+export async function restoreStudent(id: string): Promise<void> {
+  await supabase.from('crm_students').update({ deleted_at: null, deleted_by_id: null, is_active: true }).eq('id', id)
+  await supabase.from('crm_payments').update({ excluded_from_revenue: false }).eq('student_id', id)
+}
+export async function permanentDeleteStudent(id: string): Promise<void> {
+  await supabase.from('crm_students').delete().eq('id', id)
+}
+export async function fetchDeletedStudents(): Promise<CrmStudent[]> {
+  const { data } = await supabase.from('crm_students').select('*').not('deleted_at', 'is', null).order('deleted_at', { ascending: false })
+  return (data ?? []) as CrmStudent[]
+}
+
+/** Record a monthly subscription payment: logs a paid payment and rolls the
+ *  next due date forward one month + bumps the total paid. */
+export async function recordMonthlyPayment(input: {
+  studentId: string
+  amountMad: number
+  approverId?: string
+  notes?: string
+}): Promise<void> {
+  const { data: s } = await supabase.from('crm_students').select('total_paid_mad, next_payment_date, monthly_fee_mad').eq('id', input.studentId).maybeSingle()
+  const today = new Date()
+  // next due = (existing next_payment_date or today) + 1 month
+  const base = (s as any)?.next_payment_date ? new Date((s as any).next_payment_date) : today
+  const next = new Date(base); next.setMonth(next.getMonth() + 1)
+
+  await supabase.from('crm_payments').insert({
+    student_id: input.studentId,
+    payment_type: 'private_monthly',
+    amount_mad: input.amountMad,
+    payment_status: 'paid',
+    payment_date: today.toISOString().slice(0, 10),
+    next_payment_date: next.toISOString().slice(0, 10),
+    payment_method: 'cash',
+    notes: input.notes || null,
+    added_by_id: input.approverId || null,
+    approved_by_id: input.approverId || null,
+    approved_at: new Date().toISOString(),
+  })
+  await supabase.from('crm_students').update({
+    total_paid_mad: (Number((s as any)?.total_paid_mad) || 0) + input.amountMad,
+    next_payment_date: next.toISOString().slice(0, 10),
+    payment_status: 'paid',
+  }).eq('id', input.studentId)
 }
 
 export async function fetchStudentById(id: string): Promise<CrmStudent | null> {
@@ -168,6 +270,7 @@ export async function fetchRevenueTotals(): Promise<{
     .from('crm_payments')
     .select('amount_mad, payment_date')
     .eq('payment_status', 'paid')
+    .eq('excluded_from_revenue', false)
     .not('payment_date', 'is', null)
 
   let today = 0, week = 0, month = 0, year = 0, allTime = 0
@@ -190,6 +293,7 @@ export async function fetchRevenueByMonth(months = 12): Promise<{ month: string;
     .from('crm_payments')
     .select('amount_mad, payment_date')
     .eq('payment_status', 'paid')
+    .eq('excluded_from_revenue', false)
     .gte('payment_date', cutoff.toISOString().slice(0, 10))
   const map = new Map<string, number>()
   // Seed all months with 0

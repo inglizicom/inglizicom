@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import {
   GraduationCap, Loader2, KeyRound, BookOpen, FileText, Download,
-  ListChecks, CheckCircle2, Circle, ExternalLink, Sparkles, LogOut,
+  ListChecks, CheckCircle2, Circle, ExternalLink, Sparkles, LogOut, TrendingUp,
 } from 'lucide-react'
 import { fetchStudentSpace, fileUrl, type StudentSpace } from '@/lib/student-portal'
 
@@ -70,6 +70,14 @@ export default function StudentSpacePage() {
   const s = space.student!
   const assignments = space.assignments ?? []
   const files       = space.files ?? []
+  const stats       = space.stats ?? { done: 0, total: 0 }
+
+  const LEVELS = ['A0', 'A1', 'A2', 'B1', 'B2', 'C1']
+  const curLevel  = (s.current_level || s.course || 'A0').toUpperCase().replace(/[^A-C0-9]/g, '').slice(0, 2) || 'A0'
+  const curIdx    = Math.max(0, LEVELS.findIndex(l => curLevel.startsWith(l)))
+  const nextLevel = s.next_level || LEVELS[Math.min(curIdx + 1, LEVELS.length - 1)]
+  const progress  = stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0
+  const daysActive = Math.max(1, Math.round((Date.now() - new Date(s.subscription_start || s.enrollment_date).getTime()) / 86400000))
 
   return (
     <div dir="rtl" className="min-h-screen bg-[#f6f6f5]">
@@ -92,14 +100,43 @@ export default function StudentSpacePage() {
 
       <main className="max-w-3xl mx-auto px-4 py-5 space-y-5">
 
-        {/* Course info */}
+        {/* Progress + level ladder */}
         <section className="bg-white rounded-2xl border border-zinc-200/80 p-5">
-          <h2 className="flex items-center gap-2 font-bold text-[15px] text-zinc-900 mb-3"><BookOpen size={16} className="text-yellow-500" /> دورتي</h2>
+          <h2 className="flex items-center gap-2 font-bold text-[15px] text-zinc-900 mb-4"><TrendingUp size={16} className="text-emerald-500" /> مستواي وتقدّمي</h2>
+
+          {/* Level ladder */}
+          <div className="flex items-center gap-1 mb-4 overflow-x-auto">
+            {LEVELS.map((lv, i) => (
+              <div key={lv} className="flex items-center gap-1 flex-shrink-0">
+                <div className={[
+                  'w-10 h-10 rounded-xl flex items-center justify-center text-[12px] font-black',
+                  i < curIdx ? 'bg-emerald-100 text-emerald-700'
+                  : i === curIdx ? 'bg-yellow-400 text-black ring-2 ring-yellow-200'
+                  : 'bg-zinc-100 text-zinc-400',
+                ].join(' ')}>{lv}</div>
+                {i < LEVELS.length - 1 && <div className={`w-4 h-0.5 ${i < curIdx ? 'bg-emerald-300' : 'bg-zinc-200'}`} />}
+              </div>
+            ))}
+          </div>
+
+          {/* Progress bar */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between text-[12px] mb-1">
+              <span className="text-zinc-500">إكمال التمارين</span>
+              <span className="font-bold text-zinc-800">{stats.done}/{stats.total} · {progress}%</span>
+            </div>
+            <div className="h-2.5 bg-zinc-100 rounded-full overflow-hidden">
+              <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${progress}%` }} />
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
-            <Info label="المستوى / الدورة" value={s.course?.toUpperCase() ?? '—'} />
+            <Info label="المستوى الحالي" value={curLevel} />
+            <Info label="المستوى القادم" value={nextLevel} />
             <Info label="الأستاذ" value={s.teacher_name ?? 'الأستاذ حمزة'} />
-            <Info label="تاريخ البدء" value={fmtDate(s.enrollment_date)} />
-            <Info label="تاريخ الانتهاء" value={fmtDate(s.course_end_date)} />
+            <Info label="أيام منذ البدء" value={`${daysActive} يوم`} />
+            <Info label="تاريخ البدء" value={fmtDate(s.subscription_start ?? s.enrollment_date)} />
+            <Info label={s.billing_type === 'monthly' ? 'نوع الاشتراك' : 'تاريخ الانتهاء'} value={s.billing_type === 'monthly' ? 'اشتراك شهري' : fmtDate(s.course_end_date)} />
           </div>
         </section>
 

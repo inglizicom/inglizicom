@@ -32,7 +32,8 @@ export default function DashboardPage() {
   const [sources, setSources] = useState<{ source: string; count: number }[]>([])
   const [overdue, setOverdue] = useState<OverdueLead[]>([])
   const [today,   setToday]   = useState<OverdueLead[]>([])
-  const [recent,  setRecent]  = useState<SubscriptionLead[]>([])
+  const [allLeads, setAllLeads] = useState<SubscriptionLead[]>([])
+  const [period,   setPeriod]   = useState<'today' | 'yesterday' | 'week' | 'month' | 'all'>('today')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -46,7 +47,7 @@ export default function DashboardPage() {
         isFounder ? fetchOwnerMetrics() : Promise.resolve(null),
       ])
       setKpis(k); setSources(src); setOverdue(od); setToday(td)
-      setRecent(leads.slice(0, 6)); setOwner(om)
+      setAllLeads(leads); setOwner(om)
       setLoading(false)
     })()
   }, [staff.id, isFounder])
@@ -62,6 +63,29 @@ export default function DashboardPage() {
   })()
 
   const followQueue = [...today, ...overdue].slice(0, 5)
+
+  /* ── Leads by period ─────────────────────────────────── */
+  function inPeriod(iso: string, p: typeof period): boolean {
+    const d = new Date(iso); const now = new Date()
+    const startToday = new Date(now); startToday.setHours(0, 0, 0, 0)
+    if (p === 'today')     return d >= startToday
+    if (p === 'yesterday') { const y = new Date(startToday); y.setDate(y.getDate() - 1); return d >= y && d < startToday }
+    if (p === 'week')      { const w = new Date(startToday); w.setDate(w.getDate() - 7); return d >= w }
+    if (p === 'month')     { const m = new Date(now.getFullYear(), now.getMonth(), 1); return d >= m }
+    return true
+  }
+  const periodCounts = {
+    today:     allLeads.filter(l => inPeriod(l.created_at, 'today')).length,
+    yesterday: allLeads.filter(l => inPeriod(l.created_at, 'yesterday')).length,
+    week:      allLeads.filter(l => inPeriod(l.created_at, 'week')).length,
+    month:     allLeads.filter(l => inPeriod(l.created_at, 'month')).length,
+    all:       allLeads.length,
+  }
+  const periodLeads = allLeads.filter(l => inPeriod(l.created_at, period))
+  const PERIODS: { id: typeof period; label: string }[] = [
+    { id: 'today', label: 'اليوم' }, { id: 'yesterday', label: 'أمس' },
+    { id: 'week', label: 'هذا الأسبوع' }, { id: 'month', label: 'هذا الشهر' }, { id: 'all', label: 'الكل' },
+  ]
 
   return (
     <div className="p-4 lg:p-6 space-y-5">
@@ -91,7 +115,7 @@ export default function DashboardPage() {
         <KpiCard label="إيرادات الشهر" value={kpis?.monthlyRevenueMad ?? 0} unit="د.م"
           icon={Wallet} tone="green" deltaPct={revDelta} deltaNote={revDelta !== undefined ? 'مقارنة بالشهر السابق' : undefined}
           spark={revSeries.length ? revSeries.map(r => r.mad) : undefined} />
-        <KpiCard label="عملاء جدد هذا الشهر" value={kpis?.newLeadsThisMonth ?? 0}
+        <KpiCard label="عملاء جدد هذا الشهر" value={periodCounts.month}
           icon={UserPlus} tone="purple" />
         <KpiCard label="الطلاب المدفوعون" value={kpis?.paidStudents ?? 0}
           icon={GraduationCap} tone="blue" />
@@ -136,12 +160,25 @@ export default function DashboardPage() {
 
       {/* ── Bottom row ─────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Recent leads */}
-        <ChartCard title="آخر العملاء" className="lg:col-span-2"
+        {/* Leads by period */}
+        <ChartCard title="العملاء حسب الفترة" className="lg:col-span-2"
           action={<Link href="/sales/workspace" className="text-[12px] text-blue-600 font-semibold flex items-center gap-0.5">عرض الكل <ChevronLeft size={13} /></Link>}>
-          <div className="divide-y divide-zinc-50">
-            {recent.length === 0 && <p className="text-[13px] text-zinc-400 py-6 text-center">لا يوجد عملاء بعد</p>}
-            {recent.map(l => {
+          {/* Period selector */}
+          <div className="flex gap-1.5 mb-3 overflow-x-auto">
+            {PERIODS.map(p => (
+              <button key={p.id} onClick={() => setPeriod(p.id)}
+                className={[
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold whitespace-nowrap transition-colors',
+                  period === p.id ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200',
+                ].join(' ')}>
+                {p.label}
+                <span className={`text-[10px] px-1.5 rounded-full ${period === p.id ? 'bg-yellow-400 text-black' : 'bg-white text-zinc-500'}`}>{periodCounts[p.id]}</span>
+              </button>
+            ))}
+          </div>
+          <div className="divide-y divide-zinc-50 max-h-[340px] overflow-y-auto">
+            {periodLeads.length === 0 && <p className="text-[13px] text-zinc-400 py-6 text-center">لا يوجد عملاء في هذه الفترة</p>}
+            {periodLeads.slice(0, 30).map(l => {
               const s = normalizeStatus(l.status)
               return (
                 <div key={l.id} className="flex items-center gap-3 py-2.5">

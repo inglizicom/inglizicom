@@ -7,14 +7,14 @@ import {
   ArrowRight, Phone, MessageCircle, Mail, MapPin, Loader2, GraduationCap,
   Wallet, Receipt, CreditCard, Printer, CheckCircle, XCircle, Plus,
   StickyNote, Activity, Edit3, Save, ChevronLeft, CalendarDays, BadgeCheck,
-  Clock, BookOpen, FileText, ShieldCheck, Upload, Trash2, ExternalLink, Download,
+  Clock, BookOpen, FileText, ShieldCheck, Upload, Trash2, ExternalLink, Download, Archive,
 } from 'lucide-react'
 
 import { useStaff } from '@/lib/staff-context'
 import { type CrmStudent, type CrmPayment, LEAD_COURSES } from '@/lib/crm-types'
 import {
   fetchStudentById, fetchCrmPayments, approveCrmPayment, declineCrmPayment,
-  createCrmPayment, patchStudent,
+  createCrmPayment, patchStudent, recordMonthlyPayment, archiveStudent, unarchiveStudent, softDeleteStudent,
 } from '@/lib/crm-db'
 import {
   fetchReceiptsForStudent, printReceipt, buildReceiptWhatsAppMessage,
@@ -121,6 +121,32 @@ export default function StudentProfilePage() {
     setSEnroll(s.enrollment_date?.slice(0, 10) ?? ''); setSEnd(s.course_end_date?.slice(0, 10) ?? '')
     setSActive(s.is_active)
     setLoading(false)
+  }
+
+  const [monthBusy, setMonthBusy] = useState(false)
+  async function recordMonth() {
+    if (!student) return
+    const amt = student.monthly_fee_mad ?? 0
+    if (!amt) { alert('حدّد الرسوم الشهرية أولًا من تعديل البيانات'); return }
+    if (!confirm(`تسجيل دفعة شهرية بقيمة ${amt} د.م لـ ${student.full_name}؟`)) return
+    setMonthBusy(true)
+    await recordMonthlyPayment({ studentId: student.id, amountMad: amt, approverId: staff.id })
+    await load()
+    setMonthBusy(false)
+  }
+  async function doArchive() {
+    if (!student) return
+    if (student.is_active) {
+      if (!confirm('أرشفة الطالب؟ يبقى مسجّلًا لكن تُستبعد إيراداته من اللوحة.')) return
+      await archiveStudent(student.id)
+    } else { await unarchiveStudent(student.id) }
+    const s = await fetchStudentById(id); if (s) setStudent(s)
+  }
+  async function doRemove() {
+    if (!student) return
+    if (!confirm('نقل الطالب إلى سلة المحذوفين؟ يمكن استرجاعه بسجلّه كاملًا.')) return
+    await softDeleteStudent(student.id, staff.id)
+    router.push('/sales/workspace?tab=students')
   }
 
   async function saveStudent() {
@@ -312,6 +338,42 @@ export default function StudentProfilePage() {
               <p className="text-[10px] text-zinc-500 mt-2 leading-relaxed">يظهر هذا الرمز على وصولات الطالب ويُستخدم للتحقق من هويته ومنع الاحتيال.</p>
             </div>
           )}
+
+          {/* Monthly subscription */}
+          {(student.billing_type === 'monthly' || student.student_type === 'private_student') && (
+            <div className="bg-white rounded-2xl border border-purple-200 p-4">
+              <div className="flex items-center gap-1.5 text-[12px] font-bold text-purple-700 mb-3"><CalendarDays size={14} /> الاشتراك الشهري</div>
+              <div className="space-y-1.5">
+                <InfoLine icon={Wallet} label="الرسوم الشهرية" value={student.monthly_fee_mad ? `${MAD(student.monthly_fee_mad)} د.م` : '—'} />
+                <InfoLine icon={CalendarDays} label="بداية الاشتراك" value={fmtDate(student.subscription_start ?? student.enrollment_date)} />
+                <InfoLine icon={Clock} label="الدفعة القادمة" value={fmtDate(student.next_payment_date)} />
+              </div>
+              {(() => {
+                const overdue = student.next_payment_date && new Date(student.next_payment_date) < new Date()
+                return (
+                  <div className={`mt-2 text-[11px] font-bold px-2 py-1 rounded-lg text-center ${overdue ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700'}`}>
+                    {overdue ? '⚠ مستحق — بانتظار دفعة هذا الشهر' : '✓ الاشتراك ساري'}
+                  </div>
+                )
+              })()}
+              <button onClick={recordMonth} disabled={monthBusy}
+                className="w-full mt-3 py-2.5 rounded-xl bg-purple-600 text-white font-bold text-[13px] flex items-center justify-center gap-2 hover:bg-purple-700 disabled:opacity-50">
+                {monthBusy ? <Loader2 size={14} className="animate-spin" /> : <><Plus size={14} /> تسجيل دفعة الشهر</>}
+              </button>
+            </div>
+          )}
+
+          {/* Archive / Remove */}
+          <div className="bg-white rounded-2xl border border-zinc-200/80 p-4 space-y-2">
+            <button onClick={doArchive}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-[13px] font-semibold text-amber-700">
+              <Archive size={15} /> {student.is_active ? 'أرشفة الطالب' : 'تفعيل الطالب'}
+            </button>
+            <button onClick={doRemove}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-[13px] font-semibold text-red-600">
+              <Trash2 size={15} /> نقل إلى سلة المحذوفين
+            </button>
+          </div>
         </div>
 
         {/* ── Main column ─────────────────────────────── */}

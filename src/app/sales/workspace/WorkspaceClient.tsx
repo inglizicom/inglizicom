@@ -6,7 +6,7 @@ import {
   Search, SlidersHorizontal, RefreshCw, Plus,
   Users, GraduationCap, CreditCard, CalendarClock, Archive,
   CheckCircle, XCircle, AlertTriangle, Clock, Loader2, Crown,
-  MessageCircle, Phone, Printer,
+  MessageCircle, Phone, Printer, Trash2, RotateCcw,
 } from 'lucide-react'
 
 import {
@@ -15,7 +15,11 @@ import {
   type SubscriptionLead, type LeadStatus,
   LEAD_STATUS_META,
 } from '@/lib/leads-db'
-import { fetchStudents, fetchCrmPayments, approveCrmPayment, declineCrmPayment, convertLeadToStudent } from '@/lib/crm-db'
+import {
+  fetchStudents, fetchCrmPayments, approveCrmPayment, declineCrmPayment, convertLeadToStudent,
+  archiveStudent, unarchiveStudent, softDeleteStudent, restoreStudent, permanentDeleteStudent, fetchDeletedStudents,
+} from '@/lib/crm-db'
+import AddStudentModal from './AddStudentModal'
 import { updateLeadStatus } from '@/lib/leads-db'
 import { type CrmStudent, type CrmPayment } from '@/lib/crm-types'
 import { fetchOverdueFollowUps, fetchTodaysFollowUps, type OverdueLead } from '@/lib/crm-stats'
@@ -118,6 +122,27 @@ export default function WorkspaceClient() {
   const [payBusy,      setPayBusy]      = useState<string | null>(null)
   /* Quick status pill filter (Leads tab only) */
   const [statusPill,   setStatusPill]   = useState<string>('all')
+  /* Students: add modal + bin */
+  const [addStudentOpen, setAddStudentOpen] = useState(false)
+  const [showBin,        setShowBin]        = useState(false)
+  const [binStudents,    setBinStudents]    = useState<CrmStudent[]>([])
+
+  async function loadBin() { setBinStudents(await fetchDeletedStudents()) }
+  async function onArchiveStudent(s: CrmStudent) {
+    if (!confirm(`أرشفة الطالب "${s.full_name}"؟ (يبقى مسجّلًا لكن تُستبعد إيراداته)`)) return
+    await archiveStudent(s.id); refresh()
+  }
+  async function onRemoveStudent(s: CrmStudent) {
+    if (!confirm(`نقل "${s.full_name}" إلى سلة المحذوفات؟ يمكن استرجاعه بسجلّه كاملًا.`)) return
+    await softDeleteStudent(s.id, staff.id); refresh()
+  }
+  async function onRestoreStudent(s: CrmStudent) {
+    await restoreStudent(s.id); await loadBin(); refresh()
+  }
+  async function onPurgeStudent(s: CrmStudent) {
+    if (!isFounder || !confirm(`حذف "${s.full_name}" نهائيًا؟ لا يمكن التراجع.`)) return
+    await permanentDeleteStudent(s.id); await loadBin()
+  }
 
   const staffMap = useMemo(() => new Map(staffList.map(s => [s.id, s])), [staffList])
   const studentLeadIds = useMemo(() => new Set(students.map(s => s.lead_id).filter(Boolean) as string[]), [students])
@@ -367,32 +392,65 @@ export default function WorkspaceClient() {
       {!loading && tab === 'students' && (
         <div className="flex-1 px-4 py-4">
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className="grid grid-cols-4 gap-3 mb-4">
             <div className="bg-white rounded-xl border border-zinc-100 p-3 text-center">
-              <div className="text-[24px] font-black text-zinc-800">{students.length}</div>
+              <div className="text-[22px] font-black text-zinc-800">{students.length}</div>
               <div className="text-[11px] text-zinc-400 mt-0.5">إجمالي الطلاب</div>
             </div>
             <div className="bg-blue-50 rounded-xl border border-blue-100 p-3 text-center">
-              <div className="text-[24px] font-black text-blue-700">{students.filter(s => s.student_type === 'course_student').length}</div>
-              <div className="text-[11px] text-blue-500 mt-0.5">دورات جماعية</div>
+              <div className="text-[22px] font-black text-blue-700">{students.filter(s => s.student_type === 'course_student').length}</div>
+              <div className="text-[11px] text-blue-500 mt-0.5">دورات</div>
             </div>
             <div className="bg-purple-50 rounded-xl border border-purple-100 p-3 text-center">
-              <div className="text-[24px] font-black text-purple-700">{students.filter(s => s.student_type === 'private_student').length}</div>
-              <div className="text-[11px] text-purple-500 mt-0.5">دروس خاصة</div>
+              <div className="text-[22px] font-black text-purple-700">{students.filter(s => (s.billing_type === 'monthly') || s.student_type === 'private_student').length}</div>
+              <div className="text-[11px] text-purple-500 mt-0.5">اشتراك شهري</div>
+            </div>
+            <div className="bg-amber-50 rounded-xl border border-amber-100 p-3 text-center">
+              <div className="text-[22px] font-black text-amber-700">{students.filter(s => !s.is_active).length}</div>
+              <div className="text-[11px] text-amber-500 mt-0.5">مؤرشف</div>
             </div>
           </div>
 
-          {filteredStudents.length === 0 && <Empty text="لا يوجد طلاب" />}
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-            {filteredStudents.map(student => (
-              <StudentCardNew
-                key={student.id}
-                student={student}
-                onClick={s => router.push(`/sales/students/${s.id}`)}
-              />
-            ))}
+          {/* Action bar */}
+          <div className="flex items-center justify-between mb-4">
+            <button onClick={() => { setShowBin(b => { const n = !b; if (n) loadBin(); return n }) }}
+              className={`flex items-center gap-1.5 text-[13px] font-semibold px-3 py-2 rounded-xl border ${showBin ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white text-zinc-600 border-zinc-200 hover:border-zinc-400'}`}>
+              <Trash2 size={14} /> سلة المحذوفين
+            </button>
+            <button onClick={() => setAddStudentOpen(true)}
+              className="flex items-center gap-1.5 text-[13px] font-bold px-4 py-2 bg-yellow-400 text-black rounded-xl hover:bg-yellow-300">
+              <Plus size={14} /> إضافة طالب
+            </button>
           </div>
+
+          {showBin ? (
+            <div className="space-y-2">
+              <div className="text-[13px] font-bold text-zinc-500 mb-1">سلة المحذوفين — يمكن الاسترجاع بالسجل الكامل</div>
+              {binStudents.length === 0 && <Empty text="السلة فارغة" />}
+              {binStudents.map(s => (
+                <div key={s.id} className="bg-white border border-zinc-200 rounded-xl p-3 flex items-center gap-3">
+                  <Avatar name={s.full_name} size={36} />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-[14px] text-zinc-800 truncate">{s.full_name}</div>
+                    <div className="text-[11px] text-zinc-400">حُذف في {s.deleted_at ? new Date(s.deleted_at).toLocaleDateString('ar-MA') : '—'}</div>
+                  </div>
+                  <button onClick={() => onRestoreStudent(s)} className="text-[12px] font-bold px-3 py-1.5 rounded-lg bg-yellow-400 text-black hover:bg-yellow-300 flex items-center gap-1"><RotateCcw size={12} /> استرجاع</button>
+                  {isFounder && <button onClick={() => onPurgeStudent(s)} className="text-[12px] font-semibold px-3 py-1.5 rounded-lg border border-red-200 text-red-500 hover:bg-red-50">حذف نهائي</button>}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <>
+              {filteredStudents.length === 0 && <Empty text="لا يوجد طلاب — أضف طالبًا يدويًا أو حوّل عميلًا" />}
+              <StudentList
+                students={filteredStudents}
+                onOpen={s => router.push(`/sales/students/${s.id}`)}
+                onArchive={onArchiveStudent}
+                onUnarchive={async s => { await unarchiveStudent(s.id); refresh() }}
+                onRemove={onRemoveStudent}
+              />
+            </>
+          )}
         </div>
       )}
 
@@ -514,6 +572,7 @@ export default function WorkspaceClient() {
       <StudentDrawer student={drawerStudent} onClose={() => setDrawerStudent(null)} onUpdated={refresh} isFounder={isFounder} />
       <FilterDrawer open={filterOpen} onClose={() => setFilterOpen(false)} filters={filters} onChange={setFilters} staff={staffList} onReset={() => setFilters(EMPTY_FILTERS)} />
       {addOpen && <AddLeadModal onClose={() => setAddOpen(false)} onCreated={() => { setAddOpen(false); refresh() }} />}
+      {addStudentOpen && <AddStudentModal onClose={() => setAddStudentOpen(false)} onCreated={() => { setAddStudentOpen(false); refresh() }} />}
     </div>
   )
 }
@@ -790,6 +849,88 @@ function LeadCardNew({
 /* ══════════════════════════════════════════════════════════
    STUDENT CARD — clean redesign
 ══════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════
+   STUDENT LIST — table (desktop) + rows (mobile)
+══════════════════════════════════════════════════════════ */
+function StudentList({
+  students, onOpen, onArchive, onUnarchive, onRemove,
+}: {
+  students:    CrmStudent[]
+  onOpen:      (s: CrmStudent) => void
+  onArchive:   (s: CrmStudent) => void
+  onUnarchive: (s: CrmStudent) => void
+  onRemove:    (s: CrmStudent) => void
+}) {
+  const payCls: Record<string, string> = {
+    paid: 'bg-green-50 text-green-700 border-green-200',
+    overdue: 'bg-red-50 text-red-600 border-red-200',
+    pending: 'bg-amber-50 text-amber-700 border-amber-200',
+  }
+  const dueSoon = (s: CrmStudent) => (s.billing_type === 'monthly' || s.student_type === 'private_student') && s.next_payment_date
+    && (new Date(s.next_payment_date).getTime() - Date.now()) / 86400000 <= 7
+  return (
+    <>
+      {/* Desktop table */}
+      <div className="hidden lg:block bg-white rounded-2xl border border-zinc-200/80 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-right">
+            <thead>
+              <tr className="bg-zinc-50 border-b border-zinc-100 text-[11px] font-bold text-zinc-400 uppercase">
+                <th className="px-3 py-3">الاسم</th>
+                <th className="px-3 py-3">الهاتف</th>
+                <th className="px-3 py-3">الدورة</th>
+                <th className="px-3 py-3">النوع</th>
+                <th className="px-3 py-3">المدفوع</th>
+                <th className="px-3 py-3">الدفع القادم</th>
+                <th className="px-3 py-3">الحالة</th>
+                <th className="px-3 py-3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.map(s => (
+                <tr key={s.id} onClick={() => onOpen(s)} className={`border-b border-zinc-50 last:border-none text-[13px] cursor-pointer hover:bg-zinc-50 ${!s.is_active ? 'opacity-60' : ''}`}>
+                  <td className="px-3 py-2.5"><div className="flex items-center gap-2.5"><Avatar name={s.full_name} size={32} /><span className="font-semibold text-zinc-800">{s.full_name}</span></div></td>
+                  <td className="px-3 py-2.5 text-zinc-500" dir="ltr">{s.phone_number ?? '—'}</td>
+                  <td className="px-3 py-2.5 text-zinc-600 font-semibold">{s.course?.toUpperCase() ?? '—'}</td>
+                  <td className="px-3 py-2.5 text-zinc-500">{(s.billing_type === 'monthly' || s.student_type === 'private_student') ? 'شهري' : 'دورة'}</td>
+                  <td className="px-3 py-2.5 font-bold text-emerald-700">{(s.total_paid_mad ?? 0).toLocaleString('en-US')} د.م</td>
+                  <td className={`px-3 py-2.5 ${dueSoon(s) ? 'text-orange-600 font-bold' : 'text-zinc-400'}`}>{s.next_payment_date ? new Date(s.next_payment_date).toLocaleDateString('ar-MA', { month: 'short', day: 'numeric' }) : '—'}</td>
+                  <td className="px-3 py-2.5"><span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${s.is_active ? (payCls[s.payment_status] ?? payCls.pending) : 'bg-zinc-100 text-zinc-500 border-zinc-200'}`}>{!s.is_active ? 'مؤرشف' : s.payment_status === 'paid' ? 'مدفوع' : s.payment_status === 'overdue' ? 'متأخر' : 'معلق'}</span></td>
+                  <td className="px-3 py-2.5 whitespace-nowrap" onClick={e => e.stopPropagation()}>
+                    {s.is_active
+                      ? <button onClick={() => onArchive(s)} className="text-[11px] font-semibold px-2 py-1 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-50 ml-1">أرشفة</button>
+                      : <button onClick={() => onUnarchive(s)} className="text-[11px] font-semibold px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700 ml-1">تفعيل</button>}
+                    <button onClick={() => onRemove(s)} className="text-[11px] font-semibold px-2 py-1 rounded-lg border border-red-200 text-red-500 hover:bg-red-50"><Trash2 size={12} /></button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Mobile list */}
+      <div className="lg:hidden bg-white rounded-2xl border border-zinc-200/80 divide-y divide-zinc-50 overflow-hidden">
+        {students.map(s => (
+          <div key={s.id} onClick={() => onOpen(s)} className={`flex items-center gap-3 px-3 py-3 active:bg-zinc-50 ${!s.is_active ? 'opacity-60' : ''}`}>
+            <Avatar name={s.full_name} size={38} />
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-[14px] text-zinc-800 truncate">{s.full_name}</div>
+              <div className="text-[11px] text-zinc-400">{s.course?.toUpperCase() ?? '—'} · {(s.total_paid_mad ?? 0).toLocaleString('en-US')} د.م</div>
+            </div>
+            <div className="flex items-center gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
+              {s.is_active
+                ? <button onClick={() => onArchive(s)} className="text-[11px] px-2 py-1 rounded-lg border border-zinc-200 text-zinc-500">أرشفة</button>
+                : <button onClick={() => onUnarchive(s)} className="text-[11px] px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700">تفعيل</button>}
+              <button onClick={() => onRemove(s)} className="text-red-400 p-1"><Trash2 size={15} /></button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
 function StudentCardNew({ student, onClick }: { student: CrmStudent; onClick: (s: CrmStudent) => void }) {
   const phone = student.phone_number ?? ''
   const isDueSoon = student.student_type === 'private_student' && student.next_payment_date &&
