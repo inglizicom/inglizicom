@@ -197,7 +197,7 @@ export function buildReceiptHtml(
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#eceae7;color:#111;padding:20px 12px}
   .page{position:relative;max-width:620px;margin:0 auto 20px;background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:34px 36px;overflow:hidden}
-  .wm{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-22deg);font-size:58px;font-weight:900;color:rgba(17,17,17,.06);letter-spacing:5px;white-space:nowrap;pointer-events:none;z-index:0}
+  .wm{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-20deg);width:160%;text-align:center;font-size:94px;font-weight:900;color:rgba(17,17,17,.08);letter-spacing:8px;white-space:nowrap;pointer-events:none;z-index:0;text-transform:uppercase}
   .content{position:relative;z-index:1}
   .head{display:flex;align-items:center;justify-content:space-between;padding-bottom:18px;border-bottom:2px solid #111}
   .brand{display:flex;align-items:center;gap:12px}
