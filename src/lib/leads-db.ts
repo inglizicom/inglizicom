@@ -247,6 +247,7 @@ export async function fetchAllLeads(
     .from('subscription_leads')
     .select('*')
     .not('plan_id', 'in', NON_LEAD_PLAN_IN)   // only real plan selections (no tests/inquiries)
+    .is('deleted_at', null)                    // never show deleted leads
     .order('created_at', { ascending: false })
   if (!opts.includeArchived) q = q.eq('is_archived', false)
   if (opts.status) q = q.eq('status', opts.status)
@@ -430,11 +431,14 @@ export async function permanentDeleteLead(id: string): Promise<boolean> {
 }
 
 /** Fetch archived leads (is_archived=true OR deleted_at IS NOT NULL). */
+/** Archived = still registered, just hidden from the active list (recoverable).
+ *  Deleted leads (deleted_at set / hard-deleted) never appear here. */
 export async function fetchArchivedLeads(): Promise<SubscriptionLead[]> {
   const { data, error } = await supabase
     .from('subscription_leads')
     .select('*')
-    .or('is_archived.eq.true,deleted_at.not.is.null')
+    .eq('is_archived', true)
+    .is('deleted_at', null)
     .order('created_at', { ascending: false })
   if (error) { console.error('fetchArchivedLeads', error.message); return [] }
   return (data ?? []) as SubscriptionLead[]
@@ -448,5 +452,16 @@ export async function bulkSoftDeleteLeads(ids: string[], actorId: string): Promi
     .update({ deleted_at: now, deleted_by_id: actorId })
     .in('id', ids)
   if (error) { console.error('bulkSoftDeleteLeads', error.message); return false }
+  return true
+}
+
+/** Hard delete — permanently removes the lead rows. Used by the Delete action
+ *  (delete = gone for good, NOT archived). */
+export async function bulkDeleteLeads(ids: string[]): Promise<boolean> {
+  const { error } = await supabase
+    .from('subscription_leads')
+    .delete()
+    .in('id', ids)
+  if (error) { console.error('bulkDeleteLeads', error.message); return false }
   return true
 }

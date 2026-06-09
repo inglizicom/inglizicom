@@ -1,6 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import { Bell, MessageSquare, Calendar, ChevronLeft } from 'lucide-react'
+import ProfileModal from './ProfileModal'
 
 interface Props {
   title:        string
@@ -8,10 +10,12 @@ interface Props {
   userEmail?:   string | null
   roleLabel?:   string
   notifCount?:  number
+  onSignOut?:   () => void
 }
 
-export default function CrmTopHeader({ title, breadcrumb, userEmail, roleLabel, notifCount }: Props) {
+export default function CrmTopHeader({ title, breadcrumb, userEmail, roleLabel, notifCount, onSignOut }: Props) {
   const name = userEmail?.split('@')[0] ?? '—'
+  const [profileOpen, setProfileOpen] = useState(false)
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-zinc-200/80 h-16 flex items-center justify-between px-4 lg:px-6 pr-16 lg:pr-6">
@@ -41,7 +45,7 @@ export default function CrmTopHeader({ title, breadcrumb, userEmail, roleLabel, 
 
         <div className="w-px h-8 bg-zinc-200 hidden sm:block" />
 
-        <div className="flex items-center gap-2.5">
+        <button onClick={() => setProfileOpen(true)} className="flex items-center gap-2.5 rounded-xl hover:bg-zinc-50 p-1 -m-1 transition-colors" title="الملف الشخصي">
           <div className="text-left hidden sm:block leading-tight">
             <div className="text-[13px] font-bold text-zinc-900">{name}</div>
             {roleLabel && <div className="text-[11px] text-zinc-400">{roleLabel}</div>}
@@ -49,8 +53,16 @@ export default function CrmTopHeader({ title, breadcrumb, userEmail, roleLabel, 
           <div className="w-9 h-9 rounded-full bg-zinc-900 text-yellow-400 flex items-center justify-center font-black text-sm flex-shrink-0">
             {(name[0] ?? '?').toUpperCase()}
           </div>
-        </div>
+        </button>
       </div>
+
+      <ProfileModal
+        open={profileOpen}
+        onClose={() => setProfileOpen(false)}
+        email={userEmail}
+        roleLabel={roleLabel ?? ''}
+        onSignOut={onSignOut}
+      />
     </header>
   )
 }

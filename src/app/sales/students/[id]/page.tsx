@@ -7,7 +7,7 @@ import {
   ArrowRight, Phone, MessageCircle, Mail, MapPin, Loader2, GraduationCap,
   Wallet, Receipt, CreditCard, Printer, CheckCircle, XCircle, Plus,
   StickyNote, Activity, Edit3, Save, ChevronLeft, CalendarDays, BadgeCheck,
-  Clock, BookOpen, FileText, ShieldCheck,
+  Clock, BookOpen, FileText, ShieldCheck, Upload, Trash2, ExternalLink, Download,
 } from 'lucide-react'
 
 import { useStaff } from '@/lib/staff-context'
@@ -22,6 +22,11 @@ import {
 } from '@/lib/crm-receipts'
 import { whatsappLink } from '@/lib/leads-db'
 import Avatar from '@/app/sales/_components/Avatar'
+import {
+  fetchAssignments, addAssignment, deleteAssignment,
+  fetchStudentFiles, uploadStudentFile, deleteStudentFile, fileUrl,
+  type StudentAssignment, type StudentFile,
+} from '@/lib/student-portal'
 
 const MAD = (n: number) => new Intl.NumberFormat('en-US').format(Math.round(n))
 const fmtDate = (s?: string | null) =>
@@ -61,6 +66,15 @@ export default function StudentProfilePage() {
   const [payBusy,  setPayBusy]  = useState<string | null>(null)
   const [copied,   setCopied]   = useState(false)
 
+  // student portal: assignments + files
+  const [assignments, setAssignments] = useState<StudentAssignment[]>([])
+  const [files,       setFiles]       = useState<StudentFile[]>([])
+  const [aTitle, setATitle] = useState('')
+  const [aDesc,  setADesc]  = useState('')
+  const [aLink,  setALink]  = useState('')
+  const [aBusy,  setABusy]  = useState(false)
+  const [uploading, setUploading] = useState(false)
+
   // notes
   const [editNote, setEditNote] = useState(false)
   const [noteText, setNoteText] = useState('')
@@ -79,12 +93,40 @@ export default function StudentProfilePage() {
     setLoading(true)
     const s = await fetchStudentById(id)
     if (!s) { setLoading(false); return }
-    const [p, r] = await Promise.all([
+    const [p, r, asg, fls] = await Promise.all([
       fetchCrmPayments({ studentId: id }),
       fetchReceiptsForStudent(id),
+      fetchAssignments(id),
+      fetchStudentFiles(id),
     ])
     setStudent(s); setPayments(p); setReceipts(r); setNoteText(s.notes ?? '')
+    setAssignments(asg); setFiles(fls)
     setLoading(false)
+  }
+
+  async function submitAssignment() {
+    if (!aTitle.trim()) return
+    setABusy(true)
+    await addAssignment({ studentId: id, title: aTitle.trim(), description: aDesc.trim() || undefined, linkUrl: aLink.trim() || undefined, assignedBy: staff.id })
+    setATitle(''); setADesc(''); setALink('')
+    setAssignments(await fetchAssignments(id))
+    setABusy(false)
+  }
+  async function removeAssignment(aid: string) {
+    await deleteAssignment(aid); setAssignments(await fetchAssignments(id))
+  }
+  async function onUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    await uploadStudentFile(id, file, staff.id)
+    setFiles(await fetchStudentFiles(id))
+    setUploading(false)
+    e.target.value = ''
+  }
+  async function removeFile(f: StudentFile) {
+    if (!confirm('حذف هذا الملف؟')) return
+    await deleteStudentFile(f.id, f.file_path); setFiles(await fetchStudentFiles(id))
   }
 
   async function reloadPay() {
@@ -463,8 +505,33 @@ export default function StudentProfilePage() {
               )}
 
               {tab === 'progress' && (
-                <ComingSoon icon={BookOpen} title="التقدم والدروس"
-                  desc="ستظهر هنا نسبة إكمال الدروس، تقدّم خريطة التعلّم، نشاط الاستماع، والوقت المُستغرق في كل قسم." />
+                <div className="space-y-4">
+                  <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 space-y-2">
+                    <div className="text-[13px] font-bold text-zinc-700">تكليف تمرين جديد</div>
+                    <input value={aTitle} onChange={e => setATitle(e.target.value)} placeholder="عنوان التمرين *"
+                      className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white" />
+                    <input value={aDesc} onChange={e => setADesc(e.target.value)} placeholder="وصف / تعليمات (اختياري)"
+                      className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white" />
+                    <input value={aLink} onChange={e => setALink(e.target.value)} placeholder="رابط التمرين على Inglizi.com (اختياري)" dir="ltr"
+                      className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white text-right" />
+                    <button onClick={submitAssignment} disabled={aBusy || !aTitle.trim()}
+                      className="w-full py-2 bg-black text-white rounded-lg font-bold text-[13px] disabled:opacity-50">
+                      {aBusy ? <Loader2 size={14} className="animate-spin mx-auto" /> : 'تكليف الطالب'}
+                    </button>
+                  </div>
+
+                  {assignments.length === 0 && <p className="text-center py-4 text-zinc-400 text-[13px]">لا توجد تمارين مكلّفة</p>}
+                  {assignments.map(a => (
+                    <div key={a.id} className="flex items-start justify-between gap-3 border border-zinc-100 rounded-xl p-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-[14px] text-zinc-800">{a.title}</div>
+                        {a.description && <div className="text-[12px] text-zinc-500 mt-0.5">{a.description}</div>}
+                        {a.link_url && <a href={a.link_url} target="_blank" rel="noopener noreferrer" className="text-[12px] text-blue-600 inline-flex items-center gap-1 mt-1">الرابط <ExternalLink size={11} /></a>}
+                      </div>
+                      <button onClick={() => removeAssignment(a.id)} className="text-zinc-300 hover:text-red-500 flex-shrink-0"><Trash2 size={15} /></button>
+                    </div>
+                  ))}
+                </div>
               )}
 
               {tab === 'activity' && (
@@ -473,8 +540,32 @@ export default function StudentProfilePage() {
               )}
 
               {tab === 'files' && (
-                <ComingSoon icon={FileText} title="الملفات والمستندات"
-                  desc="يمكنك لاحقًا رفع عقود، وصولات، وشهادات الطالب هنا للوصول السريع إليها." />
+                <div className="space-y-4">
+                  <label className="flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-zinc-200 text-zinc-500 hover:border-yellow-400 hover:text-yellow-600 font-semibold text-[13px] cursor-pointer">
+                    {uploading ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
+                    {uploading ? 'جارٍ الرفع...' : 'رفع ملف (PDF أو غيره)'}
+                    <input type="file" className="hidden" onChange={onUpload} disabled={uploading} />
+                  </label>
+
+                  {files.length === 0 && <p className="text-center py-4 text-zinc-400 text-[13px]">لا توجد ملفات بعد</p>}
+                  {files.map(f => (
+                    <div key={f.id} className="flex items-center gap-3 border border-zinc-100 rounded-xl p-3">
+                      <div className="w-9 h-9 rounded-lg bg-rose-50 flex items-center justify-center flex-shrink-0"><FileText size={16} className="text-rose-500" /></div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-[13px] text-zinc-800 truncate">{f.file_name}</div>
+                        <div className="text-[11px] text-zinc-400">{fmtDate(f.created_at)}</div>
+                      </div>
+                      <a href={fileUrl(f.file_path)} target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-zinc-700"><Download size={16} /></a>
+                      <button onClick={() => removeFile(f)} className="text-zinc-300 hover:text-red-500"><Trash2 size={15} /></button>
+                    </div>
+                  ))}
+
+                  {student.verification_token && (
+                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-[12px] text-blue-800 leading-relaxed">
+                      🔑 يدخل الطالب إلى فضائه عبر <b>/student-space</b> باستخدام رمزه: <b dir="ltr">{student.verification_token}</b> — حيث يرى دوراته، التمارين، والملفات.
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>

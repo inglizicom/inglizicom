@@ -53,7 +53,7 @@ export default function SalesShell({ children }: { children: React.ReactNode }) 
 
       <div className="flex-1 min-w-0 flex flex-col">
         <Suspense fallback={<div className="h-16 bg-white border-b border-zinc-200/80" />}>
-          <HeaderForRoute userEmail={staff.email} roleLabel={roleLabel} notifCount={badges.followups} />
+          <HeaderForRoute userEmail={staff.email} roleLabel={roleLabel} notifCount={badges.followups} onSignOut={handleSignOut} />
         </Suspense>
         <main className="flex-1 min-w-0 pb-16 lg:pb-0">{children}</main>
       </div>
@@ -66,10 +66,11 @@ export default function SalesShell({ children }: { children: React.ReactNode }) 
 }
 
 /* Derives the page title + breadcrumb from the current route. */
-function HeaderForRoute({ userEmail, roleLabel, notifCount }: {
+function HeaderForRoute({ userEmail, roleLabel, notifCount, onSignOut }: {
   userEmail?: string | null
   roleLabel:  string
   notifCount?: number
+  onSignOut?: () => void
 }) {
   const pathname = usePathname() ?? ''
   const tab      = useSearchParams().get('tab')
@@ -103,5 +104,5 @@ function HeaderForRoute({ userEmail, roleLabel, notifCount }: {
     crumb = ['لوحة التحكم', 'الدعم']
   }
 
-  return <CrmTopHeader title={title} breadcrumb={crumb} userEmail={userEmail} roleLabel={roleLabel} notifCount={notifCount} />
+  return <CrmTopHeader title={title} breadcrumb={crumb} userEmail={userEmail} roleLabel={roleLabel} notifCount={notifCount} onSignOut={onSignOut} />
 }

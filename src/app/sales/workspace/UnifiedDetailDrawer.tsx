@@ -6,7 +6,7 @@ import {
   XCircle, Printer, Crown, Calendar, Clock, User,
   FileText, Archive, Trash2, RotateCcw, AlertTriangle, Loader2,
 } from 'lucide-react'
-import { type SubscriptionLead, normalizeStatus, updateLeadStatus, patchLead, whatsappLink, softDeleteLead, restoreLead } from '@/lib/leads-db'
+import { type SubscriptionLead, normalizeStatus, updateLeadStatus, patchLead, whatsappLink, permanentDeleteLead } from '@/lib/leads-db'
 import { type CrmStudent, type CrmPayment, type LeadEvent, EVENT_ICONS } from '@/lib/crm-types'
 import { LEAD_STATUS_META } from '@/lib/leads-db'
 import {
@@ -170,19 +170,18 @@ export default function UnifiedDetailDrawer({ lead, onClose, onUpdated, isFounde
     onClose(); onUpdated()
   }
   async function deleteLead() {
-    if (!lead || !confirm('هل تريد حذف هذا العميل؟ يمكنك استرجاعه من الأرشيف.')) return
+    if (!lead || !confirm('حذف هذا العميل نهائيًا؟ لن تتمكّن من استرجاعه.')) return
     setBusy(true)
-    await softDeleteLead(lead.id, staff.id)
+    await permanentDeleteLead(lead.id)
     setBusy(false)
     onClose(); onUpdated()
   }
   async function restoreLeadAction() {
     if (!lead) return
     setBusy(true)
-    await restoreLead(lead.id)
     await patchLead(lead.id, { is_archived: false } as any)
     setBusy(false)
-    onUpdated()
+    onClose(); onUpdated()
   }
 
   const isDeleted  = !!lead?.deleted_at

@@ -11,11 +11,12 @@ import {
 
 import {
   fetchAllLeads, fetchArchivedLeads, normalizeStatus,
-  bulkPatchLeads, bulkArchiveLeads, bulkSoftDeleteLeads,
+  bulkPatchLeads, bulkArchiveLeads, bulkDeleteLeads,
   type SubscriptionLead, type LeadStatus,
   LEAD_STATUS_META,
 } from '@/lib/leads-db'
-import { fetchStudents, fetchCrmPayments, approveCrmPayment, declineCrmPayment } from '@/lib/crm-db'
+import { fetchStudents, fetchCrmPayments, approveCrmPayment, declineCrmPayment, convertLeadToStudent } from '@/lib/crm-db'
+import { updateLeadStatus } from '@/lib/leads-db'
 import { type CrmStudent, type CrmPayment } from '@/lib/crm-types'
 import { fetchOverdueFollowUps, fetchTodaysFollowUps, type OverdueLead } from '@/lib/crm-stats'
 import { fetchStaff, type StaffRow } from '@/lib/staff-db'
@@ -119,6 +120,7 @@ export default function WorkspaceClient() {
   const [statusPill,   setStatusPill]   = useState<string>('all')
 
   const staffMap = useMemo(() => new Map(staffList.map(s => [s.id, s])), [staffList])
+  const studentLeadIds = useMemo(() => new Set(students.map(s => s.lead_id).filter(Boolean) as string[]), [students])
 
   /* ── Load ─────────────────────────────────────────────── */
   useEffect(() => {
@@ -209,13 +211,30 @@ export default function WorkspaceClient() {
     setCheckedIds(new Set()); refresh(); setBulkBusy(false)
   }
   async function bulkDelete() {
-    if (!isFounder || !confirm(`حذف ${checkedIds.size} عميل؟`)) return
-    setBulkBusy(true); await bulkSoftDeleteLeads([...checkedIds], staff.id)
+    if (!isFounder || !confirm(`حذف ${checkedIds.size} عميل نهائيًا؟ لا يمكن التراجع.`)) return
+    setBulkBusy(true); await bulkDeleteLeads([...checkedIds])
     setCheckedIds(new Set()); refresh(); setBulkBusy(false)
   }
   async function bulkMarkContacted() {
     setBulkBusy(true); await bulkPatchLeads([...checkedIds], { status: 'contacted' })
     setCheckedIds(new Set()); refresh(); setBulkBusy(false)
+  }
+
+  /* Convert a paid lead → student (shows on the Students page). */
+  const [convertingId, setConvertingId] = useState<string | null>(null)
+  async function convertToStudent(lead: SubscriptionLead) {
+    if (students.some(s => s.lead_id === lead.id)) {
+      router.push(`/sales/students/${students.find(s => s.lead_id === lead.id)!.id}`)
+      return
+    }
+    if (!confirm(`تحويل "${lead.full_name}" إلى طالب مدفوع؟`)) return
+    setConvertingId(lead.id)
+    try {
+      if (normalizeStatus(lead.status) !== 'paid') await updateLeadStatus(lead.id, 'paid', staff.id)
+      const studentId = await convertLeadToStudent(lead.id)
+      await loadAll()
+      if (studentId) router.push(`/sales/students/${studentId}`)
+    } finally { setConvertingId(null) }
   }
   async function approvePayment(id: string) {
     setPayBusy(id); await approveCrmPayment(id, staff.id); setPayBusy(null); refresh()
@@ -335,6 +354,9 @@ export default function WorkspaceClient() {
               onToggleAll={() => setCheckedIds(checkedIds.size === allLeadIds.length ? new Set() : new Set(allLeadIds))}
               allChecked={checkedIds.size > 0 && checkedIds.size === allLeadIds.length}
               onOpen={l => setDrawerLead(l)}
+              onConvert={convertToStudent}
+              convertingId={convertingId}
+              studentLeadIds={studentLeadIds}
               staffMap={staffMap}
             />
           </div>
@@ -406,7 +428,7 @@ export default function WorkspaceClient() {
               <div className="text-[12px] font-bold text-amber-600 mb-2">⏳ في انتظار الموافقة</div>
               <div className="space-y-3">
                 {payments.filter(p => p.payment_status === 'pending').map(p => (
-                  <PayRow key={p.id} p={p} leads={leads} payBusy={payBusy} onApprove={approvePayment} onDecline={declinePayment} onOpen={setDrawerLead} />
+                  <PayRow key={p.id} p={p} leads={leads} staffMap={staffMap} payBusy={payBusy} onApprove={approvePayment} onDecline={declinePayment} onOpen={setDrawerLead} />
                 ))}
               </div>
             </section>
@@ -416,7 +438,7 @@ export default function WorkspaceClient() {
               <div className="text-[12px] font-bold text-green-700 mb-2 mt-4">✓ تم الدفع</div>
               <div className="space-y-3">
                 {payments.filter(p => p.payment_status === 'paid').map(p => (
-                  <PayRow key={p.id} p={p} leads={leads} payBusy={payBusy} onApprove={approvePayment} onDecline={declinePayment} onOpen={setDrawerLead} />
+                  <PayRow key={p.id} p={p} leads={leads} staffMap={staffMap} payBusy={payBusy} onApprove={approvePayment} onDecline={declinePayment} onOpen={setDrawerLead} />
                 ))}
               </div>
             </section>
@@ -513,16 +535,23 @@ function followupTone(l: SubscriptionLead): string {
 }
 
 function LeadList({
-  leads, checkedIds, onToggle, onToggleAll, allChecked, onOpen, staffMap,
+  leads, checkedIds, onToggle, onToggleAll, allChecked, onOpen, onConvert, convertingId, studentLeadIds, staffMap,
 }: {
-  leads:       SubscriptionLead[]
-  checkedIds:  Set<string>
-  onToggle:    (id: string) => void
-  onToggleAll: () => void
-  allChecked:  boolean
-  onOpen:      (lead: SubscriptionLead) => void
-  staffMap:    Map<string, StaffRow>
+  leads:          SubscriptionLead[]
+  checkedIds:     Set<string>
+  onToggle:       (id: string) => void
+  onToggleAll:    () => void
+  allChecked:     boolean
+  onOpen:         (lead: SubscriptionLead) => void
+  onConvert:      (lead: SubscriptionLead) => void
+  convertingId:   string | null
+  studentLeadIds: Set<string>
+  staffMap:       Map<string, StaffRow>
 }) {
+  /* Show the convert button once a lead is engaged enough (confirmed/paid/delayed). */
+  function canConvert(l: SubscriptionLead) {
+    return ['confirmed', 'paid', 'delayed'].includes(normalizeStatus(l.status))
+  }
   return (
     <>
       {/* ── Desktop table ──────────────────────────── */}
@@ -546,6 +575,7 @@ function LeadList({
                 <th className="px-3 py-3 font-bold">المسؤول</th>
                 <th className="px-3 py-3 font-bold">المتابعة القادمة</th>
                 <th className="px-3 py-3 font-bold">تاريخ الإضافة</th>
+                <th className="px-3 py-3 font-bold"></th>
               </tr>
             </thead>
             <tbody>
@@ -588,6 +618,17 @@ function LeadList({
                     <td className="px-3 py-2.5 text-zinc-500">{assignee ?? <span className="text-zinc-300">—</span>}</td>
                     <td className={`px-3 py-2.5 ${followupTone(lead)}`}>{lead.next_followup_at ? leadFmtDate(lead.next_followup_at) : <span className="text-zinc-300">—</span>}</td>
                     <td className="px-3 py-2.5 text-zinc-400 whitespace-nowrap">{leadFmtDate(lead.created_at)}</td>
+                    <td className="px-3 py-2.5 whitespace-nowrap" onClick={e => e.stopPropagation()}>
+                      {studentLeadIds.has(lead.id) ? (
+                        <button onClick={() => onConvert(lead)}
+                          className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100">عرض الطالب</button>
+                      ) : canConvert(lead) ? (
+                        <button onClick={() => onConvert(lead)} disabled={convertingId === lead.id}
+                          className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-yellow-400 text-black hover:bg-yellow-300 disabled:opacity-50 flex items-center gap-1">
+                          {convertingId === lead.id ? <Loader2 size={11} className="animate-spin" /> : <GraduationCap size={11} />} تحويل لطالب
+                        </button>
+                      ) : null}
+                    </td>
                   </tr>
                 )
               })}
@@ -622,10 +663,17 @@ function LeadList({
               </div>
               <div className="flex flex-col items-end gap-1 flex-shrink-0">
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${STATUS_PILL_COLOR[st] ?? 'bg-zinc-100 text-zinc-600 border-zinc-200'}`}>{STATUS_AR[st] ?? st}</span>
-                {lead.phone && (
+                {studentLeadIds.has(lead.id) ? (
+                  <button onClick={e => { e.stopPropagation(); onConvert(lead) }} className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">طالب ✓</button>
+                ) : canConvert(lead) ? (
+                  <button onClick={e => { e.stopPropagation(); onConvert(lead) }} disabled={convertingId === lead.id}
+                    className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-400 text-black flex items-center gap-1">
+                    {convertingId === lead.id ? <Loader2 size={10} className="animate-spin" /> : <GraduationCap size={10} />} لطالب
+                  </button>
+                ) : lead.phone ? (
                   <a href={whatsappLink(lead.phone) ?? '#'} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
                     className="text-green-600"><MessageCircle size={16} /></a>
-                )}
+                ) : null}
               </div>
             </div>
           )
@@ -819,9 +867,10 @@ function StudentCardNew({ student, onClick }: { student: CrmStudent; onClick: (s
 
 /* ── Payment row ─────────────────────────────────────────── */
 function PayRow({
-  p, leads, payBusy, onApprove, onDecline, onOpen,
+  p, leads, staffMap, payBusy, onApprove, onDecline, onOpen,
 }: {
   p: CrmPayment; leads: SubscriptionLead[]
+  staffMap: Map<string, StaffRow>
   payBusy: string | null
   onApprove: (id: string) => void
   onDecline: (id: string) => void
@@ -830,6 +879,8 @@ function PayRow({
   const info = PAY_STATUS_AR[p.payment_status]
   const lead = leads.find(l => l.id === p.lead_id)
   const name = lead?.full_name ?? 'طالب'
+  const registeredBy = p.added_by_id    ? staffMap.get(p.added_by_id)?.email?.split('@')[0] : undefined
+  const approvedBy   = p.approved_by_id ? staffMap.get(p.approved_by_id)?.email?.split('@')[0] : undefined
 
   async function downloadReceipt() {
     const r = await ensurePaymentReceipt({
@@ -876,6 +927,13 @@ function PayRow({
         {p.payment_date && <span className="px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-500">{new Date(p.payment_date).toLocaleDateString('ar-MA', { year: 'numeric', month: 'short', day: 'numeric' })}</span>}
       </div>
       {p.notes && <div className="text-[12px] text-zinc-400 mb-2">📝 {p.notes}</div>}
+
+      {/* Ledger meta */}
+      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-zinc-400 mb-2">
+        {registeredBy && <span>سُجّل بواسطة: <b className="text-zinc-500 font-semibold">{registeredBy}</b></span>}
+        {approvedBy && <span>وافق: <b className="text-zinc-500 font-semibold">{approvedBy}</b></span>}
+        {p.approved_at && <span>{new Date(p.approved_at).toLocaleString('ar-MA', { dateStyle: 'short', timeStyle: 'short' })}</span>}
+      </div>
 
       {p.payment_status === 'pending' && (
         <div className="flex gap-2 pt-2 border-t border-zinc-50">
