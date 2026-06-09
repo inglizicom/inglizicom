@@ -36,6 +36,29 @@ export function middleware(request: NextRequest) {
   const host     = request.headers.get('host') ?? ''
   const pathname = request.nextUrl.pathname
 
+  // ── Student portal subdomain ──────────────────────────────
+  // student.inglizi.com (also space./my. as aliases) → /student-space
+  const isStudent =
+    host === 'student.inglizi.com' ||
+    host === 'space.inglizi.com' ||
+    host === 'my.inglizi.com' ||
+    host.startsWith('student.localhost') ||
+    request.nextUrl.searchParams.get('_student') === '1'
+
+  if (isStudent) {
+    if (
+      pathname.startsWith('/_next') ||
+      pathname.startsWith('/api') ||
+      pathname.startsWith('/auth') ||
+      pathname.startsWith('/student-space')
+    ) {
+      return NextResponse.next()
+    }
+    const url = request.nextUrl.clone()
+    url.pathname = '/student-space'
+    return NextResponse.rewrite(url)
+  }
+
   const isAdmin =
     host === 'admin.inglizi.com' ||
     host.startsWith('admin.localhost') ||

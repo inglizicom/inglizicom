@@ -562,7 +562,7 @@ export default function StudentProfilePage() {
 
                   {student.verification_token && (
                     <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-[12px] text-blue-800 leading-relaxed">
-                      🔑 يدخل الطالب إلى فضائه عبر <b>/student-space</b> باستخدام رمزه: <b dir="ltr">{student.verification_token}</b> — حيث يرى دوراته، التمارين، والملفات.
+                      🔑 يدخل الطالب إلى فضائه عبر <b dir="ltr">student.inglizi.com</b> باستخدام رمزه: <b dir="ltr">{student.verification_token}</b> — حيث يرى دوراته، التمارين، والملفات.
                     </div>
                   )}
                 </div>
