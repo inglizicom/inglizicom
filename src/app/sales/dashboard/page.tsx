@@ -67,7 +67,7 @@ export default function DashboardPage() {
 
       {/* ── Quick actions ──────────────────────────────── */}
       <div className="flex flex-wrap gap-2.5">
-        <Link href="/sales/workspace?add=1"
+        <Link href="/sales/leads/new"
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-yellow-400 text-black font-bold text-[13px] hover:bg-yellow-300 transition-colors shadow-sm">
           <Plus size={15} /> إضافة عميل جديد
         </Link>

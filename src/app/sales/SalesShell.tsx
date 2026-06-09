@@ -76,6 +76,12 @@ function HeaderForRoute({ userEmail, roleLabel, notifCount }: {
     const name = userEmail?.split('@')[0] ?? ''
     title = `مرحباً ${name} 👋`
     crumb = [new Date().toLocaleDateString('ar-MA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })]
+  } else if (pathname.includes('/leads/new')) {
+    title = 'إضافة عميل جديد'
+    crumb = ['العملاء المحتملون', 'إضافة عميل جديد']
+  } else if (pathname.match(/\/students\/[^/]+$/) && !pathname.endsWith('/students')) {
+    title = 'ملف الطالب'
+    crumb = ['الطلاب', 'ملف الطالب']
   } else if (pathname.includes('/workspace')) {
     title =
       tab === 'students'  ? 'الطلاب'

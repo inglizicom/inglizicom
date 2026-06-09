@@ -356,7 +356,7 @@ export default function WorkspaceClient() {
                   </button>
                 )}
               </div>
-              <button type="button" onClick={() => setAddOpen(true)}
+              <button type="button" onClick={() => router.push('/sales/leads/new')}
                 className="flex items-center gap-1.5 px-4 py-2 bg-yellow-400 text-black font-bold text-[13px] rounded-xl hover:bg-yellow-300 transition-colors">
                 <Plus size={14} /> إضافة عميل
               </button>
@@ -406,7 +406,7 @@ export default function WorkspaceClient() {
               <StudentCardNew
                 key={student.id}
                 student={student}
-                onClick={s => setDrawerStudent(s)}
+                onClick={s => router.push(`/sales/students/${s.id}`)}
               />
             ))}
           </div>
