@@ -158,15 +158,14 @@ export default function WorkspaceClient() {
     return true
   }), [leads, filters, q])
 
-  /* Apply quick pill filter on top of base filters */
+  /* Apply quick pill filter on top of base filters — sorted by date added (newest first) */
   const visibleLeads = useMemo(() => {
     let list = baseLeads
     if (statusPill === 'vip')  list = list.filter(l => l.is_vip)
     else if (statusPill !== 'all') list = list.filter(l => normalizeStatus(l.status) === statusPill)
-    return [...list].sort((a, b) => {
-      if (a.is_vip !== b.is_vip) return a.is_vip ? -1 : 1
-      return urgencyScore(a) - urgencyScore(b)
-    })
+    return [...list].sort((a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
   }, [baseLeads, statusPill])
 
   /* Pill counts */
@@ -329,18 +328,15 @@ export default function WorkspaceClient() {
 
             {visibleLeads.length === 0 && <Empty text="لا يوجد عملاء بهذه المعايير" />}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-              {visibleLeads.map(lead => (
-                <LeadCardNew
-                  key={lead.id}
-                  lead={lead}
-                  selected={checkedIds.has(lead.id)}
-                  onSelect={toggleCheck}
-                  onClick={l => setDrawerLead(l)}
-                  assigneeName={staffMap.get(lead.assigned_to_id ?? '')?.email?.split('@')[0]}
-                />
-              ))}
-            </div>
+            <LeadList
+              leads={visibleLeads}
+              checkedIds={checkedIds}
+              onToggle={toggleCheck}
+              onToggleAll={() => setCheckedIds(checkedIds.size === allLeadIds.length ? new Set() : new Set(allLeadIds))}
+              allChecked={checkedIds.size > 0 && checkedIds.size === allLeadIds.length}
+              onOpen={l => setDrawerLead(l)}
+              staffMap={staffMap}
+            />
           </div>
         </div>
       )}
@@ -501,7 +497,146 @@ export default function WorkspaceClient() {
 }
 
 /* ══════════════════════════════════════════════════════════
-   LEAD CARD — clean redesign
+   LEAD LIST — table (desktop) + compact rows (mobile)
+══════════════════════════════════════════════════════════ */
+function leadFmtDate(s?: string | null) {
+  return s ? new Date(s).toLocaleDateString('ar-MA', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
+}
+function followupTone(l: SubscriptionLead): string {
+  const s = normalizeStatus(l.status)
+  if (s === 'paid' || s === 'cancelled') return 'text-zinc-400'
+  const d = l.next_followup_at?.slice(0, 10)
+  const t = new Date().toISOString().slice(0, 10)
+  if (d && d < t)  return 'text-red-600 font-bold'
+  if (d && d === t) return 'text-orange-600 font-bold'
+  return 'text-zinc-400'
+}
+
+function LeadList({
+  leads, checkedIds, onToggle, onToggleAll, allChecked, onOpen, staffMap,
+}: {
+  leads:       SubscriptionLead[]
+  checkedIds:  Set<string>
+  onToggle:    (id: string) => void
+  onToggleAll: () => void
+  allChecked:  boolean
+  onOpen:      (lead: SubscriptionLead) => void
+  staffMap:    Map<string, StaffRow>
+}) {
+  return (
+    <>
+      {/* ── Desktop table ──────────────────────────── */}
+      <div className="hidden lg:block bg-white rounded-2xl border border-zinc-200/80 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-right border-collapse">
+            <thead>
+              <tr className="bg-zinc-50 border-b border-zinc-100 text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                <th className="px-3 py-3 w-10">
+                  <button onClick={onToggleAll}
+                    className={`w-4 h-4 rounded border flex items-center justify-center ${allChecked ? 'bg-yellow-400 border-yellow-400' : 'border-zinc-300'}`}>
+                    {allChecked && <div className="w-1.5 h-1.5 rounded-sm bg-black" />}
+                  </button>
+                </th>
+                <th className="px-3 py-3 font-bold">الاسم</th>
+                <th className="px-3 py-3 font-bold">الهاتف</th>
+                <th className="px-3 py-3 font-bold">المصدر</th>
+                <th className="px-3 py-3 font-bold">الدورة</th>
+                <th className="px-3 py-3 font-bold">الحالة</th>
+                <th className="px-3 py-3 font-bold">المبلغ</th>
+                <th className="px-3 py-3 font-bold">المسؤول</th>
+                <th className="px-3 py-3 font-bold">المتابعة القادمة</th>
+                <th className="px-3 py-3 font-bold">تاريخ الإضافة</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leads.map(lead => {
+                const st = normalizeStatus(lead.status)
+                const checked = checkedIds.has(lead.id)
+                const assignee = staffMap.get(lead.assigned_to_id ?? '')?.email?.split('@')[0]
+                return (
+                  <tr key={lead.id} onClick={() => onOpen(lead)}
+                    className={`border-b border-zinc-50 last:border-none text-[13px] cursor-pointer transition-colors ${checked ? 'bg-yellow-50/50' : 'hover:bg-zinc-50'}`}>
+                    <td className="px-3 py-2.5" onClick={e => { e.stopPropagation(); onToggle(lead.id) }}>
+                      <span className={`w-4 h-4 rounded border flex items-center justify-center ${checked ? 'bg-yellow-400 border-yellow-400' : 'border-zinc-300'}`}>
+                        {checked && <span className="w-1.5 h-1.5 rounded-sm bg-black" />}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <div className="flex items-center gap-2.5">
+                        <Avatar name={lead.full_name} size={32} />
+                        <div className="flex items-center gap-1 font-semibold text-zinc-800">
+                          {lead.is_vip && <Crown size={11} className="text-rose-500" />}
+                          {lead.full_name}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2.5">
+                      {lead.phone
+                        ? <div className="flex items-center gap-1.5">
+                            <span dir="ltr" className="text-zinc-600">{lead.phone}</span>
+                            <a href={whatsappLink(lead.phone) ?? '#'} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+                              className="text-green-600 hover:text-green-700"><MessageCircle size={14} /></a>
+                          </div>
+                        : <span className="text-zinc-300">—</span>}
+                    </td>
+                    <td className="px-3 py-2.5 text-zinc-500">{lead.lead_source ?? lead.source ?? '—'}</td>
+                    <td className="px-3 py-2.5">{lead.course ? <span className="text-zinc-600 font-semibold">{lead.course.toUpperCase()}</span> : <span className="text-zinc-300">—</span>}</td>
+                    <td className="px-3 py-2.5">
+                      <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${STATUS_PILL_COLOR[st] ?? 'bg-zinc-100 text-zinc-600 border-zinc-200'}`}>{STATUS_AR[st] ?? st}</span>
+                    </td>
+                    <td className="px-3 py-2.5 font-bold text-zinc-700">{(lead.amount_mad ?? 0) > 0 ? `${lead.amount_mad?.toLocaleString('en-US')}` : '—'}</td>
+                    <td className="px-3 py-2.5 text-zinc-500">{assignee ?? <span className="text-zinc-300">—</span>}</td>
+                    <td className={`px-3 py-2.5 ${followupTone(lead)}`}>{lead.next_followup_at ? leadFmtDate(lead.next_followup_at) : <span className="text-zinc-300">—</span>}</td>
+                    <td className="px-3 py-2.5 text-zinc-400 whitespace-nowrap">{leadFmtDate(lead.created_at)}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ── Mobile compact list ────────────────────── */}
+      <div className="lg:hidden bg-white rounded-2xl border border-zinc-200/80 divide-y divide-zinc-50 overflow-hidden">
+        {leads.map(lead => {
+          const st = normalizeStatus(lead.status)
+          const checked = checkedIds.has(lead.id)
+          return (
+            <div key={lead.id} onClick={() => onOpen(lead)}
+              className={`flex items-center gap-3 px-3 py-3 ${checked ? 'bg-yellow-50/50' : 'active:bg-zinc-50'}`}>
+              <button onClick={e => { e.stopPropagation(); onToggle(lead.id) }}
+                className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${checked ? 'bg-yellow-400 border-yellow-400' : 'border-zinc-300'}`}>
+                {checked && <span className="w-1.5 h-1.5 rounded-sm bg-black" />}
+              </button>
+              <Avatar name={lead.full_name} size={38} />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1 font-semibold text-[14px] text-zinc-800 truncate">
+                  {lead.is_vip && <Crown size={11} className="text-rose-500 flex-shrink-0" />}
+                  {lead.full_name}
+                </div>
+                <div className="flex items-center gap-2 text-[11px] text-zinc-400 mt-0.5">
+                  <span dir="ltr" className="truncate">{lead.phone ?? '—'}</span>
+                  <span>·</span>
+                  <span>{leadFmtDate(lead.created_at)}</span>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${STATUS_PILL_COLOR[st] ?? 'bg-zinc-100 text-zinc-600 border-zinc-200'}`}>{STATUS_AR[st] ?? st}</span>
+                {lead.phone && (
+                  <a href={whatsappLink(lead.phone) ?? '#'} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+                    className="text-green-600"><MessageCircle size={16} /></a>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════
+   LEAD CARD — used in follow-ups view
 ══════════════════════════════════════════════════════════ */
 function LeadCardNew({
   lead, selected, onSelect, onClick, assigneeName,
