@@ -52,12 +52,15 @@ export default function FilterDrawer({ open, onClose, filters, onChange, staff, 
         />
       )}
 
-      {/* Drawer */}
-      <aside className={[
-        'fixed top-0 bottom-0 right-0 z-50 w-80 max-w-full bg-white shadow-2xl',
-        'flex flex-col transition-transform duration-200 ease-out',
-        open ? 'translate-x-0' : 'translate-x-full',
-      ].join(' ')}>
+      {/* Drawer — slides from LEFT in RTL layout (sidebar is on right) */}
+      <aside
+        dir="rtl"
+        className={[
+          'fixed top-0 bottom-0 left-0 z-50 w-80 max-w-full bg-white shadow-2xl',
+          'flex flex-col transition-transform duration-200 ease-out',
+          open ? 'translate-x-0' : '-translate-x-full',
+        ].join(' ')}
+      >
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 h-14 border-b border-zinc-100 flex-shrink-0">

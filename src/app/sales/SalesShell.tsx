@@ -15,13 +15,13 @@ export default function SalesShell({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    /* Outer shell: LTR so sidebar stays on left. Main content uses RTL per-page via dir="rtl". */
-    <div className="min-h-screen flex bg-[#f8f8f7]" dir="ltr">
-      <CrmSidebar userEmail={staff.email} userRole={staff.role} onSignOut={handleSignOut} />
-      {/* Main content: full height, scrollable, RTL for Arabic interface */}
-      <main className="flex-1 min-w-0 min-h-screen" dir="rtl">
+    /* dir="rtl" on the root → sidebar goes to the RIGHT, content fills the LEFT.
+       This is the correct Arabic layout used by Odoo, HubSpot AR, etc. */
+    <div className="min-h-screen flex bg-[#f8f8f7]" dir="rtl">
+      <main className="flex-1 min-w-0 min-h-screen overflow-x-hidden">
         {children}
       </main>
+      <CrmSidebar userEmail={staff.email} userRole={staff.role} onSignOut={handleSignOut} />
     </div>
   )
 }
