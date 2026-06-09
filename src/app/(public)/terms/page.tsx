@@ -122,7 +122,7 @@ export default function TermsPage() {
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-brand-600 font-bold">واتساب:</span>
-                <a href="https://wa.me/212707902091" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline" dir="ltr">+212 707 902 091</a>
+                <a href="https://wa.me/212764189311" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline" dir="ltr">+212 764 189 311</a>
               </li>
             </ul>
           </section>

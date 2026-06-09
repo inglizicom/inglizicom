@@ -7,7 +7,7 @@ import { units } from '@/data/private-lessons'
 import type { GrammarLesson, GrammarSection } from '@/data/private-lessons/grammar/types'
 import type { Unit, Section } from '@/data/private-lessons/types'
 
-const CREDIT = { name: 'Hamza El Qasraoui', nameAr: 'الأستاذ حمزة القصراوي', phone: '0707902091', site: 'inglizi.com' }
+const CREDIT = { name: 'Hamza El Qasraoui', nameAr: 'الأستاذ حمزة القصراوي', phone: '0764189311', site: 'inglizi.com' }
 
 // ── Helpers ────────────────────────────────────────────────
 const lightenColor = (hex: string): string => {

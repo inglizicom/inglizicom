@@ -12,7 +12,7 @@ import {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const WHATSAPP_NUMBER = '212707902091'
+const WHATSAPP_NUMBER = '212764189311'
 
 function toEmbedUrl(url: string): string {
   try {

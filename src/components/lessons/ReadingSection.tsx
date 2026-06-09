@@ -142,7 +142,7 @@ function TeacherFooter() {
           </span>
           <span className="hidden sm:inline text-black/30">·</span>
           <span className="font-ui font-bold text-black tabular-nums" dir="ltr">
-            WhatsApp 0707902091
+            WhatsApp 0764189311
           </span>
         </div>
       </div>

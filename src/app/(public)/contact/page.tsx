@@ -105,7 +105,7 @@ export default function ContactPage() {
 
               {/* WhatsApp Card */}
               <a
-                href="https://wa.me/212707902091?text=مرحباً%20حمزة،%20أريد%20الاستفسار%20عن%20دوراتك"
+                href="https://wa.me/212764189311?text=مرحباً%20حمزة،%20أريد%20الاستفسار%20عن%20دوراتك"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl p-7 text-white shadow-xl hover:shadow-green-500/30 transition-all duration-300 hover:-translate-y-1"
@@ -117,7 +117,7 @@ export default function ContactPage() {
                 </div>
                 <h3 className="text-xl font-black mb-1">واتساب (الأسرع)</h3>
                 <p className="text-green-100/80 text-sm mb-3">رد خلال ساعات قليلة في أوقات العمل</p>
-                <p className="font-bold text-lg" dir="ltr">+212 707 902 091</p>
+                <p className="font-bold text-lg" dir="ltr">+212 764 189 311</p>
               </a>
 
               {/* Email */}
@@ -192,7 +192,7 @@ export default function ContactPage() {
                       يمكنك أيضاً التواصل المباشر عبر واتساب للرد الأسرع.
                     </p>
                     <a
-                      href="https://wa.me/212707902091"
+                      href="https://wa.me/212764189311"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-7 rounded-xl transition-all duration-300"
@@ -304,7 +304,7 @@ export default function ContactPage() {
 
                       <p className="text-center text-gray-400 text-xs">
                         أو تواصل مباشرة عبر{' '}
-                        <a href="https://wa.me/212707902091" target="_blank" rel="noopener noreferrer" className="text-green-500 font-semibold hover:text-green-700">
+                        <a href="https://wa.me/212764189311" target="_blank" rel="noopener noreferrer" className="text-green-500 font-semibold hover:text-green-700">
                           واتساب
                         </a>
                         {' '}للرد الفوري

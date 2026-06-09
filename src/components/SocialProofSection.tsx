@@ -238,7 +238,7 @@ export default function SocialProofSection() {
                   <ArrowLeft size={20} />
                 </Link>
                 <a
-                  href="https://wa.me/212707902091?text=مرحبا،%20أريد%20معرفة%20كيف%20أبدأ"
+                  href="https://wa.me/212764189311?text=مرحبا،%20أريد%20معرفة%20كيف%20أبدأ"
                   target="_blank" rel="noopener noreferrer"
                   className="bg-[#25d366] hover:bg-[#20b858] active:scale-95 text-white font-black py-4 px-10 rounded-2xl shadow-xl transition-all duration-300 flex items-center gap-2 text-lg"
                 >

@@ -156,10 +156,10 @@ export default function CourseDetailPage({ params }: PageProps) {
   const discountPct = Math.round((1 - course.price / course.originalPrice) * 100)
   const otherCourses = COURSES.filter((co) => co.slug !== course.slug).slice(0, 2)
 
-  const waEnroll = `https://wa.me/212707902091?text=${encodeURIComponent(
+  const waEnroll = `https://wa.me/212764189311?text=${encodeURIComponent(
     `مرحباً، أريد التسجيل في كورس ${course.title} (${course.fromLevel}→${course.toLevel}) بسعر ${course.price} ${course.currency}`
   )}`
-  const waInfo = `https://wa.me/212707902091?text=${encodeURIComponent(
+  const waInfo = `https://wa.me/212764189311?text=${encodeURIComponent(
     `مرحباً، لدي سؤال عن كورس ${course.title}`
   )}`
 

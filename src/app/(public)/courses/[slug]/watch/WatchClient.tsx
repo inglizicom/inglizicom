@@ -41,7 +41,7 @@ export default function WatchClient({ course, sections }: Props) {
 
   const freeCount = flat.filter(l => l.isFree).length
   const waLocked =
-    'https://wa.me/212707902091?text=' +
+    'https://wa.me/212764189311?text=' +
     encodeURIComponent(`مرحباً، أريد الاشتراك في كورس "${course.title}" للوصول لجميع الدروس`)
 
   const hasPrev = activeIdx > 0

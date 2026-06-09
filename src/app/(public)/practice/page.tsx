@@ -1463,7 +1463,7 @@ function ResultsScreen({
             <p className="text-white font-black text-sm mb-1">عجبتك التجربة؟ النتائج الحقيقية مع المتابعة!</p>
             <p className="text-white/50 text-xs leading-relaxed mb-3">انضم لدورة مع المعلم حمزة — متابعة شخصية + مجموعة واتساب + نتائج مضمونة</p>
             <a
-              href="https://wa.me/212707902091?text=مرحبا، جربت التدريب المجاني وأريد الانضمام لدورة كاملة"
+              href="https://wa.me/212764189311?text=مرحبا، جربت التدريب المجاني وأريد الانضمام لدورة كاملة"
               target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-[#25d366] hover:bg-[#20bd5a] text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow-lg transition-all active:scale-95"
             >

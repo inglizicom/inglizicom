@@ -10,7 +10,7 @@ import type { CorrectionAPIResponse } from '@/app/api/correct/route'
 
 // ─── Configuration ────────────────────────────────────────────────────────────
 
-const WHATSAPP_NUMBER = '212707902091'
+const WHATSAPP_NUMBER = '212764189311'
 const waUrl = (msg: string) =>
   `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`
 

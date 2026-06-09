@@ -3,7 +3,7 @@ import './ebook.css'
 
 export const metadata: Metadata = {
   title: 'كتاب إنجليزي.كوم — Hamza El Qasraoui',
-  description: 'كتاب شامل لتعلم الإنجليزية من الصفر — الأستاذ حمزة القصراوي · 0707902091 · inglizi.com',
+  description: 'كتاب شامل لتعلم الإنجليزية من الصفر — الأستاذ حمزة القصراوي · 0764189311 · inglizi.com',
   robots: { index: false, follow: false },
 }
 

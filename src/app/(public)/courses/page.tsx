@@ -71,7 +71,7 @@ const FAQS = [
 ]
 
 const WA_URL =
-  'https://wa.me/212707902091?text=' +
+  'https://wa.me/212764189311?text=' +
   encodeURIComponent('مرحباً، أريد معرفة المزيد عن الكورسات')
 
 export default function CoursesPage() {

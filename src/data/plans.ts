@@ -462,7 +462,7 @@ export const BANK_DETAILS = {
   swift:          'CIHAMAMC',
 }
 
-export const PAYMENT_WHATSAPP = '+212707902091'
+export const PAYMENT_WHATSAPP = '+212764189311'
 
 /** Hard monthly seat cap — used for scarcity UI. */
 export const MONTHLY_SEAT_LIMIT = 50

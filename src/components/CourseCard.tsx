@@ -61,7 +61,7 @@ export default function CourseCard({ course }: CourseCardProps) {
   const waText = encodeURIComponent(
     `مرحباً، أريد الانضمام لكورس ${course.title} (${course.fromLevel}→${course.toLevel}) بسعر ${course.price} ${course.currency}`
   )
-  const waUrl = `https://wa.me/212707902091?text=${waText}`
+  const waUrl = `https://wa.me/212764189311?text=${waText}`
 
   return (
     <div

@@ -34,7 +34,7 @@ export default function BlogSidebar({ recentArticles, currentSlug }: BlogSidebar
               عرض الدورات
             </Link>
             <a
-              href="https://wa.me/212707902091?text=مرحبا،%20أريد%20تعلم%20الإنجليزية"
+              href="https://wa.me/212764189311?text=مرحبا،%20أريد%20تعلم%20الإنجليزية"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 bg-[#25d366] hover:bg-[#20b858] text-white font-bold py-3 rounded-xl transition-all duration-300 text-sm"

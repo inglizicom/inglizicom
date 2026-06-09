@@ -1,7 +1,7 @@
 // Floating WhatsApp button — fixed bottom-right, double pulse ring, hover tooltip
 
 const WA_LINK =
-  'https://wa.me/212707902091?text=مرحبا،%20أريد%20تعلم%20الإنجليزية'
+  'https://wa.me/212764189311?text=مرحبا،%20أريد%20تعلم%20الإنجليزية'
 
 export default function WhatsAppButton() {
   return (

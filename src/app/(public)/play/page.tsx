@@ -15,7 +15,7 @@ import {
 //   PLAY PAGE — Word games with Teacher Hamza from Oued Zem
 // ═════════════════════════════════════════════════════════════════════════════
 
-const WHATSAPP_NUMBER = '212707902091'
+const WHATSAPP_NUMBER = '212764189311'
 const STORAGE_KEY = 'inglizi-play-progress'
 
 // ─── Sound Engine (Web Audio API — no files needed) ──────────────────────────

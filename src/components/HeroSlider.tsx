@@ -22,7 +22,7 @@ const slides = [
     img: 'https://images.unsplash.com/photo-1588196749597-9ff075ee6b5b?w=1400&q=85',
     badge: '🎯 أكثر من 2000 طالب',
     cta1: { label: 'ابدأ الآن', href: '/courses' },
-    cta2: { label: 'تواصل عبر واتساب', href: 'https://wa.me/212707902091?text=مرحبا،%20أريد%20تعلم%20الإنجليزية', wa: true },
+    cta2: { label: 'تواصل عبر واتساب', href: 'https://wa.me/212764189311?text=مرحبا،%20أريد%20تعلم%20الإنجليزية', wa: true },
     accent: 'from-brand-950 via-brand-900 to-brand-800',
   },
   {

@@ -6,8 +6,8 @@
 export const CONTACT = {
   teacher: 'Hamza El Qasraoui',
   teacherAr: 'الأستاذ حمزة القصراوي',
-  whatsapp: '212707902091',
-  whatsappDisplay: '+212 707 902 091',
+  whatsapp: '212764189311',
+  whatsappDisplay: '+212 764 189 311',
   site: 'inglizi.com',
 } as const
 
@@ -49,9 +49,9 @@ Detection rules (apply to the LATEST user turn):
 - Greetings only (hi, hello, salut, مرحبا) → reply in the same language as the greeting and ask them what they need.
 
 Even for the WhatsApp escalation message and pricing tables, translate them to match the user's current language. Example:
-- English user → "This needs direct contact with the teacher. Reach him on WhatsApp at +212 707 902 091 and he'll reply quickly."
-- French user → "Cela nécessite un contact direct avec le professeur. Joignez-le sur WhatsApp au +212 707 902 091."
-- Darija user → "هذا الشي خاصو تواصل ديركت مع الأستاذ. سيفطو واتساب على +212 707 902 091 وغايجاوبك."
+- English user → "This needs direct contact with the teacher. Reach him on WhatsApp at +212 764 189 311 and he'll reply quickly."
+- French user → "Cela nécessite un contact direct avec le professeur. Joignez-le sur WhatsApp au +212 764 189 311."
+- Darija user → "هذا الشي خاصو تواصل ديركت مع الأستاذ. سيفطو واتساب على +212 764 189 311 وغايجاوبك."
 
 ═══════════════════════════════════════════════════════════
 📚 ما الذي نقدّمه (نظرة عامة)
@@ -112,16 +112,16 @@ Even for the WhatsApp escalation message and pricing tables, translate them to m
 Use the matching template (always include the WhatsApp link in markdown form):
 
 • ENGLISH user → "This needs direct contact with the teacher. Please reach him on WhatsApp — he'll reply as soon as possible.
-[Contact teacher on WhatsApp](https://wa.me/212707902091)"
+[Contact teacher on WhatsApp](https://wa.me/212764189311)"
 
 • FRENCH user → "Cela nécessite un contact direct avec le professeur. Joignez-le sur WhatsApp et il vous répondra rapidement.
-[Contacter le professeur sur WhatsApp](https://wa.me/212707902091)"
+[Contacter le professeur sur WhatsApp](https://wa.me/212764189311)"
 
 • DARIJA user → "هاد الشي خاصو تواصل ديركت مع الأستاذ. سيفطو واتساب وغايجاوبك بسرعة.
-[تواصل مع الأستاذ على واتساب](https://wa.me/212707902091)"
+[تواصل مع الأستاذ على واتساب](https://wa.me/212764189311)"
 
 • FUS7A user → "هذا يحتاج تواصلاً مباشراً مع الأستاذ. تواصل معه على واتساب وسيجاوبك بأسرع وقت.
-[تواصل مع الأستاذ على واتساب](https://wa.me/212707902091)"
+[تواصل مع الأستاذ على واتساب](https://wa.me/212764189311)"
 
 If the user's message is in English and you reply in Arabic for the escalation, you have FAILED the task.
 

@@ -281,7 +281,7 @@ export default function AboutPage() {
               <ArrowLeft size={18} />
             </Link>
             <a
-              href="https://wa.me/212707902091?text=مرحباً%20حمزة،%20أريد%20التواصل%20معك"
+              href="https://wa.me/212764189311?text=مرحباً%20حمزة،%20أريد%20التواصل%20معك"
               target="_blank"
               rel="noopener noreferrer"
               className="border-2 border-gray-200 text-gray-700 hover:border-brand-500 hover:text-brand-700 font-bold py-4 px-8 rounded-2xl transition-all duration-300"

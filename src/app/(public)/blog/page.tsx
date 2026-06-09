@@ -119,7 +119,7 @@ export default async function BlogPage({ searchParams }: PageProps) {
                 سجّل في قائمتنا عبر واتساب واحصل على نصائح حصرية مباشرة في هاتفك.
               </p>
               <a
-                href="https://wa.me/212707902091?text=مرحبا،%20أريد%20الاشتراك%20في%20النصائح%20الأسبوعية"
+                href="https://wa.me/212764189311?text=مرحبا،%20أريد%20الاشتراك%20في%20النصائح%20الأسبوعية"
                 target="_blank" rel="noopener noreferrer"
                 className="relative z-10 inline-flex items-center gap-2 bg-white text-brand-700 font-black py-3.5 px-8 rounded-2xl hover:bg-brand-50 transition-all duration-300"
               >

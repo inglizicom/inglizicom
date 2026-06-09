@@ -119,14 +119,14 @@ export default function Footer() {
             <ul className="space-y-4">
               <li>
                 <a
-                  href="https://wa.me/212707902091"
+                  href="https://wa.me/212764189311"
                   target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-3 text-blue-200/70 hover:text-white transition-colors group"
                 >
                   <div className="w-9 h-9 bg-green-500/20 rounded-lg flex items-center justify-center group-hover:bg-green-500 transition-colors flex-shrink-0">
                     <Phone size={16} className="text-green-400 group-hover:text-white" />
                   </div>
-                  <span className="text-sm" dir="ltr">+212 707 902 091</span>
+                  <span className="text-sm" dir="ltr">+212 764 189 311</span>
                 </a>
               </li>
               <li>
@@ -152,7 +152,7 @@ export default function Footer() {
 
             {/* WhatsApp CTA */}
             <a
-              href="https://wa.me/212707902091"
+              href="https://wa.me/212764189311"
               target="_blank" rel="noopener noreferrer"
               className="mt-6 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-5 rounded-xl text-sm transition-all duration-300 shadow-lg hover:shadow-green-500/40"
             >

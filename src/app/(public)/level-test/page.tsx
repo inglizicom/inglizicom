@@ -44,7 +44,7 @@ interface SkillStat { correct: number; total: number }
 
 const LEVEL_ORDER: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1']
 const MISTAKES_TO_FAIL = 3
-const WHATSAPP = '212707902091'
+const WHATSAPP = '212764189311'
 const waUrl = (msg: string) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`
 
 const LEVEL_STYLE: Record<CEFRLevel, {
