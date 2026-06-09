@@ -147,6 +147,8 @@ export default function WorkspaceClient() {
 
   const staffMap = useMemo(() => new Map(staffList.map(s => [s.id, s])), [staffList])
   const studentLeadIds = useMemo(() => new Set(students.map(s => s.lead_id).filter(Boolean) as string[]), [students])
+  const studentById    = useMemo(() => new Map(students.map(s => [s.id, s])), [students])
+  const [payFilter, setPayFilter] = useState<'all' | 'paid' | 'pending' | 'declined'>('all')
 
   /* ── Load ─────────────────────────────────────────────── */
   useEffect(() => {
@@ -460,56 +462,66 @@ export default function WorkspaceClient() {
         </div>
       )}
 
-      {/* ═══════════════ PAYMENTS TAB ════════════════════ */}
-      {!loading && tab === 'payments' && (
-        <div className="flex-1 px-4 py-4 space-y-4">
-          {/* Summary stat cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div className="bg-white rounded-2xl border border-emerald-100 p-4">
-              <div className="text-[11px] text-zinc-400 mb-1">إجمالي المقبوض</div>
-              <div className="text-[20px] font-black text-emerald-700">
-                {payments.filter(p => p.payment_status === 'paid').reduce((s, p) => s + Number(p.amount_mad), 0).toLocaleString('en-US')}
-                <span className="text-[12px] font-semibold text-zinc-400 mr-1">د.م</span>
+      {/* ═══════════════ PAYMENTS TAB (transactions ledger) ══ */}
+      {!loading && tab === 'payments' && (() => {
+        const paidTotal = payments.filter(p => p.payment_status === 'paid').reduce((s, p) => s + Number(p.amount_mad), 0)
+        const counts = {
+          all: payments.length,
+          paid: payments.filter(p => p.payment_status === 'paid').length,
+          pending: payments.filter(p => p.payment_status === 'pending').length,
+          declined: payments.filter(p => p.payment_status === 'declined').length,
+        }
+        const list = payments
+          .filter(p => payFilter === 'all' || p.payment_status === payFilter)
+          .sort((a, b) => new Date(b.payment_date ?? b.created_at).getTime() - new Date(a.payment_date ?? a.created_at).getTime())
+        const PF: { id: typeof payFilter; label: string }[] = [
+          { id: 'all', label: 'الكل' }, { id: 'paid', label: 'مدفوع' },
+          { id: 'pending', label: 'بانتظار الموافقة' }, { id: 'declined', label: 'مرفوض' },
+        ]
+        return (
+          <div className="flex-1 px-4 py-4 space-y-4">
+            {/* Summary */}
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="bg-zinc-900 rounded-2xl p-4">
+                <div className="text-[11px] text-zinc-400 mb-1">إجمالي الإيراد المقبوض</div>
+                <div className="text-[24px] font-black text-yellow-400">{paidTotal.toLocaleString('en-US')}<span className="text-[12px] font-semibold text-zinc-500 mr-1">د.م</span></div>
+              </div>
+              <div className="bg-white rounded-2xl border border-amber-100 p-4">
+                <div className="text-[11px] text-zinc-400 mb-1">بانتظار الموافقة</div>
+                <div className="text-[24px] font-black text-amber-600">{counts.pending}</div>
+              </div>
+              <div className="bg-white rounded-2xl border border-zinc-100 p-4">
+                <div className="text-[11px] text-zinc-400 mb-1">إجمالي العمليات</div>
+                <div className="text-[24px] font-black text-zinc-900">{counts.all}</div>
               </div>
             </div>
-            <div className="bg-white rounded-2xl border border-amber-100 p-4">
-              <div className="text-[11px] text-zinc-400 mb-1">بانتظار الموافقة</div>
-              <div className="text-[20px] font-black text-amber-600">{payments.filter(p => p.payment_status === 'pending').length}</div>
-            </div>
-            <div className="bg-white rounded-2xl border border-zinc-100 p-4">
-              <div className="text-[11px] text-zinc-400 mb-1">إجمالي العمليات</div>
-              <div className="text-[20px] font-black text-zinc-900">{payments.length}</div>
-            </div>
-            <div className="bg-white rounded-2xl border border-red-100 p-4">
-              <div className="text-[11px] text-zinc-400 mb-1">مرفوض</div>
-              <div className="text-[20px] font-black text-red-500">{payments.filter(p => p.payment_status === 'declined').length}</div>
-            </div>
-          </div>
 
-          {/* Pending first */}
-          {payments.filter(p => p.payment_status === 'pending').length > 0 && (
-            <section>
-              <div className="text-[12px] font-bold text-amber-600 mb-2">⏳ في انتظار الموافقة</div>
+            {/* Filter pills */}
+            <div className="flex gap-2 flex-wrap">
+              {PF.map(f => (
+                <button key={f.id} onClick={() => setPayFilter(f.id)}
+                  className={[
+                    'px-3.5 py-1.5 rounded-full text-[12px] font-bold border transition-colors',
+                    payFilter === f.id ? 'bg-black text-white border-black' : 'bg-white text-zinc-600 border-zinc-200 hover:border-zinc-400',
+                  ].join(' ')}>
+                  {f.label} <span className="opacity-60">({counts[f.id]})</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Ledger */}
+            {list.length === 0 ? <Empty text="لا توجد عمليات في هذا الفلتر" /> : (
               <div className="space-y-3">
-                {payments.filter(p => p.payment_status === 'pending').map(p => (
-                  <PayRow key={p.id} p={p} leads={leads} staffMap={staffMap} payBusy={payBusy} onApprove={approvePayment} onDecline={declinePayment} onOpen={setDrawerLead} />
+                {list.map(p => (
+                  <PayRow key={p.id} p={p} leads={leads} studentById={studentById} staffMap={staffMap}
+                    payBusy={payBusy} onApprove={approvePayment} onDecline={declinePayment}
+                    onOpenStudent={id => router.push(`/sales/students/${id}`)} onOpenLead={setDrawerLead} />
                 ))}
               </div>
-            </section>
-          )}
-          {payments.filter(p => p.payment_status === 'paid').length > 0 && (
-            <section>
-              <div className="text-[12px] font-bold text-green-700 mb-2 mt-4">✓ تم الدفع</div>
-              <div className="space-y-3">
-                {payments.filter(p => p.payment_status === 'paid').map(p => (
-                  <PayRow key={p.id} p={p} leads={leads} staffMap={staffMap} payBusy={payBusy} onApprove={approvePayment} onDecline={declinePayment} onOpen={setDrawerLead} />
-                ))}
-              </div>
-            </section>
-          )}
-          {payments.length === 0 && <Empty text="لا توجد مدفوعات" />}
-        </div>
-      )}
+            )}
+          </div>
+        )
+      })()}
 
       {/* ═══════════════ FOLLOW-UPS TAB ══════════════════ */}
       {!loading && tab === 'followups' && (
@@ -1013,101 +1025,101 @@ function StudentCardNew({ student, onClick }: { student: CrmStudent; onClick: (s
 }
 
 /* ── Payment row ─────────────────────────────────────────── */
+const PAY_METHOD_AR: Record<string, string> = { cash: 'نقدًا', bank_transfer: 'تحويل بنكي', card: 'بطاقة', other: 'أخرى' }
+
 function PayRow({
-  p, leads, staffMap, payBusy, onApprove, onDecline, onOpen,
+  p, leads, studentById, staffMap, payBusy, onApprove, onDecline, onOpenStudent, onOpenLead,
 }: {
   p: CrmPayment; leads: SubscriptionLead[]
+  studentById: Map<string, CrmStudent>
   staffMap: Map<string, StaffRow>
   payBusy: string | null
   onApprove: (id: string) => void
   onDecline: (id: string) => void
-  onOpen: (lead: SubscriptionLead) => void
+  onOpenStudent: (id: string) => void
+  onOpenLead: (lead: SubscriptionLead) => void
 }) {
-  const info = PAY_STATUS_AR[p.payment_status]
-  const lead = leads.find(l => l.id === p.lead_id)
-  const name = lead?.full_name ?? 'طالب'
+  const info    = PAY_STATUS_AR[p.payment_status]
+  const student = p.student_id ? studentById.get(p.student_id) : undefined
+  const lead    = p.lead_id ? leads.find(l => l.id === p.lead_id) : undefined
+  const name    = student?.full_name ?? lead?.full_name ?? 'غير محدّد'
+  const phone   = student?.phone_number ?? lead?.phone ?? undefined
+  const course  = (student?.course ?? lead?.course ?? p.course_or_service ?? '').toUpperCase()
   const registeredBy = p.added_by_id    ? staffMap.get(p.added_by_id)?.email?.split('@')[0] : undefined
   const approvedBy   = p.approved_by_id ? staffMap.get(p.approved_by_id)?.email?.split('@')[0] : undefined
 
-  async function downloadReceipt() {
-    const r = await ensurePaymentReceipt({
-      paymentId: p.id, leadId: p.lead_id, studentId: p.student_id,
-      fullName: name, phoneNumber: lead?.phone, courseName: lead?.course ?? p.course_or_service,
-      paymentType: p.payment_type, amountMad: Number(p.amount_mad),
-      paymentDate: p.payment_date, notes: p.notes,
-    })
-    if (r) printReceipt(r)
-  }
-  async function sendReceipt() {
-    const r = await ensurePaymentReceipt({
-      paymentId: p.id, leadId: p.lead_id, studentId: p.student_id,
-      fullName: name, phoneNumber: lead?.phone, courseName: lead?.course ?? p.course_or_service,
-      paymentType: p.payment_type, amountMad: Number(p.amount_mad),
-      paymentDate: p.payment_date, notes: p.notes,
-    })
-    if (r && lead?.phone) window.open(`https://wa.me/${lead.phone.replace(/\D/g,'')}?text=${buildReceiptWhatsAppMessage(r)}`, '_blank')
+  function openPerson() {
+    if (student) onOpenStudent(student.id)
+    else if (lead) onOpenLead(lead)
   }
 
-  const typeAr = p.payment_type === 'course_one_time' ? 'دورة (دفعة واحدة)' : 'دروس خاصة (شهرية)'
-  const methodAr: Record<string, string> = { cash: 'نقدًا', bank_transfer: 'تحويل بنكي', card: 'بطاقة', other: 'أخرى' }
+  const receiptInput = {
+    paymentId: p.id, leadId: p.lead_id, studentId: p.student_id,
+    fullName: name, phoneNumber: phone, courseName: course || p.course_or_service,
+    paymentType: p.payment_type, amountMad: Number(p.amount_mad),
+    paymentDate: p.payment_date, notes: p.notes,
+  }
+  async function downloadReceipt() { const r = await ensurePaymentReceipt(receiptInput); if (r) printReceipt(r, { token: student?.verification_token, teacherName: student?.teacher_name }) }
+  async function sendReceipt() {
+    const r = await ensurePaymentReceipt(receiptInput)
+    if (r && phone) window.open(`https://wa.me/${phone.replace(/\D/g,'')}?text=${buildReceiptWhatsAppMessage(r)}`, '_blank')
+  }
+
+  const typeAr = p.payment_type === 'course_one_time' ? 'دفعة واحدة' : 'اشتراك شهري'
+  const dateStr = p.payment_date
+    ? new Date(p.payment_date).toLocaleDateString('ar-MA', { year: 'numeric', month: 'long', day: 'numeric' })
+    : new Date(p.created_at).toLocaleDateString('ar-MA', { year: 'numeric', month: 'long', day: 'numeric' })
 
   return (
-    <div className="bg-white border border-zinc-200 rounded-xl p-4">
-      <div className="flex items-start justify-between gap-3 mb-2.5">
-        <div className="flex items-center gap-2.5 flex-1 min-w-0">
-          <Avatar name={name} size={38} />
-          <div className="min-w-0">
-            <div className="font-bold text-[15px] truncate">{name}</div>
-            <div className="text-[18px] font-black text-zinc-900 leading-tight">
-              {Number(p.amount_mad).toLocaleString('en-US')}<span className="text-[11px] font-semibold text-zinc-400 mr-1">د.م</span>
-            </div>
+    <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden">
+      {/* Top: clickable person + amount */}
+      <button type="button" onClick={openPerson} className="w-full flex items-center gap-3 p-4 text-right hover:bg-zinc-50 transition-colors">
+        <Avatar name={name} size={42} />
+        <div className="flex-1 min-w-0">
+          <div className="font-bold text-[15px] text-zinc-900 truncate">{name}</div>
+          <div className="flex items-center gap-1.5 mt-0.5 text-[12px] text-zinc-400">
+            {course && <span className="font-semibold text-zinc-500">{course}</span>}
+            {course && <span>·</span>}
+            <span>{typeAr}</span>
+            <span>·</span>
+            <span>{PAY_METHOD_AR[(p as any).payment_method] ?? 'نقدًا'}</span>
           </div>
         </div>
-        <span className={`text-[11px] font-bold px-2 py-1 rounded-full flex-shrink-0 ${info.cls}`}>{info.text}</span>
+        <div className="text-left flex-shrink-0">
+          <div className="text-[19px] font-black text-zinc-900 leading-none">{Number(p.amount_mad).toLocaleString('en-US')}<span className="text-[11px] font-semibold text-zinc-400 mr-1">د.م</span></div>
+          <span className={`inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${info.cls}`}>{info.text}</span>
+        </div>
+      </button>
+
+      {/* Meta line */}
+      <div className="px-4 pb-2 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-zinc-400 border-t border-zinc-50 pt-2">
+        <span>📅 {dateStr}</span>
+        {registeredBy && <span>· سجّلها {registeredBy}</span>}
+        {approvedBy && p.payment_status === 'paid' && <span>· وافق {approvedBy}</span>}
       </div>
 
-      {/* Detail chips */}
-      <div className="flex flex-wrap gap-1.5 mb-2 text-[11px]">
-        <span className="px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600">{typeAr}</span>
-        {(p as any).payment_method && <span className="px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600">{methodAr[(p as any).payment_method] ?? (p as any).payment_method}</span>}
-        {(lead?.course || p.course_or_service) && <span className="px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 font-semibold">{(lead?.course ?? p.course_or_service ?? '').toUpperCase()}</span>}
-        {p.payment_date && <span className="px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-500">{new Date(p.payment_date).toLocaleDateString('ar-MA', { year: 'numeric', month: 'short', day: 'numeric' })}</span>}
-      </div>
-      {p.notes && <div className="text-[12px] text-zinc-400 mb-2">📝 {p.notes}</div>}
-
-      {/* Ledger meta */}
-      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-zinc-400 mb-2">
-        {registeredBy && <span>سُجّل بواسطة: <b className="text-zinc-500 font-semibold">{registeredBy}</b></span>}
-        {approvedBy && <span>وافق: <b className="text-zinc-500 font-semibold">{approvedBy}</b></span>}
-        {p.approved_at && <span>{new Date(p.approved_at).toLocaleString('ar-MA', { dateStyle: 'short', timeStyle: 'short' })}</span>}
-      </div>
-
+      {/* Actions */}
       {p.payment_status === 'pending' && (
-        <div className="flex gap-2 pt-2 border-t border-zinc-50">
+        <div className="flex gap-2 px-4 pb-4">
           <button type="button" onClick={() => onApprove(p.id)} disabled={!!payBusy}
-            className="flex items-center gap-1 text-[13px] font-bold px-3 py-1.5 rounded-lg bg-green-500 text-white hover:bg-green-600 disabled:opacity-50">
-            {payBusy === p.id ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle size={12} />} قبول
+            className="flex items-center gap-1 text-[13px] font-bold px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 disabled:opacity-50">
+            {payBusy === p.id ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle size={12} />} قبول الدفعة
           </button>
           <button type="button" onClick={() => onDecline(p.id)} disabled={!!payBusy}
-            className="flex items-center gap-1 text-[13px] px-3 py-1.5 rounded-lg border border-red-200 text-red-500 hover:bg-red-50">
+            className="flex items-center gap-1 text-[13px] px-4 py-2 rounded-lg border border-red-200 text-red-500 hover:bg-red-50">
             <XCircle size={12} /> رفض
           </button>
-          {lead && (
-            <button type="button" onClick={() => onOpen(lead)}
-              className="text-[13px] px-3 py-1.5 rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-50">الملف</button>
-          )}
         </div>
       )}
-
       {p.payment_status === 'paid' && (
-        <div className="flex gap-2 pt-2 border-t border-zinc-50">
+        <div className="flex gap-2 px-4 pb-4">
           <button type="button" onClick={downloadReceipt}
-            className="flex items-center gap-1 text-[13px] font-bold px-3 py-1.5 rounded-lg bg-black text-yellow-400 hover:bg-zinc-800">
+            className="flex items-center gap-1 text-[13px] font-bold px-4 py-2 rounded-lg bg-black text-yellow-400 hover:bg-zinc-800">
             <Printer size={12} /> تحميل الوصل
           </button>
-          {lead?.phone && (
+          {phone && (
             <button type="button" onClick={sendReceipt}
-              className="flex items-center gap-1 text-[13px] font-semibold px-3 py-1.5 rounded-lg bg-green-50 text-green-700 hover:bg-green-100">
+              className="flex items-center gap-1 text-[13px] font-semibold px-4 py-2 rounded-lg bg-green-50 text-green-700 hover:bg-green-100">
               <MessageCircle size={12} /> إرسال الوصل
             </button>
           )}
