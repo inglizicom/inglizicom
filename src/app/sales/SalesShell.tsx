@@ -15,9 +15,13 @@ export default function SalesShell({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <div className="min-h-screen flex bg-white" dir="ltr">
+    /* Outer shell: LTR so sidebar stays on left. Main content uses RTL per-page via dir="rtl". */
+    <div className="min-h-screen flex bg-[#f8f8f7]" dir="ltr">
       <CrmSidebar userEmail={staff.email} userRole={staff.role} onSignOut={handleSignOut} />
-      <main className="flex-1 min-w-0">{children}</main>
+      {/* Main content: full height, scrollable, RTL for Arabic interface */}
+      <main className="flex-1 min-w-0 min-h-screen" dir="rtl">
+        {children}
+      </main>
     </div>
   )
 }

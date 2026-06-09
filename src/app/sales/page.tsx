@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 
-/** Dashboard route absorbed into Today — single home base for all roles. */
+/** Redirect root /sales to the unified workspace hub. */
 export default function SalesDashboardPage() {
-  redirect('/sales/today')
+  redirect('/sales/workspace')
 }

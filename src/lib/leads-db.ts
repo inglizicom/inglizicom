@@ -94,6 +94,13 @@ export interface SubscriptionLead {
   lead_type:         string | null
   lost_reason:       string | null
   pending_payment:   boolean
+  // Migration 013 — archive
+  is_archived:       boolean
+  archived_at:       string | null
+  archived_by:       string | null
+  // Migration 015 — soft delete
+  deleted_at:        string | null
+  deleted_by_id:     string | null
 }
 
 /** WhatsApp link from a phone number — used in lead cards. */
@@ -384,4 +391,60 @@ export function getAttribution(): Pick<
     device:      /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
     pagePath:    window.location.pathname,
   }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Soft delete / restore
+───────────────────────────────────────────────────────────── */
+
+/** Soft-delete a lead (sets deleted_at). Only founder can call restore. */
+export async function softDeleteLead(id: string, actorId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('subscription_leads')
+    .update({ deleted_at: new Date().toISOString(), deleted_by_id: actorId })
+    .eq('id', id)
+  if (error) { console.error('softDeleteLead', error.message); return false }
+  return true
+}
+
+/** Restore a soft-deleted lead (clears deleted_at). */
+export async function restoreLead(id: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('subscription_leads')
+    .update({ deleted_at: null, deleted_by_id: null })
+    .eq('id', id)
+  if (error) { console.error('restoreLead', error.message); return false }
+  return true
+}
+
+/** Permanently delete a lead — founder only, should only be called from archive. */
+export async function permanentDeleteLead(id: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('subscription_leads')
+    .delete()
+    .eq('id', id)
+  if (error) { console.error('permanentDeleteLead', error.message); return false }
+  return true
+}
+
+/** Fetch archived leads (is_archived=true OR deleted_at IS NOT NULL). */
+export async function fetchArchivedLeads(): Promise<SubscriptionLead[]> {
+  const { data, error } = await supabase
+    .from('subscription_leads')
+    .select('*')
+    .or('is_archived.eq.true,deleted_at.not.is.null')
+    .order('created_at', { ascending: false })
+  if (error) { console.error('fetchArchivedLeads', error.message); return [] }
+  return (data ?? []) as SubscriptionLead[]
+}
+
+/** Bulk soft-delete leads. */
+export async function bulkSoftDeleteLeads(ids: string[], actorId: string): Promise<boolean> {
+  const now = new Date().toISOString()
+  const { error } = await supabase
+    .from('subscription_leads')
+    .update({ deleted_at: now, deleted_by_id: actorId })
+    .in('id', ids)
+  if (error) { console.error('bulkSoftDeleteLeads', error.message); return false }
+  return true
 }
