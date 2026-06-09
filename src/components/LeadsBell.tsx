@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Bell, X, ChevronLeft } from 'lucide-react'
 import { fetchRecentLeads, type SubscriptionLead } from '@/lib/leads-db'
+import { getLeadsSeenAt, markLeadsSeen, LEADS_SEEN_EVENT } from '@/lib/leads-seen'
 import Avatar from '@/app/sales/_components/Avatar'
 
 function timeAgo(iso: string): string {
@@ -19,14 +20,18 @@ function timeAgo(iso: string): string {
 export default function LeadsBell({ base }: { base: string }) {
   const [open, setOpen]   = useState(false)
   const [leads, setLeads] = useState<SubscriptionLead[]>([])
+  const [seenAt, setSeenAt] = useState(0)
   const ref = useRef<HTMLDivElement>(null)
 
   async function load() { setLeads(await fetchRecentLeads(10)) }
 
   useEffect(() => {
     load()
+    setSeenAt(getLeadsSeenAt())
     const t = setInterval(load, 60_000)   // refresh every minute
-    return () => clearInterval(t)
+    const onSeen = () => setSeenAt(getLeadsSeenAt())
+    window.addEventListener(LEADS_SEEN_EVENT, onSeen)
+    return () => { clearInterval(t); window.removeEventListener(LEADS_SEEN_EVENT, onSeen) }
   }, [])
 
   useEffect(() => {
@@ -35,12 +40,20 @@ export default function LeadsBell({ base }: { base: string }) {
     return () => document.removeEventListener('mousedown', onDoc)
   }, [open])
 
-  const dayAgo = Date.now() - 86_400_000
-  const newCount = leads.filter(l => new Date(l.created_at).getTime() >= dayAgo).length
+  /* Opening the bell = checking notifications → mark read (clears badge).
+     Snapshot the prior seen-time so dots still show which were new this view. */
+  const snapshot = useRef(0)
+  function toggle() {
+    const next = !open
+    if (next) { snapshot.current = getLeadsSeenAt(); markLeadsSeen() }
+    setOpen(next)
+  }
+
+  const newCount = leads.filter(l => new Date(l.created_at).getTime() > seenAt).length
 
   return (
     <div className="relative" ref={ref}>
-      <button onClick={() => setOpen(o => !o)}
+      <button onClick={toggle}
         className="relative w-9 h-9 rounded-xl text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 flex items-center justify-center transition-colors"
         aria-label="إشعارات العملاء">
         <Bell size={18} />
@@ -59,7 +72,7 @@ export default function LeadsBell({ base }: { base: string }) {
           <div className="max-h-[60vh] overflow-y-auto">
             {leads.length === 0 && <p className="text-center py-8 text-zinc-400 text-[13px]">لا يوجد عملاء بعد</p>}
             {leads.map(l => {
-              const isNew = new Date(l.created_at).getTime() >= dayAgo
+              const isNew = new Date(l.created_at).getTime() > snapshot.current
               return (
                 <Link key={l.id} href={`${base}/workspace`} onClick={() => setOpen(false)}
                   className="flex items-center gap-3 px-4 py-2.5 hover:bg-zinc-50 transition-colors">

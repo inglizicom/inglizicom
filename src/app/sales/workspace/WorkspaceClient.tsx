@@ -26,6 +26,7 @@ import { fetchOverdueFollowUps, fetchTodaysFollowUps, type OverdueLead } from '@
 import { fetchStaff, type StaffRow } from '@/lib/staff-db'
 import { useStaff } from '@/lib/staff-context'
 import { whatsappLink } from '@/lib/leads-db'
+import { markLeadsSeen } from '@/lib/leads-seen'
 
 import Avatar from '@/app/sales/_components/Avatar'
 import { ensurePaymentReceipt, printReceipt, buildReceiptWhatsAppMessage } from '@/lib/crm-receipts'
@@ -155,6 +156,11 @@ export default function WorkspaceClient() {
     }
     loadAll()
   }, [])
+
+  /* Viewing the leads tab = marking them read → clears the badge + bell. */
+  useEffect(() => {
+    if (tab === 'leads' && !loading) markLeadsSeen()
+  }, [tab, loading, leads.length])
 
   async function loadAll() {
     setLoading(true)

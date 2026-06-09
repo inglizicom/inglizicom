@@ -9,7 +9,8 @@ import { useStaff } from '@/lib/staff-context'
 import { useCrmBasePath, useIsAdminDomain } from '@/lib/use-crm-path'
 import { supabase } from '@/lib/supabase'
 import { fetchOverdueFollowUps, fetchTodaysFollowUps } from '@/lib/crm-stats'
-import { countActiveLeads } from '@/lib/leads-db'
+import { countLeadsSince } from '@/lib/leads-db'
+import { getLeadsSeenAt, LEADS_SEEN_EVENT } from '@/lib/leads-seen'
 
 export default function SalesShell({ children }: { children: React.ReactNode }) {
   const staff         = useStaff()
@@ -19,17 +20,20 @@ export default function SalesShell({ children }: { children: React.ReactNode }) 
   const [badges, setBadges] = useState<{ leads?: number; followups?: number }>({})
 
   useEffect(() => {
-    (async () => {
-      const [leadCount, overdue, today] = await Promise.all([
-        countActiveLeads(),
+    let alive = true
+    async function recompute() {
+      const seenIso = new Date(getLeadsSeenAt()).toISOString()
+      const [unseen, overdue, today] = await Promise.all([
+        countLeadsSince(seenIso),                   // unseen since last viewed (clears when read)
         fetchOverdueFollowUps(staff.role === 'founder' ? undefined : staff.id),
         fetchTodaysFollowUps(staff.role === 'founder' ? undefined : staff.id),
       ])
-      setBadges({
-        leads:     leadCount,                       // matches the leads list exactly
-        followups: overdue.length + today.length,
-      })
-    })()
+      if (alive) setBadges({ leads: unseen, followups: overdue.length + today.length })
+    }
+    recompute()
+    const t = setInterval(recompute, 60_000)
+    window.addEventListener(LEADS_SEEN_EVENT, recompute)
+    return () => { alive = false; clearInterval(t); window.removeEventListener(LEADS_SEEN_EVENT, recompute) }
   }, [staff.id, staff.role])
 
   async function handleSignOut() {

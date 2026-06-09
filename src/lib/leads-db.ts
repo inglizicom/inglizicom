@@ -449,6 +449,18 @@ export async function countActiveLeads(): Promise<number> {
   return count ?? 0
 }
 
+/** Count of active leads created after a timestamp — for the unseen badge. */
+export async function countLeadsSince(sinceIso: string): Promise<number> {
+  const { count } = await supabase
+    .from('subscription_leads')
+    .select('id', { count: 'exact', head: true })
+    .not('plan_id', 'in', NON_LEAD_PLAN_IN)
+    .is('deleted_at', null)
+    .eq('is_archived', false)
+    .gt('created_at', sinceIso)
+  return count ?? 0
+}
+
 /** Newest active leads — for the notification bell. */
 export async function fetchRecentLeads(limit = 8): Promise<SubscriptionLead[]> {
   const { data } = await supabase
