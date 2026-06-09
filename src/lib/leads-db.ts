@@ -301,10 +301,16 @@ export interface LeadPatch {
   next_followup_at?:  string | null
   last_contact_at?:   string | null
   notes?:             string | null
+  admin_note?:        string | null
   course_interested?: string | null
   is_vip?:            boolean
   phone?:             string | null
   full_name?:         string
+  city?:              string | null
+  amount_mad?:        number | null
+  lead_source?:       string | null
+  course?:            string | null
+  is_archived?:       boolean
 }
 export async function patchLead(id: string, patch: LeadPatch): Promise<void> {
   const { error } = await supabase
@@ -431,6 +437,31 @@ export async function permanentDeleteLead(id: string): Promise<boolean> {
 }
 
 /** Fetch archived leads (is_archived=true OR deleted_at IS NOT NULL). */
+/** Exact count of the active leads list (mirrors fetchAllLeads filters) —
+ *  used for the sidebar/notification badge so it matches the list 1:1. */
+export async function countActiveLeads(): Promise<number> {
+  const { count } = await supabase
+    .from('subscription_leads')
+    .select('id', { count: 'exact', head: true })
+    .not('plan_id', 'in', NON_LEAD_PLAN_IN)
+    .is('deleted_at', null)
+    .eq('is_archived', false)
+  return count ?? 0
+}
+
+/** Newest active leads — for the notification bell. */
+export async function fetchRecentLeads(limit = 8): Promise<SubscriptionLead[]> {
+  const { data } = await supabase
+    .from('subscription_leads')
+    .select('*')
+    .not('plan_id', 'in', NON_LEAD_PLAN_IN)
+    .is('deleted_at', null)
+    .eq('is_archived', false)
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  return (data ?? []) as SubscriptionLead[]
+}
+
 /** Archived = still registered, just hidden from the active list (recoverable).
  *  Deleted leads (deleted_at set / hard-deleted) never appear here. */
 export async function fetchArchivedLeads(): Promise<SubscriptionLead[]> {

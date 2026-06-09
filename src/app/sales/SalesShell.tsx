@@ -8,7 +8,8 @@ import MobileBottomNav from '@/components/MobileBottomNav'
 import { useStaff } from '@/lib/staff-context'
 import { useCrmBasePath, useIsAdminDomain } from '@/lib/use-crm-path'
 import { supabase } from '@/lib/supabase'
-import { fetchLeadCountsByStatus, fetchOverdueFollowUps, fetchTodaysFollowUps } from '@/lib/crm-stats'
+import { fetchOverdueFollowUps, fetchTodaysFollowUps } from '@/lib/crm-stats'
+import { countActiveLeads } from '@/lib/leads-db'
 
 export default function SalesShell({ children }: { children: React.ReactNode }) {
   const staff         = useStaff()
@@ -19,13 +20,13 @@ export default function SalesShell({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     (async () => {
-      const [counts, overdue, today] = await Promise.all([
-        fetchLeadCountsByStatus(),
+      const [leadCount, overdue, today] = await Promise.all([
+        countActiveLeads(),
         fetchOverdueFollowUps(staff.role === 'founder' ? undefined : staff.id),
         fetchTodaysFollowUps(staff.role === 'founder' ? undefined : staff.id),
       ])
       setBadges({
-        leads:     counts.new ?? 0,
+        leads:     leadCount,                       // matches the leads list exactly
         followups: overdue.length + today.length,
       })
     })()
@@ -53,7 +54,7 @@ export default function SalesShell({ children }: { children: React.ReactNode }) 
 
       <div className="flex-1 min-w-0 flex flex-col">
         <Suspense fallback={<div className="h-16 bg-white border-b border-zinc-200/80" />}>
-          <HeaderForRoute userEmail={staff.email} roleLabel={roleLabel} notifCount={badges.followups} onSignOut={handleSignOut} />
+          <HeaderForRoute userEmail={staff.email} roleLabel={roleLabel} notifCount={badges.followups} base={base} onSignOut={handleSignOut} />
         </Suspense>
         <main className="flex-1 min-w-0 pb-16 lg:pb-0">{children}</main>
       </div>
@@ -66,10 +67,11 @@ export default function SalesShell({ children }: { children: React.ReactNode }) 
 }
 
 /* Derives the page title + breadcrumb from the current route. */
-function HeaderForRoute({ userEmail, roleLabel, notifCount, onSignOut }: {
+function HeaderForRoute({ userEmail, roleLabel, notifCount, base, onSignOut }: {
   userEmail?: string | null
   roleLabel:  string
   notifCount?: number
+  base?:      string
   onSignOut?: () => void
 }) {
   const pathname = usePathname() ?? ''
@@ -104,5 +106,5 @@ function HeaderForRoute({ userEmail, roleLabel, notifCount, onSignOut }: {
     crumb = ['لوحة التحكم', 'الدعم']
   }
 
-  return <CrmTopHeader title={title} breadcrumb={crumb} userEmail={userEmail} roleLabel={roleLabel} notifCount={notifCount} onSignOut={onSignOut} />
+  return <CrmTopHeader title={title} breadcrumb={crumb} userEmail={userEmail} roleLabel={roleLabel} notifCount={notifCount} base={base} onSignOut={onSignOut} />
 }

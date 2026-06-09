@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 
 import { useStaff } from '@/lib/staff-context'
-import { type CrmStudent, type CrmPayment } from '@/lib/crm-types'
+import { type CrmStudent, type CrmPayment, LEAD_COURSES } from '@/lib/crm-types'
 import {
   fetchStudentById, fetchCrmPayments, approveCrmPayment, declineCrmPayment,
   createCrmPayment, patchStudent,
@@ -66,6 +66,19 @@ export default function StudentProfilePage() {
   const [payBusy,  setPayBusy]  = useState<string | null>(null)
   const [copied,   setCopied]   = useState(false)
 
+  // editable student core info
+  const [editStudent, setEditStudent] = useState(false)
+  const [savingStudent, setSavingStudent] = useState(false)
+  const [sName, setSName]   = useState('')
+  const [sPhone, setSPhone] = useState('')
+  const [sCourse, setSCourse] = useState('')
+  const [sType, setSType]   = useState<'course_student' | 'private_student'>('course_student')
+  const [sFee, setSFee]     = useState('')
+  const [sTotal, setSTotal] = useState('')
+  const [sEnroll, setSEnroll] = useState('')
+  const [sEnd, setSEnd]     = useState('')
+  const [sActive, setSActive] = useState(true)
+
   // student portal: assignments + files
   const [assignments, setAssignments] = useState<StudentAssignment[]>([])
   const [files,       setFiles]       = useState<StudentFile[]>([])
@@ -101,7 +114,32 @@ export default function StudentProfilePage() {
     ])
     setStudent(s); setPayments(p); setReceipts(r); setNoteText(s.notes ?? '')
     setAssignments(asg); setFiles(fls)
+    // init editable fields
+    setSName(s.full_name); setSPhone(s.phone_number ?? ''); setSCourse(s.course ?? '')
+    setSType(s.student_type); setSFee(s.monthly_fee_mad ? String(s.monthly_fee_mad) : '')
+    setSTotal(s.total_paid_mad ? String(s.total_paid_mad) : '')
+    setSEnroll(s.enrollment_date?.slice(0, 10) ?? ''); setSEnd(s.course_end_date?.slice(0, 10) ?? '')
+    setSActive(s.is_active)
     setLoading(false)
+  }
+
+  async function saveStudent() {
+    if (!student) return
+    setSavingStudent(true)
+    await patchStudent(student.id, {
+      full_name: sName.trim() || student.full_name,
+      phone_number: sPhone.trim() || null,
+      course: sCourse || null,
+      student_type: sType,
+      monthly_fee_mad: sFee ? Number(sFee) : null,
+      total_paid_mad: sTotal ? Number(sTotal) : null,
+      enrollment_date: sEnroll || null,
+      course_end_date: sEnd || null,
+      is_active: sActive,
+    } as any)
+    const s = await fetchStudentById(id)
+    if (s) setStudent(s)
+    setSavingStudent(false); setEditStudent(false)
   }
 
   async function submitAssignment() {
@@ -297,7 +335,42 @@ export default function StudentProfilePage() {
                   {phone && <span className="inline-flex items-center gap-1" dir="ltr"><Phone size={13} /> {phone}</span>}
                 </div>
               </div>
+              <button onClick={() => setEditStudent(v => !v)}
+                className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-lg border border-zinc-200 text-zinc-600 hover:bg-zinc-50 flex-shrink-0">
+                <Edit3 size={13} /> {editStudent ? 'إلغاء' : 'تعديل البيانات'}
+              </button>
             </div>
+
+            {/* Edit panel */}
+            {editStudent && (
+              <div className="mt-4 pt-4 border-t border-zinc-100 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <SField label="الاسم الكامل"><input value={sName} onChange={e => setSName(e.target.value)} className={SINP} /></SField>
+                <SField label="الهاتف"><input value={sPhone} onChange={e => setSPhone(e.target.value)} dir="ltr" className={`${SINP} text-right`} /></SField>
+                <SField label="الدورة">
+                  <select value={sCourse} onChange={e => setSCourse(e.target.value)} className={SINP}>
+                    <option value="">—</option>
+                    {LEAD_COURSES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                  </select>
+                </SField>
+                <SField label="نوع الطالب">
+                  <select value={sType} onChange={e => setSType(e.target.value as any)} className={SINP}>
+                    <option value="course_student">دورة جماعية</option>
+                    <option value="private_student">دروس خاصة</option>
+                  </select>
+                </SField>
+                <SField label="إجمالي المدفوع (د.م)"><input type="number" value={sTotal} onChange={e => setSTotal(e.target.value)} dir="ltr" className={`${SINP} text-right`} /></SField>
+                <SField label="الرسوم الشهرية (د.م)"><input type="number" value={sFee} onChange={e => setSFee(e.target.value)} dir="ltr" className={`${SINP} text-right`} /></SField>
+                <SField label="تاريخ التسجيل"><input type="date" value={sEnroll} onChange={e => setSEnroll(e.target.value)} dir="ltr" className={SINP} /></SField>
+                <SField label="تاريخ انتهاء الدورة"><input type="date" value={sEnd} onChange={e => setSEnd(e.target.value)} dir="ltr" className={SINP} /></SField>
+                <label className="flex items-center gap-2 text-[13px] text-zinc-600 sm:col-span-2">
+                  <input type="checkbox" checked={sActive} onChange={e => setSActive(e.target.checked)} className="accent-yellow-400" /> طالب نشط
+                </label>
+                <button onClick={saveStudent} disabled={savingStudent}
+                  className="sm:col-span-2 py-2.5 bg-black text-white rounded-lg font-bold text-[13px] flex items-center justify-center gap-2 disabled:opacity-50">
+                  {savingStudent ? <Loader2 size={14} className="animate-spin" /> : <><Save size={14} /> حفظ بيانات الطالب</>}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Stat cards */}
@@ -594,6 +667,16 @@ function InfoLine({ icon: Icon, label, value }: { icon: any; label: string; valu
     <div className="flex items-center justify-between">
       <span className="flex items-center gap-2 text-[12px] text-zinc-400"><Icon size={14} className="text-zinc-300" /> {label}</span>
       <span className="text-[13px] font-semibold text-zinc-800">{value}</span>
+    </div>
+  )
+}
+
+const SINP = 'w-full border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400'
+function SField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="block text-[11px] font-semibold text-zinc-500 mb-1">{label}</label>
+      {children}
     </div>
   )
 }

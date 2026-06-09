@@ -7,7 +7,7 @@ import {
   FileText, Archive, Trash2, RotateCcw, AlertTriangle, Loader2,
 } from 'lucide-react'
 import { type SubscriptionLead, normalizeStatus, updateLeadStatus, patchLead, whatsappLink, permanentDeleteLead } from '@/lib/leads-db'
-import { type CrmStudent, type CrmPayment, type LeadEvent, EVENT_ICONS } from '@/lib/crm-types'
+import { type CrmStudent, type CrmPayment, type LeadEvent, EVENT_ICONS, LEAD_SOURCES, LEAD_COURSES } from '@/lib/crm-types'
 import { LEAD_STATUS_META } from '@/lib/leads-db'
 import {
   fetchStudentByLeadId, fetchCrmPayments, approveCrmPayment,
@@ -66,6 +66,15 @@ export default function UnifiedDetailDrawer({ lead, onClose, onUpdated, isFounde
   const [editNote,     setEditNote]     = useState(false)
   const [noteText,     setNoteText]     = useState('')
   const [followupDate, setFollowupDate] = useState('')
+  // editable basic info
+  const [editInfo,   setEditInfo]   = useState(false)
+  const [savingInfo, setSavingInfo] = useState(false)
+  const [fName,   setFName]   = useState('')
+  const [fPhone,  setFPhone]  = useState('')
+  const [fCity,   setFCity]   = useState('')
+  const [fCourse, setFCourse] = useState('')
+  const [fSource, setFSource] = useState('')
+  const [fAmount, setFAmount] = useState('')
   const [savingNote,   setSavingNote]   = useState(false)
   const [savingDate,   setSavingDate]   = useState(false)
 
@@ -81,11 +90,33 @@ export default function UnifiedDetailDrawer({ lead, onClose, onUpdated, isFounde
 
   useEffect(() => {
     if (!lead) return
-    setTab('info')
+    setTab('info'); setEditInfo(false)
     setNoteText(lead.admin_note ?? '')
     setFollowupDate(lead.next_followup_at?.slice(0, 10) ?? '')
+    setFName(lead.full_name ?? '')
+    setFPhone(lead.phone ?? '')
+    setFCity(lead.city ?? '')
+    setFCourse(lead.course ?? '')
+    setFSource(lead.lead_source ?? lead.source ?? '')
+    setFAmount(lead.amount_mad ? String(lead.amount_mad) : '')
     loadData(lead.id)
   }, [lead?.id])
+
+  async function saveInfo() {
+    if (!lead) return
+    setSavingInfo(true)
+    await patchLead(lead.id, {
+      full_name:   fName.trim() || lead.full_name,
+      phone:       fPhone.trim() || null,
+      city:        fCity.trim() || null,
+      course:      fCourse || null,
+      lead_source: fSource || null,
+      amount_mad:  fAmount ? Number(fAmount) : null,
+    } as any)
+    await logLeadEvent({ leadId: lead.id, eventType: 'note_added', title: 'تم تعديل بيانات العميل' })
+    setSavingInfo(false); setEditInfo(false)
+    onUpdated()
+  }
 
   async function loadData(leadId: string) {
     setLoadingData(true)
@@ -285,17 +316,49 @@ export default function UnifiedDetailDrawer({ lead, onClose, onUpdated, isFounde
           {/* ── INFO TAB ─── */}
           {!loadingData && tab === 'info' && (
             <div className="p-5 space-y-5">
-              {/* Basic info */}
-              <section className="space-y-3">
-                <InfoRow label="الاسم" value={lead.full_name} />
-                <InfoRow label="الهاتف" value={phone || '—'} dir="ltr" />
-                <InfoRow label="الحالة" value={STATUS_AR[status] ?? status} />
-                <InfoRow label="المصدر" value={lead.lead_source ?? lead.source ?? '—'} />
-                <InfoRow label="الدورة" value={lead.course ?? '—'} />
-                <InfoRow label="المبلغ المتوقع" value={lead.amount_mad ? `${lead.amount_mad.toLocaleString('ar-MA')} درهم` : '—'} />
-                <InfoRow label="المدينة" value={lead.city ?? '—'} />
-                {student && (
-                  <InfoRow label="الطالب رقم" value={student.id.slice(0, 8)} />
+              {/* Basic info — editable */}
+              <section>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest">بيانات العميل</span>
+                  <button onClick={() => setEditInfo(v => !v)} className="flex items-center gap-1 text-[12px] font-semibold text-zinc-400 hover:text-zinc-700">
+                    <Edit3 size={12} /> {editInfo ? 'إلغاء' : 'تعديل'}
+                  </button>
+                </div>
+
+                {editInfo ? (
+                  <div className="space-y-2.5">
+                    <EditField label="الاسم"><input value={fName} onChange={e => setFName(e.target.value)} className={EDIT_INP} /></EditField>
+                    <EditField label="الهاتف"><input value={fPhone} onChange={e => setFPhone(e.target.value)} dir="ltr" className={`${EDIT_INP} text-right`} /></EditField>
+                    <EditField label="المدينة"><input value={fCity} onChange={e => setFCity(e.target.value)} className={EDIT_INP} /></EditField>
+                    <EditField label="الدورة">
+                      <select value={fCourse} onChange={e => setFCourse(e.target.value)} className={EDIT_INP}>
+                        <option value="">—</option>
+                        {LEAD_COURSES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                      </select>
+                    </EditField>
+                    <EditField label="المصدر">
+                      <select value={fSource} onChange={e => setFSource(e.target.value)} className={EDIT_INP}>
+                        <option value="">—</option>
+                        {LEAD_SOURCES.map(s => <option key={s.id} value={s.id}>{s.emoji} {s.label}</option>)}
+                      </select>
+                    </EditField>
+                    <EditField label="المبلغ المتوقع (درهم)"><input type="number" value={fAmount} onChange={e => setFAmount(e.target.value)} dir="ltr" className={`${EDIT_INP} text-right`} /></EditField>
+                    <button onClick={saveInfo} disabled={savingInfo}
+                      className="w-full py-2.5 mt-1 bg-black text-white rounded-lg font-bold text-[13px] flex items-center justify-center gap-2 disabled:opacity-50">
+                      {savingInfo ? <Loader2 size={14} className="animate-spin" /> : <><Save size={14} /> حفظ البيانات</>}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <InfoRow label="الاسم" value={fName || '—'} />
+                    <InfoRow label="الهاتف" value={fPhone || '—'} dir="ltr" />
+                    <InfoRow label="الحالة" value={STATUS_AR[status] ?? status} />
+                    <InfoRow label="المصدر" value={fSource || '—'} />
+                    <InfoRow label="الدورة" value={fCourse ? fCourse.toUpperCase() : '—'} />
+                    <InfoRow label="المبلغ المتوقع" value={fAmount ? `${Number(fAmount).toLocaleString('en-US')} درهم` : '—'} />
+                    <InfoRow label="المدينة" value={fCity || '—'} />
+                    {student && <InfoRow label="الطالب رقم" value={student.id.slice(0, 8)} />}
+                  </div>
                 )}
               </section>
 
@@ -605,6 +668,17 @@ export default function UnifiedDetailDrawer({ lead, onClose, onUpdated, isFounde
 }
 
 /* ── Helpers ──────────────────────────────────────────────── */
+const EDIT_INP = 'w-full border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400'
+
+function EditField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="block text-[11px] font-semibold text-zinc-500 mb-1">{label}</label>
+      {children}
+    </div>
+  )
+}
+
 function InfoRow({ label, value, dir }: { label: string; value: string; dir?: string }) {
   return (
     <div className="flex items-center justify-between gap-4 py-1.5 border-b border-zinc-50 last:border-none">

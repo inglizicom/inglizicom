@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Bell, MessageSquare, Calendar, ChevronLeft } from 'lucide-react'
+import { MessageSquare, Calendar, ChevronLeft } from 'lucide-react'
 import ProfileModal from './ProfileModal'
+import LeadsBell from './LeadsBell'
 
 interface Props {
   title:        string
@@ -10,10 +11,11 @@ interface Props {
   userEmail?:   string | null
   roleLabel?:   string
   notifCount?:  number
+  base?:        string
   onSignOut?:   () => void
 }
 
-export default function CrmTopHeader({ title, breadcrumb, userEmail, roleLabel, notifCount, onSignOut }: Props) {
+export default function CrmTopHeader({ title, breadcrumb, userEmail, roleLabel, notifCount, base = '/sales', onSignOut }: Props) {
   const name = userEmail?.split('@')[0] ?? '—'
   const [profileOpen, setProfileOpen] = useState(false)
 
@@ -37,8 +39,9 @@ export default function CrmTopHeader({ title, breadcrumb, userEmail, roleLabel, 
 
       {/* Left (end): icons + profile */}
       <div className="flex items-center gap-1.5 lg:gap-3 flex-shrink-0">
+        {/* Notification bell — visible on mobile + desktop */}
+        <LeadsBell base={base} />
         <div className="hidden sm:flex items-center gap-1">
-          <IconBtn count={notifCount}><Bell size={18} /></IconBtn>
           <IconBtn><MessageSquare size={18} /></IconBtn>
           <IconBtn><Calendar size={18} /></IconBtn>
         </div>

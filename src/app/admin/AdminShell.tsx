@@ -38,7 +38,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       </Suspense>
 
       <div className="flex-1 min-w-0 flex flex-col">
-        <CrmTopHeader title={title} breadcrumb={['لوحة التحكم', title]} userEmail={staff.email} roleLabel="المؤسس" onSignOut={handleSignOut} />
+        <CrmTopHeader title={title} breadcrumb={['لوحة التحكم', title]} userEmail={staff.email} roleLabel="المؤسس" base={base} onSignOut={handleSignOut} />
         <main className="flex-1 min-w-0">{children}</main>
       </div>
     </div>
