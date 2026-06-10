@@ -90,6 +90,12 @@ export interface CrmStudent {
   current_level?:      string | null
   next_level?:         string | null
   deleted_at?:         string | null
+  // Migration 020 — portal control
+  admin_message?:      string | null
+  next_task?:          string | null
+  today_lesson_url?:   string | null
+  today_lesson_title?: string | null
+  learning_stage?:     string | null
 }
 
 // ─── CRM Payment ────────────────────────────────────────────

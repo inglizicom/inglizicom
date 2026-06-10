@@ -25,7 +25,8 @@ import Avatar from '@/app/sales/_components/Avatar'
 import {
   fetchAssignments, addAssignment, deleteAssignment,
   fetchStudentFiles, uploadStudentFile, deleteStudentFile, fileUrl,
-  type StudentAssignment, type StudentFile,
+  fetchExams, addExam, deleteExam, fetchStudentActivity,
+  type StudentAssignment, type StudentFile, type StudentExam,
 } from '@/lib/student-portal'
 
 const MAD = (n: number) => new Intl.NumberFormat('en-US').format(Math.round(n))
@@ -36,6 +37,15 @@ const PAY_STATUS_AR: Record<string, { text: string; cls: string }> = {
   pending:  { text: 'معلق',   cls: 'bg-amber-50 text-amber-700 border border-amber-200' },
   paid:     { text: 'مدفوع',  cls: 'bg-green-50 text-green-700 border border-green-200' },
   declined: { text: 'مرفوض', cls: 'bg-red-50 text-red-700 border border-red-200' },
+}
+const ACTIVITY_LABEL: Record<string, string> = {
+  login: 'سجّل الدخول للفضاء', opened_lesson: 'فتح درسًا', opened_exercise: 'فتح تمرينًا',
+  completed_exercise: 'أنجز تمرينًا', downloaded_file: 'حمّل ملفًا',
+  completed_exam: 'أكمل امتحانًا', viewed_result: 'اطّلع على نتيجة', opened_today_task: 'بدأ مهمة اليوم',
+}
+const ACTIVITY_ICON: Record<string, string> = {
+  login: '🔑', opened_lesson: '📖', opened_exercise: '✏️', completed_exercise: '✅',
+  downloaded_file: '📎', completed_exam: '🎓', viewed_result: '📊', opened_today_task: '▶️',
 }
 const PAYMENT_TYPE_AR: Record<string, string> = {
   course_one_time: 'دورة (مرة واحدة)', private_monthly: 'شهري (خاص)',
@@ -65,6 +75,7 @@ export default function StudentProfilePage() {
   const [tab,      setTab]      = useState<Tab>('overview')
   const [payBusy,  setPayBusy]  = useState<string | null>(null)
   const [copied,   setCopied]   = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
 
   // editable student core info
   const [editStudent, setEditStudent] = useState(false)
@@ -82,11 +93,33 @@ export default function StudentProfilePage() {
   // student portal: assignments + files
   const [assignments, setAssignments] = useState<StudentAssignment[]>([])
   const [files,       setFiles]       = useState<StudentFile[]>([])
+  const [exams,       setExams]       = useState<StudentExam[]>([])
+  const [activity,    setActivity]    = useState<{ event_type: string; entity_title: string | null; created_at: string }[]>([])
   const [aTitle, setATitle] = useState('')
   const [aDesc,  setADesc]  = useState('')
   const [aLink,  setALink]  = useState('')
+  const [aCat,   setACat]   = useState('exercise')
+  const [aDue,   setADue]   = useState('')
   const [aBusy,  setABusy]  = useState(false)
   const [uploading, setUploading] = useState(false)
+
+  // exam form
+  const [exTitle, setExTitle] = useState('')
+  const [exLevel, setExLevel] = useState('')
+  const [exScore, setExScore] = useState('')
+  const [exMax,   setExMax]   = useState('100')
+  const [exNote,  setExNote]  = useState('')
+  const [exBusy,  setExBusy]  = useState(false)
+
+  // portal control (admin message / today lesson / next task / levels / stage)
+  const [pcMsg,   setPcMsg]   = useState('')
+  const [pcTask,  setPcTask]  = useState('')
+  const [pcLesT,  setPcLesT]  = useState('')
+  const [pcLesU,  setPcLesU]  = useState('')
+  const [pcStage, setPcStage] = useState('')
+  const [pcLevel, setPcLevel] = useState('')
+  const [pcNext,  setPcNext]  = useState('')
+  const [pcBusy,  setPcBusy]  = useState(false)
 
   // notes
   const [editNote, setEditNote] = useState(false)
@@ -112,16 +145,49 @@ export default function StudentProfilePage() {
       fetchAssignments(id),
       fetchStudentFiles(id),
     ])
+    const [exm, act] = await Promise.all([fetchExams(id), fetchStudentActivity(id)])
     setStudent(s); setPayments(p); setReceipts(r); setNoteText(s.notes ?? '')
-    setAssignments(asg); setFiles(fls)
+    setAssignments(asg); setFiles(fls); setExams(exm); setActivity(act)
     // init editable fields
     setSName(s.full_name); setSPhone(s.phone_number ?? ''); setSCourse(s.course ?? '')
     setSType(s.student_type); setSFee(s.monthly_fee_mad ? String(s.monthly_fee_mad) : '')
     setSTotal(s.total_paid_mad ? String(s.total_paid_mad) : '')
     setSEnroll(s.enrollment_date?.slice(0, 10) ?? ''); setSEnd(s.course_end_date?.slice(0, 10) ?? '')
     setSActive(s.is_active)
+    // portal control
+    setPcMsg(s.admin_message ?? ''); setPcTask(s.next_task ?? '')
+    setPcLesT(s.today_lesson_title ?? ''); setPcLesU(s.today_lesson_url ?? '')
+    setPcStage(s.learning_stage ?? ''); setPcLevel(s.current_level ?? ''); setPcNext(s.next_level ?? '')
     setLoading(false)
   }
+
+  async function savePortalControl() {
+    if (!student) return
+    setPcBusy(true)
+    await patchStudent(student.id, {
+      admin_message: pcMsg || null, next_task: pcTask || null,
+      today_lesson_title: pcLesT || null, today_lesson_url: pcLesU || null,
+      learning_stage: pcStage || null, current_level: pcLevel || null, next_level: pcNext || null,
+    } as any)
+    const s = await fetchStudentById(id); if (s) setStudent(s)
+    setPcBusy(false)
+  }
+
+  async function submitExam() {
+    if (!exTitle.trim()) return
+    setExBusy(true)
+    const score = exScore ? Number(exScore) : undefined
+    const max = exMax ? Number(exMax) : 100
+    await addExam({
+      studentId: id, title: exTitle.trim(), level: exLevel || undefined,
+      examDate: new Date().toISOString().slice(0, 10), score, maxScore: max,
+      passed: score != null ? (score / max) >= 0.5 : undefined,
+      teacherNote: exNote || undefined, createdBy: staff.id,
+    })
+    setExTitle(''); setExLevel(''); setExScore(''); setExNote('')
+    setExams(await fetchExams(id)); setExBusy(false)
+  }
+  async function removeExam(eid: string) { await deleteExam(eid); setExams(await fetchExams(id)) }
 
   const [monthBusy, setMonthBusy] = useState(false)
   async function recordMonth() {
@@ -171,8 +237,8 @@ export default function StudentProfilePage() {
   async function submitAssignment() {
     if (!aTitle.trim()) return
     setABusy(true)
-    await addAssignment({ studentId: id, title: aTitle.trim(), description: aDesc.trim() || undefined, linkUrl: aLink.trim() || undefined, assignedBy: staff.id })
-    setATitle(''); setADesc(''); setALink('')
+    await addAssignment({ studentId: id, title: aTitle.trim(), description: aDesc.trim() || undefined, linkUrl: aLink.trim() || undefined, category: aCat, dueDate: aDue || undefined, course: student?.course ?? undefined, assignedBy: staff.id })
+    setATitle(''); setADesc(''); setALink(''); setADue('')
     setAssignments(await fetchAssignments(id))
     setABusy(false)
   }
@@ -336,7 +402,26 @@ export default function StudentProfilePage() {
                   {copied ? '✓ نُسخ' : 'نسخ'}
                 </button>
               </div>
-              <p className="text-[10px] text-zinc-500 mt-2 leading-relaxed">يظهر هذا الرمز على وصولات الطالب ويُستخدم للتحقق من هويته ومنع الاحتيال.</p>
+              {/* QR + one-tap login */}
+              <div className="mt-3 pt-3 border-t border-white/10 flex items-center gap-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&margin=0&data=${encodeURIComponent(`https://student.inglizi.com/?token=${student.verification_token}`)}`}
+                  alt="QR" width={72} height={72} className="w-[72px] h-[72px] rounded-lg bg-white p-1 flex-shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[11px] text-zinc-400 mb-1.5">دخول الطالب بضغطة واحدة</div>
+                  <button
+                    onClick={() => { navigator.clipboard?.writeText(`https://student.inglizi.com/?token=${student.verification_token}`); setLinkCopied(true); setTimeout(() => setLinkCopied(false), 1500) }}
+                    className="w-full text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-yellow-400 text-black hover:bg-yellow-300">
+                    {linkCopied ? '✓ نُسخ الرابط' : 'نسخ رابط الدخول'}
+                  </button>
+                  <a href={whatsappLink(phone, `🔑 رابط دخولك إلى فضاء الطالب على Inglizi.com:\nhttps://student.inglizi.com/?token=${student.verification_token}`) ?? '#'}
+                    target="_blank" rel="noopener noreferrer"
+                    className="mt-1.5 w-full block text-center text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20">إرسال عبر واتساب</a>
+                </div>
+              </div>
+              <p className="text-[10px] text-zinc-500 mt-2 leading-relaxed">يستخدم الطالب الرمز أو يمسح الـ QR للدخول إلى فضائه (الدروس، التمارين، الملفات، النتائج).</p>
             </div>
           )}
 
@@ -466,6 +551,30 @@ export default function StudentProfilePage() {
               {/* OVERVIEW */}
               {tab === 'overview' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Portal control — what the student sees */}
+                  <div className="md:col-span-2 border border-yellow-200 bg-yellow-50/40 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-3"><span className="text-[13px] font-black text-zinc-800">🎛️ التحكم في فضاء الطالب</span><span className="text-[11px] text-zinc-400">يظهر مباشرة على student.inglizi.com</span></div>
+                    <div className="space-y-2.5">
+                      <div>
+                        <label className="text-[11px] font-semibold text-zinc-500">رسالة للطالب</label>
+                        <input value={pcMsg} onChange={e => setPcMsg(e.target.value)} placeholder="مثال: أحسنت! ركّز هذا الأسبوع على المحادثة" className="w-full mt-1 border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white" />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div><label className="text-[11px] font-semibold text-zinc-500">عنوان درس اليوم</label><input value={pcLesT} onChange={e => setPcLesT(e.target.value)} placeholder="درس اليوم" className="w-full mt-1 border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white" /></div>
+                        <div><label className="text-[11px] font-semibold text-zinc-500">رابط درس اليوم</label><input value={pcLesU} onChange={e => setPcLesU(e.target.value)} placeholder="https://inglizi.com/..." dir="ltr" className="w-full mt-1 border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white text-right" /></div>
+                      </div>
+                      <div><label className="text-[11px] font-semibold text-zinc-500">الخطوة القادمة</label><input value={pcTask} onChange={e => setPcTask(e.target.value)} placeholder="ما الذي على الطالب فعله بعد ذلك" className="w-full mt-1 border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white" /></div>
+                      <div className="grid grid-cols-3 gap-2.5">
+                        <div><label className="text-[11px] font-semibold text-zinc-500">المرحلة</label><input value={pcStage} onChange={e => setPcStage(e.target.value)} placeholder="Foundation" dir="ltr" className="w-full mt-1 border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white text-right" /></div>
+                        <div><label className="text-[11px] font-semibold text-zinc-500">المستوى الحالي</label><input value={pcLevel} onChange={e => setPcLevel(e.target.value)} placeholder="A1" dir="ltr" className="w-full mt-1 border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white text-right" /></div>
+                        <div><label className="text-[11px] font-semibold text-zinc-500">المستوى القادم</label><input value={pcNext} onChange={e => setPcNext(e.target.value)} placeholder="A2" dir="ltr" className="w-full mt-1 border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white text-right" /></div>
+                      </div>
+                      <button onClick={savePortalControl} disabled={pcBusy} className="w-full py-2 bg-black text-white rounded-lg font-bold text-[13px] flex items-center justify-center gap-2 disabled:opacity-50">
+                        {pcBusy ? <Loader2 size={14} className="animate-spin" /> : <><Save size={14} /> حفظ وتحديث فضاء الطالب</>}
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Learning progress (placeholder until activity tracking lands) */}
                   <Panel title="تقدم التعلّم">
                     <div className="flex items-center gap-4 py-1">
@@ -634,10 +743,39 @@ export default function StudentProfilePage() {
                 </div>
               )}
 
-              {/* ACTIVITY */}
+              {/* EXAMS */}
               {tab === 'exams' && (
-                <ComingSoon icon={BadgeCheck} title="الامتحانات ونتائج المستوى"
-                  desc="ستظهر هنا محاولات الطالب في الامتحانات ونتائج تحديد المستوى ودرجاته بمجرد ربط حسابه على Inglizi.com." />
+                <div className="space-y-4">
+                  <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 space-y-2">
+                    <div className="text-[13px] font-bold text-zinc-700">تسجيل نتيجة امتحان</div>
+                    <input value={exTitle} onChange={e => setExTitle(e.target.value)} placeholder="عنوان الامتحان * (مثال: اختبار A1 — الوحدة 3)" className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white" />
+                    <div className="grid grid-cols-3 gap-2">
+                      <input value={exLevel} onChange={e => setExLevel(e.target.value)} placeholder="المستوى" className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white" />
+                      <input type="number" value={exScore} onChange={e => setExScore(e.target.value)} placeholder="النتيجة" dir="ltr" className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white text-right" />
+                      <input type="number" value={exMax} onChange={e => setExMax(e.target.value)} placeholder="من" dir="ltr" className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white text-right" />
+                    </div>
+                    <input value={exNote} onChange={e => setExNote(e.target.value)} placeholder="ملاحظة الأستاذ (اختياري)" className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white" />
+                    <button onClick={submitExam} disabled={exBusy || !exTitle.trim()} className="w-full py-2 bg-black text-white rounded-lg font-bold text-[13px] disabled:opacity-50">
+                      {exBusy ? <Loader2 size={14} className="animate-spin mx-auto" /> : 'حفظ النتيجة'}
+                    </button>
+                  </div>
+
+                  {exams.length === 0 && <p className="text-center py-4 text-zinc-400 text-[13px]">لا توجد امتحانات مسجّلة</p>}
+                  {exams.map(e => {
+                    const pct = e.score != null && e.max_score ? Math.round((e.score / e.max_score) * 100) : null
+                    return (
+                      <div key={e.id} className="flex items-center gap-3 border border-zinc-100 rounded-xl p-3">
+                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${e.passed === false ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700'}`}><span className="text-[14px] font-black">{pct != null ? `${pct}%` : '—'}</span></div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-[14px] text-zinc-800">{e.title}</div>
+                          <div className="text-[11px] text-zinc-400">{e.level ? `${e.level} · ` : ''}{fmtDate(e.exam_date)}{e.passed != null ? ` · ${e.passed ? 'ناجح' : 'يحتاج إعادة'}` : ''}</div>
+                          {e.teacher_note && <div className="text-[11px] text-zinc-500 mt-0.5">📝 {e.teacher_note}</div>}
+                        </div>
+                        <button onClick={() => removeExam(e.id)} className="text-zinc-300 hover:text-red-500"><Trash2 size={15} /></button>
+                      </div>
+                    )
+                  })}
+                </div>
               )}
 
               {tab === 'progress' && (
@@ -651,8 +789,20 @@ export default function StudentProfilePage() {
                       className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white" />
                     <input value={aDesc} onChange={e => setADesc(e.target.value)} placeholder="وصف / تعليمات (اختياري)"
                       className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white" />
-                    <input value={aLink} onChange={e => setALink(e.target.value)} placeholder="رابط التمرين على Inglizi.com (اختياري)" dir="ltr"
+                    <input value={aLink} onChange={e => setALink(e.target.value)} placeholder="رابط التمرين/الدرس على Inglizi.com (اختياري)" dir="ltr"
                       className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white text-right" />
+                    <div className="grid grid-cols-2 gap-2">
+                      <select value={aCat} onChange={e => setACat(e.target.value)} className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white">
+                        <option value="exercise">تمرين</option>
+                        <option value="lesson">درس</option>
+                        <option value="reading">قراءة</option>
+                        <option value="speaking">محادثة</option>
+                        <option value="quiz">اختبار</option>
+                        <option value="vocabulary">مفردات</option>
+                      </select>
+                      <input type="date" value={aDue} onChange={e => setADue(e.target.value)} dir="ltr"
+                        className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white" title="تاريخ الاستحقاق" />
+                    </div>
                     <button onClick={submitAssignment} disabled={aBusy || !aTitle.trim()}
                       className="w-full py-2 bg-black text-white rounded-lg font-bold text-[13px] disabled:opacity-50">
                       {aBusy ? <Loader2 size={14} className="animate-spin mx-auto" /> : 'تكليف الطالب'}
@@ -674,8 +824,25 @@ export default function StudentProfilePage() {
               )}
 
               {tab === 'activity' && (
-                <ComingSoon icon={Activity} title="النشاط داخل المنصة"
-                  desc="سيظهر هنا نشاط الطالب على Inglizi.com: تسجيلات الدخول، مشاهدات الدروس والفيديوهات، والوقت الإجمالي للتعلّم." />
+                <div>
+                  <div className="text-[13px] font-bold text-zinc-700 mb-3">سجل نشاط الطالب على Inglizi.com</div>
+                  {activity.length === 0
+                    ? <ComingSoon icon={Activity} title="لا يوجد نشاط بعد" desc="سيظهر هنا كل ما يفعله الطالب: تسجيل الدخول، فتح الدروس، إنجاز التمارين، تحميل الملفات، والاطلاع على النتائج." />
+                    : <div className="relative">
+                        {activity.map((a, i) => (
+                          <div key={i} className="flex gap-3 pb-3">
+                            <div className="flex flex-col items-center">
+                              <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-[13px]">{ACTIVITY_ICON[a.event_type] ?? '•'}</div>
+                              {i < activity.length - 1 && <div className="w-px flex-1 bg-zinc-100 my-1" />}
+                            </div>
+                            <div className="flex-1 pb-1">
+                              <div className="text-[13px] font-semibold text-zinc-800">{ACTIVITY_LABEL[a.event_type] ?? a.event_type}{a.entity_title ? `: ${a.entity_title}` : ''}</div>
+                              <div className="text-[11px] text-zinc-400">{new Date(a.created_at).toLocaleString('ar-MA', { dateStyle: 'medium', timeStyle: 'short' })}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>}
+                </div>
               )}
 
               {tab === 'files' && (
