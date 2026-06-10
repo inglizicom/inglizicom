@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useMemo, useState } from 'react'
+import { Suspense, Component, type ReactNode, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
   Loader2, KeyRound, BookOpen, FileText, Download, CheckCircle2, Circle,
@@ -26,8 +26,33 @@ const ACTIVITY_AR: Record<string, string> = {
   completed_exam: 'أكمل امتحانًا', viewed_result: 'اطّلع على نتيجة', opened_today_task: 'بدأ مهمة اليوم',
 }
 
+class PortalErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(p: any) { super(p); this.state = { hasError: false } }
+  static getDerivedStateFromError() { return { hasError: true } }
+  componentDidCatch(err: any) { console.error('portal error', err) }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div dir="rtl" className="min-h-screen bg-[#14161c] flex items-center justify-center p-4 text-center">
+          <div className="max-w-sm">
+            <div className="text-4xl mb-3">⚠️</div>
+            <h1 className="text-white font-black text-[18px] mb-2">حدث خطأ غير متوقع</h1>
+            <p className="text-zinc-400 text-[13px] mb-4">أعد تحميل الصفحة، وإن استمرّ الخطأ تواصل مع الإدارة.</p>
+            <button onClick={() => location.reload()} className="px-5 py-2.5 rounded-xl bg-yellow-400 text-black font-bold text-[14px]">إعادة تحميل</button>
+          </div>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
 export default function StudentSpacePage() {
-  return <Suspense fallback={<div className="min-h-screen bg-[#14161c]" />}><Portal /></Suspense>
+  return (
+    <PortalErrorBoundary>
+      <Suspense fallback={<div className="min-h-screen bg-[#14161c]" />}><Portal /></Suspense>
+    </PortalErrorBoundary>
+  )
 }
 
 function Portal() {
@@ -89,7 +114,7 @@ function Portal() {
 
   /* ════ APP ════ */
   const s = space.student!
-  const stats = space.stats!
+  const stats = space.stats ?? { lessons_total: 0, lessons_done: 0, ex_total: 0, ex_done: 0, exam_total: 0, exam_done: 0, files_total: 0, overall: 0, streak: 0, last_activity: null }
   const courses = space.courses ?? []
   const course = courses[0]   // primary enrolled course
   const exams = space.exams ?? []
@@ -97,13 +122,20 @@ function Portal() {
   const manualEx = (space.exercises ?? []).filter(e => e.status !== 'done')
   const recent = space.recent_activity ?? []
 
-  // flatten lessons in order with their module
-  const flatLessons = useMemo(() => {
-    const out: { lesson: PortalLesson; moduleTitle: string }[] = []
-    for (const m of course?.modules ?? []) for (const l of m.lessons) out.push({ lesson: l, moduleTitle: m.title })
-    return out
-  }, [course])
-  const todayLesson = flatLessons.find(x => x.lesson.status !== 'completed' && !x.lesson.is_locked)
+  // flatten lessons in order with their module (plain compute — NOT a hook, we're past early returns)
+  const flatLessons: { lesson: PortalLesson; moduleTitle: string }[] = []
+  for (const m of course?.modules ?? []) for (const l of m.lessons) flatLessons.push({ lesson: l, moduleTitle: m.title })
+
+  // Sequential unlock: a lesson opens only after the previous is completed (explicit lock also respected).
+  const unlockedIds = new Set<string>()
+  let prevCompleted = true
+  for (const { lesson } of flatLessons) {
+    if (prevCompleted && !lesson.is_locked) unlockedIds.add(lesson.id)
+    prevCompleted = lesson.status === 'completed'
+  }
+  const isUnlocked = (l: PortalLesson) => unlockedIds.has(l.id)
+
+  const todayLesson = flatLessons.find(x => isUnlocked(x.lesson) && x.lesson.status !== 'completed')
   const pendingLessons = flatLessons.filter(x => x.lesson.status !== 'completed').length
 
   async function onOpenLesson(l: PortalLesson, url?: string | null) {
@@ -210,7 +242,7 @@ function Portal() {
                     <span className="font-bold text-[14px] text-zinc-800">{m.title}</span>
                   </div>
                   <div className="divide-y divide-zinc-50">
-                    {m.lessons.map(l => <LessonRow key={l.id} l={l} onOpen={onOpenLesson} onComplete={onCompleteLesson} />)}
+                    {m.lessons.map(l => <LessonRow key={l.id} l={l} unlocked={isUnlocked(l)} onOpen={onOpenLesson} onComplete={onCompleteLesson} />)}
                     {m.lessons.length === 0 && <div className="px-4 py-3 text-[12px] text-zinc-400">لا دروس في هذه الوحدة بعد</div>}
                   </div>
                 </div>
@@ -310,14 +342,14 @@ function Portal() {
 }
 
 /* ── Lesson row ─────────────────────────────────────────── */
-function LessonRow({ l, onOpen, onComplete }: { l: PortalLesson; onOpen: (l: PortalLesson, url?: string | null) => void; onComplete: (l: PortalLesson) => void }) {
+function LessonRow({ l, unlocked, onOpen, onComplete }: { l: PortalLesson; unlocked: boolean; onOpen: (l: PortalLesson, url?: string | null) => void; onComplete: (l: PortalLesson) => void }) {
   const Icon = LTYPE_ICON[l.type] ?? Video
   const url = l.video_url || l.exercise_url || l.file_url
-  if (l.is_locked) {
+  if (!unlocked) {
     return (
       <div className="flex items-center gap-3 px-4 py-3 opacity-60">
         <Lock size={18} className="text-zinc-300 flex-shrink-0" />
-        <div className="flex-1 min-w-0"><div className="text-[13px] font-semibold text-zinc-500 truncate">{l.title}</div><div className="text-[11px] text-zinc-400">مقفل</div></div>
+        <div className="flex-1 min-w-0"><div className="text-[13px] font-semibold text-zinc-500 truncate">{l.title}</div><div className="text-[11px] text-zinc-400">{l.is_locked ? 'مقفل' : 'أكمل الدرس السابق لفتحه'}</div></div>
       </div>
     )
   }
