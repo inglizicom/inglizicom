@@ -26,7 +26,8 @@ import {
   fetchAssignments, addAssignment, deleteAssignment,
   fetchStudentFiles, uploadStudentFile, deleteStudentFile, fileUrl,
   fetchExams, addExam, deleteExam, fetchStudentActivity,
-  type StudentAssignment, type StudentFile, type StudentExam,
+  fetchTemplates, applyTemplateToStudent,
+  type StudentAssignment, type StudentFile, type StudentExam, type PathTemplate,
 } from '@/lib/student-portal'
 
 const MAD = (n: number) => new Intl.NumberFormat('en-US').format(Math.round(n))
@@ -102,6 +103,10 @@ export default function StudentProfilePage() {
   const [aDue,   setADue]   = useState('')
   const [aBusy,  setABusy]  = useState(false)
   const [uploading, setUploading] = useState(false)
+  // path templates
+  const [templates, setTemplates] = useState<PathTemplate[]>([])
+  const [applyId, setApplyId] = useState('')
+  const [applying, setApplying] = useState(false)
 
   // exam form
   const [exTitle, setExTitle] = useState('')
@@ -145,9 +150,9 @@ export default function StudentProfilePage() {
       fetchAssignments(id),
       fetchStudentFiles(id),
     ])
-    const [exm, act] = await Promise.all([fetchExams(id), fetchStudentActivity(id)])
+    const [exm, act, tpl] = await Promise.all([fetchExams(id), fetchStudentActivity(id), fetchTemplates()])
     setStudent(s); setPayments(p); setReceipts(r); setNoteText(s.notes ?? '')
-    setAssignments(asg); setFiles(fls); setExams(exm); setActivity(act)
+    setAssignments(asg); setFiles(fls); setExams(exm); setActivity(act); setTemplates(tpl)
     // init editable fields
     setSName(s.full_name); setSPhone(s.phone_number ?? ''); setSCourse(s.course ?? '')
     setSType(s.student_type); setSFee(s.monthly_fee_mad ? String(s.monthly_fee_mad) : '')
@@ -241,6 +246,13 @@ export default function StudentProfilePage() {
     setATitle(''); setADesc(''); setALink(''); setADue('')
     setAssignments(await fetchAssignments(id))
     setABusy(false)
+  }
+  async function applyPath() {
+    if (!applyId) return
+    const n = await applyTemplateToStudent(id, applyId, staff.id)
+    setApplyId('')
+    setAssignments(await fetchAssignments(id))
+    alert(n > 0 ? `تم تطبيق المسار وإضافة ${n} خطوة` : 'لم تُضف خطوات')
   }
   async function removeAssignment(aid: string) {
     await deleteAssignment(aid); setAssignments(await fetchAssignments(id))
@@ -783,6 +795,19 @@ export default function StudentProfilePage() {
                   <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-[12px] text-blue-800 leading-relaxed">
                     💡 التمارين التي تُكلّف بها الطالب هنا تظهر له فورًا في فضائه على <b dir="ltr">student.inglizi.com</b> (تبويب «التمارين»). أضف رابط درس/تمرين من Inglizi.com ليفتحه الطالب مباشرة.
                   </div>
+
+                  {/* Apply a ready path template */}
+                  {templates.length > 0 && (
+                    <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex items-center gap-2">
+                      <span className="text-[12px] font-bold text-emerald-800 flex-shrink-0">🗺️ تطبيق مسار جاهز</span>
+                      <select value={applyId} onChange={e => setApplyId(e.target.value)} className="flex-1 border border-emerald-200 rounded-lg px-2 py-1.5 text-[13px] bg-white">
+                        <option value="">اختر مسارًا</option>
+                        {templates.map(t => <option key={t.id} value={t.id}>{t.name}{t.level ? ` (${t.level})` : ''}</option>)}
+                      </select>
+                      <button onClick={applyPath} disabled={!applyId} className="text-[12px] font-bold px-3 py-1.5 rounded-lg bg-emerald-600 text-white disabled:opacity-50">تطبيق</button>
+                    </div>
+                  )}
+
                   <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 space-y-2">
                     <div className="text-[13px] font-bold text-zinc-700">تكليف تمرين جديد</div>
                     <input value={aTitle} onChange={e => setATitle(e.target.value)} placeholder="عنوان التمرين *"

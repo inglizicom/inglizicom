@@ -154,3 +154,44 @@ export async function fetchStudentActivity(studentId: string, limit = 50): Promi
   const { data } = await supabase.from('student_activity').select('event_type, entity_title, created_at').eq('student_id', studentId).order('created_at', { ascending: false }).limit(limit)
   return (data ?? []) as any
 }
+
+/* ── Path templates ────────────────────────────────────── */
+export interface PathTemplate { id: string; name: string; level: string | null; description: string | null; created_at: string }
+export interface PathStep { id: string; template_id?: string; step_order: number; title: string; category: string; link_url: string | null; description: string | null }
+
+export async function fetchTemplates(): Promise<PathTemplate[]> {
+  const { data } = await supabase.from('path_templates').select('*').order('created_at', { ascending: false })
+  return (data ?? []) as PathTemplate[]
+}
+export async function fetchTemplateSteps(templateId: string): Promise<PathStep[]> {
+  const { data } = await supabase.from('path_template_steps').select('*').eq('template_id', templateId).order('step_order')
+  return (data ?? []) as PathStep[]
+}
+export async function createTemplate(input: { name: string; level?: string; description?: string; createdBy?: string }): Promise<string | null> {
+  const { data, error } = await supabase.from('path_templates').insert({ name: input.name, level: input.level || null, description: input.description || null, created_by: input.createdBy || null }).select('id').single()
+  if (error) { console.error('createTemplate', error.message); return null }
+  return (data as { id: string }).id
+}
+export async function addTemplateStep(input: { templateId: string; order: number; title: string; category?: string; linkUrl?: string; description?: string }): Promise<void> {
+  await supabase.from('path_template_steps').insert({ template_id: input.templateId, step_order: input.order, title: input.title, category: input.category || 'exercise', link_url: input.linkUrl || null, description: input.description || null })
+}
+export async function deleteTemplateStep(id: string): Promise<void> { await supabase.from('path_template_steps').delete().eq('id', id) }
+export async function deleteTemplate(id: string): Promise<void> { await supabase.from('path_templates').delete().eq('id', id) }
+export async function applyTemplateToStudent(studentId: string, templateId: string, actor?: string): Promise<number> {
+  const { data } = await supabase.rpc('apply_path_template', { p_student_id: studentId, p_template_id: templateId, p_actor: actor ?? null })
+  return Number(data ?? 0)
+}
+
+/* ── Engagement (inactivity follow-up flag) ────────────── */
+export interface Engagement { student_id: string; last_activity_at: string | null; activity_count: number }
+export async function fetchEngagement(): Promise<Map<string, Engagement>> {
+  const { data } = await supabase.rpc('student_engagement')
+  const map = new Map<string, Engagement>()
+  for (const e of (data ?? []) as Engagement[]) map.set(e.student_id, e)
+  return map
+}
+/** Days since last activity (null = never active). */
+export function daysInactive(e?: Engagement): number | null {
+  if (!e || !e.last_activity_at) return null
+  return Math.floor((Date.now() - new Date(e.last_activity_at).getTime()) / 86400000)
+}

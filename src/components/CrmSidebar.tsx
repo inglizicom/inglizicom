@@ -6,7 +6,7 @@ import { useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
   LayoutDashboard, Users, GraduationCap, CalendarCheck, CreditCard,
-  BarChart3, Settings, LogOut, X, Menu, Headphones, ShieldCheck,
+  BarChart3, Settings, LogOut, X, Menu, Headphones, ShieldCheck, Route,
 } from 'lucide-react'
 
 interface NavDef {
@@ -26,6 +26,7 @@ const NAV: NavDef[] = [
   { id: 'followups', labelAr: 'المتابعات',           icon: CalendarCheck,   path: '/workspace', tab: 'followups', badgeKey: 'followups' },
   { id: 'payments',  labelAr: 'المدفوعات',          icon: CreditCard,      path: '/workspace', tab: 'payments' },
   { id: 'verify',    labelAr: 'التحقق من طالب',      icon: ShieldCheck,     path: '/verify' },
+  { id: 'templates', labelAr: 'مسارات التعلّم',       icon: Route,           path: '/templates' },
   { id: 'revenue',   labelAr: 'الإيرادات والتقارير', icon: BarChart3,       path: '/analytics', founder: true },
   { id: 'settings',  labelAr: 'الإعدادات',          icon: Settings,        path: '/settings',  founder: true },
 ]

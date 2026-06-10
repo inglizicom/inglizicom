@@ -20,6 +20,7 @@ import {
   archiveStudent, unarchiveStudent, softDeleteStudent, restoreStudent, permanentDeleteStudent, fetchDeletedStudents,
 } from '@/lib/crm-db'
 import AddStudentModal from './AddStudentModal'
+import { fetchEngagement, daysInactive, type Engagement } from '@/lib/student-portal'
 import { updateLeadStatus } from '@/lib/leads-db'
 import { type CrmStudent, type CrmPayment } from '@/lib/crm-types'
 import { fetchOverdueFollowUps, fetchTodaysFollowUps, type OverdueLead } from '@/lib/crm-stats'
@@ -127,6 +128,9 @@ export default function WorkspaceClient() {
   const [addStudentOpen, setAddStudentOpen] = useState(false)
   const [showBin,        setShowBin]        = useState(false)
   const [binStudents,    setBinStudents]    = useState<CrmStudent[]>([])
+  const [engagement,     setEngagement]     = useState<Map<string, Engagement>>(new Map())
+  const [onlyInactive,   setOnlyInactive]   = useState(false)
+  const INACTIVE_DAYS = 7
 
   async function loadBin() { setBinStudents(await fetchDeletedStudents()) }
   async function onArchiveStudent(s: CrmStudent) {
@@ -166,12 +170,13 @@ export default function WorkspaceClient() {
 
   async function loadAll() {
     setLoading(true)
-    const [l, s, p, od, td, ar, sf] = await Promise.all([
+    const [l, s, p, od, td, ar, sf, eng] = await Promise.all([
       fetchAllLeads(), fetchStudents(), fetchCrmPayments({ limit: 200 }),
       fetchOverdueFollowUps(isFounder ? undefined : staff.id),
       fetchTodaysFollowUps(isFounder ? undefined : staff.id),
-      fetchArchivedLeads(), fetchStaff(),
+      fetchArchivedLeads(), fetchStaff(), fetchEngagement(),
     ])
+    setEngagement(eng)
     setLeads(l); setStudents(s); setPayments(p)
     setOverdue(od); setTodayFU(td); setArchived(ar); setStaffList(sf)
     setLoading(false)
@@ -217,6 +222,15 @@ export default function WorkspaceClient() {
   const filteredStudents = useMemo(() =>
     students.filter(s => !q || `${s.full_name} ${s.phone_number ?? ''}`.toLowerCase().includes(q)),
   [students, q])
+
+  /* Inactive = active student with no portal activity in INACTIVE_DAYS (or never). */
+  function studentInactive(s: CrmStudent) {
+    if (!s.is_active) return false
+    const d = daysInactive(engagement.get(s.id))
+    return d === null || d >= INACTIVE_DAYS
+  }
+  const inactiveCount  = useMemo(() => students.filter(studentInactive).length, [students, engagement])
+  const shownStudents  = useMemo(() => onlyInactive ? filteredStudents.filter(studentInactive) : filteredStudents, [filteredStudents, onlyInactive, engagement])
 
   const filteredArchived = useMemo(() =>
     archived.filter(l => !q || `${l.full_name} ${l.phone ?? ''}`.toLowerCase().includes(q)),
@@ -420,13 +434,21 @@ export default function WorkspaceClient() {
           </div>
 
           {/* Action bar */}
-          <div className="flex items-center justify-between mb-4">
-            <button onClick={() => { setShowBin(b => { const n = !b; if (n) loadBin(); return n }) }}
-              className={`flex items-center gap-1.5 text-[13px] font-semibold px-3 py-2 rounded-xl border ${showBin ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white text-zinc-600 border-zinc-200 hover:border-zinc-400'}`}>
-              <Trash2 size={14} /> سلة المحذوفين
-            </button>
+          <div className="flex items-center justify-between mb-4 gap-2">
+            <div className="flex items-center gap-2">
+              <button onClick={() => { setShowBin(b => { const n = !b; if (n) loadBin(); return n }) }}
+                className={`flex items-center gap-1.5 text-[13px] font-semibold px-3 py-2 rounded-xl border ${showBin ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white text-zinc-600 border-zinc-200 hover:border-zinc-400'}`}>
+                <Trash2 size={14} /> سلة المحذوفين
+              </button>
+              {inactiveCount > 0 && (
+                <button onClick={() => setOnlyInactive(v => !v)}
+                  className={`flex items-center gap-1.5 text-[13px] font-bold px-3 py-2 rounded-xl border ${onlyInactive ? 'bg-orange-500 text-white border-orange-500' : 'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100'}`}>
+                  <AlertTriangle size={14} /> بحاجة متابعة ({inactiveCount})
+                </button>
+              )}
+            </div>
             <button onClick={() => setAddStudentOpen(true)}
-              className="flex items-center gap-1.5 text-[13px] font-bold px-4 py-2 bg-yellow-400 text-black rounded-xl hover:bg-yellow-300">
+              className="flex items-center gap-1.5 text-[13px] font-bold px-4 py-2 bg-yellow-400 text-black rounded-xl hover:bg-yellow-300 flex-shrink-0">
               <Plus size={14} /> إضافة طالب
             </button>
           </div>
@@ -449,9 +471,11 @@ export default function WorkspaceClient() {
             </div>
           ) : (
             <>
-              {filteredStudents.length === 0 && <Empty text="لا يوجد طلاب — أضف طالبًا يدويًا أو حوّل عميلًا" />}
+              {shownStudents.length === 0 && <Empty text={onlyInactive ? 'لا طلاب بحاجة متابعة 🎉' : 'لا يوجد طلاب — أضف طالبًا يدويًا أو حوّل عميلًا'} />}
               <StudentList
-                students={filteredStudents}
+                students={shownStudents}
+                engagement={engagement}
+                inactiveDays={INACTIVE_DAYS}
                 onOpen={s => router.push(`/sales/students/${s.id}`)}
                 onArchive={onArchiveStudent}
                 onUnarchive={async s => { await unarchiveStudent(s.id); refresh() }}
@@ -927,14 +951,24 @@ function LeadCardNew({
    STUDENT LIST — table (desktop) + rows (mobile)
 ══════════════════════════════════════════════════════════ */
 function StudentList({
-  students, onOpen, onArchive, onUnarchive, onRemove,
+  students, engagement, inactiveDays, onOpen, onArchive, onUnarchive, onRemove,
 }: {
   students:    CrmStudent[]
+  engagement?: Map<string, Engagement>
+  inactiveDays?: number
   onOpen:      (s: CrmStudent) => void
   onArchive:   (s: CrmStudent) => void
   onUnarchive: (s: CrmStudent) => void
   onRemove:    (s: CrmStudent) => void
 }) {
+  /** Returns a follow-up label if the student is inactive. */
+  function followLabel(s: CrmStudent): string | null {
+    if (!s.is_active) return null
+    const d = daysInactive(engagement?.get(s.id))
+    if (d === null) return 'لم يدخل بعد'
+    if (d >= (inactiveDays ?? 7)) return `غير نشط ${d}ي`
+    return null
+  }
   const payCls: Record<string, string> = {
     paid: 'bg-green-50 text-green-700 border-green-200',
     overdue: 'bg-red-50 text-red-600 border-red-200',
@@ -963,7 +997,7 @@ function StudentList({
             <tbody>
               {students.map(s => (
                 <tr key={s.id} onClick={() => onOpen(s)} className={`border-b border-zinc-50 last:border-none text-[13px] cursor-pointer hover:bg-zinc-50 ${!s.is_active ? 'opacity-60' : ''}`}>
-                  <td className="px-3 py-2.5"><div className="flex items-center gap-2.5"><Avatar name={s.full_name} size={32} /><span className="font-semibold text-zinc-800">{s.full_name}</span></div></td>
+                  <td className="px-3 py-2.5"><div className="flex items-center gap-2.5"><Avatar name={s.full_name} size={32} /><span className="font-semibold text-zinc-800">{s.full_name}</span>{followLabel(s) && <span className="text-[10px] font-bold text-orange-700 bg-orange-50 border border-orange-200 px-1.5 py-0.5 rounded-full flex items-center gap-0.5"><AlertTriangle size={9} /> {followLabel(s)}</span>}</div></td>
                   <td className="px-3 py-2.5 text-zinc-500" dir="ltr">{s.phone_number ?? '—'}</td>
                   <td className="px-3 py-2.5 text-zinc-600 font-semibold">{s.course?.toUpperCase() ?? '—'}</td>
                   <td className="px-3 py-2.5 text-zinc-500">{(s.billing_type === 'monthly' || s.student_type === 'private_student') ? 'شهري' : 'دورة'}</td>
@@ -989,7 +1023,10 @@ function StudentList({
           <div key={s.id} onClick={() => onOpen(s)} className={`flex items-center gap-3 px-3 py-3 active:bg-zinc-50 ${!s.is_active ? 'opacity-60' : ''}`}>
             <Avatar name={s.full_name} size={38} />
             <div className="flex-1 min-w-0">
-              <div className="font-semibold text-[14px] text-zinc-800 truncate">{s.full_name}</div>
+              <div className="flex items-center gap-1.5">
+                <span className="font-semibold text-[14px] text-zinc-800 truncate">{s.full_name}</span>
+                {followLabel(s) && <span className="text-[9px] font-bold text-orange-700 bg-orange-50 border border-orange-200 px-1.5 rounded-full flex-shrink-0">{followLabel(s)}</span>}
+              </div>
               <div className="text-[11px] text-zinc-400">{s.course?.toUpperCase() ?? '—'} · {(s.total_paid_mad ?? 0).toLocaleString('en-US')} د.م</div>
             </div>
             <div className="flex items-center gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
