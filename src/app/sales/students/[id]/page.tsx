@@ -46,7 +46,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'نظرة عامة' },
   { id: 'payments', label: 'المدفوعات والفواتير' },
   { id: 'exams',    label: 'الامتحانات' },
-  { id: 'progress', label: 'التقدم والدروس' },
+  { id: 'progress', label: 'التمارين' },
   { id: 'notes',    label: 'الملاحظات' },
   { id: 'activity', label: 'النشاط داخل المنصة' },
   { id: 'files',    label: 'الملفات' },
@@ -642,6 +642,9 @@ export default function StudentProfilePage() {
 
               {tab === 'progress' && (
                 <div className="space-y-4">
+                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-[12px] text-blue-800 leading-relaxed">
+                    💡 التمارين التي تُكلّف بها الطالب هنا تظهر له فورًا في فضائه على <b dir="ltr">student.inglizi.com</b> (تبويب «التمارين»). أضف رابط درس/تمرين من Inglizi.com ليفتحه الطالب مباشرة.
+                  </div>
                   <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 space-y-2">
                     <div className="text-[13px] font-bold text-zinc-700">تكليف تمرين جديد</div>
                     <input value={aTitle} onChange={e => setATitle(e.target.value)} placeholder="عنوان التمرين *"
@@ -677,6 +680,9 @@ export default function StudentProfilePage() {
 
               {tab === 'files' && (
                 <div className="space-y-4">
+                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-[12px] text-blue-800 leading-relaxed">
+                    💡 الملفات التي ترفعها هنا (PDF، صور، تمارين...) تظهر للطالب في فضائه على <b dir="ltr">student.inglizi.com</b> ويمكنه تحميلها.
+                  </div>
                   <label className="flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-zinc-200 text-zinc-500 hover:border-yellow-400 hover:text-yellow-600 font-semibold text-[13px] cursor-pointer">
                     {uploading ? <Loader2 size={15} className="animate-spin" /> : <Upload size={15} />}
                     {uploading ? 'جارٍ الرفع...' : 'رفع ملف (PDF أو غيره)'}
