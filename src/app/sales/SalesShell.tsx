@@ -105,6 +105,9 @@ function HeaderForRoute({ userEmail, roleLabel, notifCount, base, onSignOut }: {
   } else if (pathname.includes('/verify')) {
     title = 'التحقق من طالب'
     crumb = ['لوحة التحكم', 'التحقق من طالب']
+  } else if (pathname.includes('/courses')) {
+    title = 'الدورات'
+    crumb = ['لوحة التحكم', 'الدورات']
   } else if (pathname.includes('/templates')) {
     title = 'مسارات التعلّم'
     crumb = ['لوحة التحكم', 'مسارات التعلّم']

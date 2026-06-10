@@ -42,27 +42,35 @@ export interface StudentActivity {
   entity_title: string | null
   created_at:   string
 }
+export interface PortalLesson {
+  id: string; title: string; type: string; order: number
+  video_url: string | null; file_url: string | null; exercise_url: string | null
+  has_quiz: boolean; is_locked: boolean; content: string | null
+  status: 'not_started' | 'opened' | 'completed'
+}
+export interface PortalModule { id: string; title: string; order: number; lessons: PortalLesson[] }
+export interface PortalCourse { id: string; title: string; level: string | null; description: string | null; modules: PortalModule[] }
+
 export interface StudentSpace {
   found:    boolean
   student?: {
     id: string; full_name: string; course: string | null; student_type: string
-    enrollment_date: string; course_end_date: string | null; teacher_name: string | null
-    is_active: boolean; verification_token: string
+    teacher_name: string | null; is_active: boolean; verification_token: string
     current_level: string | null; next_level: string | null; learning_stage: string | null
-    subscription_start: string | null; billing_type: string | null
     admin_message: string | null; next_task: string | null
     today_lesson_url: string | null; today_lesson_title: string | null
   }
-  exercises?:       StudentAssignment[]
+  courses?:         PortalCourse[]
+  exercises?:       StudentAssignment[]   // manual extras
   files?:           StudentFile[]
   exams?:           StudentExam[]
   recent_activity?: StudentActivity[]
   stats?: {
-    ex_done: number; ex_total: number
-    exam_done: number; exam_total: number
-    files_total: number; files_opened: number; lessons_opened: number
+    lessons_total: number; lessons_done: number
+    ex_total: number; ex_done: number
+    exam_total: number; exam_done: number
+    files_total: number
     overall: number; streak: number; last_activity: string | null
-    categories: Record<string, { done: number; total: number }>
   }
 }
 

@@ -29,6 +29,10 @@ import {
   fetchTemplates, applyTemplateToStudent,
   type StudentAssignment, type StudentFile, type StudentExam, type PathTemplate,
 } from '@/lib/student-portal'
+import {
+  fetchCourses, fetchEnrollments, enrollStudent, unenrollStudent, fetchCourseProgress,
+  type LmsCourse, type CourseProgress,
+} from '@/lib/lms'
 
 const MAD = (n: number) => new Intl.NumberFormat('en-US').format(Math.round(n))
 const fmtDate = (s?: string | null) =>
@@ -107,6 +111,12 @@ export default function StudentProfilePage() {
   const [templates, setTemplates] = useState<PathTemplate[]>([])
   const [applyId, setApplyId] = useState('')
   const [applying, setApplying] = useState(false)
+  // LMS courses + enrollment
+  const [allCourses, setAllCourses]   = useState<LmsCourse[]>([])
+  const [enrolled, setEnrolled]       = useState<{ id: string; course_id: string }[]>([])
+  const [courseProg, setCourseProg]   = useState<CourseProgress[]>([])
+  const [enrollId, setEnrollId]       = useState('')
+  const [enrolling, setEnrolling]     = useState(false)
 
   // exam form
   const [exTitle, setExTitle] = useState('')
@@ -150,9 +160,13 @@ export default function StudentProfilePage() {
       fetchAssignments(id),
       fetchStudentFiles(id),
     ])
-    const [exm, act, tpl] = await Promise.all([fetchExams(id), fetchStudentActivity(id), fetchTemplates()])
+    const [exm, act, tpl, crs, enr, prog] = await Promise.all([
+      fetchExams(id), fetchStudentActivity(id), fetchTemplates(),
+      fetchCourses(), fetchEnrollments(id), fetchCourseProgress(id),
+    ])
     setStudent(s); setPayments(p); setReceipts(r); setNoteText(s.notes ?? '')
     setAssignments(asg); setFiles(fls); setExams(exm); setActivity(act); setTemplates(tpl)
+    setAllCourses(crs); setEnrolled(enr); setCourseProg(prog)
     // init editable fields
     setSName(s.full_name); setSPhone(s.phone_number ?? ''); setSCourse(s.course ?? '')
     setSType(s.student_type); setSFee(s.monthly_fee_mad ? String(s.monthly_fee_mad) : '')
@@ -246,6 +260,20 @@ export default function StudentProfilePage() {
     setATitle(''); setADesc(''); setALink(''); setADue('')
     setAssignments(await fetchAssignments(id))
     setABusy(false)
+  }
+  async function enroll() {
+    if (!enrollId) return
+    setEnrolling(true)
+    await enrollStudent(id, enrollId, staff.id)
+    setEnrollId('')
+    const [enr, prog] = await Promise.all([fetchEnrollments(id), fetchCourseProgress(id)])
+    setEnrolled(enr); setCourseProg(prog); setEnrolling(false)
+  }
+  async function unenroll(courseId: string) {
+    if (!confirm('إلغاء تسجيل الطالب من هذه الدورة؟ (يبقى تقدّمه محفوظًا)')) return
+    await unenrollStudent(id, courseId)
+    const [enr, prog] = await Promise.all([fetchEnrollments(id), fetchCourseProgress(id)])
+    setEnrolled(enr); setCourseProg(prog)
   }
   async function applyPath() {
     if (!applyId) return
@@ -563,6 +591,36 @@ export default function StudentProfilePage() {
               {/* OVERVIEW */}
               {tab === 'overview' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Course enrollment — the main learning workflow */}
+                  <div className="md:col-span-2 border border-blue-200 bg-blue-50/40 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-3"><BookOpen size={15} className="text-blue-600" /><span className="text-[13px] font-black text-zinc-800">الدورات المسجَّل بها</span></div>
+
+                    {courseProg.length === 0 && <p className="text-[13px] text-zinc-400 mb-3">غير مسجّل في أي دورة بعد. سجّله في دورة ليرى محتواها كاملًا في فضائه.</p>}
+                    <div className="space-y-2 mb-3">
+                      {courseProg.map(cp => (
+                        <div key={cp.course_id} className="bg-white rounded-xl border border-zinc-100 p-3">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="font-semibold text-[14px] text-zinc-800">{cp.title}{cp.level && <span className="mr-1.5 text-[11px] font-bold bg-zinc-100 text-zinc-600 px-1.5 rounded">{cp.level}</span>}</div>
+                            <button onClick={() => unenroll(cp.course_id)} className="text-[11px] text-zinc-400 hover:text-red-500">إلغاء التسجيل</button>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 h-2 bg-zinc-100 rounded-full overflow-hidden"><div className="h-full bg-emerald-500 rounded-full" style={{ width: `${cp.progress}%` }} /></div>
+                            <span className="text-[12px] font-bold text-zinc-700">{cp.done}/{cp.total} · {cp.progress}%</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <select value={enrollId} onChange={e => setEnrollId(e.target.value)} className="flex-1 border border-blue-200 rounded-lg px-3 py-2 text-[13px] bg-white">
+                        <option value="">اختر دورة لتسجيله بها</option>
+                        {allCourses.filter(c => !enrolled.some(e => e.course_id === c.id)).map(c => <option key={c.id} value={c.id}>{c.title}{c.level ? ` (${c.level})` : ''}</option>)}
+                      </select>
+                      <button onClick={enroll} disabled={!enrollId || enrolling} className="text-[13px] font-bold px-4 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-50 flex items-center gap-1.5">{enrolling ? <Loader2 size={13} className="animate-spin" /> : <Plus size={14} />} تسجيل</button>
+                    </div>
+                    {allCourses.length === 0 && <p className="text-[11px] text-zinc-400 mt-2">لا توجد دورات بعد — أنشئ دورة من قسم «الدورات».</p>}
+                  </div>
+
                   {/* Portal control — what the student sees */}
                   <div className="md:col-span-2 border border-yellow-200 bg-yellow-50/40 rounded-xl p-4">
                     <div className="flex items-center gap-2 mb-3"><span className="text-[13px] font-black text-zinc-800">🎛️ التحكم في فضاء الطالب</span><span className="text-[11px] text-zinc-400">يظهر مباشرة على student.inglizi.com</span></div>
@@ -792,8 +850,8 @@ export default function StudentProfilePage() {
 
               {tab === 'progress' && (
                 <div className="space-y-4">
-                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-[12px] text-blue-800 leading-relaxed">
-                    💡 التمارين التي تُكلّف بها الطالب هنا تظهر له فورًا في فضائه على <b dir="ltr">student.inglizi.com</b> (تبويب «التمارين»). أضف رابط درس/تمرين من Inglizi.com ليفتحه الطالب مباشرة.
+                  <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-[12px] text-amber-800 leading-relaxed">
+                    ⚠️ هذا التكليف اليدوي مخصّص <b>للحالات الخاصة فقط</b>. الطريقة الأساسية هي <b>تسجيل الطالب في دورة</b> (تبويب «نظرة عامة») فيرى محتواها كاملًا تلقائيًا. استخدم هذا القسم لإضافة تمرين فردي إضافي خارج الدورة.
                   </div>
 
                   {/* Apply a ready path template */}

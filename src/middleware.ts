@@ -20,6 +20,7 @@ const ADMIN_ROUTES: Record<string, string> = {
   '/dashboard':   '/sales/dashboard',
   '/workspace':   '/sales/workspace',
   '/verify':      '/sales/verify',
+  '/courses':     '/sales/courses',
   '/templates':   '/sales/templates',
   '/leads':       '/sales/leads',
   '/today':       '/sales/today',
