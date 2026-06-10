@@ -4,6 +4,7 @@ import { Suspense } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import CrmSidebar from '@/components/CrmSidebar'
 import CrmTopHeader from '@/components/CrmTopHeader'
+import CrmErrorBoundary from '@/components/CrmErrorBoundary'
 import { useStaff } from '@/lib/staff-context'
 import { useCrmBasePath, useIsAdminDomain } from '@/lib/use-crm-path'
 import { supabase } from '@/lib/supabase'
@@ -39,7 +40,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 
       <div className="flex-1 min-w-0 flex flex-col">
         <CrmTopHeader title={title} breadcrumb={['لوحة التحكم', title]} userEmail={staff.email} roleLabel="المؤسس" base={base} onSignOut={handleSignOut} />
-        <main className="flex-1 min-w-0">{children}</main>
+        <main className="flex-1 min-w-0"><CrmErrorBoundary>{children}</CrmErrorBoundary></main>
       </div>
     </div>
   )
