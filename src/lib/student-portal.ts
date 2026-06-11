@@ -112,6 +112,12 @@ export async function studentLogin(token: string): Promise<{ ok: boolean; reason
   if (error) { console.error('studentLogin', error.message); return { ok: false, reason: 'error' } }
   return (data ?? { ok: false, reason: 'error' }) as { ok: boolean; reason?: string }
 }
+/** Is the current device still authorised? Polled so admin "reset" logs the session out live. */
+export async function deviceValid(token: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('student_device_valid', { p_token: token.trim().toUpperCase(), p_device_id: getDeviceId() })
+  if (error) return true   // network blip → don't kick the student
+  return data === true
+}
 /* CRM device management (staff). */
 export async function fetchStudentDevices(studentId: string): Promise<StudentDevice[]> {
   const { data } = await supabase.from('student_devices').select('*').eq('student_id', studentId).order('last_seen', { ascending: false })

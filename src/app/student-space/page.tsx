@@ -1,16 +1,16 @@
 'use client'
 
-import { Suspense, Component, type ReactNode, useEffect, useState } from 'react'
+import { Suspense, Component, type ReactNode, useEffect, useState, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
   Loader2, KeyRound, BookOpen, FileText, Download, CheckCircle2, Circle,
   ExternalLink, Sparkles, LogOut, TrendingUp, Home, Route, Award, PlayCircle,
   Flame, Lock, AlertCircle, MessageSquareText, Video, PenLine, HelpCircle, Mic,
   ChevronLeft, ChevronRight, ListChecks, Bell, MessageSquare, Star, Trophy, Medal,
-  CalendarDays, Clock, BarChart3, Send, Play, Megaphone, X as XIcon,
+  CalendarDays, Clock, BarChart3, Send, Play,
 } from 'lucide-react'
 import {
-  fetchStudentSpace, completeExercise, logActivity, fileUrl, studentLogin, getDeviceId,
+  fetchStudentSpace, completeExercise, logActivity, fileUrl, studentLogin, getDeviceId, deviceValid,
   type StudentSpace, type StudentAssignment, type PortalLesson, type PortalModule,
 } from '@/lib/student-portal'
 import { openLesson, completeLesson, fetchStudentResources, resourceUrl, fetchProgressMeta, fetchReadingUnits, fetchMySubmissions, fetchNotifications, markNotificationsRead, EXAMS_URL, CORRECTOR_WHATSAPP, type CourseResource, type ProgressMeta, type UnitSubmission, type StudentNotification } from '@/lib/lms'
@@ -18,6 +18,8 @@ import VideoPlayer from '@/components/VideoPlayer'
 import QuizRunner from '@/components/QuizRunner'
 import ReadingViewer from '@/components/ReadingViewer'
 import SubmissionPanel from '@/components/SubmissionPanel'
+import StudentAnnouncements from '@/components/StudentAnnouncements'
+import { fetchStudentAnnouncements, type StudentAnnouncement } from '@/lib/announcements'
 
 const isVideoUrl = (u?: string | null) => !!u && /(youtube\.com|youtu\.be)/i.test(u)
 const ytId = (u?: string | null) => {
@@ -89,6 +91,9 @@ function Portal() {
   const [otpMsg, setOtpMsg] = useState('')
   const [otpBusy, setOtpBusy] = useState(false)
   const [otpReveal, setOtpReveal] = useState(false)   // show the self-serve WhatsApp-OTP option
+  const [forcedMsg, setForcedMsg] = useState('')      // shown on login after a forced logout
+  const seenCorrections = useRef<Set<string> | null>(null)
+  const [anns, setAnns] = useState<StudentAnnouncement[]>([])
 
   async function enter(rawToken: string, isAuto = false): Promise<boolean> {
     const t = rawToken.trim().toUpperCase(); if (!t) return false
@@ -118,8 +123,43 @@ function Portal() {
     })()
   }, [])
   async function refresh() { if (token) { const r = await fetchStudentSpace(token); if (r.found) setSpace(r) } }
-  useEffect(() => { if (token) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta); fetchReadingUnits(token).then(ids => setReadingUnits(new Set(ids))); fetchMySubmissions(token).then(setSubmissions); fetchNotifications(token).then(setNotifs) } }, [token, space])
+  useEffect(() => { if (token) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta); fetchReadingUnits(token).then(ids => setReadingUnits(new Set(ids))); fetchMySubmissions(token).then(setSubmissions); fetchNotifications(token).then(setNotifs); fetchStudentAnnouncements(token).then(setAnns) } }, [token, space])
   function reloadSubmissions() { if (token) fetchMySubmissions(token).then(setSubmissions) }
+
+  function playDing() {
+    try {
+      const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext; if (!Ctx) return
+      const ac = new Ctx(); const now = ac.currentTime
+      ;[880, 1320].forEach((f, i) => {
+        const o = ac.createOscillator(), g = ac.createGain()
+        o.type = 'sine'; o.frequency.value = f
+        o.connect(g); g.connect(ac.destination)
+        const t = now + i * 0.14
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.18, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22)
+        o.start(t); o.stop(t + 0.24)
+      })
+    } catch {}
+  }
+
+  // Live guard: kick the session if access was removed; ding on a fresh correction.
+  useEffect(() => {
+    if (!token || !space?.found) return
+    let alive = true
+    async function tick() {
+      if (!alive) return
+      const ok = await deviceValid(token)
+      if (alive && !ok) { setSpace(null); setToken(''); try { localStorage.removeItem(TOKEN_KEY) } catch {}; setForcedMsg('تم إنهاء جلستك على هذا الجهاز من قِبل الإدارة. سجّل الدخول مجددًا.'); return }
+      const list = await fetchNotifications(token); if (!alive) return
+      const corr = new Set(list.filter(n => n.type === 'correction' && !n.is_read).map(n => n.id))
+      if (seenCorrections.current && [...corr].some(id => !seenCorrections.current!.has(id))) playDing()
+      seenCorrections.current = corr
+      setNotifs(list)
+    }
+    const iv = setInterval(tick, 45_000)
+    const onVis = () => { if (document.visibilityState === 'visible') tick() }
+    document.addEventListener('visibilitychange', onVis)
+    return () => { alive = false; clearInterval(iv); document.removeEventListener('visibilitychange', onVis) }
+  }, [token, space?.found])
   function logout() { try { localStorage.removeItem(TOKEN_KEY) } catch {}; setSpace(null); setToken(''); setCode(''); setError('') }
 
   async function sendOtpCode() {
@@ -157,6 +197,9 @@ function Portal() {
             <h1 className="text-white font-black text-[22px]">فضاء الطالب</h1>
             <p className="text-zinc-400 text-[13px] mt-1">منصة Inglizi.com لتعلّم الإنجليزية</p>
           </div>
+          {forcedMsg && !otpFor && (
+            <div className="bg-amber-500/15 border border-amber-500/30 rounded-2xl px-4 py-3 mb-3 text-amber-200 text-[12.5px] flex items-center gap-2"><Lock size={15} /> {forcedMsg}</div>
+          )}
           <form onSubmit={e => { e.preventDefault(); otpFor ? (otpSent ? verifyOtpCode() : sendOtpCode()) : enter(code) }} className="bg-white rounded-3xl p-6 shadow-2xl">
             {!otpFor ? (
               <>
@@ -371,6 +414,9 @@ function Portal() {
         </div>
       </header>
 
+      {/* CRM announcements: moving banner + login popup */}
+      <StudentAnnouncements anns={anns} />
+
       <main className="max-w-6xl mx-auto px-4 pt-4">
 
         {/* ═══════════ ALWAYS-VISIBLE DEADLINE REMINDER ═══════════ */}
@@ -456,6 +502,24 @@ function Portal() {
                   </div>
                 </Card>
               )}
+
+              {/* Exercises sent for correction — counts */}
+              {course && (() => {
+                const sent = submissions.length
+                const reviewed = submissions.filter(x => x.status === 'reviewed').length
+                const pending = submissions.filter(x => x.status === 'pending').length
+                const hasUnread = notifs.some(n => n.type === 'correction' && !n.is_read)
+                return (
+                  <Card title="التمارين والتصحيح" sub="محادثاتك المُرسَلة لفريق التصحيح" icon={Send} iconColor="text-indigo-500">
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="bg-zinc-50 rounded-xl p-3"><div className="text-[22px] font-black text-zinc-900">{sent}</div><div className="text-[11px] text-zinc-400">مُرسَلة</div></div>
+                      <div className="bg-emerald-50 rounded-xl p-3"><div className="text-[22px] font-black text-emerald-600">{reviewed}</div><div className="text-[11px] text-emerald-700/70">مُصحَّحة</div></div>
+                      <div className="bg-amber-50 rounded-xl p-3"><div className="text-[22px] font-black text-amber-600">{pending}</div><div className="text-[11px] text-amber-700/70">بانتظار</div></div>
+                    </div>
+                    {hasUnread && <button onClick={() => setTab('path')} className="mt-3 w-full py-2.5 rounded-xl bg-emerald-500 text-white font-black text-[12.5px] flex items-center justify-center gap-1.5 animate-pulse">✅ وصلك تصحيح جديد — اضغط لقراءته</button>}
+                  </Card>
+                )
+              })()}
 
               {/* Learning path */}
               {course && (
@@ -662,13 +726,24 @@ function Portal() {
                     className="flex items-center justify-center gap-2 px-4 py-3 bg-yellow-50 border-t border-yellow-100 text-yellow-800 font-bold text-[12.5px] hover:bg-yellow-100">
                     <Award size={15} /> امتحان نهاية الوحدة — اختبر معرفتك <ExternalLink size={13} />
                   </a>
-                  {/* Submit the unit conversation for correction */}
-                  {(() => { const subs = submissions.filter(x => x.module_id === m.id); const last = subs[0]; return (
-                    <button onClick={() => setSubmitUnit({ id: m.id, title: m.title })}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-50 border-t border-indigo-100 text-indigo-800 font-bold text-[12.5px] hover:bg-indigo-100">
-                      <Send size={14} /> {last ? (last.status === 'reviewed' ? 'عرض تصحيح المحادثة ✅' : 'محادثتك قيد المراجعة…') : 'سلّم محادثة الوحدة للتصحيح'}
-                    </button>
-                  )})()}
+                  {/* Submit the unit conversation for correction (+ alert when a correction is ready) */}
+                  {(() => {
+                    const subs = submissions.filter(x => x.module_id === m.id); const last = subs[0]
+                    const reviewed = last?.status === 'reviewed'
+                    const unreadCorr = reviewed && notifs.some(n => n.type === 'correction' && !n.is_read && (n.body || '').includes(m.title))
+                    if (reviewed) return (
+                      <button onClick={() => setSubmitUnit({ id: m.id, title: m.title })}
+                        className={`w-full flex items-center justify-center gap-2 px-4 py-3 border-t font-black text-[12.5px] ${unreadCorr ? 'bg-emerald-500 text-white border-emerald-600 animate-pulse' : 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100'}`}>
+                        {unreadCorr ? <><span className="w-2 h-2 rounded-full bg-white" /> تصحيحك جاهز — اضغط لقراءته الآن</> : <><CheckCircle2 size={14} /> عرض تصحيح المحادثة {last?.score != null ? `· ${last.score}/100` : ''}</>}
+                      </button>
+                    )
+                    return (
+                      <button onClick={() => setSubmitUnit({ id: m.id, title: m.title })}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-50 border-t border-indigo-100 text-indigo-800 font-bold text-[12.5px] hover:bg-indigo-100">
+                        <Send size={14} /> {last ? 'محادثتك قيد المراجعة…' : 'سلّم محادثة الوحدة للتصحيح'}
+                      </button>
+                    )
+                  })()}
                 </div>
               )})}
           </div>

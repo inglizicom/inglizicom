@@ -556,3 +556,8 @@ p {
 }
 .wm-drift-a { animation: wm-drift-a 48s ease-in-out infinite; }
 .wm-drift-b { animation: wm-drift-b 60s ease-in-out infinite; }
+
+/* ===== Announcement moving banner (ticker) ===== */
+@keyframes ann-marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+.ann-marquee { animation: ann-marquee 22s linear infinite; }
+.ann-marquee:hover { animation-play-state: paused; }
