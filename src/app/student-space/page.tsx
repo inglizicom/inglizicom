@@ -55,6 +55,7 @@ function Portal() {
   const [error, setError]     = useState('')
   const [tab, setTab]         = useState<Tab>('home')
   const [videoLesson, setVideoLesson] = useState<PortalLesson | null>(null)
+  const [notifOpen, setNotifOpen] = useState(false)
 
   async function enter(rawToken: string, isAuto = false): Promise<boolean> {
     const t = rawToken.trim().toUpperCase(); if (!t) return false
@@ -170,10 +171,40 @@ function Portal() {
             <span className="font-black text-[16px] tracking-wide hidden sm:block">INGLIZI</span>
           </div>
           <div className="flex-1" />
-          <button className="relative w-9 h-9 rounded-xl hover:bg-white/10 flex items-center justify-center text-zinc-300">
-            <Bell size={18} />
-            {pendingLessons > 0 && <span className="absolute -top-0.5 -right-0.5 bg-rose-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{pendingLessons}</span>}
-          </button>
+          {(() => {
+            const notifs: { icon: any; text: string; sub?: string; go: () => void }[] = []
+            if (today) notifs.push({ icon: PlayCircle, text: 'درس اليوم بانتظارك', sub: today.lesson.title, go: () => setTab('home') })
+            if (pendingLessons > 0) notifs.push({ icon: BookOpen, text: `لديك ${pendingLessons} درس لإكماله`, sub: 'تابع مسارك', go: () => setTab('path') })
+            const pendEx = manualEx.filter(e => e.status !== 'done').length
+            if (pendEx > 0) notifs.push({ icon: ListChecks, text: `${pendEx} تمرين إضافي مطلوب`, go: () => setTab('tasks') })
+            if (nextExam) notifs.push({ icon: CalendarDays, text: 'امتحان قادم', sub: nextExam.title, go: () => setTab('progress') })
+            if (s.admin_message) notifs.push({ icon: MessageSquareText, text: 'رسالة من مدرّسك', sub: s.admin_message, go: () => setTab('home') })
+            return (
+              <div className="relative">
+                <button onClick={() => setNotifOpen(o => !o)} className="relative w-9 h-9 rounded-xl hover:bg-white/10 flex items-center justify-center text-zinc-300">
+                  <Bell size={18} />
+                  {notifs.length > 0 && <span className="absolute -top-0.5 -right-0.5 bg-rose-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{notifs.length}</span>}
+                </button>
+                {notifOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
+                    <div className="absolute left-0 mt-2 w-[84vw] max-w-[320px] bg-white rounded-2xl shadow-2xl border border-zinc-100 z-50 overflow-hidden text-zinc-800" dir="rtl">
+                      <div className="px-4 py-3 border-b border-zinc-100 font-bold text-[14px]">الإشعارات</div>
+                      <div className="max-h-[60vh] overflow-y-auto">
+                        {notifs.length === 0 ? <div className="py-8 text-center text-[13px] text-zinc-400">لا إشعارات جديدة 🎉</div>
+                          : notifs.map((n, i) => { const Icon = n.icon; return (
+                            <button key={i} onClick={() => { n.go(); setNotifOpen(false) }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-zinc-50 text-right">
+                              <div className="w-8 h-8 rounded-lg bg-yellow-50 flex items-center justify-center flex-shrink-0"><Icon size={15} className="text-yellow-600" /></div>
+                              <div className="flex-1 min-w-0"><div className="text-[13px] font-semibold">{n.text}</div>{n.sub && <div className="text-[11px] text-zinc-400 truncate">{n.sub}</div>}</div>
+                            </button>
+                          )})}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )
+          })()}
           <div className="flex items-center gap-2.5">
             <div className="text-left hidden sm:block leading-tight"><div className="font-bold text-[13px]">{s.full_name}</div><div className="text-[11px] text-zinc-400">{course?.title ?? 'غير مسجّل'}</div></div>
             <img src={avatarUrl(s.full_name)} alt="" className="w-9 h-9 rounded-full bg-white/10 ring-2 ring-yellow-400/40" />
@@ -547,12 +578,15 @@ function LessonRow({ l, unlocked, onOpen, onComplete }: { l: PortalLesson; unloc
   if (!unlocked) return (
     <div className="flex items-center gap-3 px-4 py-3 opacity-60"><Lock size={16} className="text-zinc-300 flex-shrink-0" /><div className="flex-1 min-w-0"><div className="text-[13px] font-semibold text-zinc-500 truncate">{l.title}</div><div className="text-[11px] text-zinc-400">{l.is_locked ? 'مقفل' : 'أكمل الدرس السابق لفتحه'}</div></div></div>
   )
+  // whole row is clickable → opens the lesson
   return (
-    <div className="flex items-center gap-3 px-4 py-3">
+    <div onClick={() => onOpen(l, url)} className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-zinc-50 transition-colors">
       {l.status === 'completed' ? <CheckCircle2 size={17} className="text-emerald-500 flex-shrink-0" /> : l.status === 'opened' ? <PlayCircle size={17} className="text-yellow-500 flex-shrink-0" /> : <Icon size={17} className="text-zinc-400 flex-shrink-0" />}
       <div className="flex-1 min-w-0"><div className="text-[13px] font-semibold text-zinc-800 truncate">{l.title}</div><div className="text-[11px] text-zinc-400">{LTYPE_AR[l.type] ?? l.type}{l.status === 'completed' ? ' · مكتمل' : l.status === 'opened' ? ' · قيد التقدم' : ''}</div></div>
-      {url && <button onClick={() => onOpen(l, url)} className="text-[11px] font-bold text-white bg-blue-500 px-2.5 py-1 rounded-lg">فتح</button>}
-      {l.status !== 'completed' ? <button onClick={() => onComplete(l)} className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">تم</button> : <span className="text-[11px] font-bold text-emerald-600">✓</span>}
+      {l.status !== 'completed'
+        ? <button onClick={e => { e.stopPropagation(); onComplete(l) }} className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg flex-shrink-0">تم</button>
+        : <span className="text-[11px] font-bold text-emerald-600 flex-shrink-0">✓</span>}
+      <ChevronLeft size={16} className="text-zinc-300 flex-shrink-0" />
     </div>
   )
 }

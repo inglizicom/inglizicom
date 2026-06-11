@@ -63,10 +63,17 @@ export default function VideoPlayer({ url, title, onClose, onWatched }: Props) {
           origin: typeof window !== 'undefined' ? window.location.origin : undefined,
         },
         events: {
-          onReady: (e: any) => { setReady(true); setDur(e.target.getDuration() || 0); try { e.target.playVideo() } catch {} },
+          onReady: (e: any) => {
+            setReady(true); setDur(e.target.getDuration() || 0)
+            try { e.target.setVolume(100); e.target.unMute() } catch {}   // loudest, unmuted
+            try { e.target.playVideo() } catch {}
+          },
           onStateChange: (e: any) => {
-            setPlaying(e.data === YT.PlayerState.PLAYING)
-            if (e.data === YT.PlayerState.ENDED) fireWatched()
+            const st = e.data
+            // treat playing + buffering as "playing" so the cover doesn't flash mid-stream
+            setPlaying(st === YT.PlayerState.PLAYING || st === YT.PlayerState.BUFFERING)
+            if (st === YT.PlayerState.PLAYING) { try { playerRef.current?.setVolume(100); playerRef.current?.unMute() } catch {} ; setMuted(false) }
+            if (st === YT.PlayerState.ENDED) fireWatched()
           },
         },
       })
@@ -82,10 +89,25 @@ export default function VideoPlayer({ url, title, onClose, onWatched }: Props) {
     return () => { cancelled = true; clearInterval(interval); try { playerRef.current?.destroy() } catch {} }
   }, [id])
 
+  // Unlock orientation when leaving fullscreen.
+  useEffect(() => {
+    const onFs = () => { if (!document.fullscreenElement && !(document as any).webkitFullscreenElement) { try { (screen.orientation as any)?.unlock?.() } catch {} } }
+    document.addEventListener('fullscreenchange', onFs)
+    document.addEventListener('webkitfullscreenchange', onFs as any)
+    return () => { document.removeEventListener('fullscreenchange', onFs); document.removeEventListener('webkitfullscreenchange', onFs as any) }
+  }, [])
+
   function toggle() { const p = playerRef.current; if (!p) return; playing ? p.pauseVideo() : p.playVideo() }
   function seek(v: number) { playerRef.current?.seekTo(v, true); setCur(v) }
-  function toggleMute() { const p = playerRef.current; if (!p) return; muted ? p.unMute() : p.mute(); setMuted(!muted) }
-  function fullscreen() { const el: any = wrapRef.current; (el?.requestFullscreen || el?.webkitRequestFullscreen)?.call(el) }
+  function toggleMute() { const p = playerRef.current; if (!p) return; muted ? (p.unMute(), p.setVolume(100)) : p.mute(); setMuted(!muted) }
+  function fullscreen() {
+    const el: any = wrapRef.current; if (!el) return
+    const isFs = document.fullscreenElement || (document as any).webkitFullscreenElement
+    if (isFs) { (document.exitFullscreen || (document as any).webkitExitFullscreen)?.call(document); return }
+    ;(el.requestFullscreen || el.webkitRequestFullscreen || el.webkitEnterFullscreen)?.call(el)
+    // auto-rotate to landscape on mobile
+    setTimeout(() => { try { (screen.orientation as any)?.lock?.('landscape') } catch {} }, 120)
+  }
 
   const progressPct = dur > 0 ? (cur / dur) * 100 : 0
 
@@ -108,14 +130,19 @@ export default function VideoPlayer({ url, title, onClose, onWatched }: Props) {
             <div className="absolute inset-0 flex items-center justify-center text-white text-[14px]">رابط الفيديو غير صالح</div>
           ) : (
             <>
-              {/* iframe — pointer-events disabled so NO YouTube chrome/logo/links are ever reachable */}
-              <div ref={holderRef} className="absolute inset-0 w-full h-full" style={{ pointerEvents: 'none' }} />
+              {/* iframe — wrapper has pointer-events:none so the (replacing) iframe INHERITS it.
+                  NO YouTube chrome/logo/title/links are ever reachable. */}
+              <div className="absolute inset-0 overflow-hidden" style={{ pointerEvents: 'none' }}>
+                <div ref={holderRef} className="w-full h-full" />
+              </div>
               {/* our click layer */}
               <button onClick={toggle} className="absolute inset-0 z-10" aria-label="تشغيل/إيقاف" />
-              {!ready && <div className="absolute inset-0 flex items-center justify-center"><Loader2 className="animate-spin text-yellow-400" size={32} /></div>}
-              {ready && !playing && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-16 h-16 rounded-full bg-yellow-400/90 flex items-center justify-center shadow-lg"><Play size={28} className="text-black" style={{ marginInlineStart: 3 }} /></div>
+              {/* opaque cover when not playing — fully hides YouTube's paused overlay / related videos / thumbnail */}
+              {(!playing || !ready) && (
+                <div className="absolute inset-0 z-20 bg-black flex items-center justify-center pointer-events-none">
+                  {!ready
+                    ? <Loader2 className="animate-spin text-yellow-400" size={32} />
+                    : <div className="w-16 h-16 rounded-full bg-yellow-400/90 flex items-center justify-center shadow-lg"><Play size={28} className="text-black" style={{ marginInlineStart: 3 }} /></div>}
                 </div>
               )}
             </>
