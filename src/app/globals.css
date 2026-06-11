@@ -539,3 +539,20 @@ p {
 .vp-fade  { animation: vp-fade 0.2s ease-out both }
 .vp-pop   { animation: vp-pop 0.28s cubic-bezier(0.34,1.56,0.64,1) both }
 .vp-pulse { animation: vp-pulse 2s ease-in-out infinite }
+
+/* ===== Student dashboard floating watermark (anti-sharing, traceable) ===== */
+@keyframes wm-drift-a {
+  0%   { transform: translate(8vw, 78vh) rotate(-6deg); }
+  25%  { transform: translate(58vw, 16vh) rotate(5deg); }
+  50%  { transform: translate(34vw, 54vh) rotate(-3deg); }
+  75%  { transform: translate(66vw, 30vh) rotate(7deg); }
+  100% { transform: translate(8vw, 78vh) rotate(-6deg); }
+}
+@keyframes wm-drift-b {
+  0%   { transform: translate(62vw, 20vh) rotate(5deg); }
+  33%  { transform: translate(14vw, 60vh) rotate(-7deg); }
+  66%  { transform: translate(50vw, 12vh) rotate(4deg); }
+  100% { transform: translate(62vw, 20vh) rotate(5deg); }
+}
+.wm-drift-a { animation: wm-drift-a 48s ease-in-out infinite; }
+.wm-drift-b { animation: wm-drift-b 60s ease-in-out infinite; }

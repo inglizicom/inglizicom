@@ -54,3 +54,31 @@ export async function sendByKind(to: string, kind: string, params: Record<string
   const bodyParams = k.keys.map(key => params[key] ?? '')
   return sendTemplate(to, template, k.lang, bodyParams)
 }
+
+/** Send a login OTP via an Authentication-category template (body code + copy-code button). */
+export async function sendOtp(to: string, code: string): Promise<boolean> {
+  if (!waConfigured()) return false
+  const num = waNormalize(to); if (!num) return false
+  const template = process.env.WHATSAPP_TPL_OTP || 'login_code'
+  const lang = process.env.WHATSAPP_OTP_LANG || 'ar'
+  const url = `https://graph.facebook.com/${API_VER}/${process.env.WHATSAPP_PHONE_ID}/messages`
+  const payload = {
+    messaging_product: 'whatsapp', to: num, type: 'template',
+    template: {
+      name: template, language: { code: lang },
+      components: [
+        { type: 'body', parameters: [{ type: 'text', text: code }] },
+        { type: 'button', sub_type: 'url', index: 0, parameters: [{ type: 'text', text: code }] },
+      ],
+    },
+  }
+  try {
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${process.env.WHATSAPP_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    if (!r.ok) { console.error('[whatsapp] otp failed', await r.text()); return false }
+    return true
+  } catch (e) { console.error('[whatsapp] otp network', e); return false }
+}

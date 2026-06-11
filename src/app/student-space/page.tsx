@@ -10,7 +10,7 @@ import {
   CalendarDays, Clock, BarChart3, Send,
 } from 'lucide-react'
 import {
-  fetchStudentSpace, completeExercise, logActivity, fileUrl, studentLogin,
+  fetchStudentSpace, completeExercise, logActivity, fileUrl, studentLogin, getDeviceId,
   type StudentSpace, type StudentAssignment, type PortalLesson, type PortalModule,
 } from '@/lib/student-portal'
 import { openLesson, completeLesson, fetchStudentResources, resourceUrl, fetchProgressMeta, fetchReadingUnits, fetchMySubmissions, fetchNotifications, markNotificationsRead, EXAMS_URL, type CourseResource, type ProgressMeta, type UnitSubmission, type StudentNotification } from '@/lib/lms'
@@ -81,6 +81,13 @@ function Portal() {
   const [submissions, setSubmissions] = useState<UnitSubmission[]>([])
   const [submitUnit, setSubmitUnit] = useState<{ id: string; title: string } | null>(null)
   const [notifs, setNotifs] = useState<StudentNotification[]>([])
+  // new-device WhatsApp OTP
+  const [otpFor, setOtpFor] = useState('')
+  const [otpSent, setOtpSent] = useState(false)
+  const [otpCode, setOtpCode] = useState('')
+  const [otpPhone, setOtpPhone] = useState('')
+  const [otpMsg, setOtpMsg] = useState('')
+  const [otpBusy, setOtpBusy] = useState(false)
 
   async function enter(rawToken: string, isAuto = false): Promise<boolean> {
     const t = rawToken.trim().toUpperCase(); if (!t) return false
@@ -89,7 +96,7 @@ function Portal() {
     const gate = await studentLogin(t)
     if (!gate.ok) {
       setLoading(false)
-      if (gate.reason === 'device_limit') { if (!isAuto) setError('هذا الحساب مُفعّل على جهاز آخر. لا يمكن استخدامه على أكثر من جهاز. تواصل مع الإدارة لإعادة الضبط.'); try { localStorage.removeItem(TOKEN_KEY) } catch {}; return false }
+      if (gate.reason === 'device_limit') { setOtpFor(t); setOtpSent(false); setOtpCode(''); setOtpMsg(''); setError(''); return false }  // → WhatsApp OTP step-up
       if (gate.reason === 'invalid') { if (!isAuto) setError('رمز غير صحيح، تواصل مع الإدارة.'); return false }
       if (!isAuto) setError('تعذّر الدخول، حاول مرة أخرى أو تواصل مع الإدارة.')
       return false
@@ -114,6 +121,29 @@ function Portal() {
   function reloadSubmissions() { if (token) fetchMySubmissions(token).then(setSubmissions) }
   function logout() { try { localStorage.removeItem(TOKEN_KEY) } catch {}; setSpace(null); setToken(''); setCode(''); setError('') }
 
+  async function sendOtpCode() {
+    if (!otpFor) return
+    setOtpBusy(true); setOtpMsg('')
+    try {
+      const r = await fetch('/api/auth/send-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: otpFor }) })
+      const d = await r.json()
+      if (d.sent) { setOtpSent(true); setOtpPhone(d.phone || '') }
+      else setOtpMsg(d.reason === 'not_configured' ? 'خدمة التحقق غير مفعّلة بعد. تواصل مع الإدارة.' : d.reason === 'no_phone' ? 'لا يوجد رقم واتساب مسجّل لديك. تواصل مع الإدارة.' : d.reason === 'rate' ? 'انتظر دقيقة قبل طلب رمز جديد.' : d.reason === 'invalid' ? 'رمز الدخول غير صحيح.' : 'تعذّر إرسال الرمز، حاول مجددًا.')
+    } catch { setOtpMsg('تعذّر إرسال الرمز، حاول مجددًا.') }
+    setOtpBusy(false)
+  }
+  async function verifyOtpCode() {
+    if (!otpFor || otpCode.trim().length < 4) return
+    setOtpBusy(true); setOtpMsg('')
+    try {
+      const r = await fetch('/api/auth/verify-otp', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: otpFor, code: otpCode.trim(), device_id: getDeviceId(), ua: typeof navigator !== 'undefined' ? navigator.userAgent : '' }) })
+      const d = await r.json()
+      if (d.ok) { const t = otpFor; setOtpFor(''); setOtpSent(false); setOtpCode(''); setOtpBusy(false); await enter(t); return }
+      setOtpMsg(d.reason === 'bad_code' ? 'الرمز غير صحيح.' : d.reason === 'expired' ? 'انتهت صلاحية الرمز، اطلب رمزًا جديدًا.' : d.reason === 'locked' ? 'محاولات كثيرة، اطلب رمزًا جديدًا.' : d.reason === 'no_code' ? 'اطلب الرمز أولًا.' : 'تعذّر التحقق، حاول مجددًا.')
+    } catch { setOtpMsg('تعذّر التحقق، حاول مجددًا.') }
+    setOtpBusy(false)
+  }
+
   if (booting) return <div className="min-h-screen bg-[#14161c] flex items-center justify-center"><Loader2 className="animate-spin text-yellow-400" size={28} /></div>
 
   /* ════ LOGIN ════ */
@@ -126,15 +156,41 @@ function Portal() {
             <h1 className="text-white font-black text-[22px]">فضاء الطالب</h1>
             <p className="text-zinc-400 text-[13px] mt-1">منصة Inglizi.com لتعلّم الإنجليزية</p>
           </div>
-          <form onSubmit={e => { e.preventDefault(); enter(code) }} className="bg-white rounded-3xl p-6 shadow-2xl">
-            <label className="flex items-center gap-1.5 text-[13px] font-bold text-zinc-700 mb-2"><KeyRound size={15} className="text-zinc-400" /> رمز الدخول</label>
-            <input value={code} onChange={e => setCode(e.target.value)} placeholder="ING-XXXXXXXX" dir="ltr"
-              className="w-full px-4 py-3.5 text-[17px] font-bold tracking-widest text-center uppercase bg-zinc-50 border-2 border-zinc-200 rounded-2xl focus:outline-none focus:border-yellow-400" />
-            {error && <p className="text-[13px] text-red-600 mt-2 font-medium flex items-center gap-1.5"><AlertCircle size={14} /> {error}</p>}
-            <button type="submit" disabled={loading || !code.trim()} className="mt-4 w-full py-3.5 rounded-2xl bg-black text-white font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-50">
-              {loading ? <Loader2 size={17} className="animate-spin" /> : <Sparkles size={17} />} دخول
-            </button>
-            <p className="text-[11px] text-zinc-400 text-center mt-3 leading-relaxed">ستجد رمز الدخول على وصل الدفع الخاص بك أو من إدارة Inglizi.com.</p>
+          <form onSubmit={e => { e.preventDefault(); otpFor ? (otpSent ? verifyOtpCode() : sendOtpCode()) : enter(code) }} className="bg-white rounded-3xl p-6 shadow-2xl">
+            {!otpFor ? (
+              <>
+                <label className="flex items-center gap-1.5 text-[13px] font-bold text-zinc-700 mb-2"><KeyRound size={15} className="text-zinc-400" /> رمز الدخول</label>
+                <input value={code} onChange={e => setCode(e.target.value)} placeholder="ING-XXXXXXXX" dir="ltr"
+                  className="w-full px-4 py-3.5 text-[17px] font-bold tracking-widest text-center uppercase bg-zinc-50 border-2 border-zinc-200 rounded-2xl focus:outline-none focus:border-yellow-400" />
+                {error && <p className="text-[13px] text-red-600 mt-2 font-medium flex items-center gap-1.5"><AlertCircle size={14} /> {error}</p>}
+                <button type="submit" disabled={loading || !code.trim()} className="mt-4 w-full py-3.5 rounded-2xl bg-black text-white font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-50">
+                  {loading ? <Loader2 size={17} className="animate-spin" /> : <Sparkles size={17} />} دخول
+                </button>
+                <p className="text-[11px] text-zinc-400 text-center mt-3 leading-relaxed">ستجد رمز الدخول على وصل الدفع الخاص بك أو من إدارة Inglizi.com.</p>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-1.5 text-[14px] font-black text-zinc-800 mb-1.5"><Lock size={16} className="text-amber-500" /> تأكيد جهاز جديد</div>
+                <p className="text-[12px] text-zinc-500 leading-relaxed mb-4">حسابك مُفعّل على جهاز آخر. لحماية حسابك من المشاركة، سنرسل رمز تحقق إلى رقم واتساب المسجّل لديك.</p>
+                {!otpSent ? (
+                  <button type="button" onClick={sendOtpCode} disabled={otpBusy} className="w-full py-3.5 rounded-2xl bg-[#25D366] text-white font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-50">
+                    {otpBusy ? <Loader2 size={17} className="animate-spin" /> : <MessageSquare size={17} />} أرسل رمز التحقق على واتساب
+                  </button>
+                ) : (
+                  <>
+                    <p className="text-[12px] text-zinc-500 mb-2">أدخل الرمز المُرسل إلى واتساب <span dir="ltr" className="font-bold">{otpPhone}</span></p>
+                    <input value={otpCode} onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" placeholder="••••••" dir="ltr"
+                      className="w-full px-4 py-3.5 text-[20px] font-black tracking-[8px] text-center bg-zinc-50 border-2 border-zinc-200 rounded-2xl focus:outline-none focus:border-yellow-400" />
+                    <button type="submit" disabled={otpBusy || otpCode.trim().length < 4} className="mt-3 w-full py-3.5 rounded-2xl bg-black text-white font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-50">
+                      {otpBusy ? <Loader2 size={17} className="animate-spin" /> : <CheckCircle2 size={17} />} تحقّق وادخل
+                    </button>
+                    <button type="button" onClick={sendOtpCode} disabled={otpBusy} className="w-full text-[11px] text-zinc-400 mt-2 hover:text-zinc-600">إعادة إرسال الرمز</button>
+                  </>
+                )}
+                {otpMsg && <p className="text-[12px] text-red-600 mt-3 font-medium flex items-center gap-1.5"><AlertCircle size={13} /> {otpMsg}</p>}
+                <button type="button" onClick={() => { setOtpFor(''); setOtpSent(false); setOtpMsg(''); setOtpCode(''); setError('') }} className="w-full text-[12px] text-zinc-400 mt-4 hover:text-zinc-600">رجوع</button>
+              </>
+            )}
           </form>
         </div>
       </div>
@@ -227,13 +283,10 @@ function Portal() {
 
   return (
     <div dir="rtl" className="min-h-screen bg-[#f4f4f6] pb-20">
-      {/* ─── Anti-sharing watermark (name + token, traceable) ─── */}
+      {/* ─── Anti-sharing watermark: two faint labels gently floating, traceable ─── */}
       <div className="pointer-events-none fixed inset-0 z-[5] overflow-hidden select-none" aria-hidden>
-        <div className="absolute -inset-1/4 flex flex-wrap gap-x-12 gap-y-20 -rotate-[24deg] opacity-[0.035]">
-          {Array.from({ length: 160 }).map((_, i) => (
-            <span key={i} className="text-[11px] font-bold text-black whitespace-nowrap">{s.full_name} · {s.verification_token}</span>
-          ))}
-        </div>
+        <span className="absolute top-0 right-0 text-[12px] font-bold text-black/[0.07] whitespace-nowrap wm-drift-a">{s.full_name} · {s.verification_token}</span>
+        <span className="absolute top-0 right-0 text-[12px] font-bold text-black/[0.06] whitespace-nowrap wm-drift-b">{s.full_name} · {s.verification_token}</span>
       </div>
 
       {/* ─── Header ─── */}
