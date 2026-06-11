@@ -3,10 +3,11 @@ import { supabase } from './supabase'
 /* ── Types ─────────────────────────────────────────────── */
 export interface LmsCourse { id: string; title: string; level: string | null; description: string | null; is_published: boolean; created_at: string; days_per_unit?: number }
 export interface ProgressMeta {
-  course_id: string; course_title: string; enrolled_at: string; days_per_unit: number
+  course_id: string; course_title: string; start_at: string; end_at: string | null; days_per_unit: number
   total_units: number; completed_units: number; current_unit_order: number; current_unit_title: string
   total_lessons: number; done_lessons: number
 }
+export interface StudentNotification { id: string; type: string; title: string; body: string | null; tab: string | null; is_read: boolean; created_at: string }
 /** Public exams/test bank — linked at the end of every unit. */
 export const EXAMS_URL = 'https://inglizi.com/exams'
 /** Corrector-team WhatsApp (voice notes for unit conversations). */
@@ -52,6 +53,27 @@ export async function fetchProgressMeta(token: string): Promise<ProgressMeta | n
   const { data } = await supabase.rpc('student_progress_meta', { p_token: token.trim().toUpperCase() })
   const row = Array.isArray(data) ? data[0] : data
   return (row ?? null) as ProgressMeta | null
+}
+
+/* ── Notifications (dashboard center; mirrored to WhatsApp) ── */
+export async function fetchNotifications(token: string): Promise<StudentNotification[]> {
+  const { data } = await supabase.rpc('student_notifications_list', { p_token: token.trim().toUpperCase() })
+  return (data ?? []) as StudentNotification[]
+}
+export async function markNotificationsRead(token: string): Promise<void> {
+  await supabase.rpc('student_notifications_read', { p_token: token.trim().toUpperCase() })
+}
+/* Create an in-app notification (CRM/staff side) and optionally fan-out to WhatsApp. */
+export async function createStudentNotification(studentId: string, n: { type?: string; title: string; body?: string; tab?: string }): Promise<void> {
+  await supabase.from('student_notifications').insert({ student_id: studentId, type: n.type || 'info', title: n.title, body: n.body || null, tab: n.tab || null })
+}
+/* Fire a WhatsApp message via our server route (Meta Cloud API). No-op until env is set. */
+export async function sendWhatsApp(phone: string, kind: string, params: Record<string, string>): Promise<boolean> {
+  try {
+    const r = await fetch('/api/wa/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone, kind, params }) })
+    const d = await r.json().catch(() => ({}))
+    return !!d.sent
+  } catch { return false }
 }
 
 /* ── Modules ───────────────────────────────────────────── */

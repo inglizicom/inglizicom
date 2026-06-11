@@ -13,7 +13,7 @@ import {
   fetchStudentSpace, completeExercise, logActivity, fileUrl,
   type StudentSpace, type StudentAssignment, type PortalLesson, type PortalModule,
 } from '@/lib/student-portal'
-import { openLesson, completeLesson, fetchStudentResources, resourceUrl, fetchProgressMeta, fetchReadingUnits, fetchMySubmissions, EXAMS_URL, type CourseResource, type ProgressMeta, type UnitSubmission } from '@/lib/lms'
+import { openLesson, completeLesson, fetchStudentResources, resourceUrl, fetchProgressMeta, fetchReadingUnits, fetchMySubmissions, fetchNotifications, markNotificationsRead, EXAMS_URL, type CourseResource, type ProgressMeta, type UnitSubmission, type StudentNotification } from '@/lib/lms'
 import VideoPlayer from '@/components/VideoPlayer'
 import QuizRunner from '@/components/QuizRunner'
 import ReadingViewer from '@/components/ReadingViewer'
@@ -80,6 +80,7 @@ function Portal() {
   const [readingUnit, setReadingUnit] = useState<{ id: string; title: string } | null>(null)
   const [submissions, setSubmissions] = useState<UnitSubmission[]>([])
   const [submitUnit, setSubmitUnit] = useState<{ id: string; title: string } | null>(null)
+  const [notifs, setNotifs] = useState<StudentNotification[]>([])
 
   async function enter(rawToken: string, isAuto = false): Promise<boolean> {
     const t = rawToken.trim().toUpperCase(); if (!t) return false
@@ -99,7 +100,7 @@ function Portal() {
     })()
   }, [])
   async function refresh() { if (token) { const r = await fetchStudentSpace(token); if (r.found) setSpace(r) } }
-  useEffect(() => { if (token) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta); fetchReadingUnits(token).then(ids => setReadingUnits(new Set(ids))); fetchMySubmissions(token).then(setSubmissions) } }, [token, space])
+  useEffect(() => { if (token) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta); fetchReadingUnits(token).then(ids => setReadingUnits(new Set(ids))); fetchMySubmissions(token).then(setSubmissions); fetchNotifications(token).then(setNotifs) } }, [token, space])
   function reloadSubmissions() { if (token) fetchMySubmissions(token).then(setSubmissions) }
   function logout() { try { localStorage.removeItem(TOKEN_KEY) } catch {}; setSpace(null); setToken(''); setCode(''); setError('') }
 
@@ -157,29 +158,32 @@ function Portal() {
   const exerciseLessons = flat.filter(x => x.lesson.type === 'exercise' || x.lesson.type === 'quiz').slice(0, 4)
   const nextExam = exams.find(e => e.score == null)
 
-  /* ════ DEADLINES (fixed days per unit, from enrollment) ════ */
+  /* ════ DEADLINES (auto-split of the plan's subscription window across units) ════ */
   const DAY_MS = 86400000
-  const sched = (() => {
-    if (!meta || !meta.enrolled_at) return null
-    const start = new Date(meta.enrolled_at).getTime()
-    const dpu = meta.days_per_unit || 7
+  const schedBase = meta?.start_at ? (() => {
+    const start = new Date(meta.start_at).getTime()
     const units = Math.max(1, meta.total_units)
-    const courseEnd = start + units * dpu * DAY_MS
-    const unitEnd = start + meta.current_unit_order * dpu * DAY_MS    // current unit deadline
+    const courseEnd = meta.end_at ? new Date(meta.end_at).getTime() : start + units * (meta.days_per_unit || 7) * DAY_MS
+    const per = (courseEnd - start) / units               // time window allotted per unit
+    return { start, units, courseEnd, per }
+  })() : null
+  const sched = (schedBase && meta) ? (() => {
+    const { start, units, courseEnd, per } = schedBase
+    const unitEnd = start + meta.current_unit_order * per   // current unit deadline
     const now = Date.now()
-    const daysLeftCourse = Math.ceil((courseEnd - now) / DAY_MS)
-    const daysLeftUnit = Math.ceil((unitEnd - now) / DAY_MS)
     const allDone = meta.completed_units >= units
     return {
-      courseEnd, unitEnd, daysLeftCourse, daysLeftUnit, allDone,
+      courseEnd, unitEnd, allDone,
+      daysLeftCourse: Math.ceil((courseEnd - now) / DAY_MS),
+      daysLeftUnit: Math.ceil((unitEnd - now) / DAY_MS),
       unitOverdue: !allDone && now > unitEnd,
       courseOverdue: !allDone && now > courseEnd,
       currentUnit: meta.current_unit_title,
       completedUnits: meta.completed_units, totalUnits: units,
     }
-  })()
+  })() : null
   const fmtDate = (ms: number) => new Date(ms).toLocaleDateString('ar-MA', { day: 'numeric', month: 'long' })
-  const unitDeadlineMs = (order: number) => meta?.enrolled_at ? new Date(meta.enrolled_at).getTime() + order * (meta.days_per_unit || 7) * DAY_MS : null
+  const unitDeadlineMs = (order: number) => schedBase ? schedBase.start + order * schedBase.per : null
 
   // week streak
   const activeDates = new Set(recent.map(r => r.created_at.slice(0, 10)))
@@ -222,42 +226,37 @@ function Portal() {
           </div>
           <div className="flex-1" />
           {(() => {
-            const notifs: { icon: any; text: string; sub?: string; go: () => void }[] = []
-            if (today) notifs.push({ icon: PlayCircle, text: 'درس اليوم بانتظارك', sub: today.lesson.title, go: () => setTab('home') })
-            if (pendingLessons > 0) notifs.push({ icon: BookOpen, text: `لديك ${pendingLessons} درس لإكماله`, sub: 'تابع مسارك', go: () => setTab('path') })
-            const pendEx = manualEx.filter(e => e.status !== 'done').length
-            if (pendEx > 0) notifs.push({ icon: ListChecks, text: `${pendEx} تمرين إضافي مطلوب`, go: () => setTab('tasks') })
-            if (nextExam) notifs.push({ icon: CalendarDays, text: 'امتحان قادم', sub: nextExam.title, go: () => setTab('progress') })
-            if (s.admin_message) notifs.push({ icon: MessageSquareText, text: 'رسالة من مدرّسك', sub: s.admin_message, go: () => setTab('home') })
-            const reviewed = submissions.find(x => x.status === 'reviewed')
-            if (reviewed) notifs.push({ icon: CheckCircle2, text: 'وصلك تصحيح محادثتك', sub: reviewed.module_title, go: () => setTab('path') })
-            if (sched?.unitOverdue) notifs.push({ icon: Clock, text: 'أنت متأخّر عن موعد الوحدة', sub: sched.currentUnit, go: () => setTab('path') })
-            const sig = notifs.map(n => n.text + (n.sub ?? '')).join('|')
-            const unread = notifs.length > 0 && sig !== seenSig   // badge clears once read, history stays
+            const TYPE_ICON: Record<string, any> = { correction: CheckCircle2, reminder: Bell, deadline: Clock, lesson: PlayCircle, message: MessageSquareText, info: Bell }
+            const TYPE_COLOR: Record<string, string> = { correction: 'bg-emerald-50 text-emerald-600', reminder: 'bg-yellow-50 text-yellow-600', deadline: 'bg-rose-50 text-rose-600', lesson: 'bg-violet-50 text-violet-600', message: 'bg-blue-50 text-blue-600', info: 'bg-zinc-100 text-zinc-500' }
+            const unread = notifs.filter(n => !n.is_read).length
             function openBell() {
               setNotifOpen(o => {
                 const next = !o
-                if (next && sig) { try { localStorage.setItem(NOTIF_SEEN_KEY, sig) } catch {} ; setSeenSig(sig) }
+                if (next && unread > 0) { markNotificationsRead(token); setNotifs(ns => ns.map(n => ({ ...n, is_read: true }))) }
                 return next
               })
             }
             return (
               <div className="relative">
                 <button onClick={openBell} className="relative w-9 h-9 rounded-xl hover:bg-white/10 flex items-center justify-center text-zinc-300">
-                  <Bell size={18} className={unread ? 'animate-[vp-pulse_2s_ease-in-out_infinite]' : ''} />
-                  {unread && <span className="absolute -top-0.5 -right-0.5 bg-rose-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center vp-pop">{notifs.length}</span>}
+                  <Bell size={18} className={unread > 0 ? 'animate-[vp-pulse_2s_ease-in-out_infinite]' : ''} />
+                  {unread > 0 && <span className="absolute -top-0.5 -right-0.5 bg-rose-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center vp-pop">{unread}</span>}
                 </button>
                 {notifOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
-                    <div className="absolute left-0 mt-2 w-[84vw] max-w-[320px] bg-white rounded-2xl shadow-2xl border border-zinc-100 z-50 overflow-hidden text-zinc-800" dir="rtl">
+                    <div className="absolute left-0 mt-2 w-[86vw] max-w-[340px] bg-white rounded-2xl shadow-2xl border border-zinc-100 z-50 overflow-hidden text-zinc-800" dir="rtl">
                       <div className="px-4 py-3 border-b border-zinc-100 font-bold text-[14px]">الإشعارات</div>
-                      <div className="max-h-[60vh] overflow-y-auto">
-                        {notifs.length === 0 ? <div className="py-8 text-center text-[13px] text-zinc-400">لا إشعارات جديدة 🎉</div>
-                          : notifs.map((n, i) => { const Icon = n.icon; return (
-                            <button key={i} onClick={() => { n.go(); setNotifOpen(false) }} className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-zinc-50 text-right">
-                              <div className="w-8 h-8 rounded-lg bg-yellow-50 flex items-center justify-center flex-shrink-0"><Icon size={15} className="text-yellow-600" /></div>
-                              <div className="flex-1 min-w-0"><div className="text-[13px] font-semibold">{n.text}</div>{n.sub && <div className="text-[11px] text-zinc-400 truncate">{n.sub}</div>}</div>
+                      <div className="max-h-[64vh] overflow-y-auto">
+                        {notifs.length === 0 ? <div className="py-8 text-center text-[13px] text-zinc-400">لا إشعارات بعد 🎉</div>
+                          : notifs.map(n => { const Icon = TYPE_ICON[n.type] ?? Bell; return (
+                            <button key={n.id} onClick={() => { if (n.tab) setTab(n.tab as Tab); setNotifOpen(false) }} className={`w-full flex items-start gap-3 px-4 py-2.5 text-right hover:bg-zinc-50 ${!n.is_read ? 'bg-yellow-50/40' : ''}`}>
+                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${TYPE_COLOR[n.type] ?? TYPE_COLOR.info}`}><Icon size={15} /></div>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-[13px] font-semibold flex items-center gap-1.5">{n.title}{!n.is_read && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 flex-shrink-0" />}</div>
+                                {n.body && <div className="text-[11px] text-zinc-500 leading-snug line-clamp-2">{n.body}</div>}
+                                <div className="text-[10px] text-zinc-300 mt-0.5">{fmtShort(n.created_at)}</div>
+                              </div>
                             </button>
                           )})}
                       </div>

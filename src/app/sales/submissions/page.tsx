@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Loader2, MessageCircle, Send, CheckCircle2, Clock, Inbox } from 'lucide-react'
 import { useStaff } from '@/lib/staff-context'
-import { fetchSubmissions, reviewSubmission, type CorrectorSubmission } from '@/lib/lms'
+import { fetchSubmissions, reviewSubmission, createStudentNotification, sendWhatsApp, type CorrectorSubmission } from '@/lib/lms'
 
 const waDigits = (p?: string) => { const d = (p || '').replace(/\D/g, ''); return d.startsWith('0') ? '212' + d.slice(1) : d }
 
@@ -49,7 +49,15 @@ function SubmissionCard({ s, by, onReviewed }: { s: CorrectorSubmission; by: str
 
   async function save() {
     setSaving(true)
-    await reviewSubmission(s.id, feedback.trim(), score === '' ? null : Math.max(0, Math.min(100, Number(score) || 0)), by)
+    const sc = score === '' ? null : Math.max(0, Math.min(100, Number(score) || 0))
+    await reviewSubmission(s.id, feedback.trim(), sc, by)
+    // persistent dashboard notification + WhatsApp fan-out
+    await createStudentNotification(s.student_id, {
+      type: 'correction', title: 'تم تصحيح محادثتك ✅',
+      body: `الوحدة: ${s.module_title ?? ''}${sc != null ? ` — التقييم ${sc}/100` : ''}${feedback.trim() ? ' · افتح لرؤية ملاحظة الأستاذ' : ''}`,
+      tab: 'path',
+    })
+    if (s.student_phone) sendWhatsApp(s.student_phone, 'correction', { name: (s.student_name || '').split(' ')[0], unit: s.module_title || '' })
     setSaving(false); onReviewed()
   }
 
