@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react'
 import {
   BookOpen, Plus, Trash2, Loader2, ChevronDown, ChevronLeft, X, Lock, Unlock,
-  Video, FileText, PenLine, HelpCircle, Mic, Layers,
+  Video, FileText, PenLine, HelpCircle, Mic, Layers, GripVertical, ChevronUp,
+  Pencil, Check,
 } from 'lucide-react'
 import { useStaff } from '@/lib/staff-context'
 import {
   fetchCourses, createCourse, deleteCourse,
-  fetchModules, addModule, deleteModule,
-  fetchLessons, addLesson, deleteLesson, toggleLessonLock,
+  fetchModules, addModule, updateModule, deleteModule, reorderModules,
+  fetchLessons, addLesson, updateLesson, deleteLesson, toggleLessonLock, reorderLessons,
   LESSON_TYPES, type LmsCourse, type LmsModule, type LmsLesson,
 } from '@/lib/lms'
 
@@ -93,6 +94,8 @@ function CourseBuilder({ courseId }: { courseId: string }) {
   const [modules, setModules] = useState<LmsModule[]>([])
   const [loading, setLoading] = useState(true)
   const [newMod, setNewMod] = useState('')
+  const [dragIdx, setDragIdx] = useState<number | null>(null)
+  const [overIdx, setOverIdx] = useState<number | null>(null)
 
   async function load() { setLoading(true); setModules(await fetchModules(courseId)); setLoading(false) }
   useEffect(() => { load() }, [courseId])
@@ -102,57 +105,124 @@ function CourseBuilder({ courseId }: { courseId: string }) {
     await addModule(courseId, newMod.trim(), modules.length + 1); setNewMod(''); load()
   }
   async function rm(id: string) { if (confirm('حذف الوحدة ودروسها؟')) { await deleteModule(id); load() } }
+  async function rename(id: string, title: string) {
+    setModules(ms => ms.map(m => m.id === id ? { ...m, title } : m))
+    await updateModule(id, title)
+  }
+
+  /* reorder — shared by drag-drop and the up/down buttons */
+  async function applyOrder(next: LmsModule[]) {
+    setModules(next)
+    await reorderModules(next.map(m => m.id))
+  }
+  function move(from: number, to: number) {
+    if (to < 0 || to >= modules.length) return
+    const next = [...modules]
+    const [it] = next.splice(from, 1); next.splice(to, 0, it)
+    applyOrder(next)
+  }
+  function onDrop(to: number) {
+    if (dragIdx === null || dragIdx === to) { setDragIdx(null); setOverIdx(null); return }
+    move(dragIdx, to); setDragIdx(null); setOverIdx(null)
+  }
 
   if (loading) return <div className="p-4 flex justify-center border-t border-zinc-50"><Loader2 className="animate-spin text-zinc-300" size={20} /></div>
 
   return (
     <div className="border-t border-zinc-50 p-4 space-y-3 bg-zinc-50/40">
-      {modules.map((m, i) => <ModuleBlock key={m.id} module={m} index={i} onDelete={() => rm(m.id)} />)}
+      {modules.length > 1 && <div className="text-[11px] text-zinc-400 flex items-center gap-1"><GripVertical size={12} /> اسحب الوحدة لإعادة ترتيبها، أو استخدم الأسهم</div>}
+      {modules.map((m, i) => (
+        <div
+          key={m.id}
+          draggable
+          onDragStart={() => setDragIdx(i)}
+          onDragOver={e => { e.preventDefault(); if (overIdx !== i) setOverIdx(i) }}
+          onDragEnd={() => { setDragIdx(null); setOverIdx(null) }}
+          onDrop={() => onDrop(i)}
+          className={`transition-all ${dragIdx === i ? 'opacity-40' : ''} ${overIdx === i && dragIdx !== null && dragIdx !== i ? 'ring-2 ring-yellow-400 rounded-xl' : ''}`}
+        >
+          <ModuleBlock
+            module={m} index={i} total={modules.length}
+            onDelete={() => rm(m.id)}
+            onRename={t => rename(m.id, t)}
+            onMoveUp={() => move(i, i - 1)}
+            onMoveDown={() => move(i, i + 1)}
+          />
+        </div>
+      ))}
       <div className="flex gap-2">
-        <input value={newMod} onChange={e => setNewMod(e.target.value)} placeholder="إضافة وحدة جديدة (مثال: الوحدة 1 — التحية)" className={INP} />
+        <input value={newMod} onChange={e => setNewMod(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="إضافة وحدة جديدة (مثال: الوحدة 1 — التحية)" className={INP} />
         <button onClick={add} disabled={!newMod.trim()} className="flex items-center gap-1 text-[13px] font-bold px-3 py-2 rounded-lg bg-zinc-900 text-white disabled:opacity-50"><Layers size={13} /> وحدة</button>
       </div>
     </div>
   )
 }
 
-function ModuleBlock({ module, index, onDelete }: { module: LmsModule; index: number; onDelete: () => void }) {
+function ModuleBlock({ module, index, total, onDelete, onRename, onMoveUp, onMoveDown }: {
+  module: LmsModule; index: number; total: number
+  onDelete: () => void; onRename: (t: string) => void; onMoveUp: () => void; onMoveDown: () => void
+}) {
   const [lessons, setLessons] = useState<LmsLesson[]>([])
   const [open, setOpen] = useState(false)
+  const [editTitle, setEditTitle] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
-  // lesson form
-  const [lTitle, setLTitle] = useState(''); const [lType, setLType] = useState('video')
-  const [lVideo, setLVideo] = useState(''); const [lFile, setLFile] = useState(''); const [lEx, setLEx] = useState('')
-  const [lQuiz, setLQuiz] = useState(false); const [lLock, setLLock] = useState(false)
-  const [saving, setSaving] = useState(false)
+  const [editLesson, setEditLesson] = useState<LmsLesson | null>(null)
 
   async function load() { setLessons(await fetchLessons(module.id)) }
   useEffect(() => { if (open) load() }, [open])
 
-  async function add() {
-    if (!lTitle.trim()) return
-    setSaving(true)
-    await addLesson({ moduleId: module.id, title: lTitle.trim(), order: lessons.length + 1, lessonType: lType, videoUrl: lVideo || undefined, fileUrl: lFile || undefined, exerciseUrl: lEx || undefined, hasQuiz: lQuiz, isLocked: lLock })
-    setLTitle(''); setLVideo(''); setLFile(''); setLEx(''); setLQuiz(false); setLLock(false); setShowForm(false)
-    await load(); setSaving(false)
-  }
-  async function rm(id: string) { await deleteLesson(id); load() }
+  async function rmLesson(id: string) { await deleteLesson(id); load() }
   async function lock(l: LmsLesson) { await toggleLessonLock(l.id, !l.is_locked); load() }
+  async function moveLesson(from: number, to: number) {
+    if (to < 0 || to >= lessons.length) return
+    const next = [...lessons]
+    const [it] = next.splice(from, 1); next.splice(to, 0, it)
+    setLessons(next); await reorderLessons(next.map(l => l.id))
+  }
+
+  function saveTitle() { const t = (editTitle ?? '').trim(); if (t && t !== module.title) onRename(t); setEditTitle(null) }
 
   return (
     <div className="bg-white border border-zinc-200 rounded-xl">
-      <button onClick={() => setOpen(o => !o)} className="w-full flex items-center gap-2 p-3 text-right">
+      <div className="flex items-center gap-2 p-3">
+        <span className="text-zinc-300 cursor-grab active:cursor-grabbing flex-shrink-0" title="اسحب لإعادة الترتيب"><GripVertical size={15} /></span>
         <span className="w-6 h-6 rounded bg-zinc-100 text-zinc-500 text-[11px] font-black flex items-center justify-center flex-shrink-0">{index + 1}</span>
-        <span className="flex-1 font-bold text-[13px] text-zinc-800">{module.title}</span>
-        <span className="text-[11px] text-zinc-400">{open ? 'إغلاق' : 'الدروس'}</span>
-        <button onClick={e => { e.stopPropagation(); onDelete() }} className="text-zinc-300 hover:text-red-500"><Trash2 size={14} /></button>
-      </button>
+        {editTitle !== null ? (
+          <input autoFocus value={editTitle} onChange={e => setEditTitle(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') saveTitle(); if (e.key === 'Escape') setEditTitle(null) }}
+            className="flex-1 border border-yellow-300 rounded px-2 py-1 text-[13px] font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400" />
+        ) : (
+          <button onClick={() => setOpen(o => !o)} className="flex-1 text-right font-bold text-[13px] text-zinc-800 truncate">{module.title}</button>
+        )}
+        {/* reorder arrows */}
+        <div className="flex flex-col -my-1">
+          <button onClick={onMoveUp} disabled={index === 0} className="text-zinc-300 hover:text-zinc-700 disabled:opacity-30" title="أعلى"><ChevronUp size={13} /></button>
+          <button onClick={onMoveDown} disabled={index === total - 1} className="text-zinc-300 hover:text-zinc-700 disabled:opacity-30" title="أسفل"><ChevronDown size={13} /></button>
+        </div>
+        {editTitle !== null ? (
+          <button onClick={saveTitle} className="text-emerald-500 hover:text-emerald-700" title="حفظ"><Check size={15} /></button>
+        ) : (
+          <button onClick={() => setEditTitle(module.title)} className="text-zinc-300 hover:text-zinc-700" title="تعديل الاسم"><Pencil size={13} /></button>
+        )}
+        <button onClick={() => setOpen(o => !o)} className="text-[11px] text-zinc-400 flex-shrink-0">{open ? 'إغلاق' : 'الدروس'}</button>
+        <button onClick={onDelete} className="text-zinc-300 hover:text-red-500 flex-shrink-0"><Trash2 size={14} /></button>
+      </div>
+
       {open && (
         <div className="px-3 pb-3 space-y-2 border-t border-zinc-50 pt-2">
           {lessons.map((l, i) => {
             const Icon = TYPE_ICON[l.lesson_type] ?? Video
+            const isEditing = editLesson?.id === l.id
+            if (isEditing) return (
+              <LessonForm key={l.id} moduleId={module.id} lesson={l}
+                onCancel={() => setEditLesson(null)}
+                onSaved={() => { setEditLesson(null); load() }} />
+            )
             return (
               <div key={l.id} className="flex items-center gap-2.5 border border-zinc-100 rounded-lg p-2">
+                <div className="flex flex-col -my-1">
+                  <button onClick={() => moveLesson(i, i - 1)} disabled={i === 0} className="text-zinc-300 hover:text-zinc-700 disabled:opacity-30"><ChevronUp size={12} /></button>
+                  <button onClick={() => moveLesson(i, i + 1)} disabled={i === lessons.length - 1} className="text-zinc-300 hover:text-zinc-700 disabled:opacity-30"><ChevronDown size={12} /></button>
+                </div>
                 <span className="text-[10px] text-zinc-400 w-4">{i + 1}</span>
                 <Icon size={14} className="text-zinc-400 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
@@ -162,35 +232,69 @@ function ModuleBlock({ module, index, onDelete }: { module: LmsModule; index: nu
                     {l.video_url && <span>· فيديو</span>}{l.file_url && <span>· ملف</span>}{l.exercise_url && <span>· تمرين</span>}{l.has_quiz && <span>· اختبار</span>}
                   </div>
                 </div>
+                <button onClick={() => { setShowForm(false); setEditLesson(l) }} className="text-zinc-300 hover:text-blue-600" title="تعديل"><Pencil size={13} /></button>
                 <button onClick={() => lock(l)} className={l.is_locked ? 'text-amber-500' : 'text-zinc-300'} title={l.is_locked ? 'مقفل' : 'مفتوح'}>{l.is_locked ? <Lock size={14} /> : <Unlock size={14} />}</button>
-                <button onClick={() => rm(l.id)} className="text-zinc-300 hover:text-red-500"><X size={14} /></button>
+                <button onClick={() => rmLesson(l.id)} className="text-zinc-300 hover:text-red-500"><X size={14} /></button>
               </div>
             )
           })}
 
           {showForm ? (
-            <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-3 space-y-2">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <input value={lTitle} onChange={e => setLTitle(e.target.value)} placeholder="عنوان الدرس *" className={INP} />
-                <select value={lType} onChange={e => setLType(e.target.value)} className={INP}>{LESSON_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}</select>
-              </div>
-              <input value={lVideo} onChange={e => setLVideo(e.target.value)} placeholder="رابط الفيديو (يوتيوب...)" dir="ltr" className={INP + ' text-right'} />
-              <input value={lFile} onChange={e => setLFile(e.target.value)} placeholder="رابط ملف / PDF" dir="ltr" className={INP + ' text-right'} />
-              <input value={lEx} onChange={e => setLEx(e.target.value)} placeholder="رابط تمرين على Inglizi.com" dir="ltr" className={INP + ' text-right'} />
-              <div className="flex items-center gap-4 text-[12px] text-zinc-600">
-                <label className="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" checked={lQuiz} onChange={e => setLQuiz(e.target.checked)} className="accent-yellow-400" /> يحتوي اختبارًا</label>
-                <label className="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" checked={lLock} onChange={e => setLLock(e.target.checked)} className="accent-yellow-400" /> مقفل</label>
-              </div>
-              <div className="flex gap-2">
-                <button onClick={add} disabled={saving || !lTitle.trim()} className="flex-1 py-2 bg-emerald-600 text-white rounded-lg font-bold text-[12px] disabled:opacity-50">{saving ? <Loader2 size={13} className="animate-spin mx-auto" /> : 'حفظ الدرس'}</button>
-                <button onClick={() => setShowForm(false)} className="px-3 py-2 border border-zinc-200 rounded-lg text-[12px] text-zinc-500">إلغاء</button>
-              </div>
-            </div>
+            <LessonForm moduleId={module.id} nextOrder={lessons.length + 1}
+              onCancel={() => setShowForm(false)}
+              onSaved={() => { setShowForm(false); load() }} />
           ) : (
-            <button onClick={() => setShowForm(true)} className="w-full py-2 rounded-lg border-2 border-dashed border-zinc-200 text-zinc-500 hover:border-yellow-400 hover:text-yellow-600 text-[12px] font-semibold flex items-center justify-center gap-1.5"><Plus size={13} /> إضافة درس</button>
+            <button onClick={() => { setEditLesson(null); setShowForm(true) }} className="w-full py-2 rounded-lg border-2 border-dashed border-zinc-200 text-zinc-500 hover:border-yellow-400 hover:text-yellow-600 text-[12px] font-semibold flex items-center justify-center gap-1.5"><Plus size={13} /> إضافة درس</button>
           )}
+          <p className="text-[10px] text-zinc-400 text-center">استخدم الأسهم ↑↓ لنقل الدرس بين المواضع</p>
         </div>
       )}
+    </div>
+  )
+}
+
+/* Shared add/edit lesson form. Pass `lesson` to edit, or `nextOrder` to add. */
+function LessonForm({ moduleId, lesson, nextOrder, onSaved, onCancel }: {
+  moduleId: string; lesson?: LmsLesson; nextOrder?: number; onSaved: () => void; onCancel: () => void
+}) {
+  const [title, setTitle] = useState(lesson?.title ?? '')
+  const [type, setType]   = useState(lesson?.lesson_type ?? 'video')
+  const [video, setVideo] = useState(lesson?.video_url ?? '')
+  const [file, setFile]   = useState(lesson?.file_url ?? '')
+  const [ex, setEx]       = useState(lesson?.exercise_url ?? '')
+  const [quiz, setQuiz]   = useState(lesson?.has_quiz ?? false)
+  const [lock, setLock]   = useState(lesson?.is_locked ?? false)
+  const [saving, setSaving] = useState(false)
+
+  async function save() {
+    if (!title.trim()) return
+    setSaving(true)
+    if (lesson) {
+      await updateLesson(lesson.id, { title: title.trim(), lessonType: type, videoUrl: video, fileUrl: file, exerciseUrl: ex, hasQuiz: quiz, isLocked: lock })
+    } else {
+      await addLesson({ moduleId, title: title.trim(), order: nextOrder ?? 1, lessonType: type, videoUrl: video || undefined, fileUrl: file || undefined, exerciseUrl: ex || undefined, hasQuiz: quiz, isLocked: lock })
+    }
+    setSaving(false); onSaved()
+  }
+
+  return (
+    <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-3 space-y-2">
+      <div className="text-[11px] font-bold text-zinc-500">{lesson ? '✎ تعديل الدرس' : '＋ درس جديد'}</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <input value={title} onChange={e => setTitle(e.target.value)} placeholder="عنوان الدرس *" className={INP} />
+        <select value={type} onChange={e => setType(e.target.value)} className={INP}>{LESSON_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}</select>
+      </div>
+      <input value={video} onChange={e => setVideo(e.target.value)} placeholder="رابط الفيديو (يوتيوب...)" dir="ltr" className={INP + ' text-right'} />
+      <input value={file} onChange={e => setFile(e.target.value)} placeholder="رابط ملف / PDF" dir="ltr" className={INP + ' text-right'} />
+      <input value={ex} onChange={e => setEx(e.target.value)} placeholder="رابط تمرين على Inglizi.com" dir="ltr" className={INP + ' text-right'} />
+      <div className="flex items-center gap-4 text-[12px] text-zinc-600">
+        <label className="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" checked={quiz} onChange={e => setQuiz(e.target.checked)} className="accent-yellow-400" /> يحتوي اختبارًا</label>
+        <label className="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" checked={lock} onChange={e => setLock(e.target.checked)} className="accent-yellow-400" /> مقفل</label>
+      </div>
+      <div className="flex gap-2">
+        <button onClick={save} disabled={saving || !title.trim()} className="flex-1 py-2 bg-emerald-600 text-white rounded-lg font-bold text-[12px] disabled:opacity-50">{saving ? <Loader2 size={13} className="animate-spin mx-auto" /> : (lesson ? 'حفظ التعديلات' : 'حفظ الدرس')}</button>
+        <button onClick={onCancel} className="px-3 py-2 border border-zinc-200 rounded-lg text-[12px] text-zinc-500">إلغاء</button>
+      </div>
     </div>
   )
 }

@@ -7,7 +7,10 @@ export interface LmsLesson {
   id: string; module_id: string; title: string; lesson_order: number
   lesson_type: string; video_url: string | null; file_url: string | null
   exercise_url: string | null; has_quiz: boolean; content: string | null; is_locked: boolean
+  quiz?: QuizQuestion[] | null
 }
+export interface QuizQuestion { q: string; choices: string[]; answer: number; explain?: string }
+export interface LessonExercise { prompt: string; sample_answer?: string }
 export interface CourseProgress { course_id: string; title: string; level: string | null; total: number; done: number; progress: number }
 
 export const LESSON_TYPES = [
@@ -36,7 +39,14 @@ export async function fetchModules(courseId: string): Promise<LmsModule[]> {
 export async function addModule(courseId: string, title: string, order: number): Promise<void> {
   await supabase.from('lms_modules').insert({ course_id: courseId, title, module_order: order })
 }
+export async function updateModule(id: string, title: string): Promise<void> {
+  await supabase.from('lms_modules').update({ title }).eq('id', id)
+}
 export async function deleteModule(id: string): Promise<void> { await supabase.from('lms_modules').delete().eq('id', id) }
+/* Persist a new module order (1-based) from the given sequence of ids. */
+export async function reorderModules(orderedIds: string[]): Promise<void> {
+  await Promise.all(orderedIds.map((id, i) => supabase.from('lms_modules').update({ module_order: i + 1 }).eq('id', id)))
+}
 
 /* ── Lessons ───────────────────────────────────────────── */
 export async function fetchLessons(moduleId: string): Promise<LmsLesson[]> {
@@ -54,8 +64,28 @@ export async function addLesson(input: {
     has_quiz: input.hasQuiz ?? false, content: input.content || null, is_locked: input.isLocked ?? false,
   })
 }
+export async function updateLesson(id: string, fields: {
+  title?: string; lessonType?: string; videoUrl?: string | null; fileUrl?: string | null
+  exerciseUrl?: string | null; hasQuiz?: boolean; content?: string | null; isLocked?: boolean; quiz?: any
+}): Promise<void> {
+  const patch: Record<string, any> = {}
+  if (fields.title !== undefined)       patch.title        = fields.title
+  if (fields.lessonType !== undefined)  patch.lesson_type  = fields.lessonType
+  if (fields.videoUrl !== undefined)    patch.video_url    = fields.videoUrl || null
+  if (fields.fileUrl !== undefined)     patch.file_url     = fields.fileUrl || null
+  if (fields.exerciseUrl !== undefined) patch.exercise_url = fields.exerciseUrl || null
+  if (fields.hasQuiz !== undefined)     patch.has_quiz     = fields.hasQuiz
+  if (fields.content !== undefined)     patch.content      = fields.content || null
+  if (fields.isLocked !== undefined)    patch.is_locked    = fields.isLocked
+  if (fields.quiz !== undefined)        patch.quiz         = fields.quiz
+  await supabase.from('lms_lessons').update(patch).eq('id', id)
+}
 export async function deleteLesson(id: string): Promise<void> { await supabase.from('lms_lessons').delete().eq('id', id) }
 export async function toggleLessonLock(id: string, locked: boolean): Promise<void> { await supabase.from('lms_lessons').update({ is_locked: locked }).eq('id', id) }
+/* Persist a new lesson order (1-based) within a module. */
+export async function reorderLessons(orderedIds: string[]): Promise<void> {
+  await Promise.all(orderedIds.map((id, i) => supabase.from('lms_lessons').update({ lesson_order: i + 1 }).eq('id', id)))
+}
 
 /* Count lessons in a course (for the authoring summary) */
 export async function countCourseLessons(courseId: string): Promise<number> {
