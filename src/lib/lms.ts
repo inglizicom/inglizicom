@@ -9,6 +9,14 @@ export interface ProgressMeta {
 }
 /** Public exams/test bank — linked at the end of every unit. */
 export const EXAMS_URL = 'https://inglizi.com/exams'
+/** Corrector-team WhatsApp (voice notes for unit conversations). */
+export const CORRECTOR_WHATSAPP = '212764189311'
+
+export interface UnitSubmission {
+  id: string; module_id: string; module_title?: string; conversation_text: string | null
+  status: 'pending' | 'reviewed'; feedback: string | null; score: number | null
+  reviewed_at: string | null; created_at: string
+}
 export interface LmsModule { id: string; course_id: string; title: string; module_order: number; reading_text?: string | null; reading_audio_url?: string | null; reading_video_url?: string | null; reading_quiz?: LessonQuiz | null }
 export interface UnitReading { title?: string; text: string | null; audio: string | null; video: string | null; quiz: LessonQuiz | null }
 export interface LmsLesson {
@@ -188,6 +196,32 @@ export async function generateQuiz(input: { title: string; level?: string | null
     const data = await r.json()
     return { questions: data.questions ?? [], exercise: data.exercise ?? null }
   } catch (e) { console.error('generateQuiz', e); return null }
+}
+
+/* ── Unit conversation submissions (text in-site, audio via WhatsApp) ── */
+export async function submitUnitText(token: string, moduleId: string, text: string): Promise<string | null> {
+  const { data } = await supabase.rpc('student_submit_text', { p_token: token.trim().toUpperCase(), p_module_id: moduleId, p_text: text })
+  return (data as string) ?? null
+}
+export async function fetchMySubmissions(token: string): Promise<UnitSubmission[]> {
+  const { data } = await supabase.rpc('student_submissions', { p_token: token.trim().toUpperCase() })
+  return (data ?? []) as UnitSubmission[]
+}
+/* CRM corrector side (staff). */
+export interface CorrectorSubmission extends UnitSubmission { student_id: string; student_name?: string; student_token?: string; student_phone?: string }
+export async function fetchSubmissions(onlyPending = false): Promise<CorrectorSubmission[]> {
+  let q = supabase.from('lms_submissions').select('*, crm_students(full_name, verification_token, phone_number), lms_modules(title)').order('created_at', { ascending: false })
+  if (onlyPending) q = q.eq('status', 'pending')
+  const { data } = await q
+  return ((data ?? []) as any[]).map(r => ({
+    id: r.id, module_id: r.module_id, module_title: r.lms_modules?.title, conversation_text: r.conversation_text,
+    status: r.status, feedback: r.feedback, score: r.score, reviewed_at: r.reviewed_at, created_at: r.created_at,
+    student_id: r.student_id, student_name: r.crm_students?.full_name, student_token: r.crm_students?.verification_token,
+    student_phone: r.crm_students?.phone_number,
+  }))
+}
+export async function reviewSubmission(id: string, feedback: string, score: number | null, by?: string): Promise<void> {
+  await supabase.from('lms_submissions').update({ feedback, score, status: 'reviewed', reviewed_by: by || null, reviewed_at: new Date().toISOString() }).eq('id', id)
 }
 
 /* ── Student quiz (token-gated) ───────────────────────── */

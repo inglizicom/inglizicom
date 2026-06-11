@@ -7,16 +7,17 @@ import {
   ExternalLink, Sparkles, LogOut, TrendingUp, Home, Route, Award, PlayCircle,
   Flame, Lock, AlertCircle, MessageSquareText, Video, PenLine, HelpCircle, Mic,
   ChevronLeft, ChevronRight, ListChecks, Bell, MessageSquare, Star, Trophy, Medal,
-  CalendarDays, Clock, BarChart3,
+  CalendarDays, Clock, BarChart3, Send,
 } from 'lucide-react'
 import {
   fetchStudentSpace, completeExercise, logActivity, fileUrl,
   type StudentSpace, type StudentAssignment, type PortalLesson, type PortalModule,
 } from '@/lib/student-portal'
-import { openLesson, completeLesson, fetchStudentResources, resourceUrl, fetchProgressMeta, fetchReadingUnits, EXAMS_URL, type CourseResource, type ProgressMeta } from '@/lib/lms'
+import { openLesson, completeLesson, fetchStudentResources, resourceUrl, fetchProgressMeta, fetchReadingUnits, fetchMySubmissions, EXAMS_URL, type CourseResource, type ProgressMeta, type UnitSubmission } from '@/lib/lms'
 import VideoPlayer from '@/components/VideoPlayer'
 import QuizRunner from '@/components/QuizRunner'
 import ReadingViewer from '@/components/ReadingViewer'
+import SubmissionPanel from '@/components/SubmissionPanel'
 
 const isVideoUrl = (u?: string | null) => !!u && /(youtube\.com|youtu\.be)/i.test(u)
 const ytId = (u?: string | null) => {
@@ -77,6 +78,8 @@ function Portal() {
   const [meta, setMeta] = useState<ProgressMeta | null>(null)
   const [readingUnits, setReadingUnits] = useState<Set<string>>(new Set())
   const [readingUnit, setReadingUnit] = useState<{ id: string; title: string } | null>(null)
+  const [submissions, setSubmissions] = useState<UnitSubmission[]>([])
+  const [submitUnit, setSubmitUnit] = useState<{ id: string; title: string } | null>(null)
 
   async function enter(rawToken: string, isAuto = false): Promise<boolean> {
     const t = rawToken.trim().toUpperCase(); if (!t) return false
@@ -96,7 +99,8 @@ function Portal() {
     })()
   }, [])
   async function refresh() { if (token) { const r = await fetchStudentSpace(token); if (r.found) setSpace(r) } }
-  useEffect(() => { if (token) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta); fetchReadingUnits(token).then(ids => setReadingUnits(new Set(ids))) } }, [token, space])
+  useEffect(() => { if (token) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta); fetchReadingUnits(token).then(ids => setReadingUnits(new Set(ids))); fetchMySubmissions(token).then(setSubmissions) } }, [token, space])
+  function reloadSubmissions() { if (token) fetchMySubmissions(token).then(setSubmissions) }
   function logout() { try { localStorage.removeItem(TOKEN_KEY) } catch {}; setSpace(null); setToken(''); setCode(''); setError('') }
 
   if (booting) return <div className="min-h-screen bg-[#14161c] flex items-center justify-center"><Loader2 className="animate-spin text-yellow-400" size={28} /></div>
@@ -225,6 +229,9 @@ function Portal() {
             if (pendEx > 0) notifs.push({ icon: ListChecks, text: `${pendEx} تمرين إضافي مطلوب`, go: () => setTab('tasks') })
             if (nextExam) notifs.push({ icon: CalendarDays, text: 'امتحان قادم', sub: nextExam.title, go: () => setTab('progress') })
             if (s.admin_message) notifs.push({ icon: MessageSquareText, text: 'رسالة من مدرّسك', sub: s.admin_message, go: () => setTab('home') })
+            const reviewed = submissions.find(x => x.status === 'reviewed')
+            if (reviewed) notifs.push({ icon: CheckCircle2, text: 'وصلك تصحيح محادثتك', sub: reviewed.module_title, go: () => setTab('path') })
+            if (sched?.unitOverdue) notifs.push({ icon: Clock, text: 'أنت متأخّر عن موعد الوحدة', sub: sched.currentUnit, go: () => setTab('path') })
             const sig = notifs.map(n => n.text + (n.sub ?? '')).join('|')
             const unread = notifs.length > 0 && sig !== seenSig   // badge clears once read, history stays
             function openBell() {
@@ -559,6 +566,13 @@ function Portal() {
                     className="flex items-center justify-center gap-2 px-4 py-3 bg-yellow-50 border-t border-yellow-100 text-yellow-800 font-bold text-[12.5px] hover:bg-yellow-100">
                     <Award size={15} /> امتحان نهاية الوحدة — اختبر معرفتك <ExternalLink size={13} />
                   </a>
+                  {/* Submit the unit conversation for correction */}
+                  {(() => { const subs = submissions.filter(x => x.module_id === m.id); const last = subs[0]; return (
+                    <button onClick={() => setSubmitUnit({ id: m.id, title: m.title })}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-50 border-t border-indigo-100 text-indigo-800 font-bold text-[12.5px] hover:bg-indigo-100">
+                      <Send size={14} /> {last ? (last.status === 'reviewed' ? 'عرض تصحيح المحادثة ✅' : 'محادثتك قيد المراجعة…') : 'سلّم محادثة الوحدة للتصحيح'}
+                    </button>
+                  )})()}
                 </div>
               )})}
           </div>
@@ -670,6 +684,18 @@ function Portal() {
           title={readingUnit.title}
           onClose={() => { setReadingUnit(null); refresh() }}
           onDone={(s, t) => logActivity(token, 'completed_reading_quiz', 'module', readingUnit.id, `${readingUnit.title} (${s}/${t})`)}
+        />
+      )}
+
+      {/* Unit conversation submission + feedback */}
+      {submitUnit && (
+        <SubmissionPanel
+          token={token}
+          moduleId={submitUnit.id}
+          moduleTitle={submitUnit.title}
+          existing={submissions.filter(x => x.module_id === submitUnit.id)}
+          onClose={() => setSubmitUnit(null)}
+          onSubmitted={reloadSubmissions}
         />
       )}
 
