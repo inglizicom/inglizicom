@@ -7,7 +7,7 @@ import {
   ExternalLink, Sparkles, LogOut, TrendingUp, Home, Route, Award, PlayCircle,
   Flame, Lock, AlertCircle, MessageSquareText, Video, PenLine, HelpCircle, Mic,
   ChevronLeft, ChevronRight, ListChecks, Bell, MessageSquare, Star, Trophy, Medal,
-  CalendarDays, Clock, BarChart3, Send,
+  CalendarDays, Clock, BarChart3, Send, Play, Megaphone, X as XIcon,
 } from 'lucide-react'
 import {
   fetchStudentSpace, completeExercise, logActivity, fileUrl, studentLogin, getDeviceId,
@@ -306,8 +306,20 @@ function Portal() {
       <header className="bg-[#14161c] text-white sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-yellow-400 text-black flex items-center justify-center font-black">I</div>
-            <span className="font-black text-[16px] tracking-wide hidden sm:block">INGLIZI</span>
+            <div className="w-9 h-9 rounded-xl bg-yellow-400 text-black flex items-center justify-center font-black text-[18px] shadow-lg shadow-yellow-400/20">I</div>
+            <div className="hidden sm:block leading-none">
+              <span className="font-black text-[16px] tracking-wide">INGLIZI</span>
+              <div className="text-[10px] text-zinc-500 mt-1">منصّة تعلّم الإنجليزية</div>
+            </div>
+          </div>
+          {/* desktop: greeting + course + overall progress */}
+          <div className="hidden lg:flex items-center gap-3 pr-4 mr-2 border-r border-white/10">
+            <span className="text-[13px] text-zinc-300">مرحباً <b className="text-white">{firstName}</b> 👋</span>
+            {course && <span className="text-[11px] font-bold bg-white/10 rounded-full px-2.5 py-1 text-zinc-200">{course.title}</span>}
+            <span className="flex items-center gap-1.5 text-[11px] text-zinc-400">
+              <span className="w-24 h-1.5 bg-white/10 rounded-full overflow-hidden"><span className="block h-full bg-gradient-to-l from-yellow-400 to-amber-300 rounded-full transition-all" style={{ width: `${stats.overall}%` }} /></span>
+              <b className="text-zinc-200">{stats.overall}%</b>
+            </span>
           </div>
           <div className="flex-1" />
           {(() => {
@@ -839,19 +851,25 @@ function LessonThumb({ title, topic, chip, seed, videoUrl, onClick }: { title: s
     if (yt && !triedYt) { setTriedYt(true); setLoaded(false); setSrc(yt) }  // real video frame fallback
   }
   return (
-    <button onClick={onClick} className="group relative block w-full aspect-video rounded-xl overflow-hidden bg-gradient-to-br from-violet-600 via-fuchsia-500 to-amber-400">
+    <button onClick={onClick} className="group relative block w-full aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-violet-600 via-fuchsia-500 to-amber-400 ring-1 ring-black/5 shadow-lg">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={src} alt="" onLoad={() => setLoaded(true)} onError={onErr}
-        className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-105 ${loaded ? 'opacity-100' : 'opacity-0'}`} />
+        className={`absolute inset-0 w-full h-full object-cover transition-all duration-[800ms] group-hover:scale-[1.07] ${loaded ? 'opacity-100' : 'opacity-0'}`} />
       {!loaded && <span className="absolute inset-0 flex items-center justify-center"><Loader2 size={22} className="animate-spin text-white/80" /></span>}
-      {/* darken bottom for legible Arabic text */}
-      <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-black/5" />
-      {chip && <span className="absolute top-2.5 right-2.5 text-[10px] font-bold bg-black/45 backdrop-blur-sm text-white px-2 py-0.5 rounded-full">{chip}</span>}
-      <span className="absolute inset-x-0 bottom-0 p-3 text-right">
+      {/* cinematic gradient for legible text */}
+      <span className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-black/10" />
+      <span className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-2xl" />
+      {/* video tag + module chip */}
+      <span className="absolute top-2.5 left-2.5 inline-flex items-center gap-1 text-[10px] font-bold bg-black/55 backdrop-blur-sm text-white px-2 py-0.5 rounded-full"><Play size={9} fill="currentColor" /> فيديو</span>
+      {chip && <span className="absolute top-2.5 right-2.5 text-[10px] font-bold bg-yellow-400/90 text-black px-2 py-0.5 rounded-full">{chip}</span>}
+      <span className="absolute inset-x-0 bottom-0 p-3.5 text-right">
         <span className="block text-white font-black text-[15px] leading-snug line-clamp-2 drop-shadow-lg">{title}</span>
+        <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-yellow-300">ابدأ المشاهدة <ChevronLeft size={12} /></span>
       </span>
       <span className="absolute inset-0 flex items-center justify-center">
-        <span className="w-12 h-12 rounded-full bg-yellow-400/95 flex items-center justify-center shadow-lg vp-pulse transition-transform group-hover:scale-110"><PlayCircle size={26} className="text-black" /></span>
+        <span className="w-14 h-14 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center ring-2 ring-white/30 transition-transform group-hover:scale-110">
+          <span className="w-11 h-11 rounded-full bg-yellow-400 flex items-center justify-center shadow-lg vp-pulse"><Play size={22} className="text-black" fill="currentColor" style={{ marginInlineStart: 2 }} /></span>
+        </span>
       </span>
     </button>
   )
@@ -897,12 +915,16 @@ function LessonRow({ l, unlocked, onOpen, onComplete, onQuiz }: { l: PortalLesso
   return (
     <div onClick={() => onOpen(l, url)} className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-zinc-50 transition-colors">
       {l.status === 'completed' ? <CheckCircle2 size={17} className="text-emerald-500 flex-shrink-0" /> : l.status === 'opened' ? <PlayCircle size={17} className="text-yellow-500 flex-shrink-0" /> : <Icon size={17} className="text-zinc-400 flex-shrink-0" />}
+      {/* play button right next to the title */}
+      <button onClick={e => { e.stopPropagation(); onOpen(l, url) }} aria-label="تشغيل الدرس"
+        className="w-8 h-8 rounded-full bg-yellow-400 text-black flex items-center justify-center flex-shrink-0 shadow-sm hover:bg-yellow-300 active:scale-95 transition">
+        <Play size={15} fill="currentColor" style={{ marginInlineStart: 2 }} />
+      </button>
       <div className="flex-1 min-w-0"><div className="text-[13px] font-semibold text-zinc-800 truncate">{l.title}</div><div className="text-[11px] text-zinc-400">{LTYPE_AR[l.type] ?? l.type}{l.status === 'completed' ? ' · مكتمل' : l.status === 'opened' ? ' · قيد التقدم' : ''}</div></div>
       {l.has_quiz && onQuiz && <button onClick={e => { e.stopPropagation(); onQuiz(l) }} className="text-[11px] font-bold text-violet-700 bg-violet-50 px-2.5 py-1 rounded-lg flex-shrink-0 flex items-center gap-1"><HelpCircle size={12} /> اختبار</button>}
       {l.status !== 'completed'
         ? <button onClick={e => { e.stopPropagation(); onComplete(l) }} className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg flex-shrink-0">تم</button>
         : <span className="text-[11px] font-bold text-emerald-600 flex-shrink-0">✓</span>}
-      <ChevronLeft size={16} className="text-zinc-300 flex-shrink-0" />
     </div>
   )
 }
