@@ -256,7 +256,16 @@ function Portal() {
                     <div className="flex-1">
                       <div className="font-black text-[18px]">مرحباً {firstName}! 👋</div>
                       <div className="text-[12px] text-zinc-400 mt-0.5">جاهز لمواصلة رحلتك التعليمية اليوم؟</div>
-                      <div className="mt-2 inline-flex items-center gap-1.5 bg-white/10 rounded-lg px-2.5 py-1 text-[12px] font-bold">{course?.title ?? 'لم تُسجّل في دورة'} 🎓</div>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 bg-white/10 rounded-lg px-2.5 py-1 text-[12px] font-bold">{course?.title ?? 'لم تُسجّل في دورة'} 🎓</span>
+                        {resources[0] && (
+                          <a href={resourceUrl(resources[0].file_path)} target="_blank" rel="noreferrer"
+                            onClick={() => logActivity(token, 'downloaded_file', 'resource', resources[0].id, resources[0].title)}
+                            className="inline-flex items-center gap-1.5 bg-yellow-400 text-black rounded-lg px-2.5 py-1 text-[12px] font-black hover:bg-yellow-300">
+                            <Download size={13} /> 📘 كتاب الدورة
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </div>
 
