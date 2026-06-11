@@ -10,7 +10,7 @@ import {
   CalendarDays, Clock, BarChart3, Send,
 } from 'lucide-react'
 import {
-  fetchStudentSpace, completeExercise, logActivity, fileUrl,
+  fetchStudentSpace, completeExercise, logActivity, fileUrl, studentLogin,
   type StudentSpace, type StudentAssignment, type PortalLesson, type PortalModule,
 } from '@/lib/student-portal'
 import { openLesson, completeLesson, fetchStudentResources, resourceUrl, fetchProgressMeta, fetchReadingUnits, fetchMySubmissions, fetchNotifications, markNotificationsRead, EXAMS_URL, type CourseResource, type ProgressMeta, type UnitSubmission, type StudentNotification } from '@/lib/lms'
@@ -85,6 +85,16 @@ function Portal() {
   async function enter(rawToken: string, isAuto = false): Promise<boolean> {
     const t = rawToken.trim().toUpperCase(); if (!t) return false
     setLoading(true); setError('')
+    // 1) device-bound login (anti account-sharing)
+    const gate = await studentLogin(t)
+    if (!gate.ok) {
+      setLoading(false)
+      if (gate.reason === 'device_limit') { if (!isAuto) setError('هذا الحساب مُفعّل على جهاز آخر. لا يمكن استخدامه على أكثر من جهاز. تواصل مع الإدارة لإعادة الضبط.'); try { localStorage.removeItem(TOKEN_KEY) } catch {}; return false }
+      if (gate.reason === 'invalid') { if (!isAuto) setError('رمز غير صحيح، تواصل مع الإدارة.'); return false }
+      if (!isAuto) setError('تعذّر الدخول، حاول مرة أخرى أو تواصل مع الإدارة.')
+      return false
+    }
+    // 2) load the space
     const res = await fetchStudentSpace(t); setLoading(false)
     if (!res.found) { if (!isAuto) setError('رمز غير صحيح، تواصل مع الإدارة.'); return false }
     setSpace(res); setToken(t); setTab('home')
@@ -217,6 +227,15 @@ function Portal() {
 
   return (
     <div dir="rtl" className="min-h-screen bg-[#f4f4f6] pb-20">
+      {/* ─── Anti-sharing watermark (name + token, traceable) ─── */}
+      <div className="pointer-events-none fixed inset-0 z-[5] overflow-hidden select-none" aria-hidden>
+        <div className="absolute -inset-1/4 flex flex-wrap gap-x-12 gap-y-20 -rotate-[24deg] opacity-[0.035]">
+          {Array.from({ length: 160 }).map((_, i) => (
+            <span key={i} className="text-[11px] font-bold text-black whitespace-nowrap">{s.full_name} · {s.verification_token}</span>
+          ))}
+        </div>
+      </div>
+
       {/* ─── Header ─── */}
       <header className="bg-[#14161c] text-white sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">

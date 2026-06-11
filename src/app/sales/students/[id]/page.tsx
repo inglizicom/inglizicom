@@ -27,8 +27,10 @@ import {
   fetchStudentFiles, uploadStudentFile, deleteStudentFile, fileUrl,
   fetchExams, addExam, deleteExam, fetchStudentActivity,
   fetchTemplates, applyTemplateToStudent,
-  type StudentAssignment, type StudentFile, type StudentExam, type PathTemplate,
+  fetchStudentDevices, deleteStudentDevice, resetStudentDevices, setDeviceLimit,
+  type StudentAssignment, type StudentFile, type StudentExam, type PathTemplate, type StudentDevice,
 } from '@/lib/student-portal'
+import { Smartphone } from 'lucide-react'
 import {
   fetchCourses, fetchEnrollments, enrollStudent, unenrollStudent, fetchCourseProgress,
   type LmsCourse, type CourseProgress,
@@ -464,6 +466,9 @@ export default function StudentProfilePage() {
               <p className="text-[10px] text-zinc-500 mt-2 leading-relaxed">يستخدم الطالب الرمز أو يمسح الـ QR للدخول إلى فضائه (الدروس، التمارين، الملفات، النتائج).</p>
             </div>
           )}
+
+          {/* Device security */}
+          <DevicesSection studentId={student.id} limit={(student as any).device_limit ?? 1} />
 
           {/* Monthly subscription */}
           {(student.billing_type === 'monthly' || student.student_type === 'private_student') && (
@@ -1026,6 +1031,47 @@ function Line({ label, value }: { label: string; value: string }) {
     <div className="flex items-center justify-between py-1.5 border-b border-zinc-50 last:border-none">
       <span className="text-[12px] text-zinc-400">{label}</span>
       <span className="text-[13px] font-semibold text-zinc-800">{value}</span>
+    </div>
+  )
+}
+
+/* Device-bound login management — see active devices, reset, set the limit. */
+function DevicesSection({ studentId, limit }: { studentId: string; limit: number }) {
+  const [devices, setDevices] = useState<StudentDevice[]>([])
+  const [loading, setLoading] = useState(true)
+  const [lim, setLim] = useState(limit)
+
+  async function load() { setLoading(true); setDevices(await fetchStudentDevices(studentId)); setLoading(false) }
+  useEffect(() => { load() }, [studentId])
+
+  async function reset() { if (confirm('إعادة ضبط الأجهزة؟ سيُسجَّل خروج الطالب من كل الأجهزة ويمكنه الدخول من جهاز جديد.')) { await resetStudentDevices(studentId); load() } }
+  async function rm(id: string) { await deleteStudentDevice(id); load() }
+  async function changeLimit(n: number) { const v = Math.max(1, n); setLim(v); await setDeviceLimit(studentId, v) }
+
+  return (
+    <div className="bg-white rounded-2xl border border-zinc-200 p-4">
+      <div className="flex items-center gap-1.5 text-[12px] font-bold text-zinc-700 mb-3"><Smartphone size={14} className="text-indigo-600" /> أجهزة الدخول والأمان</div>
+      <div className="flex items-center justify-between mb-3 bg-zinc-50 rounded-lg px-3 py-2">
+        <span className="text-[12px] text-zinc-600">عدد الأجهزة المسموح بها</span>
+        <div className="flex items-center gap-1.5">
+          <button onClick={() => changeLimit(lim - 1)} disabled={lim <= 1} className="w-6 h-6 rounded bg-white border border-zinc-200 text-zinc-600 disabled:opacity-40">−</button>
+          <span className="w-7 text-center font-black text-[14px]">{lim}</span>
+          <button onClick={() => changeLimit(lim + 1)} className="w-6 h-6 rounded bg-white border border-zinc-200 text-zinc-600">+</button>
+        </div>
+      </div>
+      {loading ? <div className="py-3 flex justify-center"><Loader2 size={16} className="animate-spin text-zinc-300" /></div>
+        : devices.length === 0 ? <div className="text-[11px] text-zinc-400 py-1">لم يسجّل الطالب الدخول من أي جهاز بعد.</div>
+        : <div className="space-y-1.5">
+            {devices.map(d => (
+              <div key={d.id} className="flex items-center gap-2 border border-zinc-100 rounded-lg p-2">
+                <Smartphone size={14} className="text-zinc-400 flex-shrink-0" />
+                <div className="flex-1 min-w-0"><div className="text-[12px] font-semibold text-zinc-800 truncate">{d.label || 'جهاز'}</div><div className="text-[10px] text-zinc-400">آخر دخول: {fmtDate(d.last_seen)}</div></div>
+                <button onClick={() => rm(d.id)} className="text-zinc-300 hover:text-red-500" title="إزالة الجهاز"><XCircle size={15} /></button>
+              </div>
+            ))}
+          </div>}
+      <button onClick={reset} className="w-full mt-3 py-2 rounded-lg bg-rose-50 text-rose-700 font-bold text-[12px] hover:bg-rose-100">إعادة ضبط كل الأجهزة</button>
+      <p className="text-[10px] text-zinc-400 mt-2 leading-relaxed">يمنع هذا مشاركة الحساب: الرمز يعمل فقط على الأجهزة المسجّلة (الحد الأقصى أعلاه). أعد الضبط إذا غيّر الطالب هاتفه.</p>
     </div>
   )
 }

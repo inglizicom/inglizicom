@@ -86,6 +86,41 @@ export function guessFileType(name: string): string {
   return 'document'
 }
 
+/* ── Device-bound login (anti account-sharing) ─────────── */
+export interface StudentDevice { id: string; device_id: string; label: string | null; user_agent: string | null; last_seen: string; created_at: string }
+const DEVICE_KEY = 'inglizi.device_id'
+export function getDeviceId(): string {
+  if (typeof window === 'undefined') return ''
+  let id = ''
+  try { id = localStorage.getItem(DEVICE_KEY) || '' } catch {}
+  if (!id) { id = (crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`); try { localStorage.setItem(DEVICE_KEY, id) } catch {} }
+  return id
+}
+function deviceLabel(): string {
+  if (typeof navigator === 'undefined') return ''
+  const ua = navigator.userAgent
+  const os = /iPhone|iPad/.test(ua) ? 'iPhone' : /Android/.test(ua) ? 'Android' : /Mac/.test(ua) ? 'Mac' : /Windows/.test(ua) ? 'Windows' : 'جهاز'
+  const br = /Chrome/.test(ua) ? 'Chrome' : /Safari/.test(ua) ? 'Safari' : /Firefox/.test(ua) ? 'Firefox' : 'متصفح'
+  return `${os} · ${br}`
+}
+/** Validate token + register/verify this device. Returns ok or a reason. */
+export async function studentLogin(token: string): Promise<{ ok: boolean; reason?: string }> {
+  const { data, error } = await supabase.rpc('student_login', {
+    p_token: token.trim().toUpperCase(), p_device_id: getDeviceId(),
+    p_label: deviceLabel(), p_ua: typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 300) : null,
+  })
+  if (error) { console.error('studentLogin', error.message); return { ok: false, reason: 'error' } }
+  return (data ?? { ok: false, reason: 'error' }) as { ok: boolean; reason?: string }
+}
+/* CRM device management (staff). */
+export async function fetchStudentDevices(studentId: string): Promise<StudentDevice[]> {
+  const { data } = await supabase.from('student_devices').select('*').eq('student_id', studentId).order('last_seen', { ascending: false })
+  return (data ?? []) as StudentDevice[]
+}
+export async function deleteStudentDevice(id: string): Promise<void> { await supabase.from('student_devices').delete().eq('id', id) }
+export async function resetStudentDevices(studentId: string): Promise<void> { await supabase.from('student_devices').delete().eq('student_id', studentId) }
+export async function setDeviceLimit(studentId: string, n: number): Promise<void> { await supabase.from('crm_students').update({ device_limit: Math.max(1, n) }).eq('id', studentId) }
+
 /* ── Portal (token-gated RPCs) ─────────────────────────── */
 export async function fetchStudentSpace(token: string): Promise<StudentSpace> {
   const { data, error } = await supabase.rpc('student_space', { p_token: token.trim().toUpperCase() })
