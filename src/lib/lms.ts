@@ -9,7 +9,8 @@ export interface ProgressMeta {
 }
 /** Public exams/test bank — linked at the end of every unit. */
 export const EXAMS_URL = 'https://inglizi.com/exams'
-export interface LmsModule { id: string; course_id: string; title: string; module_order: number }
+export interface LmsModule { id: string; course_id: string; title: string; module_order: number; reading_text?: string | null; reading_audio_url?: string | null; reading_video_url?: string | null; reading_quiz?: LessonQuiz | null }
+export interface UnitReading { title?: string; text: string | null; audio: string | null; video: string | null; quiz: LessonQuiz | null }
 export interface LmsLesson {
   id: string; module_id: string; title: string; lesson_order: number
   lesson_type: string; video_url: string | null; file_url: string | null
@@ -60,6 +61,24 @@ export async function deleteModule(id: string): Promise<void> { await supabase.f
 /* Persist a new module order (1-based) from the given sequence of ids. */
 export async function reorderModules(orderedIds: string[]): Promise<void> {
   await Promise.all(orderedIds.map((id, i) => supabase.from('lms_modules').update({ module_order: i + 1 }).eq('id', id)))
+}
+/* Per-unit reading passage: text + course-voice audio + how-to-read video + quiz. */
+export async function updateModuleReading(id: string, r: { text?: string | null; audioUrl?: string | null; videoUrl?: string | null; quiz?: LessonQuiz | null }): Promise<void> {
+  const patch: Record<string, any> = {}
+  if (r.text !== undefined)     patch.reading_text      = r.text || null
+  if (r.audioUrl !== undefined) patch.reading_audio_url = r.audioUrl || null
+  if (r.videoUrl !== undefined) patch.reading_video_url = r.videoUrl || null
+  if (r.quiz !== undefined)     patch.reading_quiz      = r.quiz
+  await supabase.from('lms_modules').update(patch).eq('id', id)
+}
+export async function fetchReadingUnits(token: string): Promise<string[]> {
+  const { data } = await supabase.rpc('student_reading_units', { p_token: token.trim().toUpperCase() })
+  return (data ?? []) as string[]
+}
+export async function fetchUnitReading(token: string, moduleId: string): Promise<UnitReading | null> {
+  const { data } = await supabase.rpc('student_unit_reading', { p_token: token.trim().toUpperCase(), p_module_id: moduleId })
+  if (!data) return null
+  return data as UnitReading
 }
 
 /* ── Lessons ───────────────────────────────────────────── */

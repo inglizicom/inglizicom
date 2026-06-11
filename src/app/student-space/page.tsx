@@ -13,9 +13,10 @@ import {
   fetchStudentSpace, completeExercise, logActivity, fileUrl,
   type StudentSpace, type StudentAssignment, type PortalLesson, type PortalModule,
 } from '@/lib/student-portal'
-import { openLesson, completeLesson, fetchStudentResources, resourceUrl, fetchProgressMeta, EXAMS_URL, type CourseResource, type ProgressMeta } from '@/lib/lms'
+import { openLesson, completeLesson, fetchStudentResources, resourceUrl, fetchProgressMeta, fetchReadingUnits, EXAMS_URL, type CourseResource, type ProgressMeta } from '@/lib/lms'
 import VideoPlayer from '@/components/VideoPlayer'
 import QuizRunner from '@/components/QuizRunner'
+import ReadingViewer from '@/components/ReadingViewer'
 
 const isVideoUrl = (u?: string | null) => !!u && /(youtube\.com|youtu\.be)/i.test(u)
 const ytId = (u?: string | null) => {
@@ -74,6 +75,8 @@ function Portal() {
   const [seenSig, setSeenSig] = useState(() => typeof window !== 'undefined' ? (localStorage.getItem(NOTIF_SEEN_KEY) || '') : '')
   const [resources, setResources] = useState<CourseResource[]>([])
   const [meta, setMeta] = useState<ProgressMeta | null>(null)
+  const [readingUnits, setReadingUnits] = useState<Set<string>>(new Set())
+  const [readingUnit, setReadingUnit] = useState<{ id: string; title: string } | null>(null)
 
   async function enter(rawToken: string, isAuto = false): Promise<boolean> {
     const t = rawToken.trim().toUpperCase(); if (!t) return false
@@ -93,7 +96,7 @@ function Portal() {
     })()
   }, [])
   async function refresh() { if (token) { const r = await fetchStudentSpace(token); if (r.found) setSpace(r) } }
-  useEffect(() => { if (token) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta) } }, [token, space])
+  useEffect(() => { if (token) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta); fetchReadingUnits(token).then(ids => setReadingUnits(new Set(ids))) } }, [token, space])
   function logout() { try { localStorage.removeItem(TOKEN_KEY) } catch {}; setSpace(null); setToken(''); setCode(''); setError('') }
 
   if (booting) return <div className="min-h-screen bg-[#14161c] flex items-center justify-center"><Loader2 className="animate-spin text-yellow-400" size={28} /></div>
@@ -544,6 +547,13 @@ function Portal() {
                     <span className="text-[11px] font-bold text-zinc-400">{p.d}/{p.t}</span>
                   </div>
                   <div className="divide-y divide-zinc-50">{m.lessons.map(l => <LessonRow key={l.id} l={l} unlocked={isUnlocked(l)} onOpen={onOpenLesson} onComplete={onCompleteLesson} onQuiz={setQuizLesson} />)}</div>
+                  {/* Reading + listening for this unit */}
+                  {readingUnits.has(m.id) && (
+                    <button onClick={() => { setReadingUnit({ id: m.id, title: m.title }); logActivity(token, 'opened_reading', 'module', m.id, m.title) }}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-sky-50 border-t border-sky-100 text-sky-800 font-bold text-[12.5px] hover:bg-sky-100">
+                      <BookOpen size={15} /> القراءة والاستماع — نص الوحدة
+                    </button>
+                  )}
                   {/* End-of-unit exam — test knowledge on inglizi.com/exams */}
                   <a href={EXAMS_URL} target="_blank" rel="noreferrer" onClick={() => logActivity(token, 'opened_exam', 'module', m.id, m.title)}
                     className="flex items-center justify-center gap-2 px-4 py-3 bg-yellow-50 border-t border-yellow-100 text-yellow-800 font-bold text-[12.5px] hover:bg-yellow-100">
@@ -649,6 +659,17 @@ function Portal() {
           title={quizLesson.title}
           onClose={() => { setQuizLesson(null); refresh() }}
           onPassed={async () => { await completeLesson(token, quizLesson.id); refresh() }}
+        />
+      )}
+
+      {/* Unit reading + listening + comprehension */}
+      {readingUnit && (
+        <ReadingViewer
+          token={token}
+          moduleId={readingUnit.id}
+          title={readingUnit.title}
+          onClose={() => { setReadingUnit(null); refresh() }}
+          onDone={(s, t) => logActivity(token, 'completed_reading_quiz', 'module', readingUnit.id, `${readingUnit.title} (${s}/${t})`)}
         />
       )}
 

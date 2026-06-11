@@ -12,7 +12,7 @@ import {
   fetchCourses, createCourse, deleteCourse, setCourseDaysPerUnit,
   fetchModules, addModule, updateModule, deleteModule, reorderModules,
   fetchLessons, addLesson, updateLesson, deleteLesson, toggleLessonLock, reorderLessons,
-  generateQuiz,
+  generateQuiz, updateModuleReading,
   fetchCourseResources, uploadCourseResource, deleteCourseResource, resourceUrl,
   LESSON_TYPES, type LmsCourse, type LmsModule, type LmsLesson, type LessonQuiz, type CourseResource,
 } from '@/lib/lms'
@@ -313,6 +313,61 @@ function ModuleBlock({ module, index, total, onDelete, onRename, onMoveUp, onMov
             <button onClick={() => { setEditLesson(null); setShowForm(true) }} className="w-full py-2 rounded-lg border-2 border-dashed border-zinc-200 text-zinc-500 hover:border-yellow-400 hover:text-yellow-600 text-[12px] font-semibold flex items-center justify-center gap-1.5"><Plus size={13} /> إضافة درس</button>
           )}
           <p className="text-[10px] text-zinc-400 text-center">استخدم الأسهم ↑↓ لنقل الدرس بين المواضع</p>
+
+          <ReadingEditor module={module} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* Per-unit reading passage: text + course-voice audio + how-to-read video + comprehension quiz. */
+function ReadingEditor({ module }: { module: LmsModule }) {
+  const [open, setOpen]   = useState(false)
+  const [text, setText]   = useState(module.reading_text ?? '')
+  const [audio, setAudio] = useState(module.reading_audio_url ?? '')
+  const [video, setVideo] = useState(module.reading_video_url ?? '')
+  const [quiz, setQuiz]   = useState<LessonQuiz | null>(module.reading_quiz ?? null)
+  const [saving, setSaving] = useState(false)
+  const [genning, setGenning] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  async function gen() {
+    if (!text.trim()) return
+    setGenning(true)
+    const out = await generateQuiz({ title: `${module.title} — reading comprehension`, source: text })
+    setGenning(false)
+    if (out && out.questions.length) setQuiz(out)
+  }
+  async function save() {
+    setSaving(true)
+    await updateModuleReading(module.id, { text, audioUrl: audio, videoUrl: video, quiz })
+    setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 1500)
+  }
+  const has = !!(module.reading_text || module.reading_audio_url || module.reading_video_url)
+
+  return (
+    <div className="rounded-lg border border-sky-200 bg-sky-50/60 overflow-hidden">
+      <button onClick={() => setOpen(o => !o)} className="w-full flex items-center gap-2 px-3 py-2 text-right">
+        <BookOpen size={14} className="text-sky-600" />
+        <span className="flex-1 text-[12px] font-bold text-sky-800">القراءة والاستماع (نص الوحدة)</span>
+        {(has || quiz) && <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-1"><CheckCircle2 size={12} /> مُضاف</span>}
+        <ChevronDown size={14} className={`text-sky-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="px-3 pb-3 space-y-2">
+          <textarea value={text} onChange={e => setText(e.target.value)} rows={5} dir="ltr" placeholder="نص القراءة بالإنجليزية (Reading passage)..." className={INP + ' text-left resize-y leading-relaxed'} />
+          <input value={audio} onChange={e => setAudio(e.target.value)} dir="ltr" placeholder="رابط الصوت بصوت الأستاذ (mp3...)" className={INP + ' text-right'} />
+          <input value={video} onChange={e => setVideo(e.target.value)} dir="ltr" placeholder="رابط فيديو: كيف تقرأ النص (يوتيوب)" className={INP + ' text-right'} />
+          <div className="flex items-center gap-2">
+            <button onClick={gen} disabled={genning || !text.trim()} className="flex-1 py-2 rounded-lg bg-violet-100 text-violet-700 font-bold text-[12px] flex items-center justify-center gap-1.5 disabled:opacity-50">
+              {genning ? <Loader2 size={13} className="animate-spin" /> : <Wand2 size={13} />} {quiz ? `إعادة توليد الأسئلة (${quiz.questions.length})` : 'توليد أسئلة الفهم'}
+            </button>
+            <button onClick={save} disabled={saving} className="flex-1 py-2 rounded-lg bg-sky-600 text-white font-bold text-[12px] flex items-center justify-center gap-1.5 disabled:opacity-50">
+              {saving ? <Loader2 size={13} className="animate-spin" /> : saved ? <><Check size={13} /> تم الحفظ</> : 'حفظ القراءة'}
+            </button>
+          </div>
+          {quiz && <div className="text-[11px] text-zinc-500">✅ {quiz.questions.length} أسئلة فهم جاهزة — تظهر للطالب بعد القراءة.</div>}
         </div>
       )}
     </div>
