@@ -98,6 +98,37 @@ export async function countCourseLessons(courseId: string): Promise<number> {
   return count ?? 0
 }
 
+/* ── Course resources (shared files for ALL enrolled students) ── */
+export interface CourseResource { id: string; course_id?: string; title: string; file_path: string; file_type: string | null; size_bytes: number | null; course_title?: string }
+const RES_BUCKET = 'student-files'
+export function resourceUrl(path: string): string {
+  return supabase.storage.from(RES_BUCKET).getPublicUrl(path).data.publicUrl
+}
+export async function fetchCourseResources(courseId: string): Promise<CourseResource[]> {
+  const { data } = await supabase.from('lms_resources').select('*').eq('course_id', courseId).order('created_at', { ascending: false })
+  return (data ?? []) as CourseResource[]
+}
+export async function uploadCourseResource(courseId: string, file: File, by?: string): Promise<boolean> {
+  const path = `resources/${courseId}/${Date.now()}_${file.name.replace(/[^\w.\-]/g, '_')}`
+  const { error: upErr } = await supabase.storage.from(RES_BUCKET).upload(path, file, { upsert: false })
+  if (upErr) { console.error('uploadCourseResource', upErr.message); return false }
+  const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
+  const { error } = await supabase.from('lms_resources').insert({
+    course_id: courseId, title: file.name, file_path: path,
+    file_type: ext === 'pdf' ? 'pdf' : ext, size_bytes: file.size, created_by: by || null,
+  })
+  if (error) { console.error('uploadCourseResource insert', error.message); return false }
+  return true
+}
+export async function deleteCourseResource(id: string, path: string): Promise<void> {
+  await supabase.storage.from(RES_BUCKET).remove([path])
+  await supabase.from('lms_resources').delete().eq('id', id)
+}
+export async function fetchStudentResources(token: string): Promise<CourseResource[]> {
+  const { data } = await supabase.rpc('student_resources', { p_token: token.trim().toUpperCase() })
+  return (data ?? []) as CourseResource[]
+}
+
 /* ── Enrollment ────────────────────────────────────────── */
 export async function fetchEnrollments(studentId: string): Promise<{ id: string; course_id: string }[]> {
   const { data } = await supabase.from('lms_enrollments').select('id, course_id').eq('student_id', studentId)

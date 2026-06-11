@@ -13,16 +13,21 @@ import {
   fetchStudentSpace, completeExercise, logActivity, fileUrl,
   type StudentSpace, type StudentAssignment, type PortalLesson, type PortalModule,
 } from '@/lib/student-portal'
-import { openLesson, completeLesson } from '@/lib/lms'
+import { openLesson, completeLesson, fetchStudentResources, resourceUrl, type CourseResource } from '@/lib/lms'
 import VideoPlayer from '@/components/VideoPlayer'
 import QuizRunner from '@/components/QuizRunner'
 
 const isVideoUrl = (u?: string | null) => !!u && /(youtube\.com|youtu\.be)/i.test(u)
+const ytId = (u?: string | null) => {
+  const m = (u || '').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/))([\w-]{11})/) || (u || '').match(/[?&]v=([\w-]{11})/)
+  return m ? m[1] : null
+}
+const ytThumb = (u?: string | null) => { const id = ytId(u); return id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : null }
 /* AI-generated topical illustration (keyless, URL-based). We overlay the Arabic
    title as real HTML text on top — AI renders Arabic glyphs poorly, so we ask
    for "no text" art and add the words ourselves. Seed = lesson id → stable image. */
 const aiThumb = (topic: string, seed: string) => {
-  const prompt = `modern flat vector illustration for an English language learning lesson about "${topic}", friendly educational scene, vibrant gradient colors, soft lighting, minimal, clean, no text, no words, no letters`
+  const prompt = `vibrant colorful cartoon illustration, English language learning scene about "${topic}", happy cartoon people and everyday objects, lively detailed background, playful professional vector art, bright lighting, no text, no letters, no words`
   return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=640&height=360&nologo=true&model=flux&seed=${encodeURIComponent(seed)}`
 }
 const NOTIF_SEEN_KEY = 'inglizi.notif_seen'
@@ -67,6 +72,7 @@ function Portal() {
   const [quizLesson, setQuizLesson] = useState<PortalLesson | null>(null)
   const [notifOpen, setNotifOpen] = useState(false)
   const [seenSig, setSeenSig] = useState(() => typeof window !== 'undefined' ? (localStorage.getItem(NOTIF_SEEN_KEY) || '') : '')
+  const [resources, setResources] = useState<CourseResource[]>([])
 
   async function enter(rawToken: string, isAuto = false): Promise<boolean> {
     const t = rawToken.trim().toUpperCase(); if (!t) return false
@@ -86,6 +92,7 @@ function Portal() {
     })()
   }, [])
   async function refresh() { if (token) { const r = await fetchStudentSpace(token); if (r.found) setSpace(r) } }
+  useEffect(() => { if (token) fetchStudentResources(token).then(setResources) }, [token])
   function logout() { try { localStorage.removeItem(TOKEN_KEY) } catch {}; setSpace(null); setToken(''); setCode(''); setError('') }
 
   if (booting) return <div className="min-h-screen bg-[#14161c] flex items-center justify-center"><Loader2 className="animate-spin text-yellow-400" size={28} /></div>
@@ -258,7 +265,7 @@ function Portal() {
                     <div className="flex-1 bg-white/[0.06] rounded-2xl p-4">
                       <div className="text-[11px] text-zinc-400 mb-2">درس اليوم</div>
                       <div className="mb-2.5">
-                        <LessonThumb title={today.lesson.title} topic={today.lesson.title} chip={today.m.title} seed={today.lesson.id} onClick={() => onOpenLesson(today.lesson, today.lesson.video_url || today.lesson.exercise_url || today.lesson.file_url)} />
+                        <LessonThumb title={today.lesson.title} topic={today.lesson.title} chip={today.m.title} seed={today.lesson.id} videoUrl={today.lesson.video_url} onClick={() => onOpenLesson(today.lesson, today.lesson.video_url || today.lesson.exercise_url || today.lesson.file_url)} />
                       </div>
                       <div className="inline-block text-[10px] font-bold bg-violet-500/30 text-violet-200 px-2 py-0.5 rounded mb-1">{today.m.title}</div>
                       <div className="font-black text-[16px]">{today.lesson.title}</div>
@@ -283,7 +290,7 @@ function Portal() {
               {course && today && (
                 <Card title="مهامك اليوم" sub="أكمل مهامك اليومية لتتقدم في مستواك" icon={CalendarDays} iconColor="text-amber-500">
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                    {today.lesson.video_url && <TaskCard tone="violet" icon={PlayCircle} title="شاهد الفيديو" meta={today.lesson.title} cta="شاهد الآن" thumb={aiThumb(today.lesson.title, today.lesson.id)} onClick={() => onOpenLesson(today.lesson, today.lesson.video_url)} />}
+                    {today.lesson.video_url && <TaskCard tone="violet" icon={PlayCircle} title="شاهد الفيديو" meta={today.lesson.title} cta="شاهد الآن" thumb={ytThumb(today.lesson.video_url) || aiThumb(today.lesson.title, today.lesson.id)} onClick={() => onOpenLesson(today.lesson, today.lesson.video_url)} />}
                     {today.lesson.file_url && <TaskCard tone="emerald" icon={FileText} title="اقرأ الملف" meta="ملف الدرس" cta="اقرأ الآن" onClick={() => onOpenLesson(today.lesson, today.lesson.file_url)} />}
                     {today.lesson.exercise_url && <TaskCard tone="amber" icon={PenLine} title="أكمل التمرين" meta="تمرين الدرس" cta="ابدأ التمرين" onClick={() => onOpenLesson(today.lesson, today.lesson.exercise_url)} />}
                     {today.lesson.has_quiz && <TaskCard tone="blue" icon={HelpCircle} title="اختبر نفسك" meta="اختبار الدرس" cta="ابدأ الاختبار" onClick={() => setQuizLesson(today.lesson)} />}
@@ -482,6 +489,21 @@ function Portal() {
         {/* ═══════════ FILES ═══════════ */}
         {tab === 'files' && (
           <div className="max-w-2xl mx-auto space-y-3">
+            {resources.length > 0 && (
+              <>
+                <SectionTitle icon={BookOpen} color="text-emerald-600">ملفات الدورة</SectionTitle>
+                {resources.map(r => (
+                  <a key={r.id} href={resourceUrl(r.file_path)} target="_blank" rel="noreferrer"
+                    onClick={() => logActivity(token, 'downloaded_file', 'resource', r.id, r.title)}
+                    className="w-full flex items-center gap-3 bg-white rounded-2xl border border-emerald-100 p-4 hover:border-emerald-300">
+                    <div className="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0"><FileText size={18} className="text-emerald-600" /></div>
+                    <div className="flex-1 min-w-0"><div className="font-bold text-[13px] text-zinc-800 truncate">{r.title}</div><div className="text-[11px] text-zinc-400">{(r.file_type ?? 'ملف').toUpperCase()}{r.course_title ? ` · ${r.course_title}` : ''}</div></div>
+                    <Download size={18} className="text-emerald-500 flex-shrink-0" />
+                  </a>
+                ))}
+                <div className="h-1" />
+              </>
+            )}
             <SectionTitle icon={FileText} color="text-rose-500">ملفاتي</SectionTitle>
             {files.length === 0 && <Empty emoji="📁" text="لا توجد ملفات بعد" />}
             {files.map(f => (
@@ -586,19 +608,22 @@ function Card({ title, sub, icon: Icon, iconColor, action, children, compact }: 
     </div>
   )
 }
-/* AI-illustrated lesson thumbnail with a crisp Arabic title overlay. */
-function LessonThumb({ title, topic, chip, seed, onClick }: { title: string; topic?: string | null; chip?: string; seed: string; onClick?: () => void }) {
+/* AI-illustrated lesson thumbnail with a crisp Arabic title overlay.
+   If the AI image fails/slow, it falls back to the real video frame — never a plain colour. */
+function LessonThumb({ title, topic, chip, seed, videoUrl, onClick }: { title: string; topic?: string | null; chip?: string; seed: string; videoUrl?: string | null; onClick?: () => void }) {
+  const yt = ytThumb(videoUrl)
+  const [src, setSrc] = useState(aiThumb(topic || title, seed))
   const [loaded, setLoaded] = useState(false)
-  const [err, setErr]       = useState(false)
-  const src = aiThumb(topic || title, seed)
+  const [triedYt, setTriedYt] = useState(false)
+  function onErr() {
+    if (yt && !triedYt) { setTriedYt(true); setLoaded(false); setSrc(yt) }  // real video frame fallback
+  }
   return (
     <button onClick={onClick} className="group relative block w-full aspect-video rounded-xl overflow-hidden bg-gradient-to-br from-violet-600 via-fuchsia-500 to-amber-400">
-      {!err && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt="" loading="lazy" onLoad={() => setLoaded(true)} onError={() => setErr(true)}
-          className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-105 ${loaded ? 'opacity-100' : 'opacity-0'}`} />
-      )}
-      {!loaded && !err && <span className="absolute inset-0 flex items-center justify-center"><Loader2 size={22} className="animate-spin text-white/80" /></span>}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt="" onLoad={() => setLoaded(true)} onError={onErr}
+        className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-105 ${loaded ? 'opacity-100' : 'opacity-0'}`} />
+      {!loaded && <span className="absolute inset-0 flex items-center justify-center"><Loader2 size={22} className="animate-spin text-white/80" /></span>}
       {/* darken bottom for legible Arabic text */}
       <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-black/5" />
       {chip && <span className="absolute top-2.5 right-2.5 text-[10px] font-bold bg-black/45 backdrop-blur-sm text-white px-2 py-0.5 rounded-full">{chip}</span>}

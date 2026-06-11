@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRef } from 'react'
 import {
   BookOpen, Plus, Trash2, Loader2, ChevronDown, ChevronLeft, X, Lock, Unlock,
   Video, FileText, PenLine, HelpCircle, Mic, Layers, GripVertical, ChevronUp,
-  Pencil, Check, Sparkles, Wand2, CheckCircle2,
+  Pencil, Check, Sparkles, Wand2, CheckCircle2, Upload, Download, Paperclip,
 } from 'lucide-react'
 import { useStaff } from '@/lib/staff-context'
 import {
@@ -12,8 +13,11 @@ import {
   fetchModules, addModule, updateModule, deleteModule, reorderModules,
   fetchLessons, addLesson, updateLesson, deleteLesson, toggleLessonLock, reorderLessons,
   generateQuiz,
-  LESSON_TYPES, type LmsCourse, type LmsModule, type LmsLesson, type LessonQuiz,
+  fetchCourseResources, uploadCourseResource, deleteCourseResource, resourceUrl,
+  LESSON_TYPES, type LmsCourse, type LmsModule, type LmsLesson, type LessonQuiz, type CourseResource,
 } from '@/lib/lms'
+
+const fmtSize = (b?: number | null) => !b ? '' : b > 1048576 ? `${(b / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`
 
 const INP = 'w-full border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400'
 const TYPE_ICON: Record<string, any> = { video: Video, reading: FileText, exercise: PenLine, quiz: HelpCircle, speaking: Mic }
@@ -155,6 +159,53 @@ function CourseBuilder({ courseId }: { courseId: string }) {
         <input value={newMod} onChange={e => setNewMod(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} placeholder="إضافة وحدة جديدة (مثال: الوحدة 1 — التحية)" className={INP} />
         <button onClick={add} disabled={!newMod.trim()} className="flex items-center gap-1 text-[13px] font-bold px-3 py-2 rounded-lg bg-zinc-900 text-white disabled:opacity-50"><Layers size={13} /> وحدة</button>
       </div>
+
+      <CourseResources courseId={courseId} />
+    </div>
+  )
+}
+
+/* Shared course files — every enrolled student can download these (e.g. the A0/A1 PDF book). */
+function CourseResources({ courseId }: { courseId: string }) {
+  const staff = useStaff()
+  const [items, setItems] = useState<CourseResource[]>([])
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  async function load() { setLoading(true); setItems(await fetchCourseResources(courseId)); setLoading(false) }
+  useEffect(() => { load() }, [courseId])
+
+  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0]; if (!f) return
+    setBusy(true)
+    const ok = await uploadCourseResource(courseId, f, staff.id)
+    setBusy(false); if (fileRef.current) fileRef.current.value = ''
+    if (!ok) { alert('تعذّر رفع الملف'); return }
+    load()
+  }
+  async function rm(r: CourseResource) { if (confirm('حذف هذا الملف للجميع؟')) { await deleteCourseResource(r.id, r.file_path); load() } }
+
+  return (
+    <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-3 space-y-2">
+      <div className="flex items-center gap-2">
+        <Paperclip size={14} className="text-emerald-600" />
+        <span className="flex-1 text-[12px] font-bold text-emerald-800">ملفات الدورة — متاحة لكل الطلاب المسجَّلين</span>
+      </div>
+      {loading ? <div className="py-2 flex justify-center"><Loader2 size={16} className="animate-spin text-emerald-400" /></div>
+        : items.length === 0 ? <div className="text-[11px] text-zinc-400">لا ملفات بعد — ارفع كتاب PDF أو مرجعًا ليصل كل الطلاب.</div>
+        : items.map(r => (
+          <div key={r.id} className="flex items-center gap-2 bg-white rounded-lg border border-zinc-100 p-2">
+            <FileText size={15} className="text-rose-500 flex-shrink-0" />
+            <div className="flex-1 min-w-0"><div className="text-[12px] font-semibold text-zinc-800 truncate">{r.title}</div><div className="text-[10px] text-zinc-400">{(r.file_type || '').toUpperCase()} {fmtSize(r.size_bytes)}</div></div>
+            <a href={resourceUrl(r.file_path)} target="_blank" rel="noreferrer" className="text-zinc-300 hover:text-blue-600" title="تحميل"><Download size={14} /></a>
+            <button onClick={() => rm(r)} className="text-zinc-300 hover:text-red-500"><Trash2 size={13} /></button>
+          </div>
+        ))}
+      <input ref={fileRef} type="file" onChange={onPick} className="hidden" />
+      <button onClick={() => fileRef.current?.click()} disabled={busy} className="w-full py-2 rounded-lg border-2 border-dashed border-emerald-300 text-emerald-700 hover:bg-emerald-50 text-[12px] font-bold flex items-center justify-center gap-1.5 disabled:opacity-50">
+        {busy ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />} رفع ملف للدورة (PDF...)
+      </button>
     </div>
   )
 }
