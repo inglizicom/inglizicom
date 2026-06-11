@@ -7,10 +7,11 @@ export interface LmsLesson {
   id: string; module_id: string; title: string; lesson_order: number
   lesson_type: string; video_url: string | null; file_url: string | null
   exercise_url: string | null; has_quiz: boolean; content: string | null; is_locked: boolean
-  quiz?: QuizQuestion[] | null
+  quiz?: LessonQuiz | null
 }
 export interface QuizQuestion { q: string; choices: string[]; answer: number; explain?: string }
 export interface LessonExercise { prompt: string; sample_answer?: string }
+export interface LessonQuiz { questions: QuizQuestion[]; exercise?: LessonExercise | null }
 export interface CourseProgress { course_id: string; title: string; level: string | null; total: number; done: number; progress: number }
 
 export const LESSON_TYPES = [
@@ -55,13 +56,14 @@ export async function fetchLessons(moduleId: string): Promise<LmsLesson[]> {
 }
 export async function addLesson(input: {
   moduleId: string; title: string; order: number; lessonType?: string
-  videoUrl?: string; fileUrl?: string; exerciseUrl?: string; hasQuiz?: boolean; content?: string; isLocked?: boolean
+  videoUrl?: string; fileUrl?: string; exerciseUrl?: string; hasQuiz?: boolean; content?: string; isLocked?: boolean; quiz?: LessonQuiz | null
 }): Promise<void> {
   await supabase.from('lms_lessons').insert({
     module_id: input.moduleId, title: input.title, lesson_order: input.order,
     lesson_type: input.lessonType || 'video', video_url: input.videoUrl || null,
     file_url: input.fileUrl || null, exercise_url: input.exerciseUrl || null,
-    has_quiz: input.hasQuiz ?? false, content: input.content || null, is_locked: input.isLocked ?? false,
+    has_quiz: input.hasQuiz ?? !!input.quiz, content: input.content || null, is_locked: input.isLocked ?? false,
+    quiz: input.quiz ?? null,
   })
 }
 export async function updateLesson(id: string, fields: {
@@ -110,6 +112,30 @@ export async function unenrollStudent(studentId: string, courseId: string): Prom
 export async function fetchCourseProgress(studentId: string): Promise<CourseProgress[]> {
   const { data } = await supabase.rpc('student_course_progress', { p_student: studentId })
   return (data ?? []) as CourseProgress[]
+}
+
+/* ── AI quiz generation (server route uses OPENAI_API_KEY) ─ */
+export async function generateQuiz(input: { title: string; level?: string | null; source?: string; count?: number }): Promise<LessonQuiz | null> {
+  try {
+    const r = await fetch('/api/ai/generate-quiz', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: input.title, level: input.level || undefined, source: input.source || undefined, count: input.count }),
+    })
+    if (!r.ok) { console.error('generateQuiz', await r.text()); return null }
+    const data = await r.json()
+    return { questions: data.questions ?? [], exercise: data.exercise ?? null }
+  } catch (e) { console.error('generateQuiz', e); return null }
+}
+
+/* ── Student quiz (token-gated) ───────────────────────── */
+export async function fetchLessonQuiz(token: string, lessonId: string): Promise<{ quiz: LessonQuiz; best_score: number | null; best_total: number | null } | null> {
+  const { data } = await supabase.rpc('student_lesson_quiz', { p_token: token.trim().toUpperCase(), p_lesson_id: lessonId })
+  if (!data || !data.quiz) return null
+  return data as any
+}
+export async function submitQuiz(token: string, lessonId: string, score: number, total: number, answers: number[]): Promise<boolean> {
+  const { data } = await supabase.rpc('student_submit_quiz', { p_token: token.trim().toUpperCase(), p_lesson_id: lessonId, p_score: score, p_total: total, p_answers: answers })
+  return data === true
 }
 
 /* ── Portal lesson actions (token-gated) ──────────────── */

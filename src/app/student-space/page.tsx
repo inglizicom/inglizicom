@@ -15,6 +15,7 @@ import {
 } from '@/lib/student-portal'
 import { openLesson, completeLesson } from '@/lib/lms'
 import VideoPlayer from '@/components/VideoPlayer'
+import QuizRunner from '@/components/QuizRunner'
 
 const isVideoUrl = (u?: string | null) => !!u && /(youtube\.com|youtu\.be)/i.test(u)
 /* AI-generated topical illustration (keyless, URL-based). We overlay the Arabic
@@ -63,6 +64,7 @@ function Portal() {
   const [error, setError]     = useState('')
   const [tab, setTab]         = useState<Tab>('home')
   const [videoLesson, setVideoLesson] = useState<PortalLesson | null>(null)
+  const [quizLesson, setQuizLesson] = useState<PortalLesson | null>(null)
   const [notifOpen, setNotifOpen] = useState(false)
   const [seenSig, setSeenSig] = useState(() => typeof window !== 'undefined' ? (localStorage.getItem(NOTIF_SEEN_KEY) || '') : '')
 
@@ -284,7 +286,7 @@ function Portal() {
                     {today.lesson.video_url && <TaskCard tone="violet" icon={PlayCircle} title="شاهد الفيديو" meta={today.lesson.title} cta="شاهد الآن" thumb={aiThumb(today.lesson.title, today.lesson.id)} onClick={() => onOpenLesson(today.lesson, today.lesson.video_url)} />}
                     {today.lesson.file_url && <TaskCard tone="emerald" icon={FileText} title="اقرأ الملف" meta="ملف الدرس" cta="اقرأ الآن" onClick={() => onOpenLesson(today.lesson, today.lesson.file_url)} />}
                     {today.lesson.exercise_url && <TaskCard tone="amber" icon={PenLine} title="أكمل التمرين" meta="تمرين الدرس" cta="ابدأ التمرين" onClick={() => onOpenLesson(today.lesson, today.lesson.exercise_url)} />}
-                    {today.lesson.has_quiz && <TaskCard tone="blue" icon={HelpCircle} title="اختبر نفسك" meta="اختبار الدرس" cta="ابدأ الاختبار" onClick={() => onOpenLesson(today.lesson, today.lesson.exercise_url)} />}
+                    {today.lesson.has_quiz && <TaskCard tone="blue" icon={HelpCircle} title="اختبر نفسك" meta="اختبار الدرس" cta="ابدأ الاختبار" onClick={() => setQuizLesson(today.lesson)} />}
                     {!today.lesson.video_url && !today.lesson.file_url && !today.lesson.exercise_url && !today.lesson.has_quiz &&
                       <TaskCard tone="blue" icon={PlayCircle} title="ابدأ الدرس" meta={today.lesson.title} cta="ابدأ" onClick={() => onCompleteLesson(today.lesson)} />}
                   </div>
@@ -324,7 +326,7 @@ function Portal() {
                       <div className="border border-zinc-100 rounded-2xl overflow-hidden">
                         <div className="px-3 py-2 bg-zinc-50 text-[12px] font-bold text-zinc-600 border-b border-zinc-100">دروس الوحدة ({currentModule.lessons.length})</div>
                         <div className="divide-y divide-zinc-50 max-h-[260px] overflow-y-auto">
-                          {currentModule.lessons.map(l => <LessonRow key={l.id} l={l} unlocked={isUnlocked(l)} onOpen={onOpenLesson} onComplete={onCompleteLesson} />)}
+                          {currentModule.lessons.map(l => <LessonRow key={l.id} l={l} unlocked={isUnlocked(l)} onOpen={onOpenLesson} onComplete={onCompleteLesson} onQuiz={setQuizLesson} />)}
                         </div>
                       </div>
                     </div>
@@ -450,7 +452,7 @@ function Portal() {
                     <span className="font-bold text-[14px] text-zinc-800 flex-1">{m.title}</span>
                     <span className="text-[11px] font-bold text-zinc-400">{p.d}/{p.t}</span>
                   </div>
-                  <div className="divide-y divide-zinc-50">{m.lessons.map(l => <LessonRow key={l.id} l={l} unlocked={isUnlocked(l)} onOpen={onOpenLesson} onComplete={onCompleteLesson} />)}</div>
+                  <div className="divide-y divide-zinc-50">{m.lessons.map(l => <LessonRow key={l.id} l={l} unlocked={isUnlocked(l)} onOpen={onOpenLesson} onComplete={onCompleteLesson} onQuiz={setQuizLesson} />)}</div>
                 </div>
               )})}
           </div>
@@ -520,8 +522,22 @@ function Portal() {
         <VideoPlayer
           url={videoLesson.video_url || ''}
           title={videoLesson.title}
-          onClose={() => { setVideoLesson(null); refresh() }}
+          onClose={() => {
+            const vl = videoLesson; setVideoLesson(null); refresh()
+            if (vl.has_quiz) setQuizLesson(vl)   // chain into the quiz after watching
+          }}
           onWatched={async () => { await completeLesson(token, videoLesson.id); refresh() }}
+        />
+      )}
+
+      {/* Lesson quiz */}
+      {quizLesson && (
+        <QuizRunner
+          token={token}
+          lessonId={quizLesson.id}
+          title={quizLesson.title}
+          onClose={() => { setQuizLesson(null); refresh() }}
+          onPassed={async () => { await completeLesson(token, quizLesson.id); refresh() }}
         />
       )}
 
@@ -626,7 +642,7 @@ function Empty({ emoji, text, sub, mini }: { emoji?: string; text: string; sub?:
   if (mini) return <div className="py-4 text-center text-[12px] text-zinc-400">{text}</div>
   return <div className="flex flex-col items-center py-12 text-center"><div className="text-4xl mb-2">{emoji ?? '📭'}</div><div className="text-[14px] font-semibold text-zinc-600">{text}</div>{sub && <div className="text-[12px] text-zinc-400 mt-1 max-w-xs">{sub}</div>}</div>
 }
-function LessonRow({ l, unlocked, onOpen, onComplete }: { l: PortalLesson; unlocked: boolean; onOpen: (l: PortalLesson, url?: string | null) => void; onComplete: (l: PortalLesson) => void }) {
+function LessonRow({ l, unlocked, onOpen, onComplete, onQuiz }: { l: PortalLesson; unlocked: boolean; onOpen: (l: PortalLesson, url?: string | null) => void; onComplete: (l: PortalLesson) => void; onQuiz?: (l: PortalLesson) => void }) {
   const Icon = LTYPE_ICON[l.type] ?? Video
   const url = l.video_url || l.exercise_url || l.file_url
   if (!unlocked) return (
@@ -637,6 +653,7 @@ function LessonRow({ l, unlocked, onOpen, onComplete }: { l: PortalLesson; unloc
     <div onClick={() => onOpen(l, url)} className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-zinc-50 transition-colors">
       {l.status === 'completed' ? <CheckCircle2 size={17} className="text-emerald-500 flex-shrink-0" /> : l.status === 'opened' ? <PlayCircle size={17} className="text-yellow-500 flex-shrink-0" /> : <Icon size={17} className="text-zinc-400 flex-shrink-0" />}
       <div className="flex-1 min-w-0"><div className="text-[13px] font-semibold text-zinc-800 truncate">{l.title}</div><div className="text-[11px] text-zinc-400">{LTYPE_AR[l.type] ?? l.type}{l.status === 'completed' ? ' · مكتمل' : l.status === 'opened' ? ' · قيد التقدم' : ''}</div></div>
+      {l.has_quiz && onQuiz && <button onClick={e => { e.stopPropagation(); onQuiz(l) }} className="text-[11px] font-bold text-violet-700 bg-violet-50 px-2.5 py-1 rounded-lg flex-shrink-0 flex items-center gap-1"><HelpCircle size={12} /> اختبار</button>}
       {l.status !== 'completed'
         ? <button onClick={e => { e.stopPropagation(); onComplete(l) }} className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg flex-shrink-0">تم</button>
         : <span className="text-[11px] font-bold text-emerald-600 flex-shrink-0">✓</span>}

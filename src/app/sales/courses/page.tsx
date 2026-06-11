@@ -4,14 +4,15 @@ import { useEffect, useState } from 'react'
 import {
   BookOpen, Plus, Trash2, Loader2, ChevronDown, ChevronLeft, X, Lock, Unlock,
   Video, FileText, PenLine, HelpCircle, Mic, Layers, GripVertical, ChevronUp,
-  Pencil, Check,
+  Pencil, Check, Sparkles, Wand2, CheckCircle2,
 } from 'lucide-react'
 import { useStaff } from '@/lib/staff-context'
 import {
   fetchCourses, createCourse, deleteCourse,
   fetchModules, addModule, updateModule, deleteModule, reorderModules,
   fetchLessons, addLesson, updateLesson, deleteLesson, toggleLessonLock, reorderLessons,
-  LESSON_TYPES, type LmsCourse, type LmsModule, type LmsLesson,
+  generateQuiz,
+  LESSON_TYPES, type LmsCourse, type LmsModule, type LmsLesson, type LessonQuiz,
 } from '@/lib/lms'
 
 const INP = 'w-full border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400'
@@ -265,14 +266,30 @@ function LessonForm({ moduleId, lesson, nextOrder, onSaved, onCancel }: {
   const [quiz, setQuiz]   = useState(lesson?.has_quiz ?? false)
   const [lock, setLock]   = useState(lesson?.is_locked ?? false)
   const [saving, setSaving] = useState(false)
+  // AI quiz
+  const [aiOpen, setAiOpen]   = useState(false)
+  const [source, setSource]   = useState('')
+  const [genQuiz, setGenQuiz] = useState<LessonQuiz | null>(lesson?.quiz ?? null)
+  const [genning, setGenning] = useState(false)
+  const [genErr, setGenErr]   = useState('')
+
+  async function generate() {
+    if (!title.trim()) { setGenErr('أدخل عنوان الدرس أولًا'); return }
+    setGenning(true); setGenErr('')
+    const out = await generateQuiz({ title: title.trim(), source })
+    setGenning(false)
+    if (!out || out.questions.length === 0) { setGenErr('تعذّر التوليد، حاول مرة أخرى'); return }
+    setGenQuiz(out); setQuiz(true)
+  }
 
   async function save() {
     if (!title.trim()) return
     setSaving(true)
+    const common = { lessonType: type, videoUrl: video, fileUrl: file, exerciseUrl: ex, hasQuiz: quiz || !!genQuiz, isLocked: lock, quiz: genQuiz }
     if (lesson) {
-      await updateLesson(lesson.id, { title: title.trim(), lessonType: type, videoUrl: video, fileUrl: file, exerciseUrl: ex, hasQuiz: quiz, isLocked: lock })
+      await updateLesson(lesson.id, { title: title.trim(), ...common })
     } else {
-      await addLesson({ moduleId, title: title.trim(), order: nextOrder ?? 1, lessonType: type, videoUrl: video || undefined, fileUrl: file || undefined, exerciseUrl: ex || undefined, hasQuiz: quiz, isLocked: lock })
+      await addLesson({ moduleId, title: title.trim(), order: nextOrder ?? 1, lessonType: type, videoUrl: video || undefined, fileUrl: file || undefined, exerciseUrl: ex || undefined, hasQuiz: quiz || !!genQuiz, isLocked: lock, quiz: genQuiz })
     }
     setSaving(false); onSaved()
   }
@@ -291,6 +308,52 @@ function LessonForm({ moduleId, lesson, nextOrder, onSaved, onCancel }: {
         <label className="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" checked={quiz} onChange={e => setQuiz(e.target.checked)} className="accent-yellow-400" /> يحتوي اختبارًا</label>
         <label className="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" checked={lock} onChange={e => setLock(e.target.checked)} className="accent-yellow-400" /> مقفل</label>
       </div>
+
+      {/* AI quiz generator */}
+      <div className="rounded-lg border border-violet-200 bg-violet-50/60 overflow-hidden">
+        <button onClick={() => setAiOpen(o => !o)} className="w-full flex items-center gap-2 px-3 py-2 text-right">
+          <Sparkles size={14} className="text-violet-600" />
+          <span className="flex-1 text-[12px] font-bold text-violet-800">توليد اختبار + تمرين بالذكاء الاصطناعي</span>
+          {genQuiz && <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-1"><CheckCircle2 size={12} /> {genQuiz.questions.length} سؤال</span>}
+          <ChevronDown size={14} className={`text-violet-400 transition-transform ${aiOpen ? 'rotate-180' : ''}`} />
+        </button>
+        {aiOpen && (
+          <div className="px-3 pb-3 space-y-2">
+            <textarea value={source} onChange={e => setSource(e.target.value)} rows={4}
+              placeholder="الصق هنا محتوى الدرس / المقطع من ملف A0–A1 (اختياري). كلما كان المصدر أدق، كان الاختبار أدق. إن تركته فارغًا سيُولّد من عنوان الدرس."
+              className={INP + ' resize-y leading-relaxed'} />
+            <button onClick={generate} disabled={genning || !title.trim()} className="w-full py-2 rounded-lg bg-violet-600 text-white font-bold text-[12px] flex items-center justify-center gap-1.5 disabled:opacity-50">
+              {genning ? <Loader2 size={13} className="animate-spin" /> : <Wand2 size={13} />} {genQuiz ? 'إعادة التوليد' : 'توليد بالذكاء الاصطناعي'}
+            </button>
+            {genErr && <div className="text-[11px] text-red-500 text-center">{genErr}</div>}
+            {genQuiz && (
+              <div className="space-y-2 bg-white rounded-lg border border-zinc-200 p-2.5">
+                {genQuiz.questions.map((q, i) => (
+                  <div key={i} className="text-[12px]">
+                    <div className="font-bold text-zinc-800">{i + 1}. {q.q}</div>
+                    <ul className="mt-0.5 space-y-0.5">
+                      {q.choices.map((c, j) => (
+                        <li key={j} className={`flex items-center gap-1.5 ${j === q.answer ? 'text-emerald-700 font-bold' : 'text-zinc-500'}`}>
+                          {j === q.answer ? <Check size={11} /> : <span className="w-[11px]" />} {c}
+                        </li>
+                      ))}
+                    </ul>
+                    {q.explain && <div className="text-[10px] text-zinc-400 mt-0.5" dir="rtl">💡 {q.explain}</div>}
+                  </div>
+                ))}
+                {genQuiz.exercise?.prompt && (
+                  <div className="text-[12px] border-t border-zinc-100 pt-2" dir="rtl">
+                    <div className="font-bold text-amber-700">✍️ تمرين تطبيقي</div>
+                    <div className="text-zinc-600">{genQuiz.exercise.prompt}</div>
+                  </div>
+                )}
+                <button onClick={() => { setGenQuiz(null); setQuiz(false) }} className="text-[11px] text-red-500 hover:underline">إزالة الاختبار المُولّد</button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
       <div className="flex gap-2">
         <button onClick={save} disabled={saving || !title.trim()} className="flex-1 py-2 bg-emerald-600 text-white rounded-lg font-bold text-[12px] disabled:opacity-50">{saving ? <Loader2 size={13} className="animate-spin mx-auto" /> : (lesson ? 'حفظ التعديلات' : 'حفظ الدرس')}</button>
         <button onClick={onCancel} className="px-3 py-2 border border-zinc-200 rounded-lg text-[12px] text-zinc-500">إلغاء</button>
