@@ -69,7 +69,7 @@ export interface StudentSpace {
     lessons_total: number; lessons_done: number
     ex_total: number; ex_done: number
     exam_total: number; exam_done: number
-    files_total: number
+    files_total: number; files_opened: number
     overall: number; streak: number; last_activity: string | null
   }
 }
