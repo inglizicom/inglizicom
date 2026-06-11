@@ -1,7 +1,14 @@
 import { supabase } from './supabase'
 
 /* ── Types ─────────────────────────────────────────────── */
-export interface LmsCourse { id: string; title: string; level: string | null; description: string | null; is_published: boolean; created_at: string }
+export interface LmsCourse { id: string; title: string; level: string | null; description: string | null; is_published: boolean; created_at: string; days_per_unit?: number }
+export interface ProgressMeta {
+  course_id: string; course_title: string; enrolled_at: string; days_per_unit: number
+  total_units: number; completed_units: number; current_unit_order: number; current_unit_title: string
+  total_lessons: number; done_lessons: number
+}
+/** Public exams/test bank — linked at the end of every unit. */
+export const EXAMS_URL = 'https://inglizi.com/exams'
 export interface LmsModule { id: string; course_id: string; title: string; module_order: number }
 export interface LmsLesson {
   id: string; module_id: string; title: string; lesson_order: number
@@ -31,6 +38,12 @@ export async function createCourse(input: { title: string; level?: string; descr
 }
 export async function deleteCourse(id: string): Promise<void> { await supabase.from('lms_courses').delete().eq('id', id) }
 export async function setCoursePublished(id: string, v: boolean): Promise<void> { await supabase.from('lms_courses').update({ is_published: v }).eq('id', id) }
+export async function setCourseDaysPerUnit(id: string, days: number): Promise<void> { await supabase.from('lms_courses').update({ days_per_unit: Math.max(1, days) }).eq('id', id) }
+export async function fetchProgressMeta(token: string): Promise<ProgressMeta | null> {
+  const { data } = await supabase.rpc('student_progress_meta', { p_token: token.trim().toUpperCase() })
+  const row = Array.isArray(data) ? data[0] : data
+  return (row ?? null) as ProgressMeta | null
+}
 
 /* ── Modules ───────────────────────────────────────────── */
 export async function fetchModules(courseId: string): Promise<LmsModule[]> {

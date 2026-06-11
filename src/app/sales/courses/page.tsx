@@ -5,11 +5,11 @@ import { useRef } from 'react'
 import {
   BookOpen, Plus, Trash2, Loader2, ChevronDown, ChevronLeft, X, Lock, Unlock,
   Video, FileText, PenLine, HelpCircle, Mic, Layers, GripVertical, ChevronUp,
-  Pencil, Check, Sparkles, Wand2, CheckCircle2, Upload, Download, Paperclip,
+  Pencil, Check, Sparkles, Wand2, CheckCircle2, Upload, Download, Paperclip, Clock,
 } from 'lucide-react'
 import { useStaff } from '@/lib/staff-context'
 import {
-  fetchCourses, createCourse, deleteCourse,
+  fetchCourses, createCourse, deleteCourse, setCourseDaysPerUnit,
   fetchModules, addModule, updateModule, deleteModule, reorderModules,
   fetchLessons, addLesson, updateLesson, deleteLesson, toggleLessonLock, reorderLessons,
   generateQuiz,
@@ -87,7 +87,7 @@ export default function CoursesPage() {
               </div>
               <button onClick={e => { e.stopPropagation(); removeCourse(c.id) }} className="text-zinc-300 hover:text-red-500"><Trash2 size={15} /></button>
             </button>
-            {openCourse === c.id && <CourseBuilder courseId={c.id} />}
+            {openCourse === c.id && <CourseBuilder courseId={c.id} initialDays={c.days_per_unit ?? 7} />}
           </div>
         ))}
     </div>
@@ -95,12 +95,13 @@ export default function CoursesPage() {
 }
 
 /* ── Modules + lessons builder ─────────────────────────── */
-function CourseBuilder({ courseId }: { courseId: string }) {
+function CourseBuilder({ courseId, initialDays }: { courseId: string; initialDays: number }) {
   const [modules, setModules] = useState<LmsModule[]>([])
   const [loading, setLoading] = useState(true)
   const [newMod, setNewMod] = useState('')
   const [dragIdx, setDragIdx] = useState<number | null>(null)
   const [overIdx, setOverIdx] = useState<number | null>(null)
+  const [days, setDays] = useState(initialDays)
 
   async function load() { setLoading(true); setModules(await fetchModules(courseId)); setLoading(false) }
   useEffect(() => { load() }, [courseId])
@@ -133,8 +134,21 @@ function CourseBuilder({ courseId }: { courseId: string }) {
 
   if (loading) return <div className="p-4 flex justify-center border-t border-zinc-50"><Loader2 className="animate-spin text-zinc-300" size={20} /></div>
 
+  const totalDays = days * Math.max(1, modules.length)
+
   return (
     <div className="border-t border-zinc-50 p-4 space-y-3 bg-zinc-50/40">
+      {/* Schedule: fixed days per unit → drives student deadlines */}
+      <div className="rounded-xl border border-blue-200 bg-blue-50/60 p-3 flex flex-wrap items-center gap-2">
+        <Clock size={14} className="text-blue-600" />
+        <span className="text-[12px] font-bold text-blue-800">مدة كل وحدة:</span>
+        <input type="number" min={1} value={days}
+          onChange={e => setDays(Math.max(1, Number(e.target.value) || 1))}
+          onBlur={() => setCourseDaysPerUnit(courseId, days)}
+          className="w-16 border border-blue-200 rounded-lg px-2 py-1 text-[13px] text-center font-bold focus:outline-none focus:ring-2 focus:ring-blue-300" />
+        <span className="text-[12px] text-blue-700">يوم</span>
+        <span className="text-[11px] text-zinc-500 mr-auto">المدة الكلية ≈ <b>{totalDays} يوم</b> ({modules.length} وحدة) — يحدّد مواعيد الطلاب تلقائيًا من تاريخ التسجيل.</span>
+      </div>
       {modules.length > 1 && <div className="text-[11px] text-zinc-400 flex items-center gap-1"><GripVertical size={12} /> اسحب الوحدة لإعادة ترتيبها، أو استخدم الأسهم</div>}
       {modules.map((m, i) => (
         <div

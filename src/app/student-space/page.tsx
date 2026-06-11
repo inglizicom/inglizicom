@@ -13,7 +13,7 @@ import {
   fetchStudentSpace, completeExercise, logActivity, fileUrl,
   type StudentSpace, type StudentAssignment, type PortalLesson, type PortalModule,
 } from '@/lib/student-portal'
-import { openLesson, completeLesson, fetchStudentResources, resourceUrl, type CourseResource } from '@/lib/lms'
+import { openLesson, completeLesson, fetchStudentResources, resourceUrl, fetchProgressMeta, EXAMS_URL, type CourseResource, type ProgressMeta } from '@/lib/lms'
 import VideoPlayer from '@/components/VideoPlayer'
 import QuizRunner from '@/components/QuizRunner'
 
@@ -73,6 +73,7 @@ function Portal() {
   const [notifOpen, setNotifOpen] = useState(false)
   const [seenSig, setSeenSig] = useState(() => typeof window !== 'undefined' ? (localStorage.getItem(NOTIF_SEEN_KEY) || '') : '')
   const [resources, setResources] = useState<CourseResource[]>([])
+  const [meta, setMeta] = useState<ProgressMeta | null>(null)
 
   async function enter(rawToken: string, isAuto = false): Promise<boolean> {
     const t = rawToken.trim().toUpperCase(); if (!t) return false
@@ -92,7 +93,7 @@ function Portal() {
     })()
   }, [])
   async function refresh() { if (token) { const r = await fetchStudentSpace(token); if (r.found) setSpace(r) } }
-  useEffect(() => { if (token) fetchStudentResources(token).then(setResources) }, [token])
+  useEffect(() => { if (token) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta) } }, [token, space])
   function logout() { try { localStorage.removeItem(TOKEN_KEY) } catch {}; setSpace(null); setToken(''); setCode(''); setError('') }
 
   if (booting) return <div className="min-h-screen bg-[#14161c] flex items-center justify-center"><Loader2 className="animate-spin text-yellow-400" size={28} /></div>
@@ -148,6 +149,30 @@ function Portal() {
   const currentModule = (course?.modules ?? []).find(m => modProg(m).pct < 100) ?? (course?.modules ?? [])[0]
   const exerciseLessons = flat.filter(x => x.lesson.type === 'exercise' || x.lesson.type === 'quiz').slice(0, 4)
   const nextExam = exams.find(e => e.score == null)
+
+  /* ════ DEADLINES (fixed days per unit, from enrollment) ════ */
+  const DAY_MS = 86400000
+  const sched = (() => {
+    if (!meta || !meta.enrolled_at) return null
+    const start = new Date(meta.enrolled_at).getTime()
+    const dpu = meta.days_per_unit || 7
+    const units = Math.max(1, meta.total_units)
+    const courseEnd = start + units * dpu * DAY_MS
+    const unitEnd = start + meta.current_unit_order * dpu * DAY_MS    // current unit deadline
+    const now = Date.now()
+    const daysLeftCourse = Math.ceil((courseEnd - now) / DAY_MS)
+    const daysLeftUnit = Math.ceil((unitEnd - now) / DAY_MS)
+    const allDone = meta.completed_units >= units
+    return {
+      courseEnd, unitEnd, daysLeftCourse, daysLeftUnit, allDone,
+      unitOverdue: !allDone && now > unitEnd,
+      courseOverdue: !allDone && now > courseEnd,
+      currentUnit: meta.current_unit_title,
+      completedUnits: meta.completed_units, totalUnits: units,
+    }
+  })()
+  const fmtDate = (ms: number) => new Date(ms).toLocaleDateString('ar-MA', { day: 'numeric', month: 'long' })
+  const unitDeadlineMs = (order: number) => meta?.enrolled_at ? new Date(meta.enrolled_at).getTime() + order * (meta.days_per_unit || 7) * DAY_MS : null
 
   // week streak
   const activeDates = new Set(recent.map(r => r.created_at.slice(0, 10)))
@@ -241,6 +266,23 @@ function Portal() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 pt-4">
+
+        {/* ═══════════ ALWAYS-VISIBLE DEADLINE REMINDER ═══════════ */}
+        {sched && !sched.allDone && (
+          <div className={`mb-4 rounded-2xl px-4 py-3 flex items-center gap-3 ${sched.courseOverdue ? 'bg-rose-600 text-white' : sched.unitOverdue ? 'bg-rose-50 border border-rose-200 text-rose-800' : sched.daysLeftCourse <= 14 ? 'bg-amber-50 border border-amber-200 text-amber-800' : 'bg-zinc-900 text-white'}`}>
+            <Clock size={20} className="flex-shrink-0" />
+            <div className="flex-1 min-w-0 text-[12.5px] leading-snug">
+              {sched.courseOverdue ? (
+                <><b>انتهت مدة الدورة!</b> راجع تقدّمك وتواصل مع الإدارة لإكمال ما تبقّى.</>
+              ) : sched.unitOverdue ? (
+                <><b>أنت متأخر في «{sched.currentUnit}».</b> كان الموعد {fmtDate(sched.unitEnd)} — أكملها الآن لتبقى ضمن الجدول.</>
+              ) : (
+                <>لإنهاء الدورة يتبقّى <b>{sched.daysLeftCourse} يومًا</b> · موعد الوحدة الحالية: <b>{sched.daysLeftUnit > 0 ? `${sched.daysLeftUnit} يوم` : 'اليوم'}</b> ({fmtDate(sched.unitEnd)})</>
+              )}
+            </div>
+            <span className="text-[11px] font-bold bg-black/15 rounded-full px-2 py-0.5 flex-shrink-0">{sched.completedUnits}/{sched.totalUnits} وحدة</span>
+          </div>
+        )}
 
         {/* ═══════════ HOME ═══════════ */}
         {tab === 'home' && (
@@ -400,6 +442,32 @@ function Portal() {
                 </div>
               </Card>
 
+              {/* Schedule / deadline */}
+              {sched && (
+                <Card title="الجدول الزمني" icon={Clock} iconColor="text-rose-500">
+                  {sched.allDone ? (
+                    <div className="text-center py-2"><div className="text-2xl mb-1">🎓</div><div className="text-[13px] font-bold text-emerald-600">أكملت كل الوحدات!</div></div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      <div className={`rounded-xl p-3 ${sched.courseOverdue ? 'bg-rose-50' : 'bg-zinc-50'}`}>
+                        <div className="text-[11px] text-zinc-400">المتبقّي لإنهاء الدورة</div>
+                        <div className={`font-black text-[20px] ${sched.courseOverdue ? 'text-rose-600' : 'text-zinc-900'}`}>{sched.courseOverdue ? 'انتهت' : `${sched.daysLeftCourse} يوم`}</div>
+                        <div className="text-[11px] text-zinc-400">آخر أجل: {fmtDate(sched.courseEnd)}</div>
+                      </div>
+                      <div className={`rounded-xl p-3 ${sched.unitOverdue ? 'bg-rose-50' : 'bg-amber-50'}`}>
+                        <div className="text-[11px] text-zinc-400">الوحدة الحالية</div>
+                        <div className="font-bold text-[13px] text-zinc-800 truncate">{sched.currentUnit || '—'}</div>
+                        <div className={`text-[12px] font-bold mt-0.5 ${sched.unitOverdue ? 'text-rose-600' : 'text-amber-700'}`}>
+                          {sched.unitOverdue ? `متأخّر · كان ${fmtDate(sched.unitEnd)}` : sched.daysLeftUnit > 0 ? `يتبقّى ${sched.daysLeftUnit} يوم (${fmtDate(sched.unitEnd)})` : `الموعد اليوم`}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-[11px] text-zinc-500"><span className="flex-1 h-1.5 bg-zinc-100 rounded-full overflow-hidden"><span className="block h-full bg-rose-400 rounded-full" style={{ width: `${Math.round(sched.completedUnits / sched.totalUnits * 100)}%` }} /></span>{sched.completedUnits}/{sched.totalUnits}</div>
+                      {sched.unitOverdue && <div className="text-[11px] text-rose-600 bg-rose-50 rounded-lg px-2.5 py-1.5 leading-snug">⚠️ تم تسجيلك كـ «متأخّر». أكمل الوحدة لتعود ضمن الجدول.</div>}
+                    </div>
+                  )}
+                </Card>
+              )}
+
               {/* Next exam */}
               <Card title="الامتحان القادم" icon={CalendarDays} iconColor="text-blue-500">
                 {nextExam ? (
@@ -461,14 +529,26 @@ function Portal() {
             <SectionTitle icon={Route} color="text-emerald-500">مسار الدورة</SectionTitle>
             {!course ? <Empty text="لم يتم تسجيلك في دورة بعد" />
               : course.modules.length === 0 ? <Empty text="سيظهر محتوى دورتك هنا قريبًا" />
-              : course.modules.map((m, mi) => { const p = modProg(m); return (
-                <div key={m.id} className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
+              : course.modules.map((m, mi) => {
+                const p = modProg(m)
+                const dl = unitDeadlineMs(mi + 1)
+                const overdue = dl != null && p.pct < 100 && Date.now() > dl
+                return (
+                <div key={m.id} className={`bg-white rounded-2xl border overflow-hidden ${overdue ? 'border-rose-200' : 'border-zinc-100'}`}>
                   <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-100 flex items-center gap-2">
                     <span className="w-6 h-6 rounded-full bg-zinc-900 text-white text-[11px] font-black flex items-center justify-center">{mi + 1}</span>
-                    <span className="font-bold text-[14px] text-zinc-800 flex-1">{m.title}</span>
+                    <div className="flex-1 min-w-0">
+                      <span className="font-bold text-[14px] text-zinc-800">{m.title}</span>
+                      {dl != null && <span className={`block text-[10px] ${overdue ? 'text-rose-600 font-bold' : 'text-zinc-400'}`}>{p.pct >= 100 ? '✓ مكتملة' : overdue ? `متأخّر · كان الموعد ${fmtDate(dl)}` : `الموعد النهائي: ${fmtDate(dl)}`}</span>}
+                    </div>
                     <span className="text-[11px] font-bold text-zinc-400">{p.d}/{p.t}</span>
                   </div>
                   <div className="divide-y divide-zinc-50">{m.lessons.map(l => <LessonRow key={l.id} l={l} unlocked={isUnlocked(l)} onOpen={onOpenLesson} onComplete={onCompleteLesson} onQuiz={setQuizLesson} />)}</div>
+                  {/* End-of-unit exam — test knowledge on inglizi.com/exams */}
+                  <a href={EXAMS_URL} target="_blank" rel="noreferrer" onClick={() => logActivity(token, 'opened_exam', 'module', m.id, m.title)}
+                    className="flex items-center justify-center gap-2 px-4 py-3 bg-yellow-50 border-t border-yellow-100 text-yellow-800 font-bold text-[12.5px] hover:bg-yellow-100">
+                    <Award size={15} /> امتحان نهاية الوحدة — اختبر معرفتك <ExternalLink size={13} />
+                  </a>
                 </div>
               )})}
           </div>
