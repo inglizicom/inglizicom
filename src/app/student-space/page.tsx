@@ -13,7 +13,7 @@ import {
   fetchStudentSpace, completeExercise, logActivity, fileUrl, studentLogin, getDeviceId,
   type StudentSpace, type StudentAssignment, type PortalLesson, type PortalModule,
 } from '@/lib/student-portal'
-import { openLesson, completeLesson, fetchStudentResources, resourceUrl, fetchProgressMeta, fetchReadingUnits, fetchMySubmissions, fetchNotifications, markNotificationsRead, EXAMS_URL, type CourseResource, type ProgressMeta, type UnitSubmission, type StudentNotification } from '@/lib/lms'
+import { openLesson, completeLesson, fetchStudentResources, resourceUrl, fetchProgressMeta, fetchReadingUnits, fetchMySubmissions, fetchNotifications, markNotificationsRead, EXAMS_URL, CORRECTOR_WHATSAPP, type CourseResource, type ProgressMeta, type UnitSubmission, type StudentNotification } from '@/lib/lms'
 import VideoPlayer from '@/components/VideoPlayer'
 import QuizRunner from '@/components/QuizRunner'
 import ReadingViewer from '@/components/ReadingViewer'
@@ -88,6 +88,7 @@ function Portal() {
   const [otpPhone, setOtpPhone] = useState('')
   const [otpMsg, setOtpMsg] = useState('')
   const [otpBusy, setOtpBusy] = useState(false)
+  const [otpReveal, setOtpReveal] = useState(false)   // show the self-serve WhatsApp-OTP option
 
   async function enter(rawToken: string, isAuto = false): Promise<boolean> {
     const t = rawToken.trim().toUpperCase(); if (!t) return false
@@ -170,25 +171,37 @@ function Portal() {
               </>
             ) : (
               <>
-                <div className="flex items-center gap-1.5 text-[14px] font-black text-zinc-800 mb-1.5"><Lock size={16} className="text-amber-500" /> تأكيد جهاز جديد</div>
-                <p className="text-[12px] text-zinc-500 leading-relaxed mb-4">حسابك مُفعّل على جهاز آخر. لحماية حسابك من المشاركة، سنرسل رمز تحقق إلى رقم واتساب المسجّل لديك.</p>
-                {!otpSent ? (
-                  <button type="button" onClick={sendOtpCode} disabled={otpBusy} className="w-full py-3.5 rounded-2xl bg-[#25D366] text-white font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-50">
-                    {otpBusy ? <Loader2 size={17} className="animate-spin" /> : <MessageSquare size={17} />} أرسل رمز التحقق على واتساب
-                  </button>
+                {/* primary: warning + ask administration */}
+                <div className="w-12 h-12 rounded-2xl bg-amber-100 flex items-center justify-center mx-auto mb-3"><Lock size={22} className="text-amber-600" /></div>
+                <h2 className="text-[15px] font-black text-zinc-900 text-center">الحساب مُفعّل على جهاز آخر</h2>
+                <p className="text-[12.5px] text-zinc-500 leading-relaxed text-center mt-1.5 mb-4">هذا الحساب مرتبط بجهاز آخر. اطلب من الإدارة منحك صلاحية الدخول من هذا الجهاز.</p>
+                <a href={`https://wa.me/${CORRECTOR_WHATSAPP}?text=${encodeURIComponent(`أرغب بالدخول من جهاز جديد إلى فضاء الطالب. رمزي: ${otpFor}`)}`} target="_blank" rel="noreferrer"
+                  className="w-full py-3.5 rounded-2xl bg-[#25D366] text-white font-bold text-[15px] flex items-center justify-center gap-2"><MessageSquare size={17} /> تواصل مع الإدارة عبر واتساب</a>
+
+                {/* secondary: optional self-serve WhatsApp code */}
+                {!otpReveal ? (
+                  <button type="button" onClick={() => setOtpReveal(true)} className="w-full text-[12px] text-zinc-400 mt-3 hover:text-zinc-600 underline">أو فعّل جهازك تلقائيًا عبر رمز واتساب</button>
                 ) : (
-                  <>
-                    <p className="text-[12px] text-zinc-500 mb-2">أدخل الرمز المُرسل إلى واتساب <span dir="ltr" className="font-bold">{otpPhone}</span></p>
-                    <input value={otpCode} onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" placeholder="••••••" dir="ltr"
-                      className="w-full px-4 py-3.5 text-[20px] font-black tracking-[8px] text-center bg-zinc-50 border-2 border-zinc-200 rounded-2xl focus:outline-none focus:border-yellow-400" />
-                    <button type="submit" disabled={otpBusy || otpCode.trim().length < 4} className="mt-3 w-full py-3.5 rounded-2xl bg-black text-white font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-50">
-                      {otpBusy ? <Loader2 size={17} className="animate-spin" /> : <CheckCircle2 size={17} />} تحقّق وادخل
-                    </button>
-                    <button type="button" onClick={sendOtpCode} disabled={otpBusy} className="w-full text-[11px] text-zinc-400 mt-2 hover:text-zinc-600">إعادة إرسال الرمز</button>
-                  </>
+                  <div className="mt-4 pt-4 border-t border-zinc-100">
+                    {!otpSent ? (
+                      <button type="button" onClick={sendOtpCode} disabled={otpBusy} className="w-full py-3 rounded-2xl bg-zinc-900 text-white font-bold text-[14px] flex items-center justify-center gap-2 disabled:opacity-50">
+                        {otpBusy ? <Loader2 size={16} className="animate-spin" /> : <MessageSquare size={16} />} أرسل رمز تحقق إلى واتساب
+                      </button>
+                    ) : (
+                      <>
+                        <p className="text-[12px] text-zinc-500 mb-2 text-center">أدخل الرمز المُرسل إلى <span dir="ltr" className="font-bold">{otpPhone}</span></p>
+                        <input value={otpCode} onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" placeholder="••••••" dir="ltr"
+                          className="w-full px-4 py-3 text-[20px] font-black tracking-[8px] text-center bg-zinc-50 border-2 border-zinc-200 rounded-2xl focus:outline-none focus:border-yellow-400" />
+                        <button type="submit" disabled={otpBusy || otpCode.trim().length < 4} className="mt-3 w-full py-3 rounded-2xl bg-black text-white font-bold text-[14px] flex items-center justify-center gap-2 disabled:opacity-50">
+                          {otpBusy ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />} تحقّق وادخل
+                        </button>
+                        <button type="button" onClick={sendOtpCode} disabled={otpBusy} className="w-full text-[11px] text-zinc-400 mt-2 hover:text-zinc-600">إعادة إرسال الرمز</button>
+                      </>
+                    )}
+                  </div>
                 )}
-                {otpMsg && <p className="text-[12px] text-red-600 mt-3 font-medium flex items-center gap-1.5"><AlertCircle size={13} /> {otpMsg}</p>}
-                <button type="button" onClick={() => { setOtpFor(''); setOtpSent(false); setOtpMsg(''); setOtpCode(''); setError('') }} className="w-full text-[12px] text-zinc-400 mt-4 hover:text-zinc-600">رجوع</button>
+                {otpMsg && <p className="text-[12px] text-red-600 mt-3 font-medium flex items-center gap-1.5 justify-center"><AlertCircle size={13} /> {otpMsg}</p>}
+                <button type="button" onClick={() => { setOtpFor(''); setOtpSent(false); setOtpMsg(''); setOtpCode(''); setOtpReveal(false); setError('') }} className="w-full text-[12px] text-zinc-400 mt-4 hover:text-zinc-600">رجوع</button>
               </>
             )}
           </form>

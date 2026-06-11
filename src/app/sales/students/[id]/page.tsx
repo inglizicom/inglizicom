@@ -1040,17 +1040,32 @@ function DevicesSection({ studentId, limit }: { studentId: string; limit: number
   const [devices, setDevices] = useState<StudentDevice[]>([])
   const [loading, setLoading] = useState(true)
   const [lim, setLim] = useState(limit)
+  const [busy, setBusy] = useState(false)
+  const [done, setDone] = useState(false)
 
   async function load() { setLoading(true); setDevices(await fetchStudentDevices(studentId)); setLoading(false) }
   useEffect(() => { load() }, [studentId])
 
-  async function reset() { if (confirm('إعادة ضبط الأجهزة؟ سيُسجَّل خروج الطالب من كل الأجهزة ويمكنه الدخول من جهاز جديد.')) { await resetStudentDevices(studentId); load() } }
+  async function allowNewDevice() {
+    setBusy(true)
+    await resetStudentDevices(studentId)
+    await load(); setBusy(false)
+    setDone(true); setTimeout(() => setDone(false), 2500)
+  }
   async function rm(id: string) { await deleteStudentDevice(id); load() }
   async function changeLimit(n: number) { const v = Math.max(1, n); setLim(v); await setDeviceLimit(studentId, v) }
 
   return (
     <div className="bg-white rounded-2xl border border-zinc-200 p-4">
       <div className="flex items-center gap-1.5 text-[12px] font-bold text-zinc-700 mb-3"><Smartphone size={14} className="text-indigo-600" /> أجهزة الدخول والأمان</div>
+
+      {/* One-tap: free the account so the student can sign in on a new device */}
+      <button onClick={allowNewDevice} disabled={busy}
+        className="w-full py-3 rounded-xl bg-indigo-600 text-white font-black text-[13px] flex items-center justify-center gap-2 hover:bg-indigo-700 disabled:opacity-60">
+        {busy ? <Loader2 size={15} className="animate-spin" /> : done ? <><CheckCircle size={15} /> تم — يمكنه الدخول من جهازه الجديد</> : <><Smartphone size={15} /> السماح بدخول جهاز جديد</>}
+      </button>
+      <p className="text-[10px] text-zinc-400 mt-1.5 mb-3 leading-relaxed text-center">اضغط، ثم اطلب من الطالب تسجيل الدخول من جهازه الجديد — سيُسجَّل خروجه من الجهاز القديم تلقائيًا.</p>
+
       <div className="flex items-center justify-between mb-3 bg-zinc-50 rounded-lg px-3 py-2">
         <span className="text-[12px] text-zinc-600">عدد الأجهزة المسموح بها</span>
         <div className="flex items-center gap-1.5">
@@ -1070,8 +1085,7 @@ function DevicesSection({ studentId, limit }: { studentId: string; limit: number
               </div>
             ))}
           </div>}
-      <button onClick={reset} className="w-full mt-3 py-2 rounded-lg bg-rose-50 text-rose-700 font-bold text-[12px] hover:bg-rose-100">إعادة ضبط كل الأجهزة</button>
-      <p className="text-[10px] text-zinc-400 mt-2 leading-relaxed">يمنع هذا مشاركة الحساب: الرمز يعمل فقط على الأجهزة المسجّلة (الحد الأقصى أعلاه). أعد الضبط إذا غيّر الطالب هاتفه.</p>
+      <p className="text-[10px] text-zinc-400 mt-2 leading-relaxed">يمنع هذا مشاركة الحساب: الرمز يعمل فقط على الأجهزة المسجّلة (الحد الأقصى أعلاه).</p>
     </div>
   )
 }
