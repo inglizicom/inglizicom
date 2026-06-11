@@ -17,6 +17,12 @@ import { openLesson, completeLesson } from '@/lib/lms'
 import VideoPlayer from '@/components/VideoPlayer'
 
 const isVideoUrl = (u?: string | null) => !!u && /(youtube\.com|youtu\.be)/i.test(u)
+const ytThumb = (u?: string | null) => {
+  if (!u) return null
+  const m = u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/))([\w-]{11})/) || u.match(/[?&]v=([\w-]{11})/)
+  return m ? `https://i.ytimg.com/vi/${m[1]}/hqdefault.jpg` : null
+}
+const NOTIF_SEEN_KEY = 'inglizi.notif_seen'
 
 const fmtShort = (s?: string | null) => s ? new Date(s).toLocaleDateString('ar-MA', { month: 'short', day: 'numeric' }) : '—'
 const fmtTime  = (s?: string | null) => s ? new Date(s).toLocaleTimeString('ar-MA', { hour: '2-digit', minute: '2-digit' }) : ''
@@ -56,6 +62,7 @@ function Portal() {
   const [tab, setTab]         = useState<Tab>('home')
   const [videoLesson, setVideoLesson] = useState<PortalLesson | null>(null)
   const [notifOpen, setNotifOpen] = useState(false)
+  const [seenSig, setSeenSig] = useState(() => typeof window !== 'undefined' ? (localStorage.getItem(NOTIF_SEEN_KEY) || '') : '')
 
   async function enter(rawToken: string, isAuto = false): Promise<boolean> {
     const t = rawToken.trim().toUpperCase(); if (!t) return false
@@ -179,11 +186,20 @@ function Portal() {
             if (pendEx > 0) notifs.push({ icon: ListChecks, text: `${pendEx} تمرين إضافي مطلوب`, go: () => setTab('tasks') })
             if (nextExam) notifs.push({ icon: CalendarDays, text: 'امتحان قادم', sub: nextExam.title, go: () => setTab('progress') })
             if (s.admin_message) notifs.push({ icon: MessageSquareText, text: 'رسالة من مدرّسك', sub: s.admin_message, go: () => setTab('home') })
+            const sig = notifs.map(n => n.text + (n.sub ?? '')).join('|')
+            const unread = notifs.length > 0 && sig !== seenSig   // badge clears once read, history stays
+            function openBell() {
+              setNotifOpen(o => {
+                const next = !o
+                if (next && sig) { try { localStorage.setItem(NOTIF_SEEN_KEY, sig) } catch {} ; setSeenSig(sig) }
+                return next
+              })
+            }
             return (
               <div className="relative">
-                <button onClick={() => setNotifOpen(o => !o)} className="relative w-9 h-9 rounded-xl hover:bg-white/10 flex items-center justify-center text-zinc-300">
-                  <Bell size={18} />
-                  {notifs.length > 0 && <span className="absolute -top-0.5 -right-0.5 bg-rose-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{notifs.length}</span>}
+                <button onClick={openBell} className="relative w-9 h-9 rounded-xl hover:bg-white/10 flex items-center justify-center text-zinc-300">
+                  <Bell size={18} className={unread ? 'animate-[vp-pulse_2s_ease-in-out_infinite]' : ''} />
+                  {unread && <span className="absolute -top-0.5 -right-0.5 bg-rose-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center vp-pop">{notifs.length}</span>}
                 </button>
                 {notifOpen && (
                   <>
@@ -237,6 +253,16 @@ function Portal() {
                   {course && today && (
                     <div className="flex-1 bg-white/[0.06] rounded-2xl p-4">
                       <div className="text-[11px] text-zinc-400 mb-1">درس اليوم</div>
+                      {ytThumb(today.lesson.video_url) && (
+                        <button onClick={() => onOpenLesson(today.lesson, today.lesson.video_url)} className="group relative block w-full aspect-video rounded-xl overflow-hidden mb-2.5">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={ytThumb(today.lesson.video_url)!} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                          <span className="absolute inset-0 bg-black/25 group-hover:bg-black/10 transition-colors" />
+                          <span className="absolute inset-0 flex items-center justify-center">
+                            <span className="w-12 h-12 rounded-full bg-yellow-400/95 flex items-center justify-center shadow-lg vp-pulse"><PlayCircle size={26} className="text-black" /></span>
+                          </span>
+                        </button>
+                      )}
                       <div className="inline-block text-[10px] font-bold bg-violet-500/30 text-violet-200 px-2 py-0.5 rounded mb-1">{today.m.title}</div>
                       <div className="font-black text-[16px]">{today.lesson.title}</div>
                       {today.lesson.content && <div className="text-[11px] text-zinc-400 mt-0.5 line-clamp-1">{today.lesson.content}</div>}
@@ -260,7 +286,7 @@ function Portal() {
               {course && today && (
                 <Card title="مهامك اليوم" sub="أكمل مهامك اليومية لتتقدم في مستواك" icon={CalendarDays} iconColor="text-amber-500">
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                    {today.lesson.video_url && <TaskCard tone="violet" icon={PlayCircle} title="شاهد الفيديو" meta={today.lesson.title} cta="شاهد الآن" onClick={() => onOpenLesson(today.lesson, today.lesson.video_url)} />}
+                    {today.lesson.video_url && <TaskCard tone="violet" icon={PlayCircle} title="شاهد الفيديو" meta={today.lesson.title} cta="شاهد الآن" thumb={ytThumb(today.lesson.video_url)} onClick={() => onOpenLesson(today.lesson, today.lesson.video_url)} />}
                     {today.lesson.file_url && <TaskCard tone="emerald" icon={FileText} title="اقرأ الملف" meta="ملف الدرس" cta="اقرأ الآن" onClick={() => onOpenLesson(today.lesson, today.lesson.file_url)} />}
                     {today.lesson.exercise_url && <TaskCard tone="amber" icon={PenLine} title="أكمل التمرين" meta="تمرين الدرس" cta="ابدأ التمرين" onClick={() => onOpenLesson(today.lesson, today.lesson.exercise_url)} />}
                     {today.lesson.has_quiz && <TaskCard tone="blue" icon={HelpCircle} title="اختبر نفسك" meta="اختبار الدرس" cta="ابدأ الاختبار" onClick={() => onOpenLesson(today.lesson, today.lesson.exercise_url)} />}
@@ -549,16 +575,24 @@ function Card({ title, sub, icon: Icon, iconColor, action, children, compact }: 
     </div>
   )
 }
-function TaskCard({ tone, icon: Icon, title, meta, cta, onClick }: { tone: string; icon: any; title: string; meta: string; cta: string; onClick: () => void }) {
+function TaskCard({ tone, icon: Icon, title, meta, cta, onClick, thumb }: { tone: string; icon: any; title: string; meta: string; cta: string; onClick: () => void; thumb?: string | null }) {
   const tones: Record<string, string> = { violet: 'bg-violet-50 text-violet-600', emerald: 'bg-emerald-50 text-emerald-600', amber: 'bg-amber-50 text-amber-600', blue: 'bg-blue-50 text-blue-600' }
   const btns: Record<string, string> = { violet: 'bg-violet-100 text-violet-700', emerald: 'bg-emerald-100 text-emerald-700', amber: 'bg-amber-100 text-amber-700', blue: 'bg-blue-100 text-blue-700' }
   return (
-    <div className="rounded-2xl border border-zinc-100 p-3 text-center">
-      <div className={`w-10 h-10 rounded-full ${tones[tone]} flex items-center justify-center mx-auto mb-2`}><Icon size={18} /></div>
+    <button onClick={onClick} className="group rounded-2xl border border-zinc-100 p-3 text-center hover:border-zinc-200 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+      {thumb ? (
+        <div className="relative w-full aspect-video rounded-xl overflow-hidden mb-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={thumb} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          <span className="absolute inset-0 bg-black/15 flex items-center justify-center"><span className="w-9 h-9 rounded-full bg-yellow-400/95 flex items-center justify-center"><Icon size={16} className="text-black" /></span></span>
+        </div>
+      ) : (
+        <div className={`w-10 h-10 rounded-full ${tones[tone]} flex items-center justify-center mx-auto mb-2 transition-transform group-hover:scale-110`}><Icon size={18} /></div>
+      )}
       <div className="font-bold text-[13px] text-zinc-800">{title}</div>
       <div className="text-[10px] text-zinc-400 mb-2 truncate">{meta}</div>
-      <button onClick={onClick} className={`w-full py-1.5 rounded-lg text-[11px] font-bold ${btns[tone]}`}>{cta}</button>
-    </div>
+      <span className={`block w-full py-1.5 rounded-lg text-[11px] font-bold ${btns[tone]}`}>{cta}</span>
+    </button>
   )
 }
 function MiniBar({ label, pct, color, big }: { label: string; pct: number; color: string; big?: boolean }) {
