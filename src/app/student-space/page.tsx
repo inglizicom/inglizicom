@@ -14,6 +14,9 @@ import {
   type StudentSpace, type StudentAssignment, type PortalLesson, type PortalModule,
 } from '@/lib/student-portal'
 import { openLesson, completeLesson } from '@/lib/lms'
+import VideoPlayer from '@/components/VideoPlayer'
+
+const isVideoUrl = (u?: string | null) => !!u && /(youtube\.com|youtu\.be)/i.test(u)
 
 const fmtShort = (s?: string | null) => s ? new Date(s).toLocaleDateString('ar-MA', { month: 'short', day: 'numeric' }) : '—'
 const fmtTime  = (s?: string | null) => s ? new Date(s).toLocaleTimeString('ar-MA', { hour: '2-digit', minute: '2-digit' }) : ''
@@ -51,6 +54,7 @@ function Portal() {
   const [token, setToken]     = useState('')
   const [error, setError]     = useState('')
   const [tab, setTab]         = useState<Tab>('home')
+  const [videoLesson, setVideoLesson] = useState<PortalLesson | null>(null)
 
   async function enter(rawToken: string, isAuto = false): Promise<boolean> {
     const t = rawToken.trim().toUpperCase(); if (!t) return false
@@ -138,7 +142,12 @@ function Portal() {
   ]
 
   // lesson actions
-  async function onOpenLesson(l: PortalLesson, url?: string | null) { await openLesson(token, l.id); if (url) window.open(url, '_blank'); refresh() }
+  async function onOpenLesson(l: PortalLesson, url?: string | null) {
+    await openLesson(token, l.id)
+    if (isVideoUrl(url)) { setVideoLesson(l); return }   // play in-page (no external YouTube)
+    if (url) window.open(url, '_blank')
+    refresh()
+  }
   async function onCompleteLesson(l: PortalLesson) { if (await completeLesson(token, l.id)) refresh() }
   async function onCompleteManual(a: StudentAssignment) { if (a.status !== 'done' && await completeExercise(token, a.id)) refresh() }
   function openFile(f: { id: string; file_name: string; file_path: string }) { logActivity(token, 'downloaded_file', 'file', f.id, f.file_name); window.open(fileUrl(f.file_path), '_blank') }
@@ -453,6 +462,16 @@ function Portal() {
           </div>
         )}
       </main>
+
+      {/* In-page video player (hides YouTube branding, tracks watch progress) */}
+      {videoLesson && (
+        <VideoPlayer
+          url={videoLesson.video_url || ''}
+          title={videoLesson.title}
+          onClose={() => { setVideoLesson(null); refresh() }}
+          onWatched={async () => { await completeLesson(token, videoLesson.id); refresh() }}
+        />
+      )}
 
       {/* Bottom nav */}
       <nav className="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-zinc-200">
