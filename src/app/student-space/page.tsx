@@ -10,8 +10,8 @@ import {
   CalendarDays, Clock, BarChart3, Send, Play,
 } from 'lucide-react'
 import {
-  fetchStudentSpace, completeExercise, logActivity, fileUrl, studentLogin, getDeviceId, deviceValid,
-  type StudentSpace, type StudentAssignment, type PortalLesson, type PortalModule,
+  fetchStudentSpace, completeExercise, logActivity, fileUrl, studentLogin, getDeviceId, deviceValid, fetchUnitSteps,
+  type StudentSpace, type StudentAssignment, type PortalLesson, type PortalModule, type UnitSteps,
 } from '@/lib/student-portal'
 import { openLesson, completeLesson, fetchStudentResources, resourceUrl, fetchProgressMeta, fetchReadingUnits, fetchMySubmissions, fetchNotifications, markNotificationsRead, EXAMS_URL, CORRECTOR_WHATSAPP, type CourseResource, type ProgressMeta, type UnitSubmission, type StudentNotification } from '@/lib/lms'
 import VideoPlayer from '@/components/VideoPlayer'
@@ -98,7 +98,7 @@ function Portal() {
   const [anns, setAnns] = useState<StudentAnnouncement[]>([])
   const [showExam, setShowExam] = useState(false)
   const [cert, setCert] = useState<Certificate | null>(null)
-  const [stepTick, setStepTick] = useState(0)   // re-render when a unit step is reached
+  const [unitSteps, setUnitSteps] = useState<UnitSteps>({})   // server-tracked reading/exam steps
 
   async function enter(rawToken: string, isAuto = false): Promise<boolean> {
     const t = rawToken.trim().toUpperCase(); if (!t) return false
@@ -128,7 +128,7 @@ function Portal() {
     })()
   }, [])
   async function refresh() { if (token) { const r = await fetchStudentSpace(token); if (r.found) setSpace(r) } }
-  useEffect(() => { if (token) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta); fetchReadingUnits(token).then(ids => setReadingUnits(new Set(ids))); fetchMySubmissions(token).then(setSubmissions); fetchNotifications(token).then(setNotifs); fetchStudentAnnouncements(token).then(setAnns); fetchCertificate(token).then(setCert) } }, [token, space])
+  useEffect(() => { if (token) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta); fetchReadingUnits(token).then(ids => setReadingUnits(new Set(ids))); fetchMySubmissions(token).then(setSubmissions); fetchNotifications(token).then(setNotifs); fetchStudentAnnouncements(token).then(setAnns); fetchCertificate(token).then(setCert); fetchUnitSteps(token).then(setUnitSteps) } }, [token, space])
   function reloadSubmissions() { if (token) fetchMySubmissions(token).then(setSubmissions) }
 
   function playDing() {
@@ -311,10 +311,9 @@ function Portal() {
   })() : null
   const fmtDate = (ms: number) => new Date(ms).toLocaleDateString('ar-MA', { day: 'numeric', month: 'long' })
   const unitDeadlineMs = (order: number) => schedBase ? schedBase.start + order * schedBase.per : null
-  // sequential unit steps (reading → exam → correction light up as the student reaches them)
-  void stepTick
-  const stepDone = (kind: string, id: string) => { try { return localStorage.getItem(`inglizi.step.${kind}.${id}`) === '1' } catch { return false } }
-  const markStep = (kind: string, id: string) => { try { localStorage.setItem(`inglizi.step.${kind}.${id}`, '1') } catch {}; setStepTick(t => t + 1) }
+  // sequential unit steps — tracked server-side (activity log), follows the student across devices
+  const stepDone = (kind: 'reading' | 'exam', id: string) => !!unitSteps[id]?.[kind]
+  const markStep = (kind: 'reading' | 'exam', id: string) => setUnitSteps(p => ({ ...p, [id]: { ...p[id], [kind]: true } }))   // optimistic; logActivity persists it
 
   // week streak
   const activeDates = new Set(recent.map(r => r.created_at.slice(0, 10)))

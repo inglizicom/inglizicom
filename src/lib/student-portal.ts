@@ -127,6 +127,13 @@ export async function deleteStudentDevice(id: string): Promise<void> { await sup
 export async function resetStudentDevices(studentId: string): Promise<void> { await supabase.from('student_devices').delete().eq('student_id', studentId) }
 export async function setDeviceLimit(studentId: string, n: number): Promise<void> { await supabase.from('crm_students').update({ device_limit: Math.max(1, n) }).eq('id', studentId) }
 
+/* Per-unit step progress (reading/exam opened), tracked server-side via activity. */
+export type UnitSteps = Record<string, { reading?: boolean; exam?: boolean }>
+export async function fetchUnitSteps(token: string): Promise<UnitSteps> {
+  const { data } = await supabase.rpc('student_unit_steps', { p_token: token.trim().toUpperCase() })
+  return (data ?? {}) as UnitSteps
+}
+
 /* ── Portal (token-gated RPCs) ─────────────────────────── */
 export async function fetchStudentSpace(token: string): Promise<StudentSpace> {
   const { data, error } = await supabase.rpc('student_space', { p_token: token.trim().toUpperCase() })
