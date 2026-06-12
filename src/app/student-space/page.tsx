@@ -98,6 +98,7 @@ function Portal() {
   const [anns, setAnns] = useState<StudentAnnouncement[]>([])
   const [showExam, setShowExam] = useState(false)
   const [cert, setCert] = useState<Certificate | null>(null)
+  const [stepTick, setStepTick] = useState(0)   // re-render when a unit step is reached
 
   async function enter(rawToken: string, isAuto = false): Promise<boolean> {
     const t = rawToken.trim().toUpperCase(); if (!t) return false
@@ -310,6 +311,10 @@ function Portal() {
   })() : null
   const fmtDate = (ms: number) => new Date(ms).toLocaleDateString('ar-MA', { day: 'numeric', month: 'long' })
   const unitDeadlineMs = (order: number) => schedBase ? schedBase.start + order * schedBase.per : null
+  // sequential unit steps (reading → exam → correction light up as the student reaches them)
+  void stepTick
+  const stepDone = (kind: string, id: string) => { try { return localStorage.getItem(`inglizi.step.${kind}.${id}`) === '1' } catch { return false } }
+  const markStep = (kind: string, id: string) => { try { localStorage.setItem(`inglizi.step.${kind}.${id}`, '1') } catch {}; setStepTick(t => t + 1) }
 
   // week streak
   const activeDates = new Set(recent.map(r => r.created_at.slice(0, 10)))
@@ -765,35 +770,42 @@ function Portal() {
                   ) : (
                   <>
                   <div className="divide-y divide-zinc-50">{m.lessons.map(l => <LessonRow key={l.id} l={l} unlocked={isUnlocked(l)} onOpen={onOpenLesson} onComplete={onCompleteLesson} onQuiz={setQuizLesson} />)}</div>
-                  {/* Reading + listening for this unit */}
-                  {readingUnits.has(m.id) && (
-                    <button onClick={() => { setReadingUnit({ id: m.id, title: m.title }); logActivity(token, 'opened_reading', 'module', m.id, m.title) }}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-sky-50 border-t border-sky-100 text-sky-800 font-bold text-[12.5px] hover:bg-sky-100">
-                      <BookOpen size={15} /> القراءة والاستماع — نص الوحدة
-                    </button>
-                  )}
-                  {/* End-of-unit exam — test knowledge on inglizi.com/exams */}
-                  <a href={EXAMS_URL} target="_blank" rel="noreferrer" onClick={() => logActivity(token, 'opened_exam', 'module', m.id, m.title)}
-                    className="flex items-center justify-center gap-2 px-4 py-3 bg-yellow-50 border-t border-yellow-100 text-yellow-800 font-bold text-[12.5px] hover:bg-yellow-100">
-                    <Award size={15} /> امتحان نهاية الوحدة — اختبر معرفتك <ExternalLink size={13} />
-                  </a>
-                  {/* Submit the unit conversation for correction (+ alert when a correction is ready) */}
+                  {/* Sequential steps — each lights up once the student reaches it */}
                   {(() => {
+                    const lessonsDone = p.pct === 100
+                    const hasReading = readingUnits.has(m.id)
+                    const readingActive = lessonsDone
+                    const examActive = lessonsDone && (!hasReading || stepDone('reading', m.id))
                     const subs = submissions.filter(x => x.module_id === m.id); const last = subs[0]
                     const reviewed = last?.status === 'reviewed'
                     const unreadCorr = reviewed && notifs.some(n => n.type === 'correction' && !n.is_read && (n.body || '').includes(m.title))
-                    if (reviewed) return (
-                      <button onClick={() => setSubmitUnit({ id: m.id, title: m.title })}
-                        className={`w-full flex items-center justify-center gap-2 px-4 py-3 border-t font-black text-[12.5px] ${unreadCorr ? 'bg-emerald-500 text-white border-emerald-600 animate-pulse' : 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100'}`}>
-                        {unreadCorr ? <><span className="w-2 h-2 rounded-full bg-white" /> تصحيحك جاهز — اضغط لقراءته الآن</> : <><CheckCircle2 size={14} /> عرض تصحيح المحادثة {last?.score != null ? `· ${last.score}/100` : ''}</>}
-                      </button>
-                    )
-                    return (
-                      <button onClick={() => setSubmitUnit({ id: m.id, title: m.title })}
-                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-50 border-t border-indigo-100 text-indigo-800 font-bold text-[12.5px] hover:bg-indigo-100">
-                        <Send size={14} /> {last ? 'محادثتك قيد المراجعة…' : 'سلّم محادثة الوحدة للتصحيح'}
-                      </button>
-                    )
+                    const correctionActive = examActive && stepDone('exam', m.id)
+                    const DIM = 'flex items-center justify-center gap-2 px-4 py-3 border-t border-zinc-100 bg-zinc-50 text-zinc-300 font-bold text-[12.5px] cursor-not-allowed'
+                    return (<>
+                      {hasReading && (readingActive
+                        ? <button onClick={() => { markStep('reading', m.id); setReadingUnit({ id: m.id, title: m.title }); logActivity(token, 'opened_reading', 'module', m.id, m.title) }}
+                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-sky-50 border-t border-sky-100 text-sky-800 font-bold text-[12.5px] hover:bg-sky-100"><BookOpen size={15} /> القراءة والاستماع — نص الوحدة</button>
+                        : <div className={'w-full ' + DIM}><Lock size={14} /> القراءة والاستماع — أكمل دروس الوحدة أولًا</div>)}
+
+                      {examActive
+                        ? <a href={EXAMS_URL} target="_blank" rel="noreferrer" onClick={() => { markStep('exam', m.id); logActivity(token, 'opened_exam', 'module', m.id, m.title) }}
+                            className="flex items-center justify-center gap-2 px-4 py-3 bg-yellow-50 border-t border-yellow-100 text-yellow-800 font-bold text-[12.5px] hover:bg-yellow-100"><Award size={15} /> امتحان نهاية الوحدة — اختبر معرفتك <ExternalLink size={13} /></a>
+                        : <div className={'w-full ' + DIM}><Lock size={14} /> امتحان نهاية الوحدة — {hasReading ? 'افتح القراءة أولًا' : 'أكمل دروس الوحدة أولًا'}</div>}
+
+                      {reviewed ? (
+                        <button onClick={() => setSubmitUnit({ id: m.id, title: m.title })}
+                          className={`w-full flex items-center justify-center gap-2 px-4 py-3 border-t font-black text-[12.5px] ${unreadCorr ? 'bg-emerald-500 text-white border-emerald-600 animate-pulse' : 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-100'}`}>
+                          {unreadCorr ? <><span className="w-2 h-2 rounded-full bg-white" /> تصحيحك جاهز — اضغط لقراءته الآن</> : <><CheckCircle2 size={14} /> عرض تصحيح المحادثة {last?.score != null ? `· ${last.score}/100` : ''}</>}
+                        </button>
+                      ) : correctionActive ? (
+                        <button onClick={() => setSubmitUnit({ id: m.id, title: m.title })}
+                          className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-indigo-50 border-t border-indigo-100 text-indigo-800 font-bold text-[12.5px] hover:bg-indigo-100">
+                          <Send size={14} /> {last ? 'محادثتك قيد المراجعة…' : 'سلّم محادثة الوحدة للتصحيح'}
+                        </button>
+                      ) : (
+                        <div className={'w-full ' + DIM}><Lock size={14} /> إرسال المحادثة للتصحيح — اجتَز امتحان الوحدة أولًا</div>
+                      )}
+                    </>)
                   })()}
                   </>
                   )}
@@ -960,11 +972,11 @@ function HeroStat({ icon: Icon, value, label }: { icon: any; value: string; labe
 }
 function Card({ title, sub, icon: Icon, iconColor, action, children, compact }: { title: string; sub?: string; icon: any; iconColor: string; action?: ReactNode; children: ReactNode; compact?: boolean }) {
   return (
-    <div className="bg-white rounded-2xl border border-zinc-100/80 p-4 shadow-[0_2px_10px_rgba(58,40,23,0.05)]">
-      <div className="flex items-center justify-between mb-3">
+    <div className="bg-white rounded-2xl border border-zinc-100/80 p-4 shadow-[0_2px_12px_rgba(58,40,23,0.06)]">
+      <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-zinc-100">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="w-8 h-8 rounded-xl bg-[#faf6ef] border border-amber-100/60 flex items-center justify-center flex-shrink-0"><Icon size={15} className={iconColor} /></span>
-          <div className="min-w-0"><h3 className="font-bold text-[14px] text-zinc-900 truncate">{title}</h3>{sub && <p className="text-[11px] text-zinc-400 truncate">{sub}</p>}</div>
+          <span className="w-8 h-8 rounded-xl bg-[#faf6ef] border border-amber-100/70 flex items-center justify-center flex-shrink-0"><Icon size={15} className={iconColor} /></span>
+          <div className="min-w-0"><h3 className="font-black text-[14.5px] text-[#3a2817] truncate">{title}</h3>{sub && <p className="text-[11px] text-zinc-400 truncate">{sub}</p>}</div>
         </div>
         {action}
       </div>
@@ -1053,11 +1065,9 @@ function LessonRow({ l, unlocked, onOpen, onComplete, onQuiz }: { l: PortalLesso
         <Play size={15} fill="currentColor" style={{ marginInlineStart: 2 }} />
       </button>
       <div className="flex-1 min-w-0"><div className="text-[13px] font-semibold text-zinc-800 truncate">{l.title}</div><div className="text-[11px] text-zinc-400">{LTYPE_AR[l.type] ?? l.type}{l.status === 'completed' ? ' · مكتمل' : l.status === 'opened' ? ' · قيد التقدم' : ''}</div></div>
-      {/* lessons WITH a quiz: the only way to complete is to pass the quiz (no 'تم' shortcut) */}
+      {/* the quiz launches automatically after the lesson — no 'اختبار' label that intimidates */}
       {l.has_quiz
-        ? (l.status === 'completed'
-            ? <span className="text-[11px] font-bold text-emerald-600 flex-shrink-0">✓</span>
-            : (onQuiz && <button onClick={e => { e.stopPropagation(); onQuiz(l) }} className="text-[11px] font-bold text-white bg-violet-600 px-2.5 py-1 rounded-lg flex-shrink-0 flex items-center gap-1"><HelpCircle size={12} /> اجتَز الاختبار</button>))
+        ? (l.status === 'completed' ? <span className="text-[11px] font-bold text-emerald-600 flex-shrink-0">✓</span> : null)
         : (l.status !== 'completed'
             ? <button onClick={e => { e.stopPropagation(); onComplete(l) }} className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg flex-shrink-0">تم</button>
             : <span className="text-[11px] font-bold text-emerald-600 flex-shrink-0">✓</span>)}
