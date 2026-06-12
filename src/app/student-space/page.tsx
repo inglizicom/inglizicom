@@ -453,9 +453,9 @@ function Portal() {
 
         {/* ═══════════ HOME ═══════════ */}
         {tab === 'home' && (
-          <div className="lg:grid lg:grid-cols-3 lg:gap-4 space-y-4 lg:space-y-0">
+          <div className="lg:grid lg:grid-cols-3 lg:gap-5 space-y-5 lg:space-y-0">
             {/* MAIN COLUMN */}
-            <div className="lg:col-span-2 space-y-4">
+            <div className="lg:col-span-2 space-y-5">
 
               {/* Hero */}
               <div className="bg-gradient-to-br from-[#2a1d12] via-[#3a2817] to-[#5a3d1f] rounded-3xl p-5 text-white">
@@ -636,7 +636,7 @@ function Portal() {
             </div>
 
             {/* RIGHT SIDEBAR */}
-            <div className="space-y-4">
+            <div className="space-y-5">
               {/* Quick overview */}
               <Card title="نظرة سريعة" icon={BarChart3} iconColor="text-emerald-500" action={<button onClick={() => setTab('progress')} className="text-[11px] text-blue-600 font-semibold">التقرير</button>}>
                 <div className="space-y-2.5 mt-1">
@@ -732,7 +732,7 @@ function Portal() {
         {/* ═══════════ PATH ═══════════ */}
         {tab === 'path' && (
           <div className="max-w-2xl mx-auto space-y-4">
-            <SectionTitle icon={Route} color="text-emerald-500">مسار الدورة</SectionTitle>
+            <SectionTitle icon={Route} color="text-amber-700">مسار الدورة</SectionTitle>
             {!course ? <Empty text="لم يتم تسجيلك في دورة بعد" />
               : course.modules.length === 0 ? <Empty text="سيظهر محتوى دورتك هنا قريبًا" />
               : course.modules.map((m, mi) => {
@@ -741,22 +741,29 @@ function Portal() {
                 const daysTo = dl != null ? Math.ceil((dl - Date.now()) / 86400000) : null
                 const overdue = dl != null && p.pct < 100 && Date.now() > dl
                 const soon = !overdue && p.pct < 100 && daysTo != null && daysTo <= 2   // due within 2 days
+                const unitLocked = mi > 0 && course.modules.slice(0, mi).some(mm => modProg(mm).pct < 100)   // previous unit not finished
                 return (
-                <div key={m.id} className={`bg-white rounded-2xl border overflow-hidden ${overdue ? 'border-rose-300' : soon ? 'border-amber-300' : 'border-zinc-100'}`}>
-                  <div className={`px-4 py-3 border-b flex items-center gap-2 ${overdue ? 'bg-rose-50 border-rose-100' : soon ? 'bg-amber-50 border-amber-100' : 'bg-[#f5ecdc] border-amber-100/70'}`}>
-                    <span className="w-6 h-6 rounded-full bg-[#3a2817] text-yellow-400 text-[11px] font-black flex items-center justify-center">{mi + 1}</span>
+                <div key={m.id} className={`rounded-2xl border overflow-hidden shadow-sm ${unitLocked ? 'bg-zinc-50/70 border-zinc-200' : overdue ? 'bg-white border-rose-300' : soon ? 'bg-white border-amber-300' : 'bg-white border-zinc-100'}`}>
+                  <div className={`px-4 py-3 border-b flex items-center gap-2 ${unitLocked ? 'bg-zinc-100 border-zinc-200' : overdue ? 'bg-rose-50 border-rose-100' : soon ? 'bg-amber-50 border-amber-100' : 'bg-[#f5ecdc] border-amber-100/70'}`}>
+                    <span className={`w-6 h-6 rounded-full text-[11px] font-black flex items-center justify-center flex-shrink-0 ${unitLocked ? 'bg-zinc-300 text-zinc-600' : 'bg-[#3a2817] text-yellow-400'}`}>{unitLocked ? <Lock size={12} /> : mi + 1}</span>
                     <div className="flex-1 min-w-0">
-                      <span className="font-bold text-[14px] text-zinc-800">{m.title}</span>
-                      {dl != null && <span className={`block text-[10px] font-bold ${overdue ? 'text-rose-600' : soon ? 'text-amber-700' : 'text-zinc-400 font-normal'}`}>
+                      <span className={`font-bold text-[14px] ${unitLocked ? 'text-zinc-500' : 'text-zinc-800'}`}>{m.title}</span>
+                      {unitLocked
+                        ? <span className="block text-[10px] font-bold text-zinc-400">🔒 أكمل الوحدة السابقة لفتحها</span>
+                        : dl != null && <span className={`block text-[10px] font-bold ${overdue ? 'text-rose-600' : soon ? 'text-amber-700' : 'text-zinc-400 font-normal'}`}>
                         {p.pct >= 100 ? '✓ مكتملة'
                           : overdue ? `⚠️ متأخّر · كان الموعد ${fmtDate(dl)}`
                           : soon ? `⏰ ينتهي ${daysTo! <= 0 ? 'اليوم' : daysTo === 1 ? 'غدًا' : `خلال ${daysTo} يوم`} — سارع بالإنجاز`
                           : `الموعد النهائي: ${fmtDate(dl)}`}
                       </span>}
                     </div>
-                    {soon && <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse flex-shrink-0" />}
+                    {soon && !unitLocked && <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse flex-shrink-0" />}
                     <span className="text-[11px] font-bold text-zinc-400">{p.d}/{p.t}</span>
                   </div>
+                  {unitLocked ? (
+                    <div className="px-4 py-7 text-center text-[12px] text-zinc-400 flex flex-col items-center gap-2"><Lock size={22} className="text-zinc-300" /> هذه الوحدة مقفلة — أنهِ الوحدة السابقة بالكامل لفتحها.</div>
+                  ) : (
+                  <>
                   <div className="divide-y divide-zinc-50">{m.lessons.map(l => <LessonRow key={l.id} l={l} unlocked={isUnlocked(l)} onOpen={onOpenLesson} onComplete={onCompleteLesson} onQuiz={setQuizLesson} />)}</div>
                   {/* Reading + listening for this unit */}
                   {readingUnits.has(m.id) && (
@@ -788,6 +795,8 @@ function Portal() {
                       </button>
                     )
                   })()}
+                  </>
+                  )}
                 </div>
               )})}
           </div>
@@ -951,9 +960,12 @@ function HeroStat({ icon: Icon, value, label }: { icon: any; value: string; labe
 }
 function Card({ title, sub, icon: Icon, iconColor, action, children, compact }: { title: string; sub?: string; icon: any; iconColor: string; action?: ReactNode; children: ReactNode; compact?: boolean }) {
   return (
-    <div className="bg-white rounded-2xl border border-zinc-100 p-4">
-      <div className="flex items-center justify-between mb-2">
-        <div><h3 className="flex items-center gap-1.5 font-bold text-[14px] text-zinc-900"><Icon size={15} className={iconColor} /> {title}</h3>{sub && <p className="text-[11px] text-zinc-400 mt-0.5">{sub}</p>}</div>
+    <div className="bg-white rounded-2xl border border-zinc-100/80 p-4 shadow-[0_2px_10px_rgba(58,40,23,0.05)]">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="w-8 h-8 rounded-xl bg-[#faf6ef] border border-amber-100/60 flex items-center justify-center flex-shrink-0"><Icon size={15} className={iconColor} /></span>
+          <div className="min-w-0"><h3 className="font-bold text-[14px] text-zinc-900 truncate">{title}</h3>{sub && <p className="text-[11px] text-zinc-400 truncate">{sub}</p>}</div>
+        </div>
         {action}
       </div>
       <div className={compact ? 'divide-y divide-zinc-50' : ''}>{children}</div>
