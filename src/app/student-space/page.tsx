@@ -843,9 +843,10 @@ function Portal() {
           title={videoLesson.title}
           onClose={() => {
             const vl = videoLesson; setVideoLesson(null); refresh()
-            if (vl.has_quiz) setQuizLesson(vl)   // chain into the quiz after watching
+            if (vl.has_quiz) setQuizLesson(vl)   // must pass the quiz to complete the lesson
           }}
-          onWatched={async () => { await completeLesson(token, videoLesson.id); refresh() }}
+          // a lesson WITH a quiz is only completed by passing the quiz — watching isn't enough
+          onWatched={async () => { if (!videoLesson.has_quiz) { await completeLesson(token, videoLesson.id); refresh() } }}
         />
       )}
 
@@ -1009,10 +1010,14 @@ function LessonRow({ l, unlocked, onOpen, onComplete, onQuiz }: { l: PortalLesso
         <Play size={15} fill="currentColor" style={{ marginInlineStart: 2 }} />
       </button>
       <div className="flex-1 min-w-0"><div className="text-[13px] font-semibold text-zinc-800 truncate">{l.title}</div><div className="text-[11px] text-zinc-400">{LTYPE_AR[l.type] ?? l.type}{l.status === 'completed' ? ' · مكتمل' : l.status === 'opened' ? ' · قيد التقدم' : ''}</div></div>
-      {l.has_quiz && onQuiz && <button onClick={e => { e.stopPropagation(); onQuiz(l) }} className="text-[11px] font-bold text-violet-700 bg-violet-50 px-2.5 py-1 rounded-lg flex-shrink-0 flex items-center gap-1"><HelpCircle size={12} /> اختبار</button>}
-      {l.status !== 'completed'
-        ? <button onClick={e => { e.stopPropagation(); onComplete(l) }} className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg flex-shrink-0">تم</button>
-        : <span className="text-[11px] font-bold text-emerald-600 flex-shrink-0">✓</span>}
+      {/* lessons WITH a quiz: the only way to complete is to pass the quiz (no 'تم' shortcut) */}
+      {l.has_quiz
+        ? (l.status === 'completed'
+            ? <span className="text-[11px] font-bold text-emerald-600 flex-shrink-0">✓</span>
+            : (onQuiz && <button onClick={e => { e.stopPropagation(); onQuiz(l) }} className="text-[11px] font-bold text-white bg-violet-600 px-2.5 py-1 rounded-lg flex-shrink-0 flex items-center gap-1"><HelpCircle size={12} /> اجتَز الاختبار</button>))
+        : (l.status !== 'completed'
+            ? <button onClick={e => { e.stopPropagation(); onComplete(l) }} className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg flex-shrink-0">تم</button>
+            : <span className="text-[11px] font-bold text-emerald-600 flex-shrink-0">✓</span>)}
     </div>
   )
 }

@@ -12,8 +12,8 @@ Required JSON shape:
 {
   "questions": [
     {
-      "q": "the question in simple English",
-      "choices": ["choice A", "choice B", "choice C", "choice D"],
+      "q": "نص السؤال بالعربية",
+      "choices": ["English choice A", "English choice B", "English choice C", "English choice D"],
       "answer": 0,
       "explain": "شرح قصير بالعربية لماذا هذه الإجابة صحيحة"
     }
@@ -25,10 +25,12 @@ Required JSON shape:
 }
 
 Rules:
-- Make EXACTLY 5 questions unless told otherwise.
-- Each question has 3 or 4 choices; "answer" is the 0-based index of the correct choice.
-- Questions test the actual lesson content/source provided. Keep English simple (A0/A1 level).
-- "explain" and the exercise "prompt" MUST be in Arabic. Questions/choices in English.
+- Make 7 to 8 questions unless told otherwise.
+- The QUESTION text ("q") MUST be written in ARABIC (you may include an English word/term between quotes when needed). The CHOICES must stay in ENGLISH only — do NOT translate the choices.
+- Each question has 3 or 4 English choices; "answer" is the 0-based index of the correct choice. Vary the correct index — do not always put it first.
+- Make the quiz a bit challenging so the student must think: include at least ONE spelling question (correct vs near-miss misspellings, e.g. Forty vs Fourty), and at least ONE word-order question ("رتّب الكلمات لتكوين الجملة الصحيحة" with full English sentences as choices). Use believable distractors based on common Arabic-speaker mistakes.
+- Questions test the ACTUAL lesson content/source provided. Keep English at A0/A1 level.
+- "explain" and the exercise "prompt" MUST be in Arabic.
 - Never invent content unrelated to the lesson topic/source.`
 
 export async function POST(req: Request) {
@@ -39,7 +41,7 @@ export async function POST(req: Request) {
   try { body = await req.json() } catch { return NextResponse.json({ error: 'bad request' }, { status: 400 }) }
   const title = (body.title ?? '').trim()
   if (!title) return NextResponse.json({ error: 'title required' }, { status: 400 })
-  const count = Math.min(Math.max(body.count ?? 5, 3), 10)
+  const count = Math.min(Math.max(body.count ?? 7, 5), 12)
 
   const userMsg =
     `Lesson title: "${title}"\n` +

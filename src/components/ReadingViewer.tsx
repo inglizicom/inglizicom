@@ -72,7 +72,7 @@ export default function ReadingViewer({ token, moduleId, title, onClose, onDone 
                 <div className="font-black text-[14px] text-zinc-900">أسئلة الفهم</div>
                 {qs.map((q, i) => (
                   <div key={i} className="rounded-xl border border-zinc-100 p-3">
-                    <div className="font-bold text-[13px] text-zinc-800 mb-2" dir="ltr">{i + 1}. {q.q}</div>
+                    <div className="font-bold text-[13.5px] text-zinc-800 mb-2 leading-relaxed" dir="rtl">{i + 1}. {q.q}</div>
                     <div className="space-y-1.5">
                       {q.choices.map((c, j) => (
                         <button key={j} onClick={() => setAnswers(a => a.map((v, k) => k === i ? j : v))}
@@ -101,7 +101,7 @@ export default function ReadingViewer({ token, moduleId, title, onClose, onDone 
                       <div className="flex items-start gap-2">
                         {ok ? <CheckCircle2 size={16} className="text-emerald-500 mt-0.5 flex-shrink-0" /> : <XCircle size={16} className="text-rose-500 mt-0.5 flex-shrink-0" />}
                         <div className="flex-1 min-w-0">
-                          <div className="font-bold text-[13px] text-zinc-800" dir="ltr">{i + 1}. {q.q}</div>
+                          <div className="font-bold text-[13px] text-zinc-800 leading-relaxed" dir="rtl">{i + 1}. {q.q}</div>
                           <div className="text-[12px] mt-1 space-y-0.5" dir="ltr">
                             {q.choices.map((c, j) => <div key={j} className={`px-2 py-1 rounded ${j === q.answer ? 'bg-emerald-50 text-emerald-700 font-bold' : j === answers[i] ? 'bg-rose-50 text-rose-600' : 'text-zinc-500'}`}>{c}</div>)}
                           </div>

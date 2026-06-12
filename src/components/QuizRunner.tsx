@@ -72,7 +72,7 @@ export default function QuizRunner({ token, lessonId, title, onClose, onPassed }
                     <div className="flex items-start gap-2">
                       {ok ? <CheckCircle2 size={16} className="text-emerald-500 mt-0.5 flex-shrink-0" /> : <XCircle size={16} className="text-rose-500 mt-0.5 flex-shrink-0" />}
                       <div className="flex-1 min-w-0">
-                        <div className="font-bold text-[13px] text-zinc-800" dir="ltr">{i + 1}. {q.q}</div>
+                        <div className="font-bold text-[13px] text-zinc-800 leading-relaxed" dir="rtl">{i + 1}. {q.q}</div>
                         <div className="text-[12px] mt-1 space-y-0.5" dir="ltr">
                           {q.choices.map((c, j) => (
                             <div key={j} className={`px-2 py-1 rounded ${j === q.answer ? 'bg-emerald-50 text-emerald-700 font-bold' : j === answers[i] ? 'bg-rose-50 text-rose-600' : 'text-zinc-500'}`}>{c}</div>
@@ -99,11 +99,11 @@ export default function QuizRunner({ token, lessonId, title, onClose, onPassed }
             <>
               {qs.map((q, i) => (
                 <div key={i} className="rounded-xl border border-zinc-100 p-3">
-                  <div className="font-bold text-[13px] text-zinc-800 mb-2" dir="ltr">{i + 1}. {q.q}</div>
+                  <div className="font-bold text-[13.5px] text-zinc-800 mb-2 leading-relaxed" dir="rtl">{i + 1}. {q.q}</div>
                   <div className="space-y-1.5">
                     {q.choices.map((c, j) => (
                       <button key={j} onClick={() => setAnswers(a => a.map((v, k) => k === i ? j : v))}
-                        className={`w-full text-right px-3 py-2 rounded-lg border text-[13px] transition-colors ${answers[i] === j ? 'border-violet-400 bg-violet-50 text-violet-800 font-bold' : 'border-zinc-200 text-zinc-600 hover:bg-zinc-50'}`} dir="ltr">{c}</button>
+                        className={`w-full text-left px-3 py-2 rounded-lg border text-[13px] transition-colors ${answers[i] === j ? 'border-violet-400 bg-violet-50 text-violet-800 font-bold' : 'border-zinc-200 text-zinc-600 hover:bg-zinc-50'}`} dir="ltr">{c}</button>
                     ))}
                   </div>
                 </div>
