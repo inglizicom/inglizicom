@@ -30,7 +30,8 @@ import {
   fetchStudentDevices, deleteStudentDevice, resetStudentDevices, setDeviceLimit,
   type StudentAssignment, type StudentFile, type StudentExam, type PathTemplate, type StudentDevice,
 } from '@/lib/student-portal'
-import { Smartphone } from 'lucide-react'
+import { Smartphone, Coins, Gift } from 'lucide-react'
+import { fetchStudentCoinsCRM, fetchStudentClaims, adjustCoins, type CoinTx, type RewardClaimRow } from '@/lib/gamification'
 import {
   fetchCourses, fetchEnrollments, enrollStudent, unenrollStudent, fetchCourseProgress,
   type LmsCourse, type CourseProgress,
@@ -469,6 +470,9 @@ export default function StudentProfilePage() {
 
           {/* Device security */}
           <DevicesSection studentId={student.id} limit={(student as any).device_limit ?? 1} />
+
+          {/* Coins & rewards */}
+          <CoinsSection studentId={student.id} by={staff.id} />
 
           {/* Monthly subscription */}
           {(student.billing_type === 'monthly' || student.student_type === 'private_student') && (
@@ -1086,6 +1090,77 @@ function DevicesSection({ studentId, limit }: { studentId: string; limit: number
             ))}
           </div>}
       <p className="text-[10px] text-zinc-400 mt-2 leading-relaxed">يمنع هذا مشاركة الحساب: الرمز يعمل فقط على الأجهزة المسجّلة (الحد الأقصى أعلاه).</p>
+    </div>
+  )
+}
+
+const COIN_ACTION_AR: Record<string, string> = {
+  open_lesson: 'فتح درس', complete_lesson: 'إكمال درس', complete_quiz: 'اجتياز اختبار',
+  complete_reading: 'إكمال قراءة', complete_unit: 'إكمال وحدة', challenge_sentence: 'تمرين بناء جمل',
+  challenge_translation: 'تمرين ترجمة', streak_7: 'سلسلة 7 أيام', streak_30: 'سلسلة 30 يومًا',
+  admin_add: 'إضافة يدوية', admin_remove: 'خصم يدوي',
+}
+
+/* Coins, history, reward claims, and a manual +/- adjustment. */
+function CoinsSection({ studentId, by }: { studentId: string; by: string }) {
+  const [data, setData] = useState<{ balance: number; recent: CoinTx[]; challenges: number } | null>(null)
+  const [claims, setClaims] = useState<RewardClaimRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [amt, setAmt] = useState(''); const [reason, setReason] = useState(''); const [busy, setBusy] = useState(false)
+
+  async function load() { setLoading(true); const [c, cl] = await Promise.all([fetchStudentCoinsCRM(studentId), fetchStudentClaims(studentId)]); setData(c); setClaims(cl); setLoading(false) }
+  useEffect(() => { load() }, [studentId])
+
+  async function adjust() {
+    const n = Number(amt); if (!n || !reason.trim()) return
+    setBusy(true); await adjustCoins(studentId, n, reason.trim(), by); setBusy(false); setAmt(''); setReason(''); load()
+  }
+
+  return (
+    <div className="bg-white rounded-2xl border border-zinc-200 p-4">
+      <div className="flex items-center gap-1.5 text-[12px] font-bold text-zinc-700 mb-3"><Coins size={14} className="text-yellow-600" /> الكوينات والمكافآت</div>
+      {loading ? <div className="py-3 flex justify-center"><Loader2 size={16} className="animate-spin text-zinc-300" /></div> : (
+        <>
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <div className="bg-yellow-50 rounded-xl p-3 text-center"><div className="font-black text-[20px] text-yellow-700">{data?.balance ?? 0}</div><div className="text-[10px] text-yellow-700/70">كوين</div></div>
+            <div className="bg-zinc-50 rounded-xl p-3 text-center"><div className="font-black text-[20px] text-zinc-800">{data?.challenges ?? 0}</div><div className="text-[10px] text-zinc-400">تحدٍّ صحيح</div></div>
+          </div>
+
+          {claims.length > 0 && (
+            <div className="mb-3">
+              <div className="text-[11px] font-bold text-zinc-400 mb-1.5">طلبات المكافآت</div>
+              {claims.map(c => (
+                <div key={c.id} className="flex items-center gap-2 text-[12px] py-1">
+                  <Gift size={13} className="text-zinc-400" />
+                  <span className="flex-1 text-zinc-700">{c.reward_title}</span>
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${c.status === 'pending' ? 'bg-amber-50 text-amber-700' : c.status === 'approved' ? 'bg-emerald-50 text-emerald-700' : c.status === 'used' ? 'bg-zinc-100 text-zinc-500' : 'bg-rose-50 text-rose-600'}`}>{c.status === 'pending' ? 'معلّق' : c.status === 'approved' ? 'موافَق' : c.status === 'used' ? 'مُستخدَم' : 'مرفوض'}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {(data?.recent.length ?? 0) > 0 && (
+            <div className="mb-3 max-h-40 overflow-y-auto">
+              <div className="text-[11px] font-bold text-zinc-400 mb-1.5">سجل الكوينات</div>
+              {data!.recent.slice(0, 15).map((t, i) => (
+                <div key={i} className="flex items-center justify-between text-[12px] py-0.5">
+                  <span className="text-zinc-600 truncate">{COIN_ACTION_AR[t.action] ?? t.action}{t.notes ? ` — ${t.notes}` : ''}</span>
+                  <span className={`font-bold flex-shrink-0 ${t.amount >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>{t.amount >= 0 ? '+' : ''}{t.amount}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="border-t border-zinc-100 pt-3">
+            <div className="text-[11px] font-bold text-zinc-400 mb-1.5">تعديل يدوي (بسبب)</div>
+            <div className="flex gap-2">
+              <input value={amt} onChange={e => setAmt(e.target.value)} type="number" placeholder="±كوين" className="w-24 border border-zinc-200 rounded-lg px-2 py-2 text-[13px] text-center" />
+              <input value={reason} onChange={e => setReason(e.target.value)} placeholder="السبب" className="flex-1 border border-zinc-200 rounded-lg px-3 py-2 text-[13px]" />
+              <button onClick={adjust} disabled={busy || !amt || !reason.trim()} className="px-3 py-2 rounded-lg bg-zinc-900 text-white font-bold text-[12px] disabled:opacity-50">{busy ? <Loader2 size={13} className="animate-spin" /> : 'تطبيق'}</button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }

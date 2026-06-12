@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Megaphone, X, AlertTriangle, Sparkles, Info } from 'lucide-react'
 import type { StudentAnnouncement } from '@/lib/announcements'
 
@@ -11,12 +11,18 @@ const SEV: Record<string, { bar: string; chip: string; icon: any }> = {
 }
 const DISMISS_KEY = 'inglizi.ann_dismissed'
 
-export default function StudentAnnouncements({ anns }: { anns: StudentAnnouncement[] }) {
+export default function StudentAnnouncements({ anns, onShow }: { anns: StudentAnnouncement[]; onShow?: () => void }) {
   const [dismissed, setDismissed] = useState<string[]>(() => { try { return JSON.parse(localStorage.getItem(DISMISS_KEY) || '[]') } catch { return [] } })
   function dismiss(id: string) { const next = [...dismissed, id]; setDismissed(next); try { localStorage.setItem(DISMISS_KEY, JSON.stringify(next)) } catch {} }
 
   const banners = anns.filter(a => a.type === 'banner')
   const popup = anns.find(a => a.type === 'popup' && !dismissed.includes(a.id))
+  // chime once per new popup (per session)
+  useEffect(() => {
+    if (!popup || !onShow) return
+    try { if (sessionStorage.getItem('inglizi.ann_chime.' + popup.id)) return; sessionStorage.setItem('inglizi.ann_chime.' + popup.id, '1') } catch {}
+    onShow()
+  }, [popup?.id])
   const barSev = banners.some(b => b.severity === 'maintenance') ? 'maintenance' : banners.some(b => b.severity === 'update') ? 'update' : 'info'
   const bar = SEV[barSev]
   const PopIcon = popup ? (SEV[popup.severity]?.icon ?? Info) : Info

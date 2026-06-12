@@ -22,6 +22,7 @@ const ADMIN_ROUTES: Record<string, string> = {
   '/verify':      '/sales/verify',
   '/courses':     '/sales/courses',
   '/announcements': '/sales/announcements',
+  '/gamification': '/sales/gamification',
   '/submissions': '/sales/submissions',
   '/templates':   '/sales/templates',
   '/leads':       '/sales/leads',

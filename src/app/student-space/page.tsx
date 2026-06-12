@@ -7,7 +7,7 @@ import {
   ExternalLink, Sparkles, LogOut, TrendingUp, Home, Route, Award, PlayCircle,
   Flame, Lock, AlertCircle, MessageSquareText, Video, PenLine, HelpCircle, Mic,
   ChevronLeft, ChevronRight, ListChecks, Bell, MessageSquare, Star, Trophy, Medal,
-  CalendarDays, Clock, BarChart3, Send, Play,
+  CalendarDays, Clock, BarChart3, Send, Play, Coins,
 } from 'lucide-react'
 import {
   fetchStudentSpace, completeExercise, logActivity, fileUrl, studentLogin, getDeviceId, deviceValid, fetchUnitSteps,
@@ -20,7 +20,11 @@ import ReadingViewer from '@/components/ReadingViewer'
 import SubmissionPanel from '@/components/SubmissionPanel'
 import StudentAnnouncements from '@/components/StudentAnnouncements'
 import FinalExam from '@/components/FinalExam'
+import RewardsCenter from '@/components/RewardsCenter'
+import PracticeHub from '@/components/PracticeHub'
 import { fetchCertificate, type Certificate } from '@/lib/lms'
+import { earnCoins, streakBonus, fetchCoins, type EarnAction, type CoinSummary } from '@/lib/gamification'
+import { isDemo, DEMO_SPACE } from '@/lib/demo'
 import { fetchStudentAnnouncements, type StudentAnnouncement } from '@/lib/announcements'
 
 const isVideoUrl = (u?: string | null) => !!u && /(youtube\.com|youtu\.be)/i.test(u)
@@ -43,7 +47,7 @@ const fmtTime  = (s?: string | null) => s ? new Date(s).toLocaleTimeString('ar-M
 const avatarUrl = (name: string) => `https://api.dicebear.com/9.x/avataaars/svg?seed=${encodeURIComponent(name || '?')}`
 const DAY_AR = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']
 
-type Tab = 'home' | 'path' | 'tasks' | 'files' | 'progress'
+type Tab = 'home' | 'path' | 'tasks' | 'rewards' | 'files' | 'progress'
 const TOKEN_KEY = 'inglizi.student_token'
 const LTYPE_ICON: Record<string, any> = { video: Video, reading: FileText, exercise: PenLine, quiz: HelpCircle, speaking: Mic }
 const LTYPE_AR: Record<string, string> = { video: 'فيديو', reading: 'قراءة', exercise: 'تمرين', quiz: 'اختبار', speaking: 'محادثة' }
@@ -70,6 +74,8 @@ function Portal() {
   const [code, setCode]       = useState('')
   const [loading, setLoading] = useState(false)
   const [booting, setBooting] = useState(true)
+  const demo = isDemo()   // ?demo=1 → token-free local preview (no backend)
+  const [toast, setToast] = useState<string | null>(null)   // transient "new message" alert
   const [space, setSpace]     = useState<StudentSpace | null>(null)
   const [token, setToken]     = useState('')
   const [error, setError]     = useState('')
@@ -99,6 +105,8 @@ function Portal() {
   const [showExam, setShowExam] = useState(false)
   const [cert, setCert] = useState<Certificate | null>(null)
   const [unitSteps, setUnitSteps] = useState<UnitSteps>({})   // server-tracked reading/exam steps
+  const [coins, setCoins] = useState<CoinSummary | null>(null)
+  const [practice, setPractice] = useState<'sentence' | 'translation' | null>(null)
 
   async function enter(rawToken: string, isAuto = false): Promise<boolean> {
     const t = rawToken.trim().toUpperCase(); if (!t) return false
@@ -121,43 +129,52 @@ function Portal() {
     return true
   }
   useEffect(() => {
+    if (demo) { setSpace(DEMO_SPACE); setToken('DEMO'); fetchCoins('DEMO').then(setCoins); setBooting(false); return }   // token-free local preview
     (async () => {
       const t = sp.get('token') || (() => { try { return localStorage.getItem(TOKEN_KEY) } catch { return null } })()
       if (t) await enter(t, true)
       setBooting(false)
     })()
   }, [])
-  async function refresh() { if (token) { const r = await fetchStudentSpace(token); if (r.found) setSpace(r) } }
-  useEffect(() => { if (token) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta); fetchReadingUnits(token).then(ids => setReadingUnits(new Set(ids))); fetchMySubmissions(token).then(setSubmissions); fetchNotifications(token).then(setNotifs); fetchStudentAnnouncements(token).then(setAnns); fetchCertificate(token).then(setCert); fetchUnitSteps(token).then(setUnitSteps) } }, [token, space])
+  async function refresh() { if (demo || !token) return; const r = await fetchStudentSpace(token); if (r.found) setSpace(r) }
+  useEffect(() => { if (token && !demo) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta); fetchReadingUnits(token).then(ids => setReadingUnits(new Set(ids))); fetchMySubmissions(token).then(setSubmissions); fetchNotifications(token).then(setNotifs); fetchStudentAnnouncements(token).then(setAnns); fetchCertificate(token).then(setCert); fetchUnitSteps(token).then(setUnitSteps); fetchCoins(token).then(setCoins) } }, [token, space])
+  // daily streak check (may award milestone coins) — once per session
+  useEffect(() => { if (token && !demo) streakBonus(token).then(r => { if (r && r.awarded > 0) fetchCoins(token).then(setCoins) }) }, [token])
   function reloadSubmissions() { if (token) fetchMySubmissions(token).then(setSubmissions) }
+  function refreshCoins() { if (token) fetchCoins(token).then(setCoins) }
+  async function award(action: EarnAction, lessonId?: string | null, moduleId?: string | null) { const got = await earnCoins(token, action, lessonId, moduleId); if (got > 0) refreshCoins() }
 
-  function playDing() {
+  // "message received" chime (3 gentle ascending tones)
+  function playMessage() {
     try {
       const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext; if (!Ctx) return
       const ac = new Ctx(); const now = ac.currentTime
-      ;[880, 1320].forEach((f, i) => {
+      ;[660, 880, 1175].forEach((f, i) => {
         const o = ac.createOscillator(), g = ac.createGain()
         o.type = 'sine'; o.frequency.value = f
         o.connect(g); g.connect(ac.destination)
-        const t = now + i * 0.14
-        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.18, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22)
-        o.start(t); o.stop(t + 0.24)
+        const t = now + i * 0.11
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.16, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2)
+        o.start(t); o.stop(t + 0.22)
       })
     } catch {}
   }
 
-  // Live guard: kick the session if access was removed; ding on a fresh correction.
+  // Live guard: kick the session if access was removed; chime + toast on ANY new notification.
   useEffect(() => {
-    if (!token || !space?.found) return
+    if (!token || !space?.found || demo) return   // no live-guard polling in demo
     let alive = true
     async function tick() {
       if (!alive) return
       const ok = await deviceValid(token)
       if (alive && !ok) { setSpace(null); setToken(''); try { localStorage.removeItem(TOKEN_KEY) } catch {}; setForcedMsg('تم إنهاء جلستك على هذا الجهاز من قِبل الإدارة. سجّل الدخول مجددًا.'); return }
       const list = await fetchNotifications(token); if (!alive) return
-      const corr = new Set(list.filter(n => n.type === 'correction' && !n.is_read).map(n => n.id))
-      if (seenCorrections.current && [...corr].some(id => !seenCorrections.current!.has(id))) playDing()
-      seenCorrections.current = corr
+      const unread = new Set(list.filter(n => !n.is_read).map(n => n.id))
+      if (seenCorrections.current) {
+        const fresh = [...unread].filter(id => !seenCorrections.current!.has(id))
+        if (fresh.length) { playMessage(); const n = list.find(x => fresh.includes(x.id)); if (n) setToast(n.title) }
+      }
+      seenCorrections.current = unread
       setNotifs(list)
     }
     const iv = setInterval(tick, 45_000)
@@ -166,6 +183,7 @@ function Portal() {
     return () => { alive = false; clearInterval(iv); document.removeEventListener('visibilitychange', onVis) }
   }, [token, space?.found])
   function logout() { try { localStorage.removeItem(TOKEN_KEY) } catch {}; setSpace(null); setToken(''); setCode(''); setError('') }
+  useEffect(() => { if (!toast) return; const t = setTimeout(() => setToast(null), 4500); return () => clearTimeout(t) }, [toast])
 
   async function sendOtpCode() {
     if (!otpFor) return
@@ -328,19 +346,20 @@ function Portal() {
 
   // lesson actions
   async function onOpenLesson(l: PortalLesson, url?: string | null) {
-    await openLesson(token, l.id)
+    if (!demo) await openLesson(token, l.id)
+    award('open_lesson', l.id)   // +10 coins (idempotent, server-verified)
     if (isVideoUrl(url)) { setVideoLesson(l); return }   // play in-page (no external YouTube)
     if (url) window.open(url, '_blank')
     refresh()
   }
-  async function onCompleteLesson(l: PortalLesson) { if (await completeLesson(token, l.id)) refresh() }
+  async function onCompleteLesson(l: PortalLesson) { if (demo) { award('complete_lesson', l.id); return } if (await completeLesson(token, l.id)) { refresh(); award('complete_lesson', l.id) } }
   async function onCompleteManual(a: StudentAssignment) { if (a.status !== 'done' && await completeExercise(token, a.id)) refresh() }
   function openFile(f: { id: string; file_name: string; file_path: string }) { logActivity(token, 'downloaded_file', 'file', f.id, f.file_name); window.open(fileUrl(f.file_path), '_blank') }
 
   const TABS: { id: Tab; label: string; icon: any; badge?: number }[] = [
     { id: 'home', label: 'الرئيسية', icon: Home },
     { id: 'path', label: 'مساري', icon: Route },
-    { id: 'tasks', label: 'التمارين', icon: ListChecks, badge: manualEx.filter(e => e.status !== 'done').length },
+    { id: 'rewards', label: 'المكافآت', icon: Coins },
     { id: 'files', label: 'الملفات', icon: FileText },
     { id: 'progress', label: 'تقدّمي', icon: TrendingUp },
   ]
@@ -423,7 +442,20 @@ function Portal() {
       </header>
 
       {/* CRM announcements: moving banner + login popup */}
-      <StudentAnnouncements anns={anns} />
+      <StudentAnnouncements anns={anns} onShow={() => { playMessage(); }} />
+
+      {/* transient "new message" toast (with chime) */}
+      {toast && (
+        <div className="fixed top-3 inset-x-0 z-[130] flex justify-center px-4 pointer-events-none">
+          <div className="pointer-events-auto max-w-sm w-full bg-[#2a1d12] text-white rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-3 vp-pop" onClick={() => { setToast(null); setTab('home') }}>
+            <span className="w-9 h-9 rounded-xl bg-yellow-400 text-black flex items-center justify-center flex-shrink-0"><Bell size={17} /></span>
+            <div className="flex-1 min-w-0"><div className="text-[11px] text-amber-100/60">🔔 إشعار جديد</div><div className="text-[13px] font-bold truncate">{toast}</div></div>
+          </div>
+        </div>
+      )}
+
+      {/* Practice (sentence builder / translation) */}
+      {practice && <PracticeHub token={token} kind={practice} currentModuleId={currentModule?.id ?? null} onClose={() => { setPractice(null); refreshCoins() }} onEarned={refreshCoins} />}
 
       {/* Final exam + certificate */}
       {showExam && <FinalExam token={token} fullName={s.full_name}
@@ -505,6 +537,25 @@ function Portal() {
                   <HeroStat icon={CheckCircle2} value={`${stats.ex_done}/${stats.ex_total}`} label="تمارين مكتملة" />
                   <HeroStat icon={Award} value={`${stats.exam_done}/${stats.exam_total}`} label="امتحانات" />
                   <HeroStat icon={Flame} value={`${stats.streak}`} label="أيام متتالية" />
+                </div>
+              </div>
+
+              {/* Coins + level + quick access */}
+              <div className="rounded-3xl bg-white border border-zinc-100 shadow-[0_2px_12px_rgba(58,40,23,0.06)] p-4">
+                <button onClick={() => setTab('rewards')} className="w-full flex items-center gap-3 text-right">
+                  <div className="w-11 h-11 rounded-2xl bg-yellow-400 text-black flex items-center justify-center flex-shrink-0"><Coins size={22} /></div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-black text-[16px] text-[#3a2817]">{coins?.balance ?? 0} <span className="text-[11px] text-zinc-400 font-bold">كوين · {coins?.level ?? 'Bronze'}</span></div>
+                    {coins?.next_level
+                      ? <div className="mt-1 h-1.5 bg-zinc-100 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-l from-yellow-400 to-amber-300 rounded-full" style={{ width: `${coins.progress}%` }} /></div>
+                      : <div className="text-[11px] text-amber-600 font-bold">أعلى مستوى 👑</div>}
+                  </div>
+                  <span className="text-[11px] text-zinc-400 flex-shrink-0">{coins?.next_level ? `باقٍ ${coins.to_next}` : ''} <ChevronLeft size={14} className="inline" /></span>
+                </button>
+                <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-zinc-100">
+                  <button onClick={() => today && onOpenLesson(today.lesson, today.lesson.video_url || today.lesson.exercise_url || today.lesson.file_url)} className="flex flex-col items-center gap-1.5 py-3 rounded-2xl bg-gradient-to-br from-yellow-300 to-amber-400 shadow-sm active:scale-95 transition-transform"><span className="text-[22px] leading-none">🎬</span><span className="text-[11px] font-black text-[#2a1d12]">ابدأ الدرس</span></button>
+                  <button onClick={() => setPractice('sentence')} className="flex flex-col items-center gap-1.5 py-3 rounded-2xl bg-gradient-to-br from-[#3a2817] to-[#5a3d1f] shadow-sm active:scale-95 transition-transform"><span className="text-[22px] leading-none">🧩</span><span className="text-[11px] font-black text-yellow-400">بناء الجمل</span></button>
+                  <button onClick={() => setPractice('translation')} className="flex flex-col items-center gap-1.5 py-3 rounded-2xl bg-amber-50 border-2 border-amber-200 active:scale-95 transition-transform"><span className="text-[22px] leading-none">🔤</span><span className="text-[11px] font-black text-[#3a2817]">ترجم الجمل</span></button>
                 </div>
               </div>
 
@@ -834,6 +885,9 @@ function Portal() {
           </div>
         )}
 
+        {/* ═══════════ REWARDS ═══════════ */}
+        {tab === 'rewards' && <RewardsCenter token={token} onPractice={k => setPractice(k)} />}
+
         {/* ═══════════ FILES ═══════════ */}
         {tab === 'files' && (
           <div className="max-w-2xl mx-auto space-y-3">
@@ -897,7 +951,7 @@ function Portal() {
             if (vl.has_quiz) setQuizLesson(vl)   // must pass the quiz to complete the lesson
           }}
           // a lesson WITH a quiz is only completed by passing the quiz — watching isn't enough
-          onWatched={async () => { if (!videoLesson.has_quiz) { await completeLesson(token, videoLesson.id); refresh() } }}
+          onWatched={async () => { if (!videoLesson.has_quiz) { await completeLesson(token, videoLesson.id); refresh(); award('complete_lesson', videoLesson.id) } }}
         />
       )}
 
@@ -908,7 +962,7 @@ function Portal() {
           lessonId={quizLesson.id}
           title={quizLesson.title}
           onClose={() => { setQuizLesson(null); refresh() }}
-          onPassed={async () => { await completeLesson(token, quizLesson.id); refresh() }}
+          onPassed={async () => { await completeLesson(token, quizLesson.id); refresh(); await award('complete_lesson', quizLesson.id); award('complete_quiz', quizLesson.id) }}
         />
       )}
 
@@ -919,7 +973,7 @@ function Portal() {
           moduleId={readingUnit.id}
           title={readingUnit.title}
           onClose={() => { setReadingUnit(null); refresh() }}
-          onDone={(s, t) => logActivity(token, 'completed_reading_quiz', 'module', readingUnit.id, `${readingUnit.title} (${s}/${t})`)}
+          onDone={async (s, t) => { await logActivity(token, 'completed_reading_quiz', 'module', readingUnit.id, `${readingUnit.title} (${s}/${t})`); award('complete_reading', null, readingUnit.id) }}
         />
       )}
 
