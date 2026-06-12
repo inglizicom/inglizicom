@@ -60,7 +60,7 @@ const ACTIVITY = {
 export default function StudentSpacePage() {
   return (
     <PortalErrorBoundary>
-      <Suspense fallback={<div className="min-h-screen bg-[#14161c]" />}><Portal /></Suspense>
+      <Suspense fallback={<div className="min-h-screen bg-[#2a1d12]" />}><Portal /></Suspense>
     </PortalErrorBoundary>
   )
 }
@@ -189,12 +189,12 @@ function Portal() {
     setOtpBusy(false)
   }
 
-  if (booting) return <div className="min-h-screen bg-[#14161c] flex items-center justify-center"><Loader2 className="animate-spin text-yellow-400" size={28} /></div>
+  if (booting) return <div className="min-h-screen bg-[#2a1d12] flex items-center justify-center"><Loader2 className="animate-spin text-yellow-400" size={28} /></div>
 
   /* ════ LOGIN ════ */
   if (!space?.found) {
     return (
-      <div dir="rtl" className="min-h-screen bg-[#14161c] flex items-center justify-center p-4">
+      <div dir="rtl" className="min-h-screen bg-[#2a1d12] flex items-center justify-center p-4">
         <div className="w-full max-w-sm">
           <div className="flex flex-col items-center mb-6">
             <div className="w-16 h-16 rounded-2xl bg-yellow-400 text-black flex items-center justify-center font-black text-3xl mb-3">I</div>
@@ -342,7 +342,7 @@ function Portal() {
   ]
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#f4f4f6] pb-20">
+    <div dir="rtl" className="min-h-screen bg-[#faf6ef] pb-20">
       {/* ─── Anti-sharing watermark: two faint labels gently floating, traceable ─── */}
       <div className="pointer-events-none fixed inset-0 z-[5] overflow-hidden select-none" aria-hidden>
         <span className="absolute top-0 right-0 text-[12px] font-bold text-black/[0.07] whitespace-nowrap wm-drift-a">{s.full_name} · {s.verification_token}</span>
@@ -350,7 +350,7 @@ function Portal() {
       </div>
 
       {/* ─── Header ─── */}
-      <header className="bg-[#14161c] text-white sticky top-0 z-20">
+      <header className="bg-[#2a1d12] text-white sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-yellow-400 text-black flex items-center justify-center font-black text-[18px] shadow-lg shadow-yellow-400/20">I</div>
@@ -433,7 +433,7 @@ function Portal() {
         {sched && !sched.allDone && (() => {
           const unitSoon = !sched.unitOverdue && sched.daysLeftUnit <= 2   // current unit due within 2 days
           return (
-          <div className={`mb-4 rounded-2xl px-4 py-3 flex items-center gap-3 ${sched.courseOverdue ? 'bg-rose-600 text-white' : sched.unitOverdue ? 'bg-rose-50 border border-rose-200 text-rose-800' : unitSoon ? 'bg-amber-500 text-white animate-pulse' : sched.daysLeftCourse <= 14 ? 'bg-amber-50 border border-amber-200 text-amber-800' : 'bg-zinc-900 text-white'}`}>
+          <div className={`mb-4 rounded-2xl px-4 py-3 flex items-center gap-3 ${sched.courseOverdue ? 'bg-rose-600 text-white' : sched.unitOverdue ? 'bg-rose-50 border border-rose-200 text-rose-800' : unitSoon ? 'bg-amber-500 text-white animate-pulse' : sched.daysLeftCourse <= 14 ? 'bg-amber-50 border border-amber-200 text-amber-800' : 'bg-[#2a1d12] text-white'}`}>
             <Clock size={20} className="flex-shrink-0" />
             <div className="flex-1 min-w-0 text-[12.5px] leading-snug">
               {sched.courseOverdue ? (
@@ -458,7 +458,7 @@ function Portal() {
             <div className="lg:col-span-2 space-y-4">
 
               {/* Hero */}
-              <div className="bg-gradient-to-br from-zinc-900 to-zinc-800 rounded-3xl p-5 text-white">
+              <div className="bg-gradient-to-br from-[#2a1d12] via-[#3a2817] to-[#5a3d1f] rounded-3xl p-5 text-white">
                 <div className="flex flex-col sm:flex-row gap-5">
                   <div className="flex items-center gap-4">
                     <Ring pct={stats.overall} />
@@ -743,8 +743,8 @@ function Portal() {
                 const soon = !overdue && p.pct < 100 && daysTo != null && daysTo <= 2   // due within 2 days
                 return (
                 <div key={m.id} className={`bg-white rounded-2xl border overflow-hidden ${overdue ? 'border-rose-300' : soon ? 'border-amber-300' : 'border-zinc-100'}`}>
-                  <div className={`px-4 py-3 border-b flex items-center gap-2 ${overdue ? 'bg-rose-50 border-rose-100' : soon ? 'bg-amber-50 border-amber-100' : 'bg-zinc-50 border-zinc-100'}`}>
-                    <span className="w-6 h-6 rounded-full bg-zinc-900 text-white text-[11px] font-black flex items-center justify-center">{mi + 1}</span>
+                  <div className={`px-4 py-3 border-b flex items-center gap-2 ${overdue ? 'bg-rose-50 border-rose-100' : soon ? 'bg-amber-50 border-amber-100' : 'bg-[#f5ecdc] border-amber-100/70'}`}>
+                    <span className="w-6 h-6 rounded-full bg-[#3a2817] text-yellow-400 text-[11px] font-black flex items-center justify-center">{mi + 1}</span>
                     <div className="flex-1 min-w-0">
                       <span className="font-bold text-[14px] text-zinc-800">{m.title}</span>
                       {dl != null && <span className={`block text-[10px] font-bold ${overdue ? 'text-rose-600' : soon ? 'text-amber-700' : 'text-zinc-400 font-normal'}`}>
@@ -921,8 +921,8 @@ function Portal() {
           {TABS.map(t => { const active = tab === t.id; return (
             <button key={t.id} onClick={() => setTab(t.id)} className="relative flex-1 flex flex-col items-center gap-0.5 py-2.5">
               {active && <span className="absolute top-0 inset-x-5 h-0.5 bg-yellow-400 rounded-full" />}
-              <div className="relative"><t.icon size={20} className={active ? 'text-zinc-900' : 'text-zinc-400'} strokeWidth={active ? 2.4 : 2} />{(t.badge ?? 0) > 0 && <span className="absolute -top-1.5 -left-2 bg-rose-500 text-white text-[9px] font-bold min-w-[15px] h-[15px] px-0.5 rounded-full flex items-center justify-center">{t.badge}</span>}</div>
-              <span className={`text-[10px] font-bold ${active ? 'text-zinc-900' : 'text-zinc-400'}`}>{t.label}</span>
+              <div className="relative"><t.icon size={20} className={active ? 'text-[#3a2817]' : 'text-zinc-400'} strokeWidth={active ? 2.4 : 2} />{(t.badge ?? 0) > 0 && <span className="absolute -top-1.5 -left-2 bg-rose-500 text-white text-[9px] font-bold min-w-[15px] h-[15px] px-0.5 rounded-full flex items-center justify-center">{t.badge}</span>}</div>
+              <span className={`text-[10px] font-bold ${active ? 'text-[#3a2817]' : 'text-zinc-400'}`}>{t.label}</span>
             </button>
           )})}
         </div>
@@ -1068,7 +1068,7 @@ class PortalErrorBoundary extends Component<{ children: ReactNode }, { hasError:
   componentDidCatch(err: any) { console.error('portal error', err) }
   render() {
     if (this.state.hasError) return (
-      <div dir="rtl" className="min-h-screen bg-[#14161c] flex items-center justify-center p-4 text-center"><div className="max-w-sm"><div className="text-4xl mb-3">⚠️</div><h1 className="text-white font-black text-[18px] mb-2">حدث خطأ غير متوقع</h1><p className="text-zinc-400 text-[13px] mb-4">أعد تحميل الصفحة، وإن استمرّ الخطأ تواصل مع الإدارة.</p><button onClick={() => location.reload()} className="px-5 py-2.5 rounded-xl bg-yellow-400 text-black font-bold text-[14px]">إعادة تحميل</button></div></div>
+      <div dir="rtl" className="min-h-screen bg-[#2a1d12] flex items-center justify-center p-4 text-center"><div className="max-w-sm"><div className="text-4xl mb-3">⚠️</div><h1 className="text-white font-black text-[18px] mb-2">حدث خطأ غير متوقع</h1><p className="text-zinc-400 text-[13px] mb-4">أعد تحميل الصفحة، وإن استمرّ الخطأ تواصل مع الإدارة.</p><button onClick={() => location.reload()} className="px-5 py-2.5 rounded-xl bg-yellow-400 text-black font-bold text-[14px]">إعادة تحميل</button></div></div>
     )
     return this.props.children
   }
