@@ -420,21 +420,26 @@ function Portal() {
       <main className="max-w-6xl mx-auto px-4 pt-4">
 
         {/* ═══════════ ALWAYS-VISIBLE DEADLINE REMINDER ═══════════ */}
-        {sched && !sched.allDone && (
-          <div className={`mb-4 rounded-2xl px-4 py-3 flex items-center gap-3 ${sched.courseOverdue ? 'bg-rose-600 text-white' : sched.unitOverdue ? 'bg-rose-50 border border-rose-200 text-rose-800' : sched.daysLeftCourse <= 14 ? 'bg-amber-50 border border-amber-200 text-amber-800' : 'bg-zinc-900 text-white'}`}>
+        {sched && !sched.allDone && (() => {
+          const unitSoon = !sched.unitOverdue && sched.daysLeftUnit <= 2   // current unit due within 2 days
+          return (
+          <div className={`mb-4 rounded-2xl px-4 py-3 flex items-center gap-3 ${sched.courseOverdue ? 'bg-rose-600 text-white' : sched.unitOverdue ? 'bg-rose-50 border border-rose-200 text-rose-800' : unitSoon ? 'bg-amber-500 text-white animate-pulse' : sched.daysLeftCourse <= 14 ? 'bg-amber-50 border border-amber-200 text-amber-800' : 'bg-zinc-900 text-white'}`}>
             <Clock size={20} className="flex-shrink-0" />
             <div className="flex-1 min-w-0 text-[12.5px] leading-snug">
               {sched.courseOverdue ? (
                 <><b>انتهت مدة الدورة!</b> راجع تقدّمك وتواصل مع الإدارة لإكمال ما تبقّى.</>
               ) : sched.unitOverdue ? (
                 <><b>أنت متأخر في «{sched.currentUnit}».</b> كان الموعد {fmtDate(sched.unitEnd)} — أكملها الآن لتبقى ضمن الجدول.</>
+              ) : unitSoon ? (
+                <><b>⏰ سارع!</b> موعد وحدة «{sched.currentUnit}» {sched.daysLeftUnit <= 0 ? 'اليوم' : sched.daysLeftUnit === 1 ? 'غدًا' : `خلال ${sched.daysLeftUnit} يوم`} — أكملها قبل فوات الأجل.</>
               ) : (
                 <>لإنهاء الدورة يتبقّى <b>{sched.daysLeftCourse} يومًا</b> · موعد الوحدة الحالية: <b>{sched.daysLeftUnit > 0 ? `${sched.daysLeftUnit} يوم` : 'اليوم'}</b> ({fmtDate(sched.unitEnd)})</>
               )}
             </div>
             <span className="text-[11px] font-bold bg-black/15 rounded-full px-2 py-0.5 flex-shrink-0">{sched.completedUnits}/{sched.totalUnits} وحدة</span>
           </div>
-        )}
+          )
+        })()}
 
         {/* ═══════════ HOME ═══════════ */}
         {tab === 'home' && (
@@ -702,15 +707,23 @@ function Portal() {
               : course.modules.map((m, mi) => {
                 const p = modProg(m)
                 const dl = unitDeadlineMs(mi + 1)
+                const daysTo = dl != null ? Math.ceil((dl - Date.now()) / 86400000) : null
                 const overdue = dl != null && p.pct < 100 && Date.now() > dl
+                const soon = !overdue && p.pct < 100 && daysTo != null && daysTo <= 2   // due within 2 days
                 return (
-                <div key={m.id} className={`bg-white rounded-2xl border overflow-hidden ${overdue ? 'border-rose-200' : 'border-zinc-100'}`}>
-                  <div className="px-4 py-3 bg-zinc-50 border-b border-zinc-100 flex items-center gap-2">
+                <div key={m.id} className={`bg-white rounded-2xl border overflow-hidden ${overdue ? 'border-rose-300' : soon ? 'border-amber-300' : 'border-zinc-100'}`}>
+                  <div className={`px-4 py-3 border-b flex items-center gap-2 ${overdue ? 'bg-rose-50 border-rose-100' : soon ? 'bg-amber-50 border-amber-100' : 'bg-zinc-50 border-zinc-100'}`}>
                     <span className="w-6 h-6 rounded-full bg-zinc-900 text-white text-[11px] font-black flex items-center justify-center">{mi + 1}</span>
                     <div className="flex-1 min-w-0">
                       <span className="font-bold text-[14px] text-zinc-800">{m.title}</span>
-                      {dl != null && <span className={`block text-[10px] ${overdue ? 'text-rose-600 font-bold' : 'text-zinc-400'}`}>{p.pct >= 100 ? '✓ مكتملة' : overdue ? `متأخّر · كان الموعد ${fmtDate(dl)}` : `الموعد النهائي: ${fmtDate(dl)}`}</span>}
+                      {dl != null && <span className={`block text-[10px] font-bold ${overdue ? 'text-rose-600' : soon ? 'text-amber-700' : 'text-zinc-400 font-normal'}`}>
+                        {p.pct >= 100 ? '✓ مكتملة'
+                          : overdue ? `⚠️ متأخّر · كان الموعد ${fmtDate(dl)}`
+                          : soon ? `⏰ ينتهي ${daysTo! <= 0 ? 'اليوم' : daysTo === 1 ? 'غدًا' : `خلال ${daysTo} يوم`} — سارع بالإنجاز`
+                          : `الموعد النهائي: ${fmtDate(dl)}`}
+                      </span>}
                     </div>
+                    {soon && <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse flex-shrink-0" />}
                     <span className="text-[11px] font-bold text-zinc-400">{p.d}/{p.t}</span>
                   </div>
                   <div className="divide-y divide-zinc-50">{m.lessons.map(l => <LessonRow key={l.id} l={l} unlocked={isUnlocked(l)} onOpen={onOpenLesson} onComplete={onCompleteLesson} onQuiz={setQuizLesson} />)}</div>
