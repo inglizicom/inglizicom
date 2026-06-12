@@ -249,10 +249,19 @@ export async function reviewSubmission(id: string, feedback: string, score: numb
 /* ── Final exam + certificate (token-gated) ───────────── */
 export interface Certificate { cert_number: string; percent: number; level: string; full_name: string; date: string }
 export interface FinalExamResult extends Certificate { ok: boolean; passed: boolean; score: number; total: number }
-export async function submitFinalExam(token: string, score: number, total: number): Promise<FinalExamResult | null> {
-  const { data } = await supabase.rpc('student_submit_final_exam', { p_token: token.trim().toUpperCase(), p_score: score, p_total: total })
+export async function submitFinalExam(token: string, score: number, total: number, speakingPath?: string | null): Promise<FinalExamResult | null> {
+  const { data } = await supabase.rpc('student_submit_final_exam', { p_token: token.trim().toUpperCase(), p_score: score, p_total: total, p_speaking_path: speakingPath ?? null })
   if (!data || !data.ok) return null
   return data as FinalExamResult
+}
+/** Upload the final-exam speaking recording; returns the stored path. */
+export async function uploadSpeaking(token: string, blob: Blob): Promise<string | null> {
+  try {
+    const fd = new FormData(); fd.append('token', token); fd.append('audio', blob, 'speaking.webm')
+    const r = await fetch('/api/final-speaking', { method: 'POST', body: fd })
+    const d = await r.json().catch(() => ({}))
+    return d.ok ? (d.path as string) : null
+  } catch { return null }
 }
 export async function fetchCertificate(token: string): Promise<Certificate | null> {
   const { data } = await supabase.rpc('student_certificate', { p_token: token.trim().toUpperCase() })

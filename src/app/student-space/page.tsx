@@ -422,7 +422,10 @@ function Portal() {
       <StudentAnnouncements anns={anns} />
 
       {/* Final exam + certificate */}
-      {showExam && <FinalExam token={token} fullName={s.full_name} onClose={() => { setShowExam(false); fetchCertificate(token).then(setCert) }} />}
+      {showExam && <FinalExam token={token} fullName={s.full_name}
+        locked={!cert && !(!!meta && meta.total_units > 0 && meta.completed_units >= meta.total_units)}
+        initialCert={cert}
+        onClose={() => { setShowExam(false); fetchCertificate(token).then(setCert) }} />}
 
       <main className="max-w-6xl mx-auto px-4 pt-4">
 
@@ -501,15 +504,26 @@ function Portal() {
                 </div>
               </div>
 
-              {/* Final exam + certificate */}
-              <button onClick={() => setShowExam(true)} className="w-full text-right rounded-3xl p-4 bg-gradient-to-l from-yellow-400 to-amber-300 text-black flex items-center gap-3 hover:from-yellow-300 hover:to-amber-200 transition-colors">
-                <div className="w-12 h-12 rounded-2xl bg-black/10 flex items-center justify-center flex-shrink-0"><Award size={26} /></div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-black text-[15px]">{cert ? 'شهادتك جاهزة 🎓' : 'الامتحان النهائي — A0 / A1'}</div>
-                  <div className="text-[12px] text-black/70">{cert ? `لقد اجتزت الامتحان بنتيجة ${cert.percent}% — اعرض شهادتك واطبعها` : 'اجتَز الامتحان واحصل على شهادة إتمام المستوى الأول'}</div>
-                </div>
-                <ChevronLeft size={20} className="flex-shrink-0" />
-              </button>
+              {/* Final exam + certificate — unlocks after the whole course is complete */}
+              {(() => {
+                const courseDone = !!meta && meta.total_units > 0 && meta.completed_units >= meta.total_units
+                const unlocked = courseDone || !!cert
+                return (
+                  <button onClick={() => setShowExam(true)}
+                    className={`w-full text-right rounded-3xl p-4 flex items-center gap-3 transition-colors ${unlocked ? 'bg-gradient-to-l from-yellow-400 to-amber-300 text-black hover:from-yellow-300 hover:to-amber-200' : 'bg-[#3a2a1a] text-amber-100/90 hover:bg-[#43301d]'}`}>
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${unlocked ? 'bg-black/10' : 'bg-yellow-400/15'}`}>{unlocked ? <Award size={26} /> : <Lock size={24} className="text-yellow-400" />}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-black text-[15px]">{cert ? 'شهادتك جاهزة 🎓' : 'الامتحان النهائي — A0 / A1'}</div>
+                      <div className={`text-[12px] ${unlocked ? 'text-black/70' : 'text-amber-100/50'}`}>
+                        {cert ? `اجتزت الامتحان بنتيجة ${cert.percent}% — اعرض شهادتك واطبعها`
+                          : courseDone ? 'اجتَز الامتحان واحصل على شهادة إتمام المستوى الأول'
+                          : `أكمل كل وحدات الدورة لفتح الامتحان (${meta?.completed_units ?? 0}/${meta?.total_units ?? '—'})`}
+                      </div>
+                    </div>
+                    <ChevronLeft size={20} className="flex-shrink-0" />
+                  </button>
+                )
+              })()}
 
               {/* Today's tasks */}
               {course && today && (
