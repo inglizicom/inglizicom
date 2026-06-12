@@ -30,7 +30,7 @@ export default function ReadingViewer({ token, moduleId, title, onClose, onDone 
     let s = 0; qs.forEach((q, i) => { if (answers[i] === q.answer) s++ })
     setScore(s); setSubmitted(true); onDone?.(s, qs.length)
   }
-  const passed = qs.length > 0 && score / qs.length >= 0.6
+  const passed = qs.length > 0 && score === qs.length   // 100% required
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/60 flex items-end sm:items-center justify-center p-0 sm:p-4 vp-fade" dir="rtl" onClick={onClose}>

@@ -31,13 +31,13 @@ export default function QuizRunner({ token, lessonId, title, onClose, onPassed }
     let s = 0
     qs.forEach((q, i) => { if (answers[i] === q.answer) s++ })
     setScore(s); setSubmitted(true)
-    const passed = qs.length > 0 && s / qs.length >= 0.6
+    const allCorrect = qs.length > 0 && s === qs.length   // must be 100% to advance
     await submitQuiz(token, lessonId, s, qs.length, answers)
-    if (passed) onPassed?.()
+    if (allCorrect) onPassed?.()
   }
   function retry() { setSubmitted(false); setScore(0); setAnswers(new Array(qs.length).fill(-1)) }
 
-  const passed = qs.length > 0 && score / qs.length >= 0.6
+  const passed = qs.length > 0 && score === qs.length   // 100% required
 
   return (
     <div className="fixed inset-0 z-[100] bg-black/60 flex items-end sm:items-center justify-center p-0 sm:p-4 vp-fade" dir="rtl" onClick={onClose}>
@@ -58,42 +58,45 @@ export default function QuizRunner({ token, lessonId, title, onClose, onPassed }
             <div className="py-12 text-center text-zinc-400 text-[13px]">لا يوجد اختبار لهذا الدرس بعد.</div>
           ) : submitted ? (
             <>
-              {/* result */}
+              {/* result — 100% required to advance */}
               <div className={`rounded-2xl p-5 text-center ${passed ? 'bg-emerald-50' : 'bg-amber-50'}`}>
                 <div className="text-4xl mb-1">{passed ? '🎉' : '💪'}</div>
                 <div className={`font-black text-[20px] ${passed ? 'text-emerald-700' : 'text-amber-700'}`}>{score} / {qs.length}</div>
-                <div className="text-[12px] text-zinc-500 mt-0.5">{passed ? 'أحسنت! لقد اجتزت الاختبار' : 'حاول مرة أخرى لتتقن الدرس'}</div>
+                <div className="text-[12px] text-zinc-600 mt-1 leading-relaxed">{passed ? 'ممتاز! إجابات صحيحة 100% — يمكنك الانتقال للدرس التالي.' : `للانتقال للدرس التالي يجب أن تكون كل الإجابات صحيحة (100%). لديك ${qs.length - score} ${qs.length - score === 1 ? 'خطأ' : 'أخطاء'} — راجع الشرح بالأسفل وأعد المحاولة.`}</div>
               </div>
-              {/* review */}
-              {qs.map((q, i) => {
-                const ok = answers[i] === q.answer
-                return (
-                  <div key={i} className="rounded-xl border border-zinc-100 p-3">
-                    <div className="flex items-start gap-2">
-                      {ok ? <CheckCircle2 size={16} className="text-emerald-500 mt-0.5 flex-shrink-0" /> : <XCircle size={16} className="text-rose-500 mt-0.5 flex-shrink-0" />}
-                      <div className="flex-1 min-w-0">
-                        <div className="font-bold text-[13px] text-zinc-800 leading-relaxed" dir="rtl">{i + 1}. {q.q}</div>
-                        <div className="text-[12px] mt-1 space-y-0.5" dir="ltr">
-                          {q.choices.map((c, j) => (
-                            <div key={j} className={`px-2 py-1 rounded ${j === q.answer ? 'bg-emerald-50 text-emerald-700 font-bold' : j === answers[i] ? 'bg-rose-50 text-rose-600' : 'text-zinc-500'}`}>{c}</div>
-                          ))}
-                        </div>
-                        {q.explain && <div className="text-[11px] text-zinc-500 mt-1 bg-zinc-50 rounded px-2 py-1">💡 {q.explain}</div>}
+              {/* focused review of the WRONG answers + why */}
+              {!passed && qs.map((q, i) => ({ q, i })).filter(x => answers[x.i] !== x.q.answer).map(({ q, i }) => (
+                <div key={i} className="rounded-xl border border-rose-200 bg-rose-50/40 p-3">
+                  <div className="flex items-start gap-2">
+                    <XCircle size={16} className="text-rose-500 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-[13px] text-zinc-800 leading-relaxed" dir="rtl">{i + 1}. {q.q}</div>
+                      <div className="text-[12px] mt-1.5 space-y-0.5" dir="ltr" style={{ textAlign: 'left' }}>
+                        {q.choices.map((c, j) => (
+                          <div key={j} className={`px-2 py-1 rounded flex items-center gap-1 ${j === q.answer ? 'bg-emerald-100 text-emerald-800 font-bold' : j === answers[i] ? 'bg-rose-100 text-rose-700 line-through' : 'text-zinc-500'}`}>
+                            {j === q.answer ? '✓' : j === answers[i] ? '✗' : ''} {c}
+                          </div>
+                        ))}
                       </div>
+                      {q.explain && <div className="text-[11.5px] text-zinc-700 mt-1.5 bg-white rounded-lg px-2.5 py-1.5 leading-relaxed" dir="rtl">💡 {q.explain}</div>}
                     </div>
                   </div>
-                )
-              })}
-              {quiz.exercise?.prompt && (
+                </div>
+              ))}
+              {passed && quiz.exercise?.prompt && (
                 <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-3">
                   <div className="flex items-center gap-1.5 font-bold text-[13px] text-amber-700 mb-1"><PenLine size={14} /> تمرين تطبيقي</div>
                   <div className="text-[12px] text-zinc-700">{quiz.exercise.prompt}</div>
                 </div>
               )}
-              <div className="flex gap-2">
-                <button onClick={retry} className="flex-1 py-2.5 rounded-xl border border-zinc-200 text-zinc-700 font-bold text-[13px] flex items-center justify-center gap-1.5"><RotateCcw size={14} /> إعادة</button>
-                <button onClick={onClose} className="flex-1 py-2.5 rounded-xl bg-black text-white font-bold text-[13px] flex items-center justify-center gap-1.5">متابعة <ArrowLeft size={14} /></button>
-              </div>
+              {passed ? (
+                <button onClick={onClose} className="w-full py-3 rounded-xl bg-black text-white font-black text-[14px] flex items-center justify-center gap-1.5">متابعة <ArrowLeft size={14} /></button>
+              ) : (
+                <div className="flex gap-2">
+                  <button onClick={retry} className="flex-[2] py-3 rounded-xl bg-violet-600 text-white font-black text-[14px] flex items-center justify-center gap-1.5"><RotateCcw size={15} /> أعد المحاولة</button>
+                  <button onClick={onClose} className="flex-1 py-3 rounded-xl border border-zinc-200 text-zinc-500 font-bold text-[13px]">إغلاق</button>
+                </div>
+              )}
             </>
           ) : (
             <>
