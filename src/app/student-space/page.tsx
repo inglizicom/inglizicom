@@ -19,6 +19,8 @@ import QuizRunner from '@/components/QuizRunner'
 import ReadingViewer from '@/components/ReadingViewer'
 import SubmissionPanel from '@/components/SubmissionPanel'
 import StudentAnnouncements from '@/components/StudentAnnouncements'
+import FinalExam from '@/components/FinalExam'
+import { fetchCertificate, type Certificate } from '@/lib/lms'
 import { fetchStudentAnnouncements, type StudentAnnouncement } from '@/lib/announcements'
 
 const isVideoUrl = (u?: string | null) => !!u && /(youtube\.com|youtu\.be)/i.test(u)
@@ -94,6 +96,8 @@ function Portal() {
   const [forcedMsg, setForcedMsg] = useState('')      // shown on login after a forced logout
   const seenCorrections = useRef<Set<string> | null>(null)
   const [anns, setAnns] = useState<StudentAnnouncement[]>([])
+  const [showExam, setShowExam] = useState(false)
+  const [cert, setCert] = useState<Certificate | null>(null)
 
   async function enter(rawToken: string, isAuto = false): Promise<boolean> {
     const t = rawToken.trim().toUpperCase(); if (!t) return false
@@ -123,7 +127,7 @@ function Portal() {
     })()
   }, [])
   async function refresh() { if (token) { const r = await fetchStudentSpace(token); if (r.found) setSpace(r) } }
-  useEffect(() => { if (token) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta); fetchReadingUnits(token).then(ids => setReadingUnits(new Set(ids))); fetchMySubmissions(token).then(setSubmissions); fetchNotifications(token).then(setNotifs); fetchStudentAnnouncements(token).then(setAnns) } }, [token, space])
+  useEffect(() => { if (token) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta); fetchReadingUnits(token).then(ids => setReadingUnits(new Set(ids))); fetchMySubmissions(token).then(setSubmissions); fetchNotifications(token).then(setNotifs); fetchStudentAnnouncements(token).then(setAnns); fetchCertificate(token).then(setCert) } }, [token, space])
   function reloadSubmissions() { if (token) fetchMySubmissions(token).then(setSubmissions) }
 
   function playDing() {
@@ -417,6 +421,9 @@ function Portal() {
       {/* CRM announcements: moving banner + login popup */}
       <StudentAnnouncements anns={anns} />
 
+      {/* Final exam + certificate */}
+      {showExam && <FinalExam token={token} fullName={s.full_name} onClose={() => { setShowExam(false); fetchCertificate(token).then(setCert) }} />}
+
       <main className="max-w-6xl mx-auto px-4 pt-4">
 
         {/* ═══════════ ALWAYS-VISIBLE DEADLINE REMINDER ═══════════ */}
@@ -493,6 +500,16 @@ function Portal() {
                   <HeroStat icon={Flame} value={`${stats.streak}`} label="أيام متتالية" />
                 </div>
               </div>
+
+              {/* Final exam + certificate */}
+              <button onClick={() => setShowExam(true)} className="w-full text-right rounded-3xl p-4 bg-gradient-to-l from-yellow-400 to-amber-300 text-black flex items-center gap-3 hover:from-yellow-300 hover:to-amber-200 transition-colors">
+                <div className="w-12 h-12 rounded-2xl bg-black/10 flex items-center justify-center flex-shrink-0"><Award size={26} /></div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-black text-[15px]">{cert ? 'شهادتك جاهزة 🎓' : 'الامتحان النهائي — A0 / A1'}</div>
+                  <div className="text-[12px] text-black/70">{cert ? `لقد اجتزت الامتحان بنتيجة ${cert.percent}% — اعرض شهادتك واطبعها` : 'اجتَز الامتحان واحصل على شهادة إتمام المستوى الأول'}</div>
+                </div>
+                <ChevronLeft size={20} className="flex-shrink-0" />
+              </button>
 
               {/* Today's tasks */}
               {course && today && (

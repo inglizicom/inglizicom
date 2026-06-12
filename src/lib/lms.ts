@@ -246,6 +246,19 @@ export async function reviewSubmission(id: string, feedback: string, score: numb
   await supabase.from('lms_submissions').update({ feedback, score, status: 'reviewed', reviewed_by: by || null, reviewed_at: new Date().toISOString() }).eq('id', id)
 }
 
+/* ── Final exam + certificate (token-gated) ───────────── */
+export interface Certificate { cert_number: string; percent: number; level: string; full_name: string; date: string }
+export interface FinalExamResult extends Certificate { ok: boolean; passed: boolean; score: number; total: number }
+export async function submitFinalExam(token: string, score: number, total: number): Promise<FinalExamResult | null> {
+  const { data } = await supabase.rpc('student_submit_final_exam', { p_token: token.trim().toUpperCase(), p_score: score, p_total: total })
+  if (!data || !data.ok) return null
+  return data as FinalExamResult
+}
+export async function fetchCertificate(token: string): Promise<Certificate | null> {
+  const { data } = await supabase.rpc('student_certificate', { p_token: token.trim().toUpperCase() })
+  return (data ?? null) as Certificate | null
+}
+
 /* ── Student quiz (token-gated) ───────────────────────── */
 export async function fetchLessonQuiz(token: string, lessonId: string): Promise<{ quiz: LessonQuiz; best_score: number | null; best_total: number | null } | null> {
   const { data } = await supabase.rpc('student_lesson_quiz', { p_token: token.trim().toUpperCase(), p_lesson_id: lessonId })
