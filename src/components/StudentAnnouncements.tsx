@@ -35,9 +35,9 @@ export default function StudentAnnouncements({ anns, onShow }: { anns: StudentAn
           <div className="flex items-center gap-2 px-3 py-1.5">
             <Megaphone size={15} className="flex-shrink-0" />
             <div className="flex-1 overflow-hidden">
-              <div className="ann-marquee whitespace-nowrap text-[12.5px] font-semibold">
-                {banners.map((b, i) => (
-                  <span key={b.id} className="mx-6 inline-flex items-center gap-1.5">● {b.title}{b.body ? <span className="opacity-80 font-normal">— {b.body}</span> : null}{i === banners.length - 1 ? <span className="mx-6">●</span> : null}</span>
+              <div dir="rtl" className="ann-marquee whitespace-nowrap text-[12.5px] font-semibold">
+                {banners.map(b => (
+                  <span key={b.id} className="mx-8">● {b.title}{b.body ? ` — ${b.body}` : ''}</span>
                 ))}
               </div>
             </div>

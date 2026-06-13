@@ -558,6 +558,7 @@ p {
 .wm-drift-b { animation: wm-drift-b 60s ease-in-out infinite; }
 
 /* ===== Announcement moving banner (ticker) ===== */
-@keyframes ann-marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-.ann-marquee { animation: ann-marquee 22s linear infinite; }
+/* RTL ticker: content flows right→left so the first Arabic word is read first */
+@keyframes ann-marquee { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+.ann-marquee { animation: ann-marquee 22s linear infinite; display: inline-block; }
 .ann-marquee:hover { animation-play-state: paused; }
