@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Trophy, Gift, Lock, CheckCircle2, Clock, Loader2, Crown } from 'lucide-react'
 import { fetchCoins, fetchRewardsStatus, claimReward, fetchLeaderboard, type CoinSummary, type RewardStatus, type LeaderboardData } from '@/lib/gamification'
 import PersonAvatar from '@/components/PersonAvatar'
+import CoinIcon from '@/components/CoinIcon'
 
 const ACTION_AR: Record<string, string> = {
   open_lesson: '📖 فتح درس', complete_lesson: '✅ إكمال درس', complete_quiz: '🎯 اجتياز اختبار',
@@ -59,7 +60,7 @@ export default function RewardsCenter({ token, onPractice }: { token: string; on
       {/* balance + level */}
       <div className="rounded-3xl p-5 bg-gradient-to-br from-[#2a1d12] via-[#3a2817] to-[#5a3d1f] text-white shadow-[0_6px_20px_rgba(42,29,18,0.25)]">
         <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-2xl bg-yellow-400 text-black flex items-center justify-center text-[26px]">🪙</div>
+          <div className="w-14 h-14 rounded-2xl bg-yellow-400 text-black flex items-center justify-center"><CoinIcon size={32} /></div>
           <div className="flex-1">
             <div className="text-[12px] text-amber-100/60">💰 رصيدك من الكوينات</div>
             <div className="font-black text-[28px] leading-none">{coins?.balance ?? 0} <span className="text-[13px] font-bold text-yellow-400">كوين</span></div>
@@ -81,12 +82,12 @@ export default function RewardsCenter({ token, onPractice }: { token: string; on
       <SectionLabel emoji="🎯" title="تدرّب واكسب الكوينات" sub="كل جملة صحيحة = +30 كوين" />
       <div className="grid grid-cols-2 gap-3">
         <button onClick={() => onPractice('sentence')} className="group rounded-2xl p-4 text-right bg-gradient-to-br from-yellow-300 to-amber-400 shadow-[0_4px_14px_rgba(245,158,11,0.25)] hover:scale-[1.02] transition-transform">
-          <div className="flex items-center justify-between mb-2"><div className="w-12 h-12 rounded-2xl bg-white/40 flex items-center justify-center text-[26px]">🧩</div><span className="text-[10px] font-black text-amber-900 bg-white/50 px-2 py-0.5 rounded-full">+30 🪙</span></div>
+          <div className="flex items-center justify-between mb-2"><div className="w-12 h-12 rounded-2xl bg-white/40 flex items-center justify-center text-[26px]">🧩</div><span className="text-[10px] font-black text-amber-900 bg-white/50 px-2 py-0.5 rounded-full inline-flex items-center gap-0.5">+30 <CoinIcon size={12} /></span></div>
           <div className="font-black text-[15px] text-[#2a1d12]">بناء الجمل</div>
           <div className="text-[11px] text-amber-900/70 font-medium">رتّب الكلمات أو ترجم الجملة</div>
         </button>
         <button onClick={() => onPractice('translation')} className="group rounded-2xl p-4 text-right bg-gradient-to-br from-[#3a2817] to-[#5a3d1f] text-white shadow-[0_4px_14px_rgba(42,29,18,0.3)] hover:scale-[1.02] transition-transform">
-          <div className="flex items-center justify-between mb-2"><div className="w-12 h-12 rounded-2xl bg-yellow-400/20 flex items-center justify-center text-[26px]">🔤</div><span className="text-[10px] font-black text-[#2a1d12] bg-yellow-400 px-2 py-0.5 rounded-full">+30 🪙</span></div>
+          <div className="flex items-center justify-between mb-2"><div className="w-12 h-12 rounded-2xl bg-yellow-400/20 flex items-center justify-center text-[26px]">🔤</div><span className="text-[10px] font-black text-[#2a1d12] bg-yellow-400 px-2 py-0.5 rounded-full inline-flex items-center gap-0.5">+30 <CoinIcon size={12} /></span></div>
           <div className="font-black text-[15px] text-white">ترجم الجمل</div>
           <div className="text-[11px] text-amber-100/70 font-medium">عربي ← إنجليزي</div>
         </button>
@@ -142,7 +143,7 @@ export default function RewardsCenter({ token, onPractice }: { token: string; on
                 {coins.recent.slice(0, 12).map((t, i) => (
                   <div key={i} className="flex items-center justify-between text-[12.5px] border-b border-zinc-50 last:border-0 pb-1.5 last:pb-0">
                     <span className="text-zinc-700 font-medium">{ACTION_AR[t.action] ?? t.action}{t.notes && t.source === 'admin' ? ` — ${t.notes}` : ''}</span>
-                    <span className={`font-black inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full ${t.amount >= 0 ? 'text-emerald-700 bg-emerald-50' : 'text-rose-600 bg-rose-50'}`}>{t.amount >= 0 ? '+' : ''}{t.amount} 🪙</span>
+                    <span className={`font-black inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full ${t.amount >= 0 ? 'text-emerald-700 bg-emerald-50' : 'text-rose-600 bg-rose-50'}`}>{t.amount >= 0 ? '+' : ''}{t.amount} <CoinIcon size={12} /></span>
                   </div>
                 ))}
               </div>
@@ -171,7 +172,7 @@ export default function RewardsCenter({ token, onPractice }: { token: string; on
                     <div className="font-black text-[13.5px] text-[#3a2817] truncate">{r.rank <= 3 ? ['🥇', '🥈', '🥉'][r.rank - 1] + ' ' : ''}{r.name}{r.me && <span className="text-[10px] text-amber-600 font-bold mr-1">· أنت</span>}</div>
                     <div className="text-[10.5px] text-zinc-400">{r.challenges} تمرين{r.streak > 0 ? ` · 🔥 ${r.streak} يوم` : ''}</div>
                   </div>
-                  <span className="font-black text-[13px] inline-flex items-center gap-1 bg-[#3a2817] text-yellow-400 px-2.5 py-1 rounded-full flex-shrink-0">{r.points} 🪙</span>
+                  <span className="font-black text-[13px] inline-flex items-center gap-1 bg-[#3a2817] text-yellow-400 px-2.5 py-1 rounded-full flex-shrink-0">{r.points} <CoinIcon size={14} /></span>
                 </div>
               ))}
               {board.me && !board.top.some(t => t.me) && (
@@ -181,7 +182,7 @@ export default function RewardsCenter({ token, onPractice }: { token: string; on
                     <span className="absolute -bottom-1 -left-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black flex items-center justify-center ring-2 ring-white bg-[#3a2817] text-white">{board.me.rank}</span>
                   </div>
                   <div className="flex-1 font-black text-[13.5px] text-[#3a2817]">أنت</div>
-                  <span className="font-black text-[13px] inline-flex items-center gap-1 bg-[#3a2817] text-yellow-400 px-2.5 py-1 rounded-full">{board.me.points} 🪙</span>
+                  <span className="font-black text-[13px] inline-flex items-center gap-1 bg-[#3a2817] text-yellow-400 px-2.5 py-1 rounded-full">{board.me.points} <CoinIcon size={14} /></span>
                 </div>
               )}
             </div>

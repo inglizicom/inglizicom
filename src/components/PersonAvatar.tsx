@@ -1,12 +1,11 @@
 'use client'
 
 /**
- * Cartoon character avatar (multiavatar.com — full illustrated people),
- * deterministic per name. Same person → same character. Brand-tinted backdrop
- * shows while it loads.
+ * Cartoon character avatar (DiceBear "avataaars" — illustrated people in
+ * casual-professional clothing), deterministic per name. Reliable SVG endpoint.
  */
 export default function PersonAvatar({ name, size = 40, className = '' }: { name: string; size?: number; className?: string }) {
-  const url = `https://api.multiavatar.com/${encodeURIComponent(name || '?')}.png`
+  const url = `https://api.dicebear.com/9.x/avataaars/svg?seed=${encodeURIComponent(name || '?')}&radius=50&backgroundColor=f3e6c8,e7dcc8,ffd9a8,d6c4ad`
   return (
     <div className={`rounded-full overflow-hidden flex-shrink-0 bg-[#e7dcc8] ${className}`} style={{ width: size, height: size }}>
       {/* eslint-disable-next-line @next/next/no-img-element */}

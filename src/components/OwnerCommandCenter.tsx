@@ -3,11 +3,12 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
-  TrendingUp, Users, UserPlus, Target, Coins,
+  TrendingUp, Users, UserPlus, Target,
   AlertTriangle, Trophy, Flame, BookOpen, RefreshCw, Sparkles, Wallet,
   Activity, Crown, Zap, ChevronLeft,
 } from 'lucide-react'
 import PersonAvatar from '@/components/PersonAvatar'
+import CoinIcon from '@/components/CoinIcon'
 import {
   fetchOwnerOverview, fetchOwnerRevenueTrend, fetchOwnerTeam,
   fetchOwnerStudents, fetchOwnerCourses, fetchOwnerAlerts,
@@ -272,7 +273,7 @@ export default function OwnerCommandCenter({ embedded = false }: { embedded?: bo
                   </div>}
               </Panel>
               <Panel {...rise()}>
-                <PanelHead icon={Coins} title="الأعلى عملات" />
+                <PanelHead icon={CoinIcon} title="الأعلى عملات" />
                 {intel.top_coins.length === 0 ? <Empty>—</Empty> :
                   <div className="space-y-0.5 mt-1">
                     {intel.top_coins.slice(0, 8).map((s, i) => (
@@ -280,7 +281,7 @@ export default function OwnerCommandCenter({ embedded = false }: { embedded?: bo
                         <span className="w-4 text-center text-[12px] font-black text-zinc-400 flex-shrink-0">{i + 1}</span>
                         <PersonAvatar name={s.name} size={30} />
                         <span className="flex-1 text-[13px] font-semibold text-zinc-700 truncate">{s.name}</span>
-                        <span className="text-[13px] font-black text-yellow-600 flex-shrink-0">{fmt(s.coins)} 🪙</span>
+                        <span className="text-[13px] font-black text-yellow-600 flex-shrink-0 inline-flex items-center gap-1">{fmt(s.coins)} <CoinIcon size={14} /></span>
                       </Link>
                     ))}
                   </div>}
@@ -328,7 +329,7 @@ export default function OwnerCommandCenter({ embedded = false }: { embedded?: bo
         {/* rewards footer */}
         {ov && (
           <Panel {...rise()} className="mb-2">
-            <PanelHead icon={Coins} title="المكافآت" href="/sales/gamification" />
+            <PanelHead icon={CoinIcon} title="المكافآت" href="/sales/gamification" />
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mt-1">
               <MiniStat label="عملات موزّعة" value={fmt(ov.rewards.coins_distributed)} />
               <MiniStat label="عملات مصروفة" value={fmt(ov.rewards.coins_spent)} />
