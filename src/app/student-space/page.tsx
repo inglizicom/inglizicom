@@ -310,15 +310,33 @@ function Portal() {
   // flatten + sequential unlock
   const flat: { lesson: PortalLesson; m: PortalModule; mi: number }[] = []
   ;(course?.modules ?? []).forEach((m, mi) => m.lessons.forEach(l => flat.push({ lesson: l, m, mi })))
-  const unlocked = new Set<string>(); let prevDone = true
-  for (const { lesson } of flat) { if (prevDone && !lesson.is_locked) unlocked.add(lesson.id); prevDone = lesson.status === 'completed' }
+  // Unit gate: the next unit unlocks only after the current unit is finished AND
+  // its exercise submission was REVIEWED (scored) by the correction team.
+  // Grandfathered — already-completed lessons stay open, and units the student
+  // already started are not retro-locked; the gate only blocks NEW progress.
+  const reviewedModules = new Set(submissions.filter(s => s.status === 'reviewed').map(s => s.module_id))
+  const unlocked = new Set<string>()
+  let gatePassed = true
+  for (const m of (course?.modules ?? [])) {
+    const started = m.lessons.some(l => l.status === 'completed')
+    const mayStartNew = gatePassed || started
+    let prevDone = true
+    for (const l of m.lessons) {
+      if (l.status === 'completed') unlocked.add(l.id)
+      else if (prevDone && mayStartNew && !l.is_locked) unlocked.add(l.id)
+      prevDone = l.status === 'completed'
+    }
+    const allDone = m.lessons.length > 0 && m.lessons.every(l => l.status === 'completed')
+    gatePassed = gatePassed && allDone && reviewedModules.has(m.id)
+  }
   const isUnlocked = (l: PortalLesson) => unlocked.has(l.id)
   const today = flat.find(x => isUnlocked(x.lesson) && x.lesson.status !== 'completed')
   const pendingLessons = flat.filter(x => x.lesson.status !== 'completed').length
 
   // module progress
   const modProg = (m: PortalModule) => { const t = m.lessons.length; const d = m.lessons.filter(l => l.status === 'completed').length; return { t, d, pct: t ? Math.round((d / t) * 100) : 0 } }
-  const currentModule = (course?.modules ?? []).find(m => modProg(m).pct < 100) ?? (course?.modules ?? [])[0]
+  // current unit = first unit not fully done, or done-but-awaiting team review
+  const currentModule = (course?.modules ?? []).find(m => modProg(m).pct < 100 || !reviewedModules.has(m.id)) ?? (course?.modules ?? [])[0]
   const exerciseLessons = flat.filter(x => x.lesson.type === 'exercise' || x.lesson.type === 'quiz').slice(0, 4)
   const nextExam = exams.find(e => e.score == null)
 
@@ -669,6 +687,12 @@ function Portal() {
                       </div>
                     </div>
                   )}
+                  {currentModule && modProg(currentModule).pct >= 100 && submissions.filter(x => x.module_id === currentModule.id)[0]?.status !== 'reviewed' && (
+                    <button onClick={() => setSubmitUnit({ id: currentModule.id, title: currentModule.title })}
+                      className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-[#2a1d12] text-yellow-400 font-black text-[13px] hover:bg-[#3a2817]">
+                      <Send size={15} /> {submissions.some(x => x.module_id === currentModule.id) ? 'تمرين الوحدة قيد التصحيح — تُفتح الوحدة التالية بعد تصحيح الفريق' : 'أرسل تمرين الوحدة للتصحيح لفتح الوحدة التالية'}
+                    </button>
+                  )}
                 </Card>
               )}
 
@@ -815,7 +839,14 @@ function Portal() {
                 const daysTo = dl != null ? Math.ceil((dl - Date.now()) / 86400000) : null
                 const overdue = dl != null && p.pct < 100 && Date.now() > dl
                 const soon = !overdue && p.pct < 100 && daysTo != null && daysTo <= 2   // due within 2 days
-                const unitLocked = mi > 0 && course.modules.slice(0, mi).some(mm => modProg(mm).pct < 100)   // previous unit not finished
+                // previous unit must be finished AND its exercise reviewed by the team
+                const prev = mi > 0 ? course.modules[mi - 1] : null
+                const started = m.lessons.some(l => l.status === 'completed')   // grandfather already-started units
+                const prevReady = !prev || (modProg(prev).pct >= 100 && reviewedModules.has(prev.id))
+                const unitLocked = !!prev && !started && !prevReady
+                const lockReason = prev && modProg(prev).pct < 100
+                  ? 'أكمل الوحدة السابقة بالكامل لفتحها'
+                  : 'بانتظار تصحيح الفريق لتمرين الوحدة السابقة'
                 return (
                 <div key={m.id} className={`rounded-2xl border overflow-hidden shadow-sm ${unitLocked ? 'bg-zinc-50/70 border-zinc-200' : overdue ? 'bg-white border-rose-300' : soon ? 'bg-white border-amber-300' : 'bg-white border-zinc-100'}`}>
                   <div className={`px-4 py-3 border-b flex items-center gap-2 ${unitLocked ? 'bg-zinc-100 border-zinc-200' : overdue ? 'bg-rose-50 border-rose-100' : soon ? 'bg-amber-50 border-amber-100' : 'bg-[#f5ecdc] border-amber-100/70'}`}>
@@ -823,7 +854,7 @@ function Portal() {
                     <div className="flex-1 min-w-0">
                       <span className={`font-bold text-[14px] ${unitLocked ? 'text-zinc-500' : 'text-zinc-800'}`}>{m.title}</span>
                       {unitLocked
-                        ? <span className="block text-[10px] font-bold text-zinc-400">🔒 أكمل الوحدة السابقة لفتحها</span>
+                        ? <span className="block text-[10px] font-bold text-zinc-400">🔒 {lockReason}</span>
                         : dl != null && <span className={`block text-[10px] font-bold ${overdue ? 'text-rose-600' : soon ? 'text-amber-700' : 'text-zinc-400 font-normal'}`}>
                         {p.pct >= 100 ? '✓ مكتملة'
                           : overdue ? `⚠️ متأخّر · كان الموعد ${fmtDate(dl)}`
@@ -835,7 +866,7 @@ function Portal() {
                     <span className="text-[11px] font-bold text-zinc-400">{p.d}/{p.t}</span>
                   </div>
                   {unitLocked ? (
-                    <div className="px-4 py-7 text-center text-[12px] text-zinc-400 flex flex-col items-center gap-2"><Lock size={22} className="text-zinc-300" /> هذه الوحدة مقفلة — أنهِ الوحدة السابقة بالكامل لفتحها.</div>
+                    <div className="px-4 py-7 text-center text-[12px] text-zinc-400 flex flex-col items-center gap-2"><Lock size={22} className="text-zinc-300" /> هذه الوحدة مقفلة — {lockReason}.</div>
                   ) : (
                   <>
                   <div className="divide-y divide-zinc-50">{m.lessons.map(l => <LessonRow key={l.id} l={l} unlocked={isUnlocked(l)} onOpen={onOpenLesson} onComplete={onCompleteLesson} onQuiz={setQuizLesson} />)}</div>
