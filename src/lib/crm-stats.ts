@@ -108,6 +108,7 @@ async function sumApprovedPaymentsBetween(from: Date, to: Date): Promise<number>
     .select('amount_mad')
     .eq('payment_status', 'paid')
     .eq('excluded_from_revenue', false)
+    .gt('amount_mad', 0)
     .gte('created_at', from.toISOString())
     .lte('created_at', to.toISOString())
   let total = 0

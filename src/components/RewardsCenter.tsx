@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Trophy, Gift, Lock, CheckCircle2, Clock, Loader2, Crown } from 'lucide-react'
 import { fetchCoins, fetchRewardsStatus, claimReward, fetchLeaderboard, type CoinSummary, type RewardStatus, type LeaderboardData } from '@/lib/gamification'
+import PersonAvatar from '@/components/PersonAvatar'
 
 const ACTION_AR: Record<string, string> = {
   open_lesson: '📖 فتح درس', complete_lesson: '✅ إكمال درس', complete_quiz: '🎯 اجتياز اختبار',
@@ -17,8 +18,6 @@ const LEVEL_STYLE: Record<string, string> = {
 }
 const LEVEL_EMOJI: Record<string, string> = { Bronze: '🥉', Silver: '🥈', Gold: '🥇', Platinum: '💎', Master: '👑' }
 const RANK_RING: Record<number, string> = { 1: 'ring-yellow-400', 2: 'ring-zinc-300', 3: 'ring-amber-600' }
-// fantasy "warrior"-style avatars, distinct per student
-const avatarOf = (name: string) => `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(name || '?')}&backgroundColor=ffd5a8,ffdfbf,d1d4f9,c0aede,b6e3f4,c8f7c5`
 
 function SectionLabel({ emoji, title, sub }: { emoji: string; title: string; sub?: string }) {
   return (
@@ -165,8 +164,7 @@ export default function RewardsCenter({ token, onPractice }: { token: string; on
               {board.top.map(r => (
                 <div key={r.rank} className={`flex items-center gap-3 px-2.5 py-2 rounded-xl ${r.me ? 'bg-yellow-50 ring-2 ring-yellow-300' : r.rank <= 3 ? 'bg-amber-50/60' : ''}`}>
                   <div className="relative flex-shrink-0">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={avatarOf(r.name)} alt="" className={`w-11 h-11 rounded-full bg-amber-50 ring-2 ${RANK_RING[r.rank] ?? 'ring-zinc-200'}`} />
+                    <PersonAvatar name={r.name} size={44} className={`ring-2 ${RANK_RING[r.rank] ?? 'ring-zinc-200'}`} />
                     <span className={`absolute -bottom-1 -left-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black flex items-center justify-center ring-2 ring-white ${r.rank === 1 ? 'bg-yellow-400 text-black' : r.rank === 2 ? 'bg-zinc-300 text-zinc-700' : r.rank === 3 ? 'bg-amber-700 text-white' : 'bg-[#3a2817] text-white'}`}>{r.rank}</span>
                   </div>
                   <div className="flex-1 min-w-0">
@@ -179,8 +177,7 @@ export default function RewardsCenter({ token, onPractice }: { token: string; on
               {board.me && !board.top.some(t => t.me) && (
                 <div className="flex items-center gap-3 px-2.5 py-2 rounded-xl bg-yellow-50 ring-2 ring-yellow-300 mt-1">
                   <div className="relative flex-shrink-0">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={avatarOf('أنت')} alt="" className="w-11 h-11 rounded-full bg-amber-50 ring-2 ring-yellow-300" />
+                    <PersonAvatar name="أنت" size={44} className="ring-2 ring-yellow-300" />
                     <span className="absolute -bottom-1 -left-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black flex items-center justify-center ring-2 ring-white bg-[#3a2817] text-white">{board.me.rank}</span>
                   </div>
                   <div className="flex-1 font-black text-[13.5px] text-[#3a2817]">أنت</div>

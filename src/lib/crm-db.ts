@@ -4,7 +4,7 @@
  */
 import { supabase } from './supabase'
 import type {
-  CrmStudent, CrmPayment, LeadEvent, PaymentType, PaymentStatus,
+  CrmStudent, CrmPayment, LeadEvent, PaymentType, PaymentStatus, EnrollmentType,
 } from './crm-types'
 
 // Re-export so pages can import from a single place.
@@ -47,7 +47,19 @@ export async function createStudent(input: {
   nextPaymentDate?: string
   notes?:        string
   addedById?:    string
+  // Phase 3 — enrollment types. Only 'paid' generates revenue.
+  enrollmentType?: EnrollmentType
+  couponCode?:     string
+  rewardSource?:   string
+  sponsorReason?:  string
+  trialExpiresAt?: string
 }): Promise<string | null> {
+  const enrollmentType: EnrollmentType = input.enrollmentType ?? 'paid'
+  const amount = input.totalPaidMad ?? 0
+  // A student counts as paid ONLY when enrolled as 'paid' AND an amount is attached.
+  const countsAsPaid = enrollmentType === 'paid' && amount > 0
+  const enrollDate = input.enrollmentDate || new Date().toISOString().slice(0, 10)
+
   const { data, error } = await supabase
     .from('crm_students')
     .insert({
@@ -57,19 +69,27 @@ export async function createStudent(input: {
       student_type:     input.studentType,
       source:           input.source || null,
       billing_type:     input.billingType ?? (input.studentType === 'private_student' ? 'monthly' : 'one_time'),
-      total_paid_mad:   input.totalPaidMad ?? 0,
+      total_paid_mad:   countsAsPaid ? amount : 0,
       monthly_fee_mad:  input.monthlyFeeMad ?? null,
-      enrollment_date:  input.enrollmentDate || new Date().toISOString().slice(0, 10),
-      subscription_start: input.studentType === 'private_student' ? (input.enrollmentDate || new Date().toISOString().slice(0, 10)) : null,
+      enrollment_date:  enrollDate,
+      subscription_start: input.studentType === 'private_student' ? enrollDate : null,
       next_payment_date: input.nextPaymentDate || null,
-      payment_status:   (input.totalPaidMad ?? 0) > 0 ? 'paid' : 'pending',
+      payment_status:   countsAsPaid ? 'paid' : 'pending',
       notes:            input.notes || null,
       is_active:        true,
       added_by_id:      input.addedById || null,
+      enrollment_type:  enrollmentType,
+      coupon_code:      enrollmentType === 'coupon' ? (input.couponCode || null) : null,
+      reward_source:    enrollmentType === 'coupon' ? (input.rewardSource || null) : null,
+      sponsor_reason:   enrollmentType === 'sponsored' ? (input.sponsorReason || null) : null,
+      trial_expires_at: enrollmentType === 'trial' ? (input.trialExpiresAt || null) : null,
     })
     .select('id')
     .single()
   if (error) { console.error('createStudent', error.message); return null }
+  // ROOT-CAUSE FIX lives in the DB now: trigger `trg_crm_student_autopayment`
+  // (migration 019) auto-creates the matching crm_payments row for a paid student,
+  // so revenue always sees it regardless of the code path. Nothing to do here.
   return (data as { id: string }).id
 }
 
@@ -171,13 +191,15 @@ export async function convertLeadToStudent(leadId: string): Promise<string> {
 export async function fetchStudentStats(): Promise<{
   total: number; course: number; private: number; overdue: number; revenue: number
 }> {
-  const { data } = await supabase.from('crm_students').select('student_type, payment_status, total_paid_mad')
-  let course = 0, priv = 0, overdue = 0, revenue = 0
+  const { data } = await supabase.from('crm_students').select('student_type, payment_status').is('deleted_at', null)
+  let course = 0, priv = 0, overdue = 0
   for (const r of data ?? []) {
     if (r.student_type === 'course_student') course++; else priv++
     if (r.payment_status === 'overdue') overdue++
-    revenue += Number(r.total_paid_mad ?? 0)
   }
+  // Revenue = single source of truth (crm_payments), NOT crm_students.total_paid_mad.
+  // Only paid payments with a real amount count (free/coupon/gift students never do).
+  const { allTime: revenue } = await fetchRevenueTotals()
   return { total: (data ?? []).length, course, private: priv, overdue, revenue }
 }
 
@@ -268,15 +290,15 @@ export async function fetchRevenueTotals(): Promise<{
 
   const { data } = await supabase
     .from('crm_payments')
-    .select('amount_mad, payment_date')
+    .select('amount_mad, payment_date, created_at')
     .eq('payment_status', 'paid')
     .eq('excluded_from_revenue', false)
-    .not('payment_date', 'is', null)
+    .gt('amount_mad', 0)
 
   let today = 0, week = 0, month = 0, year = 0, allTime = 0
   for (const r of data ?? []) {
     const amt = Number(r.amount_mad ?? 0)
-    const d = (r.payment_date as string).slice(0, 10)
+    const d = ((r.payment_date as string) || (r.created_at as string)).slice(0, 10)
     allTime += amt
     if (d >= yearS)  year  += amt
     if (d >= monthS) month += amt
@@ -291,18 +313,20 @@ export async function fetchRevenueByMonth(months = 12): Promise<{ month: string;
   const cutoff = new Date(); cutoff.setMonth(cutoff.getMonth() - months + 1); cutoff.setDate(1)
   const { data } = await supabase
     .from('crm_payments')
-    .select('amount_mad, payment_date')
+    .select('amount_mad, payment_date, created_at')
     .eq('payment_status', 'paid')
     .eq('excluded_from_revenue', false)
-    .gte('payment_date', cutoff.toISOString().slice(0, 10))
+    .gt('amount_mad', 0)
   const map = new Map<string, number>()
   // Seed all months with 0
   for (let i = 0; i < months; i++) {
     const d = new Date(cutoff); d.setMonth(d.getMonth() + i)
     map.set(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`, 0)
   }
+  const cutoffKey = cutoff.toISOString().slice(0, 7)
   for (const r of data ?? []) {
-    const k = (r.payment_date as string).slice(0, 7)
+    const k = ((r.payment_date as string) || (r.created_at as string)).slice(0, 7)
+    if (k < cutoffKey || !map.has(k)) continue
     map.set(k, (map.get(k) ?? 0) + Number(r.amount_mad ?? 0))
   }
   return [...map.entries()].map(([month, mad]) => ({ month, mad }))

@@ -61,6 +61,18 @@ export const LOST_REASONS: { id: LostReason; label: string }[] = [
   { id: 'other',             label: 'Other' },
 ]
 
+// ─── Enrollment type (Phase 3) ──────────────────────────────
+// Only 'paid' generates revenue. The rest count as active students but never as money.
+export type EnrollmentType = 'paid' | 'free' | 'coupon' | 'sponsored' | 'trial'
+
+export const ENROLLMENT_TYPES: { id: EnrollmentType; label: string; emoji: string; color: string }[] = [
+  { id: 'paid',      label: 'مدفوع',          emoji: '💳', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  { id: 'free',      label: 'مجاني',           emoji: '🎈', color: 'bg-sky-50 text-sky-700 border-sky-200' },
+  { id: 'coupon',    label: 'كوبون / مكافأة',  emoji: '🎁', color: 'bg-violet-50 text-violet-700 border-violet-200' },
+  { id: 'sponsored', label: 'منحة / راعٍ',      emoji: '🤝', color: 'bg-amber-50 text-amber-700 border-amber-200' },
+  { id: 'trial',     label: 'تجريبي',          emoji: '⏳', color: 'bg-zinc-100 text-zinc-700 border-zinc-200' },
+]
+
 // ─── CRM Student ────────────────────────────────────────────
 export interface CrmStudent {
   id:                string
@@ -96,6 +108,12 @@ export interface CrmStudent {
   today_lesson_url?:   string | null
   today_lesson_title?: string | null
   learning_stage?:     string | null
+  // Migration 018 (this branch) — enrollment types
+  enrollment_type?:    EnrollmentType
+  coupon_code?:        string | null
+  reward_source?:      string | null
+  sponsor_reason?:     string | null
+  trial_expires_at?:   string | null
 }
 
 // ─── CRM Payment ────────────────────────────────────────────
