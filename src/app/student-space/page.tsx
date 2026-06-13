@@ -101,6 +101,7 @@ function Portal() {
   const [otpReveal, setOtpReveal] = useState(false)   // show the self-serve WhatsApp-OTP option
   const [forcedMsg, setForcedMsg] = useState('')      // shown on login after a forced logout
   const seenCorrections = useRef<Set<string> | null>(null)
+  const seenAnns = useRef<Set<string> | null>(null)
   const [anns, setAnns] = useState<StudentAnnouncement[]>([])
   const [showExam, setShowExam] = useState(false)
   const [cert, setCert] = useState<Certificate | null>(null)
@@ -176,6 +177,14 @@ function Portal() {
       }
       seenCorrections.current = unread
       setNotifs(list)
+      // live announcements (chime + toast on a brand-new one)
+      const a = await fetchStudentAnnouncements(token); if (!alive) return
+      if (seenAnns.current) {
+        const freshA = a.filter(x => !seenAnns.current!.has(x.id))
+        if (freshA.length) { playMessage(); setToast(freshA[0].title) }
+      }
+      seenAnns.current = new Set(a.map(x => x.id))
+      setAnns(a)
     }
     const iv = setInterval(tick, 45_000)
     const onVis = () => { if (document.visibilityState === 'visible') tick() }
