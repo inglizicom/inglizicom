@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
-  Gauge, TrendingUp, Users, UserPlus, Target, Coins, AlertTriangle,
-  Trophy, Flame, BookOpen, RefreshCw, ArrowUpRight, ArrowDownRight,
+  TrendingUp, Users, UserPlus, Target, Coins,
+  AlertTriangle, Trophy, Flame, BookOpen, RefreshCw, Sparkles, Wallet,
+  Activity, Crown, Zap,
 } from 'lucide-react'
 import {
   fetchOwnerOverview, fetchOwnerRevenueTrend, fetchOwnerTeam,
@@ -13,7 +14,29 @@ import {
 } from '@/lib/owner'
 import { ENROLLMENT_TYPES } from '@/lib/crm-types'
 
-const mad = (n: number | null | undefined) => `${Math.round(Number(n ?? 0)).toLocaleString('en-US')} درهم`
+/* ── number helpers ── */
+const fmt = (n: number) => Math.round(n).toLocaleString('en-US')
+const AR_MONTHS = ['ينا', 'فبر', 'مار', 'أبر', 'ماي', 'يون', 'يول', 'غشت', 'شت', 'أكت', 'نون', 'دجن']
+function monthLabel(ym: string) { const m = parseInt(ym.slice(5), 10); return AR_MONTHS[(m - 1) % 12] }
+
+function useCountUp(target: number, dur = 1000) {
+  const [v, setV] = useState(0)
+  useEffect(() => {
+    let raf = 0; const t0 = performance.now()
+    const tick = (t: number) => {
+      const p = Math.min(1, (t - t0) / dur)
+      setV(target * (1 - Math.pow(1 - p, 3)))
+      if (p < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [target, dur])
+  return v
+}
+function Num({ value, money }: { value: number; money?: boolean }) {
+  const v = useCountUp(value)
+  return <>{fmt(v)}{money ? ' د.م' : ''}</>
+}
 
 export default function CommandCenterPage() {
   const [loading, setLoading] = useState(true)
@@ -35,244 +58,371 @@ export default function CommandCenterPage() {
   }
   useEffect(() => { load() }, [])
 
+  const today = new Date().toLocaleDateString('ar-MA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
   const maxTrend = Math.max(1, ...trend.map(p => p.mad))
+  const totalEnroll = ov ? Object.values(ov.enroll || {}).reduce((a, b) => a + Number(b), 0) : 0
+  let delay = 0
+  const rise = () => ({ className: 'cc-rise', style: { animationDelay: `${(delay += 60)}ms` } })
 
   return (
-    <div className="px-6 lg:px-10 py-8 max-w-[1400px] mx-auto">
-      {/* Header */}
-      <header className="flex flex-wrap items-end justify-between gap-4 mb-6">
-        <div>
-          <div className="text-[11px] uppercase font-bold tracking-[0.18em] text-gray-400 mb-1 flex items-center gap-1">
-            <Gauge size={11} /> Owner command center
-          </div>
-          <h1 className="text-[28px] font-black tracking-tight text-gray-900">The whole business, in 60 seconds.</h1>
-          <p className="text-sm text-gray-500 mt-1">Revenue · students · team · activity · risks — one source of truth.</p>
-        </div>
-        <button onClick={load} disabled={loading}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-black text-yellow-400 text-sm font-bold hover:bg-zinc-800 shadow-sm disabled:opacity-50">
-          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} /> Refresh
-        </button>
-      </header>
+    <div dir="rtl" className="min-h-screen bg-gradient-to-b from-zinc-50 to-white">
+      <div className="w-full max-w-[1700px] mx-auto px-4 lg:px-8 py-6">
 
-      {loading && !ov && <div className="text-sm text-gray-400 py-20 text-center">Loading…</div>}
-
-      {/* ── Smart alerts ── */}
-      {alerts.length > 0 && (
-        <div className="mb-6 space-y-2">
-          {alerts.map((a, i) => (
-            <div key={i} className={[
-              'flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold border',
-              a.level === 'danger' ? 'bg-red-50 text-red-700 border-red-200'
-                : a.level === 'warn' ? 'bg-amber-50 text-amber-700 border-amber-200'
-                : 'bg-blue-50 text-blue-700 border-blue-200',
-            ].join(' ')} dir="rtl">
-              <AlertTriangle size={15} className="flex-shrink-0" /><span>{a.text}</span>
+        {/* ── HERO ── */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-l from-zinc-900 via-black to-zinc-900 text-white p-6 lg:p-8 mb-5 shadow-xl">
+          <div className="absolute inset-0 cc-sheen pointer-events-none" />
+          <div className="absolute -left-10 -top-10 w-48 h-48 rounded-full bg-yellow-400/10 blur-3xl cc-float" />
+          <div className="relative flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 text-yellow-400 text-[12px] font-bold mb-1.5">
+                <Crown size={14} /> مركز قيادة المالك
+              </div>
+              <h1 className="text-2xl lg:text-[30px] font-black tracking-tight leading-tight">
+                كل أعمالك في 60 ثانية
+              </h1>
+              <p className="text-zinc-400 text-[13px] mt-1.5">{today} · الإيرادات · الطلاب · الفريق · المخاطر — مصدر واحد للحقيقة</p>
             </div>
-          ))}
+            <div className="flex items-center gap-3">
+              {ov && (
+                <div className="text-left">
+                  <div className="text-[11px] text-zinc-400 font-semibold">الإيراد الإجمالي</div>
+                  <div className="text-2xl lg:text-3xl font-black text-yellow-400"><Num value={ov.rev_total} money /></div>
+                </div>
+              )}
+              <button onClick={load} disabled={loading}
+                className="w-11 h-11 rounded-2xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition disabled:opacity-50 backdrop-blur">
+                <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+              </button>
+            </div>
+          </div>
         </div>
-      )}
 
-      {/* ── A. Business overview ── */}
-      {ov && (
-        <>
-          <SectionTitle icon={TrendingUp}>Business overview</SectionTitle>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
-            <Kpi label="Revenue today"     value={mad(ov.rev_today)}  accent />
-            <Kpi label="This week"          value={mad(ov.rev_week)} />
-            <Kpi label="This month"         value={mad(ov.rev_month)} />
-            <Kpi label="This year"          value={mad(ov.rev_year)} />
+        {loading && !ov && (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-28 rounded-2xl bg-zinc-100 animate-pulse" />)}
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
-            <Kpi label="New leads today"    value={ov.new_leads_today} icon={UserPlus} />
-            <Kpi label="New students today" value={ov.new_students_today} icon={UserPlus} />
-            <Kpi label="Conversion rate"    value={`${ov.conversion_rate}%`} icon={Target} />
-            <Kpi label="Avg revenue / student" value={mad(ov.arpu)} icon={TrendingUp} />
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-            <Kpi label="Active students"    value={ov.active_students} icon={Users} good />
-            <Kpi label="Inactive students"  value={ov.inactive_students} icon={Users} />
-            <Kpi label="At risk (7d+ idle)" value={ov.at_risk} icon={AlertTriangle} bad={ov.at_risk > 0} />
-            <Kpi label="Paying students"    value={ov.paying_students} icon={Coins} />
-          </div>
+        )}
 
-          <div className="grid lg:grid-cols-3 gap-4 mb-7">
-            {/* Revenue trend */}
-            <Card className="lg:col-span-2">
-              <CardHead>Revenue · last 6 months</CardHead>
-              <div className="flex items-end gap-2 h-40 px-1">
-                {trend.map(p => (
-                  <div key={p.month} className="flex-1 flex flex-col items-center gap-1.5">
-                    <div className="w-full bg-yellow-400 rounded-t-md transition-all" style={{ height: `${Math.max(4, (p.mad / maxTrend) * 130)}px` }} title={mad(p.mad)} />
-                    <span className="text-[10px] text-gray-400">{p.month.slice(5)}</span>
-                  </div>
-                ))}
-              </div>
-            </Card>
-            {/* Top / worst course */}
-            <Card>
-              <CardHead>Courses</CardHead>
-              <Row label="🏆 Top course" value={ov.top_course ? `${ov.top_course.title} (${ov.top_course.students})` : '—'} />
-              <Row label="📉 Least popular" value={ov.worst_course ? `${ov.worst_course.title} (${ov.worst_course.students})` : '—'} />
-              <div className="mt-3 pt-3 border-t border-gray-100">
-                <div className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">Rewards</div>
-                <Row label="Coins distributed" value={Number(ov.rewards.coins_distributed).toLocaleString()} />
-                <Row label="Coins spent" value={Number(ov.rewards.coins_spent).toLocaleString()} />
-                <Row label="Claims pending" value={ov.rewards.claims_pending} />
-              </div>
-            </Card>
-          </div>
-
-          {/* Enrollment types */}
-          <SectionTitle icon={Users}>Enrollment types</SectionTitle>
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-7">
-            {ENROLLMENT_TYPES.map(t => (
-              <div key={t.id} className={`rounded-xl border p-3 ${t.color}`}>
-                <div className="text-[13px] font-bold flex items-center gap-1.5">{t.emoji} {t.label}</div>
-                <div className="text-2xl font-black mt-1">{ov.enroll?.[t.id] ?? 0}</div>
+        {/* ── SMART ALERTS ── */}
+        {alerts.length > 0 && (
+          <div className="grid sm:grid-cols-2 gap-2.5 mb-5">
+            {alerts.map((a, i) => (
+              <div key={i} {...rise()} className={[
+                'flex items-center gap-2.5 px-4 py-3 rounded-2xl text-[13.5px] font-bold border shadow-sm',
+                a.level === 'danger' ? 'bg-red-50 text-red-700 border-red-200'
+                  : a.level === 'warn' ? 'bg-amber-50 text-amber-800 border-amber-200'
+                  : 'bg-blue-50 text-blue-700 border-blue-200',
+              ].join(' ')}>
+                <span className="w-8 h-8 rounded-xl bg-white/70 flex items-center justify-center flex-shrink-0">
+                  <AlertTriangle size={16} />
+                </span>
+                <span className="leading-snug">{a.text}</span>
               </div>
             ))}
           </div>
-        </>
-      )}
-
-      {/* ── B. Team performance ── */}
-      <SectionTitle icon={Users}>Team performance</SectionTitle>
-      <Card className="mb-7 overflow-x-auto">
-        {team.length === 0 ? <Empty>No assistants yet.</Empty> : (
-          <table className="w-full text-[13px]">
-            <thead>
-              <tr className="text-left text-gray-400 text-[11px] uppercase tracking-wider border-b border-gray-100">
-                <th className="py-2 pr-3 font-bold">Assistant</th>
-                <th className="py-2 px-2 font-bold">Leads</th>
-                <th className="py-2 px-2 font-bold">Confirmed</th>
-                <th className="py-2 px-2 font-bold">Paid</th>
-                <th className="py-2 px-2 font-bold">Revenue</th>
-                <th className="py-2 px-2 font-bold">Overdue f/u</th>
-                <th className="py-2 px-2 font-bold">Conv.</th>
-              </tr>
-            </thead>
-            <tbody>
-              {team.map((m, i) => {
-                const conv = m.leads_handled > 0 ? Math.round((m.paid_students / m.leads_handled) * 100) : 0
-                return (
-                  <tr key={m.id} className="border-b border-gray-50 last:border-0">
-                    <td className="py-2.5 pr-3 font-bold text-gray-900">{i === 0 && m.revenue > 0 ? '🥇 ' : ''}{m.name}</td>
-                    <td className="py-2.5 px-2">{m.leads_handled}</td>
-                    <td className="py-2.5 px-2">{m.confirmed}</td>
-                    <td className="py-2.5 px-2">{m.paid_students}</td>
-                    <td className="py-2.5 px-2 font-bold text-emerald-700">{mad(m.revenue)}</td>
-                    <td className={`py-2.5 px-2 ${m.followups_overdue > 0 ? 'text-amber-600 font-bold' : ''}`}>{m.followups_overdue}</td>
-                    <td className="py-2.5 px-2">{conv}%</td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
         )}
-      </Card>
 
-      {/* ── C. Student intelligence ── */}
-      {intel && (
-        <>
-          <SectionTitle icon={AlertTriangle}>Student intelligence</SectionTitle>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
-            <Kpi label="Idle 3–7 days"  value={intel.inactive_3} />
-            <Kpi label="Idle 7–14 days" value={intel.inactive_7} bad={intel.inactive_7 > 0} />
-            <Kpi label="Idle 14–30 days" value={intel.inactive_14} bad={intel.inactive_14 > 0} />
-            <Kpi label="Idle 30 days +" value={intel.inactive_30} bad={intel.inactive_30 > 0} />
-          </div>
-          <div className="grid lg:grid-cols-3 gap-4 mb-7">
-            <Card>
-              <CardHead><AlertTriangle size={13} className="inline -mt-0.5 mr-1" />At-risk students</CardHead>
-              {intel.at_risk_list.length === 0 ? <Empty>Nobody at risk 🎉</Empty> : intel.at_risk_list.slice(0, 8).map((s, i) => (
-                <Row key={i} label={s.name} value={
-                  <span className={[
-                    'text-[11px] font-bold px-2 py-0.5 rounded-full',
-                    s.risk === 'high' ? 'bg-red-100 text-red-700' : s.risk === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600',
-                  ].join(' ')}>{s.days}d · {s.risk}</span>
-                } />
-              ))}
-            </Card>
-            <Card>
-              <CardHead><Trophy size={13} className="inline -mt-0.5 mr-1" />Top by coins</CardHead>
-              {intel.top_coins.length === 0 ? <Empty>—</Empty> : intel.top_coins.slice(0, 8).map((s, i) => (
-                <Row key={i} label={`${i + 1}. ${s.name}`} value={<span className="font-bold text-yellow-600">{s.coins} 🪙</span>} />
-              ))}
-            </Card>
-            <Card>
-              <CardHead><Flame size={13} className="inline -mt-0.5 mr-1" />Top by streak</CardHead>
-              {intel.top_streak.length === 0 ? <Empty>—</Empty> : intel.top_streak.slice(0, 8).map((s, i) => (
-                <Row key={i} label={`${i + 1}. ${s.name}`} value={<span className="font-bold text-orange-600">{s.streak} 🔥</span>} />
-              ))}
-            </Card>
-          </div>
-        </>
-      )}
+        {ov && (
+          <>
+            {/* ── REVENUE KPI ROW ── */}
+            <SectionLabel icon={Wallet}>الإيرادات</SectionLabel>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+              <BigKpi {...rise()} label="إيراد اليوم"  value={ov.rev_today}  money hero />
+              <BigKpi {...rise()} label="هذا الأسبوع"   value={ov.rev_week}  money />
+              <BigKpi {...rise()} label="هذا الشهر"     value={ov.rev_month} money />
+              <BigKpi {...rise()} label="هذه السنة"     value={ov.rev_year}  money />
+            </div>
 
-      {/* ── D. Course analytics ── */}
-      <SectionTitle icon={BookOpen}>Course analytics</SectionTitle>
-      <Card className="overflow-x-auto">
-        {courses.length === 0 ? <Empty>No courses yet.</Empty> : (
-          <table className="w-full text-[13px]">
-            <thead>
-              <tr className="text-left text-gray-400 text-[11px] uppercase tracking-wider border-b border-gray-100">
-                <th className="py-2 pr-3 font-bold">Course</th>
-                <th className="py-2 px-2 font-bold">Students</th>
-                <th className="py-2 px-2 font-bold">Lessons</th>
-                <th className="py-2 px-2 font-bold">Active (14d)</th>
-                <th className="py-2 px-2 font-bold">Engagement</th>
-              </tr>
-            </thead>
-            <tbody>
-              {courses.map(c => {
-                const eng = c.students > 0 ? Math.round((c.active_14d / c.students) * 100) : 0
-                return (
-                  <tr key={c.id} className="border-b border-gray-50 last:border-0">
-                    <td className="py-2.5 pr-3 font-bold text-gray-900">{c.title}</td>
-                    <td className="py-2.5 px-2">{c.students}</td>
-                    <td className="py-2.5 px-2">{c.lessons}</td>
-                    <td className="py-2.5 px-2">{c.active_14d}</td>
-                    <td className="py-2.5 px-2 flex items-center gap-1">
-                      {eng >= 50 ? <ArrowUpRight size={13} className="text-emerald-600" /> : <ArrowDownRight size={13} className="text-red-500" />}
-                      <span className={eng >= 50 ? 'text-emerald-700 font-bold' : 'text-gray-600'}>{eng}%</span>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+            {/* ── REVENUE CHART + CONVERSION DONUT ── */}
+            <div className="grid lg:grid-cols-3 gap-3 mb-6">
+              <Panel {...rise()} className="lg:col-span-2">
+                <PanelHead icon={TrendingUp} title="اتجاه الإيراد · آخر 6 أشهر" />
+                <div className="flex items-end justify-between gap-2 lg:gap-4 h-48 px-1 pt-4">
+                  {trend.map((p, i) => {
+                    const h = Math.max(6, (p.mad / maxTrend) * 150)
+                    const top = i === trend.length - 1
+                    return (
+                      <div key={p.month} className="flex-1 flex flex-col items-center gap-2 group">
+                        <div className="text-[11px] font-black text-zinc-700 opacity-0 group-hover:opacity-100 transition">{fmt(p.mad)}</div>
+                        <div className="w-full flex items-end justify-center" style={{ height: 150 }}>
+                          <div className="cc-bar w-full max-w-[46px] rounded-t-xl transition-all group-hover:brightness-105"
+                            style={{ height: h, background: top ? 'linear-gradient(to top,#f59e0b,#fde047)' : 'linear-gradient(to top,#e4e4e7,#fafafa)', animationDelay: `${i * 80}ms` }} />
+                        </div>
+                        <span className={`text-[11px] font-bold ${top ? 'text-amber-600' : 'text-zinc-400'}`}>{monthLabel(p.month)}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </Panel>
+
+              <Panel {...rise()}>
+                <PanelHead icon={Target} title="نسبة التحويل" />
+                <div className="flex flex-col items-center justify-center py-2">
+                  <Donut value={ov.conversion_rate} />
+                  <div className="grid grid-cols-2 gap-2 w-full mt-4">
+                    <MiniStat label="طلاب يدفعون" value={<Num value={ov.paying_students} />} />
+                    <MiniStat label="متوسط/طالب" value={<Num value={ov.arpu} money />} />
+                  </div>
+                </div>
+              </Panel>
+            </div>
+
+            {/* ── STUDENTS + TODAY ── */}
+            <SectionLabel icon={Users}>الطلاب اليوم</SectionLabel>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+              <BigKpi {...rise()} label="عملاء جدد اليوم"  value={ov.new_leads_today}    plainIcon={UserPlus} />
+              <BigKpi {...rise()} label="طلاب جدد اليوم"   value={ov.new_students_today} plainIcon={Sparkles} />
+              <BigKpi {...rise()} label="نشِطون"            value={ov.active_students}    plainIcon={Activity} tone="good" />
+              <BigKpi {...rise()} label="في خطر (7 أيام+)"  value={ov.at_risk}            plainIcon={AlertTriangle} tone={ov.at_risk > 0 ? 'bad' : undefined} />
+            </div>
+
+            {/* ── ENROLLMENT TYPES ── */}
+            <Panel {...rise()} className="mb-6">
+              <PanelHead icon={Users} title="أنواع التسجيل" hint="الإيراد يُحتسب فقط من «مدفوع»" />
+              <div className="space-y-2.5 mt-1">
+                {ENROLLMENT_TYPES.map(t => {
+                  const c = Number(ov.enroll?.[t.id] ?? 0)
+                  const pct = totalEnroll > 0 ? Math.round((c / totalEnroll) * 100) : 0
+                  return (
+                    <div key={t.id} className="flex items-center gap-3">
+                      <div className="w-28 flex items-center gap-1.5 text-[13px] font-bold text-zinc-700 flex-shrink-0">
+                        <span>{t.emoji}</span> {t.label}
+                      </div>
+                      <div className="flex-1 h-7 rounded-lg bg-zinc-100 overflow-hidden relative">
+                        <div className="cc-bar h-full rounded-lg" style={{ width: `${Math.max(pct, c > 0 ? 6 : 0)}%`, transformOrigin: 'right', background: t.id === 'paid' ? 'linear-gradient(to left,#10b981,#34d399)' : 'linear-gradient(to left,#a1a1aa,#d4d4d8)' }} />
+                      </div>
+                      <div className="w-16 text-left text-[13px] font-black text-zinc-900 flex-shrink-0">{c} <span className="text-[11px] text-zinc-400">({pct}%)</span></div>
+                    </div>
+                  )
+                })}
+              </div>
+            </Panel>
+          </>
         )}
-      </Card>
-    </div>
-  )
-}
 
-/* ── tiny presentational helpers ── */
-function SectionTitle({ icon: Icon, children }: { icon: any; children: React.ReactNode }) {
-  return <h2 className="flex items-center gap-2 text-[13px] font-bold uppercase tracking-[0.14em] text-gray-500 mb-3"><Icon size={14} />{children}</h2>
-}
-function Kpi({ label, value, icon: Icon, accent, good, bad }: { label: string; value: React.ReactNode; icon?: any; accent?: boolean; good?: boolean; bad?: boolean }) {
-  return (
-    <div className={[
-      'rounded-xl border p-4',
-      accent ? 'bg-black text-white border-black' : bad ? 'bg-red-50 border-red-200' : good ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-gray-200',
-    ].join(' ')}>
-      <div className={`text-[11px] font-semibold uppercase tracking-wider flex items-center gap-1 ${accent ? 'text-yellow-400' : 'text-gray-400'}`}>
-        {Icon && <Icon size={11} />}{label}
+        {/* ── TEAM PERFORMANCE ── */}
+        <SectionLabel icon={Trophy}>أداء الفريق</SectionLabel>
+        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-3 mb-6">
+          {team.length === 0 ? <Panel><Empty>لا يوجد مساعدون بعد.</Empty></Panel> :
+            team.map((m, i) => {
+              const conv = m.leads_handled > 0 ? Math.round((m.paid_students / m.leads_handled) * 100) : 0
+              const medal = ['🥇', '🥈', '🥉'][i]
+              return (
+                <Panel key={m.id} {...rise()} className={i === 0 ? 'ring-2 ring-yellow-300' : ''}>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-lg ${i === 0 ? 'bg-yellow-400 text-black' : 'bg-zinc-100 text-zinc-500'}`}>
+                      {medal ?? (m.name[0] ?? '?')}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-black text-[15px] text-zinc-900 truncate">{m.name}</div>
+                      <div className="text-[11px] text-zinc-400 font-semibold">{m.leads_handled} عميل · {m.students_added} طالب</div>
+                    </div>
+                    <div className="mr-auto text-left">
+                      <div className="text-[11px] text-zinc-400 font-semibold">الإيراد</div>
+                      <div className="text-[17px] font-black text-emerald-600">{fmt(m.revenue)}</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    <MiniStat label="مؤكّد" value={m.confirmed} />
+                    <MiniStat label="مدفوع" value={m.paid_students} />
+                    <MiniStat label="متأخرة" value={m.followups_overdue} tone={m.followups_overdue > 0 ? 'bad' : undefined} />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-[11px] font-bold text-zinc-400 mb-1"><span>نسبة التحويل</span><span className="text-zinc-700">{conv}%</span></div>
+                    <div className="h-2 rounded-full bg-zinc-100 overflow-hidden">
+                      <div className="cc-bar h-full rounded-full bg-gradient-to-l from-zinc-900 to-zinc-600" style={{ width: `${conv}%`, transformOrigin: 'right' }} />
+                    </div>
+                  </div>
+                </Panel>
+              )
+            })}
+        </div>
+
+        {/* ── STUDENT INTELLIGENCE ── */}
+        {intel && (
+          <>
+            <SectionLabel icon={Zap}>ذكاء الطلاب</SectionLabel>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+              <BigKpi {...rise()} label="خامل 3–7 أيام"  value={intel.inactive_3} compact />
+              <BigKpi {...rise()} label="خامل 7–14 يوم"  value={intel.inactive_7} compact tone={intel.inactive_7 > 0 ? 'warn' : undefined} />
+              <BigKpi {...rise()} label="خامل 14–30 يوم" value={intel.inactive_14} compact tone={intel.inactive_14 > 0 ? 'bad' : undefined} />
+              <BigKpi {...rise()} label="خامل 30 يوم +"  value={intel.inactive_30} compact tone={intel.inactive_30 > 0 ? 'bad' : undefined} />
+            </div>
+            <div className="grid lg:grid-cols-3 gap-3 mb-6">
+              <Panel {...rise()}>
+                <PanelHead icon={AlertTriangle} title="طلاب في خطر" />
+                {intel.at_risk_list.length === 0 ? <Empty>لا أحد في خطر 🎉</Empty> :
+                  <div className="space-y-1.5 mt-1">
+                    {intel.at_risk_list.slice(0, 8).map((s, i) => (
+                      <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-zinc-50 last:border-0">
+                        <span className="text-[13px] font-semibold text-zinc-700 truncate">{s.name}</span>
+                        <span className={[
+                          'text-[11px] font-black px-2.5 py-1 rounded-full flex-shrink-0',
+                          s.risk === 'high' ? 'bg-red-100 text-red-700' : s.risk === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-zinc-100 text-zinc-500',
+                        ].join(' ')}>{s.days} يوم</span>
+                      </div>
+                    ))}
+                  </div>}
+              </Panel>
+              <Panel {...rise()}>
+                <PanelHead icon={Coins} title="الأعلى عملات" />
+                {intel.top_coins.length === 0 ? <Empty>—</Empty> :
+                  <div className="space-y-1.5 mt-1">
+                    {intel.top_coins.slice(0, 8).map((s, i) => (
+                      <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-zinc-50 last:border-0">
+                        <span className="text-[13px] font-semibold text-zinc-700 truncate">{['🥇','🥈','🥉'][i] ?? `${i + 1}.`} {s.name}</span>
+                        <span className="text-[13px] font-black text-yellow-600 flex-shrink-0">{fmt(s.coins)} 🪙</span>
+                      </div>
+                    ))}
+                  </div>}
+              </Panel>
+              <Panel {...rise()}>
+                <PanelHead icon={Flame} title="الأطول مواظبة" />
+                {intel.top_streak.length === 0 ? <Empty>—</Empty> :
+                  <div className="space-y-1.5 mt-1">
+                    {intel.top_streak.slice(0, 8).map((s, i) => (
+                      <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-zinc-50 last:border-0">
+                        <span className="text-[13px] font-semibold text-zinc-700 truncate">{['🥇','🥈','🥉'][i] ?? `${i + 1}.`} {s.name}</span>
+                        <span className="text-[13px] font-black text-orange-600 flex-shrink-0">{s.streak} 🔥</span>
+                      </div>
+                    ))}
+                  </div>}
+              </Panel>
+            </div>
+          </>
+        )}
+
+        {/* ── COURSE ANALYTICS ── */}
+        <SectionLabel icon={BookOpen}>تحليلات الدورات</SectionLabel>
+        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-3 mb-6">
+          {courses.length === 0 ? <Panel><Empty>لا توجد دورات بعد.</Empty></Panel> :
+            courses.map(c => {
+              const eng = c.students > 0 ? Math.round((c.active_14d / c.students) * 100) : 0
+              return (
+                <Panel key={c.id} {...rise()}>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <div className="font-black text-[15px] text-zinc-900 truncate">{c.title}</div>
+                    <Ring value={eng} />
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <MiniStat label="طلاب" value={c.students} />
+                    <MiniStat label="دروس" value={c.lessons} />
+                    <MiniStat label="نشِط 14ي" value={c.active_14d} tone="good" />
+                  </div>
+                </Panel>
+              )
+            })}
+        </div>
+
+        {/* rewards footer */}
+        {ov && (
+          <Panel {...rise()} className="mb-2">
+            <PanelHead icon={Coins} title="المكافآت" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mt-1">
+              <MiniStat label="عملات موزّعة" value={fmt(ov.rewards.coins_distributed)} />
+              <MiniStat label="عملات مصروفة" value={fmt(ov.rewards.coins_spent)} />
+              <MiniStat label="طلبات معلّقة" value={ov.rewards.claims_pending} tone={ov.rewards.claims_pending > 0 ? 'warn' : undefined} />
+              <MiniStat label="إجمالي الطلبات" value={ov.rewards.claims_total} />
+            </div>
+          </Panel>
+        )}
       </div>
-      <div className={`text-2xl font-black mt-1 ${accent ? 'text-white' : bad ? 'text-red-700' : good ? 'text-emerald-700' : 'text-gray-900'}`}>{value}</div>
     </div>
   )
 }
-function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <div className={`bg-white rounded-2xl border border-gray-200 p-4 ${className}`}>{children}</div>
+
+/* ════════ presentational ════════ */
+function SectionLabel({ icon: Icon, children }: { icon: any; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2 mb-3 mt-1">
+      <span className="w-7 h-7 rounded-lg bg-zinc-900 text-yellow-400 flex items-center justify-center"><Icon size={15} /></span>
+      <h2 className="text-[15px] font-black text-zinc-900">{children}</h2>
+      <div className="flex-1 h-px bg-gradient-to-l from-zinc-200 to-transparent" />
+    </div>
+  )
 }
-function CardHead({ children }: { children: React.ReactNode }) {
-  return <div className="text-[12px] font-bold text-gray-700 mb-2.5">{children}</div>
+
+function BigKpi({ label, value, money, hero, compact, tone, plainIcon: Icon, className, style }: {
+  label: string; value: number; money?: boolean; hero?: boolean; compact?: boolean
+  tone?: 'good' | 'bad' | 'warn'; plainIcon?: any; className?: string; style?: React.CSSProperties
+}) {
+  const toneCls = hero ? 'bg-gradient-to-bl from-zinc-900 to-black text-white border-black'
+    : tone === 'bad' ? 'bg-red-50 border-red-200'
+    : tone === 'warn' ? 'bg-amber-50 border-amber-200'
+    : tone === 'good' ? 'bg-emerald-50 border-emerald-200'
+    : 'bg-white border-zinc-200'
+  return (
+    <div className={`rounded-2xl border p-4 lg:p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all ${toneCls} ${className ?? ''}`} style={style}>
+      <div className={`flex items-center gap-1.5 text-[12px] font-bold ${hero ? 'text-yellow-400' : 'text-zinc-400'}`}>
+        {Icon && <Icon size={13} />} {label}
+      </div>
+      <div className={`font-black mt-1.5 ${compact ? 'text-2xl' : 'text-[28px] lg:text-[32px]'} leading-none ${hero ? 'text-white' : tone === 'bad' ? 'text-red-600' : tone === 'good' ? 'text-emerald-600' : 'text-zinc-900'}`}>
+        <Num value={value} money={money} />
+      </div>
+    </div>
+  )
 }
-function Row({ label, value }: { label: React.ReactNode; value: React.ReactNode }) {
-  return <div className="flex items-center justify-between gap-2 py-1 text-[13px]"><span className="text-gray-600 truncate">{label}</span><span className="font-semibold text-gray-900 flex-shrink-0">{value}</span></div>
+
+function Panel({ children, className, style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
+  return <div className={`bg-white rounded-2xl border border-zinc-200 p-4 lg:p-5 shadow-sm ${className ?? ''}`} style={style}>{children}</div>
+}
+function PanelHead({ icon: Icon, title, hint }: { icon: any; title: string; hint?: string }) {
+  return (
+    <div className="flex items-center gap-2 mb-2">
+      <Icon size={15} className="text-zinc-400" />
+      <span className="text-[13.5px] font-black text-zinc-800">{title}</span>
+      {hint && <span className="mr-auto text-[11px] text-zinc-400 font-semibold">{hint}</span>}
+    </div>
+  )
+}
+function MiniStat({ label, value, tone }: { label: string; value: React.ReactNode; tone?: 'good' | 'bad' | 'warn' }) {
+  const c = tone === 'bad' ? 'text-red-600' : tone === 'good' ? 'text-emerald-600' : tone === 'warn' ? 'text-amber-600' : 'text-zinc-900'
+  return (
+    <div className="rounded-xl bg-zinc-50 px-3 py-2 text-center">
+      <div className="text-[10.5px] text-zinc-400 font-bold mb-0.5">{label}</div>
+      <div className={`text-[15px] font-black ${c}`}>{value}</div>
+    </div>
+  )
 }
 function Empty({ children }: { children: React.ReactNode }) {
-  return <div className="text-[13px] text-gray-400 py-4 text-center">{children}</div>
+  return <div className="text-[13px] text-zinc-400 py-6 text-center font-semibold">{children}</div>
+}
+
+/* SVG donut for conversion rate */
+function Donut({ value }: { value: number }) {
+  const v = useCountUp(value)
+  const r = 52, c = 2 * Math.PI * r, off = c - (Math.min(100, v) / 100) * c
+  return (
+    <div className="relative w-[140px] h-[140px]">
+      <svg className="w-full h-full -rotate-90" viewBox="0 0 130 130">
+        <circle cx="65" cy="65" r={r} fill="none" stroke="#f4f4f5" strokeWidth="13" />
+        <circle cx="65" cy="65" r={r} fill="none" stroke="url(#cc-grad)" strokeWidth="13" strokeLinecap="round"
+          strokeDasharray={c} strokeDashoffset={off} />
+        <defs>
+          <linearGradient id="cc-grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#f59e0b" /><stop offset="100%" stopColor="#fde047" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-[28px] font-black text-zinc-900">{Math.round(v)}%</span>
+        <span className="text-[11px] text-zinc-400 font-bold">عميل ← طالب</span>
+      </div>
+    </div>
+  )
+}
+
+/* small engagement ring */
+function Ring({ value }: { value: number }) {
+  const r = 18, c = 2 * Math.PI * r, off = c - (Math.min(100, value) / 100) * c
+  const col = value >= 50 ? '#10b981' : value >= 25 ? '#f59e0b' : '#ef4444'
+  return (
+    <div className="relative w-12 h-12 flex-shrink-0">
+      <svg className="w-full h-full -rotate-90" viewBox="0 0 44 44">
+        <circle cx="22" cy="22" r={r} fill="none" stroke="#f4f4f5" strokeWidth="5" />
+        <circle cx="22" cy="22" r={r} fill="none" stroke={col} strokeWidth="5" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={off} />
+      </svg>
+      <span className="absolute inset-0 flex items-center justify-center text-[11px] font-black text-zinc-700">{value}%</span>
+    </div>
+  )
 }

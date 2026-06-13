@@ -562,3 +562,13 @@ p {
 @keyframes ann-marquee { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
 .ann-marquee { animation: ann-marquee 22s linear infinite; display: inline-block; }
 .ann-marquee:hover { animation-play-state: paused; }
+
+/* ===== Owner Command Center (premium) ===== */
+@keyframes cc-rise   { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes cc-grow   { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes cc-shimmer{ 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@keyframes cc-float  { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.cc-rise   { animation: cc-rise 0.5s cubic-bezier(0.22,1,0.36,1) both; }
+.cc-bar    { transform-origin: bottom; animation: cc-grow 0.7s cubic-bezier(0.22,1,0.36,1) both; }
+.cc-float  { animation: cc-float 5s ease-in-out infinite; }
+.cc-sheen  { background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%); background-size: 200% 100%; animation: cc-shimmer 3.5s linear infinite; }

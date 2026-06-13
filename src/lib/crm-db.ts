@@ -87,26 +87,10 @@ export async function createStudent(input: {
     .select('id')
     .single()
   if (error) { console.error('createStudent', error.message); return null }
-  const studentId = (data as { id: string }).id
-
-  // ROOT-CAUSE FIX: a paid student must have a matching payment row so revenue sees it.
-  if (countsAsPaid) {
-    const { error: pErr } = await supabase.from('crm_payments').insert({
-      student_id:     studentId,
-      payment_type:   input.studentType === 'private_student' ? 'private_monthly' : 'course_one_time',
-      course_or_service: input.course || null,
-      amount_mad:     amount,
-      payment_status: 'paid',
-      payment_date:   enrollDate,
-      payment_method: 'cash',
-      notes:          'تسجيل مباشر (Add student)',
-      added_by_id:    input.addedById || null,
-      approved_by_id: input.addedById || null,
-      approved_at:    new Date().toISOString(),
-    })
-    if (pErr) console.error('createStudent.payment', pErr.message)
-  }
-  return studentId
+  // ROOT-CAUSE FIX lives in the DB now: trigger `trg_crm_student_autopayment`
+  // (migration 019) auto-creates the matching crm_payments row for a paid student,
+  // so revenue always sees it regardless of the code path. Nothing to do here.
+  return (data as { id: string }).id
 }
 
 /** Archive a student (paused, still recoverable) — and drop their revenue. */
