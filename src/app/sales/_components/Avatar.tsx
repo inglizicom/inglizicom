@@ -4,7 +4,7 @@
  * Human-style illustrated avatar (DiceBear "personas" — professional, not
  * childish, no letters), deterministic by name, on a soft gradient backdrop.
  */
-const STYLE = 'personas'
+const STYLE = 'notionists'
 
 function hue(name: string): number {
   let h = 0

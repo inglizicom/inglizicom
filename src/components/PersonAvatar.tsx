@@ -5,7 +5,7 @@
  * not childish), deterministic per name, on a soft gradient backdrop that
  * matches the Command Center palette.
  */
-const STYLE = 'personas'
+const STYLE = 'notionists'
 
 function hue(name: string): number {
   let h = 0
