@@ -27,10 +27,10 @@ export interface TeamMember {
 
 export interface StudentIntel {
   inactive_3: number; inactive_7: number; inactive_14: number; inactive_30: number
-  at_risk_list: { name: string; token: string | null; days: number; risk: 'low' | 'medium' | 'high' }[]
-  top_coins: { name: string; coins: number }[]
-  top_streak: { name: string; streak: number }[]
-  most_active: { name: string; days: number }[]
+  at_risk_list: { id: string; name: string; token: string | null; days: number; risk: 'low' | 'medium' | 'high' }[]
+  top_coins: { id: string; name: string; coins: number }[]
+  top_streak: { id: string; name: string; streak: number }[]
+  most_active: { id: string; name: string; days: number }[]
 }
 
 export interface CourseStat { id: string; title: string; students: number; lessons: number; active_14d: number }

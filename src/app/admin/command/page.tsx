@@ -1,11 +1,13 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import {
   TrendingUp, Users, UserPlus, Target, Coins,
   AlertTriangle, Trophy, Flame, BookOpen, RefreshCw, Sparkles, Wallet,
-  Activity, Crown, Zap,
+  Activity, Crown, Zap, ChevronLeft,
 } from 'lucide-react'
+import PersonAvatar from '@/components/PersonAvatar'
 import {
   fetchOwnerOverview, fetchOwnerRevenueTrend, fetchOwnerTeam,
   fetchOwnerStudents, fetchOwnerCourses, fetchOwnerAlerts,
@@ -17,24 +19,6 @@ import { ENROLLMENT_TYPES } from '@/lib/crm-types'
 /* ── number helpers ── */
 const fmt = (n: number) => Math.round(n).toLocaleString('en-US')
 
-/* deterministic gradient initials avatar (clean, not childish) */
-function initials(name: string) {
-  const p = (name || '').trim().split(/\s+/)
-  return ((p[0]?.[0] ?? '?') + (p[1]?.[0] ?? '')).toUpperCase()
-}
-function hueFromName(name: string) {
-  let h = 0; for (const c of name || '') h = (h * 31 + c.charCodeAt(0)) % 360
-  return h
-}
-function Avatar({ name, size = 40 }: { name: string; size?: number }) {
-  const h = hueFromName(name)
-  return (
-    <div className="rounded-2xl flex items-center justify-center font-black text-white flex-shrink-0 shadow-sm"
-      style={{ width: size, height: size, fontSize: size * 0.36, background: `linear-gradient(135deg, hsl(${h} 62% 52%), hsl(${(h + 40) % 360} 60% 42%))` }}>
-      {initials(name)}
-    </div>
-  )
-}
 const AR_MONTHS = ['ينا', 'فبر', 'مار', 'أبر', 'ماي', 'يون', 'يول', 'غشت', 'شت', 'أكت', 'نون', 'دجن']
 function monthLabel(ym: string) { const m = parseInt(ym.slice(5), 10); return AR_MONTHS[(m - 1) % 12] }
 
@@ -148,16 +132,16 @@ export default function CommandCenterPage() {
             {/* ── REVENUE KPI ROW ── */}
             <SectionLabel icon={Wallet}>الإيرادات</SectionLabel>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
-              <BigKpi {...rise()} label="إيراد اليوم"  value={ov.rev_today}  money hero />
-              <BigKpi {...rise()} label="هذا الأسبوع"   value={ov.rev_week}  money />
-              <BigKpi {...rise()} label="هذا الشهر"     value={ov.rev_month} money />
-              <BigKpi {...rise()} label="هذه السنة"     value={ov.rev_year}  money />
+              <BigKpi {...rise()} href="/admin/analytics" label="إيراد اليوم"  value={ov.rev_today}  money hero />
+              <BigKpi {...rise()} href="/admin/analytics" label="هذا الأسبوع"   value={ov.rev_week}  money />
+              <BigKpi {...rise()} href="/admin/analytics" label="هذا الشهر"     value={ov.rev_month} money />
+              <BigKpi {...rise()} href="/admin/analytics" label="هذه السنة"     value={ov.rev_year}  money />
             </div>
 
             {/* ── REVENUE CHART + CONVERSION DONUT ── */}
             <div className="grid lg:grid-cols-3 gap-3 mb-6">
               <Panel {...rise()} className="lg:col-span-2">
-                <PanelHead icon={TrendingUp} title="اتجاه الإيراد · آخر 6 أشهر" />
+                <PanelHead icon={TrendingUp} title="اتجاه الإيراد · آخر 6 أشهر" href="/admin/analytics" />
                 <div className="flex items-end justify-between gap-2 lg:gap-4 h-48 px-1 pt-4">
                   {trend.map((p, i) => {
                     const h = Math.max(6, (p.mad / maxTrend) * 150)
@@ -191,15 +175,15 @@ export default function CommandCenterPage() {
             {/* ── STUDENTS + TODAY ── */}
             <SectionLabel icon={Users}>الطلاب اليوم</SectionLabel>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
-              <BigKpi {...rise()} label="عملاء جدد اليوم"  value={ov.new_leads_today}    plainIcon={UserPlus} />
-              <BigKpi {...rise()} label="طلاب جدد اليوم"   value={ov.new_students_today} plainIcon={Sparkles} />
-              <BigKpi {...rise()} label="نشِطون"            value={ov.active_students}    plainIcon={Activity} tone="good" />
-              <BigKpi {...rise()} label="في خطر (7 أيام+)"  value={ov.at_risk}            plainIcon={AlertTriangle} tone={ov.at_risk > 0 ? 'bad' : undefined} />
+              <BigKpi {...rise()} href="/sales/leads"    label="عملاء جدد اليوم"  value={ov.new_leads_today}    plainIcon={UserPlus} />
+              <BigKpi {...rise()} href="/sales/students" label="طلاب جدد اليوم"   value={ov.new_students_today} plainIcon={Sparkles} />
+              <BigKpi {...rise()} href="/sales/students" label="نشِطون"            value={ov.active_students}    plainIcon={Activity} tone="good" />
+              <BigKpi {...rise()} href="/sales/students" label="في خطر (7 أيام+)"  value={ov.at_risk}            plainIcon={AlertTriangle} tone={ov.at_risk > 0 ? 'bad' : undefined} />
             </div>
 
             {/* ── ENROLLMENT TYPES ── */}
             <Panel {...rise()} className="mb-6">
-              <PanelHead icon={Users} title="أنواع التسجيل" hint="الإيراد يُحتسب فقط من «مدفوع»" />
+              <PanelHead icon={Users} title="أنواع التسجيل" hint="الإيراد يُحتسب فقط من «مدفوع»" href="/sales/students" />
               <div className="space-y-2.5 mt-1">
                 {ENROLLMENT_TYPES.map(t => {
                   const c = Number(ov.enroll?.[t.id] ?? 0)
@@ -229,10 +213,10 @@ export default function CommandCenterPage() {
               const conv = m.leads_handled > 0 ? Math.round((m.paid_students / m.leads_handled) * 100) : 0
               const rankCls = i === 0 ? 'bg-yellow-400 text-black' : i === 1 ? 'bg-zinc-300 text-zinc-700' : i === 2 ? 'bg-amber-700 text-white' : 'bg-zinc-200 text-zinc-500'
               return (
-                <Panel key={m.id} {...rise()} className={i === 0 ? 'ring-1 ring-yellow-300' : ''}>
+                <Link key={m.id} href="/sales/leads" {...rise()} className={`block rounded-2xl bg-white border border-zinc-200 p-4 lg:p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all ${i === 0 ? 'ring-1 ring-yellow-300' : ''}`}>
                   <div className="flex items-center gap-3 mb-3">
                     <div className="relative">
-                      <Avatar name={m.name} size={40} />
+                      <PersonAvatar name={m.name} size={42} />
                       <span className={`absolute -bottom-1 -left-1 w-5 h-5 rounded-full text-[10px] font-black flex items-center justify-center ring-2 ring-white ${rankCls}`}>{i + 1}</span>
                     </div>
                     <div className="min-w-0">
@@ -255,7 +239,7 @@ export default function CommandCenterPage() {
                       <div className="cc-bar h-full rounded-full bg-gradient-to-l from-violet-600 to-indigo-400" style={{ width: `${conv}%`, transformOrigin: 'right' }} />
                     </div>
                   </div>
-                </Panel>
+                </Link>
               )
             })}
         </div>
@@ -265,48 +249,53 @@ export default function CommandCenterPage() {
           <>
             <SectionLabel icon={Zap}>ذكاء الطلاب</SectionLabel>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
-              <BigKpi {...rise()} label="خامل 3–7 أيام"  value={intel.inactive_3} compact />
-              <BigKpi {...rise()} label="خامل 7–14 يوم"  value={intel.inactive_7} compact tone={intel.inactive_7 > 0 ? 'warn' : undefined} />
-              <BigKpi {...rise()} label="خامل 14–30 يوم" value={intel.inactive_14} compact tone={intel.inactive_14 > 0 ? 'bad' : undefined} />
-              <BigKpi {...rise()} label="خامل 30 يوم +"  value={intel.inactive_30} compact tone={intel.inactive_30 > 0 ? 'bad' : undefined} />
+              <BigKpi {...rise()} href="/sales/students" label="خامل 3–7 أيام"  value={intel.inactive_3} compact />
+              <BigKpi {...rise()} href="/sales/students" label="خامل 7–14 يوم"  value={intel.inactive_7} compact tone={intel.inactive_7 > 0 ? 'warn' : undefined} />
+              <BigKpi {...rise()} href="/sales/students" label="خامل 14–30 يوم" value={intel.inactive_14} compact tone={intel.inactive_14 > 0 ? 'bad' : undefined} />
+              <BigKpi {...rise()} href="/sales/students" label="خامل 30 يوم +"  value={intel.inactive_30} compact tone={intel.inactive_30 > 0 ? 'bad' : undefined} />
             </div>
             <div className="grid lg:grid-cols-3 gap-3 mb-6">
               <Panel {...rise()}>
                 <PanelHead icon={AlertTriangle} title="طلاب في خطر" />
                 {intel.at_risk_list.length === 0 ? <Empty>لا أحد في خطر 🎉</Empty> :
-                  <div className="space-y-1.5 mt-1">
-                    {intel.at_risk_list.slice(0, 8).map((s, i) => (
-                      <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-zinc-50 last:border-0">
-                        <span className="text-[13px] font-semibold text-zinc-700 truncate">{s.name}</span>
+                  <div className="space-y-0.5 mt-1">
+                    {intel.at_risk_list.slice(0, 8).map(s => (
+                      <Link key={s.id} href={`/sales/students/${s.id}`} className="flex items-center gap-2.5 py-1.5 px-1 -mx-1 rounded-lg hover:bg-zinc-50 transition-colors border-b border-zinc-50 last:border-0">
+                        <PersonAvatar name={s.name} size={30} />
+                        <span className="flex-1 text-[13px] font-semibold text-zinc-700 truncate">{s.name}</span>
                         <span className={[
                           'text-[11px] font-black px-2.5 py-1 rounded-full flex-shrink-0',
                           s.risk === 'high' ? 'bg-red-100 text-red-700' : s.risk === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-zinc-100 text-zinc-500',
                         ].join(' ')}>{s.days} يوم</span>
-                      </div>
+                      </Link>
                     ))}
                   </div>}
               </Panel>
               <Panel {...rise()}>
                 <PanelHead icon={Coins} title="الأعلى عملات" />
                 {intel.top_coins.length === 0 ? <Empty>—</Empty> :
-                  <div className="space-y-1.5 mt-1">
+                  <div className="space-y-0.5 mt-1">
                     {intel.top_coins.slice(0, 8).map((s, i) => (
-                      <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-zinc-50 last:border-0">
-                        <span className="text-[13px] font-semibold text-zinc-700 truncate">{['🥇','🥈','🥉'][i] ?? `${i + 1}.`} {s.name}</span>
+                      <Link key={s.id} href={`/sales/students/${s.id}`} className="flex items-center gap-2.5 py-1.5 px-1 -mx-1 rounded-lg hover:bg-zinc-50 transition-colors border-b border-zinc-50 last:border-0">
+                        <span className="w-4 text-center text-[12px] font-black text-zinc-400 flex-shrink-0">{i + 1}</span>
+                        <PersonAvatar name={s.name} size={30} />
+                        <span className="flex-1 text-[13px] font-semibold text-zinc-700 truncate">{s.name}</span>
                         <span className="text-[13px] font-black text-yellow-600 flex-shrink-0">{fmt(s.coins)} 🪙</span>
-                      </div>
+                      </Link>
                     ))}
                   </div>}
               </Panel>
               <Panel {...rise()}>
                 <PanelHead icon={Flame} title="الأطول مواظبة" />
                 {intel.top_streak.length === 0 ? <Empty>—</Empty> :
-                  <div className="space-y-1.5 mt-1">
+                  <div className="space-y-0.5 mt-1">
                     {intel.top_streak.slice(0, 8).map((s, i) => (
-                      <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-zinc-50 last:border-0">
-                        <span className="text-[13px] font-semibold text-zinc-700 truncate">{['🥇','🥈','🥉'][i] ?? `${i + 1}.`} {s.name}</span>
+                      <Link key={s.id} href={`/sales/students/${s.id}`} className="flex items-center gap-2.5 py-1.5 px-1 -mx-1 rounded-lg hover:bg-zinc-50 transition-colors border-b border-zinc-50 last:border-0">
+                        <span className="w-4 text-center text-[12px] font-black text-zinc-400 flex-shrink-0">{i + 1}</span>
+                        <PersonAvatar name={s.name} size={30} />
+                        <span className="flex-1 text-[13px] font-semibold text-zinc-700 truncate">{s.name}</span>
                         <span className="text-[13px] font-black text-orange-600 flex-shrink-0">{s.streak} 🔥</span>
-                      </div>
+                      </Link>
                     ))}
                   </div>}
               </Panel>
@@ -321,9 +310,9 @@ export default function CommandCenterPage() {
             courses.map(c => {
               const eng = c.students > 0 ? Math.round((c.active_14d / c.students) * 100) : 0
               return (
-                <Panel key={c.id} {...rise()}>
+                <Link key={c.id} href="/sales/courses" {...rise()} className="block rounded-2xl bg-white border border-zinc-200 p-4 lg:p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
                   <div className="flex items-center justify-between gap-2 mb-3">
-                    <div className="font-black text-[15px] text-zinc-900 truncate">{c.title}</div>
+                    <div className="font-black text-[14px] text-zinc-900 truncate">{c.title}</div>
                     <Ring value={eng} />
                   </div>
                   <div className="grid grid-cols-3 gap-2">
@@ -331,7 +320,7 @@ export default function CommandCenterPage() {
                     <MiniStat label="دروس" value={c.lessons} />
                     <MiniStat label="نشِط 14ي" value={c.active_14d} tone="good" />
                   </div>
-                </Panel>
+                </Link>
               )
             })}
         </div>
@@ -339,7 +328,7 @@ export default function CommandCenterPage() {
         {/* rewards footer */}
         {ov && (
           <Panel {...rise()} className="mb-2">
-            <PanelHead icon={Coins} title="المكافآت" />
+            <PanelHead icon={Coins} title="المكافآت" href="/sales/gamification" />
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mt-1">
               <MiniStat label="عملات موزّعة" value={fmt(ov.rewards.coins_distributed)} />
               <MiniStat label="عملات مصروفة" value={fmt(ov.rewards.coins_spent)} />
@@ -364,9 +353,9 @@ function SectionLabel({ icon: Icon, children }: { icon: any; children: React.Rea
   )
 }
 
-function BigKpi({ label, value, money, hero, compact, tone, plainIcon: Icon, className, style }: {
+function BigKpi({ label, value, money, hero, compact, tone, plainIcon: Icon, href, className, style }: {
   label: string; value: number; money?: boolean; hero?: boolean; compact?: boolean
-  tone?: 'good' | 'bad' | 'warn'; plainIcon?: any; className?: string; style?: React.CSSProperties
+  tone?: 'good' | 'bad' | 'warn'; plainIcon?: any; href?: string; className?: string; style?: React.CSSProperties
 }) {
   const toneCls = hero ? 'text-white border-transparent'
     : tone === 'bad' ? 'bg-red-50 border-red-200'
@@ -374,27 +363,32 @@ function BigKpi({ label, value, money, hero, compact, tone, plainIcon: Icon, cla
     : tone === 'good' ? 'bg-emerald-50 border-emerald-200'
     : 'bg-white border-zinc-200'
   const heroBg = hero ? { background: 'linear-gradient(135deg,#059669,#0d9488)' } : undefined
-  return (
-    <div className={`rounded-2xl border p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all ${toneCls} ${className ?? ''}`} style={{ ...heroBg, ...style }}>
+  const inner = (
+    <>
       <div className={`flex items-center gap-1.5 text-[12px] font-bold ${hero ? 'text-white/85' : 'text-zinc-400'}`}>
         {Icon && <Icon size={13} />} {label}
+        {href && <ChevronLeft size={13} className={`mr-auto ${hero ? 'text-white/50' : 'text-zinc-300'} group-hover:-translate-x-0.5 transition-transform`} />}
       </div>
       <div className={`font-black mt-1.5 ${compact ? 'text-xl lg:text-2xl' : 'text-[22px] lg:text-[26px]'} leading-none ${hero ? 'text-white' : tone === 'bad' ? 'text-red-600' : tone === 'good' ? 'text-emerald-600' : 'text-zinc-900'}`}>
         <Num value={value} money={money} />
       </div>
-    </div>
+    </>
   )
+  const cls = `group block rounded-2xl border p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all ${toneCls} ${className ?? ''}`
+  if (href) return <Link href={href} className={cls} style={{ ...heroBg, ...style }}>{inner}</Link>
+  return <div className={cls} style={{ ...heroBg, ...style }}>{inner}</div>
 }
 
 function Panel({ children, className, style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   return <div className={`bg-white rounded-2xl border border-zinc-200 p-4 lg:p-5 shadow-sm ${className ?? ''}`} style={style}>{children}</div>
 }
-function PanelHead({ icon: Icon, title, hint }: { icon: any; title: string; hint?: string }) {
+function PanelHead({ icon: Icon, title, hint, href }: { icon: any; title: string; hint?: string; href?: string }) {
   return (
     <div className="flex items-center gap-2 mb-2">
       <Icon size={15} className="text-zinc-400" />
       <span className="text-[13.5px] font-black text-zinc-800">{title}</span>
-      {hint && <span className="mr-auto text-[11px] text-zinc-400 font-semibold">{hint}</span>}
+      {hint && <span className="text-[11px] text-zinc-400 font-semibold">{hint}</span>}
+      {href && <Link href={href} className="mr-auto inline-flex items-center gap-0.5 text-[11px] font-bold text-violet-600 hover:text-violet-800">التفاصيل <ChevronLeft size={13} /></Link>}
     </div>
   )
 }
