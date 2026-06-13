@@ -153,35 +153,35 @@ export default function RewardsCenter({ token, onPractice }: { token: string; on
       ) : (
         <div className="space-y-3">
         <SectionLabel emoji="🏆" title="لوحة المتصدرين" sub="الترتيب يبدأ من جديد كل إثنين" />
-        <div className="rounded-2xl overflow-hidden bg-white shadow-[0_3px_14px_rgba(67,56,202,0.08)] border border-zinc-100">
-          <div className="px-4 py-3 text-white flex items-center gap-2" style={{ background: 'linear-gradient(120deg,#4338ca,#7c3aed)' }}>
-            <Trophy size={16} className="text-yellow-300" />
+        <div className="rounded-2xl overflow-hidden bg-white shadow-[0_3px_14px_rgba(58,40,23,0.07)] border border-zinc-100">
+          <div className="px-4 py-3 bg-[#2a1d12] text-white flex items-center gap-2">
+            <Trophy size={16} className="text-yellow-400" />
             <span className="font-black text-[14px]">🏅 أبطال هذا الأسبوع</span>
-            <span className="mr-auto text-[10px] text-white/60">يبدأ كل إثنين</span>
+            <span className="mr-auto text-[10px] text-amber-100/50">يبدأ كل إثنين</span>
           </div>
           {(!board || board.top.length === 0) ? <div className="text-center text-zinc-400 py-10 text-[13px]">لا نتائج هذا الأسبوع بعد — كن أول المتصدرين! 🏆</div> : (
             <div className="p-3 space-y-1.5">
               {board.top.map(r => (
-                <div key={r.rank} className={`flex items-center gap-3 px-2.5 py-2 rounded-xl ${r.me ? 'bg-violet-50 ring-2 ring-violet-300' : r.rank <= 3 ? 'bg-violet-50/50' : ''}`}>
+                <div key={r.rank} className={`flex items-center gap-3 px-2.5 py-2 rounded-xl ${r.me ? 'bg-yellow-50 ring-2 ring-yellow-300' : r.rank <= 3 ? 'bg-amber-50/60' : ''}`}>
                   <div className="relative flex-shrink-0">
                     <PersonAvatar name={r.name} size={44} className={`ring-2 ${RANK_RING[r.rank] ?? 'ring-zinc-200'}`} />
-                    <span className={`absolute -bottom-1 -left-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black flex items-center justify-center ring-2 ring-white ${r.rank === 1 ? 'bg-yellow-400 text-black' : r.rank === 2 ? 'bg-zinc-300 text-zinc-700' : r.rank === 3 ? 'bg-amber-700 text-white' : 'bg-violet-600 text-white'}`}>{r.rank}</span>
+                    <span className={`absolute -bottom-1 -left-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black flex items-center justify-center ring-2 ring-white ${r.rank === 1 ? 'bg-yellow-400 text-black' : r.rank === 2 ? 'bg-zinc-300 text-zinc-700' : r.rank === 3 ? 'bg-amber-700 text-white' : 'bg-[#3a2817] text-white'}`}>{r.rank}</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-black text-[13.5px] text-zinc-800 truncate">{r.rank <= 3 ? ['🥇', '🥈', '🥉'][r.rank - 1] + ' ' : ''}{r.name}{r.me && <span className="text-[10px] text-violet-600 font-bold mr-1">· أنت</span>}</div>
+                    <div className="font-black text-[13.5px] text-[#3a2817] truncate">{r.rank <= 3 ? ['🥇', '🥈', '🥉'][r.rank - 1] + ' ' : ''}{r.name}{r.me && <span className="text-[10px] text-amber-600 font-bold mr-1">· أنت</span>}</div>
                     <div className="text-[10.5px] text-zinc-400">{r.challenges} تمرين{r.streak > 0 ? ` · 🔥 ${r.streak} يوم` : ''}</div>
                   </div>
-                  <span className="font-black text-[13px] inline-flex items-center gap-1 bg-violet-600 text-white px-2.5 py-1 rounded-full flex-shrink-0">{r.points} 🪙</span>
+                  <span className="font-black text-[13px] inline-flex items-center gap-1 bg-[#3a2817] text-yellow-400 px-2.5 py-1 rounded-full flex-shrink-0">{r.points} 🪙</span>
                 </div>
               ))}
               {board.me && !board.top.some(t => t.me) && (
-                <div className="flex items-center gap-3 px-2.5 py-2 rounded-xl bg-violet-50 ring-2 ring-violet-300 mt-1">
+                <div className="flex items-center gap-3 px-2.5 py-2 rounded-xl bg-yellow-50 ring-2 ring-yellow-300 mt-1">
                   <div className="relative flex-shrink-0">
-                    <PersonAvatar name="أنت" size={44} className="ring-2 ring-violet-300" />
-                    <span className="absolute -bottom-1 -left-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black flex items-center justify-center ring-2 ring-white bg-violet-600 text-white">{board.me.rank}</span>
+                    <PersonAvatar name="أنت" size={44} className="ring-2 ring-yellow-300" />
+                    <span className="absolute -bottom-1 -left-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black flex items-center justify-center ring-2 ring-white bg-[#3a2817] text-white">{board.me.rank}</span>
                   </div>
-                  <div className="flex-1 font-black text-[13.5px] text-zinc-800">أنت</div>
-                  <span className="font-black text-[13px] inline-flex items-center gap-1 bg-violet-600 text-white px-2.5 py-1 rounded-full">{board.me.points} 🪙</span>
+                  <div className="flex-1 font-black text-[13.5px] text-[#3a2817]">أنت</div>
+                  <span className="font-black text-[13px] inline-flex items-center gap-1 bg-[#3a2817] text-yellow-400 px-2.5 py-1 rounded-full">{board.me.points} 🪙</span>
                 </div>
               )}
             </div>
