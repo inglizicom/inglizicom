@@ -82,7 +82,7 @@ export default function CommandCenterPage() {
               <div className="flex items-center gap-2 text-white/80 text-[12px] font-bold mb-1.5">
                 <Crown size={14} className="text-yellow-300" /> مركز قيادة المالك
               </div>
-              <h1 className="text-xl lg:text-[24px] font-black tracking-tight leading-tight">
+              <h1 className="text-white text-xl lg:text-[24px] font-black tracking-tight leading-tight">
                 كل أعمالك في 60 ثانية
               </h1>
               <p className="text-white/70 text-[12.5px] mt-1.5">{today} · الإيرادات · الطلاب · الفريق · المخاطر</p>
@@ -151,7 +151,7 @@ export default function CommandCenterPage() {
                         <div className="text-[11px] font-black text-zinc-700 opacity-0 group-hover:opacity-100 transition">{fmt(p.mad)}</div>
                         <div className="w-full flex items-end justify-center" style={{ height: 150 }}>
                           <div className="cc-bar w-full max-w-[46px] rounded-t-xl transition-all group-hover:brightness-105"
-                            style={{ height: h, background: top ? 'linear-gradient(to top,#f59e0b,#fde047)' : 'linear-gradient(to top,#e4e4e7,#fafafa)', animationDelay: `${i * 80}ms` }} />
+                            style={{ height: h, background: top ? 'linear-gradient(to top,#a16207,#facc15)' : 'linear-gradient(to top,#8a6d4f,#cbb89c)', animationDelay: `${i * 80}ms` }} />
                         </div>
                         <span className={`text-[11px] font-bold ${top ? 'text-amber-600' : 'text-zinc-400'}`}>{monthLabel(p.month)}</span>
                       </div>
@@ -194,7 +194,7 @@ export default function CommandCenterPage() {
                         <span>{t.emoji}</span> {t.label}
                       </div>
                       <div className="flex-1 h-7 rounded-lg bg-zinc-100 overflow-hidden relative">
-                        <div className="cc-bar h-full rounded-lg" style={{ width: `${Math.max(pct, c > 0 ? 6 : 0)}%`, transformOrigin: 'right', background: t.id === 'paid' ? 'linear-gradient(to left,#3a2817,#facc15)' : 'linear-gradient(to left,#a8a29e,#d6d3d1)' }} />
+                        <div className="cc-bar h-full rounded-lg" style={{ width: `${Math.max(pct, c > 0 ? 6 : 0)}%`, transformOrigin: 'right', background: t.id === 'paid' ? 'linear-gradient(to left,#3a2817,#facc15)' : 'linear-gradient(to left,#8a6d4f,#cbb89c)' }} />
                       </div>
                       <div className="w-16 text-left text-[13px] font-black text-zinc-900 flex-shrink-0">{c} <span className="text-[11px] text-zinc-400">({pct}%)</span></div>
                     </div>
