@@ -9,7 +9,8 @@ import {
 
 import KpiCard from '../_components/KpiCard'
 import Avatar from '../_components/Avatar'
-import { ChartCard, AreaTrend, DonutBreakdown, Funnel } from '../_components/Charts'
+import OwnerCommandCenter from '@/components/OwnerCommandCenter'
+import { ChartCard, DonutBreakdown } from '../_components/Charts'
 import { useStaff } from '@/lib/staff-context'
 import {
   fetchDashboardKpis, fetchOwnerMetrics, fetchLeadsBySource,
@@ -90,6 +91,9 @@ export default function DashboardPage() {
   return (
     <div className="p-4 lg:p-6 space-y-5">
 
+      {/* ── Owner Command Center (founder only) ────────── */}
+      {isFounder && <OwnerCommandCenter embedded />}
+
       {/* ── Quick actions ──────────────────────────────── */}
       <div className="flex flex-wrap gap-2.5">
         <Link href="/sales/leads/new"
@@ -129,27 +133,13 @@ export default function DashboardPage() {
 
       {/* ── Charts row ─────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Funnel (founder) or lead status */}
-        {isFounder && owner ? (
-          <ChartCard title="نسبة التحويل">
-            <Funnel steps={owner.funnel.map(f => ({ label: f.label, count: f.count, pct: f.cumPct }))} />
-          </ChartCard>
-        ) : (
-          <ChartCard title="المتابعات المتأخرة">
-            <FollowList items={overdue.slice(0, 5)} empty="لا متابعات متأخرة" />
-          </ChartCard>
-        )}
-
-        {/* Revenue trend (founder) */}
-        {isFounder && owner && revSeries.length > 0 ? (
-          <ChartCard title="الإيرادات (آخر 12 شهر)">
-            <AreaTrend data={revSeries.map(r => ({ label: r.month, value: r.mad }))} valueLabel="د.م" />
-          </ChartCard>
-        ) : (
-          <ChartCard title="العملاء المهتمون">
-            <FollowList items={today.slice(0, 5)} empty="لا متابعات لليوم" />
-          </ChartCard>
-        )}
+        {/* Operational follow-up lists (owner KPIs live in the section above) */}
+        <ChartCard title="المتابعات المتأخرة">
+          <FollowList items={overdue.slice(0, 5)} empty="لا متابعات متأخرة" />
+        </ChartCard>
+        <ChartCard title="العملاء المهتمون">
+          <FollowList items={today.slice(0, 5)} empty="لا متابعات لليوم" />
+        </ChartCard>
 
         {/* Upcoming follow-ups */}
         <ChartCard title="المتابعات القادمة"
