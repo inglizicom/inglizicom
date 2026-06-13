@@ -68,12 +68,12 @@ export default function CommandCenterPage() {
   const rise = () => ({ className: 'cc-rise', style: { animationDelay: `${(delay += 60)}ms` } })
 
   return (
-    <div dir="rtl" className="min-h-screen bg-gradient-to-b from-zinc-50 to-white">
+    <div dir="rtl" className="min-h-screen bg-[#faf6ef]">
       <div className="w-full max-w-[1700px] mx-auto px-4 lg:px-8 py-6">
 
         {/* ── HERO ── */}
         <div className="relative overflow-hidden rounded-3xl text-white p-5 lg:p-7 mb-5 shadow-lg"
-          style={{ background: 'linear-gradient(120deg, #4a3420 0%, #2a1d12 50%, #3a2817 100%)' }}>
+          style={{ background: 'linear-gradient(120deg, #3a2817 0%, #2a1d12 55%, #5a3d1f 100%)' }}>
           <div className="absolute inset-0 cc-sheen pointer-events-none" />
           <div className="absolute -left-10 -top-10 w-48 h-48 rounded-full bg-white/10 blur-3xl cc-float" />
           <div className="absolute -right-8 -bottom-12 w-56 h-56 rounded-full bg-amber-400/15 blur-3xl" />
@@ -194,7 +194,7 @@ export default function CommandCenterPage() {
                         <span>{t.emoji}</span> {t.label}
                       </div>
                       <div className="flex-1 h-7 rounded-lg bg-zinc-100 overflow-hidden relative">
-                        <div className="cc-bar h-full rounded-lg" style={{ width: `${Math.max(pct, c > 0 ? 6 : 0)}%`, transformOrigin: 'right', background: t.id === 'paid' ? 'linear-gradient(to left,#92400e,#f59e0b)' : 'linear-gradient(to left,#a8a29e,#d6d3d1)' }} />
+                        <div className="cc-bar h-full rounded-lg" style={{ width: `${Math.max(pct, c > 0 ? 6 : 0)}%`, transformOrigin: 'right', background: t.id === 'paid' ? 'linear-gradient(to left,#3a2817,#facc15)' : 'linear-gradient(to left,#a8a29e,#d6d3d1)' }} />
                       </div>
                       <div className="w-16 text-left text-[13px] font-black text-zinc-900 flex-shrink-0">{c} <span className="text-[11px] text-zinc-400">({pct}%)</span></div>
                     </div>
@@ -236,7 +236,7 @@ export default function CommandCenterPage() {
                   <div>
                     <div className="flex justify-between text-[11px] font-bold text-zinc-400 mb-1"><span>نسبة التحويل</span><span className="text-zinc-700">{conv}%</span></div>
                     <div className="h-2 rounded-full bg-zinc-100 overflow-hidden">
-                      <div className="cc-bar h-full rounded-full bg-gradient-to-l from-[#3a2817] to-amber-500" style={{ width: `${conv}%`, transformOrigin: 'right' }} />
+                      <div className="cc-bar h-full rounded-full bg-gradient-to-l from-[#3a2817] to-[#facc15]" style={{ width: `${conv}%`, transformOrigin: 'right' }} />
                     </div>
                   </div>
                 </Link>
@@ -362,14 +362,14 @@ function BigKpi({ label, value, money, hero, compact, tone, plainIcon: Icon, hre
     : tone === 'warn' ? 'bg-amber-50 border-amber-200'
     : tone === 'good' ? 'bg-emerald-50 border-emerald-200'
     : 'bg-white border-zinc-200'
-  const heroBg = hero ? { background: 'linear-gradient(135deg,#92400e,#f59e0b)' } : undefined
+  const heroBg = hero ? { background: 'linear-gradient(135deg,#3a2817,#2a1d12)' } : undefined
   const inner = (
     <>
       <div className={`flex items-center gap-1.5 text-[12px] font-bold ${hero ? 'text-white/85' : 'text-zinc-400'}`}>
         {Icon && <Icon size={13} />} {label}
         {href && <ChevronLeft size={13} className={`mr-auto ${hero ? 'text-white/50' : 'text-zinc-300'} group-hover:-translate-x-0.5 transition-transform`} />}
       </div>
-      <div className={`font-black mt-1.5 ${compact ? 'text-xl lg:text-2xl' : 'text-[22px] lg:text-[26px]'} leading-none ${hero ? 'text-white' : tone === 'bad' ? 'text-red-600' : tone === 'good' ? 'text-emerald-600' : 'text-zinc-900'}`}>
+      <div className={`font-black mt-1.5 ${compact ? 'text-xl lg:text-2xl' : 'text-[22px] lg:text-[26px]'} leading-none ${hero ? 'text-yellow-400' : tone === 'bad' ? 'text-red-600' : tone === 'good' ? 'text-emerald-600' : 'text-zinc-900'}`}>
         <Num value={value} money={money} />
       </div>
     </>
