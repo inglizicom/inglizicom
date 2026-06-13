@@ -73,10 +73,10 @@ export default function CommandCenterPage() {
 
         {/* ── HERO ── */}
         <div className="relative overflow-hidden rounded-3xl text-white p-5 lg:p-7 mb-5 shadow-lg"
-          style={{ background: 'linear-gradient(120deg, #4338ca 0%, #6d28d9 45%, #7c3aed 100%)' }}>
+          style={{ background: 'linear-gradient(120deg, #4a3420 0%, #2a1d12 50%, #3a2817 100%)' }}>
           <div className="absolute inset-0 cc-sheen pointer-events-none" />
           <div className="absolute -left-10 -top-10 w-48 h-48 rounded-full bg-white/10 blur-3xl cc-float" />
-          <div className="absolute -right-8 -bottom-12 w-56 h-56 rounded-full bg-fuchsia-400/15 blur-3xl" />
+          <div className="absolute -right-8 -bottom-12 w-56 h-56 rounded-full bg-amber-400/15 blur-3xl" />
           <div className="relative flex flex-wrap items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 text-white/80 text-[12px] font-bold mb-1.5">
@@ -194,7 +194,7 @@ export default function CommandCenterPage() {
                         <span>{t.emoji}</span> {t.label}
                       </div>
                       <div className="flex-1 h-7 rounded-lg bg-zinc-100 overflow-hidden relative">
-                        <div className="cc-bar h-full rounded-lg" style={{ width: `${Math.max(pct, c > 0 ? 6 : 0)}%`, transformOrigin: 'right', background: t.id === 'paid' ? 'linear-gradient(to left,#10b981,#34d399)' : 'linear-gradient(to left,#a1a1aa,#d4d4d8)' }} />
+                        <div className="cc-bar h-full rounded-lg" style={{ width: `${Math.max(pct, c > 0 ? 6 : 0)}%`, transformOrigin: 'right', background: t.id === 'paid' ? 'linear-gradient(to left,#92400e,#f59e0b)' : 'linear-gradient(to left,#a8a29e,#d6d3d1)' }} />
                       </div>
                       <div className="w-16 text-left text-[13px] font-black text-zinc-900 flex-shrink-0">{c} <span className="text-[11px] text-zinc-400">({pct}%)</span></div>
                     </div>
@@ -225,7 +225,7 @@ export default function CommandCenterPage() {
                     </div>
                     <div className="mr-auto text-left">
                       <div className="text-[11px] text-zinc-400 font-semibold">الإيراد</div>
-                      <div className="text-[15px] font-black text-emerald-600">{fmt(m.revenue)}</div>
+                      <div className="text-[15px] font-black text-amber-700">{fmt(m.revenue)}</div>
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-2 mb-3">
@@ -236,7 +236,7 @@ export default function CommandCenterPage() {
                   <div>
                     <div className="flex justify-between text-[11px] font-bold text-zinc-400 mb-1"><span>نسبة التحويل</span><span className="text-zinc-700">{conv}%</span></div>
                     <div className="h-2 rounded-full bg-zinc-100 overflow-hidden">
-                      <div className="cc-bar h-full rounded-full bg-gradient-to-l from-violet-600 to-indigo-400" style={{ width: `${conv}%`, transformOrigin: 'right' }} />
+                      <div className="cc-bar h-full rounded-full bg-gradient-to-l from-[#3a2817] to-amber-500" style={{ width: `${conv}%`, transformOrigin: 'right' }} />
                     </div>
                   </div>
                 </Link>
@@ -346,7 +346,7 @@ export default function CommandCenterPage() {
 function SectionLabel({ icon: Icon, children }: { icon: any; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 mb-3 mt-1">
-      <span className="w-7 h-7 rounded-lg bg-violet-100 text-violet-600 flex items-center justify-center"><Icon size={14} /></span>
+      <span className="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center"><Icon size={14} /></span>
       <h2 className="text-[14px] font-black text-zinc-800">{children}</h2>
       <div className="flex-1 h-px bg-gradient-to-l from-zinc-200 to-transparent" />
     </div>
@@ -362,7 +362,7 @@ function BigKpi({ label, value, money, hero, compact, tone, plainIcon: Icon, hre
     : tone === 'warn' ? 'bg-amber-50 border-amber-200'
     : tone === 'good' ? 'bg-emerald-50 border-emerald-200'
     : 'bg-white border-zinc-200'
-  const heroBg = hero ? { background: 'linear-gradient(135deg,#059669,#0d9488)' } : undefined
+  const heroBg = hero ? { background: 'linear-gradient(135deg,#92400e,#f59e0b)' } : undefined
   const inner = (
     <>
       <div className={`flex items-center gap-1.5 text-[12px] font-bold ${hero ? 'text-white/85' : 'text-zinc-400'}`}>
@@ -388,7 +388,7 @@ function PanelHead({ icon: Icon, title, hint, href }: { icon: any; title: string
       <Icon size={15} className="text-zinc-400" />
       <span className="text-[13.5px] font-black text-zinc-800">{title}</span>
       {hint && <span className="text-[11px] text-zinc-400 font-semibold">{hint}</span>}
-      {href && <Link href={href} className="mr-auto inline-flex items-center gap-0.5 text-[11px] font-bold text-violet-600 hover:text-violet-800">التفاصيل <ChevronLeft size={13} /></Link>}
+      {href && <Link href={href} className="mr-auto inline-flex items-center gap-0.5 text-[11px] font-bold text-amber-700 hover:text-amber-900">التفاصيل <ChevronLeft size={13} /></Link>}
     </div>
   )
 }
