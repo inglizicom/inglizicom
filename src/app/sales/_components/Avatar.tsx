@@ -1,18 +1,9 @@
 'use client'
 
-import BoringAvatar from 'boring-avatars'
-
 /**
- * Premium identity avatar: brand-tinted Boring Avatars "marble" gradient with
- * the person's initials overlaid. Mature, designed — no cartoon faces.
+ * Real professional headshot, deterministic per name (pravatar.cc — photos of
+ * real business men & women). Same person → same photo every time.
  */
-const PALETTE = ['#2a1d12', '#5a3d1f', '#a16207', '#d4a017', '#f3e6c8']
-
-function initials(name: string) {
-  const p = (name || '').trim().split(/\s+/)
-  return ((p[0]?.[0] ?? '?') + (p[1]?.[0] ?? '')).toUpperCase()
-}
-
 interface Props {
   name:    string
   size?:   number
@@ -21,13 +12,11 @@ interface Props {
 }
 
 export default function Avatar({ name, size = 36, square = false, className = '' }: Props) {
+  const url = `https://i.pravatar.cc/${Math.round(size * 2)}?u=${encodeURIComponent(name || '?')}`
   return (
-    <div className={`relative ${square ? 'rounded-2xl' : 'rounded-full'} overflow-hidden flex-shrink-0 ${className}`} style={{ width: size, height: size }}>
-      <BoringAvatar size={size} name={name || '?'} variant="marble" colors={PALETTE} square />
-      <span className="absolute inset-0 flex items-center justify-center font-black text-white pointer-events-none"
-        style={{ fontSize: size * 0.4, textShadow: '0 1px 3px rgba(0,0,0,0.45)' }}>
-        {initials(name)}
-      </span>
+    <div className={`${square ? 'rounded-2xl' : 'rounded-full'} overflow-hidden flex-shrink-0 bg-[#e7dcc8] ${className}`} style={{ width: size, height: size }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={url} alt={name} width={size} height={size} loading="lazy" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
     </div>
   )
 }
