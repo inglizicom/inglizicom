@@ -44,7 +44,17 @@ const NOTIF_SEEN_KEY = 'inglizi.notif_seen'
 
 const fmtShort = (s?: string | null) => s ? new Date(s).toLocaleDateString('ar-MA', { month: 'short', day: 'numeric' }) : '—'
 const fmtTime  = (s?: string | null) => s ? new Date(s).toLocaleTimeString('ar-MA', { hour: '2-digit', minute: '2-digit' }) : ''
-const avatarUrl = (name: string) => `https://api.dicebear.com/9.x/avataaars/svg?seed=${encodeURIComponent(name || '?')}`
+const initialsOf = (name: string) => { const p = (name || '').trim().split(/\s+/); return ((p[0]?.[0] ?? '?') + (p[1]?.[0] ?? '')).toUpperCase() }
+const hueOf = (name: string) => { let h = 0; for (const c of name || '') h = (h * 31 + c.charCodeAt(0)) % 360; return h }
+function InitAva({ name, className }: { name: string; className?: string }) {
+  const h = hueOf(name)
+  return (
+    <div className={`flex items-center justify-center font-black text-white ${className ?? ''}`}
+      style={{ background: `linear-gradient(135deg, hsl(${h} 60% 52%), hsl(${(h + 40) % 360} 58% 42%))` }}>
+      {initialsOf(name)}
+    </div>
+  )
+}
 const DAY_AR = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']
 
 type Tab = 'home' | 'path' | 'tasks' | 'rewards' | 'files' | 'progress'
@@ -444,7 +454,7 @@ function Portal() {
           })()}
           <div className="flex items-center gap-2.5">
             <div className="text-left hidden sm:block leading-tight"><div className="font-bold text-[13px]">{s.full_name}</div><div className="text-[11px] text-zinc-400">{course?.title ?? 'غير مسجّل'}</div></div>
-            <img src={avatarUrl(s.full_name)} alt="" className="w-9 h-9 rounded-full bg-white/10 ring-2 ring-yellow-400/40" />
+            <InitAva name={s.full_name} className="w-9 h-9 rounded-full text-[12px] ring-2 ring-yellow-400/40" />
             <button onClick={logout} className="text-zinc-400 hover:text-white p-1.5"><LogOut size={16} /></button>
           </div>
         </div>
@@ -786,7 +796,7 @@ function Portal() {
             {/* Teacher message — full width */}
             {s.admin_message && (
               <div className="lg:col-span-3 bg-yellow-50 border border-yellow-200 rounded-2xl p-4 flex items-center gap-3">
-                <img src={avatarUrl('teacher ' + (s.teacher_name ?? ''))} alt="" className="w-11 h-11 rounded-full bg-white flex-shrink-0" />
+                <InitAva name={s.teacher_name || 'مدرّس'} className="w-11 h-11 rounded-full text-[15px] flex-shrink-0" />
                 <div className="flex-1"><div className="text-[12px] font-bold text-yellow-800">رسالة من مدرّسك 👩‍🏫</div><div className="text-[13px] text-yellow-900 leading-relaxed">{s.admin_message}</div></div>
               </div>
             )}

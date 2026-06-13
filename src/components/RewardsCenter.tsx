@@ -17,8 +17,18 @@ const LEVEL_STYLE: Record<string, string> = {
 }
 const LEVEL_EMOJI: Record<string, string> = { Bronze: '🥉', Silver: '🥈', Gold: '🥇', Platinum: '💎', Master: '👑' }
 const RANK_RING: Record<number, string> = { 1: 'ring-yellow-400', 2: 'ring-zinc-300', 3: 'ring-amber-600' }
-// fantasy "warrior"-style avatars, distinct per student
-const avatarOf = (name: string) => `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(name || '?')}&backgroundColor=ffd5a8,ffdfbf,d1d4f9,c0aede,b6e3f4,c8f7c5`
+// clean gradient-initials avatar, deterministic per name
+const initialsOf = (name: string) => { const p = (name || '').trim().split(/\s+/); return ((p[0]?.[0] ?? '?') + (p[1]?.[0] ?? '')).toUpperCase() }
+const hueOf = (name: string) => { let h = 0; for (const c of name || '') h = (h * 31 + c.charCodeAt(0)) % 360; return h }
+function Ava({ name, ring }: { name: string; ring?: string }) {
+  const h = hueOf(name)
+  return (
+    <div className={`w-11 h-11 rounded-full flex items-center justify-center font-black text-white text-[15px] ring-2 shadow-sm ${ring ?? 'ring-zinc-200'}`}
+      style={{ background: `linear-gradient(135deg, hsl(${h} 60% 52%), hsl(${(h + 40) % 360} 58% 42%))` }}>
+      {initialsOf(name)}
+    </div>
+  )
+}
 
 function SectionLabel({ emoji, title, sub }: { emoji: string; title: string; sub?: string }) {
   return (
@@ -165,8 +175,7 @@ export default function RewardsCenter({ token, onPractice }: { token: string; on
               {board.top.map(r => (
                 <div key={r.rank} className={`flex items-center gap-3 px-2.5 py-2 rounded-xl ${r.me ? 'bg-yellow-50 ring-2 ring-yellow-300' : r.rank <= 3 ? 'bg-amber-50/60' : ''}`}>
                   <div className="relative flex-shrink-0">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={avatarOf(r.name)} alt="" className={`w-11 h-11 rounded-full bg-amber-50 ring-2 ${RANK_RING[r.rank] ?? 'ring-zinc-200'}`} />
+                    <Ava name={r.name} ring={RANK_RING[r.rank]} />
                     <span className={`absolute -bottom-1 -left-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black flex items-center justify-center ring-2 ring-white ${r.rank === 1 ? 'bg-yellow-400 text-black' : r.rank === 2 ? 'bg-zinc-300 text-zinc-700' : r.rank === 3 ? 'bg-amber-700 text-white' : 'bg-[#3a2817] text-white'}`}>{r.rank}</span>
                   </div>
                   <div className="flex-1 min-w-0">
@@ -179,8 +188,7 @@ export default function RewardsCenter({ token, onPractice }: { token: string; on
               {board.me && !board.top.some(t => t.me) && (
                 <div className="flex items-center gap-3 px-2.5 py-2 rounded-xl bg-yellow-50 ring-2 ring-yellow-300 mt-1">
                   <div className="relative flex-shrink-0">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={avatarOf('أنت')} alt="" className="w-11 h-11 rounded-full bg-amber-50 ring-2 ring-yellow-300" />
+                    <Ava name="أنت" ring="ring-yellow-300" />
                     <span className="absolute -bottom-1 -left-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black flex items-center justify-center ring-2 ring-white bg-[#3a2817] text-white">{board.me.rank}</span>
                   </div>
                   <div className="flex-1 font-black text-[13.5px] text-[#3a2817]">أنت</div>

@@ -16,6 +16,25 @@ import { ENROLLMENT_TYPES } from '@/lib/crm-types'
 
 /* ── number helpers ── */
 const fmt = (n: number) => Math.round(n).toLocaleString('en-US')
+
+/* deterministic gradient initials avatar (clean, not childish) */
+function initials(name: string) {
+  const p = (name || '').trim().split(/\s+/)
+  return ((p[0]?.[0] ?? '?') + (p[1]?.[0] ?? '')).toUpperCase()
+}
+function hueFromName(name: string) {
+  let h = 0; for (const c of name || '') h = (h * 31 + c.charCodeAt(0)) % 360
+  return h
+}
+function Avatar({ name, size = 40 }: { name: string; size?: number }) {
+  const h = hueFromName(name)
+  return (
+    <div className="rounded-2xl flex items-center justify-center font-black text-white flex-shrink-0 shadow-sm"
+      style={{ width: size, height: size, fontSize: size * 0.36, background: `linear-gradient(135deg, hsl(${h} 62% 52%), hsl(${(h + 40) % 360} 60% 42%))` }}>
+      {initials(name)}
+    </div>
+  )
+}
 const AR_MONTHS = ['ينا', 'فبر', 'مار', 'أبر', 'ماي', 'يون', 'يول', 'غشت', 'شت', 'أكت', 'نون', 'دجن']
 function monthLabel(ym: string) { const m = parseInt(ym.slice(5), 10); return AR_MONTHS[(m - 1) % 12] }
 
@@ -69,28 +88,30 @@ export default function CommandCenterPage() {
       <div className="w-full max-w-[1700px] mx-auto px-4 lg:px-8 py-6">
 
         {/* ── HERO ── */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-l from-zinc-900 via-black to-zinc-900 text-white p-6 lg:p-8 mb-5 shadow-xl">
+        <div className="relative overflow-hidden rounded-3xl text-white p-5 lg:p-7 mb-5 shadow-lg"
+          style={{ background: 'linear-gradient(120deg, #4338ca 0%, #6d28d9 45%, #7c3aed 100%)' }}>
           <div className="absolute inset-0 cc-sheen pointer-events-none" />
-          <div className="absolute -left-10 -top-10 w-48 h-48 rounded-full bg-yellow-400/10 blur-3xl cc-float" />
+          <div className="absolute -left-10 -top-10 w-48 h-48 rounded-full bg-white/10 blur-3xl cc-float" />
+          <div className="absolute -right-8 -bottom-12 w-56 h-56 rounded-full bg-fuchsia-400/15 blur-3xl" />
           <div className="relative flex flex-wrap items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2 text-yellow-400 text-[12px] font-bold mb-1.5">
-                <Crown size={14} /> مركز قيادة المالك
+              <div className="flex items-center gap-2 text-white/80 text-[12px] font-bold mb-1.5">
+                <Crown size={14} className="text-yellow-300" /> مركز قيادة المالك
               </div>
-              <h1 className="text-2xl lg:text-[30px] font-black tracking-tight leading-tight">
+              <h1 className="text-xl lg:text-[24px] font-black tracking-tight leading-tight">
                 كل أعمالك في 60 ثانية
               </h1>
-              <p className="text-zinc-400 text-[13px] mt-1.5">{today} · الإيرادات · الطلاب · الفريق · المخاطر — مصدر واحد للحقيقة</p>
+              <p className="text-white/70 text-[12.5px] mt-1.5">{today} · الإيرادات · الطلاب · الفريق · المخاطر</p>
             </div>
             <div className="flex items-center gap-3">
               {ov && (
-                <div className="text-left">
-                  <div className="text-[11px] text-zinc-400 font-semibold">الإيراد الإجمالي</div>
-                  <div className="text-2xl lg:text-3xl font-black text-yellow-400"><Num value={ov.rev_total} money /></div>
+                <div className="text-left bg-white/10 backdrop-blur rounded-2xl px-4 py-2.5">
+                  <div className="text-[11px] text-white/70 font-semibold">الإيراد الإجمالي</div>
+                  <div className="text-xl lg:text-2xl font-black text-yellow-300"><Num value={ov.rev_total} money /></div>
                 </div>
               )}
               <button onClick={load} disabled={loading}
-                className="w-11 h-11 rounded-2xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition disabled:opacity-50 backdrop-blur">
+                className="w-11 h-11 rounded-2xl bg-white/15 hover:bg-white/25 flex items-center justify-center transition disabled:opacity-50 backdrop-blur">
                 <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
               </button>
             </div>
@@ -107,8 +128,8 @@ export default function CommandCenterPage() {
         {alerts.length > 0 && (
           <div className="grid sm:grid-cols-2 gap-2.5 mb-5">
             {alerts.map((a, i) => (
-              <div key={i} {...rise()} className={[
-                'flex items-center gap-2.5 px-4 py-3 rounded-2xl text-[13.5px] font-bold border shadow-sm',
+              <div key={i} style={{ animationDelay: `${(delay += 60)}ms` }} className={[
+                'cc-rise flex items-center gap-2.5 px-4 py-3 rounded-2xl text-[13.5px] font-bold border shadow-sm',
                 a.level === 'danger' ? 'bg-red-50 text-red-700 border-red-200'
                   : a.level === 'warn' ? 'bg-amber-50 text-amber-800 border-amber-200'
                   : 'bg-blue-50 text-blue-700 border-blue-200',
@@ -206,20 +227,21 @@ export default function CommandCenterPage() {
           {team.length === 0 ? <Panel><Empty>لا يوجد مساعدون بعد.</Empty></Panel> :
             team.map((m, i) => {
               const conv = m.leads_handled > 0 ? Math.round((m.paid_students / m.leads_handled) * 100) : 0
-              const medal = ['🥇', '🥈', '🥉'][i]
+              const rankCls = i === 0 ? 'bg-yellow-400 text-black' : i === 1 ? 'bg-zinc-300 text-zinc-700' : i === 2 ? 'bg-amber-700 text-white' : 'bg-zinc-200 text-zinc-500'
               return (
-                <Panel key={m.id} {...rise()} className={i === 0 ? 'ring-2 ring-yellow-300' : ''}>
+                <Panel key={m.id} {...rise()} className={i === 0 ? 'ring-1 ring-yellow-300' : ''}>
                   <div className="flex items-center gap-3 mb-3">
-                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-lg ${i === 0 ? 'bg-yellow-400 text-black' : 'bg-zinc-100 text-zinc-500'}`}>
-                      {medal ?? (m.name[0] ?? '?')}
+                    <div className="relative">
+                      <Avatar name={m.name} size={40} />
+                      <span className={`absolute -bottom-1 -left-1 w-5 h-5 rounded-full text-[10px] font-black flex items-center justify-center ring-2 ring-white ${rankCls}`}>{i + 1}</span>
                     </div>
                     <div className="min-w-0">
-                      <div className="font-black text-[15px] text-zinc-900 truncate">{m.name}</div>
+                      <div className="font-black text-[14px] text-zinc-900 truncate">{m.name}</div>
                       <div className="text-[11px] text-zinc-400 font-semibold">{m.leads_handled} عميل · {m.students_added} طالب</div>
                     </div>
                     <div className="mr-auto text-left">
                       <div className="text-[11px] text-zinc-400 font-semibold">الإيراد</div>
-                      <div className="text-[17px] font-black text-emerald-600">{fmt(m.revenue)}</div>
+                      <div className="text-[15px] font-black text-emerald-600">{fmt(m.revenue)}</div>
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-2 mb-3">
@@ -230,7 +252,7 @@ export default function CommandCenterPage() {
                   <div>
                     <div className="flex justify-between text-[11px] font-bold text-zinc-400 mb-1"><span>نسبة التحويل</span><span className="text-zinc-700">{conv}%</span></div>
                     <div className="h-2 rounded-full bg-zinc-100 overflow-hidden">
-                      <div className="cc-bar h-full rounded-full bg-gradient-to-l from-zinc-900 to-zinc-600" style={{ width: `${conv}%`, transformOrigin: 'right' }} />
+                      <div className="cc-bar h-full rounded-full bg-gradient-to-l from-violet-600 to-indigo-400" style={{ width: `${conv}%`, transformOrigin: 'right' }} />
                     </div>
                   </div>
                 </Panel>
@@ -335,8 +357,8 @@ export default function CommandCenterPage() {
 function SectionLabel({ icon: Icon, children }: { icon: any; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 mb-3 mt-1">
-      <span className="w-7 h-7 rounded-lg bg-zinc-900 text-yellow-400 flex items-center justify-center"><Icon size={15} /></span>
-      <h2 className="text-[15px] font-black text-zinc-900">{children}</h2>
+      <span className="w-7 h-7 rounded-lg bg-violet-100 text-violet-600 flex items-center justify-center"><Icon size={14} /></span>
+      <h2 className="text-[14px] font-black text-zinc-800">{children}</h2>
       <div className="flex-1 h-px bg-gradient-to-l from-zinc-200 to-transparent" />
     </div>
   )
@@ -346,17 +368,18 @@ function BigKpi({ label, value, money, hero, compact, tone, plainIcon: Icon, cla
   label: string; value: number; money?: boolean; hero?: boolean; compact?: boolean
   tone?: 'good' | 'bad' | 'warn'; plainIcon?: any; className?: string; style?: React.CSSProperties
 }) {
-  const toneCls = hero ? 'bg-gradient-to-bl from-zinc-900 to-black text-white border-black'
+  const toneCls = hero ? 'text-white border-transparent'
     : tone === 'bad' ? 'bg-red-50 border-red-200'
     : tone === 'warn' ? 'bg-amber-50 border-amber-200'
     : tone === 'good' ? 'bg-emerald-50 border-emerald-200'
     : 'bg-white border-zinc-200'
+  const heroBg = hero ? { background: 'linear-gradient(135deg,#059669,#0d9488)' } : undefined
   return (
-    <div className={`rounded-2xl border p-4 lg:p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all ${toneCls} ${className ?? ''}`} style={style}>
-      <div className={`flex items-center gap-1.5 text-[12px] font-bold ${hero ? 'text-yellow-400' : 'text-zinc-400'}`}>
+    <div className={`rounded-2xl border p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all ${toneCls} ${className ?? ''}`} style={{ ...heroBg, ...style }}>
+      <div className={`flex items-center gap-1.5 text-[12px] font-bold ${hero ? 'text-white/85' : 'text-zinc-400'}`}>
         {Icon && <Icon size={13} />} {label}
       </div>
-      <div className={`font-black mt-1.5 ${compact ? 'text-2xl' : 'text-[28px] lg:text-[32px]'} leading-none ${hero ? 'text-white' : tone === 'bad' ? 'text-red-600' : tone === 'good' ? 'text-emerald-600' : 'text-zinc-900'}`}>
+      <div className={`font-black mt-1.5 ${compact ? 'text-xl lg:text-2xl' : 'text-[22px] lg:text-[26px]'} leading-none ${hero ? 'text-white' : tone === 'bad' ? 'text-red-600' : tone === 'good' ? 'text-emerald-600' : 'text-zinc-900'}`}>
         <Num value={value} money={money} />
       </div>
     </div>
@@ -405,7 +428,7 @@ function Donut({ value }: { value: number }) {
         </defs>
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-[28px] font-black text-zinc-900">{Math.round(v)}%</span>
+        <span className="text-2xl font-black text-zinc-900">{Math.round(v)}%</span>
         <span className="text-[11px] text-zinc-400 font-bold">عميل ← طالب</span>
       </div>
     </div>
