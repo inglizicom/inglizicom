@@ -6,7 +6,7 @@ import { useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
   Shield, BarChart3, Activity, Video, FileText, BookOpen, FileEdit,
-  Database, Lock, Settings, Menu, X, LogOut, ArrowUpRight,
+  Database, Lock, Settings, Menu, X, LogOut, ArrowUpRight, Gauge,
 } from 'lucide-react'
 
 /**
@@ -24,6 +24,7 @@ const groups: NavGroup[] = [
   {
     title: 'Insights',
     items: [
+      { href: '/admin/command',   label: 'Command Center', icon: Gauge },
       { href: '/admin/analytics', label: 'Analytics',     icon: BarChart3 },
       { href: '/admin/activity',  label: 'Activity Log',  icon: Activity },
     ],

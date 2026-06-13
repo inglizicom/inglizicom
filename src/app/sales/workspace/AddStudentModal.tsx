@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { X, Loader2, GraduationCap } from 'lucide-react'
 import { createStudent } from '@/lib/crm-db'
-import { LEAD_COURSES, LEAD_SOURCES } from '@/lib/crm-types'
+import { LEAD_COURSES, LEAD_SOURCES, ENROLLMENT_TYPES, type EnrollmentType } from '@/lib/crm-types'
 import { useStaff } from '@/lib/staff-context'
 
 const INP = 'w-full border border-zinc-200 rounded-lg px-3 py-2.5 text-[14px] bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400'
@@ -21,6 +21,12 @@ export default function AddStudentModal({ onClose, onCreated }: { onClose: () =>
   const [total, setTotal]     = useState('')
   const [fee, setFee]         = useState('')
   const [notes, setNotes]     = useState('')
+  // Phase 3 — enrollment type. Only 'paid' counts toward revenue.
+  const [enrollType, setEnrollType] = useState<EnrollmentType>('paid')
+  const [couponCode, setCouponCode] = useState('')
+  const [rewardSrc, setRewardSrc]   = useState('')
+  const [sponsorReason, setSponsorReason] = useState('')
+  const [trialEnds, setTrialEnds]   = useState('')
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -31,11 +37,16 @@ export default function AddStudentModal({ onClose, onCreated }: { onClose: () =>
       course, source,
       studentType: billing === 'monthly' ? 'private_student' : 'course_student',
       billingType: billing,
-      totalPaidMad: total ? Number(total) : 0,
+      totalPaidMad: enrollType === 'paid' && total ? Number(total) : 0,
       monthlyFeeMad: billing === 'monthly' && fee ? Number(fee) : undefined,
       nextPaymentDate: billing === 'monthly' ? (() => { const d = new Date(); d.setMonth(d.getMonth() + 1); return d.toISOString().slice(0, 10) })() : undefined,
       notes: notes.trim() || undefined,
       addedById: staff.id,
+      enrollmentType: enrollType,
+      couponCode: couponCode.trim() || undefined,
+      rewardSource: rewardSrc.trim() || undefined,
+      sponsorReason: sponsorReason.trim() || undefined,
+      trialExpiresAt: trialEnds || undefined,
     })
     setSaving(false)
     if (!id) { setError('تعذّر إضافة الطالب'); return }
@@ -70,6 +81,32 @@ export default function AddStudentModal({ onClose, onCreated }: { onClose: () =>
             </Field>
           </div>
 
+          <Field label="نوع التسجيل">
+            <div className="grid grid-cols-3 gap-2">
+              {ENROLLMENT_TYPES.map(t => (
+                <button key={t.id} type="button" onClick={() => setEnrollType(t.id)}
+                  className={`py-2 rounded-lg border text-[12px] font-semibold ${enrollType === t.id ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white border-zinc-200 text-zinc-600'}`}>
+                  {t.emoji} {t.label}
+                </button>
+              ))}
+            </div>
+            {enrollType !== 'paid' && <p className="text-[11px] text-zinc-400 mt-1.5">طالب نشِط لا يُحتسب ضمن الإيرادات.</p>}
+          </Field>
+
+          {/* coupon / reward extra fields */}
+          {enrollType === 'coupon' && (
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="كود الكوبون"><input value={couponCode} onChange={e => setCouponCode(e.target.value)} placeholder="WIN100" dir="ltr" className={`${INP} text-right`} /></Field>
+              <Field label="مصدر المكافأة"><input value={rewardSrc} onChange={e => setRewardSrc(e.target.value)} placeholder="فائز التحدي الأسبوعي" className={INP} /></Field>
+            </div>
+          )}
+          {enrollType === 'sponsored' && (
+            <Field label="سبب المنحة / الراعي"><input value={sponsorReason} onChange={e => setSponsorReason(e.target.value)} placeholder="منحة دراسية" className={INP} /></Field>
+          )}
+          {enrollType === 'trial' && (
+            <Field label="ينتهي التجريبي في"><input type="date" value={trialEnds} onChange={e => setTrialEnds(e.target.value)} dir="ltr" className={`${INP} text-right`} /></Field>
+          )}
+
           <Field label="نوع الدفع">
             <div className="grid grid-cols-2 gap-2">
               <button type="button" onClick={() => setBilling('one_time')} className={`py-2.5 rounded-lg border text-[13px] font-semibold ${billing === 'one_time' ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white border-zinc-200 text-zinc-600'}`}>دفعة واحدة (دورة)</button>
@@ -77,10 +114,12 @@ export default function AddStudentModal({ onClose, onCreated }: { onClose: () =>
             </div>
           </Field>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="المبلغ المدفوع الآن (د.م)"><input type="number" value={total} onChange={e => setTotal(e.target.value)} dir="ltr" className={`${INP} text-right`} /></Field>
-            {billing === 'monthly' && <Field label="الرسوم الشهرية (د.م)"><input type="number" value={fee} onChange={e => setFee(e.target.value)} dir="ltr" className={`${INP} text-right`} /></Field>}
-          </div>
+          {enrollType === 'paid' && (
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="المبلغ المدفوع الآن (د.م)"><input type="number" value={total} onChange={e => setTotal(e.target.value)} dir="ltr" className={`${INP} text-right`} /></Field>
+              {billing === 'monthly' && <Field label="الرسوم الشهرية (د.م)"><input type="number" value={fee} onChange={e => setFee(e.target.value)} dir="ltr" className={`${INP} text-right`} /></Field>}
+            </div>
+          )}
 
           <Field label="ملاحظات"><input value={notes} onChange={e => setNotes(e.target.value)} className={INP} /></Field>
           {error && <p className="text-[13px] text-red-600 font-medium">{error}</p>}
