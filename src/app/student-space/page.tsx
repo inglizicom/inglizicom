@@ -182,6 +182,9 @@ function Portal() {
   useEffect(() => { if (token && !demo) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta); fetchReadingUnits(token).then(ids => setReadingUnits(new Set(ids))); fetchMySubmissions(token).then(setSubmissions); fetchUnitExams(token).then(setUnitExams); fetchNotifications(token).then(setNotifs); fetchStudentAnnouncements(token).then(setAnns); fetchCertificate(token).then(setCert); fetchUnitSteps(token).then(setUnitSteps); fetchCoins(token).then(setCoins) } }, [token, space])
   // daily streak check (may award milestone coins) — once per session
   useEffect(() => { if (token && !demo) streakBonus(token).then(r => { if (r && r.awarded > 0) fetchCoins(token).then(setCoins) }) }, [token])
+  // whenever the student opens the course map, refetch the unlock inputs so a
+  // finished correction (AI or team) is reflected immediately — no manual refresh
+  useEffect(() => { if (tab === 'path' && token && !demo) { fetchMySubmissions(token).then(setSubmissions); fetchUnitExams(token).then(setUnitExams) } }, [tab])
   function reloadSubmissions() { if (token) fetchMySubmissions(token).then(setSubmissions) }
   function reloadExams() { if (token) fetchUnitExams(token).then(setUnitExams) }
   // refresh everything that can unlock the next unit (after a correction, AI or team)
