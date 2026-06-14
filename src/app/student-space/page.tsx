@@ -227,6 +227,10 @@ function Portal() {
           if (corr) setCorrectionPopup(corr)            // urgent clickable popup → jumps to the unlocked unit
           else setToast(freshNotifs[0].title)
         }
+      } else {
+        // first run after opening the app: surface any already-unread correction
+        const corr = list.find(n => !n.is_read && n.type === 'correction')
+        if (corr) { playMessage(); setCorrectionPopup(corr) }
       }
       seenCorrections.current = unread
       setNotifs(list)
@@ -242,6 +246,7 @@ function Portal() {
       seenAnns.current = new Set(a.map(x => x.id))
       setAnns(a)
     }
+    tick()   // run once on open so a finished correction surfaces immediately
     const iv = setInterval(tick, 45_000)
     const onVis = () => { if (document.visibilityState === 'visible') tick() }
     document.addEventListener('visibilitychange', onVis)
@@ -757,11 +762,18 @@ function Portal() {
                       </div>
                     </div>
                   )}
-                  {currentModule && modProg(currentModule).pct >= 100 && submissions.filter(x => x.module_id === currentModule.id)[0]?.status !== 'reviewed' && (
-                    <button onClick={() => setSubmitUnit({ id: currentModule.id, title: currentModule.title })}
-                      className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-[#2a1d12] text-yellow-400 font-black text-[13px] hover:bg-[#3a2817]">
-                      <Send size={15} /> {submissions.some(x => x.module_id === currentModule.id) ? 'تمرين الوحدة قيد التصحيح — تُفتح الوحدة التالية بعد تصحيح الفريق' : 'أرسل تمرين الوحدة للتصحيح لفتح الوحدة التالية'}
-                    </button>
+                  {currentModule && modProg(currentModule).pct >= 100 && !reviewedModules.has(currentModule.id) && (
+                    !examOk(currentModule.id) ? (
+                      <button onClick={() => setExamUnit({ id: currentModule.id, title: currentModule.title })}
+                        className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-amber-100 text-amber-800 font-black text-[13px] hover:bg-amber-200">
+                        <Award size={15} /> اجتَز اختبار الوحدة (٦٠٪+) أولًا
+                      </button>
+                    ) : (
+                      <button onClick={() => setSubmitUnit({ id: currentModule.id, title: currentModule.title })}
+                        className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-[#2a1d12] text-yellow-400 font-black text-[13px] hover:bg-[#3a2817]">
+                        <Send size={15} /> {submissions.some(x => x.module_id === currentModule.id) ? 'مهمتك قيد التصحيح — تُفتح الوحدة التالية بعد الاعتماد' : 'أرسل مهمة الوحدة للتصحيح لفتح الوحدة التالية'}
+                      </button>
+                    )
                   )}
                 </Card>
               )}

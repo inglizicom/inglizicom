@@ -37,10 +37,10 @@ export async function POST(req: Request) {
   const convo = (sub.conversation_text ?? '').trim()
   if (!convo) return NextResponse.json({ ok: true, correct: false, score: 0, status: 'pending', feedback: 'لم نتلقَّ نصًا للمحادثة. اكتب محادثتك ثم أرسلها.' })
 
-  const { data: mod } = await db.from('lms_modules').select('title, reading_text').eq('id', moduleId).maybeSingle()
+  const { data: mod } = await db.from('lms_modules').select('title, conversation_prompt').eq('id', moduleId).maybeSingle()
   const { data: lessons } = await db.from('lms_lessons').select('title').eq('module_id', moduleId).order('lesson_order')
   const context = `Unit: ${mod?.title ?? ''}\nLessons covered: ${(lessons ?? []).map((l: any) => l.title).join(', ')}`
-    + (mod?.reading_text ? `\nReading: ${String(mod.reading_text).slice(0, 800)}` : '')
+    + (mod?.conversation_prompt ? `\nThe task the student was asked to do (translate the Arabic sentences + write a short conversation):\n${String(mod.conversation_prompt).slice(0, 1200)}` : '')
 
   let parsed = { score: 0, correct: false, feedback: '' }
   try {

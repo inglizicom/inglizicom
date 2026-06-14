@@ -254,6 +254,11 @@ export async function aiCorrectSubmission(token: string, moduleId: string): Prom
     return d
   } catch { return null }
 }
+/** The unit's conversation task (translate sentences + write a short conversation). */
+export async function fetchUnitTask(token: string, moduleId: string): Promise<string | null> {
+  const { data } = await supabase.rpc('student_unit_task', { p_token: token.trim().toUpperCase(), p_module_id: moduleId })
+  return (data ?? null) as string | null
+}
 export async function fetchMySubmissions(token: string): Promise<UnitSubmission[]> {
   const { data } = await supabase.rpc('student_submissions', { p_token: token.trim().toUpperCase() })
   return (data ?? []) as UnitSubmission[]

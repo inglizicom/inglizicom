@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { X, Send, MessageCircle, CheckCircle2, Clock, Loader2, Star, Sparkles, ArrowLeft } from 'lucide-react'
-import { submitUnitText, aiCorrectSubmission, CORRECTOR_WHATSAPP, type UnitSubmission } from '@/lib/lms'
+import { useEffect, useState } from 'react'
+import { X, Send, MessageCircle, CheckCircle2, Clock, Loader2, Star, Sparkles, ArrowLeft, ClipboardList } from 'lucide-react'
+import { submitUnitText, aiCorrectSubmission, fetchUnitTask, CORRECTOR_WHATSAPP, type UnitSubmission } from '@/lib/lms'
 
 interface Props {
   token: string; moduleId: string; moduleTitle: string
@@ -19,6 +19,8 @@ export default function SubmissionPanel({ token, moduleId, moduleTitle, existing
   const [phase, setPhase] = useState<Phase>('form')
   const [count, setCount] = useState(5)
   const [result, setResult] = useState<{ correct: boolean; score: number | null; feedback?: string; status: string } | null>(null)
+  const [task, setTask] = useState<string | null>(null)
+  useEffect(() => { fetchUnitTask(token, moduleId).then(setTask) }, [token, moduleId])
   const last = existing[0]
 
   const waMsg = encodeURIComponent(`السلام عليكم، هذا تسجيل محادثة الوحدة: «${moduleTitle}».\nرمز الطالب: ${token}\n(سأرفق التسجيل الصوتي هنا)`)
@@ -99,6 +101,13 @@ export default function SubmissionPanel({ token, moduleId, moduleTitle, existing
                   {last.status === 'reviewed' && last.score != null && <span className="mr-auto inline-flex items-center gap-1 text-[12px] font-black text-emerald-700"><Star size={13} /> {last.score}/100</span>}
                 </div>
                 {last.feedback && <div className="text-[13px] text-zinc-700 leading-relaxed bg-white rounded-xl p-3 mt-1 text-right">{last.feedback}</div>}
+              </div>
+            )}
+
+            {task && (
+              <div className="rounded-xl border-2 border-indigo-200 bg-indigo-50/60 p-3">
+                <div className="flex items-center gap-1.5 text-[12.5px] font-black text-indigo-800 mb-1.5"><ClipboardList size={15} /> مهمّة الوحدة</div>
+                <div className="text-[13px] text-zinc-800 leading-relaxed whitespace-pre-wrap">{task}</div>
               </div>
             )}
 
