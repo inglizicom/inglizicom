@@ -23,6 +23,7 @@ import StudentAnnouncements from '@/components/StudentAnnouncements'
 import FinalExam from '@/components/FinalExam'
 import RewardsCenter from '@/components/RewardsCenter'
 import PracticeHub from '@/components/PracticeHub'
+import VocabGames from '@/components/VocabGames'
 import { fetchCertificate, type Certificate } from '@/lib/lms'
 import { earnCoins, streakBonus, fetchCoins, type EarnAction, type CoinSummary } from '@/lib/gamification'
 import { isDemo, DEMO_SPACE } from '@/lib/demo'
@@ -121,6 +122,7 @@ function Portal() {
   const [unitSteps, setUnitSteps] = useState<UnitSteps>({})   // server-tracked reading/exam steps
   const [coins, setCoins] = useState<CoinSummary | null>(null)
   const [practice, setPractice] = useState<'sentence' | 'translation' | null>(null)
+  const [vocabOpen, setVocabOpen] = useState(false)
 
   async function enter(rawToken: string, isAuto = false): Promise<boolean> {
     const t = rawToken.trim().toUpperCase(); if (!t) return false
@@ -501,6 +503,7 @@ function Portal() {
 
       {/* Practice (sentence builder / translation) */}
       {practice && <PracticeHub token={token} kind={practice} currentModuleId={currentModule?.id ?? null} onClose={() => { setPractice(null); refreshCoins() }} onEarned={refreshCoins} />}
+      {vocabOpen && <VocabGames token={token} onClose={() => { setVocabOpen(false); refreshCoins() }} onEarned={refreshCoins} />}
 
       {/* Final exam + certificate */}
       {showExam && <FinalExam token={token} fullName={s.full_name}
@@ -597,8 +600,9 @@ function Portal() {
                   </div>
                   <span className="text-[11px] text-zinc-400 flex-shrink-0">{coins?.next_level ? `باقٍ ${coins.to_next}` : ''} <ChevronLeft size={14} className="inline" /></span>
                 </button>
-                <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-zinc-100">
+                <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-zinc-100">
                   <button onClick={() => today && onOpenLesson(today.lesson, today.lesson.video_url || today.lesson.exercise_url || today.lesson.file_url)} className="flex flex-col items-center gap-1.5 py-3 rounded-2xl bg-gradient-to-br from-yellow-300 to-amber-400 shadow-sm active:scale-95 transition-transform"><span className="text-[22px] leading-none">🎬</span><span className="text-[11px] font-black text-[#2a1d12]">ابدأ الدرس</span></button>
+                  <button onClick={() => setVocabOpen(true)} className="flex flex-col items-center gap-1.5 py-3 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-sm active:scale-95 transition-transform"><span className="text-[22px] leading-none">🎮</span><span className="text-[11px] font-black text-white">ألعاب المفردات</span></button>
                   <button onClick={() => setPractice('sentence')} className="flex flex-col items-center gap-1.5 py-3 rounded-2xl bg-gradient-to-br from-[#3a2817] to-[#5a3d1f] shadow-sm active:scale-95 transition-transform"><span className="text-[22px] leading-none">🧩</span><span className="text-[11px] font-black text-yellow-400">بناء الجمل</span></button>
                   <button onClick={() => setPractice('translation')} className="flex flex-col items-center gap-1.5 py-3 rounded-2xl bg-amber-50 border-2 border-amber-200 active:scale-95 transition-transform"><span className="text-[22px] leading-none">🔤</span><span className="text-[11px] font-black text-[#3a2817]">ترجم الجمل</span></button>
                 </div>

@@ -52,6 +52,22 @@ export async function streakBonus(token: string): Promise<{ streak: number; awar
   const { data } = await supabase.rpc('student_streak_bonus', { p_token: token.trim().toUpperCase() })
   return (data ?? null) as { streak: number; awarded: number } | null
 }
+export interface VocabWord { id: string; en: string; ar: string; emoji: string | null }
+export async function fetchVocab(token: string, limit = 12): Promise<VocabWord[]> {
+  if (isDemo()) return [
+    { id: 'd1', en: 'book', ar: 'كتاب', emoji: '📘' }, { id: 'd2', en: 'water', ar: 'ماء', emoji: '💧' },
+    { id: 'd3', en: 'house', ar: 'منزل', emoji: '🏠' }, { id: 'd4', en: 'teacher', ar: 'معلم', emoji: '👩‍🏫' },
+    { id: 'd5', en: 'apple', ar: 'تفاحة', emoji: '🍎' }, { id: 'd6', en: 'friend', ar: 'صديق', emoji: '🧑‍🤝‍🧑' },
+  ]
+  const { data } = await supabase.rpc('student_vocab', { p_token: token.trim().toUpperCase(), p_limit: limit })
+  return (data ?? []) as VocabWord[]
+}
+export async function rewardVocab(token: string, wordIds: string[]): Promise<number> {
+  if (isDemo()) return 0
+  const { data } = await supabase.rpc('student_vocab_reward', { p_token: token.trim().toUpperCase(), p_word_ids: wordIds })
+  return Number(data ?? 0)
+}
+
 export async function fetchLeaderboard(token: string): Promise<LeaderboardData> {
   if (isDemo()) return demoLeaderboard()
   const { data } = await supabase.rpc('student_leaderboard_weekly', { p_token: token.trim().toUpperCase() })
