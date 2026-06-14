@@ -60,6 +60,13 @@ export async function POST(req: Request) {
   const fb = '🤖 ' + (parsed.feedback || (pass ? 'أحسنت! إجابة جيدة.' : 'تحتاج بعض التحسين قبل الاعتماد.'))
   if (pass) {
     await db.from('lms_submissions').update({ status: 'reviewed', score: parsed.score, feedback: fb, reviewed_at: new Date().toISOString() }).eq('id', sub.id)
+    // urgent, clickable notification → opens the course path (next unit now unlocked)
+    await db.from('student_notifications').insert({
+      student_id: stu.id, type: 'correction',
+      title: 'تم تصحيح محادثتك ✅ — الوحدة التالية مفتوحة',
+      body: `الوحدة: ${mod?.title ?? ''}${parsed.score != null ? ` — التقييم ${parsed.score}/100` : ''} · اضغط للمتابعة`,
+      tab: 'path',
+    })
     return NextResponse.json({ ok: true, correct: true, score: parsed.score, status: 'reviewed', feedback: fb })
   }
   await db.from('lms_submissions').update({ feedback: fb }).eq('id', sub.id)   // keep pending for the team

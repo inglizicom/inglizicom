@@ -4,7 +4,7 @@ import { Suspense, Component, type ReactNode, useEffect, useState, useRef } from
 import { useSearchParams } from 'next/navigation'
 import {
   Loader2, KeyRound, BookOpen, FileText, Download, CheckCircle2, Circle,
-  ExternalLink, Sparkles, LogOut, TrendingUp, Home, Route, Award, PlayCircle,
+  ExternalLink, Sparkles, LogOut, TrendingUp, Home, Route, Award, PlayCircle, ArrowLeft,
   Flame, Lock, AlertCircle, MessageSquareText, Video, PenLine, HelpCircle, Mic,
   ChevronLeft, ChevronRight, ListChecks, Bell, MessageSquare, Star, Trophy, Medal,
   CalendarDays, Clock, BarChart3, Send, Play, Coins,
@@ -90,6 +90,7 @@ function Portal() {
   const [booting, setBooting] = useState(true)
   const demo = isDemo()   // ?demo=1 → token-free local preview (no backend)
   const [toast, setToast] = useState<string | null>(null)   // transient "new message" alert
+  const [correctionPopup, setCorrectionPopup] = useState<StudentNotification | null>(null)   // urgent correction-done popup
   const [space, setSpace]     = useState<StudentSpace | null>(null)
   const [token, setToken]     = useState('')
   const [error, setError]     = useState('')
@@ -216,7 +217,13 @@ function Portal() {
       const unread = new Set(list.filter(n => !n.is_read).map(n => n.id))
       if (seenCorrections.current) {
         const fresh = [...unread].filter(id => !seenCorrections.current!.has(id))
-        if (fresh.length) { playMessage(); const n = list.find(x => fresh.includes(x.id)); if (n) setToast(n.title) }
+        if (fresh.length) {
+          playMessage()
+          const freshNotifs = list.filter(n => fresh.includes(n.id))
+          const corr = freshNotifs.find(n => n.type === 'correction')
+          if (corr) setCorrectionPopup(corr)            // urgent clickable popup → jumps to the unlocked unit
+          else setToast(freshNotifs[0].title)
+        }
       }
       seenCorrections.current = unread
       setNotifs(list)
@@ -527,6 +534,24 @@ function Portal() {
           <div className="pointer-events-auto max-w-sm w-full bg-[#2a1d12] text-white rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-3 vp-pop" onClick={() => { setToast(null); goTab('home') }}>
             <span className="w-9 h-9 rounded-xl bg-yellow-400 text-black flex items-center justify-center flex-shrink-0"><Bell size={17} /></span>
             <div className="flex-1 min-w-0"><div className="text-[11px] text-amber-100/60">🔔 إشعار جديد</div><div className="text-[13px] font-bold truncate">{toast}</div></div>
+          </div>
+        </div>
+      )}
+
+      {/* Urgent correction-done popup — clickable → opens the unlocked unit */}
+      {correctionPopup && (
+        <div className="fixed inset-0 z-[135] bg-black/60 flex items-center justify-center p-4 vp-fade" dir="rtl" onClick={() => setCorrectionPopup(null)}>
+          <div
+            onClick={e => { e.stopPropagation(); const c = correctionPopup; setCorrectionPopup(null); markNotificationsRead(token); reloadGate(); goTab((c.tab as Tab) || 'path') }}
+            className="relative w-full max-w-sm bg-white rounded-3xl overflow-hidden shadow-2xl vp-pop text-right cursor-pointer">
+            <div className="bg-gradient-to-l from-emerald-500 to-teal-500 text-white px-5 py-4 flex items-center gap-2">
+              <span className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center"><CheckCircle2 size={22} /></span>
+              <span className="font-black text-[15px]">{correctionPopup.title}</span>
+            </div>
+            <div className="p-5">
+              {correctionPopup.body && <p className="text-[13.5px] text-zinc-700 leading-relaxed">{correctionPopup.body}</p>}
+              <div className="mt-4 w-full py-3 rounded-2xl bg-emerald-600 text-white font-black text-[14px] flex items-center justify-center gap-1.5">تابِع إلى الدرس التالي <ArrowLeft size={16} /></div>
+            </div>
           </div>
         </div>
       )}
