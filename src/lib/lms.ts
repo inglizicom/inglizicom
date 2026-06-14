@@ -242,6 +242,18 @@ export async function submitUnitText(token: string, moduleId: string, text: stri
   const { data } = await supabase.rpc('student_submit_text', { p_token: token.trim().toUpperCase(), p_module_id: moduleId, p_text: text })
   return (data as string) ?? null
 }
+/** AI correction pass for a unit conversation. If it passes, the submission is
+ *  marked reviewed (status='reviewed') server-side and the next unit opens. */
+export async function aiCorrectSubmission(token: string, moduleId: string): Promise<{ ok: boolean; correct: boolean; score: number | null; status: string; feedback?: string } | null> {
+  try {
+    const r = await fetch('/api/ai/correct-submission', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, moduleId }),
+    })
+    const d = await r.json().catch(() => null)
+    return d
+  } catch { return null }
+}
 export async function fetchMySubmissions(token: string): Promise<UnitSubmission[]> {
   const { data } = await supabase.rpc('student_submissions', { p_token: token.trim().toUpperCase() })
   return (data ?? []) as UnitSubmission[]

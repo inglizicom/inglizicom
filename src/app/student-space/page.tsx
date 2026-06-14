@@ -183,6 +183,8 @@ function Portal() {
   useEffect(() => { if (token && !demo) streakBonus(token).then(r => { if (r && r.awarded > 0) fetchCoins(token).then(setCoins) }) }, [token])
   function reloadSubmissions() { if (token) fetchMySubmissions(token).then(setSubmissions) }
   function reloadExams() { if (token) fetchUnitExams(token).then(setUnitExams) }
+  // refresh everything that can unlock the next unit (after a correction, AI or team)
+  function reloadGate() { if (!token) return; fetchMySubmissions(token).then(setSubmissions); fetchUnitExams(token).then(setUnitExams); fetchProgressMeta(token).then(setMeta); refresh() }
   function refreshCoins() { if (token) fetchCoins(token).then(setCoins) }
   async function award(action: EarnAction, lessonId?: string | null, moduleId?: string | null) { const got = await earnCoins(token, action, lessonId, moduleId); if (got > 0) refreshCoins() }
 
@@ -218,6 +220,9 @@ function Portal() {
       }
       seenCorrections.current = unread
       setNotifs(list)
+      // a correction (AI or team) may have unlocked the next unit — refetch the gate inputs
+      fetchMySubmissions(token).then(s => { if (alive) setSubmissions(s) })
+      fetchUnitExams(token).then(e => { if (alive) setUnitExams(e) })
       // live announcements (chime + toast on a brand-new one)
       const a = await fetchStudentAnnouncements(token); if (!alive) return
       if (seenAnns.current) {
@@ -1095,7 +1100,7 @@ function Portal() {
           moduleTitle={submitUnit.title}
           existing={submissions.filter(x => x.module_id === submitUnit.id)}
           onClose={() => setSubmitUnit(null)}
-          onSubmitted={reloadSubmissions}
+          onSubmitted={reloadGate}
         />
       )}
 
