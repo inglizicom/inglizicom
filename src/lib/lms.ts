@@ -18,7 +18,7 @@ export interface UnitSubmission {
   status: 'pending' | 'reviewed'; feedback: string | null; score: number | null
   reviewed_at: string | null; created_at: string
 }
-export interface LmsModule { id: string; course_id: string; title: string; module_order: number; reading_text?: string | null; reading_audio_url?: string | null; reading_video_url?: string | null; reading_quiz?: LessonQuiz | null }
+export interface LmsModule { id: string; course_id: string; title: string; module_order: number; reading_text?: string | null; reading_audio_url?: string | null; reading_video_url?: string | null; reading_quiz?: LessonQuiz | null; exam_quiz?: LessonQuiz | null }
 export interface UnitReading { title?: string; text: string | null; audio: string | null; video: string | null; quiz: LessonQuiz | null }
 export interface LmsLesson {
   id: string; module_id: string; title: string; lesson_order: number
@@ -101,6 +101,23 @@ export async function updateModuleReading(id: string, r: { text?: string | null;
   if (r.quiz !== undefined)     patch.reading_quiz      = r.quiz
   await supabase.from('lms_modules').update(patch).eq('id', id)
 }
+/* Per-unit TEST (team-authored auto-graded quiz). */
+export async function updateModuleExam(id: string, quiz: LessonQuiz | null): Promise<void> {
+  await supabase.from('lms_modules').update({ exam_quiz: quiz }).eq('id', id)
+}
+export async function fetchUnitExam(token: string, moduleId: string): Promise<{ quiz: LessonQuiz | null; passed: boolean } | null> {
+  const { data } = await supabase.rpc('student_unit_exam', { p_token: token.trim().toUpperCase(), p_module_id: moduleId })
+  return (data ?? null) as { quiz: LessonQuiz | null; passed: boolean } | null
+}
+export async function submitUnitExam(token: string, moduleId: string, score: number, total: number, answers: number[]): Promise<boolean> {
+  const { data } = await supabase.rpc('student_submit_unit_exam', { p_token: token.trim().toUpperCase(), p_module_id: moduleId, p_score: score, p_total: total, p_answers: answers })
+  return data === true
+}
+export async function fetchUnitExams(token: string): Promise<{ module_id: string; passed: boolean }[]> {
+  const { data } = await supabase.rpc('student_unit_exams', { p_token: token.trim().toUpperCase() })
+  return (data ?? []) as { module_id: string; passed: boolean }[]
+}
+
 export async function fetchReadingUnits(token: string): Promise<string[]> {
   const { data } = await supabase.rpc('student_reading_units', { p_token: token.trim().toUpperCase() })
   return (data ?? []) as string[]

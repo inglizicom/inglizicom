@@ -13,9 +13,10 @@ import {
   fetchStudentSpace, completeExercise, logActivity, fileUrl, studentLogin, getDeviceId, deviceValid, fetchUnitSteps,
   type StudentSpace, type StudentAssignment, type PortalLesson, type PortalModule, type UnitSteps,
 } from '@/lib/student-portal'
-import { openLesson, completeLesson, fetchStudentResources, resourceUrl, fetchProgressMeta, fetchReadingUnits, fetchMySubmissions, fetchNotifications, markNotificationsRead, EXAMS_URL, CORRECTOR_WHATSAPP, type CourseResource, type ProgressMeta, type UnitSubmission, type StudentNotification } from '@/lib/lms'
+import { openLesson, completeLesson, fetchStudentResources, resourceUrl, fetchProgressMeta, fetchReadingUnits, fetchMySubmissions, fetchUnitExams, fetchNotifications, markNotificationsRead, EXAMS_URL, CORRECTOR_WHATSAPP, type CourseResource, type ProgressMeta, type UnitSubmission, type StudentNotification } from '@/lib/lms'
 import VideoPlayer from '@/components/VideoPlayer'
 import QuizRunner from '@/components/QuizRunner'
+import UnitExamRunner from '@/components/UnitExamRunner'
 import ReadingViewer from '@/components/ReadingViewer'
 import SubmissionPanel from '@/components/SubmissionPanel'
 import StudentAnnouncements from '@/components/StudentAnnouncements'
@@ -100,6 +101,8 @@ function Portal() {
   const [readingUnit, setReadingUnit] = useState<{ id: string; title: string } | null>(null)
   const [submissions, setSubmissions] = useState<UnitSubmission[]>([])
   const [submitUnit, setSubmitUnit] = useState<{ id: string; title: string } | null>(null)
+  const [unitExams, setUnitExams] = useState<{ module_id: string; passed: boolean }[]>([])
+  const [examUnit, setExamUnit] = useState<{ id: string; title: string } | null>(null)
   const [notifs, setNotifs] = useState<StudentNotification[]>([])
   // new-device WhatsApp OTP
   const [otpFor, setOtpFor] = useState('')
@@ -148,10 +151,11 @@ function Portal() {
     })()
   }, [])
   async function refresh() { if (demo || !token) return; const r = await fetchStudentSpace(token); if (r.found) setSpace(r) }
-  useEffect(() => { if (token && !demo) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta); fetchReadingUnits(token).then(ids => setReadingUnits(new Set(ids))); fetchMySubmissions(token).then(setSubmissions); fetchNotifications(token).then(setNotifs); fetchStudentAnnouncements(token).then(setAnns); fetchCertificate(token).then(setCert); fetchUnitSteps(token).then(setUnitSteps); fetchCoins(token).then(setCoins) } }, [token, space])
+  useEffect(() => { if (token && !demo) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta); fetchReadingUnits(token).then(ids => setReadingUnits(new Set(ids))); fetchMySubmissions(token).then(setSubmissions); fetchUnitExams(token).then(setUnitExams); fetchNotifications(token).then(setNotifs); fetchStudentAnnouncements(token).then(setAnns); fetchCertificate(token).then(setCert); fetchUnitSteps(token).then(setUnitSteps); fetchCoins(token).then(setCoins) } }, [token, space])
   // daily streak check (may award milestone coins) — once per session
   useEffect(() => { if (token && !demo) streakBonus(token).then(r => { if (r && r.awarded > 0) fetchCoins(token).then(setCoins) }) }, [token])
   function reloadSubmissions() { if (token) fetchMySubmissions(token).then(setSubmissions) }
+  function reloadExams() { if (token) fetchUnitExams(token).then(setUnitExams) }
   function refreshCoins() { if (token) fetchCoins(token).then(setCoins) }
   async function award(action: EarnAction, lessonId?: string | null, moduleId?: string | null) { const got = await earnCoins(token, action, lessonId, moduleId); if (got > 0) refreshCoins() }
 
@@ -315,6 +319,9 @@ function Portal() {
   // Grandfathered — already-completed lessons stay open, and units the student
   // already started are not retro-locked; the gate only blocks NEW progress.
   const reviewedModules = new Set(submissions.filter(s => s.status === 'reviewed').map(s => s.module_id))
+  const examModules = new Set(unitExams.map(e => e.module_id))           // units that HAVE a test
+  const examPassed  = new Set(unitExams.filter(e => e.passed).map(e => e.module_id))
+  const examOk = (id: string) => !examModules.has(id) || examPassed.has(id)
   const unlocked = new Set<string>()
   let gatePassed = true
   for (const m of (course?.modules ?? [])) {
@@ -327,7 +334,8 @@ function Portal() {
       prevDone = l.status === 'completed'
     }
     const allDone = m.lessons.length > 0 && m.lessons.every(l => l.status === 'completed')
-    gatePassed = gatePassed && allDone && reviewedModules.has(m.id)
+    // next unit opens only when this unit is finished, its TEST passed, AND its conversation reviewed
+    gatePassed = gatePassed && allDone && examOk(m.id) && reviewedModules.has(m.id)
   }
   const isUnlocked = (l: PortalLesson) => unlocked.has(l.id)
   const today = flat.find(x => isUnlocked(x.lesson) && x.lesson.status !== 'completed')
@@ -336,7 +344,7 @@ function Portal() {
   // module progress
   const modProg = (m: PortalModule) => { const t = m.lessons.length; const d = m.lessons.filter(l => l.status === 'completed').length; return { t, d, pct: t ? Math.round((d / t) * 100) : 0 } }
   // current unit = first unit not fully done, or done-but-awaiting team review
-  const currentModule = (course?.modules ?? []).find(m => modProg(m).pct < 100 || !reviewedModules.has(m.id)) ?? (course?.modules ?? [])[0]
+  const currentModule = (course?.modules ?? []).find(m => modProg(m).pct < 100 || !examOk(m.id) || !reviewedModules.has(m.id)) ?? (course?.modules ?? [])[0]
   const exerciseLessons = flat.filter(x => x.lesson.type === 'exercise' || x.lesson.type === 'quiz').slice(0, 4)
   const nextExam = exams.find(e => e.score == null)
 
@@ -842,10 +850,11 @@ function Portal() {
                 // previous unit must be finished AND its exercise reviewed by the team
                 const prev = mi > 0 ? course.modules[mi - 1] : null
                 const started = m.lessons.some(l => l.status === 'completed')   // grandfather already-started units
-                const prevReady = !prev || (modProg(prev).pct >= 100 && reviewedModules.has(prev.id))
+                const prevReady = !prev || (modProg(prev).pct >= 100 && examOk(prev.id) && reviewedModules.has(prev.id))
                 const unitLocked = !!prev && !started && !prevReady
-                const lockReason = prev && modProg(prev).pct < 100
-                  ? 'أكمل الوحدة السابقة بالكامل لفتحها'
+                const lockReason = !prev ? ''
+                  : modProg(prev).pct < 100 ? 'أكمل الوحدة السابقة بالكامل لفتحها'
+                  : !examOk(prev.id) ? 'اجتَز اختبار الوحدة السابقة أولًا'
                   : 'بانتظار تصحيح الفريق لتمرين الوحدة السابقة'
                 return (
                 <div key={m.id} className={`rounded-2xl border overflow-hidden shadow-sm ${unitLocked ? 'bg-zinc-50/70 border-zinc-200' : overdue ? 'bg-white border-rose-300' : soon ? 'bg-white border-amber-300' : 'bg-white border-zinc-100'}`}>
@@ -876,10 +885,13 @@ function Portal() {
                     const hasReading = readingUnits.has(m.id)
                     const readingActive = lessonsDone
                     const examActive = lessonsDone && (!hasReading || stepDone('reading', m.id))
+                    const hasExam = examModules.has(m.id)             // unit has a real team-written test
+                    const examPassedHere = examPassed.has(m.id)
+                    const examStepOk = hasExam ? examPassedHere : stepDone('exam', m.id)
                     const subs = submissions.filter(x => x.module_id === m.id); const last = subs[0]
                     const reviewed = last?.status === 'reviewed'
                     const unreadCorr = reviewed && notifs.some(n => n.type === 'correction' && !n.is_read && (n.body || '').includes(m.title))
-                    const correctionActive = examActive && stepDone('exam', m.id)
+                    const correctionActive = examActive && examStepOk
                     const DIM = 'flex items-center justify-center gap-2 px-4 py-3 border-t border-zinc-100 bg-zinc-50 text-zinc-300 font-bold text-[12.5px] cursor-not-allowed'
                     return (<>
                       {hasReading && (readingActive
@@ -887,10 +899,18 @@ function Portal() {
                             className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-sky-50 border-t border-sky-100 text-sky-800 font-bold text-[12.5px] hover:bg-sky-100"><BookOpen size={15} /> القراءة والاستماع — نص الوحدة</button>
                         : <div className={'w-full ' + DIM}><Lock size={14} /> القراءة والاستماع — أكمل دروس الوحدة أولًا</div>)}
 
-                      {examActive
+                      {/* End-of-unit TEST */}
+                      {hasExam ? (
+                        !examActive
+                          ? <div className={'w-full ' + DIM}><Lock size={14} /> اختبار الوحدة — {hasReading ? 'افتح القراءة أولًا' : 'أكمل دروس الوحدة أولًا'}</div>
+                          : examPassedHere
+                            ? <div className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-50 border-t border-emerald-100 text-emerald-700 font-bold text-[12.5px]"><CheckCircle2 size={14} /> اجتزت اختبار الوحدة ✓</div>
+                            : <button onClick={() => setExamUnit({ id: m.id, title: m.title })}
+                                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-amber-100 border-t border-amber-200 text-amber-800 font-black text-[12.5px] hover:bg-amber-200"><Award size={15} /> اختبار الوحدة — يجب اجتيازه (٦٠٪+)</button>
+                      ) : (examActive
                         ? <a href={EXAMS_URL} target="_blank" rel="noreferrer" onClick={() => { markStep('exam', m.id); logActivity(token, 'opened_exam', 'module', m.id, m.title) }}
                             className="flex items-center justify-center gap-2 px-4 py-3 bg-yellow-50 border-t border-yellow-100 text-yellow-800 font-bold text-[12.5px] hover:bg-yellow-100"><Award size={15} /> امتحان نهاية الوحدة — اختبر معرفتك <ExternalLink size={13} /></a>
-                        : <div className={'w-full ' + DIM}><Lock size={14} /> امتحان نهاية الوحدة — {hasReading ? 'افتح القراءة أولًا' : 'أكمل دروس الوحدة أولًا'}</div>}
+                        : <div className={'w-full ' + DIM}><Lock size={14} /> امتحان نهاية الوحدة — {hasReading ? 'افتح القراءة أولًا' : 'أكمل دروس الوحدة أولًا'}</div>)}
 
                       {reviewed ? (
                         <button onClick={() => setSubmitUnit({ id: m.id, title: m.title })}
@@ -1013,6 +1033,17 @@ function Portal() {
           title={quizLesson.title}
           onClose={() => { setQuizLesson(null); refresh() }}
           onPassed={async () => { await completeLesson(token, quizLesson.id); refresh(); await award('complete_lesson', quizLesson.id); award('complete_quiz', quizLesson.id) }}
+        />
+      )}
+
+      {/* End-of-unit TEST */}
+      {examUnit && (
+        <UnitExamRunner
+          token={token}
+          moduleId={examUnit.id}
+          title={examUnit.title}
+          onClose={() => { setExamUnit(null); reloadExams() }}
+          onPassed={() => { reloadExams() }}
         />
       )}
 

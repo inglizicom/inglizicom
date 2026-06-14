@@ -12,10 +12,11 @@ import {
   fetchCourses, createCourse, deleteCourse, setCourseDaysPerUnit,
   fetchModules, addModule, updateModule, deleteModule, reorderModules,
   fetchLessons, addLesson, updateLesson, deleteLesson, toggleLessonLock, reorderLessons,
-  generateQuiz, updateModuleReading,
+  generateQuiz, updateModuleReading, updateModuleExam,
   fetchCourseResources, uploadCourseResource, deleteCourseResource, resourceUrl,
   LESSON_TYPES, type LmsCourse, type LmsModule, type LmsLesson, type LessonQuiz, type CourseResource,
 } from '@/lib/lms'
+import QuizEditor from '@/components/QuizEditor'
 
 const fmtSize = (b?: number | null) => !b ? '' : b > 1048576 ? `${(b / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1024))} KB`
 
@@ -315,6 +316,40 @@ function ModuleBlock({ module, index, total, onDelete, onRename, onMoveUp, onMov
           <p className="text-[10px] text-zinc-400 text-center">استخدم الأسهم ↑↓ لنقل الدرس بين المواضع</p>
 
           <ReadingEditor module={module} />
+          <ExamEditor module={module} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* Per-unit TEST: team-authored auto-graded quiz. Student must pass it (≥60%)
+   AND get the conversation reviewed before the next unit unlocks. */
+function ExamEditor({ module }: { module: LmsModule }) {
+  const [open, setOpen] = useState(false)
+  const [quiz, setQuiz] = useState<LessonQuiz | null>(module.exam_quiz ?? null)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const count = quiz?.questions.length ?? 0
+  async function save() {
+    setSaving(true)
+    await updateModuleExam(module.id, count > 0 ? quiz : null)
+    setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 1500)
+  }
+  return (
+    <div className="rounded-lg border border-amber-200 bg-amber-50/60 overflow-hidden">
+      <button onClick={() => setOpen(o => !o)} className="w-full flex items-center gap-2 px-3 py-2 text-right">
+        <HelpCircle size={14} className="text-amber-600" />
+        <span className="flex-1 text-[12px] font-bold text-amber-800">اختبار الوحدة (إجباري للانتقال)</span>
+        {count > 0 && <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-1"><CheckCircle2 size={12} /> {count} سؤال</span>}
+        <ChevronDown size={14} className={`text-amber-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="px-3 pb-3 space-y-2">
+          <QuizEditor value={quiz} onChange={setQuiz} />
+          <button onClick={save} disabled={saving} className="w-full py-2 rounded-lg bg-amber-600 text-white font-bold text-[12px] flex items-center justify-center gap-1.5 disabled:opacity-50">
+            {saving ? <Loader2 size={13} className="animate-spin" /> : saved ? <><Check size={13} /> تم الحفظ</> : 'حفظ اختبار الوحدة'}
+          </button>
         </div>
       )}
     </div>
@@ -405,11 +440,12 @@ function LessonForm({ moduleId, lesson, nextOrder, onSaved, onCancel }: {
   async function save() {
     if (!title.trim()) return
     setSaving(true)
-    const common = { lessonType: type, videoUrl: video, fileUrl: file, exerciseUrl: ex, hasQuiz: quiz || !!genQuiz, isLocked: lock, quiz: genQuiz }
+    const hasRealQuiz = !!(genQuiz && genQuiz.questions.length)   // has_quiz is truthful
+    const common = { lessonType: type, videoUrl: video, fileUrl: file, exerciseUrl: ex, hasQuiz: hasRealQuiz, isLocked: lock, quiz: hasRealQuiz ? genQuiz : null }
     if (lesson) {
       await updateLesson(lesson.id, { title: title.trim(), ...common })
     } else {
-      await addLesson({ moduleId, title: title.trim(), order: nextOrder ?? 1, lessonType: type, videoUrl: video || undefined, fileUrl: file || undefined, exerciseUrl: ex || undefined, hasQuiz: quiz || !!genQuiz, isLocked: lock, quiz: genQuiz })
+      await addLesson({ moduleId, title: title.trim(), order: nextOrder ?? 1, lessonType: type, videoUrl: video || undefined, fileUrl: file || undefined, exerciseUrl: ex || undefined, hasQuiz: hasRealQuiz, isLocked: lock, quiz: hasRealQuiz ? genQuiz : null })
     }
     setSaving(false); onSaved()
   }
@@ -425,8 +461,8 @@ function LessonForm({ moduleId, lesson, nextOrder, onSaved, onCancel }: {
       <input value={file} onChange={e => setFile(e.target.value)} placeholder="رابط ملف / PDF" dir="ltr" className={INP + ' text-right'} />
       <input value={ex} onChange={e => setEx(e.target.value)} placeholder="رابط تمرين على Inglizi.com" dir="ltr" className={INP + ' text-right'} />
       <div className="flex items-center gap-4 text-[12px] text-zinc-600">
-        <label className="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" checked={quiz} onChange={e => setQuiz(e.target.checked)} className="accent-yellow-400" /> يحتوي اختبارًا</label>
         <label className="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" checked={lock} onChange={e => setLock(e.target.checked)} className="accent-yellow-400" /> مقفل</label>
+        <span className="text-[11px] text-zinc-400">الاختبار يُضاف من القسم بالأسفل ⤵ (إجباري لإنهاء الدرس)</span>
       </div>
 
       {/* AI quiz generator */}
@@ -446,30 +482,10 @@ function LessonForm({ moduleId, lesson, nextOrder, onSaved, onCancel }: {
               {genning ? <Loader2 size={13} className="animate-spin" /> : <Wand2 size={13} />} {genQuiz ? 'إعادة التوليد' : 'توليد بالذكاء الاصطناعي'}
             </button>
             {genErr && <div className="text-[11px] text-red-500 text-center">{genErr}</div>}
-            {genQuiz && (
-              <div className="space-y-2 bg-white rounded-lg border border-zinc-200 p-2.5">
-                {genQuiz.questions.map((q, i) => (
-                  <div key={i} className="text-[12px]">
-                    <div className="font-bold text-zinc-800">{i + 1}. {q.q}</div>
-                    <ul className="mt-0.5 space-y-0.5">
-                      {q.choices.map((c, j) => (
-                        <li key={j} className={`flex items-center gap-1.5 ${j === q.answer ? 'text-emerald-700 font-bold' : 'text-zinc-500'}`}>
-                          {j === q.answer ? <Check size={11} /> : <span className="w-[11px]" />} {c}
-                        </li>
-                      ))}
-                    </ul>
-                    {q.explain && <div className="text-[10px] text-zinc-400 mt-0.5" dir="rtl">💡 {q.explain}</div>}
-                  </div>
-                ))}
-                {genQuiz.exercise?.prompt && (
-                  <div className="text-[12px] border-t border-zinc-100 pt-2" dir="rtl">
-                    <div className="font-bold text-amber-700">✍️ تمرين تطبيقي</div>
-                    <div className="text-zinc-600">{genQuiz.exercise.prompt}</div>
-                  </div>
-                )}
-                <button onClick={() => { setGenQuiz(null); setQuiz(false) }} className="text-[11px] text-red-500 hover:underline">إزالة الاختبار المُولّد</button>
-              </div>
-            )}
+            {/* manual editor — write the lesson test, or edit the AI draft */}
+            <div className="bg-white rounded-lg border border-zinc-200 p-2.5">
+              <QuizEditor value={genQuiz} onChange={q => { setGenQuiz(q); setQuiz(!!(q && q.questions.length)) }} />
+            </div>
           </div>
         )}
       </div>
