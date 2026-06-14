@@ -51,14 +51,25 @@ CAN / CAN'T (ability): Can you fly an airplane? No, I can't. A driver can drive 
 LIKE conjugation: I/you/we/they like, he/she/it likes. Negative: I don't like, he doesn't like. Question: Do you like...? Does he like...? "What do you like to do in your free time? I like hiking and drawing."`,
 }
 
-const QUIZ_SYS = (level = 'A0') => `You are a careful English teacher writing a quiz for ABSOLUTE-BEGINNER Arabic speakers (CEFR ${level}).
-Respond ONLY JSON: { "questions":[ { "q":"نص السؤال بالعربية", "choices":["English A","English B","English C","English D"], "answer":0, "explain":"شرح قصير بالعربية" } ] }
-HARD RULES:
-- Use ONLY the vocabulary, phrases and grammar in the UNIT CONTENT provided. Do NOT introduce any word or grammar not present in it.
-- No past tense, no future, unless it appears in the content. No invented names/phone numbers/dialogues.
-- Question text "q" in Arabic; choices in English (except when the question asks for the Arabic meaning, then choices are Arabic). 4 choices, one correct, vary the correct index.
-- Mix: vocabulary meaning, fill-in-the-blank, choose the correct sentence/word order, spelling (e.g. Forty vs Fourty), and simple translation.
-- Plausible beginner distractors, never silly.`
+const QUIZ_SYS = (level = 'A0') => `You write an English quiz for ABSOLUTE-BEGINNER Arabic speakers (CEFR ${level}). BOTH the question ("q") and all 4 choices are in ENGLISH. "explain" is a short Arabic hint.
+Respond ONLY JSON: { "questions":[ { "q":"English question", "choices":["English A","English B","English C","English D"], "answer":0, "explain":"شرح قصير بالعربية" } ] }
+
+CRITICAL — ONE clear answer only:
+- Each question has EXACTLY ONE correct answer. The other THREE choices must be clearly, unambiguously WRONG.
+- NEVER write a question where two or more choices could be accepted. Do NOT ask "How do you say hello?" (Hello/Hi/Hey are all correct). Do NOT ask "Which is a greeting?" if several choices are greetings. No opinion/ambiguous questions.
+
+USE ONLY these question types (each has a single correct answer):
+1) Fill-in-the-blank grammar — "I ___ a student." choices: am / is / are / be → am
+2) Choose the correct sentence — one correct, the other three have a clear error.
+3) Correct spelling — one correct spelling, three misspellings (e.g. Forty / Fourty / Fourtty / Forety).
+4) One-correct definition — "A person who teaches students is a ___." → teacher (others clearly different jobs).
+5) Complete the reply in a conversation — only one correct reply.
+
+RULES:
+- All FOUR choices must be DIFFERENT strings. Exactly one is correct; the other three are clearly wrong.
+- Never include two choices that are BOTH acceptable. Do NOT mix equivalent forms (e.g. never put both "33" and "thirty-three"; never put two correct sentences). For numbers, use ONE form only.
+- For "choose the correct sentence", the three wrong options must each contain a clear GRAMMAR mistake (not just a different valid wording).
+- Use ONLY vocabulary/grammar found in the UNIT CONTENT. No past tense, no future, nothing above the content's level. No invented names/phone numbers/dialogue details. Plausible beginner distractors, never silly. Vary the position of the correct answer.`
 
 async function ai(system, user, max = 2200) {
   const r = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -69,12 +80,15 @@ async function ai(system, user, max = 2200) {
   if (!r.ok) throw new Error(JSON.stringify(d).slice(0, 160))
   return JSON.parse(d.choices?.[0]?.message?.content ?? '{}')
 }
-const clean = arr => (Array.isArray(arr) ? arr : []).map(q => ({
-  q: String(q?.q ?? '').trim(),
-  choices: Array.isArray(q?.choices) ? q.choices.map(c => String(c)).filter(Boolean).slice(0, 4) : [],
-  answer: Number.isInteger(q?.answer) ? q.answer : 0,
-  explain: q?.explain ? String(q.explain) : undefined,
-})).filter(q => q.q && q.choices.length >= 3 && q.answer < q.choices.length)
+const clean = arr => (Array.isArray(arr) ? arr : []).map(q => {
+  const raw = Array.isArray(q?.choices) ? q.choices.map(c => String(c).trim()).filter(Boolean) : []
+  const correctText = raw[Number.isInteger(q?.answer) ? q.answer : 0]
+  // drop duplicate choices (case-insensitive) — keeps only distinct options
+  const seen = new Set(); const choices = []
+  for (const c of raw) { const k = c.toLowerCase(); if (!seen.has(k)) { seen.add(k); choices.push(c) } }
+  const answer = choices.findIndex(c => c === correctText)
+  return { q: String(q?.q ?? '').trim(), choices: choices.slice(0, 4), answer: answer < 0 ? 0 : answer, explain: q?.explain ? String(q.explain) : undefined }
+}).filter(q => q.q && q.choices.length === 4 && q.answer >= 0 && q.answer < 4)   // require 4 DISTINCT choices
 
 const { data: mods } = await db.from('lms_modules')
   .select('id, title, module_order, lms_courses!inner(is_published)')
@@ -99,7 +113,10 @@ for (const m of (mods ?? [])) {
     let lq = 0
     for (const l of (lessons ?? [])) {
       const q = clean((await ai(QUIZ_SYS(), `UNIT CONTENT:\n${src}\n\nFocus on the part of this unit about: "${l.title}". Write 6–7 questions for THIS lesson only, using the unit's language.`, 1600)).questions)
-      if (q.length >= 5) { await db.from('lms_lessons').update({ quiz: { questions: q }, has_quiz: true }).eq('id', l.id); lq++ }
+      // store the unit reference content on the lesson + the lesson's quiz
+      const patch = { content: src }
+      if (q.length >= 5) { patch.quiz = { questions: q }; patch.has_quiz = true; lq++ }
+      await db.from('lms_lessons').update(patch).eq('id', l.id)
     }
     console.log(`✓ U${m.module_order} ${m.title} — exam ${ex.length}Q, ${lq} lesson quizzes, task ✓`)
   } catch (e) { console.log(`✗ U${m.module_order} ${e.message}`) }
