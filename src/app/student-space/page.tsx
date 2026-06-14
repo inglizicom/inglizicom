@@ -193,10 +193,18 @@ function Portal() {
   async function award(action: EarnAction, lessonId?: string | null, moduleId?: string | null) { const got = await earnCoins(token, action, lessonId, moduleId); if (got > 0) refreshCoins() }
 
   // "message received" chime (3 gentle ascending tones)
+  function getAudioCtx(): any {
+    if (typeof window === 'undefined') return null
+    const w = window as any
+    const Ctx = w.AudioContext || w.webkitAudioContext; if (!Ctx) return null
+    if (!w.__inglizi_ac) { try { w.__inglizi_ac = new Ctx() } catch { return null } }
+    return w.__inglizi_ac
+  }
   function playMessage() {
     try {
-      const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext; if (!Ctx) return
-      const ac = new Ctx(); const now = ac.currentTime
+      const ac = getAudioCtx(); if (!ac) return
+      if (ac.state === 'suspended') ac.resume()   // mobile: context starts suspended until unlocked
+      const now = ac.currentTime
       ;[660, 880, 1175].forEach((f, i) => {
         const o = ac.createOscillator(), g = ac.createGain()
         o.type = 'sine'; o.frequency.value = f
@@ -207,6 +215,14 @@ function Portal() {
       })
     } catch {}
   }
+  // iOS/Android block audio until the user interacts — unlock the shared context on first gesture.
+  useEffect(() => {
+    const unlock = () => { const ac = getAudioCtx(); if (ac && ac.state === 'suspended') ac.resume() }
+    window.addEventListener('pointerdown', unlock, { once: true })
+    window.addEventListener('touchstart', unlock, { once: true })
+    window.addEventListener('keydown', unlock, { once: true })
+    return () => { window.removeEventListener('pointerdown', unlock); window.removeEventListener('touchstart', unlock); window.removeEventListener('keydown', unlock) }
+  }, [])
 
   // Live guard: kick the session if access was removed; chime + toast on ANY new notification.
   useEffect(() => {
@@ -504,16 +520,16 @@ function Portal() {
                 {notifOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
-                    <div className="absolute left-0 mt-2 w-[86vw] max-w-[340px] bg-white rounded-2xl shadow-2xl border border-zinc-100 z-50 overflow-hidden text-zinc-800" dir="rtl">
+                    <div className="fixed sm:absolute top-[62px] sm:top-auto inset-x-3 sm:inset-x-auto sm:right-0 sm:mt-2 sm:w-[360px] bg-white rounded-2xl shadow-2xl border border-zinc-100 z-50 overflow-hidden text-zinc-800" dir="rtl">
                       <div className="px-4 py-3 border-b border-zinc-100 font-bold text-[14px]">الإشعارات</div>
-                      <div className="max-h-[64vh] overflow-y-auto">
+                      <div className="max-h-[70vh] overflow-y-auto">
                         {notifs.length === 0 ? <div className="py-8 text-center text-[13px] text-zinc-400">لا إشعارات بعد 🎉</div>
                           : notifs.map(n => { const Icon = TYPE_ICON[n.type] ?? Bell; return (
                             <button key={n.id} onClick={() => { if (n.tab) goTab(n.tab as Tab); setNotifOpen(false) }} className={`w-full flex items-start gap-3 px-4 py-2.5 text-right hover:bg-zinc-50 ${!n.is_read ? 'bg-yellow-50/40' : ''}`}>
                               <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${TYPE_COLOR[n.type] ?? TYPE_COLOR.info}`}><Icon size={15} /></div>
                               <div className="flex-1 min-w-0">
-                                <div className="text-[13px] font-semibold flex items-center gap-1.5">{n.title}{!n.is_read && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 flex-shrink-0" />}</div>
-                                {n.body && <div className="text-[11px] text-zinc-500 leading-snug line-clamp-2">{n.body}</div>}
+                                <div className="text-[13px] font-semibold flex items-start gap-1.5 break-words"><span className="flex-1">{n.title}</span>{!n.is_read && <span className="w-1.5 h-1.5 mt-1.5 rounded-full bg-rose-500 flex-shrink-0" />}</div>
+                                {n.body && <div className="text-[12px] text-zinc-500 leading-relaxed break-words whitespace-pre-line">{n.body}</div>}
                                 <div className="text-[10px] text-zinc-300 mt-0.5">{fmtShort(n.created_at)}</div>
                               </div>
                             </button>
