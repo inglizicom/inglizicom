@@ -29,7 +29,7 @@ function SectionLabel({ emoji, title, sub }: { emoji: string; title: string; sub
   )
 }
 
-export default function RewardsCenter({ token, onPractice }: { token: string; onPractice: (kind: 'sentence' | 'translation') => void }) {
+export default function RewardsCenter({ token, onPractice, onVocab }: { token: string; onPractice: (kind: 'sentence' | 'translation') => void; onVocab?: () => void }) {
   const [coins, setCoins] = useState<CoinSummary | null>(null)
   const [rewards, setRewards] = useState<RewardStatus[]>([])
   const [board, setBoard] = useState<LeaderboardData | null>(null)
@@ -78,8 +78,21 @@ export default function RewardsCenter({ token, onPractice }: { token: string; on
         ) : <div className="mt-3 text-[12px] text-yellow-400 font-bold flex items-center gap-1.5"><Crown size={15} /> 👑 أعلى مستوى — Master!</div>}
       </div>
 
-      {/* quick practice */}
-      <SectionLabel emoji="🎯" title="تدرّب واكسب الكوينات" sub="كل جملة صحيحة = +30 كوين" />
+      {/* play & learn */}
+      <SectionLabel emoji="🎮" title="العب وتعلّم واكسب الكوينات" sub="تمارين ممتعة على مستواك" />
+      {/* Featured: mixed vocabulary games */}
+      {onVocab && (
+        <button onClick={onVocab} className="w-full text-right rounded-2xl p-4 bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-[0_6px_18px_rgba(139,92,246,0.3)] hover:scale-[1.01] transition-transform">
+          <div className="flex items-center gap-3">
+            <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-[30px] flex-shrink-0">🎮</div>
+            <div className="flex-1 min-w-0">
+              <div className="font-black text-[16px]">ألعاب المفردات</div>
+              <div className="text-[12px] text-white/85 font-medium">🎧 استمع · 🃏 طابِق · 🔡 اهجِ الكلمة</div>
+            </div>
+            <span className="text-[11px] font-black bg-white/20 px-2.5 py-1 rounded-full inline-flex items-center gap-1 flex-shrink-0">+5 <CoinIcon size={12} /> / كلمة</span>
+          </div>
+        </button>
+      )}
       <div className="grid grid-cols-2 gap-3">
         <button onClick={() => onPractice('sentence')} className="group rounded-2xl p-4 text-right bg-gradient-to-br from-yellow-300 to-amber-400 shadow-[0_4px_14px_rgba(245,158,11,0.25)] hover:scale-[1.02] transition-transform">
           <div className="flex items-center justify-between mb-2"><div className="w-12 h-12 rounded-2xl bg-white/40 flex items-center justify-center text-[26px]">🧩</div><span className="text-[10px] font-black text-amber-900 bg-white/50 px-2 py-0.5 rounded-full inline-flex items-center gap-0.5">+30 <CoinIcon size={12} /></span></div>

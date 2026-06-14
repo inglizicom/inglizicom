@@ -25,6 +25,10 @@ export default function VocabGames({ token, onClose, onEarned }: Props) {
   const [correctIds, setCorrectIds] = useState<Set<string>>(new Set())
   const [score, setScore] = useState(0)
   const [coins, setCoins] = useState(0)
+  const [combo, setCombo] = useState(0)      // consecutive correct (streak)
+  const [best, setBest] = useState(0)
+  const [newBest, setNewBest] = useState(false)
+  useEffect(() => { try { setBest(Number(localStorage.getItem('inglizi.vocab_best') || 0)) } catch {} }, [])
 
   useEffect(() => {
     let alive = true
@@ -64,10 +68,12 @@ export default function VocabGames({ token, onClose, onEarned }: Props) {
     else ok = picked === (cur.mode === 'listen' ? cur.word.ar : cur.word.en)
     if (cur.mode !== 'spell' && !picked) return
     setChecked({ correct: ok })
-    if (ok) { setScore(s => s + 1); setCorrectIds(p => new Set(p).add(cur.word.id)); setCoins(c => c + 5) }
+    if (ok) { setScore(s => s + 1); setCorrectIds(p => new Set(p).add(cur.word.id)); setCoins(c => c + 5); setCombo(c => c + 1) }
+    else setCombo(0)
   }
   async function next() {
     if (idx + 1 >= seq.length) {
+      if (score > best) { setNewBest(true); try { localStorage.setItem('inglizi.vocab_best', String(score)) } catch {} ; setBest(score) }
       const got = await rewardVocab(token, [...correctIds]); setCoins(got || coins); setPhase('done'); onEarned?.(); return
     }
     const ni = idx + 1; setIdx(ni); load(seq[ni])
@@ -80,6 +86,9 @@ export default function VocabGames({ token, onClose, onEarned }: Props) {
         <div className="text-5xl mb-2">{score >= seq.length * 0.6 ? '🎉' : '💪'}</div>
         <div className="text-white font-black text-[26px]">{score} / {seq.length}</div>
         <div className="inline-flex items-center gap-1.5 mt-2 bg-yellow-400/15 text-yellow-400 font-black px-3 py-1.5 rounded-full"><Coins size={16} /> +{coins} كوين</div>
+        {newBest
+          ? <div className="mt-3 text-[14px] font-black text-emerald-400">🏆 رقم قياسي جديد!</div>
+          : <div className="mt-3 text-[12px] text-zinc-400">أفضل نتيجة لك: <b className="text-white">{best}</b></div>}
         <div className="flex gap-2 mt-6">
           <button onClick={() => { setIdx(0); setScore(0); setCoins(0); setCorrectIds(new Set()); setPhase('loading'); fetchVocab(token, 12).then(w => { const modes: Mode[] = ['listen','match','spell']; const s = shuffle(w).map((word,i)=>{ let m=modes[i%3]; if(m==='spell'&&/\s/.test(word.en)) m='match'; return {word, mode:m} }); setWords(w); setSeq(s); setPhase('run'); load(s[0]) }) }}
             className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-zinc-200 font-bold text-[13px] flex items-center justify-center gap-1.5"><RotateCcw size={15} /> جولة أخرى</button>
@@ -101,6 +110,7 @@ export default function VocabGames({ token, onClose, onEarned }: Props) {
           <>
             <div className="flex items-center justify-between text-[12px] text-zinc-500 mb-4">
               <span>{idx + 1} / {seq.length}</span>
+              {combo >= 2 && <span className="inline-flex items-center gap-1 text-orange-400 font-black animate-pulse">🔥 {combo} متتالية</span>}
               <span className="inline-flex items-center gap-1 text-yellow-400 font-bold"><Coins size={13} /> {coins}</span>
             </div>
 

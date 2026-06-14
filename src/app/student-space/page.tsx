@@ -960,7 +960,7 @@ function Portal() {
         )}
 
         {/* ═══════════ REWARDS ═══════════ */}
-        {tab === 'rewards' && <RewardsCenter token={token} onPractice={k => setPractice(k)} />}
+        {tab === 'rewards' && <RewardsCenter token={token} onPractice={k => setPractice(k)} onVocab={() => setVocabOpen(true)} />}
 
         {/* ═══════════ FILES ═══════════ */}
         {tab === 'files' && (
