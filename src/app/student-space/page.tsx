@@ -60,6 +60,8 @@ function InitAva({ name, className }: { name: string; className?: string }) {
 const DAY_AR = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']
 
 type Tab = 'home' | 'path' | 'tasks' | 'rewards' | 'files' | 'progress'
+const TABS: Tab[] = ['home', 'path', 'tasks', 'rewards', 'files', 'progress']
+const tabFromHash = (): Tab | null => { const b = (typeof window !== 'undefined' ? (location.hash || '').replace('#', '').split('/')[0] : '') as Tab; return TABS.includes(b) ? b : null }
 const TOKEN_KEY = 'inglizi.student_token'
 const LTYPE_ICON: Record<string, any> = { video: Video, reading: FileText, exercise: PenLine, quiz: HelpCircle, speaking: Mic }
 const LTYPE_AR: Record<string, string> = { video: 'فيديو', reading: 'قراءة', exercise: 'تمرين', quiz: 'اختبار', speaking: 'محادثة' }
@@ -139,7 +141,11 @@ function Portal() {
     // 2) load the space
     const res = await fetchStudentSpace(t); setLoading(false)
     if (!res.found) { if (!isAuto) setError('رمز غير صحيح، تواصل مع الإدارة.'); return false }
-    setSpace(res); setToken(t); setTab('home')
+    setSpace(res); setToken(t)
+    // on refresh (auto-login) restore the tab from the URL; on a fresh login go home
+    const restored = isAuto ? tabFromHash() : null
+    if (restored) setTab(restored)
+    else { setTab('home'); try { history.replaceState({ tab: 'home' }, '', '#home') } catch {} }
     try { localStorage.setItem(TOKEN_KEY, t) } catch {}
     logActivity(t, 'login')
     return true
@@ -153,6 +159,25 @@ function Portal() {
     })()
   }, [])
   async function refresh() { if (demo || !token) return; const r = await fetchStudentSpace(token); if (r.found) setSpace(r) }
+
+  /* ── In-app routing: the active tab lives in the URL hash so a refresh keeps
+     the student where they were, and the browser Back/swipe button moves between
+     tabs (and closes open overlays) instead of leaving the site. ── */
+  const overlayOpen = !!(videoLesson || quizLesson || readingUnit || submitUnit || examUnit || vocabOpen || practice || showExam)
+  const overlayRef = useRef(overlayOpen); overlayRef.current = overlayOpen
+  function closeOverlays() { setVideoLesson(null); setQuizLesson(null); setReadingUnit(null); setSubmitUnit(null); setExamUnit(null); setVocabOpen(false); setPractice(null); setShowExam(false) }
+  function goTab(t: Tab) { setTab(t); try { history.pushState({ tab: t }, '', '#' + t) } catch {} ; if (typeof window !== 'undefined') window.scrollTo({ top: 0 }) }
+  const prevOverlay = useRef(false)
+  useEffect(() => { if (overlayOpen && !prevOverlay.current) { try { history.pushState({ ov: 1 }, '') } catch {} } prevOverlay.current = overlayOpen }, [overlayOpen])
+  useEffect(() => {
+    const onPop = () => {
+      if (overlayRef.current) { closeOverlays(); return }   // Back closes a game/lesson/etc.
+      setTab(tabFromHash() ?? 'home')
+      if (typeof window !== 'undefined') window.scrollTo({ top: 0 })
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
   useEffect(() => { if (token && !demo) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta); fetchReadingUnits(token).then(ids => setReadingUnits(new Set(ids))); fetchMySubmissions(token).then(setSubmissions); fetchUnitExams(token).then(setUnitExams); fetchNotifications(token).then(setNotifs); fetchStudentAnnouncements(token).then(setAnns); fetchCertificate(token).then(setCert); fetchUnitSteps(token).then(setUnitSteps); fetchCoins(token).then(setCoins) } }, [token, space])
   // daily streak check (may award milestone coins) — once per session
   useEffect(() => { if (token && !demo) streakBonus(token).then(r => { if (r && r.awarded > 0) fetchCoins(token).then(setCoins) }) }, [token])
@@ -464,7 +489,7 @@ function Portal() {
                       <div className="max-h-[64vh] overflow-y-auto">
                         {notifs.length === 0 ? <div className="py-8 text-center text-[13px] text-zinc-400">لا إشعارات بعد 🎉</div>
                           : notifs.map(n => { const Icon = TYPE_ICON[n.type] ?? Bell; return (
-                            <button key={n.id} onClick={() => { if (n.tab) setTab(n.tab as Tab); setNotifOpen(false) }} className={`w-full flex items-start gap-3 px-4 py-2.5 text-right hover:bg-zinc-50 ${!n.is_read ? 'bg-yellow-50/40' : ''}`}>
+                            <button key={n.id} onClick={() => { if (n.tab) goTab(n.tab as Tab); setNotifOpen(false) }} className={`w-full flex items-start gap-3 px-4 py-2.5 text-right hover:bg-zinc-50 ${!n.is_read ? 'bg-yellow-50/40' : ''}`}>
                               <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${TYPE_COLOR[n.type] ?? TYPE_COLOR.info}`}><Icon size={15} /></div>
                               <div className="flex-1 min-w-0">
                                 <div className="text-[13px] font-semibold flex items-center gap-1.5">{n.title}{!n.is_read && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 flex-shrink-0" />}</div>
@@ -494,7 +519,7 @@ function Portal() {
       {/* transient "new message" toast (with chime) */}
       {toast && (
         <div className="fixed top-3 inset-x-0 z-[130] flex justify-center px-4 pointer-events-none">
-          <div className="pointer-events-auto max-w-sm w-full bg-[#2a1d12] text-white rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-3 vp-pop" onClick={() => { setToast(null); setTab('home') }}>
+          <div className="pointer-events-auto max-w-sm w-full bg-[#2a1d12] text-white rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-3 vp-pop" onClick={() => { setToast(null); goTab('home') }}>
             <span className="w-9 h-9 rounded-xl bg-yellow-400 text-black flex items-center justify-center flex-shrink-0"><Bell size={17} /></span>
             <div className="flex-1 min-w-0"><div className="text-[11px] text-amber-100/60">🔔 إشعار جديد</div><div className="text-[13px] font-bold truncate">{toast}</div></div>
           </div>
@@ -574,7 +599,7 @@ function Portal() {
                       {today.lesson.content && <div className="text-[11px] text-zinc-400 mt-0.5 line-clamp-1">{today.lesson.content}</div>}
                       <button onClick={() => onOpenLesson(today.lesson, today.lesson.video_url || today.lesson.exercise_url || today.lesson.file_url)}
                         className="w-full mt-3 py-2.5 rounded-xl bg-yellow-400 text-black font-black text-[13px] flex items-center justify-center gap-2 hover:bg-yellow-300"><PlayCircle size={16} /> ابدأ الدرس الآن</button>
-                      <button onClick={() => setTab('path')} className="w-full mt-2 py-2 rounded-xl bg-white/[0.06] text-white font-semibold text-[12px] hover:bg-white/10">عرض كل دروس الوحدة</button>
+                      <button onClick={() => goTab('path')} className="w-full mt-2 py-2 rounded-xl bg-white/[0.06] text-white font-semibold text-[12px] hover:bg-white/10">عرض كل دروس الوحدة</button>
                     </div>
                   )}
                 </div>
@@ -590,7 +615,7 @@ function Portal() {
 
               {/* Coins + level + quick access */}
               <div className="rounded-3xl bg-white border border-zinc-100 shadow-[0_2px_12px_rgba(58,40,23,0.06)] p-4">
-                <button onClick={() => setTab('rewards')} className="w-full flex items-center gap-3 text-right">
+                <button onClick={() => goTab('rewards')} className="w-full flex items-center gap-3 text-right">
                   <div className="w-11 h-11 rounded-2xl bg-yellow-400 text-black flex items-center justify-center flex-shrink-0"><Coins size={22} /></div>
                   <div className="flex-1 min-w-0">
                     <div className="font-black text-[16px] text-[#3a2817]">{coins?.balance ?? 0} <span className="text-[11px] text-zinc-400 font-bold">كوين · {coins?.level ?? 'Bronze'}</span></div>
@@ -656,14 +681,14 @@ function Portal() {
                       <div className="bg-emerald-50 rounded-xl p-3"><div className="text-[22px] font-black text-emerald-600">{reviewed}</div><div className="text-[11px] text-emerald-700/70">مُصحَّحة</div></div>
                       <div className="bg-amber-50 rounded-xl p-3"><div className="text-[22px] font-black text-amber-600">{pending}</div><div className="text-[11px] text-amber-700/70">بانتظار</div></div>
                     </div>
-                    {hasUnread && <button onClick={() => setTab('path')} className="mt-3 w-full py-2.5 rounded-xl bg-emerald-500 text-white font-black text-[12.5px] flex items-center justify-center gap-1.5 animate-pulse">✅ وصلك تصحيح جديد — اضغط لقراءته</button>}
+                    {hasUnread && <button onClick={() => goTab('path')} className="mt-3 w-full py-2.5 rounded-xl bg-emerald-500 text-white font-black text-[12.5px] flex items-center justify-center gap-1.5 animate-pulse">✅ وصلك تصحيح جديد — اضغط لقراءته</button>}
                   </Card>
                 )
               })()}
 
               {/* Learning path */}
               {course && (
-                <Card title="مساري التعليمي" icon={Route} iconColor="text-emerald-500" action={<button onClick={() => setTab('path')} className="text-[12px] text-blue-600 font-semibold">عرض الخريطة الكاملة</button>}>
+                <Card title="مساري التعليمي" icon={Route} iconColor="text-emerald-500" action={<button onClick={() => goTab('path')} className="text-[12px] text-blue-600 font-semibold">عرض الخريطة الكاملة</button>}>
                   {/* module stepper */}
                   <div className="flex items-center gap-1 overflow-x-auto pb-2 mb-3">
                     {course.modules.map((m, i) => { const p = modProg(m); const active = m.id === currentModule?.id; return (
@@ -711,7 +736,7 @@ function Portal() {
               {/* Bottom 3 cards */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                 {/* Files */}
-                <Card title="ملفاتك" icon={FileText} iconColor="text-rose-500" action={<button onClick={() => setTab('files')} className="text-[11px] text-blue-600 font-semibold">عرض الكل</button>} compact>
+                <Card title="ملفاتك" icon={FileText} iconColor="text-rose-500" action={<button onClick={() => goTab('files')} className="text-[11px] text-blue-600 font-semibold">عرض الكل</button>} compact>
                   {files.length === 0 ? <Empty mini text="لا ملفات بعد" /> : files.slice(0, 4).map(f => (
                     <button key={f.id} onClick={() => openFile(f)} className="w-full flex items-center gap-2.5 py-2 text-right">
                       <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center flex-shrink-0"><FileText size={14} className="text-rose-500" /></div>
@@ -721,7 +746,7 @@ function Portal() {
                   ))}
                 </Card>
                 {/* Recent exercises */}
-                <Card title="التمارين الأخيرة" icon={PenLine} iconColor="text-amber-500" action={<button onClick={() => setTab('tasks')} className="text-[11px] text-blue-600 font-semibold">الكل</button>} compact>
+                <Card title="التمارين الأخيرة" icon={PenLine} iconColor="text-amber-500" action={<button onClick={() => goTab('tasks')} className="text-[11px] text-blue-600 font-semibold">الكل</button>} compact>
                   {exerciseLessons.length === 0 && manualEx.length === 0 ? <Empty mini text="لا تمارين بعد" /> :
                     [...exerciseLessons.map(x => ({ id: x.lesson.id, title: x.lesson.title, done: x.lesson.status === 'completed', prog: x.lesson.status === 'opened' })),
                      ...manualEx.slice(0, 2).map(a => ({ id: a.id, title: a.title, done: a.status === 'done', prog: a.status === 'in_progress' }))].slice(0, 4).map(e => (
@@ -748,7 +773,7 @@ function Portal() {
             {/* RIGHT SIDEBAR */}
             <div className="space-y-5">
               {/* Quick overview */}
-              <Card title="نظرة سريعة" icon={BarChart3} iconColor="text-emerald-500" action={<button onClick={() => setTab('progress')} className="text-[11px] text-blue-600 font-semibold">التقرير</button>}>
+              <Card title="نظرة سريعة" icon={BarChart3} iconColor="text-emerald-500" action={<button onClick={() => goTab('progress')} className="text-[11px] text-blue-600 font-semibold">التقرير</button>}>
                 <div className="space-y-2.5 mt-1">
                   <MiniBar label="التقدم" pct={stats.overall} color="bg-yellow-400" />
                   <MiniBar label="الدروس" pct={pct(stats.lessons_done, stats.lessons_total)} color="bg-violet-500" />
@@ -793,7 +818,7 @@ function Portal() {
                       {(s.current_level || nextExam.level) && <span className="font-bold bg-zinc-100 px-1.5 rounded">{s.current_level ?? nextExam.level} {s.next_level ? `→ ${s.next_level}` : ''}</span>}
                     </div>
                     {nextExam.exam_date && <div className="text-[12px] text-zinc-500 mt-1.5 flex items-center gap-1"><CalendarDays size={12} /> {new Date(nextExam.exam_date).toLocaleDateString('ar-MA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>}
-                    <button onClick={() => setTab('progress')} className="w-full mt-3 py-2 rounded-xl bg-zinc-100 text-zinc-700 font-semibold text-[12px] hover:bg-zinc-200">مراجعة الامتحانات السابقة</button>
+                    <button onClick={() => goTab('progress')} className="w-full mt-3 py-2 rounded-xl bg-zinc-100 text-zinc-700 font-semibold text-[12px] hover:bg-zinc-200">مراجعة الامتحانات السابقة</button>
                   </div>
                 ) : <Empty mini text="لا امتحان قادم محدّد" />}
               </Card>
@@ -1078,7 +1103,7 @@ function Portal() {
       <nav className="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-zinc-200">
         <div className="max-w-2xl mx-auto flex">
           {TABS.map(t => { const active = tab === t.id; return (
-            <button key={t.id} onClick={() => setTab(t.id)} className="relative flex-1 flex flex-col items-center gap-0.5 py-2.5">
+            <button key={t.id} onClick={() => goTab(t.id)} className="relative flex-1 flex flex-col items-center gap-0.5 py-2.5">
               {active && <span className="absolute top-0 inset-x-5 h-0.5 bg-yellow-400 rounded-full" />}
               <div className="relative"><t.icon size={20} className={active ? 'text-[#3a2817]' : 'text-zinc-400'} strokeWidth={active ? 2.4 : 2} />{(t.badge ?? 0) > 0 && <span className="absolute -top-1.5 -left-2 bg-rose-500 text-white text-[9px] font-bold min-w-[15px] h-[15px] px-0.5 rounded-full flex items-center justify-center">{t.badge}</span>}</div>
               <span className={`text-[10px] font-bold ${active ? 'text-[#3a2817]' : 'text-zinc-400'}`}>{t.label}</span>

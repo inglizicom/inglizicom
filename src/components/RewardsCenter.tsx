@@ -34,7 +34,8 @@ export default function RewardsCenter({ token, onPractice, onVocab }: { token: s
   const [rewards, setRewards] = useState<RewardStatus[]>([])
   const [board, setBoard] = useState<LeaderboardData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [sub, setSub] = useState<'rewards' | 'board'>('rewards')
+  const [sub, setSub] = useState<'rewards' | 'board'>(() => { try { return (location.hash || '').includes('board') ? 'board' : 'rewards' } catch { return 'rewards' } })
+  const changeSub = (s: 'rewards' | 'board') => { setSub(s); try { history.replaceState(null, '', s === 'board' ? '#rewards/board' : '#rewards') } catch {} }
   const [claiming, setClaiming] = useState<string | null>(null)
   const [msg, setMsg] = useState('')
 
@@ -108,8 +109,8 @@ export default function RewardsCenter({ token, onPractice, onVocab }: { token: s
 
       {/* sub tabs */}
       <div className="flex gap-1.5 bg-amber-100/70 p-1 rounded-2xl">
-        <button onClick={() => setSub('rewards')} className={`flex-1 py-2.5 rounded-xl text-[13.5px] font-black transition-colors ${sub === 'rewards' ? 'bg-[#3a2817] text-yellow-400 shadow' : 'text-[#3a2817] hover:bg-white/50'}`}>🎁 المكافآت</button>
-        <button onClick={() => setSub('board')} className={`flex-1 py-2.5 rounded-xl text-[13.5px] font-black transition-colors ${sub === 'board' ? 'bg-[#3a2817] text-yellow-400 shadow' : 'text-[#3a2817] hover:bg-white/50'}`}>🏆 المتصدرون</button>
+        <button onClick={() => changeSub('rewards')} className={`flex-1 py-2.5 rounded-xl text-[13.5px] font-black transition-colors ${sub === 'rewards' ? 'bg-[#3a2817] text-yellow-400 shadow' : 'text-[#3a2817] hover:bg-white/50'}`}>🎁 المكافآت</button>
+        <button onClick={() => changeSub('board')} className={`flex-1 py-2.5 rounded-xl text-[13.5px] font-black transition-colors ${sub === 'board' ? 'bg-[#3a2817] text-yellow-400 shadow' : 'text-[#3a2817] hover:bg-white/50'}`}>🏆 المتصدرون</button>
       </div>
 
       {msg && <div className="text-[12.5px] text-center text-zinc-700 bg-emerald-50 border border-emerald-200 rounded-xl py-2.5 font-bold">{msg}</div>}
