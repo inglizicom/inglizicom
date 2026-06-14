@@ -163,9 +163,9 @@ function Portal() {
   /* ── In-app routing: the active tab lives in the URL hash so a refresh keeps
      the student where they were, and the browser Back/swipe button moves between
      tabs (and closes open overlays) instead of leaving the site. ── */
-  const overlayOpen = !!(videoLesson || quizLesson || readingUnit || submitUnit || examUnit || vocabOpen || practice || showExam)
+  const overlayOpen = !!(videoLesson || quizLesson || readingUnit || submitUnit || examUnit || vocabOpen || practice || showExam || notifOpen)
   const overlayRef = useRef(overlayOpen); overlayRef.current = overlayOpen
-  function closeOverlays() { setVideoLesson(null); setQuizLesson(null); setReadingUnit(null); setSubmitUnit(null); setExamUnit(null); setVocabOpen(false); setPractice(null); setShowExam(false) }
+  function closeOverlays() { setVideoLesson(null); setQuizLesson(null); setReadingUnit(null); setSubmitUnit(null); setExamUnit(null); setVocabOpen(false); setPractice(null); setShowExam(false); setNotifOpen(false) }
   function goTab(t: Tab) { setTab(t); try { history.pushState({ tab: t }, '', '#' + t) } catch {} ; if (typeof window !== 'undefined') window.scrollTo({ top: 0 }) }
   const prevOverlay = useRef(false)
   useEffect(() => { if (overlayOpen && !prevOverlay.current) { try { history.pushState({ ov: 1 }, '') } catch {} } prevOverlay.current = overlayOpen }, [overlayOpen])
@@ -1099,14 +1099,14 @@ function Portal() {
         />
       )}
 
-      {/* Bottom nav */}
-      <nav className="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-zinc-200">
+      {/* Bottom nav — brown to match the dashboard, gold for the active tab */}
+      <nav className="fixed bottom-0 inset-x-0 z-30 bg-[#2a1d12] border-t border-[#3a2817]">
         <div className="max-w-2xl mx-auto flex">
           {TABS.map(t => { const active = tab === t.id; return (
             <button key={t.id} onClick={() => goTab(t.id)} className="relative flex-1 flex flex-col items-center gap-0.5 py-2.5">
               {active && <span className="absolute top-0 inset-x-5 h-0.5 bg-yellow-400 rounded-full" />}
-              <div className="relative"><t.icon size={20} className={active ? 'text-[#3a2817]' : 'text-zinc-400'} strokeWidth={active ? 2.4 : 2} />{(t.badge ?? 0) > 0 && <span className="absolute -top-1.5 -left-2 bg-rose-500 text-white text-[9px] font-bold min-w-[15px] h-[15px] px-0.5 rounded-full flex items-center justify-center">{t.badge}</span>}</div>
-              <span className={`text-[10px] font-bold ${active ? 'text-[#3a2817]' : 'text-zinc-400'}`}>{t.label}</span>
+              <div className="relative"><t.icon size={20} className={active ? 'text-yellow-400' : 'text-amber-100/45'} strokeWidth={active ? 2.4 : 2} />{(t.badge ?? 0) > 0 && <span className="absolute -top-1.5 -left-2 bg-rose-500 text-white text-[9px] font-bold min-w-[15px] h-[15px] px-0.5 rounded-full flex items-center justify-center">{t.badge}</span>}</div>
+              <span className={`text-[10px] font-bold ${active ? 'text-yellow-400' : 'text-amber-100/45'}`}>{t.label}</span>
             </button>
           )})}
         </div>
