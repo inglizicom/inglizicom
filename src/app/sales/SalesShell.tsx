@@ -10,6 +10,7 @@ import { useStaff } from '@/lib/staff-context'
 import { useCrmBasePath, useIsAdminDomain } from '@/lib/use-crm-path'
 import { supabase } from '@/lib/supabase'
 import { fetchOverdueFollowUps, fetchTodaysFollowUps } from '@/lib/crm-stats'
+import { countPendingSubmissions } from '@/lib/lms'
 import { countLeadsSince } from '@/lib/leads-db'
 import { getLeadsSeenAt, LEADS_SEEN_EVENT } from '@/lib/leads-seen'
 
@@ -18,18 +19,19 @@ export default function SalesShell({ children }: { children: React.ReactNode }) 
   const router        = useRouter()
   const base          = useCrmBasePath()
   const isAdminDomain = useIsAdminDomain()
-  const [badges, setBadges] = useState<{ leads?: number; followups?: number }>({})
+  const [badges, setBadges] = useState<{ leads?: number; followups?: number; submissions?: number }>({})
 
   useEffect(() => {
     let alive = true
     async function recompute() {
       const seenIso = new Date(getLeadsSeenAt()).toISOString()
-      const [unseen, overdue, today] = await Promise.all([
+      const [unseen, overdue, today, pendingSubs] = await Promise.all([
         countLeadsSince(seenIso),                   // unseen since last viewed (clears when read)
         fetchOverdueFollowUps(staff.role === 'founder' ? undefined : staff.id),
         fetchTodaysFollowUps(staff.role === 'founder' ? undefined : staff.id),
+        countPendingSubmissions(),                  // conversations awaiting correction
       ])
-      if (alive) setBadges({ leads: unseen, followups: overdue.length + today.length })
+      if (alive) setBadges({ leads: unseen, followups: overdue.length + today.length, submissions: pendingSubs })
     }
     recompute()
     const t = setInterval(recompute, 60_000)

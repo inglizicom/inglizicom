@@ -271,6 +271,11 @@ export async function fetchSubmissions(onlyPending = false): Promise<CorrectorSu
     student_phone: r.crm_students?.phone_number,
   }))
 }
+/** Count of conversations awaiting correction (for the sidebar badge). */
+export async function countPendingSubmissions(): Promise<number> {
+  const { count } = await supabase.from('lms_submissions').select('id', { count: 'exact', head: true }).eq('status', 'pending')
+  return count ?? 0
+}
 export async function reviewSubmission(id: string, feedback: string, score: number | null, by?: string): Promise<void> {
   await supabase.from('lms_submissions').update({ feedback, score, status: 'reviewed', reviewed_by: by || null, reviewed_at: new Date().toISOString() }).eq('id', id)
 }

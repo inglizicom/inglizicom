@@ -15,7 +15,7 @@ interface NavDef {
   icon:      LucideIcon
   path:      string          // pathname part (without base)
   tab?:      string          // optional ?tab= value
-  badgeKey?: 'leads' | 'followups'
+  badgeKey?: 'leads' | 'followups' | 'submissions'
   founder?:  boolean
 }
 
@@ -26,7 +26,7 @@ const NAV: NavDef[] = [
   { id: 'followups', labelAr: 'المتابعات',           icon: CalendarCheck,   path: '/workspace', tab: 'followups', badgeKey: 'followups' },
   { id: 'payments',  labelAr: 'المدفوعات',          icon: CreditCard,      path: '/workspace', tab: 'payments' },
   { id: 'courses',   labelAr: 'الدورات',            icon: BookOpen,        path: '/courses' },
-  { id: 'submissions', labelAr: 'تصحيح المحادثات',   icon: Inbox,           path: '/submissions' },
+  { id: 'submissions', labelAr: 'تصحيح المحادثات',   icon: Inbox,           path: '/submissions', badgeKey: 'submissions' },
   { id: 'announcements', labelAr: 'الإعلانات',        icon: Megaphone,       path: '/announcements' },
   { id: 'gamification', labelAr: 'المكافآت والتحديات', icon: Trophy,          path: '/gamification' },
   { id: 'verify',    labelAr: 'التحقق من طالب',      icon: ShieldCheck,     path: '/verify' },
@@ -40,7 +40,7 @@ interface Props {
   onSignOut?: () => void
   base:       string                      // '' on admin domain, '/sales' on main
   isAdminDomain: boolean
-  badges?:    { leads?: number; followups?: number }
+  badges?:    { leads?: number; followups?: number; submissions?: number }
 }
 
 export default function CrmSidebar({ userEmail, userRole, onSignOut, base, isAdminDomain, badges }: Props) {
