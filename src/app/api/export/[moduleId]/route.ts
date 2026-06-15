@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { resolveImageUrl } from '@/lib/unit-image'
+import fs from 'fs'
+import { resolveImageUrl, localImageFile } from '@/lib/unit-image'
 import { variationsFor } from '@/lib/deck-vary'
 
 /**
@@ -51,8 +52,15 @@ function emojiFor(en: string): string { const low = en.toLowerCase(); for (const
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
 async function imageDataUri(en: string): Promise<string | null> {
-  // resolve via the shared cache (≤1 Unsplash search per query, ever),
-  // then download the image bytes (the image CDN is not rate-limited) → base64
+  // 1) the teacher's own picture (embedded for true offline)
+  const local = localImageFile(en)
+  if (local) {
+    try {
+      const ext = (local.split('.').pop() || 'jpeg').replace('jpg', 'jpeg')
+      return `data:image/${ext};base64,${fs.readFileSync(local).toString('base64')}`
+    } catch { /* fall through */ }
+  }
+  // 2) cached Unsplash photo (≤1 search per query) → download bytes → base64
   const u = await resolveImageUrl(photoQuery(en))
   if (!u) return null
   try {

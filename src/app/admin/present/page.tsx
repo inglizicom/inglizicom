@@ -27,9 +27,13 @@ export default function PresentIndexPage() {
         <Presentation className="text-yellow-500" size={26} />
         <h1 className="text-xl font-black">Recording decks — RealLife English</h1>
       </div>
-      <p className="text-sm text-zinc-500 mb-6">
+      <p className="text-sm text-zinc-500 mb-3">
         Open a unit deck full-screen, then screen-record yourself explaining it. Navigate with ← → or Space.
       </p>
+      <div className="mb-6 rounded-xl bg-amber-50 ring-1 ring-amber-200 px-4 py-3 text-[13px] text-amber-900">
+        <b>Use your own pictures?</b> Drop images in <code className="bg-white px-1 rounded">public/deck-images/</code> named after each phrase (e.g. <code className="bg-white px-1 rounded">i-take-a-shower.jpg</code>). Your picture always wins.{' '}
+        <a href="/api/deck-images-guide" className="font-bold underline">Download the filename guide</a>.
+      </div>
 
       {loading ? (
         <div className="flex items-center gap-2 text-zinc-400"><Loader2 className="animate-spin" size={18} /> Loading units…</div>

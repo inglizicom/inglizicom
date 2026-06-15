@@ -1,4 +1,28 @@
 import { createClient } from '@supabase/supabase-js'
+import fs from 'fs'
+import path from 'path'
+
+/** Slug used to name a phrase's image file (matches public/deck-images/<slug>.jpg). */
+export function slugify(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+}
+const EXTS = ['jpg', 'jpeg', 'png', 'webp', 'avif']
+const DECK_DIR = path.join(process.cwd(), 'public', 'deck-images')
+
+/** If the teacher dropped a picture for this phrase, return its public URL. */
+export function localImageUrl(en: string): string | null {
+  if (!en) return null
+  const base = slugify(en)
+  for (const ext of EXTS) if (fs.existsSync(path.join(DECK_DIR, `${base}.${ext}`))) return `/deck-images/${base}.${ext}`
+  return null
+}
+/** Absolute path of a local picture (for embedding into the offline export). */
+export function localImageFile(en: string): string | null {
+  if (!en) return null
+  const base = slugify(en)
+  for (const ext of EXTS) { const p = path.join(DECK_DIR, `${base}.${ext}`); if (fs.existsSync(p)) return p }
+  return null
+}
 
 /**
  * Resolve a search query to a modest image URL, caching the result in

@@ -118,7 +118,7 @@ function Photo({ en }: { en: string }) {
   const [loaded, setLoaded] = useState(false)
   useEffect(() => {
     let alive = true; setUrl(undefined); setLoaded(false)
-    fetch(`/api/img?q=${encodeURIComponent(photoQuery(en))}`)
+    fetch(`/api/img?en=${encodeURIComponent(en)}&q=${encodeURIComponent(photoQuery(en))}`)
       .then(r => r.json()).then(d => { if (alive) setUrl(d?.url ?? null) })
       .catch(() => { if (alive) setUrl(null) })
     return () => { alive = false }

@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { resolveImageUrl } from '@/lib/unit-image'
+import { resolveImageUrl, localImageUrl } from '@/lib/unit-image'
 
 /**
- * GET /api/img?q=<keywords>
- * Returns { url } of a modest photo for the deck. Cached in the DB so each
- * unique query hits Unsplash at most once (content_filter=high enforced).
+ * GET /api/img?en=<phrase>&q=<keywords>
+ * Returns { url } for a deck slide. Priority:
+ *   1) the teacher's own picture in public/deck-images/<slug>.jpg (if present)
+ *   2) a cached Unsplash photo (content_filter=high), resolved once per query
  */
 export async function GET(req: NextRequest) {
-  const q = (req.nextUrl.searchParams.get('q') || '').trim()
+  const en = (req.nextUrl.searchParams.get('en') || '').trim()
+  const q = (req.nextUrl.searchParams.get('q') || en).trim()
+  if (en) { const local = localImageUrl(en); if (local) return NextResponse.json({ url: local, own: true }) }
   if (!q) return NextResponse.json({ url: null })
-  const url = await resolveImageUrl(q)
-  return NextResponse.json({ url })
+  return NextResponse.json({ url: await resolveImageUrl(q) })
 }
