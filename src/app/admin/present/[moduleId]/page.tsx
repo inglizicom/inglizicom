@@ -2,25 +2,26 @@
 
 /**
  * /admin/present/[moduleId] — full-screen teaching deck for recording video lessons.
- * Template (per the wireframe): header bar [Unit № · title · section · type],
- * a big image hero, the English below it, and for expressions the static pattern
- * with the changeable [variable] highlighted. Soft palette, animated, one phrase
- * per slide. Built live from the unit's DB content. Navigate ← → / Space / side-click.
+ * Template (per the sketch): header rectangles [Unit № · title · section], a BIG
+ * picture, then three boxes — English expression, Arabic translation, and the
+ * changeable words (variations from the same unit) so learners understand → apply
+ * the variation in one place. Footer carries the brand/contact strip.
+ * Built live from the unit's DB content. Navigate ← → / Space / side-click.
  */
 
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Loader2, Globe, Instagram, Youtube, GraduationCap, Phone } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { fetchLessons, type LmsLesson } from '@/lib/lms'
 
 type VocabPair = { en: string; ar: string }
 type Slide =
   | { kind: 'title'; title: string }
-  | { kind: 'word'; en: string; ar: string }
+  | { kind: 'word'; en: string; ar: string; others: string[] }
   | { kind: 'convo'; lines: { who: string; text: string }[] }
-  | { kind: 'expr'; pattern: string; example: string }
+  | { kind: 'expr'; pattern: string; example: string; others: string[] }
   | { kind: 'end' }
 
 const SECTION: Record<Slide['kind'], { en: string; ar: string } | null> = {
@@ -49,15 +50,19 @@ function parseExpr(content?: string | null): { pattern: string; example: string 
   return content.split('\n').map(l => l.trim()).filter(l => l.startsWith('- '))
     .map(l => { const [pat, ex] = l.replace(/^-\s*/, '').split(' — '); return { pattern: (pat || '').replace(/\*\*/g, ''), example: (ex || '').replace(/\*/g, '') } })
 }
-// render a pattern, highlighting [variable] slots as changeable pills
+function sample<T>(arr: T[], n: number, exclude?: T): T[] {
+  const pool = arr.filter(x => x !== exclude)
+  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]] }
+  return pool.slice(0, n)
+}
 function renderPattern(p: string) {
   return p.split(/(\[[^\]]+\])/).map((part, i) =>
     part.startsWith('[')
-      ? <span key={i} className="inline-block mx-2 px-4 py-1 rounded-xl bg-amber-400/90 text-white align-middle">{part}</span>
+      ? <span key={i} className="inline-block mx-2 px-4 py-1 rounded-xl bg-amber-400 text-white align-middle">{part}</span>
       : <span key={i}>{part}</span>)
 }
 
-/* ── picture: modest stock photo (Pixabay safesearch) + safe emoji fallback ── */
+/* ── picture: modest Unsplash photo (content_filter=high) + emoji fallback ── */
 const STOP = new Set(['i','you','we','they','he','she','it','a','an','the','to','do','does','is','are','am','my','your','his','her','our','their','some','please','can','could','would','want','need','have','has','this','that','these','those','of','for','in','on','at','with','and','or','me','one','here','there','how','much','many','what','where','when','who','give','get','put','go','come','will','too','not','no','yes','okay','dont','don'])
 function photoQuery(en: string): string {
   const words = en.toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/).filter(w => w && !STOP.has(w))
@@ -83,7 +88,7 @@ function emojiFor(en: string): string {
   return '🗣️'
 }
 
-function Photo({ en, size = 'big' }: { en: string; size?: 'big' | 'sm' }) {
+function Photo({ en }: { en: string }) {
   const [url, setUrl] = useState<string | null | undefined>(undefined)
   const [loaded, setLoaded] = useState(false)
   useEffect(() => {
@@ -93,13 +98,12 @@ function Photo({ en, size = 'big' }: { en: string; size?: 'big' | 'sm' }) {
       .catch(() => { if (alive) setUrl(null) })
     return () => { alive = false }
   }, [en])
-  const box = size === 'big' ? 'w-[52vw] max-w-[680px] aspect-[16/9]' : 'w-[34vw] max-w-[420px] aspect-[16/10]'
   return (
-    <div className={`relative ${box} rounded-[2rem] overflow-hidden shadow-2xl shadow-stone-300/60 ring-1 ring-black/5 bg-white flex items-center justify-center`}>
-      {url === undefined && <Loader2 className="animate-spin text-stone-300" size={40} />}
+    <div className="relative w-full aspect-[4/3] rounded-[2rem] overflow-hidden shadow-2xl shadow-stone-300/60 ring-1 ring-black/5 bg-white flex items-center justify-center">
+      {url === undefined && <Loader2 className="animate-spin text-stone-300" size={44} />}
       {url === null && (
         <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.45 }}
-          className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-50 to-rose-50 text-[13vw]">{emojiFor(en)}</motion.div>
+          className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-50 to-rose-50 text-[15vw]">{emojiFor(en)}</motion.div>
       )}
       {typeof url === 'string' && (
         // eslint-disable-next-line @next/next/no-img-element
@@ -111,10 +115,35 @@ function Photo({ en, size = 'big' }: { en: string; size?: 'big' | 'sm' }) {
   )
 }
 
+/* ── reusable labelled box ─────────────────────────────────── */
+function Box({ label, labelAr, rtl, children, accent }: { label: string; labelAr?: string; rtl?: boolean; children: React.ReactNode; accent?: boolean }) {
+  return (
+    <div className={`rounded-2xl px-[2vw] py-[2vh] shadow-sm ring-1 ${accent ? 'bg-amber-50 ring-amber-200' : 'bg-white ring-black/5'}`}>
+      <div className="flex items-center gap-2 mb-1.5">
+        <span className={`text-[0.95vw] font-black tracking-wide ${accent ? 'text-amber-600' : 'text-stone-400'}`}>{label}</span>
+        {labelAr && <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }} className={`text-[0.95vw] font-bold ${accent ? 'text-amber-500' : 'text-stone-300'}`}>{labelAr}</span>}
+      </div>
+      <div dir={rtl ? 'rtl' : 'ltr'} style={rtl ? { fontFamily: "'Tajawal', sans-serif" } : undefined}>{children}</div>
+    </div>
+  )
+}
+
+function Footer() {
+  return (
+    <div className="relative z-10 flex items-center justify-center gap-[2.5vw] px-[3vw] py-[1.8vh] text-[0.95vw] font-semibold text-stone-500 border-t border-stone-200/70 bg-white/40 backdrop-blur-sm">
+      <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }} className="flex items-center gap-1.5"><Phone size={14} className="text-green-600" /> واتساب 0707902091</span>
+      <span className="flex items-center gap-1.5"><Globe size={14} className="text-amber-600" /> inglizi.com</span>
+      <span className="flex items-center gap-1.5"><Instagram size={14} className="text-rose-500" /> @elqasraouihamza</span>
+      <span className="flex items-center gap-1.5"><Youtube size={14} className="text-red-600" /> @hamzaelqasraoui</span>
+      <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }} className="flex items-center gap-1.5"><GraduationCap size={14} className="text-stone-600" /> الأستاذ حمزة</span>
+    </div>
+  )
+}
+
 /* ── animations ────────────────────────────────────────────── */
 const slideV = {
   enter: { opacity: 0, y: 22 },
-  center: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' as const, staggerChildren: 0.08, delayChildren: 0.1 } },
+  center: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' as const, staggerChildren: 0.07, delayChildren: 0.1 } },
   exit: { opacity: 0, y: -18, transition: { duration: 0.25 } },
 }
 const item = { enter: { opacity: 0, y: 14 }, center: { opacity: 1, y: 0, transition: { duration: 0.4 } } }
@@ -145,10 +174,11 @@ export default function PresentPage() {
     const vocab = parseVocab(lessons.find(l => l.lesson_order === 1)?.content)
     const expr = parseExpr(lessons.find(l => l.lesson_order === 2)?.content)
     const convo = parseConvo(reading)
+    const allEn = vocab.map(v => v.en)
     const out: Slide[] = [{ kind: 'title', title: unitName }]
-    vocab.forEach(p => out.push({ kind: 'word', en: p.en, ar: p.ar }))
+    vocab.forEach(p => out.push({ kind: 'word', en: p.en, ar: p.ar, others: sample(allEn, 3, p.en) }))
     if (convo.length) out.push({ kind: 'convo', lines: convo })
-    expr.forEach(e => out.push({ kind: 'expr', pattern: e.pattern, example: e.example }))
+    expr.forEach(e => out.push({ kind: 'expr', pattern: e.pattern, example: e.example, others: sample(allEn, 3) }))
     out.push({ kind: 'end' })
     return out
   }, [lessons, reading, unitName])
@@ -177,19 +207,18 @@ export default function PresentPage() {
         <div className="flex-1 flex items-center justify-center"><Loader2 className="animate-spin text-amber-500" size={34} /></div>
       ) : (
         <>
-          {/* ── header bar: Unit № · title · section · type ── */}
-          <div className="relative z-10 flex items-center gap-3 px-[3vw] pt-[3vh] text-[1.1vw]">
-            {unitNo && <span className="px-4 py-1.5 rounded-full bg-stone-800 text-white font-black">{unitNo}</span>}
-            <span className="px-4 py-1.5 rounded-full bg-white shadow-sm font-bold text-stone-700">{unitName}</span>
-            {section && <span className="px-4 py-1.5 rounded-full bg-amber-100 text-amber-700 font-bold">{section.en}</span>}
-            {section && <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }} className="px-4 py-1.5 rounded-full bg-amber-100 text-amber-700 font-bold">{section.ar}</span>}
+          {/* header: matching rectangles */}
+          <div className="relative z-10 flex items-center gap-2.5 px-[3vw] pt-[2.5vh] text-[1.05vw]">
+            {unitNo && <span className="px-4 py-1.5 rounded-xl bg-stone-800 text-white font-black">{unitNo}</span>}
+            <span className="px-4 py-1.5 rounded-xl bg-white shadow-sm ring-1 ring-black/5 font-bold text-stone-700">{unitName}</span>
+            {section && <span className="px-4 py-1.5 rounded-xl bg-amber-100 text-amber-700 font-bold">{section.en} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>{section.ar}</span></span>}
             <span className="ml-auto text-stone-400 font-semibold">{idx + 1} / {slides.length}</span>
           </div>
 
-          <button onClick={() => go(-1)} className="absolute left-0 top-0 h-full w-1/5 z-20 cursor-w-resize" aria-label="Previous" />
-          <button onClick={() => go(1)} className="absolute right-0 top-0 h-full w-1/5 z-20 cursor-e-resize" aria-label="Next" />
+          <button onClick={() => go(-1)} className="absolute left-0 top-0 h-full w-[12%] z-20 cursor-w-resize" aria-label="Previous" />
+          <button onClick={() => go(1)} className="absolute right-0 top-0 h-full w-[12%] z-20 cursor-e-resize" aria-label="Next" />
 
-          <div className="flex-1 flex items-center justify-center px-[6vw] py-[3vh] relative z-10">
+          <div className="flex-1 flex items-center justify-center px-[5vw] py-[2vh] relative z-10 min-h-0">
             <AnimatePresence mode="wait">
               <motion.div key={idx} variants={slideV} initial="enter" animate="center" exit="exit" className="w-full flex items-center justify-center">
 
@@ -198,43 +227,55 @@ export default function PresentPage() {
                     <motion.div variants={item} className="inline-block mb-6 px-5 py-2 rounded-full bg-amber-100 text-amber-700 font-bold tracking-widest text-[1.1vw]">
                       REALLIFE ENGLISH · الإنجليزية للمواقف اليومية
                     </motion.div>
-                    <motion.h1 variants={item} className="font-black leading-tight text-[4.8vw] text-stone-800">{s.title}</motion.h1>
+                    <motion.h1 variants={item} className="font-black leading-tight text-[5vw] text-stone-800">{s.title}</motion.h1>
                     {unitNo && <motion.div variants={item} className="mt-4 text-stone-400 font-bold text-[1.6vw]">{unitNo}</motion.div>}
                   </div>
                 )}
 
                 {s.kind === 'word' && (
-                  <div className="flex flex-col items-center text-center gap-[3vh]">
+                  <div className="grid grid-cols-2 gap-[3vw] items-center w-full max-w-[86vw]">
                     <motion.div variants={item}><Photo en={s.en} /></motion.div>
-                    <motion.div variants={item} className="font-black text-[3.4vw] leading-tight text-stone-800">{s.en}</motion.div>
-                    <motion.div variants={item} dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }} className="text-[2.6vw] text-amber-700/90 font-bold -mt-[1.5vh]">{s.ar}</motion.div>
+                    <motion.div variants={item} className="space-y-[2vh]">
+                      <Box label="ENGLISH"><div className="font-black text-[2.6vw] leading-tight text-stone-800">{s.en}</div></Box>
+                      <Box label="ARABIC" labelAr="العربية" rtl><div className="font-bold text-[2.2vw] text-amber-700/90">{s.ar}</div></Box>
+                      <Box label="CHANGE THE WORD" labelAr="غيّر الكلمة" accent>
+                        <div className="flex flex-wrap gap-2">
+                          {s.others.map((o, i) => <span key={i} className="px-3 py-1 rounded-lg bg-white ring-1 ring-amber-200 text-[1.4vw] font-semibold text-stone-700">{o}</span>)}
+                        </div>
+                      </Box>
+                    </motion.div>
+                  </div>
+                )}
+
+                {s.kind === 'expr' && (
+                  <div className="grid grid-cols-2 gap-[3vw] items-center w-full max-w-[86vw]">
+                    <motion.div variants={item}><Photo en={s.example || s.pattern} /></motion.div>
+                    <motion.div variants={item} className="space-y-[2vh]">
+                      <Box label="PATTERN" labelAr="جملة قابلة للتغيير"><div className="font-black text-[2.3vw] leading-snug text-stone-800">{renderPattern(s.pattern)}</div></Box>
+                      {s.example && <Box label="EXAMPLE" labelAr="مثال"><div className="text-[2vw] text-amber-700/90 italic">{s.example}</div></Box>}
+                      <Box label="CHANGE THE WORD" labelAr="غيّر الكلمة" accent>
+                        <div className="flex flex-wrap gap-2">
+                          {s.others.map((o, i) => <span key={i} className="px-3 py-1 rounded-lg bg-white ring-1 ring-amber-200 text-[1.3vw] font-semibold text-stone-700">{o}</span>)}
+                        </div>
+                      </Box>
+                    </motion.div>
                   </div>
                 )}
 
                 {s.kind === 'convo' && (
-                  <div className="w-full max-w-[70vw] space-y-[1.5vh]">
+                  <div className="w-full max-w-[70vw] space-y-[1.3vh]">
                     {s.lines.map((l, i) => {
                       const leftSide = i % 2 === 0
                       return (
                         <motion.div key={i} variants={item} className={`flex ${leftSide ? 'justify-start' : 'justify-end'}`}>
-                          <div className={`max-w-[62%] rounded-3xl px-[1.8vw] py-[1.4vh] text-[1.6vw] shadow-sm
+                          <div className={`max-w-[64%] rounded-3xl px-[1.6vw] py-[1.2vh] text-[1.5vw] shadow-sm
                             ${leftSide ? 'bg-white text-stone-800 rounded-tl-md' : 'bg-amber-500 text-white rounded-tr-md'}`}>
-                            <span className={`block text-[0.95vw] font-bold mb-0.5 ${leftSide ? 'text-amber-600' : 'text-white/80'}`}>{l.who}</span>
+                            <span className={`block text-[0.9vw] font-bold mb-0.5 ${leftSide ? 'text-amber-600' : 'text-white/80'}`}>{l.who}</span>
                             {l.text}
                           </div>
                         </motion.div>
                       )
                     })}
-                  </div>
-                )}
-
-                {s.kind === 'expr' && (
-                  <div className="w-full max-w-[78vw] text-center">
-                    <motion.div variants={item} className="inline-block mb-[4vh] px-5 py-1.5 rounded-full bg-stone-200/70 text-stone-500 font-bold text-[1vw] tracking-wide">
-                      جملة قابلة للتغيير · CHANGE THE [WORD]
-                    </motion.div>
-                    <motion.div variants={item} className="font-black text-[3.4vw] leading-snug text-stone-800">{renderPattern(s.pattern)}</motion.div>
-                    {s.example && <motion.div variants={item} className="mt-[3.5vh] text-[2.2vw] text-amber-700/90 italic">{s.example}</motion.div>}
                   </div>
                 )}
 
@@ -250,14 +291,16 @@ export default function PresentPage() {
             </AnimatePresence>
           </div>
 
-          {/* footer */}
-          <div className="flex items-center justify-between px-[4vw] py-[2.5vh] relative z-10">
-            <button onClick={() => go(-1)} disabled={idx === 0} className="text-stone-400 hover:text-stone-700 disabled:opacity-20 transition"><ChevronLeft size={28} /></button>
+          {/* progress dots */}
+          <div className="flex items-center justify-between px-[4vw] pb-[1.2vh] relative z-10">
+            <button onClick={() => go(-1)} disabled={idx === 0} className="text-stone-400 hover:text-stone-700 disabled:opacity-20 transition"><ChevronLeft size={26} /></button>
             <div className="flex gap-1.5 items-center">
               {slides.map((_, i) => (<span key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === idx ? 'w-7 bg-amber-500' : 'w-1.5 bg-stone-300'}`} />))}
             </div>
-            <button onClick={() => go(1)} disabled={idx === last} className="text-stone-400 hover:text-stone-700 disabled:opacity-20 transition"><ChevronRight size={28} /></button>
+            <button onClick={() => go(1)} disabled={idx === last} className="text-stone-400 hover:text-stone-700 disabled:opacity-20 transition"><ChevronRight size={26} /></button>
           </div>
+
+          <Footer />
         </>
       )}
     </div>
