@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Loader2, Play, Presentation } from 'lucide-react'
+import { Loader2, Play, Presentation, Download } from 'lucide-react'
 import { fetchModules, type LmsModule } from '@/lib/lms'
 
 const COURSE_ID = '53f91433-429b-473e-87e6-20739206a3e3' // RealLife English — الإنجليزية للمواقف اليومية
@@ -36,16 +36,27 @@ export default function PresentIndexPage() {
       ) : (
         <div className="grid gap-2">
           {units.map(u => (
-            <Link
+            <div
               key={u.id}
-              href={`/admin/present/${u.id}`}
-              className="group flex items-center justify-between rounded-xl border border-zinc-200 bg-white px-4 py-3 hover:border-yellow-400 hover:bg-yellow-50/40 transition"
+              className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white px-4 py-3 hover:border-yellow-400 transition"
             >
               <span className="font-semibold text-[14px] text-zinc-800">{u.title}</span>
-              <span className="flex items-center gap-1.5 text-[12px] font-bold text-yellow-600 opacity-70 group-hover:opacity-100">
-                <Play size={14} /> Launch deck
-              </span>
-            </Link>
+              <div className="flex items-center gap-3">
+                <a
+                  href={`/api/export/${u.id}`}
+                  className="flex items-center gap-1.5 text-[12px] font-bold text-zinc-500 hover:text-zinc-800"
+                  title="Download an offline .html file (works without internet)"
+                >
+                  <Download size={14} /> Offline file
+                </a>
+                <Link
+                  href={`/admin/present/${u.id}`}
+                  className="flex items-center gap-1.5 text-[12px] font-bold text-yellow-600 hover:text-yellow-700"
+                >
+                  <Play size={14} /> Launch deck
+                </Link>
+              </div>
+            </div>
           ))}
         </div>
       )}
