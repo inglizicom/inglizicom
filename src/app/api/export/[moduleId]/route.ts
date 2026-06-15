@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { resolveImageUrl } from '@/lib/unit-image'
 
 /**
  * GET /api/export/[moduleId]
@@ -62,15 +63,12 @@ function emojiFor(en: string): string { const low = en.toLowerCase(); for (const
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
-async function imageDataUri(en: string, key?: string): Promise<string | null> {
-  if (!key) return null
+async function imageDataUri(en: string): Promise<string | null> {
+  // resolve via the shared cache (≤1 Unsplash search per query, ever),
+  // then download the image bytes (the image CDN is not rate-limited) → base64
+  const u = await resolveImageUrl(photoQuery(en))
+  if (!u) return null
   try {
-    const r = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(photoQuery(en))}&per_page=1&orientation=landscape&content_filter=high`,
-      { headers: { Authorization: `Client-ID ${key}`, 'Accept-Version': 'v1' } })
-    if (!r.ok) return null
-    const d = await r.json()
-    const u = d?.results?.[0]?.urls?.small || d?.results?.[0]?.urls?.regular
-    if (!u) return null
     const img = await fetch(u); if (!img.ok) return null
     const buf = Buffer.from(await img.arrayBuffer())
     return `data:${img.headers.get('content-type') || 'image/jpeg'};base64,${buf.toString('base64')}`
@@ -95,7 +93,6 @@ function highlight(p: string) {
 export async function GET(_req: NextRequest, { params }: { params: { moduleId: string } }) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const svc = process.env.SUPABASE_SERVICE_ROLE_KEY!
-  const uKey = process.env.UNSPLASH_ACCESS_KEY
   const db = createClient(url, svc, { auth: { persistSession: false } })
 
   const { data: mod } = await db.from('lms_modules').select('title, reading_text').eq('id', params.moduleId).single()
@@ -109,8 +106,8 @@ export async function GET(_req: NextRequest, { params }: { params: { moduleId: s
   const convo = parseConvo(mod.reading_text)
 
   // fetch + embed all images in parallel
-  const uris = await Promise.all(vocab.map(v => imageDataUri(v.en, uKey)))
-  const exprUris = await Promise.all(expr.map(e => imageDataUri(e.example || e.pattern, uKey)))
+  const uris = await Promise.all(vocab.map(v => imageDataUri(v.en)))
+  const exprUris = await Promise.all(expr.map(e => imageDataUri(e.example || e.pattern)))
 
   const slides: { secEn: string; secAr: string; html: string }[] = []
   slides.push({ secEn: '', secAr: '', html: `<div class="center"><div class="kicker">REALLIFE ENGLISH · <span class="tj">الإنجليزية للمواقف اليومية</span></div><h1>${esc(unitName)}</h1>${unitNo ? `<div class="unitpill">${esc(unitNo)}</div>` : ''}</div>` })

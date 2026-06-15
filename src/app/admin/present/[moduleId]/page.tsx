@@ -11,7 +11,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Loader2, Globe, Instagram, Youtube, GraduationCap, Phone } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Loader2, Globe, Instagram, Youtube, GraduationCap, Phone, Maximize2, Minimize2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { fetchLessons, type LmsLesson } from '@/lib/lms'
 
@@ -249,6 +249,20 @@ export default function PresentPage() {
     window.addEventListener('keydown', onKey); return () => window.removeEventListener('keydown', onKey)
   }, [last])
 
+  // true full-screen (hides the whole browser chrome) via the Fullscreen API
+  const [isFs, setIsFs] = useState(false)
+  useEffect(() => {
+    const onFs = () => setIsFs(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', onFs)
+    const onKey = (e: KeyboardEvent) => { if (e.key.toLowerCase() === 'f') toggleFs() }
+    window.addEventListener('keydown', onKey)
+    return () => { document.removeEventListener('fullscreenchange', onFs); window.removeEventListener('keydown', onKey) }
+  }, [])
+  const toggleFs = () => {
+    if (document.fullscreenElement) document.exitFullscreen()
+    else document.documentElement.requestFullscreen?.()
+  }
+
   const s = slides[idx]
   const section = s ? SECTION[s.kind] : null
 
@@ -276,6 +290,9 @@ export default function PresentPage() {
             <span className="px-3.5 py-1.5 rounded-xl bg-white shadow-sm ring-1 ring-stone-200/70 font-bold whitespace-nowrap shrink min-w-0 truncate" style={{ color: DARK }}>{unitName}</span>
             {section && <span className="px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap shrink-0 text-[#2a1d12]" style={{ background: '#facc15' }}>{section.en} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>{section.ar}</span></span>}
             <span className="ml-auto text-stone-400 font-bold whitespace-nowrap shrink-0">{String(idx + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
+            <button onClick={toggleFs} className="shrink-0 p-2 rounded-lg text-stone-500 hover:text-[#2a1d12] hover:bg-white/70 transition" title="Full screen (F)">
+              {isFs ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+            </button>
           </div>
 
           <button onClick={() => go(-1)} className="absolute left-0 top-0 h-full w-[11%] z-20 cursor-w-resize" aria-label="Previous" />
