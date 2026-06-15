@@ -14,12 +14,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Loader2, Globe, Instagram, Youtube, GraduationCap, Phone, Maximize2, Minimize2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { fetchLessons, type LmsLesson } from '@/lib/lms'
+import { variationsFor, type Variation } from '@/lib/deck-vary'
 
 const DARK = '#2a1d12'
 const CREAM = '#faf6ef'
 
 type VocabPair = { en: string; ar: string }
-type Variation = { label: string; ar: string; words: string[] }
 type Slide =
   | { kind: 'title'; title: string }
   | { kind: 'word'; en: string; ar: string; vary: Variation | null }
@@ -58,35 +58,6 @@ function renderPattern(p: string) {
     part.startsWith('[')
       ? <span key={i} className="inline-block mx-1.5 px-3 py-0.5 rounded-lg bg-yellow-400 text-[#2a1d12] align-middle">{part}</span>
       : <span key={i}>{part}</span>)
-}
-
-/* ── interchangeable words: words that COMPLETE/REPLACE a slot in the sentence.
-   Returns null when there is no sensible variation (so the box is hidden). ──── */
-const VARIATIONS: { test: RegExp; label: string; ar: string; words: string[] }[] = [
-  { test: /wake up|get up|go to bed|sleep|breakfast|lunch|dinner|take a shower|get dressed|brush|wash my face|comb|go to work|go to school/i,
-    label: 'Add a time / how often', ar: 'أضف وقتاً', words: ['early', 'late', 'at 7 o\'clock', 'every morning', 'every day'] },
-  { test: /can i have|i want the|i'?ll have|i'?d like|do you have/i,
-    label: 'Change the order', ar: 'غيّر الطلب', words: ['a coffee', 'a tea', 'some water', 'a sandwich', 'a cake'] },
-  { test: /how much is/i,
-    label: 'Change the item', ar: 'غيّر العنصر', words: ['the ticket', 'the room', 'this jacket', 'the coffee'] },
-  { test: /kilo|grams/i,
-    label: 'Change the amount', ar: 'غيّر الكمية', words: ['half a kilo', 'one kilo', 'two kilos', '250 grams'] },
-  { test: /too (big|small|tight|expensive)/i,
-    label: 'Change the word', ar: 'غيّر الكلمة', words: ['big', 'small', 'tight', 'long', 'short'] },
-  { test: /in size|in black|in red|the color/i,
-    label: 'Change the size / color', ar: 'غيّر المقاس/اللون', words: ['black', 'white', 'blue', 'size M', 'size L'] },
-  { test: /single room|double room|night/i,
-    label: 'Change it', ar: 'غيّر', words: ['a single room', 'a double room', 'two nights', 'three nights'] },
-  { test: /round trip|one way|morning flight|evening flight|window seat/i,
-    label: 'Change it', ar: 'غيّر', words: ['one way', 'a round trip', 'a morning flight', 'a window seat'] },
-  { test: /train station|bus stop|downtown|taxi/i,
-    label: 'Change the place', ar: 'غيّر المكان', words: ['the airport', 'downtown', 'the market', 'the hotel'] },
-  { test: /withdraw|deposit|transfer/i,
-    label: 'Change the amount', ar: 'غيّر المبلغ', words: ['100 dirhams', '500 dirhams', '1000 dirhams'] },
-]
-function variationsFor(en: string): Variation | null {
-  for (const v of VARIATIONS) if (v.test.test(en)) return { label: v.label, ar: v.ar, words: v.words }
-  return null
 }
 
 /* ── photo: show the ACTION (a person doing it) or a clear object ─────────── */
@@ -267,11 +238,15 @@ export default function PresentPage() {
   const section = s ? SECTION[s.kind] : null
 
   const ChangeBox = ({ vary }: { vary: Variation }) => (
-    <Box label={vary.label} labelAr={vary.ar} accent>
-      <div className="flex flex-wrap gap-2.5">
-        {vary.words.map((o, i) => <span key={i} className="px-3.5 py-1.5 rounded-xl bg-white ring-1 ring-yellow-300 text-[1.3vw] font-semibold" style={{ color: DARK }}>{o}</span>)}
+    <div className="rounded-3xl px-[2.2vw] py-[2vh] shadow-[0_14px_34px_-14px_rgba(180,120,20,0.55)]" style={{ background: 'linear-gradient(135deg,#fcd34d,#f59e0b)' }}>
+      <div className="flex items-center gap-2 mb-2.5">
+        <span className="text-[0.85vw] font-black uppercase tracking-[0.18em]" style={{ color: DARK }}>{vary.label}</span>
+        <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif", color: DARK }} className="text-[1vw] font-bold">· {vary.ar}</span>
       </div>
-    </Box>
+      <div className="flex flex-wrap gap-2.5">
+        {vary.words.map((o, i) => <span key={i} className="px-3.5 py-1.5 rounded-xl bg-white text-[1.3vw] font-bold shadow-sm" style={{ color: DARK }}>{o}</span>)}
+      </div>
+    </div>
   )
 
   return (

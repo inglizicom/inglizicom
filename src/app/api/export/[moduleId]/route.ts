@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { resolveImageUrl } from '@/lib/unit-image'
+import { variationsFor } from '@/lib/deck-vary'
 
 /**
  * GET /api/export/[moduleId]
@@ -33,20 +34,6 @@ function parseExpr(content?: string | null) {
   return content.split('\n').map(l => l.trim()).filter(l => l.startsWith('- '))
     .map(l => { const [pat, ex] = l.replace(/^-\s*/, '').split(' — '); return { pattern: (pat || '').replace(/\*\*/g, ''), example: (ex || '').replace(/\*/g, '') } })
 }
-
-const VARIATIONS: { test: RegExp; label: string; ar: string; words: string[] }[] = [
-  { test: /wake up|get up|go to bed|sleep|breakfast|lunch|dinner|take a shower|get dressed|brush|wash my face|comb|go to work|go to school/i, label: 'Add a time / how often', ar: 'أضف وقتاً', words: ['early', 'late', "at 7 o'clock", 'every morning', 'every day'] },
-  { test: /can i have|i want the|i'?ll have|i'?d like|do you have/i, label: 'Change the order', ar: 'غيّر الطلب', words: ['a coffee', 'a tea', 'some water', 'a sandwich', 'a cake'] },
-  { test: /how much is/i, label: 'Change the item', ar: 'غيّر العنصر', words: ['the ticket', 'the room', 'this jacket', 'the coffee'] },
-  { test: /kilo|grams/i, label: 'Change the amount', ar: 'غيّر الكمية', words: ['half a kilo', 'one kilo', 'two kilos', '250 grams'] },
-  { test: /too (big|small|tight|expensive)/i, label: 'Change the word', ar: 'غيّر الكلمة', words: ['big', 'small', 'tight', 'long', 'short'] },
-  { test: /in size|in black|in red|the color/i, label: 'Change the size / color', ar: 'غيّر المقاس/اللون', words: ['black', 'white', 'blue', 'size M', 'size L'] },
-  { test: /single room|double room|night/i, label: 'Change it', ar: 'غيّر', words: ['a single room', 'a double room', 'two nights', 'three nights'] },
-  { test: /round trip|one way|morning flight|evening flight|window seat/i, label: 'Change it', ar: 'غيّر', words: ['one way', 'a round trip', 'a morning flight', 'a window seat'] },
-  { test: /train station|bus stop|downtown|taxi/i, label: 'Change the place', ar: 'غيّر المكان', words: ['the airport', 'downtown', 'the market', 'the hotel'] },
-  { test: /withdraw|deposit|transfer/i, label: 'Change the amount', ar: 'غيّر المبلغ', words: ['100 dirhams', '500 dirhams', '1000 dirhams'] },
-]
-function variationsFor(en: string) { for (const v of VARIATIONS) if (v.test.test(en)) return v; return null }
 
 const STOP = new Set(['i','you','we','they','he','she','it','a','an','the','to','do','does','is','are','am','my','your','his','her','our','their','some','please','can','could','would','want','need','have','has','this','that','these','those','of','for','in','on','at','with','and','or','me','one','here','there','how','much','many','what','where','when','who','give','get','put','go','come','will','too','not','no','yes','okay','dont','don'])
 const QMAP: Record<string, string> = {
@@ -158,11 +145,13 @@ h1{font-size:5.2vw;font-weight:900;line-height:1.05;letter-spacing:-.02em}
 @keyframes fade{from{opacity:0;transform:scale(1.03)}to{opacity:1;transform:none}}
 .pic.emoji{font-size:14vw;background:linear-gradient(135deg,#fef9c3,#fde68a)}
 .box{border-radius:24px;padding:2vh 2.2vw;background:#fff;box-shadow:0 10px 30px -18px rgba(42,29,18,.3);border:1px solid rgba(0,0,0,.06)}
-.box.accent{background:#fffbeb;border-color:#fde68a}
+.box.accent{background:linear-gradient(135deg,#fcd34d,#f59e0b);border:none}
+.box.accent .lbl .ar{color:${DARK}}
+.box.accent .chip{background:#fff;border:none;color:${DARK};font-weight:700}
 .lbl{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .lbl i{width:6px;height:6px;border-radius:999px;background:#facc15;display:inline-block}
 .lbl span{font-size:.85vw;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#a8a29e}
-.box.accent .lbl span{color:#a16207}
+.box.accent .lbl span{color:${DARK}}
 .lbl .ar{font-family:'Tajawal';font-size:1vw}
 .big{font-size:2.6vw;font-weight:900;line-height:1.1}
 .big.ar,.rtl{direction:rtl;font-family:'Tajawal'}
