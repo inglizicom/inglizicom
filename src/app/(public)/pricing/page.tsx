@@ -1,6 +1,9 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { fetchCourseCatalog, type CatalogCourse } from '@/lib/student-portal'
+import { courseTheme } from '@/lib/course-theme'
 import {
   Crown, Check, ArrowLeft, Sparkles, MessageCircle, Clock, Shield,
   RefreshCw, Star, Users, Globe, BookOpen, Calendar, Target, Flame,
@@ -196,6 +199,19 @@ export default function PricingPage() {
           {INDIVIDUAL_PLANS.map(p => <IndividualCard key={p.id} plan={p} />)}
         </div>
       </div>
+
+      {/* ════════════════════════════════════════════════════
+            COURSES — the actual content unlocked by a subscription
+      ════════════════════════════════════════════════════ */}
+      <SectionHeadline
+        tag="Courses"
+        tagColor="text-emerald-400"
+        borderColor="border-emerald-800/50"
+        en="Inside Your Subscription"
+        ar="الدورات داخل المنصة"
+        sub="هذه الدورات الكاملة تفتحها باشتراكك — تفاعلية، بالصوت والصورة، مع تتبّع تقدّمك وكوينات ومكافآت."
+      />
+      <CoursesShowcase />
 
       {/* ════════════════════════════════════════════════════
             SECTION 3 — 1:1 CLASSES  (full-width)
@@ -595,6 +611,36 @@ function TrustBadge({ icon: Icon, title, subtitle }: { icon: typeof Crown; title
       <Icon className="w-5 h-5 text-amber-400 mx-auto mb-2" />
       <div className="text-white font-black text-sm">{title}</div>
       <div className="text-gray-500 text-xs font-semibold">{subtitle}</div>
+    </div>
+  )
+}
+
+/** Live showcase of the actual courses on the platform (pulled from the catalogue),
+ *  each in its own colour — so visitors see the real content a subscription unlocks. */
+function CoursesShowcase() {
+  const [courses, setCourses] = useState<CatalogCourse[]>([])
+  useEffect(() => { fetchCourseCatalog().then(setCourses).catch(() => {}) }, [])
+  if (!courses.length) return null
+  return (
+    <div className="max-w-6xl mx-auto px-4 pb-20 -mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {courses.map(c => {
+          const t = courseTheme(c)
+          return (
+            <div key={c.id} className="rounded-2xl p-5 ring-1 ring-white/10 flex items-start gap-4" style={{ background: t.dark }}>
+              <span className="w-14 h-14 rounded-xl flex items-center justify-center text-[28px] flex-shrink-0" style={{ background: t.gold, color: t.dark }}>{t.emoji}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="font-black text-white text-[16px]">{c.title}</h3>
+                  {c.level && <span className="text-[11px] font-black px-2 py-0.5 rounded-full" style={{ background: t.gold, color: t.dark }}>{c.level}</span>}
+                </div>
+                <p className="text-gray-300/80 text-[13px] mt-1.5 leading-relaxed">{c.description || 'دورة تفاعلية كاملة داخل المنصة، بالصوت والصورة.'}</p>
+                <div className="text-[12px] font-bold mt-2" style={{ color: t.gold }}>📚 {c.units} وحدة تعليمية</div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
