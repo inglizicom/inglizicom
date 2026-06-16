@@ -457,7 +457,12 @@ function Portal() {
     if (!demo) await openLesson(token, l.id)
     award('open_lesson', l.id)   // +10 coins (idempotent, server-verified)
     if (isVideoUrl(url)) { setVideoLesson(l); return }   // play in-page (no external YouTube)
-    if (url) window.open(url, '_blank')
+    if (url) { window.open(url, '_blank'); refresh(); return }
+    // No media attached yet (e.g. a conversation lesson whose video link is
+    // missing). Never dead-click: open its quiz so the student can still finish
+    // the lesson and the unit isn't blocked; otherwise tell them it's coming.
+    if (l.has_quiz) { setQuizLesson(l); return }
+    setToast('هذا الدرس قيد الإضافة — سيتوفّر قريبًا، تواصل مع الإدارة إن تأخّر.')
     refresh()
   }
   async function onCompleteLesson(l: PortalLesson) { if (demo) { award('complete_lesson', l.id); return } if (await completeLesson(token, l.id)) { refresh(); award('complete_lesson', l.id) } }
