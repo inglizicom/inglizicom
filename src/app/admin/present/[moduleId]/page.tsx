@@ -24,7 +24,7 @@ type Slide =
   | { kind: 'title'; title: string }
   | { kind: 'word'; en: string; ar: string; vary: Variation | null; slot: number }
   | { kind: 'convo'; lines: { who: string; text: string }[]; speakers: string[]; part?: number; parts?: number }
-  | { kind: 'expr'; pattern: string; example: string; vary: Variation | null }
+  | { kind: 'expr'; pattern: string; example: string; vary: Variation | null; slot: number }
   | { kind: 'end' }
 
 const SECTION: Record<Slide['kind'], { en: string; ar: string } | null> = {
@@ -58,6 +58,35 @@ function renderPattern(p: string) {
     part.startsWith('[')
       ? <span key={i} className="inline-block mx-1.5 px-3 py-0.5 rounded-lg bg-yellow-400 text-[#2a1d12] align-middle">{part}</span>
       : <span key={i}>{part}</span>)
+}
+
+/** Color an example so the swappable words (the part that fills the pattern's
+ *  [blanks]) show in white and the fixed frame stays yellow — so students see
+ *  exactly which words change. */
+function renderExample(example: string, pattern: string) {
+  const frame = new Set(
+    pattern.toLowerCase().replace(/\[[^\]]*\]/g, ' ').replace(/[^a-z\s]/g, ' ').split(/\s+/).filter(Boolean),
+  )
+  return example.split(/(\s+)/).map((tok, i) => {
+    const w = tok.toLowerCase().replace(/[^a-z]/g, '')
+    if (!w) return <span key={i}>{tok}</span>
+    const fixed = frame.has(w)
+    return <span key={i} style={{ color: fixed ? '#facc15' : '#ffffff', fontWeight: fixed ? 600 : 800 }}>{tok}</span>
+  })
+}
+
+/** 1-based position of the vocabulary phrase an expression refers to, so the
+ *  Expressions slide reuses that phrase's uploaded picture instead of a fresh
+ *  Unsplash one. Returns 0 when nothing matches (falls back to the auto photo). */
+function matchVocabSlot(text: string, vocab: VocabPair[]): number {
+  const words = (s: string) => s.toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/).filter(w => w && !STOP.has(w))
+  const t = new Set(words(text))
+  let best = 0, bestScore = 0
+  vocab.forEach((v, i) => {
+    const score = words(v.en).filter(w => t.has(w)).length
+    if (score > bestScore) { bestScore = score; best = i + 1 }
+  })
+  return bestScore > 0 ? best : 0
 }
 
 /* ── photo: show the ACTION (a person doing it) or a clear object ─────────── */
@@ -218,7 +247,7 @@ export default function PresentPage() {
       for (let p = 0; p < parts; p++)
         out.push({ kind: 'convo', lines: convo.slice(p * PER, p * PER + PER), speakers, part: p + 1, parts })
     }
-    expr.forEach(e => out.push({ kind: 'expr', pattern: e.pattern, example: e.example, vary: variationsFor(e.pattern + ' ' + e.example) }))
+    expr.forEach(e => out.push({ kind: 'expr', pattern: e.pattern, example: e.example, vary: variationsFor(e.pattern + ' ' + e.example), slot: matchVocabSlot(e.example + ' ' + e.pattern, vocab) }))
     out.push({ kind: 'end' })
     return out
   }, [lessons, reading, unitName])
@@ -315,10 +344,10 @@ export default function PresentPage() {
 
                 {s.kind === 'expr' && (
                   <div className="grid grid-cols-[1.05fr_1fr] gap-[3.5vw] items-center w-full max-w-[88vw]">
-                    <motion.div variants={item}><Photo en={s.example || s.pattern} /></motion.div>
+                    <motion.div variants={item}><Photo en={s.example || s.pattern} unit={unitNum} slot={s.slot} /></motion.div>
                     <motion.div variants={item} className="space-y-[2.2vh]">
                       <Box label="Pattern" labelAr="جملة قابلة للتغيير" brown><div className="font-black text-[2.4vw] leading-snug" style={{ color: '#facc15' }}>{renderPattern(s.pattern)}</div></Box>
-                      {s.example && <Box label="Example" labelAr="مثال" brown><div className="text-[2vw] italic" style={{ color: '#facc15' }}>{s.example}</div></Box>}
+                      {s.example && <Box label="Example" labelAr="مثال" brown><div className="text-[2vw] italic" style={{ color: '#facc15' }}>{renderExample(s.example, s.pattern)}</div></Box>}
                       {s.vary && <ChangeBox vary={s.vary} />}
                     </motion.div>
                   </div>
