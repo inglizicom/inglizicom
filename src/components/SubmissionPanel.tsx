@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { X, Send, MessageCircle, CheckCircle2, Clock, Loader2, Star, Sparkles, ArrowLeft, ClipboardList } from 'lucide-react'
+import { X, Send, MessageCircle, CheckCircle2, Clock, Loader2, Star, ArrowLeft, ClipboardList } from 'lucide-react'
 import { submitUnitText, aiCorrectSubmission, fetchUnitTask, CORRECTOR_WHATSAPP, type UnitSubmission } from '@/lib/lms'
 
 interface Props {
@@ -60,8 +60,8 @@ export default function SubmissionPanel({ token, moduleId, moduleTitle, existing
               <div className="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin" />
               <div className="absolute inset-0 flex items-center justify-center text-[30px] font-black text-indigo-600">{count}</div>
             </div>
-            <div className="font-black text-[16px] text-zinc-900 flex items-center gap-1.5"><Sparkles size={16} className="text-indigo-500" /> جارٍ التصحيح الذكي…</div>
-            <div className="text-[12.5px] text-zinc-500 mt-1.5 leading-relaxed max-w-xs">نراجع محادثتك الآن. إن كانت صحيحة ستُفتح الوحدة التالية فورًا، وإلا سيعتمدها فريق التصحيح.</div>
+            <div className="font-black text-[16px] text-zinc-900 flex items-center gap-1.5"><Send size={15} className="text-indigo-500" /> جارٍ إرسال محادثتك…</div>
+            <div className="text-[12.5px] text-zinc-500 mt-1.5 leading-relaxed max-w-xs">نرسل محادثتك إلى فريق التصحيح. سيراجعها الأستاذ ويعتمدها، وتُفتح الوحدة التالية بعد المراجعة — وتصلك ملاحظته على لوحتك وواتساب.</div>
           </div>
 
         /* ── DONE (result) ── */
@@ -81,7 +81,7 @@ export default function SubmissionPanel({ token, moduleId, moduleTitle, existing
                 <div className="w-16 h-16 rounded-2xl bg-amber-100 flex items-center justify-center mb-3"><Clock size={32} className="text-amber-600" /></div>
                 <div className="font-black text-[17px] text-amber-700">تم إرسال محادثتك 📨</div>
                 {result.feedback && <div className="text-[13px] text-zinc-700 leading-relaxed bg-amber-50 rounded-xl p-3 mt-3 w-full text-right">{result.feedback}</div>}
-                <div className="text-[12.5px] text-zinc-500 mt-3 leading-relaxed">سيعتمدها فريق التصحيح قريبًا (وستصلك ملاحظة على واتساب)، أو حسّنها وأعد الإرسال لاعتماد أسرع.</div>
+                <div className="text-[12.5px] text-zinc-500 mt-3 leading-relaxed">سيراجعها فريق التصحيح قريبًا، وتصلك ملاحظة الأستاذ على لوحتك وواتساب، وتُفتح الوحدة التالية بعد الاعتماد.</div>
                 <div className="flex gap-2 w-full mt-4">
                   <button onClick={() => { setPhase('form'); setResult(null) }} className="flex-1 py-3 rounded-2xl bg-indigo-600 text-white font-black text-[13px]">تعديل وإعادة الإرسال</button>
                   <button onClick={onClose} className="flex-1 py-3 rounded-2xl border border-zinc-200 text-zinc-600 font-bold text-[13px]">إغلاق</button>
@@ -118,10 +118,10 @@ export default function SubmissionPanel({ token, moduleId, moduleTitle, existing
             </div>
 
             <div className="rounded-xl border border-zinc-200 p-3">
-              <div className="text-[12px] font-bold text-zinc-700 mb-1.5">٢. اكتب نص المحادثة — يُصحَّح فورًا بالذكاء الاصطناعي 🤖</div>
+              <div className="text-[12px] font-bold text-zinc-700 mb-1.5">٢. اكتب نص المحادثة — يراجعها فريق التصحيح ✍️</div>
               <textarea value={text} onChange={e => setText(e.target.value)} rows={6} dir="ltr" placeholder="Write your conversation here..." className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-[13px] leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-indigo-300" style={{ textAlign: 'left' }} />
               <button onClick={submit} disabled={busy || !text.trim()} className="w-full mt-2 py-2.5 rounded-xl bg-indigo-600 text-white font-black text-[13px] flex items-center justify-center gap-1.5 disabled:opacity-40">
-                {busy ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} إرسال للتصحيح الذكي
+                {busy ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />} إرسال للتصحيح
               </button>
             </div>
 
