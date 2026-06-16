@@ -22,8 +22,8 @@ const CREAM = '#faf6ef'
 type VocabPair = { en: string; ar: string }
 type Slide =
   | { kind: 'title'; title: string }
-  | { kind: 'word'; en: string; ar: string; vary: Variation | null }
-  | { kind: 'convo'; lines: { who: string; text: string }[] }
+  | { kind: 'word'; en: string; ar: string; vary: Variation | null; slot: number }
+  | { kind: 'convo'; lines: { who: string; text: string }[]; speakers: string[]; part?: number; parts?: number }
   | { kind: 'expr'; pattern: string; example: string; vary: Variation | null }
   | { kind: 'end' }
 
@@ -113,16 +113,17 @@ function emojiFor(en: string): string {
   return '🗣️'
 }
 
-function Photo({ en }: { en: string }) {
+function Photo({ en, unit, slot }: { en: string; unit?: number; slot?: number }) {
   const [url, setUrl] = useState<string | null | undefined>(undefined)
   const [loaded, setLoaded] = useState(false)
   useEffect(() => {
     let alive = true; setUrl(undefined); setLoaded(false)
-    fetch(`/api/img?en=${encodeURIComponent(en)}&q=${encodeURIComponent(photoQuery(en))}`)
+    const pos = unit && slot ? `&unit=${unit}&i=${slot}` : ''
+    fetch(`/api/img?en=${encodeURIComponent(en)}&q=${encodeURIComponent(photoQuery(en))}${pos}`)
       .then(r => r.json()).then(d => { if (alive) setUrl(d?.url ?? null) })
       .catch(() => { if (alive) setUrl(null) })
     return () => { alive = false }
-  }, [en])
+  }, [en, unit, slot])
   return (
     <div className="relative w-full aspect-[4/3] max-h-[58vh] rounded-[28px] overflow-hidden bg-white flex items-center justify-center
                     shadow-[0_24px_60px_-22px_rgba(42,29,18,0.45)] ring-1 ring-black/5">
@@ -141,14 +142,16 @@ function Photo({ en }: { en: string }) {
   )
 }
 
-function Box({ label, labelAr, rtl, children, accent }: { label: string; labelAr?: string; rtl?: boolean; children: React.ReactNode; accent?: boolean }) {
+function Box({ label, labelAr, rtl, children, accent, brown }: { label: string; labelAr?: string; rtl?: boolean; children: React.ReactNode; accent?: boolean; brown?: boolean }) {
+  const labelColor = brown ? '#facc15' : accent ? '#a16207' : '#a8a29e'
   return (
     <div className={`rounded-3xl px-[2.2vw] py-[2vh] shadow-[0_10px_30px_-18px_rgba(42,29,18,0.3)] ring-1
-                    ${accent ? 'bg-yellow-50 ring-yellow-200' : 'bg-white ring-stone-200/70'}`}>
+                    ${brown ? 'ring-yellow-300/30' : accent ? 'bg-yellow-50 ring-yellow-200' : 'bg-white ring-stone-200/70'}`}
+         style={brown ? { background: DARK } : undefined}>
       <div className="flex items-center gap-2 mb-2">
         <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#facc15' }} />
-        <span className="text-[0.85vw] font-bold uppercase tracking-[0.18em]" style={{ color: accent ? '#a16207' : '#a8a29e' }}>{label}</span>
-        {labelAr && <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif", color: accent ? '#a16207' : '#a8a29e' }} className="text-[1vw] font-bold">· {labelAr}</span>}
+        <span className="text-[0.85vw] font-bold uppercase tracking-[0.18em]" style={{ color: labelColor }}>{label}</span>
+        {labelAr && <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif", color: labelColor }} className="text-[1vw] font-bold">· {labelAr}</span>}
       </div>
       <div dir={rtl ? 'rtl' : 'ltr'} style={rtl ? { fontFamily: "'Tajawal', sans-serif" } : undefined}>{children}</div>
     </div>
@@ -156,15 +159,15 @@ function Box({ label, labelAr, rtl, children, accent }: { label: string; labelAr
 }
 
 function Footer() {
-  const sep = <span className="text-stone-300">·</span>
+  const sep = <span className="text-white/30">·</span>
   return (
-    <div className="relative z-10 flex items-center justify-center gap-[1.6vw] px-[3vw] py-[1.5vh] text-[0.9vw] font-semibold text-stone-500
-                    border-t border-stone-200/70 bg-white/50 backdrop-blur-sm">
-      <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }} className="flex items-center gap-1.5"><Phone size={13} className="text-emerald-600" /> واتساب 0764189311</span>
-      {sep}<span className="flex items-center gap-1.5"><Globe size={13} style={{ color: '#a16207' }} /> inglizi.com</span>
-      {sep}<span className="flex items-center gap-1.5"><Instagram size={13} className="text-rose-500" /> @elqasraouihamza</span>
-      {sep}<span className="flex items-center gap-1.5"><Youtube size={13} className="text-red-600" /> @hamzaelqasraoui</span>
-      {sep}<span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }} className="flex items-center gap-1.5"><GraduationCap size={13} style={{ color: DARK }} /> الأستاذ حمزة</span>
+    <div className="relative z-10 flex items-center justify-center gap-[1.6vw] px-[3vw] py-[1.5vh] text-[0.9vw] font-semibold text-white
+                    border-t border-white/10" style={{ background: DARK }}>
+      <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }} className="flex items-center gap-1.5"><Phone size={13} className="text-emerald-400" /> واتساب 0764189311</span>
+      {sep}<span className="flex items-center gap-1.5"><Globe size={13} style={{ color: '#facc15' }} /> inglizi.com</span>
+      {sep}<span className="flex items-center gap-1.5"><Instagram size={13} className="text-rose-400" /> @elqasraouihamza</span>
+      {sep}<span className="flex items-center gap-1.5"><Youtube size={13} className="text-red-500" /> @hamzaelqasraoui</span>
+      {sep}<span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }} className="flex items-center gap-1.5"><GraduationCap size={13} style={{ color: '#facc15' }} /> الأستاذ حمزة</span>
     </div>
   )
 }
@@ -197,14 +200,24 @@ export default function PresentPage() {
     const parts = title.split('—')
     return parts.length > 1 ? [parts[0].trim(), parts.slice(1).join('—').trim()] : ['', title]
   }, [title])
+  // unit number drives the picture folder (unit-<N>) and letter (1→a, 2→b…)
+  const unitNum = useMemo(() => parseInt(unitNo.replace(/\D/g, ''), 10) || 0, [unitNo])
 
   const slides = useMemo<Slide[]>(() => {
     const vocab = parseVocab(lessons.find(l => l.lesson_order === 1)?.content)
     const expr = parseExpr(lessons.find(l => l.lesson_order === 2)?.content)
     const convo = parseConvo(reading)
     const out: Slide[] = [{ kind: 'title', title: unitName }]
-    vocab.forEach(p => out.push({ kind: 'word', en: p.en, ar: p.ar, vary: variationsFor(p.en) }))
-    if (convo.length) out.push({ kind: 'convo', lines: convo })
+    vocab.forEach((p, i) => out.push({ kind: 'word', en: p.en, ar: p.ar, vary: variationsFor(p.en), slot: i + 1 }))
+    if (convo.length) {
+      // keep each conversation slide readable on a recording: ~5 messages max,
+      // with consistent left/right sides derived from the global speaker order.
+      const speakers = [...new Set(convo.map(l => l.who))]
+      const PER = 5
+      const parts = Math.ceil(convo.length / PER)
+      for (let p = 0; p < parts; p++)
+        out.push({ kind: 'convo', lines: convo.slice(p * PER, p * PER + PER), speakers, part: p + 1, parts })
+    }
     expr.forEach(e => out.push({ kind: 'expr', pattern: e.pattern, example: e.example, vary: variationsFor(e.pattern + ' ' + e.example) }))
     out.push({ kind: 'end' })
     return out
@@ -260,14 +273,16 @@ export default function PresentPage() {
       ) : (
         <>
           {/* header — single row, fits */}
-          <div className="relative z-10 flex items-center gap-2 px-[3vw] pt-[2.6vh] text-[0.95vw] flex-nowrap overflow-hidden">
+          <div className="relative z-10 flex items-center justify-center gap-2 px-[3vw] pt-[2.6vh] text-[0.95vw] flex-nowrap overflow-hidden">
             {unitNo && <span className="px-3.5 py-1.5 rounded-xl text-white font-black whitespace-nowrap shrink-0" style={{ background: DARK }}>{unitNo}</span>}
             <span className="px-3.5 py-1.5 rounded-xl bg-white shadow-sm ring-1 ring-stone-200/70 font-bold whitespace-nowrap shrink min-w-0 truncate" style={{ color: DARK }}>{unitName}</span>
-            {section && <span className="px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap shrink-0 text-[#2a1d12]" style={{ background: '#facc15' }}>{section.en} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>{section.ar}</span></span>}
-            <span className="ml-auto text-stone-400 font-bold whitespace-nowrap shrink-0">{String(idx + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
-            <button onClick={toggleFs} className="shrink-0 p-2 rounded-lg text-stone-500 hover:text-[#2a1d12] hover:bg-white/70 transition" title="Full screen (F)">
-              {isFs ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-            </button>
+            {section && <span className="px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap shrink-0 text-[#2a1d12]" style={{ background: '#facc15' }}>{section.en} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>{section.ar}</span>{s.kind === 'convo' && s.parts && s.parts > 1 ? ` · ${s.part}/${s.parts}` : ''}</span>}
+            <div className="absolute right-[3vw] top-[2.6vh] flex items-center gap-2">
+              <span className="text-stone-400 font-bold whitespace-nowrap shrink-0">{String(idx + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
+              <button onClick={toggleFs} className="shrink-0 p-2 rounded-lg text-stone-500 hover:text-[#2a1d12] hover:bg-white/70 transition" title="Full screen (F)">
+                {isFs ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+              </button>
+            </div>
           </div>
 
           <button onClick={() => go(-1)} className="absolute left-0 top-0 h-full w-[11%] z-20 cursor-w-resize" aria-label="Previous" />
@@ -289,7 +304,7 @@ export default function PresentPage() {
 
                 {s.kind === 'word' && (
                   <div className="grid grid-cols-[1.05fr_1fr] gap-[3.5vw] items-center w-full max-w-[88vw]">
-                    <motion.div variants={item}><Photo en={s.en} /></motion.div>
+                    <motion.div variants={item}><Photo en={s.en} unit={unitNum} slot={s.slot} /></motion.div>
                     <motion.div variants={item} className="space-y-[2.2vh]">
                       <Box label="English"><div className="font-black text-[2.7vw] leading-[1.1]" style={{ color: DARK }}>{s.en}</div></Box>
                       <Box label="Arabic" labelAr="العربية" rtl><div className="font-bold text-[2.3vw]" style={{ color: '#5b4636' }}>{s.ar}</div></Box>
@@ -302,23 +317,29 @@ export default function PresentPage() {
                   <div className="grid grid-cols-[1.05fr_1fr] gap-[3.5vw] items-center w-full max-w-[88vw]">
                     <motion.div variants={item}><Photo en={s.example || s.pattern} /></motion.div>
                     <motion.div variants={item} className="space-y-[2.2vh]">
-                      <Box label="Pattern" labelAr="جملة قابلة للتغيير"><div className="font-black text-[2.4vw] leading-snug" style={{ color: DARK }}>{renderPattern(s.pattern)}</div></Box>
-                      {s.example && <Box label="Example" labelAr="مثال"><div className="text-[2vw] italic" style={{ color: '#5b4636' }}>{s.example}</div></Box>}
+                      <Box label="Pattern" labelAr="جملة قابلة للتغيير" brown><div className="font-black text-[2.4vw] leading-snug" style={{ color: '#facc15' }}>{renderPattern(s.pattern)}</div></Box>
+                      {s.example && <Box label="Example" labelAr="مثال" brown><div className="text-[2vw] italic" style={{ color: '#facc15' }}>{s.example}</div></Box>}
                       {s.vary && <ChangeBox vary={s.vary} />}
                     </motion.div>
                   </div>
                 )}
 
                 {s.kind === 'convo' && (
-                  <div className="w-full max-w-[68vw] space-y-[1.4vh]">
+                  <div className="w-full max-w-[70vw] space-y-[2vh]">
                     {s.lines.map((l, i) => {
-                      const leftSide = i % 2 === 0
-                      return (
-                        <motion.div key={i} variants={item} className={`flex items-end gap-3 ${leftSide ? 'justify-start' : 'justify-end flex-row-reverse'}`}>
-                          <span className="shrink-0 w-[2.6vw] h-[2.6vw] rounded-full flex items-center justify-center text-[1vw] font-black text-white shadow-sm"
+                      const leftSide = s.speakers.indexOf(l.who) === 0
+                      const avatar = (
+                        <div className="shrink-0 flex flex-col items-center gap-1 w-[4vw]">
+                          <span className="w-[3.4vw] h-[3.4vw] rounded-full flex items-center justify-center text-[1.4vw] font-black shadow-[0_6px_16px_-8px_rgba(0,0,0,0.5)] ring-2 ring-white"
                             style={{ background: leftSide ? '#a8a29e' : '#facc15', color: leftSide ? '#fff' : DARK }}>{l.who.charAt(0)}</span>
-                          <div className="max-w-[60%] rounded-3xl px-[1.6vw] py-[1.2vh] text-[1.5vw] leading-snug shadow-[0_8px_24px_-16px_rgba(0,0,0,0.4)]"
-                            style={leftSide ? { background: '#fff', color: DARK, borderBottomLeftRadius: 6 } : { background: '#facc15', color: DARK, borderBottomRightRadius: 6 }}>
+                          <span className="text-[0.8vw] font-bold whitespace-nowrap" style={{ color: leftSide ? '#a8a29e' : '#a16207' }}>{l.who}</span>
+                        </div>
+                      )
+                      return (
+                        <motion.div key={i} variants={item} className={`flex items-start gap-[1.2vw] ${leftSide ? 'justify-start' : 'justify-end flex-row-reverse'}`}>
+                          {avatar}
+                          <div className="max-w-[58%] rounded-[26px] px-[1.8vw] py-[1.4vh] text-[1.6vw] leading-snug shadow-[0_10px_28px_-16px_rgba(0,0,0,0.45)]"
+                            style={leftSide ? { background: '#fff', color: DARK, borderTopLeftRadius: 6 } : { background: '#facc15', color: DARK, borderTopRightRadius: 6 }}>
                             {l.text}
                           </div>
                         </motion.div>

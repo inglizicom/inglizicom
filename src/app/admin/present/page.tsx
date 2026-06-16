@@ -31,7 +31,7 @@ export default function PresentIndexPage() {
         Open a unit deck full-screen, then screen-record yourself explaining it. Navigate with ← → or Space.
       </p>
       <div className="mb-6 rounded-xl bg-amber-50 ring-1 ring-amber-200 px-4 py-3 text-[13px] text-amber-900">
-        <b>Use your own pictures?</b> Drop images in <code className="bg-white px-1 rounded">public/deck-images/</code> named after each phrase (e.g. <code className="bg-white px-1 rounded">i-take-a-shower.jpg</code>). Your picture always wins.{' '}
+        <b>Use your own pictures?</b> Two ways — both override the auto photo. By unit folder & order: drop into <code className="bg-white px-1 rounded">public/deck-images/unit-1/</code> as <code className="bg-white px-1 rounded">a1.jpg</code>, <code className="bg-white px-1 rounded">a2.jpg</code>… (unit 1 = <code className="bg-white px-1 rounded">a</code>, unit 2 = <code className="bg-white px-1 rounded">b</code>, number = phrase order). Or by phrase name in <code className="bg-white px-1 rounded">public/deck-images/</code> (e.g. <code className="bg-white px-1 rounded">i-take-a-shower.jpg</code>).{' '}
         <a href="/api/deck-images-guide" className="font-bold underline">Download the filename guide</a>.
       </div>
 

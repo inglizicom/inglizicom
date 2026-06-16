@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import fs from 'fs'
-import { resolveImageUrl, localImageFile } from '@/lib/unit-image'
+import { resolveImageUrl, localImageFile, slotImageFile } from '@/lib/unit-image'
 import { variationsFor } from '@/lib/deck-vary'
 
 /**
@@ -51,9 +51,10 @@ function emojiFor(en: string): string { const low = en.toLowerCase(); for (const
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
-async function imageDataUri(en: string): Promise<string | null> {
-  // 1) the teacher's own picture (embedded for true offline)
-  const local = localImageFile(en)
+async function imageDataUri(en: string, unit?: number, i?: number): Promise<string | null> {
+  // 1) the teacher's own picture (embedded for true offline) — positional first,
+  //    then named-by-phrase
+  const local = (unit && i ? slotImageFile(unit, i) : null) || localImageFile(en)
   if (local) {
     try {
       const ext = (local.split('.').pop() || 'jpeg').replace('jpg', 'jpeg')
@@ -96,12 +97,13 @@ export async function GET(_req: NextRequest, { params }: { params: { moduleId: s
 
   const title: string = mod.title || 'Unit'
   const [unitNo, unitName] = title.includes('—') ? [title.split('—')[0].trim(), title.split('—').slice(1).join('—').trim()] : ['', title]
+  const unitNum = parseInt(unitNo.replace(/\D/g, ''), 10) || 0
   const vocab = parseVocab((ls || []).find(l => l.lesson_order === 1)?.content)
   const expr = parseExpr((ls || []).find(l => l.lesson_order === 2)?.content)
   const convo = parseConvo(mod.reading_text)
 
   // fetch + embed all images in parallel
-  const uris = await Promise.all(vocab.map(v => imageDataUri(v.en)))
+  const uris = await Promise.all(vocab.map((v, i) => imageDataUri(v.en, unitNum, i + 1)))
   const exprUris = await Promise.all(expr.map(e => imageDataUri(e.example || e.pattern)))
 
   const slides: { secEn: string; secAr: string; html: string }[] = []
