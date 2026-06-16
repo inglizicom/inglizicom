@@ -330,7 +330,7 @@ function ExamEditor({ module }: { module: LmsModule }) {
   const [quiz, setQuiz] = useState<LessonQuiz | null>(module.exam_quiz ?? null)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const count = quiz?.questions.length ?? 0
+  const count = quiz?.questions?.length ?? 0
   async function save() {
     setSaving(true)
     await updateModuleExam(module.id, count > 0 ? quiz : null)
@@ -396,13 +396,13 @@ function ReadingEditor({ module }: { module: LmsModule }) {
           <input value={video} onChange={e => setVideo(e.target.value)} dir="ltr" placeholder="رابط فيديو: كيف تقرأ النص (يوتيوب)" className={INP + ' text-right'} />
           <div className="flex items-center gap-2">
             <button onClick={gen} disabled={genning || !text.trim()} className="flex-1 py-2 rounded-lg bg-violet-100 text-violet-700 font-bold text-[12px] flex items-center justify-center gap-1.5 disabled:opacity-50">
-              {genning ? <Loader2 size={13} className="animate-spin" /> : <Wand2 size={13} />} {quiz ? `إعادة توليد الأسئلة (${quiz.questions.length})` : 'توليد أسئلة الفهم'}
+              {genning ? <Loader2 size={13} className="animate-spin" /> : <Wand2 size={13} />} {quiz?.questions?.length ? `إعادة توليد الأسئلة (${quiz.questions.length})` : 'توليد أسئلة الفهم'}
             </button>
             <button onClick={save} disabled={saving} className="flex-1 py-2 rounded-lg bg-sky-600 text-white font-bold text-[12px] flex items-center justify-center gap-1.5 disabled:opacity-50">
               {saving ? <Loader2 size={13} className="animate-spin" /> : saved ? <><Check size={13} /> تم الحفظ</> : 'حفظ القراءة'}
             </button>
           </div>
-          {quiz && <div className="text-[11px] text-zinc-500">✅ {quiz.questions.length} أسئلة فهم جاهزة — تظهر للطالب بعد القراءة.</div>}
+          {!!quiz?.questions?.length && <div className="text-[11px] text-zinc-500">✅ {quiz.questions.length} أسئلة فهم جاهزة — تظهر للطالب بعد القراءة.</div>}
         </div>
       )}
     </div>

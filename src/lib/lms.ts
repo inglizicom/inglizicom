@@ -29,6 +29,16 @@ export interface LmsLesson {
 export interface QuizQuestion { q: string; choices: string[]; answer: number; explain?: string }
 export interface LessonExercise { prompt: string; sample_answer?: string }
 export interface LessonQuiz { questions: QuizQuestion[]; exercise?: LessonExercise | null }
+/** Tolerate both quiz shapes found in the DB: a bare questions array (older
+ *  seeds, e.g. the RealLife course) and the `{ questions: [...] }` object.
+ *  Always returns a normalized LessonQuiz or null — never a shape that would
+ *  crash `quiz.questions.length`. */
+export function normalizeQuiz(q: any): LessonQuiz | null {
+  if (!q) return null
+  if (Array.isArray(q)) return q.length ? { questions: q } : null
+  if (Array.isArray(q.questions)) return q as LessonQuiz
+  return null
+}
 export interface CourseProgress { course_id: string; title: string; level: string | null; total: number; done: number; progress: number }
 
 export const LESSON_TYPES = [
@@ -79,7 +89,7 @@ export async function sendWhatsApp(phone: string, kind: string, params: Record<s
 /* ── Modules ───────────────────────────────────────────── */
 export async function fetchModules(courseId: string): Promise<LmsModule[]> {
   const { data } = await supabase.from('lms_modules').select('*').eq('course_id', courseId).order('module_order')
-  return (data ?? []) as LmsModule[]
+  return (data ?? []).map((m: any) => ({ ...m, reading_quiz: normalizeQuiz(m.reading_quiz), exam_quiz: normalizeQuiz(m.exam_quiz) })) as LmsModule[]
 }
 export async function addModule(courseId: string, title: string, order: number): Promise<void> {
   await supabase.from('lms_modules').insert({ course_id: courseId, title, module_order: order })
@@ -107,7 +117,9 @@ export async function updateModuleExam(id: string, quiz: LessonQuiz | null): Pro
 }
 export async function fetchUnitExam(token: string, moduleId: string): Promise<{ quiz: LessonQuiz | null; passed: boolean } | null> {
   const { data } = await supabase.rpc('student_unit_exam', { p_token: token.trim().toUpperCase(), p_module_id: moduleId })
-  return (data ?? null) as { quiz: LessonQuiz | null; passed: boolean } | null
+  if (!data) return null
+  const d = data as { quiz: any; passed: boolean }
+  return { quiz: normalizeQuiz(d.quiz), passed: !!d.passed }
 }
 export async function submitUnitExam(token: string, moduleId: string, score: number, total: number, answers: number[]): Promise<boolean> {
   const { data } = await supabase.rpc('student_submit_unit_exam', { p_token: token.trim().toUpperCase(), p_module_id: moduleId, p_score: score, p_total: total, p_answers: answers })
@@ -125,13 +137,13 @@ export async function fetchReadingUnits(token: string): Promise<string[]> {
 export async function fetchUnitReading(token: string, moduleId: string): Promise<UnitReading | null> {
   const { data } = await supabase.rpc('student_unit_reading', { p_token: token.trim().toUpperCase(), p_module_id: moduleId })
   if (!data) return null
-  return data as UnitReading
+  return { ...(data as UnitReading), quiz: normalizeQuiz((data as any).quiz) }
 }
 
 /* ── Lessons ───────────────────────────────────────────── */
 export async function fetchLessons(moduleId: string): Promise<LmsLesson[]> {
   const { data } = await supabase.from('lms_lessons').select('*').eq('module_id', moduleId).order('lesson_order')
-  return (data ?? []) as LmsLesson[]
+  return (data ?? []).map((l: any) => ({ ...l, quiz: normalizeQuiz(l.quiz) })) as LmsLesson[]
 }
 export async function addLesson(input: {
   moduleId: string; title: string; order: number; lessonType?: string
@@ -311,8 +323,9 @@ export async function fetchCertificate(token: string): Promise<Certificate | nul
 /* ── Student quiz (token-gated) ───────────────────────── */
 export async function fetchLessonQuiz(token: string, lessonId: string): Promise<{ quiz: LessonQuiz; best_score: number | null; best_total: number | null } | null> {
   const { data } = await supabase.rpc('student_lesson_quiz', { p_token: token.trim().toUpperCase(), p_lesson_id: lessonId })
-  if (!data || !data.quiz) return null
-  return data as any
+  const quiz = normalizeQuiz(data?.quiz)
+  if (!quiz) return null
+  return { ...data, quiz } as any
 }
 export async function submitQuiz(token: string, lessonId: string, score: number, total: number, answers: number[]): Promise<boolean> {
   const { data } = await supabase.rpc('student_submit_quiz', { p_token: token.trim().toUpperCase(), p_lesson_id: lessonId, p_score: score, p_total: total, p_answers: answers })
