@@ -5,18 +5,20 @@
 export interface CourseTheme {
   key: string
   dark: string       // header + dark panels
+  dark2: string      // dark gradient mid  (was #3a2817)
+  dark3: string      // dark gradient end  (was #5a3d1f)
   cream: string      // page background
   gold: string       // primary accent
   goldSoft: string   // soft accent background
-  grad: [string, string]
+  grad: [string, string]   // gold gradient (light → deep)
   emoji: string
 }
 
 const THEMES: Record<string, CourseTheme> = {
-  a0a1: { key: 'a0a1', dark: '#2a1d12', cream: '#faf6ef', gold: '#facc15', goldSoft: '#fef9c3', grad: ['#fcd34d', '#f59e0b'], emoji: '🌱' },
-  a1a2: { key: 'a1a2', dark: '#0f2e2a', cream: '#ecfdf5', gold: '#34d399', goldSoft: '#d1fae5', grad: ['#6ee7b7', '#10b981'], emoji: '🌿' },
-  a2b1: { key: 'a2b1', dark: '#1e1b3a', cream: '#f5f3ff', gold: '#a78bfa', goldSoft: '#ede9fe', grad: ['#c4b5fd', '#8b5cf6'], emoji: '🚀' },
-  b1b2: { key: 'b1b2', dark: '#0f2440', cream: '#eff6ff', gold: '#38bdf8', goldSoft: '#dbeafe', grad: ['#7dd3fc', '#0ea5e9'], emoji: '🏆' },
+  a0a1: { key: 'a0a1', dark: '#2a1d12', dark2: '#3a2817', dark3: '#5a3d1f', cream: '#faf6ef', gold: '#facc15', goldSoft: '#fef9c3', grad: ['#fcd34d', '#f59e0b'], emoji: '🌱' },
+  a1a2: { key: 'a1a2', dark: '#0f2e2a', dark2: '#15433b', dark3: '#1c5a4e', cream: '#ecfdf5', gold: '#10b981', goldSoft: '#d1fae5', grad: ['#34d399', '#059669'], emoji: '🌿' },
+  a2b1: { key: 'a2b1', dark: '#1e1b3a', dark2: '#2b2553', dark3: '#3b327a', cream: '#f5f3ff', gold: '#7c3aed', goldSoft: '#ede9fe', grad: ['#a78bfa', '#7c3aed'], emoji: '🚀' },
+  b1b2: { key: 'b1b2', dark: '#0f2440', dark2: '#163454', dark3: '#1d4470', cream: '#eff6ff', gold: '#0284c7', goldSoft: '#dbeafe', grad: ['#38bdf8', '#0284c7'], emoji: '🏆' },
 }
 export const DEFAULT_THEME = THEMES.a0a1
 

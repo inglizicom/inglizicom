@@ -15,16 +15,16 @@ const ACTION_AR: Record<string, string> = {
 }
 const LEVEL_STYLE: Record<string, string> = {
   Bronze: 'from-amber-700 to-amber-900', Silver: 'from-zinc-400 to-zinc-600',
-  Gold: 'from-yellow-400 to-amber-500', Platinum: 'from-sky-300 to-sky-500', Master: 'from-violet-500 to-fuchsia-600',
+  Gold: 'from-[var(--ic-grad-from)] to-[var(--ic-grad-to)]', Platinum: 'from-sky-300 to-sky-500', Master: 'from-violet-500 to-fuchsia-600',
 }
 const LEVEL_EMOJI: Record<string, string> = { Bronze: '🥉', Silver: '🥈', Gold: '🥇', Platinum: '💎', Master: '👑' }
-const RANK_RING: Record<number, string> = { 1: 'ring-yellow-400', 2: 'ring-zinc-300', 3: 'ring-amber-600' }
+const RANK_RING: Record<number, string> = { 1: 'ring-[var(--ic-gold)]', 2: 'ring-zinc-300', 3: 'ring-amber-600' }
 
 function SectionLabel({ emoji, title, sub }: { emoji: string; title: string; sub?: string }) {
   return (
     <div className="flex items-center gap-2 px-1 pt-1">
       <span className="text-[19px] leading-none">{emoji}</span>
-      <div><div className="font-black text-[15px] text-[#3a2817] leading-tight">{title}</div>{sub && <div className="text-[11px] text-zinc-400">{sub}</div>}</div>
+      <div><div className="font-black text-[15px] text-[var(--ic-dark-2)] leading-tight">{title}</div>{sub && <div className="text-[11px] text-zinc-400">{sub}</div>}</div>
     </div>
   )
 }
@@ -59,12 +59,12 @@ export default function RewardsCenter({ token, courseId, onPractice, onVocab }: 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
       {/* balance + level */}
-      <div className="rounded-3xl p-5 bg-gradient-to-br from-[#2a1d12] via-[#3a2817] to-[#5a3d1f] text-white shadow-[0_6px_20px_rgba(42,29,18,0.25)]">
+      <div className="rounded-3xl p-5 bg-gradient-to-br from-[var(--ic-dark)] via-[var(--ic-dark-2)] to-[var(--ic-dark-3)] text-white shadow-[0_6px_20px_rgba(42,29,18,0.25)]">
         <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-2xl bg-yellow-400 text-black flex items-center justify-center"><CoinIcon size={32} /></div>
+          <div className="w-14 h-14 rounded-2xl bg-[var(--ic-gold)] text-black flex items-center justify-center"><CoinIcon size={32} /></div>
           <div className="flex-1">
             <div className="text-[12px] text-amber-100/60">💰 رصيدك من الكوينات</div>
-            <div className="font-black text-[28px] leading-none">{coins?.balance ?? 0} <span className="text-[13px] font-bold text-yellow-400">كوين</span></div>
+            <div className="font-black text-[28px] leading-none">{coins?.balance ?? 0} <span className="text-[13px] font-bold text-[var(--ic-gold)]">كوين</span></div>
           </div>
           <div className="text-center flex-shrink-0">
             <div className="text-[26px] leading-none">{LEVEL_EMOJI[coins?.level ?? 'Bronze']}</div>
@@ -73,10 +73,10 @@ export default function RewardsCenter({ token, courseId, onPractice, onVocab }: 
         </div>
         {coins?.next_level ? (
           <div className="mt-4">
-            <div className="flex items-center justify-between text-[11px] text-amber-100/70 mb-1"><span>⬆️ التالي: {LEVEL_EMOJI[coins.next_level]} {coins.next_level}</span><span className="font-bold text-yellow-300">باقٍ {coins.to_next} كوين</span></div>
-            <div className="h-2.5 bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-l from-yellow-400 to-amber-300 rounded-full transition-all" style={{ width: `${coins.progress}%` }} /></div>
+            <div className="flex items-center justify-between text-[11px] text-amber-100/70 mb-1"><span>⬆️ التالي: {LEVEL_EMOJI[coins.next_level]} {coins.next_level}</span><span className="font-bold text-[var(--ic-gold)]">باقٍ {coins.to_next} كوين</span></div>
+            <div className="h-2.5 bg-white/10 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-l from-[var(--ic-grad-from)] to-[var(--ic-grad-to)] rounded-full transition-all" style={{ width: `${coins.progress}%` }} /></div>
           </div>
-        ) : <div className="mt-3 text-[12px] text-yellow-400 font-bold flex items-center gap-1.5"><Crown size={15} /> 👑 أعلى مستوى — Master!</div>}
+        ) : <div className="mt-3 text-[12px] text-[var(--ic-gold)] font-bold flex items-center gap-1.5"><Crown size={15} /> 👑 أعلى مستوى — Master!</div>}
       </div>
 
       {/* play & learn */}
@@ -95,13 +95,13 @@ export default function RewardsCenter({ token, courseId, onPractice, onVocab }: 
         </button>
       )}
       <div className="grid grid-cols-2 gap-3">
-        <button onClick={() => onPractice('sentence')} className="group rounded-2xl p-4 text-right bg-gradient-to-br from-yellow-300 to-amber-400 shadow-[0_4px_14px_rgba(245,158,11,0.25)] hover:scale-[1.02] transition-transform">
+        <button onClick={() => onPractice('sentence')} className="group rounded-2xl p-4 text-right bg-gradient-to-br from-[var(--ic-grad-from)] to-[var(--ic-grad-to)] shadow-[0_4px_14px_rgba(245,158,11,0.25)] hover:scale-[1.02] transition-transform">
           <div className="flex items-center justify-between mb-2"><div className="w-12 h-12 rounded-2xl bg-white/40 flex items-center justify-center text-[26px]">🧩</div><span className="text-[10px] font-black text-amber-900 bg-white/50 px-2 py-0.5 rounded-full inline-flex items-center gap-0.5">+30 <CoinIcon size={12} /></span></div>
-          <div className="font-black text-[15px] text-[#2a1d12]">بناء الجمل</div>
+          <div className="font-black text-[15px] text-[var(--ic-dark)]">بناء الجمل</div>
           <div className="text-[11px] text-amber-900/70 font-medium">رتّب الكلمات أو ترجم الجملة</div>
         </button>
-        <button onClick={() => onPractice('translation')} className="group rounded-2xl p-4 text-right bg-gradient-to-br from-[#3a2817] to-[#5a3d1f] text-white shadow-[0_4px_14px_rgba(42,29,18,0.3)] hover:scale-[1.02] transition-transform">
-          <div className="flex items-center justify-between mb-2"><div className="w-12 h-12 rounded-2xl bg-yellow-400/20 flex items-center justify-center text-[26px]">🔤</div><span className="text-[10px] font-black text-[#2a1d12] bg-yellow-400 px-2 py-0.5 rounded-full inline-flex items-center gap-0.5">+30 <CoinIcon size={12} /></span></div>
+        <button onClick={() => onPractice('translation')} className="group rounded-2xl p-4 text-right bg-gradient-to-br from-[var(--ic-dark-2)] to-[var(--ic-dark-3)] text-white shadow-[0_4px_14px_rgba(42,29,18,0.3)] hover:scale-[1.02] transition-transform">
+          <div className="flex items-center justify-between mb-2"><div className="w-12 h-12 rounded-2xl bg-[var(--ic-gold-soft)] flex items-center justify-center text-[26px]">🔤</div><span className="text-[10px] font-black text-[var(--ic-dark)] bg-[var(--ic-gold)] px-2 py-0.5 rounded-full inline-flex items-center gap-0.5">+30 <CoinIcon size={12} /></span></div>
           <div className="font-black text-[15px] text-white">ترجم الجمل</div>
           <div className="text-[11px] text-amber-100/70 font-medium">عربي ← إنجليزي</div>
         </button>
@@ -109,8 +109,8 @@ export default function RewardsCenter({ token, courseId, onPractice, onVocab }: 
 
       {/* sub tabs */}
       <div className="flex gap-1.5 bg-amber-100/70 p-1 rounded-2xl">
-        <button onClick={() => changeSub('rewards')} className={`flex-1 py-2.5 rounded-xl text-[13.5px] font-black transition-colors ${sub === 'rewards' ? 'bg-[#3a2817] text-yellow-400 shadow' : 'text-[#3a2817] hover:bg-white/50'}`}>🎁 المكافآت</button>
-        <button onClick={() => changeSub('board')} className={`flex-1 py-2.5 rounded-xl text-[13.5px] font-black transition-colors ${sub === 'board' ? 'bg-[#3a2817] text-yellow-400 shadow' : 'text-[#3a2817] hover:bg-white/50'}`}>🏆 المتصدرون</button>
+        <button onClick={() => changeSub('rewards')} className={`flex-1 py-2.5 rounded-xl text-[13.5px] font-black transition-colors ${sub === 'rewards' ? 'bg-[var(--ic-dark-2)] text-[var(--ic-gold)] shadow' : 'text-[var(--ic-dark-2)] hover:bg-white/50'}`}>🎁 المكافآت</button>
+        <button onClick={() => changeSub('board')} className={`flex-1 py-2.5 rounded-xl text-[13.5px] font-black transition-colors ${sub === 'board' ? 'bg-[var(--ic-dark-2)] text-[var(--ic-gold)] shadow' : 'text-[var(--ic-dark-2)] hover:bg-white/50'}`}>🏆 المتصدرون</button>
       </div>
 
       {msg && <div className="text-[12.5px] text-center text-zinc-700 bg-emerald-50 border border-emerald-200 rounded-xl py-2.5 font-bold">{msg}</div>}
@@ -122,11 +122,11 @@ export default function RewardsCenter({ token, courseId, onPractice, onVocab }: 
             const claimable = r.unlocked && (!r.claim_status || r.claim_status === 'rejected')
             const need = Math.max(0, r.min_coins - (coins?.balance ?? 0))
             return (
-              <div key={r.id} className={`rounded-2xl overflow-hidden bg-white shadow-[0_3px_14px_rgba(58,40,23,0.07)] border-2 ${r.unlocked ? 'border-yellow-400' : 'border-zinc-100'}`}>
+              <div key={r.id} className={`rounded-2xl overflow-hidden bg-white shadow-[0_3px_14px_rgba(58,40,23,0.07)] border-2 ${r.unlocked ? 'border-[var(--ic-gold)]' : 'border-zinc-100'}`}>
                 <div className="flex items-center gap-3 p-4">
                   <div className={`relative w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${r.unlocked ? `text-white bg-gradient-to-br ${LEVEL_STYLE[r.level] ?? LEVEL_STYLE.Bronze}` : 'bg-zinc-100 text-zinc-300'}`}>{r.unlocked ? <Gift size={22} /> : <Lock size={20} />}<span className="absolute -bottom-1.5 -right-1.5 text-[16px]">{LEVEL_EMOJI[r.level]}</span></div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap"><span className="font-black text-[15px] text-[#3a2817]">{r.title}</span><span className="text-[10px] font-black text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">{LEVEL_EMOJI[r.level]} {r.level}</span></div>
+                    <div className="flex items-center gap-1.5 flex-wrap"><span className="font-black text-[15px] text-[var(--ic-dark-2)]">{r.title}</span><span className="text-[10px] font-black text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">{LEVEL_EMOJI[r.level]} {r.level}</span></div>
                     {r.desc && <div className="text-[12px] text-zinc-500 mt-0.5">{r.desc}</div>}
                   </div>
                   {r.unlocked && !r.claim_status && <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2 py-1 rounded-full flex-shrink-0">جاهزة ✓</span>}
@@ -134,14 +134,14 @@ export default function RewardsCenter({ token, courseId, onPractice, onVocab }: 
                 {!r.unlocked && (
                   <div className="px-4 pb-3">
                     <div className="flex items-center justify-between text-[11px] mb-1.5"><span className="text-zinc-500 font-bold">{coins?.balance ?? 0} / {r.min_coins} كوين</span><span className="text-amber-600 font-black">باقٍ {need}</span></div>
-                    <div className="h-2.5 bg-zinc-100 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-l from-yellow-400 to-amber-400 rounded-full" style={{ width: `${r.progress}%` }} /></div>
+                    <div className="h-2.5 bg-zinc-100 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-l from-[var(--ic-grad-from)] to-[var(--ic-grad-to)] rounded-full" style={{ width: `${r.progress}%` }} /></div>
                   </div>
                 )}
                 <div className="px-4 pb-4">
                   {r.claim_status === 'pending' ? <div className="w-full py-2 rounded-xl bg-amber-50 text-amber-700 font-bold text-[12px] flex items-center justify-center gap-1.5"><Clock size={14} /> بانتظار موافقة الإدارة</div>
                     : r.claim_status === 'approved' ? <div className="w-full py-2 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-[12px] flex items-center justify-center gap-1.5"><CheckCircle2 size={14} /> تمت الموافقة — تواصل مع الإدارة</div>
                     : r.claim_status === 'used' ? <div className="w-full py-2 rounded-xl bg-zinc-100 text-zinc-400 font-bold text-[12px] flex items-center justify-center gap-1.5"><CheckCircle2 size={14} /> تم الاستخدام</div>
-                    : claimable ? <button onClick={() => onClaim(r.id)} disabled={claiming === r.id} className="w-full py-2.5 rounded-xl bg-yellow-400 text-black font-black text-[13px] hover:bg-yellow-300 disabled:opacity-50">{claiming === r.id ? <Loader2 size={14} className="animate-spin mx-auto" /> : '🎁 اطلب المكافأة'}</button>
+                    : claimable ? <button onClick={() => onClaim(r.id)} disabled={claiming === r.id} className="w-full py-2.5 rounded-xl bg-[var(--ic-gold)] text-black font-black text-[13px] hover:bg-[var(--ic-gold)] disabled:opacity-50">{claiming === r.id ? <Loader2 size={14} className="animate-spin mx-auto" /> : '🎁 اطلب المكافأة'}</button>
                     : <div className="w-full py-2 rounded-xl bg-zinc-50 text-zinc-400 font-bold text-[12px] text-center flex items-center justify-center gap-1.5"><Lock size={13} /> اجمع {need} كوين لفتحها</div>}
                 </div>
               </div>
@@ -169,34 +169,34 @@ export default function RewardsCenter({ token, courseId, onPractice, onVocab }: 
         <div className="space-y-3">
         <SectionLabel emoji="🏆" title="لوحة المتصدرين" sub="الترتيب يبدأ من جديد كل إثنين" />
         <div className="rounded-2xl overflow-hidden bg-white shadow-[0_3px_14px_rgba(58,40,23,0.07)] border border-zinc-100">
-          <div className="px-4 py-3 bg-[#2a1d12] text-white flex items-center gap-2">
-            <Trophy size={16} className="text-yellow-400" />
+          <div className="px-4 py-3 bg-[var(--ic-dark)] text-white flex items-center gap-2">
+            <Trophy size={16} className="text-[var(--ic-gold)]" />
             <span className="font-black text-[14px]">🏅 أبطال هذا الأسبوع</span>
             <span className="mr-auto text-[10px] text-amber-100/50">يبدأ كل إثنين</span>
           </div>
           {(!board || board.top.length === 0) ? <div className="text-center text-zinc-400 py-10 text-[13px]">لا نتائج هذا الأسبوع بعد — كن أول المتصدرين! 🏆</div> : (
             <div className="p-3 space-y-1.5">
               {board.top.map(r => (
-                <div key={r.rank} className={`flex items-center gap-3 px-2.5 py-2 rounded-xl ${r.me ? 'bg-yellow-50 ring-2 ring-yellow-300' : r.rank <= 3 ? 'bg-amber-50/60' : ''}`}>
+                <div key={r.rank} className={`flex items-center gap-3 px-2.5 py-2 rounded-xl ${r.me ? 'bg-[var(--ic-gold-soft)] ring-2 ring-[var(--ic-gold)]' : r.rank <= 3 ? 'bg-amber-50/60' : ''}`}>
                   <div className="relative flex-shrink-0">
                     <PersonAvatar name={r.name} size={44} className={`ring-2 ${RANK_RING[r.rank] ?? 'ring-zinc-200'}`} />
-                    <span className={`absolute -bottom-1 -left-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black flex items-center justify-center ring-2 ring-white ${r.rank === 1 ? 'bg-yellow-400 text-black' : r.rank === 2 ? 'bg-zinc-300 text-zinc-700' : r.rank === 3 ? 'bg-amber-700 text-white' : 'bg-[#3a2817] text-white'}`}>{r.rank}</span>
+                    <span className={`absolute -bottom-1 -left-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black flex items-center justify-center ring-2 ring-white ${r.rank === 1 ? 'bg-[var(--ic-gold)] text-black' : r.rank === 2 ? 'bg-zinc-300 text-zinc-700' : r.rank === 3 ? 'bg-amber-700 text-white' : 'bg-[var(--ic-dark-2)] text-white'}`}>{r.rank}</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-black text-[13.5px] text-[#3a2817] truncate">{r.rank <= 3 ? ['🥇', '🥈', '🥉'][r.rank - 1] + ' ' : ''}{r.name}{r.me && <span className="text-[10px] text-amber-600 font-bold mr-1">· أنت</span>}</div>
+                    <div className="font-black text-[13.5px] text-[var(--ic-dark-2)] truncate">{r.rank <= 3 ? ['🥇', '🥈', '🥉'][r.rank - 1] + ' ' : ''}{r.name}{r.me && <span className="text-[10px] text-amber-600 font-bold mr-1">· أنت</span>}</div>
                     <div className="text-[10.5px] text-zinc-400">{r.challenges} تمرين{r.streak > 0 ? ` · 🔥 ${r.streak} يوم` : ''}</div>
                   </div>
-                  <span className="font-black text-[13px] inline-flex items-center gap-1 bg-[#3a2817] text-yellow-400 px-2.5 py-1 rounded-full flex-shrink-0">{r.points} <CoinIcon size={14} /></span>
+                  <span className="font-black text-[13px] inline-flex items-center gap-1 bg-[var(--ic-dark-2)] text-[var(--ic-gold)] px-2.5 py-1 rounded-full flex-shrink-0">{r.points} <CoinIcon size={14} /></span>
                 </div>
               ))}
               {board.me && !board.top.some(t => t.me) && (
-                <div className="flex items-center gap-3 px-2.5 py-2 rounded-xl bg-yellow-50 ring-2 ring-yellow-300 mt-1">
+                <div className="flex items-center gap-3 px-2.5 py-2 rounded-xl bg-[var(--ic-gold-soft)] ring-2 ring-[var(--ic-gold)] mt-1">
                   <div className="relative flex-shrink-0">
-                    <PersonAvatar name="أنت" size={44} className="ring-2 ring-yellow-300" />
-                    <span className="absolute -bottom-1 -left-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black flex items-center justify-center ring-2 ring-white bg-[#3a2817] text-white">{board.me.rank}</span>
+                    <PersonAvatar name="أنت" size={44} className="ring-2 ring-[var(--ic-gold)]" />
+                    <span className="absolute -bottom-1 -left-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-black flex items-center justify-center ring-2 ring-white bg-[var(--ic-dark-2)] text-white">{board.me.rank}</span>
                   </div>
-                  <div className="flex-1 font-black text-[13.5px] text-[#3a2817]">أنت</div>
-                  <span className="font-black text-[13px] inline-flex items-center gap-1 bg-[#3a2817] text-yellow-400 px-2.5 py-1 rounded-full">{board.me.points} <CoinIcon size={14} /></span>
+                  <div className="flex-1 font-black text-[13.5px] text-[var(--ic-dark-2)]">أنت</div>
+                  <span className="font-black text-[13px] inline-flex items-center gap-1 bg-[var(--ic-dark-2)] text-[var(--ic-gold)] px-2.5 py-1 rounded-full">{board.me.points} <CoinIcon size={14} /></span>
                 </div>
               )}
             </div>

@@ -80,7 +80,7 @@ const ACTIVITY = {
 export default function StudentSpacePage() {
   return (
     <PortalErrorBoundary>
-      <Suspense fallback={<div className="min-h-screen bg-[#2a1d12]" />}><Portal /></Suspense>
+      <Suspense fallback={<div className="min-h-screen bg-[var(--ic-dark)]" />}><Portal /></Suspense>
     </PortalErrorBoundary>
   )
 }
@@ -312,15 +312,15 @@ function Portal() {
     setOtpBusy(false)
   }
 
-  if (booting) return <div className="min-h-screen bg-[#2a1d12] flex items-center justify-center"><Loader2 className="animate-spin text-yellow-400" size={28} /></div>
+  if (booting) return <div className="min-h-screen bg-[var(--ic-dark)] flex items-center justify-center"><Loader2 className="animate-spin text-[var(--ic-gold)]" size={28} /></div>
 
   /* ════ LOGIN ════ */
   if (!space?.found) {
     return (
-      <div dir="rtl" className="min-h-screen bg-[#2a1d12] flex items-center justify-center p-4">
+      <div dir="rtl" className="min-h-screen bg-[var(--ic-dark)] flex items-center justify-center p-4">
         <div className="w-full max-w-sm">
           <div className="flex flex-col items-center mb-6">
-            <div className="w-16 h-16 rounded-2xl bg-yellow-400 text-black flex items-center justify-center font-black text-3xl mb-3">I</div>
+            <div className="w-16 h-16 rounded-2xl bg-[var(--ic-gold)] text-black flex items-center justify-center font-black text-3xl mb-3">I</div>
             <h1 className="text-white font-black text-[22px]">فضاء الطالب</h1>
             <p className="text-zinc-400 text-[13px] mt-1">منصة Inglizi.com لتعلّم الإنجليزية</p>
           </div>
@@ -332,7 +332,7 @@ function Portal() {
               <>
                 <label className="flex items-center gap-1.5 text-[13px] font-bold text-zinc-700 mb-2"><KeyRound size={15} className="text-zinc-400" /> رمز الدخول</label>
                 <input value={code} onChange={e => setCode(e.target.value)} placeholder="ING-XXXXXXXX" dir="ltr"
-                  className="w-full px-4 py-3.5 text-[17px] font-bold tracking-widest text-center uppercase bg-zinc-50 border-2 border-zinc-200 rounded-2xl focus:outline-none focus:border-yellow-400" />
+                  className="w-full px-4 py-3.5 text-[17px] font-bold tracking-widest text-center uppercase bg-zinc-50 border-2 border-zinc-200 rounded-2xl focus:outline-none focus:border-[var(--ic-gold)]" />
                 {error && <p className="text-[13px] text-red-600 mt-2 font-medium flex items-center gap-1.5"><AlertCircle size={14} /> {error}</p>}
                 <button type="submit" disabled={loading || !code.trim()} className="mt-4 w-full py-3.5 rounded-2xl bg-black text-white font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-50">
                   {loading ? <Loader2 size={17} className="animate-spin" /> : <Sparkles size={17} />} دخول
@@ -361,7 +361,7 @@ function Portal() {
                       <>
                         <p className="text-[12px] text-zinc-500 mb-2 text-center">أدخل الرمز المُرسل إلى <span dir="ltr" className="font-bold">{otpPhone}</span></p>
                         <input value={otpCode} onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" placeholder="••••••" dir="ltr"
-                          className="w-full px-4 py-3 text-[20px] font-black tracking-[8px] text-center bg-zinc-50 border-2 border-zinc-200 rounded-2xl focus:outline-none focus:border-yellow-400" />
+                          className="w-full px-4 py-3 text-[20px] font-black tracking-[8px] text-center bg-zinc-50 border-2 border-zinc-200 rounded-2xl focus:outline-none focus:border-[var(--ic-gold)]" />
                         <button type="submit" disabled={otpBusy || otpCode.trim().length < 4} className="mt-3 w-full py-3 rounded-2xl bg-black text-white font-bold text-[14px] flex items-center justify-center gap-2 disabled:opacity-50">
                           {otpBusy ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />} تحقّق وادخل
                         </button>
@@ -504,7 +504,12 @@ function Portal() {
   ]
 
   return (
-    <div dir="rtl" className="min-h-screen pb-20" style={{ background: theme.cream }}>
+    <div dir="rtl" className="min-h-screen pb-20" style={{
+      background: theme.cream,
+      ['--ic-dark' as string]: theme.dark, ['--ic-dark-2' as string]: theme.dark2, ['--ic-dark-3' as string]: theme.dark3,
+      ['--ic-cream' as string]: theme.cream, ['--ic-gold' as string]: theme.gold, ['--ic-gold-soft' as string]: theme.goldSoft,
+      ['--ic-grad-from' as string]: theme.grad[0], ['--ic-grad-to' as string]: theme.grad[1],
+    } as React.CSSProperties}>
       {/* ─── Anti-sharing watermark: two faint labels gently floating, traceable ─── */}
       <div className="pointer-events-none fixed inset-0 z-[5] overflow-hidden select-none" aria-hidden>
         <span className="absolute top-0 right-0 text-[12px] font-bold text-black/[0.07] whitespace-nowrap wm-drift-a">{s.full_name} · {s.verification_token}</span>
@@ -515,7 +520,7 @@ function Portal() {
       <header className="text-white sticky top-0 z-20" style={{ background: theme.dark }}>
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-yellow-400 text-black flex items-center justify-center font-black text-[18px] shadow-lg shadow-yellow-400/20">I</div>
+            <div className="w-9 h-9 rounded-xl bg-[var(--ic-gold)] text-black flex items-center justify-center font-black text-[18px] shadow-lg shadow-lg">I</div>
             <div className="hidden sm:block leading-none">
               <span className="font-black text-[16px] tracking-wide">INGLIZI</span>
               <div className="text-[10px] text-zinc-500 mt-1">منصّة تعلّم الإنجليزية</div>
@@ -528,14 +533,14 @@ function Portal() {
               ? <button onClick={() => setSelectedCourseId(null)} className="text-[11px] font-bold rounded-full px-2.5 py-1 flex items-center gap-1 hover:opacity-90" style={{ background: theme.gold, color: theme.dark }} title="تبديل الدورة">{course.title} <ChevronDown size={12} /></button>
               : <span className="text-[11px] font-bold bg-white/10 rounded-full px-2.5 py-1 text-zinc-200">{course.title}</span>)}
             <span className="flex items-center gap-1.5 text-[11px] text-zinc-400">
-              <span className="w-24 h-1.5 bg-white/10 rounded-full overflow-hidden"><span className="block h-full bg-gradient-to-l from-yellow-400 to-amber-300 rounded-full transition-all" style={{ width: `${stats.overall}%` }} /></span>
+              <span className="w-24 h-1.5 bg-white/10 rounded-full overflow-hidden"><span className="block h-full bg-gradient-to-l from-[var(--ic-grad-from)] to-[var(--ic-grad-to)] rounded-full transition-all" style={{ width: `${stats.overall}%` }} /></span>
               <b className="text-zinc-200">{stats.overall}%</b>
             </span>
           </div>
           <div className="flex-1" />
           {(() => {
             const TYPE_ICON: Record<string, any> = { correction: CheckCircle2, reminder: Bell, deadline: Clock, lesson: PlayCircle, message: MessageSquareText, info: Bell }
-            const TYPE_COLOR: Record<string, string> = { correction: 'bg-emerald-50 text-emerald-600', reminder: 'bg-yellow-50 text-yellow-600', deadline: 'bg-rose-50 text-rose-600', lesson: 'bg-violet-50 text-violet-600', message: 'bg-blue-50 text-blue-600', info: 'bg-zinc-100 text-zinc-500' }
+            const TYPE_COLOR: Record<string, string> = { correction: 'bg-emerald-50 text-emerald-600', reminder: 'bg-[var(--ic-gold-soft)] text-yellow-600', deadline: 'bg-rose-50 text-rose-600', lesson: 'bg-violet-50 text-violet-600', message: 'bg-blue-50 text-blue-600', info: 'bg-zinc-100 text-zinc-500' }
             const unread = notifs.filter(n => !n.is_read).length
             function openBell() {
               setNotifOpen(o => {
@@ -558,7 +563,7 @@ function Portal() {
                       <div className="max-h-[70vh] overflow-y-auto">
                         {notifs.length === 0 ? <div className="py-8 text-center text-[13px] text-zinc-400">لا إشعارات بعد 🎉</div>
                           : notifs.map(n => { const Icon = TYPE_ICON[n.type] ?? Bell; return (
-                            <button key={n.id} onClick={() => { if (n.tab) goTab(n.tab as Tab); setNotifOpen(false) }} className={`w-full flex items-start gap-3 px-4 py-2.5 text-right hover:bg-zinc-50 ${!n.is_read ? 'bg-yellow-50/40' : ''}`}>
+                            <button key={n.id} onClick={() => { if (n.tab) goTab(n.tab as Tab); setNotifOpen(false) }} className={`w-full flex items-start gap-3 px-4 py-2.5 text-right hover:bg-zinc-50 ${!n.is_read ? 'bg-[var(--ic-gold-soft)]' : ''}`}>
                               <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${TYPE_COLOR[n.type] ?? TYPE_COLOR.info}`}><Icon size={15} /></div>
                               <div className="flex-1 min-w-0">
                                 <div className="text-[13px] font-semibold flex items-start gap-1.5 break-words"><span className="flex-1">{n.title}</span>{!n.is_read && <span className="w-1.5 h-1.5 mt-1.5 rounded-full bg-rose-500 flex-shrink-0" />}</div>
@@ -576,7 +581,7 @@ function Portal() {
           })()}
           <div className="flex items-center gap-2.5">
             <div className="text-left hidden sm:block leading-tight"><div className="font-bold text-[13px]">{s.full_name}</div><div className="text-[11px] text-zinc-400">{course?.title ?? 'غير مسجّل'}</div></div>
-            <InitAva name={s.full_name} className="w-9 h-9 rounded-full text-[12px] ring-2 ring-yellow-400/40" />
+            <InitAva name={s.full_name} className="w-9 h-9 rounded-full text-[12px] ring-2 ring-[var(--ic-gold)]" />
             <button onClick={logout} className="text-zinc-400 hover:text-white p-1.5"><LogOut size={16} /></button>
           </div>
         </div>
@@ -588,8 +593,8 @@ function Portal() {
       {/* transient "new message" toast (with chime) */}
       {toast && (
         <div className="fixed top-3 inset-x-0 z-[130] flex justify-center px-4 pointer-events-none">
-          <div className="pointer-events-auto max-w-sm w-full bg-[#2a1d12] text-white rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-3 vp-pop" onClick={() => { setToast(null); goTab('home') }}>
-            <span className="w-9 h-9 rounded-xl bg-yellow-400 text-black flex items-center justify-center flex-shrink-0"><Bell size={17} /></span>
+          <div className="pointer-events-auto max-w-sm w-full bg-[var(--ic-dark)] text-white rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-3 vp-pop" onClick={() => { setToast(null); goTab('home') }}>
+            <span className="w-9 h-9 rounded-xl bg-[var(--ic-gold)] text-black flex items-center justify-center flex-shrink-0"><Bell size={17} /></span>
             <div className="flex-1 min-w-0"><div className="text-[11px] text-amber-100/60">🔔 إشعار جديد</div><div className="text-[13px] font-bold truncate">{toast}</div></div>
           </div>
         </div>
@@ -629,7 +634,7 @@ function Portal() {
         {sched && !sched.allDone && (() => {
           const unitSoon = !sched.unitOverdue && sched.daysLeftUnit <= 2   // current unit due within 2 days
           return (
-          <div className={`mb-4 rounded-2xl px-4 py-3 flex items-center gap-3 ${sched.courseOverdue ? 'bg-rose-600 text-white' : sched.unitOverdue ? 'bg-rose-50 border border-rose-200 text-rose-800' : unitSoon ? 'bg-amber-500 text-white animate-pulse' : sched.daysLeftCourse <= 14 ? 'bg-amber-50 border border-amber-200 text-amber-800' : 'bg-[#2a1d12] text-white'}`}>
+          <div className={`mb-4 rounded-2xl px-4 py-3 flex items-center gap-3 ${sched.courseOverdue ? 'bg-rose-600 text-white' : sched.unitOverdue ? 'bg-rose-50 border border-rose-200 text-rose-800' : unitSoon ? 'bg-amber-500 text-white animate-pulse' : sched.daysLeftCourse <= 14 ? 'bg-amber-50 border border-amber-200 text-amber-800' : 'bg-[var(--ic-dark)] text-white'}`}>
             <Clock size={20} className="flex-shrink-0" />
             <div className="flex-1 min-w-0 text-[12.5px] leading-snug">
               {sched.courseOverdue ? (
@@ -654,7 +659,7 @@ function Portal() {
             <div className="lg:col-span-2 space-y-5">
 
               {/* Hero */}
-              <div className="bg-gradient-to-br from-[#2a1d12] via-[#3a2817] to-[#5a3d1f] rounded-3xl p-5 text-white">
+              <div className="bg-gradient-to-br from-[var(--ic-dark)] via-[var(--ic-dark-2)] to-[var(--ic-dark-3)] rounded-3xl p-5 text-white">
                 <div className="flex flex-col sm:flex-row gap-5">
                   <div className="flex items-center gap-4">
                     <Ring pct={stats.overall} />
@@ -666,7 +671,7 @@ function Portal() {
                         {resources[0] && (
                           <a href={resourceUrl(resources[0].file_path)} target="_blank" rel="noreferrer"
                             onClick={() => logActivity(token, 'downloaded_file', 'resource', resources[0].id, resources[0].title)}
-                            className="inline-flex items-center gap-1.5 bg-yellow-400 text-black rounded-lg px-2.5 py-1 text-[12px] font-black hover:bg-yellow-300">
+                            className="inline-flex items-center gap-1.5 bg-[var(--ic-gold)] text-black rounded-lg px-2.5 py-1 text-[12px] font-black hover:bg-[var(--ic-gold)]">
                             <Download size={13} /> 📘 كتاب الدورة
                           </a>
                         )}
@@ -685,7 +690,7 @@ function Portal() {
                       <div className="font-black text-[16px]">{today.lesson.title}</div>
                       {today.lesson.content && <div className="text-[11px] text-zinc-400 mt-0.5 line-clamp-1">{today.lesson.content}</div>}
                       <button onClick={() => onOpenLesson(today.lesson, today.lesson.video_url || today.lesson.exercise_url || today.lesson.file_url)}
-                        className="w-full mt-3 py-2.5 rounded-xl bg-yellow-400 text-black font-black text-[13px] flex items-center justify-center gap-2 hover:bg-yellow-300"><PlayCircle size={16} /> ابدأ الدرس الآن</button>
+                        className="w-full mt-3 py-2.5 rounded-xl bg-[var(--ic-gold)] text-black font-black text-[13px] flex items-center justify-center gap-2 hover:bg-[var(--ic-gold)]"><PlayCircle size={16} /> ابدأ الدرس الآن</button>
                       <button onClick={() => goTab('path')} className="w-full mt-2 py-2 rounded-xl bg-white/[0.06] text-white font-semibold text-[12px] hover:bg-white/10">عرض كل دروس الوحدة</button>
                     </div>
                   )}
@@ -703,20 +708,20 @@ function Portal() {
               {/* Coins + level + quick access */}
               <div className="rounded-3xl bg-white border border-zinc-100 shadow-[0_2px_12px_rgba(58,40,23,0.06)] p-4">
                 <button onClick={() => goTab('rewards')} className="w-full flex items-center gap-3 text-right">
-                  <div className="w-11 h-11 rounded-2xl bg-yellow-400 text-black flex items-center justify-center flex-shrink-0"><Coins size={22} /></div>
+                  <div className="w-11 h-11 rounded-2xl bg-[var(--ic-gold)] text-black flex items-center justify-center flex-shrink-0"><Coins size={22} /></div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-black text-[16px] text-[#3a2817]">{coins?.balance ?? 0} <span className="text-[11px] text-zinc-400 font-bold">كوين · {coins?.level ?? 'Bronze'}</span></div>
+                    <div className="font-black text-[16px] text-[var(--ic-dark-2)]">{coins?.balance ?? 0} <span className="text-[11px] text-zinc-400 font-bold">كوين · {coins?.level ?? 'Bronze'}</span></div>
                     {coins?.next_level
-                      ? <div className="mt-1 h-1.5 bg-zinc-100 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-l from-yellow-400 to-amber-300 rounded-full" style={{ width: `${coins.progress}%` }} /></div>
+                      ? <div className="mt-1 h-1.5 bg-zinc-100 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-l from-[var(--ic-grad-from)] to-[var(--ic-grad-to)] rounded-full" style={{ width: `${coins.progress}%` }} /></div>
                       : <div className="text-[11px] text-amber-600 font-bold">أعلى مستوى 👑</div>}
                   </div>
                   <span className="text-[11px] text-zinc-400 flex-shrink-0">{coins?.next_level ? `باقٍ ${coins.to_next}` : ''} <ChevronLeft size={14} className="inline" /></span>
                 </button>
                 <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-zinc-100">
-                  <button onClick={() => today && onOpenLesson(today.lesson, today.lesson.video_url || today.lesson.exercise_url || today.lesson.file_url)} className="flex flex-col items-center gap-1.5 py-3 rounded-2xl bg-gradient-to-br from-yellow-300 to-amber-400 shadow-sm active:scale-95 transition-transform"><span className="text-[22px] leading-none">🎬</span><span className="text-[11px] font-black text-[#2a1d12]">ابدأ الدرس</span></button>
+                  <button onClick={() => today && onOpenLesson(today.lesson, today.lesson.video_url || today.lesson.exercise_url || today.lesson.file_url)} className="flex flex-col items-center gap-1.5 py-3 rounded-2xl bg-gradient-to-br from-[var(--ic-grad-from)] to-[var(--ic-grad-to)] shadow-sm active:scale-95 transition-transform"><span className="text-[22px] leading-none">🎬</span><span className="text-[11px] font-black text-[var(--ic-dark)]">ابدأ الدرس</span></button>
                   <button onClick={() => setVocabOpen(true)} className="flex flex-col items-center gap-1.5 py-3 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-sm active:scale-95 transition-transform"><span className="text-[22px] leading-none">🎮</span><span className="text-[11px] font-black text-white">ألعاب المفردات</span></button>
-                  <button onClick={() => setPractice('sentence')} className="flex flex-col items-center gap-1.5 py-3 rounded-2xl bg-gradient-to-br from-[#3a2817] to-[#5a3d1f] shadow-sm active:scale-95 transition-transform"><span className="text-[22px] leading-none">🧩</span><span className="text-[11px] font-black text-yellow-400">بناء الجمل</span></button>
-                  <button onClick={() => setPractice('translation')} className="flex flex-col items-center gap-1.5 py-3 rounded-2xl bg-amber-50 border-2 border-amber-200 active:scale-95 transition-transform"><span className="text-[22px] leading-none">🔤</span><span className="text-[11px] font-black text-[#3a2817]">ترجم الجمل</span></button>
+                  <button onClick={() => setPractice('sentence')} className="flex flex-col items-center gap-1.5 py-3 rounded-2xl bg-gradient-to-br from-[var(--ic-dark-2)] to-[var(--ic-dark-3)] shadow-sm active:scale-95 transition-transform"><span className="text-[22px] leading-none">🧩</span><span className="text-[11px] font-black text-[var(--ic-gold)]">بناء الجمل</span></button>
+                  <button onClick={() => setPractice('translation')} className="flex flex-col items-center gap-1.5 py-3 rounded-2xl bg-amber-50 border-2 border-amber-200 active:scale-95 transition-transform"><span className="text-[22px] leading-none">🔤</span><span className="text-[11px] font-black text-[var(--ic-dark-2)]">ترجم الجمل</span></button>
                 </div>
               </div>
 
@@ -726,8 +731,8 @@ function Portal() {
                 const unlocked = courseDone || !!cert
                 return (
                   <button onClick={() => setShowExam(true)}
-                    className={`w-full text-right rounded-3xl p-4 flex items-center gap-3 transition-colors ${unlocked ? 'bg-gradient-to-l from-yellow-400 to-amber-300 text-black hover:from-yellow-300 hover:to-amber-200' : 'bg-[#3a2a1a] text-amber-100/90 hover:bg-[#43301d]'}`}>
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${unlocked ? 'bg-black/10' : 'bg-yellow-400/15'}`}>{unlocked ? <Award size={26} /> : <Lock size={24} className="text-yellow-400" />}</div>
+                    className={`w-full text-right rounded-3xl p-4 flex items-center gap-3 transition-colors ${unlocked ? 'bg-gradient-to-l from-[var(--ic-grad-from)] to-[var(--ic-grad-to)] text-black hover:from-[var(--ic-gold)] hover:to-amber-200' : 'bg-[#3a2a1a] text-amber-100/90 hover:bg-[#43301d]'}`}>
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${unlocked ? 'bg-black/10' : 'bg-[var(--ic-gold-soft)]'}`}>{unlocked ? <Award size={26} /> : <Lock size={24} className="text-[var(--ic-gold)]" />}</div>
                     <div className="flex-1 min-w-0">
                       <div className="font-black text-[15px]">{cert ? 'شهادتك جاهزة 🎓' : 'الامتحان النهائي — A0 / A1'}</div>
                       <div className={`text-[12px] ${unlocked ? 'text-black/70' : 'text-amber-100/50'}`}>
@@ -780,7 +785,7 @@ function Portal() {
                   <div className="flex items-center gap-1 overflow-x-auto pb-2 mb-3">
                     {course.modules.map((m, i) => { const p = modProg(m); const active = m.id === currentModule?.id; return (
                       <div key={m.id} className="flex items-center gap-1 flex-shrink-0">
-                        <div className={`w-28 rounded-xl border p-2.5 text-center ${active ? 'border-yellow-400 bg-yellow-50' : p.pct === 100 ? 'border-emerald-200 bg-emerald-50' : 'border-zinc-200 bg-white'}`}>
+                        <div className={`w-28 rounded-xl border p-2.5 text-center ${active ? 'border-[var(--ic-gold)] bg-[var(--ic-gold-soft)]' : p.pct === 100 ? 'border-emerald-200 bg-emerald-50' : 'border-zinc-200 bg-white'}`}>
                           <div className="text-[10px] text-zinc-400">Module {i + 1}</div>
                           <div className="text-[11px] font-bold text-zinc-700 truncate">{m.title}</div>
                           <div className={`text-[13px] font-black mt-0.5 ${p.pct === 100 ? 'text-emerald-600' : active ? 'text-yellow-600' : 'text-zinc-400'}`}>{p.pct === 100 ? '✓ 100%' : `${p.pct}%`}</div>
@@ -799,7 +804,7 @@ function Portal() {
                         <div className="font-black text-[16px] text-zinc-900 mb-2">📚 {currentModule.title}</div>
                         {(() => { const p = modProg(currentModule); return (<>
                           <div className="flex items-center justify-between text-[11px] text-zinc-500 mb-1"><span>التقدم في الوحدة</span><span className="font-bold">{p.pct}%</span></div>
-                          <div className="h-2 bg-zinc-200 rounded-full overflow-hidden mb-1"><div className="h-full bg-yellow-400 rounded-full" style={{ width: `${p.pct}%` }} /></div>
+                          <div className="h-2 bg-zinc-200 rounded-full overflow-hidden mb-1"><div className="h-full bg-[var(--ic-gold)] rounded-full" style={{ width: `${p.pct}%` }} /></div>
                           <div className="text-[11px] text-zinc-400">{p.d}/{p.t} دروس مكتملة</div>
                         </>)})()}
                       </div>
@@ -819,7 +824,7 @@ function Portal() {
                       </button>
                     ) : (
                       <button onClick={() => setSubmitUnit({ id: currentModule.id, title: currentModule.title })}
-                        className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-[#2a1d12] text-yellow-400 font-black text-[13px] hover:bg-[#3a2817]">
+                        className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-[var(--ic-dark)] text-[var(--ic-gold)] font-black text-[13px] hover:bg-[var(--ic-dark-2)]">
                         <Send size={15} /> {submissions.some(x => x.module_id === currentModule.id) ? 'مهمتك قيد التصحيح — تُفتح الوحدة التالية بعد الاعتماد' : 'أرسل مهمة الوحدة للتصحيح لفتح الوحدة التالية'}
                       </button>
                     )
@@ -869,7 +874,7 @@ function Portal() {
               {/* Quick overview */}
               <Card title="نظرة سريعة" icon={BarChart3} iconColor="text-emerald-500" action={<button onClick={() => goTab('progress')} className="text-[11px] text-blue-600 font-semibold">التقرير</button>}>
                 <div className="space-y-2.5 mt-1">
-                  <MiniBar label="التقدم" pct={stats.overall} color="bg-yellow-400" />
+                  <MiniBar label="التقدم" pct={stats.overall} color="bg-[var(--ic-gold)]" />
                   <MiniBar label="الدروس" pct={pct(stats.lessons_done, stats.lessons_total)} color="bg-violet-500" />
                   <MiniBar label="التمارين" pct={pct(stats.ex_done, stats.ex_total)} color="bg-blue-500" />
                   <MiniBar label="الامتحانات" pct={pct(stats.exam_done, stats.exam_total)} color="bg-rose-500" />
@@ -950,7 +955,7 @@ function Portal() {
 
             {/* Teacher message — full width */}
             {s.admin_message && (
-              <div className="lg:col-span-3 bg-yellow-50 border border-yellow-200 rounded-2xl p-4 flex items-center gap-3">
+              <div className="lg:col-span-3 bg-[var(--ic-gold-soft)] border border-yellow-200 rounded-2xl p-4 flex items-center gap-3">
                 <InitAva name={s.teacher_name || 'مدرّس'} className="w-11 h-11 rounded-full text-[15px] flex-shrink-0" />
                 <div className="flex-1"><div className="text-[12px] font-bold text-yellow-800">رسالة من مدرّسك 👩‍🏫</div><div className="text-[13px] text-yellow-900 leading-relaxed">{s.admin_message}</div></div>
               </div>
@@ -982,7 +987,7 @@ function Portal() {
                 return (
                 <div key={m.id} className={`rounded-2xl border overflow-hidden shadow-sm ${unitLocked ? 'bg-zinc-50/70 border-zinc-200' : overdue ? 'bg-white border-rose-300' : soon ? 'bg-white border-amber-300' : 'bg-white border-zinc-100'}`}>
                   <div className={`px-4 py-3 border-b flex items-center gap-2 ${unitLocked ? 'bg-zinc-100 border-zinc-200' : overdue ? 'bg-rose-50 border-rose-100' : soon ? 'bg-amber-50 border-amber-100' : 'bg-[#f5ecdc] border-amber-100/70'}`}>
-                    <span className={`w-6 h-6 rounded-full text-[11px] font-black flex items-center justify-center flex-shrink-0 ${unitLocked ? 'bg-zinc-300 text-zinc-600' : 'bg-[#3a2817] text-yellow-400'}`}>{unitLocked ? <Lock size={12} /> : mi + 1}</span>
+                    <span className={`w-6 h-6 rounded-full text-[11px] font-black flex items-center justify-center flex-shrink-0 ${unitLocked ? 'bg-zinc-300 text-zinc-600' : 'bg-[var(--ic-dark-2)] text-[var(--ic-gold)]'}`}>{unitLocked ? <Lock size={12} /> : mi + 1}</span>
                     <div className="flex-1 min-w-0">
                       <span className={`font-bold text-[14px] ${unitLocked ? 'text-zinc-500' : 'text-zinc-800'}`}>{m.title}</span>
                       {unitLocked
@@ -1032,7 +1037,7 @@ function Portal() {
                                 className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-amber-100 border-t border-amber-200 text-amber-800 font-black text-[12.5px] hover:bg-amber-200"><Award size={15} /> اختبار الوحدة — يجب اجتيازه (٦٠٪+)</button>
                       ) : (examActive
                         ? <a href={EXAMS_URL} target="_blank" rel="noreferrer" onClick={() => { markStep('exam', m.id); logActivity(token, 'opened_exam', 'module', m.id, m.title) }}
-                            className="flex items-center justify-center gap-2 px-4 py-3 bg-yellow-50 border-t border-yellow-100 text-yellow-800 font-bold text-[12.5px] hover:bg-yellow-100"><Award size={15} /> امتحان نهاية الوحدة — اختبر معرفتك <ExternalLink size={13} /></a>
+                            className="flex items-center justify-center gap-2 px-4 py-3 bg-[var(--ic-gold-soft)] border-t border-[var(--ic-gold-soft)] text-yellow-800 font-bold text-[12.5px] hover:bg-[var(--ic-gold-soft)]"><Award size={15} /> امتحان نهاية الوحدة — اختبر معرفتك <ExternalLink size={13} /></a>
                         : <div className={'w-full ' + DIM}><Lock size={14} /> امتحان نهاية الوحدة — {hasReading ? 'افتح القراءة أولًا' : 'أكمل دروس الوحدة أولًا'}</div>)}
 
                       {reviewed ? (
@@ -1194,13 +1199,13 @@ function Portal() {
       )}
 
       {/* Bottom nav — brown to match the dashboard, gold for the active tab */}
-      <nav className="fixed bottom-0 inset-x-0 z-30 bg-[#2a1d12] border-t border-[#3a2817]">
+      <nav className="fixed bottom-0 inset-x-0 z-30 bg-[var(--ic-dark)] border-t border-[var(--ic-dark-2)]">
         <div className="max-w-2xl mx-auto flex">
           {TABS.map(t => { const active = tab === t.id; return (
             <button key={t.id} onClick={() => goTab(t.id)} className="relative flex-1 flex flex-col items-center gap-0.5 py-2.5">
-              {active && <span className="absolute top-0 inset-x-5 h-0.5 bg-yellow-400 rounded-full" />}
-              <div className="relative"><t.icon size={20} className={active ? 'text-yellow-400' : 'text-amber-100/45'} strokeWidth={active ? 2.4 : 2} />{(t.badge ?? 0) > 0 && <span className="absolute -top-1.5 -left-2 bg-rose-500 text-white text-[9px] font-bold min-w-[15px] h-[15px] px-0.5 rounded-full flex items-center justify-center">{t.badge}</span>}</div>
-              <span className={`text-[10px] font-bold ${active ? 'text-yellow-400' : 'text-amber-100/45'}`}>{t.label}</span>
+              {active && <span className="absolute top-0 inset-x-5 h-0.5 bg-[var(--ic-gold)] rounded-full" />}
+              <div className="relative"><t.icon size={20} className={active ? 'text-[var(--ic-gold)]' : 'text-amber-100/45'} strokeWidth={active ? 2.4 : 2} />{(t.badge ?? 0) > 0 && <span className="absolute -top-1.5 -left-2 bg-rose-500 text-white text-[9px] font-bold min-w-[15px] h-[15px] px-0.5 rounded-full flex items-center justify-center">{t.badge}</span>}</div>
+              <span className={`text-[10px] font-bold ${active ? 'text-[var(--ic-gold)]' : 'text-amber-100/45'}`}>{t.label}</span>
             </button>
           )})}
         </div>
@@ -1218,22 +1223,22 @@ function Ring({ pct }: { pct: number }) {
     <div className="relative w-[72px] h-[72px] flex-shrink-0">
       <svg viewBox="0 0 64 64" className="w-full h-full -rotate-90">
         <circle cx="32" cy="32" r={r} fill="none" stroke="rgba(255,255,255,.12)" strokeWidth="6" />
-        <circle cx="32" cy="32" r={r} fill="none" stroke="#facc15" strokeWidth="6" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={off} />
+        <circle cx="32" cy="32" r={r} fill="none" stroke="var(--ic-gold)" strokeWidth="6" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={off} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center"><span className="text-[16px] font-black text-white">{pct}%</span><span className="text-[8px] text-zinc-400">التقدم</span></div>
     </div>
   )
 }
 function HeroStat({ icon: Icon, value, label }: { icon: any; value: string; label: string }) {
-  return <div className="bg-white/[0.06] rounded-xl p-2.5 text-center"><Icon size={14} className="text-yellow-400 mx-auto mb-1" /><div className="font-black text-[14px] text-white">{value}</div><div className="text-[9px] text-zinc-400 leading-tight">{label}</div></div>
+  return <div className="bg-white/[0.06] rounded-xl p-2.5 text-center"><Icon size={14} className="text-[var(--ic-gold)] mx-auto mb-1" /><div className="font-black text-[14px] text-white">{value}</div><div className="text-[9px] text-zinc-400 leading-tight">{label}</div></div>
 }
 function Card({ title, sub, icon: Icon, iconColor, action, children, compact }: { title: string; sub?: string; icon: any; iconColor: string; action?: ReactNode; children: ReactNode; compact?: boolean }) {
   return (
     <div className="bg-white rounded-2xl border border-zinc-100/80 p-4 shadow-[0_2px_12px_rgba(58,40,23,0.06)]">
       <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-zinc-100">
         <div className="flex items-center gap-2 min-w-0">
-          <span className="w-8 h-8 rounded-xl bg-[#faf6ef] border border-amber-100/70 flex items-center justify-center flex-shrink-0"><Icon size={15} className={iconColor} /></span>
-          <div className="min-w-0"><h3 className="font-black text-[14.5px] text-[#3a2817] truncate">{title}</h3>{sub && <p className="text-[11px] text-zinc-400 truncate">{sub}</p>}</div>
+          <span className="w-8 h-8 rounded-xl bg-[var(--ic-cream)] border border-amber-100/70 flex items-center justify-center flex-shrink-0"><Icon size={15} className={iconColor} /></span>
+          <div className="min-w-0"><h3 className="font-black text-[14.5px] text-[var(--ic-dark-2)] truncate">{title}</h3>{sub && <p className="text-[11px] text-zinc-400 truncate">{sub}</p>}</div>
         </div>
         {action}
       </div>
@@ -1262,14 +1267,14 @@ function LessonThumb({ title, topic, chip, seed, videoUrl, onClick }: { title: s
       <span className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-2xl" />
       {/* video tag + module chip */}
       <span className="absolute top-2.5 left-2.5 inline-flex items-center gap-1 text-[10px] font-bold bg-black/55 backdrop-blur-sm text-white px-2 py-0.5 rounded-full"><Play size={9} fill="currentColor" /> فيديو</span>
-      {chip && <span className="absolute top-2.5 right-2.5 text-[10px] font-bold bg-yellow-400/90 text-black px-2 py-0.5 rounded-full">{chip}</span>}
+      {chip && <span className="absolute top-2.5 right-2.5 text-[10px] font-bold bg-[var(--ic-gold)] text-black px-2 py-0.5 rounded-full">{chip}</span>}
       <span className="absolute inset-x-0 bottom-0 p-3.5 text-right">
         <span className="block text-white font-black text-[15px] leading-snug line-clamp-2 drop-shadow-lg">{title}</span>
-        <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-yellow-300">ابدأ المشاهدة <ChevronLeft size={12} /></span>
+        <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-[var(--ic-gold)]">ابدأ المشاهدة <ChevronLeft size={12} /></span>
       </span>
       <span className="absolute inset-0 flex items-center justify-center">
         <span className="w-14 h-14 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center ring-2 ring-white/30 transition-transform group-hover:scale-110">
-          <span className="w-11 h-11 rounded-full bg-yellow-400 flex items-center justify-center shadow-lg vp-pulse"><Play size={22} className="text-black" fill="currentColor" style={{ marginInlineStart: 2 }} /></span>
+          <span className="w-11 h-11 rounded-full bg-[var(--ic-gold)] flex items-center justify-center shadow-lg vp-pulse"><Play size={22} className="text-black" fill="currentColor" style={{ marginInlineStart: 2 }} /></span>
         </span>
       </span>
     </button>
@@ -1284,7 +1289,7 @@ function TaskCard({ tone, icon: Icon, title, meta, cta, onClick, thumb }: { tone
         <div className="relative w-full aspect-video rounded-xl overflow-hidden mb-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={thumb} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-          <span className="absolute inset-0 bg-black/15 flex items-center justify-center"><span className="w-9 h-9 rounded-full bg-yellow-400/95 flex items-center justify-center"><Icon size={16} className="text-black" /></span></span>
+          <span className="absolute inset-0 bg-black/15 flex items-center justify-center"><span className="w-9 h-9 rounded-full bg-[var(--ic-gold)] flex items-center justify-center"><Icon size={16} className="text-black" /></span></span>
         </div>
       ) : (
         <div className={`w-10 h-10 rounded-full ${tones[tone]} flex items-center justify-center mx-auto mb-2 transition-transform group-hover:scale-110`}><Icon size={18} /></div>
@@ -1311,10 +1316,10 @@ function Empty({ emoji, text, sub, mini }: { emoji?: string; text: string; sub?:
 function CoursePicker({ courses, name, onPick, onLogout }: { courses: PortalCourse[]; name: string; onPick: (id: string) => void; onLogout: () => void }) {
   const first = (name || '').split(' ')[0]
   return (
-    <div dir="rtl" className="min-h-screen bg-[#2a1d12] flex flex-col items-center justify-center p-4">
+    <div dir="rtl" className="min-h-screen bg-[var(--ic-dark)] flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center mb-7 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-yellow-400 text-black flex items-center justify-center font-black text-2xl mb-3">I</div>
+          <div className="w-14 h-14 rounded-2xl bg-[var(--ic-gold)] text-black flex items-center justify-center font-black text-2xl mb-3">I</div>
           <h1 className="text-white font-black text-[20px]">مرحبًا {first} 👋</h1>
           <p className="text-zinc-400 text-[13px] mt-1">اختر الدورة التي تريد الدخول إليها</p>
         </div>
@@ -1353,7 +1358,7 @@ function LessonRow({ l, unlocked, onOpen, onComplete, onQuiz }: { l: PortalLesso
       {l.status === 'completed' ? <CheckCircle2 size={17} className="text-emerald-500 flex-shrink-0" /> : l.status === 'opened' ? <PlayCircle size={17} className="text-yellow-500 flex-shrink-0" /> : <Icon size={17} className="text-zinc-400 flex-shrink-0" />}
       {/* play button right next to the title */}
       <button onClick={e => { e.stopPropagation(); onOpen(l, url) }} aria-label="تشغيل الدرس"
-        className="w-8 h-8 rounded-full bg-yellow-400 text-black flex items-center justify-center flex-shrink-0 shadow-sm hover:bg-yellow-300 active:scale-95 transition">
+        className="w-8 h-8 rounded-full bg-[var(--ic-gold)] text-black flex items-center justify-center flex-shrink-0 shadow-sm hover:bg-[var(--ic-gold)] active:scale-95 transition">
         <Play size={15} fill="currentColor" style={{ marginInlineStart: 2 }} />
       </button>
       <div className="flex-1 min-w-0"><div className="text-[13px] font-semibold text-zinc-800 truncate">{l.title}</div><div className="text-[11px] text-zinc-400">{LTYPE_AR[l.type] ?? l.type}{l.status === 'completed' ? ' · مكتمل' : l.status === 'opened' ? ' · قيد التقدم' : ''}</div></div>
@@ -1382,7 +1387,7 @@ class PortalErrorBoundary extends Component<{ children: ReactNode }, { hasError:
   componentDidCatch(err: any) { console.error('portal error', err) }
   render() {
     if (this.state.hasError) return (
-      <div dir="rtl" className="min-h-screen bg-[#2a1d12] flex items-center justify-center p-4 text-center"><div className="max-w-sm"><div className="text-4xl mb-3">⚠️</div><h1 className="text-white font-black text-[18px] mb-2">حدث خطأ غير متوقع</h1><p className="text-zinc-400 text-[13px] mb-4">أعد تحميل الصفحة، وإن استمرّ الخطأ تواصل مع الإدارة.</p><button onClick={() => location.reload()} className="px-5 py-2.5 rounded-xl bg-yellow-400 text-black font-bold text-[14px]">إعادة تحميل</button></div></div>
+      <div dir="rtl" className="min-h-screen bg-[var(--ic-dark)] flex items-center justify-center p-4 text-center"><div className="max-w-sm"><div className="text-4xl mb-3">⚠️</div><h1 className="text-white font-black text-[18px] mb-2">حدث خطأ غير متوقع</h1><p className="text-zinc-400 text-[13px] mb-4">أعد تحميل الصفحة، وإن استمرّ الخطأ تواصل مع الإدارة.</p><button onClick={() => location.reload()} className="px-5 py-2.5 rounded-xl bg-[var(--ic-gold)] text-black font-bold text-[14px]">إعادة تحميل</button></div></div>
     )
     return this.props.children
   }
