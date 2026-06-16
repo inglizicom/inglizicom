@@ -5,7 +5,7 @@ import { X, Loader2, CheckCircle2, XCircle, ArrowLeft, Coins, Sparkles, RotateCc
 import { fetchVocab, rewardVocab, type VocabWord } from '@/lib/gamification'
 
 type Mode = 'listen' | 'match' | 'spell'
-interface Props { token: string; onClose: () => void; onEarned?: () => void }
+interface Props { token: string; courseId?: string | null; onClose: () => void; onEarned?: () => void }
 
 function speak(text: string) {
   try { const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.85; window.speechSynthesis.cancel(); window.speechSynthesis.speak(u) } catch {}
@@ -13,7 +13,7 @@ function speak(text: string) {
 const shuffle = <T,>(a: T[]) => a.map(v => [Math.random(), v] as const).sort((x, y) => x[0] - y[0]).map(([, v]) => v)
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z]/g, '')
 
-export default function VocabGames({ token, onClose, onEarned }: Props) {
+export default function VocabGames({ token, courseId, onClose, onEarned }: Props) {
   const [phase, setPhase] = useState<'loading' | 'run' | 'done'>('loading')
   const [words, setWords] = useState<VocabWord[]>([])
   const [seq, setSeq] = useState<{ word: VocabWord; mode: Mode }[]>([])
@@ -74,7 +74,7 @@ export default function VocabGames({ token, onClose, onEarned }: Props) {
   async function next() {
     if (idx + 1 >= seq.length) {
       if (score > best) { setNewBest(true); try { localStorage.setItem('inglizi.vocab_best', String(score)) } catch {} ; setBest(score) }
-      const got = await rewardVocab(token, [...correctIds]); setCoins(got || coins); setPhase('done'); onEarned?.(); return
+      const got = await rewardVocab(token, [...correctIds], courseId); setCoins(got || coins); setPhase('done'); onEarned?.(); return
     }
     const ni = idx + 1; setIdx(ni); load(seq[ni])
   }

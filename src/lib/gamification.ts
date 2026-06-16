@@ -17,24 +17,24 @@ export interface LeaderboardData { top: LeaderRow[]; me: { rank: number; points:
 export type EarnAction = 'open_lesson' | 'complete_lesson' | 'complete_quiz' | 'complete_reading'
 
 /* ── Student (token-gated) ─────────────────────────────── */
-export async function earnCoins(token: string, action: EarnAction, lessonId?: string | null, moduleId?: string | null): Promise<number> {
+export async function earnCoins(token: string, action: EarnAction, lessonId?: string | null, moduleId?: string | null, courseId?: string | null): Promise<number> {
   if (isDemo()) return demoEarn(action === 'complete_quiz' ? 50 : action === 'complete_lesson' ? 25 : action === 'complete_reading' ? 15 : 10)
-  const { data } = await supabase.rpc('student_earn', { p_token: token.trim().toUpperCase(), p_action: action, p_lesson: lessonId ?? null, p_module: moduleId ?? null })
+  const { data } = await supabase.rpc('student_earn', { p_token: token.trim().toUpperCase(), p_action: action, p_lesson: lessonId ?? null, p_module: moduleId ?? null, p_course: courseId ?? null })
   return Number(data ?? 0)
 }
-export async function fetchCoins(token: string): Promise<CoinSummary | null> {
+export async function fetchCoins(token: string, courseId?: string | null): Promise<CoinSummary | null> {
   if (isDemo()) return demoCoins()
-  const { data } = await supabase.rpc('student_coins', { p_token: token.trim().toUpperCase() })
+  const { data } = await supabase.rpc('student_coins', { p_token: token.trim().toUpperCase(), p_course: courseId ?? null })
   return (data ?? null) as CoinSummary | null
 }
-export async function fetchRewardsStatus(token: string): Promise<RewardStatus[]> {
+export async function fetchRewardsStatus(token: string, courseId?: string | null): Promise<RewardStatus[]> {
   if (isDemo()) return demoRewards()
-  const { data } = await supabase.rpc('student_rewards_status', { p_token: token.trim().toUpperCase() })
+  const { data } = await supabase.rpc('student_rewards_status', { p_token: token.trim().toUpperCase(), p_course: courseId ?? null })
   return (data ?? []) as RewardStatus[]
 }
-export async function claimReward(token: string, rewardId: string): Promise<{ ok: boolean; reason?: string }> {
+export async function claimReward(token: string, rewardId: string, courseId?: string | null): Promise<{ ok: boolean; reason?: string }> {
   if (isDemo()) return { ok: true }
-  const { data } = await supabase.rpc('student_claim_reward', { p_token: token.trim().toUpperCase(), p_reward_id: rewardId })
+  const { data } = await supabase.rpc('student_claim_reward', { p_token: token.trim().toUpperCase(), p_reward_id: rewardId, p_course: courseId ?? null })
   return (data ?? { ok: false }) as { ok: boolean; reason?: string }
 }
 export async function fetchChallenges(token: string, type: 'sentence' | 'translation', mode: 'arrange' | 'translate', scope: 'lesson' | 'random', moduleId?: string | null, limit = 8): Promise<ChallengeItem[]> {
@@ -42,14 +42,14 @@ export async function fetchChallenges(token: string, type: 'sentence' | 'transla
   const { data } = await supabase.rpc('student_challenges', { p_token: token.trim().toUpperCase(), p_type: type, p_mode: mode, p_scope: scope, p_module: moduleId ?? null, p_limit: limit })
   return (data ?? []) as ChallengeItem[]
 }
-export async function submitChallenge(token: string, type: 'sentence' | 'translation', id: string, mode: string, answer: string): Promise<SubmitResult | null> {
+export async function submitChallenge(token: string, type: 'sentence' | 'translation', id: string, mode: string, answer: string, courseId?: string | null): Promise<SubmitResult | null> {
   if (isDemo()) return demoSubmit(id, answer)
-  const { data } = await supabase.rpc('student_submit_challenge', { p_token: token.trim().toUpperCase(), p_type: type, p_id: id, p_mode: mode, p_answer: answer })
+  const { data } = await supabase.rpc('student_submit_challenge', { p_token: token.trim().toUpperCase(), p_type: type, p_id: id, p_mode: mode, p_answer: answer, p_course: courseId ?? null })
   return (data ?? null) as SubmitResult | null
 }
-export async function streakBonus(token: string): Promise<{ streak: number; awarded: number } | null> {
+export async function streakBonus(token: string, courseId?: string | null): Promise<{ streak: number; awarded: number } | null> {
   if (isDemo()) return { streak: 3, awarded: 0 }
-  const { data } = await supabase.rpc('student_streak_bonus', { p_token: token.trim().toUpperCase() })
+  const { data } = await supabase.rpc('student_streak_bonus', { p_token: token.trim().toUpperCase(), p_course: courseId ?? null })
   return (data ?? null) as { streak: number; awarded: number } | null
 }
 export interface VocabWord { id: string; en: string; ar: string; emoji: string | null }
@@ -62,15 +62,15 @@ export async function fetchVocab(token: string, limit = 12): Promise<VocabWord[]
   const { data } = await supabase.rpc('student_vocab', { p_token: token.trim().toUpperCase(), p_limit: limit })
   return (data ?? []) as VocabWord[]
 }
-export async function rewardVocab(token: string, wordIds: string[]): Promise<number> {
+export async function rewardVocab(token: string, wordIds: string[], courseId?: string | null): Promise<number> {
   if (isDemo()) return 0
-  const { data } = await supabase.rpc('student_vocab_reward', { p_token: token.trim().toUpperCase(), p_word_ids: wordIds })
+  const { data } = await supabase.rpc('student_vocab_reward', { p_token: token.trim().toUpperCase(), p_word_ids: wordIds, p_course: courseId ?? null })
   return Number(data ?? 0)
 }
 
-export async function fetchLeaderboard(token: string): Promise<LeaderboardData> {
+export async function fetchLeaderboard(token: string, courseId?: string | null): Promise<LeaderboardData> {
   if (isDemo()) return demoLeaderboard()
-  const { data } = await supabase.rpc('student_leaderboard_weekly', { p_token: token.trim().toUpperCase() })
+  const { data } = await supabase.rpc('student_leaderboard_weekly', { p_token: token.trim().toUpperCase(), p_course: courseId ?? null })
   return (data ?? { top: [], me: null }) as LeaderboardData
 }
 

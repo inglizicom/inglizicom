@@ -29,7 +29,7 @@ function SectionLabel({ emoji, title, sub }: { emoji: string; title: string; sub
   )
 }
 
-export default function RewardsCenter({ token, onPractice, onVocab }: { token: string; onPractice: (kind: 'sentence' | 'translation') => void; onVocab?: () => void }) {
+export default function RewardsCenter({ token, courseId, onPractice, onVocab }: { token: string; courseId?: string | null; onPractice: (kind: 'sentence' | 'translation') => void; onVocab?: () => void }) {
   const [coins, setCoins] = useState<CoinSummary | null>(null)
   const [rewards, setRewards] = useState<RewardStatus[]>([])
   const [board, setBoard] = useState<LeaderboardData | null>(null)
@@ -41,14 +41,14 @@ export default function RewardsCenter({ token, onPractice, onVocab }: { token: s
 
   async function load() {
     setLoading(true)
-    const [c, r, b] = await Promise.all([fetchCoins(token), fetchRewardsStatus(token), fetchLeaderboard(token)])
+    const [c, r, b] = await Promise.all([fetchCoins(token, courseId), fetchRewardsStatus(token, courseId), fetchLeaderboard(token, courseId)])
     setCoins(c); setRewards(r); setBoard(b); setLoading(false)
   }
-  useEffect(() => { load() }, [token])
+  useEffect(() => { load() }, [token, courseId])
 
   async function onClaim(id: string) {
     setClaiming(id); setMsg('')
-    const res = await claimReward(token, id)
+    const res = await claimReward(token, id, courseId)
     setClaiming(null)
     if (res.ok) { setMsg('✅ تم إرسال طلبك للإدارة. ستتم الموافقة قريبًا.'); load() }
     else setMsg(res.reason === 'locked' ? 'لم تجمع كوينات كافية بعد.' : res.reason === 'already' ? 'لديك طلب سابق على هذه المكافأة.' : 'تعذّر الإرسال، حاول لاحقًا.')

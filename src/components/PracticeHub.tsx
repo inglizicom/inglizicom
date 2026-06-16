@@ -5,9 +5,9 @@ import { X, Loader2, CheckCircle2, XCircle, ArrowLeft, Coins, Sparkles, RotateCc
 import { fetchChallenges, submitChallenge, type ChallengeItem } from '@/lib/gamification'
 
 type Kind = 'sentence' | 'translation'
-interface Props { token: string; kind: Kind; currentModuleId?: string | null; onClose: () => void; onEarned?: () => void }
+interface Props { token: string; courseId?: string | null; kind: Kind; currentModuleId?: string | null; onClose: () => void; onEarned?: () => void }
 
-export default function PracticeHub({ token, kind, currentModuleId, onClose, onEarned }: Props) {
+export default function PracticeHub({ token, courseId, kind, currentModuleId, onClose, onEarned }: Props) {
   const [phase, setPhase] = useState<'setup' | 'run' | 'done'>('setup')
   const [mode, setMode] = useState<'arrange' | 'translate'>(kind === 'translation' ? 'translate' : 'arrange')
   const [scope, setScope] = useState<'lesson' | 'random'>(currentModuleId ? 'lesson' : 'random')
@@ -48,7 +48,7 @@ export default function PracticeHub({ token, kind, currentModuleId, onClose, onE
     if (!cur || checked) return
     const answer = cur.mode === 'arrange' ? built.join(' ') : (cur.choices ? (picked ?? '') : typed)
     if (!answer.trim()) return
-    const res = await submitChallenge(token, type, cur.id, cur.mode, answer)
+    const res = await submitChallenge(token, type, cur.id, cur.mode, answer, courseId)
     if (!res) return
     setChecked({ correct: res.correct, answer: res.answer, coins: res.coins })
     if (res.correct) { setScore(s => s + 1); setCoins(c => c + res.coins) }

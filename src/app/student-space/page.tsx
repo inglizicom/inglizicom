@@ -6,12 +6,12 @@ import {
   Loader2, KeyRound, BookOpen, FileText, Download, CheckCircle2, Circle,
   ExternalLink, Sparkles, LogOut, TrendingUp, Home, Route, Award, PlayCircle, ArrowLeft,
   Flame, Lock, AlertCircle, MessageSquareText, Video, PenLine, HelpCircle, Mic,
-  ChevronLeft, ChevronRight, ListChecks, Bell, MessageSquare, Star, Trophy, Medal,
+  ChevronLeft, ChevronRight, ChevronDown, ListChecks, Bell, MessageSquare, Star, Trophy, Medal,
   CalendarDays, Clock, BarChart3, Send, Play, Coins,
 } from 'lucide-react'
 import {
   fetchStudentSpace, completeExercise, logActivity, fileUrl, studentLogin, getDeviceId, deviceValid, fetchUnitSteps,
-  type StudentSpace, type StudentAssignment, type PortalLesson, type PortalModule, type UnitSteps,
+  type StudentSpace, type StudentAssignment, type PortalLesson, type PortalModule, type PortalCourse, type UnitSteps,
 } from '@/lib/student-portal'
 import { openLesson, completeLesson, fetchStudentResources, resourceUrl, fetchProgressMeta, fetchReadingUnits, fetchMySubmissions, fetchUnitExams, fetchNotifications, markNotificationsRead, EXAMS_URL, CORRECTOR_WHATSAPP, type CourseResource, type ProgressMeta, type UnitSubmission, type StudentNotification } from '@/lib/lms'
 import VideoPlayer from '@/components/VideoPlayer'
@@ -26,6 +26,7 @@ import PracticeHub from '@/components/PracticeHub'
 import VocabGames from '@/components/VocabGames'
 import { fetchCertificate, type Certificate } from '@/lib/lms'
 import { earnCoins, streakBonus, fetchCoins, type EarnAction, type CoinSummary } from '@/lib/gamification'
+import { courseTheme } from '@/lib/course-theme'
 import { isDemo, DEMO_SPACE } from '@/lib/demo'
 import { fetchStudentAnnouncements, type StudentAnnouncement } from '@/lib/announcements'
 
@@ -63,6 +64,7 @@ type Tab = 'home' | 'path' | 'tasks' | 'rewards' | 'files' | 'progress'
 const TABS: Tab[] = ['home', 'path', 'tasks', 'rewards', 'files', 'progress']
 const tabFromHash = (): Tab | null => { const b = (typeof window !== 'undefined' ? (location.hash || '').replace('#', '').split('/')[0] : '') as Tab; return TABS.includes(b) ? b : null }
 const TOKEN_KEY = 'inglizi.student_token'
+const COURSE_KEY = 'inglizi.student_course.'   // + token → last chosen course id
 const LTYPE_ICON: Record<string, any> = { video: Video, reading: FileText, exercise: PenLine, quiz: HelpCircle, speaking: Mic }
 const LTYPE_AR: Record<string, string> = { video: 'فيديو', reading: 'قراءة', exercise: 'تمرين', quiz: 'اختبار', speaking: 'محادثة' }
 const ACTIVITY = {
@@ -124,6 +126,7 @@ function Portal() {
   const [cert, setCert] = useState<Certificate | null>(null)
   const [unitSteps, setUnitSteps] = useState<UnitSteps>({})   // server-tracked reading/exam steps
   const [coins, setCoins] = useState<CoinSummary | null>(null)
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)   // which enrolled course the portal is showing
   const [practice, setPractice] = useState<'sentence' | 'translation' | null>(null)
   const [vocabOpen, setVocabOpen] = useState(false)
 
@@ -179,9 +182,23 @@ function Portal() {
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
-  useEffect(() => { if (token && !demo) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta); fetchReadingUnits(token).then(ids => setReadingUnits(new Set(ids))); fetchMySubmissions(token).then(setSubmissions); fetchUnitExams(token).then(setUnitExams); fetchNotifications(token).then(setNotifs); fetchStudentAnnouncements(token).then(setAnns); fetchCertificate(token).then(setCert); fetchUnitSteps(token).then(setUnitSteps); fetchCoins(token).then(setCoins) } }, [token, space])
-  // daily streak check (may award milestone coins) — once per session
-  useEffect(() => { if (token && !demo) streakBonus(token).then(r => { if (r && r.awarded > 0) fetchCoins(token).then(setCoins) }) }, [token])
+  useEffect(() => { if (token && !demo) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta); fetchReadingUnits(token).then(ids => setReadingUnits(new Set(ids))); fetchMySubmissions(token).then(setSubmissions); fetchUnitExams(token).then(setUnitExams); fetchNotifications(token).then(setNotifs); fetchStudentAnnouncements(token).then(setAnns); fetchCertificate(token).then(setCert); fetchUnitSteps(token).then(setUnitSteps) } }, [token, space])
+  // coins are PER COURSE — refetch when the chosen course changes
+  useEffect(() => { if (token && !demo) fetchCoins(token, selectedCourseId).then(setCoins) }, [token, space, selectedCourseId])
+  // pick the course to show: keep a valid prior choice, else the saved one, else
+  // auto-select when there's only one (the picker is shown for 2+).
+  useEffect(() => {
+    const cs = space?.courses ?? []
+    setSelectedCourseId(prev => {
+      if (prev && cs.some(c => c.id === prev)) return prev
+      let saved: string | null = null
+      try { saved = localStorage.getItem(COURSE_KEY + token) } catch {}
+      if (saved && cs.some(c => c.id === saved)) return saved
+      return cs.length === 1 ? cs[0].id : null
+    })
+  }, [space, token])
+  // daily streak check (may award milestone coins) — once per session, on the chosen course
+  useEffect(() => { if (token && !demo && selectedCourseId) streakBonus(token, selectedCourseId).then(r => { if (r && r.awarded > 0) fetchCoins(token, selectedCourseId).then(setCoins) }) }, [token, selectedCourseId])
   // whenever the student opens the course map, refetch the unlock inputs so a
   // finished correction (AI or team) is reflected immediately — no manual refresh
   useEffect(() => { if (tab === 'path' && token && !demo) { fetchMySubmissions(token).then(setSubmissions); fetchUnitExams(token).then(setUnitExams) } }, [tab])
@@ -189,8 +206,9 @@ function Portal() {
   function reloadExams() { if (token) fetchUnitExams(token).then(setUnitExams) }
   // refresh everything that can unlock the next unit (after a correction, AI or team)
   function reloadGate() { if (!token) return; fetchMySubmissions(token).then(setSubmissions); fetchUnitExams(token).then(setUnitExams); fetchProgressMeta(token).then(setMeta); refresh() }
-  function refreshCoins() { if (token) fetchCoins(token).then(setCoins) }
-  async function award(action: EarnAction, lessonId?: string | null, moduleId?: string | null) { const got = await earnCoins(token, action, lessonId, moduleId); if (got > 0) refreshCoins() }
+  function refreshCoins() { if (token) fetchCoins(token, selectedCourseId).then(setCoins) }
+  async function award(action: EarnAction, lessonId?: string | null, moduleId?: string | null) { const got = await earnCoins(token, action, lessonId, moduleId, selectedCourseId); if (got > 0) refreshCoins() }
+  function chooseCourse(id: string) { setSelectedCourseId(id); try { localStorage.setItem(COURSE_KEY + token, id) } catch {} }
 
   // "message received" chime (3 gentle ascending tones)
   function getAudioCtx(): any {
@@ -366,7 +384,15 @@ function Portal() {
   const s = space.student!
   const stats = space.stats ?? { lessons_total: 0, lessons_done: 0, ex_total: 0, ex_done: 0, exam_total: 0, exam_done: 0, files_total: 0, files_opened: 0, overall: 0, streak: 0, last_activity: null }
   const courses = space.courses ?? []
-  const course = courses[0]
+
+  /* ════ COURSE PICKER ════ a multi-course student chooses which one to enter;
+     the whole portal (progress, exams, coins, leaderboard, colors) is scoped to it. */
+  if (courses.length > 1 && !(selectedCourseId && courses.some(c => c.id === selectedCourseId))) {
+    return <CoursePicker courses={courses} name={s.full_name} onPick={chooseCourse} onLogout={logout} />
+  }
+  const course = courses.find(c => c.id === selectedCourseId) ?? courses[0]
+  const theme = courseTheme(course)
+  const courseId = course?.id ?? null
   const exams = space.exams ?? []
   const files = space.files ?? []
   const recent = space.recent_activity ?? []
@@ -478,7 +504,7 @@ function Portal() {
   ]
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#faf6ef] pb-20">
+    <div dir="rtl" className="min-h-screen pb-20" style={{ background: theme.cream }}>
       {/* ─── Anti-sharing watermark: two faint labels gently floating, traceable ─── */}
       <div className="pointer-events-none fixed inset-0 z-[5] overflow-hidden select-none" aria-hidden>
         <span className="absolute top-0 right-0 text-[12px] font-bold text-black/[0.07] whitespace-nowrap wm-drift-a">{s.full_name} · {s.verification_token}</span>
@@ -486,7 +512,7 @@ function Portal() {
       </div>
 
       {/* ─── Header ─── */}
-      <header className="bg-[#2a1d12] text-white sticky top-0 z-20">
+      <header className="text-white sticky top-0 z-20" style={{ background: theme.dark }}>
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-yellow-400 text-black flex items-center justify-center font-black text-[18px] shadow-lg shadow-yellow-400/20">I</div>
@@ -498,7 +524,9 @@ function Portal() {
           {/* desktop: greeting + course + overall progress */}
           <div className="hidden lg:flex items-center gap-3 pr-4 mr-2 border-r border-white/10">
             <span className="text-[13px] text-zinc-300">مرحباً <b className="text-white">{firstName}</b> 👋</span>
-            {course && <span className="text-[11px] font-bold bg-white/10 rounded-full px-2.5 py-1 text-zinc-200">{course.title}</span>}
+            {course && (courses.length > 1
+              ? <button onClick={() => setSelectedCourseId(null)} className="text-[11px] font-bold rounded-full px-2.5 py-1 flex items-center gap-1 hover:opacity-90" style={{ background: theme.gold, color: theme.dark }} title="تبديل الدورة">{course.title} <ChevronDown size={12} /></button>
+              : <span className="text-[11px] font-bold bg-white/10 rounded-full px-2.5 py-1 text-zinc-200">{course.title}</span>)}
             <span className="flex items-center gap-1.5 text-[11px] text-zinc-400">
               <span className="w-24 h-1.5 bg-white/10 rounded-full overflow-hidden"><span className="block h-full bg-gradient-to-l from-yellow-400 to-amber-300 rounded-full transition-all" style={{ width: `${stats.overall}%` }} /></span>
               <b className="text-zinc-200">{stats.overall}%</b>
@@ -586,8 +614,8 @@ function Portal() {
       )}
 
       {/* Practice (sentence builder / translation) */}
-      {practice && <PracticeHub token={token} kind={practice} currentModuleId={currentModule?.id ?? null} onClose={() => { setPractice(null); refreshCoins() }} onEarned={refreshCoins} />}
-      {vocabOpen && <VocabGames token={token} onClose={() => { setVocabOpen(false); refreshCoins() }} onEarned={refreshCoins} />}
+      {practice && <PracticeHub token={token} courseId={courseId} kind={practice} currentModuleId={currentModule?.id ?? null} onClose={() => { setPractice(null); refreshCoins() }} onEarned={refreshCoins} />}
+      {vocabOpen && <VocabGames token={token} courseId={courseId} onClose={() => { setVocabOpen(false); refreshCoins() }} onEarned={refreshCoins} />}
 
       {/* Final exam + certificate */}
       {showExam && <FinalExam token={token} fullName={s.full_name}
@@ -1051,7 +1079,7 @@ function Portal() {
         )}
 
         {/* ═══════════ REWARDS ═══════════ */}
-        {tab === 'rewards' && <RewardsCenter token={token} onPractice={k => setPractice(k)} onVocab={() => setVocabOpen(true)} />}
+        {tab === 'rewards' && <RewardsCenter token={token} courseId={courseId} onPractice={k => setPractice(k)} onVocab={() => setVocabOpen(true)} />}
 
         {/* ═══════════ FILES ═══════════ */}
         {tab === 'files' && (
@@ -1278,6 +1306,41 @@ function Empty({ emoji, text, sub, mini }: { emoji?: string; text: string; sub?:
   if (mini) return <div className="py-4 text-center text-[12px] text-zinc-400">{text}</div>
   return <div className="flex flex-col items-center py-12 text-center"><div className="text-4xl mb-2">{emoji ?? '📭'}</div><div className="text-[14px] font-semibold text-zinc-600">{text}</div>{sub && <div className="text-[12px] text-zinc-400 mt-1 max-w-xs">{sub}</div>}</div>
 }
+/** Course chooser shown to a student enrolled in 2+ courses, before the dashboard.
+ *  Each card wears its course's own color so the choice is unmistakable. */
+function CoursePicker({ courses, name, onPick, onLogout }: { courses: PortalCourse[]; name: string; onPick: (id: string) => void; onLogout: () => void }) {
+  const first = (name || '').split(' ')[0]
+  return (
+    <div dir="rtl" className="min-h-screen bg-[#2a1d12] flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="flex flex-col items-center mb-7 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-yellow-400 text-black flex items-center justify-center font-black text-2xl mb-3">I</div>
+          <h1 className="text-white font-black text-[20px]">مرحبًا {first} 👋</h1>
+          <p className="text-zinc-400 text-[13px] mt-1">اختر الدورة التي تريد الدخول إليها</p>
+        </div>
+        <div className="space-y-3">
+          {courses.map(c => {
+            const t = courseTheme(c)
+            return (
+              <button key={c.id} onClick={() => onPick(c.id)}
+                className="w-full text-right rounded-2xl p-4 flex items-center gap-3.5 shadow-lg active:scale-[0.99] transition ring-1 ring-white/10"
+                style={{ background: t.dark }}>
+                <span className="w-12 h-12 rounded-xl flex items-center justify-center text-[24px] shrink-0" style={{ background: t.gold, color: t.dark }}>{t.emoji}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="font-black text-[15px] text-white truncate">{c.title}</div>
+                  <div className="text-[12px] font-bold" style={{ color: t.gold }}>{c.level || 'دورة'} · {c.modules.length} وحدة</div>
+                </div>
+                <ChevronLeft size={20} className="text-white/40 shrink-0" />
+              </button>
+            )
+          })}
+        </div>
+        <button onClick={onLogout} className="w-full text-center text-[12px] text-zinc-500 hover:text-zinc-300 mt-7">تسجيل الخروج</button>
+      </div>
+    </div>
+  )
+}
+
 function LessonRow({ l, unlocked, onOpen, onComplete, onQuiz }: { l: PortalLesson; unlocked: boolean; onOpen: (l: PortalLesson, url?: string | null) => void; onComplete: (l: PortalLesson) => void; onQuiz?: (l: PortalLesson) => void }) {
   const Icon = LTYPE_ICON[l.type] ?? Video
   const url = l.video_url || l.exercise_url || l.file_url
