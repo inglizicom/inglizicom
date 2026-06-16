@@ -28,7 +28,7 @@ import VocabGames from '@/components/VocabGames'
 import { fetchCertificate, type Certificate } from '@/lib/lms'
 import { earnCoins, streakBonus, fetchCoins, type EarnAction, type CoinSummary } from '@/lib/gamification'
 import { courseTheme, themeForKey } from '@/lib/course-theme'
-import { PROMO_CATALOG, type PromoCourse } from '@/data/course-catalog'
+import { PROMO_CATALOG, MAX_DISCOUNT_PCT, seatsLeftThisMonth, type PromoCourse } from '@/data/course-catalog'
 import { isDemo, DEMO_SPACE } from '@/lib/demo'
 import { fetchStudentAnnouncements, type StudentAnnouncement } from '@/lib/announcements'
 
@@ -398,7 +398,7 @@ function Portal() {
   const validSel = !!(selectedCourseId && courses.some(c => c.id === selectedCourseId))
   const mustPick = courses.length > 1 && !validSel
   if (pickerOpen || mustPick) {
-    return <CoursePicker enrolled={courses} catalog={catalog} name={s.full_name}
+    return <CoursePicker enrolled={courses} catalog={catalog} name={s.full_name} token={token}
       onPick={chooseCourse} onClose={validSel ? () => setPickerOpen(false) : undefined} onLogout={logout} />
   }
   const course = courses.find(c => c.id === selectedCourseId) ?? courses[0]
@@ -1326,8 +1326,8 @@ function Empty({ emoji, text, sub, mini }: { emoji?: string; text: string; sub?:
  *  in are OPEN (each in its own color); the rest are LOCKED, so students discover
  *  the full catalogue and can ask to subscribe. Reachable any time via the header
  *  switcher (onClose returns to the current course). */
-function CoursePicker({ enrolled, catalog, name, onPick, onClose, onLogout }: {
-  enrolled: PortalCourse[]; catalog: CatalogCourse[]; name: string
+function CoursePicker({ enrolled, catalog, name, token, onPick, onClose, onLogout }: {
+  enrolled: PortalCourse[]; catalog: CatalogCourse[]; name: string; token: string
   onPick: (id: string) => void; onClose?: () => void; onLogout: () => void
 }) {
   const first = (name || '').split(' ')[0]
@@ -1337,6 +1337,7 @@ function CoursePicker({ enrolled, catalog, name, onPick, onClose, onLogout }: {
   const promo = PROMO_CATALOG.filter(p => p.status === 'info' || !enrolled.some(c => p.match(c)))
   // Any real published course not covered by a promo entry (future-proofing).
   const lockedDb = catalog.filter(c => !enrolledIds.has(c.id) && !PROMO_CATALOG.some(p => p.match(c)))
+  const hasLocked = promo.some(p => p.status === 'locked') || lockedDb.length > 0
 
   return (
     <div dir="rtl" className="min-h-screen bg-[#2a1d12] flex flex-col items-center justify-center p-4">
@@ -1369,10 +1370,13 @@ function CoursePicker({ enrolled, catalog, name, onPick, onClose, onLogout }: {
           </div>
         )}
 
+        {/* LIMITED OFFER — urgency banner (per-student 48h timer + discount + seats) */}
+        {hasLocked && <LimitedOfferBanner token={token} />}
+
         {/* THE REST OF THE CATALOGUE — locked (subscribe), "coming soon", and the 1:1 info card */}
         {(promo.length > 0 || lockedDb.length > 0) && (
           <>
-            <div className="text-zinc-500 text-[11px] font-bold mt-6 mb-2 px-1">كل دورات Inglizi.com 🔓</div>
+            <div className="text-zinc-500 text-[11px] font-bold mt-5 mb-2 px-1">كل دورات Inglizi.com</div>
             <div className="space-y-3">
               {promo.map(p => <PromoCard key={p.key} p={p} />)}
               {lockedDb.map(c => {
@@ -1395,6 +1399,66 @@ function CoursePicker({ enrolled, catalog, name, onPick, onClose, onLogout }: {
         )}
 
         <button onClick={onLogout} className="w-full text-center text-[12px] text-zinc-500 hover:text-zinc-300 mt-7">تسجيل الخروج</button>
+      </div>
+    </div>
+  )
+}
+
+/** Limited-offer urgency banner: a personal 48-hour countdown (saved per student
+ *  so it's stable across refreshes/devices via the token key), the headline launch
+ *  discount, and a slowly-declining "seats left this month" scarcity line. Once a
+ *  student's window passes it shows an expired state (no fake reset). */
+const OFFER_HOURS = 48
+const OFFER_KEY = 'inglizi.offer_deadline.'
+function LimitedOfferBanner({ token }: { token: string }) {
+  const [left, setLeft] = useState<number | null>(null)
+  useEffect(() => {
+    const k = OFFER_KEY + (token || 'guest')
+    let dl = 0
+    try { dl = Number(localStorage.getItem(k)) || 0 } catch {}
+    if (!dl) { dl = Date.now() + OFFER_HOURS * 3600_000; try { localStorage.setItem(k, String(dl)) } catch {} }
+    const tick = () => setLeft(Math.max(0, dl - Date.now()))
+    tick()
+    const iv = setInterval(tick, 1000)
+    return () => clearInterval(iv)
+  }, [token])
+
+  const expired = left !== null && left <= 0
+  const ms = left ?? 0
+  const hh = Math.floor(ms / 3600_000)
+  const mm = Math.floor((ms % 3600_000) / 60_000)
+  const ss = Math.floor((ms % 60_000) / 1000)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const seats = seatsLeftThisMonth()
+
+  if (expired) {
+    return (
+      <div className="mt-6 rounded-2xl px-4 py-3 bg-white/[0.04] ring-1 ring-white/10 text-center">
+        <div className="text-[12.5px] font-bold text-zinc-300">انتهى عرضك الخاص ⏳</div>
+        <div className="text-[11px] text-zinc-500 mt-0.5">تواصل مع الإدارة لمعرفة العروض الحالية قبل أن ترتفع الأسعار.</div>
+      </div>
+    )
+  }
+
+  const Box = ({ v, lbl }: { v: number; lbl: string }) => (
+    <div className="flex flex-col items-center">
+      <span className="w-11 tabular-nums text-center text-[20px] font-black text-white bg-black/30 rounded-lg py-1">{pad(v)}</span>
+      <span className="text-[9px] text-white/70 mt-1">{lbl}</span>
+    </div>
+  )
+  return (
+    <div className="mt-6 rounded-2xl p-4 text-center shadow-lg" style={{ background: 'linear-gradient(135deg,#dc2626,#ea580c)' }}>
+      <div className="text-[13px] font-black text-white flex items-center justify-center gap-1.5">
+        🔥 عرض الإطلاق — وفّر حتى {MAX_DISCOUNT_PCT}%
+      </div>
+      <div className="text-[11px] text-white/80 mt-0.5">عرض خاص لك ينتهي خلال</div>
+      <div className="flex items-center justify-center gap-2 mt-2" dir="ltr">
+        <Box v={hh} lbl="ساعة" /><span className="text-white font-black text-lg pb-3">:</span>
+        <Box v={mm} lbl="دقيقة" /><span className="text-white font-black text-lg pb-3">:</span>
+        <Box v={ss} lbl="ثانية" />
+      </div>
+      <div className="mt-3 inline-flex items-center gap-1.5 bg-black/25 rounded-full px-3 py-1 text-[11px] font-bold text-amber-100">
+        ⚡ بقي {seats} {seats === 1 ? 'مقعد' : 'مقاعد'} بهذا السعر هذا الشهر
       </div>
     </div>
   )
@@ -1430,13 +1494,21 @@ function PromoCard({ p }: { p: PromoCourse }) {
     )
   }
 
-  // SOON — coming soon, not yet clickable
+  // a course icon that unmistakably reads as "locked" (greyed emoji + lock badge)
+  const LockedIcon = (
+    <span className="relative w-12 h-12 shrink-0">
+      <span className="w-12 h-12 rounded-xl flex items-center justify-center text-[22px] grayscale opacity-50" style={{ background: t.gold, color: t.dark }}>{t.emoji}</span>
+      <span className="absolute -bottom-1 -left-1 w-5 h-5 rounded-full bg-zinc-900 ring-2 ring-[#2a1d12] flex items-center justify-center"><Lock size={11} className="text-zinc-300" /></span>
+    </span>
+  )
+
+  // SOON — coming soon, locked and not yet clickable
   if (p.status === 'soon') {
     return (
-      <div className="w-full text-right rounded-2xl p-4 flex items-center gap-3.5 bg-white/[0.04] ring-1 ring-white/10">
-        <span className="w-12 h-12 rounded-xl flex items-center justify-center text-[22px] shrink-0 grayscale opacity-60" style={{ background: t.gold, color: t.dark }}>{t.emoji}</span>
+      <div className="w-full text-right rounded-2xl p-4 flex items-center gap-3.5 bg-white/[0.03] ring-1 ring-white/10 opacity-80">
+        {LockedIcon}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5"><span className="font-black text-[14px] text-zinc-200 truncate">{p.title}</span>{Badge}</div>
+          <div className="flex items-center gap-1.5"><span className="font-black text-[14px] text-zinc-300 truncate">{p.title}</span>{Badge}</div>
           <div className="text-[11px] text-zinc-500 font-bold">{p.level} · {p.blurb}</div>
         </div>
         <Clock size={16} className="text-zinc-500 shrink-0" />
@@ -1444,15 +1516,24 @@ function PromoCard({ p }: { p: PromoCourse }) {
     )
   }
 
-  // LOCKED — subscribe via WhatsApp, with the price label
+  // LOCKED — clearly locked; tap → subscribe via WhatsApp, with struck "before" price + discount
   const wa = `https://wa.me/${CORRECTOR_WHATSAPP}?text=${encodeURIComponent(p.waText || `أرغب بالاشتراك في «${p.title}».`)}`
   return (
     <a href={wa} target="_blank" rel="noreferrer"
-      className="w-full text-right rounded-2xl p-4 flex items-center gap-3.5 bg-white/[0.04] ring-1 ring-white/10 hover:bg-white/[0.07] transition">
-      <span className="w-12 h-12 rounded-xl flex items-center justify-center text-[22px] shrink-0" style={{ background: t.gold, color: t.dark }}>{t.emoji}</span>
+      className="w-full text-right rounded-2xl p-4 flex items-center gap-3.5 bg-white/[0.05] ring-1 ring-white/10 hover:bg-white/[0.09] transition">
+      {LockedIcon}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5"><span className="font-black text-[14px] text-zinc-100 truncate">{p.title}</span>{Badge}</div>
-        <div className="text-[11px] font-bold" style={{ color: t.gold }}>{p.level} · {p.priceLabel} · اضغط للاشتراك</div>
+        <div className="flex items-center gap-1.5">
+          <span className="font-black text-[14px] text-zinc-100 truncate">{p.title}</span>
+          {Badge}
+          {p.discountPct && <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 shrink-0">-{p.discountPct}%</span>}
+        </div>
+        <div className="text-[11px] font-bold mt-0.5 flex items-center gap-1.5 flex-wrap" style={{ color: t.gold }}>
+          <span>{p.level}</span>
+          {p.origPriceLabel && <span className="text-zinc-500 line-through font-semibold">{p.origPriceLabel}</span>}
+          <span>{p.priceLabel}</span>
+        </div>
+        <div className="text-[10.5px] text-zinc-400 mt-0.5">🔓 اضغط للاشتراك وفتح الدورة</div>
       </div>
       <Lock size={16} className="text-zinc-400 shrink-0" />
     </a>
