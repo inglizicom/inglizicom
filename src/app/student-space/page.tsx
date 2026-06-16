@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import {
   fetchStudentSpace, completeExercise, logActivity, fileUrl, studentLogin, getDeviceId, deviceValid, fetchUnitSteps,
+  fetchCourseCatalog, type CatalogCourse,
   type StudentSpace, type StudentAssignment, type PortalLesson, type PortalModule, type PortalCourse, type UnitSteps,
 } from '@/lib/student-portal'
 import { openLesson, completeLesson, fetchStudentResources, resourceUrl, fetchProgressMeta, fetchReadingUnits, fetchMySubmissions, fetchUnitExams, fetchNotifications, markNotificationsRead, EXAMS_URL, CORRECTOR_WHATSAPP, type CourseResource, type ProgressMeta, type UnitSubmission, type StudentNotification } from '@/lib/lms'
@@ -80,7 +81,7 @@ const ACTIVITY = {
 export default function StudentSpacePage() {
   return (
     <PortalErrorBoundary>
-      <Suspense fallback={<div className="min-h-screen bg-[var(--ic-dark)]" />}><Portal /></Suspense>
+      <Suspense fallback={<div className="min-h-screen bg-[#2a1d12]" />}><Portal /></Suspense>
     </PortalErrorBoundary>
   )
 }
@@ -127,6 +128,8 @@ function Portal() {
   const [unitSteps, setUnitSteps] = useState<UnitSteps>({})   // server-tracked reading/exam steps
   const [coins, setCoins] = useState<CoinSummary | null>(null)
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)   // which enrolled course the portal is showing
+  const [catalog, setCatalog] = useState<CatalogCourse[]>([])   // ALL published courses (enrolled = open, rest = locked)
+  const [pickerOpen, setPickerOpen] = useState(false)           // user tapped the course switcher
   const [practice, setPractice] = useState<'sentence' | 'translation' | null>(null)
   const [vocabOpen, setVocabOpen] = useState(false)
 
@@ -185,6 +188,8 @@ function Portal() {
   useEffect(() => { if (token && !demo) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta); fetchReadingUnits(token).then(ids => setReadingUnits(new Set(ids))); fetchMySubmissions(token).then(setSubmissions); fetchUnitExams(token).then(setUnitExams); fetchNotifications(token).then(setNotifs); fetchStudentAnnouncements(token).then(setAnns); fetchCertificate(token).then(setCert); fetchUnitSteps(token).then(setUnitSteps) } }, [token, space])
   // coins are PER COURSE — refetch when the chosen course changes
   useEffect(() => { if (token && !demo) fetchCoins(token, selectedCourseId).then(setCoins) }, [token, space, selectedCourseId])
+  // full catalog (for the picker's locked courses) — loaded once
+  useEffect(() => { fetchCourseCatalog().then(setCatalog) }, [])
   // pick the course to show: keep a valid prior choice, else the saved one, else
   // auto-select when there's only one (the picker is shown for 2+).
   useEffect(() => {
@@ -208,7 +213,7 @@ function Portal() {
   function reloadGate() { if (!token) return; fetchMySubmissions(token).then(setSubmissions); fetchUnitExams(token).then(setUnitExams); fetchProgressMeta(token).then(setMeta); refresh() }
   function refreshCoins() { if (token) fetchCoins(token, selectedCourseId).then(setCoins) }
   async function award(action: EarnAction, lessonId?: string | null, moduleId?: string | null) { const got = await earnCoins(token, action, lessonId, moduleId, selectedCourseId); if (got > 0) refreshCoins() }
-  function chooseCourse(id: string) { setSelectedCourseId(id); try { localStorage.setItem(COURSE_KEY + token, id) } catch {} }
+  function chooseCourse(id: string) { setSelectedCourseId(id); setPickerOpen(false); try { localStorage.setItem(COURSE_KEY + token, id) } catch {} }
 
   // "message received" chime (3 gentle ascending tones)
   function getAudioCtx(): any {
@@ -312,15 +317,15 @@ function Portal() {
     setOtpBusy(false)
   }
 
-  if (booting) return <div className="min-h-screen bg-[var(--ic-dark)] flex items-center justify-center"><Loader2 className="animate-spin text-[var(--ic-gold)]" size={28} /></div>
+  if (booting) return <div className="min-h-screen bg-[#2a1d12] flex items-center justify-center"><Loader2 className="animate-spin text-[#facc15]" size={28} /></div>
 
   /* ════ LOGIN ════ */
   if (!space?.found) {
     return (
-      <div dir="rtl" className="min-h-screen bg-[var(--ic-dark)] flex items-center justify-center p-4">
+      <div dir="rtl" className="min-h-screen bg-[#2a1d12] flex items-center justify-center p-4">
         <div className="w-full max-w-sm">
           <div className="flex flex-col items-center mb-6">
-            <div className="w-16 h-16 rounded-2xl bg-[var(--ic-gold)] text-black flex items-center justify-center font-black text-3xl mb-3">I</div>
+            <div className="w-16 h-16 rounded-2xl bg-[#facc15] text-black flex items-center justify-center font-black text-3xl mb-3">I</div>
             <h1 className="text-white font-black text-[22px]">فضاء الطالب</h1>
             <p className="text-zinc-400 text-[13px] mt-1">منصة Inglizi.com لتعلّم الإنجليزية</p>
           </div>
@@ -332,7 +337,7 @@ function Portal() {
               <>
                 <label className="flex items-center gap-1.5 text-[13px] font-bold text-zinc-700 mb-2"><KeyRound size={15} className="text-zinc-400" /> رمز الدخول</label>
                 <input value={code} onChange={e => setCode(e.target.value)} placeholder="ING-XXXXXXXX" dir="ltr"
-                  className="w-full px-4 py-3.5 text-[17px] font-bold tracking-widest text-center uppercase bg-zinc-50 border-2 border-zinc-200 rounded-2xl focus:outline-none focus:border-[var(--ic-gold)]" />
+                  className="w-full px-4 py-3.5 text-[17px] font-bold tracking-widest text-center uppercase bg-zinc-50 border-2 border-zinc-200 rounded-2xl focus:outline-none focus:border-[#facc15]" />
                 {error && <p className="text-[13px] text-red-600 mt-2 font-medium flex items-center gap-1.5"><AlertCircle size={14} /> {error}</p>}
                 <button type="submit" disabled={loading || !code.trim()} className="mt-4 w-full py-3.5 rounded-2xl bg-black text-white font-bold text-[15px] flex items-center justify-center gap-2 disabled:opacity-50">
                   {loading ? <Loader2 size={17} className="animate-spin" /> : <Sparkles size={17} />} دخول
@@ -361,7 +366,7 @@ function Portal() {
                       <>
                         <p className="text-[12px] text-zinc-500 mb-2 text-center">أدخل الرمز المُرسل إلى <span dir="ltr" className="font-bold">{otpPhone}</span></p>
                         <input value={otpCode} onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))} inputMode="numeric" placeholder="••••••" dir="ltr"
-                          className="w-full px-4 py-3 text-[20px] font-black tracking-[8px] text-center bg-zinc-50 border-2 border-zinc-200 rounded-2xl focus:outline-none focus:border-[var(--ic-gold)]" />
+                          className="w-full px-4 py-3 text-[20px] font-black tracking-[8px] text-center bg-zinc-50 border-2 border-zinc-200 rounded-2xl focus:outline-none focus:border-[#facc15]" />
                         <button type="submit" disabled={otpBusy || otpCode.trim().length < 4} className="mt-3 w-full py-3 rounded-2xl bg-black text-white font-bold text-[14px] flex items-center justify-center gap-2 disabled:opacity-50">
                           {otpBusy ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />} تحقّق وادخل
                         </button>
@@ -385,10 +390,15 @@ function Portal() {
   const stats = space.stats ?? { lessons_total: 0, lessons_done: 0, ex_total: 0, ex_done: 0, exam_total: 0, exam_done: 0, files_total: 0, files_opened: 0, overall: 0, streak: 0, last_activity: null }
   const courses = space.courses ?? []
 
-  /* ════ COURSE PICKER ════ a multi-course student chooses which one to enter;
-     the whole portal (progress, exams, coins, leaderboard, colors) is scoped to it. */
-  if (courses.length > 1 && !(selectedCourseId && courses.some(c => c.id === selectedCourseId))) {
-    return <CoursePicker courses={courses} name={s.full_name} onPick={chooseCourse} onLogout={logout} />
+  /* ════ COURSE PICKER ════ shows ALL published courses — the ones the student is
+     enrolled in are open (and scope the whole portal: progress, exams, coins,
+     leaderboard, colors); the rest are locked so students discover the catalogue.
+     Shown when they must pick (2+ enrolled, none chosen) or tap the switcher. */
+  const validSel = !!(selectedCourseId && courses.some(c => c.id === selectedCourseId))
+  const mustPick = courses.length > 1 && !validSel
+  if (pickerOpen || mustPick) {
+    return <CoursePicker enrolled={courses} catalog={catalog} name={s.full_name}
+      onPick={chooseCourse} onClose={validSel ? () => setPickerOpen(false) : undefined} onLogout={logout} />
   }
   const course = courses.find(c => c.id === selectedCourseId) ?? courses[0]
   const theme = courseTheme(course)
@@ -529,9 +539,7 @@ function Portal() {
           {/* desktop: greeting + course + overall progress */}
           <div className="hidden lg:flex items-center gap-3 pr-4 mr-2 border-r border-white/10">
             <span className="text-[13px] text-zinc-300">مرحباً <b className="text-white">{firstName}</b> 👋</span>
-            {course && (courses.length > 1
-              ? <button onClick={() => setSelectedCourseId(null)} className="text-[11px] font-bold rounded-full px-2.5 py-1 flex items-center gap-1 hover:opacity-90" style={{ background: theme.gold, color: theme.dark }} title="تبديل الدورة">{course.title} <ChevronDown size={12} /></button>
-              : <span className="text-[11px] font-bold bg-white/10 rounded-full px-2.5 py-1 text-zinc-200">{course.title}</span>)}
+            {course && <button onClick={() => setPickerOpen(true)} className="text-[11px] font-bold rounded-full px-2.5 py-1 flex items-center gap-1 hover:opacity-90" style={{ background: theme.gold, color: theme.dark }} title="تبديل الدورة">{course.title} <ChevronDown size={12} /></button>}
             <span className="flex items-center gap-1.5 text-[11px] text-zinc-400">
               <span className="w-24 h-1.5 bg-white/10 rounded-full overflow-hidden"><span className="block h-full bg-gradient-to-l from-[var(--ic-grad-from)] to-[var(--ic-grad-to)] rounded-full transition-all" style={{ width: `${stats.overall}%` }} /></span>
               <b className="text-zinc-200">{stats.overall}%</b>
@@ -1311,20 +1319,30 @@ function Empty({ emoji, text, sub, mini }: { emoji?: string; text: string; sub?:
   if (mini) return <div className="py-4 text-center text-[12px] text-zinc-400">{text}</div>
   return <div className="flex flex-col items-center py-12 text-center"><div className="text-4xl mb-2">{emoji ?? '📭'}</div><div className="text-[14px] font-semibold text-zinc-600">{text}</div>{sub && <div className="text-[12px] text-zinc-400 mt-1 max-w-xs">{sub}</div>}</div>
 }
-/** Course chooser shown to a student enrolled in 2+ courses, before the dashboard.
- *  Each card wears its course's own color so the choice is unmistakable. */
-function CoursePicker({ courses, name, onPick, onLogout }: { courses: PortalCourse[]; name: string; onPick: (id: string) => void; onLogout: () => void }) {
+/** Course chooser. Shows ALL published courses: the ones the student is enrolled
+ *  in are OPEN (each in its own color); the rest are LOCKED, so students discover
+ *  the full catalogue and can ask to subscribe. Reachable any time via the header
+ *  switcher (onClose returns to the current course). */
+function CoursePicker({ enrolled, catalog, name, onPick, onClose, onLogout }: {
+  enrolled: PortalCourse[]; catalog: CatalogCourse[]; name: string
+  onPick: (id: string) => void; onClose?: () => void; onLogout: () => void
+}) {
   const first = (name || '').split(' ')[0]
+  const enrolledIds = new Set(enrolled.map(c => c.id))
+  const locked = catalog.filter(c => !enrolledIds.has(c.id))
   return (
-    <div dir="rtl" className="min-h-screen bg-[var(--ic-dark)] flex flex-col items-center justify-center p-4">
+    <div dir="rtl" className="min-h-screen bg-[#2a1d12] flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="flex flex-col items-center mb-7 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-[var(--ic-gold)] text-black flex items-center justify-center font-black text-2xl mb-3">I</div>
+        <div className="flex flex-col items-center mb-7 text-center relative">
+          {onClose && <button onClick={onClose} className="absolute right-0 top-0 text-zinc-400 hover:text-white text-[12px] flex items-center gap-1"><ChevronRight size={16} /> رجوع</button>}
+          <div className="w-14 h-14 rounded-2xl bg-yellow-400 text-black flex items-center justify-center font-black text-2xl mb-3">I</div>
           <h1 className="text-white font-black text-[20px]">مرحبًا {first} 👋</h1>
-          <p className="text-zinc-400 text-[13px] mt-1">اختر الدورة التي تريد الدخول إليها</p>
+          <p className="text-zinc-400 text-[13px] mt-1">اختر دورتك — وتعرّف على باقي الدورات المتاحة</p>
         </div>
+
+        {/* OPEN — enrolled courses, each in its own color */}
         <div className="space-y-3">
-          {courses.map(c => {
+          {enrolled.map(c => {
             const t = courseTheme(c)
             return (
               <button key={c.id} onClick={() => onPick(c.id)}
@@ -1333,13 +1351,38 @@ function CoursePicker({ courses, name, onPick, onLogout }: { courses: PortalCour
                 <span className="w-12 h-12 rounded-xl flex items-center justify-center text-[24px] shrink-0" style={{ background: t.gold, color: t.dark }}>{t.emoji}</span>
                 <div className="flex-1 min-w-0">
                   <div className="font-black text-[15px] text-white truncate">{c.title}</div>
-                  <div className="text-[12px] font-bold" style={{ color: t.gold }}>{c.level || 'دورة'} · {c.modules.length} وحدة</div>
+                  <div className="text-[12px] font-bold" style={{ color: t.gold }}>{c.level || 'دورة'} · {c.modules.length} وحدة · مفتوحة</div>
                 </div>
                 <ChevronLeft size={20} className="text-white/40 shrink-0" />
               </button>
             )
           })}
         </div>
+
+        {/* LOCKED — the rest of the catalogue */}
+        {locked.length > 0 && (
+          <>
+            <div className="text-zinc-500 text-[11px] font-bold mt-6 mb-2 px-1">دورات أخرى متاحة 🔒</div>
+            <div className="space-y-3">
+              {locked.map(c => {
+                const t = courseTheme(c)
+                const wa = `https://wa.me/${CORRECTOR_WHATSAPP}?text=${encodeURIComponent(`أرغب بالاشتراك في «${c.title}».`)}`
+                return (
+                  <a key={c.id} href={wa} target="_blank" rel="noreferrer"
+                    className="w-full text-right rounded-2xl p-4 flex items-center gap-3.5 bg-white/[0.04] ring-1 ring-white/10 hover:bg-white/[0.07] transition">
+                    <span className="w-12 h-12 rounded-xl flex items-center justify-center text-[22px] shrink-0 grayscale opacity-70" style={{ background: t.gold, color: t.dark }}>{t.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-black text-[14px] text-zinc-200 truncate">{c.title}</div>
+                      <div className="text-[11px] text-zinc-500 font-bold">{c.level || 'دورة'} · {c.units} وحدة · اضغط للاشتراك</div>
+                    </div>
+                    <Lock size={16} className="text-zinc-500 shrink-0" />
+                  </a>
+                )
+              })}
+            </div>
+          </>
+        )}
+
         <button onClick={onLogout} className="w-full text-center text-[12px] text-zinc-500 hover:text-zinc-300 mt-7">تسجيل الخروج</button>
       </div>
     </div>
@@ -1387,7 +1430,7 @@ class PortalErrorBoundary extends Component<{ children: ReactNode }, { hasError:
   componentDidCatch(err: any) { console.error('portal error', err) }
   render() {
     if (this.state.hasError) return (
-      <div dir="rtl" className="min-h-screen bg-[var(--ic-dark)] flex items-center justify-center p-4 text-center"><div className="max-w-sm"><div className="text-4xl mb-3">⚠️</div><h1 className="text-white font-black text-[18px] mb-2">حدث خطأ غير متوقع</h1><p className="text-zinc-400 text-[13px] mb-4">أعد تحميل الصفحة، وإن استمرّ الخطأ تواصل مع الإدارة.</p><button onClick={() => location.reload()} className="px-5 py-2.5 rounded-xl bg-[var(--ic-gold)] text-black font-bold text-[14px]">إعادة تحميل</button></div></div>
+      <div dir="rtl" className="min-h-screen bg-[#2a1d12] flex items-center justify-center p-4 text-center"><div className="max-w-sm"><div className="text-4xl mb-3">⚠️</div><h1 className="text-white font-black text-[18px] mb-2">حدث خطأ غير متوقع</h1><p className="text-zinc-400 text-[13px] mb-4">أعد تحميل الصفحة، وإن استمرّ الخطأ تواصل مع الإدارة.</p><button onClick={() => location.reload()} className="px-5 py-2.5 rounded-xl bg-[#facc15] text-black font-bold text-[14px]">إعادة تحميل</button></div></div>
     )
     return this.props.children
   }

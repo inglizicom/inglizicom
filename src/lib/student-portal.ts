@@ -140,6 +140,12 @@ export async function fetchStudentSpace(token: string): Promise<StudentSpace> {
   if (error) { console.error('fetchStudentSpace', error.message); return { found: false } }
   return (data ?? { found: false }) as StudentSpace
 }
+/** Public catalog of all published courses (for the picker's locked courses + pricing). */
+export interface CatalogCourse { id: string; title: string; level: string | null; description: string | null; units: number }
+export async function fetchCourseCatalog(): Promise<CatalogCourse[]> {
+  const { data } = await supabase.rpc('course_catalog')
+  return (data ?? []) as CatalogCourse[]
+}
 export async function completeExercise(token: string, assignmentId: string): Promise<boolean> {
   const { data } = await supabase.rpc('student_complete_exercise', { p_token: token.trim().toUpperCase(), p_assignment_id: assignmentId })
   return data === true
