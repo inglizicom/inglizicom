@@ -27,7 +27,8 @@ import PracticeHub from '@/components/PracticeHub'
 import VocabGames from '@/components/VocabGames'
 import { fetchCertificate, type Certificate } from '@/lib/lms'
 import { earnCoins, streakBonus, fetchCoins, type EarnAction, type CoinSummary } from '@/lib/gamification'
-import { courseTheme } from '@/lib/course-theme'
+import { courseTheme, themeForKey } from '@/lib/course-theme'
+import { PROMO_CATALOG, type PromoCourse } from '@/data/course-catalog'
 import { isDemo, DEMO_SPACE } from '@/lib/demo'
 import { fetchStudentAnnouncements, type StudentAnnouncement } from '@/lib/announcements'
 
@@ -545,6 +546,8 @@ function Portal() {
               <b className="text-zinc-200">{stats.overall}%</b>
             </span>
           </div>
+          {/* mobile/tablet: compact course switcher so every student can reach the full catalogue */}
+          {course && <button onClick={() => setPickerOpen(true)} className="lg:hidden text-[11px] font-bold rounded-full px-2.5 py-1 flex items-center gap-1 max-w-[40vw] active:scale-95 transition" style={{ background: theme.gold, color: theme.dark }} title="تبديل الدورة"><span className="truncate">{course.title}</span> <ChevronDown size={12} className="shrink-0" /></button>}
           <div className="flex-1" />
           {(() => {
             const TYPE_ICON: Record<string, any> = { correction: CheckCircle2, reminder: Bell, deadline: Clock, lesson: PlayCircle, message: MessageSquareText, info: Bell }
@@ -1329,7 +1332,12 @@ function CoursePicker({ enrolled, catalog, name, onPick, onClose, onLogout }: {
 }) {
   const first = (name || '').split(' ')[0]
   const enrolledIds = new Set(enrolled.map(c => c.id))
-  const locked = catalog.filter(c => !enrolledIds.has(c.id))
+  // Promo cards for everything the student isn't already enrolled in (info cards
+  // like the 1:1 classes always show — they're never an enrolled "course").
+  const promo = PROMO_CATALOG.filter(p => p.status === 'info' || !enrolled.some(c => p.match(c)))
+  // Any real published course not covered by a promo entry (future-proofing).
+  const lockedDb = catalog.filter(c => !enrolledIds.has(c.id) && !PROMO_CATALOG.some(p => p.match(c)))
+
   return (
     <div dir="rtl" className="min-h-screen bg-[#2a1d12] flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -1341,30 +1349,33 @@ function CoursePicker({ enrolled, catalog, name, onPick, onClose, onLogout }: {
         </div>
 
         {/* OPEN — enrolled courses, each in its own color */}
-        <div className="space-y-3">
-          {enrolled.map(c => {
-            const t = courseTheme(c)
-            return (
-              <button key={c.id} onClick={() => onPick(c.id)}
-                className="w-full text-right rounded-2xl p-4 flex items-center gap-3.5 shadow-lg active:scale-[0.99] transition ring-1 ring-white/10"
-                style={{ background: t.dark }}>
-                <span className="w-12 h-12 rounded-xl flex items-center justify-center text-[24px] shrink-0" style={{ background: t.gold, color: t.dark }}>{t.emoji}</span>
-                <div className="flex-1 min-w-0">
-                  <div className="font-black text-[15px] text-white truncate">{c.title}</div>
-                  <div className="text-[12px] font-bold" style={{ color: t.gold }}>{c.level || 'دورة'} · {c.modules.length} وحدة · مفتوحة</div>
-                </div>
-                <ChevronLeft size={20} className="text-white/40 shrink-0" />
-              </button>
-            )
-          })}
-        </div>
+        {enrolled.length > 0 && (
+          <div className="space-y-3">
+            {enrolled.map(c => {
+              const t = courseTheme(c)
+              return (
+                <button key={c.id} onClick={() => onPick(c.id)}
+                  className="w-full text-right rounded-2xl p-4 flex items-center gap-3.5 shadow-lg active:scale-[0.99] transition ring-1 ring-white/10"
+                  style={{ background: t.dark }}>
+                  <span className="w-12 h-12 rounded-xl flex items-center justify-center text-[24px] shrink-0" style={{ background: t.gold, color: t.dark }}>{t.emoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-black text-[15px] text-white truncate">{c.title}</div>
+                    <div className="text-[12px] font-bold" style={{ color: t.gold }}>{c.level || 'دورة'} · {c.modules.length} وحدة · مفتوحة</div>
+                  </div>
+                  <ChevronLeft size={20} className="text-white/40 shrink-0" />
+                </button>
+              )
+            })}
+          </div>
+        )}
 
-        {/* LOCKED — the rest of the catalogue */}
-        {locked.length > 0 && (
+        {/* THE REST OF THE CATALOGUE — locked (subscribe), "coming soon", and the 1:1 info card */}
+        {(promo.length > 0 || lockedDb.length > 0) && (
           <>
-            <div className="text-zinc-500 text-[11px] font-bold mt-6 mb-2 px-1">دورات أخرى متاحة 🔒</div>
+            <div className="text-zinc-500 text-[11px] font-bold mt-6 mb-2 px-1">كل دورات Inglizi.com 🔓</div>
             <div className="space-y-3">
-              {locked.map(c => {
+              {promo.map(p => <PromoCard key={p.key} p={p} />)}
+              {lockedDb.map(c => {
                 const t = courseTheme(c)
                 const wa = `https://wa.me/${CORRECTOR_WHATSAPP}?text=${encodeURIComponent(`أرغب بالاشتراك في «${c.title}».`)}`
                 return (
@@ -1386,6 +1397,65 @@ function CoursePicker({ enrolled, catalog, name, onPick, onClose, onLogout }: {
         <button onClick={onLogout} className="w-full text-center text-[12px] text-zinc-500 hover:text-zinc-300 mt-7">تسجيل الخروج</button>
       </div>
     </div>
+  )
+}
+
+/** One catalogue card: locked → WhatsApp subscribe (with price); soon → greyed
+ *  "coming soon"; info → an open "discover" card (the 1:1 classes) → /pricing. */
+function PromoCard({ p }: { p: PromoCourse }) {
+  const t = themeForKey(p.key)
+  const Badge = p.badge ? (
+    <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0"
+      style={{ background: p.status === 'soon' ? 'rgba(255,255,255,0.1)' : t.gold, color: p.status === 'soon' ? '#a1a1aa' : t.dark }}>{p.badge}</span>
+  ) : null
+
+  // INFO — the 1:1 classes: an inviting, fully-coloured "discover" card
+  if (p.status === 'info') {
+    return (
+      <a href={p.href} className="block w-full text-right rounded-2xl p-4 shadow-lg ring-1 ring-white/10 hover:opacity-95 transition" style={{ background: t.dark }}>
+        <div className="flex items-center gap-3.5">
+          <span className="w-12 h-12 rounded-xl flex items-center justify-center text-[24px] shrink-0" style={{ background: t.gold, color: t.dark }}>{t.emoji}</span>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5"><span className="font-black text-[15px] text-white truncate">{p.title}</span></div>
+            <div className="text-[12px] font-bold" style={{ color: t.gold }}>{p.level} · {p.priceLabel}</div>
+          </div>
+          <ChevronLeft size={20} className="text-white/40 shrink-0" />
+        </div>
+        {p.perks && (
+          <ul className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1.5">
+            {p.perks.map(x => <li key={x} className="text-[11px] text-zinc-300 flex items-start gap-1"><span style={{ color: t.gold }}>✦</span><span className="leading-snug">{x}</span></li>)}
+          </ul>
+        )}
+      </a>
+    )
+  }
+
+  // SOON — coming soon, not yet clickable
+  if (p.status === 'soon') {
+    return (
+      <div className="w-full text-right rounded-2xl p-4 flex items-center gap-3.5 bg-white/[0.04] ring-1 ring-white/10">
+        <span className="w-12 h-12 rounded-xl flex items-center justify-center text-[22px] shrink-0 grayscale opacity-60" style={{ background: t.gold, color: t.dark }}>{t.emoji}</span>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5"><span className="font-black text-[14px] text-zinc-200 truncate">{p.title}</span>{Badge}</div>
+          <div className="text-[11px] text-zinc-500 font-bold">{p.level} · {p.blurb}</div>
+        </div>
+        <Clock size={16} className="text-zinc-500 shrink-0" />
+      </div>
+    )
+  }
+
+  // LOCKED — subscribe via WhatsApp, with the price label
+  const wa = `https://wa.me/${CORRECTOR_WHATSAPP}?text=${encodeURIComponent(p.waText || `أرغب بالاشتراك في «${p.title}».`)}`
+  return (
+    <a href={wa} target="_blank" rel="noreferrer"
+      className="w-full text-right rounded-2xl p-4 flex items-center gap-3.5 bg-white/[0.04] ring-1 ring-white/10 hover:bg-white/[0.07] transition">
+      <span className="w-12 h-12 rounded-xl flex items-center justify-center text-[22px] shrink-0" style={{ background: t.gold, color: t.dark }}>{t.emoji}</span>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5"><span className="font-black text-[14px] text-zinc-100 truncate">{p.title}</span>{Badge}</div>
+        <div className="text-[11px] font-bold" style={{ color: t.gold }}>{p.level} · {p.priceLabel} · اضغط للاشتراك</div>
+      </div>
+      <Lock size={16} className="text-zinc-400 shrink-0" />
+    </a>
   )
 }
 
