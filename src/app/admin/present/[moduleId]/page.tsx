@@ -378,7 +378,7 @@ export default function PresentPage() {
 
   // ── Zoom: pinch (touch) · Ctrl/⌘ + wheel (trackpad/mouse) · buttons · +/-/0 ──
   const rootRef = useRef<HTMLDivElement>(null)
-  const ZMIN = 0.5, ZMAX = 2.5
+  const ZMIN = 0.8, ZMAX = 1.8
   const [zoom, setZoom] = useState(1)
   const zRef = useRef(zoom); zRef.current = zoom
   const setZ = useCallback((v: number) => setZoom(Math.min(ZMAX, Math.max(ZMIN, parseFloat(v.toFixed(2))))), [])
@@ -444,7 +444,7 @@ export default function PresentPage() {
       ) : (
         <>
           {/* header — single row, fits */}
-          <div className="relative z-10 flex items-center justify-center gap-2 px-[3vw] pt-[2.6vh] text-[0.95vw] flex-nowrap overflow-hidden">
+          <div className="relative z-30 flex items-center justify-center gap-2 px-[3vw] pt-[2.6vh] text-[0.95vw] flex-nowrap overflow-hidden">
             {unitNo && <span className="px-3.5 py-1.5 rounded-xl text-white font-black whitespace-nowrap shrink-0" style={{ background: DARK }}>{unitNo}</span>}
             <span className="px-3.5 py-1.5 rounded-xl bg-white shadow-sm ring-1 ring-stone-200/70 font-bold whitespace-nowrap shrink min-w-0 truncate" style={{ color: DARK }}>{unitName}</span>
             {section && <span className="px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap shrink-0 text-[#2a1d12]" style={{ background: '#facc15' }}>{section.en} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>{section.ar}</span>{s.kind === 'convo' && s.parts && s.parts > 1 ? ` · ${s.part}/${s.parts}` : ''}</span>}
@@ -474,7 +474,7 @@ export default function PresentPage() {
             <button onClick={() => go(1)} className="absolute right-0 top-0 h-full w-[11%] z-20 cursor-e-resize" aria-label="Next" />
           </>)}
 
-          <div className="flex-1 flex items-center justify-center px-[5vw] py-[2vh] relative z-10 min-h-0">
+          <div className="flex-1 flex items-center justify-center px-[5vw] py-[2vh] relative z-10 min-h-0 overflow-hidden">
             <div className="w-full flex items-center justify-center"
               onPointerDown={onPanDown} onPointerMove={onPanMove} onPointerUp={onPanUp} onPointerCancel={onPanUp}
               style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: 'center center', transition: dragging ? 'none' : 'transform 150ms', cursor: zoom > 1 ? (dragging ? 'grabbing' : 'grab') : 'default' }}>
