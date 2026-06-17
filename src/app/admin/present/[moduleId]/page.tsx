@@ -20,14 +20,13 @@ const DARK = '#2a1d12'
 const CREAM = '#faf6ef'
 
 type VocabPair = { en: string; ar: string }
-type WordGroup = { label: string; ar: string; words: string[] }
 type Slide =
   | { kind: 'title'; title: string }
   | { kind: 'word'; en: string; ar: string; vary: Variation | null; slot: number }
   | { kind: 'convo'; lines: { who: string; text: string }[]; speakers: string[]; part?: number; parts?: number }
   | { kind: 'expr'; pattern: string; example: string; vary: Variation | null; slot: number }
   | { kind: 'scramble'; sentences: string[] }
-  | { kind: 'builder'; groups: WordGroup[] }
+  | { kind: 'translate'; items: { ar: string; en: string }[] }
   | { kind: 'end' }
 
 const SECTION: Record<Slide['kind'], { en: string; ar: string } | null> = {
@@ -36,7 +35,7 @@ const SECTION: Record<Slide['kind'], { en: string; ar: string } | null> = {
   convo: { en: 'Conversation', ar: 'المحادثة' },
   expr: { en: 'Expressions', ar: 'التعابير' },
   scramble: { en: 'Word Scramble', ar: 'رتّب الكلمات' },
-  builder: { en: 'Build Sentences', ar: 'كوّن جُملاً' },
+  translate: { en: 'Translate', ar: 'ترجم الجملة' },
 }
 
 /* ── parsers ───────────────────────────────────────────────── */
@@ -279,35 +278,21 @@ function buildScramble(convo: { who: string; text: string }[], vocab: VocabPair[
   }
   return out.slice(0, 6)
 }
-/** Word bank ORGANISED by role (subject / verb / words / tools) so students build
- *  structured sentences instead of facing one big jumble. Verbs are guessed as the
- *  word right after a pronoun in the vocab phrases; everything else is "words". */
-const SUBJECTS = ['I', 'You', 'He', 'She', 'We', 'They']
-const COMMON_VERBS = ['am', 'is', 'are', 'like', 'want', 'have', 'go', 'do', 'eat', 'drink', 'make']
-const EXTRAS = ['a', 'the', 'to', 'my', 'and', 'very', 'not', 'today', 'every day']
-const PRON = new Set(['i', 'you', 'he', 'she', 'we', 'they', 'it'])
-const FUNCW = new Set(['is', 'am', 'are', 'do', 'does', 'to', 'a', 'an', 'the', 'my', 'your', 'in', 'on', 'of', 'and', 'with', 'for', 'not'])
-function buildWordGroups(vocab: VocabPair[]): WordGroup[] {
-  const unitVerbs: string[] = []; const vSeen = new Set<string>()
-  const others: string[] = []; const oSeen = new Set<string>()
+/** Translation items: take the unit's en↔ar vocab pairs, keep the first option
+ *  when a phrase lists alternatives ("tea / coffee"), and keep short, real pairs.
+ *  The student is shown the Arabic and builds the English. */
+function buildTranslations(vocab: VocabPair[]): { ar: string; en: string }[] {
+  const seen = new Set<string>(); const out: { ar: string; en: string }[] = []
   for (const v of vocab) {
-    const ws = v.en.replace(/[\/,.()]/g, ' ').split(/\s+/).map(w => w.trim().toLowerCase()).filter(Boolean)
-    ws.forEach((w, k) => {
-      if (w.length < 2 || PRON.has(w) || FUNCW.has(w)) return
-      if (k > 0 && PRON.has(ws[k - 1])) {              // word right after a pronoun → verb
-        if (!vSeen.has(w)) { vSeen.add(w); unitVerbs.push(w) }
-      } else if (!oSeen.has(w)) { oSeen.add(w); others.push(w) }
-    })
+    const en = v.en.split('/')[0].trim()
+    const ar = v.ar.split('/')[0].trim()
+    if (!en || !ar || !/[a-zA-Z]/.test(en) || !AR.test(ar)) continue
+    const w = en.split(/\s+/).filter(Boolean)
+    if (w.length < 1 || w.length > 7) continue
+    const k = en.toLowerCase()
+    if (!seen.has(k)) { seen.add(k); out.push({ ar, en }) }
   }
-  // verbs: the UNIT's own verbs first, then a few common ones to round out
-  const verbs = [...unitVerbs]
-  for (const cv of COMMON_VERBS) if (!vSeen.has(cv) && verbs.length < 12) verbs.push(cv)
-  return [
-    { label: 'Subjects', ar: 'الفاعل', words: SUBJECTS },
-    { label: 'Verbs', ar: 'أفعال', words: verbs.slice(0, 12) },
-    { label: 'Words', ar: 'كلمات', words: others.slice(0, 12) },
-    { label: 'Tools', ar: 'أدوات', words: EXTRAS },
-  ].filter(g => g.words.length > 0)
+  return out.slice(0, 8)
 }
 
 export default function PresentPage() {
@@ -350,8 +335,8 @@ export default function PresentPage() {
     // ── end-of-unit practice ──
     const scrambleS = buildScramble(convo, vocab)
     if (scrambleS.length >= 2) out.push({ kind: 'scramble', sentences: scrambleS })
-    const groups = buildWordGroups(vocab)
-    if (groups.reduce((n, g) => n + g.words.length, 0) >= 8) out.push({ kind: 'builder', groups })
+    const trans = buildTranslations(vocab)
+    if (trans.length >= 2) out.push({ kind: 'translate', items: trans })
     out.push({ kind: 'end' })
     return out
   }, [lessons, reading, unitName])
@@ -484,7 +469,7 @@ export default function PresentPage() {
           </div>
 
           {/* side-click navigation — disabled on interactive exercises so taps hit the tiles */}
-          {s.kind !== 'scramble' && s.kind !== 'builder' && (<>
+          {s.kind !== 'scramble' && s.kind !== 'translate' && (<>
             <button onClick={() => go(-1)} className="absolute left-0 top-0 h-full w-[11%] z-20 cursor-w-resize" aria-label="Previous" />
             <button onClick={() => go(1)} className="absolute right-0 top-0 h-full w-[11%] z-20 cursor-e-resize" aria-label="Next" />
           </>)}
@@ -569,7 +554,7 @@ export default function PresentPage() {
                 })()}
 
                 {s.kind === 'scramble' && <ScrambleSlide sentences={s.sentences} />}
-                {s.kind === 'builder' && <BuilderSlide groups={s.groups} />}
+                {s.kind === 'translate' && <TranslateSlide items={s.items} />}
 
                 {s.kind === 'end' && (
                   <div className="text-center">
@@ -657,54 +642,65 @@ function ScrambleSlide({ sentences }: { sentences: string[] }) {
 
 /** Sentence Builder: tap words from a bank ORGANISED by role (subject · verb ·
  *  words · tools) to form as MANY sentences as you can. All English flows LTR. */
-const GROUP_TINT: Record<string, string> = { Subjects: '#38bdf8', Verbs: '#f43f5e', Words: '#10b981', Tools: '#a8a29e' }
-function BuilderSlide({ groups }: { groups: WordGroup[] }) {
-  const [line, setLine] = useState<string[]>([])
-  const [made, setMade] = useState<string[]>([])
+/** Translate: shown an Arabic sentence, tap the English word tiles (answer words
+ *  shuffled with a few distractors) in the right order to translate it. */
+function TranslateSlide({ items }: { items: { ar: string; en: string }[] }) {
+  const [i, setI] = useState(0)
+  const [tiles, setTiles] = useState<{ w: string; id: number }[]>([])
+  const [order, setOrder] = useState<number[]>([])
+  const [reveal, setReveal] = useState(false)
+  const item = items[i] ?? { ar: '', en: '' }
+  const answer = item.en.split(/\s+/).filter(Boolean)
+  useEffect(() => {
+    const ans = (items[i]?.en ?? '').split(/\s+/).filter(Boolean)
+    const ansLow = new Set(ans.map(w => w.toLowerCase()))
+    const pool: string[] = []                              // distractor words from the OTHER sentences
+    items.forEach((it, j) => { if (j !== i) for (const w of it.en.split(/\s+/)) { const lw = w.toLowerCase(); if (w && !ansLow.has(lw) && !pool.some(p => p.toLowerCase() === lw)) pool.push(w) } })
+    const distract = pool.sort(() => Math.random() - 0.5).slice(0, Math.min(3, Math.max(1, Math.ceil(ans.length / 2))))
+    const all = [...ans, ...distract].sort(() => Math.random() - 0.5)
+    setTiles(all.map((w, k) => ({ w, id: k })))
+    setOrder([]); setReveal(false)
+  }, [i, items])
+  const built = order.map(id => tiles.find(t => t.id === id)?.w ?? '')
+  const done = built.length === answer.length && built.join(' ').toLowerCase() === answer.join(' ').toLowerCase()
+  const bank = tiles.filter(t => !order.includes(t.id))
+
   return (
-    <div className="w-full max-w-[88vw] flex flex-col items-center gap-[2vh]">
-      <div className="text-stone-400 font-bold" style={{ fontSize: '1vw' }} dir="rtl">اختر الفاعل ثم الفعل ثم باقي الكلمات — كوّن أكبر عدد من الجُمل</div>
+    <div className="w-full max-w-[80vw] flex flex-col items-center gap-[2.2vh]">
+      <div className="text-stone-400 font-bold" style={{ fontSize: '1vw' }} dir="rtl">ترجم الجملة إلى الإنجليزية · {i + 1}/{items.length}</div>
 
-      {/* current sentence (LTR) */}
-      <div dir="ltr" className="min-h-[6vh] w-full flex flex-wrap items-center justify-center gap-[0.7vw] rounded-2xl bg-white/70 ring-1 ring-stone-200 px-[2vw] py-[1.2vh]">
-        {line.length === 0 && <span className="text-stone-300 font-bold" style={{ fontSize: '1.1vw' }}>Tap a Subject to start…</span>}
-        {line.map((w, k) => <span key={k} className="px-[1vw] py-[0.6vh] rounded-lg font-black" style={{ background: '#facc15', color: DARK_C, fontSize: '1.4vw' }}>{w}</span>)}
-      </div>
+      {/* Arabic prompt */}
+      <div dir="rtl" className="font-black text-center px-[2vw]" style={{ fontFamily: "'Tajawal', sans-serif", color: DARK_C, fontSize: '2.6vw' }}>{item.ar}</div>
 
-      <div className="flex items-center gap-[1vw]">
-        <button onClick={() => setLine(l => l.slice(0, -1))} disabled={!line.length} className="px-[1.2vw] py-[0.8vh] rounded-xl bg-stone-100 font-bold text-stone-600 disabled:opacity-30" style={{ fontSize: '1vw' }} dir="rtl">⌫ حذف</button>
-        <button onClick={() => setLine([])} disabled={!line.length} className="px-[1.2vw] py-[0.8vh] rounded-xl bg-stone-100 font-bold text-stone-600 disabled:opacity-30" style={{ fontSize: '1vw' }} dir="rtl">مسح</button>
-        <button onClick={() => { if (line.length) { setMade(m => [line.join(' '), ...m]); setLine([]) } }} disabled={!line.length} className="px-[1.6vw] py-[0.8vh] rounded-xl text-white font-black disabled:opacity-30" style={{ background: '#059669', fontSize: '1vw' }} dir="rtl">✓ أضف الجملة</button>
-      </div>
-
-      {/* word bank — one labelled row per role */}
-      <div dir="ltr" className="w-full flex flex-col gap-[1vh]">
-        {groups.map(g => (
-          <div key={g.label} className="flex items-center gap-[1vw]">
-            <div className="shrink-0 text-right" style={{ width: '7vw' }}>
-              <div className="font-black uppercase tracking-wide" style={{ fontSize: '0.8vw', color: GROUP_TINT[g.label] ?? DARK_C }}>{g.label}</div>
-              <div className="text-stone-400 font-bold" style={{ fontSize: '0.75vw', fontFamily: "'Tajawal', sans-serif" }} dir="rtl">{g.ar}</div>
-            </div>
-            <div className="flex-1 flex flex-wrap items-center gap-[0.6vw]">
-              {g.words.map((w, k) => (
-                <button key={k} onClick={() => setLine(l => [...l, w])}
-                  className="px-[1vw] py-[0.6vh] rounded-xl bg-white font-bold shadow-sm hover:bg-amber-50" style={{ color: DARK_C, fontSize: '1.2vw', boxShadow: `inset 0 0 0 2px ${GROUP_TINT[g.label] ?? '#e7e5e4'}33` }}>
-                  {w}
-                </button>
-              ))}
-            </div>
-          </div>
+      {/* answer area (LTR) */}
+      <div dir="ltr" className="min-h-[6.5vh] w-full flex flex-wrap items-center justify-center gap-[0.8vw] rounded-2xl bg-white/70 ring-1 ring-stone-200 px-[2vw] py-[1.4vh]">
+        {order.length === 0 && <span className="text-stone-300 font-bold" style={{ fontSize: '1.1vw' }}>Tap the words in order…</span>}
+        {order.map(id => (
+          <button key={id} onClick={() => setOrder(o => o.filter(x => x !== id))}
+            className="px-[1.2vw] py-[0.8vh] rounded-xl font-black shadow-sm" style={{ background: '#facc15', color: DARK_C, fontSize: '1.5vw' }}>
+            {tiles.find(t => t.id === id)?.w}
+          </button>
         ))}
       </div>
 
-      {made.length > 0 && (
-        <div className="w-full max-w-[60vw]">
-          <div className="font-black text-emerald-600 mb-1" style={{ fontSize: '1.1vw' }} dir="rtl">كوّنت {made.length} جملة! 🎉</div>
-          <div className="flex flex-col gap-1 max-h-[22vh] overflow-y-auto">
-            {made.map((m, k) => <div key={k} dir="ltr" className="rounded-lg bg-white ring-1 ring-stone-200 px-[1.2vw] py-[0.6vh] font-semibold text-left" style={{ color: DARK_C, fontSize: '1.1vw' }}>{m}</div>)}
-          </div>
-        </div>
-      )}
+      {done && <div className="font-black text-emerald-600" style={{ fontSize: '1.5vw' }}>✓ Correct!</div>}
+      {reveal && !done && <div dir="ltr" className="font-bold text-stone-600" style={{ fontSize: '1.4vw' }}>{item.en}</div>}
+
+      {/* word bank */}
+      <div dir="ltr" className="w-full flex flex-wrap items-center justify-center gap-[0.8vw]">
+        {bank.map(t => (
+          <button key={t.id} onClick={() => setOrder(o => [...o, t.id])}
+            className="px-[1.2vw] py-[0.8vh] rounded-xl bg-white ring-1 ring-stone-200 font-bold shadow-sm hover:bg-amber-50" style={{ color: DARK_C, fontSize: '1.5vw' }}>
+            {t.w}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-[1vw]">
+        <button onClick={() => { setOrder([]); setReveal(false) }} className="px-[1.4vw] py-[0.9vh] rounded-xl bg-stone-100 font-bold text-stone-600" style={{ fontSize: '1vw' }} dir="rtl">إعادة</button>
+        <button onClick={() => setReveal(true)} className="px-[1.4vw] py-[0.9vh] rounded-xl bg-stone-100 font-bold text-stone-600" style={{ fontSize: '1vw' }} dir="rtl">الإجابة</button>
+        <button onClick={() => setI(x => (x + 1) % items.length)} className="px-[1.6vw] py-[0.9vh] rounded-xl text-white font-black" style={{ background: DARK_C, fontSize: '1vw' }} dir="rtl">التالية →</button>
+      </div>
     </div>
   )
 }
