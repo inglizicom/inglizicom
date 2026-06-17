@@ -42,6 +42,48 @@ function parseVocab(content?: string | null): VocabPair[] {
     .filter(p => p.length >= 4 && p[1] && p[1] !== 'English' && !/^-+$/.test(p[1]) && p[2])
     .map(p => ({ en: p[1], ar: p[2] }))
 }
+const AR = /[؀-ۿ]/
+/** Looser extractor: pulls EN→AR pairs out of any lesson text — both markdown
+ *  table rows AND inline forms ("English — العربية", "English: العربية",
+ *  "- **English** = العربية"). Used as a fallback so units whose vocabulary
+ *  isn't a clean table still get a Vocabulary box. */
+function parseVocabAny(content?: string | null): VocabPair[] {
+  if (!content) return []
+  const out: VocabPair[] = []
+  for (const raw of content.split('\n')) {
+    const line = raw.trim()
+    if (!line) continue
+    if (line.startsWith('|')) {                               // markdown table row
+      const c = line.split('|').map(s => s.trim())
+      if (c.length >= 4 && c[1] && c[2] && c[1] !== 'English' && !/^-+$/.test(c[1]) && AR.test(c[2]) && !AR.test(c[1]))
+        out.push({ en: c[1], ar: c[2] })
+      continue
+    }
+    const m = line.replace(/^[-*•\d.)\s]+/, '').replace(/\*\*/g, '')   // strip leading bullet/number/bold
+      // separator: — – : =  (any spacing) OR a hyphen that is space-padded
+      // (so "wake-up" stays intact but "wake up - الاستيقاظ" still splits)
+      .match(/^([^؀-ۿ]+?)(?:\s*[—–:=]\s*|\s+-\s+)(.*[؀-ۿ].*)$/)
+    if (m) {
+      const en = m[1].replace(/[|*_`"]/g, '').trim()
+      const ar = m[2].trim()
+      if (en && ar && !AR.test(en) && /[a-zA-Z]/.test(en) && en.length <= 60) out.push({ en, ar })
+    }
+  }
+  return out
+}
+/** The Vocabulary box content: the dedicated vocab lesson if it's a clean table,
+ *  else everything we can salvage from the unit's other lessons (deduped). */
+function buildVocab(lessons: LmsLesson[]): VocabPair[] {
+  const primary = parseVocab(lessons.find(l => l.lesson_order === 1)?.content)
+  if (primary.length) return primary
+  const seen = new Set<string>(); const out: VocabPair[] = []
+  for (const l of [...lessons].sort((a, b) => a.lesson_order - b.lesson_order))
+    for (const p of parseVocabAny(l.content)) {
+      const k = p.en.toLowerCase()
+      if (!seen.has(k)) { seen.add(k); out.push(p) }
+    }
+  return out
+}
 function parseConvo(reading?: string | null): { who: string; text: string }[] {
   if (!reading) return []
   return reading.split('\n').map(l => l.trim()).filter(l => l.startsWith('**'))
@@ -233,19 +275,16 @@ export default function PresentPage() {
   const unitNum = useMemo(() => parseInt(unitNo.replace(/\D/g, ''), 10) || 0, [unitNo])
 
   const slides = useMemo<Slide[]>(() => {
-    const vocab = parseVocab(lessons.find(l => l.lesson_order === 1)?.content)
+    const vocab = buildVocab(lessons)
     const expr = parseExpr(lessons.find(l => l.lesson_order === 2)?.content)
     const convo = parseConvo(reading)
     const out: Slide[] = [{ kind: 'title', title: unitName }]
     vocab.forEach((p, i) => out.push({ kind: 'word', en: p.en, ar: p.ar, vary: variationsFor(p.en), slot: i + 1 }))
     if (convo.length) {
-      // keep each conversation slide readable on a recording: ~5 messages max,
-      // with consistent left/right sides derived from the global speaker order.
+      // the WHOLE conversation lives on ONE slide so it reads as a single page
+      // (easy to read + explain); the slide itself sizes/columns to fit.
       const speakers = [...new Set(convo.map(l => l.who))]
-      const PER = 5
-      const parts = Math.ceil(convo.length / PER)
-      for (let p = 0; p < parts; p++)
-        out.push({ kind: 'convo', lines: convo.slice(p * PER, p * PER + PER), speakers, part: p + 1, parts })
+      out.push({ kind: 'convo', lines: convo, speakers })
     }
     expr.forEach(e => out.push({ kind: 'expr', pattern: e.pattern, example: e.example, vary: variationsFor(e.pattern + ' ' + e.example), slot: matchVocabSlot(e.example + ' ' + e.pattern, vocab) }))
     out.push({ kind: 'end' })
@@ -353,29 +392,34 @@ export default function PresentPage() {
                   </div>
                 )}
 
-                {s.kind === 'convo' && (
-                  <div className="w-full max-w-[70vw] space-y-[2vh]">
-                    {s.lines.map((l, i) => {
-                      const leftSide = s.speakers.indexOf(l.who) === 0
-                      const avatar = (
-                        <div className="shrink-0 flex flex-col items-center gap-1 w-[4vw]">
-                          <span className="w-[3.4vw] h-[3.4vw] rounded-full flex items-center justify-center text-[1.4vw] font-black shadow-[0_6px_16px_-8px_rgba(0,0,0,0.5)] ring-2 ring-white"
-                            style={{ background: leftSide ? '#a8a29e' : '#facc15', color: leftSide ? '#fff' : DARK }}>{l.who.charAt(0)}</span>
-                          <span className="text-[0.8vw] font-bold whitespace-nowrap" style={{ color: leftSide ? '#a8a29e' : '#a16207' }}>{l.who}</span>
-                        </div>
-                      )
-                      return (
-                        <motion.div key={i} variants={item} className={`flex items-start gap-[1.2vw] ${leftSide ? 'justify-start' : 'justify-end flex-row-reverse'}`}>
-                          {avatar}
-                          <div className="max-w-[58%] rounded-[26px] px-[1.8vw] py-[1.4vh] text-[1.6vw] leading-snug shadow-[0_10px_28px_-16px_rgba(0,0,0,0.45)]"
-                            style={leftSide ? { background: '#fff', color: DARK, borderTopLeftRadius: 6 } : { background: '#facc15', color: DARK, borderTopRightRadius: 6 }}>
-                            {l.text}
-                          </div>
-                        </motion.div>
-                      )
-                    })}
-                  </div>
-                )}
+                {s.kind === 'convo' && (() => {
+                  // Whole dialogue on one page: split into 2 columns when long so it
+                  // fills the width (no half-empty page) and stays on a single slide.
+                  const n = s.lines.length
+                  const twoCol = n > 6
+                  const fs = n <= 5 ? 1.7 : n <= 8 ? 1.4 : n <= 12 ? 1.2 : n <= 18 ? 1.02 : 0.9   // vw, fits more lines
+                  const SPK = ['#a8a29e', '#facc15', '#34d399', '#38bdf8', '#a78bfa']
+                  return (
+                    <div className="w-full max-w-[88vw]" style={{ columnCount: twoCol ? 2 : 1, columnGap: '2.6vw' }}>
+                      {s.lines.map((l, i) => {
+                        const si = s.speakers.indexOf(l.who)
+                        const col = SPK[si % SPK.length]
+                        const dark = si === 1   // yellow bubble → dark text
+                        return (
+                          <motion.div key={i} variants={item} className="break-inside-avoid flex items-start gap-[0.9vw]" style={{ marginBottom: `${twoCol ? 1.3 : 1.7}vh` }}>
+                            <span className="shrink-0 rounded-full flex items-center justify-center font-black ring-2 ring-white shadow-[0_6px_16px_-8px_rgba(0,0,0,0.5)]"
+                              style={{ width: `${fs * 1.9}vw`, height: `${fs * 1.9}vw`, fontSize: `${fs * 0.85}vw`, background: col, color: dark ? DARK : '#fff' }}>{l.who.charAt(0)}</span>
+                            <div className="flex-1 rounded-[22px] px-[1.5vw] py-[1.1vh] shadow-[0_10px_28px_-16px_rgba(0,0,0,0.45)] ring-1 ring-black/5"
+                              style={{ background: dark ? '#facc15' : '#fff', color: DARK, borderTopLeftRadius: 6 }}>
+                              <div className="font-bold uppercase tracking-wide mb-0.5" style={{ fontSize: `${fs * 0.55}vw`, color: dark ? '#7a5c00' : col === '#a8a29e' ? '#78716c' : col }}>{l.who}</div>
+                              <div className="leading-snug font-semibold" style={{ fontSize: `${fs}vw` }}>{l.text}</div>
+                            </div>
+                          </motion.div>
+                        )
+                      })}
+                    </div>
+                  )
+                })()}
 
                 {s.kind === 'end' && (
                   <div className="text-center">
