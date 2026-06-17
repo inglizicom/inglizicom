@@ -47,26 +47,36 @@ const AR = /[؀-ۿ]/
  *  table rows AND inline forms ("English — العربية", "English: العربية",
  *  "- **English** = العربية"). Used as a fallback so units whose vocabulary
  *  isn't a clean table still get a Vocabulary box. */
+function vocabPair(chunk: string): VocabPair | null {
+  const c = chunk.replace(/\*\*/g, '').replace(/^[-*•\d.)\s]+/, '').trim()
+  if (!c || !AR.test(c) || !/[a-zA-Z]/.test(c)) return null
+  // explicit separator: — – : =  (any spacing) OR a space-padded hyphen
+  // (so "wake-up" stays intact but "wake up - الاستيقاظ" still splits)
+  let m = c.match(/^([^؀-ۿ]+?)(?:\s*[—–:=]\s*|\s+-\s+)(.*[؀-ۿ].*)$/)
+  // else a tight pair: latin words directly followed by arabic ("Apples تفاح")
+  if (!m) m = c.match(/^([A-Za-z][A-Za-z'’\/\- ]*?)\s+([؀-ۿ][؀-ۿ\s\/،]*)$/)
+  if (!m) return null
+  const en = m[1].replace(/[|*_`"]/g, '').trim()
+  const ar = m[2].trim()
+  if (!en || !ar || AR.test(en) || en.split(/\s+/).length > 6 || en.length > 60) return null
+  return { en, ar }
+}
 function parseVocabAny(content?: string | null): VocabPair[] {
   if (!content) return []
   const out: VocabPair[] = []
   for (const raw of content.split('\n')) {
     const line = raw.trim()
-    if (!line) continue
+    if (!line || line.startsWith('#')) continue               // skip blanks + markdown headings
     if (line.startsWith('|')) {                               // markdown table row
       const c = line.split('|').map(s => s.trim())
       if (c.length >= 4 && c[1] && c[2] && c[1] !== 'English' && !/^-+$/.test(c[1]) && AR.test(c[2]) && !AR.test(c[1]))
         out.push({ en: c[1], ar: c[2] })
       continue
     }
-    const m = line.replace(/^[-*•\d.)\s]+/, '').replace(/\*\*/g, '')   // strip leading bullet/number/bold
-      // separator: — – : =  (any spacing) OR a hyphen that is space-padded
-      // (so "wake-up" stays intact but "wake up - الاستيقاظ" still splits)
-      .match(/^([^؀-ۿ]+?)(?:\s*[—–:=]\s*|\s+-\s+)(.*[؀-ۿ].*)$/)
-    if (m) {
-      const en = m[1].replace(/[|*_`"]/g, '').trim()
-      const ar = m[2].trim()
-      if (en && ar && !AR.test(en) && /[a-zA-Z]/.test(en) && en.length <= 60) out.push({ en, ar })
+    // a line may pack several pairs separated by · or • ("Apples تفاح · Oranges برتقال")
+    for (const chunk of line.split(/[·•]/)) {
+      const p = vocabPair(chunk)
+      if (p) out.push(p)
     }
   }
   return out
