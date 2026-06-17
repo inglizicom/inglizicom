@@ -8,10 +8,10 @@
  * unit's DB content. Navigate ← → / Space / side-click.
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Loader2, Globe, Instagram, Youtube, GraduationCap, Phone, Maximize2, Minimize2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Loader2, Globe, Instagram, Youtube, GraduationCap, Phone, Maximize2, Minimize2, ZoomIn, ZoomOut } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { fetchLessons, type LmsLesson } from '@/lib/lms'
 import { variationsFor, type Variation } from '@/lib/deck-vary'
@@ -325,6 +325,34 @@ export default function PresentPage() {
     else document.documentElement.requestFullscreen?.()
   }
 
+  // ── Zoom: pinch (touch) · Ctrl/⌘ + wheel (trackpad/mouse) · buttons · +/-/0 ──
+  const rootRef = useRef<HTMLDivElement>(null)
+  const ZMIN = 0.5, ZMAX = 2.5
+  const [zoom, setZoom] = useState(1)
+  const zRef = useRef(zoom); zRef.current = zoom
+  const setZ = useCallback((v: number) => setZoom(Math.min(ZMAX, Math.max(ZMIN, parseFloat(v.toFixed(2))))), [])
+  const zoomBy = useCallback((d: number) => setZ(zRef.current + d), [setZ])
+  useEffect(() => {
+    const el = rootRef.current; if (!el) return
+    const onWheel = (e: WheelEvent) => { if (e.ctrlKey || e.metaKey) { e.preventDefault(); zoomBy(e.deltaY < 0 ? 0.08 : -0.08) } }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomBy(0.1) }
+      else if (e.key === '-' || e.key === '_') { e.preventDefault(); zoomBy(-0.1) }
+      else if (e.key === '0') setZ(1)
+    }
+    let startDist = 0, startZoom = 1
+    const dist = (t: TouchList) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY)
+    const onTS = (e: TouchEvent) => { if (e.touches.length === 2) { startDist = dist(e.touches); startZoom = zRef.current } }
+    const onTM = (e: TouchEvent) => { if (e.touches.length === 2 && startDist) { e.preventDefault(); setZ(startZoom * (dist(e.touches) / startDist)) } }
+    const onTE = () => { startDist = 0 }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    window.addEventListener('keydown', onKey)
+    el.addEventListener('touchstart', onTS, { passive: false })
+    el.addEventListener('touchmove', onTM, { passive: false })
+    el.addEventListener('touchend', onTE)
+    return () => { el.removeEventListener('wheel', onWheel); window.removeEventListener('keydown', onKey); el.removeEventListener('touchstart', onTS); el.removeEventListener('touchmove', onTM); el.removeEventListener('touchend', onTE) }
+  }, [zoomBy, setZ])
+
   const s = slides[idx]
   const section = s ? SECTION[s.kind] : null
 
@@ -341,7 +369,7 @@ export default function PresentPage() {
   )
 
   return (
-    <div style={{ fontFamily: "'Outfit', 'DM Sans', sans-serif", background: CREAM, color: DARK }}
+    <div ref={rootRef} style={{ fontFamily: "'Outfit', 'DM Sans', sans-serif", background: CREAM, color: DARK }}
          className="fixed inset-0 z-[100] flex flex-col select-none overflow-hidden">
       <div className="pointer-events-none absolute -top-[20vw] -right-[15vw] w-[45vw] h-[45vw] rounded-full bg-yellow-200/30 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-[20vw] -left-[15vw] w-[42vw] h-[42vw] rounded-full bg-amber-200/20 blur-3xl" />
@@ -357,6 +385,12 @@ export default function PresentPage() {
             {section && <span className="px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap shrink-0 text-[#2a1d12]" style={{ background: '#facc15' }}>{section.en} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>{section.ar}</span>{s.kind === 'convo' && s.parts && s.parts > 1 ? ` · ${s.part}/${s.parts}` : ''}</span>}
             <div className="absolute right-[3vw] top-[2.6vh] flex items-center gap-2">
               <span className="text-stone-400 font-bold whitespace-nowrap shrink-0">{String(idx + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
+              {/* zoom controls — also: pinch · Ctrl+wheel · + − 0 */}
+              <div className="flex items-center rounded-lg border border-stone-300 bg-white shrink-0">
+                <button onClick={() => zoomBy(-0.1)} disabled={zoom <= ZMIN} className="p-1.5 hover:bg-stone-100 disabled:opacity-30 rounded-l-lg transition" title="تصغير (−)" aria-label="Zoom out"><ZoomOut size={16} /></button>
+                <button onClick={() => setZ(1)} className="px-1.5 py-1 text-[11px] font-mono font-bold min-w-[3rem] border-x border-stone-200 hover:bg-stone-100 transition" title="إعادة الحجم (0)">{Math.round(zoom * 100)}%</button>
+                <button onClick={() => zoomBy(0.1)} disabled={zoom >= ZMAX} className="p-1.5 hover:bg-stone-100 disabled:opacity-30 rounded-r-lg transition" title="تكبير (+)" aria-label="Zoom in"><ZoomIn size={16} /></button>
+              </div>
               <button onClick={toggleFs} className="shrink-0 p-2 rounded-lg text-stone-500 hover:text-[#2a1d12] hover:bg-white/70 transition" title="Full screen (F)">
                 {isFs ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
               </button>
@@ -367,6 +401,7 @@ export default function PresentPage() {
           <button onClick={() => go(1)} className="absolute right-0 top-0 h-full w-[11%] z-20 cursor-e-resize" aria-label="Next" />
 
           <div className="flex-1 flex items-center justify-center px-[5vw] py-[2vh] relative z-10 min-h-0">
+            <div className="w-full flex items-center justify-center transition-transform duration-150" style={{ transform: `scale(${zoom})`, transformOrigin: 'center center' }}>
             <AnimatePresence mode="wait">
               <motion.div key={idx} variants={slideV} initial="enter" animate="center" exit="exit" className="w-full flex items-center justify-center">
 
@@ -403,27 +438,24 @@ export default function PresentPage() {
                 )}
 
                 {s.kind === 'convo' && (() => {
-                  // Whole dialogue on one page: split into 2 columns when long so it
-                  // fills the width (no half-empty page) and stays on a single slide.
+                  // PAIRED layout: each exchange (the question + its answer) sits on
+                  // ONE row — first speaker left, reply right — so it reads as simple
+                  // Q→A pairs that are easy to teach. Whole dialogue on a single slide.
                   const n = s.lines.length
-                  const twoCol = n > 6
-                  const fs = n <= 5 ? 1.7 : n <= 8 ? 1.4 : n <= 12 ? 1.2 : n <= 18 ? 1.02 : 0.9   // vw, fits more lines
+                  const fs = n <= 6 ? 1.5 : n <= 10 ? 1.28 : n <= 16 ? 1.08 : n <= 24 ? 0.94 : 0.82
                   const SPK = ['#a8a29e', '#facc15', '#34d399', '#38bdf8', '#a78bfa']
                   return (
-                    <div className="w-full max-w-[88vw]" style={{ columnCount: twoCol ? 2 : 1, columnGap: '2.6vw' }}>
+                    <div className="w-full max-w-[92vw] grid grid-cols-2 gap-x-[1.6vw]" style={{ rowGap: `${n > 16 ? 1 : 1.4}vh` }}>
                       {s.lines.map((l, i) => {
                         const si = s.speakers.indexOf(l.who)
                         const col = SPK[si % SPK.length]
                         const dark = si === 1   // yellow bubble → dark text
                         return (
-                          <motion.div key={i} variants={item} className="break-inside-avoid flex items-start gap-[0.9vw]" style={{ marginBottom: `${twoCol ? 1.3 : 1.7}vh` }}>
-                            <span className="shrink-0 rounded-full flex items-center justify-center font-black ring-2 ring-white shadow-[0_6px_16px_-8px_rgba(0,0,0,0.5)]"
-                              style={{ width: `${fs * 1.9}vw`, height: `${fs * 1.9}vw`, fontSize: `${fs * 0.85}vw`, background: col, color: dark ? DARK : '#fff' }}>{l.who.charAt(0)}</span>
-                            <div className="flex-1 rounded-[22px] px-[1.5vw] py-[1.1vh] shadow-[0_10px_28px_-16px_rgba(0,0,0,0.45)] ring-1 ring-black/5"
-                              style={{ background: dark ? '#facc15' : '#fff', color: DARK, borderTopLeftRadius: 6 }}>
-                              <div className="font-bold uppercase tracking-wide mb-0.5" style={{ fontSize: `${fs * 0.55}vw`, color: dark ? '#7a5c00' : col === '#a8a29e' ? '#78716c' : col }}>{l.who}</div>
-                              <div className="leading-snug font-semibold" style={{ fontSize: `${fs}vw` }}>{l.text}</div>
-                            </div>
+                          <motion.div key={i} variants={item}
+                            className="w-full rounded-[18px] px-[1.4vw] py-[1vh] shadow-[0_10px_28px_-16px_rgba(0,0,0,0.45)] ring-1 ring-black/5"
+                            style={{ background: dark ? '#facc15' : '#fff', color: DARK }}>
+                            <div className="font-black uppercase tracking-wide mb-0.5" style={{ fontSize: `${fs * 0.52}vw`, color: dark ? '#7a5c00' : col === '#a8a29e' ? '#78716c' : col }}>{l.who}</div>
+                            <div className="leading-snug font-semibold" style={{ fontSize: `${fs}vw` }}>{l.text}</div>
                           </motion.div>
                         )
                       })}
@@ -441,6 +473,7 @@ export default function PresentPage() {
 
               </motion.div>
             </AnimatePresence>
+            </div>
           </div>
 
           <div className="flex items-center justify-between px-[4vw] pb-[1vh] relative z-10">
