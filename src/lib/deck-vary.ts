@@ -11,6 +11,9 @@ const T = (label: string, ar: string, words: string[]) => ({ label, ar, words })
 const TIME = (...w: string[]) => T('Add a time / how often', 'أضف وقتاً', w)
 const SWAP = (...w: string[]) => T('Change the word', 'غيّر الكلمة', w)
 const ITEM = (...w: string[]) => T('Change the order', 'غيّر الطلب', w)
+// For a single word: show it inside short, real phrases so the box COMPLETES the
+// meaning instead of listing random words.
+const FILL = (...w: string[]) => T('Use it in a phrase', 'أكمل المعنى', w)
 
 const RULES: { test: RegExp; v: Variation }[] = [
   // ── At home: morning routine ──
@@ -78,6 +81,28 @@ const RULES: { test: RegExp; v: Variation }[] = [
   { test: /savings account|current account|open a/i, v: SWAP('a savings account', 'a current account') },
   // ── General fallbacks for common patterns ──
   { test: /how much is/i, v: SWAP('the ticket', 'the room', 'this jacket', 'the coffee') },
+
+  // ── single words → complete the meaning (kept LAST so phrase rules win first) ──
+  // size / fit (clothes)
+  { test: /^big$/i,    v: FILL('too big', 'a bit big', 'very big') },
+  { test: /^small$/i,  v: FILL('too small', 'a bit small', 'very small') },
+  { test: /^tight$/i,  v: FILL('too tight', 'a bit tight', 'very tight') },
+  { test: /^loose$/i,  v: FILL('too loose', 'a bit loose', 'very loose') },
+  { test: /^long$/i,   v: FILL('too long', 'a bit long', 'very long') },
+  { test: /^short$/i,  v: FILL('too short', 'a bit short', 'very short') },
+  // feel / state
+  { test: /^hot$/i,    v: FILL('too hot', 'very hot', 'still hot') },
+  { test: /^cold$/i,   v: FILL('too cold', 'very cold', 'ice cold') },
+  { test: /^warm$/i,   v: FILL('nice and warm', 'very warm', 'still warm') },
+  { test: /^fresh$/i,  v: FILL('very fresh', 'fresh bread', 'fresh and warm') },
+  { test: /^soft$/i,   v: FILL('very soft', 'soft bread', 'nice and soft') },
+  { test: /^hard$/i,   v: FILL('too hard', 'a bit hard', 'very hard') },
+  // common household objects
+  { test: /^kettle$/i, v: FILL('an electric kettle', 'boil the kettle', 'a hot kettle') },
+  { test: /^pot$/i,    v: FILL('a big pot', 'a cooking pot', 'wash the pot') },
+  { test: /^pan$/i,    v: FILL('a frying pan', 'a hot pan', 'use the pan') },
+  { test: /^spoon$/i,  v: FILL('a big spoon', 'a metal spoon', 'use a spoon') },
+  { test: /^towel$/i,  v: FILL('a clean towel', 'a soft towel', 'use a towel') },
 ]
 
 // No generic fallback: a useless box ("this/that") is worse than none. When no

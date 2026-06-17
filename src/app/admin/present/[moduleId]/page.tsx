@@ -354,22 +354,17 @@ export default function PresentPage() {
     const expr = parseExpr(lessons.find(l => l.lesson_order === 2)?.content)
     const convo = parseConvo(reading)
 
-    // Unit-relevant "change the word" box: the unit's own short words/items, so a
-    // box is shown only when it's actually useful (matches the unit's vocab).
-    const swapPool = vocab.map(v => v.en.split('/')[0].trim()).filter(en => { const w = en.split(/\s+/); return w.length >= 1 && w.length <= 3 })
-    const unitVary = (exclude: string): Variation | null => {
-      const ws = swapPool.filter(w => w.toLowerCase() !== exclude.toLowerCase()).slice(0, 4)
-      return ws.length >= 3 ? { label: 'Other words in this unit', ar: 'كلمات من الوحدة', words: ws } : null
-    }
-
+    // The "change the word" box is curated only (variationsFor): it must match the
+    // slide's phrase/expression or complete a single word's meaning — never random
+    // fill. No rule → no box.
     const out: Slide[] = [{ kind: 'title', title: unitName }]
     if (isCat) cats.forEach(c => out.push({ kind: 'category', name: c.name, ar: c.ar, items: c.items }))
-    else vocab.forEach((p, i) => out.push({ kind: 'word', en: p.en, ar: p.ar, vary: variationsFor(p.en) ?? unitVary(p.en), slot: i + 1 }))
+    else vocab.forEach((p, i) => out.push({ kind: 'word', en: p.en, ar: p.ar, vary: variationsFor(p.en), slot: i + 1 }))
     if (convo.length) {
       const speakers = [...new Set(convo.map(l => l.who))]
       out.push({ kind: 'convo', lines: convo, speakers })
     }
-    expr.forEach(e => out.push({ kind: 'expr', pattern: e.pattern, example: e.example, vary: variationsFor(e.pattern + ' ' + e.example) ?? unitVary(''), slot: matchVocabSlot(e.example + ' ' + e.pattern, vocab) }))
+    expr.forEach(e => out.push({ kind: 'expr', pattern: e.pattern, example: e.example, vary: variationsFor(e.pattern + ' ' + e.example), slot: matchVocabSlot(e.example + ' ' + e.pattern, vocab) }))
     // ── end-of-unit practice ──
     const scrambleS = buildScramble(convo, vocab)
     if (scrambleS.length >= 2) out.push({ kind: 'scramble', sentences: scrambleS })
