@@ -9,11 +9,11 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Loader2, Globe, Instagram, Youtube, GraduationCap, Phone, Maximize2, Minimize2, ZoomIn, ZoomOut } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RotateCcw, Loader2, Globe, Instagram, Youtube, GraduationCap, Phone, Maximize2, Minimize2, ZoomIn, ZoomOut } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { fetchLessons, type LmsLesson } from '@/lib/lms'
+import { fetchLessons, fetchModules, type LmsLesson } from '@/lib/lms'
 import { variationsFor, type Variation } from '@/lib/deck-vary'
 
 const DARK = '#2a1d12'
@@ -316,20 +316,28 @@ function buildTranslations(vocab: VocabPair[]): { ar: string; en: string }[] {
 
 export default function PresentPage() {
   const { moduleId } = useParams<{ moduleId: string }>()
+  const router = useRouter()
   const [title, setTitle] = useState('')
   const [reading, setReading] = useState<string | null>(null)
   const [lessons, setLessons] = useState<LmsLesson[]>([])
   const [loading, setLoading] = useState(true)
   const [idx, setIdx] = useState(0)
+  const [units, setUnits] = useState<{ id: string; title: string }[]>([])   // sibling units, for prev/next
 
   useEffect(() => {
     if (!moduleId) return
+    setLoading(true); setIdx(0)
     ;(async () => {
-      const { data: mod } = await supabase.from('lms_modules').select('title, reading_text').eq('id', moduleId).single()
+      const { data: mod } = await supabase.from('lms_modules').select('title, reading_text, course_id').eq('id', moduleId).single()
       const ls = await fetchLessons(moduleId)
       setTitle(mod?.title ?? 'Unit'); setReading(mod?.reading_text ?? null); setLessons(ls); setLoading(false)
+      if (mod?.course_id) fetchModules(mod.course_id).then(ms => setUnits(ms.map(m => ({ id: m.id, title: m.title }))))
     })()
   }, [moduleId])
+  const unitIdx = units.findIndex(u => u.id === moduleId)
+  const prevUnit = unitIdx > 0 ? units[unitIdx - 1] : null
+  const nextUnit = unitIdx >= 0 && unitIdx < units.length - 1 ? units[unitIdx + 1] : null
+  const goUnit = (id: string) => router.push(`/admin/present/${id}`)
 
   const [unitNo, unitName] = useMemo(() => {
     const parts = title.split('—')
@@ -475,6 +483,12 @@ export default function PresentPage() {
         <>
           {/* header — single row, fits */}
           <div className="relative z-30 flex items-center justify-center gap-2 px-[3vw] pt-[2.6vh] text-[0.95vw] flex-nowrap overflow-hidden">
+            {/* unit navigation — previous unit · restart this unit · next unit */}
+            <div dir="ltr" className="absolute left-[3vw] top-[2.6vh] flex items-center gap-1.5">
+              <button disabled={!prevUnit} onClick={() => prevUnit && goUnit(prevUnit.id)} title={prevUnit ? `الوحدة السابقة — ${prevUnit.title}` : 'لا توجد وحدة سابقة'} className="p-1.5 rounded-lg border border-stone-300 bg-white text-stone-600 hover:bg-stone-100 disabled:opacity-30 transition shrink-0" aria-label="Previous unit"><ChevronsLeft size={16} /></button>
+              <button onClick={() => setIdx(0)} title="من بداية الوحدة" className="p-1.5 rounded-lg border border-stone-300 bg-white text-stone-600 hover:bg-stone-100 transition shrink-0" aria-label="Restart unit"><RotateCcw size={15} /></button>
+              <button disabled={!nextUnit} onClick={() => nextUnit && goUnit(nextUnit.id)} title={nextUnit ? `الوحدة التالية — ${nextUnit.title}` : 'لا توجد وحدة تالية'} className="p-1.5 rounded-lg border border-stone-300 bg-white text-stone-600 hover:bg-stone-100 disabled:opacity-30 transition shrink-0" aria-label="Next unit"><ChevronsRight size={16} /></button>
+            </div>
             {unitNo && <span className="px-3.5 py-1.5 rounded-xl text-white font-black whitespace-nowrap shrink-0" style={{ background: DARK }}>{unitNo}</span>}
             <span className="px-3.5 py-1.5 rounded-xl bg-white shadow-sm ring-1 ring-stone-200/70 font-bold whitespace-nowrap shrink min-w-0 truncate" style={{ color: DARK }}>{unitName}</span>
             {section && <span className="px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap shrink-0 text-[#2a1d12]" style={{ background: '#facc15' }}>{section.en} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>{section.ar}</span>{s.kind === 'convo' && s.parts && s.parts > 1 ? ` · ${s.part}/${s.parts}` : ''}</span>}
