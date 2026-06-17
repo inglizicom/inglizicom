@@ -80,7 +80,15 @@ const RULES: { test: RegExp; v: Variation }[] = [
   { test: /how much is/i, v: SWAP('the ticket', 'the room', 'this jacket', 'the coffee') },
 ]
 
+// Generic fallbacks so a phrase ALWAYS gets a "change the word" box: a verb-like
+// phrase (has a subject/pronoun) gets time add-ons; a bare noun gets a this/that
+// swap. Keeps every vocab + expression slide consistent.
+const VERB_HINT = /\b(i|you|he|she|we|they|it|do|does|don't|doesn't|can|please|let's)\b/i
+const FALLBACK_VERB = T('Add a detail', 'أضف تفصيلاً', ['today', 'now', 'every day', 'in the morning'])
+const FALLBACK_NOUN = T('Change the word', 'غيّر الكلمة', ['this', 'that', 'one', 'two'])
+
 export function variationsFor(en: string): Variation | null {
   for (const r of RULES) if (r.test.test(en)) return r.v
-  return null
+  if (!en || !en.trim()) return null
+  return VERB_HINT.test(en) ? FALLBACK_VERB : FALLBACK_NOUN
 }

@@ -25,6 +25,8 @@ type Slide =
   | { kind: 'word'; en: string; ar: string; vary: Variation | null; slot: number }
   | { kind: 'convo'; lines: { who: string; text: string }[]; speakers: string[]; part?: number; parts?: number }
   | { kind: 'expr'; pattern: string; example: string; vary: Variation | null; slot: number }
+  | { kind: 'scramble'; sentences: string[] }
+  | { kind: 'builder'; words: string[] }
   | { kind: 'end' }
 
 const SECTION: Record<Slide['kind'], { en: string; ar: string } | null> = {
@@ -32,6 +34,8 @@ const SECTION: Record<Slide['kind'], { en: string; ar: string } | null> = {
   word: { en: 'Vocabulary', ar: 'المفردات' },
   convo: { en: 'Conversation', ar: 'المحادثة' },
   expr: { en: 'Expressions', ar: 'التعابير' },
+  scramble: { en: 'Word Scramble', ar: 'رتّب الكلمات' },
+  builder: { en: 'Build Sentences', ar: 'كوّن جُملاً' },
 }
 
 /* ── parsers ───────────────────────────────────────────────── */
@@ -260,6 +264,37 @@ const slideV = {
 }
 const item = { enter: { opacity: 0, y: 12 }, center: { opacity: 1, y: 0, transition: { duration: 0.35 } } }
 
+/* ── end-of-unit practice builders ─────────────────────────── */
+const stripEnd = (s: string) => s.replace(/[.!?]+$/, '').trim()
+/** Short, clean sentences (3–8 words) from the conversation + vocab, deduped. */
+function buildScramble(convo: { who: string; text: string }[], vocab: VocabPair[]): string[] {
+  const seen = new Set<string>(); const out: string[] = []
+  for (const raw of [...convo.map(l => l.text), ...vocab.map(v => v.en)]) {
+    const s = stripEnd(raw.replace(/\s*\/\s*/g, ' '))   // drop "a / b" alternatives
+    const w = s.split(/\s+/).filter(Boolean)
+    if (w.length < 3 || w.length > 8) continue
+    const k = s.toLowerCase()
+    if (!seen.has(k)) { seen.add(k); out.push(s) }
+  }
+  return out.slice(0, 6)
+}
+const BUILDER_CORE = ['I', 'you', 'he', 'she', 'we', 'the', 'a', 'to', 'my', 'today', 'now', 'every day', 'in the morning', 'and', 'very']
+/** A word bank: core function words + content words pulled from the unit vocab. */
+function buildWordBank(vocab: VocabPair[]): string[] {
+  const skip = new Set(['i', 'a', 'an', 'the', 'to', 'my', 'in', 'on', 'of', 'do', 'does'])
+  const seen = new Set(BUILDER_CORE.map(w => w.toLowerCase()))
+  const words: string[] = []
+  for (const v of vocab) {
+    for (const raw of v.en.replace(/[\/,.()]/g, ' ').split(/\s+/)) {
+      const w = raw.trim().toLowerCase()
+      if (w.length < 2 || skip.has(w) || seen.has(w)) continue
+      seen.add(w); words.push(w)
+    }
+    if (words.length >= 16) break
+  }
+  return [...BUILDER_CORE, ...words.slice(0, 16)]
+}
+
 export default function PresentPage() {
   const { moduleId } = useParams<{ moduleId: string }>()
   const [title, setTitle] = useState('')
@@ -297,19 +332,35 @@ export default function PresentPage() {
       out.push({ kind: 'convo', lines: convo, speakers })
     }
     expr.forEach(e => out.push({ kind: 'expr', pattern: e.pattern, example: e.example, vary: variationsFor(e.pattern + ' ' + e.example), slot: matchVocabSlot(e.example + ' ' + e.pattern, vocab) }))
+    // ── end-of-unit practice ──
+    const scrambleS = buildScramble(convo, vocab)
+    if (scrambleS.length >= 2) out.push({ kind: 'scramble', sentences: scrambleS })
+    const bank = buildWordBank(vocab)
+    if (bank.length >= 6) out.push({ kind: 'builder', words: bank })
     out.push({ kind: 'end' })
     return out
   }, [lessons, reading, unitName])
 
   const last = slides.length - 1
-  const go = (d: number) => setIdx(i => Math.min(last, Math.max(0, i + d)))
+  const [step, setStep] = useState(0)                  // reveal progress inside a slide (conversation lines)
+  useEffect(() => { setStep(0) }, [idx])               // each new slide starts hidden
+  const idxRef = useRef(idx); idxRef.current = idx
+  const stepRef = useRef(step); stepRef.current = step
+  const stepsOf = (sl?: Slide) => (sl && sl.kind === 'convo') ? sl.lines.length : 0
+  // Space / → / side-click first reveals the next hidden line, then advances slide.
+  const go = useCallback((d: number) => {
+    const max = stepsOf(slides[idxRef.current])
+    if (d > 0) { if (stepRef.current < max) setStep(stepRef.current + 1); else setIdx(Math.min(last, idxRef.current + 1)) }
+    else { if (stepRef.current > 0) setStep(stepRef.current - 1); else setIdx(Math.max(0, idxRef.current - 1)) }
+  }, [slides, last])
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
       if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); go(1) }
       if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1) }
     }
     window.addEventListener('keydown', onKey); return () => window.removeEventListener('keydown', onKey)
-  }, [last])
+  }, [go])
 
   // true full-screen (hides the whole browser chrome) via the Fullscreen API
   const [isFs, setIsFs] = useState(false)
@@ -332,10 +383,24 @@ export default function PresentPage() {
   const zRef = useRef(zoom); zRef.current = zoom
   const setZ = useCallback((v: number) => setZoom(Math.min(ZMAX, Math.max(ZMIN, parseFloat(v.toFixed(2))))), [])
   const zoomBy = useCallback((d: number) => setZ(zRef.current + d), [setZ])
+  // editable % field
+  const [zin, setZin] = useState('100')
+  useEffect(() => { setZin(String(Math.round(zoom * 100))) }, [zoom])
+  const applyZin = () => { const n = parseInt(zin.replace(/\D/g, ''), 10); if (!isNaN(n) && n > 0) setZ(n / 100) }
+  // drag-to-pan when zoomed in (so you can move to a specific word)
+  const [pan, setPan] = useState({ x: 0, y: 0 })
+  const [dragging, setDragging] = useState(false)
+  const dragRef = useRef<{ x: number; y: number; px: number; py: number } | null>(null)
+  useEffect(() => { setPan({ x: 0, y: 0 }) }, [idx])              // reset pan per slide
+  useEffect(() => { if (zoom <= 1) setPan({ x: 0, y: 0 }) }, [zoom])
+  const onPanDown = (e: React.PointerEvent) => { if (zRef.current <= 1) return; dragRef.current = { x: e.clientX, y: e.clientY, px: pan.x, py: pan.y }; setDragging(true); (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId) }
+  const onPanMove = (e: React.PointerEvent) => { const d = dragRef.current; if (!d) return; setPan({ x: d.px + (e.clientX - d.x), y: d.py + (e.clientY - d.y) }) }
+  const onPanUp = () => { dragRef.current = null; setDragging(false) }
   useEffect(() => {
     const el = rootRef.current; if (!el) return
     const onWheel = (e: WheelEvent) => { if (e.ctrlKey || e.metaKey) { e.preventDefault(); zoomBy(e.deltaY < 0 ? 0.08 : -0.08) } }
     const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
       if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomBy(0.1) }
       else if (e.key === '-' || e.key === '_') { e.preventDefault(); zoomBy(-0.1) }
       else if (e.key === '0') setZ(1)
@@ -388,7 +453,13 @@ export default function PresentPage() {
               {/* zoom controls — also: pinch · Ctrl+wheel · + − 0 */}
               <div className="flex items-center rounded-lg border border-stone-300 bg-white shrink-0">
                 <button onClick={() => zoomBy(-0.1)} disabled={zoom <= ZMIN} className="p-1.5 hover:bg-stone-100 disabled:opacity-30 rounded-l-lg transition" title="تصغير (−)" aria-label="Zoom out"><ZoomOut size={16} /></button>
-                <button onClick={() => setZ(1)} className="px-1.5 py-1 text-[11px] font-mono font-bold min-w-[3rem] border-x border-stone-200 hover:bg-stone-100 transition" title="إعادة الحجم (0)">{Math.round(zoom * 100)}%</button>
+                <div className="flex items-center border-x border-stone-200 px-1">
+                  <input value={zin} onChange={e => setZin(e.target.value.replace(/[^\d]/g, ''))} onBlur={applyZin}
+                    onKeyDown={e => { if (e.key === 'Enter') { applyZin(); (e.target as HTMLInputElement).blur() } }}
+                    inputMode="numeric" aria-label="Zoom percent" title="اكتب نسبة التكبير ثم Enter"
+                    className="w-9 py-1 text-[11px] font-mono font-bold text-center bg-transparent outline-none focus:bg-amber-50 rounded" />
+                  <span className="text-[11px] font-mono font-bold text-stone-400">%</span>
+                </div>
                 <button onClick={() => zoomBy(0.1)} disabled={zoom >= ZMAX} className="p-1.5 hover:bg-stone-100 disabled:opacity-30 rounded-r-lg transition" title="تكبير (+)" aria-label="Zoom in"><ZoomIn size={16} /></button>
               </div>
               <button onClick={toggleFs} className="shrink-0 p-2 rounded-lg text-stone-500 hover:text-[#2a1d12] hover:bg-white/70 transition" title="Full screen (F)">
@@ -397,11 +468,16 @@ export default function PresentPage() {
             </div>
           </div>
 
-          <button onClick={() => go(-1)} className="absolute left-0 top-0 h-full w-[11%] z-20 cursor-w-resize" aria-label="Previous" />
-          <button onClick={() => go(1)} className="absolute right-0 top-0 h-full w-[11%] z-20 cursor-e-resize" aria-label="Next" />
+          {/* side-click navigation — disabled on interactive exercises so taps hit the tiles */}
+          {s.kind !== 'scramble' && s.kind !== 'builder' && (<>
+            <button onClick={() => go(-1)} className="absolute left-0 top-0 h-full w-[11%] z-20 cursor-w-resize" aria-label="Previous" />
+            <button onClick={() => go(1)} className="absolute right-0 top-0 h-full w-[11%] z-20 cursor-e-resize" aria-label="Next" />
+          </>)}
 
           <div className="flex-1 flex items-center justify-center px-[5vw] py-[2vh] relative z-10 min-h-0">
-            <div className="w-full flex items-center justify-center transition-transform duration-150" style={{ transform: `scale(${zoom})`, transformOrigin: 'center center' }}>
+            <div className="w-full flex items-center justify-center"
+              onPointerDown={onPanDown} onPointerMove={onPanMove} onPointerUp={onPanUp} onPointerCancel={onPanUp}
+              style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: 'center center', transition: dragging ? 'none' : 'transform 150ms', cursor: zoom > 1 ? (dragging ? 'grabbing' : 'grab') : 'default' }}>
             <AnimatePresence mode="wait">
               <motion.div key={idx} variants={slideV} initial="enter" animate="center" exit="exit" className="w-full flex items-center justify-center">
 
@@ -438,30 +514,47 @@ export default function PresentPage() {
                 )}
 
                 {s.kind === 'convo' && (() => {
-                  // PAIRED layout: each exchange (the question + its answer) sits on
-                  // ONE row — first speaker left, reply right — so it reads as simple
-                  // Q→A pairs that are easy to teach. Whole dialogue on a single slide.
+                  // PAIRED layout: each exchange (question + reply) on ONE row — first
+                  // speaker left, reply right — with speaker avatars. Lines stay HIDDEN
+                  // (dashed placeholders) and reveal one-by-one on Space / side-click,
+                  // so it works on an interactive board.
                   const n = s.lines.length
                   const fs = n <= 6 ? 1.5 : n <= 10 ? 1.28 : n <= 16 ? 1.08 : n <= 24 ? 0.94 : 0.82
                   const SPK = ['#a8a29e', '#facc15', '#34d399', '#38bdf8', '#a78bfa']
                   return (
-                    <div className="w-full max-w-[92vw] grid grid-cols-2 gap-x-[1.6vw]" style={{ rowGap: `${n > 16 ? 1 : 1.4}vh` }}>
-                      {s.lines.map((l, i) => {
-                        const si = s.speakers.indexOf(l.who)
-                        const col = SPK[si % SPK.length]
-                        const dark = si === 1   // yellow bubble → dark text
-                        return (
-                          <motion.div key={i} variants={item}
-                            className="w-full rounded-[18px] px-[1.4vw] py-[1vh] shadow-[0_10px_28px_-16px_rgba(0,0,0,0.45)] ring-1 ring-black/5"
-                            style={{ background: dark ? '#facc15' : '#fff', color: DARK }}>
-                            <div className="font-black uppercase tracking-wide mb-0.5" style={{ fontSize: `${fs * 0.52}vw`, color: dark ? '#7a5c00' : col === '#a8a29e' ? '#78716c' : col }}>{l.who}</div>
-                            <div className="leading-snug font-semibold" style={{ fontSize: `${fs}vw` }}>{l.text}</div>
-                          </motion.div>
-                        )
-                      })}
+                    <div className="w-full max-w-[92vw]">
+                      {step === 0 && <div className="text-center text-stone-400 font-bold mb-[1.4vh]" style={{ fontSize: '0.95vw' }} dir="rtl">اضغط المسافة أو جانب الشاشة لإظهار كل سطر ←</div>}
+                      <div className="grid grid-cols-2 gap-x-[1.6vw]" style={{ rowGap: `${n > 16 ? 1 : 1.4}vh` }}>
+                        {s.lines.map((l, i) => {
+                          const si = s.speakers.indexOf(l.who)
+                          const col = SPK[si % SPK.length]
+                          const dark = si === 1   // yellow bubble → dark text
+                          if (i >= step) return (   // not yet revealed → faint placeholder (keeps layout)
+                            <div key={i} className="w-full rounded-[18px] border-2 border-dashed border-stone-300/70 px-[1.4vw] flex items-center gap-[0.7vw] opacity-50" style={{ minHeight: `${fs * 2.6}vw` }}>
+                              <span className="shrink-0 rounded-full bg-stone-200" style={{ width: `${fs * 1.7}vw`, height: `${fs * 1.7}vw` }} />
+                              <span className="text-stone-300 font-black" style={{ fontSize: `${fs}vw` }}>· · ·</span>
+                            </div>
+                          )
+                          return (
+                            <motion.div key={i} initial={{ opacity: 0, y: 10, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.28 }}
+                              className="w-full rounded-[18px] px-[1.4vw] py-[1vh] shadow-[0_10px_28px_-16px_rgba(0,0,0,0.45)] ring-1 ring-black/5 flex items-start gap-[0.8vw]"
+                              style={{ background: dark ? '#facc15' : '#fff', color: DARK }}>
+                              <span className="shrink-0 rounded-full flex items-center justify-center font-black ring-2 ring-white shadow-[0_6px_16px_-8px_rgba(0,0,0,0.5)]"
+                                style={{ width: `${fs * 1.9}vw`, height: `${fs * 1.9}vw`, fontSize: `${fs * 0.9}vw`, background: col, color: dark ? DARK : '#fff' }}>{l.who.charAt(0).toUpperCase()}</span>
+                              <div className="min-w-0">
+                                <div className="font-black uppercase tracking-wide mb-0.5" style={{ fontSize: `${fs * 0.52}vw`, color: dark ? '#7a5c00' : col === '#a8a29e' ? '#78716c' : col }}>{l.who}</div>
+                                <div className="leading-snug font-semibold" style={{ fontSize: `${fs}vw` }}>{l.text}</div>
+                              </div>
+                            </motion.div>
+                          )
+                        })}
+                      </div>
                     </div>
                   )
                 })()}
+
+                {s.kind === 'scramble' && <ScrambleSlide sentences={s.sentences} />}
+                {s.kind === 'builder' && <BuilderSlide words={s.words} />}
 
                 {s.kind === 'end' && (
                   <div className="text-center">
@@ -486,6 +579,104 @@ export default function PresentPage() {
 
           <Footer />
         </>
+      )}
+    </div>
+  )
+}
+
+/* ── End-of-unit practice slides (interactive, teacher-driven) ─────────────── */
+
+const DARK_C = DARK
+/** Word Scramble: tap the shuffled word tiles into the right order; reveal/next. */
+function ScrambleSlide({ sentences }: { sentences: string[] }) {
+  const [i, setI] = useState(0)
+  const [tiles, setTiles] = useState<{ w: string; id: number }[]>([])
+  const [order, setOrder] = useState<number[]>([])
+  const [reveal, setReveal] = useState(false)
+  useEffect(() => {
+    const ws = (sentences[i] ?? '').split(/\s+/).filter(Boolean)
+    setTiles(ws.map((w, k) => ({ w, id: k })).sort(() => Math.random() - 0.5))
+    setOrder([]); setReveal(false)
+  }, [i, sentences])
+  const words = (sentences[i] ?? '').split(/\s+/).filter(Boolean)
+  const built = order.map(id => tiles.find(t => t.id === id)?.w ?? '')
+  const done = built.length === words.length && built.join(' ').toLowerCase() === words.join(' ').toLowerCase()
+  const bank = tiles.filter(t => !order.includes(t.id))
+
+  return (
+    <div className="w-full max-w-[80vw] flex flex-col items-center gap-[2.5vh]">
+      <div className="text-stone-400 font-bold" style={{ fontSize: '1vw' }} dir="rtl">رتّب الكلمات لتكوين جملة صحيحة · {i + 1}/{sentences.length}</div>
+
+      {/* answer row */}
+      <div className="min-h-[7vh] w-full flex flex-wrap items-center justify-center gap-[0.8vw] rounded-2xl bg-white/70 ring-1 ring-stone-200 px-[2vw] py-[1.5vh]">
+        {order.length === 0 && <span className="text-stone-300 font-bold" style={{ fontSize: '1.2vw' }}>···</span>}
+        {order.map(id => (
+          <button key={id} onClick={() => setOrder(o => o.filter(x => x !== id))}
+            className="px-[1.2vw] py-[0.8vh] rounded-xl font-black shadow-sm" style={{ background: '#facc15', color: DARK_C, fontSize: '1.5vw' }}>
+            {tiles.find(t => t.id === id)?.w}
+          </button>
+        ))}
+      </div>
+
+      {done && <div className="font-black text-emerald-600" style={{ fontSize: '1.6vw' }}>✓ Correct!</div>}
+      {reveal && !done && <div className="font-bold text-stone-600" style={{ fontSize: '1.4vw' }}>{words.join(' ')}</div>}
+
+      {/* word bank */}
+      <div className="w-full flex flex-wrap items-center justify-center gap-[0.8vw]">
+        {bank.map(t => (
+          <button key={t.id} onClick={() => setOrder(o => [...o, t.id])}
+            className="px-[1.2vw] py-[0.8vh] rounded-xl bg-white ring-1 ring-stone-200 font-bold shadow-sm hover:bg-amber-50" style={{ color: DARK_C, fontSize: '1.5vw' }}>
+            {t.w}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-[1vw]">
+        <button onClick={() => { setOrder([]); setReveal(false) }} className="px-[1.4vw] py-[0.9vh] rounded-xl bg-stone-100 font-bold text-stone-600" style={{ fontSize: '1vw' }} dir="rtl">إعادة</button>
+        <button onClick={() => setReveal(true)} className="px-[1.4vw] py-[0.9vh] rounded-xl bg-stone-100 font-bold text-stone-600" style={{ fontSize: '1vw' }} dir="rtl">الإجابة</button>
+        <button onClick={() => setI(x => (x + 1) % sentences.length)} className="px-[1.6vw] py-[0.9vh] rounded-xl text-white font-black" style={{ background: DARK_C, fontSize: '1vw' }} dir="rtl">التالية →</button>
+      </div>
+    </div>
+  )
+}
+
+/** Sentence Builder: tap words from the bank to form as MANY sentences as you can. */
+function BuilderSlide({ words }: { words: string[] }) {
+  const [line, setLine] = useState<string[]>([])
+  const [made, setMade] = useState<string[]>([])
+  return (
+    <div className="w-full max-w-[82vw] flex flex-col items-center gap-[2vh]">
+      <div className="text-stone-400 font-bold" style={{ fontSize: '1vw' }} dir="rtl">كوّن أكبر عدد من الجُمل — اضغط الكلمات</div>
+
+      {/* current sentence */}
+      <div className="min-h-[6vh] w-full flex flex-wrap items-center justify-center gap-[0.7vw] rounded-2xl bg-white/70 ring-1 ring-stone-200 px-[2vw] py-[1.2vh]">
+        {line.length === 0 && <span className="text-stone-300 font-bold" style={{ fontSize: '1.1vw' }}>···</span>}
+        {line.map((w, k) => <span key={k} className="px-[1vw] py-[0.6vh] rounded-lg font-black" style={{ background: '#facc15', color: DARK_C, fontSize: '1.4vw' }}>{w}</span>)}
+      </div>
+
+      <div className="flex items-center gap-[1vw]">
+        <button onClick={() => setLine(l => l.slice(0, -1))} disabled={!line.length} className="px-[1.2vw] py-[0.8vh] rounded-xl bg-stone-100 font-bold text-stone-600 disabled:opacity-30" style={{ fontSize: '1vw' }} dir="rtl">⌫ حذف</button>
+        <button onClick={() => setLine([])} disabled={!line.length} className="px-[1.2vw] py-[0.8vh] rounded-xl bg-stone-100 font-bold text-stone-600 disabled:opacity-30" style={{ fontSize: '1vw' }} dir="rtl">مسح</button>
+        <button onClick={() => { if (line.length) { setMade(m => [line.join(' '), ...m]); setLine([]) } }} disabled={!line.length} className="px-[1.6vw] py-[0.8vh] rounded-xl text-white font-black disabled:opacity-30" style={{ background: '#059669', fontSize: '1vw' }} dir="rtl">✓ أضف الجملة</button>
+      </div>
+
+      {/* word bank */}
+      <div className="w-full flex flex-wrap items-center justify-center gap-[0.7vw]">
+        {words.map((w, k) => (
+          <button key={k} onClick={() => setLine(l => [...l, w])}
+            className="px-[1.1vw] py-[0.7vh] rounded-xl bg-white ring-1 ring-stone-200 font-bold shadow-sm hover:bg-amber-50" style={{ color: DARK_C, fontSize: '1.3vw' }}>
+            {w}
+          </button>
+        ))}
+      </div>
+
+      {made.length > 0 && (
+        <div className="w-full max-w-[60vw]">
+          <div className="font-black text-emerald-600 mb-1" style={{ fontSize: '1.1vw' }} dir="rtl">كوّنت {made.length} جملة! 🎉</div>
+          <div className="flex flex-col gap-1 max-h-[26vh] overflow-y-auto">
+            {made.map((m, k) => <div key={k} className="rounded-lg bg-white ring-1 ring-stone-200 px-[1.2vw] py-[0.6vh] font-semibold" style={{ color: DARK_C, fontSize: '1.1vw' }}>{m}</div>)}
+          </div>
+        </div>
       )}
     </div>
   )
