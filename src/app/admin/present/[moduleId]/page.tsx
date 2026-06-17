@@ -288,21 +288,24 @@ const EXTRAS = ['a', 'the', 'to', 'my', 'and', 'very', 'not', 'today', 'every da
 const PRON = new Set(['i', 'you', 'he', 'she', 'we', 'they', 'it'])
 const FUNCW = new Set(['is', 'am', 'are', 'do', 'does', 'to', 'a', 'an', 'the', 'my', 'your', 'in', 'on', 'of', 'and', 'with', 'for', 'not'])
 function buildWordGroups(vocab: VocabPair[]): WordGroup[] {
-  const verbs = new Set(COMMON_VERBS.map(v => v.toLowerCase()))
-  const others = new Set<string>()
+  const unitVerbs: string[] = []; const vSeen = new Set<string>()
+  const others: string[] = []; const oSeen = new Set<string>()
   for (const v of vocab) {
     const ws = v.en.replace(/[\/,.()]/g, ' ').split(/\s+/).map(w => w.trim().toLowerCase()).filter(Boolean)
     ws.forEach((w, k) => {
       if (w.length < 2 || PRON.has(w) || FUNCW.has(w)) return
-      if (k > 0 && PRON.has(ws[k - 1])) verbs.add(w)   // word after a pronoun → verb
-      else others.add(w)
+      if (k > 0 && PRON.has(ws[k - 1])) {              // word right after a pronoun → verb
+        if (!vSeen.has(w)) { vSeen.add(w); unitVerbs.push(w) }
+      } else if (!oSeen.has(w)) { oSeen.add(w); others.push(w) }
     })
   }
-  const cap = (set: Set<string>, n: number) => [...set].slice(0, n)
+  // verbs: the UNIT's own verbs first, then a few common ones to round out
+  const verbs = [...unitVerbs]
+  for (const cv of COMMON_VERBS) if (!vSeen.has(cv) && verbs.length < 12) verbs.push(cv)
   return [
     { label: 'Subjects', ar: 'الفاعل', words: SUBJECTS },
-    { label: 'Verbs', ar: 'أفعال', words: cap(verbs, 9) },
-    { label: 'Words', ar: 'كلمات', words: cap(others, 10) },
+    { label: 'Verbs', ar: 'أفعال', words: verbs.slice(0, 12) },
+    { label: 'Words', ar: 'كلمات', words: others.slice(0, 12) },
     { label: 'Tools', ar: 'أدوات', words: EXTRAS },
   ].filter(g => g.words.length > 0)
 }
