@@ -23,6 +23,7 @@ type VocabPair = { en: string; ar: string }
 type Slide =
   | { kind: 'title'; title: string }
   | { kind: 'word'; en: string; ar: string; vary: Variation | null; slot: number }
+  | { kind: 'category'; name: string; ar: string; items: VocabPair[] }
   | { kind: 'convo'; lines: { who: string; text: string }[]; speakers: string[]; part?: number; parts?: number }
   | { kind: 'expr'; pattern: string; example: string; vary: Variation | null; slot: number }
   | { kind: 'scramble'; sentences: string[] }
@@ -32,6 +33,7 @@ type Slide =
 const SECTION: Record<Slide['kind'], { en: string; ar: string } | null> = {
   title: null, end: null,
   word: { en: 'Vocabulary', ar: 'المفردات' },
+  category: { en: 'Vocabulary', ar: 'المفردات' },
   convo: { en: 'Conversation', ar: 'المحادثة' },
   expr: { en: 'Expressions', ar: 'التعابير' },
   scramble: { en: 'Word Scramble', ar: 'رتّب الكلمات' },
@@ -97,6 +99,23 @@ function buildVocab(lessons: LmsLesson[]): VocabPair[] {
       if (!seen.has(k)) { seen.add(k); out.push(p) }
     }
   return out
+}
+/** Category units (e.g. groceries) list "**Fruits — فواكه**" headers followed by
+ *  "Apples تفاح · Oranges برتقال …" lines. Parse them into groups so the deck can
+ *  show each category EXPANDED with all its items, instead of flat word slides. */
+function parseCategories(content?: string | null): { name: string; ar: string; items: VocabPair[] }[] {
+  if (!content) return []
+  const cats: { name: string; ar: string; items: VocabPair[] }[] = []
+  let cur: { name: string; ar: string; items: VocabPair[] } | null = null
+  for (const raw of content.split('\n')) {
+    const line = raw.trim()
+    if (!line) continue
+    const h = line.match(/^\*\*\s*(.+?)\s*[—–-]\s*(.+?)\s*\*\*$/)
+    if (h && AR.test(h[2]) && !AR.test(h[1])) { cur = { name: h[1].trim(), ar: h[2].trim(), items: [] }; cats.push(cur); continue }
+    if (line.startsWith('#') || line.startsWith('|')) continue
+    if (cur) for (const chunk of line.split(/[·•]/)) { const p = vocabPair(chunk); if (p) cur.items.push(p) }
+  }
+  return cats.filter(c => c.items.length > 0)
 }
 function parseConvo(reading?: string | null): { who: string; text: string }[] {
   if (!reading) return []
@@ -320,18 +339,29 @@ export default function PresentPage() {
   const unitNum = useMemo(() => parseInt(unitNo.replace(/\D/g, ''), 10) || 0, [unitNo])
 
   const slides = useMemo<Slide[]>(() => {
-    const vocab = buildVocab(lessons)
+    const l1 = lessons.find(l => l.lesson_order === 1)?.content
+    const cats = parseCategories(l1)
+    const isCat = cats.length >= 2
+    const vocab = isCat ? cats.flatMap(c => c.items) : buildVocab(lessons)
     const expr = parseExpr(lessons.find(l => l.lesson_order === 2)?.content)
     const convo = parseConvo(reading)
+
+    // Unit-relevant "change the word" box: the unit's own short words/items, so a
+    // box is shown only when it's actually useful (matches the unit's vocab).
+    const swapPool = vocab.map(v => v.en.split('/')[0].trim()).filter(en => { const w = en.split(/\s+/); return w.length >= 1 && w.length <= 3 })
+    const unitVary = (exclude: string): Variation | null => {
+      const ws = swapPool.filter(w => w.toLowerCase() !== exclude.toLowerCase()).slice(0, 4)
+      return ws.length >= 3 ? { label: 'Other words in this unit', ar: 'كلمات من الوحدة', words: ws } : null
+    }
+
     const out: Slide[] = [{ kind: 'title', title: unitName }]
-    vocab.forEach((p, i) => out.push({ kind: 'word', en: p.en, ar: p.ar, vary: variationsFor(p.en), slot: i + 1 }))
+    if (isCat) cats.forEach(c => out.push({ kind: 'category', name: c.name, ar: c.ar, items: c.items }))
+    else vocab.forEach((p, i) => out.push({ kind: 'word', en: p.en, ar: p.ar, vary: variationsFor(p.en) ?? unitVary(p.en), slot: i + 1 }))
     if (convo.length) {
-      // the WHOLE conversation lives on ONE slide so it reads as a single page
-      // (easy to read + explain); the slide itself sizes/columns to fit.
       const speakers = [...new Set(convo.map(l => l.who))]
       out.push({ kind: 'convo', lines: convo, speakers })
     }
-    expr.forEach(e => out.push({ kind: 'expr', pattern: e.pattern, example: e.example, vary: variationsFor(e.pattern + ' ' + e.example), slot: matchVocabSlot(e.example + ' ' + e.pattern, vocab) }))
+    expr.forEach(e => out.push({ kind: 'expr', pattern: e.pattern, example: e.example, vary: variationsFor(e.pattern + ' ' + e.example) ?? unitVary(''), slot: matchVocabSlot(e.example + ' ' + e.pattern, vocab) }))
     // ── end-of-unit practice ──
     const scrambleS = buildScramble(convo, vocab)
     if (scrambleS.length >= 2) out.push({ kind: 'scramble', sentences: scrambleS })
@@ -501,6 +531,28 @@ export default function PresentPage() {
                     </motion.div>
                   </div>
                 )}
+
+                {s.kind === 'category' && (() => {
+                  const n = s.items.length
+                  const cols = n <= 4 ? n : n <= 9 ? 3 : n <= 12 ? 4 : 5
+                  const fs = n <= 6 ? 1.9 : n <= 12 ? 1.6 : 1.3
+                  return (
+                    <div className="w-full max-w-[88vw] flex flex-col items-center gap-[3vh]">
+                      <div className="flex items-baseline gap-[1vw]">
+                        <h2 className="font-black" style={{ color: DARK, fontSize: '3.2vw' }}>{s.name}</h2>
+                        <span dir="rtl" className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '2.2vw' }}>{s.ar}</span>
+                      </div>
+                      <div dir="ltr" className="grid w-full gap-[1.2vw]" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
+                        {s.items.map((it, k) => (
+                          <motion.div key={k} variants={item} className="rounded-2xl bg-white ring-1 ring-stone-200 shadow-sm px-[1vw] py-[1.4vh] text-center">
+                            <div className="font-black leading-tight" style={{ color: DARK, fontSize: `${fs}vw` }}>{it.en}</div>
+                            <div dir="rtl" className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: `${fs * 0.8}vw` }}>{it.ar}</div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
 
                 {s.kind === 'expr' && (
                   <div className="grid grid-cols-[1.05fr_1fr] gap-[3.5vw] items-center w-full max-w-[88vw]">
