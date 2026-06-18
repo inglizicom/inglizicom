@@ -445,8 +445,12 @@ export default function PresentPage() {
     // numbered to line up with these sentences in order.
     const statics = parseVocab(l1)
     const out: Slide[] = [{ kind: 'title', title: unitName }]
+    // Vocabulary = the single-word poster, shown ONLY for category units (which
+    // carry a distinct word list separate from their sentence table). Units that
+    // have just the sentence table skip a separate Vocabulary section — those
+    // sentences appear once, below, as the illustrated Expressions grid (no
+    // duplicate one-sentence-per-slide section).
     if (isCat) cats.forEach(c => out.push({ kind: 'category', name: c.name, ar: c.ar, items: c.items }))
-    else vocab.forEach((p, i) => out.push({ kind: 'word', en: p.en, ar: p.ar, vary: variationsFor(p.en), slot: i + 1 }))
     if (statics.length) {                                              // Expressions (phrases) — illustrated, paginated
       const pages = Math.ceil(statics.length / EXPR_PER_PAGE)
       for (let p = 0; p < pages; p++) out.push({ kind: 'static', items: statics.slice(p * EXPR_PER_PAGE, p * EXPR_PER_PAGE + EXPR_PER_PAGE), page: p + 1, pages })
