@@ -23,7 +23,6 @@ type VocabPair = { en: string; ar: string }
 type Slide =
   | { kind: 'title'; title: string }
   | { kind: 'word'; en: string; ar: string; vary: Variation | null; slot: number }
-  | { kind: 'vocabGrid'; items: VocabPair[]; page: number; pages: number }
   | { kind: 'category'; name: string; ar: string; items: VocabPair[] }
   | { kind: 'convo'; lines: { who: string; text: string }[]; speakers: string[]; part?: number; parts?: number }
   | { kind: 'expr'; pattern: string; example: string; vary: Variation | null; slot: number }
@@ -34,7 +33,6 @@ type Slide =
 const SECTION: Record<Slide['kind'], { en: string; ar: string } | null> = {
   title: null, end: null,
   word: { en: 'Vocabulary', ar: 'المفردات' },
-  vocabGrid: { en: 'Vocabulary', ar: 'المفردات' },
   category: { en: 'Vocabulary', ar: 'المفردات' },
   convo: { en: 'Conversation', ar: 'المحادثة' },
   expr: { en: 'Expressions', ar: 'التعابير' },
@@ -226,19 +224,40 @@ function aiVocabUrl(en: string): string {
   const seed = en.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 24) || 'vocab'
   return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=420&height=420&nologo=true&model=flux&seed=${seed}`
 }
+/** Vocabulary picture with a robust fallback chain so it's NEVER emoji-only:
+ *  AI illustration (pollinations) → the deck's reliable photo (/api/img: uploaded
+ *  picture or Unsplash) → emoji only if both fail. Also falls back if the AI image
+ *  stalls (>8s). */
 function AiImg({ en }: { en: string }) {
-  const url = useMemo(() => aiVocabUrl(en), [en])
+  const ai = useMemo(() => aiVocabUrl(en), [en])
+  const [stage, setStage] = useState<'ai' | 'photo' | 'emoji'>('ai')
+  const [photo, setPhoto] = useState<string | null>(null)
   const [loaded, setLoaded] = useState(false)
-  const [err, setErr] = useState(false)
+  useEffect(() => { setStage('ai'); setPhoto(null); setLoaded(false) }, [en])
+  useEffect(() => {   // fetch the reliable photo when we fall back to it
+    if (stage !== 'photo') return
+    let alive = true
+    fetch(`/api/img?en=${encodeURIComponent(en)}&q=${encodeURIComponent(photoQuery(en))}`)
+      .then(r => r.json()).then(d => { if (alive) { if (d?.url) { setPhoto(d.url); setLoaded(false) } else setStage('emoji') } })
+      .catch(() => { if (alive) setStage('emoji') })
+    return () => { alive = false }
+  }, [stage, en])
+  useEffect(() => {   // don't wait forever on a slow AI render
+    if (stage !== 'ai') return
+    const t = setTimeout(() => setLoaded(l => { if (!l) setStage('photo'); return l }), 8000)
+    return () => clearTimeout(t)
+  }, [stage, en])
+  const src = stage === 'ai' ? ai : stage === 'photo' ? photo : null
   return (
     <div className="relative w-full h-[22vh] rounded-2xl overflow-hidden bg-white ring-1 ring-stone-200 flex items-center justify-center shadow-[0_10px_28px_-18px_rgba(42,29,18,0.4)]">
-      {!loaded && !err && <Loader2 className="animate-spin text-stone-300" size={26} />}
-      {err
-        ? <span style={{ fontSize: '8vh' }}>{emojiFor(en)}</span>
-        : (
+      {stage !== 'emoji' && !loaded && <Loader2 className="animate-spin text-stone-300" size={26} />}
+      {stage === 'emoji'
+        ? <span style={{ fontSize: '9vh' }}>{emojiFor(en)}</span>
+        : src && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={url} alt={en} onLoad={() => setLoaded(true)} onError={() => setErr(true)}
-            className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`} />
+          <img src={src} alt={en} onLoad={() => setLoaded(true)}
+            onError={() => { setLoaded(false); setStage(s => (s === 'ai' ? 'photo' : 'emoji')) }}
+            className={`absolute inset-0 w-full h-full ${stage === 'ai' ? 'object-contain' : 'object-cover'} transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`} />
         )}
     </div>
   )
@@ -384,14 +403,8 @@ export default function PresentPage() {
     // The "change the word" box is curated only (variationsFor): it must match the
     // slide's phrase/expression or complete a single word's meaning — never random
     // fill. No rule → no box.
-    const useGrid = unitNum === 1   // visual vocabulary grid — testing on Unit 1 first
     const out: Slide[] = [{ kind: 'title', title: unitName }]
     if (isCat) cats.forEach(c => out.push({ kind: 'category', name: c.name, ar: c.ar, items: c.items }))
-    else if (useGrid) {
-      const PAGE = 8
-      const pages = Math.max(1, Math.ceil(vocab.length / PAGE))
-      for (let p = 0; p < pages; p++) out.push({ kind: 'vocabGrid', items: vocab.slice(p * PAGE, p * PAGE + PAGE), page: p + 1, pages })
-    }
     else vocab.forEach((p, i) => out.push({ kind: 'word', en: p.en, ar: p.ar, vary: variationsFor(p.en), slot: i + 1 }))
     if (convo.length) {
       const speakers = [...new Set(convo.map(l => l.who))]
@@ -405,7 +418,7 @@ export default function PresentPage() {
     if (trans.length >= 2) out.push({ kind: 'translate', items: trans })
     out.push({ kind: 'end' })
     return out
-  }, [lessons, reading, unitName, unitNum])
+  }, [lessons, reading, unitName])
 
   const last = slides.length - 1
   const [step, setStep] = useState(0)                  // reveal progress inside a slide (conversation lines)
@@ -519,7 +532,7 @@ export default function PresentPage() {
             </div>
             {unitNo && <span className="px-3.5 py-1.5 rounded-xl text-white font-black whitespace-nowrap shrink-0" style={{ background: DARK }}>{unitNo}</span>}
             <span className="px-3.5 py-1.5 rounded-xl bg-white shadow-sm ring-1 ring-stone-200/70 font-bold whitespace-nowrap shrink min-w-0 truncate" style={{ color: DARK }}>{unitName}</span>
-            {section && <span className="px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap shrink-0 text-[#2a1d12]" style={{ background: '#facc15' }}>{section.en} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>{section.ar}</span>{s.kind === 'convo' && s.parts && s.parts > 1 ? ` · ${s.part}/${s.parts}` : ''}{s.kind === 'vocabGrid' && s.pages > 1 ? ` · ${s.page}/${s.pages}` : ''}</span>}
+            {section && <span className="px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap shrink-0 text-[#2a1d12]" style={{ background: '#facc15' }}>{section.en} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>{section.ar}</span>{s.kind === 'convo' && s.parts && s.parts > 1 ? ` · ${s.part}/${s.parts}` : ''}</span>}
             <div className="absolute right-[3vw] top-[2.6vh] flex items-center gap-2">
               <span className="text-stone-400 font-bold whitespace-nowrap shrink-0">{String(idx + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
               {/* zoom controls — also: pinch · Ctrl+wheel · + − 0 */}
@@ -574,34 +587,22 @@ export default function PresentPage() {
                   </div>
                 )}
 
-                {s.kind === 'vocabGrid' && (
-                  <div className="w-full max-w-[92vw]">
-                    <div dir="ltr" className="grid grid-cols-4 gap-x-[1.8vw] gap-y-[2vh]">
-                      {s.items.map((it, k) => (
-                        <motion.div key={k} variants={item} className="flex flex-col items-center text-center">
-                          <AiImg en={it.en} />
-                          <div className="font-black mt-[1.1vh] leading-tight" style={{ color: '#0f766e', fontSize: '1.45vw' }}>{it.en}</div>
-                          <div dir="rtl" className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.15vw' }}>{it.ar}</div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 {s.kind === 'category' && (() => {
+                  // Visual vocabulary poster: a picture per single word + its name (en) + Arabic.
                   const n = s.items.length
-                  const cols = n <= 4 ? n : n <= 9 ? 3 : n <= 12 ? 4 : 5
-                  const fs = n <= 6 ? 1.9 : n <= 12 ? 1.6 : 1.3
+                  const cols = n <= 4 ? n : n <= 9 ? 3 : 4
+                  const fs = n <= 6 ? 1.55 : 1.3
                   return (
-                    <div className="w-full max-w-[88vw] flex flex-col items-center gap-[3vh]">
+                    <div className="w-full max-w-[90vw] flex flex-col items-center gap-[2.6vh]">
                       <div className="flex items-baseline gap-[1vw]">
-                        <h2 className="font-black" style={{ color: DARK, fontSize: '3.2vw' }}>{s.name}</h2>
-                        <span dir="rtl" className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '2.2vw' }}>{s.ar}</span>
+                        <h2 className="font-black" style={{ color: '#0f766e', fontSize: '3vw' }}>{s.name}</h2>
+                        <span dir="rtl" className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '2vw' }}>{s.ar}</span>
                       </div>
-                      <div dir="ltr" className="grid w-full gap-[1.2vw]" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
+                      <div dir="ltr" className="grid w-full gap-x-[1.8vw] gap-y-[2vh]" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
                         {s.items.map((it, k) => (
-                          <motion.div key={k} variants={item} className="rounded-2xl bg-white ring-1 ring-stone-200 shadow-sm px-[1vw] py-[1.4vh] text-center">
-                            <div className="font-black leading-tight" style={{ color: DARK, fontSize: `${fs}vw` }}>{it.en}</div>
+                          <motion.div key={k} variants={item} className="flex flex-col items-center text-center">
+                            <AiImg en={it.en} />
+                            <div className="font-black mt-[1vh] leading-tight" style={{ color: '#0f766e', fontSize: `${fs}vw` }}>{it.en}</div>
                             <div dir="rtl" className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: `${fs * 0.8}vw` }}>{it.ar}</div>
                           </motion.div>
                         ))}
