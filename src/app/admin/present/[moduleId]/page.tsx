@@ -26,7 +26,7 @@ type Slide =
   | { kind: 'category'; name: string; ar: string; items: VocabPair[] }
   | { kind: 'convo'; lines: { who: string; text: string }[]; speakers: string[]; part?: number; parts?: number }
   | { kind: 'expr'; pattern: string; example: string; vary: Variation | null; slot: number }
-  | { kind: 'static'; items: VocabPair[] }
+  | { kind: 'static'; items: VocabPair[]; page: number; pages: number }
   | { kind: 'scramble'; sentences: string[] }
   | { kind: 'translate'; items: { ar: string; en: string }[] }
   | { kind: 'end' }
@@ -413,7 +413,11 @@ export default function PresentPage() {
     const out: Slide[] = [{ kind: 'title', title: unitName }]
     if (isCat) cats.forEach(c => out.push({ kind: 'category', name: c.name, ar: c.ar, items: c.items }))
     else vocab.forEach((p, i) => out.push({ kind: 'word', en: p.en, ar: p.ar, vary: variationsFor(p.en), slot: i + 1 }))
-    if (statics.length) out.push({ kind: 'static', items: statics })   // Expressions (phrases)
+    if (statics.length) {                                              // Expressions (phrases) — illustrated, paginated
+      const PAGE = 6
+      const pages = Math.ceil(statics.length / PAGE)
+      for (let p = 0; p < pages; p++) out.push({ kind: 'static', items: statics.slice(p * PAGE, p * PAGE + PAGE), page: p + 1, pages })
+    }
     expr.forEach(e => out.push({ kind: 'expr', pattern: e.pattern, example: e.example, vary: variationsFor(e.pattern + ' ' + e.example), slot: matchVocabSlot(e.example + ' ' + e.pattern, vocab) }))
     if (convo.length) {
       const speakers = [...new Set(convo.map(l => l.who))]
@@ -541,7 +545,7 @@ export default function PresentPage() {
             </div>
             {unitNo && <span className="px-3.5 py-1.5 rounded-xl text-white font-black whitespace-nowrap shrink-0" style={{ background: DARK }}>{unitNo}</span>}
             <span className="px-3.5 py-1.5 rounded-xl bg-white shadow-sm ring-1 ring-stone-200/70 font-bold whitespace-nowrap shrink min-w-0 truncate" style={{ color: DARK }}>{unitName}</span>
-            {section && <span className="px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap shrink-0 text-[#2a1d12]" style={{ background: '#facc15' }}>{section.en} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>{section.ar}</span>{s.kind === 'convo' && s.parts && s.parts > 1 ? ` · ${s.part}/${s.parts}` : ''}</span>}
+            {section && <span className="px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap shrink-0 text-[#2a1d12]" style={{ background: '#facc15' }}>{section.en} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>{section.ar}</span>{s.kind === 'convo' && s.parts && s.parts > 1 ? ` · ${s.part}/${s.parts}` : ''}{s.kind === 'static' && s.pages > 1 ? ` · ${s.page}/${s.pages}` : ''}</span>}
             <div className="absolute right-[3vw] top-[2.6vh] flex items-center gap-2">
               <span className="text-stone-400 font-bold whitespace-nowrap shrink-0">{String(idx + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
               {/* zoom controls — also: pinch · Ctrl+wheel · + − 0 */}
@@ -632,16 +636,18 @@ export default function PresentPage() {
                 )}
 
                 {s.kind === 'static' && (() => {
+                  // Expressions: each full sentence with its own picture (poster style).
                   const n = s.items.length
-                  const cols = n <= 5 ? 1 : 2
-                  const fs = n <= 6 ? 1.5 : n <= 10 ? 1.25 : 1.05
+                  const cols = n <= 2 ? n : 3
+                  const fs = n <= 3 ? 1.35 : 1.12
                   return (
-                    <div className="w-full max-w-[88vw]">
-                      <div dir="ltr" className="grid gap-x-[2vw] gap-y-[1.3vh]" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
+                    <div className="w-full max-w-[90vw]">
+                      <div dir="ltr" className="grid gap-x-[1.8vw] gap-y-[2vh]" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
                         {s.items.map((it, k) => (
-                          <motion.div key={k} variants={item} className="rounded-2xl bg-white ring-1 ring-stone-200 shadow-sm px-[1.5vw] py-[1.1vh]">
-                            <div className="font-bold" style={{ color: DARK, fontSize: `${fs}vw` }}>{it.en}</div>
-                            <div dir="rtl" className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: `${fs * 0.82}vw` }}>{it.ar}</div>
+                          <motion.div key={k} variants={item} className="flex flex-col items-center text-center">
+                            <AiImg en={it.en} />
+                            <div className="font-bold mt-[1vh] leading-snug" style={{ color: DARK, fontSize: `${fs}vw` }}>{it.en}</div>
+                            <div dir="rtl" className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: `${fs * 0.85}vw` }}>{it.ar}</div>
                           </motion.div>
                         ))}
                       </div>
