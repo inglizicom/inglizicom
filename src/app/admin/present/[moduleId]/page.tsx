@@ -18,6 +18,8 @@ import { variationsFor, type Variation } from '@/lib/deck-vary'
 
 const DARK = '#2a1d12'
 const CREAM = '#faf6ef'
+const BROWN = '#5b3a16'              // expression label text / border — strong brown
+const EXPR_PER_PAGE = 4             // Expressions: 4 illustrated cards per page (2×2)
 
 type VocabPair = { en: string; ar: string }
 type Slide =
@@ -222,14 +224,19 @@ function emojiFor(en: string): string {
 /* AI-generated illustration for the visual vocabulary grid (keyless, URL-based,
    pollinations/flux). Stable seed per phrase → the same image every reload. */
 function aiVocabUrl(en: string): string {
-  const prompt = `cute 3D pixar-style cartoon illustration of ${photoQuery(en)}, single subject, plain solid white background, soft studio lighting, friendly, high detail, no text, no letters, no words`
+  // Force the illustration to depict the EXACT vocabulary word/phrase: lead with it
+  // verbatim, then add the scene hint. The subject fills the frame so there are no
+  // empty margins — only the object's own (white) background shows.
+  const subject = photoQuery(en)
+  const hint = subject && subject !== en.toLowerCase() ? `, ${subject}` : ''
+  const prompt = `cute 3D pixar-style cartoon illustration that clearly and accurately shows "${en}"${hint}, one single central subject filling the whole frame, plain solid white background, soft studio lighting, friendly, highly detailed, no text, no letters, no words`
   const seed = en.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 24) || 'vocab'
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=420&height=420&nologo=true&model=flux&seed=${seed}`
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=512&height=512&nologo=true&model=flux&seed=${seed}`
 }
 /** Vocabulary/expression picture. Priority — uses the TEACHER's uploaded folder
  *  picture first, then an AI illustration, then an Unsplash photo, then emoji.
  *  `unit`+`slot` point at public/deck-images/unit-<N>/<letter><slot>.(png|jpg). */
-function AiImg({ en, unit, slot }: { en: string; unit?: number; slot?: number }) {
+function AiImg({ en, unit, slot, contain, heightClass = 'h-[22vh]' }: { en: string; unit?: number; slot?: number; contain?: boolean; heightClass?: string }) {
   const ai = useMemo(() => aiVocabUrl(en), [en])
   const [stage, setStage] = useState<'check' | 'own' | 'ai' | 'photo' | 'emoji'>('check')
   const [own, setOwn] = useState<string | null>(null)     // uploaded picture
@@ -255,7 +262,7 @@ function AiImg({ en, unit, slot }: { en: string; unit?: number; slot?: number })
   }, [stage, photo])
   const src = stage === 'own' ? own : stage === 'ai' ? ai : stage === 'photo' ? photo : null
   return (
-    <div className="relative w-full h-[22vh] rounded-2xl overflow-hidden bg-white ring-1 ring-stone-200 flex items-center justify-center shadow-[0_10px_28px_-18px_rgba(42,29,18,0.4)]">
+    <div className={`relative w-full ${heightClass} rounded-2xl overflow-hidden bg-white ring-1 ring-stone-200 flex items-center justify-center shadow-[0_18px_40px_-20px_rgba(42,29,18,0.55)]`}>
       {(stage === 'check' || (stage !== 'emoji' && !loaded)) && <Loader2 className="animate-spin text-stone-300" size={26} />}
       {stage === 'emoji'
         ? <span style={{ fontSize: '9vh' }}>{emojiFor(en)}</span>
@@ -263,34 +270,52 @@ function AiImg({ en, unit, slot }: { en: string; unit?: number; slot?: number })
           // eslint-disable-next-line @next/next/no-img-element
           <img src={src} alt={en} onLoad={() => setLoaded(true)}
             onError={() => { setLoaded(false); setStage(s => s === 'own' ? 'ai' : s === 'ai' ? (photo ? 'photo' : 'emoji') : 'emoji') }}
-            className={`absolute inset-0 w-full h-full ${stage === 'ai' ? 'object-contain' : 'object-cover'} transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`} />
+            className={`absolute inset-0 w-full h-full ${contain ? 'object-contain' : 'object-cover'} transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`} />
         )}
     </div>
   )
 }
 
 function Photo({ en, unit, slot }: { en: string; unit?: number; slot?: number }) {
-  const [url, setUrl] = useState<string | null | undefined>(undefined)
+  // Priority for a clear, MATCHING picture: teacher's upload → an AI illustration
+  // generated for this exact phrase (always on-topic) → an Unsplash photo (often
+  // only loosely related) → emoji. The AI tier is what fixes "image doesn't match".
+  const ai = useMemo(() => aiVocabUrl(en), [en])
+  const [stage, setStage] = useState<'check' | 'own' | 'ai' | 'photo' | 'emoji'>('check')
+  const [own, setOwn] = useState<string | null>(null)
+  const [photo, setPhoto] = useState<string | null>(null)
   const [loaded, setLoaded] = useState(false)
+  useEffect(() => { setStage('check'); setOwn(null); setPhoto(null); setLoaded(false) }, [en, unit, slot])
   useEffect(() => {
-    let alive = true; setUrl(undefined); setLoaded(false)
+    if (stage !== 'check') return
+    let alive = true
     const pos = unit && slot ? `&unit=${unit}&i=${slot}` : ''
     fetch(`/api/img?en=${encodeURIComponent(en)}&q=${encodeURIComponent(photoQuery(en))}${pos}`)
-      .then(r => r.json()).then(d => { if (alive) setUrl(d?.url ?? null) })
-      .catch(() => { if (alive) setUrl(null) })
+      .then(r => r.json()).then(d => {
+        if (!alive) return
+        if (d?.own && d?.url) { setOwn(d.url); setStage('own') }   // teacher's upload wins
+        else { if (d?.url) setPhoto(d.url); setStage('ai') }       // else try AI, keep photo as backup
+      }).catch(() => { if (alive) setStage('ai') })
     return () => { alive = false }
-  }, [en, unit, slot])
+  }, [stage, en, unit, slot])
+  useEffect(() => {                                                 // don't wait forever on a slow AI render
+    if (stage !== 'ai') return
+    const t = setTimeout(() => setLoaded(l => { if (!l) setStage(photo ? 'photo' : 'emoji'); return l }), 8000)
+    return () => clearTimeout(t)
+  }, [stage, photo])
+  const src = stage === 'own' ? own : stage === 'ai' ? ai : stage === 'photo' ? photo : null
   return (
     <div className="relative w-full aspect-[4/3] max-h-[58vh] rounded-[28px] overflow-hidden bg-white flex items-center justify-center
                     shadow-[0_24px_60px_-22px_rgba(42,29,18,0.45)] ring-1 ring-black/5">
-      {url === undefined && <Loader2 className="animate-spin text-stone-300" size={46} />}
-      {url === null && (
+      {(stage === 'check' || (stage !== 'emoji' && !loaded)) && <Loader2 className="animate-spin text-stone-300" size={46} />}
+      {stage === 'emoji' && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}
           className="w-full h-full flex items-center justify-center bg-gradient-to-br from-yellow-50 to-amber-100 text-[14vw]">{emojiFor(en)}</motion.div>
       )}
-      {typeof url === 'string' && (
+      {stage !== 'emoji' && src && (
         // eslint-disable-next-line @next/next/no-img-element
-        <motion.img key={url} src={url} alt={en} onLoad={() => setLoaded(true)} onError={() => setUrl(null)}
+        <motion.img key={src} src={src} alt={en} onLoad={() => setLoaded(true)}
+          onError={() => { setLoaded(false); setStage(s => s === 'own' ? 'ai' : s === 'ai' ? (photo ? 'photo' : 'emoji') : 'emoji') }}
           initial={{ opacity: 0, scale: 1.03 }} animate={loaded ? { opacity: 1, scale: 1 } : { opacity: 0 }}
           transition={{ duration: 0.5, ease: 'easeOut' }} className="absolute inset-0 w-full h-full object-cover" />
       )}
@@ -413,14 +438,17 @@ export default function PresentPage() {
     // Order: VOCABULARY → EXPRESSIONS (full sentences using the vocab — the
     // | en | ar | table) → STATIC SENTENCES (frames that change a few words —
     // the patterns) → CONVERSATION → games.
-    const statics = isCat ? parseVocab(l1) : []
+    // Expressions = the unit's vocabulary as illustrated cards — for EVERY unit.
+    // Reuse the already-resolved `vocab` (category items for category units, the
+    // built vocab table otherwise) so the section + uploaded folder pictures show
+    // up everywhere, not only on units whose lesson 1 is a clean markdown table.
+    const statics = vocab
     const out: Slide[] = [{ kind: 'title', title: unitName }]
     if (isCat) cats.forEach(c => out.push({ kind: 'category', name: c.name, ar: c.ar, items: c.items }))
     else vocab.forEach((p, i) => out.push({ kind: 'word', en: p.en, ar: p.ar, vary: variationsFor(p.en), slot: i + 1 }))
     if (statics.length) {                                              // Expressions (phrases) — illustrated, paginated
-      const PAGE = 6
-      const pages = Math.ceil(statics.length / PAGE)
-      for (let p = 0; p < pages; p++) out.push({ kind: 'static', items: statics.slice(p * PAGE, p * PAGE + PAGE), page: p + 1, pages })
+      const pages = Math.ceil(statics.length / EXPR_PER_PAGE)
+      for (let p = 0; p < pages; p++) out.push({ kind: 'static', items: statics.slice(p * EXPR_PER_PAGE, p * EXPR_PER_PAGE + EXPR_PER_PAGE), page: p + 1, pages })
     }
     expr.forEach(e => out.push({ kind: 'expr', pattern: e.pattern, example: e.example, vary: variationsFor(e.pattern + ' ' + e.example), slot: matchVocabSlot(e.example + ' ' + e.pattern, vocab) }))
     if (convo.length) {
@@ -643,21 +671,28 @@ export default function PresentPage() {
                 )}
 
                 {s.kind === 'static' && (() => {
-                  // Expressions: each full sentence with its own picture; revealed on tap.
+                  // Expressions: each phrase with its own clean picture; revealed on tap.
+                  // 4 cards per page (2×2) so every image stays large and clear; if a
+                  // page ever holds more, it spills to 3 columns and shrinks gently.
                   const n = s.items.length
-                  const cols = n <= 2 ? n : 3
-                  const fs = n <= 3 ? 1.35 : 1.12
-                  const base = (s.page - 1) * 6   // global phrase index → uploaded picture slot
+                  const cols = n <= 1 ? 1 : n <= 4 ? 2 : 3
+                  const fs = n <= 4 ? 1.3 : 1.1
+                  const base = (s.page - 1) * EXPR_PER_PAGE   // global phrase index → uploaded picture slot
                   return (
-                    <div className="w-full max-w-[90vw]">
-                      <div dir="ltr" className="grid gap-x-[1.8vw] gap-y-[2vh]" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
+                    <div className="w-full max-w-[80vw]">
+                      <div dir="ltr" className="grid gap-x-[2.4vw] gap-y-[2vh]" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
                         {s.items.map((it, k) => k >= step ? (
-                          <div key={k} className="w-full h-[22vh] rounded-2xl border-2 border-dashed border-stone-300/70 opacity-50" />
+                          <div key={k} className="w-full h-[26vh] rounded-2xl border-2 border-dashed border-stone-300/70 opacity-50" />
                         ) : (
                           <motion.div key={k} initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.28 }} className="flex flex-col items-center text-center">
-                            <AiImg en={it.en} unit={unitNum} slot={base + k + 1} />
-                            <div className="font-bold mt-[1vh] leading-snug" style={{ color: DARK, fontSize: `${fs}vw` }}>{it.en}</div>
-                            <div dir="rtl" className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: `${fs * 0.85}vw` }}>{it.ar}</div>
+                            {/* picture stays whole (object-contain) so ≥80% is visible — helps learning */}
+                            <AiImg en={it.en} unit={unitNum} slot={base + k + 1} contain heightClass="h-[26vh]" />
+                            {/* English — solid yellow rectangle, brown font, strong shadow */}
+                            <div className="inline-block mt-[1.2vh] rounded-xl font-black leading-snug"
+                              style={{ background: '#facc15', color: BROWN, fontSize: `${fs}vw`, padding: '0.6vh 1.4vw', boxShadow: '0 12px 26px -10px rgba(91,58,22,0.65)' }}>{it.en}</div>
+                            {/* Arabic — white rectangle, brown border + brown font, strong shadow */}
+                            <div dir="rtl" className="inline-block mt-[0.8vh] rounded-xl font-black"
+                              style={{ background: '#ffffff', color: BROWN, border: `2.5px solid ${BROWN}`, fontFamily: "'Tajawal', sans-serif", fontSize: `${fs * 0.95}vw`, padding: '0.55vh 1.4vw', boxShadow: '0 14px 30px -10px rgba(91,58,22,0.55)' }}>{it.ar}</div>
                           </motion.div>
                         ))}
                       </div>
