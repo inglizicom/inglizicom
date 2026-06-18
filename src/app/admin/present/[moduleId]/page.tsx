@@ -36,8 +36,8 @@ const SECTION: Record<Slide['kind'], { en: string; ar: string } | null> = {
   word: { en: 'Vocabulary', ar: 'المفردات' },
   category: { en: 'Vocabulary', ar: 'المفردات' },
   convo: { en: 'Conversation', ar: 'المحادثة' },
-  expr: { en: 'Expressions', ar: 'التعابير' },
-  static: { en: 'Static Expressions', ar: 'تعابير ثابتة' },
+  expr: { en: 'Static Sentences', ar: 'جمل ثابتة' },     // a frame where only a few words change
+  static: { en: 'Expressions', ar: 'التعابير' },          // full sentences that use the vocabulary
   scramble: { en: 'Word Scramble', ar: 'رتّب الكلمات' },
   translate: { en: 'Translate', ar: 'ترجم الجملة' },
 }
@@ -406,14 +406,15 @@ export default function PresentPage() {
     // slide's phrase/expression or complete a single word's meaning — never random
     // fill. No rule → no box.
     // Order: VOCABULARY → EXPRESSIONS → CONVERSATION → practice.
-    // When the unit has a curated single-word group, its full sentences (the
-    // | en | ar | table) become the "Static Expressions" section.
+    // Order: VOCABULARY → EXPRESSIONS (full sentences using the vocab — the
+    // | en | ar | table) → STATIC SENTENCES (frames that change a few words —
+    // the patterns) → CONVERSATION → games.
     const statics = isCat ? parseVocab(l1) : []
     const out: Slide[] = [{ kind: 'title', title: unitName }]
     if (isCat) cats.forEach(c => out.push({ kind: 'category', name: c.name, ar: c.ar, items: c.items }))
     else vocab.forEach((p, i) => out.push({ kind: 'word', en: p.en, ar: p.ar, vary: variationsFor(p.en), slot: i + 1 }))
+    if (statics.length) out.push({ kind: 'static', items: statics })   // Expressions (phrases)
     expr.forEach(e => out.push({ kind: 'expr', pattern: e.pattern, example: e.example, vary: variationsFor(e.pattern + ' ' + e.example), slot: matchVocabSlot(e.example + ' ' + e.pattern, vocab) }))
-    if (statics.length) out.push({ kind: 'static', items: statics })
     if (convo.length) {
       const speakers = [...new Set(convo.map(l => l.who))]
       out.push({ kind: 'convo', lines: convo, speakers })
