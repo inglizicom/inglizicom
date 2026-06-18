@@ -236,7 +236,7 @@ function aiVocabUrl(en: string): string {
 /** Vocabulary/expression picture. Priority — uses the TEACHER's uploaded folder
  *  picture first, then an AI illustration, then an Unsplash photo, then emoji.
  *  `unit`+`slot` point at public/deck-images/unit-<N>/<letter><slot>.(png|jpg). */
-function AiImg({ en, unit, slot, contain, heightClass = 'h-[22vh]' }: { en: string; unit?: number; slot?: number; contain?: boolean; heightClass?: string }) {
+function AiImg({ en, unit, slot, contain, square, heightClass = 'h-[22vh]' }: { en: string; unit?: number; slot?: number; contain?: boolean; square?: boolean; heightClass?: string }) {
   const ai = useMemo(() => aiVocabUrl(en), [en])
   const [stage, setStage] = useState<'check' | 'own' | 'ai' | 'photo' | 'emoji'>('check')
   const [own, setOwn] = useState<string | null>(null)     // uploaded picture
@@ -262,7 +262,7 @@ function AiImg({ en, unit, slot, contain, heightClass = 'h-[22vh]' }: { en: stri
   }, [stage, photo])
   const src = stage === 'own' ? own : stage === 'ai' ? ai : stage === 'photo' ? photo : null
   return (
-    <div className={`relative w-full ${heightClass} rounded-2xl overflow-hidden bg-white ring-1 ring-stone-200 flex items-center justify-center shadow-[0_18px_40px_-20px_rgba(42,29,18,0.55)]`}>
+    <div className={`relative ${square ? 'h-[28vh] aspect-square mx-auto rounded-3xl' : `w-full ${heightClass} rounded-2xl`} overflow-hidden bg-white ring-1 ring-stone-200 flex items-center justify-center shadow-[0_18px_40px_-20px_rgba(42,29,18,0.55)]`}>
       {(stage === 'check' || (stage !== 'emoji' && !loaded)) && <Loader2 className="animate-spin text-stone-300" size={26} />}
       {stage === 'emoji'
         ? <span style={{ fontSize: '9vh' }}>{emojiFor(en)}</span>
@@ -270,7 +270,7 @@ function AiImg({ en, unit, slot, contain, heightClass = 'h-[22vh]' }: { en: stri
           // eslint-disable-next-line @next/next/no-img-element
           <img src={src} alt={en} onLoad={() => setLoaded(true)}
             onError={() => { setLoaded(false); setStage(s => s === 'own' ? 'ai' : s === 'ai' ? (photo ? 'photo' : 'emoji') : 'emoji') }}
-            className={`absolute inset-0 w-full h-full ${contain ? 'object-contain' : 'object-cover'} transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`} />
+            className={`absolute inset-0 w-full h-full ${contain && !square ? 'object-contain' : 'object-cover'} transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`} />
         )}
     </div>
   )
@@ -682,11 +682,11 @@ export default function PresentPage() {
                     <div className="w-full max-w-[80vw]">
                       <div dir="ltr" className="grid gap-x-[2.4vw] gap-y-[2vh]" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
                         {s.items.map((it, k) => k >= step ? (
-                          <div key={k} className="w-full h-[26vh] rounded-2xl border-2 border-dashed border-stone-300/70 opacity-50" />
+                          <div key={k} className="h-[28vh] aspect-square mx-auto rounded-3xl border-2 border-dashed border-stone-300/70 opacity-50" />
                         ) : (
                           <motion.div key={k} initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.28 }} className="flex flex-col items-center text-center">
-                            {/* picture stays whole (object-contain) so ≥80% is visible — helps learning */}
-                            <AiImg en={it.en} unit={unitNum} slot={base + k + 1} contain heightClass="h-[26vh]" />
+                            {/* square card, image fills it (cover) — no white margins */}
+                            <AiImg en={it.en} unit={unitNum} slot={base + k + 1} square />
                             {/* English — solid yellow rectangle, brown font, strong shadow */}
                             <div className="inline-block mt-[1.2vh] rounded-xl font-black leading-snug"
                               style={{ background: '#facc15', color: BROWN, fontSize: `${fs}vw`, padding: '0.6vh 1.4vw', boxShadow: '0 12px 26px -10px rgba(91,58,22,0.65)' }}>{it.en}</div>
