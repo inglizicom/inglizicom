@@ -19,7 +19,7 @@ import { variationsFor, type Variation } from '@/lib/deck-vary'
 const DARK = '#2a1d12'
 const CREAM = '#faf6ef'
 const BROWN = '#5b3a16'              // expression label text / border — strong brown
-const EXPR_PER_PAGE = 9             // Expressions: up to 9 illustrated cards per page (3×3)
+const EXPR_PER_PAGE = 6             // Expressions: up to 6 illustrated cards per page (3×2)
 
 type VocabPair = { en: string; ar: string }
 type Slide =
@@ -673,9 +673,9 @@ export default function PresentPage() {
 
                 {s.kind === 'static' && (() => {
                   // Expressions: each phrase with its own square picture; revealed on tap.
-                  // Up to 9 per page (3×3) so the cards fill the slide; the square size
-                  // shrinks as the row count grows so 3 rows always fit. Short/last
-                  // pages with ≤4 items use 2 columns and larger squares.
+                  // Up to 6 per page (3×2) so the cards fill the slide; the square size
+                  // adapts to the row count. Short/last pages with ≤4 items use 2
+                  // columns and larger squares.
                   const n = s.items.length
                   const cols = n <= 1 ? 1 : n <= 4 ? 2 : 3
                   const rows = Math.ceil(n / cols)
