@@ -26,6 +26,7 @@ type Slide =
   | { kind: 'category'; name: string; ar: string; items: VocabPair[] }
   | { kind: 'convo'; lines: { who: string; text: string }[]; speakers: string[]; part?: number; parts?: number }
   | { kind: 'expr'; pattern: string; example: string; vary: Variation | null; slot: number }
+  | { kind: 'static'; items: VocabPair[] }
   | { kind: 'scramble'; sentences: string[] }
   | { kind: 'translate'; items: { ar: string; en: string }[] }
   | { kind: 'end' }
@@ -36,6 +37,7 @@ const SECTION: Record<Slide['kind'], { en: string; ar: string } | null> = {
   category: { en: 'Vocabulary', ar: 'المفردات' },
   convo: { en: 'Conversation', ar: 'المحادثة' },
   expr: { en: 'Expressions', ar: 'التعابير' },
+  static: { en: 'Static Expressions', ar: 'تعابير ثابتة' },
   scramble: { en: 'Word Scramble', ar: 'رتّب الكلمات' },
   translate: { en: 'Translate', ar: 'ترجم الجملة' },
 }
@@ -404,18 +406,23 @@ export default function PresentPage() {
     // slide's phrase/expression or complete a single word's meaning — never random
     // fill. No rule → no box.
     // Order: VOCABULARY → EXPRESSIONS → CONVERSATION → practice.
+    // When the unit has a curated single-word group, its full sentences (the
+    // | en | ar | table) become the "Static Expressions" section.
+    const statics = isCat ? parseVocab(l1) : []
     const out: Slide[] = [{ kind: 'title', title: unitName }]
     if (isCat) cats.forEach(c => out.push({ kind: 'category', name: c.name, ar: c.ar, items: c.items }))
     else vocab.forEach((p, i) => out.push({ kind: 'word', en: p.en, ar: p.ar, vary: variationsFor(p.en), slot: i + 1 }))
     expr.forEach(e => out.push({ kind: 'expr', pattern: e.pattern, example: e.example, vary: variationsFor(e.pattern + ' ' + e.example), slot: matchVocabSlot(e.example + ' ' + e.pattern, vocab) }))
+    if (statics.length) out.push({ kind: 'static', items: statics })
     if (convo.length) {
       const speakers = [...new Set(convo.map(l => l.who))]
       out.push({ kind: 'convo', lines: convo, speakers })
     }
-    // ── end-of-unit practice ──
-    const scrambleS = buildScramble(convo, vocab)
+    // ── end-of-unit games — use the full sentences when we have them ──
+    const exVocab = statics.length ? statics : vocab
+    const scrambleS = buildScramble(convo, exVocab)
     if (scrambleS.length >= 2) out.push({ kind: 'scramble', sentences: scrambleS })
-    const trans = buildTranslations(vocab)
+    const trans = buildTranslations(exVocab)
     if (trans.length >= 2) out.push({ kind: 'translate', items: trans })
     out.push({ kind: 'end' })
     return out
@@ -622,6 +629,24 @@ export default function PresentPage() {
                     </motion.div>
                   </div>
                 )}
+
+                {s.kind === 'static' && (() => {
+                  const n = s.items.length
+                  const cols = n <= 5 ? 1 : 2
+                  const fs = n <= 6 ? 1.5 : n <= 10 ? 1.25 : 1.05
+                  return (
+                    <div className="w-full max-w-[88vw]">
+                      <div dir="ltr" className="grid gap-x-[2vw] gap-y-[1.3vh]" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
+                        {s.items.map((it, k) => (
+                          <motion.div key={k} variants={item} className="rounded-2xl bg-white ring-1 ring-stone-200 shadow-sm px-[1.5vw] py-[1.1vh]">
+                            <div className="font-bold" style={{ color: DARK, fontSize: `${fs}vw` }}>{it.en}</div>
+                            <div dir="rtl" className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: `${fs * 0.82}vw` }}>{it.ar}</div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
 
                 {s.kind === 'convo' && (() => {
                   // PAIRED layout: each exchange (question + reply) on ONE row — first
