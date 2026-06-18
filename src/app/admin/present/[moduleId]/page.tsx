@@ -395,7 +395,7 @@ export default function PresentPage() {
   const slides = useMemo<Slide[]>(() => {
     const l1 = lessons.find(l => l.lesson_order === 1)?.content
     const cats = parseCategories(l1)
-    const isCat = cats.length >= 2
+    const isCat = cats.length >= 1   // a curated single-word group → illustrated vocab poster
     const vocab = isCat ? cats.flatMap(c => c.items) : buildVocab(lessons)
     const expr = parseExpr(lessons.find(l => l.lesson_order === 2)?.content)
     const convo = parseConvo(reading)
@@ -403,14 +403,15 @@ export default function PresentPage() {
     // The "change the word" box is curated only (variationsFor): it must match the
     // slide's phrase/expression or complete a single word's meaning — never random
     // fill. No rule → no box.
+    // Order: VOCABULARY → EXPRESSIONS → CONVERSATION → practice.
     const out: Slide[] = [{ kind: 'title', title: unitName }]
     if (isCat) cats.forEach(c => out.push({ kind: 'category', name: c.name, ar: c.ar, items: c.items }))
     else vocab.forEach((p, i) => out.push({ kind: 'word', en: p.en, ar: p.ar, vary: variationsFor(p.en), slot: i + 1 }))
+    expr.forEach(e => out.push({ kind: 'expr', pattern: e.pattern, example: e.example, vary: variationsFor(e.pattern + ' ' + e.example), slot: matchVocabSlot(e.example + ' ' + e.pattern, vocab) }))
     if (convo.length) {
       const speakers = [...new Set(convo.map(l => l.who))]
       out.push({ kind: 'convo', lines: convo, speakers })
     }
-    expr.forEach(e => out.push({ kind: 'expr', pattern: e.pattern, example: e.example, vary: variationsFor(e.pattern + ' ' + e.example), slot: matchVocabSlot(e.example + ' ' + e.pattern, vocab) }))
     // ── end-of-unit practice ──
     const scrambleS = buildScramble(convo, vocab)
     if (scrambleS.length >= 2) out.push({ kind: 'scramble', sentences: scrambleS })
@@ -590,7 +591,7 @@ export default function PresentPage() {
                 {s.kind === 'category' && (() => {
                   // Visual vocabulary poster: a picture per single word + its name (en) + Arabic.
                   const n = s.items.length
-                  const cols = n <= 4 ? n : n <= 9 ? 3 : 4
+                  const cols = n <= 4 ? n : Math.ceil(n / 2)   // keep it to ~2 rows so images fit
                   const fs = n <= 6 ? 1.55 : 1.3
                   return (
                     <div className="w-full max-w-[90vw] flex flex-col items-center gap-[2.6vh]">
