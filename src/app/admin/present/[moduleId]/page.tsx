@@ -23,6 +23,7 @@ type VocabPair = { en: string; ar: string }
 type Slide =
   | { kind: 'title'; title: string }
   | { kind: 'word'; en: string; ar: string; vary: Variation | null; slot: number }
+  | { kind: 'vocabGrid'; items: VocabPair[]; page: number; pages: number }
   | { kind: 'category'; name: string; ar: string; items: VocabPair[] }
   | { kind: 'convo'; lines: { who: string; text: string }[]; speakers: string[]; part?: number; parts?: number }
   | { kind: 'expr'; pattern: string; example: string; vary: Variation | null; slot: number }
@@ -33,6 +34,7 @@ type Slide =
 const SECTION: Record<Slide['kind'], { en: string; ar: string } | null> = {
   title: null, end: null,
   word: { en: 'Vocabulary', ar: 'المفردات' },
+  vocabGrid: { en: 'Vocabulary', ar: 'المفردات' },
   category: { en: 'Vocabulary', ar: 'المفردات' },
   convo: { en: 'Conversation', ar: 'المحادثة' },
   expr: { en: 'Expressions', ar: 'التعابير' },
@@ -217,6 +219,31 @@ function emojiFor(en: string): string {
   return '🗣️'
 }
 
+/* AI-generated illustration for the visual vocabulary grid (keyless, URL-based,
+   pollinations/flux). Stable seed per phrase → the same image every reload. */
+function aiVocabUrl(en: string): string {
+  const prompt = `cute 3D pixar-style cartoon illustration of ${photoQuery(en)}, single subject, plain solid white background, soft studio lighting, friendly, high detail, no text, no letters, no words`
+  const seed = en.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 24) || 'vocab'
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=420&height=420&nologo=true&model=flux&seed=${seed}`
+}
+function AiImg({ en }: { en: string }) {
+  const url = useMemo(() => aiVocabUrl(en), [en])
+  const [loaded, setLoaded] = useState(false)
+  const [err, setErr] = useState(false)
+  return (
+    <div className="relative w-full h-[22vh] rounded-2xl overflow-hidden bg-white ring-1 ring-stone-200 flex items-center justify-center shadow-[0_10px_28px_-18px_rgba(42,29,18,0.4)]">
+      {!loaded && !err && <Loader2 className="animate-spin text-stone-300" size={26} />}
+      {err
+        ? <span style={{ fontSize: '8vh' }}>{emojiFor(en)}</span>
+        : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={url} alt={en} onLoad={() => setLoaded(true)} onError={() => setErr(true)}
+            className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`} />
+        )}
+    </div>
+  )
+}
+
 function Photo({ en, unit, slot }: { en: string; unit?: number; slot?: number }) {
   const [url, setUrl] = useState<string | null | undefined>(undefined)
   const [loaded, setLoaded] = useState(false)
@@ -357,8 +384,14 @@ export default function PresentPage() {
     // The "change the word" box is curated only (variationsFor): it must match the
     // slide's phrase/expression or complete a single word's meaning — never random
     // fill. No rule → no box.
+    const useGrid = unitNum === 1   // visual vocabulary grid — testing on Unit 1 first
     const out: Slide[] = [{ kind: 'title', title: unitName }]
     if (isCat) cats.forEach(c => out.push({ kind: 'category', name: c.name, ar: c.ar, items: c.items }))
+    else if (useGrid) {
+      const PAGE = 8
+      const pages = Math.max(1, Math.ceil(vocab.length / PAGE))
+      for (let p = 0; p < pages; p++) out.push({ kind: 'vocabGrid', items: vocab.slice(p * PAGE, p * PAGE + PAGE), page: p + 1, pages })
+    }
     else vocab.forEach((p, i) => out.push({ kind: 'word', en: p.en, ar: p.ar, vary: variationsFor(p.en), slot: i + 1 }))
     if (convo.length) {
       const speakers = [...new Set(convo.map(l => l.who))]
@@ -372,7 +405,7 @@ export default function PresentPage() {
     if (trans.length >= 2) out.push({ kind: 'translate', items: trans })
     out.push({ kind: 'end' })
     return out
-  }, [lessons, reading, unitName])
+  }, [lessons, reading, unitName, unitNum])
 
   const last = slides.length - 1
   const [step, setStep] = useState(0)                  // reveal progress inside a slide (conversation lines)
@@ -486,7 +519,7 @@ export default function PresentPage() {
             </div>
             {unitNo && <span className="px-3.5 py-1.5 rounded-xl text-white font-black whitespace-nowrap shrink-0" style={{ background: DARK }}>{unitNo}</span>}
             <span className="px-3.5 py-1.5 rounded-xl bg-white shadow-sm ring-1 ring-stone-200/70 font-bold whitespace-nowrap shrink min-w-0 truncate" style={{ color: DARK }}>{unitName}</span>
-            {section && <span className="px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap shrink-0 text-[#2a1d12]" style={{ background: '#facc15' }}>{section.en} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>{section.ar}</span>{s.kind === 'convo' && s.parts && s.parts > 1 ? ` · ${s.part}/${s.parts}` : ''}</span>}
+            {section && <span className="px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap shrink-0 text-[#2a1d12]" style={{ background: '#facc15' }}>{section.en} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>{section.ar}</span>{s.kind === 'convo' && s.parts && s.parts > 1 ? ` · ${s.part}/${s.parts}` : ''}{s.kind === 'vocabGrid' && s.pages > 1 ? ` · ${s.page}/${s.pages}` : ''}</span>}
             <div className="absolute right-[3vw] top-[2.6vh] flex items-center gap-2">
               <span className="text-stone-400 font-bold whitespace-nowrap shrink-0">{String(idx + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}</span>
               {/* zoom controls — also: pinch · Ctrl+wheel · + − 0 */}
@@ -538,6 +571,20 @@ export default function PresentPage() {
                       <Box label="Arabic" labelAr="العربية" rtl><div className="font-bold text-[2.3vw]" style={{ color: '#5b4636' }}>{s.ar}</div></Box>
                       {s.vary && <ChangeBox vary={s.vary} />}
                     </motion.div>
+                  </div>
+                )}
+
+                {s.kind === 'vocabGrid' && (
+                  <div className="w-full max-w-[92vw]">
+                    <div dir="ltr" className="grid grid-cols-4 gap-x-[1.8vw] gap-y-[2vh]">
+                      {s.items.map((it, k) => (
+                        <motion.div key={k} variants={item} className="flex flex-col items-center text-center">
+                          <AiImg en={it.en} />
+                          <div className="font-black mt-[1.1vh] leading-tight" style={{ color: '#0f766e', fontSize: '1.45vw' }}>{it.en}</div>
+                          <div dir="rtl" className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.15vw' }}>{it.ar}</div>
+                        </motion.div>
+                      ))}
+                    </div>
                   </div>
                 )}
 
