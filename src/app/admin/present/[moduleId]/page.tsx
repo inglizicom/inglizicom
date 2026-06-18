@@ -438,11 +438,12 @@ export default function PresentPage() {
     // Order: VOCABULARY → EXPRESSIONS (full sentences using the vocab — the
     // | en | ar | table) → STATIC SENTENCES (frames that change a few words —
     // the patterns) → CONVERSATION → games.
-    // Expressions = the unit's vocabulary as illustrated cards — for EVERY unit.
-    // Reuse the already-resolved `vocab` (category items for category units, the
-    // built vocab table otherwise) so the section + uploaded folder pictures show
-    // up everywhere, not only on units whose lesson 1 is a clean markdown table.
-    const statics = vocab
+    // Expressions = the FULL-SENTENCE table in lesson 1 (parseVocab) — shown for
+    // EVERY unit that has one, not only category units. This is the sentence table
+    // (e.g. "I go to the bathroom"), NOT the single-word `vocab` (that's the
+    // Vocabulary section). The uploaded folder pictures (unit-<N>/<letter><i>) are
+    // numbered to line up with these sentences in order.
+    const statics = parseVocab(l1)
     const out: Slide[] = [{ kind: 'title', title: unitName }]
     if (isCat) cats.forEach(c => out.push({ kind: 'category', name: c.name, ar: c.ar, items: c.items }))
     else vocab.forEach((p, i) => out.push({ kind: 'word', en: p.en, ar: p.ar, vary: variationsFor(p.en), slot: i + 1 }))
