@@ -226,39 +226,43 @@ function aiVocabUrl(en: string): string {
   const seed = en.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 24) || 'vocab'
   return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=420&height=420&nologo=true&model=flux&seed=${seed}`
 }
-/** Vocabulary picture with a robust fallback chain so it's NEVER emoji-only:
- *  AI illustration (pollinations) → the deck's reliable photo (/api/img: uploaded
- *  picture or Unsplash) → emoji only if both fail. Also falls back if the AI image
- *  stalls (>8s). */
-function AiImg({ en }: { en: string }) {
+/** Vocabulary/expression picture. Priority — uses the TEACHER's uploaded folder
+ *  picture first, then an AI illustration, then an Unsplash photo, then emoji.
+ *  `unit`+`slot` point at public/deck-images/unit-<N>/<letter><slot>.(png|jpg). */
+function AiImg({ en, unit, slot }: { en: string; unit?: number; slot?: number }) {
   const ai = useMemo(() => aiVocabUrl(en), [en])
-  const [stage, setStage] = useState<'ai' | 'photo' | 'emoji'>('ai')
-  const [photo, setPhoto] = useState<string | null>(null)
+  const [stage, setStage] = useState<'check' | 'own' | 'ai' | 'photo' | 'emoji'>('check')
+  const [own, setOwn] = useState<string | null>(null)     // uploaded picture
+  const [photo, setPhoto] = useState<string | null>(null) // Unsplash fallback
   const [loaded, setLoaded] = useState(false)
-  useEffect(() => { setStage('ai'); setPhoto(null); setLoaded(false) }, [en])
-  useEffect(() => {   // fetch the reliable photo when we fall back to it
-    if (stage !== 'photo') return
+  useEffect(() => { setStage('check'); setOwn(null); setPhoto(null); setLoaded(false) }, [en, unit, slot])
+  useEffect(() => {   // ask /api/img: uploaded picture wins; else keep its Unsplash url
+    if (stage !== 'check') return
     let alive = true
-    fetch(`/api/img?en=${encodeURIComponent(en)}&q=${encodeURIComponent(photoQuery(en))}`)
-      .then(r => r.json()).then(d => { if (alive) { if (d?.url) { setPhoto(d.url); setLoaded(false) } else setStage('emoji') } })
-      .catch(() => { if (alive) setStage('emoji') })
+    const pos = unit && slot ? `&unit=${unit}&i=${slot}` : ''
+    fetch(`/api/img?en=${encodeURIComponent(en)}&q=${encodeURIComponent(photoQuery(en))}${pos}`)
+      .then(r => r.json()).then(d => {
+        if (!alive) return
+        if (d?.own && d?.url) { setOwn(d.url); setStage('own') }       // teacher's upload → use it
+        else { if (d?.url) setPhoto(d.url); setStage('ai') }
+      }).catch(() => { if (alive) setStage('ai') })
     return () => { alive = false }
-  }, [stage, en])
-  useEffect(() => {   // don't wait forever on a slow AI render
+  }, [stage, en, unit, slot])
+  useEffect(() => {   // don't wait forever on a slow AI render → fall to the photo/emoji
     if (stage !== 'ai') return
-    const t = setTimeout(() => setLoaded(l => { if (!l) setStage('photo'); return l }), 8000)
+    const t = setTimeout(() => setLoaded(l => { if (!l) setStage(photo ? 'photo' : 'emoji'); return l }), 8000)
     return () => clearTimeout(t)
-  }, [stage, en])
-  const src = stage === 'ai' ? ai : stage === 'photo' ? photo : null
+  }, [stage, photo])
+  const src = stage === 'own' ? own : stage === 'ai' ? ai : stage === 'photo' ? photo : null
   return (
     <div className="relative w-full h-[22vh] rounded-2xl overflow-hidden bg-white ring-1 ring-stone-200 flex items-center justify-center shadow-[0_10px_28px_-18px_rgba(42,29,18,0.4)]">
-      {stage !== 'emoji' && !loaded && <Loader2 className="animate-spin text-stone-300" size={26} />}
+      {(stage === 'check' || (stage !== 'emoji' && !loaded)) && <Loader2 className="animate-spin text-stone-300" size={26} />}
       {stage === 'emoji'
         ? <span style={{ fontSize: '9vh' }}>{emojiFor(en)}</span>
         : src && (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={src} alt={en} onLoad={() => setLoaded(true)}
-            onError={() => { setLoaded(false); setStage(s => (s === 'ai' ? 'photo' : 'emoji')) }}
+            onError={() => { setLoaded(false); setStage(s => s === 'own' ? 'ai' : s === 'ai' ? (photo ? 'photo' : 'emoji') : 'emoji') }}
             className={`absolute inset-0 w-full h-full ${stage === 'ai' ? 'object-contain' : 'object-cover'} transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`} />
         )}
     </div>
@@ -438,7 +442,8 @@ export default function PresentPage() {
   useEffect(() => { setStep(0) }, [idx])               // each new slide starts hidden
   const idxRef = useRef(idx); idxRef.current = idx
   const stepRef = useRef(step); stepRef.current = step
-  const stepsOf = (sl?: Slide) => (sl && sl.kind === 'convo') ? sl.lines.length : 0
+  const stepsOf = (sl?: Slide) =>
+    !sl ? 0 : sl.kind === 'convo' ? sl.lines.length : (sl.kind === 'category' || sl.kind === 'static') ? sl.items.length : 0
   // Space / → / side-click first reveals the next hidden line, then advances slide.
   const go = useCallback((d: number) => {
     const max = stepsOf(slides[idxRef.current])
@@ -612,8 +617,10 @@ export default function PresentPage() {
                         <span dir="rtl" className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '2vw' }}>{s.ar}</span>
                       </div>
                       <div dir="ltr" className="grid w-full gap-x-[1.8vw] gap-y-[2vh]" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
-                        {s.items.map((it, k) => (
-                          <motion.div key={k} variants={item} className="flex flex-col items-center text-center">
+                        {s.items.map((it, k) => k >= step ? (
+                          <div key={k} className="w-full h-[22vh] rounded-2xl border-2 border-dashed border-stone-300/70 opacity-50" />
+                        ) : (
+                          <motion.div key={k} initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.28 }} className="flex flex-col items-center text-center">
                             <AiImg en={it.en} />
                             <div className="font-black mt-[1vh] leading-tight" style={{ color: '#0f766e', fontSize: `${fs}vw` }}>{it.en}</div>
                             <div dir="rtl" className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: `${fs * 0.8}vw` }}>{it.ar}</div>
@@ -636,16 +643,19 @@ export default function PresentPage() {
                 )}
 
                 {s.kind === 'static' && (() => {
-                  // Expressions: each full sentence with its own picture (poster style).
+                  // Expressions: each full sentence with its own picture; revealed on tap.
                   const n = s.items.length
                   const cols = n <= 2 ? n : 3
                   const fs = n <= 3 ? 1.35 : 1.12
+                  const base = (s.page - 1) * 6   // global phrase index → uploaded picture slot
                   return (
                     <div className="w-full max-w-[90vw]">
                       <div dir="ltr" className="grid gap-x-[1.8vw] gap-y-[2vh]" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
-                        {s.items.map((it, k) => (
-                          <motion.div key={k} variants={item} className="flex flex-col items-center text-center">
-                            <AiImg en={it.en} />
+                        {s.items.map((it, k) => k >= step ? (
+                          <div key={k} className="w-full h-[22vh] rounded-2xl border-2 border-dashed border-stone-300/70 opacity-50" />
+                        ) : (
+                          <motion.div key={k} initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.28 }} className="flex flex-col items-center text-center">
+                            <AiImg en={it.en} unit={unitNum} slot={base + k + 1} />
                             <div className="font-bold mt-[1vh] leading-snug" style={{ color: DARK, fontSize: `${fs}vw` }}>{it.en}</div>
                             <div dir="rtl" className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: `${fs * 0.85}vw` }}>{it.ar}</div>
                           </motion.div>
