@@ -19,7 +19,7 @@ import { variationsFor, type Variation } from '@/lib/deck-vary'
 const DARK = '#2a1d12'
 const CREAM = '#faf6ef'
 const BROWN = '#5b3a16'              // expression label text / border — strong brown
-const EXPR_PER_PAGE = 4             // Expressions: 4 illustrated cards per page (2×2)
+const EXPR_PER_PAGE = 9             // Expressions: up to 9 illustrated cards per page (3×3)
 
 type VocabPair = { en: string; ar: string }
 type Slide =
@@ -262,7 +262,7 @@ function AiImg({ en, unit, slot, contain, square, heightClass = 'h-[22vh]' }: { 
   }, [stage, photo])
   const src = stage === 'own' ? own : stage === 'ai' ? ai : stage === 'photo' ? photo : null
   return (
-    <div className={`relative ${square ? 'h-[28vh] aspect-square mx-auto rounded-3xl' : `w-full ${heightClass} rounded-2xl`} overflow-hidden bg-white ring-1 ring-stone-200 flex items-center justify-center shadow-[0_18px_40px_-20px_rgba(42,29,18,0.55)]`}>
+    <div className={`relative ${square ? `${heightClass} aspect-square mx-auto rounded-3xl` : `w-full ${heightClass} rounded-2xl`} overflow-hidden bg-white ring-1 ring-stone-200 flex items-center justify-center shadow-[0_18px_40px_-20px_rgba(42,29,18,0.55)]`}>
       {(stage === 'check' || (stage !== 'emoji' && !loaded)) && <Loader2 className="animate-spin text-stone-300" size={26} />}
       {stage === 'emoji'
         ? <span style={{ fontSize: '9vh' }}>{emojiFor(en)}</span>
@@ -672,28 +672,31 @@ export default function PresentPage() {
                 )}
 
                 {s.kind === 'static' && (() => {
-                  // Expressions: each phrase with its own clean picture; revealed on tap.
-                  // 4 cards per page (2×2) so every image stays large and clear; if a
-                  // page ever holds more, it spills to 3 columns and shrinks gently.
+                  // Expressions: each phrase with its own square picture; revealed on tap.
+                  // Up to 9 per page (3×3) so the cards fill the slide; the square size
+                  // shrinks as the row count grows so 3 rows always fit. Short/last
+                  // pages with ≤4 items use 2 columns and larger squares.
                   const n = s.items.length
                   const cols = n <= 1 ? 1 : n <= 4 ? 2 : 3
-                  const fs = n <= 4 ? 1.3 : 1.1
+                  const rows = Math.ceil(n / cols)
+                  const imgH = rows >= 3 ? 'h-[18vh]' : rows === 2 ? 'h-[25vh]' : 'h-[30vh]'
+                  const fs = cols === 3 ? 0.95 : 1.25
                   const base = (s.page - 1) * EXPR_PER_PAGE   // global phrase index → uploaded picture slot
                   return (
                     <div className="w-full max-w-[80vw]">
-                      <div dir="ltr" className="grid gap-x-[2.4vw] gap-y-[2vh]" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
+                      <div dir="ltr" className="grid justify-items-center gap-x-[1.6vw] gap-y-[1.6vh]" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
                         {s.items.map((it, k) => k >= step ? (
-                          <div key={k} className="h-[28vh] aspect-square mx-auto rounded-3xl border-2 border-dashed border-stone-300/70 opacity-50" />
+                          <div key={k} className={`${imgH} aspect-square rounded-3xl border-2 border-dashed border-stone-300/70 opacity-50`} />
                         ) : (
                           <motion.div key={k} initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.28 }} className="flex flex-col items-center text-center">
                             {/* square card, image fills it (cover) — no white margins */}
-                            <AiImg en={it.en} unit={unitNum} slot={base + k + 1} square />
+                            <AiImg en={it.en} unit={unitNum} slot={base + k + 1} square heightClass={imgH} />
                             {/* English — solid yellow rectangle, brown font, strong shadow */}
-                            <div className="inline-block mt-[1.2vh] rounded-xl font-black leading-snug"
-                              style={{ background: '#facc15', color: BROWN, fontSize: `${fs}vw`, padding: '0.6vh 1.4vw', boxShadow: '0 12px 26px -10px rgba(91,58,22,0.65)' }}>{it.en}</div>
+                            <div className="inline-block mt-[1vh] rounded-xl font-black leading-snug"
+                              style={{ background: '#facc15', color: BROWN, fontSize: `${fs}vw`, padding: '0.5vh 1.2vw', boxShadow: '0 10px 22px -10px rgba(91,58,22,0.6)' }}>{it.en}</div>
                             {/* Arabic — white rectangle, brown border + brown font, strong shadow */}
-                            <div dir="rtl" className="inline-block mt-[0.8vh] rounded-xl font-black"
-                              style={{ background: '#ffffff', color: BROWN, border: `2.5px solid ${BROWN}`, fontFamily: "'Tajawal', sans-serif", fontSize: `${fs * 0.95}vw`, padding: '0.55vh 1.4vw', boxShadow: '0 14px 30px -10px rgba(91,58,22,0.55)' }}>{it.ar}</div>
+                            <div dir="rtl" className="inline-block mt-[0.6vh] rounded-xl font-black"
+                              style={{ background: '#ffffff', color: BROWN, border: `2px solid ${BROWN}`, fontFamily: "'Tajawal', sans-serif", fontSize: `${fs * 0.95}vw`, padding: '0.45vh 1.2vw', boxShadow: '0 12px 26px -10px rgba(91,58,22,0.5)' }}>{it.ar}</div>
                           </motion.div>
                         ))}
                       </div>
