@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RotateCcw, Loader2, Globe, Instagram, Youtube, GraduationCap, Phone, Maximize2, Minimize2, ZoomIn, ZoomOut } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { fetchLessons, fetchModules, type LmsLesson } from '@/lib/lms'
-import { variationsFor, type Variation } from '@/lib/deck-vary'
+import { type Variation } from '@/lib/deck-vary'
 
 const DARK = '#2a1d12'
 const CREAM = '#faf6ef'
@@ -132,58 +132,23 @@ function parseExpr(content?: string | null): { pattern: string; example: string 
   return content.split('\n').map(l => l.trim()).filter(l => l.startsWith('- '))
     .map(l => { const [pat, ex] = l.replace(/^-\s*/, '').split(' — '); return { pattern: (pat || '').replace(/\*\*/g, ''), example: (ex || '').replace(/\*/g, '') } })
 }
-function renderPattern(p: string) {
-  return p.split(/(\[[^\]]+\])/).map((part, i) =>
-    part.startsWith('[')
-      ? <span key={i} className="inline-block mx-1.5 px-3 py-0.5 rounded-lg bg-yellow-400 text-[#2a1d12] align-middle">{part}</span>
-      : <span key={i}>{part}</span>)
-}
-
-/** Color an example so the swappable words (the part that fills the pattern's
- *  [blanks]) show in white and the fixed frame stays yellow — so students see
- *  exactly which words change. */
-function renderExample(example: string, pattern: string) {
-  const frame = new Set(
-    pattern.toLowerCase().replace(/\[[^\]]*\]/g, ' ').replace(/[^a-z\s]/g, ' ').split(/\s+/).filter(Boolean),
-  )
-  return example.split(/(\s+)/).map((tok, i) => {
-    const w = tok.toLowerCase().replace(/[^a-z]/g, '')
-    if (!w) return <span key={i}>{tok}</span>
-    const fixed = frame.has(w)
-    return <span key={i} style={{ color: fixed ? '#facc15' : '#ffffff', fontWeight: fixed ? 600 : 800 }}>{tok}</span>
-  })
-}
-
 /* ── interactive Static Sentence helpers ──────────────────────────────────────
  * The pattern is a frame with a blank. Valid fills are ACTIONS the unit already
  * taught (verb phrases + their teacher-authored Arabic). The "wrong" options are a
  * tiny shared pool of TIME/manner words (with correct Arabic) — placing one bounces
  * back with an explanation, so the slide teaches what belongs in the blank. */
-const TIME_DISTRACTORS: VocabPair[] = [
+const TIME_WORDS: VocabPair[] = [
   { en: 'in the morning', ar: 'في الصباح' },
-  { en: 'every day', ar: 'كل يوم' },
+  { en: 'in the evening', ar: 'في المساء' },
   { en: 'at night', ar: 'في الليل' },
-  { en: 'quickly', ar: 'بسرعة' },
+  { en: 'every day', ar: 'كل يوم' },
   { en: 'twice a day', ar: 'مرتين في اليوم' },
+  { en: 'after meals', ar: 'بعد الوجبات' },
 ]
 const shuffle = <T,>(a: T[]): T[] => [...a].sort(() => Math.random() - 0.5)
 /** Strip a leading subject ("I ") and any "/ alternative" so a full sentence
  *  becomes a short verb phrase that drops cleanly into a pattern's blank. */
 const verbPhrase = (s: string) => s.replace(/^\s*I\s+/i, '').replace(/\s*\/\s*.*$/, '').trim()
-
-/** 1-based position of the vocabulary phrase an expression refers to, so the
- *  Expressions slide reuses that phrase's uploaded picture instead of a fresh
- *  Unsplash one. Returns 0 when nothing matches (falls back to the auto photo). */
-function matchVocabSlot(text: string, vocab: VocabPair[]): number {
-  const words = (s: string) => s.toLowerCase().replace(/[^a-z\s]/g, ' ').split(/\s+/).filter(w => w && !STOP.has(w))
-  const t = new Set(words(text))
-  let best = 0, bestScore = 0
-  vocab.forEach((v, i) => {
-    const score = words(v.en).filter(w => t.has(w)).length
-    if (score > bestScore) { bestScore = score; best = i + 1 }
-  })
-  return bestScore > 0 ? best : 0
-}
 
 /* ── photo: show the ACTION (a person doing it) or a clear object ─────────── */
 const STOP = new Set(['i','you','we','they','he','she','it','a','an','the','to','do','does','is','are','am','my','your','his','her','our','their','some','please','can','could','would','want','need','have','has','this','that','these','those','of','for','in','on','at','with','and','or','me','one','here','there','how','much','many','what','where','when','who','give','get','put','go','come','will','too','not','no','yes','okay','dont','don'])
@@ -445,7 +410,6 @@ export default function PresentPage() {
     const cats = parseCategories(l1)
     const isCat = cats.length >= 1   // a curated single-word group → illustrated vocab poster
     const vocab = isCat ? cats.flatMap(c => c.items) : buildVocab(lessons)
-    const expr = parseExpr(lessons.find(l => l.lesson_order === 2)?.content)
     const convo = parseConvo(reading)
 
     // The "change the word" box is curated only (variationsFor): it must match the
@@ -472,7 +436,10 @@ export default function PresentPage() {
       const pages = Math.ceil(statics.length / EXPR_PER_PAGE)
       for (let p = 0; p < pages; p++) out.push({ kind: 'static', items: statics.slice(p * EXPR_PER_PAGE, p * EXPR_PER_PAGE + EXPR_PER_PAGE), page: p + 1, pages })
     }
-    expr.forEach(e => out.push({ kind: 'expr', pattern: e.pattern, example: e.example, vary: variationsFor(e.pattern + ' ' + e.example), slot: matchVocabSlot(e.example + ' ' + e.pattern, vocab), actions: statics }))
+    // Static Sentences → ONE interactive "build a sentence" exercise (verb + time)
+    // from the unit's own action phrases. We no longer make a slide per raw pattern
+    // (those varied — [object]/[verb]/two-verbs — and rendered as confusing frames).
+    if (statics.length >= 3) out.push({ kind: 'expr', pattern: '', example: '', vary: null, slot: 0, actions: statics })
     if (convo.length) {
       const speakers = [...new Set(convo.map(l => l.who))]
       out.push({ kind: 'convo', lines: convo, speakers })
@@ -681,7 +648,7 @@ export default function PresentPage() {
                   )
                 })()}
 
-                {s.kind === 'expr' && <PatternSlide pattern={s.pattern} example={s.example} actions={s.actions} />}
+                {s.kind === 'expr' && <PatternSlide actions={s.actions} />}
 
                 {s.kind === 'static' && (() => {
                   // Expressions: each phrase with its own square picture; revealed on tap.
@@ -908,117 +875,119 @@ function TranslateSlide({ items }: { items: { ar: string; en: string }[] }) {
   )
 }
 
-type Chip = VocabPair & { ok: boolean }
 
-/** Interactive Static Sentence — see the "interactive Static Sentence helpers"
- *  note above. A frame with one blank: tap an ACTION (verb phrase + Arabic) to fill
- *  it and reveal the meaning; tap a TIME word and it bounces back with a why, so the
- *  slide teaches what belongs in the blank. Falls back to a read-only rule + example
- *  when the example carries no recognisable unit action. */
-function PatternSlide({ pattern, example, actions }: { pattern: string; example: string; actions: VocabPair[] }) {
-  const opts = useMemo<VocabPair[]>(() => {
-    const seen = new Set<string>(); const out: VocabPair[] = []
+type Chip = VocabPair & { kind: 'verb' | 'time' }
+
+/** Interactive Static Sentence — build "I always [verb] [time]". Two TYPED slots
+ *  with two labelled banks: ACTIONS (the unit's own verbs + teacher Arabic) and TIME
+ *  words (shared bilingual pool). Tap a blank to select it, then tap a word; a word of
+ *  the wrong type bounces back with a why — so the student learns what goes where.
+ *  Generic: works for every unit. */
+function PatternSlide({ actions }: { actions: VocabPair[] }) {
+  const verbs = useMemo<Chip[]>(() => {
+    const seen = new Set<string>(); const out: Chip[] = []
     for (const a of actions) {
       const en = verbPhrase(a.en); const k = en.toLowerCase()
-      if (en && /[a-z]/i.test(en) && !seen.has(k)) { seen.add(k); out.push({ en, ar: a.ar }) }
+      if (en && /[a-z]/i.test(en) && !seen.has(k)) { seen.add(k); out.push({ en, ar: a.ar, kind: 'verb' }) }
     }
     return out
   }, [actions])
-  // The action phrase that appears in the example (longest wins) anchors the blank.
-  const answer = useMemo<VocabPair | null>(() => {
-    const lo = example.toLowerCase(); let best: VocabPair | null = null
-    for (const o of opts) if (lo.includes(o.en.toLowerCase()) && (!best || o.en.length > best.en.length)) best = o
-    return best
-  }, [opts, example])
-  const [before, after] = useMemo(() => {
-    if (!answer) return ['', '']
-    const i = example.toLowerCase().indexOf(answer.en.toLowerCase())
-    return [example.slice(0, i), example.slice(i + answer.en.length)]
-  }, [example, answer])
-  const bank = useMemo<Chip[]>(() => {
-    if (!answer) return []
-    const others = shuffle(opts.filter(o => o.en.toLowerCase() !== answer.en.toLowerCase())).slice(0, 3)
-    const acts: Chip[] = [answer, ...others].map(p => ({ ...p, ok: true }))
-    const times: Chip[] = shuffle(TIME_DISTRACTORS.filter(d =>
-      !example.toLowerCase().includes(d.en.toLowerCase()) && !pattern.toLowerCase().includes(d.en.toLowerCase()))).slice(0, 2)
-      .map(p => ({ ...p, ok: false }))
-    return shuffle([...acts, ...times])
-  }, [opts, answer, example, pattern])
+  const bankVerbs = useMemo(() => shuffle(verbs).slice(0, 4), [verbs])
+  const bankTimes = useMemo<Chip[]>(() => shuffle(TIME_WORDS).slice(0, 4).map(t => ({ ...t, kind: 'time' as const })), [actions])
 
-  const [placed, setPlaced] = useState<Chip | null>(null)
+  const [active, setActive] = useState<'verb' | 'time'>('verb')
+  const [verb, setVerb] = useState<Chip | null>(null)
+  const [time, setTime] = useState<Chip | null>(null)
   const [wrong, setWrong] = useState<Chip | null>(null)
-  useEffect(() => { setPlaced(null); setWrong(null) }, [example])
+  useEffect(() => { setVerb(null); setTime(null); setActive('verb'); setWrong(null) }, [actions])
   useEffect(() => { if (!wrong) return; const t = setTimeout(() => setWrong(null), 3200); return () => clearTimeout(t) }, [wrong])
 
-  if (!answer) {
+  const pick = (c: Chip) => {
+    if (c.kind !== active) { setWrong(c); return }
+    setWrong(null)
+    if (c.kind === 'verb') { setVerb(c); if (!time) setActive('time') }
+    else { setTime(c); if (!verb) setActive('verb') }
+  }
+  const reset = () => { setVerb(null); setTime(null); setActive('verb'); setWrong(null) }
+  const done = !!verb && !!time
+
+  const Slot = ({ which, val, label }: { which: 'verb' | 'time'; val: Chip | null; label: string }) => {
+    const on = active === which
     return (
-      <div className="w-full max-w-[70vw] flex flex-col items-center gap-[2.4vh] text-center">
-        <div className="rounded-3xl px-[3vw] py-[3vh] w-full" style={{ background: DARK }}>
-          <div className="font-black text-[2.4vw] leading-snug" style={{ color: '#facc15' }}>{renderPattern(pattern)}</div>
-        </div>
-        {example && <div className="text-[1.9vw] italic font-bold" style={{ color: '#5b4636' }}>{renderExample(example, pattern)}</div>}
-      </div>
+      <button onClick={() => setActive(which)} className="inline-flex flex-col items-center justify-center rounded-2xl align-middle transition"
+        style={{ minWidth: '8vw', padding: '0.3vh 1.2vw',
+                 background: val ? '#facc15' : 'transparent',
+                 border: `3px ${val ? 'solid' : on ? 'solid' : 'dashed'} ${val ? '#facc15' : on ? '#e0a93c' : '#e0c266'}`,
+                 boxShadow: on && !val ? '0 0 0 5px rgba(224,169,60,0.2)' : 'none' }}>
+        <span className="font-black leading-tight" style={{ color: val ? DARK : '#cbb274', fontSize: '2.3vw' }}>{val ? val.en : label}</span>
+        {val && <span dir="rtl" className="font-bold" style={{ fontFamily: "'Tajawal', sans-serif", color: '#7a5c00', fontSize: '0.95vw' }}>{val.ar}</span>}
+      </button>
     )
   }
 
-  const onPick = (c: Chip) => { if (c.ok) { setPlaced(c); setWrong(null) } else setWrong(c) }
-
   return (
-    <div className="w-full max-w-[82vw] flex flex-col items-center gap-[2.6vh]">
-      <div className="font-bold text-stone-500" style={{ fontSize: '1vw' }} dir="rtl">اختر فعلاً لملء الفراغ — تظهر الجملة كاملة مع الترجمة ←</div>
-
-      {/* interactive sentence with the blank */}
-      <div dir="ltr" className="flex flex-wrap items-center justify-center gap-x-[0.6vw] gap-y-[1.4vh] font-black text-center leading-tight"
-        style={{ color: DARK, fontSize: '2.7vw' }}>
-        {before && <span>{before}</span>}
-        <motion.span layout className="inline-flex items-center justify-center rounded-2xl"
-          style={{ minWidth: '7vw', padding: '0.2vh 1.4vw',
-                   background: placed ? '#facc15' : 'transparent',
-                   border: placed ? '3px solid #facc15' : '3px dashed #e0c266',
-                   color: placed ? DARK : '#cbb274' }}>
-          {placed ? placed.en : '______'}
-        </motion.span>
-        {after && <span>{after}</span>}
+    <div className="w-full max-w-[88vw] flex flex-col items-center gap-[2.2vh]">
+      {/* remark — what the student must do */}
+      <div className="rounded-2xl px-[2.4vw] py-[1.1vh] bg-amber-50 ring-1 ring-amber-200 text-center" dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}>
+        <span className="font-black" style={{ color: '#a16207', fontSize: '1.15vw' }}>كوّن جملة صحيحة: </span>
+        <span className="font-bold text-amber-900" style={{ fontSize: '1.05vw' }}>اضغط على الفراغ ثم اختر الكلمة المناسبة — فعلاً للحركة وتعبيراً للوقت. انتبه لمكان كل كلمة!</span>
       </div>
 
-      {/* meaning (correct) / explanation (wrong) */}
-      <div className="min-h-[7vh] flex items-center justify-center">
-        {placed && (
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-[1vw] rounded-2xl px-[2vw] py-[1.2vh] bg-emerald-50 ring-1 ring-emerald-200">
+      {/* the sentence with two typed blanks */}
+      <div dir="ltr" className="flex flex-wrap items-center justify-center gap-x-[0.8vw] gap-y-[1.2vh] font-black text-center" style={{ color: DARK, fontSize: '2.3vw' }}>
+        <span>I always</span>
+        <Slot which="verb" val={verb} label="فعل" />
+        <Slot which="time" val={time} label="وقت" />
+        <span>.</span>
+      </div>
+
+      {/* feedback: success or wrong-place explanation */}
+      <div className="min-h-[5.5vh] flex items-center justify-center">
+        {done && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl px-[2.2vw] py-[1.1vh] bg-emerald-50 ring-1 ring-emerald-200 flex items-center gap-[1vw]">
             <span className="text-emerald-600 font-black" style={{ fontSize: '1.5vw' }}>✓</span>
-            <span className="font-black" style={{ color: DARK, fontSize: '1.3vw' }}>{placed.en}</span>
-            <span className="text-stone-400">=</span>
-            <span dir="rtl" className="font-black" style={{ fontFamily: "'Tajawal', sans-serif", color: '#0f766e', fontSize: '1.6vw' }}>{placed.ar}</span>
+            <span className="font-black" style={{ color: DARK, fontSize: '1.4vw' }}>I always {verb!.en} {time!.en}.</span>
+            <span dir="rtl" className="font-black text-emerald-700" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.2vw' }}>· أحسنت!</span>
           </motion.div>
         )}
-        {wrong && (
+        {!done && wrong && (
           <motion.div key={wrong.en} initial={{ x: 0 }} animate={{ x: [10, -10, 7, -7, 0] }} transition={{ duration: 0.45 }}
-            dir="rtl" className="rounded-2xl px-[2vw] py-[1.2vh] bg-rose-50 ring-1 ring-rose-200 text-center max-w-[60vw]"
-            style={{ fontFamily: "'Tajawal', sans-serif" }}>
-            <span className="font-black text-rose-600" style={{ fontSize: '1.35vw' }}>⚠ انتبه! </span>
-            <span className="font-bold text-rose-900" style={{ fontSize: '1.15vw' }}>«{wrong.ar}» ليست فعلاً — هذا الفراغ يحتاج إلى فعل (حركة)، وليس تعبيرَ وقت.</span>
+            dir="rtl" className="rounded-2xl px-[2vw] py-[1.1vh] bg-rose-50 ring-1 ring-rose-200 text-center max-w-[66vw]" style={{ fontFamily: "'Tajawal', sans-serif" }}>
+            <span className="font-black text-rose-600" style={{ fontSize: '1.3vw' }}>⚠ انتبه! </span>
+            <span className="font-bold text-rose-900" style={{ fontSize: '1.1vw' }}>«{wrong.ar}» {wrong.kind === 'verb' ? 'فعلٌ (حركة)، والفراغ المختار مخصّص للوقت.' : 'تعبيرُ وقت، والفراغ المختار مخصّص للفعل (الحركة).'} اختر الفراغ الصحيح أولاً.</span>
           </motion.div>
         )}
       </div>
 
-      {/* word bank: actions (valid) + time words (wrong) */}
-      <div dir="ltr" className="flex flex-wrap items-center justify-center gap-[1vw] max-w-[80vw]">
-        {bank.map((c, i) => {
-          const isPlaced = !!placed && placed.en === c.en && c.ok
-          return (
-            <motion.button key={c.en + i} onClick={() => onPick(c)} whileTap={{ scale: 0.94 }}
-              className="rounded-2xl px-[1.6vw] py-[1.1vh] bg-white ring-1 ring-stone-200 shadow-[0_10px_24px_-16px_rgba(42,29,18,0.5)] hover:bg-amber-50 transition flex flex-col items-center"
-              style={{ opacity: isPlaced ? 0.4 : 1 }}>
-              <span className="font-black" style={{ color: DARK, fontSize: '1.4vw' }}>{c.en}</span>
-              <span dir="rtl" className="font-bold text-stone-400" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1vw' }}>{c.ar}</span>
-            </motion.button>
-          )
-        })}
+      {/* two banks (two lines): actions + time */}
+      <div className="w-full flex flex-col gap-[1.5vh] items-center">
+        {[{ k: 'verb' as const, en: 'Actions', ar: 'أفعال (حركة)', items: bankVerbs, dot: '#0f766e' },
+          { k: 'time' as const, en: 'Time', ar: 'تعبيرات الوقت', items: bankTimes, dot: '#2563eb' }].map(row => (
+          <div key={row.k} className="w-full flex flex-col items-center gap-[0.7vh]">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full" style={{ background: row.dot }} />
+              <span className="font-black uppercase tracking-wide" style={{ color: row.dot, fontSize: '0.85vw' }}>{row.en}</span>
+              <span dir="rtl" className="font-bold text-stone-400" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.95vw' }}>· {row.ar}</span>
+            </div>
+            <div dir="ltr" className="flex flex-wrap items-center justify-center gap-[0.9vw]">
+              {row.items.map((c, i) => {
+                const used = (row.k === 'verb' && verb?.en === c.en) || (row.k === 'time' && time?.en === c.en)
+                return (
+                  <motion.button key={c.en + i} onClick={() => pick(c)} whileTap={{ scale: 0.94 }}
+                    className="rounded-2xl px-[1.4vw] py-[1vh] bg-white ring-1 ring-stone-200 shadow-[0_10px_24px_-16px_rgba(42,29,18,0.5)] hover:bg-amber-50 transition flex flex-col items-center"
+                    style={{ opacity: used ? 0.4 : 1 }}>
+                    <span className="font-black" style={{ color: DARK, fontSize: '1.3vw' }}>{c.en}</span>
+                    <span dir="rtl" className="font-bold text-stone-400" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.95vw' }}>{c.ar}</span>
+                  </motion.button>
+                )
+              })}
+            </div>
+          </div>
+        ))}
       </div>
 
-      {placed && (
-        <button onClick={() => setPlaced(null)} dir="rtl" className="rounded-xl px-[1.6vw] py-[0.9vh] bg-stone-100 font-bold text-stone-600" style={{ fontSize: '1vw' }}>جرّب كلمة أخرى ↺</button>
+      {(verb || time) && (
+        <button onClick={reset} dir="rtl" className="rounded-xl px-[1.6vw] py-[0.8vh] bg-stone-100 font-bold text-stone-600" style={{ fontSize: '1vw' }}>إعادة ↺</button>
       )}
     </div>
   )
