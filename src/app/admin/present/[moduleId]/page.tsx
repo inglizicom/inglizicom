@@ -27,7 +27,7 @@ type Slide =
   | { kind: 'word'; en: string; ar: string; vary: Variation | null; slot: number }
   | { kind: 'category'; name: string; ar: string; items: VocabPair[] }
   | { kind: 'convo'; lines: { who: string; text: string }[]; speakers: string[]; part?: number; parts?: number }
-  | { kind: 'expr'; pattern: string; example: string; vary: Variation | null; slot: number }
+  | { kind: 'expr'; pattern: string; example: string; vary: Variation | null; slot: number; actions: VocabPair[] }
   | { kind: 'static'; items: VocabPair[]; page: number; pages: number }
   | { kind: 'scramble'; sentences: string[] }
   | { kind: 'translate'; items: { ar: string; en: string }[] }
@@ -153,6 +153,23 @@ function renderExample(example: string, pattern: string) {
     return <span key={i} style={{ color: fixed ? '#facc15' : '#ffffff', fontWeight: fixed ? 600 : 800 }}>{tok}</span>
   })
 }
+
+/* ── interactive Static Sentence helpers ──────────────────────────────────────
+ * The pattern is a frame with a blank. Valid fills are ACTIONS the unit already
+ * taught (verb phrases + their teacher-authored Arabic). The "wrong" options are a
+ * tiny shared pool of TIME/manner words (with correct Arabic) — placing one bounces
+ * back with an explanation, so the slide teaches what belongs in the blank. */
+const TIME_DISTRACTORS: VocabPair[] = [
+  { en: 'in the morning', ar: 'في الصباح' },
+  { en: 'every day', ar: 'كل يوم' },
+  { en: 'at night', ar: 'في الليل' },
+  { en: 'quickly', ar: 'بسرعة' },
+  { en: 'twice a day', ar: 'مرتين في اليوم' },
+]
+const shuffle = <T,>(a: T[]): T[] => [...a].sort(() => Math.random() - 0.5)
+/** Strip a leading subject ("I ") and any "/ alternative" so a full sentence
+ *  becomes a short verb phrase that drops cleanly into a pattern's blank. */
+const verbPhrase = (s: string) => s.replace(/^\s*I\s+/i, '').replace(/\s*\/\s*.*$/, '').trim()
 
 /** 1-based position of the vocabulary phrase an expression refers to, so the
  *  Expressions slide reuses that phrase's uploaded picture instead of a fresh
@@ -455,7 +472,7 @@ export default function PresentPage() {
       const pages = Math.ceil(statics.length / EXPR_PER_PAGE)
       for (let p = 0; p < pages; p++) out.push({ kind: 'static', items: statics.slice(p * EXPR_PER_PAGE, p * EXPR_PER_PAGE + EXPR_PER_PAGE), page: p + 1, pages })
     }
-    expr.forEach(e => out.push({ kind: 'expr', pattern: e.pattern, example: e.example, vary: variationsFor(e.pattern + ' ' + e.example), slot: matchVocabSlot(e.example + ' ' + e.pattern, vocab) }))
+    expr.forEach(e => out.push({ kind: 'expr', pattern: e.pattern, example: e.example, vary: variationsFor(e.pattern + ' ' + e.example), slot: matchVocabSlot(e.example + ' ' + e.pattern, vocab), actions: statics }))
     if (convo.length) {
       const speakers = [...new Set(convo.map(l => l.who))]
       out.push({ kind: 'convo', lines: convo, speakers })
@@ -664,16 +681,7 @@ export default function PresentPage() {
                   )
                 })()}
 
-                {s.kind === 'expr' && (
-                  <div className="grid grid-cols-[1.05fr_1fr] gap-[3.5vw] items-center w-full max-w-[88vw]">
-                    <motion.div variants={item}><Photo en={s.example || s.pattern} unit={unitNum} slot={s.slot} /></motion.div>
-                    <motion.div variants={item} className="space-y-[2.2vh]">
-                      <Box label="Pattern" labelAr="جملة قابلة للتغيير" brown><div className="font-black text-[2.4vw] leading-snug" style={{ color: '#facc15' }}>{renderPattern(s.pattern)}</div></Box>
-                      {s.example && <Box label="Example" labelAr="مثال" brown><div className="text-[2vw] italic" style={{ color: '#facc15' }}>{renderExample(s.example, s.pattern)}</div></Box>}
-                      {s.vary && <ChangeBox vary={s.vary} />}
-                    </motion.div>
-                  </div>
-                )}
+                {s.kind === 'expr' && <PatternSlide pattern={s.pattern} example={s.example} actions={s.actions} />}
 
                 {s.kind === 'static' && (() => {
                   // Expressions: each phrase with its own square picture; revealed on tap.
@@ -896,6 +904,122 @@ function TranslateSlide({ items }: { items: { ar: string; en: string }[] }) {
         <button onClick={() => setReveal(true)} className="px-[1.4vw] py-[0.9vh] rounded-xl bg-stone-100 font-bold text-stone-600" style={{ fontSize: '1vw' }} dir="rtl">الإجابة</button>
         <button onClick={() => setI(x => (x + 1) % items.length)} className="px-[1.6vw] py-[0.9vh] rounded-xl text-white font-black" style={{ background: DARK_C, fontSize: '1vw' }} dir="rtl">التالية →</button>
       </div>
+    </div>
+  )
+}
+
+type Chip = VocabPair & { ok: boolean }
+
+/** Interactive Static Sentence — see the "interactive Static Sentence helpers"
+ *  note above. A frame with one blank: tap an ACTION (verb phrase + Arabic) to fill
+ *  it and reveal the meaning; tap a TIME word and it bounces back with a why, so the
+ *  slide teaches what belongs in the blank. Falls back to a read-only rule + example
+ *  when the example carries no recognisable unit action. */
+function PatternSlide({ pattern, example, actions }: { pattern: string; example: string; actions: VocabPair[] }) {
+  const opts = useMemo<VocabPair[]>(() => {
+    const seen = new Set<string>(); const out: VocabPair[] = []
+    for (const a of actions) {
+      const en = verbPhrase(a.en); const k = en.toLowerCase()
+      if (en && /[a-z]/i.test(en) && !seen.has(k)) { seen.add(k); out.push({ en, ar: a.ar }) }
+    }
+    return out
+  }, [actions])
+  // The action phrase that appears in the example (longest wins) anchors the blank.
+  const answer = useMemo<VocabPair | null>(() => {
+    const lo = example.toLowerCase(); let best: VocabPair | null = null
+    for (const o of opts) if (lo.includes(o.en.toLowerCase()) && (!best || o.en.length > best.en.length)) best = o
+    return best
+  }, [opts, example])
+  const [before, after] = useMemo(() => {
+    if (!answer) return ['', '']
+    const i = example.toLowerCase().indexOf(answer.en.toLowerCase())
+    return [example.slice(0, i), example.slice(i + answer.en.length)]
+  }, [example, answer])
+  const bank = useMemo<Chip[]>(() => {
+    if (!answer) return []
+    const others = shuffle(opts.filter(o => o.en.toLowerCase() !== answer.en.toLowerCase())).slice(0, 3)
+    const acts: Chip[] = [answer, ...others].map(p => ({ ...p, ok: true }))
+    const times: Chip[] = shuffle(TIME_DISTRACTORS.filter(d =>
+      !example.toLowerCase().includes(d.en.toLowerCase()) && !pattern.toLowerCase().includes(d.en.toLowerCase()))).slice(0, 2)
+      .map(p => ({ ...p, ok: false }))
+    return shuffle([...acts, ...times])
+  }, [opts, answer, example, pattern])
+
+  const [placed, setPlaced] = useState<Chip | null>(null)
+  const [wrong, setWrong] = useState<Chip | null>(null)
+  useEffect(() => { setPlaced(null); setWrong(null) }, [example])
+  useEffect(() => { if (!wrong) return; const t = setTimeout(() => setWrong(null), 3200); return () => clearTimeout(t) }, [wrong])
+
+  if (!answer) {
+    return (
+      <div className="w-full max-w-[70vw] flex flex-col items-center gap-[2.4vh] text-center">
+        <div className="rounded-3xl px-[3vw] py-[3vh] w-full" style={{ background: DARK }}>
+          <div className="font-black text-[2.4vw] leading-snug" style={{ color: '#facc15' }}>{renderPattern(pattern)}</div>
+        </div>
+        {example && <div className="text-[1.9vw] italic font-bold" style={{ color: '#5b4636' }}>{renderExample(example, pattern)}</div>}
+      </div>
+    )
+  }
+
+  const onPick = (c: Chip) => { if (c.ok) { setPlaced(c); setWrong(null) } else setWrong(c) }
+
+  return (
+    <div className="w-full max-w-[82vw] flex flex-col items-center gap-[2.6vh]">
+      <div className="font-bold text-stone-500" style={{ fontSize: '1vw' }} dir="rtl">اختر فعلاً لملء الفراغ — تظهر الجملة كاملة مع الترجمة ←</div>
+
+      {/* interactive sentence with the blank */}
+      <div dir="ltr" className="flex flex-wrap items-center justify-center gap-x-[0.6vw] gap-y-[1.4vh] font-black text-center leading-tight"
+        style={{ color: DARK, fontSize: '2.7vw' }}>
+        {before && <span>{before}</span>}
+        <motion.span layout className="inline-flex items-center justify-center rounded-2xl"
+          style={{ minWidth: '7vw', padding: '0.2vh 1.4vw',
+                   background: placed ? '#facc15' : 'transparent',
+                   border: placed ? '3px solid #facc15' : '3px dashed #e0c266',
+                   color: placed ? DARK : '#cbb274' }}>
+          {placed ? placed.en : '______'}
+        </motion.span>
+        {after && <span>{after}</span>}
+      </div>
+
+      {/* meaning (correct) / explanation (wrong) */}
+      <div className="min-h-[7vh] flex items-center justify-center">
+        {placed && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-[1vw] rounded-2xl px-[2vw] py-[1.2vh] bg-emerald-50 ring-1 ring-emerald-200">
+            <span className="text-emerald-600 font-black" style={{ fontSize: '1.5vw' }}>✓</span>
+            <span className="font-black" style={{ color: DARK, fontSize: '1.3vw' }}>{placed.en}</span>
+            <span className="text-stone-400">=</span>
+            <span dir="rtl" className="font-black" style={{ fontFamily: "'Tajawal', sans-serif", color: '#0f766e', fontSize: '1.6vw' }}>{placed.ar}</span>
+          </motion.div>
+        )}
+        {wrong && (
+          <motion.div key={wrong.en} initial={{ x: 0 }} animate={{ x: [10, -10, 7, -7, 0] }} transition={{ duration: 0.45 }}
+            dir="rtl" className="rounded-2xl px-[2vw] py-[1.2vh] bg-rose-50 ring-1 ring-rose-200 text-center max-w-[60vw]"
+            style={{ fontFamily: "'Tajawal', sans-serif" }}>
+            <span className="font-black text-rose-600" style={{ fontSize: '1.35vw' }}>⚠ انتبه! </span>
+            <span className="font-bold text-rose-900" style={{ fontSize: '1.15vw' }}>«{wrong.ar}» ليست فعلاً — هذا الفراغ يحتاج إلى فعل (حركة)، وليس تعبيرَ وقت.</span>
+          </motion.div>
+        )}
+      </div>
+
+      {/* word bank: actions (valid) + time words (wrong) */}
+      <div dir="ltr" className="flex flex-wrap items-center justify-center gap-[1vw] max-w-[80vw]">
+        {bank.map((c, i) => {
+          const isPlaced = !!placed && placed.en === c.en && c.ok
+          return (
+            <motion.button key={c.en + i} onClick={() => onPick(c)} whileTap={{ scale: 0.94 }}
+              className="rounded-2xl px-[1.6vw] py-[1.1vh] bg-white ring-1 ring-stone-200 shadow-[0_10px_24px_-16px_rgba(42,29,18,0.5)] hover:bg-amber-50 transition flex flex-col items-center"
+              style={{ opacity: isPlaced ? 0.4 : 1 }}>
+              <span className="font-black" style={{ color: DARK, fontSize: '1.4vw' }}>{c.en}</span>
+              <span dir="rtl" className="font-bold text-stone-400" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1vw' }}>{c.ar}</span>
+            </motion.button>
+          )
+        })}
+      </div>
+
+      {placed && (
+        <button onClick={() => setPlaced(null)} dir="rtl" className="rounded-xl px-[1.6vw] py-[0.9vh] bg-stone-100 font-bold text-stone-600" style={{ fontSize: '1vw' }}>جرّب كلمة أخرى ↺</button>
+      )}
     </div>
   )
 }
