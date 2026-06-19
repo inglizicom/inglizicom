@@ -896,6 +896,9 @@ const LINK_WORDS: VocabPair[] = [
 type Seg = string | { s: SlotType }
 const FRAMES: Seg[][] = [
   ['I always', { s: 'verb' }, { s: 'time' }, '.'],
+  ['I usually', { s: 'verb' }, { s: 'time' }, '.'],
+  ['Sometimes I', { s: 'verb' }, { s: 'time' }, '.'],
+  ["I don't", { s: 'verb' }, { s: 'time' }, '.'],
   ['First I', { s: 'verb' }, ',', { s: 'link' }, 'I', { s: 'verb' }, '.'],
   ['I', { s: 'verb' }, { s: 'time' }, ',', { s: 'link' }, 'I', { s: 'verb' }, '.'],
 ]
@@ -949,8 +952,8 @@ function PatternSlide({ actions }: { actions: VocabPair[] }) {
         <span className="font-bold text-amber-900" style={{ fontSize: '1vw' }}>اضغط على أي كلمة فتذهب إلى مكانها الصحيح، واضغط على كلمة داخل الجملة لإرجاعها. (لتتحدّى نفسك: اضغط على الفراغ أولاً ثم اختر — فالكلمة الخاطئة تُرفض.)</span>
       </div>
 
-      {/* the sentence with typed blanks */}
-      <div dir="ltr" className="flex flex-wrap items-center justify-center gap-x-[0.7vw] gap-y-[1.1vh] font-black text-center" style={{ color: DARK, fontSize: '2.2vw' }}>
+      {/* the sentence, inside a clean card frame */}
+      <div dir="ltr" className="w-full max-w-[80vw] rounded-[28px] bg-white ring-1 ring-stone-200 shadow-[0_22px_55px_-30px_rgba(42,29,18,0.5)] px-[3vw] py-[3.4vh] flex flex-wrap items-center justify-center gap-x-[0.7vw] gap-y-[1.1vh] font-black text-center" style={{ color: DARK, fontSize: '2.2vw' }}>
         {frame.map((seg, i) => {
           if (typeof seg === 'string') return <span key={i}>{seg}</span>
           const val = placed[i]; const on = active === i
