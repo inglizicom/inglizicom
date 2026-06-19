@@ -923,19 +923,22 @@ function PatternSlide({ actions }: { actions: VocabPair[] }) {
   const [placed, setPlaced] = useState<Record<number, Chip>>({})
   const [active, setActive] = useState<number>(-1)
   const [wrong, setWrong] = useState<Chip | null>(null)
-  useEffect(() => { setPlaced({}); setActive(slotIdx[0] ?? -1); setWrong(null) }, [fi, actions])   // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setPlaced({}); setActive(-1); setWrong(null) }, [fi, actions])   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!wrong) return; const t = setTimeout(() => setWrong(null), 3200); return () => clearTimeout(t) }, [wrong])
 
   const activeType = active >= 0 ? (frame[active] as { s: SlotType }).s : null
   const pick = (c: Chip) => {
-    if (!activeType) return
-    if (c.kind !== activeType) { setWrong(c); return }
-    setWrong(null)
-    const next = { ...placed, [active]: c }
-    setPlaced(next)
-    setActive(slotIdx.find(i => !next[i]) ?? -1)
+    if (activeType) {                                   // a slot is aimed → it must match the slot's type
+      if (c.kind !== activeType) { setWrong(c); return }
+      setPlaced(p => ({ ...p, [active]: c })); setWrong(null); setActive(-1); return
+    }
+    // no slot aimed → the word jumps to its own correct (next empty) slot
+    const target = slotIdx.find(i => !placed[i] && (frame[i] as { s: SlotType }).s === c.kind)
+    if (target == null) return
+    setPlaced(p => ({ ...p, [target]: c })); setWrong(null)
   }
-  const reset = () => { setPlaced({}); setActive(slotIdx[0] ?? -1); setWrong(null) }
+  const clearSlot = (i: number) => { setPlaced(p => { const n = { ...p }; delete n[i]; return n }); setActive(-1); setWrong(null) }
+  const reset = () => { setPlaced({}); setActive(-1); setWrong(null) }
   const done = slotIdx.length > 0 && slotIdx.every(i => placed[i])
 
   return (
@@ -943,7 +946,7 @@ function PatternSlide({ actions }: { actions: VocabPair[] }) {
       {/* remark — what to do */}
       <div className="rounded-2xl px-[2.4vw] py-[1.1vh] bg-amber-50 ring-1 ring-amber-200 text-center" dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}>
         <span className="font-black" style={{ color: '#a16207', fontSize: '1.1vw' }}>كوّن جملة صحيحة: </span>
-        <span className="font-bold text-amber-900" style={{ fontSize: '1vw' }}>اضغط على الفراغ ثم اختر الكلمة المناسبة لنوعه — فعل، وقت، أو أداة ربط. انتبه لمكان كل كلمة!</span>
+        <span className="font-bold text-amber-900" style={{ fontSize: '1vw' }}>اضغط على أي كلمة فتذهب إلى مكانها الصحيح، واضغط على كلمة داخل الجملة لإرجاعها. (لتتحدّى نفسك: اضغط على الفراغ أولاً ثم اختر — فالكلمة الخاطئة تُرفض.)</span>
       </div>
 
       {/* the sentence with typed blanks */}
@@ -952,7 +955,7 @@ function PatternSlide({ actions }: { actions: VocabPair[] }) {
           if (typeof seg === 'string') return <span key={i}>{seg}</span>
           const val = placed[i]; const on = active === i
           return (
-            <button key={i} onClick={() => setActive(i)} className="inline-flex flex-col items-center justify-center rounded-2xl align-middle transition"
+            <button key={i} onClick={() => val ? clearSlot(i) : setActive(active === i ? -1 : i)} className="inline-flex flex-col items-center justify-center rounded-2xl align-middle transition"
               style={{ minWidth: '7vw', padding: '0.2vh 1.1vw',
                        background: val ? '#facc15' : 'transparent',
                        border: `3px ${val || on ? 'solid' : 'dashed'} ${val ? '#facc15' : on ? '#e0a93c' : '#e0c266'}`,
