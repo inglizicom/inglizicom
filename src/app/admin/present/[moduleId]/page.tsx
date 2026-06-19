@@ -876,13 +876,30 @@ function TranslateSlide({ items }: { items: { ar: string; en: string }[] }) {
 }
 
 
-type Chip = VocabPair & { kind: 'verb' | 'time' }
+/* ── interactive Static Sentence — flexible sentence builder ──────────────────
+ * Several frames (templates) with TYPED slots, so a slot can be an action (verb),
+ * a TIME expression, or a LINKING word — and frames can be longer, two-clause
+ * sentences. Tap a blank to select it, then a word; a word of the wrong type
+ * bounces back with an Arabic why. Verbs come from the unit's own Expressions
+ * (real Arabic); time + linking words are small shared bilingual pools. */
+type SlotType = 'verb' | 'time' | 'link'
+type Chip = VocabPair & { kind: SlotType }
+const SLOT_META: Record<SlotType, { en: string; ar: string; dot: string; ph: string }> = {
+  verb: { en: 'Actions', ar: 'أفعال (حركة)', dot: '#0f766e', ph: 'فعل' },
+  time: { en: 'Time', ar: 'تعبيرات الوقت', dot: '#2563eb', ph: 'وقت' },
+  link: { en: 'Linking words', ar: 'أدوات الربط', dot: '#9333ea', ph: 'رابط' },
+}
+const LINK_WORDS: VocabPair[] = [
+  { en: 'and', ar: 'و' }, { en: 'then', ar: 'ثم' }, { en: 'after that', ar: 'بعد ذلك' },
+  { en: 'but', ar: 'لكن' }, { en: 'because', ar: 'لأنّ' },
+]
+type Seg = string | { s: SlotType }
+const FRAMES: Seg[][] = [
+  ['I always', { s: 'verb' }, { s: 'time' }, '.'],
+  ['First I', { s: 'verb' }, ',', { s: 'link' }, 'I', { s: 'verb' }, '.'],
+  ['I', { s: 'verb' }, { s: 'time' }, ',', { s: 'link' }, 'I', { s: 'verb' }, '.'],
+]
 
-/** Interactive Static Sentence — build "I always [verb] [time]". Two TYPED slots
- *  with two labelled banks: ACTIONS (the unit's own verbs + teacher Arabic) and TIME
- *  words (shared bilingual pool). Tap a blank to select it, then tap a word; a word of
- *  the wrong type bounces back with a why — so the student learns what goes where.
- *  Generic: works for every unit. */
 function PatternSlide({ actions }: { actions: VocabPair[] }) {
   const verbs = useMemo<Chip[]>(() => {
     const seen = new Set<string>(); const out: Chip[] = []
@@ -892,103 +909,112 @@ function PatternSlide({ actions }: { actions: VocabPair[] }) {
     }
     return out
   }, [actions])
-  const bankVerbs = useMemo(() => shuffle(verbs).slice(0, 4), [verbs])
-  const bankTimes = useMemo<Chip[]>(() => shuffle(TIME_WORDS).slice(0, 4).map(t => ({ ...t, kind: 'time' as const })), [actions])
+  const [fi, setFi] = useState(0)
+  const pools = useMemo<Record<SlotType, Chip[]>>(() => ({
+    verb: shuffle(verbs).slice(0, 5),
+    time: shuffle(TIME_WORDS).slice(0, 4).map(t => ({ ...t, kind: 'time' as const })),
+    link: shuffle(LINK_WORDS).map(l => ({ ...l, kind: 'link' as const })),
+  }), [verbs, fi])
 
-  const [active, setActive] = useState<'verb' | 'time'>('verb')
-  const [verb, setVerb] = useState<Chip | null>(null)
-  const [time, setTime] = useState<Chip | null>(null)
+  const frame = FRAMES[fi % FRAMES.length]
+  const slotIdx = useMemo(() => frame.reduce<number[]>((acc, seg, i) => { if (typeof seg !== 'string') acc.push(i); return acc }, []), [frame])
+  const typesUsed = useMemo(() => [...new Set(slotIdx.map(i => (frame[i] as { s: SlotType }).s))], [frame, slotIdx])
+
+  const [placed, setPlaced] = useState<Record<number, Chip>>({})
+  const [active, setActive] = useState<number>(-1)
   const [wrong, setWrong] = useState<Chip | null>(null)
-  useEffect(() => { setVerb(null); setTime(null); setActive('verb'); setWrong(null) }, [actions])
+  useEffect(() => { setPlaced({}); setActive(slotIdx[0] ?? -1); setWrong(null) }, [fi, actions])   // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!wrong) return; const t = setTimeout(() => setWrong(null), 3200); return () => clearTimeout(t) }, [wrong])
 
+  const activeType = active >= 0 ? (frame[active] as { s: SlotType }).s : null
   const pick = (c: Chip) => {
-    if (c.kind !== active) { setWrong(c); return }
+    if (!activeType) return
+    if (c.kind !== activeType) { setWrong(c); return }
     setWrong(null)
-    if (c.kind === 'verb') { setVerb(c); if (!time) setActive('time') }
-    else { setTime(c); if (!verb) setActive('verb') }
+    const next = { ...placed, [active]: c }
+    setPlaced(next)
+    setActive(slotIdx.find(i => !next[i]) ?? -1)
   }
-  const reset = () => { setVerb(null); setTime(null); setActive('verb'); setWrong(null) }
-  const done = !!verb && !!time
-
-  const Slot = ({ which, val, label }: { which: 'verb' | 'time'; val: Chip | null; label: string }) => {
-    const on = active === which
-    return (
-      <button onClick={() => setActive(which)} className="inline-flex flex-col items-center justify-center rounded-2xl align-middle transition"
-        style={{ minWidth: '8vw', padding: '0.3vh 1.2vw',
-                 background: val ? '#facc15' : 'transparent',
-                 border: `3px ${val ? 'solid' : on ? 'solid' : 'dashed'} ${val ? '#facc15' : on ? '#e0a93c' : '#e0c266'}`,
-                 boxShadow: on && !val ? '0 0 0 5px rgba(224,169,60,0.2)' : 'none' }}>
-        <span className="font-black leading-tight" style={{ color: val ? DARK : '#cbb274', fontSize: '2.3vw' }}>{val ? val.en : label}</span>
-        {val && <span dir="rtl" className="font-bold" style={{ fontFamily: "'Tajawal', sans-serif", color: '#7a5c00', fontSize: '0.95vw' }}>{val.ar}</span>}
-      </button>
-    )
-  }
+  const reset = () => { setPlaced({}); setActive(slotIdx[0] ?? -1); setWrong(null) }
+  const done = slotIdx.length > 0 && slotIdx.every(i => placed[i])
 
   return (
-    <div className="w-full max-w-[88vw] flex flex-col items-center gap-[2.2vh]">
-      {/* remark — what the student must do */}
+    <div className="w-full max-w-[90vw] flex flex-col items-center gap-[2vh]">
+      {/* remark — what to do */}
       <div className="rounded-2xl px-[2.4vw] py-[1.1vh] bg-amber-50 ring-1 ring-amber-200 text-center" dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}>
-        <span className="font-black" style={{ color: '#a16207', fontSize: '1.15vw' }}>كوّن جملة صحيحة: </span>
-        <span className="font-bold text-amber-900" style={{ fontSize: '1.05vw' }}>اضغط على الفراغ ثم اختر الكلمة المناسبة — فعلاً للحركة وتعبيراً للوقت. انتبه لمكان كل كلمة!</span>
+        <span className="font-black" style={{ color: '#a16207', fontSize: '1.1vw' }}>كوّن جملة صحيحة: </span>
+        <span className="font-bold text-amber-900" style={{ fontSize: '1vw' }}>اضغط على الفراغ ثم اختر الكلمة المناسبة لنوعه — فعل، وقت، أو أداة ربط. انتبه لمكان كل كلمة!</span>
       </div>
 
-      {/* the sentence with two typed blanks */}
-      <div dir="ltr" className="flex flex-wrap items-center justify-center gap-x-[0.8vw] gap-y-[1.2vh] font-black text-center" style={{ color: DARK, fontSize: '2.3vw' }}>
-        <span>I always</span>
-        <Slot which="verb" val={verb} label="فعل" />
-        <Slot which="time" val={time} label="وقت" />
-        <span>.</span>
+      {/* the sentence with typed blanks */}
+      <div dir="ltr" className="flex flex-wrap items-center justify-center gap-x-[0.7vw] gap-y-[1.1vh] font-black text-center" style={{ color: DARK, fontSize: '2.2vw' }}>
+        {frame.map((seg, i) => {
+          if (typeof seg === 'string') return <span key={i}>{seg}</span>
+          const val = placed[i]; const on = active === i
+          return (
+            <button key={i} onClick={() => setActive(i)} className="inline-flex flex-col items-center justify-center rounded-2xl align-middle transition"
+              style={{ minWidth: '7vw', padding: '0.2vh 1.1vw',
+                       background: val ? '#facc15' : 'transparent',
+                       border: `3px ${val || on ? 'solid' : 'dashed'} ${val ? '#facc15' : on ? '#e0a93c' : '#e0c266'}`,
+                       boxShadow: on && !val ? '0 0 0 5px rgba(224,169,60,0.2)' : 'none' }}>
+              <span className="font-black leading-tight" style={{ color: val ? DARK : '#cbb274', fontSize: '2.1vw' }}>{val ? val.en : SLOT_META[seg.s].ph}</span>
+              {val && <span dir="rtl" className="font-bold" style={{ fontFamily: "'Tajawal', sans-serif", color: '#7a5c00', fontSize: '0.9vw' }}>{val.ar}</span>}
+            </button>
+          )
+        })}
       </div>
 
-      {/* feedback: success or wrong-place explanation */}
-      <div className="min-h-[5.5vh] flex items-center justify-center">
+      {/* feedback */}
+      <div className="min-h-[5vh] flex items-center justify-center">
         {done && (
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl px-[2.2vw] py-[1.1vh] bg-emerald-50 ring-1 ring-emerald-200 flex items-center gap-[1vw]">
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl px-[2.2vw] py-[1.1vh] bg-emerald-50 ring-1 ring-emerald-200 flex items-center gap-[0.8vw]" dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}>
             <span className="text-emerald-600 font-black" style={{ fontSize: '1.5vw' }}>✓</span>
-            <span className="font-black" style={{ color: DARK, fontSize: '1.4vw' }}>I always {verb!.en} {time!.en}.</span>
-            <span dir="rtl" className="font-black text-emerald-700" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.2vw' }}>· أحسنت!</span>
+            <span className="font-black text-emerald-700" style={{ fontSize: '1.3vw' }}>جملة صحيحة — أحسنت!</span>
           </motion.div>
         )}
         {!done && wrong && (
           <motion.div key={wrong.en} initial={{ x: 0 }} animate={{ x: [10, -10, 7, -7, 0] }} transition={{ duration: 0.45 }}
-            dir="rtl" className="rounded-2xl px-[2vw] py-[1.1vh] bg-rose-50 ring-1 ring-rose-200 text-center max-w-[66vw]" style={{ fontFamily: "'Tajawal', sans-serif" }}>
-            <span className="font-black text-rose-600" style={{ fontSize: '1.3vw' }}>⚠ انتبه! </span>
-            <span className="font-bold text-rose-900" style={{ fontSize: '1.1vw' }}>«{wrong.ar}» {wrong.kind === 'verb' ? 'فعلٌ (حركة)، والفراغ المختار مخصّص للوقت.' : 'تعبيرُ وقت، والفراغ المختار مخصّص للفعل (الحركة).'} اختر الفراغ الصحيح أولاً.</span>
+            dir="rtl" className="rounded-2xl px-[2vw] py-[1.1vh] bg-rose-50 ring-1 ring-rose-200 text-center max-w-[68vw]" style={{ fontFamily: "'Tajawal', sans-serif" }}>
+            <span className="font-black text-rose-600" style={{ fontSize: '1.25vw' }}>⚠ انتبه! </span>
+            <span className="font-bold text-rose-900" style={{ fontSize: '1.05vw' }}>«{wrong.ar}» {SLOT_META[wrong.kind].ar} — والفراغ المختار يحتاج {activeType ? SLOT_META[activeType].ar : ''}. اختر الفراغ الصحيح أولاً.</span>
           </motion.div>
         )}
       </div>
 
-      {/* two banks (two lines): actions + time */}
-      <div className="w-full flex flex-col gap-[1.5vh] items-center">
-        {[{ k: 'verb' as const, en: 'Actions', ar: 'أفعال (حركة)', items: bankVerbs, dot: '#0f766e' },
-          { k: 'time' as const, en: 'Time', ar: 'تعبيرات الوقت', items: bankTimes, dot: '#2563eb' }].map(row => (
-          <div key={row.k} className="w-full flex flex-col items-center gap-[0.7vh]">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full" style={{ background: row.dot }} />
-              <span className="font-black uppercase tracking-wide" style={{ color: row.dot, fontSize: '0.85vw' }}>{row.en}</span>
-              <span dir="rtl" className="font-bold text-stone-400" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.95vw' }}>· {row.ar}</span>
+      {/* banks — one labelled line per type used in this frame */}
+      <div className="w-full flex flex-col gap-[1.3vh] items-center">
+        {typesUsed.map(t => {
+          const m = SLOT_META[t]
+          return (
+            <div key={t} className="w-full flex flex-col items-center gap-[0.6vh]">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full" style={{ background: m.dot }} />
+                <span className="font-black uppercase tracking-wide" style={{ color: m.dot, fontSize: '0.82vw' }}>{m.en}</span>
+                <span dir="rtl" className="font-bold text-stone-400" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.92vw' }}>· {m.ar}</span>
+              </div>
+              <div dir="ltr" className="flex flex-wrap items-center justify-center gap-[0.8vw]">
+                {pools[t].map((c, i) => {
+                  const used = Object.values(placed).some(p => p.kind === c.kind && p.en === c.en)
+                  return (
+                    <motion.button key={c.en + i} onClick={() => pick(c)} whileTap={{ scale: 0.94 }}
+                      className="rounded-2xl px-[1.3vw] py-[0.9vh] bg-white ring-1 ring-stone-200 shadow-[0_10px_24px_-16px_rgba(42,29,18,0.5)] hover:bg-amber-50 transition flex flex-col items-center"
+                      style={{ opacity: used ? 0.4 : 1 }}>
+                      <span className="font-black" style={{ color: DARK, fontSize: '1.25vw' }}>{c.en}</span>
+                      <span dir="rtl" className="font-bold text-stone-400" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.9vw' }}>{c.ar}</span>
+                    </motion.button>
+                  )
+                })}
+              </div>
             </div>
-            <div dir="ltr" className="flex flex-wrap items-center justify-center gap-[0.9vw]">
-              {row.items.map((c, i) => {
-                const used = (row.k === 'verb' && verb?.en === c.en) || (row.k === 'time' && time?.en === c.en)
-                return (
-                  <motion.button key={c.en + i} onClick={() => pick(c)} whileTap={{ scale: 0.94 }}
-                    className="rounded-2xl px-[1.4vw] py-[1vh] bg-white ring-1 ring-stone-200 shadow-[0_10px_24px_-16px_rgba(42,29,18,0.5)] hover:bg-amber-50 transition flex flex-col items-center"
-                    style={{ opacity: used ? 0.4 : 1 }}>
-                    <span className="font-black" style={{ color: DARK, fontSize: '1.3vw' }}>{c.en}</span>
-                    <span dir="rtl" className="font-bold text-stone-400" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.95vw' }}>{c.ar}</span>
-                  </motion.button>
-                )
-              })}
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
-      {(verb || time) && (
-        <button onClick={reset} dir="rtl" className="rounded-xl px-[1.6vw] py-[0.8vh] bg-stone-100 font-bold text-stone-600" style={{ fontSize: '1vw' }}>إعادة ↺</button>
-      )}
+      {/* controls */}
+      <div className="flex items-center gap-[1vw]">
+        <button onClick={reset} dir="rtl" className="rounded-xl px-[1.5vw] py-[0.8vh] bg-stone-100 font-bold text-stone-600" style={{ fontSize: '0.95vw' }}>إعادة ↺</button>
+        <button onClick={() => setFi(f => (f + 1) % FRAMES.length)} dir="rtl" className="rounded-xl px-[1.6vw] py-[0.8vh] text-white font-black" style={{ background: DARK, fontSize: '0.95vw' }}>جملة أخرى →</button>
+      </div>
     </div>
   )
 }
