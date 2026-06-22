@@ -2,49 +2,49 @@
 
 /**
  * PictureWordGame — a structured "learn English by English" flashcard game (A0/A1).
- * It walks through ordered card GROUPS that build on each other:
+ * Ordered card GROUPS that build on each other:
  *   Things (nouns) → Opposites (adjectives) → Colors → Put-it-together (phrases).
- * Each group runs 3 stages:
- *   1) LOOK — 4 cards: an AI 3D illustration + the English name (tap to hear).
- *   2) FIND — names hidden; a word is shown/heard → tap the right card.
- *   3) READ — a simple English sentence with the word → tap the matching card.
- * Every card carries its OWN image prompt so the 3D picture matches the word
- * (e.g. "expensive" → a diamond with a price tag, "green car" → a green car).
- * English-only content; light Arabic guidance only.
+ * Each group runs 3 stages: LOOK (picture + name) → FIND (word → pick card) →
+ * READ (simple sentence → pick card). English-only content.
+ *
+ * Pictures: REAL photos via Unsplash (`/api/img`, cached + CDN-fast). Colors render
+ * as exact CSS swatches. Everything has an emoji fallback and an 8s timeout so a
+ * card never hangs on "loading".
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { X, Loader2, Volume2, CheckCircle2, RotateCcw, ArrowRight } from 'lucide-react'
 
 interface Props { token?: string; courseId?: string | null; onClose: () => void; onEarned?: () => void }
-type Card = { id: string; en: string; prompt: string; emoji: string }
-const c = (en: string, prompt: string, emoji: string): Card => ({ id: en.toLowerCase(), en, prompt, emoji })
+type Card = { id: string; en: string; emoji: string; query?: string; color?: string }
+const photo = (en: string, query: string, emoji: string): Card => ({ id: en.toLowerCase(), en, query, emoji })
+const color = (en: string, hex: string, emoji: string): Card => ({ id: en.toLowerCase(), en, color: hex, emoji })
 
-/* Ordered curriculum — extend freely; each card's `prompt` drives its picture. */
+/* Ordered curriculum — extend freely. `query` = Unsplash search; `color` = swatch. */
 const CURRICULUM: { title: string; ar: string; cards: Card[] }[] = [
   { title: 'Things', ar: 'أشياء', cards: [
-    c('House', 'a cute cartoon house', '🏠'),
-    c('Banana', 'a single ripe banana', '🍌'),
-    c('Car', 'a cute cartoon car', '🚗'),
-    c('Bike', 'a bicycle', '🚲'),
+    photo('House', 'house home exterior', '🏠'),
+    photo('Banana', 'banana fruit', '🍌'),
+    photo('Car', 'car automobile', '🚗'),
+    photo('Bike', 'bicycle', '🚲'),
   ] },
   { title: 'Opposites', ar: 'أضداد', cards: [
-    c('Big', 'a giant huge elephant towering, emphasizing very big size', '🐘'),
-    c('Small', 'a tiny little mouse, emphasizing very small size', '🐭'),
-    c('Expensive', 'a luxury diamond ring on a high price tag with gold coins, expensive', '💎'),
-    c('Cheap', 'a small paper price tag showing a very low cheap price with a few coins', '🏷️'),
+    photo('Big', 'big elephant', '🐘'),
+    photo('Small', 'small cute mouse', '🐭'),
+    photo('Expensive', 'luxury diamond jewelry', '💎'),
+    photo('Cheap', 'sale discount price tag', '🏷️'),
   ] },
   { title: 'Colors', ar: 'ألوان', cards: [
-    c('Red', 'a glossy 3D blob of solid bright red paint, the color red dominant', '🟥'),
-    c('Green', 'a glossy 3D blob of solid bright green paint, the color green dominant', '🟩'),
-    c('White', 'a glossy 3D blob of solid pure white paint on a light gray background', '⬜'),
-    c('Yellow', 'a glossy 3D blob of solid bright yellow paint, the color yellow dominant', '🟨'),
+    color('Red', '#ef4444', '🟥'),
+    color('Green', '#22c55e', '🟩'),
+    color('White', '#ffffff', '⬜'),
+    color('Yellow', '#facc15', '🟨'),
   ] },
   { title: 'Put it together', ar: 'كوّن العبارة', cards: [
-    c('Green car', 'a shiny bright green car', '🚗'),
-    c('White house', 'a white house', '🏠'),
-    c('Red bike', 'a bright red bicycle', '🚲'),
-    c('Yellow banana', 'a single bright yellow banana', '🍌'),
+    photo('Green car', 'green car', '🚗'),
+    photo('White house', 'white house', '🏠'),
+    photo('Red bike', 'red bicycle', '🚲'),
+    photo('Yellow banana', 'yellow banana', '🍌'),
   ] },
 ]
 
@@ -52,27 +52,38 @@ const shuffle = <T,>(a: T[]) => a.map(v => [Math.random(), v] as const).sort((x,
 function speak(text: string) {
   try { const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.8; window.speechSynthesis.cancel(); window.speechSynthesis.speak(u) } catch {}
 }
-const aiUrl = (card: Card) => {
-  const prompt = `cute 3D pixar-style cartoon illustration of ${card.prompt}, one single subject filling the frame, plain solid white background, soft studio lighting, friendly, highly detailed, no text, no letters, no words`
-  const seed = card.id.replace(/[^a-z0-9]/g, '').slice(0, 24) || 'word'
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=420&height=420&nologo=true&model=flux&seed=${seed}`
-}
 const SENTENCES = ['Where is the {w}?', 'Look at the {w}!', 'I can see the {w}.', 'Point to the {w}.', 'This is the {w}.']
 const sentenceFor = (en: string, i: number) => SENTENCES[i % SENTENCES.length].replace('{w}', en.toLowerCase())
 
 function CardImg({ card }: { card: Card }) {
-  const url = useMemo(() => aiUrl(card), [card.id])   // eslint-disable-line react-hooks/exhaustive-deps
+  const [url, setUrl] = useState<string | null | undefined>(undefined)
   const [loaded, setLoaded] = useState(false)
-  const [failed, setFailed] = useState(false)
-  useEffect(() => { setLoaded(false); setFailed(false) }, [card.id])
+  const [fail, setFail] = useState(false)
+  useEffect(() => {
+    if (card.color) return
+    let alive = true; setUrl(undefined); setLoaded(false); setFail(false)
+    const to = setTimeout(() => { if (alive) setFail(true) }, 8000)     // never hang on a slow lookup
+    fetch(`/api/img?en=${encodeURIComponent(card.en)}&q=${encodeURIComponent(card.query || card.en)}`)
+      .then(r => r.json()).then(d => { if (!alive) return; clearTimeout(to); if (d?.url) setUrl(d.url); else setFail(true) })
+      .catch(() => { if (!alive) return; clearTimeout(to); setFail(true) })
+    return () => { alive = false; clearTimeout(to) }
+  }, [card.id])   // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (card.color) return (
+    <div className="w-full aspect-square rounded-2xl ring-1 ring-stone-300 shadow-inner" style={{ background: card.color }} />
+  )
   return (
     <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-white ring-1 ring-stone-200 flex items-center justify-center">
-      {!loaded && !failed && <Loader2 className="animate-spin text-stone-300" size={26} />}
-      {failed
-        ? <span className="text-[44px]">{card.emoji}</span>
-        // eslint-disable-next-line @next/next/no-img-element
-        : <img src={url} alt={card.en} onLoad={() => setLoaded(true)} onError={() => setFailed(true)}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`} />}
+      {fail
+        ? <span className="text-[46px]">{card.emoji}</span>
+        : <>
+            {(url === undefined || !loaded) && <Loader2 className="animate-spin text-stone-300" size={26} />}
+            {typeof url === 'string' && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={url} alt={card.en} onLoad={() => setLoaded(true)} onError={() => setFail(true)}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`} />
+            )}
+          </>}
     </div>
   )
 }
@@ -93,7 +104,7 @@ export default function PictureWordGame({ onClose, onEarned }: Props) {
   const target = queue[qi]
   const lastGroup = gi >= CURRICULUM.length - 1
 
-  useEffect(() => {   // speak the prompt when a new target appears
+  useEffect(() => {
     if (!target) return
     if (phase === 'recognize') speak(target.en)
     if (phase === 'sentence') speak(sentenceFor(target.en, qi))
@@ -121,7 +132,6 @@ export default function PictureWordGame({ onClose, onEarned }: Props) {
   return (
     <div className="fixed inset-0 z-[200] bg-[var(--ic-dark,#2a1d12)]/95 backdrop-blur-sm flex items-center justify-center p-3" dir="rtl">
       <div className="w-full max-w-lg bg-[#faf6ef] rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[94vh]">
-        {/* header */}
         <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-l from-sky-500 to-cyan-500 text-white">
           <div className="flex items-center gap-2">
             <span className="text-[22px]">🖼️</span>
