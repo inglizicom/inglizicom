@@ -25,6 +25,7 @@ import FinalExam from '@/components/FinalExam'
 import RewardsCenter from '@/components/RewardsCenter'
 import PracticeHub from '@/components/PracticeHub'
 import VocabGames from '@/components/VocabGames'
+import PictureWordGame from '@/components/PictureWordGame'
 import { fetchCertificate, type Certificate } from '@/lib/lms'
 import { earnCoins, streakBonus, fetchCoins, type EarnAction, type CoinSummary } from '@/lib/gamification'
 import { courseTheme, themeForKey } from '@/lib/course-theme'
@@ -133,6 +134,7 @@ function Portal() {
   const [pickerOpen, setPickerOpen] = useState(false)           // user tapped the course switcher
   const [practice, setPractice] = useState<'sentence' | 'translation' | null>(null)
   const [vocabOpen, setVocabOpen] = useState(false)
+  const [pictureOpen, setPictureOpen] = useState(false)
 
   async function enter(rawToken: string, isAuto = false): Promise<boolean> {
     const t = rawToken.trim().toUpperCase(); if (!t) return false
@@ -171,9 +173,9 @@ function Portal() {
   /* ── In-app routing: the active tab lives in the URL hash so a refresh keeps
      the student where they were, and the browser Back/swipe button moves between
      tabs (and closes open overlays) instead of leaving the site. ── */
-  const overlayOpen = !!(videoLesson || quizLesson || readingUnit || submitUnit || examUnit || vocabOpen || practice || showExam || notifOpen)
+  const overlayOpen = !!(videoLesson || quizLesson || readingUnit || submitUnit || examUnit || vocabOpen || pictureOpen || practice || showExam || notifOpen)
   const overlayRef = useRef(overlayOpen); overlayRef.current = overlayOpen
-  function closeOverlays() { setVideoLesson(null); setQuizLesson(null); setReadingUnit(null); setSubmitUnit(null); setExamUnit(null); setVocabOpen(false); setPractice(null); setShowExam(false); setNotifOpen(false) }
+  function closeOverlays() { setVideoLesson(null); setQuizLesson(null); setReadingUnit(null); setSubmitUnit(null); setExamUnit(null); setVocabOpen(false); setPictureOpen(false); setPractice(null); setShowExam(false); setNotifOpen(false) }
   function goTab(t: Tab) { setTab(t); try { history.pushState({ tab: t }, '', '#' + t) } catch {} ; if (typeof window !== 'undefined') window.scrollTo({ top: 0 }) }
   const prevOverlay = useRef(false)
   useEffect(() => { if (overlayOpen && !prevOverlay.current) { try { history.pushState({ ov: 1 }, '') } catch {} } prevOverlay.current = overlayOpen }, [overlayOpen])
@@ -632,6 +634,7 @@ function Portal() {
       {/* Practice (sentence builder / translation) */}
       {practice && <PracticeHub token={token} courseId={courseId} kind={practice} currentModuleId={currentModule?.id ?? null} onClose={() => { setPractice(null); refreshCoins() }} onEarned={refreshCoins} />}
       {vocabOpen && <VocabGames token={token} courseId={courseId} onClose={() => { setVocabOpen(false); refreshCoins() }} onEarned={refreshCoins} />}
+      {pictureOpen && <PictureWordGame token={token} courseId={courseId} onClose={() => { setPictureOpen(false); refreshCoins() }} onEarned={refreshCoins} />}
 
       {/* Final exam + certificate */}
       {showExam && <FinalExam token={token} fullName={s.full_name}
@@ -1095,7 +1098,7 @@ function Portal() {
         )}
 
         {/* ═══════════ REWARDS ═══════════ */}
-        {tab === 'rewards' && <RewardsCenter token={token} courseId={courseId} onPractice={k => setPractice(k)} onVocab={() => setVocabOpen(true)} />}
+        {tab === 'rewards' && <RewardsCenter token={token} courseId={courseId} onPractice={k => setPractice(k)} onVocab={() => setVocabOpen(true)} onPicture={() => setPictureOpen(true)} />}
 
         {/* ═══════════ FILES ═══════════ */}
         {tab === 'files' && (

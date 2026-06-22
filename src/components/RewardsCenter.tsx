@@ -29,7 +29,7 @@ function SectionLabel({ emoji, title, sub }: { emoji: string; title: string; sub
   )
 }
 
-export default function RewardsCenter({ token, courseId, onPractice, onVocab }: { token: string; courseId?: string | null; onPractice: (kind: 'sentence' | 'translation') => void; onVocab?: () => void }) {
+export default function RewardsCenter({ token, courseId, onPractice, onVocab, onPicture }: { token: string; courseId?: string | null; onPractice: (kind: 'sentence' | 'translation') => void; onVocab?: () => void; onPicture?: () => void }) {
   const [coins, setCoins] = useState<CoinSummary | null>(null)
   const [rewards, setRewards] = useState<RewardStatus[]>([])
   const [board, setBoard] = useState<LeaderboardData | null>(null)
@@ -89,6 +89,19 @@ export default function RewardsCenter({ token, courseId, onPractice, onVocab }: 
             <div className="flex-1 min-w-0">
               <div className="font-black text-[16px]">ألعاب المفردات</div>
               <div className="text-[12px] text-white/85 font-medium">🎧 استمع · 🃏 طابِق · 🔡 اهجِ الكلمة</div>
+            </div>
+            <span className="text-[11px] font-black bg-white/20 px-2.5 py-1 rounded-full inline-flex items-center gap-1 flex-shrink-0">+5 <CoinIcon size={12} /> / كلمة</span>
+          </div>
+        </button>
+      )}
+      {/* Picture → word → sentence (learn English by English) */}
+      {onPicture && (
+        <button onClick={onPicture} className="w-full text-right rounded-2xl p-4 bg-gradient-to-br from-sky-500 to-cyan-500 text-white shadow-[0_6px_18px_rgba(14,165,233,0.3)] hover:scale-[1.01] transition-transform">
+          <div className="flex items-center gap-3">
+            <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-[30px] flex-shrink-0">🖼️</div>
+            <div className="flex-1 min-w-0">
+              <div className="font-black text-[16px]">تعلّم بالصور</div>
+              <div className="text-[12px] text-white/85 font-medium">🖼️ صورة · 🔎 اختر الكلمة · 📖 في جملة</div>
             </div>
             <span className="text-[11px] font-black bg-white/20 px-2.5 py-1 rounded-full inline-flex items-center gap-1 flex-shrink-0">+5 <CoinIcon size={12} /> / كلمة</span>
           </div>
