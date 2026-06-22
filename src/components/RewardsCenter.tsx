@@ -103,7 +103,7 @@ export default function RewardsCenter({ token, courseId, onPractice, onVocab, on
               <div className="font-black text-[16px]">تعلّم بالصور</div>
               <div className="text-[12px] text-white/85 font-medium">🖼️ صورة · 🔎 اختر الكلمة · 📖 في جملة</div>
             </div>
-            <span className="text-[11px] font-black bg-white/20 px-2.5 py-1 rounded-full inline-flex items-center gap-1 flex-shrink-0">+5 <CoinIcon size={12} /> / كلمة</span>
+            <span className="text-[11px] font-black bg-white/20 px-2.5 py-1 rounded-full flex-shrink-0">A0 · A1</span>
           </div>
         </button>
       )}
