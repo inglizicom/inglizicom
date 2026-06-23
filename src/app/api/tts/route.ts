@@ -31,6 +31,10 @@ export async function OPTIONS(req: Request) {
  * browsers can't play directly — wrap it in a minimal WAV container. */
 const GEMINI_VOICE = 'Kore'           // clear, friendly neural voice
 const GEMINI_MODEL = 'gemini-2.5-flash-preview-tts'
+// A natural-language style directive Gemini follows but does NOT read aloud —
+// makes the delivery warm + slow + clear (a kind teacher for beginners),
+// fixing the flat/robotic, slightly-fast default delivery.
+const GEMINI_STYLE = 'Read the following aloud slowly and very clearly, in a warm, friendly and encouraging tone, like a kind English teacher speaking to beginner students. Leave a short pause after each sentence: '
 
 function pcmToWav(pcm: Buffer, sampleRate = 24000, channels = 1, bits = 16): Buffer {
   const blockAlign = (channels * bits) >> 3
@@ -52,7 +56,7 @@ async function googleTTS(text: string): Promise<Buffer | null> {
     method: 'POST',
     headers: { 'x-goog-api-key': key, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      contents: [{ parts: [{ text }] }],
+      contents: [{ parts: [{ text: GEMINI_STYLE + text }] }],
       generationConfig: {
         responseModalities: ['AUDIO'],
         speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: GEMINI_VOICE } } },

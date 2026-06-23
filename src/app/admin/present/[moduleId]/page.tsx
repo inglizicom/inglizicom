@@ -11,7 +11,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RotateCcw, Loader2, Globe, Instagram, Youtube, GraduationCap, Phone, Maximize2, Minimize2, ZoomIn, ZoomOut, Headphones, Mic, Video, Volume2, Square } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RotateCcw, Loader2, Globe, Instagram, Youtube, GraduationCap, Phone, Maximize2, Minimize2, ZoomIn, ZoomOut, Mic, Video, Play, Pause } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { fetchLessons, fetchModules, type LmsLesson } from '@/lib/lms'
 import { type Variation } from '@/lib/deck-vary'
@@ -467,13 +467,21 @@ function ListenButton({ text }: { text: string }) {
       browserVoice()
     }
   }
+  const D = 'clamp(58px,5.2vw,90px)'
   return (
-    <button onClick={play}
-      className="flex items-center gap-[0.7vw] rounded-full font-black text-[#2a1d12] shadow-[0_14px_34px_-12px_rgba(180,120,20,0.7)] hover:brightness-105 active:scale-95 transition whitespace-nowrap"
-      style={{ background: 'linear-gradient(135deg,#fcd34d,#f59e0b)', fontSize: 'clamp(15px,1.5vw,26px)', padding: 'clamp(10px,1.4vh,18px) clamp(16px,2vw,34px)' }}>
-      {state === 'loading' ? <Loader2 className="animate-spin" size={22} /> : state === 'playing' ? <Square size={20} className="fill-current" /> : <Volume2 size={24} />}
-      <span>{state === 'playing' ? 'Stop' : 'Listen'}</span>
-      <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}>· {state === 'playing' ? 'إيقاف' : 'استمع'}</span>
+    <button onClick={play} aria-label={state === 'playing' ? 'Stop' : 'Listen'}
+      className="relative grid place-items-center rounded-full text-[#2a1d12] transition active:scale-95 hover:brightness-105 shadow-[0_18px_42px_-12px_rgba(217,119,6,0.7)] shrink-0"
+      style={{ width: D, height: D, background: 'linear-gradient(140deg,#fde047 0%,#f59e0b 100%)' }}>
+      {state === 'playing' && (
+        <motion.span className="absolute inset-0 rounded-full" style={{ border: '3px solid #f59e0b' }}
+          initial={{ opacity: 0.55, scale: 1 }} animate={{ opacity: 0, scale: 1.65 }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut' }} />
+      )}
+      {state === 'loading'
+        ? <Loader2 className="animate-spin" size={30} />
+        : state === 'playing'
+          ? <Pause size={30} className="fill-current" />
+          : <Play size={32} className="fill-current translate-x-[2px]" />}
     </button>
   )
 }
@@ -875,8 +883,8 @@ export default function PresentPage() {
                 })()}
 
                 {s.kind === 'listening' && (() => {
-                  // each distinct changeable (swap) word gets its own colour
-                  const PAL = ['#e11d48', '#2563eb', '#7c3aed', '#0891b2', '#ea580c']
+                  // each distinct changeable (swap) word gets its own deep, harmonious colour
+                  const PAL = ['#0f766e', '#b45309', '#6d28d9', '#be123c', '#1d4ed8']  // teal · amber · violet · rose · blue
                   const distinct: string[] = []
                   s.tokens.forEach(t => { if (t.t === 'swap' && !distinct.includes(t.en)) distinct.push(t.en) })
                   const colFor = (en: string) => PAL[Math.max(0, distinct.indexOf(en)) % PAL.length]
@@ -886,36 +894,50 @@ export default function PresentPage() {
                   })
                   // the full English text the Listen button reads aloud (gaps filled)
                   const spoken = s.tokens.map(t => (t.t === 'text' ? t.v : t.en)).join('')
+                  const TAJ = "'Tajawal', sans-serif"
                   return (
-                    <div className="w-full max-w-[92vw] max-h-full overflow-y-auto flex flex-col items-center gap-[clamp(12px,2.2vh,28px)] py-[1vh]">
-                      {/* listen button + task line */}
-                      <div className="flex flex-wrap items-center justify-center gap-[clamp(12px,1.6vw,32px)]">
+                    <div className="flex flex-col items-center gap-[clamp(16px,2.6vh,34px)] max-h-full overflow-y-auto px-[1vw]" style={{ width: 'min(1120px,92vw)' }}>
+                      {/* header — play control + titles */}
+                      <div className="flex items-center gap-[clamp(14px,1.5vw,26px)] self-stretch">
                         <ListenButton text={spoken} />
-                        <div dir="rtl" className="flex flex-col items-start font-bold" style={{ fontFamily: "'Tajawal', sans-serif", color: '#a16207' }}>
-                          <span className="flex items-center gap-1.5" style={{ fontSize: 'clamp(13px,1.25vw,22px)' }}><Headphones size={20} className="text-yellow-600" /> استمع واملأ الفراغات</span>
-                          <span className="flex items-center gap-1.5" style={{ fontSize: 'clamp(12px,1.1vw,19px)', color: '#78716c' }}><Mic size={17} className="text-yellow-600" /><Video size={18} className="text-yellow-600" /> ثم سجّل نفسك صوتاً أو فيديو</span>
+                        <div className="flex flex-col gap-[0.3vh] min-w-0">
+                          <div className="flex items-baseline gap-2.5 font-black tracking-tight" style={{ color: DARK, fontSize: 'clamp(20px,2vw,36px)' }}>
+                            Listening<span dir="rtl" className="text-amber-600" style={{ fontFamily: TAJ }}>الاستماع</span>
+                          </div>
+                          <div dir="rtl" className="flex items-center gap-2 font-bold text-stone-400" style={{ fontFamily: TAJ, fontSize: 'clamp(12px,1.05vw,18px)' }}>
+                            <span>استمع واملأ الفراغات</span>
+                            <span className="text-stone-300">·</span>
+                            <span className="inline-flex items-center gap-1.5"><Mic size={15} className="text-amber-500" /><Video size={16} className="text-amber-500" /> ثم سجّل نفسك</span>
+                          </div>
                         </div>
                       </div>
-                      {/* the cloze paragraph — BIG, the hero of the slide */}
-                      <div className="rounded-[clamp(20px,2vw,36px)] bg-white ring-1 ring-stone-200 shadow-[0_24px_60px_-26px_rgba(42,29,18,0.55)] px-[clamp(20px,4vw,72px)] py-[clamp(20px,3.6vh,56px)] w-full">
-                        <p dir="ltr" className="font-bold text-center" style={{ color: DARK, fontSize: 'clamp(22px,3vw,56px)', lineHeight: 2.1 }}>
+
+                      {/* the cloze paragraph — the hero card */}
+                      <div className="relative self-stretch rounded-[clamp(22px,2.2vw,40px)] bg-white px-[clamp(26px,4.6vw,76px)] py-[clamp(26px,4.4vh,60px)] ring-1 ring-stone-200/70 shadow-[0_34px_90px_-46px_rgba(42,29,18,0.6)]">
+                        <span aria-hidden className="absolute select-none font-black leading-none text-amber-200/70" style={{ left: 'clamp(12px,1.4vw,28px)', top: 'clamp(2px,0.4vh,12px)', fontSize: 'clamp(44px,5vw,96px)' }}>“</span>
+                        <p dir="ltr" className="relative text-center" style={{ color: DARK, fontSize: 'clamp(21px,2.55vw,48px)', lineHeight: 1.95, fontWeight: 600 }}>
                           {s.tokens.map((t, ti) => {
                             if (t.t === 'text') return <span key={ti}>{t.v}</span>
-                            if (t.t === 'swap') return <span key={ti} className="font-black" style={{ color: colFor(t.en), textDecoration: 'underline dotted', textUnderlineOffset: '0.4em' }}>{t.en}</span>
+                            if (t.t === 'swap') return (
+                              <span key={ti} className="font-extrabold" style={{ color: colFor(t.en), textDecorationLine: 'underline', textDecorationStyle: 'dotted', textDecorationColor: colFor(t.en) + '66', textUnderlineOffset: '0.3em' }}>{t.en}</span>
+                            )
                             const shown = step > t.n
                             return shown
-                              ? <span key={ti} className="px-[0.35em] mx-[0.12em] rounded-xl font-black text-[#2a1d12] align-baseline" style={{ background: '#facc15' }}>{t.en}</span>
-                              : <span key={ti} className="mx-[0.12em] font-black text-transparent align-baseline" style={{ borderBottom: '0.12em dashed #fbbf24' }}>{t.en}</span>
+                              ? <span key={ti} className="inline-block align-middle mx-[0.16em] rounded-full font-black text-[#2a1d12]" style={{ padding: '0.04em 0.55em', background: 'linear-gradient(135deg,#fde68a,#fbbf24)', boxShadow: '0 8px 18px -8px rgba(217,119,6,0.65)' }}>{t.en}</span>
+                              : <span key={ti} className="inline-block align-middle mx-[0.16em] rounded-full font-black text-transparent select-none" style={{ padding: '0.04em 0.55em', background: '#fffbeb', border: '2px dashed #f59e0b' }}>{t.en}</span>
                           })}
                         </p>
                       </div>
-                      {/* swap legend — the coloured words you may change */}
-                      <div className="flex flex-wrap items-center justify-center gap-[clamp(8px,1vw,18px)]">
-                        <span dir="rtl" className="font-bold text-stone-400" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: 'clamp(12px,1.1vw,19px)' }}>كلمات يمكنك تغييرها لتكوين فقرتك:</span>
+
+                      {/* legend — the coloured words you may change */}
+                      <div className="flex flex-wrap items-center justify-center gap-[clamp(8px,0.9vw,16px)]">
+                        <span dir="rtl" className="font-bold text-stone-400" style={{ fontFamily: TAJ, fontSize: 'clamp(12px,1.05vw,18px)' }}>كلمات يمكنك تغييرها لتكوين فقرتك:</span>
                         {legend.map(l => (
-                          <span key={l.en} className="rounded-xl bg-white ring-1 ring-stone-200 px-[clamp(8px,1.1vw,18px)] py-[clamp(5px,0.8vh,12px)] font-bold" style={{ fontSize: 'clamp(13px,1.2vw,21px)' }}>
+                          <span key={l.en} className="inline-flex items-center gap-2 rounded-full bg-white px-[clamp(10px,1.1vw,18px)] py-[clamp(5px,0.7vh,11px)] font-bold border" style={{ fontSize: 'clamp(12px,1.1vw,19px)', borderColor: l.col + '33', boxShadow: '0 6px 16px -10px rgba(0,0,0,0.3)' }}>
+                            <span className="w-2 h-2 rounded-full shrink-0" style={{ background: l.col }} />
                             <span className="font-black" style={{ color: l.col }}>{l.en}</span>
-                            <span className="text-stone-400"> → {l.alts.join(' · ')}</span>
+                            <span className="text-stone-300">→</span>
+                            <span className="text-stone-400">{l.alts.join(' · ')}</span>
                           </span>
                         ))}
                       </div>
