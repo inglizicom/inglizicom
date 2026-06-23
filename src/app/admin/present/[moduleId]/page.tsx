@@ -936,7 +936,7 @@ export default function PresentPage() {
                     else { setWrongPick(k); setTimeout(() => setWrongPick(c => (c === k ? null : c)), 850) }
                   }
                   return (
-                    <div className="flex flex-col gap-[clamp(14px,2.3vh,30px)] max-h-full overflow-y-auto" style={{ width: 'min(1220px,95vw)' }}>
+                    <div className="flex flex-col gap-[clamp(16px,2.6vh,36px)] max-h-full overflow-y-auto" style={{ width: 'min(1380px,96vw)' }}>
                       {/* header — play control + title */}
                       <div className="flex items-center gap-[clamp(14px,1.5vw,26px)]">
                         <PlayBtn state={tts.stateOf('listen')} onClick={() => tts.play(spoken, 'listen')} size={78} label="Listen" />
@@ -953,22 +953,23 @@ export default function PresentPage() {
                       </div>
 
                       {/* body — paragraph (left) + missing-words box (right) */}
-                      <div className="grid items-stretch gap-[clamp(14px,1.8vw,32px)]" style={{ gridTemplateColumns: 'minmax(0,1.7fr) minmax(0,1fr)' }}>
+                      <div className="grid items-stretch gap-[clamp(18px,2.4vw,44px)]" style={{ gridTemplateColumns: 'minmax(0,2fr) minmax(0,1fr)' }}>
                         {/* LEFT — the cloze paragraph */}
-                        <div className="rounded-[clamp(20px,2vw,34px)] bg-white px-[clamp(22px,3vw,54px)] py-[clamp(22px,3.4vh,48px)] ring-1 ring-stone-200/70 shadow-[0_30px_80px_-46px_rgba(42,29,18,0.55)]">
-                          <p dir="ltr" className="text-left" style={{ color: DARK, fontSize: 'clamp(20px,2.25vw,40px)', lineHeight: 2.15, fontWeight: 600 }}>
+                        <div className="rounded-[clamp(20px,2vw,34px)] bg-white px-[clamp(26px,3.4vw,64px)] py-[clamp(28px,4.2vh,60px)] ring-1 ring-stone-200/70 shadow-[0_30px_80px_-46px_rgba(42,29,18,0.55)]">
+                          <p dir="ltr" className="text-left" style={{ color: DARK, fontSize: 'clamp(18px,1.9vw,32px)', lineHeight: 2.5, fontWeight: 600 }}>
                             {s.tokens.map((t, ti) => {
                               if (t.t === 'gap') {
-                                if (filled > t.n) return (   // filled → yellow background, brown font
-                                  <motion.span key={ti} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 360, damping: 22 }}
-                                    className="inline-block align-middle mx-[0.14em] rounded-lg font-black" style={{ padding: '0.03em 0.5em', background: '#facc15', color: BROWN, boxShadow: '0 6px 16px -9px rgba(217,119,6,0.6)' }}>{t.en}</motion.span>
+                                if (filled > t.n) return (   // filled → yellow pill, brown font (snaps in)
+                                  <motion.span key={ti} initial={{ scale: 0.82, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 360, damping: 22 }}
+                                    className="inline-block align-baseline mx-[0.12em] rounded-md font-black" style={{ padding: '0.05em 0.5em', background: '#facc15', color: BROWN, boxShadow: '0 5px 14px -8px rgba(217,119,6,0.6)' }}>{t.en}</motion.span>
                                 )
-                                const active = t.n === filled   // the next gap to fill → highlight it
+                                const active = t.n === filled   // the next gap to fill → highlight its underline
                                 return (
-                                  <span key={ti} className="inline-block align-middle mx-[0.14em] rounded-lg font-black text-transparent select-none" style={{
-                                    padding: '0.03em 0.5em', background: active ? '#fff7e0' : '#f6efe2',
-                                    border: active ? '2px solid #f59e0b' : '2px dashed #c9ad7e',
-                                    boxShadow: active ? '0 0 0 4px rgba(245,158,11,0.18)' : 'none',
+                                  <span key={ti} className="inline-block align-baseline mx-[0.12em] font-black text-transparent select-none" style={{
+                                    padding: '0 0.4em',
+                                    borderBottom: active ? '3px solid #f59e0b' : '3px dashed #cbb389',
+                                    background: active ? 'rgba(245,158,11,0.12)' : 'transparent',
+                                    borderRadius: active ? '4px 4px 0 0' : 0,
                                   }}>{t.en}</span>
                                 )
                               }
@@ -988,21 +989,21 @@ export default function PresentPage() {
                               <motion.span key={wrongPick} initial={{ opacity: 0, x: 6 }} animate={{ opacity: 1, x: 0 }} dir="rtl" className="ml-auto font-black text-rose-300" style={{ fontFamily: TAJ, fontSize: 'clamp(12px,1vw,17px)' }}>حاول مرة أخرى</motion.span>
                             )}
                           </div>
-                          <div className="flex flex-wrap gap-[clamp(8px,0.9vw,14px)] content-start">
+                          <div className="grid grid-cols-2 gap-[clamp(8px,0.9vw,16px)] content-start">
                             {s.bank.map((w, k) => {
                               const used = filled > w.n
                               const isWrong = wrongPick === k
                               return (
                                 <motion.button key={k} onClick={() => pick(w, k)} disabled={used}
                                   animate={isWrong ? { x: [0, -7, 7, -7, 7, 0] } : { x: 0 }} transition={{ duration: 0.4 }}
-                                  className="inline-flex items-center gap-1.5 rounded-xl font-black transition-colors duration-300 disabled:cursor-default cursor-pointer" style={{
-                                    fontSize: 'clamp(14px,1.4vw,24px)', padding: 'clamp(6px,0.9vh,12px) clamp(11px,1.2vw,20px)',
+                                  className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl font-black leading-tight transition-colors duration-300 disabled:cursor-default cursor-pointer" style={{
+                                    fontSize: 'clamp(13px,1.3vw,23px)', padding: 'clamp(8px,1.1vh,15px) clamp(8px,1vw,16px)',
                                     background: used ? 'rgba(250,204,21,0.12)' : isWrong ? '#fecdd3' : '#faf6ef',
                                     color: used ? '#b59a5e' : isWrong ? '#9f1239' : BROWN,
                                     textDecoration: used ? 'line-through' : 'none', opacity: used ? 0.6 : 1,
                                     boxShadow: used ? 'none' : '0 8px 18px -10px rgba(0,0,0,0.55)',
                                   }}>
-                                  {used && <Check size={16} className="text-yellow-400" />}{w.en}
+                                  {used && <Check size={16} className="text-yellow-400 shrink-0" />}{w.en}
                                 </motion.button>
                               )
                             })}
