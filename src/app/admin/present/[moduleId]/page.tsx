@@ -956,20 +956,21 @@ export default function PresentPage() {
                       <div className="grid items-stretch gap-[clamp(18px,2.4vw,44px)]" style={{ gridTemplateColumns: 'minmax(0,2fr) minmax(0,1fr)' }}>
                         {/* LEFT — the cloze paragraph */}
                         <div className="rounded-[clamp(20px,2vw,34px)] bg-white px-[clamp(26px,3.4vw,64px)] py-[clamp(28px,4.2vh,60px)] ring-1 ring-stone-200/70 shadow-[0_30px_80px_-46px_rgba(42,29,18,0.55)]">
-                          <p dir="ltr" className="text-left" style={{ color: DARK, fontSize: 'clamp(18px,1.9vw,32px)', lineHeight: 2.5, fontWeight: 600 }}>
+                          <p dir="ltr" className="text-left" style={{ color: DARK, fontSize: 'clamp(18px,1.9vw,32px)', lineHeight: 2.05, fontWeight: 600 }}>
                             {s.tokens.map((t, ti) => {
                               if (t.t === 'gap') {
-                                if (filled > t.n) return (   // filled → yellow pill, brown font (snaps in)
-                                  <motion.span key={ti} initial={{ scale: 0.82, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 360, damping: 22 }}
-                                    className="inline-block align-baseline mx-[0.12em] rounded-md font-black" style={{ padding: '0.05em 0.5em', background: '#facc15', color: BROWN, boxShadow: '0 5px 14px -8px rgba(217,119,6,0.6)' }}>{t.en}</motion.span>
+                                // filled → INLINE highlight (background hugs the text, no vertical
+                                // padding box) so it can never overlap the lines above/below.
+                                if (filled > t.n) return (
+                                  <motion.span key={ti} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25 }}
+                                    className="font-black" style={{ background: '#facc15', color: BROWN, padding: '0.08em 0.35em', borderRadius: '6px', boxDecorationBreak: 'clone', WebkitBoxDecorationBreak: 'clone' }}>{t.en}</motion.span>
                                 )
                                 const active = t.n === filled   // the next gap to fill → highlight its underline
                                 return (
-                                  <span key={ti} className="inline-block align-baseline mx-[0.12em] font-black text-transparent select-none" style={{
-                                    padding: '0 0.4em',
+                                  <span key={ti} className="font-black text-transparent select-none" style={{
+                                    padding: '0 0.5em',
                                     borderBottom: active ? '3px solid #f59e0b' : '3px dashed #cbb389',
-                                    background: active ? 'rgba(245,158,11,0.12)' : 'transparent',
-                                    borderRadius: active ? '4px 4px 0 0' : 0,
+                                    background: active ? 'rgba(245,158,11,0.14)' : 'transparent',
                                   }}>{t.en}</span>
                                 )
                               }
