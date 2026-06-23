@@ -453,7 +453,7 @@ function ListenButton({ text }: { text: string }) {
     if (state !== 'idle') { stop(); return }
     setState('loading')
     try {
-      const res = await fetch('/api/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) })
+      const res = await fetch('/api/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, provider: 'google' }) })
       if (!res.ok) throw new Error('tts')
       const blob = await res.blob()
       if (urlRef.current) URL.revokeObjectURL(urlRef.current)

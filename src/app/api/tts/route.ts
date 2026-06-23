@@ -26,20 +26,75 @@ export async function OPTIONS(req: Request) {
   return new NextResponse(null, { status: 204, headers: corsHeaders(req.headers.get('origin')) })
 }
 
+/* ── Google Gemini TTS ─────────────────────────────────────────────────────
+ * The preview TTS model returns raw signed 16-bit PCM (mono, 24 kHz), which
+ * browsers can't play directly — wrap it in a minimal WAV container. */
+const GEMINI_VOICE = 'Kore'           // clear, friendly neural voice
+const GEMINI_MODEL = 'gemini-2.5-flash-preview-tts'
+
+function pcmToWav(pcm: Buffer, sampleRate = 24000, channels = 1, bits = 16): Buffer {
+  const blockAlign = (channels * bits) >> 3
+  const byteRate = sampleRate * blockAlign
+  const h = Buffer.alloc(44)
+  h.write('RIFF', 0); h.writeUInt32LE(36 + pcm.length, 4); h.write('WAVE', 8)
+  h.write('fmt ', 12); h.writeUInt32LE(16, 16); h.writeUInt16LE(1, 20)
+  h.writeUInt16LE(channels, 22); h.writeUInt32LE(sampleRate, 24)
+  h.writeUInt32LE(byteRate, 28); h.writeUInt16LE(blockAlign, 32); h.writeUInt16LE(bits, 34)
+  h.write('data', 36); h.writeUInt32LE(pcm.length, 40)
+  return Buffer.concat([h, pcm])
+}
+
+/** Returns a ready-to-play WAV buffer, or null if Gemini gave no audio. */
+async function googleTTS(text: string): Promise<Buffer | null> {
+  const key = process.env.GEMINI_API_KEY
+  if (!key) return null
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`, {
+    method: 'POST',
+    headers: { 'x-goog-api-key': key, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text }] }],
+      generationConfig: {
+        responseModalities: ['AUDIO'],
+        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: GEMINI_VOICE } } },
+      },
+    }),
+  })
+  if (!res.ok) { console.error('[/api/tts] Gemini HTTP', res.status); return null }
+  const data = await res.json()
+  const parts = data?.candidates?.[0]?.content?.parts as Array<{ inlineData?: { data?: string; mimeType?: string } }> | undefined
+  const audio = parts?.find(p => p.inlineData?.data)?.inlineData
+  if (!audio?.data) return null
+  // honour the sample rate the model reports (rate=NNNN in the mime type)
+  const rate = parseInt(audio.mimeType?.match(/rate=(\d+)/)?.[1] ?? '24000', 10) || 24000
+  return pcmToWav(Buffer.from(audio.data, 'base64'), rate)
+}
+
 export async function POST(req: Request) {
   const origin = req.headers.get('origin')
   const cors = corsHeaders(origin)
 
-  let text = ''
+  let text = '', provider = ''
   try {
     const body = await req.json()
     text = typeof body.text === 'string' ? body.text.trim() : ''
+    provider = typeof body.provider === 'string' ? body.provider : ''
   } catch {
     return NextResponse.json({ error: 'Invalid body' }, { status: 400, headers: cors })
   }
 
   if (!text) return NextResponse.json({ error: 'text required' }, { status: 400, headers: cors })
   if (text.length > 500) text = text.slice(0, 500)
+
+  // Preferred: Google Gemini neural voice (when requested + key present).
+  // Falls through to OpenAI below if Gemini is unavailable or returns no audio.
+  if (provider === 'google') {
+    try {
+      const wav = await googleTTS(text)
+      if (wav) return new NextResponse(new Uint8Array(wav), { status: 200, headers: { ...cors, 'Content-Type': 'audio/wav', 'Cache-Control': CACHE } })
+    } catch (err) {
+      console.error('[/api/tts] Gemini error:', err)
+    }
+  }
 
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
