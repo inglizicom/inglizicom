@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Loader2, Play, Presentation, Download, MessageSquareQuote } from 'lucide-react'
+import { Loader2, Play, Presentation, Download, MessageSquareQuote, Pencil } from 'lucide-react'
 import { fetchModules, type LmsModule } from '@/lib/lms'
 
 const COURSE_ID = '53f91433-429b-473e-87e6-20739206a3e3' // RealLife English — الإنجليزية للمواقف اليومية
@@ -36,10 +36,13 @@ export default function PresentIndexPage() {
       </div>
 
       {/* Language Functions deck (opinions · agreeing · suggestions · preferences) */}
-      <Link href="/admin/present/functions" className="flex items-center justify-between rounded-xl border-2 border-amber-300 bg-amber-50 px-4 py-3 mb-4 hover:border-yellow-400 transition">
+      <div className="flex items-center justify-between rounded-xl border-2 border-amber-300 bg-amber-50 px-4 py-3 mb-4">
         <span className="flex items-center gap-2 font-bold text-[14px] text-amber-900"><MessageSquareQuote size={18} className="text-yellow-600" /> وظائف اللغة — Language Functions</span>
-        <span className="flex items-center gap-1.5 text-[12px] font-bold text-yellow-700"><Play size={14} /> Launch deck</span>
-      </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/admin/present/functions/edit" className="flex items-center gap-1.5 text-[12px] font-bold text-stone-500 hover:text-stone-800"><Pencil size={13} /> Edit</Link>
+          <Link href="/admin/present/functions" className="flex items-center gap-1.5 text-[12px] font-bold text-yellow-700 hover:text-yellow-800"><Play size={14} /> Launch deck</Link>
+        </div>
+      </div>
 
       {loading ? (
         <div className="flex items-center gap-2 text-zinc-400"><Loader2 className="animate-spin" size={18} /> Loading units…</div>

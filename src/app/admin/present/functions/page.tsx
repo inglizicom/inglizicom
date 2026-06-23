@@ -9,16 +9,18 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react'
-import { FUNCTIONS } from '@/data/functions'
+import { ChevronLeft, ChevronRight, ArrowLeft, Pencil } from 'lucide-react'
+import { fetchFunctions, type LangFunction } from '@/lib/functions'
 
 const DARK = '#2a1d12'
 const CREAM = '#faf6ef'
 
 export default function FunctionsDeck() {
+  const [funcs, setFuncs] = useState<LangFunction[]>([])
   const [idx, setIdx] = useState(0)
-  const fn = FUNCTIONS[idx]
-  const last = FUNCTIONS.length - 1
+  useEffect(() => { fetchFunctions().then(setFuncs) }, [])
+  const fn = funcs[idx]
+  const last = funcs.length - 1
   const go = useCallback((d: number) => setIdx(i => Math.min(last, Math.max(0, i + d))), [last])
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -28,6 +30,10 @@ export default function FunctionsDeck() {
     window.addEventListener('keydown', onKey); return () => window.removeEventListener('keydown', onKey)
   }, [go])
 
+  if (!fn) return (
+    <div style={{ background: CREAM, color: DARK }} className="fixed inset-0 z-[100] flex items-center justify-center font-black">…</div>
+  )
+
   return (
     <div style={{ fontFamily: "'Outfit', 'DM Sans', sans-serif", background: CREAM, color: DARK }} className="fixed inset-0 z-[100] flex flex-col select-none overflow-hidden">
       <div className="pointer-events-none absolute -top-[20vw] -right-[15vw] w-[45vw] h-[45vw] rounded-full bg-yellow-200/30 blur-3xl" />
@@ -35,8 +41,9 @@ export default function FunctionsDeck() {
       {/* header */}
       <div className="relative z-30 flex items-center justify-center gap-2 px-[3vw] pt-[2.6vh]">
         <Link href="/admin/present" className="absolute left-[3vw] top-[2.6vh] flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-stone-300 bg-white text-stone-600 hover:bg-stone-100 transition text-[0.9vw] font-bold"><ArrowLeft size={15} /> الديكات</Link>
+        <Link href="/admin/present/functions/edit" className="absolute right-[3vw] top-[2.6vh] flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-stone-300 bg-white text-stone-600 hover:bg-stone-100 transition text-[0.9vw] font-bold"><Pencil size={14} /> تعديل</Link>
         <span className="px-3.5 py-1.5 rounded-xl text-white font-black" style={{ background: DARK }}>Language Functions · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>وظائف اللغة</span></span>
-        <span className="px-3.5 py-1.5 rounded-xl font-black text-[#2a1d12]" style={{ background: '#facc15' }}>{idx + 1} / {FUNCTIONS.length}</span>
+        <span className="px-3.5 py-1.5 rounded-xl font-black text-[#2a1d12]" style={{ background: '#facc15' }}>{idx + 1} / {funcs.length}</span>
       </div>
 
       {/* side-click nav */}
@@ -95,7 +102,7 @@ export default function FunctionsDeck() {
       <div className="flex items-center justify-between px-[4vw] pb-[2.5vh] relative z-10">
         <button onClick={() => go(-1)} disabled={idx === 0} className="text-stone-300 hover:text-stone-700 disabled:opacity-0 transition"><ChevronLeft size={26} /></button>
         <div className="flex gap-1.5 items-center">
-          {FUNCTIONS.map((_, i) => (<span key={i} className="h-1.5 rounded-full transition-all duration-300" style={{ width: i === idx ? 32 : 6, background: i === idx ? '#facc15' : '#d6d3d1' }} />))}
+          {funcs.map((_, i) => (<span key={i} className="h-1.5 rounded-full transition-all duration-300" style={{ width: i === idx ? 32 : 6, background: i === idx ? '#facc15' : '#d6d3d1' }} />))}
         </div>
         <button onClick={() => go(1)} disabled={idx === last} className="text-stone-300 hover:text-stone-700 disabled:opacity-0 transition"><ChevronRight size={26} /></button>
       </div>

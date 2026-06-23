@@ -1,7 +1,9 @@
 /**
  * Language Functions — curated A1/A2 functional-language lessons (bilingual).
- * Single source of truth for the "Functions" teaching deck. Kept here (versioned,
- * editable) for now; can be synced to Supabase + a CRM editor later.
+ * The live content now lives in the `language_functions` DB table (migration 033)
+ * and is edited at /admin/present/functions/edit. This file is the offline
+ * FALLBACK + initial seed: the deck/editor use it only when the table is empty
+ * or unreachable (see src/lib/functions.ts).
  */
 export type FnLine = { en: string; ar: string }
 export type FnGroup = { label: string; ar: string; lines: FnLine[] }
