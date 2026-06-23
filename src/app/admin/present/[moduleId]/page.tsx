@@ -772,27 +772,16 @@ export default function PresentPage() {
                   )
                 })()}
 
-                {s.kind === 'speak' && (
-                  <div className="w-full max-w-[80vw] flex flex-col items-center gap-[2.6vh] text-center">
-                    <div className="flex items-center gap-[1vw]">
-                      <span className="text-[2.6vw]">🎤</span>
-                      <h2 className="font-black" style={{ color: DARK, fontSize: '2.6vw' }}>Your turn — speak!</h2>
+                {s.kind === 'speak' && (() => {
+                  const topic = s.topic.includes(':') ? s.topic.split(':').pop()!.trim() : s.topic
+                  return (
+                    <div className="w-full max-w-[80vw] flex flex-col items-center gap-[3.5vh] text-center">
+                      <div className="text-[5.5vw] leading-none">🎤</div>
+                      <h2 className="font-black leading-tight" style={{ color: DARK, fontSize: '3.6vw' }}>Speak for one minute about {topic}.</h2>
+                      <div dir="rtl" className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.9vw' }}>تحدّث لمدة دقيقة عن هذا الموضوع.</div>
                     </div>
-                    <div dir="rtl" className="font-bold text-stone-600" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.5vw' }}>
-                      تحدّث لمدة دقيقة عن «{s.topic}» — استعمل الأفعال والتعابير التالية والقوالب أدناه.
-                    </div>
-                    <div dir="ltr" className="flex flex-wrap items-center justify-center gap-[0.9vw]">
-                      {s.cues.map((c, k) => (
-                        <span key={k} className="rounded-2xl bg-yellow-400 text-[#2a1d12] font-black px-[1.4vw] py-[1vh] shadow-sm" style={{ fontSize: '1.3vw' }}>{c.en}</span>
-                      ))}
-                    </div>
-                    <div className="flex flex-wrap items-center justify-center gap-[1vw] text-white" dir="ltr">
-                      {['I always ___ in the morning.', 'First I ___, then I ___.', 'Sometimes I ___ at night.'].map((f, k) => (
-                        <span key={k} className="rounded-2xl px-[1.6vw] py-[1.1vh] font-black" style={{ background: DARK, fontSize: '1.2vw' }}>{f}</span>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                  )
+                })()}
 
                 {s.kind === 'end' && (
                   <div className="text-center">
