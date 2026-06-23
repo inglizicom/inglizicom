@@ -11,7 +11,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RotateCcw, Loader2, Globe, Instagram, Youtube, GraduationCap, Phone, Maximize2, Minimize2, ZoomIn, ZoomOut } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RotateCcw, Loader2, Globe, Instagram, Youtube, GraduationCap, Phone, Maximize2, Minimize2, ZoomIn, ZoomOut, Headphones, Mic, Video } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { fetchLessons, fetchModules, type LmsLesson } from '@/lib/lms'
 import { type Variation } from '@/lib/deck-vary'
@@ -32,8 +32,17 @@ type Slide =
   | { kind: 'scramble'; sentences: string[] }
   | { kind: 'translate'; items: { ar: string; en: string }[] }
   | { kind: 'review'; items: VocabPair[] }
+  | { kind: 'listening'; tokens: LToken[]; gaps: number }
   | { kind: 'speak'; topic: string }
   | { kind: 'end' }
+
+// Listening paragraph tokens: fixed scaffolding text, a GAP the student fills
+// while listening (revealed step-by-step), or a colored SWAP word they may
+// change to build a different paragraph for their recording.
+type LToken =
+  | { t: 'text'; v: string }
+  | { t: 'gap'; en: string; ar: string; n: number }
+  | { t: 'swap'; en: string; ar: string; alts: string[] }
 
 const SECTION: Record<Slide['kind'], { en: string; ar: string } | null> = {
   title: null, end: null,
@@ -45,6 +54,7 @@ const SECTION: Record<Slide['kind'], { en: string; ar: string } | null> = {
   scramble: { en: 'Word Scramble', ar: 'رتّب الكلمات' },
   translate: { en: 'Translate', ar: 'ترجم الجملة' },
   review: { en: 'Review', ar: 'مراجعة' },                  // key words + verbs recap
+  listening: { en: 'Listening', ar: 'الاستماع' },          // cloze paragraph → record it
   speak: { en: 'Speaking', ar: 'تحدّث' },                  // production task
 }
 
@@ -350,6 +360,34 @@ const slideV = {
 const item = { enter: { opacity: 0, y: 12 }, center: { opacity: 1, y: 0, transition: { duration: 0.35 } } }
 
 /* ── end-of-unit practice builders ─────────────────────────── */
+// Sequence connectors that open each sentence of the Listening paragraph. They
+// are the COLORED, swappable words — each carries alternatives so the student
+// can re-tell the paragraph their own way when they record it.
+const CONNECTORS: { en: string; ar: string; alts: string[] }[] = [
+  { en: 'First', ar: 'أولاً', alts: ['To start', 'In the morning'] },
+  { en: 'Then', ar: 'ثم', alts: ['Next', 'After that'] },
+  { en: 'After that', ar: 'بعد ذلك', alts: ['Then', 'Later'] },
+  { en: 'Next', ar: 'بعد ذلك', alts: ['Then', 'After that'] },
+  { en: 'Finally', ar: 'في النهاية', alts: ['In the end', 'At last'] },
+]
+/** Build a first-person cloze paragraph from the unit's "I …" sentences: each
+ *  sentence becomes a colored connector (swap) + "I " + the verb phrase as a GAP
+ *  the student fills while listening. The completed paragraph is then their
+ *  speaking/recording exercise. Needs ≥2 first-person sentences, else null. */
+function buildListening(statics: VocabPair[]): { tokens: LToken[]; gaps: number } | null {
+  const items = statics.filter(s => /^\s*I\s+/i.test(s.en)).slice(0, 5)
+  if (items.length < 2) return null
+  const tokens: LToken[] = []
+  let n = 0
+  items.forEach((s, i) => {
+    const c = CONNECTORS[Math.min(i, CONNECTORS.length - 1)]
+    tokens.push({ t: 'swap', en: c.en, ar: c.ar, alts: c.alts })
+    tokens.push({ t: 'text', v: ', I ' })
+    tokens.push({ t: 'gap', en: verbPhrase(s.en), ar: s.ar, n: n++ })
+    tokens.push({ t: 'text', v: '. ' })
+  })
+  return { tokens, gaps: n }
+}
 const stripEnd = (s: string) => s.replace(/[.!?]+$/, '').trim()
 /** Short, clean sentences (3–8 words) from the conversation + vocab, deduped. */
 function buildScramble(convo: { who: string; text: string }[], vocab: VocabPair[]): string[] {
@@ -470,6 +508,10 @@ export default function PresentPage() {
     if (isCat) cats.flatMap(c => c.items).forEach(pushR)                 // single words (category units)
     statics.forEach(s => pushR({ en: verbPhrase(s.en), ar: s.ar }))      // verbs / expressions
     if (review.length >= 3) out.push({ kind: 'review', items: review })
+    // ── Listening: a ready-made cloze paragraph (fill the gaps while listening),
+    //    which then becomes the student's speaking/recording exercise ──
+    const listening = buildListening(statics)
+    if (listening) out.push({ kind: 'listening', tokens: listening.tokens, gaps: listening.gaps })
     // ── Speaking: production task using those verbs/expressions ──
     if (review.length >= 3) out.push({ kind: 'speak', topic: unitName })
 
@@ -483,7 +525,7 @@ export default function PresentPage() {
   const idxRef = useRef(idx); idxRef.current = idx
   const stepRef = useRef(step); stepRef.current = step
   const stepsOf = (sl?: Slide) =>
-    !sl ? 0 : sl.kind === 'convo' ? sl.lines.length : (sl.kind === 'category' || sl.kind === 'static') ? sl.items.length : 0
+    !sl ? 0 : sl.kind === 'convo' ? sl.lines.length : (sl.kind === 'category' || sl.kind === 'static') ? sl.items.length : sl.kind === 'listening' ? sl.gaps : 0
   // Space / → / side-click first reveals the next hidden line, then advances slide.
   const go = useCallback((d: number) => {
     const max = stepsOf(slides[idxRef.current])
@@ -766,6 +808,55 @@ export default function PresentPage() {
                             <span className="font-black" style={{ color: DARK, fontSize: `${fs}vw` }}>{it.en}</span>
                             <span dir="rtl" className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: `${fs}vw` }}>{it.ar}</span>
                           </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
+
+                {s.kind === 'listening' && (() => {
+                  // each distinct changeable (swap) word gets its own colour
+                  const PAL = ['#e11d48', '#2563eb', '#7c3aed', '#0891b2', '#ea580c']
+                  const distinct: string[] = []
+                  s.tokens.forEach(t => { if (t.t === 'swap' && !distinct.includes(t.en)) distinct.push(t.en) })
+                  const colFor = (en: string) => PAL[Math.max(0, distinct.indexOf(en)) % PAL.length]
+                  const legend = distinct.map(en => {
+                    const tk = s.tokens.find(t => t.t === 'swap' && t.en === en) as Extract<LToken, { t: 'swap' }>
+                    return { en, alts: tk.alts, col: colFor(en) }
+                  })
+                  return (
+                    <div className="w-full max-w-[82vw] flex flex-col items-center gap-[2.4vh]">
+                      {/* task strip */}
+                      <div dir="rtl" className="flex items-center gap-[1.6vw] font-bold" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.15vw', color: '#a16207' }}>
+                        <span className="flex items-center gap-1.5"><Headphones size={18} className="text-yellow-600" /> استمع واملأ الفراغات</span>
+                        <span className="flex items-center gap-1.5"><Mic size={17} className="text-yellow-600" /><Video size={18} className="text-yellow-600" /> ثم سجّل نفسك صوتاً أو فيديو</span>
+                      </div>
+                      {/* the cloze paragraph */}
+                      <div className="rounded-[28px] bg-white ring-1 ring-stone-200 shadow-[0_20px_50px_-24px_rgba(42,29,18,0.5)] px-[3vw] py-[3.2vh] w-full">
+                        <p dir="ltr" className="font-bold leading-[2.5] text-center" style={{ color: DARK, fontSize: '2.05vw' }}>
+                          {s.tokens.map((t, ti) => {
+                            if (t.t === 'text') return <span key={ti}>{t.v}</span>
+                            if (t.t === 'swap') return <span key={ti} className="font-black" style={{ color: colFor(t.en), textDecoration: 'underline dotted', textUnderlineOffset: '0.35vw' }}>{t.en}</span>
+                            const shown = step > t.n
+                            return (
+                              <span key={ti} className="inline-flex flex-col items-center align-middle mx-[0.35vw]">
+                                {shown
+                                  ? <span className="px-[0.7vw] rounded-lg font-black text-[#2a1d12]" style={{ background: '#facc15' }}>{t.en}</span>
+                                  : <span className="font-black text-transparent border-b-[0.2vw] border-dashed border-amber-400">{t.en}</span>}
+                                <span dir="rtl" className="font-bold mt-[0.5vh]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.95vw', color: shown ? '#a8a29e' : '#d97706' }}>{t.ar}</span>
+                              </span>
+                            )
+                          })}
+                        </p>
+                      </div>
+                      {/* swap legend — the coloured words you may change */}
+                      <div className="flex flex-wrap items-center justify-center gap-[1vw]">
+                        <span dir="rtl" className="font-bold text-stone-400" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1vw' }}>كلمات يمكنك تغييرها لتكوين فقرتك:</span>
+                        {legend.map(l => (
+                          <span key={l.en} className="rounded-xl bg-white ring-1 ring-stone-200 px-[1vw] py-[0.7vh] font-bold" style={{ fontSize: '1.05vw' }}>
+                            <span className="font-black" style={{ color: l.col }}>{l.en}</span>
+                            <span className="text-stone-400"> → {l.alts.join(' · ')}</span>
+                          </span>
                         ))}
                       </div>
                     </div>
