@@ -31,6 +31,8 @@ type Slide =
   | { kind: 'static'; items: VocabPair[]; page: number; pages: number }
   | { kind: 'scramble'; sentences: string[] }
   | { kind: 'translate'; items: { ar: string; en: string }[] }
+  | { kind: 'review'; items: VocabPair[] }
+  | { kind: 'speak'; topic: string; cues: VocabPair[] }
   | { kind: 'end' }
 
 const SECTION: Record<Slide['kind'], { en: string; ar: string } | null> = {
@@ -42,6 +44,8 @@ const SECTION: Record<Slide['kind'], { en: string; ar: string } | null> = {
   static: { en: 'Expressions', ar: 'التعابير' },          // full sentences that use the vocabulary
   scramble: { en: 'Word Scramble', ar: 'رتّب الكلمات' },
   translate: { en: 'Translate', ar: 'ترجم الجملة' },
+  review: { en: 'Review', ar: 'مراجعة' },                  // key words + verbs recap
+  speak: { en: 'Speaking', ar: 'تحدّث' },                  // production task
 }
 
 /* ── parsers ───────────────────────────────────────────────── */
@@ -137,13 +141,16 @@ function parseExpr(content?: string | null): { pattern: string; example: string 
  * taught (verb phrases + their teacher-authored Arabic). The "wrong" options are a
  * tiny shared pool of TIME/manner words (with correct Arabic) — placing one bounces
  * back with an explanation, so the slide teaches what belongs in the blank. */
+// Time adverbials that read correctly in EVERY frame ("I always ___ ___",
+// "I don't ___ ___", "Sometimes I ___ ___"). Frequency words like "twice a day"
+// only fit some verbs, so they're kept out to stay pedagogically clean.
 const TIME_WORDS: VocabPair[] = [
   { en: 'in the morning', ar: 'في الصباح' },
+  { en: 'in the afternoon', ar: 'بعد الظهر' },
   { en: 'in the evening', ar: 'في المساء' },
   { en: 'at night', ar: 'في الليل' },
   { en: 'every day', ar: 'كل يوم' },
-  { en: 'twice a day', ar: 'مرتين في اليوم' },
-  { en: 'after meals', ar: 'بعد الوجبات' },
+  { en: 'on weekends', ar: 'في عطلة الأسبوع' },
 ]
 const shuffle = <T,>(a: T[]): T[] => [...a].sort(() => Math.random() - 0.5)
 /** Strip a leading subject ("I ") and any "/ alternative" so a full sentence
@@ -456,6 +463,16 @@ export default function PresentPage() {
     if (scrambleS.length >= 2) out.push({ kind: 'scramble', sentences: scrambleS })
     const trans = buildTranslations(exVocab)
     if (trans.length >= 2) out.push({ kind: 'translate', items: trans })
+
+    // ── Review: a recap box of the unit's key words + verbs/expressions ──
+    const review: VocabPair[] = []; const seenR = new Set<string>()
+    const pushR = (p: VocabPair) => { const k = p.en.toLowerCase(); if (p.en && p.ar && !seenR.has(k)) { seenR.add(k); review.push(p) } }
+    if (isCat) cats.flatMap(c => c.items).forEach(pushR)                 // single words (category units)
+    statics.forEach(s => pushR({ en: verbPhrase(s.en), ar: s.ar }))      // verbs / expressions
+    if (review.length >= 3) out.push({ kind: 'review', items: review })
+    // ── Speaking: production task using those verbs/expressions ──
+    if (review.length >= 3) out.push({ kind: 'speak', topic: unitName, cues: review.slice(0, 10) })
+
     out.push({ kind: 'end' })
     return out
   }, [lessons, reading, unitName])
@@ -732,6 +749,51 @@ export default function PresentPage() {
                 {s.kind === 'scramble' && <ScrambleSlide sentences={s.sentences} />}
                 {s.kind === 'translate' && <TranslateSlide items={s.items} />}
 
+                {s.kind === 'review' && (() => {
+                  const n = s.items.length
+                  const cols = n <= 8 ? 2 : 3
+                  const fs = n <= 10 ? 1.2 : n <= 16 ? 1.05 : 0.92
+                  return (
+                    <div className="w-full max-w-[86vw] flex flex-col items-center gap-[2.4vh]">
+                      <div className="flex items-center gap-[1vw]">
+                        <span className="text-[2.4vw]">📝</span>
+                        <h2 className="font-black" style={{ color: DARK, fontSize: '2.4vw' }}>Key words & verbs</h2>
+                        <span dir="rtl" className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.7vw' }}>· الكلمات والأفعال المهمة</span>
+                      </div>
+                      <div dir="ltr" className="grid w-full gap-[1.2vw]" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
+                        {s.items.map((it, k) => (
+                          <div key={k} className="flex items-center justify-between gap-[1vw] rounded-2xl bg-white ring-1 ring-stone-200 shadow-sm px-[1.4vw] py-[1.2vh]">
+                            <span className="font-black" style={{ color: DARK, fontSize: `${fs}vw` }}>{it.en}</span>
+                            <span dir="rtl" className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: `${fs}vw` }}>{it.ar}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })()}
+
+                {s.kind === 'speak' && (
+                  <div className="w-full max-w-[80vw] flex flex-col items-center gap-[2.6vh] text-center">
+                    <div className="flex items-center gap-[1vw]">
+                      <span className="text-[2.6vw]">🎤</span>
+                      <h2 className="font-black" style={{ color: DARK, fontSize: '2.6vw' }}>Your turn — speak!</h2>
+                    </div>
+                    <div dir="rtl" className="font-bold text-stone-600" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.5vw' }}>
+                      تحدّث لمدة دقيقة عن «{s.topic}» — استعمل الأفعال والتعابير التالية والقوالب أدناه.
+                    </div>
+                    <div dir="ltr" className="flex flex-wrap items-center justify-center gap-[0.9vw]">
+                      {s.cues.map((c, k) => (
+                        <span key={k} className="rounded-2xl bg-yellow-400 text-[#2a1d12] font-black px-[1.4vw] py-[1vh] shadow-sm" style={{ fontSize: '1.3vw' }}>{c.en}</span>
+                      ))}
+                    </div>
+                    <div className="flex flex-wrap items-center justify-center gap-[1vw] text-white" dir="ltr">
+                      {['I always ___ in the morning.', 'First I ___, then I ___.', 'Sometimes I ___ at night.'].map((f, k) => (
+                        <span key={k} className="rounded-2xl px-[1.6vw] py-[1.1vh] font-black" style={{ background: DARK, fontSize: '1.2vw' }}>{f}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {s.kind === 'end' && (
                   <div className="text-center">
                     <motion.div variants={item} className="text-[6vw] mb-2">🎉</motion.div>
@@ -895,9 +957,11 @@ const SLOT_META: Record<SlotType, { en: string; ar: string; dot: string; ph: str
   time: { en: 'Time', ar: 'تعبيرات الوقت', dot: '#2563eb', ph: 'وقت' },
   link: { en: 'Linking words', ar: 'أدوات الربط', dot: '#9333ea', ph: 'رابط' },
 }
+// Sequence connectors only — they're the ones that are correct in the
+// "First I [verb], [link] I [verb]" frames. Contrast/reason words (but/because)
+// need their own frames, so they're not offered here (would build wrong sentences).
 const LINK_WORDS: VocabPair[] = [
   { en: 'and', ar: 'و' }, { en: 'then', ar: 'ثم' }, { en: 'after that', ar: 'بعد ذلك' },
-  { en: 'but', ar: 'لكن' }, { en: 'because', ar: 'لأنّ' },
 ]
 type Seg = string | { s: SlotType }
 const FRAMES: Seg[][] = [
