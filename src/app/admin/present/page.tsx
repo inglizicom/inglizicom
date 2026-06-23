@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Loader2, Play, Presentation, Download } from 'lucide-react'
+import { Loader2, Play, Presentation, Download, MessageSquareQuote } from 'lucide-react'
 import { fetchModules, type LmsModule } from '@/lib/lms'
 
 const COURSE_ID = '53f91433-429b-473e-87e6-20739206a3e3' // RealLife English — الإنجليزية للمواقف اليومية
@@ -34,6 +34,12 @@ export default function PresentIndexPage() {
         <b>Use your own pictures?</b> Two ways — both override the auto photo. By unit folder & order: drop into <code className="bg-white px-1 rounded">public/deck-images/unit-1/</code> as <code className="bg-white px-1 rounded">a1.jpg</code>, <code className="bg-white px-1 rounded">a2.jpg</code>… (unit 1 = <code className="bg-white px-1 rounded">a</code>, unit 2 = <code className="bg-white px-1 rounded">b</code>, number = phrase order). Or by phrase name in <code className="bg-white px-1 rounded">public/deck-images/</code> (e.g. <code className="bg-white px-1 rounded">i-take-a-shower.jpg</code>).{' '}
         <a href="/api/deck-images-guide" className="font-bold underline">Download the filename guide</a>.
       </div>
+
+      {/* Language Functions deck (opinions · agreeing · suggestions · preferences) */}
+      <Link href="/admin/present/functions" className="flex items-center justify-between rounded-xl border-2 border-amber-300 bg-amber-50 px-4 py-3 mb-4 hover:border-yellow-400 transition">
+        <span className="flex items-center gap-2 font-bold text-[14px] text-amber-900"><MessageSquareQuote size={18} className="text-yellow-600" /> وظائف اللغة — Language Functions</span>
+        <span className="flex items-center gap-1.5 text-[12px] font-bold text-yellow-700"><Play size={14} /> Launch deck</span>
+      </Link>
 
       {loading ? (
         <div className="flex items-center gap-2 text-zinc-400"><Loader2 className="animate-spin" size={18} /> Loading units…</div>
