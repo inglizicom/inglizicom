@@ -406,7 +406,13 @@ export default function PresentPage() {
   const unitNum = useMemo(() => parseInt(unitNo.replace(/\D/g, ''), 10) || 0, [unitNo])
 
   const slides = useMemo<Slide[]>(() => {
-    const l1 = lessons.find(l => l.lesson_order === 1)?.content
+    // Find the lesson that actually holds the vocabulary (a markdown table or a
+    // category block) by CONTENT, not by position: units now often have an
+    // intro-video lesson at lesson_order 1 (empty content), which pushes the
+    // vocabulary to a later lesson — keying off order 1 left the deck blank.
+    const ordered = [...lessons].sort((a, b) => a.lesson_order - b.lesson_order)
+    const l1 = ordered.find(l => l.content && (parseVocab(l.content).length > 0 || parseCategories(l.content).length > 0))?.content
+      ?? ordered[0]?.content
     const cats = parseCategories(l1)
     const isCat = cats.length >= 1   // a curated single-word group → illustrated vocab poster
     const vocab = isCat ? cats.flatMap(c => c.items) : buildVocab(lessons)
