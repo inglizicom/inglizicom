@@ -11,7 +11,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RotateCcw, Loader2, Globe, Instagram, Youtube, GraduationCap, Phone, Maximize2, Minimize2, ZoomIn, ZoomOut, Headphones, Mic, Video } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RotateCcw, Loader2, Globe, Instagram, Youtube, GraduationCap, Phone, Maximize2, Minimize2, ZoomIn, ZoomOut, Headphones, Mic, Video, Volume2, Square } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { fetchLessons, fetchModules, type LmsLesson } from '@/lib/lms'
 import { type Variation } from '@/lib/deck-vary'
@@ -416,6 +416,34 @@ function buildTranslations(vocab: VocabPair[]): { ar: string; en: string }[] {
     if (!seen.has(k)) { seen.add(k); out.push({ ar, en }) }
   }
   return out.slice(0, 8)
+}
+
+/** Reads the Listening paragraph aloud (browser speech synthesis) so the class
+ *  can hear it, fill the gaps, then check the answers — no audio file needed. */
+function ListenButton({ text }: { text: string }) {
+  const [speaking, setSpeaking] = useState(false)
+  const synth = typeof window !== 'undefined' ? window.speechSynthesis : undefined
+  useEffect(() => () => { synth?.cancel() }, [synth])
+  const toggle = () => {
+    if (!synth) return
+    synth.cancel()
+    if (speaking) { setSpeaking(false); return }
+    const u = new SpeechSynthesisUtterance(text)
+    u.lang = 'en-US'; u.rate = 0.82
+    u.onend = () => setSpeaking(false)
+    u.onerror = () => setSpeaking(false)
+    setSpeaking(true)
+    synth.speak(u)
+  }
+  return (
+    <button onClick={toggle}
+      className="flex items-center gap-[0.8vw] rounded-full px-[2vw] py-[1.4vh] font-black text-[#2a1d12] shadow-[0_14px_34px_-12px_rgba(180,120,20,0.7)] hover:brightness-105 active:scale-95 transition"
+      style={{ background: 'linear-gradient(135deg,#fcd34d,#f59e0b)', fontSize: '1.5vw' }}>
+      {speaking ? <Square size={22} className="fill-current" /> : <Volume2 size={24} />}
+      <span>{speaking ? 'Stop' : 'Listen'}</span>
+      <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}>· {speaking ? 'إيقاف' : 'استمع'}</span>
+    </button>
+  )
 }
 
 export default function PresentPage() {
@@ -824,26 +852,31 @@ export default function PresentPage() {
                     const tk = s.tokens.find(t => t.t === 'swap' && t.en === en) as Extract<LToken, { t: 'swap' }>
                     return { en, alts: tk.alts, col: colFor(en) }
                   })
+                  // the full English text the Listen button reads aloud (gaps filled)
+                  const spoken = s.tokens.map(t => (t.t === 'text' ? t.v : t.en)).join('')
                   return (
-                    <div className="w-full max-w-[82vw] flex flex-col items-center gap-[2.4vh]">
-                      {/* task strip */}
-                      <div dir="rtl" className="flex items-center gap-[1.6vw] font-bold" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.15vw', color: '#a16207' }}>
-                        <span className="flex items-center gap-1.5"><Headphones size={18} className="text-yellow-600" /> استمع واملأ الفراغات</span>
-                        <span className="flex items-center gap-1.5"><Mic size={17} className="text-yellow-600" /><Video size={18} className="text-yellow-600" /> ثم سجّل نفسك صوتاً أو فيديو</span>
+                    <div className="w-full max-w-[88vw] flex flex-col items-center gap-[2.4vh]">
+                      {/* listen button + task line */}
+                      <div className="flex items-center gap-[1.8vw]">
+                        <ListenButton text={spoken} />
+                        <div dir="rtl" className="flex flex-col items-start font-bold" style={{ fontFamily: "'Tajawal', sans-serif", color: '#a16207' }}>
+                          <span className="flex items-center gap-1.5" style={{ fontSize: '1.25vw' }}><Headphones size={20} className="text-yellow-600" /> استمع واملأ الفراغات</span>
+                          <span className="flex items-center gap-1.5" style={{ fontSize: '1.1vw', color: '#78716c' }}><Mic size={17} className="text-yellow-600" /><Video size={18} className="text-yellow-600" /> ثم سجّل نفسك صوتاً أو فيديو</span>
+                        </div>
                       </div>
-                      {/* the cloze paragraph */}
-                      <div className="rounded-[28px] bg-white ring-1 ring-stone-200 shadow-[0_20px_50px_-24px_rgba(42,29,18,0.5)] px-[3vw] py-[3.2vh] w-full">
-                        <p dir="ltr" className="font-bold leading-[2.5] text-center" style={{ color: DARK, fontSize: '2.05vw' }}>
+                      {/* the cloze paragraph — BIG, the hero of the slide */}
+                      <div className="rounded-[32px] bg-white ring-1 ring-stone-200 shadow-[0_24px_60px_-26px_rgba(42,29,18,0.55)] px-[4vw] py-[4vh] w-full">
+                        <p dir="ltr" className="font-bold leading-[2.6] text-center" style={{ color: DARK, fontSize: '3.2vw' }}>
                           {s.tokens.map((t, ti) => {
                             if (t.t === 'text') return <span key={ti}>{t.v}</span>
-                            if (t.t === 'swap') return <span key={ti} className="font-black" style={{ color: colFor(t.en), textDecoration: 'underline dotted', textUnderlineOffset: '0.35vw' }}>{t.en}</span>
+                            if (t.t === 'swap') return <span key={ti} className="font-black" style={{ color: colFor(t.en), textDecoration: 'underline dotted', textUnderlineOffset: '0.5vw' }}>{t.en}</span>
                             const shown = step > t.n
                             return (
-                              <span key={ti} className="inline-flex flex-col items-center align-middle mx-[0.35vw]">
+                              <span key={ti} className="inline-flex flex-col items-center align-middle mx-[0.5vw]">
                                 {shown
-                                  ? <span className="px-[0.7vw] rounded-lg font-black text-[#2a1d12]" style={{ background: '#facc15' }}>{t.en}</span>
-                                  : <span className="font-black text-transparent border-b-[0.2vw] border-dashed border-amber-400">{t.en}</span>}
-                                <span dir="rtl" className="font-bold mt-[0.5vh]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.95vw', color: shown ? '#a8a29e' : '#d97706' }}>{t.ar}</span>
+                                  ? <span className="px-[1vw] rounded-xl font-black text-[#2a1d12]" style={{ background: '#facc15' }}>{t.en}</span>
+                                  : <span className="font-black text-transparent border-b-[0.28vw] border-dashed border-amber-400">{t.en}</span>}
+                                <span dir="rtl" className="font-bold mt-[0.6vh]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.35vw', color: shown ? '#a8a29e' : '#d97706' }}>{t.ar}</span>
                               </span>
                             )
                           })}
@@ -851,9 +884,9 @@ export default function PresentPage() {
                       </div>
                       {/* swap legend — the coloured words you may change */}
                       <div className="flex flex-wrap items-center justify-center gap-[1vw]">
-                        <span dir="rtl" className="font-bold text-stone-400" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1vw' }}>كلمات يمكنك تغييرها لتكوين فقرتك:</span>
+                        <span dir="rtl" className="font-bold text-stone-400" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.1vw' }}>كلمات يمكنك تغييرها لتكوين فقرتك:</span>
                         {legend.map(l => (
-                          <span key={l.en} className="rounded-xl bg-white ring-1 ring-stone-200 px-[1vw] py-[0.7vh] font-bold" style={{ fontSize: '1.05vw' }}>
+                          <span key={l.en} className="rounded-xl bg-white ring-1 ring-stone-200 px-[1.1vw] py-[0.8vh] font-bold" style={{ fontSize: '1.2vw' }}>
                             <span className="font-black" style={{ color: l.col }}>{l.en}</span>
                             <span className="text-stone-400"> → {l.alts.join(' · ')}</span>
                           </span>
