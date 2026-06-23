@@ -427,66 +427,71 @@ function buildTranslations(vocab: VocabPair[]): { ar: string; en: string }[] {
   return out.slice(0, 8)
 }
 
-/** Reads the Listening paragraph aloud so the class can hear it, fill the gaps,
- *  then check the answers. Uses the high-quality neural voice at /api/tts
- *  (OpenAI tts-1-hd · nova), falling back to the browser voice if that fails. */
-function ListenButton({ text }: { text: string }) {
-  const [state, setState] = useState<'idle' | 'loading' | 'playing'>('idle')
+/** One shared neural-voice player for the whole deck (Listening + Conversation).
+ *  Plays arbitrary text via /api/tts (Google Gemini, American accent), falling
+ *  back to the browser voice. `active` is the key currently playing, or
+ *  `<key>#load` while fetching — so any number of play buttons can reflect their
+ *  own state, and starting one stops the others (single audio element). */
+function useTts() {
+  const [active, setActive] = useState<string | null>(null)
+  const activeRef = useRef<string | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const urlRef = useRef<string | null>(null)
-
+  const set = (v: string | null) => { activeRef.current = v; setActive(v) }
   const stop = useCallback(() => {
-    audioRef.current?.pause(); if (audioRef.current) audioRef.current.currentTime = 0
-    window.speechSynthesis?.cancel()
-    setState('idle')
+    audioRef.current?.pause(); window.speechSynthesis?.cancel(); set(null)
   }, [])
   useEffect(() => () => {
     audioRef.current?.pause()
     if (urlRef.current) URL.revokeObjectURL(urlRef.current)
     window.speechSynthesis?.cancel()
   }, [])
-
-  const browserVoice = () => {
+  const browser = (text: string, key: string) => {
     const synth = window.speechSynthesis
-    if (!synth) { setState('idle'); return }
+    if (!synth) { set(null); return }
     const u = new SpeechSynthesisUtterance(text)
     u.lang = 'en-US'; u.rate = 0.85
-    u.onend = () => setState('idle'); u.onerror = () => setState('idle')
-    setState('playing'); synth.speak(u)
+    u.onend = () => { if (activeRef.current === key) set(null) }
+    u.onerror = () => { if (activeRef.current === key) set(null) }
+    set(key); synth.speak(u)
   }
-  const play = async () => {
-    if (state !== 'idle') { stop(); return }
-    setState('loading')
+  const play = async (text: string, key: string) => {
+    const wasThis = activeRef.current === key || activeRef.current === key + '#load'
+    audioRef.current?.pause(); window.speechSynthesis?.cancel()
+    if (wasThis) { set(null); return }            // click again → stop
+    set(key + '#load')
     try {
       const res = await fetch('/api/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, provider: 'google' }) })
       if (!res.ok) throw new Error('tts')
-      const blob = await res.blob()
       if (urlRef.current) URL.revokeObjectURL(urlRef.current)
-      const url = URL.createObjectURL(blob); urlRef.current = url
-      const a = new Audio(url); audioRef.current = a
-      a.onended = () => setState('idle')
-      a.onerror = () => browserVoice()
-      await a.play()
-      setState('playing')
-    } catch {
-      browserVoice()
-    }
+      urlRef.current = URL.createObjectURL(await res.blob())
+      const a = new Audio(urlRef.current); audioRef.current = a
+      a.onended = () => { if (activeRef.current === key) set(null) }
+      a.onerror = () => browser(text, key)
+      await a.play(); set(key)
+    } catch { browser(text, key) }
   }
-  const D = 'clamp(58px,5.2vw,90px)'
+  const stateOf = (key: string): 'idle' | 'loading' | 'playing' =>
+    active === key ? 'playing' : active === key + '#load' ? 'loading' : 'idle'
+  return { active, play, stop, stateOf }
+}
+
+/** Round gold play/stop control (presentational). `size` is the diameter in px. */
+function PlayBtn({ state, onClick, size = 72, label }: { state: 'idle' | 'loading' | 'playing'; onClick: () => void; size?: number; label?: string }) {
   return (
-    <button onClick={play} aria-label={state === 'playing' ? 'Stop' : 'Listen'}
-      className="relative grid place-items-center rounded-full text-[#2a1d12] transition active:scale-95 hover:brightness-105 shadow-[0_18px_42px_-12px_rgba(217,119,6,0.7)] shrink-0"
-      style={{ width: D, height: D, background: 'linear-gradient(140deg,#fde047 0%,#f59e0b 100%)' }}>
+    <button onClick={onClick} aria-label={label ?? (state === 'playing' ? 'Stop' : 'Play')}
+      className="relative grid place-items-center rounded-full text-[#2a1d12] transition active:scale-95 hover:brightness-105 shrink-0"
+      style={{ width: size, height: size, background: 'linear-gradient(140deg,#fde047 0%,#f59e0b 100%)', boxShadow: '0 12px 30px -10px rgba(217,119,6,0.7)' }}>
       {state === 'playing' && (
         <motion.span className="absolute inset-0 rounded-full" style={{ border: '3px solid #f59e0b' }}
-          initial={{ opacity: 0.55, scale: 1 }} animate={{ opacity: 0, scale: 1.65 }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut' }} />
+          initial={{ opacity: 0.55, scale: 1 }} animate={{ opacity: 0, scale: 1.6 }}
+          transition={{ duration: 1.4, repeat: Infinity, ease: 'easeOut' }} />
       )}
       {state === 'loading'
-        ? <Loader2 className="animate-spin" size={30} />
+        ? <Loader2 className="animate-spin" size={Math.round(size * 0.42)} />
         : state === 'playing'
-          ? <Pause size={30} className="fill-current" />
-          : <Play size={32} className="fill-current translate-x-[2px]" />}
+          ? <Pause size={Math.round(size * 0.4)} className="fill-current" />
+          : <Play size={Math.round(size * 0.44)} className="fill-current translate-x-[1px]" />}
     </button>
   )
 }
@@ -594,11 +599,15 @@ export default function PresentPage() {
 
   const last = slides.length - 1
   const [step, setStep] = useState(0)                  // reveal progress inside a slide (conversation lines)
-  useEffect(() => { setStep(0) }, [idx])               // each new slide starts hidden
+  const tts = useTts()                                 // shared neural-voice player
+  const [filled, setFilled] = useState(0)              // Listening: gaps filled so far (click-to-fill)
+  const [wrongPick, setWrongPick] = useState<number | null>(null)  // Listening: bank chip clicked wrong
+  useEffect(() => { setStep(0); setFilled(0); setWrongPick(null); tts.stop() }, [idx, tts.stop])  // each new slide resets
   const idxRef = useRef(idx); idxRef.current = idx
   const stepRef = useRef(step); stepRef.current = step
+  // Listening is filled by CLICK (not Space), so it reports 0 reveal-steps → Space just navigates slides.
   const stepsOf = (sl?: Slide) =>
-    !sl ? 0 : sl.kind === 'convo' ? sl.lines.length : (sl.kind === 'category' || sl.kind === 'static') ? sl.items.length : sl.kind === 'listening' ? sl.gaps : 0
+    !sl ? 0 : sl.kind === 'convo' ? sl.lines.length : (sl.kind === 'category' || sl.kind === 'static') ? sl.items.length : 0
   // Space / → / side-click first reveals the next hidden line, then advances slide.
   const go = useCallback((d: number) => {
     const max = stepsOf(slides[idxRef.current])
@@ -726,8 +735,9 @@ export default function PresentPage() {
             </div>
           </div>
 
-          {/* side-click navigation — disabled on interactive exercises so taps hit the tiles */}
-          {s.kind !== 'scramble' && s.kind !== 'translate' && (<>
+          {/* side-click navigation — disabled on interactive exercises so taps hit the
+              tiles / word-bank / per-line play buttons (use Space, arrows or the footer chevrons) */}
+          {s.kind !== 'scramble' && s.kind !== 'translate' && s.kind !== 'listening' && s.kind !== 'convo' && (<>
             <button onClick={() => go(-1)} className="absolute left-0 top-0 h-full w-[11%] z-20 cursor-w-resize" aria-label="Previous" />
             <button onClick={() => go(1)} className="absolute right-0 top-0 h-full w-[11%] z-20 cursor-e-resize" aria-label="Next" />
           </>)}
@@ -829,9 +839,35 @@ export default function PresentPage() {
                   const n = s.lines.length
                   const fs = n <= 6 ? 1.5 : n <= 10 ? 1.28 : n <= 16 ? 1.08 : n <= 24 ? 0.94 : 0.82
                   const SPK = ['#a8a29e', '#facc15', '#34d399', '#38bdf8', '#a78bfa']
+                  const allText = s.lines.map(l => l.text).join(' ')   // whole conversation, one read
+                  const pbs = n <= 12 ? 32 : 26                        // per-line play button diameter (px)
+                  // small dark play control that reads ONE phrase — for pronunciation drills
+                  const lineBtn = (txt: string, key: string) => {
+                    const st = tts.stateOf(key)
+                    return (
+                      <button onClick={() => tts.play(txt, key)} aria-label="Play line"
+                        className="shrink-0 self-center grid place-items-center rounded-full transition active:scale-90 hover:brightness-110"
+                        style={{ width: pbs, height: pbs, background: DARK, color: '#facc15' }}>
+                        {st === 'loading' ? <Loader2 className="animate-spin" size={Math.round(pbs * 0.5)} />
+                          : st === 'playing' ? <Pause size={Math.round(pbs * 0.46)} className="fill-current" />
+                            : <Play size={Math.round(pbs * 0.5)} className="fill-current translate-x-[1px]" />}
+                      </button>
+                    )
+                  }
+                  const allState = tts.stateOf('convo-all')
                   return (
                     <div className="w-full max-w-[92vw]">
-                      {step === 0 && <div className="text-center text-stone-400 font-bold mb-[1.4vh]" style={{ fontSize: '0.95vw' }} dir="rtl">اضغط المسافة أو جانب الشاشة لإظهار كل سطر ←</div>}
+                      {/* play whole conversation + pronunciation hint */}
+                      <div className="flex items-center justify-center gap-[1.2vw] mb-[1.6vh]">
+                        <button onClick={() => tts.play(allText, 'convo-all')}
+                          className="flex items-center gap-[0.6vw] rounded-full font-black text-[#2a1d12] shadow-[0_12px_30px_-12px_rgba(217,119,6,0.7)] hover:brightness-105 active:scale-95 transition"
+                          style={{ background: 'linear-gradient(140deg,#fde047,#f59e0b)', fontSize: '1.05vw', padding: '0.85vh 1.5vw' }}>
+                          {allState === 'loading' ? <Loader2 className="animate-spin" size={20} /> : allState === 'playing' ? <Pause size={20} className="fill-current" /> : <Play size={22} className="fill-current" />}
+                          <span>Play conversation</span>
+                          <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}>· استمع للمحادثة</span>
+                        </button>
+                        <span dir="rtl" className="text-stone-400 font-bold" style={{ fontSize: '0.9vw', fontFamily: "'Tajawal', sans-serif" }}>اضغط ▶ على أي جملة لسماع نطقها</span>
+                      </div>
                       <div dir="ltr" className="grid grid-cols-2 gap-x-[1.6vw]" style={{ rowGap: `${n > 16 ? 1 : 1.4}vh` }}>
                         {s.lines.map((l, i) => {
                           const si = s.speakers.indexOf(l.who)
@@ -849,10 +885,11 @@ export default function PresentPage() {
                               style={{ background: dark ? '#facc15' : '#fff', color: DARK }}>
                               <span className="shrink-0 rounded-full flex items-center justify-center font-black ring-2 ring-white shadow-[0_6px_16px_-8px_rgba(0,0,0,0.5)]"
                                 style={{ width: `${fs * 1.9}vw`, height: `${fs * 1.9}vw`, fontSize: `${fs * 0.9}vw`, background: col, color: dark ? DARK : '#fff' }}>{l.who.charAt(0).toUpperCase()}</span>
-                              <div className="min-w-0">
+                              <div className="min-w-0 flex-1">
                                 <div className="font-black uppercase tracking-wide mb-0.5" style={{ fontSize: `${fs * 0.52}vw`, color: dark ? '#7a5c00' : col === '#a8a29e' ? '#78716c' : col }}>{l.who}</div>
                                 <div className="leading-snug font-semibold" style={{ fontSize: `${fs}vw` }}>{l.text}</div>
                               </div>
+                              {lineBtn(l.text, `convo-${i}`)}
                             </motion.div>
                           )
                         })}
@@ -888,20 +925,27 @@ export default function PresentPage() {
                 })()}
 
                 {s.kind === 'listening' && (() => {
-                  // the full English text the Listen button reads aloud (gaps filled)
+                  // the full English text the play button reads aloud (gaps filled)
                   const spoken = s.tokens.map(t => (t.t === 'text' ? t.v : t.en)).join('')
                   const TAJ = "'Tajawal', sans-serif"
+                  const done = filled >= s.gaps
+                  // click a word: correct = it belongs in the NEXT empty gap → fill it; else shake "try again"
+                  const pick = (w: { en: string; n: number }, k: number) => {
+                    if (filled > w.n) return                       // already placed
+                    if (w.n === filled) { setFilled(filled + 1); setWrongPick(null) }
+                    else { setWrongPick(k); setTimeout(() => setWrongPick(c => (c === k ? null : c)), 850) }
+                  }
                   return (
                     <div className="flex flex-col gap-[clamp(14px,2.3vh,30px)] max-h-full overflow-y-auto" style={{ width: 'min(1220px,95vw)' }}>
                       {/* header — play control + title */}
                       <div className="flex items-center gap-[clamp(14px,1.5vw,26px)]">
-                        <ListenButton text={spoken} />
+                        <PlayBtn state={tts.stateOf('listen')} onClick={() => tts.play(spoken, 'listen')} size={78} label="Listen" />
                         <div className="flex flex-col gap-[0.3vh] min-w-0">
                           <div className="flex items-baseline gap-2.5 font-black tracking-tight" style={{ color: DARK, fontSize: 'clamp(20px,2vw,36px)' }}>
                             Listening<span dir="rtl" className="text-amber-600" style={{ fontFamily: TAJ }}>الاستماع</span>
                           </div>
                           <div dir="rtl" className="flex items-center gap-2 font-bold text-stone-400" style={{ fontFamily: TAJ, fontSize: 'clamp(12px,1.05vw,18px)' }}>
-                            <span>استمع واملأ الفراغات من صندوق الكلمات</span>
+                            <span>استمع ثم اضغط الكلمة الصحيحة لملء الفراغ</span>
                             <span className="text-stone-300">·</span>
                             <span className="inline-flex items-center gap-1.5"><Mic size={15} className="text-amber-500" /><Video size={16} className="text-amber-500" /> ثم سجّل نفسك</span>
                           </div>
@@ -915,10 +959,18 @@ export default function PresentPage() {
                           <p dir="ltr" className="text-left" style={{ color: DARK, fontSize: 'clamp(20px,2.25vw,40px)', lineHeight: 2.15, fontWeight: 600 }}>
                             {s.tokens.map((t, ti) => {
                               if (t.t === 'gap') {
-                                const shown = step > t.n
-                                return shown
-                                  ? <span key={ti} className="inline-block align-middle mx-[0.14em] rounded-lg font-black" style={{ padding: '0.03em 0.5em', background: '#facc15', color: BROWN, boxShadow: '0 6px 16px -9px rgba(217,119,6,0.6)' }}>{t.en}</span>
-                                  : <span key={ti} className="inline-block align-middle mx-[0.14em] rounded-lg font-black text-transparent select-none" style={{ padding: '0.03em 0.5em', background: '#f6efe2', border: '2px dashed #c9ad7e' }}>{t.en}</span>
+                                if (filled > t.n) return (   // filled → yellow background, brown font
+                                  <motion.span key={ti} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 360, damping: 22 }}
+                                    className="inline-block align-middle mx-[0.14em] rounded-lg font-black" style={{ padding: '0.03em 0.5em', background: '#facc15', color: BROWN, boxShadow: '0 6px 16px -9px rgba(217,119,6,0.6)' }}>{t.en}</motion.span>
+                                )
+                                const active = t.n === filled   // the next gap to fill → highlight it
+                                return (
+                                  <span key={ti} className="inline-block align-middle mx-[0.14em] rounded-lg font-black text-transparent select-none" style={{
+                                    padding: '0.03em 0.5em', background: active ? '#fff7e0' : '#f6efe2',
+                                    border: active ? '2px solid #f59e0b' : '2px dashed #c9ad7e',
+                                    boxShadow: active ? '0 0 0 4px rgba(245,158,11,0.18)' : 'none',
+                                  }}>{t.en}</span>
+                                )
                               }
                               // connectors + scaffolding stay plain (brown/black)
                               return <span key={ti}>{t.t === 'text' ? t.v : t.en}</span>
@@ -926,25 +978,32 @@ export default function PresentPage() {
                           </p>
                         </div>
 
-                        {/* RIGHT — the box of missing words to fill from the listening */}
+                        {/* RIGHT — the box of missing words; click one to place it */}
                         <div className="rounded-[clamp(20px,2vw,34px)] px-[clamp(18px,2vw,34px)] py-[clamp(20px,3vh,42px)] flex flex-col shadow-[0_30px_80px_-46px_rgba(42,29,18,0.75)]" style={{ background: DARK }}>
-                          <div className="flex items-center gap-2 mb-[clamp(12px,2.2vh,24px)]">
-                            <span className="w-2 h-2 rounded-full" style={{ background: '#facc15' }} />
-                            <span className="font-black uppercase tracking-[0.13em] text-yellow-300" style={{ fontSize: 'clamp(11px,0.95vw,17px)' }}>Missing words</span>
-                            <span dir="rtl" className="font-bold text-yellow-100/55" style={{ fontFamily: TAJ, fontSize: 'clamp(12px,1vw,17px)' }}>· الكلمات الناقصة</span>
+                          <div className="flex items-center gap-2 mb-[clamp(12px,2.2vh,24px)] min-h-[clamp(20px,2.4vh,30px)]">
+                            <span className="w-2 h-2 rounded-full shrink-0" style={{ background: done ? '#34d399' : '#facc15' }} />
+                            <span className="font-black uppercase tracking-[0.13em] text-yellow-300" style={{ fontSize: 'clamp(11px,0.95vw,17px)' }}>{done ? 'All placed' : 'Missing words'}</span>
+                            <span dir="rtl" className="font-bold text-yellow-100/55" style={{ fontFamily: TAJ, fontSize: 'clamp(12px,1vw,17px)' }}>· {done ? 'أحسنت! اقرأ وسجّل' : 'الكلمات الناقصة'}</span>
+                            {wrongPick !== null && (
+                              <motion.span key={wrongPick} initial={{ opacity: 0, x: 6 }} animate={{ opacity: 1, x: 0 }} dir="rtl" className="ml-auto font-black text-rose-300" style={{ fontFamily: TAJ, fontSize: 'clamp(12px,1vw,17px)' }}>حاول مرة أخرى</motion.span>
+                            )}
                           </div>
                           <div className="flex flex-wrap gap-[clamp(8px,0.9vw,14px)] content-start">
                             {s.bank.map((w, k) => {
-                              const used = step > w.n
+                              const used = filled > w.n
+                              const isWrong = wrongPick === k
                               return (
-                                <span key={k} className="inline-flex items-center gap-1.5 rounded-xl font-black transition-all duration-300" style={{
-                                  fontSize: 'clamp(14px,1.4vw,24px)', padding: 'clamp(6px,0.9vh,12px) clamp(11px,1.2vw,20px)',
-                                  background: used ? 'rgba(250,204,21,0.12)' : '#faf6ef', color: used ? '#b59a5e' : BROWN,
-                                  textDecoration: used ? 'line-through' : 'none', opacity: used ? 0.6 : 1,
-                                  boxShadow: used ? 'none' : '0 8px 18px -10px rgba(0,0,0,0.55)',
-                                }}>
+                                <motion.button key={k} onClick={() => pick(w, k)} disabled={used}
+                                  animate={isWrong ? { x: [0, -7, 7, -7, 7, 0] } : { x: 0 }} transition={{ duration: 0.4 }}
+                                  className="inline-flex items-center gap-1.5 rounded-xl font-black transition-colors duration-300 disabled:cursor-default cursor-pointer" style={{
+                                    fontSize: 'clamp(14px,1.4vw,24px)', padding: 'clamp(6px,0.9vh,12px) clamp(11px,1.2vw,20px)',
+                                    background: used ? 'rgba(250,204,21,0.12)' : isWrong ? '#fecdd3' : '#faf6ef',
+                                    color: used ? '#b59a5e' : isWrong ? '#9f1239' : BROWN,
+                                    textDecoration: used ? 'line-through' : 'none', opacity: used ? 0.6 : 1,
+                                    boxShadow: used ? 'none' : '0 8px 18px -10px rgba(0,0,0,0.55)',
+                                  }}>
                                   {used && <Check size={16} className="text-yellow-400" />}{w.en}
-                                </span>
+                                </motion.button>
                               )
                             })}
                           </div>
