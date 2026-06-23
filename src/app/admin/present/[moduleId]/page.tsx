@@ -32,7 +32,7 @@ type Slide =
   | { kind: 'scramble'; sentences: string[] }
   | { kind: 'translate'; items: { ar: string; en: string }[] }
   | { kind: 'review'; items: VocabPair[] }
-  | { kind: 'speak'; topic: string; cues: VocabPair[] }
+  | { kind: 'speak'; topic: string }
   | { kind: 'end' }
 
 const SECTION: Record<Slide['kind'], { en: string; ar: string } | null> = {
@@ -471,7 +471,7 @@ export default function PresentPage() {
     statics.forEach(s => pushR({ en: verbPhrase(s.en), ar: s.ar }))      // verbs / expressions
     if (review.length >= 3) out.push({ kind: 'review', items: review })
     // ── Speaking: production task using those verbs/expressions ──
-    if (review.length >= 3) out.push({ kind: 'speak', topic: unitName, cues: review.slice(0, 10) })
+    if (review.length >= 3) out.push({ kind: 'speak', topic: unitName })
 
     out.push({ kind: 'end' })
     return out
