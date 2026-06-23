@@ -34,7 +34,7 @@ const GEMINI_MODEL = 'gemini-2.5-flash-preview-tts'
 // A natural-language style directive Gemini follows but does NOT read aloud —
 // makes the delivery warm + slow + clear (a kind teacher for beginners),
 // fixing the flat/robotic, slightly-fast default delivery.
-const GEMINI_STYLE = 'Read the following aloud slowly and very clearly, in a warm, friendly and encouraging tone, like a kind English teacher speaking to beginner students. Leave a short pause after each sentence: '
+const GEMINI_STYLE = 'Read the following aloud slowly and very clearly, in a natural standard American English accent (General American — NOT British), in a warm, friendly and encouraging tone, like a kind American English teacher speaking to beginner students. Leave a short pause after each sentence: '
 
 function pcmToWav(pcm: Buffer, sampleRate = 24000, channels = 1, bits = 16): Buffer {
   const blockAlign = (channels * bits) >> 3

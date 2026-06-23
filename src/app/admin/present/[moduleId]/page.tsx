@@ -11,7 +11,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RotateCcw, Loader2, Globe, Instagram, Youtube, GraduationCap, Phone, Maximize2, Minimize2, ZoomIn, ZoomOut, Mic, Video, Play, Pause } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RotateCcw, Loader2, Globe, Instagram, Youtube, GraduationCap, Phone, Maximize2, Minimize2, ZoomIn, ZoomOut, Mic, Video, Play, Pause, Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { fetchLessons, fetchModules, type LmsLesson } from '@/lib/lms'
 import { type Variation } from '@/lib/deck-vary'
@@ -32,7 +32,7 @@ type Slide =
   | { kind: 'scramble'; sentences: string[] }
   | { kind: 'translate'; items: { ar: string; en: string }[] }
   | { kind: 'review'; items: VocabPair[] }
-  | { kind: 'listening'; tokens: LToken[]; gaps: number }
+  | { kind: 'listening'; tokens: LToken[]; gaps: number; bank: { en: string; n: number }[] }
   | { kind: 'speak'; topic: string }
   | { kind: 'end' }
 
@@ -374,10 +374,11 @@ const CONNECTORS: { en: string; ar: string; alts: string[] }[] = [
  *  sentence becomes a colored connector (swap) + "I " + the verb phrase as a GAP
  *  the student fills while listening. The completed paragraph is then their
  *  speaking/recording exercise. Needs ≥2 first-person sentences, else null. */
-function buildListening(statics: VocabPair[]): { tokens: LToken[]; gaps: number } | null {
+function buildListening(statics: VocabPair[]): { tokens: LToken[]; gaps: number; bank: { en: string; n: number }[] } | null {
   const items = statics.filter(s => /^\s*I\s+/i.test(s.en)).slice(0, 7)
   if (items.length < 2) return null
   const tokens: LToken[] = []
+  const gapWords: { en: string; n: number }[] = []
   let n = 0
   const mid = CONNECTORS.slice(1, -1)   // connectors for the middle sentences
   items.forEach((s, i) => {
@@ -385,12 +386,16 @@ function buildListening(statics: VocabPair[]): { tokens: LToken[]; gaps: number 
     const c = i === 0 ? CONNECTORS[0]
       : i === items.length - 1 ? CONNECTORS[CONNECTORS.length - 1]
       : mid[(i - 1) % mid.length]
+    const en = verbPhrase(s.en)
     tokens.push({ t: 'swap', en: c.en, ar: c.ar, alts: c.alts })
     tokens.push({ t: 'text', v: ', I ' })
-    tokens.push({ t: 'gap', en: verbPhrase(s.en), ar: s.ar, n: n++ })
+    tokens.push({ t: 'gap', en, ar: s.ar, n })
     tokens.push({ t: 'text', v: '. ' })
+    gapWords.push({ en, n })
+    n++
   })
-  return { tokens, gaps: n }
+  // the word bank shown beside the paragraph — shuffled so it's a real exercise
+  return { tokens, gaps: n, bank: shuffle(gapWords) }
 }
 const stripEnd = (s: string) => s.replace(/[.!?]+$/, '').trim()
 /** Short, clean sentences (3–8 words) from the conversation + vocab, deduped. */
@@ -579,7 +584,7 @@ export default function PresentPage() {
     // ── Listening: a ready-made cloze paragraph (fill the gaps while listening),
     //    which then becomes the student's speaking/recording exercise ──
     const listening = buildListening(statics)
-    if (listening) out.push({ kind: 'listening', tokens: listening.tokens, gaps: listening.gaps })
+    if (listening) out.push({ kind: 'listening', tokens: listening.tokens, gaps: listening.gaps, bank: listening.bank })
     // ── Speaking: production task using those verbs/expressions ──
     if (review.length >= 3) out.push({ kind: 'speak', topic: unitName })
 
@@ -883,63 +888,67 @@ export default function PresentPage() {
                 })()}
 
                 {s.kind === 'listening' && (() => {
-                  // each distinct changeable (swap) word gets its own deep, harmonious colour
-                  const PAL = ['#0f766e', '#b45309', '#6d28d9', '#be123c', '#1d4ed8']  // teal · amber · violet · rose · blue
-                  const distinct: string[] = []
-                  s.tokens.forEach(t => { if (t.t === 'swap' && !distinct.includes(t.en)) distinct.push(t.en) })
-                  const colFor = (en: string) => PAL[Math.max(0, distinct.indexOf(en)) % PAL.length]
-                  const legend = distinct.map(en => {
-                    const tk = s.tokens.find(t => t.t === 'swap' && t.en === en) as Extract<LToken, { t: 'swap' }>
-                    return { en, alts: tk.alts, col: colFor(en) }
-                  })
                   // the full English text the Listen button reads aloud (gaps filled)
                   const spoken = s.tokens.map(t => (t.t === 'text' ? t.v : t.en)).join('')
                   const TAJ = "'Tajawal', sans-serif"
                   return (
-                    <div className="flex flex-col items-center gap-[clamp(16px,2.6vh,34px)] max-h-full overflow-y-auto px-[1vw]" style={{ width: 'min(1120px,92vw)' }}>
-                      {/* header — play control + titles */}
-                      <div className="flex items-center gap-[clamp(14px,1.5vw,26px)] self-stretch">
+                    <div className="flex flex-col gap-[clamp(14px,2.3vh,30px)] max-h-full overflow-y-auto" style={{ width: 'min(1220px,95vw)' }}>
+                      {/* header — play control + title */}
+                      <div className="flex items-center gap-[clamp(14px,1.5vw,26px)]">
                         <ListenButton text={spoken} />
                         <div className="flex flex-col gap-[0.3vh] min-w-0">
                           <div className="flex items-baseline gap-2.5 font-black tracking-tight" style={{ color: DARK, fontSize: 'clamp(20px,2vw,36px)' }}>
                             Listening<span dir="rtl" className="text-amber-600" style={{ fontFamily: TAJ }}>الاستماع</span>
                           </div>
                           <div dir="rtl" className="flex items-center gap-2 font-bold text-stone-400" style={{ fontFamily: TAJ, fontSize: 'clamp(12px,1.05vw,18px)' }}>
-                            <span>استمع واملأ الفراغات</span>
+                            <span>استمع واملأ الفراغات من صندوق الكلمات</span>
                             <span className="text-stone-300">·</span>
                             <span className="inline-flex items-center gap-1.5"><Mic size={15} className="text-amber-500" /><Video size={16} className="text-amber-500" /> ثم سجّل نفسك</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* the cloze paragraph — the hero card */}
-                      <div className="relative self-stretch rounded-[clamp(22px,2.2vw,40px)] bg-white px-[clamp(26px,4.6vw,76px)] py-[clamp(26px,4.4vh,60px)] ring-1 ring-stone-200/70 shadow-[0_34px_90px_-46px_rgba(42,29,18,0.6)]">
-                        <span aria-hidden className="absolute select-none font-black leading-none text-amber-200/70" style={{ left: 'clamp(12px,1.4vw,28px)', top: 'clamp(2px,0.4vh,12px)', fontSize: 'clamp(44px,5vw,96px)' }}>“</span>
-                        <p dir="ltr" className="relative text-center" style={{ color: DARK, fontSize: 'clamp(21px,2.55vw,48px)', lineHeight: 1.95, fontWeight: 600 }}>
-                          {s.tokens.map((t, ti) => {
-                            if (t.t === 'text') return <span key={ti}>{t.v}</span>
-                            if (t.t === 'swap') return (
-                              <span key={ti} className="font-extrabold" style={{ color: colFor(t.en), textDecorationLine: 'underline', textDecorationStyle: 'dotted', textDecorationColor: colFor(t.en) + '66', textUnderlineOffset: '0.3em' }}>{t.en}</span>
-                            )
-                            const shown = step > t.n
-                            return shown
-                              ? <span key={ti} className="inline-block align-middle mx-[0.16em] rounded-full font-black text-[#2a1d12]" style={{ padding: '0.04em 0.55em', background: 'linear-gradient(135deg,#fde68a,#fbbf24)', boxShadow: '0 8px 18px -8px rgba(217,119,6,0.65)' }}>{t.en}</span>
-                              : <span key={ti} className="inline-block align-middle mx-[0.16em] rounded-full font-black text-transparent select-none" style={{ padding: '0.04em 0.55em', background: '#fffbeb', border: '2px dashed #f59e0b' }}>{t.en}</span>
-                          })}
-                        </p>
-                      </div>
+                      {/* body — paragraph (left) + missing-words box (right) */}
+                      <div className="grid items-stretch gap-[clamp(14px,1.8vw,32px)]" style={{ gridTemplateColumns: 'minmax(0,1.7fr) minmax(0,1fr)' }}>
+                        {/* LEFT — the cloze paragraph */}
+                        <div className="rounded-[clamp(20px,2vw,34px)] bg-white px-[clamp(22px,3vw,54px)] py-[clamp(22px,3.4vh,48px)] ring-1 ring-stone-200/70 shadow-[0_30px_80px_-46px_rgba(42,29,18,0.55)]">
+                          <p dir="ltr" className="text-left" style={{ color: DARK, fontSize: 'clamp(20px,2.25vw,40px)', lineHeight: 2.15, fontWeight: 600 }}>
+                            {s.tokens.map((t, ti) => {
+                              if (t.t === 'gap') {
+                                const shown = step > t.n
+                                return shown
+                                  ? <span key={ti} className="inline-block align-middle mx-[0.14em] rounded-lg font-black" style={{ padding: '0.03em 0.5em', background: '#facc15', color: BROWN, boxShadow: '0 6px 16px -9px rgba(217,119,6,0.6)' }}>{t.en}</span>
+                                  : <span key={ti} className="inline-block align-middle mx-[0.14em] rounded-lg font-black text-transparent select-none" style={{ padding: '0.03em 0.5em', background: '#f6efe2', border: '2px dashed #c9ad7e' }}>{t.en}</span>
+                              }
+                              // connectors + scaffolding stay plain (brown/black)
+                              return <span key={ti}>{t.t === 'text' ? t.v : t.en}</span>
+                            })}
+                          </p>
+                        </div>
 
-                      {/* legend — the coloured words you may change */}
-                      <div className="flex flex-wrap items-center justify-center gap-[clamp(8px,0.9vw,16px)]">
-                        <span dir="rtl" className="font-bold text-stone-400" style={{ fontFamily: TAJ, fontSize: 'clamp(12px,1.05vw,18px)' }}>كلمات يمكنك تغييرها لتكوين فقرتك:</span>
-                        {legend.map(l => (
-                          <span key={l.en} className="inline-flex items-center gap-2 rounded-full bg-white px-[clamp(10px,1.1vw,18px)] py-[clamp(5px,0.7vh,11px)] font-bold border" style={{ fontSize: 'clamp(12px,1.1vw,19px)', borderColor: l.col + '33', boxShadow: '0 6px 16px -10px rgba(0,0,0,0.3)' }}>
-                            <span className="w-2 h-2 rounded-full shrink-0" style={{ background: l.col }} />
-                            <span className="font-black" style={{ color: l.col }}>{l.en}</span>
-                            <span className="text-stone-300">→</span>
-                            <span className="text-stone-400">{l.alts.join(' · ')}</span>
-                          </span>
-                        ))}
+                        {/* RIGHT — the box of missing words to fill from the listening */}
+                        <div className="rounded-[clamp(20px,2vw,34px)] px-[clamp(18px,2vw,34px)] py-[clamp(20px,3vh,42px)] flex flex-col shadow-[0_30px_80px_-46px_rgba(42,29,18,0.75)]" style={{ background: DARK }}>
+                          <div className="flex items-center gap-2 mb-[clamp(12px,2.2vh,24px)]">
+                            <span className="w-2 h-2 rounded-full" style={{ background: '#facc15' }} />
+                            <span className="font-black uppercase tracking-[0.13em] text-yellow-300" style={{ fontSize: 'clamp(11px,0.95vw,17px)' }}>Missing words</span>
+                            <span dir="rtl" className="font-bold text-yellow-100/55" style={{ fontFamily: TAJ, fontSize: 'clamp(12px,1vw,17px)' }}>· الكلمات الناقصة</span>
+                          </div>
+                          <div className="flex flex-wrap gap-[clamp(8px,0.9vw,14px)] content-start">
+                            {s.bank.map((w, k) => {
+                              const used = step > w.n
+                              return (
+                                <span key={k} className="inline-flex items-center gap-1.5 rounded-xl font-black transition-all duration-300" style={{
+                                  fontSize: 'clamp(14px,1.4vw,24px)', padding: 'clamp(6px,0.9vh,12px) clamp(11px,1.2vw,20px)',
+                                  background: used ? 'rgba(250,204,21,0.12)' : '#faf6ef', color: used ? '#b59a5e' : BROWN,
+                                  textDecoration: used ? 'line-through' : 'none', opacity: used ? 0.6 : 1,
+                                  boxShadow: used ? 'none' : '0 8px 18px -10px rgba(0,0,0,0.55)',
+                                }}>
+                                  {used && <Check size={16} className="text-yellow-400" />}{w.en}
+                                </span>
+                              )
+                            })}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )
