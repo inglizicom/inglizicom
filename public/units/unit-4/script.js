@@ -7,7 +7,7 @@
   'use strict'
 
   /* ─── Config ────────────────────────────────────────────────── */
-  const WHATSAPP_NUMBER = '212707902091'
+  const WHATSAPP_NUMBER = '212764189311'
   const STORAGE_KEY     = 'inglizi.sentenceCount'
   const STORAGE_DATE    = 'inglizi.sentenceCountDate'
   const STORAGE_ZOOM    = 'inglizi.zoom'

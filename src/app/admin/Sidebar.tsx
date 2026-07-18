@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
-  Shield, BarChart3, Activity, Video, FileText, BookOpen, FileEdit,
+  Shield, BarChart3, Activity, Video, FileText, BookOpen,
   Database, Lock, Settings, Menu, X, LogOut, ArrowUpRight, Gauge,
 } from 'lucide-react'
 
@@ -35,7 +35,6 @@ const groups: NavGroup[] = [
       { href: '/admin/courses',   label: 'Courses',       icon: Video },
       { href: '/admin/articles',  label: 'Articles',      icon: FileText },
       { href: '/admin/lessons',   label: 'Lessons',       icon: BookOpen },
-      { href: '/admin/content',   label: 'Listen Studio', icon: FileEdit },
     ],
   },
   {

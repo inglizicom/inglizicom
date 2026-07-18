@@ -8,6 +8,19 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    const toMofradati = ['map', 'learn', 'play', 'practice', 'listen'].map((p) => ({
+      source: `/${p}`,
+      destination: 'https://mofradati.com',
+      permanent: true,
+    }))
+    const toLevelTest = ['a0', 'a1', 'exams', 'corrector'].map((p) => ({
+      source: `/${p}`,
+      destination: '/level-test',
+      permanent: true,
+    }))
+    return [...toMofradati, ...toLevelTest, { source: '/live', destination: '/courses', permanent: true }]
+  },
   async headers() {
     return [
       {
