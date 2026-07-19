@@ -1268,7 +1268,7 @@ export default function LevelTestPage() {
                 {samples.length > 0 && (
                   <div className="mb-5">
                     <p className="text-white/40 text-xs font-black uppercase tracking-wider mb-3">
-                      🎁 {samples.length} دروس مجانية باش تجرّب قبل ما تشترك:
+                      🎁 {samples.length} دروس مجانية لتجرّبها قبل الاشتراك:
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       {samples.map((s, i) => (

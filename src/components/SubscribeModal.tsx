@@ -233,7 +233,7 @@ export default function SubscribeModal({
               <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 flex items-center gap-2 text-xs">
                 <Flame className="w-4 h-4 text-amber-600 shrink-0" />
                 <div className="flex-1">
-                  <span className="text-amber-900 font-black">باقي {seatsLeft} مقعد هاد الشهر</span>
+                  <span className="text-amber-900 font-black">متبقٍّ {seatsLeft} مقعداً هذا الشهر</span>
                   {lastSignupAgo && (
                     <span className="text-amber-700 font-semibold mr-2">· آخر اشتراك {lastSignupAgo}</span>
                   )}

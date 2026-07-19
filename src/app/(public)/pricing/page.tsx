@@ -7,7 +7,7 @@ import { courseTheme } from '@/lib/course-theme'
 import {
   Crown, Check, ArrowLeft, Sparkles, MessageCircle, Clock, Shield,
   RefreshCw, Star, Users, Globe, BookOpen, Calendar, Target, Flame,
-  Mic, Brain, Zap, TrendingUp, Package, Video,
+  Zap, Package, Video,
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { useProfile } from '@/lib/profile-context'
@@ -38,7 +38,7 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: 'كيف أدفع؟',
-    a: 'تحويل بنكي مغربي، ثم ترفع صورة الإيصال في صفحة الاشتراك. نفعّل حسابك خلال 24 ساعة.',
+    a: 'داخل المغرب: تحويل بنكي، ومن خارج المغرب (السعودية، الإمارات، الخليج…) نرتّب طريقة الدفع معك عبر واتساب. بعد الدفع يُفعَّل حسابك خلال 24 ساعة.',
   },
   {
     q: 'ما الذي يميّز الإنجليزية المهنية؟',
@@ -65,7 +65,7 @@ const COLOR_STYLES: Record<Plan['color'], {
 
 function SectionHeadline({
   tag, tagColor = 'text-amber-400', borderColor = 'border-[#1a2d4a]',
-  en, ar, sub,
+  en, ar, sub, id,
 }: {
   tag: string
   tagColor?: string
@@ -73,9 +73,10 @@ function SectionHeadline({
   en: string
   ar: string
   sub: string
+  id?: string
 }) {
   return (
-    <div className={`w-full border-t border-b ${borderColor} bg-[#030a16] py-16 text-center`}>
+    <div id={id} className={`w-full border-t border-b ${borderColor} bg-[#030a16] py-16 text-center scroll-mt-20`}>
       <p className={`text-[11px] font-black tracking-[0.5em] uppercase mb-5 ${tagColor}`}>
         — {tag} —
       </p>
@@ -132,21 +133,37 @@ export default function PricingPage() {
             </span>
           </div>
 
-          {/* 4 pillars */}
-          <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mx-auto">
-            {[
-              { icon: Mic,        title: 'النطق من يوم 1',  sub: 'تتكلم مباشرة' },
-              { icon: Brain,      title: 'بلا قواعد',        sub: 'تكتسب بالممارسة' },
-              { icon: Zap,        title: 'ثقة حقيقية',       sub: 'تواجه الخوف' },
-              { icon: TrendingUp, title: 'تحوّل ملموس',      sub: 'من الأسبوع الأول' },
-            ].map(p => (
-              <div key={p.title} className="bg-[#0a1628] border border-[#1a2d4a] rounded-xl p-4 text-center">
-                <p.icon className="w-5 h-5 text-amber-400 mx-auto mb-1.5" />
-                <div className="text-white font-black text-sm mb-0.5">{p.title}</div>
-                <div className="text-gray-500 text-xs">{p.sub}</div>
-              </div>
-            ))}
+          {/* Primary decision CTAs — the level test picks the right plan */}
+          <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/level-test"
+              className="inline-flex items-center gap-2 bg-gradient-to-l from-amber-400 to-yellow-500 text-blue-900 font-black text-sm sm:text-base px-7 py-3.5 rounded-2xl shadow-xl shadow-amber-500/30 hover:shadow-amber-500/50 hover:scale-105 transition-all border border-amber-300"
+            >
+              🧭 لست متأكداً؟ اختبر مستواك مجاناً
+            </Link>
+            <a
+              href="#packs"
+              className="inline-flex items-center gap-2 border-2 border-[#1e3455] hover:border-amber-400/50 text-white font-extrabold text-sm sm:text-base px-7 py-3.5 rounded-2xl transition-all hover:bg-white/5"
+            >
+              أعرف مستواي — اعرض الباقات ↓
+            </a>
           </div>
+
+          {/* Quick section nav */}
+          <nav className="mt-8 flex flex-wrap items-center justify-center gap-2 text-[13px] font-bold" aria-label="أقسام الصفحة">
+            {[
+              { href: '#packs',    label: '📦 الباكات' },
+              { href: '#levels',   label: '🎯 المستويات' },
+              { href: '#classes',  label: '👨‍🏫 حصص 1:1' },
+              { href: '#business', label: '💼 المهنية' },
+              { href: '#faq',      label: '❓ الأسئلة' },
+            ].map(l => (
+              <a key={l.href} href={l.href}
+                className="px-3.5 py-1.5 rounded-full bg-[#0a1628] border border-[#1a2d4a] text-gray-300 hover:text-white hover:border-amber-400/40 transition-colors">
+                {l.label}
+              </a>
+            ))}
+          </nav>
         </div>
 
         {status.isPaid && (
@@ -171,6 +188,7 @@ export default function PricingPage() {
             SECTION 1 — PACKS  (full-width headline)
       ════════════════════════════════════════════════════ */}
       <SectionHeadline
+        id="packs"
         tag="Our Packs"
         tagColor="text-violet-400"
         borderColor="border-violet-800/50"
@@ -188,6 +206,7 @@ export default function PricingPage() {
             SECTION 2 — INDIVIDUAL LEVELS  (full-width)
       ════════════════════════════════════════════════════ */}
       <SectionHeadline
+        id="levels"
         tag="Individual Levels"
         tagColor="text-blue-400"
         borderColor="border-blue-800/50"
@@ -205,6 +224,7 @@ export default function PricingPage() {
             COURSES — the actual content unlocked by a subscription
       ════════════════════════════════════════════════════ */}
       <SectionHeadline
+        id="courses"
         tag="Courses"
         tagColor="text-emerald-400"
         borderColor="border-emerald-800/50"
@@ -218,6 +238,7 @@ export default function PricingPage() {
             SECTION 3 — 1:1 CLASSES  (full-width)
       ════════════════════════════════════════════════════ */}
       <SectionHeadline
+        id="classes"
         tag="1:1 Private Classes"
         tagColor="text-amber-400"
         borderColor="border-amber-800/50"
@@ -246,6 +267,7 @@ export default function PricingPage() {
             SECTION 4 — BUSINESS ENGLISH  (full-width)
       ════════════════════════════════════════════════════ */}
       <SectionHeadline
+        id="business"
         tag="Business English"
         tagColor="text-cyan-400"
         borderColor="border-cyan-800/50"
@@ -263,7 +285,7 @@ export default function PricingPage() {
       <div className="max-w-6xl mx-auto px-4 pb-4">
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-3xl mx-auto mb-16">
-          <TrustBadge icon={Shield}    title="دفع آمن"           subtitle="تحويل بنكي مغربي" />
+          <TrustBadge icon={Shield}    title="دفع آمن"           subtitle="داخل المغرب وخارجه" />
           <TrustBadge icon={Clock}     title="تفعيل خلال 24h"    subtitle="مراجعة يدوية للطلب" />
           <TrustBadge icon={RefreshCw} title="بدون تجديد تلقائي" subtitle="أنت تتحكم دائماً" />
         </div>
@@ -299,7 +321,7 @@ export default function PricingPage() {
           </div>
         </div>
 
-        <div className="max-w-2xl mx-auto mb-16">
+        <div id="faq" className="max-w-2xl mx-auto mb-16 scroll-mt-24">
           <h2 className="text-white font-black text-xl text-center mb-5">أسئلة شائعة</h2>
           <div className="space-y-2">
             {FAQ.map(f => (
@@ -316,7 +338,7 @@ export default function PricingPage() {
 
         <div className="max-w-xl mx-auto text-center bg-[#0a1628] border border-[#1a2d4a] rounded-2xl p-6">
           <MessageCircle className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
-          <div className="text-white font-black mb-1">عندك سؤال قبل ما تشترك؟</div>
+          <div className="text-white font-black mb-1">هل لديك سؤال قبل الاشتراك؟</div>
           <div className="text-gray-400 text-sm mb-4">تواصل معنا على واتساب — نرد خلال وقت قصير.</div>
           <a
             href={`https://wa.me/${PAYMENT_WHATSAPP.replace(/\D/g, '')}`}
@@ -342,7 +364,7 @@ function PackCard({ plan }: { plan: Plan }) {
     ? plan.originalAmount - plan.amount_mad : null
 
   return (
-    <div className={`relative flex flex-col bg-[#0a1628] border-2 rounded-2xl p-6 transition-all ${
+    <div id={plan.id} className={`scroll-mt-24 relative flex flex-col bg-[#0a1628] border-2 rounded-2xl p-6 transition-all ${
       plan.highlight ? `${c.border} ring-2 ${c.ring} scale-[1.02]` : 'border-[#1a2d4a] hover:border-[#1e3455]'
     }`}>
       {plan.badge_ar && (
@@ -411,7 +433,7 @@ function IndividualCard({ plan }: { plan: Plan }) {
     ? plan.originalAmount - plan.amount_mad : null
 
   return (
-    <div className={`relative flex flex-col bg-[#0a1628] border-2 rounded-2xl p-5 transition-all ${
+    <div id={plan.id} className={`scroll-mt-24 relative flex flex-col bg-[#0a1628] border-2 rounded-2xl p-5 transition-all ${
       plan.highlight ? `${c.border} ring-2 ${c.ring}` : 'border-[#1a2d4a] hover:border-[#1e3455]'
     }`}>
       {plan.badge_ar && (

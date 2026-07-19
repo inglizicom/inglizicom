@@ -714,7 +714,7 @@ function HowItWorks() {
       num: "01",
       icon: "🎯",
       title: "اختر مستواك",
-      desc: "A0 مبتدئ كامل؟ ولا عندك الأساسيات؟ كنحدّدو ليك الباقة المناسبة — بلا تخمين.",
+      desc: "مبتدئ تماماً (A0)؟ أم لديك الأساسيات؟ نحدّد لك الباقة المناسبة — بلا تخمين.",
       pill: "دقيقتين فقط",
     },
     {
@@ -741,16 +741,16 @@ function HowItWorks() {
       <div className="max-w-5xl mx-auto relative z-10">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-14 sm:mb-16">
           <span className="inline-flex items-center gap-2 bg-gradient-to-l from-amber-400 to-yellow-500 text-gray-900 px-4 py-2 rounded-full text-xs font-black mb-5 shadow-xl shadow-amber-500/30 uppercase tracking-wider">
-            🧠 النظام ديالنا
+            🧠 نظامنا التعليمي
           </span>
           <h2 className="text-3xl sm:text-5xl md:text-6xl font-black leading-tight text-white drop-shadow-xl">
-            3 خطوات باش تهضر الإنجليزية{' '}
+            3 خطوات لتتحدث الإنجليزية{' '}
             <span className="bg-gradient-to-l from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
               بثقة
             </span>
           </h2>
           <p className="mt-5 text-white/70 text-base sm:text-lg font-semibold max-w-2xl mx-auto">
-            بلا تعقيد، بلا تخمين، وبلا ما تضيع وقتك فحاجات ما كتخدمش
+            بلا تعقيد، بلا تخمين، وبلا إضاعة وقتك في ما لا يفيد
           </p>
         </motion.div>
 
@@ -793,13 +793,13 @@ function WhatYouGet() {
     {
       icon: "📹",
       title: "دروس فيديو مركّزة",
-      desc: "كل فيديو 5-8 دقايق — محتوى مكثّف، بلا حشو، كتشوفهم منين بغيتي، 100% بالدارجة المغربية.",
+      desc: "كل فيديو 5-8 دقائق — محتوى مكثّف بلا حشو، تشاهده متى شئت، بشرح عربي بسيط وواضح.",
       theme: 'blue' as const,
     },
     {
       icon: "💬",
       title: "واتساب مع حمزة شخصياً",
-      desc: "ترسل ليه رسائل صوتية فأي وقت، كيصحح ليك النطق ويجاوب على أسئلتك — ماشي بوت، بني آدم حقيقي.",
+      desc: "أرسل له رسائل صوتية في أي وقت، يصحّح نطقك ويجيب عن أسئلتك — ليس روبوتاً، بل إنسان حقيقي.",
       theme: 'gold' as const,
     },
     {
@@ -811,7 +811,7 @@ function WhatYouGet() {
     {
       icon: "🎁",
       title: "مكتبة PDF + تمارين",
-      desc: "ملخصات دقيقة لكل درس + تمارين تطبيق + ڤيديوهات بونوس — حمّل وراجع منين بغيتي.",
+      desc: "ملخصات دقيقة لكل درس + تمارين تطبيقية + فيديوهات إضافية — حمّلها وراجعها متى شئت.",
       theme: 'gold' as const,
     },
     {
@@ -823,7 +823,7 @@ function WhatYouGet() {
     {
       icon: "♾️",
       title: "وصول مدى الحياة",
-      desc: "اشترك مرة واحدة — المحتوى كيبقى معاك للأبد. راجع بحال بغيتي، منين بغيتي، بلا تاريخ انتهاء.",
+      desc: "اشترك مرة واحدة — يبقى المحتوى معك للأبد. راجع كما تشاء ومن أي مكان، بلا تاريخ انتهاء.",
       theme: 'gold' as const,
     },
   ]
@@ -854,7 +854,7 @@ function WhatYouGet() {
             🎁 شنو كتاخد ملّي كتشترك
           </span>
           <h2 className="text-3xl sm:text-5xl md:text-6xl font-black leading-tight text-gray-900">
-            ماشي كورس عادي —{' '}
+            ليست دورة عادية —{' '}
             <span className="relative inline-block">
               <span className="relative z-10 bg-gradient-to-l from-blue-600 via-blue-700 to-blue-900 bg-clip-text text-transparent">
                 نظام كامل
@@ -864,7 +864,7 @@ function WhatYouGet() {
             للنجاح
           </h2>
           <p className="mt-5 text-gray-600 text-base sm:text-lg font-semibold max-w-2xl mx-auto">
-            كلشي اللي محتاج باش تهضر الإنجليزية بثقة — فبلاصة واحدة، ومتابعة شخصية من الأستاذ حمزة
+            كل ما تحتاجه لتتحدث الإنجليزية بثقة — في مكان واحد، مع متابعة شخصية من الأستاذ حمزة
           </p>
         </motion.div>
 
@@ -1116,7 +1116,7 @@ function FinalCTA() {
           </span>
         </h2>
         <p className="text-white/80 text-lg sm:text-xl mb-10 sm:mb-12 leading-relaxed font-semibold max-w-xl mx-auto">
-          انضم لأكثر من <span className="text-amber-300 font-black">+1200 طالب</span> خرجو من الخوف وبداو يهضرو بثقة — بمتابعة شخصية من الأستاذ حمزة
+          انضم إلى أكثر من <span className="text-amber-300 font-black">+1200 طالب</span> تخلّصوا من الخوف وبدأوا يتحدثون بثقة — بمتابعة شخصية من الأستاذ حمزة
         </p>
 
         <div className="flex flex-wrap justify-center gap-4 sm:gap-5">
@@ -1167,27 +1167,27 @@ function PainHook() {
       >
         <div className="inline-flex items-center gap-2 bg-amber-400/10 border-2 border-amber-400/40 text-amber-300 text-xs font-black px-4 py-2 rounded-full mb-8 shadow-lg shadow-amber-500/10 backdrop-blur-sm">
           <span>⚠️</span>
-          <span>9 من كل 10 مغاربة ما كيقدروش يهضرو بالإنجليزية</span>
+          <span>9 من كل 10 متعلمين لا يتحدثون الإنجليزية بطلاقة</span>
         </div>
 
         <h2 className="text-3xl sm:text-5xl md:text-6xl font-black leading-[1.15] mb-7 text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.5)]">
-          واش باقي كتخاف تهضر بالإنجليزية{' '}
+          هل ما زلت تخاف من التحدث بالإنجليزية{' '}
           <span className="bg-gradient-to-l from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
             قدّام الناس؟
           </span>
         </h2>
 
         <p className="text-white/90 text-lg sm:text-2xl leading-[1.9] font-semibold max-w-2xl mx-auto">
-          سنوات ديال الدراسة، كلمات كتعرفهم…{' '}
+          سنوات من الدراسة، وكلمات تعرفها…{' '}
           <br className="hidden sm:block" />
-          <span className="text-amber-200">ولكن ملّي يجي وقت الهضرة</span>،
-          {' '}الكلام كيتقطع.
+          <span className="text-amber-200">لكن حين تأتي لحظة الكلام</span>،
+          {' '}تتوقف الكلمات.
         </p>
 
         <div className="mt-10 inline-flex items-center gap-3 bg-white/5 border border-white/10 rounded-full px-5 py-3 backdrop-blur-sm shadow-xl">
           <span className="text-amber-300 text-lg">👇</span>
           <span className="text-white/90 text-sm sm:text-base font-bold">
-            شوف كيفاش بدّل حمزة حياة <span className="text-amber-300 font-black">+1200 طالب</span> ف30 يوم
+            اكتشف كيف غيّر حمزة حياة <span className="text-amber-300 font-black">+1200 طالب</span> في 30 يوماً
           </span>
         </div>
       </motion.div>
@@ -1199,26 +1199,26 @@ function TransformationSection() {
   const items = [
     {
       icon: '🗣️',
-      title: 'كتهضر من النهار الأول',
-      desc: 'بجُمَل قصيرة وصحيحة. ما كتحفظش معاجم — كتستعمل الإنجليزية مباشرة فالمحادثة.',
+      title: 'تتحدث من اليوم الأول',
+      desc: 'بجُمل قصيرة وصحيحة. لا تحفظ القواميس — بل تستخدم الإنجليزية مباشرة في المحادثة.',
       theme: 'blue' as const,
     },
     {
       icon: '💪',
-      title: 'كتربح الثقة فنفسك',
-      desc: 'كتوقف تقول "أنا ضعيف" وكتبدا تهضر بلا ترجمة فراسك — هاد الحاجة كتبدّل حياتك.',
+      title: 'تكسب الثقة بنفسك',
+      desc: 'تتوقف عن قول «أنا ضعيف» وتبدأ الحديث دون ترجمة في رأسك — وهذا ما يغيّر حياتك.',
       theme: 'gold' as const,
     },
     {
       icon: '🎯',
       title: 'خطة حسب مستواك بالضبط',
-      desc: 'A0 ولا A1 ولا B1 — كل واحد عندو طريق. ماشي الكل فنفس الطاولة بحال فالمدرسة.',
+      desc: 'A0 أو A1 أو B1 — لكلٍّ مساره الخاص، فلا يجلس الجميع في الصف نفسه كما في المدرسة.',
       theme: 'blue' as const,
     },
     {
       icon: '🎓',
       title: 'تعلّم بهدف واضح',
-      desc: 'سفر، خدمة، IELTS، مقابلات، ولا محادثة يومية — كل واحد ومشكلو، وحنا عندنا الحل.',
+      desc: 'سفر، عمل، IELTS، مقابلات، أو محادثة يومية — لكلٍّ هدفه، ولدينا الحل المناسب.',
       theme: 'gold' as const,
     },
   ]
@@ -1262,13 +1262,13 @@ function TransformationSection() {
             بعد 30 يوم مع حمزة،{' '}
             <span className="relative inline-block">
               <span className="relative z-10 bg-gradient-to-l from-blue-600 via-blue-700 to-blue-900 bg-clip-text text-transparent">
-                هادشي اللي غيتبدّل فيك
+                هذا ما سيتغيّر فيك
               </span>
               <span className="absolute bottom-1 left-0 right-0 h-3 bg-amber-300/60 -skew-x-6 z-0" />
             </span>
           </h2>
           <p className="mt-5 text-gray-600 text-base sm:text-lg font-semibold max-w-2xl mx-auto">
-            ماشي وعد — نتائج قابلين للقياس. 97% من الطلاب كيحسو بالفرق من الأسبوع الأول.
+            ليس وعداً — بل نتائج قابلة للقياس. 97% من الطلاب يشعرون بالفرق منذ الأسبوع الأول.
           </p>
         </motion.div>
 
@@ -1317,7 +1317,7 @@ function LevelTestFork() {
           custom={0}
           className="text-center text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 mb-3"
         >
-          واش كتعرف مستواك؟
+          هل تعرف مستواك؟
         </motion.h2>
         <motion.p
           initial="hidden"
@@ -1327,7 +1327,7 @@ function LevelTestFork() {
           custom={1}
           className="text-center text-gray-500 text-base sm:text-lg font-semibold mb-10"
         >
-          اختار الطريق اللي يناسبك — نبداو فنفس اللحظة.
+          اختر الطريق الذي يناسبك — ونبدأ في اللحظة نفسها.
         </motion.p>
 
         <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
@@ -1345,16 +1345,16 @@ function LevelTestFork() {
             </div>
             <div className="text-5xl mb-4">🧭</div>
             <h3 className="font-black text-gray-900 text-xl sm:text-2xl mb-2 leading-tight">
-              ما كنعرفش مستواي
+              لا أعرف مستواي
             </h3>
             <p className="text-gray-600 text-sm leading-relaxed mb-5 font-semibold">
-              عندك 10 أسئلة. 3 دقائق. بعد الاختبار كنعطيك <span className="text-emerald-700 font-black">المستوى ديالك بالضبط</span> + <span className="text-emerald-700 font-black">الباقة المناسبة ليك</span>.
+              10 أسئلة في 3 دقائق. بعد الاختبار نحدد لك <span className="text-emerald-700 font-black">مستواك بدقة</span> + <span className="text-emerald-700 font-black">الباقة المناسبة لك</span>.
             </p>
             <Link
               href="/level-test"
               className="inline-flex items-center justify-center gap-2 w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-sm rounded-2xl shadow-lg shadow-emerald-200 transition-all hover:scale-[1.01]"
             >
-              ابدا الاختبار المجاني
+              ابدأ الاختبار المجاني
               <span>←</span>
             </Link>
           </motion.div>
@@ -1370,16 +1370,16 @@ function LevelTestFork() {
           >
             <div className="text-5xl mb-4">🎯</div>
             <h3 className="font-black text-gray-900 text-xl sm:text-2xl mb-2 leading-tight">
-              كنعرف واش باغي
+              أعرف ما أريد
             </h3>
             <p className="text-gray-600 text-sm leading-relaxed mb-5 font-semibold">
-              شوف الباقات مباشرة حسب مستواك: A0، A1، B1، ولا <span className="font-black">VIP</span> مع الأستاذ شخصياً.
+              اطّلع على الباقات مباشرة حسب مستواك: A0، A1، B1، أو <span className="font-black">VIP</span> مع الأستاذ شخصياً.
             </p>
             <a
               href="#plans"
               className="inline-flex items-center justify-center gap-2 w-full py-3.5 bg-gray-900 hover:bg-gray-800 text-white font-black text-sm rounded-2xl transition-all"
             >
-              شوف الباقات
+              اطّلع على الباقات
               <span>←</span>
             </a>
           </motion.div>
@@ -1392,40 +1392,40 @@ function LevelTestFork() {
 function MiniFAQ() {
   const items = [
     {
-      q: '😩 قريت الإنجليزية سنين فالمدرسة وما زال ما كنقدرش نهضر. فين المشكل؟',
-      a: 'المدرسة كتعلّمك القواعد والكلمات، ولكن ما كتعلّمكش كيف تهضر. مع الأستاذ حمزة كتبدا تهضر من النهار الأول — جُمَل قصيرة، محادثات حقيقية، تصحيح فوري. فبعد 30 يوم غتحس ب نفسك كتهضر بلا ما تفكّر فالترجمة.',
+      q: '😩 درست الإنجليزية سنوات في المدرسة وما زلت لا أستطيع التحدث. أين المشكلة؟',
+      a: 'المدرسة تعلّمك القواعد والكلمات، لكنها لا تعلّمك كيف تتحدث. مع الأستاذ حمزة تبدأ الحديث من اليوم الأول — جُمل قصيرة، محادثات حقيقية، وتصحيح فوري. وبعد 30 يوماً ستجد نفسك تتحدث دون أن تفكر في الترجمة.',
     },
     {
-      q: '😳 أنا خجول بزّاف ونخاف نغلط. واش غنقدر نهضر؟',
-      a: 'هاد الخوف هو اللي كيوقفك. الأستاذ حمزة كيخدم معاك شخصياً فواتساب — تيرسل ليه رسائل صوتية فأي وقت، بلا قدّام الناس، بلا إحراج. كل غلطة هي تقدّم — كنصححو بلطف.',
+      q: '😳 أنا خجول جداً وأخاف من الخطأ. هل سأستطيع التحدث؟',
+      a: 'هذا الخوف هو ما يوقفك. الأستاذ حمزة يتابعك شخصياً على واتساب — ترسل له رسائل صوتية في أي وقت، بعيداً عن أعين الناس وبلا إحراج. كل خطأ خطوة تقدّم — نصحّحه معك بلطف.',
     },
     {
-      q: '📱 جرّبت Duolingo وأبليكاشنات أخرى وما نفعوني. علاش هادي غادي تكون مختلفة؟',
-      a: 'الأبليكاشنات كيعلموك كلمات منفصلة. أنت محتاج تتعلّم تهضر مع بني آدم حقيقي كيصحح ليك، كيحاسبك، ويفهم السياق المغربي ديالك. حمزة كيدمج دروس مسجلة + متابعة شخصية + مجموعة واتساب — نظام كامل ماشي لعبة.',
+      q: '📱 جرّبت Duolingo وتطبيقات أخرى دون نتيجة. لماذا سيكون هذا البرنامج مختلفاً؟',
+      a: 'التطبيقات تعلّمك كلمات منفصلة، بينما تحتاج أنت إلى التدرب مع إنسان حقيقي يصحّح لك ويتابعك ويفهم سياقك العربي. حمزة يجمع بين دروس مسجلة + متابعة شخصية + مجموعة واتساب — نظام كامل وليس لعبة.',
     },
     {
-      q: '⏰ واش 30 يوم بحال هادي كافيين باش نبدا نهضر؟',
-      a: 'نعم — إذا تخدم 15-20 دقيقة فاليوم بالمنهج الصحيح. فالأسبوع الأول غتحفظ 50+ جملة يومية. فالأسبوع 2 غتبدا تستخدمهم. فاليوم 30 غتعرف تدير محادثة قصيرة. المفتاح هو الاستمرارية — وحنا كنتابعوك باش ما توقفش.',
+      q: '⏰ هل 30 يوماً تكفي لأبدأ التحدث؟',
+      a: 'نعم — إذا التزمت 15-20 دقيقة يومياً بالمنهج الصحيح. في الأسبوع الأول تحفظ أكثر من 50 جملة يومية، وفي الأسبوع الثاني تبدأ باستخدامها، وفي اليوم 30 تدير محادثة قصيرة بنفسك. المفتاح هو الاستمرارية — ونحن نتابعك حتى لا تتوقف.',
     },
     {
-      q: '💼 مشغول بالخدمة/الدراسة، ما عنديش وقت. واش كنقدر نستفد؟',
-      a: 'الدروس كلها مسجلة وكتبقى معاك مدى الحياة — كتشوفهم منين بغيتي، فالطوبيس، قبل النعاس، فوقت الكافي. 15-20 دقيقة فاليوم كافيين. معظم الطلبة ديالنا مشغولين — وهادشي هو اللي كيخدم.',
+      q: '💼 مشغول بالعمل أو الدراسة ولا أملك وقتاً. هل أستفيد؟',
+      a: 'الدروس كلها مسجلة وتبقى معك مدى الحياة — تشاهدها متى شئت وأينما كنت. 15-20 دقيقة يومياً تكفي. معظم طلابنا مشغولون — وهذا بالضبط ما صُمِّم له النظام.',
     },
     {
-      q: '🧓 كبرت شوية وعقلي ما بقاش كيحفظ بحال بكري. واش غادي نقدر نتعلّم؟',
-      a: 'المنهج ديال الأستاذ حمزة ماشي على الحفظ — هو على التفعيل. كلّ مغربي عارف كلمات إنجليزية أكثر من اللي كيظن. الطريقة كتعلّمك كيفاش تستعملهم. عندنا طلبة فوق 50 عام بدّلو حياتهم ف3 شهور.',
+      q: '🧓 تقدّم بي العمر وأشعر أن الحفظ صار أصعب. هل أستطيع التعلم؟',
+      a: 'منهج الأستاذ حمزة لا يقوم على الحفظ بل على التفعيل. كل متعلم يعرف كلمات إنجليزية أكثر مما يظن — والطريقة تعلّمك كيف تستخدمها. لدينا طلاب تجاوزوا الخمسين وغيّروا حياتهم في 3 أشهر.',
     },
     {
-      q: '👨‍🏫 واش الأستاذ حمزة هو اللي كيتابع معايا، ولاّ مساعد؟',
-      a: 'حمزة شخصياً كيجاوب على الواتساب — ماشي بوت، ماشي مساعد. فباقات Pro / Premium / VIP كيكون عندك مجموعة واتساب مباشرة معاه + كوتشينغ شخصي فالـVIP. كتدير ريكوردينغ ديال صوتك، كيصححو بنفسو.',
+      q: '👨‍🏫 هل الأستاذ حمزة نفسه من يتابعني أم مساعد؟',
+      a: 'حمزة شخصياً هو من يرد على واتساب — لا روبوت ولا مساعد. في باقات Pro / Premium / VIP تنضم إلى مجموعة واتساب مباشرة معه + تدريب شخصي في VIP. تسجّل صوتك وهو يصحّحه بنفسه.',
     },
     {
-      q: '💰 واش كاين ضمان إلا ما نجحش معايا؟',
-      a: 'نعم. إذا ما اقتنعتيش فالأسبوع الأول، كنرجعو ليك الفلوس كاملين بلا أسئلة. وعندك وصول مدى الحياة للدروس — حتى ولا سكرتي الاشتراك، المحتوى كيبقى معاك.',
+      q: '💰 هل يوجد ضمان إن لم ينجح البرنامج معي؟',
+      a: 'نعم. إن لم تقتنع خلال الأسبوع الأول نعيد لك المبلغ كاملاً بلا أسئلة. ولديك وصول مدى الحياة إلى الدروس — يبقى المحتوى معك حتى بعد انتهاء الاشتراك.',
     },
     {
-      q: '💳 كيفاش كنخلّص؟ واش كيتجدّد تلقائياً؟',
-      a: 'تحويل بنكي مغربي CIH — كنفعلو الاشتراك فأقل من 24 ساعة. ما كيتجدّدش تلقائياً: أنت اللي كتتحكّم. كيسالى فوقتو — بلا مفاجآت، بلا خصم من كارت.',
+      q: '💳 كيف أدفع؟ وهل يتجدد الاشتراك تلقائياً؟',
+      a: 'داخل المغرب: تحويل بنكي CIH، ومن خارج المغرب نرتّب طريقة الدفع معك عبر واتساب — ويُفعَّل الاشتراك خلال أقل من 24 ساعة. لا تجديد تلقائي: أنت المتحكم، ينتهي الاشتراك في وقته بلا مفاجآت وبلا خصم من بطاقتك.',
     },
   ]
   return (

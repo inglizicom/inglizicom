@@ -5,16 +5,26 @@ import { ProfileProvider } from '@/lib/profile-context'
 import { FeatureAccessProvider } from '@/lib/feature-access'
 
 export const metadata: Metadata = {
-  title: 'إنجليزي.كوم | تعلم الإنجليزية وتكلم بثقة',
+  metadataBase: new URL('https://inglizi.com'),
+  title: {
+    default: 'إنجليزي.كوم | تعلم اللغة الإنجليزية وتحدث بثقة',
+    template: '%s',
+  },
   description:
-    'برنامج عملي مع حمزة القصراوي لتحسين النطق والتواصل باللغة الإنجليزية. أكثر من 2000 طالب حول العالم.',
-  keywords: 'تعلم الإنجليزية، نطق، تواصل، دورات إنجليزية، حمزة القصراوي',
+    'تعلم اللغة الإنجليزية بالمحادثة والنطق مع الأستاذ حمزة القصراوي — دورات عملية للناطقين بالعربية في المغرب والسعودية والخليج، بمتابعة شخصية على واتساب. اختبر مستواك مجاناً.',
+  keywords:
+    'تعلم الإنجليزية, تعلم اللغة الإنجليزية من الصفر, دورة انجليزي اون لاين, تحسين النطق بالانجليزية, محادثة انجليزية, دورات إنجليزية بالعربية, حمزة القصراوي, انجليزي للمبتدئين',
+  alternates: { canonical: 'https://inglizi.com' },
   openGraph: {
-    title: 'إنجليزي.كوم | تعلم الإنجليزية وتكلم بثقة',
-    description: 'برنامج عملي لتحسين النطق والتواصل مع أكثر من 2000 طالب حول العالم',
-    locale: 'ar_MA',
+    title: 'إنجليزي.كوم | تعلم اللغة الإنجليزية وتحدث بثقة',
+    description:
+      'دورات إنجليزية عملية بالمحادثة والنطق للناطقين بالعربية — متابعة شخصية من الأستاذ حمزة القصراوي. اختبر مستواك مجاناً في 3 دقائق.',
+    url: 'https://inglizi.com',
+    siteName: 'إنجليزي.كوم',
+    locale: 'ar',
     type: 'website',
   },
+  robots: { index: true, follow: true },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
