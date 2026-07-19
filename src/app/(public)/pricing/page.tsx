@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { fetchCourseCatalog, type CatalogCourse } from '@/lib/student-portal'
 import { courseTheme } from '@/lib/course-theme'
@@ -76,15 +77,17 @@ function SectionHeadline({
   id?: string
 }) {
   return (
-    <div id={id} className={`w-full border-t border-b ${borderColor} bg-[#030a16] py-16 text-center scroll-mt-20`}>
-      <p className={`text-[11px] font-black tracking-[0.5em] uppercase mb-5 ${tagColor}`}>
-        — {tag} —
-      </p>
-      <h2 className="text-white font-black text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-none tracking-tighter mb-4">
-        {en}
-      </h2>
-      <p className="text-gray-300 font-black text-xl sm:text-2xl mb-3">{ar}</p>
-      <p className="text-gray-500 text-sm max-w-md mx-auto leading-relaxed px-4">{sub}</p>
+    <div id={id} className={`w-full border-t border-b ${borderColor} bg-[#030a16] py-10 text-center scroll-mt-20`}>
+      <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
+        <p className={`text-[11px] font-black tracking-[0.5em] uppercase mb-3 ${tagColor}`}>
+          — {tag} —
+        </p>
+        <h2 className="text-white font-black text-3xl sm:text-4xl md:text-5xl leading-tight tracking-tight mb-2">
+          {ar}
+        </h2>
+        <p className={`font-black text-sm sm:text-base mb-3 ${tagColor}`}>{en}</p>
+        <p className="text-gray-500 text-sm max-w-md mx-auto leading-relaxed px-4">{sub}</p>
+      </motion.div>
     </div>
   )
 }
@@ -358,13 +361,41 @@ export default function PricingPage() {
 
 // ─── Card components ───────────────────────────────────────────────────────────
 
+
+/* Collapsible perk list — keeps cards light: 4 perks visible, rest behind a toggle. */
+function PerkList({ perks, accent, dense = false }: { perks: string[]; accent: string; dense?: boolean }) {
+  const [open, setOpen] = useState(false)
+  const LIMIT = 4
+  const shown = open ? perks : perks.slice(0, LIMIT)
+  const extra = perks.length - LIMIT
+  return (
+    <div className="mt-3 flex-1">
+      <ul className={dense ? 'space-y-1.5' : 'space-y-2'}>
+        {shown.map(item => (
+          <li key={item} className={`flex items-start gap-1.5 text-gray-300 leading-snug ${dense ? 'text-[12px]' : 'text-[13px]'}`}>
+            <Check className={`${dense ? 'w-3 h-3' : 'w-3.5 h-3.5'} shrink-0 mt-0.5 ${accent}`} />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+      {extra > 0 && (
+        <button type="button" onClick={() => setOpen(o => !o)}
+          className={`mt-2 text-[11px] font-black ${accent} hover:underline`}>
+          {open ? 'عرض أقل ↑' : `+${extra} مزايا أخرى ↓`}
+        </button>
+      )}
+    </div>
+  )
+}
+
 function PackCard({ plan }: { plan: Plan }) {
   const c = COLOR_STYLES[plan.color]
   const savings = plan.originalAmount && plan.originalAmount > plan.amount_mad
     ? plan.originalAmount - plan.amount_mad : null
 
   return (
-    <div id={plan.id} className={`scroll-mt-24 relative flex flex-col bg-[#0a1628] border-2 rounded-2xl p-6 transition-all ${
+    <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.15 }} transition={{ duration: 0.45 }} whileHover={{ y: -6 }}
+      id={plan.id} className={`scroll-mt-24 relative flex flex-col bg-[#0a1628] border-2 rounded-2xl p-6 transition-all ${
       plan.highlight ? `${c.border} ring-2 ${c.ring} scale-[1.02]` : 'border-[#1a2d4a] hover:border-[#1e3455]'
     }`}>
       {plan.badge_ar && (
@@ -398,14 +429,7 @@ function PackCard({ plan }: { plan: Plan }) {
         <div className="text-gray-400 text-xs mt-0.5">{plan.followUpDuration_ar}</div>
       </div>
 
-      <ul className="mt-4 space-y-2 flex-1">
-        {plan.lifetimePerks.map(item => (
-          <li key={item} className="flex items-start gap-2 text-gray-300 text-[13px] leading-snug">
-            <Check className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${c.accent}`} />
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
+      <PerkList perks={plan.lifetimePerks} accent={c.accent} />
 
       {plan.idealFor_ar && (
         <div className="mt-4 bg-white/5 rounded-xl p-3 text-gray-300 text-xs leading-relaxed">
@@ -422,7 +446,7 @@ function PackCard({ plan }: { plan: Plan }) {
       >
         اشترك في الباك <ArrowLeft className="w-4 h-4" />
       </button>
-    </div>
+    </motion.div>
   )
 }
 
@@ -433,7 +457,8 @@ function IndividualCard({ plan }: { plan: Plan }) {
     ? plan.originalAmount - plan.amount_mad : null
 
   return (
-    <div id={plan.id} className={`scroll-mt-24 relative flex flex-col bg-[#0a1628] border-2 rounded-2xl p-5 transition-all ${
+    <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.15 }} transition={{ duration: 0.45 }} whileHover={{ y: -6 }}
+      id={plan.id} className={`scroll-mt-24 relative flex flex-col bg-[#0a1628] border-2 rounded-2xl p-5 transition-all ${
       plan.highlight ? `${c.border} ring-2 ${c.ring}` : 'border-[#1a2d4a] hover:border-[#1e3455]'
     }`}>
       {plan.badge_ar && (
@@ -472,14 +497,7 @@ function IndividualCard({ plan }: { plan: Plan }) {
         </div>
       )}
 
-      <ul className="mt-3 space-y-1.5 flex-1">
-        {plan.lifetimePerks.map(item => (
-          <li key={item} className="flex items-start gap-1.5 text-gray-300 text-[12px] leading-snug">
-            <Check className={`w-3 h-3 shrink-0 mt-0.5 ${c.accent}`} />
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
+      <PerkList perks={plan.lifetimePerks} accent={c.accent} dense />
 
       {plan.idealFor_ar && (
         <div className="mt-3 bg-white/5 rounded-lg p-2.5 text-gray-400 text-[11px] leading-relaxed">
@@ -496,7 +514,7 @@ function IndividualCard({ plan }: { plan: Plan }) {
       >
         اشترك الآن <ArrowLeft className="w-4 h-4" />
       </button>
-    </div>
+    </motion.div>
   )
 }
 
@@ -506,7 +524,8 @@ function ClassCard({ plan }: { plan: Plan }) {
     ? plan.originalAmount - plan.amount_mad : null
 
   return (
-    <div className={`relative flex flex-col bg-[#0a1628] border-2 rounded-2xl p-5 transition-all ${
+    <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.15 }} transition={{ duration: 0.45 }} whileHover={{ y: -6 }}
+      className={`relative flex flex-col bg-[#0a1628] border-2 rounded-2xl p-5 transition-all ${
       plan.highlight ? `${c.border} ring-2 ${c.ring} scale-[1.02]` : 'border-[#1a2d4a] hover:border-[#1e3455]'
     }`}>
       {plan.badge_ar && (
@@ -543,14 +562,7 @@ function ClassCard({ plan }: { plan: Plan }) {
         </div>
       )}
 
-      <ul className="mt-3 space-y-1.5 flex-1">
-        {plan.lifetimePerks.map(item => (
-          <li key={item} className="flex items-start gap-1.5 text-gray-300 text-[12px] leading-snug">
-            <Check className={`w-3 h-3 shrink-0 mt-0.5 ${c.accent}`} />
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
+      <PerkList perks={plan.lifetimePerks} accent={c.accent} dense />
 
       {plan.idealFor_ar && (
         <div className="mt-3 bg-white/5 rounded-lg p-2.5 text-gray-400 text-[11px] leading-relaxed">
@@ -567,7 +579,7 @@ function ClassCard({ plan }: { plan: Plan }) {
       >
         احجز الحصص <ArrowLeft className="w-4 h-4" />
       </button>
-    </div>
+    </motion.div>
   )
 }
 
@@ -577,7 +589,8 @@ function BusinessCard({ plan }: { plan: Plan }) {
     ? plan.originalAmount - plan.amount_mad : null
 
   return (
-    <div className={`relative bg-[#0a1628] border-2 ${c.border} ring-2 ${c.ring} rounded-2xl p-7`}>
+    <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.15 }} transition={{ duration: 0.45 }}
+      className={`relative bg-[#0a1628] border-2 ${c.border} ring-2 ${c.ring} rounded-2xl p-7`}>
       <div className="flex flex-col lg:flex-row gap-8">
         <div className="flex-1">
           <div className={`inline-flex items-center gap-1.5 ${c.pillBg} ${c.pillText} text-[11px] font-black px-2.5 py-1 rounded-full mb-4`}>
@@ -629,7 +642,7 @@ function BusinessCard({ plan }: { plan: Plan }) {
           </button>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
 

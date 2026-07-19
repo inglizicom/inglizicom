@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   Wallet, UserPlus, GraduationCap, CalendarCheck, CreditCard, TrendingUp,
-  Phone, MessageCircle, Clock, Plus, ListChecks, BadgeCheck, ChevronLeft,
+  MessageCircle, Plus, ChevronLeft,
 } from 'lucide-react'
 
 import KpiCard from '../_components/KpiCard'
@@ -62,8 +62,6 @@ export default function DashboardPage() {
     if (!prev) return undefined
     return Math.round(((last - prev) / prev) * 100)
   })()
-
-  const followQueue = [...today, ...overdue].slice(0, 5)
 
   /* ── Leads by period ─────────────────────────────────── */
   function inPeriod(iso: string, p: typeof period): boolean {
@@ -131,27 +129,36 @@ export default function DashboardPage() {
           icon={TrendingUp} tone="green" />
       </div>
 
-      {/* ── Charts row ─────────────────────────────────── */}
+      {/* ── Action row: one prioritized follow-up queue + pipeline + sources ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Operational follow-up lists (owner KPIs live in the section above) */}
-        <ChartCard title="المتابعات المتأخرة">
-          <FollowList items={overdue.slice(0, 5)} empty="لا متابعات متأخرة" />
-        </ChartCard>
-        <ChartCard title="العملاء المهتمون">
-          <FollowList items={today.slice(0, 5)} empty="لا متابعات لليوم" />
+        <ChartCard title="قائمة المتابعات"
+          action={<Link href="/sales/workspace?tab=followups" className="text-[12px] text-blue-600 font-semibold flex items-center gap-0.5">عرض الكل <ChevronLeft size={13} /></Link>}>
+          <FollowList
+            items={[
+              ...overdue.map(l => ({ ...l, tag: 'overdue' as const })),
+              ...today.map(l => ({ ...l, tag: 'today' as const })),
+            ].slice(0, 8)}
+            empty="🎉 لا متابعات معلقة"
+          />
         </ChartCard>
 
-        {/* Upcoming follow-ups */}
-        <ChartCard title="المتابعات القادمة"
-          action={<Link href="/sales/workspace?tab=followups" className="text-[12px] text-blue-600 font-semibold flex items-center gap-0.5">عرض الكل <ChevronLeft size={13} /></Link>}>
-          <FollowList items={followQueue} empty="🎉 لا متابعات معلقة" />
+        {/* Sales pipeline — leads by stage */}
+        <ChartCard title="مسار المبيعات">
+          <PipelineFunnel leads={allLeads} />
+        </ChartCard>
+
+        <ChartCard title="مصادر العملاء">
+          {sources.length > 0 ? (
+            <DonutBreakdown data={sources.map(s => ({ label: s.source || 'غير محدد', value: s.count }))} unit="عميل" />
+          ) : (
+            <p className="text-[13px] text-zinc-400 py-6 text-center">لا توجد بيانات</p>
+          )}
         </ChartCard>
       </div>
 
-      {/* ── Bottom row ─────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Leads by period */}
-        <ChartCard title="العملاء حسب الفترة" className="lg:col-span-2"
+      {/* ── Leads by period (full width) ─────────────────── */}
+      <div>
+        <ChartCard title="العملاء حسب الفترة"
           action={<Link href="/sales/workspace" className="text-[12px] text-blue-600 font-semibold flex items-center gap-0.5">عرض الكل <ChevronLeft size={13} /></Link>}>
           {/* Period selector */}
           <div className="flex gap-1.5 mb-3 overflow-x-auto">
@@ -184,32 +191,32 @@ export default function DashboardPage() {
             })}
           </div>
         </ChartCard>
-
-        {/* Lead sources donut */}
-        <ChartCard title="مصادر العملاء">
-          {sources.length > 0 ? (
-            <DonutBreakdown data={sources.map(s => ({ label: s.source || 'غير محدد', value: s.count }))} unit="عميل" />
-          ) : (
-            <p className="text-[13px] text-zinc-400 py-6 text-center">لا توجد بيانات</p>
-          )}
-        </ChartCard>
       </div>
     </div>
   )
 }
 
-/* ── Follow-up list ─────────────────────────────────────── */
-function FollowList({ items, empty }: { items: OverdueLead[]; empty: string }) {
+/* ── Prioritized follow-up list — overdue first, then today ── */
+function FollowList({ items, empty }: { items: (OverdueLead & { tag?: 'overdue' | 'today' })[]; empty: string }) {
   if (items.length === 0) return <p className="text-[13px] text-zinc-400 py-6 text-center">{empty}</p>
   return (
     <div className="space-y-2">
       {items.map(l => (
         <div key={l.id} className="flex items-center gap-2.5">
-          <Avatar name={l.full_name} size={32} />
-          <div className="flex-1 min-w-0">
-            <div className="text-[13px] font-semibold text-zinc-800 truncate">{l.full_name}</div>
-            <div className="text-[11px] text-zinc-400" dir="ltr">{l.phone ?? '—'}</div>
-          </div>
+          <Link href={`/sales/leads/${l.id}`} className="flex items-center gap-2.5 flex-1 min-w-0 group">
+            <Avatar name={l.full_name} size={32} />
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-semibold text-zinc-800 truncate group-hover:text-blue-700 transition-colors">{l.full_name}</div>
+              <div className="text-[11px] text-zinc-400" dir="ltr">{l.phone ?? '—'}</div>
+            </div>
+          </Link>
+          {l.tag && (
+            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+              l.tag === 'overdue' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'
+            }`}>
+              {l.tag === 'overdue' ? 'متأخرة' : 'اليوم'}
+            </span>
+          )}
           {l.phone && (
             <a href={whatsappLink(l.phone) ?? '#'} target="_blank" rel="noopener noreferrer"
               className="w-7 h-7 rounded-full bg-green-50 text-green-600 flex items-center justify-center hover:bg-green-100">
@@ -218,6 +225,47 @@ function FollowList({ items, empty }: { items: OverdueLead[]; empty: string }) {
           )}
         </div>
       ))}
+    </div>
+  )
+}
+
+/* ── Sales pipeline — lead counts per stage with proportional bars ── */
+const PIPELINE_STAGES: { id: string; label: string; bar: string; text: string }[] = [
+  { id: 'new',        label: 'جديد',       bar: 'bg-blue-500',    text: 'text-blue-700' },
+  { id: 'contacted',  label: 'تم التواصل', bar: 'bg-indigo-500',  text: 'text-indigo-700' },
+  { id: 'interested', label: 'مهتم',       bar: 'bg-purple-500',  text: 'text-purple-700' },
+  { id: 'follow_up',  label: 'متابعة',     bar: 'bg-orange-500',  text: 'text-orange-700' },
+  { id: 'confirmed',  label: 'مؤكد',       bar: 'bg-emerald-500', text: 'text-emerald-700' },
+  { id: 'paid',       label: 'دفع',        bar: 'bg-yellow-400',  text: 'text-yellow-700' },
+]
+
+function PipelineFunnel({ leads }: { leads: SubscriptionLead[] }) {
+  const counts: Record<string, number> = {}
+  for (const l of leads) {
+    const s = normalizeStatus(l.status)
+    counts[s] = (counts[s] ?? 0) + 1
+  }
+  const max = Math.max(1, ...PIPELINE_STAGES.map(st => counts[st.id] ?? 0))
+  const total = PIPELINE_STAGES.reduce((sum, st) => sum + (counts[st.id] ?? 0), 0)
+  if (total === 0) return <p className="text-[13px] text-zinc-400 py-6 text-center">لا توجد بيانات</p>
+  return (
+    <div className="space-y-2.5">
+      {PIPELINE_STAGES.map(st => {
+        const n = counts[st.id] ?? 0
+        return (
+          <div key={st.id} className="flex items-center gap-2.5">
+            <span className="text-[12px] font-bold text-zinc-600 w-[76px] shrink-0">{st.label}</span>
+            <div className="flex-1 h-5 bg-zinc-100 rounded-md overflow-hidden">
+              <div className={`h-full ${st.bar} rounded-md transition-all`} style={{ width: `${(n / max) * 100}%` }} />
+            </div>
+            <span className={`text-[12px] font-black w-8 text-left ${st.text}`}>{n}</span>
+          </div>
+        )
+      })}
+      <div className="pt-1.5 mt-1 border-t border-zinc-100 flex items-center justify-between text-[11px] font-bold text-zinc-500">
+        <span>إجمالي العملاء النشطين</span>
+        <span className="text-zinc-800 font-black">{total}</span>
+      </div>
     </div>
   )
 }
