@@ -16,6 +16,7 @@ import { logActivity } from '@/lib/activity-log-db'
 import { useStaff } from '@/lib/staff-context'
 import { supabase } from '@/lib/supabase'
 import type { LeadEvent } from '@/lib/crm-types'
+import { countryFlag } from '@/lib/geo-currency'
 
 type Tab = 'overview' | 'edit' | 'timeline'
 
@@ -223,6 +224,7 @@ export default function LeadDetailDrawer({
                 <Info label="Amount"   value={lead.amount_mad ? `${lead.amount_mad} MAD` : '—'} />
                 <Info label="Phone"    value={lead.phone ?? '—'} />
                 <Info label="City"     value={lead.city ?? '—'} />
+                <Info label="Country"  value={lead.country ? `${countryFlag(lead.country)} ${lead.country}` : '—'} />
                 <Info label="Created"  value={new Date(lead.created_at).toLocaleDateString()} />
                 <Info label="Last contact" value={lead.last_contact_at ? new Date(lead.last_contact_at).toLocaleDateString() : '—'} />
                 {lead.next_followup_at && (

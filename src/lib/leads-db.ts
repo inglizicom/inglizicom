@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { getCachedCountry, fetchVisitorCountry } from './geo-currency'
 
 /* CRM lead statuses — the full funnel from first contact through payment.
  * The legacy values 'converted' and 'rejected' map onto 'paid' and 'cancelled'
@@ -101,6 +102,8 @@ export interface SubscriptionLead {
   // Migration 015 — soft delete
   deleted_at:        string | null
   deleted_by_id:     string | null
+  // Migration 036 — GCC expansion: visitor country (ISO-3166 alpha-2)
+  country:           string | null
 }
 
 /** WhatsApp link from a phone number — used in lead cards. */
@@ -174,7 +177,14 @@ export async function createManualLead(input: ManualLeadInput): Promise<string> 
 }
 
 export async function createSubscriptionLead(input: CreateLeadInput): Promise<void> {
+  // Auto-capture the visitor's country (already cached by the pricing UI in
+  // most sessions; otherwise one quick /api/geo call). Never blocks the lead.
+  let country: string | null = getCachedCountry()
+  if (!country) {
+    try { country = await fetchVisitorCountry() } catch { country = null }
+  }
   const { error } = await supabase.from('subscription_leads').insert({
+    country,
     plan_id:          input.planId,
     level:            input.level         ?? null,
     full_name:        input.fullName,

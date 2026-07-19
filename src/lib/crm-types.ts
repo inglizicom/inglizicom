@@ -114,6 +114,8 @@ export interface CrmStudent {
   reward_source?:      string | null
   sponsor_reason?:     string | null
   trial_expires_at?:   string | null
+  // Migration 036 — GCC expansion: student country (ISO-3166 alpha-2, copied from lead)
+  country?:            string | null
 }
 
 // ─── CRM Payment ────────────────────────────────────────────

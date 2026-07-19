@@ -17,6 +17,7 @@ import {
 } from '@/data/plans'
 import { TESTIMONIALS, STATS } from '@/data/testimonials'
 import { openSubscribe } from '@/lib/lead-source'
+import ApproxPrice from '@/components/ApproxPrice'
 
 const FAQ: { q: string; a: string }[] = [
   {
@@ -229,7 +230,9 @@ export default function PricingPage() {
           <div className="inline-flex items-center gap-4 bg-[#0a1628] border border-amber-500/30 rounded-2xl px-8 py-4">
             <Clock className="w-6 h-6 text-amber-400 shrink-0" />
             <div className="text-right">
-              <div className="text-white font-black text-xl">400 درهم / الحصة</div>
+              <div className="text-white font-black text-xl">
+                400 درهم / الحصة <ApproxPrice mad={400} className="text-amber-300/90 text-sm font-bold" />
+              </div>
               <div className="text-amber-300 text-sm font-bold">1h30 · مباشر مع الأستاذ · سعر يقل كلما زادت الحصص</div>
             </div>
           </div>
@@ -361,6 +364,7 @@ function PackCard({ plan }: { plan: Plan }) {
         <span className="text-gray-400 text-sm font-bold">درهم</span>
         {plan.originalAmount && <span className="text-gray-600 text-sm line-through">{plan.originalAmount.toLocaleString()}</span>}
       </div>
+      <ApproxPrice mad={plan.amount_mad} className="mt-1 text-amber-300/90 text-sm font-bold" />
       {savings && (
         <div className="mt-2 inline-flex self-start items-center gap-1 bg-emerald-500/10 text-emerald-400 text-xs font-black px-2 py-1 rounded-md">
           <Flame className="w-3 h-3" /> وفّر {savings.toLocaleString()} درهم
@@ -428,6 +432,7 @@ function IndividualCard({ plan }: { plan: Plan }) {
         <span className="text-gray-400 text-xs font-bold">درهم</span>
         {plan.originalAmount && <span className="text-gray-600 text-xs line-through">{plan.originalAmount.toLocaleString()}</span>}
       </div>
+      <ApproxPrice mad={plan.amount_mad} className="mt-1 text-amber-300/90 text-xs font-bold" />
       {savings && (
         <div className="mt-1.5 inline-flex self-start items-center gap-1 bg-emerald-500/10 text-emerald-400 text-[11px] font-black px-2 py-0.5 rounded-md">
           <Flame className="w-2.5 h-2.5" /> وفّر {savings.toLocaleString()}
@@ -502,6 +507,7 @@ function ClassCard({ plan }: { plan: Plan }) {
         <span className="text-gray-400 text-xs font-bold">درهم</span>
         {plan.originalAmount && <span className="text-gray-600 text-xs line-through">{plan.originalAmount.toLocaleString()}</span>}
       </div>
+      <ApproxPrice mad={plan.amount_mad} className="mt-1 text-amber-300/90 text-xs font-bold" />
 
       {plan.sessionsIncluded && plan.sessionsIncluded > 1 && (
         <div className="text-gray-500 text-[11px] mt-1">

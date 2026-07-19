@@ -6,6 +6,7 @@ import Link from "next/link"
 import { TESTIMONIALS } from "@/data/testimonials"
 import { INDIVIDUAL_PLANS, PACK_PLANS } from "@/data/plans"
 import { openSubscribe } from "@/lib/lead-source"
+import ApproxPrice from "@/components/ApproxPrice"
 
 /* ═══════════════════════════════════════════════════
    DATA
@@ -533,6 +534,7 @@ function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
               <span className="text-gray-400 text-xs line-through">{plan.originalPrice.toLocaleString()}</span>
             )}
           </div>
+          <ApproxPrice mad={plan.price} className="block text-blue-700/80 text-xs font-bold mt-0.5" />
           {savings && (
             <p className="text-emerald-600 text-[11px] font-black mt-1">وفّر {savings.toLocaleString()} درهم</p>
           )}
@@ -660,7 +662,7 @@ function CoursesSection() {
             <div>
               <div className="text-[11px] font-black tracking-widest uppercase text-amber-600 mb-1">1:1 Private Classes</div>
               <h3 className="font-black text-2xl text-gray-900 mb-1">الحصص الفردية</h3>
-              <p className="text-gray-600 text-sm font-semibold">400 درهم / الحصة · 1h30 · مباشر مع الأستاذ</p>
+              <p className="text-gray-600 text-sm font-semibold">400 درهم / الحصة <ApproxPrice mad={400} className="text-blue-700/80" /> · 1h30 · مباشر مع الأستاذ</p>
               <p className="text-gray-500 text-xs mt-2">كلما اشتريت حصصاً أكثر، كان سعر الحصة أرخص.</p>
             </div>
             <Link href="/pricing#classes"
@@ -678,7 +680,7 @@ function CoursesSection() {
             <div>
               <div className="text-[11px] font-black tracking-widest uppercase text-cyan-600 mb-1">Business English</div>
               <h3 className="font-black text-2xl text-gray-900 mb-1">الإنجليزية المهنية</h3>
-              <p className="text-gray-600 text-sm font-semibold">3,500 درهم · برنامج متخصص للمحترفين</p>
+              <p className="text-gray-600 text-sm font-semibold">3,500 درهم <ApproxPrice mad={3500} className="text-blue-700/80" /> · برنامج متخصص للمحترفين</p>
               <p className="text-gray-500 text-xs mt-2">تكلّم، أقنع، وابهر في بيئة العمل — بدون قواعد.</p>
             </div>
             <Link href="/pricing#business"

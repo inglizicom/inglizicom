@@ -31,6 +31,7 @@ import {
   type StudentAssignment, type StudentFile, type StudentExam, type PathTemplate, type StudentDevice,
 } from '@/lib/student-portal'
 import { Smartphone, Coins, Gift } from 'lucide-react'
+import { countryFlag } from '@/lib/geo-currency'
 import { fetchStudentCoinsCRM, fetchStudentClaims, adjustCoins, type CoinTx, type RewardClaimRow } from '@/lib/gamification'
 import {
   fetchCourses, fetchEnrollments, enrollStudent, unenrollStudent, fetchCourseProgress,
@@ -521,6 +522,7 @@ export default function StudentProfilePage() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h2 className="text-[20px] font-black text-zinc-900">{student.full_name}</h2>
+                  {student.country && <span title={student.country} className="text-lg leading-none">{countryFlag(student.country)}</span>}
                   <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${student.is_active ? 'bg-green-50 text-green-700 border-green-200' : 'bg-zinc-100 text-zinc-500 border-zinc-200'}`}>
                     {student.is_active ? 'نشط' : 'غير نشط'}
                   </span>

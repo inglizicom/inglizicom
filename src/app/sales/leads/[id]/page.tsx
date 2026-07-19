@@ -20,6 +20,7 @@ import { logLeadEvent } from '@/lib/crm-db'
 import type { LeadEvent } from '@/lib/crm-types'
 import { useCrmBasePath } from '@/lib/use-crm-path'
 import { GraduationCap } from 'lucide-react'
+import { countryFlag } from '@/lib/geo-currency'
 
 export default function LeadDetailPage() {
   const params = useParams()
@@ -109,6 +110,7 @@ export default function LeadDetailPage() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-[22px] font-black tracking-tight text-gray-900">{lead.full_name}</h1>
+              {lead.country && <span title={lead.country} className="text-lg leading-none">{countryFlag(lead.country)}</span>}
               {lead.is_vip && <Crown size={15} className="text-rose-500" />}
             </div>
             <div className="flex items-center gap-2 mt-0.5">
