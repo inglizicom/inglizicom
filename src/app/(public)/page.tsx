@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { motion, AnimatePresence, useMotionValue, useTransform, useSpring, useInView } from "framer-motion"
+import { motion, AnimatePresence, useMotionValue, useTransform, useInView } from "framer-motion"
 import Link from "next/link"
 import { TESTIMONIALS } from "@/data/testimonials"
 import { INDIVIDUAL_PLANS, PACK_PLANS } from "@/data/plans"
@@ -156,33 +156,6 @@ function Particles({ count = 20, className = "" }: { count?: number; className?:
         />
       ))}
     </div>
-  )
-}
-
-/* ═══════════════════════════════════════════════════
-   MAGNETIC BUTTON
-═══════════════════════════════════════════════════ */
-
-function MagneticButton({ children, href, className }: { children: React.ReactNode; href: string; className: string }) {
-  const x = useMotionValue(0)
-  const y = useMotionValue(0)
-  const springX = useSpring(x, { stiffness: 300, damping: 20 })
-  const springY = useSpring(y, { stiffness: 300, damping: 20 })
-
-  return (
-    <motion.div
-      style={{ x: springX, y: springY }}
-      onMouseMove={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect()
-        x.set((e.clientX - rect.left - rect.width / 2) * 0.15)
-        y.set((e.clientY - rect.top - rect.height / 2) * 0.15)
-      }}
-      onMouseLeave={() => { x.set(0); y.set(0) }}
-    >
-      <Link href={href} className={className}>
-        {children}
-      </Link>
-    </motion.div>
   )
 }
 
