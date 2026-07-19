@@ -15,20 +15,20 @@ import ApproxPrice from "@/components/ApproxPrice"
 const SLIDES = [
   {
     img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=720&h=480&fit=crop&q=80",
-    title: "تعلم الإنجليزية مع حمزة",
-    sub: "طريقة عملية بدون قواعد مملة — نتائج من أول أسبوع",
+    title: "تحدث بثقة في 30 يومًا",
+    sub: "أول أسبوع يغيّر ثقتك، ثم نصل بك إلى محادثة حقيقية خطوة بخطوة مع الأستاذ حمزة",
     accent: "#22c55e",
   },
   {
     img: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=720&h=480&fit=crop&q=80",
-    title: "تحدث من اليوم الأول",
-    sub: "محادثات حقيقية يومية تبني ثقتك خطوة بخطوة",
+    title: "محادثة عملية من اليوم الأول",
+    sub: "تتعلم الجمل التي تحتاجها فعلاً في الحياة والعمل بدل حفظ الكلمات بدون فائدة",
     accent: "#3b82f6",
   },
   {
     img: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=720&h=480&fit=crop&q=80",
-    title: "دروس بسيطة — تقدّم سريع",
-    sub: "من الصفر إلى الاحتراف بأسلوب ممتع وتفاعلي",
+    title: "من الصفر إلى الطلاقة",
+    sub: "أقصر طرق التعلم مع شرح عربي مبسط، متابعة شخصية، ونتائج محسوسة بسرعة",
     accent: "#8b5cf6",
   },
 ]
@@ -252,16 +252,31 @@ function HeroSlider() {
                 {slide.title}
               </h1>
 
-              <p className="text-gray-600 text-base sm:text-lg mb-10 leading-[1.9] max-w-xl">
+              <p className="text-gray-600 text-base sm:text-lg mb-6 leading-[1.9] max-w-xl">
                 {slide.sub}
               </p>
+
+              <div className="flex flex-wrap gap-2.5 mb-8">
+                {[
+                  { label: '📹 دروس قصيرة' },
+                  { label: '💬 متابعة شخصية' },
+                  { label: '🎯 نتائج محسوسة' },
+                ].map((item) => (
+                  <span
+                    key={item.label}
+                    className="inline-flex items-center rounded-full border border-blue-100 bg-white/80 px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm"
+                  >
+                    {item.label}
+                  </span>
+                ))}
+              </div>
 
               <div className="flex flex-wrap gap-4">
                 <Link
                   href="/level-test"
                   className="relative bg-gradient-to-l from-amber-400 to-yellow-500 text-blue-900 font-black text-base px-10 py-4 rounded-2xl shadow-xl shadow-amber-500/40 hover:shadow-amber-500/60 hover:scale-105 transition-all duration-300 inline-flex items-center gap-2.5 border border-amber-300"
                 >
-                  🧭 اختبر مستواك مجاناً
+                  🧭 اختبر مستواك مجاناً في 3 دقائق
                   <motion.span animate={{ x: [0, -4, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>←</motion.span>
                 </Link>
 
@@ -303,7 +318,7 @@ function HeroSlider() {
                     ))}
                     <span className="text-gray-700 mr-1 text-sm font-black">4.9</span>
                   </div>
-                  <p className="text-gray-500 text-sm font-semibold">من 1200+ طالب سعيد</p>
+                  <p className="text-gray-500 text-sm font-semibold">من أكثر من 1200 طالب يختاروننا كل أسبوع</p>
                 </div>
               </motion.div>
             </motion.div>
@@ -325,6 +340,8 @@ function HeroSlider() {
                 <img
                   src={slide.img}
                   alt={slide.title}
+                  loading="eager"
+                  decoding="async"
                   className="w-full h-[260px] sm:h-[340px] md:h-[440px] object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-blue-900/50 via-transparent to-white/5 rounded-3xl" />
