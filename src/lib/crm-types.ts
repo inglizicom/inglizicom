@@ -114,6 +114,8 @@ export interface CrmStudent {
   reward_source?:      string | null
   sponsor_reason?:     string | null
   trial_expires_at?:   string | null
+  // Migration 037 — staff-managed profile photo
+  avatar_url?:         string | null
   // Migration 036 — GCC expansion: student country (ISO-3166 alpha-2, copied from lead)
   country?:            string | null
 }
@@ -139,6 +141,11 @@ export interface CrmPayment {
   approved_at:        string | null
   created_at:         string
   updated_at:         string
+  // Migration 038 — split payments (installments) + reminders
+  due_date?:           string | null
+  reminder_sent_at?:   string | null
+  installment_no?:     number | null
+  installment_count?:  number | null
 }
 
 // ─── Lead timeline event ─────────────────────────────────────

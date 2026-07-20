@@ -5,22 +5,41 @@ import Link from 'next/link'
 import {
   TrendingUp, Users, UserPlus, Target,
   AlertTriangle, Trophy, Flame, BookOpen, RefreshCw, Sparkles, Wallet,
-  Activity, Crown, Zap, ChevronLeft,
+  Activity, Crown, Zap, ChevronLeft, Radio, GraduationCap, TrendingDown,
 } from 'lucide-react'
 import PersonAvatar from '@/components/PersonAvatar'
 import CoinIcon from '@/components/CoinIcon'
 import {
   fetchOwnerOverview, fetchOwnerRevenueTrend, fetchOwnerTeam,
   fetchOwnerStudents, fetchOwnerCourses, fetchOwnerAlerts,
+  fetchOwnerLivePulse, fetchOwnerLearningIntel,
   type OwnerOverview, type TeamMember, type StudentIntel,
   type CourseStat, type OwnerAlert, type RevenuePoint,
+  type OwnerLivePulse, type OwnerLearningIntel,
 } from '@/lib/owner'
+import { fetchDues, type DuesData } from '@/lib/dues'
 import { ENROLLMENT_TYPES } from '@/lib/crm-types'
 
 /* ── number helpers ── */
 const fmt = (n: number) => Math.round(n).toLocaleString('en-US')
 
 const AR_MONTHS = ['ينا', 'فبر', 'مار', 'أبر', 'ماي', 'يون', 'يول', 'غشت', 'شت', 'أكت', 'نون', 'دجن']
+
+/* live-feed event labels */
+const EVENT_AR: Record<string, string> = {
+  login: 'دخل المنصة', opened_lesson: 'فتح درسًا', completed_lesson: 'أكمل درسًا',
+  completed_quiz: 'اجتاز اختبارًا', completed_reading_quiz: 'أنهى قراءة', completed_challenge: 'أنجز تحديًا',
+  passed_unit_exam: 'نجح في امتحان وحدة', failed_unit_exam: 'رسب في امتحان وحدة',
+  vocab_game: 'لعب لعبة مفردات', submitted_conversation: 'أرسل محادثة',
+  downloaded_file: 'حمّل ملفًا', reward_claim: 'طلب مكافأة', opened_reading: 'فتح القراءة',
+  opened_exam: 'فتح الامتحان', final_exam: 'اجتاز الامتحان النهائي',
+}
+const EVENT_ICON: Record<string, string> = {
+  login: '🔑', opened_lesson: '📖', completed_lesson: '✅', completed_quiz: '📝',
+  completed_reading_quiz: '📚', completed_challenge: '⚡', passed_unit_exam: '🎓',
+  failed_unit_exam: '❌', vocab_game: '🎮', submitted_conversation: '💬',
+  downloaded_file: '📎', reward_claim: '🎁', opened_reading: '📚', opened_exam: '🧪', final_exam: '🏆',
+}
 function monthLabel(ym: string) { const m = parseInt(ym.slice(5), 10); return AR_MONTHS[(m - 1) % 12] }
 
 function useCountUp(target: number, dur = 1000) {
@@ -50,17 +69,27 @@ export default function OwnerCommandCenter({ embedded = false }: { embedded?: bo
   const [intel, setIntel] = useState<StudentIntel | null>(null)
   const [courses, setCourses] = useState<CourseStat[]>([])
   const [alerts, setAlerts] = useState<OwnerAlert[]>([])
+  const [pulse, setPulse] = useState<OwnerLivePulse | null>(null)
+  const [learn, setLearn] = useState<OwnerLearningIntel | null>(null)
+  const [dues, setDues] = useState<DuesData | null>(null)
 
   async function load() {
     setLoading(true)
-    const [o, tr, t, si, c, a] = await Promise.all([
+    const [o, tr, t, si, c, a, lp, li, du] = await Promise.all([
       fetchOwnerOverview(), fetchOwnerRevenueTrend(), fetchOwnerTeam(),
       fetchOwnerStudents(), fetchOwnerCourses(), fetchOwnerAlerts(),
+      fetchOwnerLivePulse(), fetchOwnerLearningIntel(), fetchDues(),
     ])
     setOv(o); setTrend(tr); setTeam(t); setIntel(si); setCourses(c); setAlerts(a)
+    setPulse(lp); setLearn(li); setDues(du)
     setLoading(false)
   }
   useEffect(() => { load() }, [])
+  // the live pulse refreshes itself every 60s (presence window is 5 min)
+  useEffect(() => {
+    const iv = setInterval(() => { fetchOwnerLivePulse().then(p => { if (p) setPulse(p) }) }, 60_000)
+    return () => clearInterval(iv)
+  }, [])
 
   const today = new Date().toLocaleDateString('ar-MA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
   const maxTrend = Math.max(1, ...trend.map(p => p.mad))
@@ -109,10 +138,19 @@ export default function OwnerCommandCenter({ embedded = false }: { embedded?: bo
           </div>
         )}
 
-        {/* ── SMART ALERTS ── */}
-        {alerts.length > 0 && (
+        {/* ── SMART ALERTS (server alerts + money dues) ── */}
+        {(() => {
+          const dueAlerts: OwnerAlert[] = []
+          if (dues) {
+            const t = dues.totals
+            if (t.overdue > 0) dueAlerts.push({ level: 'danger', text: `💰 ${fmt(t.overdue)} د.م مستحقات متأخرة — تحتاج تحصيلًا الآن` })
+            if (t.due_7d > 0) dueAlerts.push({ level: 'warn', text: `💳 ${fmt(t.due_7d)} د.م أقساط تُستحق خلال 7 أيام` })
+            if (t.monthly_overdue_n > 0) dueAlerts.push({ level: 'warn', text: `📅 ${t.monthly_overdue_n} اشتراك شهري متأخر عن موعده` })
+          }
+          const all = [...dueAlerts, ...alerts]
+          return all.length > 0 && (
           <div className="grid sm:grid-cols-2 gap-2.5 mb-5">
-            {alerts.map((a, i) => (
+            {all.map((a, i) => (
               <div key={i} style={{ animationDelay: `${(delay += 60)}ms` }} className={[
                 'cc-rise flex items-center gap-2.5 px-4 py-3 rounded-2xl text-[13.5px] font-bold border shadow-sm',
                 a.level === 'danger' ? 'bg-red-50 text-red-700 border-red-200'
@@ -125,6 +163,110 @@ export default function OwnerCommandCenter({ embedded = false }: { embedded?: bo
                 <span className="leading-snug">{a.text}</span>
               </div>
             ))}
+          </div>
+          )
+        })()}
+
+        {/* ── LIVE PULSE ── */}
+        {pulse && (
+          <>
+            <SectionLabel icon={Radio}>النبض المباشر <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-1" /></SectionLabel>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+              <BigKpi {...rise()} label="متصلون الآن" value={pulse.online_count} plainIcon={Radio} tone={pulse.online_count > 0 ? 'good' : undefined} compact />
+              <BigKpi {...rise()} label="تعلّموا اليوم" value={pulse.active_today} plainIcon={Activity} compact />
+              <BigKpi {...rise()} label="دروس مكتملة اليوم" value={pulse.lessons_today} plainIcon={BookOpen} compact />
+              <BigKpi {...rise()} label="معدل النقاط · 7 أيام" value={pulse.avg_score_7d} plainIcon={Target} compact tone={pulse.avg_score_7d >= 70 ? 'good' : pulse.avg_score_7d > 0 && pulse.avg_score_7d < 55 ? 'warn' : undefined} />
+            </div>
+            <div className="grid lg:grid-cols-3 gap-3 mb-3">
+              <Panel {...rise()}>
+                <PanelHead icon={Radio} title={`متصلون الآن (${pulse.online_count})`} hint="آخر 5 دقائق" />
+                {pulse.online_now.length === 0 ? <Empty>لا أحد متصل الآن</Empty> :
+                  <div className="space-y-0.5 mt-1 max-h-64 overflow-y-auto">
+                    {pulse.online_now.map(s => (
+                      <Link key={s.id} href={`/sales/students/${s.id}`} className="flex items-center gap-2.5 py-1.5 px-1 -mx-1 rounded-lg hover:bg-zinc-50 transition-colors border-b border-zinc-50 last:border-0">
+                        <div className="relative flex-shrink-0">
+                          <PersonAvatar name={s.name} size={30} src={s.avatar_url} />
+                          <span className="absolute -bottom-0.5 -left-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[13px] font-semibold text-zinc-700 truncate">{s.name}</div>
+                          <div className="text-[11px] text-zinc-400 truncate">{s.activity || 'يتصفح'}{s.course ? ` · ${s.course}` : ''}</div>
+                        </div>
+                        <span className="text-[10px] font-bold text-emerald-600 flex-shrink-0">{s.minutes === 0 ? 'الآن' : `منذ ${s.minutes} د`}</span>
+                      </Link>
+                    ))}
+                  </div>}
+              </Panel>
+              <Panel {...rise()}>
+                <PanelHead icon={Zap} title="تعلّم اليوم" />
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  <MiniStat label="اختبارات" value={pulse.quizzes_today} />
+                  <MiniStat label="امتحانات ناجحة" value={pulse.exams_passed_today} tone={pulse.exams_passed_today > 0 ? 'good' : undefined} />
+                  <MiniStat label="تحديات" value={pulse.challenges_today} />
+                  <MiniStat label="عملات موزّعة" value={fmt(pulse.coins_today)} />
+                  <MiniStat label="نشِط هذا الأسبوع" value={pulse.active_week} />
+                  <MiniStat label="شهادات هذا الأسبوع" value={pulse.certs_week} tone={pulse.certs_week > 0 ? 'good' : undefined} />
+                </div>
+              </Panel>
+              <Panel {...rise()}>
+                <PanelHead icon={Activity} title="آخر الأحداث اليوم" />
+                {pulse.recent_events.length === 0 ? <Empty>لا نشاط بعد اليوم</Empty> :
+                  <div className="space-y-0.5 mt-1 max-h-64 overflow-y-auto">
+                    {pulse.recent_events.map((e, i) => (
+                      <div key={i} className="flex items-center gap-2 py-1 border-b border-zinc-50 last:border-0">
+                        <span className="text-[13px] flex-shrink-0">{EVENT_ICON[e.event] ?? '•'}</span>
+                        <span className="flex-1 text-[12px] text-zinc-600 truncate">
+                          <b className="text-zinc-800">{e.name}</b> {EVENT_AR[e.event] ?? e.event}{e.title ? `: ${e.title}` : ''}
+                        </span>
+                        <span className="text-[10px] text-zinc-400 flex-shrink-0" dir="ltr">{e.at}</span>
+                      </div>
+                    ))}
+                  </div>}
+              </Panel>
+            </div>
+          </>
+        )}
+
+        {/* ── PROGRESSING vs STRUGGLING ── */}
+        {learn && (
+          <div className="grid lg:grid-cols-2 gap-3 mb-6">
+            <Panel {...rise()}>
+              <PanelHead icon={GraduationCap} title="يتقدمون هذا الأسبوع 🚀" />
+              {learn.progressing.length === 0 ? <Empty>لا يوجد تقدّم مسجّل هذا الأسبوع</Empty> :
+                <div className="space-y-0.5 mt-1">
+                  {learn.progressing.map((s, i) => (
+                    <Link key={s.id} href={`/sales/students/${s.id}`} className="flex items-center gap-2.5 py-1.5 px-1 -mx-1 rounded-lg hover:bg-zinc-50 transition-colors border-b border-zinc-50 last:border-0">
+                      <span className="w-4 text-center text-[12px] font-black text-zinc-400 flex-shrink-0">{i + 1}</span>
+                      <PersonAvatar name={s.name} size={30} src={s.avatar_url} />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[13px] font-semibold text-zinc-700 truncate">{s.name}</div>
+                        <div className="text-[11px] text-zinc-400">{s.lessons_7d} درس · {s.quizzes_7d} اختبار{s.avg_score != null ? ` · معدل ${s.avg_score}%` : ''}</div>
+                      </div>
+                      {s.progress != null && (
+                        <span className="text-[11px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full flex-shrink-0">{s.progress}%</span>
+                      )}
+                    </Link>
+                  ))}
+                </div>}
+            </Panel>
+            <Panel {...rise()}>
+              <PanelHead icon={TrendingDown} title="يتعثرون — يحتاجون تدخّلًا ⚠️" />
+              {learn.struggling.length === 0 ? <Empty>لا أحد يتعثر 🎉</Empty> :
+                <div className="space-y-0.5 mt-1">
+                  {learn.struggling.map(s => (
+                    <Link key={s.id} href={`/sales/students/${s.id}`} className="flex items-center gap-2.5 py-1.5 px-1 -mx-1 rounded-lg hover:bg-zinc-50 transition-colors border-b border-zinc-50 last:border-0">
+                      <PersonAvatar name={s.name} size={30} src={s.avatar_url} />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[13px] font-semibold text-zinc-700 truncate">{s.name}</div>
+                        <div className="text-[11px] text-red-500 font-semibold truncate">{s.reason}</div>
+                      </div>
+                      {s.avg_score != null && (
+                        <span className={`text-[11px] font-black px-2 py-0.5 rounded-full flex-shrink-0 ${s.avg_score < 55 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>{s.avg_score}%</span>
+                      )}
+                    </Link>
+                  ))}
+                </div>}
+            </Panel>
           </div>
         )}
 

@@ -8,6 +8,7 @@ import {
 import KpiCard from '@/app/sales/_components/KpiCard'
 import { ChartCard, AreaTrend, DonutBreakdown, Funnel } from '@/app/sales/_components/Charts'
 import { fetchOwnerMetrics, type OwnerMetrics, type RevenueBreakdown } from '@/lib/crm-stats'
+import DuesBoard from '@/components/DuesBoard'
 
 const MAD = (n: number) => new Intl.NumberFormat('en-US').format(Math.round(n))
 
@@ -77,6 +78,17 @@ export default function AnalyticsPage() {
         <KpiCard label="إيرادات اليوم" value={MAD(m.revenueToday)} unit="د.م" icon={Zap} tone="purple" />
         <KpiCard label="متوسط الإيراد / طالب" value={MAD(m.avgRevenuePerStudent)} unit="د.م" icon={GraduationCap} tone="orange" />
         <KpiCard label="متوسط الإيراد / عميل" value={MAD(m.avgRevenuePerLead)} unit="د.م" icon={Target} tone="zinc" />
+      </div>
+
+      {/* Financial health: outstanding dues, overdue, monthly subscriptions */}
+      <div>
+        <div className="flex items-center gap-2 mb-3">
+          <span className="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center"><Wallet size={14} /></span>
+          <h2 className="text-[14px] font-black text-zinc-800">الوضع المالي والمستحقات</h2>
+          <span className="text-[11px] text-zinc-400 font-semibold">من عليه أن يدفع · الأقساط المجدولة · الاشتراكات الشهرية</span>
+          <div className="flex-1 h-px bg-gradient-to-l from-zinc-200 to-transparent" />
+        </div>
+        <DuesBoard onChanged={load} />
       </div>
 
       {/* Revenue trend + source donut */}

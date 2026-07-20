@@ -156,6 +156,19 @@ export async function logActivity(token: string, event: string, entityType?: str
     p_entity_type: entityType ?? null, p_entity_id: entityId ?? null, p_title: title ?? null,
   })
 }
+/** Presence heartbeat — powers the owner's "online now" panel. Fire every ~60s. */
+export async function sendHeartbeat(token: string, activity?: string, courseId?: string | null): Promise<void> {
+  try {
+    await supabase.rpc('student_heartbeat', {
+      p_token: token.trim().toUpperCase(), p_activity: activity ?? null, p_course: courseId ?? null,
+    })
+  } catch { /* presence is best-effort */ }
+}
+/** The student's staff-managed profile photo (null → initials avatar). */
+export async function fetchStudentAvatar(token: string): Promise<string | null> {
+  const { data } = await supabase.rpc('student_avatar', { p_token: token.trim().toUpperCase() })
+  return (data ?? null) as string | null
+}
 
 /* ── CRM staff side ────────────────────────────────────── */
 export async function fetchAssignments(studentId: string): Promise<StudentAssignment[]> {
@@ -192,6 +205,21 @@ export async function uploadStudentFile(studentId: string, file: File, uploadedB
 export async function deleteStudentFile(id: string, path: string): Promise<void> {
   await supabase.storage.from(BUCKET).remove([path])
   await supabase.from('student_files').delete().eq('id', id)
+}
+
+/* Profile photo (staff): upload to student-files/avatars, save url on crm_students. */
+export async function uploadStudentAvatar(studentId: string, file: File): Promise<string | null> {
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg'
+  const path = `avatars/${studentId}/${Date.now()}.${ext}`
+  const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, { upsert: true })
+  if (upErr) { console.error('uploadStudentAvatar', upErr.message); return null }
+  const url = supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl
+  const { error } = await supabase.from('crm_students').update({ avatar_url: url }).eq('id', studentId)
+  if (error) { console.error('uploadStudentAvatar save', error.message); return null }
+  return url
+}
+export async function removeStudentAvatar(studentId: string): Promise<void> {
+  await supabase.from('crm_students').update({ avatar_url: null }).eq('id', studentId)
 }
 
 /* Exams */

@@ -28,9 +28,15 @@ import {
   fetchExams, addExam, deleteExam, fetchStudentActivity,
   fetchTemplates, applyTemplateToStudent,
   fetchStudentDevices, deleteStudentDevice, resetStudentDevices, setDeviceLimit,
+  uploadStudentAvatar, removeStudentAvatar,
   type StudentAssignment, type StudentFile, type StudentExam, type PathTemplate, type StudentDevice,
 } from '@/lib/student-portal'
-import { Smartphone, Coins, Gift } from 'lucide-react'
+import {
+  fetchStudentCertificates, issueCustomCertificate, deleteCertificate, certUrl,
+  CERT_KIND_AR, type CertRow,
+} from '@/lib/certificates'
+import { createSplitPayment, dueWhatsAppLink, markReminded, type DueRow } from '@/lib/dues'
+import { Smartphone, Coins, Gift, Award, Camera } from 'lucide-react'
 import { countryFlag } from '@/lib/geo-currency'
 import { fetchStudentCoinsCRM, fetchStudentClaims, adjustCoins, type CoinTx, type RewardClaimRow } from '@/lib/gamification'
 import {
@@ -151,6 +157,10 @@ export default function StudentProfilePage() {
   const [payType,   setPayType]   = useState<'course_one_time' | 'private_monthly'>('private_monthly')
   const [payNotes,  setPayNotes]  = useState('')
   const [savingPay, setSavingPay] = useState(false)
+  // split (installments): part 1 now, part 2 scheduled
+  const [splitOn,    setSplitOn]    = useState(false)
+  const [splitFirst, setSplitFirst] = useState('')
+  const [splitDate,  setSplitDate]  = useState(() => { const d = new Date(); d.setMonth(d.getMonth() + 1); return d.toISOString().slice(0, 10) })
 
   useEffect(() => { if (id) load() }, [id])
 
@@ -319,16 +329,47 @@ export default function StudentProfilePage() {
   async function addPayment() {
     if (!student || !payAmt) return
     setSavingPay(true)
-    await createCrmPayment({
-      studentId: student.id, type: payType,
-      courseOrService: student.course ?? undefined,
-      amountMad: parseFloat(payAmt), notes: payNotes || undefined,
-    })
-    setPayAmt(''); setPayNotes(''); setShowPayForm(false)
+    if (splitOn) {
+      const total = parseFloat(payAmt), first = parseFloat(splitFirst)
+      if (!total || !first || first <= 0 || first >= total || !splitDate) {
+        alert('تحقق من المبالغ: الدفعة الأولى يجب أن تكون أقل من الإجمالي، مع تحديد تاريخ الدفعة الثانية.')
+        setSavingPay(false); return
+      }
+      await createSplitPayment({
+        studentId: student.id, courseOrService: student.course ?? undefined,
+        totalMad: total, firstMad: first, secondDueDate: splitDate,
+        staffId: staff.id, notes: payNotes || undefined,
+      })
+      const s = await fetchStudentById(id); if (s) setStudent(s)
+    } else {
+      await createCrmPayment({
+        studentId: student.id, type: payType,
+        courseOrService: student.course ?? undefined,
+        amountMad: parseFloat(payAmt), notes: payNotes || undefined,
+      })
+    }
+    setPayAmt(''); setPayNotes(''); setSplitOn(false); setSplitFirst(''); setShowPayForm(false)
     await reloadPay(); setSavingPay(false)
   }
   async function approve(pid: string) { setPayBusy(pid); await approveCrmPayment(pid, staff.id); await reloadPay(); setPayBusy(null) }
   async function decline(pid: string) { setPayBusy(pid); await declineCrmPayment(pid); await reloadPay(); setPayBusy(null) }
+  /** WhatsApp + in-app reminder for a scheduled (pending) installment. */
+  async function remindPayment(p: CrmPayment) {
+    if (!student || !p.due_date) return
+    setPayBusy(p.id)
+    const due: DueRow = {
+      payment_id: p.id, student_id: student.id, name: student.full_name,
+      phone: student.phone_number, avatar_url: student.avatar_url ?? null, course: student.course,
+      amount: Number(p.amount_mad), due_date: p.due_date,
+      days: Math.ceil((new Date(p.due_date).getTime() - Date.now()) / 86400000),
+      installment_no: p.installment_no, installment_count: p.installment_count,
+      reminded_at: p.reminder_sent_at ?? null,
+    }
+    const wa = dueWhatsAppLink(due)
+    if (wa) window.open(wa, '_blank')
+    await markReminded(due)
+    await reloadPay(); setPayBusy(null)
+  }
 
   /** Ensure a receipt exists for this paid payment, then return it. */
   async function getReceipt(p: CrmPayment): Promise<CrmReceipt | null> {
@@ -475,6 +516,9 @@ export default function StudentProfilePage() {
           {/* Coins & rewards */}
           <CoinsSection studentId={student.id} by={staff.id} />
 
+          {/* Certificates */}
+          <CertificatesSection studentId={student.id} staffId={staff.id} isFounder={staff.role === 'founder' || staff.isAdmin} />
+
           {/* Monthly subscription */}
           {(student.billing_type === 'monthly' || student.student_type === 'private_student') && (
             <div className="bg-white rounded-2xl border border-purple-200 p-4">
@@ -518,7 +562,7 @@ export default function StudentProfilePage() {
           {/* Header card */}
           <div className="bg-white rounded-2xl border border-zinc-200/80 p-5">
             <div className="flex items-start gap-4">
-              <Avatar name={student.full_name} size={64} square />
+              <AvatarUpload student={student} onChange={url => setStudent({ ...student, avatar_url: url })} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h2 className="text-[20px] font-black text-zinc-900">{student.full_name}</h2>
@@ -728,21 +772,54 @@ export default function StudentProfilePage() {
 
                   {showPayForm && (
                     <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-4 space-y-3">
+                      {/* split into two installments */}
+                      <label className="flex items-center gap-2.5 cursor-pointer">
+                        <div onClick={() => setSplitOn(v => !v)}
+                          className={`w-9 h-5 rounded-full transition-colors flex items-center ${splitOn ? 'bg-blue-500' : 'bg-zinc-200'}`}>
+                          <div className={`w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-transform mx-0.5 ${splitOn ? 'translate-x-4' : ''}`} />
+                        </div>
+                        <span className="text-[13px] font-bold text-zinc-700">💳 تقسيط على دفعتين</span>
+                        <span className="text-[11px] text-zinc-400">يدفع جزءًا الآن والباقي في موعد محدد</span>
+                      </label>
+
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <label className="text-[11px] text-zinc-500 font-semibold">المبلغ (د.م)</label>
+                          <label className="text-[11px] text-zinc-500 font-semibold">{splitOn ? 'المبلغ الإجمالي (د.م)' : 'المبلغ (د.م)'}</label>
                           <input type="number" value={payAmt} onChange={e => setPayAmt(e.target.value)} dir="ltr"
                             className="w-full mt-1 border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white" placeholder="0" />
                         </div>
-                        <div>
-                          <label className="text-[11px] text-zinc-500 font-semibold">النوع</label>
-                          <select value={payType} onChange={e => setPayType(e.target.value as any)}
-                            className="w-full mt-1 border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white">
-                            <option value="private_monthly">شهري (خاص)</option>
-                            <option value="course_one_time">دورة (مرة واحدة)</option>
-                          </select>
-                        </div>
+                        {splitOn ? (
+                          <div>
+                            <label className="text-[11px] text-zinc-500 font-semibold">الدفعة الأولى — تُقبض الآن (د.م)</label>
+                            <input type="number" value={splitFirst} onChange={e => setSplitFirst(e.target.value)} dir="ltr"
+                              className="w-full mt-1 border border-blue-200 rounded-lg px-3 py-2 text-[13px] bg-white" placeholder="0" />
+                          </div>
+                        ) : (
+                          <div>
+                            <label className="text-[11px] text-zinc-500 font-semibold">النوع</label>
+                            <select value={payType} onChange={e => setPayType(e.target.value as any)}
+                              className="w-full mt-1 border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white">
+                              <option value="private_monthly">شهري (خاص)</option>
+                              <option value="course_one_time">دورة (مرة واحدة)</option>
+                            </select>
+                          </div>
+                        )}
                       </div>
+
+                      {splitOn && (
+                        <div className="grid grid-cols-2 gap-3 items-end">
+                          <div>
+                            <label className="text-[11px] text-zinc-500 font-semibold">موعد الدفعة الثانية</label>
+                            <input type="date" value={splitDate} onChange={e => setSplitDate(e.target.value)} dir="ltr"
+                              className="w-full mt-1 border border-blue-200 rounded-lg px-3 py-2 text-[13px] bg-white" />
+                          </div>
+                          <div className="text-[12px] font-bold text-blue-700 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
+                            الدفعة الثانية: {Math.max(0, (parseFloat(payAmt) || 0) - (parseFloat(splitFirst) || 0)).toLocaleString('en-US')} د.م
+                            <span className="block text-[10px] font-semibold text-blue-500 mt-0.5">تُسجَّل كدفعة مستحقة مع تذكير تلقائي في لوحة المستحقات</span>
+                          </div>
+                        </div>
+                      )}
+
                       <input value={payNotes} onChange={e => setPayNotes(e.target.value)} placeholder="ملاحظات (اختياري)"
                         className="w-full border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white" />
                       <div className="flex gap-2">
@@ -760,12 +837,22 @@ export default function StudentProfilePage() {
                   {payments.map(p => {
                     const info = PAY_STATUS_AR[p.payment_status]
                     const receipt = receipts.find(r => r.payment_id === p.id)
+                    const dueDays = p.due_date ? Math.ceil((new Date(p.due_date).getTime() - Date.now()) / 86400000) : null
                     return (
                       <div key={p.id} className="bg-white border border-zinc-200 rounded-xl p-4">
                         <div className="flex items-center justify-between mb-2">
                           <div>
-                            <div className="font-bold text-[15px]">{MAD(Number(p.amount_mad))} د.م</div>
+                            <div className="font-bold text-[15px] flex items-center gap-2 flex-wrap">
+                              {MAD(Number(p.amount_mad))} د.م
+                              {p.installment_no && <span className="text-[10px] font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">قسط {p.installment_no}/{p.installment_count ?? 2}</span>}
+                            </div>
                             <div className="text-[12px] text-zinc-400">{PAYMENT_TYPE_AR[p.payment_type]} {p.payment_date && `· ${fmtDate(p.payment_date)}`}</div>
+                            {p.payment_status === 'pending' && p.due_date && (
+                              <div className={`text-[11px] font-bold mt-0.5 ${dueDays != null && dueDays < 0 ? 'text-red-600' : 'text-amber-600'}`}>
+                                {dueDays != null && dueDays < 0 ? `⚠ متأخرة ${Math.abs(dueDays)} يوم` : `⏳ تُستحق ${fmtDate(p.due_date)}`}
+                                {p.reminder_sent_at && <span className="text-zinc-400 font-semibold"> · آخر تذكير {fmtDate(p.reminder_sent_at)}</span>}
+                              </div>
+                            )}
                           </div>
                           <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${info.cls}`}>{info.text}</span>
                         </div>
@@ -778,6 +865,12 @@ export default function StudentProfilePage() {
                               </button>
                               <button onClick={() => decline(p.id)} disabled={!!payBusy}
                                 className="flex items-center gap-1 text-[12px] px-3 py-1.5 rounded-lg border border-red-200 text-red-500"><XCircle size={11} /> رفض</button>
+                              {p.due_date && (
+                                <button onClick={() => remindPayment(p)} disabled={!!payBusy}
+                                  className="flex items-center gap-1 text-[12px] font-bold px-3 py-1.5 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 disabled:opacity-50">
+                                  <MessageCircle size={11} /> تذكير بالدفعة
+                                </button>
+                              )}
                             </>
                           )}
                           {p.payment_status === 'paid' && (
@@ -1092,6 +1185,105 @@ function DevicesSection({ studentId, limit }: { studentId: string; limit: number
             ))}
           </div>}
       <p className="text-[10px] text-zinc-400 mt-2 leading-relaxed">يمنع هذا مشاركة الحساب: الرمز يعمل فقط على الأجهزة المسجّلة (الحد الأقصى أعلاه).</p>
+    </div>
+  )
+}
+
+/* Profile photo: real photo when set (upload/replace/remove), cartoon fallback. */
+function AvatarUpload({ student, onChange }: { student: CrmStudent; onChange: (url: string | null) => void }) {
+  const [busy, setBusy] = useState(false)
+  async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) { alert('اختر صورة (JPG أو PNG)'); return }
+    setBusy(true)
+    const url = await uploadStudentAvatar(student.id, file)
+    setBusy(false)
+    if (url) onChange(url)
+    e.target.value = ''
+  }
+  async function onRemove() {
+    if (!confirm('حذف صورة الطالب؟')) return
+    await removeStudentAvatar(student.id)
+    onChange(null)
+  }
+  return (
+    <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+      <div className="relative group">
+        <Avatar name={student.full_name} size={72} square src={student.avatar_url} />
+        <label className="absolute inset-0 rounded-2xl bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer" title="تغيير الصورة">
+          {busy ? <Loader2 size={18} className="animate-spin text-white" /> : <Camera size={18} className="text-white" />}
+          <input type="file" accept="image/*" className="hidden" onChange={onPick} disabled={busy} />
+        </label>
+      </div>
+      {student.avatar_url && (
+        <button onClick={onRemove} className="text-[10px] text-zinc-400 hover:text-red-500">إزالة الصورة</button>
+      )}
+    </div>
+  )
+}
+
+/* Certificates: auto-awarded + custom staff-issued; verify/print via public serial page. */
+function CertificatesSection({ studentId, staffId, isFounder }: { studentId: string; staffId: string; isFounder: boolean }) {
+  const [certs, setCerts] = useState<CertRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [title, setTitle] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  async function load() { setLoading(true); setCerts(await fetchStudentCertificates(studentId)); setLoading(false) }
+  useEffect(() => { load() }, [studentId])
+
+  async function issue() {
+    if (!title.trim()) return
+    setBusy(true)
+    await issueCustomCertificate(studentId, title.trim(), staffId)
+    setTitle(''); setBusy(false); load()
+  }
+  async function remove(id: string) {
+    if (!confirm('حذف هذه الشهادة نهائيًا؟')) return
+    await deleteCertificate(id); load()
+  }
+
+  return (
+    <div className="bg-white rounded-2xl border border-zinc-200 p-4">
+      <div className="flex items-center gap-1.5 text-[12px] font-bold text-zinc-700 mb-3"><Award size={14} className="text-amber-600" /> الشهادات</div>
+      {loading ? <div className="py-3 flex justify-center"><Loader2 size={16} className="animate-spin text-zinc-300" /></div> : (
+        <>
+          {certs.length === 0 && <div className="text-[11px] text-zinc-400 pb-2">لا شهادات بعد — تُمنح تلقائيًا عند إتمام دورة أو جمع العملات، أو أصدر واحدة يدويًا.</div>}
+          <div className="space-y-1.5 mb-3">
+            {certs.map(c => {
+              const k = CERT_KIND_AR[c.kind] ?? CERT_KIND_AR.custom
+              return (
+                <div key={c.id} className="flex items-center gap-2 border border-zinc-100 rounded-lg p-2">
+                  <span className="text-[16px] flex-shrink-0">{k.emoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[12px] font-semibold text-zinc-800 truncate">{c.title}</div>
+                    <div className="text-[10px] text-zinc-400" dir="ltr">{c.serial} · {fmtDate(c.created_at)}</div>
+                  </div>
+                  <a href={`/certificate/${c.serial}`} target="_blank" rel="noopener noreferrer"
+                    className="text-[10px] font-bold px-2 py-1 rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 flex-shrink-0">عرض / طباعة</a>
+                  <button onClick={() => navigator.clipboard?.writeText(certUrl(c.serial))}
+                    className="text-[10px] font-bold px-2 py-1 rounded-lg bg-zinc-50 text-zinc-500 hover:bg-zinc-100 flex-shrink-0" title="نسخ رابط التحقق">نسخ</button>
+                  {isFounder && (
+                    <button onClick={() => remove(c.id)} className="text-zinc-300 hover:text-red-500 flex-shrink-0" title="حذف"><Trash2 size={13} /></button>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+          <div className="border-t border-zinc-100 pt-3">
+            <div className="text-[11px] font-bold text-zinc-400 mb-1.5">إصدار شهادة خاصة</div>
+            <div className="flex gap-2">
+              <input value={title} onChange={e => setTitle(e.target.value)} placeholder="مثال: أفضل طالب لشهر يوليوز"
+                className="flex-1 border border-zinc-200 rounded-lg px-3 py-2 text-[12px]" />
+              <button onClick={issue} disabled={busy || !title.trim()}
+                className="px-3 py-2 rounded-lg bg-amber-500 text-white font-bold text-[12px] disabled:opacity-50">
+                {busy ? <Loader2 size={13} className="animate-spin" /> : 'إصدار'}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }

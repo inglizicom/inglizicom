@@ -11,9 +11,10 @@ import {
 } from 'lucide-react'
 import {
   fetchStudentSpace, completeExercise, logActivity, fileUrl, studentLogin, getDeviceId, deviceValid, fetchUnitSteps,
-  fetchCourseCatalog, type CatalogCourse,
+  fetchCourseCatalog, sendHeartbeat, fetchStudentAvatar, type CatalogCourse,
   type StudentSpace, type StudentAssignment, type PortalLesson, type PortalModule, type PortalCourse, type UnitSteps,
 } from '@/lib/student-portal'
+import { checkCertificates, CERT_KIND_AR, type StudentCert } from '@/lib/certificates'
 import { openLesson, completeLesson, fetchStudentResources, resourceUrl, fetchProgressMeta, fetchReadingUnits, fetchMySubmissions, fetchUnitExams, fetchNotifications, markNotificationsRead, EXAMS_URL, CORRECTOR_WHATSAPP, type CourseResource, type ProgressMeta, type UnitSubmission, type StudentNotification } from '@/lib/lms'
 import VideoPlayer from '@/components/VideoPlayer'
 import QuizRunner from '@/components/QuizRunner'
@@ -67,6 +68,10 @@ type Tab = 'home' | 'path' | 'tasks' | 'rewards' | 'files' | 'progress'
 const TABS: Tab[] = ['home', 'path', 'tasks', 'rewards', 'files', 'progress']
 const tabFromHash = (): Tab | null => { const b = (typeof window !== 'undefined' ? (location.hash || '').replace('#', '').split('/')[0] : '') as Tab; return TABS.includes(b) ? b : null }
 const TOKEN_KEY = 'inglizi.student_token'
+const HEARTBEAT_AR: Record<Tab, string> = {
+  home: 'الرئيسية', path: 'مسار التعلّم', tasks: 'المهام',
+  rewards: 'المكافآت', files: 'الملفات', progress: 'صفحة التقدّم',
+}
 const COURSE_KEY = 'inglizi.student_course.'   // + token → last chosen course id
 const LTYPE_ICON: Record<string, any> = { video: Video, reading: FileText, exercise: PenLine, quiz: HelpCircle, speaking: Mic }
 const LTYPE_AR: Record<string, string> = { video: 'فيديو', reading: 'قراءة', exercise: 'تمرين', quiz: 'اختبار', speaking: 'محادثة' }
@@ -127,6 +132,9 @@ function Portal() {
   const [anns, setAnns] = useState<StudentAnnouncement[]>([])
   const [showExam, setShowExam] = useState(false)
   const [cert, setCert] = useState<Certificate | null>(null)
+  const [myCerts, setMyCerts] = useState<StudentCert[]>([])           // generic auto-awarded certificates
+  const [newCert, setNewCert] = useState<StudentCert | null>(null)    // celebratory popup when one is freshly earned
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)     // staff-managed profile photo
   const [unitSteps, setUnitSteps] = useState<UnitSteps>({})   // server-tracked reading/exam steps
   const [coins, setCoins] = useState<CoinSummary | null>(null)
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)   // which enrolled course the portal is showing
@@ -188,7 +196,28 @@ function Portal() {
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
-  useEffect(() => { if (token && !demo) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta); fetchReadingUnits(token).then(ids => setReadingUnits(new Set(ids))); fetchMySubmissions(token).then(setSubmissions); fetchUnitExams(token).then(setUnitExams); fetchNotifications(token).then(setNotifs); fetchStudentAnnouncements(token).then(setAnns); fetchCertificate(token).then(setCert); fetchUnitSteps(token).then(setUnitSteps) } }, [token, space])
+  useEffect(() => { if (token && !demo) { fetchStudentResources(token).then(setResources); fetchProgressMeta(token).then(setMeta); fetchReadingUnits(token).then(ids => setReadingUnits(new Set(ids))); fetchMySubmissions(token).then(setSubmissions); fetchUnitExams(token).then(setUnitExams); fetchNotifications(token).then(setNotifs); fetchStudentAnnouncements(token).then(setAnns); fetchCertificate(token).then(setCert); fetchUnitSteps(token).then(setUnitSteps); fetchStudentAvatar(token).then(setAvatarUrl) } }, [token, space])
+
+  // generic certificates: server awards anything newly earned, then returns the full list
+  useEffect(() => {
+    if (!token || demo) return
+    checkCertificates(token).then(r => {
+      setMyCerts(r.certs)
+      if (r.newSerials.length > 0) {
+        const c = r.certs.find(x => x.serial === r.newSerials[0])
+        if (c) setNewCert(c)
+      }
+    })
+  }, [token, space])
+
+  // presence heartbeat — powers the owner's "online now" panel (every 60s + on tab switch)
+  useEffect(() => {
+    if (!token || demo) return
+    const send = () => sendHeartbeat(token, HEARTBEAT_AR[tab] ?? tab, selectedCourseId)
+    send()
+    const iv = setInterval(send, 60_000)
+    return () => clearInterval(iv)
+  }, [token, tab, selectedCourseId])
   // coins are PER COURSE — refetch when the chosen course changes
   useEffect(() => { if (token && !demo) fetchCoins(token, selectedCourseId).then(setCoins) }, [token, space, selectedCourseId])
   // full catalog (for the picker's locked courses) — loaded once
@@ -594,7 +623,10 @@ function Portal() {
           })()}
           <div className="flex items-center gap-2.5">
             <div className="text-left hidden sm:block leading-tight"><div className="font-bold text-[13px]">{s.full_name}</div><div className="text-[11px] text-zinc-400">{course?.title ?? 'غير مسجّل'}</div></div>
-            <InitAva name={s.full_name} className="w-9 h-9 rounded-full text-[12px] ring-2 ring-[var(--ic-gold)]" />
+            {avatarUrl
+              /* eslint-disable-next-line @next/next/no-img-element */
+              ? <img src={avatarUrl} alt={s.full_name} className="w-9 h-9 rounded-full object-cover ring-2 ring-[var(--ic-gold)] flex-shrink-0" />
+              : <InitAva name={s.full_name} className="w-9 h-9 rounded-full text-[12px] ring-2 ring-[var(--ic-gold)]" />}
             <button onClick={logout} className="text-zinc-400 hover:text-white p-1.5"><LogOut size={16} /></button>
           </div>
         </div>
@@ -609,6 +641,27 @@ function Portal() {
           <div className="pointer-events-auto max-w-sm w-full bg-[var(--ic-dark)] text-white rounded-2xl shadow-2xl px-4 py-3 flex items-center gap-3 vp-pop" onClick={() => { setToast(null); goTab('home') }}>
             <span className="w-9 h-9 rounded-xl bg-[var(--ic-gold)] text-black flex items-center justify-center flex-shrink-0"><Bell size={17} /></span>
             <div className="flex-1 min-w-0"><div className="text-[11px] text-amber-100/60">🔔 إشعار جديد</div><div className="text-[13px] font-bold truncate">{toast}</div></div>
+          </div>
+        </div>
+      )}
+
+      {/* 🎓 new certificate celebration */}
+      {newCert && (
+        <div className="fixed inset-0 z-[140] bg-black/70 flex items-center justify-center p-4 vp-fade" dir="rtl" onClick={() => setNewCert(null)}>
+          <div onClick={e => e.stopPropagation()} className="relative w-full max-w-sm bg-white rounded-3xl overflow-hidden shadow-2xl vp-pop text-center">
+            <div className="bg-gradient-to-l from-amber-500 to-yellow-400 text-black px-5 py-6">
+              <div className="text-[44px] leading-none mb-1">🎓</div>
+              <div className="font-black text-[18px]">مبروك! حصلت على شهادة جديدة</div>
+            </div>
+            <div className="p-5">
+              <p className="text-[15px] font-bold text-zinc-800 leading-relaxed mb-1">{newCert.title}</p>
+              <p className="text-[11px] text-zinc-400 mb-4" dir="ltr">{newCert.serial}</p>
+              <a href={`/certificate/${newCert.serial}`} target="_blank" rel="noreferrer" onClick={() => setNewCert(null)}
+                className="block w-full py-3 rounded-2xl bg-[var(--ic-dark)] text-[var(--ic-gold)] font-black text-[14px]">
+                عرض الشهادة وطباعتها 🖨️
+              </a>
+              <button onClick={() => setNewCert(null)} className="mt-2 text-[12px] text-zinc-400 hover:text-zinc-600">لاحقًا</button>
+            </div>
           </div>
         </div>
       )}
@@ -965,6 +1018,26 @@ function Portal() {
                   )})}
                 </div>
               </Card>
+
+              {/* Certificates (auto-awarded: course completion, coins, streaks) */}
+              {myCerts.length > 0 && (
+                <Card title="شهاداتي" icon={Medal} iconColor="text-amber-600">
+                  <div className="space-y-1.5 mt-1">
+                    {myCerts.map(c => (
+                      <a key={c.serial} href={`/certificate/${c.serial}`} target="_blank" rel="noreferrer"
+                        className="flex items-center gap-2.5 rounded-xl border border-amber-100 bg-amber-50/50 p-2.5 hover:bg-amber-50 transition-colors">
+                        <span className="text-[18px] flex-shrink-0">{(CERT_KIND_AR[c.kind] ?? CERT_KIND_AR.custom).emoji}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[12px] font-bold text-zinc-800 leading-tight truncate">{c.title}</div>
+                          <div className="text-[10px] text-zinc-400" dir="ltr">{c.serial} · {c.date}</div>
+                        </div>
+                        <ExternalLink size={13} className="text-amber-500 flex-shrink-0" />
+                      </a>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-zinc-400 mt-2 leading-relaxed">اضغط على أي شهادة لعرضها وطباعتها — لكل شهادة رقم تحقق رسمي.</p>
+                </Card>
+              )}
             </div>
 
             {/* Teacher message — full width */}

@@ -31,6 +31,7 @@ import { markLeadsSeen } from '@/lib/leads-seen'
 
 import Avatar from '@/app/sales/_components/Avatar'
 import { ensurePaymentReceipt, printReceipt, buildReceiptWhatsAppMessage } from '@/lib/crm-receipts'
+import DuesBoard from '@/components/DuesBoard'
 import UnifiedDetailDrawer from './UnifiedDetailDrawer'
 import StudentDrawer from './StudentDrawer'
 import FilterDrawer, { type FilterState } from './FilterDrawer'
@@ -504,6 +505,9 @@ export default function WorkspaceClient() {
         ]
         return (
           <div className="flex-1 px-4 py-4 space-y-4">
+            {/* Financial overview + dues board (who has to pay, who hasn't) */}
+            <DuesBoard onChanged={refresh} />
+
             {/* Summary */}
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
               <div className="bg-zinc-900 rounded-2xl p-4">
@@ -564,7 +568,14 @@ export default function WorkspaceClient() {
                               </button>
                             </td>
                             <td className="px-4 py-3 text-zinc-600 font-semibold">{course || '—'}</td>
-                            <td className="px-4 py-3 text-zinc-500">{p.payment_type === 'course_one_time' ? 'دفعة واحدة' : 'اشتراك شهري'}</td>
+                            <td className="px-4 py-3 text-zinc-500">
+                              {p.installment_no
+                                ? <span className="text-[11px] font-bold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">قسط {p.installment_no}/{p.installment_count ?? 2}</span>
+                                : p.payment_type === 'course_one_time' ? 'دفعة واحدة' : 'اشتراك شهري'}
+                              {p.payment_status === 'pending' && p.due_date && (
+                                <span className="block text-[10px] text-amber-600 font-bold mt-0.5">يُستحق {new Date(p.due_date).toLocaleDateString('ar-MA', { month: 'short', day: 'numeric' })}</span>
+                              )}
+                            </td>
                             <td className="px-4 py-3 text-zinc-500">{PAY_METHOD_AR[(p as any).payment_method] ?? 'نقدًا'}</td>
                             <td className="px-4 py-3 font-black text-zinc-900">{Number(p.amount_mad).toLocaleString('en-US')} <span className="text-[10px] text-zinc-400">د.م</span></td>
                             <td className="px-4 py-3 text-zinc-400 whitespace-nowrap">{dateStr}</td>

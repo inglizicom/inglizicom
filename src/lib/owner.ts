@@ -33,6 +33,21 @@ export interface StudentIntel {
   most_active: { id: string; name: string; days: number }[]
 }
 
+export interface OnlineStudent { id: string; name: string; avatar_url: string | null; activity: string | null; course: string | null; minutes: number }
+export interface LiveEvent { name: string; event: string; title: string | null; at: string }
+export interface OwnerLivePulse {
+  online_now: OnlineStudent[]
+  online_count: number
+  active_today: number; active_week: number
+  lessons_today: number; quizzes_today: number; exams_passed_today: number; challenges_today: number
+  coins_today: number; avg_score_7d: number; certs_week: number
+  recent_events: LiveEvent[]
+}
+
+export interface ProgressingStudent { id: string; name: string; avatar_url: string | null; lessons_7d: number; quizzes_7d: number; progress: number | null; avg_score: number | null }
+export interface StrugglingStudent { id: string; name: string; avatar_url: string | null; progress: number | null; avg_score: number | null; fails: number; days_inactive: number; reason: string }
+export interface OwnerLearningIntel { progressing: ProgressingStudent[]; struggling: StrugglingStudent[] }
+
 export interface CourseStat { id: string; title: string; students: number; lessons: number; active_14d: number }
 export interface OwnerAlert { level: 'info' | 'warn' | 'danger'; text: string }
 export interface RevenuePoint { month: string; mad: number }
@@ -66,4 +81,14 @@ export async function fetchOwnerAlerts(): Promise<OwnerAlert[]> {
   const { data, error } = await supabase.rpc('owner_alerts')
   if (error) { console.error('owner_alerts', error.message); return [] }
   return (data ?? []) as OwnerAlert[]
+}
+export async function fetchOwnerLivePulse(): Promise<OwnerLivePulse | null> {
+  const { data, error } = await supabase.rpc('owner_live_pulse')
+  if (error) { console.error('owner_live_pulse', error.message); return null }
+  return data as OwnerLivePulse | null
+}
+export async function fetchOwnerLearningIntel(): Promise<OwnerLearningIntel | null> {
+  const { data, error } = await supabase.rpc('owner_learning_intel')
+  if (error) { console.error('owner_learning_intel', error.message); return null }
+  return data as OwnerLearningIntel | null
 }
