@@ -74,6 +74,22 @@ const STATUS_PILL_ORDER: Array<LeadStatus | 'vip' | 'all'> = [
   'interested', 'contacted', 'new', 'paid', 'cancelled',
 ]
 
+/* Smart action filters — what the assistant must handle NOW */
+const todayISO = () => new Date().toISOString().slice(0, 10)
+const isFinalLead = (l: SubscriptionLead) => ['paid', 'cancelled'].includes(normalizeStatus(l.status))
+const isOverdueLead = (l: SubscriptionLead) => { const d = l.next_followup_at?.slice(0, 10); return !isFinalLead(l) && !!d && d < todayISO() }
+const isTodayLead   = (l: SubscriptionLead) => { const d = l.next_followup_at?.slice(0, 10); return !isFinalLead(l) && d === todayISO() }
+const isFreshLead   = (l: SubscriptionLead) => normalizeStatus(l.status) === 'new' && !l.assigned_to_id
+
+type SmartPill = '' | 'overdue' | 'today' | 'fresh'
+type LeadSort = 'newest' | 'oldest' | 'followup' | 'amount'
+const LEAD_SORTS: { id: LeadSort; label: string }[] = [
+  { id: 'newest',   label: 'الأحدث أولًا' },
+  { id: 'followup', label: 'المتابعة الأقرب' },
+  { id: 'amount',   label: 'الأعلى مبلغًا' },
+  { id: 'oldest',   label: 'الأقدم أولًا' },
+]
+
 const PAY_STATUS_AR: Record<string, { text: string; cls: string }> = {
   pending:  { text: 'معلق',   cls: 'bg-amber-50 text-amber-700 border border-amber-200' },
   paid:     { text: 'مدفوع',  cls: 'bg-green-50 text-green-700 border border-green-200' },
@@ -125,6 +141,9 @@ export default function WorkspaceClient() {
   const [payBusy,      setPayBusy]      = useState<string | null>(null)
   /* Quick status pill filter (Leads tab only) */
   const [statusPill,   setStatusPill]   = useState<string>('all')
+  const [smartPill,    setSmartPill]    = useState<SmartPill>('')      // needs-action shortcuts
+  const [mineOnly,     setMineOnly]     = useState(false)              // only leads assigned to me
+  const [leadSort,     setLeadSort]     = useState<LeadSort>('newest')
   /* Students: add modal + bin */
   const [addStudentOpen, setAddStudentOpen] = useState(false)
   const [showBin,        setShowBin]        = useState(false)
@@ -199,15 +218,32 @@ export default function WorkspaceClient() {
     return true
   }), [leads, filters, q])
 
-  /* Apply quick pill filter on top of base filters — sorted by date added (newest first) */
+  /* Apply quick pill + smart filters + sort on top of the base filters */
   const visibleLeads = useMemo(() => {
     let list = baseLeads
+    if (mineOnly) list = list.filter(l => l.assigned_to_id === staff.id)
     if (statusPill === 'vip')  list = list.filter(l => l.is_vip)
     else if (statusPill !== 'all') list = list.filter(l => normalizeStatus(l.status) === statusPill)
-    return [...list].sort((a, b) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    )
-  }, [baseLeads, statusPill])
+    if (smartPill === 'overdue') list = list.filter(isOverdueLead)
+    else if (smartPill === 'today') list = list.filter(isTodayLead)
+    else if (smartPill === 'fresh') list = list.filter(isFreshLead)
+    const arr = [...list]
+    if (leadSort === 'newest')        arr.sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
+    else if (leadSort === 'oldest')   arr.sort((a, b) => +new Date(a.created_at) - +new Date(b.created_at))
+    else if (leadSort === 'amount')   arr.sort((a, b) => (b.amount_mad ?? 0) - (a.amount_mad ?? 0))
+    else if (leadSort === 'followup') arr.sort((a, b) =>
+      (a.next_followup_at ? +new Date(a.next_followup_at) : Infinity) -
+      (b.next_followup_at ? +new Date(b.next_followup_at) : Infinity))
+    return arr
+  }, [baseLeads, statusPill, smartPill, mineOnly, leadSort, staff.id])
+
+  /* Needs-action counters for the leads KPI strip */
+  const leadKpi = useMemo(() => ({
+    total:   baseLeads.length,
+    overdue: baseLeads.filter(isOverdueLead).length,
+    today:   baseLeads.filter(isTodayLead).length,
+    fresh:   baseLeads.filter(isFreshLead).length,
+  }), [baseLeads])
 
   /* Pill counts */
   const pillCounts = useMemo(() => {
@@ -341,6 +377,28 @@ export default function WorkspaceClient() {
       {!loading && tab === 'leads' && (
         <div className="flex-1 flex flex-col">
 
+          {/* Needs-action strip — one tap shows what to handle NOW */}
+          <div className="bg-white border-b border-zinc-100 px-4 pt-3 pb-1">
+            <div className="grid grid-cols-4 gap-2">
+              {([
+                { id: '' as SmartPill,        n: leadKpi.total,   label: 'إجمالي العملاء', on: 'bg-zinc-900 text-white border-zinc-900',   off: 'bg-white text-zinc-800 border-zinc-200', sub: 'text-zinc-400' },
+                { id: 'overdue' as SmartPill, n: leadKpi.overdue, label: '🔴 متابعة متأخرة', on: 'bg-red-600 text-white border-red-600',     off: leadKpi.overdue > 0 ? 'bg-red-50 text-red-700 border-red-200' : 'bg-white text-zinc-400 border-zinc-200', sub: 'opacity-70' },
+                { id: 'today' as SmartPill,   n: leadKpi.today,   label: '🟠 متابعة اليوم',  on: 'bg-orange-500 text-white border-orange-500', off: leadKpi.today > 0 ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-white text-zinc-400 border-zinc-200', sub: 'opacity-70' },
+                { id: 'fresh' as SmartPill,   n: leadKpi.fresh,   label: '🆕 جديد بلا مسؤول', on: 'bg-blue-600 text-white border-blue-600',   off: leadKpi.fresh > 0 ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-white text-zinc-400 border-zinc-200', sub: 'opacity-70' },
+              ]).map(k => {
+                const active = smartPill === k.id
+                return (
+                  <button key={k.id || 'all'} type="button"
+                    onClick={() => setSmartPill(active && k.id !== '' ? '' : k.id)}
+                    className={`rounded-xl border p-2.5 text-center transition-all ${active ? k.on : `${k.off} hover:border-zinc-300`}`}>
+                    <div className="text-[20px] font-black leading-none">{k.n}</div>
+                    <div className={`text-[10.5px] font-bold mt-1 leading-tight ${active ? 'opacity-90' : k.sub}`}>{k.label}</div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
           {/* Quick status pills */}
           <div className="bg-white border-b border-zinc-100 px-4 py-3 overflow-x-auto">
             <div className="flex gap-2 min-w-max">
@@ -376,9 +434,18 @@ export default function WorkspaceClient() {
 
           <div className="px-4 py-4 flex-1">
             {/* Action bar */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3 text-[13px] text-zinc-500">
-                <span>{visibleLeads.length} عميل</span>
+            <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
+              <div className="flex items-center gap-2 text-[13px] text-zinc-500 flex-wrap">
+                <span className="font-semibold">{visibleLeads.length} عميل</span>
+                <button type="button" onClick={() => setMineOnly(v => !v)}
+                  className={`text-[12px] font-bold px-2.5 py-1 rounded-full border transition-colors ${
+                    mineOnly ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white text-zinc-500 border-zinc-200 hover:border-zinc-400'}`}>
+                  👤 عملائي فقط
+                </button>
+                <select value={leadSort} onChange={e => setLeadSort(e.target.value as LeadSort)}
+                  className="text-[12px] font-semibold bg-white border border-zinc-200 rounded-full px-2.5 py-1 text-zinc-600 focus:outline-none">
+                  {LEAD_SORTS.map(s => <option key={s.id} value={s.id}>↕ {s.label}</option>)}
+                </select>
                 {visibleLeads.length > 0 && (
                   <button type="button"
                     onClick={() => setCheckedIds(checkedIds.size === allLeadIds.length ? new Set() : new Set(allLeadIds))}
@@ -810,9 +877,11 @@ function LeadList({
         {leads.map(lead => {
           const st = normalizeStatus(lead.status)
           const checked = checkedIds.has(lead.id)
+          const overdue = isOverdueLead(lead)
+          const dueToday = isTodayLead(lead)
           return (
             <div key={lead.id} onClick={() => onOpen(lead)}
-              className={`flex items-center gap-3 px-3 py-3 ${checked ? 'bg-yellow-50/50' : 'active:bg-zinc-50'}`}>
+              className={`flex items-center gap-2.5 px-3 py-3 ${checked ? 'bg-yellow-50/50' : overdue ? 'bg-red-50/40 active:bg-red-50' : 'active:bg-zinc-50'}`}>
               <button onClick={e => { e.stopPropagation(); onToggle(lead.id) }}
                 className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${checked ? 'bg-yellow-400 border-yellow-400' : 'border-zinc-300'}`}>
                 {checked && <span className="w-1.5 h-1.5 rounded-sm bg-black" />}
@@ -823,25 +892,32 @@ function LeadList({
                   {lead.is_vip && <Crown size={11} className="text-rose-500 flex-shrink-0" />}
                   {lead.full_name}
                 </div>
-                <div className="flex items-center gap-2 text-[11px] text-zinc-400 mt-0.5">
-                  <span dir="ltr" className="truncate">{lead.phone ?? '—'}</span>
-                  <span>·</span>
+                <div className="flex items-center gap-1.5 text-[11px] text-zinc-400 mt-0.5 flex-wrap">
+                  {overdue && <span className="font-bold text-red-600">🔴 متابعة متأخرة</span>}
+                  {dueToday && <span className="font-bold text-orange-600">🟠 متابعة اليوم</span>}
+                  {(overdue || dueToday) && <span>·</span>}
+                  {lead.course && <><span className="font-semibold text-zinc-500">{lead.course.toUpperCase()}</span><span>·</span></>}
                   <span>{leadFmtDate(lead.created_at)}</span>
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${STATUS_PILL_COLOR[st] ?? 'bg-zinc-100 text-zinc-600 border-zinc-200'}`}>{STATUS_AR[st] ?? st}</span>
-                {studentLeadIds.has(lead.id) ? (
-                  <button onClick={e => { e.stopPropagation(); onConvert(lead) }} className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">طالب ✓</button>
-                ) : canConvert(lead) ? (
-                  <button onClick={e => { e.stopPropagation(); onConvert(lead) }} disabled={convertingId === lead.id}
-                    className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-400 text-black flex items-center gap-1">
-                    {convertingId === lead.id ? <Loader2 size={10} className="animate-spin" /> : <GraduationCap size={10} />} لطالب
-                  </button>
-                ) : lead.phone ? (
-                  <a href={whatsappLink(lead.phone) ?? '#'} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
-                    className="text-green-600"><MessageCircle size={16} /></a>
-                ) : null}
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                {lead.phone && (
+                  <a href={whatsappLink(lead.phone, `مرحبًا ${lead.full_name}،`) ?? '#'} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}
+                    className="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center active:bg-green-100">
+                    <MessageCircle size={15} />
+                  </a>
+                )}
+                <div className="flex flex-col items-end gap-1">
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${STATUS_PILL_COLOR[st] ?? 'bg-zinc-100 text-zinc-600 border-zinc-200'}`}>{STATUS_AR[st] ?? st}</span>
+                  {studentLeadIds.has(lead.id) ? (
+                    <button onClick={e => { e.stopPropagation(); onConvert(lead) }} className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">طالب ✓</button>
+                  ) : canConvert(lead) ? (
+                    <button onClick={e => { e.stopPropagation(); onConvert(lead) }} disabled={convertingId === lead.id}
+                      className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-400 text-black flex items-center gap-1">
+                      {convertingId === lead.id ? <Loader2 size={10} className="animate-spin" /> : <GraduationCap size={10} />} لطالب
+                    </button>
+                  ) : null}
+                </div>
               </div>
             </div>
           )

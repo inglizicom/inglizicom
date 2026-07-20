@@ -68,7 +68,7 @@ export default function DuesBoard({ showKpis = true, onChanged }: { showKpis?: b
   return (
     <div className="space-y-4">
       {showKpis && (
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 lg:gap-3">
           <Kpi icon={Wallet} label="المقبوض هذا الشهر" value={`${MAD(t.collected_month)} د.م`} cls="text-emerald-600" />
           <Kpi icon={HandCoins} label="مستحقات غير مدفوعة" value={`${MAD(t.outstanding)} د.م`} cls="text-zinc-900" />
           <Kpi icon={AlertTriangle} label="متأخرة" value={`${MAD(t.overdue)} د.م`} cls={t.overdue > 0 ? 'text-red-600' : 'text-zinc-900'} />
@@ -117,8 +117,8 @@ function Row({ d, busy, onRemind, onCollect }: {
     ? `قسط ${d.installment_no ?? 2}/${d.installment_count ?? 2}`
     : 'اشتراك شهري'
   return (
-    <div className="flex items-center gap-3 px-4 py-2.5 hover:bg-zinc-50/60">
-      <Link href={`/sales/students/${d.student_id}`} className="flex items-center gap-2.5 flex-1 min-w-0">
+    <div className="flex items-center gap-x-3 gap-y-2 px-4 py-2.5 hover:bg-zinc-50/60 flex-wrap">
+      <Link href={`/sales/students/${d.student_id}`} className="flex items-center gap-2.5 flex-1 min-w-[160px]">
         <PersonAvatar name={d.name} size={34} src={d.avatar_url} />
         <div className="min-w-0">
           <div className="text-[13px] font-bold text-zinc-800 truncate">{d.name}</div>

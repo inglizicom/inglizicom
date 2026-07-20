@@ -435,8 +435,8 @@ export default function StudentProfilePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4">
 
-        {/* ── Left column ─────────────────────────────── */}
-        <div className="space-y-4">
+        {/* ── Left column (drops BELOW the main content on mobile) ── */}
+        <div className="space-y-4 order-2 lg:order-none min-w-0">
           {/* Quick info card */}
           <div className="bg-white rounded-2xl border border-zinc-200/80 p-5">
             <div className="flex items-center gap-2 mb-4">
@@ -556,8 +556,8 @@ export default function StudentProfilePage() {
           </div>
         </div>
 
-        {/* ── Main column ─────────────────────────────── */}
-        <div className="space-y-4 min-w-0">
+        {/* ── Main column (first on mobile) ────────────── */}
+        <div className="space-y-4 min-w-0 order-1 lg:order-none">
 
           {/* Header card */}
           <div className="bg-white rounded-2xl border border-zinc-200/80 p-5">
@@ -617,7 +617,7 @@ export default function StudentProfilePage() {
           </div>
 
           {/* Stat cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 lg:gap-3">
             <StatCard label="إجمالي المدفوع" value={`${MAD(totalPaid)}`} unit="د.م" tone="text-emerald-700" />
             <StatCard label="المتبقي" value={outstanding > 0 ? MAD(outstanding) : '0'} unit="د.م" tone="text-zinc-900" />
             <StatCard label="إجمالي الفواتير" value={receipts.length} tone="text-zinc-900" />
@@ -689,7 +689,7 @@ export default function StudentProfilePage() {
                         <div><label className="text-[11px] font-semibold text-zinc-500">رابط درس اليوم</label><input value={pcLesU} onChange={e => setPcLesU(e.target.value)} placeholder="https://inglizi.com/..." dir="ltr" className="w-full mt-1 border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white text-right" /></div>
                       </div>
                       <div><label className="text-[11px] font-semibold text-zinc-500">الخطوة القادمة</label><input value={pcTask} onChange={e => setPcTask(e.target.value)} placeholder="ما الذي على الطالب فعله بعد ذلك" className="w-full mt-1 border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white" /></div>
-                      <div className="grid grid-cols-3 gap-2.5">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                         <div><label className="text-[11px] font-semibold text-zinc-500">المرحلة</label><input value={pcStage} onChange={e => setPcStage(e.target.value)} placeholder="Foundation" dir="ltr" className="w-full mt-1 border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white text-right" /></div>
                         <div><label className="text-[11px] font-semibold text-zinc-500">المستوى الحالي</label><input value={pcLevel} onChange={e => setPcLevel(e.target.value)} placeholder="A1" dir="ltr" className="w-full mt-1 border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white text-right" /></div>
                         <div><label className="text-[11px] font-semibold text-zinc-500">المستوى القادم</label><input value={pcNext} onChange={e => setPcNext(e.target.value)} placeholder="A2" dir="ltr" className="w-full mt-1 border border-zinc-200 rounded-lg px-3 py-2 text-[13px] bg-white text-right" /></div>
