@@ -656,7 +656,7 @@ function Portal() {
             <div className="p-5">
               <p className="text-[15px] font-bold text-zinc-800 leading-relaxed mb-1">{newCert.title}</p>
               <p className="text-[11px] text-zinc-400 mb-4" dir="ltr">{newCert.serial}</p>
-              <a href={`/certificate/${newCert.serial}`} target="_blank" rel="noreferrer" onClick={() => setNewCert(null)}
+              <a href={`/certificate/${newCert.serial}?print=1`} target="_blank" rel="noreferrer" onClick={() => setNewCert(null)}
                 className="block w-full py-3 rounded-2xl bg-[var(--ic-dark)] text-[var(--ic-gold)] font-black text-[14px]">
                 عرض الشهادة وطباعتها 🖨️
               </a>

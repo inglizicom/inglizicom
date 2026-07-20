@@ -1260,8 +1260,8 @@ function CertificatesSection({ studentId, staffId, isFounder }: { studentId: str
                     <div className="text-[12px] font-semibold text-zinc-800 truncate">{c.title}</div>
                     <div className="text-[10px] text-zinc-400" dir="ltr">{c.serial} · {fmtDate(c.created_at)}</div>
                   </div>
-                  <a href={`/certificate/${c.serial}`} target="_blank" rel="noopener noreferrer"
-                    className="text-[10px] font-bold px-2 py-1 rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 flex-shrink-0">عرض / طباعة</a>
+                  <a href={`/certificate/${c.serial}?print=1`} target="_blank" rel="noopener noreferrer"
+                    className="text-[10px] font-bold px-2 py-1 rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 flex-shrink-0">🖨️ طباعة</a>
                   <button onClick={() => navigator.clipboard?.writeText(certUrl(c.serial))}
                     className="text-[10px] font-bold px-2 py-1 rounded-lg bg-zinc-50 text-zinc-500 hover:bg-zinc-100 flex-shrink-0" title="نسخ رابط التحقق">نسخ</button>
                   {isFounder && (
