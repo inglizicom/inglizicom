@@ -13,7 +13,11 @@ function TikTokIcon({ size = 18 }: { size?: number }) {
 const quickLinks = [
   { href: '/',           label: 'الرئيسية' },
   { href: '/courses',    label: 'الدورات' },
+  { href: '/pricing',    label: 'الأسعار' },
+  { href: '/classes',    label: 'حصص خاصة 1:1' },
+  { href: '/business',   label: 'الإنجليزية المهنية' },
   { href: '/level-test', label: 'اختبر مستواك' },
+  { href: '/faq',        label: 'الأسئلة الشائعة' },
   { href: '/blog',       label: 'المدونة' },
   { href: '/about',      label: 'من نحن' },
   { href: '/contact',    label: 'تواصل معنا' },

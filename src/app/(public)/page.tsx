@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence, useMotionValue, useTransform, useInView } from "framer-motion"
 import Link from "next/link"
-import { TESTIMONIALS } from "@/data/testimonials"
-import { INDIVIDUAL_PLANS, PACK_PLANS } from "@/data/plans"
+import { TESTIMONIALS, STATS } from "@/data/testimonials"
+import { INDIVIDUAL_PLANS, PACK_PLANS, CLASS_PLANS, BUSINESS_PLANS } from "@/data/plans"
 import { openSubscribe } from "@/lib/lead-source"
 import ApproxPrice from "@/components/ApproxPrice"
 
@@ -17,72 +17,18 @@ const SLIDES = [
     img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=720&h=480&fit=crop&q=80",
     title: "تحدث بثقة في 30 يومًا",
     sub: "أول أسبوع يغيّر ثقتك، ثم نصل بك إلى محادثة حقيقية خطوة بخطوة مع الأستاذ حمزة",
-    accent: "#22c55e",
   },
   {
     img: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=720&h=480&fit=crop&q=80",
     title: "محادثة عملية من اليوم الأول",
     sub: "تتعلم الجمل التي تحتاجها فعلاً في الحياة والعمل بدل حفظ الكلمات بدون فائدة",
-    accent: "#3b82f6",
   },
   {
     img: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=720&h=480&fit=crop&q=80",
     title: "من الصفر إلى الطلاقة",
     sub: "أقصر طرق التعلم مع شرح عربي مبسط، متابعة شخصية، ونتائج محسوسة بسرعة",
-    accent: "#8b5cf6",
   },
 ]
-
-/**
- * View-only presentation layer on top of the canonical PLANS
- * from /data/plans.ts. Pricing, level, follow-up duration and perks
- * are the source of truth; emoji/gradient/popular/rating are UI extras.
- */
-type PlanColor = "green" | "blue" | "purple" | "orange" | "gold" | "slate"
-type PlanView = {
-  emoji: string; popular?: boolean; badge?: string | null
-  desc: string; color: PlanColor; gradient: string
-  rating?: number; ratingCount?: number; recentBuyers?: number | null
-}
-
-const PLAN_VIEW: Record<string, PlanView> = {
-  // Individual levels
-  "basic":   { emoji:"🌱", desc:"ابدأ من الصفر وبنِ أول جُمَلك بثقة", color:"green",  gradient:"from-green-500 to-emerald-600",  rating:4.9, ratingCount:184, recentBuyers:7 },
-  "pro":     { emoji:"💬", popular:true, badge:"🔥 الأكثر طلباً", desc:"حوّل الجملة إلى محادثة يومية", color:"blue",   gradient:"from-blue-500 to-blue-600",      rating:4.9, ratingCount:96,  recentBuyers:4 },
-  "premium": { emoji:"🚀", badge:"⭐ الأفضل قيمة", desc:"تحدث بطلاقة احترافية B1-B2",  color:"purple", gradient:"from-purple-500 to-purple-600",    rating:5.0, ratingCount:48,  recentBuyers:2 },
-  "vip":     { emoji:"👑", badge:"⭐ الأكثر تحوّلاً", desc:"تحوّل كامل: كوتشينغ 1:1",  color:"gold",   gradient:"from-yellow-500 to-amber-600",    rating:5.0, ratingCount:34,  recentBuyers:null },
-  // Packs
-  "pack-starter":  { emoji:"🌿", desc:"مستويان متتاليان — وفّر 400 درهم",           color:"green",  gradient:"from-emerald-500 to-green-600" },
-  "pack-intensif": { emoji:"⚡", popular:true, badge:"🔥 الأوفر والأفضل", desc:"3 مستويات كاملة من الصفر إلى الطلاقة", color:"purple", gradient:"from-violet-600 to-purple-700" },
-  "pack-complet":  { emoji:"🏆", badge:"⭐ الأشمل", desc:"كل المستويات + إنجليزية الأعمال", color:"gold", gradient:"from-amber-500 to-yellow-600" },
-}
-
-function mapPlan(p: typeof INDIVIDUAL_PLANS[number] | typeof PACK_PLANS[number]) {
-  const v = PLAN_VIEW[p.id]
-  const levelLabel = p.levelFrom && p.levelTo
-    ? `${p.levelFrom} → ${p.levelTo}` : 'مخصّص'
-  return {
-    id: p.id, canonicalId: p.id, slug: p.courseSlug,
-    title: p.title_ar, subtitle: p.subtitle_ar, levelLabel,
-    price: p.amount_mad, originalPrice: p.originalAmount,
-    isHourly: !!p.isHourly,
-    followUpLabel: p.followUpLabel_ar, followUpDuration: p.followUpDuration_ar,
-    durationMonths: p.duration_months, currency: "DH",
-    lifetimePerks: p.lifetimePerks, monthlyPerks: p.monthlyPerks,
-    includesPrevious: p.includesPrevious_ar, idealFor: p.idealFor_ar,
-    levelsIncluded: (p as typeof PACK_PLANS[number]).levelsIncluded,
-    emoji: v?.emoji ?? "⭐", popular: v?.popular ?? false,
-    highlight: !!p.highlight, isPremium: !!p.isPremium,
-    badge: v?.badge ?? p.badge_ar ?? null,
-    desc: v?.desc ?? p.subtitle_ar,
-    color: v?.color ?? "blue" as PlanColor,
-    gradient: v?.gradient ?? "from-blue-500 to-blue-600",
-    rating: v?.rating, ratingCount: v?.ratingCount, recentBuyers: v?.recentBuyers,
-  }
-}
-
-const PACKS = PACK_PLANS.map(mapPlan)
-const PLANS = INDIVIDUAL_PLANS.map(mapPlan)
 
 const WORDS_CYCLE = ["الإنجليزية", "المحادثة", "النطق", "الاستماع", "الطلاقة"]
 
@@ -201,10 +147,9 @@ function HeroSlider() {
       <motion.div style={{ x: bgX, y: bgY }} className="absolute inset-0">
         <div className="absolute top-10 right-10 w-[400px] h-[400px] bg-gradient-to-br from-blue-200/40 to-sky-200/20 rounded-full blur-3xl hero-blob-1" />
         <div className="absolute bottom-10 left-10 w-[500px] h-[500px] bg-gradient-to-br from-blue-200/30 to-purple-200/10 rounded-full blur-3xl hero-blob-2" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-gradient-to-br from-yellow-100/20 to-orange-100/10 rounded-full blur-3xl animate-pulse" />
       </motion.div>
 
-      <Particles count={15} className="opacity-30" />
+      <Particles count={12} className="opacity-30" />
 
       <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 md:gap-12 items-center px-5 sm:px-6 py-10 md:py-20 relative z-10 w-full">
         {/* TEXT SIDE */}
@@ -224,14 +169,7 @@ function HeroSlider() {
                 className="inline-flex items-center gap-2.5 bg-blue-100/80 backdrop-blur-sm text-blue-800 px-5 py-2.5 rounded-full text-sm font-bold mb-7 border border-blue-200/60"
               >
                 <span className="w-2.5 h-2.5 bg-green-500 rounded-full dot-pulse" />
-                <span>+1200 طالب يتعلمون الآن</span>
-                <motion.span
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="text-green-500"
-                >
-                  ●
-                </motion.span>
+                <span>+{STATS.students} طالب يتعلمون الآن</span>
               </motion.div>
 
               <h1 className="text-3xl sm:text-[2.7rem] md:text-[3.5rem] font-black leading-[1.25] mb-6 text-gray-900">
@@ -280,13 +218,12 @@ function HeroSlider() {
                   <motion.span animate={{ x: [0, -4, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>←</motion.span>
                 </Link>
 
-                <button
-                  type="button"
-                  onClick={() => openSubscribe({ source: 'hero_start' })}
-                  className="border-2 border-blue-200 hover:border-amber-300 bg-white/80 backdrop-blur-sm text-blue-900 font-extrabold text-base px-10 py-4 rounded-2xl hover:bg-amber-50 transition-all duration-300 inline-flex items-center gap-2.5 hover:shadow-lg cursor-pointer"
+                <a
+                  href="#programs"
+                  className="border-2 border-blue-200 hover:border-amber-300 bg-white/80 backdrop-blur-sm text-blue-900 font-extrabold text-base px-10 py-4 rounded-2xl hover:bg-amber-50 transition-all duration-300 inline-flex items-center gap-2.5 hover:shadow-lg"
                 >
-                  ابدأ الآن 🚀
-                </button>
+                  اكتشف البرامج 🚀
+                </a>
               </div>
 
               {/* social proof */}
@@ -312,13 +249,11 @@ function HeroSlider() {
                 <div>
                   <div className="flex items-center gap-1 text-yellow-500 font-bold text-base">
                     {[...Array(5)].map((_, i) => (
-                      <motion.span key={i} initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1.2 + i * 0.05 }}>
-                        ★
-                      </motion.span>
+                      <span key={i}>★</span>
                     ))}
-                    <span className="text-gray-700 mr-1 text-sm font-black">4.9</span>
+                    <span className="text-gray-700 mr-1 text-sm font-black">{STATS.rating}</span>
                   </div>
-                  <p className="text-gray-500 text-sm font-semibold">من أكثر من 1200 طالب يختاروننا كل أسبوع</p>
+                  <p className="text-gray-500 text-sm font-semibold">{STATS.reviews} تقييم من طلاب في {STATS.countries} دولة</p>
                 </div>
               </motion.div>
             </motion.div>
@@ -330,9 +265,9 @@ function HeroSlider() {
           <AnimatePresence mode="wait">
             <motion.div
               key={idx}
-              initial={{ opacity: 0, scale: 0.9, rotateY: -15 }}
-              animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-              exit={{ opacity: 0, scale: 1.05, rotateY: 15 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.05 }}
               transition={{ duration: 0.7, ease: [0.25, 0.4, 0.25, 1] }}
               className="relative"
             >
@@ -389,39 +324,17 @@ function HeroSlider() {
                 <span className="text-xl">🔥</span>
                 <span>7 أيام streak</span>
               </motion.div>
-
-              <motion.div
-                animate={{ y: [-6, 6, -6], scale: [1, 1.05, 1] }}
-                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" as const, delay: 0.5 }}
-                className="hidden sm:flex absolute top-1/3 -right-8 bg-white px-4 py-2.5 rounded-xl shadow-lg border border-yellow-200 text-sm font-extrabold items-center gap-1.5"
-              >
-                <span className="text-yellow-500">⭐</span>
-                <span className="text-gray-800">+15 XP</span>
-              </motion.div>
-
-              <motion.div
-                animate={{ y: [5, -10, 5], x: [-3, 3, -3] }}
-                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" as const, delay: 2 }}
-                className="hidden sm:block absolute top-8 right-8 bg-purple-500 text-white px-3 py-2 rounded-xl shadow-lg text-xs font-bold"
-              >
-                🎯 Level Up!
-              </motion.div>
             </motion.div>
           </AnimatePresence>
 
           {/* dots */}
           <div className="flex justify-center gap-3 mt-8">
             {SLIDES.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setIdx(i)}
-                className="relative"
-              >
+              <button key={i} onClick={() => setIdx(i)} aria-label={`الشريحة ${i + 1}`}>
                 <motion.div
                   className={`h-3 rounded-full transition-all duration-300 ${
                     i === idx ? "w-10 bg-gradient-to-l from-amber-400 to-yellow-500" : "w-3 bg-gray-300 hover:bg-gray-400"
                   }`}
-                  layoutId={undefined}
                   whileHover={{ scale: 1.3 }}
                   whileTap={{ scale: 0.9 }}
                 />
@@ -430,22 +343,6 @@ function HeroSlider() {
           </div>
         </div>
       </div>
-
-      {/* scroll indicator */}
-      <motion.div
-        animate={{ y: [0, 8, 0] }}
-        transition={{ duration: 2, repeat: Infinity }}
-        className="hidden md:flex absolute bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-2 text-gray-400"
-      >
-        <span className="text-xs font-medium">اكتشف المزيد</span>
-        <div className="w-6 h-10 rounded-full border-2 border-gray-300 flex justify-center pt-2">
-          <motion.div
-            animate={{ y: [0, 12, 0], opacity: [1, 0, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="w-1.5 h-1.5 rounded-full bg-gray-400"
-          />
-        </div>
-      </motion.div>
     </section>
   )
 }
@@ -486,229 +383,162 @@ function StatsStrip() {
         variants={stagger}
         className="max-w-5xl mx-auto bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-gray-200/60 border border-gray-100/80 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 p-6 sm:p-10"
       >
-        <StatItem num={1200} suffix="+" label="طالب نشط" icon="👥" gradient="from-green-400 to-emerald-500" />
+        <StatItem num={STATS.students} suffix="+" label="طالب نشط" icon="👥" gradient="from-green-400 to-emerald-500" />
         <StatItem num={97} suffix="%" label="راضين تماماً" icon="⭐" gradient="from-yellow-400 to-amber-500" />
-        <StatItem num={7} suffix="7 دورات" label="كل المستويات" icon="📈" gradient="from-blue-400 to-blue-600" />
-        <StatItem num={24} suffix="24h" label="تقدم ملموس" icon="⚡" gradient="from-purple-400 to-purple-600" />
+        <StatItem num={STATS.countries} suffix="+" label="دولة حول العالم" icon="🌍" gradient="from-blue-400 to-blue-600" />
+        <StatItem num={STATS.reviews} suffix="+" label="تقييم موثّق" icon="💬" gradient="from-purple-400 to-purple-600" />
       </motion.div>
     </section>
   )
 }
 
 /* ═══════════════════════════════════════════════════
-   4. COURSES
+   3. PROGRAMS — data-driven overview linking to each page
 ═══════════════════════════════════════════════════ */
 
-function PlanCard({ plan, i }: { plan: typeof PLANS[number]; i: number }) {
-  const colorMap: Record<string, { bg: string; text: string; border: string; shadow: string; accent: string }> = {
-    green:  { bg: "from-green-500 to-emerald-600",  text: "text-emerald-700", border: "border-emerald-300", shadow: "shadow-emerald-100", accent: "bg-emerald-50" },
-    blue:   { bg: "from-blue-500 to-blue-600",      text: "text-blue-700",    border: "border-blue-300",    shadow: "shadow-blue-100",    accent: "bg-blue-50"    },
-    purple: { bg: "from-purple-500 to-purple-600",  text: "text-purple-700",  border: "border-purple-300",  shadow: "shadow-purple-100",  accent: "bg-purple-50"  },
-    orange: { bg: "from-orange-500 to-amber-500",   text: "text-orange-700",  border: "border-orange-300",  shadow: "shadow-orange-100",  accent: "bg-orange-50"  },
-    gold:   { bg: "from-yellow-500 to-amber-600",   text: "text-amber-700",   border: "border-amber-300",   shadow: "shadow-amber-100",   accent: "bg-amber-50"   },
-    slate:  { bg: "from-slate-600 to-slate-800",    text: "text-slate-700",   border: "border-slate-300",   shadow: "shadow-slate-100",   accent: "bg-slate-50"   },
-  }
-  const c = colorMap[plan.color] || colorMap.blue
-  const savings = plan.originalPrice && plan.originalPrice > plan.price
-    ? plan.originalPrice - plan.price : null
+function ProgramsSection() {
+  const minLevel = Math.min(...INDIVIDUAL_PLANS.map(p => p.amount_mad))
+  const minPack = Math.min(...PACK_PLANS.map(p => p.amount_mad))
+  const maxPackSaving = Math.max(...PACK_PLANS.map(p => (p.originalAmount ?? p.amount_mad) - p.amount_mad))
+  const minPerSession = Math.min(...CLASS_PLANS.map(p => Math.round(p.amount_mad / (p.sessionsIncluded ?? 1))))
+  const business = BUSINESS_PLANS[0]
+
+  const programs = [
+    {
+      emoji: "🎯",
+      tag: "Individual Levels",
+      title: "المستويات الفردية",
+      desc: "ابدأ بمستوى واحد حسب نقطة انطلاقك — من A0 إلى B2، كل مستوى مبني على السابق.",
+      price: minLevel,
+      priceLabel: "ابتداءً من",
+      priceSuffix: "درهم",
+      points: ["دروس مسجلة تبقى معك مدى الحياة", "متابعة على واتساب", "4 مستويات متدرجة"],
+      href: "/pricing#levels",
+      cta: "شوف المستويات",
+      gradient: "from-blue-500 to-blue-700",
+      border: "hover:border-blue-300",
+      accent: "text-blue-700",
+      chip: "bg-blue-50 text-blue-700",
+    },
+    {
+      emoji: "📦",
+      tag: "Packs",
+      title: "الباكات الموفّرة",
+      badge: "الأكثر قيمة",
+      desc: "مستويان أو أكثر في رحلة متصلة بسعر أوفر — للي باغي تحوّل كامل بلا انقطاع.",
+      price: minPack,
+      priceLabel: "ابتداءً من",
+      priceSuffix: "درهم",
+      points: [`وفّر حتى ${maxPackSaving.toLocaleString()} درهم`, "رحلة متصلة من الصفر للطلاقة", "كوتشينغ ومتابعة شخصية"],
+      href: "/pricing#packs",
+      cta: "شوف الباكات",
+      gradient: "from-violet-500 to-purple-700",
+      border: "hover:border-violet-300",
+      accent: "text-violet-700",
+      chip: "bg-violet-50 text-violet-700",
+    },
+    {
+      emoji: "👨‍🏫",
+      tag: "1:1 Classes",
+      title: "حصص خاصة 1:1",
+      desc: "حصة مباشرة 1h30 وجهاً لوجه مع الأستاذ — برنامج مخصص لهدفك وتصحيح فوري.",
+      price: minPerSession,
+      priceLabel: "الحصة من",
+      priceSuffix: "درهم",
+      points: ["مباشرة بالفيديو مع الأستاذ", "مواعيد على جدولك", "متابعة واتساب بين الحصص"],
+      href: "/classes",
+      cta: "شوف الحصص",
+      gradient: "from-amber-400 to-yellow-600",
+      border: "hover:border-amber-300",
+      accent: "text-amber-700",
+      chip: "bg-amber-50 text-amber-700",
+    },
+    {
+      emoji: "💼",
+      tag: "Business English",
+      title: "الإنجليزية المهنية",
+      desc: "اجتماعات، عروض، ومكالمات بثقة — برنامج متخصص لبيئة العمل، بدون قواعد.",
+      price: business?.amount_mad ?? 3500,
+      priceLabel: "البرنامج الكامل",
+      priceSuffix: "درهم",
+      points: ["محاكاة اجتماعات حقيقية", "مفردات الأعمال والتفاوض", "تصحيح شخصي من الأستاذ"],
+      href: "/business",
+      cta: "اعرف المزيد",
+      gradient: "from-cyan-500 to-sky-700",
+      border: "hover:border-cyan-300",
+      accent: "text-cyan-700",
+      chip: "bg-cyan-50 text-cyan-700",
+    },
+  ]
 
   return (
-    <motion.div
-      custom={i} variants={fadeUp} whileHover={{ y: -4 }}
-      className={`relative flex flex-col bg-white rounded-2xl overflow-hidden border-2 transition-all duration-300 ${
-        plan.popular || plan.highlight
-          ? `${c.border} shadow-xl ${c.shadow}`
-          : `border-gray-100 shadow-md hover:shadow-lg`
-      }`}
-    >
-      {/* Badge stripe */}
-      {plan.badge && (
-        <div className={`bg-gradient-to-l ${c.bg} px-4 py-2 text-center`}>
-          <span className="text-white text-xs font-black">{plan.badge}</span>
-        </div>
-      )}
+    <section id="programs" className="py-20 sm:py-24 px-5 sm:px-6 bg-gradient-to-b from-white via-gray-50/60 to-white relative overflow-hidden scroll-mt-16" dir="rtl">
+      <div className="absolute top-20 left-0 w-[500px] h-[500px] bg-blue-100/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-20 right-0 w-[400px] h-[400px] bg-amber-100/20 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="p-5 flex flex-col flex-1">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className={`w-10 h-10 bg-gradient-to-br ${c.bg} rounded-xl flex items-center justify-center text-lg shadow flex-shrink-0`}>
-            {plan.emoji}
-          </div>
-          <div className="min-w-0">
-            <div className={`text-[10px] font-black ${c.text} uppercase tracking-wider`}>
-              {plan.levelLabel}
-            </div>
-            <h3 className="font-black text-gray-900 text-base leading-tight truncate">{plan.title}</h3>
-          </div>
-        </div>
+      <div className="max-w-6xl mx-auto relative z-10">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-12">
+          <span className="inline-block text-[11px] font-black tracking-[0.4em] uppercase text-blue-600 mb-3">
+            — Programs —
+          </span>
+          <h2 className="text-3xl sm:text-5xl font-black text-gray-900 leading-tight mb-3">
+            اختر البرنامج{' '}
+            <span className="bg-gradient-to-l from-blue-600 to-blue-900 bg-clip-text text-transparent">المناسب لك</span>
+          </h2>
+          <p className="text-gray-500 text-base font-semibold max-w-xl mx-auto">
+            أربعة طرق للوصول إلى الطلاقة — لكلٍّ صفحته الكاملة بالأسعار والتفاصيل
+          </p>
+        </motion.div>
 
-        {/* Price */}
-        <div className={`${c.accent} rounded-xl px-4 py-3 mb-4 text-center`}>
-          <div className="flex items-baseline justify-center gap-1.5">
-            <span className="text-3xl font-black text-gray-900">{plan.price.toLocaleString()}</span>
-            <span className={`text-sm font-bold ${c.text}`}>DH</span>
-            {plan.originalPrice && plan.originalPrice > plan.price && (
-              <span className="text-gray-400 text-xs line-through">{plan.originalPrice.toLocaleString()}</span>
-            )}
-          </div>
-          <ApproxPrice mad={plan.price} className="block text-blue-700/80 text-xs font-bold mt-0.5" />
-          {savings && (
-            <p className="text-emerald-600 text-[11px] font-black mt-1">وفّر {savings.toLocaleString()} درهم</p>
-          )}
-        </div>
-
-        {/* 3 key perks */}
-        <ul className="space-y-1.5 mb-5 flex-1">
-          {plan.lifetimePerks.slice(0, 3).map((f, j) => (
-            <li key={j} className="flex items-start gap-2 text-[12px] text-gray-600 leading-snug">
-              <span className={`${c.text} font-black flex-shrink-0`}>✓</span>
-              {f}
-            </li>
-          ))}
-        </ul>
-
-        {/* CTA */}
-        <button
-          type="button"
-          onClick={() => openSubscribe({ source: `home_plan_${plan.id}_subscribe`, planId: plan.canonicalId })}
-          className={`w-full py-3 rounded-xl font-black text-sm transition-all ${
-            plan.popular || plan.highlight
-              ? `bg-gradient-to-l ${c.bg} text-white shadow-lg hover:opacity-90`
-              : `bg-gray-900 text-white hover:bg-gray-700`
-          }`}
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.1 }} variants={stagger}
+          className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch"
         >
-          اشترك الآن
-        </button>
-        <Link
-          href={`/pricing#${plan.id}`}
-          className="text-center text-gray-400 hover:text-gray-700 text-xs font-bold mt-2 transition-colors"
-        >
-          التفاصيل ←
-        </Link>
-      </div>
-    </motion.div>
-  )
-}
+          {programs.map((p, i) => (
+            <motion.div key={p.title} custom={i} variants={fadeUp} whileHover={{ y: -6 }} className="h-full">
+              <Link
+                href={p.href}
+                className={`relative flex flex-col h-full bg-white rounded-3xl border-2 border-gray-100 ${p.border} p-6 shadow-md hover:shadow-xl transition-all duration-300 no-underline`}
+              >
+                {p.badge && (
+                  <span className="absolute -top-3 right-5 bg-gradient-to-l from-amber-400 to-yellow-500 text-blue-900 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-md">
+                    {p.badge}
+                  </span>
+                )}
 
-function HomeSectionTitle({ tag, en, ar, sub }: { tag: string; en: string; ar: string; sub: string }) {
-  return (
-    <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
-      className="text-center mb-10"
-    >
-      <span className="inline-block text-[11px] font-black tracking-[0.4em] uppercase text-blue-600 mb-3">
-        — {tag} —
-      </span>
-      <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-gray-900 leading-none tracking-tight mb-2">
-        {en}
-      </h2>
-      <p className="text-gray-700 font-black text-lg sm:text-xl mb-2">{ar}</p>
-      <p className="text-gray-500 text-sm max-w-lg mx-auto">{sub}</p>
-    </motion.div>
-  )
-}
+                <div className={`w-14 h-14 bg-gradient-to-br ${p.gradient} rounded-2xl flex items-center justify-center text-2xl shadow-lg mb-4`}>
+                  {p.emoji}
+                </div>
 
-function CoursesSection() {
-  return (
-    <section className="bg-gradient-to-b from-gray-50/80 via-white to-gray-50/50 relative overflow-hidden">
-      <div className="absolute top-20 left-0 w-[500px] h-[500px] bg-green-100/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-20 right-0 w-[400px] h-[400px] bg-blue-100/15 rounded-full blur-3xl pointer-events-none" />
+                <span className={`self-start text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full mb-2 ${p.chip}`}>
+                  {p.tag}
+                </span>
+                <h3 className="font-black text-xl text-gray-900 mb-2 leading-tight">{p.title}</h3>
+                <p className="text-gray-500 text-[13px] leading-relaxed mb-4">{p.desc}</p>
 
-      {/* trust badges */}
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 pt-12 sm:pt-20 relative z-10">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
-          className="flex flex-wrap justify-center gap-3 mb-6"
-        >
-          {[
-            { icon: "📹", text: "دروس مسجلة" },
-            { icon: "💬", text: "مجموعة واتساب" },
-            { icon: "📊", text: "متابعة شخصية" },
-            { icon: "✅", text: "نتائج مضمونة" },
-            { icon: "♾️", text: "وصول مدى الحياة" },
-          ].map((b, i) => (
-            <motion.span key={i} whileHover={{ scale: 1.05, y: -2 }}
-              className="inline-flex items-center gap-2 text-sm text-gray-600 font-semibold bg-white px-4 py-2.5 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <span className="text-base">{b.icon}</span> {b.text}
-            </motion.span>
+                <div className="mb-4">
+                  <span className="text-gray-400 text-[11px] font-bold block">{p.priceLabel}</span>
+                  <span className="text-2xl font-black text-gray-900">{p.price.toLocaleString()}</span>
+                  <span className={`text-sm font-bold mr-1 ${p.accent}`}>{p.priceSuffix}</span>
+                  <ApproxPrice mad={p.price} className="block text-blue-700/70 text-[11px] font-bold mt-0.5" />
+                </div>
+
+                <ul className="space-y-1.5 mb-5 flex-1">
+                  {p.points.map(pt => (
+                    <li key={pt} className="flex items-start gap-2 text-[12px] text-gray-600 leading-snug font-semibold">
+                      <span className={`${p.accent} font-black shrink-0`}>✓</span>
+                      {pt}
+                    </li>
+                  ))}
+                </ul>
+
+                <span className={`inline-flex items-center justify-center gap-2 w-full py-3 rounded-xl font-black text-sm bg-gradient-to-l ${p.gradient} text-white shadow-md group-hover:opacity-90 transition-all`}>
+                  {p.cta} ←
+                </span>
+              </Link>
+            </motion.div>
           ))}
         </motion.div>
-      </div>
 
-      {/* ── PACKS SECTION ─────────────────────────────── */}
-      <div className="w-full border-t border-b border-violet-200 bg-gradient-to-b from-violet-50/60 to-white py-14 relative z-10">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
-          <HomeSectionTitle
-            tag="Our Packs"
-            en="Explore Our Packs"
-            ar="أقصى قيمة — رحلة متصلة"
-            sub="كلما زاد التزامك زادت توفيراتك. الباكات مصممة لمن يريد تحوّلاً حقيقياً بلا انقطاع."
-          />
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} variants={stagger}
-            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 items-start"
-          >
-            {PACKS.map((plan, i) => <PlanCard key={plan.id} plan={plan} i={i} />)}
-          </motion.div>
-        </div>
-      </div>
-
-      {/* ── INDIVIDUAL LEVELS SECTION ─────────────────── */}
-      <div className="w-full border-b border-blue-200 bg-white py-14 relative z-10">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6">
-          <HomeSectionTitle
-            tag="Individual Levels"
-            en="Level by Level"
-            ar="المستويات الفردية"
-            sub="ابدأ بمستوى واحد وانتقل للتالي. كل مستوى مبني على السابق."
-          />
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} variants={stagger}
-            className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 items-start"
-          >
-            {PLANS.map((plan, i) => <PlanCard key={plan.id} plan={plan} i={i} />)}
-          </motion.div>
-        </div>
-      </div>
-
-      {/* ── CLASSES + BUSINESS CTA ────────────────────── */}
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-14 relative z-10">
-        <div className="grid sm:grid-cols-2 gap-5">
-          {/* Classes teaser */}
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}
-            className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-3xl p-7 flex flex-col gap-4"
-          >
-            <div className="text-4xl">🎓</div>
-            <div>
-              <div className="text-[11px] font-black tracking-widest uppercase text-amber-600 mb-1">1:1 Private Classes</div>
-              <h3 className="font-black text-2xl text-gray-900 mb-1">الحصص الفردية</h3>
-              <p className="text-gray-600 text-sm font-semibold">400 درهم / الحصة <ApproxPrice mad={400} className="text-blue-700/80" /> · 1h30 · مباشر مع الأستاذ</p>
-              <p className="text-gray-500 text-xs mt-2">كلما اشتريت حصصاً أكثر، كان سعر الحصة أرخص.</p>
-            </div>
-            <Link href="/pricing#classes"
-              className="self-start inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-white font-black px-5 py-2.5 rounded-xl text-sm transition-colors"
-            >
-              شوف العروض ←
-            </Link>
-          </motion.div>
-
-          {/* Business teaser */}
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}
-            className="bg-gradient-to-br from-cyan-50 to-sky-50 border-2 border-cyan-200 rounded-3xl p-7 flex flex-col gap-4"
-          >
-            <div className="text-4xl">💼</div>
-            <div>
-              <div className="text-[11px] font-black tracking-widest uppercase text-cyan-600 mb-1">Business English</div>
-              <h3 className="font-black text-2xl text-gray-900 mb-1">الإنجليزية المهنية</h3>
-              <p className="text-gray-600 text-sm font-semibold">3,500 درهم <ApproxPrice mad={3500} className="text-blue-700/80" /> · برنامج متخصص للمحترفين</p>
-              <p className="text-gray-500 text-xs mt-2">تكلّم، أقنع، وابهر في بيئة العمل — بدون قواعد.</p>
-            </div>
-            <Link href="/pricing#business"
-              className="self-start inline-flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white font-black px-5 py-2.5 rounded-xl text-sm transition-colors"
-            >
-              اعرف المزيد ←
-            </Link>
-          </motion.div>
-        </div>
-
-        {/* Full pricing link */}
         <div className="text-center mt-10">
           <Link href="/pricing"
             className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-800 text-sm font-bold underline underline-offset-4 transition-colors"
@@ -722,7 +552,7 @@ function CoursesSection() {
 }
 
 /* ═══════════════════════════════════════════════════
-   HOW IT WORKS — 3 step visual timeline
+   4. HOW IT WORKS — 3 step visual timeline
 ═══════════════════════════════════════════════════ */
 
 function HowItWorks() {
@@ -731,8 +561,8 @@ function HowItWorks() {
       num: "01",
       icon: "🎯",
       title: "اختر مستواك",
-      desc: "مبتدئ تماماً (A0)؟ أم لديك الأساسيات؟ نحدّد لك الباقة المناسبة — بلا تخمين.",
-      pill: "دقيقتين فقط",
+      desc: "اختبار مجاني في 3 دقائق يحدد مستواك بدقة والباقة المناسبة لك — بلا تخمين.",
+      pill: "3 دقائق",
     },
     {
       num: "02",
@@ -766,9 +596,6 @@ function HowItWorks() {
               بثقة
             </span>
           </h2>
-          <p className="mt-5 text-white/70 text-base sm:text-lg font-semibold max-w-2xl mx-auto">
-            بلا تعقيد، بلا تخمين، وبلا إضاعة وقتك في ما لا يفيد
-          </p>
         </motion.div>
 
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.15 }} variants={stagger} className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -796,118 +623,70 @@ function HowItWorks() {
             </motion.div>
           ))}
         </motion.div>
+
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={2} className="text-center mt-12">
+          <Link
+            href="/level-test"
+            className="inline-flex items-center gap-2 bg-gradient-to-l from-amber-400 to-yellow-500 text-blue-900 font-black px-9 py-4 rounded-2xl shadow-2xl shadow-amber-500/40 hover:shadow-amber-500/60 hover:scale-105 transition-all duration-300"
+          >
+            🧭 ابدأ بالخطوة الأولى — اختبر مستواك
+          </Link>
+        </motion.div>
       </div>
     </section>
   )
 }
 
 /* ═══════════════════════════════════════════════════
-   WHAT YOU GET — visual feature grid
+   5. WHAT YOU GET — compact feature grid
 ═══════════════════════════════════════════════════ */
 
 function WhatYouGet() {
   const items = [
-    {
-      icon: "📹",
-      title: "دروس فيديو مركّزة",
-      desc: "كل فيديو 5-8 دقائق — محتوى مكثّف بلا حشو، تشاهده متى شئت، بشرح عربي بسيط وواضح.",
-      theme: 'blue' as const,
-    },
-    {
-      icon: "💬",
-      title: "واتساب مع حمزة شخصياً",
-      desc: "أرسل له رسائل صوتية في أي وقت، يصحّح نطقك ويجيب عن أسئلتك — ليس روبوتاً، بل إنسان حقيقي.",
-      theme: 'gold' as const,
-    },
-    {
-      icon: "🎯",
-      title: "متابعة أسبوعية بالاسم",
-      desc: "كل أسبوع كنطلبو منك واجبات بسيطة. كنراجعو، كنصححو، وكنعطيوك تغذية راجعة مخصصة.",
-      theme: 'blue' as const,
-    },
-    {
-      icon: "🎁",
-      title: "مكتبة PDF + تمارين",
-      desc: "ملخصات دقيقة لكل درس + تمارين تطبيقية + فيديوهات إضافية — حمّلها وراجعها متى شئت.",
-      theme: 'gold' as const,
-    },
-    {
-      icon: "🏆",
-      title: "نتائج مضمونة بالضمانة",
-      desc: "97% من الطلاب كيحسو بالفرق فالشهر الأول. إلا ما لقيتش نتيجة فالأسبوع الأول، كنرجعو ليك الفلوس.",
-      theme: 'blue' as const,
-    },
-    {
-      icon: "♾️",
-      title: "وصول مدى الحياة",
-      desc: "اشترك مرة واحدة — يبقى المحتوى معك للأبد. راجع كما تشاء ومن أي مكان، بلا تاريخ انتهاء.",
-      theme: 'gold' as const,
-    },
+    { icon: "📹", title: "دروس فيديو مركّزة", desc: "5-8 دقائق للفيديو، بشرح عربي واضح — بلا حشو." },
+    { icon: "💬", title: "واتساب مع حمزة شخصياً", desc: "رسائل صوتية يصحّحها الأستاذ بنفسه — لا روبوت." },
+    { icon: "🎯", title: "متابعة أسبوعية بالاسم", desc: "واجبات بسيطة تُراجَع وتُصحَّح بتغذية راجعة مخصصة." },
+    { icon: "🎁", title: "مكتبة PDF + تمارين", desc: "ملخصات وتمارين تطبيقية تحمّلها وتراجعها متى شئت." },
+    { icon: "🏆", title: "ضمان الأسبوع الأول", desc: "ما حسّيتش بالفرق فالأسبوع الأول؟ كنرجعو ليك الفلوس." },
+    { icon: "♾️", title: "وصول مدى الحياة", desc: "المحتوى يبقى معك للأبد — بلا تاريخ انتهاء." },
   ]
 
-  const themes = {
-    blue: {
-      card: 'bg-gradient-to-br from-blue-700 via-blue-800 to-blue-900 border-blue-400/30 hover:border-amber-400/80',
-      iconBg: 'bg-gradient-to-br from-blue-500 to-blue-700 shadow-blue-500/40',
-      title: 'text-white',
-      desc: 'text-blue-100/80',
-    },
-    gold: {
-      card: 'bg-gradient-to-br from-amber-50 via-yellow-50 to-white border-amber-200 hover:border-amber-500',
-      iconBg: 'bg-gradient-to-br from-amber-400 to-yellow-600 shadow-amber-500/50',
-      title: 'text-gray-900',
-      desc: 'text-gray-700',
-    },
-  }
-
   return (
-    <section className="py-20 sm:py-28 px-5 sm:px-6 bg-gradient-to-b from-white to-gray-50 relative overflow-hidden" dir="rtl">
+    <section className="py-20 sm:py-24 px-5 sm:px-6 bg-gradient-to-b from-white to-gray-50 relative overflow-hidden" dir="rtl">
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-blue-100/60 to-transparent rounded-full blur-3xl" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-amber-100/50 to-transparent rounded-full blur-3xl" />
 
-      <div className="max-w-6xl mx-auto relative z-10">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-14 sm:mb-16">
+      <div className="max-w-5xl mx-auto relative z-10">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-12">
           <span className="inline-flex items-center gap-2 bg-gradient-to-l from-amber-400 to-yellow-500 text-gray-900 px-4 py-2 rounded-full text-xs font-black mb-5 shadow-xl shadow-amber-400/40 uppercase tracking-wider">
             🎁 شنو كتاخد ملّي كتشترك
           </span>
-          <h2 className="text-3xl sm:text-5xl md:text-6xl font-black leading-tight text-gray-900">
+          <h2 className="text-3xl sm:text-5xl font-black leading-tight text-gray-900">
             ليست دورة عادية —{' '}
-            <span className="relative inline-block">
-              <span className="relative z-10 bg-gradient-to-l from-blue-600 via-blue-700 to-blue-900 bg-clip-text text-transparent">
-                نظام كامل
-              </span>
-              <span className="absolute -bottom-1 left-0 right-0 h-3 bg-amber-300/70 -skew-x-6 z-0" />
+            <span className="bg-gradient-to-l from-blue-600 via-blue-700 to-blue-900 bg-clip-text text-transparent">
+              نظام كامل
             </span>{' '}
             للنجاح
           </h2>
-          <p className="mt-5 text-gray-600 text-base sm:text-lg font-semibold max-w-2xl mx-auto">
-            كل ما تحتاجه لتتحدث الإنجليزية بثقة — في مكان واحد، مع متابعة شخصية من الأستاذ حمزة
-          </p>
         </motion.div>
 
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.15 }} variants={stagger} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-          {items.map((item, i) => {
-            const t = themes[item.theme]
-            return (
-              <motion.div
-                key={i}
-                custom={i}
-                variants={fadeUp}
-                whileHover={{ y: -8 }}
-                className={`${t.card} rounded-3xl p-7 border-2 shadow-xl hover:shadow-2xl transition-all duration-300 group cursor-default`}
-              >
-                <motion.div
-                  whileHover={{ rotate: [0, -8, 8, 0], scale: 1.1 }}
-                  transition={{ duration: 0.5 }}
-                  className={`w-14 h-14 ${t.iconBg} rounded-2xl flex items-center justify-center text-2xl shadow-xl mb-5 border border-white/20`}
-                >
-                  {item.icon}
-                </motion.div>
-                <h3 className={`font-black text-xl ${t.title} mb-2 leading-tight`}>{item.title}</h3>
-                <p className={`text-sm font-semibold leading-relaxed ${t.desc}`}>{item.desc}</p>
-              </motion.div>
-            )
-          })}
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.15 }} variants={stagger} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {items.map((item, i) => (
+            <motion.div
+              key={i}
+              custom={i}
+              variants={fadeUp}
+              whileHover={{ y: -5 }}
+              className="flex items-start gap-4 bg-white rounded-2xl p-5 border-2 border-gray-100 hover:border-amber-200 shadow-sm hover:shadow-lg transition-all duration-300"
+            >
+              <div className="w-12 h-12 shrink-0 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center text-xl shadow-md">
+                {item.icon}
+              </div>
+              <div className="min-w-0">
+                <h3 className="font-black text-[15px] text-gray-900 mb-1 leading-tight">{item.title}</h3>
+                <p className="text-[13px] font-semibold leading-relaxed text-gray-500">{item.desc}</p>
+              </div>
+            </motion.div>
+          ))}
         </motion.div>
       </div>
     </section>
@@ -915,12 +694,11 @@ function WhatYouGet() {
 }
 
 /* ═══════════════════════════════════════════════════
-   TESTIMONIALS — high-converting social proof
+   6. TESTIMONIALS
 ═══════════════════════════════════════════════════ */
 
 function TestimonialsSection() {
   // Themes are hardcoded class strings so Tailwind always emits them.
-  // Palette: royal blue + gold. No black / near-black.
   const THEMES = {
     blue: {
       card:      'bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800',
@@ -928,8 +706,6 @@ function TestimonialsSection() {
       star:      'text-amber-300',
       quote:     'text-white/95',
       avatarBg:  'bg-gradient-to-br from-amber-400 to-yellow-500 text-blue-900 shadow-amber-500/40',
-      glowA:     'bg-amber-400/25',
-      glowB:     'bg-blue-300/15',
     },
     gold: {
       card:      'bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-500',
@@ -937,8 +713,6 @@ function TestimonialsSection() {
       star:      'text-blue-900',
       quote:     'text-blue-900',
       avatarBg:  'bg-gradient-to-br from-blue-700 to-blue-900 text-white shadow-blue-900/40',
-      glowA:     'bg-white/30',
-      glowB:     'bg-amber-200/40',
     },
     blueDark: {
       card:      'bg-gradient-to-br from-blue-800 via-blue-900 to-blue-800',
@@ -946,42 +720,36 @@ function TestimonialsSection() {
       star:      'text-amber-400',
       quote:     'text-white/95',
       avatarBg:  'bg-gradient-to-br from-amber-400 to-yellow-500 text-blue-900 shadow-amber-500/40',
-      glowA:     'bg-amber-400/20',
-      glowB:     'bg-blue-400/15',
     },
   } as const
 
   return (
-    <section className="py-20 sm:py-28 px-5 sm:px-6 bg-gradient-to-b from-white via-amber-50/40 to-white relative overflow-hidden" dir="rtl">
+    <section className="py-20 sm:py-24 px-5 sm:px-6 bg-gradient-to-b from-white via-amber-50/40 to-white relative overflow-hidden" dir="rtl">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-gradient-radial from-amber-100/50 to-transparent blur-3xl" />
-      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-gradient-radial from-blue-100/40 to-transparent blur-3xl" />
 
       <div className="max-w-6xl mx-auto relative z-10">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-12 sm:mb-16">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="text-center mb-12">
           <span className="inline-flex items-center gap-2 bg-gradient-to-l from-amber-400 to-yellow-500 text-gray-900 px-4 py-2 rounded-full text-xs font-black mb-5 shadow-xl shadow-amber-400/40 uppercase tracking-wider">
             ⭐ شهادات حقيقية
           </span>
-          <h2 className="text-3xl sm:text-5xl md:text-6xl font-black leading-tight text-gray-900">
+          <h2 className="text-3xl sm:text-5xl font-black leading-tight text-gray-900">
             شوف شنو قالوا{' '}
-            <span className="relative inline-block">
-              <span className="relative z-10 bg-gradient-to-l from-blue-600 via-blue-700 to-blue-900 bg-clip-text text-transparent">
-                طلاب حمزة
-              </span>
-              <span className="absolute -bottom-1 left-0 right-0 h-3 bg-amber-300/70 -skew-x-6 z-0" />
+            <span className="bg-gradient-to-l from-blue-600 via-blue-700 to-blue-900 bg-clip-text text-transparent">
+              طلاب حمزة
             </span>
           </h2>
 
-          <div className="flex items-center justify-center gap-2 mt-6">
+          <div className="flex items-center justify-center gap-2 mt-5">
             <div className="flex gap-0.5">
               {[...Array(5)].map((_, i) => <span key={i} className="text-amber-400 text-2xl drop-shadow-lg">★</span>)}
             </div>
-            <span className="font-black text-gray-900 text-xl">4.9/5</span>
-            <span className="text-gray-600 font-bold text-sm">· من +1200 طالب</span>
+            <span className="font-black text-gray-900 text-xl">{STATS.rating}/5</span>
+            <span className="text-gray-600 font-bold text-sm">· {STATS.reviews} تقييم</span>
           </div>
         </motion.div>
 
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.1 }} variants={stagger} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-7">
-          {TESTIMONIALS.map((t, i) => {
+          {TESTIMONIALS.slice(0, 3).map((t, i) => {
             const theme = THEMES[t.theme]
             return (
               <motion.div
@@ -989,45 +757,31 @@ function TestimonialsSection() {
                 custom={i}
                 variants={fadeUp}
                 whileHover={{ y: -8 }}
-                className="relative rounded-3xl overflow-hidden group"
+                className="relative rounded-3xl overflow-hidden"
               >
-                <div className={`${theme.card} ${theme.shadow} p-7 sm:p-8 relative overflow-hidden border border-white/10`}>
-                  <div className={`absolute top-0 right-0 w-32 h-32 ${theme.glowA} rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl`} />
-                  <div className={`absolute bottom-0 left-0 w-24 h-24 ${theme.glowB} rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl`} />
-
+                <div className={`${theme.card} ${theme.shadow} p-7 sm:p-8 relative overflow-hidden border border-white/10 h-full`}>
                   <div className={`absolute top-5 left-5 text-6xl font-black ${theme.quote} opacity-10 leading-none select-none`}>&ldquo;</div>
 
                   <div className="flex gap-1 mb-5 relative z-10">
                     {[...Array(5)].map((_, j) => (
-                      <motion.span
-                        key={j}
-                        initial={{ opacity: 0, scale: 0 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.2 + j * 0.05, type: 'spring' }}
-                        className={`${theme.star} text-xl drop-shadow`}
-                      >
-                        ★
-                      </motion.span>
+                      <span key={j} className={`${theme.star} text-xl drop-shadow`}>★</span>
                     ))}
                   </div>
 
-                  <p className={`${theme.quote} leading-[1.9] text-[0.95rem] sm:text-base font-bold relative z-10 mb-6 sm:min-h-[7.5rem]`}>
+                  <p className={`${theme.quote} leading-[1.9] text-[0.95rem] sm:text-base font-bold relative z-10 mb-6`}>
                     {t.text}
                   </p>
 
-                  <div className="flex items-center justify-between gap-3 pt-5 border-t border-white/20 relative z-10">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-11 h-11 ${theme.avatarBg} rounded-xl flex items-center justify-center text-lg shadow-xl flex-shrink-0`}>
-                        {t.avatar}
-                      </div>
-                      <div className="min-w-0">
-                        <p className={`${theme.quote} font-black text-sm truncate`}>{t.name}</p>
-                        <span className={`${theme.quote} opacity-80 text-[11px] font-bold flex items-center gap-1`}>
-                          <span className={theme.star}>✓</span>
-                          وصل مستوى {t.level}
-                        </span>
-                      </div>
+                  <div className="flex items-center gap-3 pt-5 border-t border-white/20 relative z-10">
+                    <div className={`w-11 h-11 ${theme.avatarBg} rounded-xl flex items-center justify-center text-lg shadow-xl flex-shrink-0`}>
+                      {t.avatar}
+                    </div>
+                    <div className="min-w-0">
+                      <p className={`${theme.quote} font-black text-sm truncate`}>{t.name}</p>
+                      <span className={`${theme.quote} opacity-80 text-[11px] font-bold flex items-center gap-1`}>
+                        <span className={theme.star}>✓</span>
+                        وصل مستوى {t.level}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -1035,39 +789,13 @@ function TestimonialsSection() {
             )
           })}
         </motion.div>
-
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={3} className="mt-12 sm:mt-14 bg-gradient-to-br from-blue-700 via-blue-800 to-blue-900 rounded-3xl border-2 border-amber-400/30 shadow-2xl shadow-blue-900/40 p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-10">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-yellow-600 rounded-xl flex items-center justify-center text-xl shadow-lg shadow-amber-500/40">📊</div>
-            <div>
-              <p className="font-black text-white text-base">97% راضين تماماً</p>
-              <p className="text-white/60 text-xs font-semibold">نسبة رضا موثّقة</p>
-            </div>
-          </div>
-          <div className="hidden sm:block w-px h-12 bg-white/10" />
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center text-xl shadow-lg shadow-blue-500/40">⚡</div>
-            <div>
-              <p className="font-black text-white text-base">نتائج فأسبوع</p>
-              <p className="text-white/60 text-xs font-semibold">تقدّم سريع وملموس</p>
-            </div>
-          </div>
-          <div className="hidden sm:block w-px h-12 bg-white/10" />
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-yellow-600 rounded-xl flex items-center justify-center text-xl shadow-lg shadow-amber-500/40">🌍</div>
-            <div>
-              <p className="font-black text-white text-base">طلاب من 22 دولة</p>
-              <p className="text-white/60 text-xs font-semibold">مجتمع حي على الواتساب</p>
-            </div>
-          </div>
-        </motion.div>
       </div>
     </section>
   )
 }
 
 /* ═══════════════════════════════════════════════════
-   MOFRADATI — cross-promo band (games live there now)
+   7. MOFRADATI — cross-promo band (games live there now)
 ═══════════════════════════════════════════════════ */
 
 function MofradatiSection() {
@@ -1107,33 +835,87 @@ function MofradatiSection() {
 }
 
 /* ═══════════════════════════════════════════════════
-   FINAL CTA
+   8. MINI FAQ — top questions + link to /faq
+═══════════════════════════════════════════════════ */
+
+function MiniFAQ() {
+  const items = [
+    {
+      q: '😩 درست الإنجليزية سنوات وما زلت لا أستطيع التحدث. أين المشكلة؟',
+      a: 'المدرسة تعلّمك القواعد والكلمات، لكنها لا تعلّمك كيف تتحدث. مع الأستاذ حمزة تبدأ الحديث من اليوم الأول — جُمل قصيرة، محادثات حقيقية، وتصحيح فوري.',
+    },
+    {
+      q: '😳 أنا خجول جداً وأخاف من الخطأ. هل سأستطيع التحدث؟',
+      a: 'هذا الخوف هو ما يوقفك. الأستاذ حمزة يتابعك شخصياً على واتساب — رسائل صوتية بعيداً عن أعين الناس وبلا إحراج. كل خطأ خطوة تقدّم.',
+    },
+    {
+      q: '⏰ هل 30 يوماً تكفي لأبدأ التحدث؟',
+      a: 'نعم — إذا التزمت 15-20 دقيقة يومياً بالمنهج الصحيح. في اليوم 30 تدير محادثة قصيرة بنفسك. المفتاح هو الاستمرارية — ونحن نتابعك حتى لا تتوقف.',
+    },
+    {
+      q: '💰 هل يوجد ضمان إن لم ينجح البرنامج معي؟',
+      a: 'نعم. إن لم تقتنع خلال الأسبوع الأول نعيد لك المبلغ كاملاً بلا أسئلة. ولديك وصول مدى الحياة إلى الدروس.',
+    },
+  ]
+  return (
+    <section className="py-14 sm:py-20 px-5 sm:px-6 bg-white" dir="rtl">
+      <div className="max-w-2xl mx-auto">
+        <div className="text-center mb-8">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-900 mb-2 leading-tight">
+            الأسئلة اللي كتسولوا دائماً
+          </h2>
+          <p className="text-gray-500 text-sm font-semibold">
+            جاوبنا عليهم قبل ما تسول — بصراحة كاملة
+          </p>
+        </div>
+        <div className="space-y-2">
+          {items.map((f, i) => (
+            <details
+              key={i}
+              className="group bg-gray-50 border border-gray-200 rounded-2xl open:border-gray-300 open:bg-white open:shadow-sm transition-shadow"
+            >
+              <summary className="cursor-pointer list-none p-4 sm:p-5 flex items-center justify-between gap-3 text-gray-900 font-black text-sm sm:text-base">
+                <span>{f.q}</span>
+                <span className="text-gray-400 group-open:rotate-45 transition-transform text-xl leading-none shrink-0">+</span>
+              </summary>
+              <div className="px-4 sm:px-5 pb-4 sm:pb-5 text-gray-600 text-sm leading-relaxed font-semibold">
+                {f.a}
+              </div>
+            </details>
+          ))}
+        </div>
+        <div className="text-center mt-6">
+          <Link
+            href="/faq"
+            className="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-700 text-white font-black text-sm px-6 py-3 rounded-xl transition-colors"
+          >
+            كل الأسئلة الشائعة ←
+          </Link>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ═══════════════════════════════════════════════════
+   9. FINAL CTA
 ═══════════════════════════════════════════════════ */
 
 function FinalCTA() {
   return (
     <section className="py-20 sm:py-28 px-5 sm:px-6 bg-gradient-to-br from-blue-600 via-blue-800 to-blue-900 text-white text-center relative overflow-hidden" dir="rtl">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(251,191,36,0.22),transparent_50%),radial-gradient(circle_at_70%_80%,rgba(96,165,250,0.3),transparent_50%)]" />
-      <Particles count={25} className="opacity-70" />
-
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-        <motion.div animate={{ scale: [1, 1.5, 1], opacity: [0.15, 0, 0.15] }} transition={{ duration: 4, repeat: Infinity }} className="w-[500px] h-[500px] rounded-full border-2 border-amber-400/30 absolute -translate-x-1/2 -translate-y-1/2" />
-        <motion.div animate={{ scale: [1, 1.8, 1], opacity: [0.1, 0, 0.1] }} transition={{ duration: 4, repeat: Infinity, delay: 1 }} className="w-[700px] h-[700px] rounded-full border border-amber-400/20 absolute -translate-x-1/2 -translate-y-1/2" />
-      </div>
+      <Particles count={20} className="opacity-70" />
 
       <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0} className="max-w-3xl mx-auto relative z-10">
-        <span className="inline-flex items-center gap-2 bg-gradient-to-l from-amber-400 to-yellow-500 text-blue-900 px-5 py-2 rounded-full text-xs font-black mb-6 shadow-2xl shadow-amber-500/40 uppercase tracking-wider">
-          ✨ آخر فرصة
-        </span>
-
         <h2 className="text-3xl sm:text-5xl md:text-6xl font-black mb-5 leading-[1.15] drop-shadow-lg">
           جاهز تبدّل حياتك{' '}
           <span className="bg-gradient-to-l from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
             ف30 يوم؟
           </span>
         </h2>
-        <p className="text-white/80 text-lg sm:text-xl mb-10 sm:mb-12 leading-relaxed font-semibold max-w-xl mx-auto">
-          انضم إلى أكثر من <span className="text-amber-300 font-black">+1200 طالب</span> تخلّصوا من الخوف وبدأوا يتحدثون بثقة — بمتابعة شخصية من الأستاذ حمزة
+        <p className="text-white/80 text-lg sm:text-xl mb-10 leading-relaxed font-semibold max-w-xl mx-auto">
+          انضم إلى أكثر من <span className="text-amber-300 font-black">+{STATS.students} طالب</span> تخلّصوا من الخوف وبدأوا يتحدثون بثقة — بمتابعة شخصية من الأستاذ حمزة
         </p>
 
         <div className="flex flex-wrap justify-center gap-4 sm:gap-5">
@@ -1165,323 +947,7 @@ function FinalCTA() {
 }
 
 /* ═══════════════════════════════════════════════════
-   CONVERSION SECTIONS — pain, transformation, fork, mini FAQ
-═══════════════════════════════════════════════════ */
-
-function PainHook() {
-  return (
-    <section className="relative py-20 sm:py-28 px-5 sm:px-6 bg-gradient-to-br from-blue-700 via-blue-800 to-blue-900 text-white overflow-hidden" dir="rtl">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(251,191,36,0.18),transparent_50%),radial-gradient(circle_at_80%_90%,rgba(96,165,250,0.25),transparent_50%)]" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] bg-gradient-radial from-amber-400/[0.1] to-transparent blur-3xl pointer-events-none" />
-
-      <motion.div
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.3 }}
-        variants={fadeUp}
-        custom={0}
-        className="max-w-3xl mx-auto text-center relative z-10"
-      >
-        <div className="inline-flex items-center gap-2 bg-amber-400/10 border-2 border-amber-400/40 text-amber-300 text-xs font-black px-4 py-2 rounded-full mb-8 shadow-lg shadow-amber-500/10 backdrop-blur-sm">
-          <span>⚠️</span>
-          <span>9 من كل 10 متعلمين لا يتحدثون الإنجليزية بطلاقة</span>
-        </div>
-
-        <h2 className="text-3xl sm:text-5xl md:text-6xl font-black leading-[1.15] mb-7 text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.5)]">
-          هل ما زلت تخاف من التحدث بالإنجليزية{' '}
-          <span className="bg-gradient-to-l from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
-            قدّام الناس؟
-          </span>
-        </h2>
-
-        <p className="text-white/90 text-lg sm:text-2xl leading-[1.9] font-semibold max-w-2xl mx-auto">
-          سنوات من الدراسة، وكلمات تعرفها…{' '}
-          <br className="hidden sm:block" />
-          <span className="text-amber-200">لكن حين تأتي لحظة الكلام</span>،
-          {' '}تتوقف الكلمات.
-        </p>
-
-        <div className="mt-10 inline-flex items-center gap-3 bg-white/5 border border-white/10 rounded-full px-5 py-3 backdrop-blur-sm shadow-xl">
-          <span className="text-amber-300 text-lg">👇</span>
-          <span className="text-white/90 text-sm sm:text-base font-bold">
-            اكتشف كيف غيّر حمزة حياة <span className="text-amber-300 font-black">+1200 طالب</span> في 30 يوماً
-          </span>
-        </div>
-      </motion.div>
-    </section>
-  )
-}
-
-function TransformationSection() {
-  const items = [
-    {
-      icon: '🗣️',
-      title: 'تتحدث من اليوم الأول',
-      desc: 'بجُمل قصيرة وصحيحة. لا تحفظ القواميس — بل تستخدم الإنجليزية مباشرة في المحادثة.',
-      theme: 'blue' as const,
-    },
-    {
-      icon: '💪',
-      title: 'تكسب الثقة بنفسك',
-      desc: 'تتوقف عن قول «أنا ضعيف» وتبدأ الحديث دون ترجمة في رأسك — وهذا ما يغيّر حياتك.',
-      theme: 'gold' as const,
-    },
-    {
-      icon: '🎯',
-      title: 'خطة حسب مستواك بالضبط',
-      desc: 'A0 أو A1 أو B1 — لكلٍّ مساره الخاص، فلا يجلس الجميع في الصف نفسه كما في المدرسة.',
-      theme: 'blue' as const,
-    },
-    {
-      icon: '🎓',
-      title: 'تعلّم بهدف واضح',
-      desc: 'سفر، عمل، IELTS، مقابلات، أو محادثة يومية — لكلٍّ هدفه، ولدينا الحل المناسب.',
-      theme: 'gold' as const,
-    },
-  ]
-
-  const themes = {
-    blue: {
-      iconBg: 'bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900',
-      iconShadow: 'shadow-blue-500/40',
-      cardBg: 'bg-white',
-      border: 'border-blue-100',
-      hoverBorder: 'hover:border-blue-300',
-      titleColor: 'text-blue-900',
-      accent: 'bg-blue-50',
-    },
-    gold: {
-      iconBg: 'bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600',
-      iconShadow: 'shadow-amber-500/40',
-      cardBg: 'bg-white',
-      border: 'border-amber-100',
-      hoverBorder: 'hover:border-amber-300',
-      titleColor: 'text-amber-900',
-      accent: 'bg-amber-50',
-    },
-  }
-
-  return (
-    <section className="py-16 sm:py-24 px-5 sm:px-6 bg-gradient-to-b from-white via-blue-50/30 to-white" dir="rtl">
-      <div className="max-w-5xl mx-auto">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          custom={0}
-          className="text-center mb-14"
-        >
-          <div className="inline-flex items-center gap-2 bg-gradient-to-l from-amber-400 to-yellow-500 text-gray-900 text-xs font-black px-4 py-2 rounded-full mb-5 shadow-lg shadow-amber-300/50 uppercase tracking-wider">
-            ✨ الحل
-          </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black leading-tight text-gray-900">
-            بعد 30 يوم مع حمزة،{' '}
-            <span className="relative inline-block">
-              <span className="relative z-10 bg-gradient-to-l from-blue-600 via-blue-700 to-blue-900 bg-clip-text text-transparent">
-                هذا ما سيتغيّر فيك
-              </span>
-              <span className="absolute bottom-1 left-0 right-0 h-3 bg-amber-300/60 -skew-x-6 z-0" />
-            </span>
-          </h2>
-          <p className="mt-5 text-gray-600 text-base sm:text-lg font-semibold max-w-2xl mx-auto">
-            ليس وعداً — بل نتائج قابلة للقياس. 97% من الطلاب يشعرون بالفرق منذ الأسبوع الأول.
-          </p>
-        </motion.div>
-
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={stagger}
-          className="grid sm:grid-cols-2 gap-5 sm:gap-6"
-        >
-          {items.map((item, i) => {
-            const t = themes[item.theme]
-            return (
-              <motion.div
-                key={i}
-                custom={i}
-                variants={fadeUp}
-                whileHover={{ y: -6 }}
-                className={`flex items-start gap-5 ${t.cardBg} border-2 ${t.border} ${t.hoverBorder} rounded-3xl p-6 sm:p-7 shadow-xl shadow-gray-200/60 hover:shadow-2xl transition-all duration-300`}
-              >
-                <div className={`w-14 h-14 shrink-0 rounded-2xl ${t.iconBg} flex items-center justify-center text-2xl shadow-xl ${t.iconShadow}`}>
-                  {item.icon}
-                </div>
-                <div className="min-w-0">
-                  <h3 className={`font-black ${t.titleColor} text-lg sm:text-xl leading-tight mb-2`}>{item.title}</h3>
-                  <p className="text-gray-700 text-sm sm:text-[15px] leading-relaxed font-semibold">{item.desc}</p>
-                </div>
-              </motion.div>
-            )
-          })}
-        </motion.div>
-      </div>
-    </section>
-  )
-}
-
-function LevelTestFork() {
-  return (
-    <section className="py-16 sm:py-20 px-5 sm:px-6 bg-gradient-to-b from-white to-gray-50" dir="rtl">
-      <div className="max-w-4xl mx-auto">
-        <motion.h2
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          custom={0}
-          className="text-center text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 mb-3"
-        >
-          هل تعرف مستواك؟
-        </motion.h2>
-        <motion.p
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          custom={1}
-          className="text-center text-gray-500 text-base sm:text-lg font-semibold mb-10"
-        >
-          اختر الطريق الذي يناسبك — ونبدأ في اللحظة نفسها.
-        </motion.p>
-
-        <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            custom={0}
-            whileHover={{ y: -6, scale: 1.01 }}
-            className="relative bg-white rounded-3xl p-7 sm:p-8 border-2 border-emerald-200 shadow-xl shadow-emerald-100 ring-4 ring-emerald-100/50"
-          >
-            <div className="absolute -top-3 right-6 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full">
-              الأكثر وضوحاً
-            </div>
-            <div className="text-5xl mb-4">🧭</div>
-            <h3 className="font-black text-gray-900 text-xl sm:text-2xl mb-2 leading-tight">
-              لا أعرف مستواي
-            </h3>
-            <p className="text-gray-600 text-sm leading-relaxed mb-5 font-semibold">
-              10 أسئلة في 3 دقائق. بعد الاختبار نحدد لك <span className="text-emerald-700 font-black">مستواك بدقة</span> + <span className="text-emerald-700 font-black">الباقة المناسبة لك</span>.
-            </p>
-            <Link
-              href="/level-test"
-              className="inline-flex items-center justify-center gap-2 w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-sm rounded-2xl shadow-lg shadow-emerald-200 transition-all hover:scale-[1.01]"
-            >
-              ابدأ الاختبار المجاني
-              <span>←</span>
-            </Link>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeUp}
-            custom={1}
-            whileHover={{ y: -6, scale: 1.01 }}
-            className="bg-white rounded-3xl p-7 sm:p-8 border-2 border-gray-200 shadow-md"
-          >
-            <div className="text-5xl mb-4">🎯</div>
-            <h3 className="font-black text-gray-900 text-xl sm:text-2xl mb-2 leading-tight">
-              أعرف ما أريد
-            </h3>
-            <p className="text-gray-600 text-sm leading-relaxed mb-5 font-semibold">
-              اطّلع على الباقات مباشرة حسب مستواك: A0، A1، B1، أو <span className="font-black">VIP</span> مع الأستاذ شخصياً.
-            </p>
-            <a
-              href="#plans"
-              className="inline-flex items-center justify-center gap-2 w-full py-3.5 bg-gray-900 hover:bg-gray-800 text-white font-black text-sm rounded-2xl transition-all"
-            >
-              اطّلع على الباقات
-              <span>←</span>
-            </a>
-          </motion.div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function MiniFAQ() {
-  const items = [
-    {
-      q: '😩 درست الإنجليزية سنوات في المدرسة وما زلت لا أستطيع التحدث. أين المشكلة؟',
-      a: 'المدرسة تعلّمك القواعد والكلمات، لكنها لا تعلّمك كيف تتحدث. مع الأستاذ حمزة تبدأ الحديث من اليوم الأول — جُمل قصيرة، محادثات حقيقية، وتصحيح فوري. وبعد 30 يوماً ستجد نفسك تتحدث دون أن تفكر في الترجمة.',
-    },
-    {
-      q: '😳 أنا خجول جداً وأخاف من الخطأ. هل سأستطيع التحدث؟',
-      a: 'هذا الخوف هو ما يوقفك. الأستاذ حمزة يتابعك شخصياً على واتساب — ترسل له رسائل صوتية في أي وقت، بعيداً عن أعين الناس وبلا إحراج. كل خطأ خطوة تقدّم — نصحّحه معك بلطف.',
-    },
-    {
-      q: '📱 جرّبت Duolingo وتطبيقات أخرى دون نتيجة. لماذا سيكون هذا البرنامج مختلفاً؟',
-      a: 'التطبيقات تعلّمك كلمات منفصلة، بينما تحتاج أنت إلى التدرب مع إنسان حقيقي يصحّح لك ويتابعك ويفهم سياقك العربي. حمزة يجمع بين دروس مسجلة + متابعة شخصية + مجموعة واتساب — نظام كامل وليس لعبة.',
-    },
-    {
-      q: '⏰ هل 30 يوماً تكفي لأبدأ التحدث؟',
-      a: 'نعم — إذا التزمت 15-20 دقيقة يومياً بالمنهج الصحيح. في الأسبوع الأول تحفظ أكثر من 50 جملة يومية، وفي الأسبوع الثاني تبدأ باستخدامها، وفي اليوم 30 تدير محادثة قصيرة بنفسك. المفتاح هو الاستمرارية — ونحن نتابعك حتى لا تتوقف.',
-    },
-    {
-      q: '💼 مشغول بالعمل أو الدراسة ولا أملك وقتاً. هل أستفيد؟',
-      a: 'الدروس كلها مسجلة وتبقى معك مدى الحياة — تشاهدها متى شئت وأينما كنت. 15-20 دقيقة يومياً تكفي. معظم طلابنا مشغولون — وهذا بالضبط ما صُمِّم له النظام.',
-    },
-    {
-      q: '🧓 تقدّم بي العمر وأشعر أن الحفظ صار أصعب. هل أستطيع التعلم؟',
-      a: 'منهج الأستاذ حمزة لا يقوم على الحفظ بل على التفعيل. كل متعلم يعرف كلمات إنجليزية أكثر مما يظن — والطريقة تعلّمك كيف تستخدمها. لدينا طلاب تجاوزوا الخمسين وغيّروا حياتهم في 3 أشهر.',
-    },
-    {
-      q: '👨‍🏫 هل الأستاذ حمزة نفسه من يتابعني أم مساعد؟',
-      a: 'حمزة شخصياً هو من يرد على واتساب — لا روبوت ولا مساعد. في باقات Pro / Premium / VIP تنضم إلى مجموعة واتساب مباشرة معه + تدريب شخصي في VIP. تسجّل صوتك وهو يصحّحه بنفسه.',
-    },
-    {
-      q: '💰 هل يوجد ضمان إن لم ينجح البرنامج معي؟',
-      a: 'نعم. إن لم تقتنع خلال الأسبوع الأول نعيد لك المبلغ كاملاً بلا أسئلة. ولديك وصول مدى الحياة إلى الدروس — يبقى المحتوى معك حتى بعد انتهاء الاشتراك.',
-    },
-    {
-      q: '💳 كيف أدفع؟ وهل يتجدد الاشتراك تلقائياً؟',
-      a: 'داخل المغرب: تحويل بنكي CIH، ومن خارج المغرب نرتّب طريقة الدفع معك عبر واتساب — ويُفعَّل الاشتراك خلال أقل من 24 ساعة. لا تجديد تلقائي: أنت المتحكم، ينتهي الاشتراك في وقته بلا مفاجآت وبلا خصم من بطاقتك.',
-    },
-  ]
-  return (
-    <section className="py-14 sm:py-20 px-5 sm:px-6 bg-white" dir="rtl">
-      <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-black px-3 py-1.5 rounded-full mb-3">
-            🎯 الحقيقة اللي كاع ما كيقولوهاش ليك
-          </div>
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-900 mb-2 leading-tight">
-            الأسئلة اللي كتسولوا دائماً
-          </h2>
-          <p className="text-gray-500 text-sm font-semibold">
-            جاوبنا عليهم قبل ما تسول — بصراحة كاملة
-          </p>
-        </div>
-        <div className="space-y-2">
-          {items.map((f, i) => (
-            <details
-              key={i}
-              className="group bg-gray-50 border border-gray-200 rounded-2xl open:border-gray-300 open:bg-white open:shadow-sm transition-shadow"
-            >
-              <summary className="cursor-pointer list-none p-4 sm:p-5 flex items-center justify-between gap-3 text-gray-900 font-black text-sm sm:text-base">
-                <span>{f.q}</span>
-                <span className="text-gray-400 group-open:rotate-45 transition-transform text-xl leading-none">+</span>
-              </summary>
-              <div className="px-4 sm:px-5 pb-4 sm:pb-5 text-gray-600 text-sm leading-relaxed font-semibold">
-                {f.a}
-              </div>
-            </details>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ═══════════════════════════════════════════════════
-   PAGE — new section order
+   PAGE
 ═══════════════════════════════════════════════════ */
 
 export default function HomePage() {
@@ -1489,15 +955,10 @@ export default function HomePage() {
     <div className="bg-white text-gray-800">
       <HeroSlider />
       <StatsStrip />
-      <PainHook />
-      <TransformationSection />
-      <LevelTestFork />
-      <div id="plans">
-        <CoursesSection />
-      </div>
-      <TestimonialsSection />
+      <ProgramsSection />
       <HowItWorks />
       <WhatYouGet />
+      <TestimonialsSection />
       <MofradatiSection />
       <MiniFAQ />
       <FinalCTA />
