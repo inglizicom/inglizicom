@@ -88,3 +88,38 @@ export async function issueCustomCertificate(studentId: string, title: string, i
 export async function deleteCertificate(id: string): Promise<void> {
   await supabase.from('student_certificates').delete().eq('id', id)
 }
+
+/* ── Certificate readiness board (staff) ── */
+export interface CertReadyStudent {
+  student_id: string; name: string; token: string; avatar_url: string | null
+  items: string[]; count: number
+}
+export interface CertCloseStudent {
+  student_id: string; name: string; avatar_url: string | null; course: string; pct: number
+}
+export interface CertRecentRow {
+  student_id: string; name: string; avatar_url: string | null; serial: string; title: string; date: string
+}
+export interface CertCandidates {
+  ready: CertReadyStudent[]
+  close: CertCloseStudent[]
+  recent: CertRecentRow[]
+  counts: { ready: number; close: number; recent: number }
+}
+
+export async function fetchCertCandidates(): Promise<CertCandidates | null> {
+  const { data, error } = await supabase.rpc('cert_candidates')
+  if (error) { console.error('cert_candidates', error.message); return null }
+  return data as CertCandidates | null
+}
+
+/**
+ * Staff-triggered award: runs the same idempotent check the student's portal
+ * runs on login (awards every qualifying certificate + notifies the student).
+ * Returns the serials that were newly awarded.
+ */
+export async function awardStudentCertificates(token: string): Promise<string[]> {
+  const { data, error } = await supabase.rpc('student_check_certificates', { p_token: token.trim().toUpperCase() })
+  if (error || !data?.found) return []
+  return (data.new ?? []) as string[]
+}

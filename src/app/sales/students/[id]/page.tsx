@@ -427,7 +427,7 @@ export default function StudentProfilePage() {
   const statusText = student.payment_status === 'paid' ? 'مدفوع بالكامل' : student.payment_status === 'overdue' ? 'متأخر' : 'معلق'
 
   return (
-    <div className="p-4 lg:p-6 space-y-4">
+    <div className="p-3 sm:p-4 lg:p-6 space-y-4 overflow-x-clip">
       {/* Back */}
       <Link href="/sales/workspace?tab=students" className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-zinc-500 hover:text-zinc-800">
         <ArrowRight size={15} /> العودة إلى قائمة الطلاب

@@ -32,6 +32,7 @@ import { markLeadsSeen } from '@/lib/leads-seen'
 import Avatar from '@/app/sales/_components/Avatar'
 import { ensurePaymentReceipt, printReceipt, buildReceiptWhatsAppMessage } from '@/lib/crm-receipts'
 import DuesBoard from '@/components/DuesBoard'
+import CertReadyBoard from '@/components/CertReadyBoard'
 import UnifiedDetailDrawer from './UnifiedDetailDrawer'
 import StudentDrawer from './StudentDrawer'
 import FilterDrawer, { type FilterState } from './FilterDrawer'
@@ -481,8 +482,11 @@ export default function WorkspaceClient() {
       {/* ═══════════════ STUDENTS TAB ════════════════════ */}
       {!loading && tab === 'students' && (
         <div className="flex-1 px-4 py-4">
+          {/* Certificate readiness — who is ready to be awarded */}
+          <CertReadyBoard />
+
           {/* Stats */}
-          <div className="grid grid-cols-4 gap-3 mb-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 mb-4">
             <div className="bg-white rounded-xl border border-zinc-100 p-3 text-center">
               <div className="text-[22px] font-black text-zinc-800">{students.length}</div>
               <div className="text-[11px] text-zinc-400 mt-0.5">إجمالي الطلاب</div>
