@@ -55,6 +55,7 @@ export function middleware(request: NextRequest) {
       pathname.startsWith('/_next') ||
       pathname.startsWith('/api') ||
       pathname.startsWith('/auth') ||
+      pathname.startsWith('/certificate') ||   // public certificate/print page
       pathname.startsWith('/student-space')
     ) {
       return NextResponse.next()
@@ -80,8 +81,13 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Already on an internal CRM path — pass through
-  if (pathname.startsWith('/sales') || pathname.startsWith('/admin') || pathname.startsWith('/crm-login')) {
+  // Already on an internal CRM path, or the public certificate page — pass through
+  if (
+    pathname.startsWith('/sales') ||
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/crm-login') ||
+    pathname.startsWith('/certificate')   // public certificate/print page (opened from CRM)
+  ) {
     return NextResponse.next()
   }
 
