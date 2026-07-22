@@ -44,9 +44,9 @@ export default function PresentIndexPage() {
         </div>
       </div>
 
-      {/* Academic writing deck (grammar → sentence types → punctuation → writing) */}
+      {/* Absolute-beginner English course (alphabet → articles → tenses → writing) */}
       <div className="flex items-center justify-between rounded-xl border-2 border-stone-300 bg-white px-4 py-3 mb-4">
-        <span className="flex items-center gap-2 font-bold text-[14px] text-stone-800"><PenLine size={18} className="text-yellow-600" /> From Grammar to Writing — <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}>من القواعد إلى الكتابة</span></span>
+        <span className="flex items-center gap-2 font-bold text-[14px] text-stone-800"><PenLine size={18} className="text-yellow-600" /> English from Zero — <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}>الإنجليزية من الصفر</span> <span className="text-[11px] font-semibold text-stone-400">· 14 lessons</span></span>
         <Link href="/admin/present/writing" className="flex items-center gap-1.5 text-[12px] font-bold text-yellow-700 hover:text-yellow-800"><Play size={14} /> Launch deck</Link>
       </div>
 
