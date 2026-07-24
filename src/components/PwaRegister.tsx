@@ -10,14 +10,16 @@ import { useEffect } from 'react'
  *     displayed in standalone mode via CSS). */
 export default function PwaRegister() {
   useEffect(() => {
-    // ── splash: we are hydrated, so the app is ready → fill bar, fade, remove ──
+    // ── splash: branded 6-second boot moment (per founder request) ──
+    // The bar animates ~5.6s via CSS; we complete it, fade, and remove on a
+    // fixed schedule so the splash always shows for at least 6 seconds.
     const splash = document.getElementById('pwa-splash')
     if (splash) {
-      const t1 = setTimeout(() => splash.classList.add('done'), 250)   // bar → 100%
-      const t2 = setTimeout(() => splash.classList.add('hide'), 700)   // fade out
-      const t3 = setTimeout(() => splash.remove(), 1200)               // drop from DOM
+      const t1 = setTimeout(() => splash.classList.add('done'), 5700)  // bar → 100%
+      const t2 = setTimeout(() => splash.classList.add('hide'), 6100)  // fade out
+      const t3 = setTimeout(() => splash.remove(), 6700)               // drop from DOM
       // safety: never trap the user behind the overlay
-      const t4 = setTimeout(() => splash.remove(), 5000)
+      const t4 = setTimeout(() => splash.remove(), 10000)
       return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4) }
     }
   }, [])

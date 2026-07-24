@@ -8,7 +8,7 @@
  * Bump VERSION to invalidate everything after a big change.
  */
 
-const VERSION = 'v2'
+const VERSION = 'v3'
 const STATIC_CACHE = `inglizi-static-${VERSION}`
 const PAGES_CACHE = `inglizi-pages-${VERSION}`
 const PRECACHE = ['/offline', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png']

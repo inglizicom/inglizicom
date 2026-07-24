@@ -589,7 +589,7 @@ p {
 #pwa-splash .pwa-name { color: #fff; font-weight: 900; font-size: 22px; letter-spacing: 0.02em; }
 #pwa-splash .pwa-sub  { color: rgba(255,255,255,0.45); font-size: 13px; font-weight: 700; margin-top: -14px; }
 #pwa-splash .pwa-track { width: min(220px, 60vw); height: 6px; border-radius: 999px; background: rgba(255,255,255,0.12); overflow: hidden; }
-#pwa-splash .pwa-bar { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, #fde047, #facc15); animation: pwa-fill 2.4s ease-out 0.15s forwards; }
+#pwa-splash .pwa-bar { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, #fde047, #facc15); animation: pwa-fill 5.6s ease-out 0.15s forwards; }
 #pwa-splash.done .pwa-bar { animation: none; width: 100%; transition: width 0.3s ease; }
 #pwa-splash.hide { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
 @keyframes pwa-fill { 0% { width: 0; } 70% { width: 72%; } 100% { width: 90%; } }
