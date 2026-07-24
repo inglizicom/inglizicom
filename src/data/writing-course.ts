@@ -3791,4 +3791,621 @@ export const LESSONS: Lesson[] = [
       ],
     },
   },
+
+  /* ─────────────────────────── 10.55 · USED TO (A2) ─────────────────────────── */
+  {
+    no: 10.55, cefr: 'A2', tag: 'Used to', tagAr: 'اعتاد أن',
+    title: 'Used to — past habits that ended',
+    titleAr: 'Used to — عادات ماضية انتهت',
+    objectives: [
+      { en: 'Talk about finished past habits', ar: 'التحدث عن عادات ماضية منتهية' },
+      { en: 'Form: used to + base verb', ar: 'التكوين: used to + الفعل المجرّد' },
+      { en: 'Make negatives and questions with did', ar: 'النفي والسؤال بـ did' },
+      { en: 'Write "then vs now" paragraphs', ar: 'كتابة فقرات «كان vs الآن»' },
+    ],
+    rule: {
+      en: '*Used to + base verb* describes a past habit or state that is NOT true anymore: “I *used to play* football every day.” (I don’t now.)',
+      ar: 'used to + الفعل المجرّد يصف عادة أو حالة ماضية لم تعد قائمة: كنت ألعب الكرة كل يوم (ولم أعد).',
+    },
+    explain: {
+      intro: 'This is the tense of memories — childhood, your old city, life before. It powers beautiful "then vs now" paragraphs.',
+      introAr: 'هذا زمن الذكريات — الطفولة والمدينة القديمة والحياة السابقة. وهو وقود فقرات «قديمًا مقابل الآن» الجميلة.',
+      points: [
+        { en: 'Past habit: I *used to walk* to school.', ar: 'عادة ماضية' },
+        { en: 'Past state: There *used to be* a garden here.', ar: 'حالة ماضية' },
+        { en: 'Contrast with now: …but now I take the bus.', ar: 'مقابلة مع الحاضر' },
+        { en: 'After did/didn’t → *use to* (no d)', ar: 'بعد did تسقط d' },
+      ],
+    },
+    form: {
+      affirmative: [
+        'I / She / They *used to* smoke.',
+        'There *used to be* a cinema here.',
+      ],
+      negative: [
+        'I *didn’t use to* like coffee. (no d!)',
+      ],
+      question: [
+        '*Did* you *use to* live in Fes? — Yes, I did.',
+      ],
+      note: 'Only for the PAST. For present habits use the present simple: “I usually walk” (NOT “I use to walk”).',
+      noteAr: 'للماضي فقط. للعادة الحاضرة استخدم المضارع البسيط: I usually walk وليس I use to walk.',
+    },
+    signals: [
+      { en: 'when I was a child', ar: 'عندما كنت طفلًا' }, { en: 'years ago', ar: 'قبل سنوات' },
+      { en: 'in the past', ar: 'في الماضي' }, { en: 'but now', ar: 'لكن الآن' },
+    ],
+    examples: [
+      { en: 'I *used to play* in this street.', ar: 'كنت ألعب في هذا الشارع.' },
+      { en: 'She *used to have* long hair.', ar: 'كان شعرها طويلًا.' },
+      { en: 'We *used to visit* our grandmother every Friday.', ar: 'كنا نزور جدتنا كل جمعة.' },
+      { en: 'He *used to be* very shy.', ar: 'كان خجولًا جدًا.' },
+      { en: 'There *used to be* a big tree here.', ar: 'كانت هنا شجرة كبيرة.' },
+      { en: 'I *didn’t use to* like vegetables.', ar: 'لم أكن أحب الخضار.' },
+      { en: '*Did* you *use to* watch cartoons?', ar: 'هل كنت تشاهد الرسوم المتحركة؟' },
+      { en: 'My city *used to be* much quieter.', ar: 'كانت مدينتي أهدأ بكثير.' },
+      { en: 'I *used to write* with my left hand.', ar: 'كنت أكتب بيدي اليسرى.' },
+      { en: 'People *used to send* letters, but now they send emails.', ar: 'كان الناس يرسلون الرسائل، والآن الإيميلات.' },
+    ],
+    exercises: [
+      { q: 'Form: “I ___ (live) in a small village.”', a: 'I *used to live* in a small village.' },
+      { q: 'Negative: “She ___ (not/like) tea.”', a: 'She *didn’t use to like* tea.' },
+      { q: 'Question: “you / play chess?”', a: '*Did* you *use to play* chess?' },
+      { q: 'Fix: “I use to go to the beach every summer.” (past)', a: 'I *used to go* to the beach every summer.' },
+      { q: 'Fix: “He didn’t used to smoke.”', a: 'He didn’t *use to* smoke.' },
+    ],
+    reading: {
+      title: 'My Street, Then and Now', titleAr: 'شارعي بين الأمس واليوم',
+      passage: [
+        'My street *used to be* a quiet place where everyone knew everyone.',
+        'There *used to be* one small shop, and its owner *used to give* us candy for free.',
+        'We *used to play* football until the sunset call to prayer.',
+        'Now the street is full of cars, and the children play on their phones instead.',
+        'Times change — but when I close my eyes, I can still hear our laughter.',
+      ],
+      tip: 'used to paints the past; the present simple shows the “now” — the contrast makes the paragraph moving.',
+      tipAr: 'used to يرسم الماضي والمضارع يُظهر الحاضر — والمقابلة تصنع التأثير.',
+    },
+    homework: [
+      { en: 'Write 5 sentences about your childhood with used to', ar: 'اكتب ٥ جمل عن طفولتك بـ used to' },
+      { en: 'Write a “then vs now” paragraph about your city', ar: 'اكتب فقرة «قديمًا والآن» عن مدينتك' },
+      { en: 'Ask a parent what life used to be like — write 3 of their answers', ar: 'اسأل أحد والديك واكتب ٣ من أجوبته' },
+    ],
+    editing: {
+      wrong: [
+        'I use to play outside every day when I was small.',
+        'My father didn’t used to have a car, so he use to walk to work.',
+      ],
+      correct: [
+        'I *used to* play outside every day when I was small.',
+        'My father didn’t *use to* have a car, so he *used to* walk to work.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 10.82 · PRESENT PERFECT vs PAST SIMPLE (B1) ─────────────────────────── */
+  {
+    no: 10.82, cefr: 'B1', tag: 'PP vs Past', tagAr: 'التام أم الماضي؟',
+    title: 'Present Perfect vs Past Simple — which one?',
+    titleAr: 'المضارع التام أم الماضي البسيط — أيهما؟',
+    objectives: [
+      { en: 'Choose the right tense by the TIME', ar: 'اختيار الزمن حسب الوقت' },
+      { en: 'Finished time word → past simple', ar: 'وقت منتهٍ محدّد ← الماضي البسيط' },
+      { en: 'Open time / experience → present perfect', ar: 'وقت مفتوح أو تجربة ← المضارع التام' },
+      { en: 'Stop translating from Arabic here', ar: 'التوقف عن الترجمة من العربية هنا' },
+    ],
+    rule: {
+      en: 'A *finished time* is stated (yesterday, in 2020, two days ago) → *past simple*. No specific time, or time up to now (ever, yet, since, this week) → *present perfect*.',
+      ar: 'وقت منتهٍ مذكور (أمس، في ٢٠٢٠) ← الماضي البسيط. لا وقت محدّد أو مدة ممتدة حتى الآن ← المضارع التام.',
+    },
+    explain: {
+      intro: 'Arabic has one past tense, so this choice has no translation — it is a NEW reflex. The question that decides everything: is the time finished and named, or open until now?',
+      introAr: 'العربية فيها ماضٍ واحد، فلا ترجمة تنفعك هنا — إنه انعكاس جديد. السؤال الحاسم: هل الوقت منتهٍ ومذكور، أم مفتوح حتى الآن؟',
+      points: [
+        { en: '*yesterday / ago / in 2020 / last week* → past simple', ar: 'وقت منتهٍ ← ماضٍ بسيط' },
+        { en: '*ever / never / just / yet / already* → present perfect', ar: 'تجربة ← مضارع تام' },
+        { en: '*since / for / this week / today* (still open) → present perfect', ar: 'مدة مفتوحة ← مضارع تام' },
+        { en: 'Ask: “WHEN exactly?” If you can answer → past simple', ar: 'اسأل: متى بالضبط؟' },
+      ],
+    },
+    examples: [
+      { en: 'I *visited* Dubai *in 2023*.', ar: 'زرت دبي في ٢٠٢٣ (وقت مذكور).' },
+      { en: 'I *have visited* Dubai *twice*.', ar: 'زرت دبي مرتين (تجربة، بلا وقت).' },
+      { en: 'She *finished* the report *yesterday*.', ar: 'أنهت التقرير أمس.' },
+      { en: 'She *has* already *finished* the report.', ar: 'أنهت التقرير بالفعل (النتيجة الآن).' },
+      { en: 'We *lived* in Rabat *for five years*. (we left)', ar: 'عشنا في الرباط خمس سنوات (وانتقلنا).' },
+      { en: 'We *have lived* in Rabat *since 2019*. (still there)', ar: 'نعيش في الرباط منذ ٢٠١٩ (ما زلنا).' },
+      { en: '*Did* you *see* the match *last night*?', ar: 'هل شاهدت المباراة ليلة أمس؟' },
+      { en: '*Have* you *ever seen* snow?', ar: 'هل رأيت الثلج من قبل؟' },
+      { en: 'He *lost* his keys *this morning*. (morning is over)', ar: 'أضاع مفاتيحه هذا الصباح (انتهى الصباح).' },
+      { en: 'He *has lost* his keys — help him look! (still lost)', ar: 'أضاع مفاتيحه — ما زالت ضائعة!' },
+    ],
+    exercises: [
+      { q: 'Choose: “I ___ (meet) her two years ago.”', a: 'I *met* her two years ago.' },
+      { q: 'Choose: “I ___ (know) her for two years.”', a: 'I *have known* her for two years.' },
+      { q: 'Choose: “___ you ever ___ (try) sushi?”', a: '*Have* you ever *tried* sushi?' },
+      { q: 'Choose: “When ___ you ___ (arrive)?”', a: 'When *did* you *arrive*? (When = finished time)' },
+      { q: 'Fix: “I have seen him yesterday.”', a: 'I *saw* him yesterday.' },
+      { q: 'Fix: “She finished her homework already, she can play.”', a: 'She *has* already *finished* her homework…' },
+    ],
+    reading: {
+      title: 'An Old Friend', titleAr: 'صديق قديم',
+      passage: [
+        'I *have known* Rachid since primary school — more than twenty years now.',
+        'We *met* in 2004, when his family *moved* to our neighborhood.',
+        'We *have shared* everything since then: exams, football, even our first jobs.',
+        'Last month he *travelled* to Qatar for work, and I *have not seen* him since that day.',
+        'But real friendship does not need daily meetings — it simply continues.',
+      ],
+      tip: 'Named past moments (met in 2004, travelled last month) = past simple; everything still open (have known, have shared) = present perfect.',
+      tipAr: 'اللحظات المسماة ماضٍ بسيط؛ وكل ما يمتد حتى الآن مضارع تام.',
+    },
+    homework: [
+      { en: 'Write 3 pairs: same verb, once with a finished time, once open', ar: 'اكتب ٣ أزواج: بوقت منتهٍ ثم بوقت مفتوح' },
+      { en: 'Write about a friendship using both tenses correctly', ar: 'اكتب عن صداقة بالزمنين معًا' },
+      { en: 'Hunt the signal words in any English text you read', ar: 'اصطد الكلمات الدالة في نص تقرؤه' },
+    ],
+    editing: {
+      wrong: [
+        'I have visited my uncle last Friday.',
+        'Did you ever eat camel meat?',
+        'She works here since 2020.',
+      ],
+      correct: [
+        'I *visited* my uncle last Friday.',
+        '*Have* you ever *eaten* camel meat?',
+        'She *has worked* here since 2020.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 10.85 · QUESTIONS (A2) ─────────────────────────── */
+  {
+    no: 10.85, cefr: 'A2', tag: 'Questions', tagAr: 'الأسئلة',
+    title: 'Asking Questions — in every tense',
+    titleAr: 'طرح الأسئلة — في كل الأزمنة',
+    objectives: [
+      { en: 'Use the question words (what, where, when, why, who, how)', ar: 'استخدام أدوات الاستفهام' },
+      { en: 'Build questions with the QASM order', ar: 'بناء السؤال بترتيب QASM' },
+      { en: 'Ask in present, past, and future', ar: 'السؤال في الأزمنة الثلاثة' },
+      { en: 'Ask politely inside emails', ar: 'السؤال بأدب داخل الإيميلات' },
+    ],
+    rule: {
+      en: 'Question order = *Q*uestion word + *A*uxiliary + *S*ubject + *M*ain verb: “*Where* *do* *you* *live*?” Never keep statement order: “Where you live?” ✗',
+      ar: 'ترتيب السؤال: أداة الاستفهام + الفعل المساعد + الفاعل + الفعل الرئيسي: ?Where do you live — ولا نبقي ترتيب الجملة الخبرية أبدًا.',
+    },
+    explain: {
+      intro: 'Arabic questions keep the sentence order (أين تسكن؟). English INVERTS with an auxiliary — forgetting do/does/did is the most common question error.',
+      introAr: 'السؤال العربي يحافظ على ترتيب الجملة. أما الإنجليزي فيقلب بالمساعد — ونسيان do/does/did هو أشهر خطأ.',
+      points: [
+        { en: 'what ماذا · where أين · when متى · why لماذا', ar: 'أدوات ١' },
+        { en: 'who مَن · how كيف · how much/many كم', ar: 'أدوات ٢' },
+        { en: 'be inverts alone: *Are* you tired? *Was* he late?', ar: 'فعل الكينونة ينقلب وحده' },
+        { en: 'Other verbs need do/does/did/will/have', ar: 'باقي الأفعال تحتاج مساعدًا' },
+      ],
+    },
+    form: {
+      affirmative: [
+        'Present: *Where do* you work? · *What does* she want?',
+        'Past: *When did* they arrive? · *Why did* he leave?',
+        'Future / Perfect: *Will* you come? · *Have* you finished?',
+      ],
+      negative: [
+        '*Why don’t* you join us?',
+        '*Why didn’t* she call?',
+      ],
+      question: [
+        'Subject questions take NO auxiliary: *Who called* you? · *What happened*?',
+        'Polite (for emails): *Could you tell me when* the course starts?',
+      ],
+      note: 'After did/does the main verb returns to BASE form: “Where did you *go*?” — NOT went.',
+      noteAr: 'بعد did/does يعود الفعل مجرّدًا: Where did you go لا went.',
+    },
+    examples: [
+      { en: '*What do* you do on Fridays?', ar: 'ماذا تفعل أيام الجمعة؟' },
+      { en: '*Where does* your brother work?', ar: 'أين يعمل أخوك؟' },
+      { en: '*When did* you start learning English?', ar: 'متى بدأت تعلّم الإنجليزية؟' },
+      { en: '*Why did* she leave early?', ar: 'لماذا غادرت مبكرًا؟' },
+      { en: '*How do* you go to work?', ar: 'كيف تذهب إلى العمل؟' },
+      { en: '*How much does* this cost?', ar: 'بكم هذا؟' },
+      { en: '*How many* brothers *do* you have?', ar: 'كم أخًا لديك؟' },
+      { en: '*Are* you ready? · *Was* the exam hard?', ar: 'هل أنت مستعد؟ هل كان الامتحان صعبًا؟' },
+      { en: '*Will* you join us tomorrow?', ar: 'هل ستنضم إلينا غدًا؟' },
+      { en: '*Have* you finished the report?', ar: 'هل أنهيت التقرير؟' },
+      { en: '*Who told* you the news? (subject — no do)', ar: 'من أخبرك؟' },
+      { en: 'Email-polite: *Could you tell me what* the price is?', ar: 'هلّا أخبرتني بالسعر؟' },
+    ],
+    exercises: [
+      { q: 'Build: “you / live / where?” (present)', a: '*Where do you live?*' },
+      { q: 'Build: “she / arrive / when?” (past)', a: '*When did she arrive?*' },
+      { q: 'Fix: “Where you work?”', a: 'Where *do* you work?' },
+      { q: 'Fix: “Why you didn’t come yesterday?”', a: 'Why *didn’t you* come yesterday?' },
+      { q: 'Fix: “Where did you went?”', a: 'Where did you *go*?' },
+      { q: 'Make it email-polite: “When does the course start?”', a: '*Could you tell me when the course starts?*' },
+    ],
+    reading: {
+      title: 'Interview with My Grandfather', titleAr: 'حوار مع جدي',
+      passage: [
+        'For a school project, I interviewed my grandfather about his youth.',
+        '“*Where did* you grow up?” I asked. “In a small village near the mountains,” he smiled.',
+        '“*What did* you do for fun?” — “We raced donkeys, my son. *Do* you race anything today?”',
+        '“*How many* hours *did* you walk to school?” — “Two. And *are* you tired after a five-minute bus ride?”',
+        'By the end, I understood: good questions open doors that stay closed forever without them.',
+      ],
+      tip: 'Question word + auxiliary + subject + base verb — in every single question above.',
+      tipAr: 'أداة + مساعد + فاعل + فعل مجرّد — في كل سؤال أعلاه.',
+    },
+    homework: [
+      { en: 'Write 6 questions (one per question word) to interview someone', ar: 'اكتب ٦ أسئلة لمقابلة شخص' },
+      { en: 'Write 3 polite email questions with Could you tell me…', ar: 'اكتب ٣ أسئلة مهذّبة للإيميل' },
+      { en: 'Interview a family member and write their 3 best answers', ar: 'حاور فردًا من العائلة ودوّن أجوبته' },
+    ],
+    editing: {
+      wrong: [
+        'What time it is?',
+        'Where she does live?',
+        'Why you didn’t called me yesterday?',
+      ],
+      correct: [
+        'What time *is it*?',
+        'Where *does she* live?',
+        'Why *didn’t you call* me yesterday?',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 11.45 · GERUND vs INFINITIVE (B1) ─────────────────────────── */
+  {
+    no: 11.45, cefr: 'B1', tag: 'Gerund/Infinitive', tagAr: 'المصدر بنوعيه',
+    title: 'Gerund or Infinitive — enjoy doing, want to do',
+    titleAr: 'الفعل بعد الفعل — doing أم to do؟',
+    objectives: [
+      { en: 'Learn the verbs that take -ing', ar: 'الأفعال التي تتبعها -ing' },
+      { en: 'Learn the verbs that take to + base', ar: 'الأفعال التي يتبعها to' },
+      { en: 'Use -ing after prepositions', ar: '-ing بعد حروف الجر' },
+      { en: 'Use to + base for purpose', ar: 'to للتعبير عن الغرض' },
+    ],
+    rule: {
+      en: 'Some verbs are followed by *-ing* (enjoy, finish, keep, mind, avoid); others by *to + base* (want, need, decide, hope, plan). After a *preposition*, always *-ing*.',
+      ar: 'بعض الأفعال يتبعها -ing (enjoy, finish, keep…)، وأخرى يتبعها to + المجرّد (want, need, decide…). وبعد حرف الجر دائمًا -ing.',
+    },
+    explain: {
+      intro: 'Arabic uses أن + فعل for both, so learners guess. In English the FIRST verb decides the form of the second — memorize the two teams.',
+      introAr: 'العربية تستخدم «أن + فعل» للحالتين، فيخمّن المتعلم. في الإنجليزية الفعل الأول يقرّر شكل الثاني — احفظ الفريقين.',
+      points: [
+        { en: 'Team -ING: enjoy, finish, keep, mind, avoid, suggest, practice', ar: 'فريق -ing' },
+        { en: 'Team TO: want, need, decide, hope, plan, agree, learn, promise', ar: 'فريق to' },
+        { en: 'Both (same meaning): like, love, start, continue', ar: 'الفريقان معًا' },
+        { en: 'Preposition + -ing: good *at writing* · before *leaving*', ar: 'بعد حرف الجر -ing' },
+      ],
+    },
+    form: {
+      affirmative: [
+        'enjoy / finish / keep + *-ing*: I enjoy *reading*.',
+        'want / decide / hope + *to*: I want *to travel*.',
+        'purpose: I study English *to get* a better job.',
+      ],
+      negative: [
+        'I enjoy *not working* on Fridays. (rare)',
+        'I decided *not to go*.',
+      ],
+      question: [
+        'Do you enjoy *cooking*?',
+        'Where do you hope *to work*?',
+      ],
+      note: '“stop” changes meaning: stop *smoking* = quit the habit · stop *to smoke* = pause in order to smoke.',
+      noteAr: 'stop يغيّر المعنى: stop smoking أقلع عنه · stop to smoke توقّف ليدخّن.',
+    },
+    examples: [
+      { en: 'I enjoy *reading* before bed.', ar: 'أستمتع بالقراءة قبل النوم.' },
+      { en: 'She finished *writing* the report.', ar: 'أنهت كتابة التقرير.' },
+      { en: 'Keep *practicing* every day.', ar: 'واظب على التمرين يوميًا.' },
+      { en: 'Avoid *eating* late at night.', ar: 'تجنّب الأكل متأخرًا.' },
+      { en: 'I want *to improve* my writing.', ar: 'أريد تحسين كتابتي.' },
+      { en: 'We decided *to move* to Casablanca.', ar: 'قررنا الانتقال إلى الدار البيضاء.' },
+      { en: 'She hopes *to study* medicine.', ar: 'تأمل أن تدرس الطب.' },
+      { en: 'He promised *to call* me back.', ar: 'وعد بمعاودة الاتصال.' },
+      { en: 'I’m good *at solving* problems.', ar: 'أنا بارع في حل المشكلات.' },
+      { en: 'Think twice before *sending* an angry email.', ar: 'فكّر مرتين قبل إرسال إيميل غاضب.' },
+      { en: 'I came here *to learn*.', ar: 'جئت هنا لأتعلّم.' },
+    ],
+    exercises: [
+      { q: 'Choose: “I enjoy ___ (swim).”', a: 'I enjoy *swimming*.' },
+      { q: 'Choose: “She wants ___ (be) a doctor.”', a: 'She wants *to be* a doctor.' },
+      { q: 'Choose: “He finished ___ (do) his homework.”', a: 'He finished *doing* his homework.' },
+      { q: 'Preposition: “I’m interested ___ (learn) design.”', a: 'I’m interested *in learning* design.' },
+      { q: 'Fix: “I enjoy to read stories.”', a: 'I enjoy *reading* stories.' },
+      { q: 'Fix: “She decided leaving the job.”', a: 'She decided *to leave* the job.' },
+    ],
+    reading: {
+      title: 'Why I Keep Writing', titleAr: 'لماذا أواصل الكتابة',
+      passage: [
+        'Two years ago I decided *to learn* English seriously.',
+        'At first I avoided *writing*, because I hated *seeing* my own mistakes.',
+        'Then my teacher suggested *keeping* a small daily journal.',
+        'I promised *to write* five sentences every night, and I kept *going* even on hard days.',
+        'Today I enjoy *writing* more than anything — and I plan *to write* my first long story this year.',
+      ],
+      tip: 'decided/promised/plan + to · avoided/suggested/kept/enjoy + -ing — the first verb decides.',
+      tipAr: 'الفعل الأول يقرّر: هؤلاء مع to وهؤلاء مع -ing.',
+    },
+    homework: [
+      { en: 'Write 4 sentences with team-ING verbs and 4 with team-TO', ar: 'اكتب ٤ جمل من كل فريق' },
+      { en: 'Write 3 sentences: good at / interested in / before + -ing', ar: 'اكتب ٣ جمل بحرف جر + -ing' },
+      { en: 'Write your 3 goals with hope/plan/want + to', ar: 'اكتب ٣ أهداف بـ hope/plan/want' },
+    ],
+    editing: {
+      wrong: [
+        'I want improving my English quickly.',
+        'She enjoys to cook for the family.',
+        'He is very good in write emails.',
+      ],
+      correct: [
+        'I want *to improve* my English quickly.',
+        'She enjoys *cooking* for the family.',
+        'He is very good *at writing* emails.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 11.75 · PASSIVE VOICE (B1) ─────────────────────────── */
+  {
+    no: 11.75, cefr: 'B1', tag: 'Passive', tagAr: 'المبني للمجهول',
+    title: 'The Passive — formal, professional English',
+    titleAr: 'المبني للمجهول — لغة رسمية واحترافية',
+    objectives: [
+      { en: 'Form the passive: be + past participle', ar: 'التكوين: be + التصريف الثالث' },
+      { en: 'Use it when the doer is unknown/unimportant', ar: 'حين يكون الفاعل مجهولًا أو غير مهم' },
+      { en: 'Use it in formal emails and notices', ar: 'في الإيميلات والإشعارات الرسمية' },
+      { en: 'Add “by” only when the doer matters', ar: 'إضافة by عند الحاجة فقط' },
+    ],
+    rule: {
+      en: 'Passive = *be + past participle (V3)*: “The order *was shipped*.” Use it when WHO did it is unknown, obvious, or less important than what happened.',
+      ar: 'المبني للمجهول = be + التصريف الثالث: The order was shipped. نستخدمه حين يكون الفاعل مجهولًا أو بديهيًا أو أقل أهمية من الحدث.',
+    },
+    explain: {
+      intro: 'Professional writing loves the passive because it sounds objective: “The meeting has been moved” blames nobody. It is the register of offices, reports, and official messages.',
+      introAr: 'الكتابة الاحترافية تحب المبني للمجهول لأنه محايد: «نُقل الاجتماع» بلا اتهام لأحد. إنه أسلوب المكاتب والتقارير والرسائل الرسمية.',
+      points: [
+        { en: 'Present: The office *is cleaned* daily.', ar: 'مضارع' },
+        { en: 'Past: The email *was sent* yesterday.', ar: 'ماضٍ' },
+        { en: 'Perfect: Your request *has been approved*.', ar: 'تام' },
+        { en: 'Future: The results *will be announced* soon.', ar: 'مستقبل' },
+      ],
+    },
+    form: {
+      affirmative: [
+        'am/is/are + V3: English *is spoken* here.',
+        'was/were + V3: The report *was written* by Salma.',
+        'has/have been + V3: The order *has been shipped*.',
+        'will be + V3: You *will be contacted* soon.',
+      ],
+      negative: [
+        'The email *was not sent*.',
+        'Pets *are not allowed* in the building.',
+      ],
+      question: [
+        '*Was* the package *delivered*?',
+        '*When will* the results *be announced*?',
+      ],
+      note: 'Add *by + doer* only when it adds information: “written *by Salma*”. Otherwise drop it.',
+      noteAr: 'أضف by + الفاعل فقط إن أضاف معلومة، وإلا فاحذفه.',
+    },
+    examples: [
+      { en: 'Arabic and French *are spoken* in Morocco.', ar: 'تُتحدَّث العربية والفرنسية في المغرب.' },
+      { en: 'The mosque *was built* in the 12th century.', ar: 'بُني المسجد في القرن الثاني عشر.' },
+      { en: 'Breakfast *is served* from 7 to 10.', ar: 'يُقدَّم الفطور من ٧ إلى ١٠.' },
+      { en: 'My phone *was stolen* on the bus.', ar: 'سُرق هاتفي في الحافلة.' },
+      { en: 'The email *has been sent* to all students.', ar: 'أُرسل الإيميل لجميع الطلاب.' },
+      { en: 'Your application *has been received*.', ar: 'استُلم طلبك.' },
+      { en: 'The meeting *has been moved* to Monday.', ar: 'نُقل الاجتماع إلى الاثنين.' },
+      { en: 'Winners *will be announced* on Friday.', ar: 'سيُعلن عن الفائزين الجمعة.' },
+      { en: 'Smoking *is not allowed* here.', ar: 'التدخين ممنوع هنا.' },
+      { en: 'This carpet *was made by hand*.', ar: 'صُنعت هذه الزربية يدويًا.' },
+    ],
+    exercises: [
+      { q: 'Passive (present): “They clean the office daily.”', a: 'The office *is cleaned* daily.' },
+      { q: 'Passive (past): “Someone stole my bag.”', a: 'My bag *was stolen*.' },
+      { q: 'Passive (perfect): “We have approved your request.”', a: 'Your request *has been approved*.' },
+      { q: 'Passive (future): “We will contact you.”', a: 'You *will be contacted*.' },
+      { q: 'Fix: “The report was wrote by me.”', a: 'The report was *written* by me.' },
+      { q: 'Fix: “The window is break.”', a: 'The window *is broken*.' },
+    ],
+    reading: {
+      title: 'A Notice to All Employees', titleAr: 'إشعار لجميع الموظفين',
+      passage: [
+        'Please note that the annual meeting *has been moved* to Thursday, 14 September.',
+        'The main hall *is being prepared*, so Tuesday’s training *will be held* online.',
+        'Lunch *will be provided* after the meeting, and parking *is reserved* for guests.',
+        'Questions *can be sent* to the HR office before Wednesday.',
+        'Thank you for your cooperation.',
+      ],
+      tip: 'Notice how official messages avoid naming anyone — the passive keeps the tone neutral and professional.',
+      tipAr: 'الرسائل الرسمية تتجنّب تسمية الفاعل — المبني للمجهول يحفظ الحياد والاحترافية.',
+    },
+    homework: [
+      { en: 'Turn 5 active sentences into the passive', ar: 'حوّل ٥ جمل إلى المبني للمجهول' },
+      { en: 'Write 3 passive facts about your city (was built / is known…)', ar: 'اكتب ٣ حقائق عن مدينتك' },
+      { en: 'Write a 4-line office notice using the passive', ar: 'اكتب إشعارًا مكتبيًا من ٤ أسطر' },
+    ],
+    editing: {
+      wrong: [
+        'The email was send to the wrong address.',
+        'This building built in 1950.',
+        'Your order will shipped tomorrow.',
+      ],
+      correct: [
+        'The email was *sent* to the wrong address.',
+        'This building *was built* in 1950.',
+        'Your order will *be shipped* tomorrow.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 11.9 · CONFUSING VERBS (A2) ─────────────────────────── */
+  {
+    no: 11.9, cefr: 'A2', tag: 'Confusing verbs', tagAr: 'أفعال مُلتبسة',
+    title: 'Confusing Verbs — make/do, say/tell, and friends',
+    titleAr: 'الأفعال المُلتبسة — make/do و say/tell وأخواتها',
+    objectives: [
+      { en: 'Choose make vs do correctly', ar: 'التمييز بين make و do' },
+      { en: 'Choose say vs tell correctly', ar: 'التمييز بين say و tell' },
+      { en: 'Fix teach/learn and bring/take', ar: 'إصلاح teach/learn و bring/take' },
+      { en: 'Use watch / look / see precisely', ar: 'استخدام watch/look/see بدقة' },
+    ],
+    rule: {
+      en: '*make* = create/produce (make a cake, a decision) · *do* = work & tasks (do homework, the dishes). *tell* + person (tell ME) · *say* + words (say something).',
+      ar: 'make للإنشاء والصنع، و do للأعمال والمهام. tell يليه شخص، و say يليه الكلام.',
+    },
+    explain: {
+      intro: 'Arabic uses one verb (قال / عمل) where English splits into two. These pairs are small words that instantly reveal a learner — master them and your English sounds native-clean.',
+      introAr: 'العربية تستخدم فعلًا واحدًا حيث تنقسم الإنجليزية إلى فعلين. هذه الأزواج كلمات صغيرة تفضح المتعلم فورًا — أتقنها تَصْفُ لغتك.',
+      points: [
+        { en: '*make*: a cake, tea, a decision, a mistake, money, noise', ar: 'make: صنع وإنتاج' },
+        { en: '*do*: homework, the dishes, a job, your best, exercise', ar: 'do: مهام وأعمال' },
+        { en: '*tell* + person: tell *me* the truth · *say* + words: say *hello*', ar: 'tell لشخص · say لكلام' },
+        { en: '*teach* = give knowledge · *learn* = receive it', ar: 'teach يعلّم · learn يتعلّم' },
+      ],
+    },
+    examples: [
+      { en: 'My mother *makes* the best couscous.', ar: 'تصنع أمي أفضل كسكس.' },
+      { en: 'I *made* a big mistake.', ar: 'ارتكبت خطأً كبيرًا.' },
+      { en: 'We need to *make* a decision today.', ar: 'علينا اتخاذ قرار اليوم.' },
+      { en: 'I *do* my homework after dinner.', ar: 'أنجز واجبي بعد العشاء.' },
+      { en: 'He *does* the dishes every night.', ar: 'يغسل الأطباق كل ليلة.' },
+      { en: '*Do* your best in the exam.', ar: 'ابذل قصارى جهدك.' },
+      { en: 'She *said* something important.', ar: 'قالت شيئًا مهمًا.' },
+      { en: 'She *told me* a secret.', ar: 'أخبرتني سرًا.' },
+      { en: 'My grandfather *taught* me patience; I *learned* it slowly.', ar: 'علّمني جدي الصبر فتعلّمته ببطء.' },
+      { en: '*Bring* your book here · *take* this to your room.', ar: 'أحضِر إلى هنا · خُذ إلى هناك.' },
+      { en: 'I *watched* a film · *look* at this photo · I *saw* him yesterday.', ar: 'شاهدت · انظر · رأيت.' },
+    ],
+    exercises: [
+      { q: 'make/do: “I have to ___ my homework and then ___ dinner.”', a: '*do* my homework · *make* dinner.' },
+      { q: 'say/tell: “He ___ me that he was tired.”', a: 'He *told* me that he was tired.' },
+      { q: 'say/tell: “She ___ goodbye and left.”', a: 'She *said* goodbye and left.' },
+      { q: 'Fix: “The teacher learned us a new rule.”', a: 'The teacher *taught* us a new rule.' },
+      { q: 'Fix: “I maked a mistake in the exam.”', a: 'I *made* a mistake in the exam.' },
+      { q: 'bring/take: “___ me a glass of water, please.”', a: '*Bring* me a glass of water, please.' },
+    ],
+    reading: {
+      title: 'First Day at Work', titleAr: 'أول يوم في العمل',
+      passage: [
+        'On my first day, my manager *told* me three things I never forgot.',
+        '“*Do* your work with care, even when nobody *is watching*.”',
+        '“When you *make* a mistake, *say* it clearly — hiding it *makes* it bigger.”',
+        '“And every day, *learn* one thing, then *teach* it to someone else.”',
+        'Years later, I *tell* every new colleague the same three rules.',
+      ],
+      tip: 'told me / say it / do your work / make a mistake / learn then teach — every pair used precisely.',
+      tipAr: 'كل زوج مستخدم في موضعه الدقيق.',
+    },
+    homework: [
+      { en: 'Write 4 make sentences and 4 do sentences', ar: 'اكتب ٤ جمل بـ make و٤ بـ do' },
+      { en: 'Write a mini-dialogue using said and told correctly', ar: 'اكتب حوارًا قصيرًا بـ said و told' },
+      { en: 'Write 2 sentences each: teach/learn, bring/take', ar: 'اكتب جملتين لكل زوج' },
+    ],
+    editing: {
+      wrong: [
+        'Yesterday I did a cake and my sister made her homework.',
+        'He said me that the meeting was cancelled.',
+        'My father learned me how to swim.',
+      ],
+      correct: [
+        'Yesterday I *made* a cake and my sister *did* her homework.',
+        'He *told* me that the meeting was cancelled.',
+        'My father *taught* me how to swim.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 16.2 · FIRST CONDITIONAL (B1) ─────────────────────────── */
+  {
+    no: 16.2, cefr: 'B1', tag: 'If sentences', tagAr: 'الجمل الشرطية',
+    title: 'The First Conditional — If you practice, you will improve',
+    titleAr: 'الشرط الأول — إذا تمرّنت فستتحسّن',
+    objectives: [
+      { en: 'Form: If + present, will + base', ar: 'التكوين: If + مضارع، will + مجرّد' },
+      { en: 'Never put will inside the if-part', ar: 'لا will داخل جملة الشرط' },
+      { en: 'Use the comma when “if” comes first', ar: 'الفاصلة حين تتقدّم if' },
+      { en: 'Use it in professional promises', ar: 'استخدامه في الوعود المهنية' },
+    ],
+    rule: {
+      en: 'Real future condition = *If + present simple*, *will + base verb*: “If you practice daily, you *will* improve.” The if-part stays in the PRESENT even though the meaning is future.',
+      ar: 'الشرط الواقعي: If + مضارع بسيط، ثم will + الفعل المجرّد. جملة الشرط تبقى مضارعًا رغم أن معناها مستقبل.',
+    },
+    explain: {
+      intro: 'This is the grammar of promises, plans, and warnings — and of professional emails: “If you need anything, I will send it immediately.”',
+      introAr: 'هذه قواعد الوعود والخطط والتحذيرات — وقواعد الإيميلات المهنية: «إن احتجت شيئًا فسأرسله فورًا».',
+      points: [
+        { en: 'If + *present*: If it *rains*… (NOT will rain)', ar: 'الشرط مضارع' },
+        { en: 'Result + *will*: …we *will stay* home.', ar: 'الجواب بـ will' },
+        { en: 'If first → comma · result first → no comma', ar: 'الفاصلة مع تقدّم if' },
+        { en: '*unless* = if not: Unless you hurry, you’ll be late.', ar: 'unless = إن لم' },
+      ],
+    },
+    form: {
+      affirmative: [
+        '*If* you study, you *will pass*.',
+        'You *will pass* if you study. (no comma)',
+      ],
+      negative: [
+        'If you *don’t* leave now, you *won’t* catch the bus.',
+        '*Unless* you leave now, you won’t catch the bus.',
+      ],
+      question: [
+        '*What will* you do *if* it rains?',
+        '*If* he calls, *will* you answer?',
+      ],
+      note: 'NEVER “If I will see him” ✗ — the if-clause refuses will: “If I *see* him, I *will* tell him.”',
+      noteAr: 'لا نقول أبدًا If I will see — جملة الشرط ترفض will.',
+    },
+    examples: [
+      { en: '*If* you practice daily, you *will improve* fast.', ar: 'إن تمرّنت يوميًا تحسّنت بسرعة.' },
+      { en: '*If* it rains tomorrow, we *will stay* home.', ar: 'إن أمطرت غدًا بقينا في البيت.' },
+      { en: 'You *will pass* the exam *if* you review tonight.', ar: 'ستنجح إن راجعت الليلة.' },
+      { en: '*If* she calls, I *will tell* her the news.', ar: 'إن اتصلت أخبرتها.' },
+      { en: '*If* you don’t sleep early, you *will feel* tired.', ar: 'إن لم تنم مبكرًا شعرت بالتعب.' },
+      { en: '*Unless* we leave now, we *will miss* the train.', ar: 'ما لم نغادر الآن فاتنا القطار.' },
+      { en: 'Professional: *If* you need more information, I *will send* the full report.', ar: 'مهني: إن احتجتم معلومات أرسلت التقرير كاملًا.' },
+      { en: 'Professional: *If* the product is damaged, we *will refund* you fully.', ar: 'مهني: إن كان المنتج تالفًا رددنا المبلغ كاملًا.' },
+      { en: '*What will* you do *if* you win?', ar: 'ماذا ستفعل إن فزت؟' },
+    ],
+    exercises: [
+      { q: 'Form: “If you ___ (study), you ___ (pass).”', a: 'If you *study*, you *will pass*.' },
+      { q: 'Fix: “If I will see him, I will tell him.”', a: 'If I *see* him, I will tell him.' },
+      { q: 'Comma? “We will go out if the weather is nice.”', a: 'Correct — no comma (result first).' },
+      { q: 'unless: “If you don’t hurry, you’ll be late.” →', a: '*Unless* you hurry, you’ll be late.' },
+      { q: 'Professional: complete “If you have any questions, …”', a: '…I *will be* happy to help. / …please *contact* me.' },
+    ],
+    reading: {
+      title: 'The Deal with Myself', titleAr: 'اتفاقي مع نفسي',
+      passage: [
+        'Every January, people make big promises; I make one small deal instead.',
+        '*If* I write for ten minutes every morning, I *will allow* myself my favorite coffee.',
+        '*If* I skip a day, I *will* simply *start* again tomorrow — without drama.',
+        '*Unless* a habit is easy, it *will not survive* the difficult weeks.',
+        'Small deals, honestly kept, *will change* your year more than big promises ever will.',
+      ],
+      tip: 'Every condition: if + present → will + base. Notice “unless” = if not.',
+      tipAr: 'كل شرط: if + مضارع ← will + مجرّد. و unless تعني «إن لم».',
+    },
+    homework: [
+      { en: 'Write 4 if-sentences about your goals', ar: 'اكتب ٤ جمل شرطية عن أهدافك' },
+      { en: 'Write 2 professional if-promises for an email', ar: 'اكتب وعدين مهنيين لإيميل' },
+      { en: 'Rewrite 2 of your sentences with unless', ar: 'أعد صياغة جملتين بـ unless' },
+    ],
+    editing: {
+      wrong: [
+        'If it will rain tomorrow, the match will cancelled.',
+        'If you don’t study you fail the exam.',
+        'Unless you don’t hurry, we will be late.',
+      ],
+      correct: [
+        'If it *rains* tomorrow, the match *will be cancelled*.',
+        'If you don’t study*,* you *will fail* the exam.',
+        '*Unless you hurry*, we will be late.',
+      ],
+    },
+  },
 ]

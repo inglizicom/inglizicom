@@ -212,8 +212,9 @@ export default function WritingDeck() {
   const { slides, jump } = useMemo(buildSlides, [])
   const [idx, setIdx] = useState(0)
   const [step, setStep] = useState(0)
-  // Left index drawer (Unit → Module → Lesson). Open on landing; modules start expanded.
-  const [drawerOpen, setDrawerOpen] = useState(true)
+  // Left index drawer (Unit → Module → Lesson). Closed on landing so a recording
+  // starts clean — open with the ☰ button or M. Modules start expanded.
+  const [drawerOpen, setDrawerOpen] = useState(false)
   const [expanded, setExpanded] = useState<Set<string>>(() => {
     const set = new Set<string>()
     SYLLABUS.forEach((u, ui) => u.modules.forEach((_, mi) => set.add(`${ui}-${mi}`)))
@@ -233,6 +234,16 @@ export default function WritingDeck() {
     else { if (stepRef.current > 0) setStep(v => v - 1); else setIdx(i => Math.max(0, i - 1)) }
   }, [slides, last])
   const jumpTo = (no: number) => { const t = jump[no]; if (t != null) { setStep(0); setIdx(t); setDrawerOpen(false) } }
+
+  // Recording deep-link: /admin/present/writing?lesson=27 opens straight at that
+  // lesson's cover — no clicking through slides before hitting Record.
+  useEffect(() => {
+    const raw = new URLSearchParams(window.location.search).get('lesson')
+    if (!raw) return
+    const no = parseFloat(raw)
+    if (!isNaN(no) && jump[no] != null) { setStep(0); setIdx(jump[no]) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -461,6 +472,18 @@ function SlideView({ s, step, onJump }: { s: Slide; step: number; onJump: (no: n
             </button>
           )
         })}
+      </div>
+      {/* what comes WITH the course — recorded straight into the intro */}
+      <div dir="rtl" className="flex flex-wrap items-center justify-center gap-[0.8vw]">
+        {[
+          ['📝', 'تصحيح سريع لواجباتك — كتابيًا أو صوتيًا'],
+          ['🎥', 'لايف أسبوعي للأسئلة والأجوبة'],
+          ['🎓', 'شهادة إتمام باسمك'],
+        ].map(([emo, label], i) => (
+          <span key={i} className="flex items-center gap-1.5 rounded-full px-[1.2vw] py-[0.7vh] font-black text-white" style={{ background: INK, fontSize: '1vw', fontFamily: "'Tajawal', sans-serif" }}>
+            <span>{emo}</span> {label}
+          </span>
+        ))}
       </div>
       <div className="font-bold text-stone-400 flex flex-col items-center gap-[0.4vh]" style={{ fontSize: '0.92vw' }}>
         <span className="flex items-center gap-1.5">Open the <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[#2a1d12] font-black" style={{ background: GOLD }}><Menu size={12} /> index</span> on the left (or press M) to browse every unit, module and lesson.</span>
