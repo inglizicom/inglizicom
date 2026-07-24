@@ -62,6 +62,10 @@ const SYLLABUS: UnitDef[] = [
     { en: 'Paragraph Structure', ar: 'بنية الفقرة', from: 21, to: 22.6 },
     { en: 'Writing & Polishing', ar: 'الكتابة والصقل', from: 23, to: 25 },
   ] },
+  { en: 'Unit 5 · Professional Writing', short: 'Professional', ar: 'الوحدة ٥ · الكتابة الاحترافية', cefr: 'B1', modules: [
+    { en: 'Emails that Connect', ar: 'إيميلات تصل', from: 26, to: 27.9 },
+    { en: 'Writing that Wins', ar: 'كتابة تُقنع', from: 28, to: 29.9 },
+  ] },
 ]
 const unitOf = (no: number) => SYLLABUS.find(u => u.modules.some(m => no >= m.from && no <= m.to)) ?? SYLLABUS[0]
 const moduleOf = (no: number) => {
@@ -151,7 +155,7 @@ function buildSlides(): { slides: Slide[]; jump: Record<number, number> } {
       if (L.reading) slides.push({ t: 'reading', L })
     }
     slides.push({ t: 'homework', L })
-    if (!L.studio && L.editing) slides.push({ t: 'editing', L })
+    if (L.editing) slides.push({ t: 'editing', L })
   }
   slides.push({ t: 'end' })
   return { slides, jump }
@@ -444,7 +448,7 @@ function SlideView({ s, step, onJump }: { s: Slide; step: number; onJump: (no: n
         <div dir="rtl" className="mt-[0.3vh] font-black text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '2vw' }}>الإنجليزية من الصفر إلى الكتابة</div>
       </div>
       {/* unit overview — click a unit to jump into it; the full index lives in the drawer */}
-      <div dir="ltr" className="grid grid-cols-4 gap-[1vw] w-full">
+      <div dir="ltr" className="grid gap-[1vw] w-full" style={{ gridTemplateColumns: `repeat(${SYLLABUS.length}, minmax(0,1fr))` }}>
         {SYLLABUS.map((u, ui) => {
           const count = u.modules.reduce((n, m) => n + lessonsIn(m).length, 0)
           return (
@@ -787,16 +791,23 @@ function SlideView({ s, step, onJump }: { s: Slide; step: number; onJump: (no: n
 
   if (s.t === 'model') {
     const m = s.L.studio!.model!
-    const ROLE: Record<'topic' | 'support' | 'conclusion', { label: string; ar: string; bg: string; text: string }> = {
+    type Role = (typeof m.parts)[number]['role']
+    const ROLE: Record<Role, { label: string; ar: string; bg: string; text: string }> = {
       topic:      { label: 'Topic sentence',      ar: 'الجملة الموضوعية', bg: '#dbeafe', text: '#1d4ed8' },
       support:    { label: 'Supporting detail',   ar: 'تفصيل داعم',       bg: '#dcfce7', text: '#047857' },
       conclusion: { label: 'Concluding sentence', ar: 'جملة الخاتمة',     bg: '#fef3c7', text: '#b45309' },
+      subject:    { label: 'Subject line',        ar: 'سطر الموضوع',      bg: '#f3e8ff', text: '#7c3aed' },
+      greeting:   { label: 'Greeting',            ar: 'التحية',           bg: '#dbeafe', text: '#1d4ed8' },
+      body:       { label: 'Body',                ar: 'صلب الرسالة',      bg: '#dcfce7', text: '#047857' },
+      closing:    { label: 'Closing',             ar: 'الخاتمة',          bg: '#fef3c7', text: '#b45309' },
     }
+    const legend = [...new Set(m.parts.map(p => p.role))]
+    const isEmail = m.layout === 'lines'
     return (
       <div className="w-full max-w-[76vw] flex flex-col items-center gap-[2vh]">
-        <div className="flex items-center gap-[0.8vw]"><FileText size={24} style={{ color: AMBER }} /><Heading en="A Model Paragraph" ar="فقرة نموذجية" /></div>
+        <div className="flex items-center gap-[0.8vw]"><FileText size={24} style={{ color: AMBER }} /><Heading en={isEmail ? 'A Model Email' : 'A Model Paragraph'} ar={isEmail ? 'إيميل نموذجي' : 'فقرة نموذجية'} /></div>
         <div className="flex flex-wrap items-center justify-center gap-[1.2vw]">
-          {(['topic', 'support', 'conclusion'] as const).map(r => (
+          {legend.map(r => (
             <span key={r} className="flex items-center gap-[0.4vw] font-bold" style={{ fontSize: '0.85vw' }}>
               <span className="w-3.5 h-3.5 rounded" style={{ background: ROLE[r].bg, boxShadow: `inset 0 0 0 1.5px ${ROLE[r].text}` }} />
               <span style={{ color: ROLE[r].text }}>{ROLE[r].label}</span>
@@ -809,11 +820,22 @@ function SlideView({ s, step, onJump }: { s: Slide; step: number; onJump: (no: n
             <h2 className="font-black" style={{ color: INK, fontSize: '1.7vw' }}>{m.title}</h2>
             <span dir="rtl" className="font-bold text-stone-400" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.3vw' }}>{m.titleAr}</span>
           </div>
-          <p dir="ltr" className="leading-[2.2]" style={{ fontSize: '1.55vw', color: INK, textAlign: 'justify' }}>
-            {m.parts.map((p, i) => (
-              <span key={i}><span className="font-bold rounded" style={{ background: ROLE[p.role].bg, color: ROLE[p.role].text, padding: '0.08em 0.3em', boxShadow: `inset 0 0 0 1px ${ROLE[p.role].text}33` }}>{p.en}</span>{' '}</span>
-            ))}
-          </p>
+          {isEmail ? (
+            <div dir="ltr" className="flex flex-col gap-[1vh]">
+              {m.parts.map((p, i) => (
+                <div key={i} className="rounded-xl px-[1.2vw] py-[1vh] font-bold whitespace-pre-line leading-[1.6]"
+                  style={{ background: ROLE[p.role].bg, color: ROLE[p.role].text, boxShadow: `inset 0 0 0 1px ${ROLE[p.role].text}33`, fontSize: '1.3vw' }}>
+                  {p.en}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p dir="ltr" className="leading-[2.2]" style={{ fontSize: '1.55vw', color: INK, textAlign: 'justify' }}>
+              {m.parts.map((p, i) => (
+                <span key={i}><span className="font-bold rounded" style={{ background: ROLE[p.role].bg, color: ROLE[p.role].text, padding: '0.08em 0.3em', boxShadow: `inset 0 0 0 1px ${ROLE[p.role].text}33` }}>{p.en}</span>{' '}</span>
+              ))}
+            </p>
+          )}
         </div>
       </div>
     )
@@ -926,13 +948,43 @@ function SlideView({ s, step, onJump }: { s: Slide; step: number; onJump: (no: n
     )
   }
 
-  // end
+  // end — the funnel close: celebrate, then present the 1-on-1 coaching next step
   return (
-    <div className="text-center max-w-[80vw] flex flex-col items-center gap-[3vh]">
+    <div className="text-center max-w-[80vw] flex flex-col items-center gap-[2.2vh]">
       <div>
-        <div className="text-[4.5vw] mb-[1vh]">🎓</div>
-        <h1 className="font-black leading-[1.04] tracking-tight" style={{ color: INK, fontSize: '4.4vw' }}>You finished the course!</h1>
-        <div dir="rtl" className="mt-[1.2vh] font-black text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '2.6vw' }}>أنهيتَ الدورة — من الصفر إلى الكتابة!</div>
+        <div className="text-[3.6vw] mb-[0.6vh]">🎓</div>
+        <h1 className="font-black leading-[1.04] tracking-tight" style={{ color: INK, fontSize: '3.4vw' }}>You finished the course!</h1>
+        <div dir="rtl" className="mt-[0.6vh] font-black text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '2vw' }}>أنهيتَ الدورة — من الصفر إلى الكتابة الاحترافية!</div>
+      </div>
+      {/* what they can now do */}
+      <div dir="rtl" className="flex flex-wrap items-center justify-center gap-[0.8vw]">
+        {[['القواعد بلا ملل', '✅'], ['قراءة أقوى', '📖'], ['فقرات قصيرة وطويلة', '✍️'], ['إيميلات احترافية', '💼']].map(([label, emo], i) => (
+          <span key={i} className="flex items-center gap-1.5 rounded-full bg-white ring-1 ring-stone-200 px-[1.2vw] py-[0.7vh] font-black" style={{ color: INK, fontSize: '1.05vw', fontFamily: "'Tajawal', sans-serif" }}>
+            <span>{emo}</span> {label}
+          </span>
+        ))}
+      </div>
+      {/* the coaching offer — presented by the teacher over this slide */}
+      <div dir="rtl" className="w-full max-w-[56vw] rounded-[28px] px-[2.6vw] py-[2.6vh] text-right"
+        style={{ background: INK, boxShadow: '0 30px 70px -30px rgba(42,29,18,0.8), inset 0 0 0 2px #facc1555' }}>
+        <div className="font-black" style={{ color: GOLD, fontSize: '1.1vw', fontFamily: "'Tajawal', sans-serif", letterSpacing: '0.05em' }}>المرحلة القادمة؟</div>
+        <div className="font-black text-white mt-[0.6vh]" style={{ fontSize: '2vw', fontFamily: "'Tajawal', sans-serif" }}>تدريب فردي 1‑على‑1 مع الأستاذ حمزة</div>
+        <div className="mt-[1.4vh] flex flex-col gap-[0.7vh]">
+          {[
+            'خطة شخصية على مستواك وهدفك أنت',
+            'تصحيح مباشر لكل ما تكتبه — فقرات، إيميلات، ومشاريعك الحقيقية',
+            'جلسات محادثة حية حتى تتكلّم كما صرت تكتب',
+            'مقاعد محدودة كل شهر — الأولوية لطلاب هذه الدورة',
+          ].map((b, i) => (
+            <div key={i} className="flex items-start gap-[0.7vw] font-bold text-white/85" style={{ fontSize: '1.15vw', fontFamily: "'Tajawal', sans-serif" }}>
+              <Check size={16} className="mt-[0.4vh] shrink-0" style={{ color: GOLD }} strokeWidth={3} /> {b}
+            </div>
+          ))}
+        </div>
+        <div className="mt-[1.8vh] inline-flex items-center gap-[0.8vw] rounded-2xl px-[1.8vw] py-[1.2vh] font-black"
+          style={{ background: `linear-gradient(135deg, #fde047, ${GOLD})`, color: INK, fontSize: '1.3vw', fontFamily: "'Tajawal', sans-serif", boxShadow: '0 14px 34px -12px rgba(250,204,21,0.6)' }}>
+          <Phone size={18} /> احجز مكانك الآن — واتساب 0764189311
+        </div>
       </div>
       <Footer />
     </div>

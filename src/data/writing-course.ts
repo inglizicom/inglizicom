@@ -27,11 +27,13 @@ export type Editing = {
 export type Form = { affirmative: string[]; negative: string[]; question: string[]; note?: string; noteAr?: string }
 // A spelling rule (e.g. add -es / consonant+y → -ies) with worked examples.
 export type SpellRule = { rule: string; ar: string; examples: string }
-// Writing-studio content for the practice-oriented paragraph lessons (a different, hands-on format).
-export type StudioPart = { role: 'topic' | 'support' | 'conclusion'; en: string }
+// Writing-studio content for the practice-oriented writing lessons (a different, hands-on format).
+// Paragraph lessons use topic/support/conclusion roles; email lessons use
+// subject/greeting/body/closing (rendered as separate lines via layout:'lines').
+export type StudioPart = { role: 'topic' | 'support' | 'conclusion' | 'subject' | 'greeting' | 'body' | 'closing'; en: string }
 export type Studio = {
   prompt?: { en: string; ar: string }                              // the writing task
-  model?: { title: string; titleAr: string; parts: StudioPart[] }  // an annotated model paragraph
+  model?: { title: string; titleAr: string; parts: StudioPart[]; layout?: 'prose' | 'lines' }
   plan?: { label: string; ar: string }[]                           // a fillable outline frame
   toolkit?: { group: string; ar: string; phrases: string[] }[]     // sentence starters / linking phrases
   steps?: Ex[]                                                      // guided "your turn" writing steps
@@ -1570,9 +1572,9 @@ export const LESSONS: Lesson[] = [
 
   /* ─────────────────────────── 14 · PUTTING IT TOGETHER ─────────────────────────── */
   {
-    no: 25, cefr: 'B1', tag: 'Final Project', tagAr: 'المشروع الأخير',
-    title: 'Final Project — Write Your Paragraph',
-    titleAr: 'المشروع الأخير — اكتب فقرتك الكاملة',
+    no: 25, cefr: 'B1', tag: 'Paragraph Project', tagAr: 'مشروع الفقرة',
+    title: 'Paragraph Project — Write Your Paragraph',
+    titleAr: 'مشروع الفقرة — اكتب فقرتك الكاملة',
     objectives: [
       { en: 'Use every rule from the course in one paragraph', ar: 'استخدام كل القواعد في فقرة واحدة' },
       { en: 'Capitalize, use articles, and choose tenses', ar: 'الحروف الكبيرة والأدوات والأزمنة' },
@@ -3498,5 +3500,295 @@ export const LESSONS: Lesson[] = [
       { en: 'Underline each Reason, Example, and Detail you added', ar: 'ضع خطًا تحت كل سبب ومثال وتفصيل' },
       { en: 'Ask: does every sentence still serve the topic?', ar: 'اسأل: هل كل جملة تخدم الموضوع؟' },
     ],
+  },
+
+  /* ═══════════════════ UNIT 5 · PROFESSIONAL WRITING (B1) ═══════════════════ */
+
+  /* ─────────────────────────── 26 · FRIENDLY EMAILS & MESSAGES ─────────────────────────── */
+  {
+    no: 26, cefr: 'B1', tag: 'Friendly emails', tagAr: 'رسائل ودّية',
+    title: 'Friendly Emails & Messages',
+    titleAr: 'الرسائل والإيميلات الودّية',
+    objectives: [
+      { en: 'Open and close an informal email naturally', ar: 'افتتاح الرسالة الودّية وختمها' },
+      { en: 'Write short, warm, clear messages', ar: 'كتابة رسائل قصيرة دافئة وواضحة' },
+      { en: 'Invite, thank, and reply politely', ar: 'الدعوة والشكر والرد بلطف' },
+      { en: 'Keep one idea per short paragraph', ar: 'فكرة واحدة لكل فقرة قصيرة' },
+    ],
+    rule: {
+      en: 'An informal email = *Hi + name* → a warm opening line → your message in short paragraphs → a friendly closing (*Take care / See you soon*) → your name.',
+      ar: 'الرسالة الودّية: تحية بالاسم ← جملة افتتاحية دافئة ← رسالتك في فقرات قصيرة ← خاتمة ودّية ← اسمك.',
+    },
+    studio: {
+      prompt: { en: 'Write a short email inviting a friend to visit you during the holidays.', ar: 'اكتب إيميلًا قصيرًا تدعو فيه صديقًا لزيارتك في العطلة.' },
+      model: {
+        title: 'Inviting a Friend', titleAr: 'دعوة صديق', layout: 'lines',
+        parts: [
+          { role: 'subject', en: 'Subject: Come visit us this summer! 🌞' },
+          { role: 'greeting', en: 'Hi Yousef,' },
+          { role: 'body', en: 'How are you? I hope everything is going well with your studies.' },
+          { role: 'body', en: 'I’m writing to invite you to spend a week with us in Agadir this July. The weather is perfect, the beach is five minutes away, and my family would love to meet you.' },
+          { role: 'body', en: 'Let me know which dates work for you, and I’ll arrange everything.' },
+          { role: 'closing', en: 'Take care and see you soon,\nOmar' },
+        ],
+      },
+      plan: [
+        { label: 'Subject — short & clear', ar: 'الموضوع — قصير وواضح' },
+        { label: 'Greeting — Hi + name', ar: 'التحية بالاسم' },
+        { label: 'Warm opening line', ar: 'جملة افتتاحية دافئة' },
+        { label: 'Your message (why you write)', ar: 'رسالتك — سبب الكتابة' },
+        { label: 'A clear next step', ar: 'خطوة تالية واضحة' },
+        { label: 'Friendly closing + name', ar: 'خاتمة ودّية + الاسم' },
+      ],
+      toolkit: [
+        { group: 'Open', ar: 'الافتتاح', phrases: ['Hi Sara,', 'How are you?', 'I hope you’re doing well.', 'It was great to hear from you!'] },
+        { group: 'Say why you write', ar: 'سبب الكتابة', phrases: ['I’m writing to invite you…', 'Just a quick message to say…', 'I wanted to ask you…', 'Thanks so much for…'] },
+        { group: 'Close', ar: 'الختام', phrases: ['Let me know!', 'Can’t wait to see you.', 'Take care,', 'See you soon,', 'Best,'] },
+      ],
+      steps: [
+        { en: 'Write a subject your friend will want to open.', ar: 'اكتب موضوعًا يجذب صديقك لفتح الرسالة.' },
+        { en: 'Greet by name + one warm line.', ar: 'حيِّه باسمه + جملة دافئة.' },
+        { en: 'Say WHY you are writing in 1–2 short paragraphs.', ar: 'اذكر سبب الكتابة في فقرة أو فقرتين قصيرتين.' },
+        { en: 'End with a clear next step + friendly closing.', ar: 'اختم بخطوة واضحة وخاتمة ودّية.' },
+      ],
+      checklist: [
+        { en: 'Subject line written', ar: 'يوجد سطر موضوع' },
+        { en: 'Greeting with the name', ar: 'تحية بالاسم' },
+        { en: 'One idea per short paragraph', ar: 'فكرة لكل فقرة' },
+        { en: 'A clear next step for the reader', ar: 'خطوة تالية واضحة' },
+        { en: 'Friendly closing + your name', ar: 'خاتمة ودّية واسمك' },
+      ],
+    },
+    homework: [
+      { en: 'Write a thank-you email to a friend who helped you', ar: 'اكتب إيميل شكر لصديق ساعدك' },
+      { en: 'Reply to an invitation — accept warmly, suggest a date', ar: 'رُدّ على دعوة بقبول وتحديد موعد' },
+      { en: 'Write a 3-line WhatsApp message rescheduling a meeting', ar: 'اكتب رسالة قصيرة لتأجيل موعد' },
+    ],
+    editing: {
+      wrong: [
+        'hi how are you. i writing for invite you at my house in the holidays.',
+        'we can going to the beach and eat fishs. answer me fast.',
+      ],
+      correct: [
+        '*Hi Karim,* how are you*?* I *am writing to invite* you *to* my house *for* the holidays.',
+        'We can *go* to the beach and eat *fish*. *Let me know soon!*',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 27 · FORMAL EMAILS ─────────────────────────── */
+  {
+    no: 27, cefr: 'B1', tag: 'Formal emails', tagAr: 'الإيميل الرسمي',
+    title: 'Formal Emails — the professional frame',
+    titleAr: 'الإيميل الرسمي — القالب الاحترافي',
+    objectives: [
+      { en: 'Use the formal frame: Dear → I am writing to → Kind regards', ar: 'استخدام القالب الرسمي كاملًا' },
+      { en: 'Choose formal words (receive, request — not get, want)', ar: 'اختيار كلمات رسمية' },
+      { en: 'Keep sentences short but respectful', ar: 'جمل قصيرة لكن محترمة' },
+      { en: 'Write a clear subject line', ar: 'كتابة سطر موضوع واضح' },
+    ],
+    rule: {
+      en: 'A formal email = *Subject* → *Dear Mr./Ms. + name* (or Dear Sir/Madam) → *I am writing to…* → short clear body → *Kind regards / Sincerely* → full name. No slang, no “Hi”, no emojis.',
+      ar: 'الإيميل الرسمي: موضوع ← Dear + اللقب والاسم ← I am writing to… ← جسم قصير واضح ← Kind regards ← الاسم الكامل. لا عامية ولا Hi ولا رموز.',
+    },
+    studio: {
+      prompt: { en: 'Write a formal email to your manager requesting two days of leave next month.', ar: 'اكتب إيميلًا رسميًا لمديرك تطلب فيه إجازة يومين الشهر القادم.' },
+      model: {
+        title: 'Requesting Leave', titleAr: 'طلب إجازة', layout: 'lines',
+        parts: [
+          { role: 'subject', en: 'Subject: Leave Request — 12–13 August' },
+          { role: 'greeting', en: 'Dear Mr. Alami,' },
+          { role: 'body', en: 'I am writing to request two days of leave on 12 and 13 August for a family matter.' },
+          { role: 'body', en: 'I have completed this week’s reports, and my colleague Salma has kindly agreed to cover urgent requests while I am away.' },
+          { role: 'body', en: 'Please let me know if you need any further information.' },
+          { role: 'closing', en: 'Kind regards,\nOmar Benali\nCustomer Service Department' },
+        ],
+      },
+      plan: [
+        { label: 'Subject — topic + dates', ar: 'الموضوع + التواريخ' },
+        { label: 'Dear + title + family name', ar: 'التحية الرسمية' },
+        { label: 'Line 1: exactly why you write', ar: 'السطر الأول: سبب الكتابة بدقة' },
+        { label: 'Details the reader needs (short)', ar: 'التفاصيل الضرورية باختصار' },
+        { label: 'Polite final line', ar: 'جملة ختامية مهذّبة' },
+        { label: 'Kind regards + full name + role', ar: 'الخاتمة والاسم الكامل والوظيفة' },
+      ],
+      toolkit: [
+        { group: 'Open formally', ar: 'الافتتاح الرسمي', phrases: ['Dear Mr. …, / Dear Ms. …,', 'Dear Sir or Madam,', 'I am writing to request…', 'I am writing regarding…', 'I would like to inquire about…'] },
+        { group: 'Body language', ar: 'لغة الجسم الرسمية', phrases: ['I would appreciate it if…', 'Please find attached…', 'Could you please confirm…', 'Please let me know if…'] },
+        { group: 'Close formally', ar: 'الختام الرسمي', phrases: ['Thank you for your time.', 'I look forward to your reply.', 'Kind regards,', 'Sincerely,', 'Best regards,'] },
+      ],
+      steps: [
+        { en: 'Write the subject: topic + key detail (dates, order number…).', ar: 'اكتب الموضوع: الفكرة + التفصيل الأهم.' },
+        { en: 'Open with Dear + title + family name.', ar: 'افتح بـ Dear واللقب واسم العائلة.' },
+        { en: 'First line = the exact purpose: “I am writing to…”.', ar: 'السطر الأول = الغرض بدقة.' },
+        { en: 'Give only the details the reader needs to say yes.', ar: 'أعطِ فقط التفاصيل التي تُسهّل الموافقة.' },
+        { en: 'Close politely with Kind regards + full name.', ar: 'اختم بـ Kind regards واسمك الكامل.' },
+      ],
+      checklist: [
+        { en: 'Subject line: clear + specific', ar: 'موضوع واضح ومحدّد' },
+        { en: 'Dear + title + family name (no “Hi”)', ar: 'تحية رسمية بلا Hi' },
+        { en: '“I am writing to…” in the first line', ar: 'الغرض في السطر الأول' },
+        { en: 'Short sentences, no slang, no emojis', ar: 'جمل قصيرة بلا عامية ولا رموز' },
+        { en: 'Kind regards + full name at the end', ar: 'خاتمة رسمية واسم كامل' },
+      ],
+    },
+    homework: [
+      { en: 'Write a formal email to a school asking about course prices', ar: 'إيميل رسمي يسأل عن أسعار الدورات' },
+      { en: 'Rewrite a “Hi, I want…” message into the formal frame', ar: 'أعد كتابة رسالة عامية بالقالب الرسمي' },
+      { en: 'Write a formal email confirming a meeting time', ar: 'إيميل رسمي يؤكّد موعد اجتماع' },
+    ],
+    editing: {
+      wrong: [
+        'Subject: hi!!',
+        'hi boss, i want 2 days off next month ok? i finished my work so no problem. thx 🙏',
+      ],
+      correct: [
+        'Subject: *Leave Request — 5–6 September*',
+        '*Dear Mr. Tazi,* *I am writing to request* two days of leave on 5–6 September. I have completed my current tasks. *Please let me know if you need any further information.* *Kind regards,* Ahmed El Fassi',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 28 · REQUESTS & COMPLAINTS ─────────────────────────── */
+  {
+    no: 28, cefr: 'B1', tag: 'Requests & complaints', tagAr: 'الطلب والشكوى',
+    title: 'Requests & Complaints — polite power',
+    titleAr: 'الطلب والشكوى — قوة مهذّبة',
+    objectives: [
+      { en: 'Ask firmly but politely (Could you / I would…)', ar: 'الطلب بحزم وأدب' },
+      { en: 'Complain with facts, not anger', ar: 'الشكوى بالحقائق لا بالغضب' },
+      { en: 'State clearly what you want to happen', ar: 'تحديد ما تريده بوضوح' },
+      { en: 'Set a polite deadline', ar: 'تحديد مهلة بأدب' },
+    ],
+    rule: {
+      en: 'A strong complaint = *facts* (what, when, order number) + *the problem* + *exactly what you want* + a polite deadline. Anger weakens you; clarity is the power.',
+      ar: 'الشكوى القوية = حقائق (ماذا ومتى ورقم الطلب) + المشكلة + ما تريده بالضبط + مهلة مهذّبة. الغضب يُضعفك والوضوح هو القوة.',
+    },
+    studio: {
+      prompt: { en: 'You ordered a phone online 3 weeks ago and it hasn’t arrived. Write a firm, polite complaint.', ar: 'طلبت هاتفًا عبر الإنترنت قبل ٣ أسابيع ولم يصل. اكتب شكوى حازمة مهذّبة.' },
+      model: {
+        title: 'Where Is My Order?', titleAr: 'أين طلبي؟', layout: 'lines',
+        parts: [
+          { role: 'subject', en: 'Subject: Order #45872 — Not Delivered (3 weeks)' },
+          { role: 'greeting', en: 'Dear Customer Service Team,' },
+          { role: 'body', en: 'I am writing about order #45872, a smartphone I purchased on 2 July. The delivery date was 9 July, but the order has still not arrived after three weeks.' },
+          { role: 'body', en: 'I have contacted the chat support twice without a clear answer. I would like you to either deliver the order within five days or refund the full amount.' },
+          { role: 'body', en: 'I would appreciate a reply by Friday. My order details are attached.' },
+          { role: 'closing', en: 'Kind regards,\nSalma Idrissi' },
+        ],
+      },
+      plan: [
+        { label: 'Subject: order number + the problem', ar: 'الموضوع: رقم الطلب والمشكلة' },
+        { label: 'Facts first: what, when, numbers', ar: 'الحقائق أولًا' },
+        { label: 'The problem in one clear sentence', ar: 'المشكلة في جملة' },
+        { label: 'What you want: option A or option B', ar: 'ما تريده: خيار أ أو ب' },
+        { label: 'Polite deadline + closing', ar: 'مهلة مهذّبة وخاتمة' },
+      ],
+      toolkit: [
+        { group: 'Request politely', ar: 'الطلب المهذّب', phrases: ['Could you please…', 'I would like to…', 'I would appreciate it if…', 'Would it be possible to…'] },
+        { group: 'Complain with facts', ar: 'الشكوى بالحقائق', phrases: ['I am writing about order #…', 'Unfortunately, …', 'The product has still not arrived.', 'This is the second time that…'] },
+        { group: 'Demand an outcome', ar: 'طلب النتيجة', phrases: ['I would like a full refund.', 'Please deliver it within … days.', 'I expect a reply by…', 'Otherwise, I will have to…'] },
+      ],
+      steps: [
+        { en: 'Put the order number and problem in the subject.', ar: 'ضع رقم الطلب والمشكلة في الموضوع.' },
+        { en: 'State the facts: what you bought, when, what was promised.', ar: 'اذكر الحقائق: ماذا اشتريت ومتى وما وُعدت به.' },
+        { en: 'Describe the problem calmly — no insults, no anger.', ar: 'صِف المشكلة بهدوء — بلا شتائم ولا غضب.' },
+        { en: 'Say EXACTLY what you want + a polite deadline.', ar: 'حدّد ما تريده بالضبط + مهلة مهذّبة.' },
+      ],
+      checklist: [
+        { en: 'Order number / dates included', ar: 'رقم الطلب والتواريخ موجودة' },
+        { en: 'Calm tone — facts, not feelings', ar: 'نبرة هادئة — حقائق لا مشاعر' },
+        { en: 'The demand is specific (refund / redeliver)', ar: 'المطلب محدّد' },
+        { en: 'A polite deadline is set', ar: 'مهلة محدّدة بأدب' },
+        { en: 'Formal frame kept (Dear → Kind regards)', ar: 'القالب الرسمي محفوظ' },
+      ],
+    },
+    homework: [
+      { en: 'Write a polite request to a teacher for a deadline extension', ar: 'طلب مهذّب لتمديد موعد تسليم' },
+      { en: 'Complain about a noisy hotel room — ask for a room change', ar: 'شكوى عن غرفة مزعجة وطلب تغييرها' },
+      { en: 'Request a refund for a cancelled course — set a deadline', ar: 'طلب استرجاع مبلغ دورة ملغاة' },
+    ],
+    editing: {
+      wrong: [
+        'Subject: VERY ANGRY!!!',
+        'your service is very bad and you are thiefs. i want my money now or i will make problem. answer fast.',
+      ],
+      correct: [
+        'Subject: *Order #1189 — Refund Request*',
+        '*I am writing about* order #1189, which arrived damaged on 3 May. *I would like a full refund within seven days.* *I would appreciate a reply by Friday.* *Kind regards,* Hamza',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 29 · JOB APPLICATION ─────────────────────────── */
+  {
+    no: 29, cefr: 'B1', tag: 'Job application', tagAr: 'التقديم لوظيفة',
+    title: 'The Job Application Email',
+    titleAr: 'إيميل التقديم لوظيفة',
+    objectives: [
+      { en: 'Apply for a job in one confident email', ar: 'التقديم لوظيفة بإيميل واثق' },
+      { en: 'Present 2–3 strengths with proof (R.E.D.)', ar: 'عرض نقاط قوتك بدليل' },
+      { en: 'Sound professional, clear, and human', ar: 'نبرة احترافية واضحة وإنسانية' },
+      { en: 'End with availability + attachments', ar: 'الختم بالجاهزية والمرفقات' },
+    ],
+    rule: {
+      en: 'A job email = Subject (*Application for [Job] — [Your Name]*) → Dear Hiring Manager → where you saw the job + one-line who you are → 2–3 strengths *with proof* → availability → CV attached → Kind regards.',
+      ar: 'إيميل الوظيفة: موضوع باسم الوظيفة واسمك ← تحية رسمية ← أين رأيت الإعلان ومن أنت بسطر ← نقطتا قوة أو ثلاث بدليل ← جاهزيتك ← السيرة مرفقة ← خاتمة رسمية.',
+    },
+    studio: {
+      prompt: { en: 'Apply for a Customer Service position at a company in Dubai. Use your real strengths.', ar: 'قدّم لوظيفة خدمة عملاء في شركة بدبي مستخدمًا نقاط قوتك الحقيقية.' },
+      model: {
+        title: 'Application — Customer Service', titleAr: 'تقديم — خدمة العملاء', layout: 'lines',
+        parts: [
+          { role: 'subject', en: 'Subject: Application for Customer Service Agent — Omar Benali' },
+          { role: 'greeting', en: 'Dear Hiring Manager,' },
+          { role: 'body', en: 'I am writing to apply for the Customer Service Agent position advertised on LinkedIn. I am a Moroccan graduate with two years of experience helping customers in Arabic, French, and English.' },
+          { role: 'body', en: 'In my current role at a telecom company, I answer more than sixty calls a day and keep a 95% satisfaction score. My managers know me as calm under pressure — for example, I handled our busiest Ramadan season without a single escalation.' },
+          { role: 'body', en: 'I am available for an interview at any time and can start within one month. My CV is attached.' },
+          { role: 'closing', en: 'Thank you for your consideration.\nKind regards,\nOmar Benali\n+212 6 12 34 56 78' },
+        ],
+      },
+      plan: [
+        { label: 'Subject: job title + your name', ar: 'الموضوع: الوظيفة واسمك' },
+        { label: 'Who you are in ONE line', ar: 'من أنت في سطر واحد' },
+        { label: 'Strength 1 + proof (numbers!)', ar: 'قوة ١ + دليل بالأرقام' },
+        { label: 'Strength 2 + example', ar: 'قوة ٢ + مثال' },
+        { label: 'Availability + CV attached', ar: 'الجاهزية والمرفقات' },
+        { label: 'Kind regards + name + phone', ar: 'الخاتمة والاسم والهاتف' },
+      ],
+      toolkit: [
+        { group: 'Open', ar: 'الافتتاح', phrases: ['I am writing to apply for…', '…advertised on [site].', 'I am a … with … years of experience in…'] },
+        { group: 'Prove your strengths', ar: 'إثبات القوة', phrases: ['In my current role, I…', 'For example, I…', 'I achieved… / I managed…', 'My managers know me as…'] },
+        { group: 'Close strong', ar: 'الختام القوي', phrases: ['I am available for an interview…', 'My CV is attached.', 'Thank you for your consideration.', 'I look forward to hearing from you.'] },
+      ],
+      steps: [
+        { en: 'Name the job + where you saw it in line one.', ar: 'اذكر الوظيفة ومصدر الإعلان في أول سطر.' },
+        { en: 'Describe yourself in ONE strong line.', ar: 'عرّف بنفسك في سطر واحد قوي.' },
+        { en: 'Give 2–3 strengths, each with a number or example.', ar: 'قدّم نقاط قوتك مع رقم أو مثال لكل واحدة.' },
+        { en: 'State availability, attach the CV, close formally.', ar: 'اذكر جاهزيتك وأرفق سيرتك واختم رسميًا.' },
+      ],
+      checklist: [
+        { en: 'Subject = job title + your name', ar: 'الموضوع = الوظيفة + اسمك' },
+        { en: 'Every strength has proof (number/example)', ar: 'كل قوة معها دليل' },
+        { en: 'No begging, no exaggeration — confident facts', ar: 'لا توسّل ولا مبالغة — حقائق واثقة' },
+        { en: 'Availability + CV mentioned', ar: 'الجاهزية والسيرة مذكورتان' },
+        { en: 'Full name + phone under Kind regards', ar: 'الاسم الكامل والهاتف في الخاتمة' },
+      ],
+    },
+    homework: [
+      { en: 'Write a real application for a job you actually want', ar: 'اكتب تقديمًا حقيقيًا لوظيفة تريدها فعلًا' },
+      { en: 'Write your “who I am” line 3 different ways, pick the best', ar: 'اكتب سطر تعريفك بثلاث صيغ واختر الأقوى' },
+      { en: 'List 3 strengths with a number/example for each', ar: 'اكتب ٣ نقاط قوة بدليل لكل واحدة' },
+    ],
+    editing: {
+      wrong: [
+        'Subject: job',
+        'dear sir i see your job i am hard worker and i want this job please give me a chance i can do anything. call me.',
+      ],
+      correct: [
+        'Subject: *Application for Sales Assistant — Karim Alaoui*',
+        '*Dear Hiring Manager,* *I am writing to apply for* the Sales Assistant position *advertised on Indeed*. I have two years of retail experience*, and* last year *I increased* my section’s sales *by 20%*. *I am available for an interview at any time. My CV is attached.* *Kind regards,* Karim Alaoui',
+      ],
+    },
   },
 ]
