@@ -71,6 +71,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="font-sans">
+        {/* PWA splash — visible only in the installed (standalone) app; painted
+            server-side before hydration, completed + removed by PwaRegister. */}
+        <div id="pwa-splash" aria-hidden="true">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/icons/icon-192.png" alt="" width={96} height={96} />
+          <div className="pwa-name">إنجليزي.كوم</div>
+          <div className="pwa-sub">Inglizi — English from Zero</div>
+          <div className="pwa-track"><div className="pwa-bar" /></div>
+        </div>
         <PwaRegister />
         <AuthProvider>
           <ProfileProvider>
