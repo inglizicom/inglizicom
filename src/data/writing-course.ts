@@ -452,6 +452,25 @@ export const LESSONS: Lesson[] = [
         { en: 'Negative: add *not* · Question: put be first', ar: 'النفي بـ not · السؤال بالفعل أولًا' },
       ],
     },
+    form: {
+      affirmative: [
+        'I *am* (I’m) a student.',
+        'He / She / It *is* (he’s) here.',
+        'You / We / They *are* (we’re) ready.',
+      ],
+      negative: [
+        'I *am not* (I’m not) tired.',
+        'He *is not* (isn’t) at home.',
+        'They *are not* (aren’t) students.',
+      ],
+      question: [
+        '*Am* I late?  ·  *Is* she a doctor?',
+        '*Are* you okay?',
+        'Short: Yes, I *am*. / No, she *isn’t*. / Yes, they *are*.',
+      ],
+      note: 'Never drop “be”: say “I *am* happy” — NOT “I happy”. (Arabic has no equivalent verb here, so this is the most common error.)',
+      noteAr: 'لا تحذف فعل الكينونة أبدًا: نقول I am happy وليس I happy — فالعربية لا تستخدم فعلًا هنا، لذا هذا أكثر خطأ شيوعًا.',
+    },
     examples: [
       { en: 'I *am* a teacher.', ar: 'أنا معلّم.' }, { en: 'I*’m* ready.', ar: 'أنا مستعد.' },
       { en: 'You *are* right.', ar: 'أنت محق.' }, { en: 'He *is* at home.', ar: 'هو في البيت.' },
@@ -1841,6 +1860,13 @@ export const LESSONS: Lesson[] = [
         { en: 'Irregular: man → *men*, child → *children*', ar: 'شاذة' },
       ],
     },
+    spelling: [
+      { rule: 'Most nouns → add *-s*', ar: 'الأغلب ← -s', examples: 'book → books · car → cars · apple → apples' },
+      { rule: 'After s, x, ch, sh → add *-es*', ar: 'بعد s,x,ch,sh ← -es', examples: 'bus → buses · box → boxes · watch → watches · dish → dishes' },
+      { rule: 'Consonant + y → *-ies*', ar: 'ساكن + y ← -ies', examples: 'city → cities · baby → babies · country → countries' },
+      { rule: 'Ends in -f / -fe → *-ves*', ar: 'ينتهي بـ f/fe ← -ves', examples: 'knife → knives · leaf → leaves · wife → wives' },
+      { rule: 'Irregular — learn them', ar: 'شاذّة تُحفَظ', examples: 'man → men · woman → women · child → children · foot → feet · tooth → teeth · person → people' },
+    ],
     examples: [
       { en: 'book → book*s*', ar: 'كتب' }, { en: 'car → car*s*', ar: 'سيارات' }, { en: 'apple → apple*s*', ar: 'تفاحات' },
       { en: 'box → box*es*', ar: 'صناديق' }, { en: 'bus → bus*es*', ar: 'حافلات' }, { en: 'watch → watch*es*', ar: 'ساعات' },
@@ -1916,6 +1942,23 @@ export const LESSONS: Lesson[] = [
         { en: 'to be: he *is* · they *are* · to have: she *has*', ar: 'be و have' },
         { en: 'A name = one person = singular: Sara like*s*…', ar: 'الاسم مفرد' },
       ],
+    },
+    form: {
+      affirmative: [
+        'I / You / We / They *work*. (base verb)',
+        'He / She / It *works*. (verb + s)',
+        'to be: he *is* · they *are* — to have: she *has* · we *have*',
+      ],
+      negative: [
+        'I / They *don’t* work.',
+        'He / She *doesn’t* work. (verb loses the -s)',
+      ],
+      question: [
+        '*Do* you / they work?',
+        '*Does* he / she work? (verb loses the -s)',
+      ],
+      note: 'A NAME is singular: “Sara *works*”, “My brother *has*…”. Two subjects joined by “and” are plural: “Sara and Omar *work*”.',
+      noteAr: 'الاسم العلم مفرد: Sara works. وفاعلان بـ and جمعٌ: Sara and Omar work.',
     },
     examples: [
       { en: 'I work / You work / We work / They work.', ar: 'الفعل مجرّد.' },
@@ -2593,5 +2636,867 @@ export const LESSONS: Lesson[] = [
         '*E*very day *I* *teach* *E*nglish to *children*.',
       ],
     },
+  },
+
+  /* ─────────────────────────── 7.5 · THERE IS / THERE ARE (A1) ─────────────────────────── */
+  {
+    no: 7.5, cefr: 'A1', tag: 'There is/are', tagAr: 'يوجد',
+    title: 'There is / There are — saying what exists',
+    titleAr: 'There is / There are — التعبير عن الوجود',
+    objectives: [
+      { en: 'Say that something exists with There is/are', ar: 'التعبير عن وجود شيء' },
+      { en: 'Choose is (one) vs are (many)', ar: 'اختيار is للمفرد و are للجمع' },
+      { en: 'Make negatives and questions', ar: 'تكوين النفي والسؤال' },
+      { en: 'Describe a place in writing', ar: 'وصف مكان كتابيًا' },
+    ],
+    rule: {
+      en: 'Use *There is* + a singular noun and *There are* + a plural noun to say something exists: “There is a park. There are two cafés.”',
+      ar: 'نستخدم There is مع المفرد و There are مع الجمع للتعبير عن الوجود: «يوجد منتزه. يوجد مقهيان».',
+    },
+    explain: {
+      intro: 'Every descriptive paragraph — your city, your room, your school — is built on There is / There are. Arabic says «يوجد» for both; English changes with the number.',
+      introAr: 'كل فقرة وصفية — مدينتك، غرفتك، مدرستك — تُبنى على There is/are. العربية تقول «يوجد» للاثنين؛ الإنجليزية تتغيّر مع العدد.',
+      points: [
+        { en: '*There is* + one thing: There is *a* mosque.', ar: 'There is لمفرد' },
+        { en: '*There are* + many things: There are *three* shops.', ar: 'There are لجمع' },
+        { en: 'With some/any: There are *some* trees. / There aren’t *any* buses.', ar: 'مع some/any' },
+        { en: 'NOT “It is a park in my city” — use *There is*', ar: 'لا نقول It is هنا' },
+      ],
+    },
+    form: {
+      affirmative: [
+        '*There is* (There’s) a garden.',
+        '*There are* two schools.',
+      ],
+      negative: [
+        'There *is not* (isn’t) a pool.',
+        'There *are not* (aren’t) any buses.',
+      ],
+      question: [
+        '*Is there* a bank near here? — Yes, there *is*. / No, there *isn’t*.',
+        '*Are there* any shops? — Yes, there *are*. / No, there *aren’t*.',
+      ],
+      note: 'The noun decides is/are — “There *are* many people” (people = plural).',
+      noteAr: 'الاسم يقرّر is أو are: There are many people لأن people جمع.',
+    },
+    examples: [
+      { en: '*There is* a big park in my city.', ar: 'يوجد منتزه كبير في مدينتي.' },
+      { en: '*There is* a mosque near my house.', ar: 'يوجد مسجد قرب بيتي.' },
+      { en: '*There’s* a good café on this street.', ar: 'يوجد مقهى جيد في هذا الشارع.' },
+      { en: '*There are* two universities here.', ar: 'توجد جامعتان هنا.' },
+      { en: '*There are* many tourists in summer.', ar: 'يوجد سيّاح كثيرون صيفًا.' },
+      { en: '*There are* some books on the desk.', ar: 'توجد بعض الكتب على المكتب.' },
+      { en: 'There *isn’t* a cinema in our town.', ar: 'لا توجد سينما في بلدتنا.' },
+      { en: 'There *aren’t* any clouds today.', ar: 'لا توجد غيوم اليوم.' },
+      { en: '*Is there* a pharmacy near here?', ar: 'هل توجد صيدلية قريبة؟' },
+      { en: '*Are there* any questions?', ar: 'هل توجد أسئلة؟' },
+      { en: 'In my room *there is* a bed and a small desk.', ar: 'في غرفتي سرير ومكتب صغير.' },
+      { en: 'In our school *there are* twenty classrooms.', ar: 'في مدرستنا عشرون قاعة.' },
+    ],
+    exercises: [
+      { q: 'is/are: “There ___ a cat in the garden.”', a: 'There *is* a cat in the garden.' },
+      { q: 'is/are: “There ___ five students here.”', a: 'There *are* five students here.' },
+      { q: 'Make negative: “There are buses at night.”', a: 'There *aren’t any* buses at night.' },
+      { q: 'Make a question: “There is a bank near here.”', a: '*Is there* a bank near here?' },
+      { q: 'Fix: “It is a big market in my city.”', a: '*There is* a big market in my city.' },
+      { q: 'Fix: “There is many cafés here.”', a: 'There *are* many cafés here.' },
+    ],
+    reading: {
+      title: 'My Neighborhood', titleAr: 'حيّي',
+      passage: [
+        'I live in a quiet neighborhood, and I love it.',
+        '*There is* a small park where children play every evening.',
+        '*There are* two bakeries, and *there’s* a mosque with a beautiful minaret.',
+        'There *isn’t* a big mall, but *there are* many small friendly shops.',
+        '*Is there* a better place to live? I don’t think so!',
+      ],
+      tip: 'One thing → There is · many things → There are — the backbone of every place description.',
+      tipAr: 'مفرد ← There is · جمع ← There are — أساس كل وصفٍ للأماكن.',
+    },
+    homework: [
+      { en: 'Describe your room in 5 sentences with There is/are', ar: 'صِف غرفتك في ٥ جمل بـ There is/are' },
+      { en: 'Write 3 negatives about your city (There isn’t/aren’t)', ar: 'اكتب ٣ جمل منفية عن مدينتك' },
+      { en: 'Write 3 questions with Is there / Are there', ar: 'اكتب ٣ أسئلة' },
+    ],
+    editing: {
+      wrong: [
+        'In my city it is a beautiful beach.',
+        'There is many restaurants near the sea.',
+        'There aren’t a cinema, but there is two theaters.',
+      ],
+      correct: [
+        'In my city *there is* a beautiful beach.',
+        'There *are* many restaurants near the sea.',
+        'There *isn’t* a cinema, but there *are* two theaters.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 8.3 · OBJECT PRONOUNS (A1) ─────────────────────────── */
+  {
+    no: 8.3, cefr: 'A1', tag: 'Object pronouns', tagAr: 'ضمائر المفعول',
+    title: 'Object Pronouns — me, you, him, her, it, us, them',
+    titleAr: 'ضمائر المفعول — me / him / her / us / them',
+    objectives: [
+      { en: 'Match each subject pronoun to its object form', ar: 'مطابقة كل ضمير فاعل بضمير مفعوله' },
+      { en: 'Use object pronouns after verbs', ar: 'استخدامها بعد الأفعال' },
+      { en: 'Use them after prepositions (with, to, for)', ar: 'استخدامها بعد حروف الجر' },
+      { en: 'Avoid repeating nouns in writing', ar: 'تجنّب تكرار الأسماء في الكتابة' },
+    ],
+    rule: {
+      en: 'After a verb or a preposition, use the *object* pronoun: I → *me*, he → *him*, she → *her*, we → *us*, they → *them*. “Call *me*” — NOT “Call I”.',
+      ar: 'بعد الفعل أو حرف الجر نستخدم ضمير المفعول: me, him, her, us, them. نقول Call me لا Call I.',
+    },
+    explain: {
+      intro: 'Good writing does not repeat names: “I met Sara and helped Sara” → “I met Sara and helped *her*.” The pronoun changes form after the verb.',
+      introAr: 'الكتابة الجيدة لا تكرّر الأسماء: بدل «قابلت سارة وساعدت سارة» نقول «قابلتها وساعدتها». والضمير يتغيّر شكله بعد الفعل.',
+      points: [
+        { en: 'I→*me* · you→*you* · he→*him* · she→*her*', ar: 'التحويلات' },
+        { en: 'it→*it* · we→*us* · they→*them*', ar: 'الباقي' },
+        { en: 'After a verb: She called *me*. I saw *them*.', ar: 'بعد الفعل' },
+        { en: 'After a preposition: with *him* · for *us* · to *her*', ar: 'بعد حرف الجر' },
+      ],
+    },
+    examples: [
+      { en: 'She called *me* yesterday.', ar: 'اتصلت بي أمس.' },
+      { en: 'I will help *you*.', ar: 'سأساعدك.' },
+      { en: 'Do you know *him*?', ar: 'هل تعرفه؟' },
+      { en: 'I saw *her* at the market.', ar: 'رأيتها في السوق.' },
+      { en: 'This is my phone — I bought *it* last week.', ar: 'هذا هاتفي — اشتريته الأسبوع الماضي.' },
+      { en: 'The teacher praised *us*.', ar: 'أثنى علينا المعلّم.' },
+      { en: 'I met my cousins and invited *them* to dinner.', ar: 'قابلت أبناء عمي ودعوتهم للعشاء.' },
+      { en: 'Come with *me*.', ar: 'تعالَ معي.' },
+      { en: 'This gift is for *her*.', ar: 'هذه الهدية لها.' },
+      { en: 'Listen to *them* carefully.', ar: 'استمع إليهم جيدًا.' },
+      { en: 'Between you and *me*, the test was easy.', ar: 'بيني وبينك، كان الاختبار سهلًا.' },
+    ],
+    exercises: [
+      { q: 'Replace: “I saw Omar.” →', a: 'I saw *him*.' },
+      { q: 'Replace: “She helped Sara and Nadia.” →', a: 'She helped *them*.' },
+      { q: 'Fix: “The teacher asked I a question.”', a: 'The teacher asked *me* a question.' },
+      { q: 'Fix: “Come with we.”', a: 'Come with *us*.' },
+      { q: 'Fill: “This letter is for ___ (she).”', a: 'This letter is for *her*.' },
+      { q: 'Fix the repetition: “I like this book because this book is short.”', a: 'I like this book because *it* is short.' },
+    ],
+    reading: {
+      title: 'A Gift for My Mother', titleAr: 'هدية لأمي',
+      passage: [
+        'My mother’s birthday was on Friday, so I bought *her* a scarf.',
+        'My sister helped *me* choose the color.',
+        'We wrapped *it* in gold paper and hid *it* in the kitchen.',
+        'When my mother found the gift, she hugged *us* and thanked *us* warmly.',
+        'Moments like this stay with *you* forever.',
+      ],
+      tip: 'her / me / it / us — the object forms keep the story flowing without repeating names.',
+      tipAr: 'ضمائر المفعول تُبقي القصة سلسة دون تكرار الأسماء.',
+    },
+    homework: [
+      { en: 'Write 5 sentences using a different object pronoun each', ar: 'اكتب ٥ جمل بضمير مفعول مختلف' },
+      { en: 'Rewrite 3 sentences replacing repeated nouns with pronouns', ar: 'أعد كتابة ٣ جمل مستبدلًا الأسماء المكرّرة' },
+      { en: 'Write 2 sentences with a pronoun after with/for/to', ar: 'اكتب جملتين بضمير بعد حرف جر' },
+    ],
+    editing: {
+      wrong: [
+        'My father taught I how to drive.',
+        'I love my grandmother and visit she every week.',
+        'Our neighbors are kind; we often have tea with they.',
+      ],
+      correct: [
+        'My father taught *me* how to drive.',
+        'I love my grandmother and visit *her* every week.',
+        'Our neighbors are kind; we often have tea with *them*.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 8.6 · ADJECTIVES & WORD ORDER (A1) ─────────────────────────── */
+  {
+    no: 8.6, cefr: 'A1', tag: 'Adjectives', tagAr: 'الصفات',
+    title: 'Adjectives — describing words & their ORDER',
+    titleAr: 'الصفات — كلمات الوصف وترتيبها',
+    objectives: [
+      { en: 'Put the adjective BEFORE the noun', ar: 'وضع الصفة قبل الاسم' },
+      { en: 'Use adjectives after “be” (The car is red)', ar: 'استخدامها بعد فعل الكينونة' },
+      { en: 'Know adjectives never take plural -s', ar: 'الصفة لا تُجمع أبدًا' },
+      { en: 'Order two adjectives naturally', ar: 'ترتيب صفتين بشكل طبيعي' },
+    ],
+    rule: {
+      en: 'In English the adjective comes *BEFORE* the noun: “a *big* house” — the opposite of Arabic (بيت كبير). Adjectives *never* change for plural: “two big houses” (NOT bigs).',
+      ar: 'في الإنجليزية تأتي الصفة قبل الاسم: a big house — عكس العربية (بيت كبير). والصفة لا تتغيّر مع الجمع أبدًا.',
+    },
+    explain: {
+      intro: 'This is the #1 word-order error for Arabic speakers, because Arabic puts the adjective AFTER the noun. Train the reversal until it is automatic.',
+      introAr: 'هذا أكثر خطأ ترتيبي عند الناطقين بالعربية، لأن العربية تضع الصفة بعد الاسم. درّب نفسك على العكس حتى يصبح تلقائيًا.',
+      points: [
+        { en: 'Before the noun: a *red* car — NOT a car red ✗', ar: 'قبل الاسم' },
+        { en: 'After be: The car *is red*.', ar: 'بعد فعل الكينونة' },
+        { en: 'Never plural: three *tall* men — NOT talls ✗', ar: 'لا تُجمع' },
+        { en: 'Two adjectives: opinion → size → color: a *beautiful big blue* bag', ar: 'رأي ← حجم ← لون' },
+      ],
+    },
+    form: {
+      affirmative: [
+        'adjective + noun: a *small* room · an *old* city',
+        'be + adjective: The room *is small*.',
+        'two adjectives: a *nice little* café',
+      ],
+      negative: [
+        'The film was *not interesting*.',
+        'It isn’t an *expensive* hotel.',
+      ],
+      question: [
+        'Is the test *difficult*?',
+        'What is your city *like*? — It’s *quiet and beautiful*.',
+      ],
+      note: 'Arabic order is بيت كبير (noun→adj). English REVERSES it: *big house*. Never write “a house big”.',
+      noteAr: 'الترتيب العربي: بيت كبير. والإنجليزية تعكسه: big house. لا تكتب a house big أبدًا.',
+    },
+    examples: [
+      { en: 'a *big* house', ar: 'بيت كبير' }, { en: 'a *small* car', ar: 'سيارة صغيرة' },
+      { en: 'an *old* city', ar: 'مدينة قديمة' }, { en: 'a *new* phone', ar: 'هاتف جديد' },
+      { en: 'a *beautiful* garden', ar: 'حديقة جميلة' }, { en: 'a *difficult* exam', ar: 'امتحان صعب' },
+      { en: 'a *cheap* ticket', ar: 'تذكرة رخيصة' }, { en: 'an *expensive* watch', ar: 'ساعة غالية' },
+      { en: '*hot* tea', ar: 'شاي ساخن' }, { en: '*fresh* bread', ar: 'خبز طازج' },
+      { en: 'two *tall* buildings', ar: 'مبنيان شاهقان' }, { en: 'many *happy* children', ar: 'أطفال سعداء كثيرون' },
+      { en: 'The streets are *clean*.', ar: 'الشوارع نظيفة.' },
+      { en: 'My grandmother is *kind and wise*.', ar: 'جدتي طيبة وحكيمة.' },
+      { en: 'a *beautiful old* mosque', ar: 'مسجد قديم جميل' },
+      { en: 'a *small red* bag', ar: 'حقيبة حمراء صغيرة' },
+    ],
+    exercises: [
+      { q: 'Order: “car / a / fast”', a: 'a *fast car*' },
+      { q: 'Order: “city / beautiful / a / old”', a: 'a *beautiful old city*' },
+      { q: 'Fix: “I live in a house big.”', a: 'I live in a *big house*.' },
+      { q: 'Fix: “She has two cats blacks.”', a: 'She has two *black cats*.' },
+      { q: 'Fix: “These are talls trees.”', a: 'These are *tall* trees.' },
+      { q: 'Complete: “The exam was very ___.” (صعب)', a: 'The exam was very *difficult*.' },
+    ],
+    reading: {
+      title: 'The Old Medina', titleAr: 'المدينة القديمة',
+      passage: [
+        'Last weekend I visited the *old* medina with my *little* brother.',
+        'We walked through *narrow* streets full of *colorful* shops.',
+        'A *friendly* seller offered us *sweet* mint tea in *small* glasses.',
+        'I bought a *beautiful leather* bag for a *cheap* price.',
+        'It was a *long* day, but the memories are *golden*.',
+      ],
+      tip: 'Every adjective sits BEFORE its noun — old medina, narrow streets, sweet tea.',
+      tipAr: 'كل صفة قبل اسمها — عكس العربية تمامًا.',
+    },
+    homework: [
+      { en: 'Describe your best friend with 4 adjectives (before nouns)', ar: 'صِف أعزّ أصدقائك بأربع صفات' },
+      { en: 'Write 5 “adjective + noun” phrases about your city', ar: 'اكتب ٥ عبارات صفة+اسم عن مدينتك' },
+      { en: 'Fix 3 sentences written in Arabic order (noun then adjective)', ar: 'أصلح ٣ جمل كُتبت بالترتيب العربي' },
+    ],
+    editing: {
+      wrong: [
+        'Marrakech is a city beautiful with buildings olds.',
+        'We ate a meal delicious in a restaurant small.',
+        'My uncle has a car German very fast.',
+      ],
+      correct: [
+        'Marrakech is a *beautiful city* with *old buildings*.',
+        'We ate a *delicious meal* in a *small restaurant*.',
+        'My uncle has a very fast *German car*.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 9.5 · QUANTIFIERS (A2) ─────────────────────────── */
+  {
+    no: 9.5, cefr: 'A2', tag: 'Quantifiers', tagAr: 'كلمات الكمية',
+    title: 'Quantifiers — some, any, much, many, a lot of',
+    titleAr: 'كلمات الكمية — some / any / much / many / a lot of',
+    objectives: [
+      { en: 'Use some (positive) vs any (negative/question)', ar: 'استخدام some و any' },
+      { en: 'Use many (countable) vs much (uncountable)', ar: 'استخدام many و much' },
+      { en: 'Use a lot of with both', ar: 'استخدام a lot of مع النوعين' },
+      { en: 'Use a few / a little correctly', ar: 'استخدام a few / a little' },
+    ],
+    rule: {
+      en: '*Some* in positive sentences, *any* in negatives & questions. *Many* + countable (books), *much* + uncountable (water), *a lot of* + both.',
+      ar: 'نستخدم some في الإثبات، و any في النفي والسؤال. many مع المعدود، much مع غير المعدود، و a lot of مع النوعين.',
+    },
+    explain: {
+      intro: 'First ask: can I count it? Books — yes (countable). Water, time, money — no (uncountable). The quantifier follows that answer.',
+      introAr: 'اسأل أولًا: هل يمكن عدّه؟ الكتب نعم (معدود). الماء والوقت والمال لا (غير معدود). كلمة الكمية تتبع الجواب.',
+      points: [
+        { en: '*some* + positive: I have *some* friends / *some* money', ar: 'some للإثبات' },
+        { en: '*any* + negative/question: I don’t have *any* time · Do you have *any* questions?', ar: 'any للنفي والسؤال' },
+        { en: '*many* + countable · *much* + uncountable', ar: 'many معدود · much غير معدود' },
+        { en: '*a few* books (قليل معدود) · *a little* water (قليل غير معدود)', ar: 'a few / a little' },
+      ],
+    },
+    examples: [
+      { en: 'I have *some* good news.', ar: 'عندي أخبار جيدة.' },
+      { en: 'There are *some* apples in the fridge.', ar: 'توجد بعض التفاحات في الثلاجة.' },
+      { en: 'I don’t have *any* money with me.', ar: 'ليس معي أيّ نقود.' },
+      { en: 'Do you have *any* questions?', ar: 'هل لديك أيّ أسئلة؟' },
+      { en: 'She has *many* friends.', ar: 'لديها أصدقاء كثيرون.' },
+      { en: 'How *many* students are there?', ar: 'كم عدد الطلاب؟' },
+      { en: 'We don’t have *much* time.', ar: 'ليس لدينا وقت كثير.' },
+      { en: 'How *much* is this jacket?', ar: 'بكم هذا المعطف؟' },
+      { en: 'There is *a lot of* traffic today.', ar: 'الازدحام كثير اليوم.' },
+      { en: 'He reads *a lot of* books.', ar: 'يقرأ كتبًا كثيرة.' },
+      { en: 'I have *a few* ideas.', ar: 'لديّ أفكار قليلة.' },
+      { en: 'Add *a little* sugar, please.', ar: 'أضف قليلًا من السكر من فضلك.' },
+    ],
+    exercises: [
+      { q: 'some/any: “I have ___ questions.”', a: 'I have *some* questions.' },
+      { q: 'some/any: “I don’t have ___ questions.”', a: 'I don’t have *any* questions.' },
+      { q: 'much/many: “How ___ children do you have?”', a: 'How *many* children do you have?' },
+      { q: 'much/many: “We don’t have ___ water.”', a: 'We don’t have *much* water.' },
+      { q: 'Fix: “She has much friends.”', a: 'She has *many* friends. (or: a lot of friends)' },
+      { q: 'a few / a little: “I need ___ minutes and ___ help.”', a: '*a few* minutes and *a little* help.' },
+    ],
+    reading: {
+      title: 'Shopping for the Weekend', titleAr: 'تسوّق نهاية الأسبوع',
+      passage: [
+        'On Saturday morning I did *some* shopping for the weekend.',
+        'I bought *a lot of* vegetables, *some* fish, and *a few* lemons.',
+        'There wasn’t *much* olive oil at home, so I took two bottles.',
+        'I wanted *some* dates, but the shop didn’t have *any*.',
+        '“How *much* is everything?” I asked. Luckily, it wasn’t *much*!',
+      ],
+      tip: 'some → positive · any → negative/question · many counts, much doesn’t.',
+      tipAr: 'some للإثبات · any للنفي والسؤال · many للمعدود و much لغيره.',
+    },
+    homework: [
+      { en: 'Write 3 sentences with some and 3 with any', ar: 'اكتب ٣ جمل بـ some و٣ بـ any' },
+      { en: 'List 5 countable and 5 uncountable nouns', ar: 'اكتب ٥ أسماء معدودة و٥ غير معدودة' },
+      { en: 'Write about your kitchen with much/many/a lot of', ar: 'اكتب عن مطبخك بكلمات الكمية' },
+    ],
+    editing: {
+      wrong: [
+        'I don’t have some time today.',
+        'How much books did you read this year?',
+        'There are much tourists in Agadir, and I have any friends there.',
+      ],
+      correct: [
+        'I don’t have *any* time today.',
+        'How *many* books did you read this year?',
+        'There are *a lot of* tourists in Agadir, and I have *some* friends there.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 10.5 · PAST CONTINUOUS (A2) ─────────────────────────── */
+  {
+    no: 10.5, cefr: 'A2', tag: 'Past Continuous', tagAr: 'الماضي المستمر',
+    title: 'Past Continuous — what was happening',
+    titleAr: 'الماضي المستمر — ما كان يحدث',
+    objectives: [
+      { en: 'Form: was/were + verb-ing', ar: 'التكوين: was/were + الفعل-ing' },
+      { en: 'Describe a scene in the past', ar: 'وصف مشهد في الماضي' },
+      { en: 'Combine with past simple using when/while', ar: 'الدمج مع الماضي البسيط بـ when/while' },
+      { en: 'Write richer narrative paragraphs', ar: 'كتابة سردٍ أغنى' },
+    ],
+    rule: {
+      en: 'The past continuous (*was/were + verb-ing*) paints the background of a story; the past simple gives the events: “I *was walking* home *when* it *started* to rain.”',
+      ar: 'الماضي المستمر (was/were + الفعل-ing) يرسم خلفية القصة، والماضي البسيط يعطي الأحداث: كنت أمشي عندما بدأ المطر.',
+    },
+    explain: {
+      intro: 'This is the tense that turns a flat story into a scene. Long action in progress → past continuous. Short action that interrupts → past simple.',
+      introAr: 'هذا الزمن يحوّل السرد المسطّح إلى مشهد. الفعل الطويل المستمر ← ماضٍ مستمر، والفعل القصير المقاطِع ← ماضٍ بسيط.',
+      points: [
+        { en: 'Scene: The sun *was shining*. People *were talking*.', ar: 'الخلفية' },
+        { en: '*while* + long action: *While* I was cooking…', ar: 'while مع الطويل' },
+        { en: '*when* + short action: …*when* the phone rang.', ar: 'when مع القصير' },
+        { en: 'I/he/she/it *was* · you/we/they *were*', ar: 'was/were' },
+      ],
+    },
+    form: {
+      affirmative: [
+        'I / He / She / It *was working*.',
+        'You / We / They *were working*.',
+      ],
+      negative: [
+        'I *was not* (wasn’t) working.',
+        'They *were not* (weren’t) working.',
+      ],
+      question: [
+        '*Was* she working? — Yes, she *was*.',
+        '*Were* you sleeping? — No, I *wasn’t*.',
+        'What *were* you doing at 8 pm?',
+      ],
+      note: 'Combine: past continuous (background) + *when* + past simple (event): “We *were eating when* the lights *went* out.”',
+      noteAr: 'الدمج: ماضٍ مستمر (خلفية) + when + ماضٍ بسيط (حدث).',
+    },
+    signals: [
+      { en: 'while', ar: 'بينما' }, { en: 'when', ar: 'عندما' }, { en: 'at 8 o’clock last night', ar: 'في الثامنة ليلة أمس' },
+      { en: 'all day', ar: 'طوال اليوم' }, { en: 'at that moment', ar: 'في تلك اللحظة' },
+    ],
+    examples: [
+      { en: 'I *was studying* at nine last night.', ar: 'كنت أذاكر التاسعة ليلة أمس.' },
+      { en: 'She *was cooking* dinner.', ar: 'كانت تطبخ العشاء.' },
+      { en: 'They *were playing* football all afternoon.', ar: 'كانوا يلعبون الكرة طوال العصر.' },
+      { en: 'The birds *were singing*, and the sun *was rising*.', ar: 'كانت الطيور تغرّد والشمس تشرق.' },
+      { en: 'I *was walking* home *when* it *started* to rain.', ar: 'كنت أمشي عندما بدأ المطر.' },
+      { en: '*While* I *was reading*, the phone *rang*.', ar: 'بينما كنت أقرأ رنّ الهاتف.' },
+      { en: 'He *was driving* fast *when* the police *stopped* him.', ar: 'كان يقود بسرعة عندما أوقفته الشرطة.' },
+      { en: 'We *weren’t sleeping* — we *were watching* a film.', ar: 'لم نكن نائمين بل نشاهد فيلمًا.' },
+      { en: '*Was* she crying? No, she *was laughing*!', ar: 'أكانت تبكي؟ لا، كانت تضحك!' },
+      { en: 'What *were* you *doing* when I called?', ar: 'ماذا كنت تفعل حين اتصلت؟' },
+    ],
+    exercises: [
+      { q: 'Form: “At 7 am I ___ (sleep).”', a: 'At 7 am I *was sleeping*.' },
+      { q: 'Form: “They ___ (work) all night.”', a: 'They *were working* all night.' },
+      { q: 'Combine: “I cooked. The phone rang.” (while)', a: '*While* I *was cooking*, the phone *rang*.' },
+      { q: 'was/were: “___ you waiting for me?”', a: '*Were* you waiting for me?' },
+      { q: 'Fix: “When I saw him, he walked his dog.” (in progress)', a: 'When I saw him, he *was walking* his dog.' },
+    ],
+    reading: {
+      title: 'The Night the Lights Went Out', titleAr: 'ليلة انقطاع الكهرباء',
+      passage: [
+        'It was a normal Tuesday evening at our house.',
+        'My mother *was cooking*, my father *was reading* the news, and I *was doing* my homework.',
+        'Suddenly, the lights *went* out, and the whole street *turned* black.',
+        '*While* we *were looking* for candles, my little brother *started* to laugh in the dark.',
+        'We spent the evening telling stories by candlelight — honestly, it *was* the best Tuesday ever.',
+      ],
+      tip: 'Background = was/were + -ing · sudden events = past simple. That contrast is what makes a story vivid.',
+      tipAr: 'الخلفية ماضٍ مستمر والأحداث المفاجئة ماضٍ بسيط — هذا التباين يصنع حيوية القصة.',
+    },
+    homework: [
+      { en: 'Describe what your family were doing yesterday at 8 pm (4 sentences)', ar: 'صِف ما كانت تفعله عائلتك أمس الثامنة مساءً' },
+      { en: 'Write 3 while/when sentences combining the two past tenses', ar: 'اكتب ٣ جمل بـ while/when' },
+      { en: 'Start a short story with two background sentences', ar: 'ابدأ قصة قصيرة بجملتي خلفية' },
+    ],
+    editing: {
+      wrong: [
+        'While I walked home, I was seeing an accident.',
+        'She were studying when I were calling her.',
+        'The children was playing outside all morning.',
+      ],
+      correct: [
+        'While I *was walking* home, I *saw* an accident.',
+        'She *was* studying when I *called* her.',
+        'The children *were* playing outside all morning.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 11.3 · MODALS (A2) ─────────────────────────── */
+  {
+    no: 11.3, cefr: 'A2', tag: 'Modals', tagAr: 'الأفعال الناقصة',
+    title: 'Modals — can, should, must, have to',
+    titleAr: 'الأفعال الناقصة — can / should / must / have to',
+    objectives: [
+      { en: 'Express ability with can/can’t', ar: 'التعبير عن القدرة بـ can' },
+      { en: 'Give advice with should/shouldn’t', ar: 'تقديم النصيحة بـ should' },
+      { en: 'Express obligation with must / have to', ar: 'التعبير عن الوجوب بـ must/have to' },
+      { en: 'Use modals to write opinions', ar: 'استخدامها في كتابة الرأي' },
+    ],
+    rule: {
+      en: 'Modals come before the *base verb* and never change: “She *can swim*” (NOT cans, NOT to swim). *can* = ability, *should* = advice, *must / have to* = obligation.',
+      ar: 'الأفعال الناقصة تسبق الفعل المجرّد ولا تتغيّر أبدًا: She can swim. — can للقدرة، should للنصيحة، must/have to للوجوب.',
+    },
+    explain: {
+      intro: 'Opinion paragraphs run on modals: “Students *should* sleep early because…”. Master three meanings: ability, advice, obligation.',
+      introAr: 'فقرات الرأي تقوم على الأفعال الناقصة: «على الطلاب أن يناموا مبكرًا لأن…». أتقن المعاني الثلاثة: قدرة، نصيحة، وجوب.',
+      points: [
+        { en: '*can / can’t* = ability: I *can* drive.', ar: 'القدرة' },
+        { en: '*should / shouldn’t* = advice: You *should* rest.', ar: 'النصيحة' },
+        { en: '*must / have to* = obligation: You *must* stop here.', ar: 'الوجوب' },
+        { en: '*mustn’t* = forbidden: You *mustn’t* smoke here.', ar: 'المنع' },
+      ],
+    },
+    form: {
+      affirmative: [
+        'subject + *can / should / must* + base verb',
+        'She *can swim*. · You *should study*. · We *must leave* now.',
+      ],
+      negative: [
+        'I *can’t* come today.',
+        'You *shouldn’t* eat so fast.',
+        'You *mustn’t* park here. (forbidden)',
+      ],
+      question: [
+        '*Can* you help me? — Yes, I *can*.',
+        '*Should* I call him? — Yes, you *should*.',
+      ],
+      note: 'NEVER add -s or “to”: “He can *swim*” — not “He cans swim” ✗, not “He can to swim” ✗.',
+      noteAr: 'لا نضيف -s ولا to أبدًا: He can swim فقط.',
+    },
+    examples: [
+      { en: 'I *can* speak three languages.', ar: 'أستطيع التحدث بثلاث لغات.' },
+      { en: 'She *can’t* come to the meeting.', ar: 'لا تستطيع حضور الاجتماع.' },
+      { en: '*Can* you swim?', ar: 'هل تستطيع السباحة؟' },
+      { en: 'You *should* drink more water.', ar: 'ينبغي أن تشرب ماءً أكثر.' },
+      { en: 'Students *should* review every day.', ar: 'على الطلاب المراجعة يوميًا.' },
+      { en: 'You *shouldn’t* stay up late.', ar: 'لا ينبغي أن تسهر.' },
+      { en: 'Drivers *must* stop at the red light.', ar: 'يجب على السائقين الوقوف عند الإشارة.' },
+      { en: 'I *have to* finish this report today.', ar: 'عليّ إنهاء التقرير اليوم.' },
+      { en: 'You *mustn’t* use your phone in the exam.', ar: 'يُمنع استخدام الهاتف في الامتحان.' },
+      { en: 'In my opinion, children *should* read every night.', ar: 'في رأيي، على الأطفال القراءة كل ليلة.' },
+    ],
+    exercises: [
+      { q: 'can/should/must: “You ___ wear a seatbelt — it’s the law.”', a: 'You *must* wear a seatbelt.' },
+      { q: 'can/should: “I’m tired.” — “You ___ rest.”', a: 'You *should* rest.' },
+      { q: 'Fix: “He cans play the guitar.”', a: 'He *can play* the guitar.' },
+      { q: 'Fix: “She must to study more.”', a: 'She *must study* more.' },
+      { q: 'Make negative (forbidden): “You ___ smoke in the hospital.”', a: 'You *mustn’t* smoke in the hospital.' },
+      { q: 'Opinion: complete “Students ___ sleep early because …”', a: 'Students *should* sleep early because the mind needs rest.' },
+    ],
+    reading: {
+      title: 'Advice for New Learners', titleAr: 'نصائح للمتعلمين الجدد',
+      passage: [
+        'Anyone *can* learn English — age does not matter.',
+        'But learners *should* practice a little every single day.',
+        'You *shouldn’t* wait for the “perfect” moment, because it never comes.',
+        'You *must* accept your mistakes; they are part of the road.',
+        'And remember: you *don’t have to* be fast — you only *have to* keep going.',
+      ],
+      tip: 'can (ability) · should (advice) · must / have to (obligation) — the vocabulary of opinion writing.',
+      tipAr: 'قدرة · نصيحة · وجوب — مفردات كتابة الرأي.',
+    },
+    homework: [
+      { en: 'Write 3 things you can do and 2 you can’t', ar: 'اكتب ٣ أشياء تستطيعها واثنين لا' },
+      { en: 'Give a friend 3 pieces of advice with should', ar: 'قدّم ٣ نصائح بـ should' },
+      { en: 'Write 3 school rules with must / mustn’t', ar: 'اكتب ٣ قوانين مدرسية بـ must/mustn’t' },
+    ],
+    editing: {
+      wrong: [
+        'My sister cans cook very well.',
+        'You should to visit the doctor.',
+        'Students must respects the teacher.',
+      ],
+      correct: [
+        'My sister *can cook* very well.',
+        'You should *visit* the doctor.',
+        'Students must *respect* the teacher.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 11.6 · COMPARATIVES (A2) ─────────────────────────── */
+  {
+    no: 11.6, cefr: 'A2', tag: 'Comparatives', tagAr: 'المقارنة والتفضيل',
+    title: 'Comparatives & Superlatives — bigger, the biggest',
+    titleAr: 'المقارنة والتفضيل — bigger / the biggest',
+    objectives: [
+      { en: 'Compare two things with -er / more', ar: 'المقارنة بين شيئين' },
+      { en: 'Use the -est / the most for the top', ar: 'التفضيل بـ the -est / the most' },
+      { en: 'Spell comparative forms correctly', ar: 'إملاء صيغ المقارنة' },
+      { en: 'Use good→better→best, bad→worse→worst', ar: 'الصيغ الشاذة' },
+    ],
+    rule: {
+      en: 'Short adjectives: add *-er / -est* (old → old*er* → the old*est*). Long adjectives: *more / the most* (+ beautiful). Compare with *than*: “Rabat is smaller *than* Casablanca.”',
+      ar: 'الصفات القصيرة تأخذ -er/-est، والطويلة more/the most. والمقارنة بـ than.',
+    },
+    explain: {
+      intro: 'Descriptive and opinion paragraphs need comparison: bigger, cheaper, the best. Short adjective → -er; three syllables or more → more.',
+      introAr: 'الفقرات الوصفية وفقرات الرأي تحتاج المقارنة: أكبر، أرخص، الأفضل. صفة قصيرة ← -er، وطويلة ← more.',
+      points: [
+        { en: 'Short: old → old*er* than → the old*est*', ar: 'قصيرة' },
+        { en: 'Long: *more* expensive than → *the most* expensive', ar: 'طويلة' },
+        { en: 'Irregular: good→*better*→*best* · bad→*worse*→*worst*', ar: 'شاذّة' },
+        { en: 'Superlative always takes *the*: *the* biggest city', ar: 'التفضيل مع the' },
+      ],
+    },
+    spelling: [
+      { rule: 'Most short adjectives → *-er / -est*', ar: 'الأغلب ← -er/-est', examples: 'old → older → oldest · cheap → cheaper → cheapest' },
+      { rule: 'Ends in -e → just *-r / -st*', ar: 'ينتهي بـ e ← -r/-st', examples: 'nice → nicer → nicest · large → larger → largest' },
+      { rule: 'Consonant + y → *-ier / -iest*', ar: 'ساكن + y ← -ier/-iest', examples: 'happy → happier → happiest · easy → easier → easiest' },
+      { rule: 'Short vowel + consonant → *double* it', ar: 'ضاعف الحرف', examples: 'big → bigger → biggest · hot → hotter → hottest' },
+      { rule: 'Irregular', ar: 'شاذّة', examples: 'good → better → best · bad → worse → worst · far → farther → farthest' },
+    ],
+    examples: [
+      { en: 'My brother is *taller than* me.', ar: 'أخي أطول مني.' },
+      { en: 'This bag is *cheaper than* that one.', ar: 'هذه الحقيبة أرخص من تلك.' },
+      { en: 'Summer is *hotter than* spring.', ar: 'الصيف أحرّ من الربيع.' },
+      { en: 'English is *easier than* I thought.', ar: 'الإنجليزية أسهل مما ظننت.' },
+      { en: 'This hotel is *more expensive than* ours.', ar: 'هذا الفندق أغلى من فندقنا.' },
+      { en: 'Reading is *more useful than* scrolling.', ar: 'القراءة أنفع من التصفح.' },
+      { en: 'Casablanca is *the biggest* city in Morocco.', ar: 'الدار البيضاء أكبر مدينة في المغرب.' },
+      { en: 'She is *the smartest* student in class.', ar: 'هي أذكى طالبة في الصف.' },
+      { en: 'This is *the most beautiful* beach here.', ar: 'هذا أجمل شاطئ هنا.' },
+      { en: 'My results are *better* this month.', ar: 'نتائجي أفضل هذا الشهر.' },
+      { en: 'Yesterday was *the worst* day of the week.', ar: 'الأمس كان أسوأ يوم في الأسبوع.' },
+    ],
+    exercises: [
+      { q: 'Compare: “Rabat / small / Casablanca”', a: 'Rabat is *smaller than* Casablanca.' },
+      { q: 'Superlative: “Nile / long / river in Africa”', a: 'The Nile is *the longest* river in Africa.' },
+      { q: 'Form: “happy → ___ → ___”', a: 'happier → the happiest' },
+      { q: 'Form: “expensive → ___ → ___”', a: 'more expensive → the most expensive' },
+      { q: 'Fix: “This exam is more easy than the last.”', a: 'This exam is *easier* than the last.' },
+      { q: 'Fix: “He is the goodest player.”', a: 'He is *the best* player.' },
+    ],
+    reading: {
+      title: 'Two Cities', titleAr: 'مدينتان',
+      passage: [
+        'People always ask me which city is *better* — Fes or Marrakech.',
+        'Fes is *older* and *quieter*, with *the most beautiful* medina I have ever seen.',
+        'Marrakech is *busier*, *more modern*, and honestly *more expensive*.',
+        'For tourists, Marrakech may be *more exciting*; for history, Fes is *the richest*.',
+        'For me, the answer is simple: home is always *the best* city.',
+      ],
+      tip: 'Short adj + -er/-est · long adj + more/most · good→better→best.',
+      tipAr: 'قصيرة -er/-est · طويلة more/most · good→better→best.',
+    },
+    homework: [
+      { en: 'Compare your city with another (4 sentences)', ar: 'قارن مدينتك بأخرى في ٤ جمل' },
+      { en: 'Write 3 superlatives about your family (the tallest…)', ar: 'اكتب ٣ جمل تفضيل عن عائلتك' },
+      { en: 'Write the 3 forms of: big, easy, good, expensive', ar: 'اكتب الصيغ الثلاث للصفات' },
+    ],
+    editing: {
+      wrong: [
+        'My new phone is more fast than the old one.',
+        'This is the baddest film of the year.',
+        'Fes is one of the most old cities in the world.',
+      ],
+      correct: [
+        'My new phone is *faster* than the old one.',
+        'This is *the worst* film of the year.',
+        'Fes is one of *the oldest* cities in the world.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 12.5 · WORD ORDER (A2) ─────────────────────────── */
+  {
+    no: 12.5, cefr: 'A2', tag: 'Word order', tagAr: 'ترتيب الجملة',
+    title: 'Word Order — Subject → Verb → Object',
+    titleAr: 'ترتيب الجملة — فاعل ثم فعل ثم مفعول',
+    objectives: [
+      { en: 'Build every sentence as S → V → O', ar: 'بناء الجملة: فاعل، فعل، مفعول' },
+      { en: 'Put place BEFORE time at the end', ar: 'المكان قبل الزمان في النهاية' },
+      { en: 'Place frequency adverbs correctly', ar: 'موضع ظروف التكرار' },
+      { en: 'Avoid Arabic verb-first order', ar: 'تجنّب البدء بالفعل كالعربية' },
+    ],
+    rule: {
+      en: 'English order is fixed: *Subject + Verb + Object*, then *place*, then *time*: “I met my friend *at the café* *yesterday*.” Arabic often starts with the verb — English almost never does.',
+      ar: 'ترتيب الإنجليزية ثابت: فاعل + فعل + مفعول، ثم المكان، ثم الزمان. العربية كثيرًا ما تبدأ بالفعل — الإنجليزية لا تفعل تقريبًا.',
+    },
+    explain: {
+      intro: '“ذهب أحمد إلى السوق أمس” starts with the verb. In English the subject ALWAYS comes first: “Ahmed went to the market yesterday.” Fix this reflex and half your sentence errors disappear.',
+      introAr: 'العربية تقول «ذهب أحمد…» بالفعل أولًا. الإنجليزية تبدأ بالفاعل دائمًا: Ahmed went… صحّح هذا الانعكاس ونصف أخطائك سيختفي.',
+      points: [
+        { en: 'S+V+O: *Ahmed* (S) *bought* (V) *bread* (O).', ar: 'فاعل فعل مفعول' },
+        { en: 'Place before time: …*at home* *last night*.', ar: 'المكان قبل الزمان' },
+        { en: 'Frequency adverb BEFORE the main verb: I *always* drink tea.', ar: 'ظرف التكرار قبل الفعل' },
+        { en: '…but AFTER be: She is *always* late.', ar: 'وبعد فعل الكينونة' },
+      ],
+    },
+    form: {
+      affirmative: [
+        '*Subject* + *Verb* + *Object*: Sara reads books.',
+        '+ place + time: Sara reads books *in the library* *every evening*.',
+      ],
+      negative: [
+        'Keep the order, add the negative: Sara *doesn’t read* magazines at home.',
+      ],
+      question: [
+        'Question word + auxiliary + S + V: *Where does* Sara read? · *When did* you arrive?',
+      ],
+      note: 'Time can also open the sentence with a comma: “*Yesterday,* I met my friend at the café.” But NEVER start with the verb.',
+      noteAr: 'يمكن أن يبدأ الزمان الجملة مع فاصلة: Yesterday, … لكن لا تبدأ بالفعل أبدًا.',
+    },
+    examples: [
+      { en: '*Ahmed went* to the market yesterday.', ar: 'ذهب أحمد إلى السوق أمس.' },
+      { en: '*My mother makes* couscous on Fridays.', ar: 'تعدّ أمي الكسكس أيام الجمعة.' },
+      { en: '*The students finished* the exam at noon.', ar: 'أنهى الطلاب الامتحان ظهرًا.' },
+      { en: 'I met my friend *at the café* *yesterday*.', ar: 'قابلت صديقي في المقهى أمس.' },
+      { en: 'She studies English *at home* *every evening*.', ar: 'تدرس الإنجليزية في البيت كل مساء.' },
+      { en: 'We played football *in the park* *last Sunday*.', ar: 'لعبنا الكرة في المنتزه الأحد الماضي.' },
+      { en: 'I *always* drink tea in the morning.', ar: 'أشرب الشاي دائمًا صباحًا.' },
+      { en: 'He *usually* walks to work.', ar: 'يمشي عادةً إلى العمل.' },
+      { en: 'She is *never* late.', ar: 'لا تتأخّر أبدًا.' },
+      { en: '*Yesterday,* we visited our grandparents.', ar: 'أمس زرنا جدّينا.' },
+    ],
+    exercises: [
+      { q: 'Order: “went / to school / Omar / this morning”', a: '*Omar went to school this morning.*' },
+      { q: 'Order: “couscous / makes / on Fridays / my mother”', a: '*My mother makes couscous on Fridays.*' },
+      { q: 'Fix (verb first): “Visited my uncle us last week.”', a: 'My uncle *visited us* last week.' },
+      { q: 'Place & time: “I saw him ___” (at the mosque / on Friday)', a: 'I saw him *at the mosque on Friday*.' },
+      { q: 'Adverb position: “late / She / is / always”', a: 'She is *always* late.' },
+      { q: 'Adverb position: “tea / I / drink / usually / in the morning”', a: 'I *usually* drink tea in the morning.' },
+    ],
+    reading: {
+      title: 'A Friday at Home', titleAr: 'جمعة في البيت',
+      passage: [
+        '*My family gathers* at my grandmother’s house *every Friday*.',
+        '*My mother and aunts prepare* couscous *in the big kitchen* *in the morning*.',
+        '*We eat* together *around one large table* *after the prayer*.',
+        'The children *always* play *in the courtyard* *in the afternoon*.',
+        '*Yesterday,* my grandmother told us stories about her childhood — nobody wanted to leave.',
+      ],
+      tip: 'Every sentence: subject first, then verb, then object — place before time at the end.',
+      tipAr: 'كل جملة: الفاعل أولًا ثم الفعل ثم المفعول — والمكان قبل الزمان.',
+    },
+    homework: [
+      { en: 'Write 5 S+V+O sentences about your day (add place + time)', ar: 'اكتب ٥ جمل بالترتيب الصحيح' },
+      { en: 'Translate 3 Arabic verb-first sentences into English order', ar: 'ترجم ٣ جمل عربية تبدأ بالفعل' },
+      { en: 'Write 3 sentences with always/usually/never in position', ar: 'اكتب ٣ جمل بظروف التكرار' },
+    ],
+    editing: {
+      wrong: [
+        'Went my father to the mosque on Friday.',
+        'I drink always coffee in the morning.',
+        'We visited last summer our cousins in Tangier.',
+      ],
+      correct: [
+        '*My father went* to the mosque on Friday.',
+        'I *always drink* coffee in the morning.',
+        'We visited our cousins *in Tangier last summer*.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 16.5 · RELATIVE CLAUSES (B1) ─────────────────────────── */
+  {
+    no: 16.5, cefr: 'B1', tag: 'Relative clauses', tagAr: 'جمل الوصل',
+    title: 'Relative Clauses — who, which, that',
+    titleAr: 'جمل الوصل — who / which / that',
+    objectives: [
+      { en: 'Describe people with who', ar: 'وصف الأشخاص بـ who' },
+      { en: 'Describe things with which/that', ar: 'وصف الأشياء بـ which/that' },
+      { en: 'Combine two short sentences into one', ar: 'دمج جملتين قصيرتين في واحدة' },
+      { en: 'Write longer, richer sentences', ar: 'كتابة جمل أطول وأغنى' },
+    ],
+    rule: {
+      en: 'A relative clause adds information about a noun: *who* for people, *which/that* for things: “The teacher *who taught me* English lives here.”',
+      ar: 'جملة الوصل تضيف معلومة عن الاسم: who للأشخاص و which/that للأشياء.',
+    },
+    explain: {
+      intro: 'This is how sentences grow up. Instead of two short sentences, one rich sentence: “I have a friend. He lives in Dubai.” → “I have a friend *who lives in Dubai*.”',
+      introAr: 'هكذا تنضج الجمل. بدل جملتين قصيرتين، جملة واحدة غنية: «لي صديق يعيش في دبي».',
+      points: [
+        { en: '*who* = a person: the man *who* helped me', ar: 'who للعاقل' },
+        { en: '*which / that* = a thing: the book *that* I read', ar: 'which/that لغير العاقل' },
+        { en: '*where* = a place: the café *where* we met', ar: 'where للمكان' },
+        { en: 'The clause sits right AFTER the noun it describes', ar: 'بعد الاسم مباشرة' },
+      ],
+    },
+    form: {
+      affirmative: [
+        'noun (person) + *who* + verb…: the woman *who lives* next door',
+        'noun (thing) + *which/that* + verb…: the film *that won* the prize',
+        'noun (place) + *where* + clause: the city *where I was born*',
+      ],
+      negative: [
+        'Use the normal negative inside: a man *who doesn’t like* noise',
+      ],
+      question: [
+        'Who is the person *who called* you?',
+        'Is this the bag *that you lost*?',
+      ],
+      note: 'Do NOT repeat the pronoun: “the book that I read *it*” ✗ → “the book that I read” ✓ (Arabic adds a pronoun — English doesn’t).',
+      noteAr: 'لا تكرّر الضمير: نقول the book that I read وليس …that I read it — فالعربية تضيف ضميرًا والإنجليزية لا.',
+    },
+    examples: [
+      { en: 'I have a friend *who lives* in Dubai.', ar: 'لي صديق يعيش في دبي.' },
+      { en: 'She is the doctor *who helped* my father.', ar: 'هي الطبيبة التي ساعدت أبي.' },
+      { en: 'People *who exercise* live longer.', ar: 'من يمارسون الرياضة يعيشون أطول.' },
+      { en: 'This is the book *that changed* my life.', ar: 'هذا الكتاب الذي غيّر حياتي.' },
+      { en: 'The phone *which I bought* is excellent.', ar: 'الهاتف الذي اشتريته ممتاز.' },
+      { en: 'I love food *that my mother makes*.', ar: 'أحب الطعام الذي تعدّه أمي.' },
+      { en: 'Fes is the city *where I was born*.', ar: 'فاس هي المدينة التي وُلدت فيها.' },
+      { en: 'That is the café *where we first met*.', ar: 'ذلك المقهى حيث التقينا أول مرة.' },
+      { en: 'The students *who study daily* pass easily.', ar: 'الطلاب الذين يدرسون يوميًا ينجحون بسهولة.' },
+      { en: 'A dictionary is a book *that explains* words.', ar: 'القاموس كتاب يشرح الكلمات.' },
+    ],
+    exercises: [
+      { q: 'Combine: “I met a woman. She speaks five languages.”', a: 'I met a woman *who speaks* five languages.' },
+      { q: 'Combine: “This is the film. It won the prize.”', a: 'This is the film *that won* the prize.' },
+      { q: 'who/which: “The man ___ called you is my uncle.”', a: 'The man *who* called you is my uncle.' },
+      { q: 'who/which: “The keys ___ were lost are here.”', a: 'The keys *which/that* were lost are here.' },
+      { q: 'Fix: “The book that I read it was great.”', a: 'The book that I read was great. *(no “it”)*' },
+      { q: 'where: “Rabat is the city ___ I studied.”', a: 'Rabat is the city *where* I studied.' },
+    ],
+    reading: {
+      title: 'The Teacher Who Changed Me', titleAr: 'المعلّم الذي غيّرني',
+      passage: [
+        'Everyone has a person *who changed* their life; mine was a teacher.',
+        'Mr. Idrissi was a quiet man *who believed* in slow, daily progress.',
+        'He gave me a notebook *that became* my best friend for a whole year.',
+        'The classroom *where we studied* was old, but the ideas inside it were new.',
+        'People *who plant* patience, he always said, harvest confidence.',
+      ],
+      tip: 'who (people) · that/which (things) · where (places) — right after the noun, and never repeat the pronoun.',
+      tipAr: 'who للأشخاص · that/which للأشياء · where للأماكن — بعد الاسم مباشرة وبلا ضمير مكرّر.',
+    },
+    homework: [
+      { en: 'Combine 4 pairs of short sentences with who/that', ar: 'ادمج ٤ أزواج من الجمل' },
+      { en: 'Describe 3 people you know with “who” clauses', ar: 'صِف ٣ أشخاص بجمل who' },
+      { en: 'Write 2 sentences with “where” about places you love', ar: 'اكتب جملتين بـ where' },
+    ],
+    editing: {
+      wrong: [
+        'My aunt is the person which taught me cooking.',
+        'The car who is parked outside is my brother’s.',
+        'This is the house that I grew up in it.',
+      ],
+      correct: [
+        'My aunt is the person *who* taught me cooking.',
+        'The car *that/which* is parked outside is my brother’s.',
+        'This is the house that I grew up in. *(no “it”)*',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 22.5 · EXPANDING YOUR PARAGRAPH (B1 · studio) ─────────────────────────── */
+  {
+    no: 22.5, cefr: 'B1', tag: 'Expanding', tagAr: 'توسيع الفقرة',
+    title: 'Expanding Your Paragraph — from 4 sentences to 8+',
+    titleAr: 'توسيع الفقرة — من ٤ جمل إلى ٨ فأكثر',
+    objectives: [
+      { en: 'Grow every support with a reason, example, or detail', ar: 'تنمية كل جملة داعمة بسبب أو مثال أو تفصيل' },
+      { en: 'Use the R.E.D. method: Reason, Example, Detail', ar: 'استخدام منهج R.E.D.' },
+      { en: 'Keep the long paragraph on ONE topic', ar: 'إبقاء الفقرة الطويلة في موضوع واحد' },
+      { en: 'Write a full 8–10 sentence paragraph', ar: 'كتابة فقرة من ٨–١٠ جمل' },
+    ],
+    rule: {
+      en: 'A LONG paragraph is a short one where every supporting sentence is *expanded*: after each support, add a *Reason* (because…), an *Example* (for example…), or a *Detail*. That is the R.E.D. method.',
+      ar: 'الفقرة الطويلة هي فقرة قصيرة وُسِّعت كل جملة داعمة فيها: بعد كل دعم أضف سببًا (because) أو مثالًا (for example) أو تفصيلًا. هذا منهج R.E.D.',
+    },
+    studio: {
+      prompt: { en: 'Take a 4-sentence paragraph you wrote before and expand it to 8–10 sentences with R.E.D.', ar: 'خذ فقرة من ٤ جمل كتبتها سابقًا ووسّعها إلى ٨–١٠ جمل بمنهج R.E.D.' },
+      model: {
+        title: 'Before → After (watch it grow)', titleAr: 'قبل ← بعد (شاهدها تنمو)',
+        parts: [
+          { role: 'topic', en: 'Reading every day changed my life.' },
+          { role: 'support', en: 'First, it improved my language,' },
+          { role: 'support', en: 'because every book taught me tens of new words. (REASON)' },
+          { role: 'support', en: 'For example, I learned most of my English vocabulary from short stories. (EXAMPLE)' },
+          { role: 'support', en: 'Second, reading calms my mind.' },
+          { role: 'support', en: 'After a stressful day, twenty quiet minutes with a book feel like a holiday. (DETAIL)' },
+          { role: 'support', en: 'Finally, it made me a more interesting person,' },
+          { role: 'support', en: 'because I always have a story or an idea to share with my friends. (REASON)' },
+          { role: 'conclusion', en: 'In short, a few pages a day quietly rebuilt my whole world.' },
+        ],
+      },
+      plan: [
+        { label: 'Topic sentence', ar: 'الجملة الموضوعية' },
+        { label: 'Support 1 + its Reason or Example', ar: 'دعم ١ + سببه أو مثاله' },
+        { label: 'Support 2 + its Detail', ar: 'دعم ٢ + تفصيله' },
+        { label: 'Support 3 + its Reason or Example', ar: 'دعم ٣ + سببه أو مثاله' },
+        { label: 'Concluding sentence', ar: 'جملة الخاتمة' },
+      ],
+      toolkit: [
+        { group: 'Add a REASON', ar: 'أضف سببًا', phrases: ['because …', 'since …', 'This is because …', 'The reason is that …'] },
+        { group: 'Add an EXAMPLE', ar: 'أضف مثالًا', phrases: ['For example, …', 'For instance, …', 'such as …', 'Once, …'] },
+        { group: 'Add a DETAIL', ar: 'أضف تفصيلًا', phrases: ['In fact, …', 'Specifically, …', 'What is more, …', 'This means that …'] },
+      ],
+      steps: [
+        { en: 'Copy your short paragraph (topic + 3 supports + conclusion).', ar: 'انسخ فقرتك القصيرة.' },
+        { en: 'After support 1, add a REASON with “because”.', ar: 'بعد الدعم الأول أضف سببًا بـ because.' },
+        { en: 'After support 2, add an EXAMPLE with “For example”.', ar: 'بعد الدعم الثاني أضف مثالًا.' },
+        { en: 'After support 3, add a DETAIL that paints a picture.', ar: 'بعد الدعم الثالث أضف تفصيلًا مصوِّرًا.' },
+        { en: 'Read it aloud — cut anything that leaves the topic.', ar: 'اقرأها بصوتٍ عالٍ واحذف ما يخرج عن الموضوع.' },
+      ],
+      checklist: [
+        { en: '8–10 sentences, ONE topic', ar: '٨–١٠ جمل وموضوع واحد' },
+        { en: 'Every support has a Reason, Example, or Detail', ar: 'كل دعم معه R أو E أو D' },
+        { en: 'Linking words vary (because / for example / in fact)', ar: 'أدوات الربط متنوّعة' },
+        { en: 'Sentence types vary (simple + compound + complex)', ar: 'أنواع الجمل متنوّعة' },
+        { en: 'Capitals, commas, and end marks are correct', ar: 'الحروف والفواصل والعلامات سليمة' },
+      ],
+    },
+    homework: [
+      { en: 'Expand your “My City” paragraph to 8+ sentences with R.E.D.', ar: 'وسّع فقرة «مدينتي» إلى ٨ جمل فأكثر' },
+      { en: 'Underline each Reason, Example, and Detail you added', ar: 'ضع خطًا تحت كل سبب ومثال وتفصيل' },
+      { en: 'Ask: does every sentence still serve the topic?', ar: 'اسأل: هل كل جملة تخدم الموضوع؟' },
+    ],
   },
 ]

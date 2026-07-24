@@ -49,16 +49,17 @@ const SYLLABUS: UnitDef[] = [
   ] },
   { en: 'Unit 2 · Words, Tenses & Agreement', short: 'Words & Verbs', ar: 'الوحدة ٢ · الكلمات والأزمنة', cefr: 'A1–A2', modules: [
     { en: 'Nouns & People', ar: 'الأسماء والأشخاص', from: 6, to: 8 },
-    { en: 'Verb Tenses', ar: 'أزمنة الأفعال', from: 10, to: 10.8 },
-    { en: 'Agreement & Prepositions', ar: 'التطابق وحروف الجر', from: 10.9, to: 11 },
+    { en: 'Pronouns & Adjectives', ar: 'الضمائر والصفات', from: 8.2, to: 9.9 },
+    { en: 'Verb Tenses', ar: 'أزمنة الأفعال', from: 10, to: 10.85 },
+    { en: 'Agreement, Modals & Comparing', ar: 'التطابق والأفعال الناقصة والمقارنة', from: 10.9, to: 11.9 },
   ] },
   { en: 'Unit 3 · Building Sentences', short: 'Sentences', ar: 'الوحدة ٣ · بناء الجمل', cefr: 'A2', modules: [
     { en: 'Complete Sentences', ar: 'الجمل الكاملة', from: 12, to: 13 },
-    { en: 'Joining Ideas', ar: 'ربط الأفكار', from: 14, to: 16 },
+    { en: 'Joining Ideas', ar: 'ربط الأفكار', from: 14, to: 16.5 },
     { en: 'Punctuation & Style', ar: 'الترقيم والأسلوب', from: 17, to: 20 },
   ] },
   { en: 'Unit 4 · Writing Paragraphs', short: 'Paragraphs', ar: 'الوحدة ٤ · كتابة الفقرات', cefr: 'B1', modules: [
-    { en: 'Paragraph Structure', ar: 'بنية الفقرة', from: 21, to: 22 },
+    { en: 'Paragraph Structure', ar: 'بنية الفقرة', from: 21, to: 22.6 },
     { en: 'Writing & Polishing', ar: 'الكتابة والصقل', from: 23, to: 25 },
   ] },
 ]
