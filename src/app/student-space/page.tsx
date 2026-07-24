@@ -18,6 +18,7 @@ import { checkCertificates, CERT_KIND_AR, type StudentCert } from '@/lib/certifi
 import { openLesson, completeLesson, fetchStudentResources, resourceUrl, fetchProgressMeta, fetchReadingUnits, fetchMySubmissions, fetchUnitExams, fetchNotifications, markNotificationsRead, EXAMS_URL, CORRECTOR_WHATSAPP, type CourseResource, type ProgressMeta, type UnitSubmission, type StudentNotification } from '@/lib/lms'
 import VideoPlayer from '@/components/VideoPlayer'
 import InstallAppBanner from '@/components/InstallAppBanner'
+import EnableNotifications from '@/components/EnableNotifications'
 import QuizRunner from '@/components/QuizRunner'
 import UnitExamRunner from '@/components/UnitExamRunner'
 import ReadingViewer from '@/components/ReadingViewer'
@@ -554,6 +555,7 @@ function Portal() {
       ['--ic-cream' as string]: theme.cream, ['--ic-gold' as string]: theme.gold, ['--ic-gold-soft' as string]: theme.goldSoft,
       ['--ic-grad-from' as string]: theme.grad[0], ['--ic-grad-to' as string]: theme.grad[1],
     } as React.CSSProperties}>
+      {!demo && token && !overlayOpen && <EnableNotifications token={token} />}
       {/* ─── Anti-sharing watermark: two faint labels gently floating, traceable ─── */}
       <div className="pointer-events-none fixed inset-0 z-[5] overflow-hidden select-none" aria-hidden>
         <span className="absolute top-0 right-0 text-[12px] font-bold text-black/[0.07] whitespace-nowrap wm-drift-a">{s.full_name} · {s.verification_token}</span>

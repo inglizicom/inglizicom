@@ -19,6 +19,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Megaphone, Loader2, Users, UserPlus, Filter, Send, MessageCircle,
   CheckCircle2, XCircle, ExternalLink, History, ChevronDown, Sparkles, AlertTriangle,
+  Bell, Image as ImageIcon, Link2, Smartphone,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import {
@@ -78,6 +79,16 @@ export default function BroadcastPage() {
   const [history, setHistory] = useState<BroadcastRow[]>([])
   const [showHistory, setShowHistory] = useState(false)
   const msgRef = useRef<HTMLTextAreaElement>(null)
+  // ── app-push channel ──
+  const [channel, setChannel] = useState<'whatsapp' | 'push'>('whatsapp')
+  const [pushReady, setPushReady] = useState(false)
+  const [pushDevices, setPushDevices] = useState<number | null>(null)
+  const [pTitle, setPTitle] = useState('')
+  const [pBody, setPBody] = useState('')
+  const [pImage, setPImage] = useState('')
+  const [pUrl, setPUrl] = useState('')
+  const [pSending, setPSending] = useState(false)
+  const [pResult, setPResult] = useState<{ total: number; sent: number; failed: number } | null>(null)
 
   const selected = useMemo(() => recipients.filter(r => !excluded.has(r.phone)), [recipients, excluded])
 
@@ -100,6 +111,41 @@ export default function BroadcastPage() {
     setHistory((data ?? []) as BroadcastRow[])
   }
   useEffect(() => { if (showHistory) loadHistory() }, [showHistory])
+
+  /* ── app-push: count matching devices when the push channel is active ── */
+  const pseq = useRef(0)
+  useEffect(() => {
+    if (channel !== 'push') return
+    const mine = ++pseq.current
+    setPushDevices(null)
+    const t = setTimeout(async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      fetch('/api/push/send', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}` }, body: JSON.stringify({ mode: 'count', filters }) })
+        .then(async r => {
+          const j = await r.json().catch(() => ({}))
+          if (pseq.current !== mine) return
+          setPushDevices(typeof j.total === 'number' ? j.total : 0)
+          setPushReady(!!j.pushConfigured)
+        }).catch(() => { if (pseq.current === mine) setPushDevices(0) })
+    }, 350)
+    return () => clearTimeout(t)
+  }, [channel, filters])
+
+  async function sendPush() {
+    setPSending(true); setError(null); setPResult(null)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      const res = await fetch('/api/push/send', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ mode: 'send', filters, title: pTitle, body: pBody, image: pImage, url: pUrl }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(j?.error ?? 'فشل الإرسال.')
+      setPResult({ total: j.total ?? 0, sent: j.sent ?? 0, failed: j.failed ?? 0 })
+    } catch (e) { setError((e as Error).message) }
+    setPSending(false)
+  }
 
   function insertToken(tok: string) {
     const el = msgRef.current
@@ -158,12 +204,30 @@ export default function BroadcastPage() {
         </button>
       </div>
 
-      {/* channel banner */}
-      <div className={`flex items-start gap-2 rounded-xl px-4 py-3 text-[12px] font-semibold ${waReady ? 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200' : 'bg-amber-50 text-amber-800 ring-1 ring-amber-200'}`}>
-        {waReady
-          ? <><CheckCircle2 size={15} className="mt-0.5 shrink-0" /> Cloud API مفعّل — الإرسال يتم تلقائيًا دفعة واحدة عبر قالب واتساب المعتمد.</>
-          : <><AlertTriangle size={15} className="mt-0.5 shrink-0" /><span>واجهة Cloud API غير مهيّأة بعد، لذلك سنستخدم <b>قائمة الروابط</b>: رسالة مكتوبة مسبقًا لكل شخص، تفتحها وتضغط إرسال واحدًا تلو الآخر. عند إضافة WHATSAPP_TOKEN و WHATSAPP_PHONE_ID (+ قالب معتمد) يتحوّل الإرسال إلى تلقائي بالكامل.</span></>}
+      {/* channel switch */}
+      <div className="flex gap-1.5">
+        {([['whatsapp', 'واتساب', MessageCircle], ['push', 'إشعار التطبيق', Bell]] as [typeof channel, string, typeof Bell][]).map(([id, label, Icon]) => (
+          <button key={id} onClick={() => setChannel(id)}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-[13px] font-black transition ${channel === id ? 'bg-zinc-900 text-white' : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'}`}>
+            <Icon size={15} /> {label}
+          </button>
+        ))}
       </div>
+
+      {/* channel banner */}
+      {channel === 'whatsapp' ? (
+        <div className={`flex items-start gap-2 rounded-xl px-4 py-3 text-[12px] font-semibold ${waReady ? 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200' : 'bg-amber-50 text-amber-800 ring-1 ring-amber-200'}`}>
+          {waReady
+            ? <><CheckCircle2 size={15} className="mt-0.5 shrink-0" /> Cloud API مفعّل — الإرسال يتم تلقائيًا دفعة واحدة عبر قالب واتساب المعتمد.</>
+            : <><AlertTriangle size={15} className="mt-0.5 shrink-0" /><span>واجهة Cloud API غير مهيّأة بعد، لذلك سنستخدم <b>قائمة الروابط</b>: رسالة مكتوبة مسبقًا لكل شخص، تفتحها وتضغط إرسال واحدًا تلو الآخر. عند إضافة WHATSAPP_TOKEN و WHATSAPP_PHONE_ID (+ قالب معتمد) يتحوّل الإرسال إلى تلقائي بالكامل.</span></>}
+        </div>
+      ) : (
+        <div className={`flex items-start gap-2 rounded-xl px-4 py-3 text-[12px] font-semibold ${pushReady ? 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200' : 'bg-amber-50 text-amber-800 ring-1 ring-amber-200'}`}>
+          {pushReady
+            ? <><CheckCircle2 size={15} className="mt-0.5 shrink-0" /> إشعارات التطبيق مفعّلة — تصل الطلاب الذين ثبّتوا التطبيق وفعّلوا الإشعارات، حتى خارج التطبيق. (الطلاب فقط — العملاء المحتملون لا يملكون التطبيق.)</>
+            : <><AlertTriangle size={15} className="mt-0.5 shrink-0" /><span>مفاتيح VAPID غير مهيّأة على الخادم بعد. أضف <b>NEXT_PUBLIC_VAPID_PUBLIC_KEY</b> و <b>VAPID_PRIVATE_KEY</b> إلى إعدادات Vercel ثم أعد النشر لتفعيل الإرسال.</span></>}
+        </div>
+      )}
 
       {/* history */}
       {showHistory && (
@@ -290,6 +354,60 @@ export default function BroadcastPage() {
         </div>
 
         {/* ══ compose + send ══ */}
+        {channel === 'push' ? (
+          <div className="space-y-3">
+            <div className="rounded-xl border border-zinc-200 bg-white p-4 space-y-3">
+              <div className="flex items-center gap-1.5 text-[13px] font-black text-zinc-800"><Bell size={14} className="text-yellow-600" /> إشعار التطبيق</div>
+              <input value={pTitle} onChange={e => setPTitle(e.target.value)} placeholder="العنوان — مثال: درس جديد متاح! 🎉" className={INP} />
+              <textarea value={pBody} onChange={e => setPBody(e.target.value)} rows={3} placeholder="نص الإشعار — قصير وواضح…" className={INP + ' resize-y leading-relaxed'} />
+              <div className="flex items-center gap-2 rounded-lg border border-zinc-200 px-2.5" dir="ltr">
+                <ImageIcon size={14} className="text-zinc-400 shrink-0" />
+                <input value={pImage} onChange={e => setPImage(e.target.value)} placeholder="رابط صورة (اختياري) — https://…" className="w-full py-2 text-[13px] bg-transparent focus:outline-none" dir="ltr" />
+              </div>
+              <div className="flex items-center gap-2 rounded-lg border border-zinc-200 px-2.5" dir="ltr">
+                <Link2 size={14} className="text-zinc-400 shrink-0" />
+                <input value={pUrl} onChange={e => setPUrl(e.target.value)} placeholder="رابط عند الضغط (فيديو/صفحة) — https://…" className="w-full py-2 text-[13px] bg-transparent focus:outline-none" dir="ltr" />
+              </div>
+              <p className="text-[11px] text-zinc-400 leading-relaxed">
+                يظهر الإشعار كنص + صورة كبيرة، والضغط عليه يفتح الرابط. الفيديو يُرسَل كصورة مصغّرة يفتح الضغط عليها الفيديو (لا يوجد نظام تشغيل يعرض الفيديو داخل الإشعار).
+              </p>
+            </div>
+
+            {/* phone preview */}
+            {(pTitle || pBody) && (
+              <div className="rounded-xl bg-zinc-900 p-4">
+                <div className="flex items-start gap-2.5 rounded-xl bg-white p-3">
+                  <div className="w-9 h-9 rounded-lg bg-yellow-400 text-zinc-900 flex items-center justify-center shrink-0 font-black">إن</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[13px] font-black text-zinc-900 truncate">{pTitle || 'Inglizi'}</div>
+                    <div className="text-[12px] text-zinc-600 leading-snug line-clamp-3">{pBody}</div>
+                    {pImage && <div className="mt-2 rounded-lg overflow-hidden bg-zinc-100 h-24 flex items-center justify-center text-[11px] text-zinc-400">{/* eslint-disable-next-line @next/next/no-img-element */}<img src={pImage} alt="" className="w-full h-full object-cover" onError={e => { (e.currentTarget.style.display = 'none') }} /></div>}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="rounded-xl border border-zinc-200 bg-white p-4 space-y-3">
+              {error && <div className="flex items-center gap-2 text-[12px] font-bold text-red-600 bg-red-50 rounded-lg px-3 py-2"><XCircle size={14} /> {error}</div>}
+              {pResult && (
+                <div className="rounded-xl bg-emerald-50 ring-1 ring-emerald-200 px-4 py-3 text-[13px] font-bold text-emerald-800">
+                  <CheckCircle2 size={15} className="inline ml-1" /> وصل الإشعار إلى {pResult.sent} / {pResult.total} جهاز{pResult.failed > 0 && <span className="text-zinc-500"> · {pResult.failed} فشلت</span>}
+                </div>
+              )}
+              <div className="flex items-center justify-between text-[12px] font-bold text-zinc-500">
+                <span className="flex items-center gap-1.5"><Smartphone size={14} /> الأجهزة المستهدفة</span>
+                <span className="text-zinc-900">{pushDevices == null ? <Loader2 size={13} className="animate-spin inline" /> : pushDevices}</span>
+              </div>
+              <button disabled={pSending || !pushReady || (!pTitle && !pBody) || !pushDevices}
+                onClick={sendPush}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-zinc-900 text-white font-black text-[14px] py-3 hover:bg-zinc-700 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                {pSending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                {pSending ? 'جارٍ الإرسال…' : `إرسال إلى ${pushDevices ?? 0} جهاز`}
+              </button>
+              {pushDevices === 0 && pushReady && <p className="text-[11px] text-zinc-400 leading-relaxed">لا توجد أجهزة مطابقة بعد — يظهر الطلاب هنا بعد أن يثبّتوا التطبيق ويفعّلوا الإشعارات من داخله.</p>}
+            </div>
+          </div>
+        ) : (
         <div className="space-y-3">
           <div className="rounded-xl border border-zinc-200 bg-white p-4 space-y-3">
             <div className="flex items-center gap-1.5 text-[13px] font-black text-zinc-800"><MessageCircle size={14} className="text-yellow-600" /> الرسالة</div>
@@ -376,6 +494,7 @@ export default function BroadcastPage() {
             </p>
           </div>
         </div>
+        )}
       </div>
     </div>
   )

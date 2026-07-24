@@ -8,7 +8,7 @@
  * Bump VERSION to invalidate everything after a big change.
  */
 
-const VERSION = 'v3'
+const VERSION = 'v4'
 const STATIC_CACHE = `inglizi-static-${VERSION}`
 const PAGES_CACHE = `inglizi-pages-${VERSION}`
 const PRECACHE = ['/offline', '/manifest.webmanifest', '/icons/icon-192.png', '/icons/icon-512.png']
@@ -79,4 +79,55 @@ self.addEventListener('fetch', e => {
         })
     )
   }
+})
+
+/* ── Web push (notifications outside the app) ──────────────────────────────
+ * Payload (JSON) sent by /api/push/send:
+ *   { title, body, icon?, image?, url?, tag? }
+ * OS reality: notifications show text + one big image + open a link on tap.
+ * "Video" arrives as a thumbnail image whose link opens the video. */
+self.addEventListener('push', event => {
+  let d = {}
+  try { d = event.data ? event.data.json() : {} } catch { d = { body: event.data && event.data.text() } }
+  const title = d.title || 'Inglizi'
+  const options = {
+    body: d.body || '',
+    icon: d.icon || '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
+    image: d.image || undefined,          // large image (Android; ignored on some platforms)
+    dir: 'rtl',
+    lang: 'ar',
+    tag: d.tag || undefined,              // same tag → replaces instead of stacking
+    renotify: !!d.tag,
+    data: { url: d.url || '/' },
+    requireInteraction: false,
+  }
+  event.waitUntil(self.registration.showNotification(title, options))
+})
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close()
+  const url = (event.notification.data && event.notification.data.url) || '/'
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      // focus an open tab on the same origin if we have one, else open a new one
+      for (const c of list) {
+        if ('focus' in c) { c.navigate(url).catch(() => {}); return c.focus() }
+      }
+      return self.clients.openWindow(url)
+    })
+  )
+})
+
+// If the browser rotates the subscription, keep the server in sync.
+self.addEventListener('pushsubscriptionchange', event => {
+  event.waitUntil((async () => {
+    try {
+      const sub = await self.registration.pushManager.getSubscription()
+      if (sub) await fetch('/api/push/subscribe', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscription: sub, resubscribe: true }),
+      })
+    } catch { /* best effort */ }
+  })())
 })

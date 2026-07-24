@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { sendByKind, waConfigured } from '@/lib/whatsapp'
+import { pushConfigured, sendOne, type SubRow } from '@/lib/push-server'
 
 /* Daily reminder job (Vercel Cron). For every active enrolled student who hasn't
    finished, drops an in-app notification (once/day) and sends a WhatsApp nudge.
@@ -33,8 +34,23 @@ export async function GET(req: Request) {
 
   const today = new Date(); today.setHours(0, 0, 0, 0)
   const DAY = 86400000
-  let created = 0, sent = 0, deadlines = 0
+  let created = 0, sent = 0, deadlines = 0, pushed = 0
   const list = (students ?? []) as any[]
+
+  // Send an app-push to all of one student's devices (Duolingo-style); prune dead.
+  async function pushStudent(db: SupabaseClient, studentId: string, title: string, body: string) {
+    if (!pushConfigured()) return
+    const { data } = await db.from('push_subscriptions').select('id, endpoint, p256dh, auth').eq('student_id', studentId)
+    const subs = (data ?? []) as SubRow[]
+    if (!subs.length) return
+    const dead: string[] = []
+    for (const s of subs) {
+      const r = await sendOne(s, { title, body, url: '/', tag: 'daily' })
+      if (r === 'ok') pushed++
+      else if (r === 'gone') dead.push(s.id)
+    }
+    if (dead.length) await db.from('push_subscriptions').delete().in('id', dead)
+  }
 
   // Days until the student's current unit deadline (null = no schedule / done).
   async function unitDaysLeft(token: string): Promise<{ days: number; unit: string } | null> {
@@ -72,6 +88,7 @@ export async function GET(req: Request) {
       })
       created++; deadlines++
       if (waConfigured() && s.phone_number && await sendByKind(s.phone_number, 'deadline', { name, unit: sch!.unit, days: String(Math.max(0, sch!.days)) })) sent++
+      await pushStudent(db, s.id, '⏰ موعد الوحدة يقترب', `${name ? name + '، ' : ''}أكمل وحدتك قبل فوات الأجل.`)
     } else {
       await db.from('student_notifications').insert({
         student_id: s.id, type: 'reminder',
@@ -81,8 +98,9 @@ export async function GET(req: Request) {
       })
       created++
       if (waConfigured() && s.phone_number && await sendByKind(s.phone_number, 'reminder', { name, unit: '', days: '' })) sent++
+      await pushStudent(db, s.id, 'تذكير يومي 📚', `${name ? name + '، ' : ''}واصل التعلّم اليوم — افتح درسك القادم.`)
     }
   }
 
-  return NextResponse.json({ ok: true, students: list.length, created, sent, deadlines, wa: waConfigured() })
+  return NextResponse.json({ ok: true, students: list.length, created, sent, deadlines, pushed, wa: waConfigured(), push: pushConfigured() })
 }
