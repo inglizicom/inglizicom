@@ -1,8 +1,9 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { AuthProvider } from '@/lib/auth-context'
 import { ProfileProvider } from '@/lib/profile-context'
 import { FeatureAccessProvider } from '@/lib/feature-access'
+import PwaRegister from '@/components/PwaRegister'
 
 const organizationSchema = {
   '@context': 'https://schema.org',
@@ -42,6 +43,16 @@ export const metadata: Metadata = {
       'تعلم الإنجليزية من الصفر إلى الطلاقة مع دروس قصيرة ومتابعة شخصية من الأستاذ حمزة القصراوي.',
   },
   robots: { index: true, follow: true },
+  manifest: '/manifest.webmanifest',
+  icons: {
+    icon: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
+    apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Inglizi' },
+}
+
+export const viewport: Viewport = {
+  themeColor: '#facc15',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -60,6 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="font-sans">
+        <PwaRegister />
         <AuthProvider>
           <ProfileProvider>
             <FeatureAccessProvider>

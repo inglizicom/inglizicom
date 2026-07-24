@@ -17,6 +17,7 @@ import {
 import { checkCertificates, CERT_KIND_AR, type StudentCert } from '@/lib/certificates'
 import { openLesson, completeLesson, fetchStudentResources, resourceUrl, fetchProgressMeta, fetchReadingUnits, fetchMySubmissions, fetchUnitExams, fetchNotifications, markNotificationsRead, EXAMS_URL, CORRECTOR_WHATSAPP, type CourseResource, type ProgressMeta, type UnitSubmission, type StudentNotification } from '@/lib/lms'
 import VideoPlayer from '@/components/VideoPlayer'
+import InstallAppBanner from '@/components/InstallAppBanner'
 import QuizRunner from '@/components/QuizRunner'
 import UnitExamRunner from '@/components/UnitExamRunner'
 import ReadingViewer from '@/components/ReadingViewer'
@@ -89,6 +90,7 @@ export default function StudentSpacePage() {
   return (
     <PortalErrorBoundary>
       <Suspense fallback={<div className="min-h-screen bg-[#2a1d12]" />}><Portal /></Suspense>
+      <InstallAppBanner />
     </PortalErrorBoundary>
   )
 }

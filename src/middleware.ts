@@ -38,9 +38,22 @@ const ADMIN_ROUTES: Record<string, string> = {
   '/settings':    '/admin/settings',
 }
 
+/** PWA assets must resolve as-is on EVERY domain (main, student, admin) —
+ *  otherwise the subdomain rewrites would swallow the service worker. */
+function isPwaAsset(pathname: string): boolean {
+  return (
+    pathname === '/sw.js' ||
+    pathname === '/manifest.webmanifest' ||
+    pathname === '/offline' ||
+    pathname.startsWith('/icons/')
+  )
+}
+
 export function middleware(request: NextRequest) {
   const host     = request.headers.get('host') ?? ''
   const pathname = request.nextUrl.pathname
+
+  if (isPwaAsset(pathname)) return NextResponse.next()
 
   // ── Student portal subdomain ──────────────────────────────
   // student.inglizi.com (also space./my. as aliases) → /student-space
