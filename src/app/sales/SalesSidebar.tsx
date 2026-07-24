@@ -6,7 +6,7 @@ import { useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
   LayoutDashboard, CalendarCheck, KanbanSquare, CreditCard, BellRing,
-  LifeBuoy, Users, Menu, X, LogOut, Shield, ArrowUpRight, Plus, Wallet,
+  LifeBuoy, Users, Menu, X, LogOut, Shield, ArrowUpRight, Plus, Wallet, Megaphone,
 } from 'lucide-react'
 import GlobalSearch from './GlobalSearch'
 import NotificationBell from './NotificationBell'
@@ -37,6 +37,7 @@ const navItems: NavItem[] = [
   { segment: 'payments', label: 'Payments',  icon: CreditCard },
   { segment: 'revenue',  label: 'Revenue',   icon: Wallet },
   { segment: 'renewals', label: 'Renewals',  icon: BellRing },
+  { segment: 'broadcast', label: 'Broadcast', icon: Megaphone },
   { segment: 'support',  label: 'Support',   icon: LifeBuoy },
 ]
 

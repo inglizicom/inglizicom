@@ -30,6 +30,7 @@ const ADMIN_ROUTES: Record<string, string> = {
   '/students':    '/sales/students',
   '/payments':    '/sales/payments',
   '/renewals':    '/sales/renewals',
+  '/broadcast':   '/sales/broadcast',
   '/revenue':     '/sales/revenue',
   '/support':     '/sales/support',
   '/analytics':   '/admin/analytics',
