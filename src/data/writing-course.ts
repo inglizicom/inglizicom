@@ -16,26 +16,81 @@ export type QA = { q: string; a: string }
 export type Reading = {
   title: string; titleAr: string
   passage: string[]          // real connected prose (rendered as one flowing paragraph)
-  questions: QA[]            // comprehension — the passage used as an exercise
+  questions?: QA[]           // deprecated — comprehension phase removed; kept optional for old data
   tip?: string; tipAr?: string
 }
 export type Editing = {
   wrong: string[]            // a short passage that CONTAINS mistakes (plain)
   correct: string[]         // the corrected version, with *the fixes* highlighted
 }
+// How a tense/structure is built — three columns of pattern lines (*highlight* the key part).
+export type Form = { affirmative: string[]; negative: string[]; question: string[]; note?: string; noteAr?: string }
+// A spelling rule (e.g. add -es / consonant+y → -ies) with worked examples.
+export type SpellRule = { rule: string; ar: string; examples: string }
+// Writing-studio content for the practice-oriented paragraph lessons (a different, hands-on format).
+export type StudioPart = { role: 'topic' | 'support' | 'conclusion'; en: string }
+export type Studio = {
+  prompt?: { en: string; ar: string }                              // the writing task
+  model?: { title: string; titleAr: string; parts: StudioPart[] }  // an annotated model paragraph
+  plan?: { label: string; ar: string }[]                           // a fillable outline frame
+  toolkit?: { group: string; ar: string; phrases: string[] }[]     // sentence starters / linking phrases
+  steps?: Ex[]                                                      // guided "your turn" writing steps
+  checklist?: Ex[]                                                  // self-check before finishing
+}
 export type Lesson = {
   no: number
+  cefr?: 'A1' | 'A2' | 'B1' | 'B2'        // CEFR level; falls back to the unit level when omitted
   tag: string; tagAr: string
   title: string; titleAr: string
   objectives: Ex[]
   rule: { en: string; ar: string }
-  explain: { intro: string; introAr: string; points: Ex[] }
-  examples: Ex[]
-  exercises: QA[]
-  reading: Reading
+  explain?: { intro: string; introAr: string; points: Ex[] }
+  form?: Form                              // "How to build it" — affirmative / negative / question
+  spelling?: SpellRule[]                   // spelling rules (-s/-es/-ies, -ed, -ing …)
+  signals?: Ex[]                           // signal / time-marker words for the tense
+  irregulars?: 'past' | 'pp'               // show the irregular-verb table (highlight past OR past-participle)
+  studio?: Studio                          // writing-studio (paragraph lessons) — replaces the grammar drills
+  examples?: Ex[]
+  exercises?: QA[]
+  reading?: Reading
   homework: Ex[]
-  editing: Editing
+  editing?: Editing
 }
+
+/* The most common irregular verbs — base / past simple / past participle (V3).
+ * Shown in Past Simple (past highlighted) and Present Perfect (participle highlighted). */
+export type Irregular = { base: string; past: string; pp: string }
+export const IRREGULAR_VERBS: Irregular[] = [
+  { base: 'be', past: 'was / were', pp: 'been' }, { base: 'become', past: 'became', pp: 'become' },
+  { base: 'begin', past: 'began', pp: 'begun' }, { base: 'break', past: 'broke', pp: 'broken' },
+  { base: 'bring', past: 'brought', pp: 'brought' }, { base: 'build', past: 'built', pp: 'built' },
+  { base: 'buy', past: 'bought', pp: 'bought' }, { base: 'catch', past: 'caught', pp: 'caught' },
+  { base: 'choose', past: 'chose', pp: 'chosen' }, { base: 'come', past: 'came', pp: 'come' },
+  { base: 'cost', past: 'cost', pp: 'cost' }, { base: 'cut', past: 'cut', pp: 'cut' },
+  { base: 'do', past: 'did', pp: 'done' }, { base: 'draw', past: 'drew', pp: 'drawn' },
+  { base: 'drink', past: 'drank', pp: 'drunk' }, { base: 'drive', past: 'drove', pp: 'driven' },
+  { base: 'eat', past: 'ate', pp: 'eaten' }, { base: 'fall', past: 'fell', pp: 'fallen' },
+  { base: 'feel', past: 'felt', pp: 'felt' }, { base: 'find', past: 'found', pp: 'found' },
+  { base: 'fly', past: 'flew', pp: 'flown' }, { base: 'forget', past: 'forgot', pp: 'forgotten' },
+  { base: 'get', past: 'got', pp: 'gotten' }, { base: 'give', past: 'gave', pp: 'given' },
+  { base: 'go', past: 'went', pp: 'gone' }, { base: 'grow', past: 'grew', pp: 'grown' },
+  { base: 'have', past: 'had', pp: 'had' }, { base: 'hear', past: 'heard', pp: 'heard' },
+  { base: 'keep', past: 'kept', pp: 'kept' }, { base: 'know', past: 'knew', pp: 'known' },
+  { base: 'leave', past: 'left', pp: 'left' }, { base: 'lose', past: 'lost', pp: 'lost' },
+  { base: 'make', past: 'made', pp: 'made' }, { base: 'meet', past: 'met', pp: 'met' },
+  { base: 'pay', past: 'paid', pp: 'paid' }, { base: 'put', past: 'put', pp: 'put' },
+  { base: 'read', past: 'read', pp: 'read' }, { base: 'ride', past: 'rode', pp: 'ridden' },
+  { base: 'run', past: 'ran', pp: 'run' }, { base: 'say', past: 'said', pp: 'said' },
+  { base: 'see', past: 'saw', pp: 'seen' }, { base: 'sell', past: 'sold', pp: 'sold' },
+  { base: 'send', past: 'sent', pp: 'sent' }, { base: 'sit', past: 'sat', pp: 'sat' },
+  { base: 'sleep', past: 'slept', pp: 'slept' }, { base: 'speak', past: 'spoke', pp: 'spoken' },
+  { base: 'spend', past: 'spent', pp: 'spent' }, { base: 'swim', past: 'swam', pp: 'swum' },
+  { base: 'take', past: 'took', pp: 'taken' }, { base: 'teach', past: 'taught', pp: 'taught' },
+  { base: 'tell', past: 'told', pp: 'told' }, { base: 'think', past: 'thought', pp: 'thought' },
+  { base: 'understand', past: 'understood', pp: 'understood' }, { base: 'wake', past: 'woke', pp: 'woken' },
+  { base: 'wear', past: 'wore', pp: 'worn' }, { base: 'win', past: 'won', pp: 'won' },
+  { base: 'write', past: 'wrote', pp: 'written' },
+]
 
 /* A–Z reference: each letter, its small form, and a beginner word. */
 const ALPHA: Ex[] = [
@@ -452,80 +507,494 @@ export const LESSONS: Lesson[] = [
     },
   },
 
-  /* ─────────────────────────── 6 · VERB TENSES ─────────────────────────── */
+  /* ─────────────────────────── 10 · PRESENT SIMPLE (A1) ─────────────────────────── */
   {
-    no: 10, tag: 'Tenses', tagAr: 'الأزمنة',
-    title: 'Verb Tenses — writing about time',
-    titleAr: 'أزمنة الأفعال — الكتابة عن الزمن',
+    no: 10, cefr: 'A1', tag: 'Present Simple', tagAr: 'المضارع البسيط',
+    title: 'Present Simple — habits & facts',
+    titleAr: 'المضارع البسيط — العادات والحقائق',
     objectives: [
-      { en: 'Choose the tense that matches the time', ar: 'اختيار الزمن الموافق للوقت' },
-      { en: 'Add -s for he/she/it in the present', ar: 'إضافة -s مع he/she/it في المضارع' },
-      { en: 'Use past and future correctly', ar: 'استخدام الماضي والمستقبل بشكل صحيح' },
-      { en: 'Keep one tense through a paragraph', ar: 'الحفاظ على زمن واحد في الفقرة' },
+      { en: 'Form the present simple for every person', ar: 'تكوين المضارع البسيط لكل الضمائر' },
+      { en: 'Add -s / -es / -ies for he, she, it', ar: 'إضافة -s / -es / -ies مع he/she/it' },
+      { en: 'Make negatives with don’t / doesn’t', ar: 'تكوين النفي بـ don’t / doesn’t' },
+      { en: 'Ask questions with do / does', ar: 'طرح الأسئلة بـ do / does' },
     ],
     rule: {
-      en: 'Present simple = habits (I *write*, she *writes*). Past simple = finished (I *wrote*). Future = later (I *will write*). Continuous = now (I *am writing*).',
-      ar: 'المضارع البسيط للعادة، والماضي البسيط للمنتهي، والمستقبل للاحق، والمستمر للآن.',
+      en: 'Use the present simple for *habits*, *routines*, and *facts*. Add *-s* (or -es / -ies) to the verb only with *he / she / it*.',
+      ar: 'نستخدم المضارع البسيط للعادات والروتين والحقائق. ونضيف -s (أو -es/-ies) للفعل مع he/she/it فقط.',
     },
     explain: {
-      intro: 'A frequent writing error is forgetting the -s with he/she/it, or mixing tenses inside one paragraph.',
-      introAr: 'من الأخطاء الشائعة نسيان -s مع he/she/it، أو خلط الأزمنة داخل الفقرة الواحدة.',
+      intro: 'This is the tense you use most. The tricky parts are the -s on he/she/it, and using do/does for questions and negatives.',
+      introAr: 'هذا أكثر الأزمنة استعمالًا. والصعوبة في -s مع he/she/it، واستخدام do/does للسؤال والنفي.',
       points: [
-        { en: 'Present habit: I/you/we/they *work* · he/she/it *works*', ar: 'المضارع: -s مع المفرد الغائب' },
-        { en: 'Now: I *am working* · she *is working*', ar: 'الآن: المضارع المستمر' },
-        { en: 'Finished: I *worked* · I *wrote*', ar: 'المنتهي: الماضي البسيط' },
-        { en: 'Later: I *will work* tomorrow', ar: 'لاحقًا: المستقبل' },
+        { en: 'A *habit*: I drink coffee every morning.', ar: 'عادة' },
+        { en: 'A *fact*: Water *boils* at 100°C.', ar: 'حقيقة' },
+        { en: 'A *routine / schedule*: The train *leaves* at 8.', ar: 'روتين / جدول' },
+        { en: 'Only *he / she / it* adds -s to the verb', ar: 'المفرد الغائب فقط يأخذ -s' },
       ],
     },
+    form: {
+      affirmative: [
+        'I / You / We / They *work*.',
+        'He / She / It *works*.',
+      ],
+      negative: [
+        'I / You / We / They *do not (don’t)* work.',
+        'He / She / It *does not (doesn’t)* work.',
+      ],
+      question: [
+        '*Do* I / you / we / they work?',
+        '*Does* he / she / it work?',
+        'Short: Yes, I *do*. / No, he *doesn’t*.',
+      ],
+      note: 'After *does / doesn’t* the verb loses its -s: “He *doesn’t work*” (NOT works).',
+      noteAr: 'بعد does/doesn’t يفقد الفعل حرف -s: نقول He doesn’t work لا works.',
+    },
+    spelling: [
+      { rule: 'Most verbs → add *-s*', ar: 'معظم الأفعال ← -s', examples: 'work → works · play → plays · read → reads' },
+      { rule: 'After s, sh, ch, x, o → add *-es*', ar: 'بعد s, sh, ch, x, o ← -es', examples: 'watch → watches · go → goes · wash → washes · fix → fixes' },
+      { rule: 'Consonant + y → *-ies*', ar: 'ساكن + y ← -ies', examples: 'study → studies · cry → cries · carry → carries' },
+      { rule: 'Vowel + y → just *-s*', ar: 'علّة + y ← -s فقط', examples: 'play → plays · buy → buys · say → says' },
+      { rule: 'Irregular: have → *has*', ar: 'شاذّ: have ← has', examples: 'She has a car.' },
+    ],
+    signals: [
+      { en: 'every day / week', ar: 'كل يوم/أسبوع' }, { en: 'usually', ar: 'عادةً' }, { en: 'always', ar: 'دائمًا' },
+      { en: 'often', ar: 'غالبًا' }, { en: 'sometimes', ar: 'أحيانًا' }, { en: 'never', ar: 'أبدًا' },
+      { en: 'on Mondays', ar: 'أيام الاثنين' }, { en: 'twice a week', ar: 'مرتين أسبوعيًا' },
+    ],
     examples: [
-      { en: 'I *write* every day.', ar: 'أكتب كل يوم.' }, { en: 'She *writes* every day.', ar: 'تكتب كل يوم.' },
-      { en: 'He *works* in a bank.', ar: 'يعمل في بنك.' }, { en: 'They *play* on Friday.', ar: 'يلعبون يوم الجمعة.' },
-      { en: 'I *am writing* now.', ar: 'أكتب الآن.' }, { en: 'She *is cooking* dinner.', ar: 'تطبخ العشاء الآن.' },
-      { en: 'I *wrote* a letter.', ar: 'كتبتُ رسالة.' }, { en: 'We *visited* Fes.', ar: 'زرنا فاس.' },
-      { en: 'He *watched* a film.', ar: 'شاهد فيلمًا.' }, { en: 'They *studied* hard.', ar: 'ذاكروا بجد.' },
-      { en: 'I *have finished* my work.', ar: 'أنهيت عملي.' }, { en: 'She *has eaten* lunch.', ar: 'أكلت الغداء.' },
-      { en: 'I *will write* tomorrow.', ar: 'سأكتب غدًا.' }, { en: 'We *will travel* next week.', ar: 'سنسافر الأسبوع القادم.' },
-      { en: 'It *will rain* later.', ar: 'ستمطر لاحقًا.' }, { en: 'He *does not work* on Sunday.', ar: 'لا يعمل يوم الأحد.' },
+      { en: 'I *work* in an office.', ar: 'أعمل في مكتب.' }, { en: 'You *speak* English well.', ar: 'تتحدّث الإنجليزية جيدًا.' },
+      { en: 'We *live* in Rabat.', ar: 'نعيش في الرباط.' }, { en: 'They *play* football on Sunday.', ar: 'يلعبون الكرة الأحد.' },
+      { en: 'He *works* at a hospital.', ar: 'يعمل في مستشفى.' }, { en: 'She *studies* medicine.', ar: 'تدرس الطب.' },
+      { en: 'It *rains* a lot in winter.', ar: 'تمطر كثيرًا في الشتاء.' }, { en: 'My father *watches* the news.', ar: 'يشاهد أبي الأخبار.' },
+      { en: 'The shop *opens* at nine.', ar: 'يفتح المتجر التاسعة.' }, { en: 'I *don’t* drink coffee.', ar: 'لا أشرب القهوة.' },
+      { en: 'She *doesn’t* eat meat.', ar: 'لا تأكل اللحم.' }, { en: '*Do* you speak Arabic?', ar: 'هل تتحدّث العربية؟' },
+      { en: '*Does* he live here?', ar: 'هل يعيش هنا؟' }, { en: 'Water *boils* at 100 degrees.', ar: 'يغلي الماء عند ١٠٠ درجة.' },
+      { en: 'Usually I *wake* up at six.', ar: 'عادةً أستيقظ السادسة.' },
     ],
     exercises: [
-      { q: 'Add -s if needed: “She ___ (read) every night.”', a: 'She *reads* every night.' },
-      { q: 'Past: “Yesterday we ___ (visit) Rabat.”', a: 'We *visited* Rabat.' },
-      { q: 'Future: “Tomorrow they ___ (travel).”', a: 'They *will travel* tomorrow.' },
-      { q: 'Now: “Look! It ___ (rain).”', a: 'It *is raining*.' },
-      { q: 'Fix: “He go to work at 8.”', a: 'He *goes* to work at 8.' },
+      { q: 'Add the verb: “She ___ (study) every night.”', a: 'She *studies* every night.' },
+      { q: 'Add the verb: “He ___ (go) to work by bus.”', a: 'He *goes* to work by bus.' },
+      { q: 'Make negative: “They play tennis.”', a: 'They *don’t* play tennis.' },
+      { q: 'Make negative: “She works on Sunday.”', a: 'She *doesn’t* work on Sunday.' },
+      { q: 'Make a question: “You like tea.”', a: '*Do* you like tea?' },
+      { q: 'Make a question: “He speaks French.”', a: '*Does* he speak French?' },
+      { q: 'Fix: “He watch TV every night.”', a: 'He *watches* TV every night.' },
     ],
     reading: {
-      title: 'My Learning Week', titleAr: 'أسبوع تعلّمي',
+      title: 'Karim’s Routine', titleAr: 'روتين كريم',
       passage: [
-        'Every morning I *study* English for thirty minutes.',
-        'Last week I *learned* fifty new words and *wrote* two short paragraphs.',
-        'Right now I *am reading* a simple story about a traveler.',
-        'My teacher *says* that I *am improving* quickly.',
-        'Next month I *will write* my first full essay.',
+        'Karim is an accountant, and he *works* in a small bank in the city.',
+        'On weekdays he *wakes* up at six, *drinks* a black coffee, and *walks* to the office.',
+        'He rarely *takes* the bus, because he *likes* the quiet morning streets.',
+        'In the evening he usually *studies* English, but he never *works* on Fridays.',
+        '“A good routine,” he always *says*, “keeps my mind calm.”',
       ],
-      questions: [
-        { q: 'How long does the writer study each morning?', a: 'Thirty minutes.' },
-        { q: 'What did the writer do last week?', a: '*Learned* 50 words and *wrote* two paragraphs.' },
-        { q: 'Why “is reading” and not “reads” in line 3?', a: 'It is happening *now* → present continuous.' },
-      ],
-      tip: 'study (habit) · learned/wrote (past) · am reading (now) · will write (future).',
-      tipAr: 'عادة · ماضٍ · الآن · مستقبل.',
+      tip: 'A daily routine is the natural home of the present simple — notice the -s on he wakes / drinks / walks.',
+      tipAr: 'الروتين اليومي هو الموضع الطبيعي للمضارع البسيط — لاحظ -s في wakes / drinks / walks.',
     },
     homework: [
-      { en: 'Write 3 daily habits (present, with correct -s)', ar: 'اكتب ٣ عادات يومية في المضارع' },
-      { en: 'Write 3 things you did last weekend (past)', ar: 'اكتب ٣ أشياء فعلتها نهاية الأسبوع' },
-      { en: 'Write 3 plans for next week (will)', ar: 'اكتب ٣ خطط للأسبوع القادم' },
+      { en: 'Write 5 sentences about your daily routine', ar: 'اكتب ٥ جمل عن روتينك اليومي' },
+      { en: 'Write 3 negatives (don’t / doesn’t)', ar: 'اكتب ٣ جمل منفية' },
+      { en: 'Write 3 questions (Do / Does …?)', ar: 'اكتب ٣ أسئلة' },
     ],
     editing: {
       wrong: [
-        'She go to the market every Saturday.',
-        'Yesterday I watch a film and eat popcorn.',
-        'Tomorrow we will visited my uncle.',
+        'She go to school and study hard.',
+        'He don’t likes coffee.',
+        'Do she speaks English?',
       ],
       correct: [
-        'She *goes* to the market every Saturday.',
-        'Yesterday I *watched* a film and *ate* popcorn.',
-        'Tomorrow we *will visit* my uncle.',
+        'She *goes* to school and *studies* hard.',
+        'He *doesn’t* like coffee.',
+        '*Does* she *speak* English?',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 11 · PRESENT CONTINUOUS (A1) ─────────────────────────── */
+  {
+    no: 10.2, cefr: 'A1', tag: 'Present Continuous', tagAr: 'المضارع المستمر',
+    title: 'Present Continuous — happening now',
+    titleAr: 'المضارع المستمر — يحدث الآن',
+    objectives: [
+      { en: 'Form: am / is / are + verb-ing', ar: 'التكوين: am/is/are + الفعل-ing' },
+      { en: 'Spell the -ing form correctly', ar: 'إملاء صيغة -ing بشكل صحيح' },
+      { en: 'Make negatives and questions', ar: 'تكوين النفي والسؤال' },
+      { en: 'Use it for actions happening now', ar: 'استخدامه للأفعال الآن' },
+    ],
+    rule: {
+      en: 'Use the present continuous for actions *happening now* or *around now*. Form it with *am / is / are* + verb *-ing*.',
+      ar: 'نستخدم المضارع المستمر للأفعال التي تحدث الآن أو في هذه الفترة. ويتكوّن من am/is/are + الفعل + ing.',
+    },
+    explain: {
+      intro: 'This tense always has two parts: the correct form of “be” + the -ing verb. Never drop the “be”.',
+      introAr: 'لهذا الزمن جزآن دائمًا: صيغة be الصحيحة + الفعل بـ ing. لا تُسقط be أبدًا.',
+      points: [
+        { en: 'Happening *now*: I *am writing* this sentence.', ar: 'يحدث الآن' },
+        { en: '*Temporary*: She *is staying* with us this week.', ar: 'مؤقّت' },
+        { en: 'Always two parts: *be* + verb*-ing*', ar: 'جزآن دائمًا' },
+        { en: 'Common with *Look!* and *Listen!*', ar: 'يكثر مع Look/Listen' },
+      ],
+    },
+    form: {
+      affirmative: [
+        'I *am* working.',
+        'He / She / It *is* working.',
+        'You / We / They *are* working.',
+      ],
+      negative: [
+        'I *am not* working.',
+        'He *is not (isn’t)* working.',
+        'They *are not (aren’t)* working.',
+      ],
+      question: [
+        '*Am* I working?  ·  *Is* he working?',
+        '*Are* you working?',
+        'Short: Yes, I *am*. / No, I’m *not*.',
+      ],
+      note: 'Do NOT use the continuous with state verbs like *know, want, like, need* — say “I want”, not “I am wanting”.',
+      noteAr: 'لا نستخدم المستمر مع أفعال الحالة مثل know/want/like/need (نقول I want لا I am wanting).',
+    },
+    spelling: [
+      { rule: 'Most verbs → add *-ing*', ar: 'الأغلب ← -ing', examples: 'play → playing · read → reading' },
+      { rule: 'Ends in *-e* → drop the e, add -ing', ar: 'ينتهي بـ e ← احذفها', examples: 'make → making · write → writing · come → coming' },
+      { rule: 'Short consonant-vowel-consonant → *double* the last letter', ar: 'مقطع قصير ← ضاعف الأخير', examples: 'run → running · sit → sitting · stop → stopping' },
+      { rule: 'Ends in *-ie* → change to y', ar: 'ينتهي بـ ie ← y', examples: 'lie → lying · die → dying' },
+    ],
+    signals: [
+      { en: 'now', ar: 'الآن' }, { en: 'right now', ar: 'حالًا' }, { en: 'at the moment', ar: 'في هذه اللحظة' },
+      { en: 'today', ar: 'اليوم' }, { en: 'Look!', ar: 'انظر!' }, { en: 'Listen!', ar: 'استمع!' }, { en: 'this week', ar: 'هذا الأسبوع' },
+    ],
+    examples: [
+      { en: 'I *am reading* a book now.', ar: 'أقرأ كتابًا الآن.' }, { en: 'She *is cooking* dinner.', ar: 'تطبخ العشاء.' },
+      { en: 'They *are playing* outside.', ar: 'يلعبون بالخارج.' }, { en: 'We *are studying* for the test.', ar: 'نذاكر للاختبار.' },
+      { en: 'He *is running* to the bus.', ar: 'يركض نحو الحافلة.' }, { en: 'The baby *is sleeping*.', ar: 'ينام الرضيع.' },
+      { en: 'Look! It *is raining*.', ar: 'انظر! إنها تمطر.' }, { en: 'I *am not watching* TV.', ar: 'لا أشاهد التلفاز.' },
+      { en: 'She *isn’t working* today.', ar: 'لا تعمل اليوم.' }, { en: '*Are* you listening?', ar: 'هل تستمع؟' },
+      { en: '*Is* he coming?', ar: 'هل هو قادم؟' }, { en: 'We *are making* a cake.', ar: 'نُعِدّ كعكة.' },
+    ],
+    exercises: [
+      { q: 'Form: “I ___ (write) now.”', a: 'I *am writing* now.' },
+      { q: 'Spell the -ing: “run” →', a: '*running*' },
+      { q: 'Spell the -ing: “make” →', a: '*making*' },
+      { q: 'Make negative: “She is sleeping.”', a: 'She *isn’t* sleeping.' },
+      { q: 'Make a question: “They are working.”', a: '*Are* they working?' },
+      { q: 'Fix: “He is run to school.”', a: 'He is *running* to school.' },
+    ],
+    reading: {
+      title: 'A Busy Kitchen', titleAr: 'مطبخ مزدحم',
+      passage: [
+        'It is six o’clock, and the whole family *is getting* ready for dinner.',
+        'My mother *is frying* fish, while my sister *is washing* the salad.',
+        'I *am setting* the table, but my little brother *isn’t helping* — he *is watching* cartoons.',
+        'Something smells wonderful, though I think the rice *is burning* a little!',
+        '“*Are* you coming?” my mother calls. “Everything is almost ready.”',
+      ],
+      tip: 'Use the present continuous for a scene happening right now — be + verb-ing.',
+      tipAr: 'المضارع المستمر لمشهدٍ يحدث الآن — be + الفعل-ing.',
+    },
+    homework: [
+      { en: 'Write 4 sentences about what people are doing now', ar: 'اكتب ٤ جمل عمّا يحدث الآن' },
+      { en: 'Spell the -ing form of 6 verbs', ar: 'اكتب صيغة -ing لستة أفعال' },
+      { en: 'Write 2 negatives and 2 questions', ar: 'اكتب جملتين منفيتين وسؤالين' },
+    ],
+    editing: {
+      wrong: [
+        'She cooking dinner right now.',
+        'They is playing in the garden.',
+        'I am write a letter now.',
+      ],
+      correct: [
+        'She *is cooking* dinner right now.',
+        'They *are* playing in the garden.',
+        'I am *writing* a letter now.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 12 · PAST SIMPLE (A2) ─────────────────────────── */
+  {
+    no: 10.4, cefr: 'A2', irregulars: 'past', tag: 'Past Simple', tagAr: 'الماضي البسيط',
+    title: 'Past Simple — finished actions',
+    titleAr: 'الماضي البسيط — أفعال منتهية',
+    objectives: [
+      { en: 'Add -ed to regular verbs', ar: 'إضافة -ed للأفعال المنتظمة' },
+      { en: 'Learn common irregular verbs', ar: 'تعلّم الأفعال الشاذة الشائعة' },
+      { en: 'Make negatives with didn’t', ar: 'تكوين النفي بـ didn’t' },
+      { en: 'Ask questions with did', ar: 'طرح الأسئلة بـ did' },
+    ],
+    rule: {
+      en: 'Use the past simple for *finished* actions at a *known past time*. Regular verbs add *-ed*; many common verbs are *irregular* (go → went).',
+      ar: 'نستخدم الماضي البسيط للأفعال المنتهية في وقت ماضٍ معروف. المنتظمة تأخذ -ed، وكثير من الشائعة شاذّة (go → went).',
+    },
+    explain: {
+      intro: 'The verb is the same for every person (I / he / they worked). The tricky parts are the -ed spelling, the irregular verbs, and using the base verb after did/didn’t.',
+      introAr: 'الفعل واحد لكل الضمائر. والصعوبة في إملاء -ed، والأفعال الشاذة، واستخدام الفعل المجرّد بعد did/didn’t.',
+      points: [
+        { en: 'Regular: add *-ed* → work → worked', ar: 'منتظم: -ed' },
+        { en: 'Irregular: the word changes → go → *went*', ar: 'شاذّ: تتغيّر الكلمة' },
+        { en: 'Same for *every* person: I / he / we *worked*', ar: 'واحد لكل الضمائر' },
+        { en: 'After *did / didn’t* use the *base* verb', ar: 'بعد did/didn’t الفعل المجرّد' },
+      ],
+    },
+    form: {
+      affirmative: [
+        'I / You / He / She / We / They *worked*. (regular)',
+        'I / He / They *went*, *ate*, *saw*. (irregular)',
+      ],
+      negative: [
+        'I / He / They *did not (didn’t)* *work*.',
+        '→ base verb: didn’t *go*, didn’t *eat*',
+      ],
+      question: [
+        '*Did* I / you / he / they work?',
+        'Short: Yes, I *did*. / No, I *didn’t*.',
+      ],
+      note: 'After *did / didn’t*, always use the *base* verb: “He *didn’t go*” (NOT didn’t went).',
+      noteAr: 'بعد did/didn’t نستخدم الفعل المجرّد دائمًا: He didn’t go لا went.',
+    },
+    spelling: [
+      { rule: 'Most verbs → add *-ed*', ar: 'الأغلب ← -ed', examples: 'work → worked · play → played' },
+      { rule: 'Ends in *-e* → add *-d*', ar: 'ينتهي بـ e ← -d', examples: 'live → lived · like → liked' },
+      { rule: 'Consonant + y → *-ied*', ar: 'ساكن + y ← -ied', examples: 'study → studied · cry → cried' },
+      { rule: 'Short consonant-vowel-consonant → *double* it', ar: 'مقطع قصير ← ضاعف', examples: 'stop → stopped · plan → planned' },
+    ],
+    signals: [
+      { en: 'yesterday', ar: 'أمس' }, { en: 'last week / year', ar: 'الأسبوع/العام الماضي' }, { en: '… ago', ar: 'منذ' },
+      { en: 'in 2010', ar: 'في ٢٠١٠' }, { en: 'when I was young', ar: 'حين كنت صغيرًا' }, { en: 'this morning', ar: 'هذا الصباح' },
+    ],
+    examples: [
+      { en: 'I *worked* late yesterday.', ar: 'عملت متأخرًا أمس.' }, { en: 'She *watched* a film last night.', ar: 'شاهدت فيلمًا ليلة أمس.' },
+      { en: 'We *studied* for the exam.', ar: 'ذاكرنا للامتحان.' }, { en: 'They *stopped* at the café.', ar: 'توقّفوا في المقهى.' },
+      { en: 'He *went* to Rabat last week.', ar: 'ذهب إلى الرباط.' }, { en: 'I *ate* fish for lunch.', ar: 'أكلت السمك غداءً.' },
+      { en: 'She *saw* an old friend.', ar: 'رأت صديقة قديمة.' }, { en: 'We *bought* a new car.', ar: 'اشترينا سيارة جديدة.' },
+      { en: 'Irregular: go→*went* · eat→*ate* · see→*saw* · buy→*bought* · have→*had*', ar: 'أفعال شاذة' },
+      { en: 'I *didn’t* sleep well.', ar: 'لم أنم جيدًا.' }, { en: 'He *didn’t* come to class.', ar: 'لم يحضر الدرس.' },
+      { en: '*Did* you enjoy the trip?', ar: 'هل استمتعت بالرحلة؟' }, { en: '*Did* she call you?', ar: 'هل اتصلت بك؟' },
+    ],
+    exercises: [
+      { q: 'Past: “She ___ (study) all night.”', a: 'She *studied* all night.' },
+      { q: 'Past: “We ___ (go) to the beach.”', a: 'We *went* to the beach.' },
+      { q: 'Make negative: “He came early.”', a: 'He *didn’t* come early.' },
+      { q: 'Make a question: “They visited Fes.”', a: '*Did* they visit Fes?' },
+      { q: 'Fix: “I didn’t went home.”', a: 'I didn’t *go* home.' },
+      { q: 'Spell the past: “stop” →', a: '*stopped*' },
+    ],
+    reading: {
+      title: 'A Trip to the Sea', titleAr: 'رحلة إلى البحر',
+      passage: [
+        'Last summer my family *went* to a small town on the coast.',
+        'We *stayed* in an old hotel, *swam* every morning, and *ate* fresh fish for lunch.',
+        'One afternoon I *lost* my phone on the beach, but a kind man *found* it and *gave* it back.',
+        'We *didn’t* want the holiday to end, yet the last day *came* too soon.',
+        'It *was* the best week of the whole year.',
+      ],
+      tip: 'A story is naturally past simple — mix regular (stayed) with irregular (went, swam, ate, lost, found).',
+      tipAr: 'القصة تُروى بالماضي البسيط — امزج المنتظم (stayed) والشاذّ (went, swam, ate, lost).',
+    },
+    homework: [
+      { en: 'Write 5 sentences about last weekend (past)', ar: 'اكتب ٥ جمل عن الأسبوع الماضي' },
+      { en: 'Write 3 negatives with didn’t', ar: 'اكتب ٣ جمل بـ didn’t' },
+      { en: 'List the past of 8 irregular verbs', ar: 'اكتب ماضي ٨ أفعال شاذة' },
+    ],
+    editing: {
+      wrong: [
+        'Yesterday she go to the market and buy bread.',
+        'We didn’t went to school last Monday.',
+        'Did you saw the film?',
+      ],
+      correct: [
+        'Yesterday she *went* to the market and *bought* bread.',
+        'We didn’t *go* to school last Monday.',
+        'Did you *see* the film?',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 13 · FUTURE (A2) ─────────────────────────── */
+  {
+    no: 10.6, cefr: 'A2', tag: 'Future', tagAr: 'المستقبل',
+    title: 'The Future — will & going to',
+    titleAr: 'المستقبل — will و going to',
+    objectives: [
+      { en: 'Form the future with will + base verb', ar: 'التكوين بـ will + الفعل المجرّد' },
+      { en: 'Form the future with be going to', ar: 'التكوين بـ be going to' },
+      { en: 'Make negatives and questions', ar: 'تكوين النفي والسؤال' },
+      { en: 'Choose will vs going to', ar: 'الاختيار بين will و going to' },
+    ],
+    rule: {
+      en: 'Two common ways to talk about the future: *will* + base verb (a decision, prediction, or promise) and *be going to* + base verb (a plan or intention).',
+      ar: 'طريقتان شائعتان للمستقبل: will + الفعل المجرّد (قرار/توقّع/وعد)، و be going to + الفعل المجرّد (خطة/نية).',
+    },
+    explain: {
+      intro: 'Use “will” for something you decide now or predict; use “going to” for a plan you already have.',
+      introAr: 'استخدم will لما تقرّره الآن أو تتوقّعه، و going to لخطة لديك بالفعل.',
+      points: [
+        { en: '*will* = instant decision / prediction / promise', ar: 'قرار فوري / توقّع / وعد' },
+        { en: '*going to* = a plan or intention', ar: 'خطة أو نية' },
+        { en: 'Both take the *base* verb after them', ar: 'يتبعهما الفعل المجرّد' },
+        { en: '*won’t* = will not', ar: 'won’t = will not' },
+      ],
+    },
+    form: {
+      affirmative: [
+        'I / You / He / We / They *will* work. (’ll)',
+        'I *am going to* work. / He *is going to* work. / They *are going to* work.',
+      ],
+      negative: [
+        'I *will not (won’t)* work.',
+        'I *am not going to* work.',
+      ],
+      question: [
+        '*Will* you work? — Yes, I *will*. / No, I *won’t*.',
+        '*Are* you *going to* work?',
+      ],
+      note: 'After *will* and *going to*, use the *base* verb (will *go*, going to *go* — never “will goes / will went”).',
+      noteAr: 'بعد will و going to نستخدم الفعل المجرّد (will go لا will goes/went).',
+    },
+    signals: [
+      { en: 'tomorrow', ar: 'غدًا' }, { en: 'next week / year', ar: 'الأسبوع/العام القادم' }, { en: 'soon', ar: 'قريبًا' },
+      { en: 'tonight', ar: 'الليلة' }, { en: 'later', ar: 'لاحقًا' }, { en: 'in the future', ar: 'في المستقبل' },
+    ],
+    examples: [
+      { en: 'I *will call* you tomorrow.', ar: 'سأتصل بك غدًا.' }, { en: 'She *will help* you.', ar: 'ستساعدك.' },
+      { en: 'It *will rain* tonight.', ar: 'ستمطر الليلة.' }, { en: 'I think they *will win*.', ar: 'أظن أنهم سيفوزون.' },
+      { en: 'I *’ll* have the soup, please.', ar: 'سآخذ الشوربة من فضلك.' }, { en: 'We *are going to* travel this summer.', ar: 'سنسافر هذا الصيف.' },
+      { en: 'He *is going to* study medicine.', ar: 'سيدرس الطب.' }, { en: 'They *are going to* buy a house.', ar: 'سيشترون بيتًا.' },
+      { en: 'I *won’t* forget your birthday.', ar: 'لن أنسى عيد ميلادك.' }, { en: 'She *won’t* be late.', ar: 'لن تتأخّر.' },
+      { en: '*Will* you come to the party?', ar: 'هل ستأتي إلى الحفل؟' }, { en: '*Are* you *going to* call him?', ar: 'هل ستتصل به؟' },
+    ],
+    exercises: [
+      { q: 'will: “I ___ (help) you tomorrow.”', a: 'I *will help* you tomorrow.' },
+      { q: 'going to: “We ___ (visit) Fes next week.”', a: 'We *are going to visit* Fes next week.' },
+      { q: 'Make negative (won’t): “He will come.”', a: 'He *won’t* come.' },
+      { q: 'Make a question: “They will travel.”', a: '*Will* they travel?' },
+      { q: 'Fix: “I will to call you.”', a: 'I *will call* you.' },
+      { q: 'Fix: “She is going to studies.”', a: 'She is going to *study*.' },
+    ],
+    reading: {
+      title: 'My Plans for Summer', titleAr: 'خططي للصيف',
+      passage: [
+        'The exams finish next week, and I already have a plan for the holiday.',
+        'First, I *am going to* visit my cousins in Marrakech, and we *are going to* explore the old city together.',
+        'I *will* probably take hundreds of photos — I always do!',
+        'My brother *won’t* join us, because he *is going to* start his first job.',
+        '“Don’t worry,” he says, “I *will* visit you next time.”',
+      ],
+      tip: 'going to = a plan you already have · will = a decision or a promise made now.',
+      tipAr: 'going to خطة لديك بالفعل · will قرار أو وعد الآن.',
+    },
+    homework: [
+      { en: 'Write 3 plans with “going to”', ar: 'اكتب ٣ خطط بـ going to' },
+      { en: 'Write 3 predictions with “will”', ar: 'اكتب ٣ توقّعات بـ will' },
+      { en: 'Write 2 negatives (won’t) and 2 questions', ar: 'اكتب نفيين وسؤالين' },
+    ],
+    editing: {
+      wrong: [
+        'I will to visit my aunt next week.',
+        'She is going to studies English.',
+        'Will they comes tomorrow?',
+      ],
+      correct: [
+        'I *will visit* my aunt next week.',
+        'She is going to *study* English.',
+        'Will they *come* tomorrow?',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 14 · PRESENT PERFECT (B1) ─────────────────────────── */
+  {
+    no: 10.8, cefr: 'B1', irregulars: 'pp', tag: 'Present Perfect', tagAr: 'المضارع التام',
+    title: 'Present Perfect — past linked to now',
+    titleAr: 'المضارع التام — ماضٍ متّصل بالحاضر',
+    objectives: [
+      { en: 'Form: have / has + past participle', ar: 'التكوين: have/has + التصريف الثالث' },
+      { en: 'Learn past participles (V3)', ar: 'تعلّم التصريف الثالث' },
+      { en: 'Make negatives and questions', ar: 'تكوين النفي والسؤال' },
+      { en: 'Use for experience & unfinished time', ar: 'للتجربة والزمن غير المنتهي' },
+    ],
+    rule: {
+      en: 'Use the present perfect for a past action *connected to now* (a result, an experience, an unfinished time). Form: *have / has* + the *past participle* (V3).',
+      ar: 'نستخدم المضارع التام لفعل ماضٍ متّصل بالحاضر (نتيجة، تجربة، زمن غير منتهٍ). التكوين: have/has + التصريف الثالث.',
+    },
+    explain: {
+      intro: 'The present perfect links the past to now — you do not give the exact time. Use “has” with he/she/it and “have” with the rest.',
+      introAr: 'المضارع التام يربط الماضي بالآن دون ذكر الوقت المحدّد. نستخدم has مع he/she/it و have مع الباقي.',
+      points: [
+        { en: '*Experience*: I *have visited* Spain. (in my life)', ar: 'تجربة' },
+        { en: '*Result now*: She *has lost* her keys. (still lost)', ar: 'نتيجة حاضرة' },
+        { en: '*Unfinished time*: I *have worked* hard *this week*.', ar: 'زمن غير منتهٍ' },
+        { en: 'With *just, already, yet, ever, never, since, for*', ar: 'كلمات دالة' },
+      ],
+    },
+    form: {
+      affirmative: [
+        'I / You / We / They *have* worked. (’ve)',
+        'He / She / It *has* worked. (’s)',
+      ],
+      negative: [
+        'I *have not (haven’t)* worked.',
+        'He *has not (hasn’t)* worked.',
+      ],
+      question: [
+        '*Have* you worked? — Yes, I *have*. / No, I *haven’t*.',
+        '*Has* he finished? — Yes, he *has*. / No, he *hasn’t*.',
+      ],
+      note: 'Use the *past participle* (V3): worked, *gone*, *eaten*, *seen*, *done*, *written*. Do NOT use the past simple after have/has.',
+      noteAr: 'نستخدم التصريف الثالث (V3): gone, eaten, seen… ولا نستخدم الماضي البسيط بعد have/has.',
+    },
+    spelling: [
+      { rule: 'Regular past participle = *-ed* (like the past)', ar: 'التصريف الثالث المنتظم = -ed', examples: 'work → worked · play → played' },
+      { rule: 'Irregular past participles must be learned', ar: 'الشاذة تُحفظ', examples: 'go → gone · eat → eaten · see → seen · do → done · write → written · be → been' },
+    ],
+    signals: [
+      { en: 'ever', ar: 'من قبل (في السؤال)' }, { en: 'never', ar: 'أبدًا' }, { en: 'already', ar: 'بالفعل' }, { en: 'yet', ar: 'بعد' },
+      { en: 'just', ar: 'للتوّ' }, { en: 'since', ar: 'منذ (نقطة)' }, { en: 'for', ar: 'لمدّة' }, { en: 'recently', ar: 'مؤخّرًا' },
+    ],
+    examples: [
+      { en: 'I *have visited* Spain twice.', ar: 'زرت إسبانيا مرتين.' }, { en: 'She *has finished* her homework.', ar: 'أنهت واجبها.' },
+      { en: 'We *have lived* here since 2015.', ar: 'نعيش هنا منذ ٢٠١٥.' }, { en: 'They *have known* each other for years.', ar: 'يعرفان بعضهما منذ سنوات.' },
+      { en: 'He *has just* arrived.', ar: 'وصل للتوّ.' }, { en: 'I *have already* eaten.', ar: 'أكلت بالفعل.' },
+      { en: 'Have you finished *yet*?', ar: 'هل أنهيت بعد؟' }, { en: '*Have* you *ever* been to Paris?', ar: 'هل زرت باريس من قبل؟' },
+      { en: 'I *have never* seen snow.', ar: 'لم أرَ الثلج قط.' }, { en: 'She *hasn’t* called me.', ar: 'لم تتصل بي.' },
+      { en: '*Has* he *gone* home?', ar: 'هل ذهب إلى البيت؟' }, { en: 'We *have eaten* already.', ar: 'أكلنا بالفعل.' },
+    ],
+    exercises: [
+      { q: 'Form: “I ___ (finish) my work.”', a: 'I *have finished* my work.' },
+      { q: 'have/has: “She ___ gone home.”', a: 'She *has* gone home.' },
+      { q: 'Participle: “He has ___ (eat) lunch.”', a: 'He has *eaten* lunch.' },
+      { q: 'Make negative: “They have arrived.”', a: 'They *haven’t* arrived.' },
+      { q: 'Make a question: “You have seen it.”', a: '*Have* you seen it?' },
+      { q: 'Fix: “I have went to the market.”', a: 'I have *gone* to the market.' },
+    ],
+    reading: {
+      title: 'A New City', titleAr: 'مدينة جديدة',
+      passage: [
+        'I *moved* to this city three years ago, and I love it more every day.',
+        'Since then, I *have made* good friends and *have learned* a lot about its history.',
+        'I *have never* felt lonely here, because the people are so friendly.',
+        'My sister arrived last month, but she *hasn’t* found a job *yet*.',
+        'Life is not always easy — still, it *has been* a wonderful chapter, and I *have* grown as a person.',
+      ],
+      tip: 'Present perfect links the past to now (have made, have learned); use the past simple for a finished time (moved, arrived).',
+      tipAr: 'المضارع التام يربط الماضي بالآن (have made)؛ والماضي البسيط لزمنٍ منتهٍ محدّد (moved, arrived).',
+    },
+    homework: [
+      { en: 'Write 3 experiences with have/has + ever/never', ar: 'اكتب ٣ تجارب بـ ever/never' },
+      { en: 'Write 2 sentences with since and for', ar: 'اكتب جملتين بـ since و for' },
+      { en: 'List the past participle (V3) of 8 verbs', ar: 'اكتب التصريف الثالث لـ ٨ أفعال' },
+    ],
+    editing: {
+      wrong: [
+        'I have saw that film before.',
+        'She have finished her work.',
+        'Have you ate lunch yet?',
+      ],
+      correct: [
+        'I have *seen* that film before.',
+        'She *has* finished her work.',
+        'Have you *eaten* lunch yet?',
       ],
     },
   },
@@ -1082,9 +1551,9 @@ export const LESSONS: Lesson[] = [
 
   /* ─────────────────────────── 14 · PUTTING IT TOGETHER ─────────────────────────── */
   {
-    no: 25, tag: 'Writing', tagAr: 'الكتابة',
-    title: 'Putting It All Together — your first paragraph',
-    titleAr: 'اجمع كل شيء — فقرتك الأولى',
+    no: 25, cefr: 'B1', tag: 'Final Project', tagAr: 'المشروع الأخير',
+    title: 'Final Project — Write Your Paragraph',
+    titleAr: 'المشروع الأخير — اكتب فقرتك الكاملة',
     objectives: [
       { en: 'Use every rule from the course in one paragraph', ar: 'استخدام كل القواعد في فقرة واحدة' },
       { en: 'Capitalize, use articles, and choose tenses', ar: 'الحروف الكبيرة والأدوات والأزمنة' },
@@ -1092,8 +1561,48 @@ export const LESSONS: Lesson[] = [
       { en: 'Edit your own writing for mistakes', ar: 'تدقيق كتابتك بنفسك' },
     ],
     rule: {
-      en: 'A paragraph is a group of sentences about *one topic*. Bring together capitals, articles, correct tenses, conjunctions, commas, and parallel structure — all at once.',
-      ar: 'الفقرة مجموعة جمل حول موضوع واحد. اجمع الحروف الكبيرة والأدوات والأزمنة الصحيحة وأدوات العطف والفواصل والتوازي معًا.',
+      en: 'A good paragraph = a *topic sentence* + *supporting details* + a *concluding sentence*, written with correct capitals, tenses, and punctuation.',
+      ar: 'الفقرة الجيدة = جملة موضوعية + تفاصيل داعمة + جملة خاتمة، بحروفٍ كبيرة وأزمنةٍ وترقيمٍ صحيح.',
+    },
+    studio: {
+      prompt: { en: 'Write a full paragraph (5–7 sentences) about “A person I admire.” (or choose your own topic)', ar: 'اكتب فقرةً كاملة (٥–٧ جمل) عن «شخص أُعجب به». (أو اختر موضوعك)' },
+      model: {
+        title: 'The Person I Admire', titleAr: 'الشخص الذي أُعجب به',
+        parts: [
+          { role: 'topic', en: 'The person I admire most is my grandmother.' },
+          { role: 'support', en: 'She grew up in a small village and worked very hard all her life.' },
+          { role: 'support', en: 'Although she never went to school, she taught herself to read.' },
+          { role: 'support', en: 'She always tells me that knowledge is the greatest treasure.' },
+          { role: 'conclusion', en: 'For all these reasons, my grandmother is my real hero.' },
+        ],
+      },
+      plan: [
+        { label: 'Topic sentence — who / your main idea', ar: 'الجملة الموضوعية — مَن / فكرتك' },
+        { label: 'Support 1 — a fact about them', ar: 'دعم ١ — حقيقة عنه' },
+        { label: 'Support 2 — a reason you admire them', ar: 'دعم ٢ — سبب إعجابك' },
+        { label: 'Support 3 — an example or a detail', ar: 'دعم ٣ — مثال أو تفصيل' },
+        { label: 'Concluding sentence', ar: 'جملة الخاتمة' },
+      ],
+      toolkit: [
+        { group: 'Start', ar: 'البداية', phrases: ['The … I admire most is …', '… is a very special person.', 'I really admire …'] },
+        { group: 'Add & connect', ar: 'الربط', phrases: ['First, …', 'Also, …', 'Although …', 'For example, …', 'because …'] },
+        { group: 'Conclude', ar: 'الخاتمة', phrases: ['For all these reasons, …', 'In conclusion, …', 'That is why …'] },
+      ],
+      steps: [
+        { en: 'PLAN: fill the outline — topic sentence, 3 supports, conclusion.', ar: 'خطّط: املأ المخطّط — موضوعية، ٣ دعم، خاتمة.' },
+        { en: 'WRITE your topic sentence (one clear main idea).', ar: 'اكتب جملتك الموضوعية (فكرة واحدة واضحة).' },
+        { en: 'ADD your 3 supporting sentences.', ar: 'أضف جملك الداعمة الثلاث.' },
+        { en: 'ADD a concluding sentence that restates the idea.', ar: 'أضف جملة خاتمة تُعيد الفكرة.' },
+        { en: 'EDIT: read aloud and fix capitals, commas, and verbs.', ar: 'دقّق: اقرأ بصوتٍ وصحّح الحروف والفواصل والأفعال.' },
+      ],
+      checklist: [
+        { en: 'The paragraph is indented and 5–7 sentences long', ar: 'الفقرة مُزاحة و٥–٧ جمل' },
+        { en: 'The topic sentence states ONE main idea', ar: 'الجملة الموضوعية فكرة واحدة' },
+        { en: 'At least 3 supporting sentences', ar: '٣ جمل داعمة على الأقل' },
+        { en: 'A concluding sentence', ar: 'جملة خاتمة' },
+        { en: 'Every sentence: capital start + end mark', ar: 'كل جملة: حرف كبير وعلامة نهاية' },
+        { en: 'Correct tenses, and no run-ons', ar: 'أزمنة صحيحة وبلا جمل ملتصقة' },
+      ],
     },
     explain: {
       intro: 'Writing well is just applying each small rule at the same time. Watch how one short paragraph uses them all.',
@@ -1385,7 +1894,7 @@ export const LESSONS: Lesson[] = [
 
   /* ─────────────────────────── 9 · SUBJECT–VERB AGREEMENT ─────────────────────────── */
   {
-    no: 9, tag: 'Agreement', tagAr: 'التطابق',
+    no: 10.9, cefr: 'A2', tag: 'Agreement', tagAr: 'التطابق',
     title: 'Subject–Verb Agreement',
     titleAr: 'تطابق الفاعل والفعل',
     objectives: [
@@ -1711,6 +2220,31 @@ export const LESSONS: Lesson[] = [
       en: 'A *paragraph* is a group of sentences about *one main idea*. The *topic sentence* (usually first) states that idea clearly.',
       ar: 'الفقرة مجموعة جمل حول فكرة رئيسية واحدة. والجملة الموضوعية (غالبًا الأولى) تُبيّن هذه الفكرة بوضوح.',
     },
+    studio: {
+      prompt: { en: 'Write ONE strong topic sentence for a paragraph about your city.', ar: 'اكتب جملةً موضوعيةً قوية لفقرةٍ عن مدينتك.' },
+      model: {
+        title: 'A Model Paragraph', titleAr: 'فقرة نموذجية',
+        parts: [
+          { role: 'topic', en: 'My city is a wonderful place to live.' },
+          { role: 'support', en: 'It has green parks where families walk in the evening.' },
+          { role: 'support', en: 'The people are friendly, and the markets are full of life.' },
+          { role: 'conclusion', en: 'For all these reasons, I am proud of my city.' },
+        ],
+      },
+      toolkit: [
+        { group: 'Start a topic sentence', ar: 'بدايات الجملة الموضوعية', phrases: ['My favourite … is …', '… is a wonderful …', 'There are many reasons why …', '… has many benefits.'] },
+      ],
+      steps: [
+        { en: 'Choose your topic (your city, your school, or a hobby).', ar: 'اختر موضوعك (مدينتك، مدرستك، أو هواية).' },
+        { en: 'Write ONE sentence that clearly states your main idea.', ar: 'اكتب جملةً واحدة تُبيّن فكرتك الرئيسية بوضوح.' },
+        { en: 'Check it is not too broad and not just a small fact.', ar: 'تأكّد أنها ليست فضفاضة ولا مجرّد تفصيل صغير.' },
+      ],
+      checklist: [
+        { en: 'One clear main idea', ar: 'فكرة رئيسية واحدة واضحة' },
+        { en: 'Not too general (“Cities.” ✗)', ar: 'ليست عامّة جدًا' },
+        { en: 'A complete sentence: capital + period', ar: 'جملة كاملة: حرف كبير ونقطة' },
+      ],
+    },
     explain: {
       intro: 'Now you build paragraphs. A paragraph is not random sentences — it is one idea, developed.',
       introAr: 'الآن تبني الفقرات. والفقرة ليست جملًا عشوائية، بل فكرة واحدة مُطوَّرة.',
@@ -1785,6 +2319,42 @@ export const LESSONS: Lesson[] = [
       en: '*Supporting sentences* explain the topic with reasons, examples, and details. The *concluding sentence* restates the main idea and closes the paragraph.',
       ar: 'الجمل الداعمة تشرح الموضوع بالأسباب والأمثلة والتفاصيل. وجملة الخاتمة تُعيد الفكرة وتُغلق الفقرة.',
     },
+    studio: {
+      prompt: { en: 'Build the body: write 3 supporting sentences + a conclusion for the topic sentence “Reading is a great hobby.”', ar: 'اِبنِ الجسم: اكتب ٣ جمل داعمة + خاتمة للجملة الموضوعية «Reading is a great hobby».' },
+      model: {
+        title: 'Reading is a Great Hobby', titleAr: 'القراءة هواية رائعة',
+        parts: [
+          { role: 'topic', en: 'Reading is a great hobby.' },
+          { role: 'support', en: 'First, it teaches you new words and ideas.' },
+          { role: 'support', en: 'It also takes you to new worlds without leaving home.' },
+          { role: 'support', en: 'For example, a good story can make you forget your worries.' },
+          { role: 'conclusion', en: 'In short, everyone should read a little every day.' },
+        ],
+      },
+      plan: [
+        { label: 'Topic sentence', ar: 'الجملة الموضوعية' },
+        { label: 'Support 1 — a reason', ar: 'دعم ١ — سبب' },
+        { label: 'Support 2 — an example', ar: 'دعم ٢ — مثال' },
+        { label: 'Support 3 — a detail', ar: 'دعم ٣ — تفصيل' },
+        { label: 'Concluding sentence', ar: 'جملة الخاتمة' },
+      ],
+      toolkit: [
+        { group: 'Add support', ar: 'الإضافة', phrases: ['First, …', 'Second, …', 'Also, …', 'In addition, …', 'For example, …', 'Because …'] },
+        { group: 'Conclude', ar: 'الخاتمة', phrases: ['In short, …', 'For these reasons, …', 'All in all, …', 'That is why …'] },
+      ],
+      steps: [
+        { en: 'Copy the topic sentence at the top.', ar: 'انسخ الجملة الموضوعية في الأعلى.' },
+        { en: 'Add 3 supporting sentences: a reason, an example, a detail.', ar: 'أضف ٣ جمل داعمة: سبب، مثال، تفصيل.' },
+        { en: 'Finish with a concluding sentence that restates the idea.', ar: 'اختم بجملةٍ تُعيد الفكرة الرئيسية.' },
+        { en: 'Delete any sentence that leaves the topic.', ar: 'احذف أي جملة تخرج عن الموضوع.' },
+      ],
+      checklist: [
+        { en: 'At least 3 supporting sentences', ar: '٣ جمل داعمة على الأقل' },
+        { en: 'A concluding sentence that restates the idea', ar: 'خاتمة تُعيد الفكرة' },
+        { en: 'Every sentence stays on the topic', ar: 'كل الجمل في الموضوع' },
+        { en: 'Linking words used (First, Also, For example)', ar: 'استُعملت أدوات الربط' },
+      ],
+    },
     explain: {
       intro: 'A topic sentence makes a promise. The supporting sentences keep it, and the conclusion ties it up.',
       introAr: 'الجملة الموضوعية تَعِد، والجمل الداعمة تفي بالوعد، والخاتمة تربط كل شيء.',
@@ -1858,6 +2428,35 @@ export const LESSONS: Lesson[] = [
     rule: {
       en: 'A *narrative* paragraph tells a story in time order. A *descriptive* paragraph paints a picture with details. An *opinion* paragraph states a view and supports it with reasons.',
       ar: 'السردية تحكي قصة بالترتيب الزمني. والوصفية ترسم صورة بالتفاصيل. وفقرة الرأي تبدي وجهة نظر وتدعمها بالأسباب.',
+    },
+    studio: {
+      prompt: { en: 'Choose ONE type — narrative, descriptive, or opinion — and write a short paragraph.', ar: 'اختر نوعًا واحدًا — سردية أو وصفية أو رأي — واكتب فقرة قصيرة.' },
+      model: {
+        title: 'An Opinion Paragraph', titleAr: 'فقرة رأي',
+        parts: [
+          { role: 'topic', en: 'In my opinion, mornings are the best time to study.' },
+          { role: 'support', en: 'First, the mind is fresh and calm.' },
+          { role: 'support', en: 'Also, the house is quiet, so I can focus.' },
+          { role: 'support', en: 'For example, I remember new words better before noon.' },
+          { role: 'conclusion', en: 'For these reasons, I always study early.' },
+        ],
+      },
+      toolkit: [
+        { group: 'Narrative (a story)', ar: 'سردية', phrases: ['First, …', 'Then, …', 'After that, …', 'Finally, …'] },
+        { group: 'Descriptive (senses)', ar: 'وصفية', phrases: ['It looked …', 'I could hear …', 'The smell of …', 'It felt …'] },
+        { group: 'Opinion (your view)', ar: 'رأي', phrases: ['In my opinion, …', 'I believe that …', '… because …', 'For these reasons, …'] },
+      ],
+      steps: [
+        { en: 'Pick your type: narrative, descriptive, or opinion.', ar: 'اختر النوع: سردية أو وصفية أو رأي.' },
+        { en: 'Write a topic sentence in that style.', ar: 'اكتب جملة موضوعية بذلك الأسلوب.' },
+        { en: 'Add supporting sentences using the right signal words.', ar: 'أضف جملًا داعمة بأدوات النوع المناسبة.' },
+        { en: 'End with a concluding sentence.', ar: 'اختم بجملة خاتمة.' },
+      ],
+      checklist: [
+        { en: 'The type is clear from the first sentence', ar: 'النوع واضح من الجملة الأولى' },
+        { en: 'You used that type’s signal words', ar: 'استعملتَ أدوات النوع' },
+        { en: 'A topic sentence and a conclusion', ar: 'جملة موضوعية وخاتمة' },
+      ],
     },
     explain: {
       intro: 'Different goals need different paragraphs. But every type still starts with a topic sentence.',

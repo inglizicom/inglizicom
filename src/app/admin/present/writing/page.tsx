@@ -19,39 +19,45 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronLeft, ChevronRight, ArrowLeft, Maximize2, Minimize2, ZoomIn, ZoomOut,
   RotateCcw, Check, PenLine, Sparkles, Target, Lightbulb, Info, Layers,
-  PencilLine, BookOpen, ClipboardList, HelpCircle, SearchCheck,
+  PencilLine, BookOpen, ClipboardList, SearchCheck, Blocks, SpellCheck, Table,
+  FileText, ListChecks, Wand2,
   Menu, X, ChevronDown, ListTree,
   Globe, Instagram, Youtube, GraduationCap, Phone,
 } from 'lucide-react'
-import { LESSONS, type Lesson, type Ex, type QA } from '@/data/writing-course'
+import { LESSONS, IRREGULAR_VERBS, type Lesson, type Ex, type QA, type Irregular } from '@/data/writing-course'
 
 const INK = '#2a1d12'
 const GOLD = '#facc15'
 const AMBER = '#b45309'
-const EX_PER = 9
-const QA_PER = 6
+const IRR_PER = 30   // irregular verbs per reference slide
 
-// Lessons in teaching order (the data may be authored out of order; `no` is the key).
+// Lessons in teaching order (data may be authored out of order; `no` is the sort key
+// and can be fractional to slot lessons between others). Display numbers come from
+// position, so inserting a lesson never means renumbering the rest.
 const ORDERED = [...LESSONS].sort((a, b) => a.no - b.no)
+const LESSON_POS = new Map<Lesson, number>()
+ORDERED.forEach((L, i) => LESSON_POS.set(L, i + 1))
+const numOf = (L: Lesson) => LESSON_POS.get(L) ?? Math.round(L.no)
 
-// Three-level syllabus: Unit → Module → Lessons (referenced by `no` range).
+// CEFR-aligned three-level syllabus: Unit (level band) → Module → Lessons (by `no` range).
 type ModDef = { en: string; ar: string; from: number; to: number }
-type UnitDef = { en: string; short: string; ar: string; modules: ModDef[] }
+type UnitDef = { en: string; short: string; ar: string; cefr: string; modules: ModDef[] }
 const SYLLABUS: UnitDef[] = [
-  { en: 'Unit 1 · Writing Mechanics', short: 'Mechanics', ar: 'الوحدة ١ · أساسيات الكتابة', modules: [
+  { en: 'Unit 1 · Writing Mechanics', short: 'Mechanics', ar: 'الوحدة ١ · أساسيات الكتابة', cefr: 'A1', modules: [
     { en: 'Letters & Sounds', ar: 'الحروف والأصوات', from: 1, to: 2 },
     { en: 'Marks & Articles', ar: 'العلامات والأدوات', from: 3, to: 5 },
   ] },
-  { en: 'Unit 2 · Words & Agreement', short: 'Words', ar: 'الوحدة ٢ · الكلمات والتطابق', modules: [
+  { en: 'Unit 2 · Words, Tenses & Agreement', short: 'Words & Verbs', ar: 'الوحدة ٢ · الكلمات والأزمنة', cefr: 'A1–A2', modules: [
     { en: 'Nouns & People', ar: 'الأسماء والأشخاص', from: 6, to: 8 },
-    { en: 'Verbs & Agreement', ar: 'الأفعال والتطابق', from: 9, to: 11 },
+    { en: 'Verb Tenses', ar: 'أزمنة الأفعال', from: 10, to: 10.8 },
+    { en: 'Agreement & Prepositions', ar: 'التطابق وحروف الجر', from: 10.9, to: 11 },
   ] },
-  { en: 'Unit 3 · Building Sentences', short: 'Sentences', ar: 'الوحدة ٣ · بناء الجمل', modules: [
+  { en: 'Unit 3 · Building Sentences', short: 'Sentences', ar: 'الوحدة ٣ · بناء الجمل', cefr: 'A2', modules: [
     { en: 'Complete Sentences', ar: 'الجمل الكاملة', from: 12, to: 13 },
     { en: 'Joining Ideas', ar: 'ربط الأفكار', from: 14, to: 16 },
     { en: 'Punctuation & Style', ar: 'الترقيم والأسلوب', from: 17, to: 20 },
   ] },
-  { en: 'Unit 4 · Writing Paragraphs', short: 'Paragraphs', ar: 'الوحدة ٤ · كتابة الفقرات', modules: [
+  { en: 'Unit 4 · Writing Paragraphs', short: 'Paragraphs', ar: 'الوحدة ٤ · كتابة الفقرات', cefr: 'B1', modules: [
     { en: 'Paragraph Structure', ar: 'بنية الفقرة', from: 21, to: 22 },
     { en: 'Writing & Polishing', ar: 'الكتابة والصقل', from: 23, to: 25 },
   ] },
@@ -61,9 +67,10 @@ const moduleOf = (no: number) => {
   for (const u of SYLLABUS) { const m = u.modules.find(m => no >= m.from && no <= m.to); if (m) return m }
   return SYLLABUS[0].modules[0]
 }
+const cefrOf = (L: Lesson) => L.cefr ?? unitOf(L.no).cefr
 const lessonsIn = (m: ModDef) => ORDERED.filter(L => L.no >= m.from && L.no <= m.to)
 
-type Phase = 'cover' | 'objectives' | 'rule' | 'explain' | 'examples' | 'exercises' | 'reading' | 'comprehension' | 'homework' | 'editing'
+type Phase = 'cover' | 'objectives' | 'rule' | 'explain' | 'form' | 'spelling' | 'irregulars' | 'examples' | 'exercises' | 'reading' | 'homework' | 'editing' | 'model' | 'plan' | 'toolkit' | 'write' | 'checklist'
 type Slide =
   | { t: 'intro' }
   | { t: 'end' }
@@ -71,24 +78,38 @@ type Slide =
   | { t: 'objectives'; L: Lesson }
   | { t: 'rule'; L: Lesson }
   | { t: 'explain'; L: Lesson }
-  | { t: 'examples'; L: Lesson; items: Ex[]; page: number; pages: number }
-  | { t: 'exercises'; L: Lesson; items: QA[]; page: number; pages: number }
+  | { t: 'form'; L: Lesson }
+  | { t: 'spelling'; L: Lesson }
+  | { t: 'irregulars'; L: Lesson; items: Irregular[]; page: number; pages: number; mode: 'past' | 'pp' }
+  | { t: 'examples'; L: Lesson; item: Ex; page: number; pages: number }
+  | { t: 'exercises'; L: Lesson; item: QA; page: number; pages: number }
   | { t: 'reading'; L: Lesson }
-  | { t: 'comprehension'; L: Lesson }
   | { t: 'homework'; L: Lesson }
   | { t: 'editing'; L: Lesson }
+  | { t: 'model'; L: Lesson }
+  | { t: 'plan'; L: Lesson }
+  | { t: 'toolkit'; L: Lesson }
+  | { t: 'write'; L: Lesson }
+  | { t: 'checklist'; L: Lesson }
 
 const PHASE: Record<Phase, { en: string; ar: string; Icon: typeof Target }> = {
   cover:         { en: 'Lesson',         ar: 'الدرس',        Icon: BookOpen },
   objectives:    { en: 'Objectives',     ar: 'الأهداف',      Icon: Target },
   rule:          { en: 'The Rule',       ar: 'القاعدة',      Icon: Lightbulb },
   explain:       { en: 'Explanation',    ar: 'الشرح',        Icon: Info },
+  form:          { en: 'How to Build It', ar: 'كيف نبنيها',   Icon: Blocks },
+  spelling:      { en: 'Spelling Rules', ar: 'قواعد الإملاء', Icon: SpellCheck },
+  irregulars:    { en: 'Irregular Verbs', ar: 'الأفعال الشاذة', Icon: Table },
   examples:      { en: 'Examples',       ar: 'أمثلة',         Icon: Layers },
   exercises:     { en: 'Exercise',       ar: 'تمرين',         Icon: PencilLine },
   reading:       { en: 'Reading',        ar: 'نص للقراءة',    Icon: BookOpen },
-  comprehension: { en: 'Comprehension',  ar: 'أسئلة الفهم',   Icon: HelpCircle },
   homework:      { en: 'Homework',       ar: 'واجب منزلي',    Icon: ClipboardList },
   editing:       { en: 'Find the Mistakes', ar: 'صحّح الأخطاء', Icon: SearchCheck },
+  model:         { en: 'Model Paragraph', ar: 'فقرة نموذجية', Icon: FileText },
+  plan:          { en: 'Plan It',        ar: 'خطّط',          Icon: ListChecks },
+  toolkit:       { en: 'Toolkit',        ar: 'أدوات الكتابة', Icon: Wand2 },
+  write:         { en: 'Your Turn — Write!', ar: 'دورك — اكتب!', Icon: PenLine },
+  checklist:     { en: 'Check Your Work', ar: 'راجع كتابتك',  Icon: ListChecks },
 }
 
 /* Build the flat slide list + a lesson→cover-index map for jump navigation. */
@@ -97,12 +118,39 @@ function buildSlides(): { slides: Slide[]; jump: Record<number, number> } {
   const jump: Record<number, number> = {}
   for (const L of ORDERED) {
     jump[L.no] = slides.length
-    slides.push({ t: 'cover', L }, { t: 'objectives', L }, { t: 'rule', L }, { t: 'explain', L })
-    const ep = Math.ceil(L.examples.length / EX_PER)
-    for (let p = 0; p < ep; p++) slides.push({ t: 'examples', L, items: L.examples.slice(p * EX_PER, p * EX_PER + EX_PER), page: p + 1, pages: ep })
-    const qp = Math.ceil(L.exercises.length / QA_PER)
-    for (let p = 0; p < qp; p++) slides.push({ t: 'exercises', L, items: L.exercises.slice(p * QA_PER, p * QA_PER + QA_PER), page: p + 1, pages: qp })
-    slides.push({ t: 'reading', L }, { t: 'comprehension', L }, { t: 'homework', L }, { t: 'editing', L })
+    slides.push({ t: 'cover', L }, { t: 'objectives', L })
+    if (L.rule) slides.push({ t: 'rule', L })
+    if (L.studio) {
+      // Writing-studio flow (paragraph lessons) — hands-on, replaces the grammar drills.
+      const st = L.studio
+      if (st.model) slides.push({ t: 'model', L })
+      if (st.plan) slides.push({ t: 'plan', L })
+      if (st.toolkit) slides.push({ t: 'toolkit', L })
+      if (st.steps) slides.push({ t: 'write', L })
+      if (st.checklist) slides.push({ t: 'checklist', L })
+    } else {
+      // Grammar flow.
+      if (L.explain) slides.push({ t: 'explain', L })
+      if (L.form) slides.push({ t: 'form', L })
+      if (L.spelling) slides.push({ t: 'spelling', L })
+      if (L.irregulars) {
+        const ip = Math.ceil(IRREGULAR_VERBS.length / IRR_PER)
+        for (let p = 0; p < ip; p++) slides.push({ t: 'irregulars', L, items: IRREGULAR_VERBS.slice(p * IRR_PER, p * IRR_PER + IRR_PER), page: p + 1, pages: ip, mode: L.irregulars })
+      }
+      if (L.examples?.length) {
+        // One example per slide — big single card, easy to teach.
+        const ex = L.examples
+        ex.forEach((item, i) => slides.push({ t: 'examples', L, item, page: i + 1, pages: ex.length }))
+      }
+      if (L.exercises?.length) {
+        // One question per slide; the answer reveals on Space.
+        const qa = L.exercises
+        qa.forEach((item, i) => slides.push({ t: 'exercises', L, item, page: i + 1, pages: qa.length }))
+      }
+      if (L.reading) slides.push({ t: 'reading', L })
+    }
+    slides.push({ t: 'homework', L })
+    if (!L.studio && L.editing) slides.push({ t: 'editing', L })
   }
   slides.push({ t: 'end' })
   return { slides, jump }
@@ -112,7 +160,7 @@ function buildSlides(): { slides: Slide[]; jump: Record<number, number> } {
 function Marked({ text, className, style }: { text: string; className?: string; style?: React.CSSProperties }) {
   const parts = text.split('*')
   return (
-    <span className={className} style={style}>
+    <span dir="ltr" className={className} style={style}>
       {parts.map((p, i) => i % 2 === 1
         ? <span key={i} className="font-black rounded-md" style={{ color: AMBER, background: '#fef3c7', padding: '0.02em 0.28em' }}>{p}</span>
         : <span key={i}>{p}</span>)}
@@ -148,9 +196,10 @@ const stepsOf = (s?: Slide) => {
   if (!s) return 0
   if (s.t === 'objectives') return s.L.objectives.length
   if (s.t === 'homework') return s.L.homework.length
-  if (s.t === 'exercises') return s.items.length
-  if (s.t === 'comprehension') return s.L.reading.questions.length
+  if (s.t === 'exercises') return 1
   if (s.t === 'editing') return 1
+  if (s.t === 'write') return s.L.studio?.steps?.length ?? 0
+  if (s.t === 'checklist') return s.L.studio?.checklist?.length ?? 0
   return 0
 }
 
@@ -268,13 +317,15 @@ export default function WritingDeck() {
           <button onClick={() => { setIdx(0); setStep(0) }} title="من البداية" className="p-1.5 rounded-lg border border-stone-300 bg-white text-stone-600 hover:bg-stone-100 transition shrink-0" aria-label="Restart"><RotateCcw size={15} /></button>
         </div>
         <span className="px-3.5 py-1.5 rounded-xl text-white font-black whitespace-nowrap flex items-center gap-2" style={{ background: INK }}>
-          <PenLine size={15} style={{ color: GOLD }} /> {L ? `Lesson ${L.no} / ${LESSONS.length}` : 'English from Zero'} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>{L ? L.tagAr : 'الإنجليزية من الصفر'}</span>
+          <PenLine size={15} style={{ color: GOLD }} /> {L ? `Lesson ${numOf(L)} / ${ORDERED.length}` : 'English from Zero'} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>{L ? L.tagAr : 'الإنجليزية من الصفر'}</span>
         </span>
+        {L && <span className="px-2.5 py-1.5 rounded-xl font-black whitespace-nowrap" style={{ background: '#ecfeff', color: '#0e7490', boxShadow: 'inset 0 0 0 1.5px #a5f3fc' }}>{cefrOf(L)}</span>}
         {phase && (
           <span className="px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap text-[#2a1d12] flex items-center gap-1.5" style={{ background: GOLD }}>
             <phase.Icon size={14} /> {phase.en} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>{phase.ar}</span>
             {s.t === 'examples' && s.pages > 1 ? ` · ${s.page}/${s.pages}` : ''}
             {s.t === 'exercises' && s.pages > 1 ? ` · ${s.page}/${s.pages}` : ''}
+            {s.t === 'irregulars' && s.pages > 1 ? ` · ${s.page}/${s.pages}` : ''}
           </span>
         )}
         <div className="absolute right-[3vw] top-[2.4vh] flex items-center gap-2">
@@ -306,7 +357,10 @@ export default function WritingDeck() {
           {SYLLABUS.map((u, ui) => (
             <div key={ui} className="mb-[1.2vh]">
               <div className="px-[0.6vw] pb-[0.5vh] mb-[0.4vh] border-b border-stone-100">
-                <div className="font-black leading-tight" style={{ color: AMBER, fontSize: '0.9vw' }}>{u.en}</div>
+                <div className="flex items-center gap-[0.5vw]">
+                  <span className="rounded font-black px-1.5 py-0.5" style={{ background: '#ecfeff', color: '#0e7490', fontSize: '0.7vw' }}>{u.cefr}</span>
+                  <span className="font-black leading-tight" style={{ color: AMBER, fontSize: '0.9vw' }}>{u.en}</span>
+                </div>
                 <div dir="rtl" className="font-bold text-stone-400 leading-tight" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.75vw' }}>{u.ar}</div>
               </div>
               {u.modules.map((m, mi) => {
@@ -327,7 +381,7 @@ export default function WritingDeck() {
                             <button key={L2.no} onClick={() => jumpTo(L2.no)}
                               className={`flex items-center gap-[0.5vw] px-[0.5vw] py-[0.5vh] rounded-lg text-left transition ${active ? '' : 'hover:bg-stone-100'}`}
                               style={active ? { background: '#fef3c7', boxShadow: 'inset 0 0 0 1.5px #fcd34d' } : undefined}>
-                              <span className="grid place-items-center rounded-md font-black shrink-0" style={{ width: 24, height: 24, background: active ? GOLD : '#e7e5e4', color: INK, fontSize: '0.72vw' }}>{L2.no}</span>
+                              <span className="grid place-items-center rounded-md font-black shrink-0" style={{ width: 24, height: 24, background: active ? GOLD : '#e7e5e4', color: INK, fontSize: '0.72vw' }}>{numOf(L2)}</span>
                               <span className="min-w-0">
                                 <span className="block font-bold truncate" style={{ color: INK, fontSize: '0.82vw' }}>{L2.tag}</span>
                                 <span dir="rtl" className="block font-bold text-stone-400 truncate" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.7vw' }}>{L2.tagAr}</span>
@@ -357,7 +411,7 @@ export default function WritingDeck() {
           onPointerDown={onPanDown} onPointerMove={onPanMove} onPointerUp={onPanUp} onPointerCancel={onPanUp}
           style={{ transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`, transformOrigin: 'center center', transition: dragging ? 'none' : 'transform 150ms', cursor: zoom > 1 ? (dragging ? 'grabbing' : 'grab') : 'default' }}>
           <AnimatePresence mode="wait">
-            <motion.div key={idx} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.3 }}
+            <motion.div key={idx} dir="ltr" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.3 }}
               className="w-full flex items-center justify-center">
               <SlideView s={s} step={step} onJump={jumpTo} />
             </motion.div>
@@ -391,14 +445,14 @@ function SlideView({ s, step, onJump }: { s: Slide; step: number; onJump: (no: n
       {/* unit overview — click a unit to jump into it; the full index lives in the drawer */}
       <div dir="ltr" className="grid grid-cols-4 gap-[1vw] w-full">
         {SYLLABUS.map((u, ui) => {
-          const count = u.modules.reduce((n, m) => n + (m.to - m.from + 1), 0)
+          const count = u.modules.reduce((n, m) => n + lessonsIn(m).length, 0)
           return (
             <button key={ui} onClick={() => onJump(u.modules[0].from)}
-              className="rounded-2xl bg-white ring-1 ring-stone-200 hover:ring-yellow-400 hover:shadow-[0_14px_30px_-20px_rgba(42,29,18,0.5)] transition px-[1vw] py-[1.8vh] flex flex-col items-center gap-[0.3vh]">
-              <span className="grid place-items-center rounded-xl font-black text-[#2a1d12]" style={{ width: '2.4vw', height: '2.4vw', background: GOLD, fontSize: '1.1vw' }}>{ui + 1}</span>
-              <span className="font-black leading-tight mt-[0.5vh]" style={{ color: INK, fontSize: '1.05vw' }}>{u.en.split(' · ')[1]}</span>
-              <span dir="rtl" className="font-bold text-stone-400" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.85vw' }}>{u.ar.split(' · ')[1]}</span>
-              <span className="mt-[0.4vh] text-stone-400 font-bold" style={{ fontSize: '0.76vw' }}>{u.modules.length} modules · {count} lessons</span>
+              className="rounded-2xl bg-white ring-1 ring-stone-200 hover:ring-yellow-400 hover:shadow-[0_14px_30px_-20px_rgba(42,29,18,0.5)] transition px-[1vw] py-[1.6vh] flex flex-col items-center gap-[0.25vh]">
+              <span className="rounded-lg px-2.5 py-0.5 font-black mb-[0.3vh]" style={{ background: '#ecfeff', color: '#0e7490', fontSize: '0.85vw' }}>CEFR {u.cefr}</span>
+              <span className="font-black leading-tight" style={{ color: INK, fontSize: '1.02vw' }}>{u.en.split(' · ')[1]}</span>
+              <span dir="rtl" className="font-bold text-stone-400" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.82vw' }}>{u.ar.split(' · ')[1]}</span>
+              <span className="mt-[0.4vh] text-stone-400 font-bold" style={{ fontSize: '0.74vw' }}>{u.modules.length} modules · {count} lessons</span>
             </button>
           )
         })}
@@ -413,17 +467,19 @@ function SlideView({ s, step, onJump }: { s: Slide; step: number; onJump: (no: n
   if (s.t === 'cover') {
     const u = unitOf(s.L.no)
     const m = moduleOf(s.L.no)
+    const n = numOf(s.L)
     return (
       <div className="text-center max-w-[80vw]">
-        <div className="font-black tracking-[0.12em] uppercase mb-[1.2vh]" style={{ color: AMBER, fontSize: '0.92vw' }}>
-          {u.en} <span className="text-stone-300">›</span> {m.en}
+        <div className="flex items-center justify-center gap-[0.8vw] mb-[1.4vh]">
+          <span className="rounded-lg px-2.5 py-1 font-black" style={{ background: '#ecfeff', color: '#0e7490', boxShadow: 'inset 0 0 0 1.5px #a5f3fc', fontSize: '0.9vw' }}>CEFR {cefrOf(s.L)}</span>
+          <span className="font-black tracking-[0.1em] uppercase" style={{ color: AMBER, fontSize: '0.9vw' }}>{u.en} <span className="text-stone-300">›</span> {m.en}</span>
         </div>
-        <div className="inline-block mb-[1.8vh] px-5 py-2 rounded-full font-black tracking-[0.15em] text-[1.1vw]" style={{ background: GOLD, color: INK }}>
-          LESSON {s.L.no} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>الدرس {s.L.no}</span>
+        <div className="inline-block mb-[1.6vh] px-5 py-2 rounded-full font-black tracking-[0.15em] text-[1.1vw]" style={{ background: GOLD, color: INK }}>
+          LESSON {n} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>الدرس {n}</span>
         </div>
         <h1 className="font-black leading-[1.06] tracking-tight" style={{ color: INK, fontSize: '3.8vw' }}>{s.L.title}</h1>
         <div dir="rtl" className="mt-[1.2vh] font-black text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '2.2vw' }}>{s.L.titleAr}</div>
-        <div className="mt-[2.4vh] text-stone-400 font-bold" style={{ fontSize: '1vw' }}>Lesson {s.L.no} of {ORDERED.length}</div>
+        <div className="mt-[2.2vh] text-stone-400 font-bold" style={{ fontSize: '1vw' }}>Lesson {n} of {ORDERED.length}</div>
       </div>
     )
   }
@@ -463,11 +519,11 @@ function SlideView({ s, step, onJump }: { s: Slide; step: number; onJump: (no: n
     <div className="w-full max-w-[76vw] flex flex-col items-center gap-[2.4vh]">
       <Heading en="Explanation" ar="الشرح" />
       <div className="text-center max-w-[62vw]">
-        <Marked text={s.L.explain.intro} className="font-bold text-stone-700" style={{ fontSize: '1.4vw' }} />
-        <div dir="rtl" className="mt-[0.6vh] font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.3vw' }}>{s.L.explain.introAr}</div>
+        <Marked text={s.L.explain!.intro} className="font-bold text-stone-700" style={{ fontSize: '1.4vw' }} />
+        <div dir="rtl" className="mt-[0.6vh] font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.3vw' }}>{s.L.explain!.introAr}</div>
       </div>
       <div dir="ltr" className="grid grid-cols-2 gap-x-[2vw] gap-y-[1.2vh] w-full">
-        {s.L.explain.points.map((p, i) => (
+        {s.L.explain!.points.map((p, i) => (
           <div key={i} className="flex items-center gap-[0.9vw] rounded-2xl bg-white ring-1 ring-stone-200 px-[1.4vw] py-[1.2vh]">
             <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: GOLD }} />
             <Marked text={p.en} className="font-bold" style={{ color: INK, fontSize: '1.15vw' }} />
@@ -478,60 +534,133 @@ function SlideView({ s, step, onJump }: { s: Slide; step: number; onJump: (no: n
     </div>
   )
 
-  if (s.t === 'examples') {
-    const n = s.items.length
-    const cols = n <= 4 ? 2 : n <= 6 ? 3 : 3
+  if (s.t === 'form') {
+    const f = s.L.form!
+    const cols: { label: string; ar: string; sign: string; color: string; lines: string[] }[] = [
+      { label: 'Affirmative', ar: 'مُثبَت', sign: '+', color: '#059669', lines: f.affirmative },
+      { label: 'Negative', ar: 'منفي', sign: '−', color: '#e11d48', lines: f.negative },
+      { label: 'Question', ar: 'سؤال', sign: '?', color: '#2563eb', lines: f.question },
+    ]
     return (
-      <div className="w-full max-w-[84vw] flex flex-col items-center gap-[2.4vh]">
-        <Heading en="Examples" ar="أمثلة" />
-        <div dir="ltr" className="grid w-full gap-[1.1vw]" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0,1fr))` }}>
-          {s.items.map((ex, i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: i * 0.03 }}
-              className="rounded-2xl bg-white ring-1 ring-stone-200 shadow-[0_12px_28px_-22px_rgba(42,29,18,0.5)] px-[1.4vw] py-[1.3vh] flex flex-col gap-[0.5vh]">
-              <Marked text={ex.en} className="font-black leading-snug" style={{ color: INK, fontSize: '1.3vw' }} />
-              <span dir="rtl" className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.1vw' }}>{ex.ar}</span>
-            </motion.div>
+      <div className="w-full max-w-[88vw] flex flex-col items-center gap-[2vh]">
+        <div className="flex items-center gap-[0.8vw]"><Blocks size={24} style={{ color: AMBER }} /><Heading en="How to Build It" ar="كيف نبنيها" /></div>
+        <div dir="ltr" className="grid grid-cols-3 gap-[1.2vw] w-full">
+          {cols.map((c, i) => (
+            <div key={i} className="rounded-3xl bg-white ring-1 ring-stone-200 shadow-[0_16px_36px_-26px_rgba(42,29,18,0.5)] overflow-hidden">
+              <div className="flex items-center gap-[0.6vw] px-[1.1vw] py-[1vh]" style={{ background: c.color }}>
+                <span className="grid place-items-center rounded-md bg-white/25 text-white font-black" style={{ width: '1.7vw', height: '1.7vw', fontSize: '1vw' }}>{c.sign}</span>
+                <span className="font-black text-white" style={{ fontSize: '1vw' }}>{c.label}</span>
+                <span dir="rtl" className="ml-auto font-bold text-white/80" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.9vw' }}>{c.ar}</span>
+              </div>
+              <div className="p-[1vw] flex flex-col gap-[0.8vh]">
+                {c.lines.map((ln, k) => (
+                  <div key={k} className="rounded-xl bg-stone-50 ring-1 ring-stone-100 px-[0.9vw] py-[0.8vh]">
+                    <Marked text={ln} className="font-bold" style={{ color: INK, fontSize: '1.02vw' }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+        {f.note && (
+          <div className="flex items-start gap-[0.9vw] rounded-2xl bg-[#2a1d12] px-[1.8vw] py-[1.2vh] w-full">
+            <Sparkles size={16} style={{ color: GOLD }} className="mt-[0.3vh] shrink-0" />
+            <div>
+              <Marked text={f.note} className="font-bold text-white" style={{ fontSize: '1.02vw' }} />
+              {f.noteAr && <span dir="rtl" className="block font-bold text-white/70" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.95vw' }}>{f.noteAr}</span>}
+            </div>
+          </div>
+        )}
+        {s.L.signals && (
+          <div className="flex flex-wrap items-center justify-center gap-[0.6vw]">
+            <span className="font-black text-stone-400 uppercase tracking-wide" style={{ fontSize: '0.78vw' }}>Signal words · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>كلمات دالّة</span></span>
+            {s.L.signals.map((sg, k) => (
+              <span key={k} className="rounded-full bg-amber-50 ring-1 ring-amber-200 px-[0.8vw] py-[0.35vh] font-bold" style={{ color: AMBER, fontSize: '0.85vw' }}>{sg.en} <span dir="rtl" className="text-stone-400" style={{ fontFamily: "'Tajawal', sans-serif" }}>{sg.ar}</span></span>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  if (s.t === 'spelling') {
+    const rules = s.L.spelling!
+    return (
+      <div className="w-full max-w-[76vw] flex flex-col items-center gap-[2.4vh]">
+        <div className="flex items-center gap-[0.8vw]"><SpellCheck size={24} style={{ color: AMBER }} /><Heading en="Spelling Rules" ar="قواعد الإملاء" /></div>
+        <div className="w-full flex flex-col gap-[1.1vh]">
+          {rules.map((r, i) => (
+            <div key={i} className="w-full grid grid-cols-[auto_1fr] items-center gap-[1.4vw] rounded-2xl bg-white ring-1 ring-stone-200 shadow-[0_12px_30px_-24px_rgba(42,29,18,0.5)] px-[1.8vw] py-[1.3vh]">
+              <span className="grid place-items-center rounded-full font-black text-[#2a1d12] shrink-0" style={{ width: 34, height: 34, background: GOLD, fontSize: '1vw' }}>{i + 1}</span>
+              <div className="min-w-0">
+                <div className="flex items-baseline gap-[0.8vw] flex-wrap">
+                  <Marked text={r.rule} className="font-black" style={{ color: INK, fontSize: '1.2vw' }} />
+                  <span dir="rtl" className="font-bold text-stone-400" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1vw' }}>{r.ar}</span>
+                </div>
+                <div className="mt-[0.3vh] font-mono font-bold text-emerald-700" style={{ fontSize: '1.02vw' }}>{r.examples}</div>
+              </div>
+            </div>
           ))}
         </div>
       </div>
     )
   }
 
-  if (s.t === 'exercises') return (
-    <div className="w-full max-w-[74vw] flex flex-col items-center gap-[2.2vh]">
-      <div className="flex items-center gap-[0.8vw]">
-        <Heading en="Exercise" ar="تمرين" />
-      </div>
-      <div className="w-full flex flex-col gap-[1.2vh]">
-        {s.items.map((qa, i) => (
-          <div key={i} className="w-full rounded-2xl bg-white ring-1 ring-stone-200 shadow-[0_12px_30px_-24px_rgba(42,29,18,0.5)] px-[1.8vw] py-[1.3vh]">
-            <div className="flex items-center gap-[1vw]">
-              <span className="grid place-items-center rounded-full font-black text-[#2a1d12] shrink-0" style={{ width: '2.3vw', height: '2.3vw', background: '#e7e5e4', fontSize: '1vw' }}>{i + 1}</span>
-              <Marked text={qa.q} className="font-bold" style={{ color: INK, fontSize: '1.3vw' }} />
-            </div>
-            {i < step ? (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} transition={{ duration: 0.25 }}
-                className="flex items-center gap-[0.8vw] mt-[1vh] ml-[3.3vw]">
-                <Check size={17} className="text-emerald-500 shrink-0" strokeWidth={3} />
-                <Marked text={qa.a} className="font-black" style={{ color: '#059669', fontSize: '1.3vw' }} />
-              </motion.div>
-            ) : (
-              <div className="mt-[1vh] ml-[3.3vw] text-stone-300 font-bold italic" style={{ fontSize: '1vw' }}>… ?</div>
-            )}
-          </div>
-        ))}
-      </div>
-      {step < s.items.length && (
-        <div className="text-stone-400 font-bold" style={{ fontSize: '0.95vw' }}>
-          Press <kbd className="px-2 py-0.5 rounded bg-stone-100 ring-1 ring-stone-300 font-mono">Space</kbd> to reveal the answer ·
-          <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}> اضغط مسافة لإظهار الجواب</span>
+  if (s.t === 'examples') {
+    // One example per page — big and centred, so it is easy to read, explain and notice.
+    const short = s.item.en.replace(/\*/g, '').length <= 32
+    return (
+      <div className="w-full max-w-[82vw] flex flex-col items-center gap-[3vh]">
+        <div className="flex items-center gap-[0.7vw]">
+          <Layers size={20} style={{ color: AMBER }} />
+          <span className="font-black text-stone-400 uppercase tracking-[0.14em]" style={{ fontSize: '0.92vw' }}>
+            Example {s.page} / {s.pages} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>مثال {s.page} / {s.pages}</span>
+          </span>
         </div>
-      )}
-    </div>
-  )
+        <div className="w-full rounded-[40px] bg-white ring-1 ring-stone-200 shadow-[0_34px_80px_-38px_rgba(42,29,18,0.55)] px-[5vw] py-[7vh] flex flex-col items-center gap-[3.2vh]">
+          <Marked text={s.item.en} className="font-black text-center leading-[1.22]" style={{ color: INK, fontSize: short ? '4vw' : '3.1vw' }} />
+          <div className="rounded-full" style={{ width: '34%', height: 3, background: '#f5f5f4' }} />
+          <div dir="rtl" className="font-black text-stone-500 text-center leading-[1.4]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: short ? '2.6vw' : '2.1vw' }}>{s.item.ar}</div>
+        </div>
+      </div>
+    )
+  }
+
+  if (s.t === 'exercises') {
+    // One question per page; the answer reveals big and green on Space.
+    const revealed = step >= 1
+    return (
+      <div className="w-full max-w-[80vw] flex flex-col items-center gap-[2.6vh]">
+        <div className="flex items-center gap-[0.7vw]">
+          <PencilLine size={20} style={{ color: AMBER }} />
+          <span className="font-black text-stone-400 uppercase tracking-[0.14em]" style={{ fontSize: '0.92vw' }}>
+            Exercise {s.page} / {s.pages} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>تمرين {s.page} / {s.pages}</span>
+          </span>
+        </div>
+        <div className="w-full rounded-[40px] bg-white ring-1 ring-stone-200 shadow-[0_34px_80px_-38px_rgba(42,29,18,0.55)] px-[4.5vw] py-[6vh] flex flex-col items-center gap-[3vh]">
+          <Marked text={s.item.q} className="font-black text-center leading-[1.3]" style={{ color: INK, fontSize: '2.7vw' }} />
+          {revealed ? (
+            <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
+              className="w-full flex flex-col items-center gap-[2vh]">
+              <div className="rounded-full" style={{ width: '30%', height: 3, background: '#f5f5f4' }} />
+              <div className="flex items-center justify-center gap-[1vw]">
+                <Check size={30} className="text-emerald-500 shrink-0" strokeWidth={3} />
+                <Marked text={s.item.a} className="font-black text-center leading-[1.3]" style={{ color: '#059669', fontSize: '2.7vw' }} />
+              </div>
+            </motion.div>
+          ) : (
+            <div className="text-stone-400 font-bold" style={{ fontSize: '1vw' }}>
+              Press <kbd className="px-2 py-0.5 rounded bg-stone-100 ring-1 ring-stone-300 font-mono">Space</kbd> to reveal the answer ·
+              <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}> اضغط مسافة لإظهار الجواب</span>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
 
   if (s.t === 'reading') {
-    const R = s.L.reading
+    const R = s.L.reading!
     return (
       <div className="w-full max-w-[72vw] flex flex-col items-center gap-[2.2vh]">
         <div className="flex items-center gap-[0.8vw]">
@@ -561,40 +690,30 @@ function SlideView({ s, step, onJump }: { s: Slide; step: number; onJump: (no: n
     )
   }
 
-  if (s.t === 'comprehension') {
-    const qs = s.L.reading.questions
+  if (s.t === 'irregulars') {
+    const isPast = s.mode === 'past'
+    const hi = { color: AMBER, background: '#fef3c7', padding: '0 0.3em', borderRadius: '4px' }
     return (
-      <div className="w-full max-w-[74vw] flex flex-col items-center gap-[2vh]">
+      <div className="w-full max-w-[88vw] flex flex-col items-center gap-[1.6vh]">
         <div className="flex items-center gap-[0.8vw]">
-          <HelpCircle size={26} style={{ color: AMBER }} />
-          <Heading en="Comprehension" ar="أسئلة الفهم" />
+          <Table size={24} style={{ color: AMBER }} />
+          <Heading en="Irregular Verbs" ar="الأفعال الشاذّة" size="2.4vw" />
         </div>
-        <div className="text-center font-bold text-stone-400" style={{ fontSize: '1vw' }}>
-          Answer about the passage you just read
-          <span dir="rtl" className="block" style={{ fontFamily: "'Tajawal', sans-serif" }}>أجب عن النص الذي قرأته للتو</span>
+        <div className="text-center font-bold text-stone-400" style={{ fontSize: '0.92vw' }}>
+          {isPast ? 'base  →  past simple  ·  past participle' : 'base  →  past simple  ·  past participle (V3)'} — {isPast ? 'the past is highlighted' : 'the participle (V3) is highlighted'}
+          <span dir="rtl" className="block" style={{ fontFamily: "'Tajawal', sans-serif" }}>{isPast ? 'المجرّد ← الماضي (المظلّل) ← التصريف الثالث' : 'المجرّد ← الماضي ← التصريف الثالث V3 (المظلّل)'}</span>
         </div>
-        <div className="w-full flex flex-col gap-[1.2vh]">
-          {qs.map((qa, i) => (
-            <div key={i} className="w-full rounded-2xl bg-white ring-1 ring-stone-200 shadow-[0_12px_30px_-24px_rgba(42,29,18,0.5)] px-[1.8vw] py-[1.3vh]">
-              <div className="flex items-center gap-[1vw]">
-                <span className="grid place-items-center rounded-full font-black text-[#2a1d12] shrink-0" style={{ width: '2.3vw', height: '2.3vw', background: '#e7e5e4', fontSize: '1vw' }}>{i + 1}</span>
-                <Marked text={qa.q} className="font-bold" style={{ color: INK, fontSize: '1.25vw' }} />
-              </div>
-              {i < step ? (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25 }} className="flex items-center gap-[0.8vw] mt-[1vh] ml-[3.3vw]">
-                  <Check size={17} className="text-emerald-500 shrink-0" strokeWidth={3} />
-                  <Marked text={qa.a} className="font-black" style={{ color: '#059669', fontSize: '1.25vw' }} />
-                </motion.div>
-              ) : <div className="mt-[1vh] ml-[3.3vw] text-stone-300 font-bold italic" style={{ fontSize: '1vw' }}>… ?</div>}
+        <div dir="ltr" className="grid grid-cols-3 gap-x-[1.2vw] gap-y-[0.7vh] w-full">
+          {s.items.map((v, i) => (
+            <div key={i} className="flex items-baseline gap-[0.5vw] rounded-lg bg-white ring-1 ring-stone-200 px-[0.9vw] py-[0.6vh]">
+              <span className="font-black shrink-0" style={{ color: INK, fontSize: '1vw', minWidth: '5.5vw' }}>{v.base}</span>
+              <span className="text-stone-300 font-black shrink-0">→</span>
+              <span className="font-black" style={isPast ? hi : { color: '#78716c', fontSize: '0.95vw' }}>{v.past}</span>
+              <span className="text-stone-300 shrink-0">·</span>
+              <span className="font-black" style={!isPast ? hi : { color: '#78716c', fontSize: '0.95vw' }}>{v.pp}</span>
             </div>
           ))}
         </div>
-        {step < qs.length && (
-          <div className="text-stone-400 font-bold" style={{ fontSize: '0.95vw' }}>
-            Press <kbd className="px-2 py-0.5 rounded bg-stone-100 ring-1 ring-stone-300 font-mono">Space</kbd> to reveal the answer ·
-            <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}> اضغط مسافة لإظهار الجواب</span>
-          </div>
-        )}
       </div>
     )
   }
@@ -621,7 +740,7 @@ function SlideView({ s, step, onJump }: { s: Slide; step: number; onJump: (no: n
   )
 
   if (s.t === 'editing') {
-    const E = s.L.editing
+    const E = s.L.editing!
     const revealed = step >= 1
     return (
       <div className="w-full max-w-[74vw] flex flex-col items-center gap-[1.8vh]">
@@ -660,6 +779,147 @@ function SlideView({ s, step, onJump }: { s: Slide; step: number; onJump: (no: n
             Press <kbd className="px-2 py-0.5 rounded bg-stone-100 ring-1 ring-stone-300 font-mono">Space</kbd> to reveal the corrections ·
             <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}> اضغط مسافة لإظهار التصحيح</span>
           </div>
+        )}
+      </div>
+    )
+  }
+
+  if (s.t === 'model') {
+    const m = s.L.studio!.model!
+    const ROLE: Record<'topic' | 'support' | 'conclusion', { label: string; ar: string; bg: string; text: string }> = {
+      topic:      { label: 'Topic sentence',      ar: 'الجملة الموضوعية', bg: '#dbeafe', text: '#1d4ed8' },
+      support:    { label: 'Supporting detail',   ar: 'تفصيل داعم',       bg: '#dcfce7', text: '#047857' },
+      conclusion: { label: 'Concluding sentence', ar: 'جملة الخاتمة',     bg: '#fef3c7', text: '#b45309' },
+    }
+    return (
+      <div className="w-full max-w-[76vw] flex flex-col items-center gap-[2vh]">
+        <div className="flex items-center gap-[0.8vw]"><FileText size={24} style={{ color: AMBER }} /><Heading en="A Model Paragraph" ar="فقرة نموذجية" /></div>
+        <div className="flex flex-wrap items-center justify-center gap-[1.2vw]">
+          {(['topic', 'support', 'conclusion'] as const).map(r => (
+            <span key={r} className="flex items-center gap-[0.4vw] font-bold" style={{ fontSize: '0.85vw' }}>
+              <span className="w-3.5 h-3.5 rounded" style={{ background: ROLE[r].bg, boxShadow: `inset 0 0 0 1.5px ${ROLE[r].text}` }} />
+              <span style={{ color: ROLE[r].text }}>{ROLE[r].label}</span>
+              <span dir="rtl" className="text-stone-400" style={{ fontFamily: "'Tajawal', sans-serif" }}>{ROLE[r].ar}</span>
+            </span>
+          ))}
+        </div>
+        <div className="w-full rounded-[28px] bg-white ring-1 ring-stone-200 shadow-[0_24px_56px_-32px_rgba(42,29,18,0.5)] px-[3vw] py-[3vh]" style={{ borderLeft: '6px solid #fca5a5' }}>
+          <div className="flex items-baseline gap-[1vw] mb-[1.4vh]">
+            <h2 className="font-black" style={{ color: INK, fontSize: '1.7vw' }}>{m.title}</h2>
+            <span dir="rtl" className="font-bold text-stone-400" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.3vw' }}>{m.titleAr}</span>
+          </div>
+          <p dir="ltr" className="leading-[2.2]" style={{ fontSize: '1.55vw', color: INK, textAlign: 'justify' }}>
+            {m.parts.map((p, i) => (
+              <span key={i}><span className="font-bold rounded" style={{ background: ROLE[p.role].bg, color: ROLE[p.role].text, padding: '0.08em 0.3em', boxShadow: `inset 0 0 0 1px ${ROLE[p.role].text}33` }}>{p.en}</span>{' '}</span>
+            ))}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (s.t === 'plan') {
+    const rows = s.L.studio!.plan!
+    return (
+      <div className="w-full max-w-[72vw] flex flex-col items-center gap-[2vh]">
+        <div className="flex items-center gap-[0.8vw]"><ListChecks size={24} style={{ color: AMBER }} /><Heading en="Plan Your Paragraph" ar="خطّط فقرتك" /></div>
+        <div className="text-center font-bold text-stone-400" style={{ fontSize: '0.95vw' }}>
+          Fill this outline before you write — it is your map.
+          <span dir="rtl" className="block" style={{ fontFamily: "'Tajawal', sans-serif" }}>املأ هذا المخطّط قبل الكتابة — إنه خريطتك.</span>
+        </div>
+        <div className="w-full rounded-[28px] bg-white ring-1 ring-stone-200 shadow-[0_22px_50px_-32px_rgba(42,29,18,0.5)] px-[2.6vw] py-[2.4vh] flex flex-col gap-[1.6vh]">
+          {rows.map((r, i) => (
+            <div key={i} className="flex items-center gap-[1vw]">
+              <span className="shrink-0 grid place-items-center rounded-lg font-black text-[#2a1d12]" style={{ width: 30, height: 30, background: GOLD, fontSize: '0.9vw' }}>{i + 1}</span>
+              <div className="shrink-0" style={{ minWidth: '17vw' }}>
+                <div className="font-black" style={{ color: INK, fontSize: '1.08vw' }}>{r.label}</div>
+                <div dir="rtl" className="font-bold text-stone-400" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.9vw' }}>{r.ar}</div>
+              </div>
+              <div className="flex-1 border-b-2 border-dashed border-stone-300 h-[2.6vh]" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (s.t === 'toolkit') {
+    const groups = s.L.studio!.toolkit!
+    return (
+      <div className="w-full max-w-[82vw] flex flex-col items-center gap-[2.2vh]">
+        <div className="flex items-center gap-[0.8vw]"><Wand2 size={24} style={{ color: AMBER }} /><Heading en="Toolkit — Sentence Starters" ar="أدوات الكتابة — عبارات جاهزة" /></div>
+        <div className="w-full grid gap-[1.4vw]" style={{ gridTemplateColumns: `repeat(${Math.min(groups.length, 3)}, minmax(0,1fr))` }}>
+          {groups.map((g, i) => (
+            <div key={i} className="rounded-3xl bg-amber-50 ring-1 ring-amber-200 px-[1.6vw] py-[1.6vh]">
+              <div className="flex items-baseline gap-[0.6vw] mb-[1.2vh]">
+                <span className="font-black" style={{ color: AMBER, fontSize: '1.05vw' }}>{g.group}</span>
+                <span dir="rtl" className="font-bold text-stone-400" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.9vw' }}>{g.ar}</span>
+              </div>
+              <div className="flex flex-wrap gap-[0.6vw]">
+                {g.phrases.map((p, k) => (
+                  <span key={k} className="rounded-xl bg-white ring-1 ring-stone-200 px-[0.9vw] py-[0.6vh] font-bold" style={{ color: INK, fontSize: '1vw' }}>{p}</span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (s.t === 'write') {
+    const sd = s.L.studio!
+    const steps = sd.steps ?? []
+    return (
+      <div className="w-full max-w-[72vw] flex flex-col items-center gap-[2vh]">
+        <div className="flex items-center gap-[0.8vw]"><PenLine size={24} style={{ color: AMBER }} /><Heading en="Your Turn — Write!" ar="دورك — اكتب!" /></div>
+        {sd.prompt && (
+          <div className="w-full rounded-3xl px-[2.4vw] py-[2vh] text-center" style={{ background: INK }}>
+            <div className="font-black text-white" style={{ fontSize: '1.5vw' }}>{sd.prompt.en}</div>
+            <div dir="rtl" className="font-bold mt-[0.6vh]" style={{ color: GOLD, fontFamily: "'Tajawal', sans-serif", fontSize: '1.25vw' }}>{sd.prompt.ar}</div>
+          </div>
+        )}
+        <div className="w-full flex flex-col gap-[1vh]">
+          {steps.map((it, i) => i >= step ? (
+            <div key={i} className="w-full rounded-2xl border-2 border-dashed border-stone-200 h-[5.6vh]" />
+          ) : (
+            <motion.div key={i} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.28 }}
+              className="w-full flex items-center gap-[1.2vw] rounded-2xl bg-white ring-1 ring-stone-200 shadow-[0_12px_30px_-24px_rgba(42,29,18,0.5)] px-[1.8vw] py-[1.2vh]">
+              <span className="grid place-items-center rounded-full font-black text-[#2a1d12] shrink-0" style={{ width: 32, height: 32, background: GOLD, fontSize: '0.95vw' }}>{i + 1}</span>
+              <Marked text={it.en} className="font-black" style={{ color: INK, fontSize: '1.25vw' }} />
+              <span dir="rtl" className="ml-auto font-bold text-stone-500 text-right" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.05vw' }}>{it.ar}</span>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (s.t === 'checklist') {
+    const items = s.L.studio!.checklist ?? []
+    return (
+      <div className="w-full max-w-[68vw] flex flex-col items-center gap-[2.2vh]">
+        <div className="flex items-center gap-[0.8vw]"><ListChecks size={24} style={{ color: AMBER }} /><Heading en="Check Your Paragraph" ar="راجع فقرتك" /></div>
+        <div className="w-full flex flex-col gap-[1.1vh]">
+          {items.map((it, i) => {
+            const done = i < step
+            return (
+              <motion.div key={i} initial={false} animate={{ opacity: done ? 1 : 0.55 }}
+                className="w-full flex items-center gap-[1.2vw] rounded-2xl px-[1.8vw] py-[1.2vh]"
+                style={{ background: done ? '#ecfdf5' : '#ffffff', boxShadow: done ? 'inset 0 0 0 1.5px #6ee7b7' : 'inset 0 0 0 1px #e7e5e4' }}>
+                <span className="grid place-items-center rounded-md shrink-0" style={{ width: 30, height: 30, background: done ? '#059669' : '#ffffff', boxShadow: done ? 'none' : 'inset 0 0 0 2px #d6d3d1' }}>
+                  {done && <Check size={18} className="text-white" strokeWidth={3} />}
+                </span>
+                <Marked text={it.en} className="font-black" style={{ color: INK, fontSize: '1.28vw' }} />
+                <span dir="rtl" className="ml-auto font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.12vw' }}>{it.ar}</span>
+              </motion.div>
+            )
+          })}
+        </div>
+        {step >= items.length && items.length > 0 && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="font-black" style={{ color: '#059669', fontSize: '1.2vw' }}>
+            ✓ Ready to submit! · <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}>جاهزة للتسليم!</span>
+          </motion.div>
         )}
       </div>
     )
