@@ -51,6 +51,13 @@ const aiThumb = (topic: string, seed: string) => {
 }
 const NOTIF_SEEN_KEY = 'inglizi.notif_seen'
 
+/* Calendar day in the STUDENT's own timezone. `created_at` is UTC, so slicing the
+   ISO string would put a Gulf student's late-night session on the previous day —
+   the week grid and the streak would silently skip it. */
+const localDay = (d: Date | string) => {
+  const t = typeof d === 'string' ? new Date(d) : d
+  return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`
+}
 const fmtShort = (s?: string | null) => s ? new Date(s).toLocaleDateString('ar-MA', { month: 'short', day: 'numeric' }) : '—'
 const fmtTime  = (s?: string | null) => s ? new Date(s).toLocaleTimeString('ar-MA', { hour: '2-digit', minute: '2-digit' }) : ''
 const initialsOf = (name: string) => { const p = (name || '').trim().split(/\s+/); return ((p[0]?.[0] ?? '?') + (p[1]?.[0] ?? '')).toUpperCase() }
@@ -513,8 +520,8 @@ function Portal() {
   const markStep = (kind: 'reading' | 'exam', id: string) => setUnitSteps(p => ({ ...p, [id]: { ...p[id], [kind]: true } }))   // optimistic; logActivity persists it
 
   // week streak
-  const activeDates = new Set(recent.map(r => r.created_at.slice(0, 10)))
-  const week = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); const k = d.toISOString().slice(0, 10); return { day: DAY_AR[d.getDay()], active: activeDates.has(k) } })
+  const activeDates = new Set(recent.map(r => localDay(r.created_at)))
+  const week = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() - (6 - i)); return { day: DAY_AR[d.getDay()], active: activeDates.has(localDay(d)) } })
 
   // achievements
   const achievements = [
@@ -1341,6 +1348,9 @@ function Card({ title, sub, icon: Icon, iconColor, action, children, compact }: 
    If the AI image fails/slow, it falls back to the real video frame — never a plain colour. */
 function LessonThumb({ title, topic, chip, seed, videoUrl, onClick }: { title: string; topic?: string | null; chip?: string; seed: string; videoUrl?: string | null; onClick?: () => void }) {
   const yt = ytThumb(videoUrl)
+  // Only promise a video when there actually is one — otherwise the badge, the play
+  // button and "ابدأ المشاهدة" advertise something the lesson cannot deliver.
+  const hasVideo = isVideoUrl(videoUrl)
   const [src, setSrc] = useState(aiThumb(topic || title, seed))
   const [loaded, setLoaded] = useState(false)
   const [triedYt, setTriedYt] = useState(false)
@@ -1357,15 +1367,21 @@ function LessonThumb({ title, topic, chip, seed, videoUrl, onClick }: { title: s
       <span className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-black/10" />
       <span className="absolute inset-0 ring-1 ring-inset ring-white/10 rounded-2xl" />
       {/* video tag + module chip */}
-      <span className="absolute top-2.5 left-2.5 inline-flex items-center gap-1 text-[10px] font-bold bg-black/55 backdrop-blur-sm text-white px-2 py-0.5 rounded-full"><Play size={9} fill="currentColor" /> فيديو</span>
+      <span className="absolute top-2.5 left-2.5 inline-flex items-center gap-1 text-[10px] font-bold bg-black/55 backdrop-blur-sm text-white px-2 py-0.5 rounded-full">
+        {hasVideo ? <><Play size={9} fill="currentColor" /> فيديو</> : <><BookOpen size={9} /> درس</>}
+      </span>
       {chip && <span className="absolute top-2.5 right-2.5 text-[10px] font-bold bg-[var(--ic-gold)] text-black px-2 py-0.5 rounded-full">{chip}</span>}
       <span className="absolute inset-x-0 bottom-0 p-3.5 text-right">
         <span className="block text-white font-black text-[15px] leading-snug line-clamp-2 drop-shadow-lg">{title}</span>
-        <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-[var(--ic-gold)]">ابدأ المشاهدة <ChevronLeft size={12} /></span>
+        <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-[var(--ic-gold)]">{hasVideo ? 'ابدأ المشاهدة' : 'ابدأ الدرس'} <ChevronLeft size={12} /></span>
       </span>
       <span className="absolute inset-0 flex items-center justify-center">
         <span className="w-14 h-14 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center ring-2 ring-white/30 transition-transform group-hover:scale-110">
-          <span className="w-11 h-11 rounded-full bg-[var(--ic-gold)] flex items-center justify-center shadow-lg vp-pulse"><Play size={22} className="text-black" fill="currentColor" style={{ marginInlineStart: 2 }} /></span>
+          <span className="w-11 h-11 rounded-full bg-[var(--ic-gold)] flex items-center justify-center shadow-lg vp-pulse">
+            {hasVideo
+              ? <Play size={22} className="text-black" fill="currentColor" style={{ marginInlineStart: 2 }} />
+              : <BookOpen size={20} className="text-black" />}
+          </span>
         </span>
       </span>
     </button>
