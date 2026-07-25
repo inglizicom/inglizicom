@@ -23,6 +23,10 @@ import {
   FileText, ListChecks, Wand2,
   Menu, X, ChevronDown, ListTree,
   Globe, Instagram, Youtube, GraduationCap, Phone,
+  StickyNote, List, ListOrdered, Eraser, Trash2,
+  Image as ImageIcon, Upload, Search, Type, Move, SendToBack,
+  MousePointer2, Pencil, ArrowUpRight, Slash, Square, Circle,
+  Undo2, Redo2, Copy as CopyIcon, HelpCircle,
 } from 'lucide-react'
 import { LESSONS, IRREGULAR_VERBS, type Lesson, type Ex, type QA, type Irregular } from '@/data/writing-course'
 
@@ -40,32 +44,67 @@ ORDERED.forEach((L, i) => LESSON_POS.set(L, i + 1))
 const numOf = (L: Lesson) => LESSON_POS.get(L) ?? Math.round(L.no)
 
 // CEFR-aligned three-level syllabus: Unit (level band) → Module → Lessons (by `no` range).
+// Units are kept to 4–12 lessons each: one unit = one sitting-sized chapter the learner
+// can finish and feel finished. (The old Unit 2 carried 23 of the 50 lessons — a wall.)
 type ModDef = { en: string; ar: string; from: number; to: number }
-type UnitDef = { en: string; short: string; ar: string; cefr: string; modules: ModDef[] }
+type UnitDef = { en: string; short: string; shortAr: string; ar: string; cefr: string; promise: string; promiseAr: string; modules: ModDef[] }
 const SYLLABUS: UnitDef[] = [
-  { en: 'Unit 1 · Writing Mechanics', short: 'Mechanics', ar: 'الوحدة ١ · أساسيات الكتابة', cefr: 'A1', modules: [
-    { en: 'Letters & Sounds', ar: 'الحروف والأصوات', from: 1, to: 2 },
-    { en: 'Marks & Articles', ar: 'العلامات والأدوات', from: 3, to: 5 },
-  ] },
-  { en: 'Unit 2 · Words, Tenses & Agreement', short: 'Words & Verbs', ar: 'الوحدة ٢ · الكلمات والأزمنة', cefr: 'A1–A2', modules: [
-    { en: 'Nouns & People', ar: 'الأسماء والأشخاص', from: 6, to: 8 },
-    { en: 'Pronouns & Adjectives', ar: 'الضمائر والصفات', from: 8.2, to: 9.9 },
-    { en: 'Verb Tenses', ar: 'أزمنة الأفعال', from: 10, to: 10.85 },
-    { en: 'Agreement, Modals & Comparing', ar: 'التطابق والأفعال الناقصة والمقارنة', from: 10.9, to: 11.9 },
-  ] },
-  { en: 'Unit 3 · Building Sentences', short: 'Sentences', ar: 'الوحدة ٣ · بناء الجمل', cefr: 'A2', modules: [
-    { en: 'Complete Sentences', ar: 'الجمل الكاملة', from: 12, to: 13 },
-    { en: 'Joining Ideas', ar: 'ربط الأفكار', from: 14, to: 16.5 },
-    { en: 'Punctuation & Style', ar: 'الترقيم والأسلوب', from: 17, to: 20 },
-  ] },
-  { en: 'Unit 4 · Writing Paragraphs', short: 'Paragraphs', ar: 'الوحدة ٤ · كتابة الفقرات', cefr: 'B1', modules: [
-    { en: 'Paragraph Structure', ar: 'بنية الفقرة', from: 21, to: 22.6 },
-    { en: 'Writing & Polishing', ar: 'الكتابة والصقل', from: 23, to: 25 },
-  ] },
-  { en: 'Unit 5 · Professional Writing', short: 'Professional', ar: 'الوحدة ٥ · الكتابة الاحترافية', cefr: 'B1', modules: [
-    { en: 'Emails that Connect', ar: 'إيميلات تصل', from: 26, to: 27.9 },
-    { en: 'Writing that Wins', ar: 'كتابة تُقنع', from: 28, to: 29.9 },
-  ] },
+  { en: 'Unit 1 · Writing Mechanics', short: 'Mechanics', shortAr: 'الأساسيات', ar: 'الوحدة ١ · أساسيات الكتابة', cefr: 'A1',
+    promise: 'Write a correct English sentence — capitals, marks, articles.',
+    promiseAr: 'تكتب جملة إنجليزية صحيحة: الحروف الكبيرة والعلامات والأدوات.',
+    modules: [
+      { en: 'Letters & Sounds', ar: 'الحروف والأصوات', from: 1, to: 2 },
+      { en: 'Marks & Articles', ar: 'العلامات والأدوات', from: 3, to: 5 },
+    ] },
+  { en: 'Unit 2 · Words That Name & Describe', short: 'Words', shortAr: 'الكلمات', ar: 'الوحدة ٢ · كلمات تُسمّي وتصف', cefr: 'A1–A2',
+    promise: 'Name things, own them, and describe them accurately.',
+    promiseAr: 'تُسمّي الأشياء وتنسبها إلى أصحابها وتصفها بدقّة.',
+    modules: [
+      { en: 'Nouns & Being', ar: 'الأسماء والكينونة', from: 6, to: 7.9 },
+      { en: 'Pronouns, Possessives & Adjectives', ar: 'الضمائر والملكية والصفات', from: 8, to: 9.9 },
+    ] },
+  { en: 'Unit 3 · The Verb Tenses', short: 'Tenses', shortAr: 'الأزمنة', ar: 'الوحدة ٣ · أزمنة الأفعال', cefr: 'A1–B1',
+    promise: 'Place any action in time — past, present, future — and ask about it.',
+    promiseAr: 'تضع أي فعل في زمنه — ماضٍ وحاضر ومستقبل — وتسأل عنه.',
+    modules: [
+      { en: 'Present & Past', ar: 'المضارع والماضي', from: 10, to: 10.55 },
+      { en: 'Future, Perfect & Questions', ar: 'المستقبل والتام والأسئلة', from: 10.6, to: 10.85 },
+    ] },
+  { en: 'Unit 4 · Grammar That Sharpens', short: 'Precision', shortAr: 'الدقّة', ar: 'الوحدة ٤ · قواعد تصقل اللغة', cefr: 'A2–B1',
+    promise: 'Agreement, modals, comparing, the passive — the polish of a real writer.',
+    promiseAr: 'التطابق والأفعال الناقصة والمقارنة والمبني للمجهول — صقل الكاتب الحقيقي.',
+    modules: [
+      { en: 'Agreement & Prepositions', ar: 'التطابق وحروف الجر', from: 10.9, to: 11.2 },
+      { en: 'Modals, Patterns & Voice', ar: 'الأفعال الناقصة والصيغ والمبني للمجهول', from: 11.3, to: 11.9 },
+    ] },
+  { en: 'Unit 5 · Building Sentences', short: 'Sentences', shortAr: 'الجمل', ar: 'الوحدة ٥ · بناء الجمل', cefr: 'A2–B1',
+    promise: 'Join ideas into simple, compound and complex sentences that flow.',
+    promiseAr: 'تربط الأفكار في جمل بسيطة ومركّبة ومعقّدة تسير بانسياب.',
+    modules: [
+      { en: 'Complete Sentences', ar: 'الجمل الكاملة', from: 12, to: 13 },
+      { en: 'Joining Ideas', ar: 'ربط الأفكار', from: 14, to: 16.5 },
+    ] },
+  { en: 'Unit 6 · Punctuation & Style', short: 'Style', shortAr: 'الأسلوب', ar: 'الوحدة ٦ · الترقيم والأسلوب', cefr: 'A2–B1',
+    promise: 'Punctuate cleanly and give your sentences rhythm — the polish readers feel.',
+    promiseAr: 'ترقّم بدقّة وتمنح جملك إيقاعًا — الصقل الذي يشعر به القارئ.',
+    modules: [
+      { en: 'Commas & Parallels', ar: 'الفواصل والتوازي', from: 17, to: 18 },
+      { en: 'Flow & Rhythm', ar: 'الانسياب والإيقاع', from: 19, to: 20 },
+    ] },
+  { en: 'Unit 7 · Writing Paragraphs', short: 'Paragraphs', shortAr: 'الفقرات', ar: 'الوحدة ٧ · كتابة الفقرات', cefr: 'B1',
+    promise: 'Build a full paragraph — topic, support, expansion, conclusion.',
+    promiseAr: 'تبني فقرة كاملة: جملة موضوعية ودعم وتوسيع وخاتمة.',
+    modules: [
+      { en: 'Paragraph Structure', ar: 'بنية الفقرة', from: 21, to: 22.6 },
+      { en: 'Writing & Polishing', ar: 'الكتابة والصقل', from: 23, to: 25 },
+    ] },
+  { en: 'Unit 8 · Professional Writing', short: 'Professional', shortAr: 'الاحترافية', ar: 'الوحدة ٨ · الكتابة الاحترافية', cefr: 'B1',
+    promise: 'Emails that get answered — friendly, formal, complaints, job applications.',
+    promiseAr: 'إيميلات يُردّ عليها: ودّية ورسمية وشكاوى وتقديم لوظيفة.',
+    modules: [
+      { en: 'Emails that Connect', ar: 'إيميلات تصل', from: 26, to: 27.9 },
+      { en: 'Writing that Wins', ar: 'كتابة تُقنع', from: 28, to: 29.9 },
+    ] },
 ]
 const unitOf = (no: number) => SYLLABUS.find(u => u.modules.some(m => no >= m.from && no <= m.to)) ?? SYLLABUS[0]
 const moduleOf = (no: number) => {
@@ -79,6 +118,7 @@ type Phase = 'cover' | 'objectives' | 'rule' | 'explain' | 'form' | 'spelling' |
 type Slide =
   | { t: 'intro' }
   | { t: 'end' }
+  | { t: 'unit'; u: UnitDef; index: number; count: number; startsAt: number }
   | { t: 'cover'; L: Lesson }
   | { t: 'objectives'; L: Lesson }
   | { t: 'rule'; L: Lesson }
@@ -117,48 +157,60 @@ const PHASE: Record<Phase, { en: string; ar: string; Icon: typeof Target }> = {
   checklist:     { en: 'Check Your Work', ar: 'راجع كتابتك',  Icon: ListChecks },
 }
 
-/* Build the flat slide list + a lesson→cover-index map for jump navigation. */
-function buildSlides(): { slides: Slide[]; jump: Record<number, number> } {
+/* Build the flat slide list + a lesson→cover-index map for jump navigation.
+   A unit-opening slide is emitted whenever the deck crosses into a new unit: it gives
+   the learner a sense of arrival and gives the recording a natural chapter break. */
+function buildSlides(): { slides: Slide[]; jump: Record<number, number>; unitJump: number[] } {
   const slides: Slide[] = [{ t: 'intro' }]
   const jump: Record<number, number> = {}
+  const unitJump: number[] = []
+  let currentUnit: UnitDef | null = null
   for (const L of ORDERED) {
+    const u = unitOf(L.no)
+    if (u !== currentUnit) {
+      currentUnit = u
+      const ui = SYLLABUS.indexOf(u)
+      unitJump[ui] = slides.length
+      slides.push({ t: 'unit', u, index: ui + 1, count: u.modules.reduce((n, m) => n + lessonsIn(m).length, 0), startsAt: numOf(L) })
+    }
     jump[L.no] = slides.length
     slides.push({ t: 'cover', L }, { t: 'objectives', L })
     if (L.rule) slides.push({ t: 'rule', L })
+    // Teach the language first (explanation → patterns → examples → drills → reading),
+    // THEN hand over to the writing studio. A lesson may carry both: the studio is an
+    // extra hands-on stage, never a replacement — anything authored here gets taught.
+    if (L.explain) slides.push({ t: 'explain', L })
+    if (L.form) slides.push({ t: 'form', L })
+    if (L.spelling) slides.push({ t: 'spelling', L })
+    if (L.irregulars) {
+      const ip = Math.ceil(IRREGULAR_VERBS.length / IRR_PER)
+      for (let p = 0; p < ip; p++) slides.push({ t: 'irregulars', L, items: IRREGULAR_VERBS.slice(p * IRR_PER, p * IRR_PER + IRR_PER), page: p + 1, pages: ip, mode: L.irregulars })
+    }
+    if (L.examples?.length) {
+      // One example per slide — big single card, easy to teach.
+      const ex = L.examples
+      ex.forEach((item, i) => slides.push({ t: 'examples', L, item, page: i + 1, pages: ex.length }))
+    }
+    if (L.exercises?.length) {
+      // One question per slide; the answer reveals on Space.
+      const qa = L.exercises
+      qa.forEach((item, i) => slides.push({ t: 'exercises', L, item, page: i + 1, pages: qa.length }))
+    }
+    if (L.reading) slides.push({ t: 'reading', L })
     if (L.studio) {
-      // Writing-studio flow (paragraph lessons) — hands-on, replaces the grammar drills.
+      // Writing-studio flow (paragraph & email lessons) — model, plan, toolkit, write, check.
       const st = L.studio
       if (st.model) slides.push({ t: 'model', L })
       if (st.plan) slides.push({ t: 'plan', L })
       if (st.toolkit) slides.push({ t: 'toolkit', L })
       if (st.steps) slides.push({ t: 'write', L })
       if (st.checklist) slides.push({ t: 'checklist', L })
-    } else {
-      // Grammar flow.
-      if (L.explain) slides.push({ t: 'explain', L })
-      if (L.form) slides.push({ t: 'form', L })
-      if (L.spelling) slides.push({ t: 'spelling', L })
-      if (L.irregulars) {
-        const ip = Math.ceil(IRREGULAR_VERBS.length / IRR_PER)
-        for (let p = 0; p < ip; p++) slides.push({ t: 'irregulars', L, items: IRREGULAR_VERBS.slice(p * IRR_PER, p * IRR_PER + IRR_PER), page: p + 1, pages: ip, mode: L.irregulars })
-      }
-      if (L.examples?.length) {
-        // One example per slide — big single card, easy to teach.
-        const ex = L.examples
-        ex.forEach((item, i) => slides.push({ t: 'examples', L, item, page: i + 1, pages: ex.length }))
-      }
-      if (L.exercises?.length) {
-        // One question per slide; the answer reveals on Space.
-        const qa = L.exercises
-        qa.forEach((item, i) => slides.push({ t: 'exercises', L, item, page: i + 1, pages: qa.length }))
-      }
-      if (L.reading) slides.push({ t: 'reading', L })
     }
     slides.push({ t: 'homework', L })
     if (L.editing) slides.push({ t: 'editing', L })
   }
   slides.push({ t: 'end' })
-  return { slides, jump }
+  return { slides, jump, unitJump }
 }
 
 /* Reveal *marked* parts of an English string. */
@@ -196,6 +248,884 @@ function Footer() {
   )
 }
 
+/* Is the event coming from somewhere the user is typing? Includes contentEditable —
+   without that, every key typed into the notepad would also drive the deck. */
+const isTyping = (t: EventTarget | null) =>
+  t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement ||
+  (t instanceof HTMLElement && t.isContentEditable)
+
+/* ── Note board ───────────────────────────────────────────────────────────────
+   A teaching whiteboard that opens OVER the current slide (N, or the لوح الشرح
+   button) and closes back onto the very same slide (Esc / ✕) — no leaving the deck.
+
+   Nothing flows like a document: every text box, picture, pen stroke and shape is
+   an independent object you place, drag, scale and stack exactly where you want.
+   Tools live on the left of the toolbar; everything else acts on what you select.
+
+   One board per lesson, kept in localStorage. The canvas grows downward for ever —
+   scroll for more room. Rich text inside a box uses document.execCommand:
+   deprecated, but the only zero-dependency editing API every browser still
+   implements, and this is a local teaching tool, not shipped product surface. */
+const NOTE_PREFIX = 'inglizi.writing_notes.'
+const noteKeyOf = (s: Slide) =>
+  'L' in s ? `lesson-${s.L.no}` : s.t === 'unit' ? `unit-${s.index}` : s.t
+const readNote = (k: string) => { try { return localStorage.getItem(NOTE_PREFIX + k) || '' } catch { return '' } }
+
+type Pt = [number, number]
+type ShapeKind = 'line' | 'arrow' | 'rect' | 'ellipse'
+type NoteItem = {
+  id: string
+  kind: 'text' | 'image' | 'draw' | 'shape'
+  x: number; y: number          // px from the board's top-left
+  w: number; h?: number         // h is tracked for everything except text, which grows on its own
+  z: number
+  // text
+  html?: string
+  dir?: 'rtl' | 'ltr'
+  bg?: string; bd?: string      // card fill + border, for a sticky-note look
+  // image
+  src?: string
+  // pen stroke — points normalised 0..1 inside w×h so the stroke scales with the box
+  pts?: Pt[]
+  // shape
+  shape?: ShapeKind
+  a?: Pt; b?: Pt                // normalised endpoints, for line/arrow direction
+  // both draw + shape
+  color?: string; sw?: number
+}
+type BgStyle = 'plain' | 'grid' | 'lines'
+type Tool = 'select' | 'text' | 'pen' | 'eraser' | 'line' | 'arrow' | 'rect' | 'ellipse'
+
+const uid = () => Math.random().toString(36).slice(2, 9)
+
+/* v3 = {bg, items}. v2 = {items}. Anything else is a v1 HTML note — keep it as one
+   text box rather than dropping work the founder already did. */
+function loadBoard(key: string): { items: NoteItem[]; bg: BgStyle } {
+  const raw = readNote(key)
+  if (!raw) return { items: [], bg: 'plain' }
+  if (raw.trim().startsWith('{')) {
+    try {
+      const p = JSON.parse(raw)
+      if ((p?.v === 3 || p?.v === 2) && Array.isArray(p.items)) return { items: p.items as NoteItem[], bg: p.bg ?? 'plain' }
+    } catch { /* fall through and treat it as v1 HTML */ }
+  }
+  return { items: [{ id: uid(), kind: 'text', x: 70, y: 60, w: 900, html: raw, dir: 'rtl', z: 1 }], bg: 'plain' }
+}
+
+/* Shrink a pasted/dropped/uploaded picture before it goes on the board.
+   localStorage holds roughly 5 MB for the WHOLE deck, and a raw phone screenshot is
+   ~3 MB of base64 on its own — so we downscale to 1000px and JPEG-compress. Pictures
+   inserted from the search panel keep their remote URL instead (a few dozen bytes). */
+function shrinkToDataUrl(file: Blob, maxPx = 1000, quality = 0.78): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader()
+    fr.onerror = () => reject(new Error('read-failed'))
+    fr.onload = () => {
+      const img = new Image()
+      img.onerror = () => reject(new Error('decode-failed'))
+      img.onload = () => {
+        const scale = Math.min(1, maxPx / Math.max(img.width, img.height))
+        const w = Math.round(img.width * scale), h = Math.round(img.height * scale)
+        const c = document.createElement('canvas')
+        c.width = w; c.height = h
+        const ctx = c.getContext('2d')
+        if (!ctx) return reject(new Error('no-canvas'))
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h)   // flatten transparency for JPEG
+        ctx.drawImage(img, 0, 0, w, h)
+        resolve(c.toDataURL('image/jpeg', quality))
+      }
+      img.src = String(fr.result)
+    }
+    fr.readAsDataURL(file)
+  })
+}
+
+type SearchHit = { thumb: string; full: string; credit: string; link: string }
+
+const PEN_COLORS = ['#2a1d12', '#b45309', '#dc2626', '#059669', '#2563eb', '#7c3aed']
+const MARKER_COLORS = ['#fef08a', '#bbf7d0', '#bfdbfe', '#fecaca', 'transparent']
+const CARD_STYLES: { bg: string; bd: string; label: string }[] = [
+  { bg: 'transparent', bd: 'transparent', label: 'بلا' },
+  { bg: '#fef3c7', bd: '#fcd34d', label: 'أصفر' },
+  { bg: '#dcfce7', bd: '#86efac', label: 'أخضر' },
+  { bg: '#dbeafe', bd: '#93c5fd', label: 'أزرق' },
+  { bg: '#fee2e2', bd: '#fca5a5', label: 'أحمر' },
+  { bg: '#2a1d12', bd: '#2a1d12', label: 'داكن' },
+]
+const TEXT_SIZES: { label: string; px: string }[] = [
+  { label: 'S', px: '22px' }, { label: 'M', px: '30px' }, { label: 'L', px: '42px' }, { label: 'XL', px: '58px' },
+]
+const STROKE_WIDTHS = [3, 6, 12]
+
+const TOOLS: { id: Tool; icon: typeof Target; title: string }[] = [
+  { id: 'select', icon: MousePointer2, title: 'تحديد وتحريك (V)' },
+  { id: 'text', icon: Type, title: 'صندوق نص (T) — أو انقر نقرتين على اللوح' },
+  { id: 'pen', icon: Pencil, title: 'قلم حر (P)' },
+  { id: 'arrow', icon: ArrowUpRight, title: 'سهم (A)' },
+  { id: 'line', icon: Slash, title: 'خط (L)' },
+  { id: 'rect', icon: Square, title: 'مستطيل (R)' },
+  { id: 'ellipse', icon: Circle, title: 'دائرة (O)' },
+  { id: 'eraser', icon: Eraser, title: 'ممحاة — تمسح الرسم والأشكال (E)' },
+]
+
+function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
+  noteKey: string; label: string; labelAr: string; lesson: Lesson | null
+  onClose: () => void; onDirty: (has: boolean) => void
+}) {
+  const boardRef = useRef<HTMLDivElement>(null)
+  const textEls = useRef<Record<string, HTMLDivElement | null>>({})
+  const [items, setItems] = useState<NoteItem[]>([])
+  const itemsRef = useRef(items); itemsRef.current = items
+  const [bg, setBg] = useState<BgStyle>('plain')
+  const [rev, setRev] = useState(0)          // bump to force text boxes to re-read their html
+  const [sel, setSel] = useState<string | null>(null)
+  const selRef = useRef(sel); selRef.current = sel
+  const [tool, setTool] = useState<Tool>('select')
+  const toolRef = useRef(tool); toolRef.current = tool
+  const [color, setColor] = useState(PEN_COLORS[2])
+  const [sw, setSw] = useState(6)
+  const [saved, setSaved] = useState<'idle' | 'saving' | 'saved' | 'full'>('idle')
+  const [busy, setBusy] = useState(false)
+  const [dragOver, setDragOver] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
+  const [fromLessonOpen, setFromLessonOpen] = useState(false)
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const fileInput = useRef<HTMLInputElement>(null)
+  const lastPoint = useRef({ x: 90, y: 90 })
+  const focusNext = useRef<string | null>(null)
+
+  // picture search
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [hits, setHits] = useState<SearchHit[]>([])
+  const [provider, setProvider] = useState('')
+  const [term, setTerm] = useState('')
+  const [searching, setSearching] = useState(false)
+  const [searched, setSearched] = useState(false)
+
+  const topZ = () => itemsRef.current.reduce((m, i) => Math.max(m, i.z), 0)
+
+  /* ── persistence ──────────────────────────────────────────────────────────
+     Text lives in the DOM while you type — writing it into React state on every
+     keystroke re-renders the box and throws the caret to the start — so a snapshot
+     reads the boxes back out at save time. */
+  const snapshot = useCallback((): NoteItem[] => itemsRef.current.map(it =>
+    it.kind === 'text' ? { ...it, html: textEls.current[it.id]?.innerHTML ?? it.html ?? '' } : it), [])
+
+  const isBlank = (it: NoteItem) => it.kind === 'text' && (it.html || '').replace(/<br>|&nbsp;|\s/g, '') === ''
+
+  const persist = useCallback(() => {
+    const list = snapshot().filter(it => !isBlank(it))
+    try {
+      if (list.length) { localStorage.setItem(NOTE_PREFIX + noteKey, JSON.stringify({ v: 3, bg, items: list })); onDirty(true) }
+      else { localStorage.removeItem(NOTE_PREFIX + noteKey); onDirty(false) }
+      setSaved('saved')
+    } catch {
+      // Almost always the 5 MB localStorage quota, blown by pasted pictures. What is
+      // on screen is still intact — say so plainly instead of pretending it saved.
+      setSaved('full')
+    }
+  }, [noteKey, onDirty, snapshot, bg])
+
+  const touch = useCallback(() => {
+    setSaved('saving')
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(persist, 400)
+  }, [persist])
+
+  /* ── undo / redo ──────────────────────────────────────────────────────────
+     History covers the SHAPE of the board — adding, deleting, moving, scaling,
+     styling. Typing inside a text box keeps the browser's own undo, which is what
+     your fingers expect while writing a sentence. */
+  const past = useRef<NoteItem[][]>([])
+  const future = useRef<NoteItem[][]>([])
+  const mark = useCallback(() => {
+    past.current.push(snapshot())
+    if (past.current.length > 60) past.current.shift()
+    future.current = []
+  }, [snapshot])
+  const mutate = useCallback((fn: (list: NoteItem[]) => NoteItem[]) => {
+    mark(); setItems(fn(snapshot())); touch()
+  }, [mark, snapshot, touch])
+
+  const undo = useCallback(() => {
+    if (!past.current.length) return
+    future.current.push(snapshot())
+    const prev = past.current.pop()!
+    setItems(prev); setRev(r => r + 1); setSel(null); touch()
+  }, [snapshot, touch])
+  const redo = useCallback(() => {
+    if (!future.current.length) return
+    past.current.push(snapshot())
+    const next = future.current.pop()!
+    setItems(next); setRev(r => r + 1); setSel(null); touch()
+  }, [snapshot, touch])
+
+  // Load this lesson's board; the cleanup below saves the previous one on the way out.
+  useEffect(() => {
+    textEls.current = {}
+    const b = loadBoard(noteKey)
+    setItems(b.items); setBg(b.bg); setSel(null); setRev(r => r + 1)
+    past.current = []; future.current = []
+    try { document.execCommand('styleWithCSS', false, 'true') } catch { /* older engines */ }
+  }, [noteKey])
+  useEffect(() => () => { if (saveTimer.current) clearTimeout(saveTimer.current); persist() }, [persist])
+
+  // Give a freshly created box the caret once it exists in the DOM.
+  useEffect(() => {
+    const id = focusNext.current
+    if (!id) return
+    const el = textEls.current[id]
+    if (el) { focusNext.current = null; el.focus() }
+  })
+
+  /* ── geometry ─────────────────────────────────────────────────────────── */
+  const pointIn = (e: { clientX: number; clientY: number }) => {
+    const el = boardRef.current
+    if (!el) return { x: 90, y: 90 }
+    const r = el.getBoundingClientRect()
+    return { x: Math.max(0, e.clientX - r.left + el.scrollLeft), y: Math.max(0, e.clientY - r.top + el.scrollTop) }
+  }
+  const boardBottom = items.reduce((m, i) => Math.max(m, i.y + (i.h ?? 160)), 0)
+
+  /* ── creating things ──────────────────────────────────────────────────── */
+  const addText = (x: number, y: number, opts?: Partial<NoteItem>) => {
+    const id = uid()
+    mutate(list => [...list, { id, kind: 'text', x, y, w: 560, html: '', dir: 'rtl', z: topZ() + 1, ...opts }])
+    setSel(id); focusNext.current = id; setTool('select')
+  }
+
+  const addImage = (src: string, at?: { x: number; y: number }) => {
+    const pt = at ?? lastPoint.current
+    const probe = new Image()
+    const place = (w: number, h: number) =>
+      mutate(list => [...list, { id: uid(), kind: 'image', x: pt.x, y: pt.y, w, h, src, z: topZ() + 1 }])
+    probe.onload = () => {
+      const w = Math.min(460, probe.naturalWidth || 460)
+      place(w, Math.round(w * ((probe.naturalHeight || 300) / (probe.naturalWidth || 460))))
+    }
+    probe.onerror = () => place(420, 280)   // still place it; a broken picture is visible and deletable
+    probe.src = src
+  }
+
+  const insertFiles = async (files: (File | Blob)[], at?: { x: number; y: number }) => {
+    const pics = files.filter(f => f.type.startsWith('image/'))
+    if (!pics.length) return
+    setBusy(true)
+    let i = 0
+    for (const f of pics) {
+      try {
+        const pt = at ?? lastPoint.current
+        addImage(await shrinkToDataUrl(f), { x: pt.x + i * 28, y: pt.y + i * 28 }); i++
+      } catch { /* skip a picture we cannot decode */ }
+    }
+    setBusy(false)
+  }
+
+  const remove = (id: string) => { mutate(list => list.filter(i => i.id !== id)); delete textEls.current[id]; setSel(null) }
+  const duplicate = (id: string) => {
+    const src = snapshot().find(i => i.id === id); if (!src) return
+    const copy = { ...src, id: uid(), x: src.x + 28, y: src.y + 28, z: topZ() + 1 }
+    mutate(list => [...list, copy]); setSel(copy.id); setRev(r => r + 1)
+  }
+  const bringFront = (id: string) => setItems(list => list.map(i => i.id === id ? { ...i, z: topZ() + 1 } : i))
+  const sendBack = (id: string) => {
+    const min = itemsRef.current.reduce((m, i) => Math.min(m, i.z), 0)
+    mutate(list => list.map(i => i.id === id ? { ...i, z: min - 1 } : i))
+  }
+  const patch = (id: string, p: Partial<NoteItem>) => mutate(list => list.map(i => i.id === id ? { ...i, ...p } : i))
+
+  /* Drop a piece of the lesson straight onto the board — no retyping on camera. */
+  const fromLesson = (what: 'rule' | 'objectives' | 'example' | 'homework') => {
+    if (!lesson) return
+    const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    const mark = (s: string) => esc(s).replace(/\*(.+?)\*/g, '<span style="color:#b45309;font-weight:800">$1</span>')
+    let html = ''
+    if (what === 'rule') html = `<div style="font-size:30px">${mark(lesson.rule.en)}</div><div style="font-size:26px;color:#78716c;margin-top:8px" dir="rtl">${esc(lesson.rule.ar)}</div>`
+    if (what === 'objectives') html = `<div style="font-size:26px">` + lesson.objectives.map(o => `• ${mark(o.en)}`).join('<br>') + `</div>`
+    if (what === 'homework') html = `<div style="font-size:26px">` + lesson.homework.map((o, i) => `${i + 1}. ${mark(o.en)}`).join('<br>') + `</div>`
+    if (what === 'example') {
+      const ex = lesson.examples?.[Math.floor(Math.random() * (lesson.examples?.length || 1))]
+      if (!ex) return
+      html = `<div style="font-size:34px">${mark(ex.en)}</div><div style="font-size:26px;color:#78716c;margin-top:8px" dir="rtl">${esc(ex.ar)}</div>`
+    }
+    const el = boardRef.current
+    const id = uid()
+    mutate(list => [...list, {
+      id, kind: 'text', x: 110, y: (el?.scrollTop ?? 0) + 110, w: 760, html,
+      dir: 'ltr', bg: '#fef3c7', bd: '#fcd34d', z: topZ() + 1,
+    }])
+    setSel(id); setRev(r => r + 1); setFromLessonOpen(false)
+  }
+
+  /* ── dragging & scaling ───────────────────────────────────────────────── */
+  const dragRef = useRef<{ id: string; mode: 'move' | 'resize'; sx: number; sy: number; ox: number; oy: number; ow: number; ratio: number } | null>(null)
+  const [dragging, setDragging] = useState(false)
+
+  const startDrag = (e: React.PointerEvent, it: NoteItem, mode: 'move' | 'resize') => {
+    e.preventDefault(); e.stopPropagation()
+    setSel(it.id); bringFront(it.id); mark()
+    dragRef.current = {
+      id: it.id, mode, sx: e.clientX, sy: e.clientY, ox: it.x, oy: it.y, ow: it.w,
+      ratio: it.kind !== 'text' && it.h ? it.h / it.w : 0,
+    }
+    setDragging(true)
+  }
+
+  useEffect(() => {
+    const move = (e: PointerEvent) => {
+      const d = dragRef.current; if (!d) return
+      const dx = e.clientX - d.sx, dy = e.clientY - d.sy
+      const maxX = (boardRef.current?.clientWidth ?? 1200) - 60
+      setItems(list => list.map(it => {
+        if (it.id !== d.id) return it
+        if (d.mode === 'move') return { ...it, x: Math.min(maxX, Math.max(0, d.ox + dx)), y: Math.max(0, d.oy + dy) }
+        const w = Math.max(40, d.ow + dx)
+        return d.ratio ? { ...it, w, h: Math.round(w * d.ratio) } : { ...it, w }
+      }))
+    }
+    const up = () => { if (!dragRef.current) return; dragRef.current = null; setDragging(false); touch() }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+    window.addEventListener('pointercancel', up)
+    return () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up) }
+  }, [touch])
+
+  /* ── drawing: pen strokes and shapes ──────────────────────────────────── */
+  const [draft, setDraft] = useState<{ tool: Tool; pts: Pt[] } | null>(null)
+  const draftRef = useRef(draft); draftRef.current = draft
+
+  const onBoardPointerDown = (e: React.PointerEvent) => {
+    const t = toolRef.current
+    const onCanvas = e.target === e.currentTarget || !!(e.target as HTMLElement).dataset.canvas
+    if (t === 'select') { if (onCanvas) { setSel(null); lastPoint.current = pointIn(e) } return }
+    const p = pointIn(e)
+    lastPoint.current = p
+    if (t === 'text') { addText(p.x, p.y); return }
+    if (t === 'eraser') { setDraft({ tool: 'eraser', pts: [[p.x, p.y]] }); eraseAt(p.x, p.y); return }
+    e.preventDefault()
+    setDraft({ tool: t, pts: [[p.x, p.y], [p.x, p.y]] })
+  }
+
+  const eraseAt = (x: number, y: number) => {
+    const hit = itemsRef.current.filter(i => (i.kind === 'draw' || i.kind === 'shape')
+      && x >= i.x - 6 && x <= i.x + i.w + 6 && y >= i.y - 6 && y <= i.y + (i.h ?? 0) + 6)
+    if (!hit.length) return
+    const ids = new Set(hit.map(i => i.id))
+    mutate(list => list.filter(i => !ids.has(i.id)))
+  }
+
+  useEffect(() => {
+    const move = (e: PointerEvent) => {
+      const d = draftRef.current; if (!d) return
+      const el = boardRef.current; if (!el) return
+      const r = el.getBoundingClientRect()
+      const p: Pt = [Math.max(0, e.clientX - r.left + el.scrollLeft), Math.max(0, e.clientY - r.top + el.scrollTop)]
+      if (d.tool === 'eraser') { eraseAt(p[0], p[1]); setDraft({ ...d, pts: [p] }); return }
+      if (d.tool === 'pen') setDraft({ ...d, pts: [...d.pts, p] })
+      else setDraft({ ...d, pts: [d.pts[0], p] })
+    }
+    const up = () => {
+      const d = draftRef.current; if (!d) return
+      setDraft(null)
+      if (d.tool === 'eraser') return
+      const xs = d.pts.map(p => p[0]), ys = d.pts.map(p => p[1])
+      const pad = Math.max(6, sw)
+      const minX = Math.min(...xs) - pad, minY = Math.min(...ys) - pad
+      const w = Math.max(12, Math.max(...xs) - Math.min(...xs) + pad * 2)
+      const h = Math.max(12, Math.max(...ys) - Math.min(...ys) + pad * 2)
+      const norm = (p: Pt): Pt => [(p[0] - minX) / w, (p[1] - minY) / h]
+      const base = { id: uid(), x: minX, y: minY, w, h, z: topZ() + 1, color, sw }
+      if (d.tool === 'pen') {
+        if (d.pts.length < 2) return
+        mutate(list => [...list, { ...base, kind: 'draw', pts: d.pts.map(norm) }])
+      } else {
+        mutate(list => [...list, { ...base, kind: 'shape', shape: d.tool as ShapeKind, a: norm(d.pts[0]), b: norm(d.pts[1]) }])
+        setTool('select')
+      }
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+    return () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [color, sw, mutate])
+
+  /* ── keyboard ─────────────────────────────────────────────────────────────
+     Capture phase, so Escape can be consumed here before the deck's own handler
+     closes the whole board. Escape steps out: caret → selection → tool → close. */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const ae = document.activeElement as HTMLElement | null
+      const typing = !!ae?.isContentEditable || ae instanceof HTMLInputElement
+      const meta = e.ctrlKey || e.metaKey
+
+      if (meta && e.key.toLowerCase() === 'z') { e.preventDefault(); e.stopPropagation(); e.shiftKey ? redo() : undo(); return }
+      if (meta && e.key.toLowerCase() === 'y') { e.preventDefault(); e.stopPropagation(); redo(); return }
+      if (meta && e.key.toLowerCase() === 'd' && selRef.current) { e.preventDefault(); e.stopPropagation(); duplicate(selRef.current); return }
+
+      if (e.key === 'Escape') {
+        if (typing) { e.stopPropagation(); e.preventDefault(); ae!.blur(); return }
+        if (selRef.current) { e.stopPropagation(); e.preventDefault(); setSel(null); return }
+        if (toolRef.current !== 'select') { e.stopPropagation(); e.preventDefault(); setTool('select'); return }
+        return                       // nothing left to step out of → let the deck close it
+      }
+      if (typing || meta) return
+
+      // single-key tools, only when you are not writing
+      const keyTool: Record<string, Tool> = { v: 'select', t: 'text', p: 'pen', a: 'arrow', l: 'line', r: 'rect', o: 'ellipse', e: 'eraser' }
+      const kt = keyTool[e.key.toLowerCase()]
+      if (kt) { e.preventDefault(); e.stopPropagation(); setTool(kt); return }
+
+      if (!selRef.current) return
+      if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); remove(selRef.current); return }
+      const nudge = e.shiftKey ? 20 : 2
+      const d: Record<string, Pt> = { ArrowLeft: [-nudge, 0], ArrowRight: [nudge, 0], ArrowUp: [0, -nudge], ArrowDown: [0, nudge] }
+      const mv = d[e.key]
+      if (mv) {
+        e.preventDefault(); e.stopPropagation()
+        setItems(list => list.map(i => i.id === selRef.current ? { ...i, x: Math.max(0, i.x + mv[0]), y: Math.max(0, i.y + mv[1]) } : i))
+        touch()
+      }
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [touch, undo, redo])
+
+  /* ── clipboard & drop ─────────────────────────────────────────────────── */
+  const onPaste = (e: React.ClipboardEvent) => {
+    const pics = Array.from(e.clipboardData?.items ?? [])
+      .filter(i => i.kind === 'file' && i.type.startsWith('image/'))
+      .map(i => i.getAsFile()).filter(Boolean) as File[]
+    if (pics.length) { e.preventDefault(); void insertFiles(pics); return }
+    const text = e.clipboardData?.getData('text/plain')
+    const ae = document.activeElement as HTMLElement | null
+    if (text && ae?.isContentEditable) { e.preventDefault(); document.execCommand('insertText', false, text); touch() }
+  }
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault(); setDragOver(false)
+    const at = pointIn(e); lastPoint.current = at
+    const files = Array.from(e.dataTransfer?.files ?? [])
+    if (files.length) { void insertFiles(files, at); return }
+    const url = e.dataTransfer?.getData('text/uri-list') || e.dataTransfer?.getData('text/plain')
+    if (url && /^https?:\/\//i.test(url)) addImage(url, at)
+  }
+
+  /* ── formatting (applies to the box holding the caret) ────────────────── */
+  const hold = (e: React.MouseEvent) => e.preventDefault()
+  const cmd = (c: string, v?: string) => {
+    const ae = document.activeElement as HTMLElement | null
+    if (!ae?.isContentEditable) { const el = sel ? textEls.current[sel] : null; el?.focus() }
+    try { document.execCommand(c, false, v) } catch { /* noop */ }
+    touch()
+  }
+  const setSize = (px: string) => {
+    // execCommand('fontSize') only speaks 1-7, so we tag the selection with size 7 and
+    // swap that tag for the real pixel size. styleWithCSS must be OFF for this one call
+    // — with it on the browser emits font-size:xx-large and every button looks the same.
+    const ae = document.activeElement as HTMLElement | null
+    const box = ae?.isContentEditable ? ae : (sel ? textEls.current[sel] : null)
+    if (!box) return
+    if (box !== ae) box.focus()
+    try { document.execCommand('styleWithCSS', false, 'false') } catch { /* noop */ }
+    try { document.execCommand('fontSize', false, '7') } catch { /* noop */ }
+    try { document.execCommand('styleWithCSS', false, 'true') } catch { /* noop */ }
+    box.querySelectorAll('font[size="7"]').forEach(f => {
+      const span = document.createElement('span')
+      span.style.fontSize = px
+      span.innerHTML = (f as HTMLElement).innerHTML
+      f.replaceWith(span)
+    })
+    touch()
+  }
+  const insertHtml = (html: string) => cmd('insertHTML', html)
+  const table = (rows: number, cols: number) => {
+    const cell = 'border:1.5px solid #d6d3d1;padding:8px 12px;min-width:90px;'
+    const head = `<tr>${Array.from({ length: cols }, () => `<th style="${cell}background:#fef3c7;font-weight:800;">&nbsp;</th>`).join('')}</tr>`
+    const body = Array.from({ length: rows - 1 }, () => `<tr>${Array.from({ length: cols }, () => `<td style="${cell}">&nbsp;</td>`).join('')}</tr>`).join('')
+    insertHtml(`<table style="border-collapse:collapse;margin:6px 0;">${head}${body}</table><div><br></div>`)
+  }
+
+  const runSearch = async () => {
+    const q = query.trim(); if (q.length < 2) return
+    setSearching(true); setSearched(true)
+    try {
+      const r = await fetch(`/api/img/search?q=${encodeURIComponent(q)}`)
+      const d = await r.json()
+      setHits(d?.results ?? []); setProvider(d?.provider ?? 'none'); setTerm(d?.term ?? '')
+    } catch { setHits([]); setProvider('none'); setTerm('') }
+    setSearching(false)
+  }
+
+  const selItem = items.find(i => i.id === sel) || null
+  const drawTool = tool !== 'select' && tool !== 'text'
+
+  const Btn = ({ onClick, title, children, active, wide }: { onClick: () => void; title: string; children: React.ReactNode; active?: boolean; wide?: boolean }) => (
+    <button onMouseDown={hold} onClick={onClick} title={title}
+      className={`${wide ? 'px-2.5' : 'px-2'} py-1 rounded-lg font-black transition text-[13px] ${active ? 'text-[#2a1d12]' : 'text-white/80 hover:text-white hover:bg-white/10'}`}
+      style={active ? { background: GOLD } : undefined}>{children}</button>
+  )
+  const Sep = () => <span className="w-px h-5 bg-white/15 mx-1 shrink-0" />
+
+  /* SVG for a pen stroke or a shape, drawn in the item's own pixel box so the
+     stroke keeps its weight and arrowheads never skew when you scale it. */
+  const Vector = ({ it }: { it: NoteItem }) => {
+    const w = it.w, h = it.h ?? 1
+    const c = it.color || INK, s = it.sw || 6
+    const common = { fill: 'none', stroke: c, strokeWidth: s, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+    let body: React.ReactNode = null
+    if (it.kind === 'draw' && it.pts) {
+      body = <polyline {...common} points={it.pts.map(p => `${p[0] * w},${p[1] * h}`).join(' ')} />
+    } else if (it.shape === 'rect') {
+      body = <rect {...common} x={s / 2} y={s / 2} width={Math.max(1, w - s)} height={Math.max(1, h - s)} rx={8} />
+    } else if (it.shape === 'ellipse') {
+      body = <ellipse {...common} cx={w / 2} cy={h / 2} rx={Math.max(1, w / 2 - s / 2)} ry={Math.max(1, h / 2 - s / 2)} />
+    } else if (it.a && it.b) {
+      const x1 = it.a[0] * w, y1 = it.a[1] * h, x2 = it.b[0] * w, y2 = it.b[1] * h
+      const head = it.shape === 'arrow' ? (() => {
+        const ang = Math.atan2(y2 - y1, x2 - x1), len = Math.max(12, s * 3.2), spread = 0.42
+        return <polygon fill={c} stroke="none" points={[
+          [x2, y2],
+          [x2 - len * Math.cos(ang - spread), y2 - len * Math.sin(ang - spread)],
+          [x2 - len * Math.cos(ang + spread), y2 - len * Math.sin(ang + spread)],
+        ].map(p => p.join(',')).join(' ')} />
+      })() : null
+      body = <>< line {...common} x1={x1} y1={y1} x2={x2} y2={y2} />{head}</>
+    }
+    return <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ display: 'block', overflow: 'visible' }}>{body}</svg>
+  }
+
+  const BOARD_BG: Record<BgStyle, React.CSSProperties> = {
+    plain: { background: '#ffffff' },
+    grid: { background: '#ffffff', backgroundImage: 'linear-gradient(#eef2f7 1px, transparent 1px), linear-gradient(90deg, #eef2f7 1px, transparent 1px)', backgroundSize: '32px 32px' },
+    lines: { background: '#ffffff', backgroundImage: 'linear-gradient(#eef2f7 1px, transparent 1px)', backgroundSize: '100% 40px' },
+  }
+
+  return (
+    <div className="absolute inset-0 z-[200] flex flex-col" style={{ background: 'rgba(28,20,12,0.55)' }}>
+      <div className="m-[1.2vh] mx-[1.4vw] flex-1 min-h-0 flex flex-col rounded-[22px] overflow-hidden shadow-[0_40px_120px_-30px_rgba(0,0,0,0.7)] bg-white">
+        {/* toolbar */}
+        <div className="shrink-0 flex items-center gap-1 flex-wrap px-[1vw] py-[0.9vh] relative" style={{ background: INK }}>
+          <span className="flex items-center gap-1.5 font-black text-white mr-1 shrink-0" style={{ fontSize: 13 }}>
+            <StickyNote size={15} style={{ color: GOLD }} /> {label}
+            <span dir="rtl" className="text-white/45 font-bold" style={{ fontFamily: "'Tajawal', sans-serif" }}>{labelAr}</span>
+          </span>
+          <Sep />
+
+          {/* tools */}
+          {TOOLS.map(t => (
+            <Btn key={t.id} title={t.title} active={tool === t.id} onClick={() => setTool(t.id)}><t.icon size={15} /></Btn>
+          ))}
+          <Sep />
+
+          {/* undo / redo */}
+          <Btn title="تراجع (Ctrl+Z)" onClick={undo}><Undo2 size={15} /></Btn>
+          <Btn title="إعادة (Ctrl+Shift+Z)" onClick={redo}><Redo2 size={15} /></Btn>
+          <Sep />
+
+          {/* colour + stroke weight — used by the pen, shapes and the text colour */}
+          {PEN_COLORS.map(c => (
+            <button key={c} onMouseDown={hold}
+              onClick={() => { setColor(c); if (!drawTool) cmd('foreColor', c); else if (selItem && (selItem.kind === 'draw' || selItem.kind === 'shape')) patch(selItem.id, { color: c }) }}
+              title={`اللون ${c}`}
+              className="w-[18px] h-[18px] rounded-full transition shrink-0"
+              style={{ background: c, boxShadow: color === c ? `0 0 0 2px ${GOLD}` : '0 0 0 2px rgba(255,255,255,0.25)' }} />
+          ))}
+          {STROKE_WIDTHS.map(v => (
+            <button key={v} onMouseDown={hold}
+              onClick={() => { setSw(v); if (selItem && (selItem.kind === 'draw' || selItem.kind === 'shape')) patch(selItem.id, { sw: v }) }}
+              title={`سماكة ${v}`}
+              className="w-[20px] h-[20px] rounded-md grid place-items-center shrink-0 transition"
+              style={{ background: sw === v ? GOLD : 'rgba(255,255,255,0.08)' }}>
+              <span style={{ display: 'block', width: 13, height: Math.min(7, v), borderRadius: 9, background: sw === v ? INK : '#fff' }} />
+            </button>
+          ))}
+          <Sep />
+
+          {/* text formatting */}
+          {TEXT_SIZES.map(t => <Btn key={t.px} title={`حجم النص ${t.label}`} onClick={() => setSize(t.px)}>{t.label}</Btn>)}
+          <Btn title="عريض" onClick={() => cmd('bold')}><b>B</b></Btn>
+          <Btn title="مائل" onClick={() => cmd('italic')}><i>I</i></Btn>
+          <Btn title="تحته خط" onClick={() => cmd('underline')}><u>U</u></Btn>
+          {MARKER_COLORS.map(c => (
+            <button key={c} onMouseDown={hold} onClick={() => cmd('hiliteColor', c)} title={c === 'transparent' ? 'بلا تظليل' : `تظليل ${c}`}
+              className="w-[18px] h-[18px] rounded-[5px] ring-2 ring-white/25 hover:ring-white/70 transition shrink-0 grid place-items-center"
+              style={{ background: c === 'transparent' ? '#ffffff' : c }}>
+              {c === 'transparent' && <span className="block w-[13px] h-[2px] rotate-45" style={{ background: '#dc2626' }} />}
+            </button>
+          ))}
+          <Btn title="قائمة نقطية" onClick={() => cmd('insertUnorderedList')}><List size={15} /></Btn>
+          <Btn title="قائمة مرقّمة" onClick={() => cmd('insertOrderedList')}><ListOrdered size={15} /></Btn>
+          <Btn title="جدول 2×2" onClick={() => table(2, 2)}><span className="flex items-center gap-1"><Table size={15} />2×2</span></Btn>
+          <Btn title="جدول 3×3" onClick={() => table(3, 3)}>3×3</Btn>
+          <Sep />
+
+          {/* content */}
+          <Btn wide title="بحث عن صور" active={searchOpen} onClick={() => setSearchOpen(o => !o)}>
+            <span className="flex items-center gap-1"><ImageIcon size={15} /> صور</span>
+          </Btn>
+          <Btn title="صورة من جهازك" onClick={() => fileInput.current?.click()}><Upload size={15} /></Btn>
+          {lesson && (
+            <Btn wide title="أدرج من الدرس" active={fromLessonOpen} onClick={() => setFromLessonOpen(o => !o)}>
+              <span className="flex items-center gap-1"><BookOpen size={15} /> من الدرس</span>
+            </Btn>
+          )}
+          <Sep />
+
+          {/* board background */}
+          {([['plain', 'سادة'], ['grid', 'مربعات'], ['lines', 'أسطر']] as [BgStyle, string][]).map(([v, t]) => (
+            <Btn key={v} title={`خلفية ${t}`} active={bg === v} onClick={() => { setBg(v); touch() }}>
+              <span style={{ fontSize: 11 }}>{t}</span>
+            </Btn>
+          ))}
+
+          {/* what you can do to the thing you picked */}
+          {selItem && (<>
+            <Sep />
+            {selItem.kind === 'text' && (<>
+              <Btn title="اتجاه الكتابة" onClick={() => patch(selItem.id, { dir: selItem.dir === 'rtl' ? 'ltr' : 'rtl' })}>
+                {selItem.dir === 'rtl' ? 'AR' : 'EN'}
+              </Btn>
+              {CARD_STYLES.map(c => (
+                <button key={c.label} onMouseDown={hold} onClick={() => patch(selItem.id, { bg: c.bg, bd: c.bd })} title={`بطاقة ${c.label}`}
+                  className="w-[18px] h-[18px] rounded-[5px] shrink-0 transition"
+                  style={{ background: c.bg === 'transparent' ? '#fff' : c.bg, boxShadow: `inset 0 0 0 2px ${c.bd === 'transparent' ? '#d6d3d1' : c.bd}` }} />
+              ))}
+            </>)}
+            <Btn title="تكرار (Ctrl+D)" onClick={() => duplicate(selItem.id)}><CopyIcon size={15} /></Btn>
+            <Btn title="إلى الخلف" onClick={() => sendBack(selItem.id)}><SendToBack size={15} /></Btn>
+            <Btn title="حذف (Del)" onClick={() => remove(selItem.id)}><Trash2 size={15} /></Btn>
+          </>)}
+
+          <span className="ml-auto flex items-center gap-2 shrink-0">
+            <span className="font-bold" style={{ fontSize: 11, color: saved === 'full' ? '#fca5a5' : 'rgba(255,255,255,0.35)' }}>
+              {busy ? 'adding picture…'
+                : saved === 'full' ? 'المساحة ممتلئة — احذف صورًا من دروس أخرى'
+                : saved === 'saving' ? 'saving…' : saved === 'saved' ? 'saved ✓' : ''}
+            </span>
+            <Btn title="الاختصارات" active={helpOpen} onClick={() => setHelpOpen(o => !o)}><HelpCircle size={15} /></Btn>
+            <button onMouseDown={hold} onClick={() => { if (confirm('امسح كل ما في هذا اللوح؟')) { mark(); setItems([]); textEls.current = {}; setSel(null); touch() } }}
+              title="امسح اللوح" className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition"><Trash2 size={14} /></button>
+            <button onClick={onClose} title="إغلاق (Esc)" className="px-2.5 py-1 rounded-lg font-black text-[#2a1d12] hover:brightness-105 transition flex items-center gap-1" style={{ background: GOLD, fontSize: 13 }}>
+              <X size={14} /> إغلاق
+            </button>
+          </span>
+
+          {/* insert-from-lesson menu */}
+          {fromLessonOpen && lesson && (
+            <div dir="rtl" className="absolute top-full right-[22vw] mt-1 z-[220] rounded-xl bg-white shadow-2xl ring-1 ring-stone-200 overflow-hidden" style={{ minWidth: 190 }}>
+              {([['rule', 'القاعدة'], ['objectives', 'الأهداف'], ['example', 'مثال عشوائي'], ['homework', 'الواجب']] as const).map(([k, t]) => (
+                <button key={k} onClick={() => fromLesson(k)}
+                  className="w-full text-right px-3 py-2 font-bold hover:bg-amber-50 transition"
+                  style={{ fontFamily: "'Tajawal', sans-serif", fontSize: 13, color: INK }}>{t}</button>
+              ))}
+            </div>
+          )}
+
+          {/* shortcuts */}
+          {helpOpen && (
+            <div dir="rtl" className="absolute top-full left-[1vw] mt-1 z-[220] rounded-xl bg-white shadow-2xl ring-1 ring-stone-200 p-3" style={{ minWidth: 300 }}>
+              {[['V / T / P', 'تحديد · نص · قلم'], ['A / L / R / O', 'سهم · خط · مستطيل · دائرة'], ['E', 'ممحاة'],
+                ['نقرة مزدوجة', 'صندوق نص في مكان النقر'], ['Ctrl+Z / Ctrl+Shift+Z', 'تراجع · إعادة'],
+                ['Ctrl+D', 'تكرار المحدّد'], ['Delete', 'حذف المحدّد'], ['الأسهم / Shift+الأسهم', 'تحريك ٢ · ٢٠ بكسل'],
+                ['Ctrl+V', 'لصق صورة'], ['Esc', 'خروج تدريجي ثم إغلاق']].map(([k, t]) => (
+                <div key={k} className="flex items-center gap-3 py-[3px]">
+                  <span dir="ltr" className="font-mono font-bold rounded px-1.5 shrink-0" style={{ background: '#f5f5f4', color: INK, fontSize: 11 }}>{k}</span>
+                  <span className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: 12 }}>{t}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* picture search */}
+        {searchOpen && (
+          <div className="shrink-0 border-b border-stone-200 bg-stone-50 px-[1vw] py-[1vh]">
+            <div className="flex items-center gap-2">
+              <Search size={15} className="text-stone-400 shrink-0" />
+              <input
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); void runSearch() } e.stopPropagation() }}
+                placeholder="ابحث عن صورة… بالعربية أو بالإنجليزية"
+                dir="auto"
+                className="flex-1 min-w-0 px-3 py-1.5 rounded-lg border border-stone-300 bg-white outline-none focus:border-yellow-400 font-bold"
+                style={{ fontSize: 14, color: INK }}
+              />
+              <button onClick={() => void runSearch()} className="px-3 py-1.5 rounded-lg font-black text-[#2a1d12] shrink-0" style={{ background: GOLD, fontSize: 13 }}>بحث</button>
+              <button onClick={() => setSearchOpen(false)} className="text-stone-400 hover:text-stone-700 shrink-0" aria-label="Close search"><X size={16} /></button>
+            </div>
+            <div className="mt-[0.8vh] max-h-[24vh] overflow-y-auto">
+              {searching && <div className="py-3 text-center font-bold text-stone-400" style={{ fontSize: 13 }}>…جاري البحث</div>}
+              {!searching && searched && !hits.length && (
+                <div className="py-3 text-center font-bold text-stone-400" style={{ fontSize: 13 }}>
+                  لا نتائج. جرّب كلمة أخرى — أو انسخ صورة من Google والصقها هنا مباشرة (Ctrl+V).
+                </div>
+              )}
+              {!!hits.length && (
+                <>
+                  <div className="grid grid-cols-8 gap-2">
+                    {hits.map((h, i) => (
+                      <button key={i} onMouseDown={hold} onClick={() => addImage(h.full)}
+                        title={`${h.credit} — اضغط لوضعها، أو اسحبها إلى المكان الذي تريد`}
+                        className="group relative aspect-[4/3] rounded-lg overflow-hidden ring-1 ring-stone-200 hover:ring-2 hover:ring-yellow-400 transition">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={h.thumb} alt="" draggable
+                          onDragStart={e => { e.dataTransfer.setData('text/uri-list', h.full); e.dataTransfer.setData('text/plain', h.full) }}
+                          className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                  {provider && (
+                    <div className="mt-[0.6vh] flex items-center gap-2 flex-wrap font-bold text-stone-400" style={{ fontSize: 10.5 }}>
+                      <span>المصدر: {provider === 'unsplash' ? 'Unsplash — مرخّصة للاستعمال التجاري' : provider === 'google' ? 'Google Images — تحقّق من الحقوق قبل النشر' : provider}</span>
+                      {term && <span dir="ltr" className="rounded px-1.5 py-0.5" style={{ background: '#fef3c7', color: AMBER }}>searched: {term}</span>}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        <input ref={fileInput} type="file" accept="image/*" multiple hidden
+          onChange={e => { const f = Array.from(e.target.files ?? []); e.target.value = ''; void insertFiles(f) }} />
+
+        {/* ── the board ── */}
+        <div
+          ref={boardRef}
+          onPointerDown={onBoardPointerDown}
+          onDoubleClick={e => {
+            if (tool !== 'select') return
+            if (e.target === e.currentTarget || (e.target as HTMLElement).dataset.canvas) { const p = pointIn(e); addText(p.x, p.y) }
+          }}
+          onPaste={onPaste}
+          onDrop={onDrop}
+          onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+          onDragLeave={e => { if (e.currentTarget === e.target) setDragOver(false) }}
+          className="relative flex-1 min-h-0 overflow-auto"
+          style={{ ...BOARD_BG[bg], cursor: dragging ? 'grabbing' : drawTool ? 'crosshair' : tool === 'text' ? 'text' : 'default' }}
+        >
+          <div data-canvas="1" className="relative w-full" style={{ minHeight: Math.max(boardBottom + 320, 900) }}>
+            {!items.length && !draft && (
+              <div data-canvas="1" className="absolute inset-0 grid place-items-center pointer-events-none">
+                <div dir="rtl" className="text-center font-bold text-stone-300 leading-[1.9]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.3vw' }}>
+                  انقر نقرتين في أي مكان لتكتب هناك<br />
+                  <span style={{ fontSize: '1vw' }}>أو اختر أداة من الأعلى: قلم · سهم · شكل — واسحب على اللوح</span>
+                </div>
+              </div>
+            )}
+
+            {items.map(it => {
+              const on = sel === it.id
+              const chrome = on ? { outline: `2px solid ${GOLD}`, outlineOffset: 3 } : undefined
+              return (
+                <div key={`${it.id}:${rev}`} className="absolute"
+                  style={{ left: it.x, top: it.y, width: it.w, zIndex: it.z, pointerEvents: drawTool ? 'none' : 'auto' }}>
+                  {on && !drawTool && (
+                    <div onPointerDown={e => startDrag(e, it, 'move')}
+                      className="absolute -top-[26px] left-0 flex items-center gap-1 px-2 py-[3px] rounded-t-lg cursor-grab active:cursor-grabbing select-none"
+                      style={{ background: GOLD, color: INK }}>
+                      <Move size={12} /><span className="font-black" style={{ fontSize: 10 }}>اسحب</span>
+                    </div>
+                  )}
+
+                  {it.kind === 'text' ? (
+                    <div
+                      ref={el => { textEls.current[it.id] = el; if (el && !el.dataset.init) { el.innerHTML = it.html || ''; el.dataset.init = '1' } }}
+                      contentEditable
+                      suppressContentEditableWarning
+                      spellCheck={false}
+                      dir={it.dir || 'rtl'}
+                      onPointerDown={() => { setSel(it.id); bringFront(it.id) }}
+                      onInput={touch}
+                      onBlur={() => {
+                        // A box you opened but never typed into would linger as an invisible
+                        // outline. Toolbar buttons preventDefault on mousedown and so never
+                        // blur the box — clicking one cannot delete your work.
+                        const el = textEls.current[it.id]
+                        if (!el || el.innerHTML.replace(/<br>|&nbsp;|\s/g, '') === '') {
+                          setItems(list => list.filter(i => i.id !== it.id))
+                          delete textEls.current[it.id]
+                          setSel(s => (s === it.id ? null : s))
+                        }
+                        persist()
+                      }}
+                      className="note-box outline-none"
+                      style={{
+                        ...chrome, minHeight: 44, padding: it.bg && it.bg !== 'transparent' ? '14px 18px' : '6px 10px',
+                        borderRadius: 12,
+                        background: it.bg && it.bg !== 'transparent' ? it.bg : undefined,
+                        boxShadow: it.bd && it.bd !== 'transparent' ? `inset 0 0 0 2px ${it.bd}` : undefined,
+                        color: it.bg === '#2a1d12' ? '#ffffff' : INK, fontSize: 30, lineHeight: 1.6,
+                        fontFamily: (it.dir || 'rtl') === 'rtl' ? "'Tajawal', 'Outfit', sans-serif" : "'Outfit', 'DM Sans', sans-serif",
+                        textAlign: (it.dir || 'rtl') === 'rtl' ? 'right' : 'left',
+                      }}
+                    />
+                  ) : it.kind === 'image' ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={it.src} alt="" draggable={false}
+                      onPointerDown={e => startDrag(e, it, 'move')}
+                      style={{ ...chrome, width: '100%', height: it.h ?? 'auto', borderRadius: 12, display: 'block', cursor: 'grab' }} />
+                  ) : (
+                    <div onPointerDown={e => startDrag(e, it, 'move')} style={{ ...chrome, borderRadius: 8, cursor: 'grab' }}>
+                      <Vector it={it} />
+                    </div>
+                  )}
+
+                  {on && !drawTool && (
+                    <div onPointerDown={e => startDrag(e, it, 'resize')} title="اسحب لتغيير الحجم"
+                      className="absolute -bottom-[9px] -right-[9px] w-[18px] h-[18px] rounded-full cursor-nwse-resize"
+                      style={{ background: GOLD, boxShadow: '0 0 0 2px #fff' }} />
+                  )}
+                </div>
+              )
+            })}
+
+            {/* live preview of the stroke or shape being drawn */}
+            {draft && draft.tool !== 'eraser' && (
+              <svg className="absolute inset-0 pointer-events-none" width="100%" height="100%" style={{ overflow: 'visible' }}>
+                {draft.tool === 'pen'
+                  ? <polyline fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"
+                      points={draft.pts.map(p => `${p[0]},${p[1]}`).join(' ')} />
+                  : draft.tool === 'rect'
+                    ? <rect fill="none" stroke={color} strokeWidth={sw} rx={8}
+                        x={Math.min(draft.pts[0][0], draft.pts[1][0])} y={Math.min(draft.pts[0][1], draft.pts[1][1])}
+                        width={Math.abs(draft.pts[1][0] - draft.pts[0][0])} height={Math.abs(draft.pts[1][1] - draft.pts[0][1])} />
+                    : draft.tool === 'ellipse'
+                      ? <ellipse fill="none" stroke={color} strokeWidth={sw}
+                          cx={(draft.pts[0][0] + draft.pts[1][0]) / 2} cy={(draft.pts[0][1] + draft.pts[1][1]) / 2}
+                          rx={Math.abs(draft.pts[1][0] - draft.pts[0][0]) / 2} ry={Math.abs(draft.pts[1][1] - draft.pts[0][1]) / 2} />
+                      : <line stroke={color} strokeWidth={sw} strokeLinecap="round"
+                          x1={draft.pts[0][0]} y1={draft.pts[0][1]} x2={draft.pts[1][0]} y2={draft.pts[1][1]} />}
+              </svg>
+            )}
+          </div>
+
+          {dragOver && (
+            <div className="pointer-events-none fixed inset-0 grid place-items-center z-[210]">
+              <span className="px-6 py-3 rounded-2xl font-black" style={{ background: GOLD, color: INK, fontFamily: "'Tajawal', sans-serif", fontSize: '1.3vw' }}>أفلت الصورة في المكان الذي تريد</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Tailwind preflight strips list markers and table borders — put them back inside boxes. */}
+      <style>{`
+        .note-box ul { list-style: disc; padding-inline-start: 1.5em; }
+        .note-box ol { list-style: decimal; padding-inline-start: 1.5em; }
+        .note-box li { margin: 0.1em 0; }
+        .note-box table { border-collapse: collapse; }
+        .note-box td, .note-box th { border: 1.5px solid #d6d3d1; padding: 8px 12px; min-width: 90px; }
+        .note-box th { background: #fef3c7; font-weight: 800; }
+        .note-box b, .note-box strong { font-weight: 800; }
+        .note-box img { max-width: 100%; border-radius: 10px; }
+      `}</style>
+    </div>
+  )
+}
+
 /* Slides that reveal their items one-by-one on Space. */
 const stepsOf = (s?: Slide) => {
   if (!s) return 0
@@ -209,7 +1139,7 @@ const stepsOf = (s?: Slide) => {
 }
 
 export default function WritingDeck() {
-  const { slides, jump } = useMemo(buildSlides, [])
+  const { slides, jump, unitJump } = useMemo(buildSlides, [])
   const [idx, setIdx] = useState(0)
   const [step, setStep] = useState(0)
   // Left index drawer (Unit → Module → Lesson). Closed on landing so a recording
@@ -234,6 +1164,7 @@ export default function WritingDeck() {
     else { if (stepRef.current > 0) setStep(v => v - 1); else setIdx(i => Math.max(0, i - 1)) }
   }, [slides, last])
   const jumpTo = (no: number) => { const t = jump[no]; if (t != null) { setStep(0); setIdx(t); setDrawerOpen(false) } }
+  const jumpUnit = (ui: number) => { const t = unitJump[ui]; if (t != null) { setStep(0); setIdx(t); setDrawerOpen(false) } }
 
   // Recording deep-link: /admin/present/writing?lesson=27 opens straight at that
   // lesson's cover — no clicking through slides before hitting Record.
@@ -245,9 +1176,17 @@ export default function WritingDeck() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // ── Notepad (the whiteboard that opens over the slide) ──
+  // While it is open EVERY deck shortcut must stand down: Space, arrows, M, F and
+  // the zoom keys are all letters you type into notes. `notesRef` is read inside the
+  // key handlers so they never need to re-subscribe.
+  const [notesOpen, setNotesOpen] = useState(false)
+  const notesRef = useRef(notesOpen); notesRef.current = notesOpen
+  const [hasNote, setHasNote] = useState(false)
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      if (notesRef.current || isTyping(e.target)) return
       if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); go(1) }
       if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1) }
     }
@@ -257,9 +1196,19 @@ export default function WritingDeck() {
   // drawer keys: M toggles the index, Escape closes it
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      if (notesRef.current || isTyping(e.target)) return
       if (e.key.toLowerCase() === 'm') setDrawerOpen(o => !o)
       else if (e.key === 'Escape') setDrawerOpen(false)
+    }
+    window.addEventListener('keydown', onKey); return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  // notepad keys: N opens it, Escape closes it (Escape wins over the drawer)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && notesRef.current) { e.preventDefault(); setNotesOpen(false); return }
+      if (notesRef.current || isTyping(e.target)) return
+      if (e.key.toLowerCase() === 'n') { e.preventDefault(); setNotesOpen(true) }
     }
     window.addEventListener('keydown', onKey); return () => window.removeEventListener('keydown', onKey)
   }, [])
@@ -268,7 +1217,7 @@ export default function WritingDeck() {
   const [isFs, setIsFs] = useState(false)
   useEffect(() => {
     const onFs = () => setIsFs(!!document.fullscreenElement)
-    const onKey = (e: KeyboardEvent) => { if (e.target instanceof HTMLInputElement) return; if (e.key.toLowerCase() === 'f') toggleFs() }
+    const onKey = (e: KeyboardEvent) => { if (notesRef.current || isTyping(e.target)) return; if (e.key.toLowerCase() === 'f') toggleFs() }
     document.addEventListener('fullscreenchange', onFs)
     window.addEventListener('keydown', onKey)
     return () => { document.removeEventListener('fullscreenchange', onFs); window.removeEventListener('keydown', onKey) }
@@ -297,7 +1246,7 @@ export default function WritingDeck() {
     const el = rootRef.current; if (!el) return
     const onWheel = (e: WheelEvent) => { if (e.ctrlKey || e.metaKey) { e.preventDefault(); zoomBy(e.deltaY < 0 ? 0.08 : -0.08) } }
     const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      if (notesRef.current || isTyping(e.target)) return
       if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomBy(0.1) }
       else if (e.key === '-' || e.key === '_') { e.preventDefault(); zoomBy(-0.1) }
       else if (e.key === '0') setZ(1)
@@ -317,7 +1266,14 @@ export default function WritingDeck() {
 
   const L = 'L' in s ? s.L : null
   const currentNo = L?.no ?? 0
-  const phase = s.t === 'intro' || s.t === 'end' ? null : (PHASE[s.t as Phase])
+  const phase = s.t === 'intro' || s.t === 'end' || s.t === 'unit' ? null : (PHASE[s.t as Phase])
+  // One sheet per lesson (unit openers and the intro get their own too).
+  const noteKey = noteKeyOf(s)
+  const noteLabel = L ? `Notes · Lesson ${numOf(L)}` : s.t === 'unit' ? `Notes · Unit ${s.index}` : 'Notes'
+  useEffect(() => { setHasNote(!!readNote(noteKey)) }, [noteKey])
+  // Which unit the deck is standing in — drives the header chip and the drawer highlight.
+  const activeUnit = s.t === 'unit' ? s.u : L ? unitOf(L.no) : null
+  const activeUnitIdx = activeUnit ? SYLLABUS.indexOf(activeUnit) : -1
 
   return (
     <div ref={rootRef} style={{ fontFamily: "'Outfit', 'DM Sans', sans-serif", background: '#ffffff', color: INK }}
@@ -331,11 +1287,24 @@ export default function WritingDeck() {
           <button onClick={() => setDrawerOpen(o => !o)} title="الفهرس (M)" className="p-1.5 rounded-lg text-[#2a1d12] hover:brightness-105 transition shrink-0" style={{ background: GOLD }} aria-label="Toggle index"><Menu size={16} /></button>
           <Link href="/admin/present" title="كل الديكات" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-stone-300 bg-white text-stone-600 hover:bg-stone-100 transition text-[0.9vw] font-bold"><ArrowLeft size={15} /> الديكات</Link>
           <button onClick={() => { setIdx(0); setStep(0) }} title="من البداية" className="p-1.5 rounded-lg border border-stone-300 bg-white text-stone-600 hover:bg-stone-100 transition shrink-0" aria-label="Restart"><RotateCcw size={15} /></button>
+          {/* the whiteboard — opens over this slide, closes back onto it */}
+          <button onClick={() => setNotesOpen(true)} title="لوح الشرح (N) — يفتح فوق الشريحة ويعود إليها"
+            className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:brightness-95 transition text-[0.9vw] font-black shrink-0"
+            style={{ background: '#fef3c7', color: AMBER, boxShadow: `inset 0 0 0 2px ${GOLD}` }} aria-label="Open note board">
+            <StickyNote size={15} /> لوح الشرح
+            {hasNote && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full ring-2 ring-white" style={{ background: AMBER }} />}
+          </button>
         </div>
+        {activeUnitIdx >= 0 && (
+          <button onClick={() => jumpUnit(activeUnitIdx)} title="بداية الوحدة"
+            className="px-2.5 py-1.5 rounded-xl font-black whitespace-nowrap hover:brightness-95 transition" style={{ background: '#fef3c7', color: AMBER, boxShadow: 'inset 0 0 0 1.5px #fcd34d' }}>
+            U{activeUnitIdx + 1}
+          </button>
+        )}
         <span className="px-3.5 py-1.5 rounded-xl text-white font-black whitespace-nowrap flex items-center gap-2" style={{ background: INK }}>
           <PenLine size={15} style={{ color: GOLD }} /> {L ? `Lesson ${numOf(L)} / ${ORDERED.length}` : 'English from Zero'} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>{L ? L.tagAr : 'الإنجليزية من الصفر'}</span>
         </span>
-        {L && <span className="px-2.5 py-1.5 rounded-xl font-black whitespace-nowrap" style={{ background: '#ecfeff', color: '#0e7490', boxShadow: 'inset 0 0 0 1.5px #a5f3fc' }}>{cefrOf(L)}</span>}
+        {(L || s.t === 'unit') && <span className="px-2.5 py-1.5 rounded-xl font-black whitespace-nowrap" style={{ background: '#ecfeff', color: '#0e7490', boxShadow: 'inset 0 0 0 1.5px #a5f3fc' }}>{L ? cefrOf(L) : s.t === 'unit' ? s.u.cefr : ''}</span>}
         {phase && (
           <span className="px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap text-[#2a1d12] flex items-center gap-1.5" style={{ background: GOLD }}>
             <phase.Icon size={14} /> {phase.en} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>{phase.ar}</span>
@@ -365,61 +1334,89 @@ export default function WritingDeck() {
       {/* ── left index drawer: Unit → Module → Lesson (show/hide) ── */}
       {drawerOpen && <div onClick={() => setDrawerOpen(false)} className="absolute inset-0 z-[60] bg-black/25" />}
       <aside className={`absolute left-0 top-0 h-full z-[70] w-[26vw] min-w-[300px] max-w-[400px] bg-white shadow-2xl flex flex-col transition-transform duration-300 ${drawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex items-center justify-between px-[1.4vw] py-[1.6vh] shrink-0" style={{ background: INK }}>
-          <span className="flex items-center gap-2 font-black text-white" style={{ fontSize: '0.95vw' }}><ListTree size={16} style={{ color: GOLD }} /> Course Index · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>الفهرس</span></span>
-          <button onClick={() => setDrawerOpen(false)} className="text-white/70 hover:text-white transition" aria-label="Close index"><X size={18} /></button>
+        <div className="px-[1.4vw] py-[1.6vh] shrink-0" style={{ background: INK }}>
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-2 font-black text-white" style={{ fontSize: '0.95vw' }}><ListTree size={16} style={{ color: GOLD }} /> Course Index · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>الفهرس</span></span>
+            <button onClick={() => setDrawerOpen(false)} className="text-white/70 hover:text-white transition" aria-label="Close index"><X size={18} /></button>
+          </div>
+          <div className="mt-[0.8vh] flex items-center gap-[0.6vw] text-white/50 font-bold" style={{ fontSize: '0.72vw' }}>
+            <span>{ORDERED.length} lessons</span><span className="text-white/20">·</span>
+            <span>{SYLLABUS.length} units</span><span className="text-white/20">·</span>
+            <span style={{ color: GOLD }}>A1 → B1</span>
+          </div>
         </div>
         <div className="flex-1 overflow-y-auto px-[0.8vw] py-[1.2vh]">
-          {SYLLABUS.map((u, ui) => (
-            <div key={ui} className="mb-[1.2vh]">
-              <div className="px-[0.6vw] pb-[0.5vh] mb-[0.4vh] border-b border-stone-100">
-                <div className="flex items-center gap-[0.5vw]">
-                  <span className="rounded font-black px-1.5 py-0.5" style={{ background: '#ecfeff', color: '#0e7490', fontSize: '0.7vw' }}>{u.cefr}</span>
-                  <span className="font-black leading-tight" style={{ color: AMBER, fontSize: '0.9vw' }}>{u.en}</span>
-                </div>
-                <div dir="rtl" className="font-bold text-stone-400 leading-tight" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.75vw' }}>{u.ar}</div>
-              </div>
-              {u.modules.map((m, mi) => {
-                const key = `${ui}-${mi}`
-                const open = expanded.has(key)
-                return (
-                  <div key={mi} className="mb-[0.4vh]">
-                    <button onClick={() => toggleModule(key)} className="w-full flex items-center gap-[0.5vw] px-[0.6vw] py-[0.6vh] rounded-lg hover:bg-stone-100 transition text-left">
-                      <ChevronDown size={14} className="shrink-0 transition-transform" style={{ color: '#a8a29e', transform: open ? 'none' : 'rotate(-90deg)' }} />
-                      <span className="font-bold" style={{ color: INK, fontSize: '0.85vw' }}>{m.en}</span>
-                      <span dir="rtl" className="ml-auto font-bold text-stone-400 truncate" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.75vw' }}>{m.ar}</span>
-                    </button>
-                    {open && (
-                      <div className="ml-[1.1vw] mt-[0.3vh] flex flex-col gap-[0.25vh] border-l-2 border-stone-100 pl-[0.5vw]">
-                        {lessonsIn(m).map(L2 => {
-                          const active = L2.no === currentNo
-                          return (
-                            <button key={L2.no} onClick={() => jumpTo(L2.no)}
-                              className={`flex items-center gap-[0.5vw] px-[0.5vw] py-[0.5vh] rounded-lg text-left transition ${active ? '' : 'hover:bg-stone-100'}`}
-                              style={active ? { background: '#fef3c7', boxShadow: 'inset 0 0 0 1.5px #fcd34d' } : undefined}>
-                              <span className="grid place-items-center rounded-md font-black shrink-0" style={{ width: 24, height: 24, background: active ? GOLD : '#e7e5e4', color: INK, fontSize: '0.72vw' }}>{numOf(L2)}</span>
-                              <span className="min-w-0">
-                                <span className="block font-bold truncate" style={{ color: INK, fontSize: '0.82vw' }}>{L2.tag}</span>
-                                <span dir="rtl" className="block font-bold text-stone-400 truncate" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.7vw' }}>{L2.tagAr}</span>
-                              </span>
-                            </button>
-                          )
-                        })}
-                      </div>
-                    )}
+          {SYLLABUS.map((u, ui) => {
+            const uCount = u.modules.reduce((n, m) => n + lessonsIn(m).length, 0)
+            const inUnit = ui === activeUnitIdx
+            return (
+              <div key={ui} className="mb-[1.4vh]">
+                {/* unit header — click to open the unit's own slide */}
+                <button onClick={() => jumpUnit(ui)}
+                  className="w-full text-left px-[0.6vw] py-[0.7vh] rounded-xl transition mb-[0.5vh]"
+                  style={inUnit ? { background: '#fffbeb', boxShadow: 'inset 0 0 0 1.5px #fcd34d' } : undefined}>
+                  <div className="flex items-center gap-[0.5vw]">
+                    <span className="grid place-items-center rounded-lg font-black shrink-0"
+                      style={{ width: 22, height: 22, background: inUnit ? GOLD : INK, color: inUnit ? INK : GOLD, fontSize: '0.7vw' }}>{ui + 1}</span>
+                    <span className="font-black leading-tight truncate" style={{ color: inUnit ? AMBER : INK, fontSize: '0.88vw' }}>{u.en.split(' · ')[1]}</span>
+                    <span className="ml-auto rounded font-black px-1.5 py-0.5 shrink-0" style={{ background: '#ecfeff', color: '#0e7490', fontSize: '0.66vw' }}>{u.cefr}</span>
                   </div>
-                )
-              })}
-            </div>
-          ))}
+                  <div dir="rtl" className="mt-[0.2vh] flex items-center gap-[0.4vw]">
+                    <span className="font-bold text-stone-400 leading-tight truncate" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.74vw' }}>{u.ar.split(' · ')[1]}</span>
+                    <span className="ml-auto font-bold text-stone-300 shrink-0" style={{ fontSize: '0.66vw' }}>{uCount}</span>
+                  </div>
+                </button>
+                {u.modules.map((m, mi) => {
+                  const key = `${ui}-${mi}`
+                  const open = expanded.has(key)
+                  const items = lessonsIn(m)
+                  return (
+                    <div key={mi} className="mb-[0.4vh]">
+                      <button onClick={() => toggleModule(key)} className="w-full flex items-center gap-[0.5vw] px-[0.6vw] py-[0.55vh] rounded-lg hover:bg-stone-100 transition text-left">
+                        <ChevronDown size={13} className="shrink-0 transition-transform" style={{ color: '#a8a29e', transform: open ? 'none' : 'rotate(-90deg)' }} />
+                        <span className="font-bold truncate" style={{ color: INK, fontSize: '0.8vw' }}>{m.en}</span>
+                        <span className="ml-auto shrink-0 font-bold text-stone-300" style={{ fontSize: '0.66vw' }}>{items.length}</span>
+                      </button>
+                      {open && (
+                        <div className="ml-[1.1vw] mt-[0.3vh] flex flex-col gap-[0.25vh] border-l-2 border-stone-100 pl-[0.5vw]">
+                          {items.map(L2 => {
+                            const active = L2.no === currentNo
+                            return (
+                              <button key={L2.no} onClick={() => jumpTo(L2.no)}
+                                className={`flex items-center gap-[0.5vw] px-[0.5vw] py-[0.5vh] rounded-lg text-left transition ${active ? '' : 'hover:bg-stone-100'}`}
+                                style={active ? { background: '#fef3c7', boxShadow: 'inset 0 0 0 1.5px #fcd34d' } : undefined}>
+                                <span className="grid place-items-center rounded-md font-black shrink-0" style={{ width: 24, height: 24, background: active ? GOLD : '#e7e5e4', color: INK, fontSize: '0.72vw' }}>{numOf(L2)}</span>
+                                <span className="min-w-0 flex-1">
+                                  <span className="block font-bold truncate" style={{ color: INK, fontSize: '0.82vw' }}>{L2.tag}</span>
+                                  <span dir="rtl" className="block font-bold text-stone-400 truncate" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.7vw' }}>{L2.tagAr}</span>
+                                </span>
+                                {L2.studio && <PenLine size={11} className="shrink-0" style={{ color: AMBER }} />}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          })}
         </div>
       </aside>
 
-      {/* side-click nav (not on intro so the outline stays clickable) */}
-      {s.t !== 'intro' && (<>
+      {/* side-click nav — disabled while the notepad is open so a stray click
+          outside the sheet cannot move the slide underneath it */}
+      {s.t !== 'intro' && !notesOpen && (<>
         <button onClick={() => go(-1)} className="absolute left-0 top-0 h-full w-[9%] z-20 cursor-w-resize" aria-label="Previous" />
         <button onClick={() => go(1)} className="absolute right-0 top-0 h-full w-[9%] z-20 cursor-e-resize" aria-label="Next" />
       </>)}
+
+      {/* notepad — over the slide, never instead of it */}
+      {notesOpen && (
+        <NotePad noteKey={noteKey} label={noteLabel} labelAr="لوح الشرح" lesson={L}
+          onClose={() => setNotesOpen(false)} onDirty={setHasNote} />
+      )}
 
       {/* content */}
       <div className="flex-1 flex items-center justify-center px-[5vw] py-[1.6vh] relative z-10 min-h-0 overflow-hidden">
@@ -429,7 +1426,7 @@ export default function WritingDeck() {
           <AnimatePresence mode="wait">
             <motion.div key={idx} dir="ltr" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.3 }}
               className="w-full flex items-center justify-center">
-              <SlideView s={s} step={step} onJump={jumpTo} />
+              <SlideView s={s} step={step} onJump={jumpTo} onJumpUnit={jumpUnit} />
             </motion.div>
           </AnimatePresence>
         </div>
@@ -448,49 +1445,129 @@ export default function WritingDeck() {
 }
 
 /* ═══ per-phase renderers ═══ */
-function SlideView({ s, step, onJump }: { s: Slide; step: number; onJump: (no: number) => void }) {
-  if (s.t === 'intro') return (
-    <div className="w-full max-w-[82vw] flex flex-col items-center gap-[2.6vh] text-center">
-      <div>
-        <div className="inline-block mb-[0.8vh] px-5 py-1.5 rounded-full font-bold tracking-[0.2em] text-[0.9vw]" style={{ background: INK, color: GOLD }}>
-          ZERO → WRITING · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>من الصفر إلى الكتابة</span>
+function SlideView({ s, step, onJump, onJumpUnit }: { s: Slide; step: number; onJump: (no: number) => void; onJumpUnit: (ui: number) => void }) {
+  if (s.t === 'intro') {
+    const totalLessons = ORDERED.length
+    return (
+      <div className="w-full max-w-[88vw] flex flex-col items-center gap-[2.2vh] text-center">
+        <div>
+          <div className="inline-block mb-[0.7vh] px-5 py-1.5 rounded-full font-bold tracking-[0.2em] text-[0.86vw]" style={{ background: INK, color: GOLD }}>
+            ZERO → PROFESSIONAL WRITING · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>من الصفر إلى الكتابة الاحترافية</span>
+          </div>
+          <h1 className="font-black leading-[1.02] tracking-tight" style={{ color: INK, fontSize: '4.2vw' }}>English from Zero</h1>
+          <div dir="rtl" className="mt-[0.2vh] font-black text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '2vw' }}>الإنجليزية من الصفر إلى الكتابة</div>
         </div>
-        <h1 className="font-black leading-[1.02] tracking-tight" style={{ color: INK, fontSize: '4vw' }}>English from Zero</h1>
-        <div dir="rtl" className="mt-[0.3vh] font-black text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '2vw' }}>الإنجليزية من الصفر إلى الكتابة</div>
+
+        {/* the promise, in one line — what they can DO when the last slide ends */}
+        <div dir="rtl" className="max-w-[62vw] font-bold text-stone-600 leading-[1.7]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.15vw' }}>
+          تبدأ من الحرف الأول، وتنتهي وأنت تكتب <span className="font-black" style={{ color: AMBER }}>فقرة كاملة وإيميلًا احترافيًا</span> بالإنجليزية — بثقة، وبقواعد تفهمها لا تحفظها.
+        </div>
+
+        {/* headline numbers */}
+        <div dir="ltr" className="flex items-center gap-[2.4vw]">
+          {[[String(totalLessons), 'lessons', 'درسًا'], [String(SYLLABUS.length), 'units', 'وحدات'], ['A1→B1', 'CEFR level', 'المستوى']].map(([v, en, ar], i) => (
+            <div key={i} className="flex flex-col items-center">
+              <span className="font-black leading-none" style={{ color: INK, fontSize: '2.1vw' }}>{v}</span>
+              <span className="font-black text-stone-400 uppercase tracking-[0.12em]" style={{ fontSize: '0.66vw' }}>{en}</span>
+              <span dir="rtl" className="font-bold text-stone-300" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.7vw' }}>{ar}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* the journey — 7 units on one rail; click a unit to open it */}
+        <div dir="ltr" className="w-full relative">
+          {/* the rail sits exactly on the circle centres: button padding + half the circle,
+              and stops at the first/last centre (one half-column in from each edge). */}
+          <div className="absolute h-[3px] rounded-full"
+            style={{ top: 'calc(0.8vh + 1.3vw)', left: `${50 / SYLLABUS.length}%`, right: `${50 / SYLLABUS.length}%`, background: 'linear-gradient(90deg,#fde68a,#facc15,#b45309)' }} />
+          <div className="relative grid gap-[0.7vw] w-full" style={{ gridTemplateColumns: `repeat(${SYLLABUS.length}, minmax(0,1fr))` }}>
+            {SYLLABUS.map((u, ui) => {
+              const count = u.modules.reduce((n, m) => n + lessonsIn(m).length, 0)
+              return (
+                <button key={ui} onClick={() => onJumpUnit(ui)}
+                  className="group flex flex-col items-center gap-[0.5vh] rounded-2xl px-[0.5vw] py-[0.8vh] hover:bg-amber-50/70 transition">
+                  <span className="grid place-items-center rounded-full font-black shrink-0 ring-4 ring-white transition-transform group-hover:scale-110"
+                    style={{ width: '2.6vw', height: '2.6vw', background: INK, color: GOLD, fontSize: '1vw' }}>{ui + 1}</span>
+                  <span className="font-black leading-tight" style={{ color: INK, fontSize: '0.88vw' }}>{u.short}</span>
+                  <span dir="rtl" className="font-bold text-stone-400 leading-tight" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.76vw' }}>{u.shortAr}</span>
+                  <span className="rounded-md px-1.5 py-0.5 font-black" style={{ background: '#ecfeff', color: '#0e7490', fontSize: '0.62vw' }}>{u.cefr}</span>
+                  <span className="font-bold text-stone-300" style={{ fontSize: '0.64vw' }}>{count} lessons</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* what comes WITH the course — recorded straight into the intro */}
+        <div dir="rtl" className="flex flex-wrap items-center justify-center gap-[0.7vw]">
+          {[
+            ['📝', 'تصحيح سريع لواجباتك — كتابيًا أو صوتيًا'],
+            ['🎥', 'لايف أسبوعي للأسئلة والأجوبة'],
+            ['🎓', 'شهادة إتمام باسمك'],
+          ].map(([emo, label], i) => (
+            <span key={i} className="flex items-center gap-1.5 rounded-full px-[1.1vw] py-[0.6vh] font-black text-white" style={{ background: INK, fontSize: '0.94vw', fontFamily: "'Tajawal', sans-serif" }}>
+              <span>{emo}</span> {label}
+            </span>
+          ))}
+        </div>
+
+        <div className="font-bold text-stone-400 flex flex-col items-center gap-[0.3vh]" style={{ fontSize: '0.86vw' }}>
+          <span className="flex items-center gap-1.5">Click a unit above, or open the <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[#2a1d12] font-black" style={{ background: GOLD }}><Menu size={12} /> index</span> (M) for every lesson.</span>
+          <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}>اضغط أي وحدة، أو افتح الفهرس (M) · مسافة للتقدّم · F لملء الشاشة.</span>
+        </div>
       </div>
-      {/* unit overview — click a unit to jump into it; the full index lives in the drawer */}
-      <div dir="ltr" className="grid gap-[1vw] w-full" style={{ gridTemplateColumns: `repeat(${SYLLABUS.length}, minmax(0,1fr))` }}>
-        {SYLLABUS.map((u, ui) => {
-          const count = u.modules.reduce((n, m) => n + lessonsIn(m).length, 0)
-          return (
-            <button key={ui} onClick={() => onJump(u.modules[0].from)}
-              className="rounded-2xl bg-white ring-1 ring-stone-200 hover:ring-yellow-400 hover:shadow-[0_14px_30px_-20px_rgba(42,29,18,0.5)] transition px-[1vw] py-[1.6vh] flex flex-col items-center gap-[0.25vh]">
-              <span className="rounded-lg px-2.5 py-0.5 font-black mb-[0.3vh]" style={{ background: '#ecfeff', color: '#0e7490', fontSize: '0.85vw' }}>CEFR {u.cefr}</span>
-              <span className="font-black leading-tight" style={{ color: INK, fontSize: '1.02vw' }}>{u.en.split(' · ')[1]}</span>
-              <span dir="rtl" className="font-bold text-stone-400" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.82vw' }}>{u.ar.split(' · ')[1]}</span>
-              <span className="mt-[0.4vh] text-stone-400 font-bold" style={{ fontSize: '0.74vw' }}>{u.modules.length} modules · {count} lessons</span>
-            </button>
-          )
-        })}
+    )
+  }
+
+  /* Unit opener — a sense of arrival, and a natural chapter break for recording. */
+  if (s.t === 'unit') {
+    const u = s.u
+    return (
+      <div className="w-full max-w-[74vw] flex flex-col items-center gap-[2.4vh] text-center">
+        <div className="flex items-center gap-[0.8vw]">
+          <span className="rounded-lg px-2.5 py-1 font-black" style={{ background: '#ecfeff', color: '#0e7490', boxShadow: 'inset 0 0 0 1.5px #a5f3fc', fontSize: '0.9vw' }}>CEFR {u.cefr}</span>
+          <span className="font-black tracking-[0.14em] uppercase" style={{ color: AMBER, fontSize: '0.9vw' }}>{s.count} lessons · starts at lesson {s.startsAt}</span>
+        </div>
+        <div>
+          <div className="inline-block mb-[1.2vh] px-6 py-2 rounded-full font-black tracking-[0.18em]" style={{ background: GOLD, color: INK, fontSize: '1.1vw' }}>
+            UNIT {s.index} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>الوحدة {s.index}</span>
+          </div>
+          <h1 className="font-black leading-[1.06] tracking-tight" style={{ color: INK, fontSize: '3.6vw' }}>{u.en.split(' · ')[1]}</h1>
+          <div dir="rtl" className="mt-[0.8vh] font-black text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '2.1vw' }}>{u.ar.split(' · ')[1]}</div>
+        </div>
+        {/* the unit's promise */}
+        <div className="w-full rounded-[28px] bg-amber-50 ring-2 ring-amber-200 px-[3vw] py-[2.2vh]">
+          <div className="font-black text-stone-400 uppercase tracking-[0.14em] mb-[0.8vh]" style={{ fontSize: '0.72vw' }}>By the end of this unit · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>في نهاية هذه الوحدة</span></div>
+          <div className="font-black leading-[1.35]" style={{ color: INK, fontSize: '1.5vw' }}>{u.promise}</div>
+          <div dir="rtl" className="mt-[0.8vh] font-bold text-stone-600 leading-[1.6]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.3vw' }}>{u.promiseAr}</div>
+        </div>
+        {/* what's inside */}
+        <div dir="ltr" className="w-full grid gap-[1vw]" style={{ gridTemplateColumns: `repeat(${u.modules.length}, minmax(0,1fr))` }}>
+          {u.modules.map((m, mi) => {
+            const items = lessonsIn(m)
+            return (
+              <div key={mi} className="rounded-2xl bg-white ring-1 ring-stone-200 px-[1.2vw] py-[1.2vh] text-left">
+                <div className="flex items-baseline gap-[0.5vw] mb-[0.7vh]">
+                  <span className="font-black" style={{ color: AMBER, fontSize: '0.98vw' }}>{m.en}</span>
+                  <span className="ml-auto font-bold text-stone-300" style={{ fontSize: '0.72vw' }}>{items.length}</span>
+                </div>
+                <div dir="rtl" className="font-bold text-stone-400 mb-[0.8vh]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.82vw' }}>{m.ar}</div>
+                <div className="flex flex-wrap gap-[0.35vw]">
+                  {items.map(L2 => (
+                    <button key={L2.no} onClick={() => onJump(L2.no)}
+                      className="rounded-lg bg-stone-50 ring-1 ring-stone-200 hover:ring-yellow-400 hover:bg-amber-50 transition px-[0.5vw] py-[0.35vh] font-bold"
+                      style={{ color: INK, fontSize: '0.78vw' }}>
+                      <span className="font-black" style={{ color: AMBER }}>{numOf(L2)}</span> {L2.tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+        </div>
       </div>
-      {/* what comes WITH the course — recorded straight into the intro */}
-      <div dir="rtl" className="flex flex-wrap items-center justify-center gap-[0.8vw]">
-        {[
-          ['📝', 'تصحيح سريع لواجباتك — كتابيًا أو صوتيًا'],
-          ['🎥', 'لايف أسبوعي للأسئلة والأجوبة'],
-          ['🎓', 'شهادة إتمام باسمك'],
-        ].map(([emo, label], i) => (
-          <span key={i} className="flex items-center gap-1.5 rounded-full px-[1.2vw] py-[0.7vh] font-black text-white" style={{ background: INK, fontSize: '1vw', fontFamily: "'Tajawal', sans-serif" }}>
-            <span>{emo}</span> {label}
-          </span>
-        ))}
-      </div>
-      <div className="font-bold text-stone-400 flex flex-col items-center gap-[0.4vh]" style={{ fontSize: '0.92vw' }}>
-        <span className="flex items-center gap-1.5">Open the <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[#2a1d12] font-black" style={{ background: GOLD }}><Menu size={12} /> index</span> on the left (or press M) to browse every unit, module and lesson.</span>
-        <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}>افتح الفهرس على اليسار (أو اضغط M) لتصفّح الوحدات والوحدات الفرعية والدروس · مسافة للتقدّم · F لملء الشاشة.</span>
-      </div>
-    </div>
-  )
+    )
+  }
 
   if (s.t === 'cover') {
     const u = unitOf(s.L.no)
@@ -543,24 +1620,37 @@ function SlideView({ s, step, onJump }: { s: Slide; step: number; onJump: (no: n
     </div>
   )
 
-  if (s.t === 'explain') return (
-    <div className="w-full max-w-[76vw] flex flex-col items-center gap-[2.4vh]">
-      <Heading en="Explanation" ar="الشرح" />
-      <div className="text-center max-w-[62vw]">
-        <Marked text={s.L.explain!.intro} className="font-bold text-stone-700" style={{ fontSize: '1.4vw' }} />
-        <div dir="rtl" className="mt-[0.6vh] font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.3vw' }}>{s.L.explain!.introAr}</div>
+  if (s.t === 'explain') {
+    const ex = s.L.explain!
+    // Teaching points vary from a 20-char label to a full worked contrast. Stacking the
+    // Arabic UNDER the English (instead of beside it) lets a long point wrap cleanly
+    // instead of squeezing both languages into half a cell; the type also steps down
+    // a little once a lesson carries six points, so the slide never overflows.
+    const many = ex.points.length > 4
+    const longest = Math.max(...ex.points.map(p => p.en.replace(/\*/g, '').length))
+    const enSize = longest > 88 ? '1.02vw' : many ? '1.08vw' : '1.15vw'
+    const arSize = longest > 88 ? '0.92vw' : many ? '0.98vw' : '1.05vw'
+    return (
+      <div className="w-full max-w-[78vw] flex flex-col items-center gap-[2.2vh]">
+        <Heading en="Explanation" ar="الشرح" />
+        <div className="text-center max-w-[64vw]">
+          <Marked text={ex.intro} className="font-bold text-stone-700" style={{ fontSize: many ? '1.3vw' : '1.4vw' }} />
+          <div dir="rtl" className="mt-[0.6vh] font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: many ? '1.2vw' : '1.3vw' }}>{ex.introAr}</div>
+        </div>
+        <div dir="ltr" className="grid grid-cols-2 gap-x-[1.6vw] gap-y-[1vh] w-full">
+          {ex.points.map((p, i) => (
+            <div key={i} className="flex items-start gap-[0.8vw] rounded-2xl bg-white ring-1 ring-stone-200 px-[1.3vw] py-[1.1vh]">
+              <span className="w-2.5 h-2.5 rounded-full shrink-0 mt-[0.7vh]" style={{ background: GOLD }} />
+              <span className="min-w-0 flex-1">
+                <Marked text={p.en} className="block font-bold leading-[1.4]" style={{ color: INK, fontSize: enSize }} />
+                <span dir="rtl" className="block font-bold text-stone-400 leading-[1.5] mt-[0.2vh]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: arSize }}>{p.ar}</span>
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
-      <div dir="ltr" className="grid grid-cols-2 gap-x-[2vw] gap-y-[1.2vh] w-full">
-        {s.L.explain!.points.map((p, i) => (
-          <div key={i} className="flex items-center gap-[0.9vw] rounded-2xl bg-white ring-1 ring-stone-200 px-[1.4vw] py-[1.2vh]">
-            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: GOLD }} />
-            <Marked text={p.en} className="font-bold" style={{ color: INK, fontSize: '1.15vw' }} />
-            <span dir="rtl" className="ml-auto font-bold text-stone-400 text-right" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.05vw' }}>{p.ar}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
+    )
+  }
 
   if (s.t === 'form') {
     const f = s.L.form!

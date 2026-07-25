@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import type { LucideIcon } from 'lucide-react'
 import {
-  BarChart3, Activity, Video, FileText, BookOpen, FileEdit,
+  BarChart3, Activity, Video, FileText, BookOpen, Presentation, Gauge,
   Database, Lock, Settings, ArrowUpRight, KanbanSquare, Shield,
 } from 'lucide-react'
 import { useStaff } from '@/lib/staff-context'
@@ -43,16 +43,17 @@ export default function AdminCommandCenterPage() {
 
       {/* Insights */}
       <Section title="Insights" subtitle="See the business from above.">
-        <Tile icon={BarChart3}  href="/admin/analytics" title="Analytics"     description="Revenue, sources, conversion · 90 days" />
-        <Tile icon={Activity}   href="/admin/activity"  title="Activity Log"  description="Every staff action with before/after" />
+        <Tile icon={Gauge}      href="/admin/command"   title="Command Center" description="Live revenue, students, and alerts" />
+        <Tile icon={BarChart3}  href="/admin/analytics" title="Analytics"      description="Revenue, sources, conversion · 90 days" />
+        <Tile icon={Activity}   href="/admin/activity"  title="Activity Log"   description="Every staff action with before/after" />
       </Section>
 
       {/* Content */}
       <Section title="Content" subtitle="What students see on the site.">
-        <Tile icon={Video}     href="/admin/courses"  title="Courses"       description="Manage video courses" />
-        <Tile icon={FileText}  href="/admin/articles" title="Articles"      description="Blog posts and resources" />
-        <Tile icon={BookOpen}  href="/admin/lessons"  title="Lessons"       description="Conversation + grammar lessons" />
-        <Tile icon={FileEdit}  href="/admin/content"  title="Listen Studio" description="Audio + transcript editor" />
+        <Tile icon={Video}       href="/admin/courses"  title="Courses"        description="Manage video courses" />
+        <Tile icon={FileText}    href="/admin/articles" title="Articles"       description="Blog posts and resources" />
+        <Tile icon={BookOpen}    href="/admin/lessons"  title="Lessons"        description="Conversation + grammar lessons" />
+        <Tile icon={Presentation} href="/admin/present" title="Teaching decks" description="Record-ready lesson decks · writing course" />
       </Section>
 
       {/* System */}
