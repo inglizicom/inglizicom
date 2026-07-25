@@ -25,7 +25,7 @@ import {
   Globe, Instagram, Youtube, GraduationCap, Phone,
   StickyNote, List, ListOrdered, Eraser, Trash2,
   Image as ImageIcon, Upload, Search, Type, Move, SendToBack,
-  MousePointer2, Pencil, ArrowUpRight, Slash, Square, Circle,
+  MousePointer2, Pencil, ArrowUpRight, Square, Circle, Highlighter, LayoutGrid, MoreHorizontal,
   Undo2, Redo2, Copy as CopyIcon, HelpCircle,
 } from 'lucide-react'
 import { LESSONS, IRREGULAR_VERBS, type Lesson, type Ex, type QA, type Irregular } from '@/data/writing-course'
@@ -255,67 +255,75 @@ const isTyping = (t: EventTarget | null) =>
   (t instanceof HTMLElement && t.isContentEditable)
 
 /* ── Note board ───────────────────────────────────────────────────────────────
-   A teaching whiteboard that opens OVER the current slide (N, or the لوح الشرح
-   button) and closes back onto the very same slide (Esc / ✕) — no leaving the deck.
+   The teaching board that opens OVER the current slide (N, or the لوح الشرح
+   button) and closes back onto the very same slide (Esc / ✕).
 
-   Nothing flows like a document: every text box, picture, pen stroke and shape is
-   an independent object you place, drag, scale and stack exactly where you want.
-   Tools live on the left of the toolbar; everything else acts on what you select.
+   Deliberately small. An English teacher writes a sentence, recolours a word,
+   circles or points at something, and sometimes shows a picture — so that is all
+   this does. One toolbar row that never wraps; anything rarer lives behind ⋯.
 
-   One board per lesson, kept in localStorage. The canvas grows downward for ever —
-   scroll for more room. Rich text inside a box uses document.execCommand:
-   deprecated, but the only zero-dependency editing API every browser still
-   implements, and this is a local teaching tool, not shipped product surface. */
+   Nothing flows like a document: every text box, picture, stroke and shape is an
+   object you place, drag, scale and stack. One board per lesson, in localStorage. */
 const NOTE_PREFIX = 'inglizi.writing_notes.'
 const noteKeyOf = (s: Slide) =>
   'L' in s ? `lesson-${s.L.no}` : s.t === 'unit' ? `unit-${s.index}` : s.t
 const readNote = (k: string) => { try { return localStorage.getItem(NOTE_PREFIX + k) || '' } catch { return '' } }
 
 type Pt = [number, number]
-type ShapeKind = 'line' | 'arrow' | 'rect' | 'ellipse'
+type ShapeKind = 'arrow' | 'rect' | 'ellipse'
 type NoteItem = {
   id: string
   kind: 'text' | 'image' | 'draw' | 'shape'
-  x: number; y: number          // px from the board's top-left
-  w: number; h?: number         // h is tracked for everything except text, which grows on its own
+  x: number; y: number
+  w: number; h?: number
   z: number
-  // text
   html?: string
   dir?: 'rtl' | 'ltr'
-  bg?: string; bd?: string      // card fill + border, for a sticky-note look
-  // image
+  bg?: string; bd?: string        // card fill + border, for an emphasis box
   src?: string
-  // pen stroke — points normalised 0..1 inside w×h so the stroke scales with the box
-  pts?: Pt[]
-  // shape
+  pts?: Pt[]                      // stroke points, normalised 0..1 inside w×h
+  hl?: boolean                    // highlighter rather than pen
   shape?: ShapeKind
-  a?: Pt; b?: Pt                // normalised endpoints, for line/arrow direction
-  // both draw + shape
+  a?: Pt; b?: Pt                  // normalised endpoints, for arrow direction
   color?: string; sw?: number
 }
-type BgStyle = 'plain' | 'grid' | 'lines'
-type Tool = 'select' | 'text' | 'pen' | 'eraser' | 'line' | 'arrow' | 'rect' | 'ellipse'
+type Pattern = 'plain' | 'grid' | 'lines'
+type Tool = 'select' | 'text' | 'pen' | 'mark' | 'arrow' | 'rect' | 'ellipse' | 'eraser'
+type Page = { pattern: Pattern; paper: string; mark: boolean }
 
 const uid = () => Math.random().toString(36).slice(2, 9)
 
-/* v3 = {bg, items}. v2 = {items}. Anything else is a v1 HTML note — keep it as one
-   text box rather than dropping work the founder already did. */
-function loadBoard(key: string): { items: NoteItem[]; bg: BgStyle } {
+const PAPER = [
+  { v: '#ffffff', label: 'أبيض' },
+  { v: '#fdfaf3', label: 'كريمي' },
+  { v: '#f4f6f8', label: 'رمادي' },
+  { v: '#fffbeb', label: 'عسلي' },
+  { v: '#0f2a22', label: 'سبّورة' },
+  { v: '#1c1917', label: 'أسود' },
+]
+const isDarkPaper = (p: string) => ['#0f2a22', '#1c1917'].includes(p)
+
+/* v4 = {page, items}. v3/v2 = {items}. Anything else is a v1 HTML note — keep it
+   as one text box rather than dropping work already done. */
+function loadBoard(key: string): { items: NoteItem[]; page: Page } {
+  const dflt: Page = { pattern: 'plain', paper: '#ffffff', mark: true }
   const raw = readNote(key)
-  if (!raw) return { items: [], bg: 'plain' }
+  if (!raw) return { items: [], page: dflt }
   if (raw.trim().startsWith('{')) {
     try {
       const p = JSON.parse(raw)
-      if ((p?.v === 3 || p?.v === 2) && Array.isArray(p.items)) return { items: p.items as NoteItem[], bg: p.bg ?? 'plain' }
+      if (Array.isArray(p?.items)) {
+        return { items: p.items as NoteItem[], page: { ...dflt, ...(p.page ?? {}), ...(p.bg ? { pattern: p.bg } : {}) } }
+      }
     } catch { /* fall through and treat it as v1 HTML */ }
   }
-  return { items: [{ id: uid(), kind: 'text', x: 70, y: 60, w: 900, html: raw, dir: 'rtl', z: 1 }], bg: 'plain' }
+  return { items: [{ id: uid(), kind: 'text', x: 70, y: 60, w: 900, html: raw, dir: 'rtl', z: 1 }], page: dflt }
 }
 
 /* Shrink a pasted/dropped/uploaded picture before it goes on the board.
-   localStorage holds roughly 5 MB for the WHOLE deck, and a raw phone screenshot is
-   ~3 MB of base64 on its own — so we downscale to 1000px and JPEG-compress. Pictures
-   inserted from the search panel keep their remote URL instead (a few dozen bytes). */
+   localStorage holds roughly 5 MB for the WHOLE deck and a raw phone screenshot is
+   ~3 MB of base64 on its own, so we downscale and JPEG-compress. Pictures from the
+   search panel keep their remote URL instead (a few dozen bytes). */
 function shrinkToDataUrl(file: Blob, maxPx = 1000, quality = 0.78): Promise<string> {
   return new Promise((resolve, reject) => {
     const fr = new FileReader()
@@ -330,7 +338,7 @@ function shrinkToDataUrl(file: Blob, maxPx = 1000, quality = 0.78): Promise<stri
         c.width = w; c.height = h
         const ctx = c.getContext('2d')
         if (!ctx) return reject(new Error('no-canvas'))
-        ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h)   // flatten transparency for JPEG
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h)
         ctx.drawImage(img, 0, 0, w, h)
         resolve(c.toDataURL('image/jpeg', quality))
       }
@@ -342,59 +350,56 @@ function shrinkToDataUrl(file: Blob, maxPx = 1000, quality = 0.78): Promise<stri
 
 type SearchHit = { thumb: string; full: string; credit: string; link: string }
 
-const PEN_COLORS = ['#2a1d12', '#b45309', '#dc2626', '#059669', '#2563eb', '#7c3aed']
-const MARKER_COLORS = ['#fef08a', '#bbf7d0', '#bfdbfe', '#fecaca', 'transparent']
+const INK_COLORS = ['#2a1d12', '#dc2626', '#059669', '#2563eb', '#b45309', '#ffffff']
 const CARD_STYLES: { bg: string; bd: string; label: string }[] = [
-  { bg: 'transparent', bd: 'transparent', label: 'بلا' },
+  { bg: 'transparent', bd: 'transparent', label: 'بلا إطار' },
   { bg: '#fef3c7', bd: '#fcd34d', label: 'أصفر' },
   { bg: '#dcfce7', bd: '#86efac', label: 'أخضر' },
   { bg: '#dbeafe', bd: '#93c5fd', label: 'أزرق' },
   { bg: '#fee2e2', bd: '#fca5a5', label: 'أحمر' },
-  { bg: '#2a1d12', bd: '#2a1d12', label: 'داكن' },
 ]
+// Sized for video: a student watching on a phone has to read this comfortably.
 const TEXT_SIZES: { label: string; px: string }[] = [
-  { label: 'S', px: '22px' }, { label: 'M', px: '30px' }, { label: 'L', px: '42px' }, { label: 'XL', px: '58px' },
+  { label: 'S', px: '28px' }, { label: 'M', px: '40px' }, { label: 'L', px: '56px' },
 ]
 const STROKE_WIDTHS = [3, 6, 12]
 
 const TOOLS: { id: Tool; icon: typeof Target; title: string }[] = [
   { id: 'select', icon: MousePointer2, title: 'تحديد وتحريك (V)' },
-  { id: 'text', icon: Type, title: 'صندوق نص (T) — أو انقر نقرتين على اللوح' },
-  { id: 'pen', icon: Pencil, title: 'قلم حر (P)' },
+  { id: 'text', icon: Type, title: 'اكتب جملة (T) — أو انقر نقرتين على اللوح' },
+  { id: 'pen', icon: Pencil, title: 'قلم (P)' },
+  { id: 'mark', icon: Highlighter, title: 'قلم تظليل (H)' },
   { id: 'arrow', icon: ArrowUpRight, title: 'سهم (A)' },
-  { id: 'line', icon: Slash, title: 'خط (L)' },
+  { id: 'ellipse', icon: Circle, title: 'دائرة — ظلّل كلمة (O)' },
   { id: 'rect', icon: Square, title: 'مستطيل (R)' },
-  { id: 'ellipse', icon: Circle, title: 'دائرة (O)' },
-  { id: 'eraser', icon: Eraser, title: 'ممحاة — تمسح الرسم والأشكال (E)' },
+  { id: 'eraser', icon: Eraser, title: 'ممحاة (E)' },
 ]
 
-function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
-  noteKey: string; label: string; labelAr: string; lesson: Lesson | null
+function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
+  noteKey: string; label: string; lesson: Lesson | null
   onClose: () => void; onDirty: (has: boolean) => void
 }) {
   const boardRef = useRef<HTMLDivElement>(null)
   const textEls = useRef<Record<string, HTMLDivElement | null>>({})
   const [items, setItems] = useState<NoteItem[]>([])
   const itemsRef = useRef(items); itemsRef.current = items
-  const [bg, setBg] = useState<BgStyle>('plain')
-  const [rev, setRev] = useState(0)          // bump to force text boxes to re-read their html
+  const [page, setPage] = useState<Page>({ pattern: 'plain', paper: '#ffffff', mark: true })
+  const [rev, setRev] = useState(0)
   const [sel, setSel] = useState<string | null>(null)
   const selRef = useRef(sel); selRef.current = sel
   const [tool, setTool] = useState<Tool>('select')
   const toolRef = useRef(tool); toolRef.current = tool
-  const [color, setColor] = useState(PEN_COLORS[2])
+  const [color, setColor] = useState(INK_COLORS[1])
   const [sw, setSw] = useState(6)
   const [saved, setSaved] = useState<'idle' | 'saving' | 'saved' | 'full'>('idle')
   const [busy, setBusy] = useState(false)
   const [dragOver, setDragOver] = useState(false)
-  const [helpOpen, setHelpOpen] = useState(false)
-  const [fromLessonOpen, setFromLessonOpen] = useState(false)
+  const [menu, setMenu] = useState<null | 'page' | 'more' | 'lesson' | 'help'>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
   const lastPoint = useRef({ x: 90, y: 90 })
   const focusNext = useRef<string | null>(null)
 
-  // picture search
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [hits, setHits] = useState<SearchHit[]>([])
@@ -403,6 +408,7 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
   const [searching, setSearching] = useState(false)
   const [searched, setSearched] = useState(false)
 
+  const dark = isDarkPaper(page.paper)
   const topZ = () => itemsRef.current.reduce((m, i) => Math.max(m, i.z), 0)
 
   /* ── persistence ──────────────────────────────────────────────────────────
@@ -411,21 +417,20 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
      reads the boxes back out at save time. */
   const snapshot = useCallback((): NoteItem[] => itemsRef.current.map(it =>
     it.kind === 'text' ? { ...it, html: textEls.current[it.id]?.innerHTML ?? it.html ?? '' } : it), [])
-
   const isBlank = (it: NoteItem) => it.kind === 'text' && (it.html || '').replace(/<br>|&nbsp;|\s/g, '') === ''
 
   const persist = useCallback(() => {
     const list = snapshot().filter(it => !isBlank(it))
     try {
-      if (list.length) { localStorage.setItem(NOTE_PREFIX + noteKey, JSON.stringify({ v: 3, bg, items: list })); onDirty(true) }
+      if (list.length) { localStorage.setItem(NOTE_PREFIX + noteKey, JSON.stringify({ v: 4, page, items: list })); onDirty(true) }
       else { localStorage.removeItem(NOTE_PREFIX + noteKey); onDirty(false) }
       setSaved('saved')
     } catch {
       // Almost always the 5 MB localStorage quota, blown by pasted pictures. What is
-      // on screen is still intact — say so plainly instead of pretending it saved.
+      // on screen is intact — say so plainly instead of pretending it saved.
       setSaved('full')
     }
-  }, [noteKey, onDirty, snapshot, bg])
+  }, [noteKey, onDirty, snapshot, page])
 
   const touch = useCallback(() => {
     setSaved('saving')
@@ -434,9 +439,8 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
   }, [persist])
 
   /* ── undo / redo ──────────────────────────────────────────────────────────
-     History covers the SHAPE of the board — adding, deleting, moving, scaling,
-     styling. Typing inside a text box keeps the browser's own undo, which is what
-     your fingers expect while writing a sentence. */
+     Covers the SHAPE of the board. Typing inside a box keeps the browser's own
+     undo, which is what your fingers expect mid-sentence. */
   const past = useRef<NoteItem[][]>([])
   const future = useRef<NoteItem[][]>([])
   const mark = useCallback(() => {
@@ -447,39 +451,31 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
   const mutate = useCallback((fn: (list: NoteItem[]) => NoteItem[]) => {
     mark(); setItems(fn(snapshot())); touch()
   }, [mark, snapshot, touch])
-
   const undo = useCallback(() => {
     if (!past.current.length) return
     future.current.push(snapshot())
-    const prev = past.current.pop()!
-    setItems(prev); setRev(r => r + 1); setSel(null); touch()
+    setItems(past.current.pop()!); setRev(r => r + 1); setSel(null); touch()
   }, [snapshot, touch])
   const redo = useCallback(() => {
     if (!future.current.length) return
     past.current.push(snapshot())
-    const next = future.current.pop()!
-    setItems(next); setRev(r => r + 1); setSel(null); touch()
+    setItems(future.current.pop()!); setRev(r => r + 1); setSel(null); touch()
   }, [snapshot, touch])
 
-  // Load this lesson's board; the cleanup below saves the previous one on the way out.
   useEffect(() => {
     textEls.current = {}
     const b = loadBoard(noteKey)
-    setItems(b.items); setBg(b.bg); setSel(null); setRev(r => r + 1)
+    setItems(b.items); setPage(b.page); setSel(null); setRev(r => r + 1)
     past.current = []; future.current = []
     try { document.execCommand('styleWithCSS', false, 'true') } catch { /* older engines */ }
   }, [noteKey])
   useEffect(() => () => { if (saveTimer.current) clearTimeout(saveTimer.current); persist() }, [persist])
-
-  // Give a freshly created box the caret once it exists in the DOM.
   useEffect(() => {
-    const id = focusNext.current
-    if (!id) return
+    const id = focusNext.current; if (!id) return
     const el = textEls.current[id]
     if (el) { focusNext.current = null; el.focus() }
   })
 
-  /* ── geometry ─────────────────────────────────────────────────────────── */
   const pointIn = (e: { clientX: number; clientY: number }) => {
     const el = boardRef.current
     if (!el) return { x: 90, y: 90 }
@@ -491,7 +487,8 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
   /* ── creating things ──────────────────────────────────────────────────── */
   const addText = (x: number, y: number, opts?: Partial<NoteItem>) => {
     const id = uid()
-    mutate(list => [...list, { id, kind: 'text', x, y, w: 560, html: '', dir: 'rtl', z: topZ() + 1, ...opts }])
+    // English lesson board → English sentences. LTR is the right default; ⋯ flips it.
+    mutate(list => [...list, { id, kind: 'text', x, y, w: 620, html: '', dir: 'ltr', z: topZ() + 1, ...opts }])
     setSel(id); focusNext.current = id; setTool('select')
   }
 
@@ -504,7 +501,7 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
       const w = Math.min(460, probe.naturalWidth || 460)
       place(w, Math.round(w * ((probe.naturalHeight || 300) / (probe.naturalWidth || 460))))
     }
-    probe.onerror = () => place(420, 280)   // still place it; a broken picture is visible and deletable
+    probe.onerror = () => place(420, 280)
     probe.src = src
   }
 
@@ -514,64 +511,56 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
     setBusy(true)
     let i = 0
     for (const f of pics) {
-      try {
-        const pt = at ?? lastPoint.current
-        addImage(await shrinkToDataUrl(f), { x: pt.x + i * 28, y: pt.y + i * 28 }); i++
-      } catch { /* skip a picture we cannot decode */ }
+      try { const pt = at ?? lastPoint.current; addImage(await shrinkToDataUrl(f), { x: pt.x + i * 28, y: pt.y + i * 28 }); i++ }
+      catch { /* skip a picture we cannot decode */ }
     }
     setBusy(false)
   }
 
-  const remove = (id: string) => { mutate(list => list.filter(i => i.id !== id)); delete textEls.current[id]; setSel(null) }
+  const remove = (id: string) => { mutate(list => list.filter(i => i.id !== id)); delete textEls.current[id]; setSel(null); setMenu(null) }
   const duplicate = (id: string) => {
     const src = snapshot().find(i => i.id === id); if (!src) return
     const copy = { ...src, id: uid(), x: src.x + 28, y: src.y + 28, z: topZ() + 1 }
-    mutate(list => [...list, copy]); setSel(copy.id); setRev(r => r + 1)
+    mutate(list => [...list, copy]); setSel(copy.id); setRev(r => r + 1); setMenu(null)
   }
   const bringFront = (id: string) => setItems(list => list.map(i => i.id === id ? { ...i, z: topZ() + 1 } : i))
   const sendBack = (id: string) => {
     const min = itemsRef.current.reduce((m, i) => Math.min(m, i.z), 0)
-    mutate(list => list.map(i => i.id === id ? { ...i, z: min - 1 } : i))
+    mutate(list => list.map(i => i.id === id ? { ...i, z: min - 1 } : i)); setMenu(null)
   }
   const patch = (id: string, p: Partial<NoteItem>) => mutate(list => list.map(i => i.id === id ? { ...i, ...p } : i))
 
-  /* Drop a piece of the lesson straight onto the board — no retyping on camera. */
+  /* Drop a piece of the lesson onto the board — no retyping on camera. */
   const fromLesson = (what: 'rule' | 'objectives' | 'example' | 'homework') => {
     if (!lesson) return
     const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    const mark = (s: string) => esc(s).replace(/\*(.+?)\*/g, '<span style="color:#b45309;font-weight:800">$1</span>')
+    const hi = (s: string) => esc(s).replace(/\*(.+?)\*/g, '<span style="color:#b45309;font-weight:800">$1</span>')
     let html = ''
-    if (what === 'rule') html = `<div style="font-size:30px">${mark(lesson.rule.en)}</div><div style="font-size:26px;color:#78716c;margin-top:8px" dir="rtl">${esc(lesson.rule.ar)}</div>`
-    if (what === 'objectives') html = `<div style="font-size:26px">` + lesson.objectives.map(o => `• ${mark(o.en)}`).join('<br>') + `</div>`
-    if (what === 'homework') html = `<div style="font-size:26px">` + lesson.homework.map((o, i) => `${i + 1}. ${mark(o.en)}`).join('<br>') + `</div>`
+    if (what === 'rule') html = `<div style="font-size:38px">${hi(lesson.rule.en)}</div><div style="font-size:28px;color:#78716c;margin-top:10px" dir="rtl">${esc(lesson.rule.ar)}</div>`
+    if (what === 'objectives') html = `<div style="font-size:30px">` + lesson.objectives.map(o => `• ${hi(o.en)}`).join('<br>') + `</div>`
+    if (what === 'homework') html = `<div style="font-size:30px">` + lesson.homework.map((o, i) => `${i + 1}. ${hi(o.en)}`).join('<br>') + `</div>`
     if (what === 'example') {
       const ex = lesson.examples?.[Math.floor(Math.random() * (lesson.examples?.length || 1))]
       if (!ex) return
-      html = `<div style="font-size:34px">${mark(ex.en)}</div><div style="font-size:26px;color:#78716c;margin-top:8px" dir="rtl">${esc(ex.ar)}</div>`
+      html = `<div style="font-size:44px">${hi(ex.en)}</div><div style="font-size:30px;color:#78716c;margin-top:10px" dir="rtl">${esc(ex.ar)}</div>`
     }
-    const el = boardRef.current
     const id = uid()
     mutate(list => [...list, {
-      id, kind: 'text', x: 110, y: (el?.scrollTop ?? 0) + 110, w: 760, html,
+      id, kind: 'text', x: 110, y: (boardRef.current?.scrollTop ?? 0) + 110, w: 820, html,
       dir: 'ltr', bg: '#fef3c7', bd: '#fcd34d', z: topZ() + 1,
     }])
-    setSel(id); setRev(r => r + 1); setFromLessonOpen(false)
+    setSel(id); setRev(r => r + 1); setMenu(null)
   }
 
   /* ── dragging & scaling ───────────────────────────────────────────────── */
   const dragRef = useRef<{ id: string; mode: 'move' | 'resize'; sx: number; sy: number; ox: number; oy: number; ow: number; ratio: number } | null>(null)
   const [dragging, setDragging] = useState(false)
-
   const startDrag = (e: React.PointerEvent, it: NoteItem, mode: 'move' | 'resize') => {
     e.preventDefault(); e.stopPropagation()
     setSel(it.id); bringFront(it.id); mark()
-    dragRef.current = {
-      id: it.id, mode, sx: e.clientX, sy: e.clientY, ox: it.x, oy: it.y, ow: it.w,
-      ratio: it.kind !== 'text' && it.h ? it.h / it.w : 0,
-    }
+    dragRef.current = { id: it.id, mode, sx: e.clientX, sy: e.clientY, ox: it.x, oy: it.y, ow: it.w, ratio: it.kind !== 'text' && it.h ? it.h / it.w : 0 }
     setDragging(true)
   }
-
   useEffect(() => {
     const move = (e: PointerEvent) => {
       const d = dragRef.current; if (!d) return
@@ -585,27 +574,13 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
       }))
     }
     const up = () => { if (!dragRef.current) return; dragRef.current = null; setDragging(false); touch() }
-    window.addEventListener('pointermove', move)
-    window.addEventListener('pointerup', up)
-    window.addEventListener('pointercancel', up)
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up)
     return () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up) }
   }, [touch])
 
-  /* ── drawing: pen strokes and shapes ──────────────────────────────────── */
+  /* ── drawing ──────────────────────────────────────────────────────────── */
   const [draft, setDraft] = useState<{ tool: Tool; pts: Pt[] } | null>(null)
   const draftRef = useRef(draft); draftRef.current = draft
-
-  const onBoardPointerDown = (e: React.PointerEvent) => {
-    const t = toolRef.current
-    const onCanvas = e.target === e.currentTarget || !!(e.target as HTMLElement).dataset.canvas
-    if (t === 'select') { if (onCanvas) { setSel(null); lastPoint.current = pointIn(e) } return }
-    const p = pointIn(e)
-    lastPoint.current = p
-    if (t === 'text') { addText(p.x, p.y); return }
-    if (t === 'eraser') { setDraft({ tool: 'eraser', pts: [[p.x, p.y]] }); eraseAt(p.x, p.y); return }
-    e.preventDefault()
-    setDraft({ tool: t, pts: [[p.x, p.y], [p.x, p.y]] })
-  }
 
   const eraseAt = (x: number, y: number) => {
     const hit = itemsRef.current.filter(i => (i.kind === 'draw' || i.kind === 'shape')
@@ -615,6 +590,18 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
     mutate(list => list.filter(i => !ids.has(i.id)))
   }
 
+  const onBoardPointerDown = (e: React.PointerEvent) => {
+    const t = toolRef.current
+    const onCanvas = e.target === e.currentTarget || !!(e.target as HTMLElement).dataset.canvas
+    setMenu(null)
+    if (t === 'select') { if (onCanvas) { setSel(null); lastPoint.current = pointIn(e) } return }
+    const p = pointIn(e); lastPoint.current = p
+    if (t === 'text') { addText(p.x, p.y); return }
+    if (t === 'eraser') { setDraft({ tool: 'eraser', pts: [[p.x, p.y]] }); eraseAt(p.x, p.y); return }
+    e.preventDefault()
+    setDraft({ tool: t, pts: [[p.x, p.y], [p.x, p.y]] })
+  }
+
   useEffect(() => {
     const move = (e: PointerEvent) => {
       const d = draftRef.current; if (!d) return
@@ -622,64 +609,60 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
       const r = el.getBoundingClientRect()
       const p: Pt = [Math.max(0, e.clientX - r.left + el.scrollLeft), Math.max(0, e.clientY - r.top + el.scrollTop)]
       if (d.tool === 'eraser') { eraseAt(p[0], p[1]); setDraft({ ...d, pts: [p] }); return }
-      if (d.tool === 'pen') setDraft({ ...d, pts: [...d.pts, p] })
+      if (d.tool === 'pen' || d.tool === 'mark') setDraft({ ...d, pts: [...d.pts, p] })
       else setDraft({ ...d, pts: [d.pts[0], p] })
     }
     const up = () => {
       const d = draftRef.current; if (!d) return
       setDraft(null)
       if (d.tool === 'eraser') return
+      const freehand = d.tool === 'pen' || d.tool === 'mark'
+      const weight = d.tool === 'mark' ? sw * 3.5 : sw
       const xs = d.pts.map(p => p[0]), ys = d.pts.map(p => p[1])
-      const pad = Math.max(6, sw)
+      const pad = Math.max(6, weight)
       const minX = Math.min(...xs) - pad, minY = Math.min(...ys) - pad
       const w = Math.max(12, Math.max(...xs) - Math.min(...xs) + pad * 2)
       const h = Math.max(12, Math.max(...ys) - Math.min(...ys) + pad * 2)
       const norm = (p: Pt): Pt => [(p[0] - minX) / w, (p[1] - minY) / h]
       const base = { id: uid(), x: minX, y: minY, w, h, z: topZ() + 1, color, sw }
-      if (d.tool === 'pen') {
+      if (freehand) {
         if (d.pts.length < 2) return
-        mutate(list => [...list, { ...base, kind: 'draw', pts: d.pts.map(norm) }])
+        mutate(list => [...list, { ...base, kind: 'draw', pts: d.pts.map(norm), hl: d.tool === 'mark' }])
       } else {
         mutate(list => [...list, { ...base, kind: 'shape', shape: d.tool as ShapeKind, a: norm(d.pts[0]), b: norm(d.pts[1]) }])
         setTool('select')
       }
     }
-    window.addEventListener('pointermove', move)
-    window.addEventListener('pointerup', up)
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up)
     return () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [color, sw, mutate])
 
   /* ── keyboard ─────────────────────────────────────────────────────────────
-     Capture phase, so Escape can be consumed here before the deck's own handler
-     closes the whole board. Escape steps out: caret → selection → tool → close. */
+     Capture phase, so Escape is consumed here before the deck's own handler
+     closes the board. Escape steps out: caret → selection → tool → close. */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const ae = document.activeElement as HTMLElement | null
       const typing = !!ae?.isContentEditable || ae instanceof HTMLInputElement
       const meta = e.ctrlKey || e.metaKey
-
       if (meta && e.key.toLowerCase() === 'z') { e.preventDefault(); e.stopPropagation(); e.shiftKey ? redo() : undo(); return }
-      if (meta && e.key.toLowerCase() === 'y') { e.preventDefault(); e.stopPropagation(); redo(); return }
       if (meta && e.key.toLowerCase() === 'd' && selRef.current) { e.preventDefault(); e.stopPropagation(); duplicate(selRef.current); return }
-
       if (e.key === 'Escape') {
+        if (menu) { e.stopPropagation(); e.preventDefault(); setMenu(null); return }
         if (typing) { e.stopPropagation(); e.preventDefault(); ae!.blur(); return }
         if (selRef.current) { e.stopPropagation(); e.preventDefault(); setSel(null); return }
         if (toolRef.current !== 'select') { e.stopPropagation(); e.preventDefault(); setTool('select'); return }
-        return                       // nothing left to step out of → let the deck close it
+        return
       }
       if (typing || meta) return
-
-      // single-key tools, only when you are not writing
-      const keyTool: Record<string, Tool> = { v: 'select', t: 'text', p: 'pen', a: 'arrow', l: 'line', r: 'rect', o: 'ellipse', e: 'eraser' }
+      const keyTool: Record<string, Tool> = { v: 'select', t: 'text', p: 'pen', h: 'mark', a: 'arrow', o: 'ellipse', r: 'rect', e: 'eraser' }
       const kt = keyTool[e.key.toLowerCase()]
       if (kt) { e.preventDefault(); e.stopPropagation(); setTool(kt); return }
-
       if (!selRef.current) return
       if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); remove(selRef.current); return }
-      const nudge = e.shiftKey ? 20 : 2
-      const d: Record<string, Pt> = { ArrowLeft: [-nudge, 0], ArrowRight: [nudge, 0], ArrowUp: [0, -nudge], ArrowDown: [0, nudge] }
+      const n = e.shiftKey ? 20 : 2
+      const d: Record<string, Pt> = { ArrowLeft: [-n, 0], ArrowRight: [n, 0], ArrowUp: [0, -n], ArrowDown: [0, n] }
       const mv = d[e.key]
       if (mv) {
         e.preventDefault(); e.stopPropagation()
@@ -690,9 +673,8 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
     window.addEventListener('keydown', onKey, true)
     return () => window.removeEventListener('keydown', onKey, true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [touch, undo, redo])
+  }, [touch, undo, redo, menu])
 
-  /* ── clipboard & drop ─────────────────────────────────────────────────── */
   const onPaste = (e: React.ClipboardEvent) => {
     const pics = Array.from(e.clipboardData?.items ?? [])
       .filter(i => i.kind === 'file' && i.type.startsWith('image/'))
@@ -702,7 +684,6 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
     const ae = document.activeElement as HTMLElement | null
     if (text && ae?.isContentEditable) { e.preventDefault(); document.execCommand('insertText', false, text); touch() }
   }
-
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault(); setDragOver(false)
     const at = pointIn(e); lastPoint.current = at
@@ -712,7 +693,7 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
     if (url && /^https?:\/\//i.test(url)) addImage(url, at)
   }
 
-  /* ── formatting (applies to the box holding the caret) ────────────────── */
+  /* ── text formatting ──────────────────────────────────────────────────── */
   const hold = (e: React.MouseEvent) => e.preventDefault()
   const cmd = (c: string, v?: string) => {
     const ae = document.activeElement as HTMLElement | null
@@ -721,9 +702,9 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
     touch()
   }
   const setSize = (px: string) => {
-    // execCommand('fontSize') only speaks 1-7, so we tag the selection with size 7 and
-    // swap that tag for the real pixel size. styleWithCSS must be OFF for this one call
-    // — with it on the browser emits font-size:xx-large and every button looks the same.
+    // execCommand('fontSize') only speaks 1-7, so tag the selection with size 7 and swap
+    // that tag for the real pixel size. styleWithCSS must be OFF for this one call — with
+    // it on the browser emits font-size:xx-large and every button looks identical.
     const ae = document.activeElement as HTMLElement | null
     const box = ae?.isContentEditable ? ae : (sel ? textEls.current[sel] : null)
     if (!box) return
@@ -738,13 +719,6 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
       f.replaceWith(span)
     })
     touch()
-  }
-  const insertHtml = (html: string) => cmd('insertHTML', html)
-  const table = (rows: number, cols: number) => {
-    const cell = 'border:1.5px solid #d6d3d1;padding:8px 12px;min-width:90px;'
-    const head = `<tr>${Array.from({ length: cols }, () => `<th style="${cell}background:#fef3c7;font-weight:800;">&nbsp;</th>`).join('')}</tr>`
-    const body = Array.from({ length: rows - 1 }, () => `<tr>${Array.from({ length: cols }, () => `<td style="${cell}">&nbsp;</td>`).join('')}</tr>`).join('')
-    insertHtml(`<table style="border-collapse:collapse;margin:6px 0;">${head}${body}</table><div><br></div>`)
   }
 
   const runSearch = async () => {
@@ -763,17 +737,18 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
 
   const Btn = ({ onClick, title, children, active, wide }: { onClick: () => void; title: string; children: React.ReactNode; active?: boolean; wide?: boolean }) => (
     <button onMouseDown={hold} onClick={onClick} title={title}
-      className={`${wide ? 'px-2.5' : 'px-2'} py-1 rounded-lg font-black transition text-[13px] ${active ? 'text-[#2a1d12]' : 'text-white/80 hover:text-white hover:bg-white/10'}`}
+      className={`${wide ? 'px-2.5' : 'px-1.5'} py-1 rounded-lg font-black transition text-[13px] shrink-0 ${active ? 'text-[#2a1d12]' : 'text-white/75 hover:text-white hover:bg-white/10'}`}
       style={active ? { background: GOLD } : undefined}>{children}</button>
   )
-  const Sep = () => <span className="w-px h-5 bg-white/15 mx-1 shrink-0" />
+  const Sep = () => <span className="w-px h-5 bg-white/15 mx-[3px] shrink-0" />
 
-  /* SVG for a pen stroke or a shape, drawn in the item's own pixel box so the
-     stroke keeps its weight and arrowheads never skew when you scale it. */
+  /* Pen stroke or shape, drawn in the item's own pixel box so the stroke keeps its
+     weight and arrowheads never skew when you scale it. */
   const Vector = ({ it }: { it: NoteItem }) => {
     const w = it.w, h = it.h ?? 1
-    const c = it.color || INK, s = it.sw || 6
-    const common = { fill: 'none', stroke: c, strokeWidth: s, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+    const c = it.color || INK
+    const s = it.hl ? (it.sw || 6) * 3.5 : (it.sw || 6)
+    const common = { fill: 'none', stroke: c, strokeWidth: s, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, opacity: it.hl ? 0.35 : 1 }
     let body: React.ReactNode = null
     if (it.kind === 'draw' && it.pts) {
       body = <polyline {...common} points={it.pts.map(p => `${p[0] * w},${p[1] * h}`).join(' ')} />
@@ -783,159 +758,162 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
       body = <ellipse {...common} cx={w / 2} cy={h / 2} rx={Math.max(1, w / 2 - s / 2)} ry={Math.max(1, h / 2 - s / 2)} />
     } else if (it.a && it.b) {
       const x1 = it.a[0] * w, y1 = it.a[1] * h, x2 = it.b[0] * w, y2 = it.b[1] * h
-      const head = it.shape === 'arrow' ? (() => {
-        const ang = Math.atan2(y2 - y1, x2 - x1), len = Math.max(12, s * 3.2), spread = 0.42
-        return <polygon fill={c} stroke="none" points={[
-          [x2, y2],
+      const ang = Math.atan2(y2 - y1, x2 - x1), len = Math.max(12, s * 3.2), spread = 0.42
+      body = <>
+        <line {...common} x1={x1} y1={y1} x2={x2} y2={y2} />
+        <polygon fill={c} stroke="none" points={[[x2, y2],
           [x2 - len * Math.cos(ang - spread), y2 - len * Math.sin(ang - spread)],
-          [x2 - len * Math.cos(ang + spread), y2 - len * Math.sin(ang + spread)],
-        ].map(p => p.join(',')).join(' ')} />
-      })() : null
-      body = <>< line {...common} x1={x1} y1={y1} x2={x2} y2={y2} />{head}</>
+          [x2 - len * Math.cos(ang + spread), y2 - len * Math.sin(ang + spread)]].map(p => p.join(',')).join(' ')} />
+      </>
     }
     return <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ display: 'block', overflow: 'visible' }}>{body}</svg>
   }
 
-  const BOARD_BG: Record<BgStyle, React.CSSProperties> = {
-    plain: { background: '#ffffff' },
-    grid: { background: '#ffffff', backgroundImage: 'linear-gradient(#eef2f7 1px, transparent 1px), linear-gradient(90deg, #eef2f7 1px, transparent 1px)', backgroundSize: '32px 32px' },
-    lines: { background: '#ffffff', backgroundImage: 'linear-gradient(#eef2f7 1px, transparent 1px)', backgroundSize: '100% 40px' },
-  }
+  const rule = dark ? 'rgba(255,255,255,0.10)' : '#eef2f7'
+  const paperStyle: React.CSSProperties =
+    page.pattern === 'grid' ? { background: page.paper, backgroundImage: `linear-gradient(${rule} 1px, transparent 1px), linear-gradient(90deg, ${rule} 1px, transparent 1px)`, backgroundSize: '36px 36px' }
+    : page.pattern === 'lines' ? { background: page.paper, backgroundImage: `linear-gradient(${rule} 1px, transparent 1px)`, backgroundSize: '100% 44px' }
+    : { background: page.paper }
+
+  const Pop = ({ children, align = 'left' }: { children: React.ReactNode; align?: 'left' | 'right' }) => (
+    <div dir="rtl" onMouseDown={e => e.stopPropagation()}
+      className={`absolute top-full mt-1 z-[220] rounded-xl bg-white shadow-2xl ring-1 ring-stone-200 p-2 ${align === 'right' ? 'right-0' : 'left-0'}`}>
+      {children}
+    </div>
+  )
 
   return (
     <div className="absolute inset-0 z-[200] flex flex-col" style={{ background: 'rgba(28,20,12,0.55)' }}>
       <div className="m-[1.2vh] mx-[1.4vw] flex-1 min-h-0 flex flex-col rounded-[22px] overflow-hidden shadow-[0_40px_120px_-30px_rgba(0,0,0,0.7)] bg-white">
-        {/* toolbar */}
-        <div className="shrink-0 flex items-center gap-1 flex-wrap px-[1vw] py-[0.9vh] relative" style={{ background: INK }}>
-          <span className="flex items-center gap-1.5 font-black text-white mr-1 shrink-0" style={{ fontSize: 13 }}>
-            <StickyNote size={15} style={{ color: GOLD }} /> {label}
-            <span dir="rtl" className="text-white/45 font-bold" style={{ fontFamily: "'Tajawal', sans-serif" }}>{labelAr}</span>
-          </span>
+
+        {/* ── one toolbar row, never wraps ── */}
+        <div className="shrink-0 flex items-center gap-[3px] flex-nowrap overflow-x-auto overflow-y-visible px-[0.8vw] py-[0.8vh] relative" style={{ background: INK }}>
+          <span className="font-black text-white shrink-0 whitespace-nowrap ml-1" style={{ fontSize: 12.5 }}>{label}</span>
           <Sep />
 
-          {/* tools */}
-          {TOOLS.map(t => (
-            <Btn key={t.id} title={t.title} active={tool === t.id} onClick={() => setTool(t.id)}><t.icon size={15} /></Btn>
-          ))}
+          {TOOLS.map(t => <Btn key={t.id} title={t.title} active={tool === t.id} onClick={() => setTool(t.id)}><t.icon size={16} /></Btn>)}
           <Sep />
 
-          {/* undo / redo */}
-          <Btn title="تراجع (Ctrl+Z)" onClick={undo}><Undo2 size={15} /></Btn>
-          <Btn title="إعادة (Ctrl+Shift+Z)" onClick={redo}><Redo2 size={15} /></Btn>
-          <Sep />
-
-          {/* colour + stroke weight — used by the pen, shapes and the text colour */}
-          {PEN_COLORS.map(c => (
+          {INK_COLORS.map(c => (
             <button key={c} onMouseDown={hold}
-              onClick={() => { setColor(c); if (!drawTool) cmd('foreColor', c); else if (selItem && (selItem.kind === 'draw' || selItem.kind === 'shape')) patch(selItem.id, { color: c }) }}
-              title={`اللون ${c}`}
-              className="w-[18px] h-[18px] rounded-full transition shrink-0"
-              style={{ background: c, boxShadow: color === c ? `0 0 0 2px ${GOLD}` : '0 0 0 2px rgba(255,255,255,0.25)' }} />
+              onClick={() => {
+                setColor(c)
+                if (selItem && (selItem.kind === 'draw' || selItem.kind === 'shape')) patch(selItem.id, { color: c })
+                else if (!drawTool) cmd('foreColor', c)
+              }}
+              title="اللون"
+              className="w-[17px] h-[17px] rounded-full transition shrink-0"
+              style={{ background: c, boxShadow: color === c ? `0 0 0 2px ${GOLD}` : '0 0 0 1.5px rgba(255,255,255,0.3)' }} />
           ))}
           {STROKE_WIDTHS.map(v => (
             <button key={v} onMouseDown={hold}
               onClick={() => { setSw(v); if (selItem && (selItem.kind === 'draw' || selItem.kind === 'shape')) patch(selItem.id, { sw: v }) }}
-              title={`سماكة ${v}`}
-              className="w-[20px] h-[20px] rounded-md grid place-items-center shrink-0 transition"
+              title="سماكة القلم"
+              className="w-[19px] h-[19px] rounded-md grid place-items-center shrink-0 transition"
               style={{ background: sw === v ? GOLD : 'rgba(255,255,255,0.08)' }}>
-              <span style={{ display: 'block', width: 13, height: Math.min(7, v), borderRadius: 9, background: sw === v ? INK : '#fff' }} />
+              <span style={{ display: 'block', width: 12, height: Math.min(6, v), borderRadius: 9, background: sw === v ? INK : '#fff' }} />
             </button>
           ))}
           <Sep />
 
-          {/* text formatting */}
           {TEXT_SIZES.map(t => <Btn key={t.px} title={`حجم النص ${t.label}`} onClick={() => setSize(t.px)}>{t.label}</Btn>)}
           <Btn title="عريض" onClick={() => cmd('bold')}><b>B</b></Btn>
-          <Btn title="مائل" onClick={() => cmd('italic')}><i>I</i></Btn>
           <Btn title="تحته خط" onClick={() => cmd('underline')}><u>U</u></Btn>
-          {MARKER_COLORS.map(c => (
-            <button key={c} onMouseDown={hold} onClick={() => cmd('hiliteColor', c)} title={c === 'transparent' ? 'بلا تظليل' : `تظليل ${c}`}
-              className="w-[18px] h-[18px] rounded-[5px] ring-2 ring-white/25 hover:ring-white/70 transition shrink-0 grid place-items-center"
-              style={{ background: c === 'transparent' ? '#ffffff' : c }}>
-              {c === 'transparent' && <span className="block w-[13px] h-[2px] rotate-45" style={{ background: '#dc2626' }} />}
-            </button>
-          ))}
-          <Btn title="قائمة نقطية" onClick={() => cmd('insertUnorderedList')}><List size={15} /></Btn>
-          <Btn title="قائمة مرقّمة" onClick={() => cmd('insertOrderedList')}><ListOrdered size={15} /></Btn>
-          <Btn title="جدول 2×2" onClick={() => table(2, 2)}><span className="flex items-center gap-1"><Table size={15} />2×2</span></Btn>
-          <Btn title="جدول 3×3" onClick={() => table(3, 3)}>3×3</Btn>
           <Sep />
 
-          {/* content */}
-          <Btn wide title="بحث عن صور" active={searchOpen} onClick={() => setSearchOpen(o => !o)}>
+          <Btn wide title="ابحث عن صورة" active={searchOpen} onClick={() => { setSearchOpen(o => !o); setMenu(null) }}>
             <span className="flex items-center gap-1"><ImageIcon size={15} /> صور</span>
           </Btn>
           <Btn title="صورة من جهازك" onClick={() => fileInput.current?.click()}><Upload size={15} /></Btn>
-          {lesson && (
-            <Btn wide title="أدرج من الدرس" active={fromLessonOpen} onClick={() => setFromLessonOpen(o => !o)}>
-              <span className="flex items-center gap-1"><BookOpen size={15} /> من الدرس</span>
-            </Btn>
-          )}
+          {lesson && <Btn title="أدرج من الدرس" active={menu === 'lesson'} onClick={() => setMenu(m => m === 'lesson' ? null : 'lesson')}><BookOpen size={15} /></Btn>}
           <Sep />
 
-          {/* board background */}
-          {([['plain', 'سادة'], ['grid', 'مربعات'], ['lines', 'أسطر']] as [BgStyle, string][]).map(([v, t]) => (
-            <Btn key={v} title={`خلفية ${t}`} active={bg === v} onClick={() => { setBg(v); touch() }}>
-              <span style={{ fontSize: 11 }}>{t}</span>
-            </Btn>
-          ))}
+          <Btn title="تراجع (Ctrl+Z)" onClick={undo}><Undo2 size={15} /></Btn>
+          <Btn title="إعادة (Ctrl+Shift+Z)" onClick={redo}><Redo2 size={15} /></Btn>
+          <Btn title="شكل الصفحة ولونها" active={menu === 'page'} onClick={() => setMenu(m => m === 'page' ? null : 'page')}><LayoutGrid size={15} /></Btn>
+          {selItem && <Btn title="خيارات العنصر المحدّد" active={menu === 'more'} onClick={() => setMenu(m => m === 'more' ? null : 'more')}><MoreHorizontal size={15} /></Btn>}
+          {selItem && <Btn title="حذف (Del)" onClick={() => remove(selItem.id)}><Trash2 size={15} /></Btn>}
 
-          {/* what you can do to the thing you picked */}
-          {selItem && (<>
-            <Sep />
-            {selItem.kind === 'text' && (<>
-              <Btn title="اتجاه الكتابة" onClick={() => patch(selItem.id, { dir: selItem.dir === 'rtl' ? 'ltr' : 'rtl' })}>
-                {selItem.dir === 'rtl' ? 'AR' : 'EN'}
-              </Btn>
-              {CARD_STYLES.map(c => (
-                <button key={c.label} onMouseDown={hold} onClick={() => patch(selItem.id, { bg: c.bg, bd: c.bd })} title={`بطاقة ${c.label}`}
-                  className="w-[18px] h-[18px] rounded-[5px] shrink-0 transition"
-                  style={{ background: c.bg === 'transparent' ? '#fff' : c.bg, boxShadow: `inset 0 0 0 2px ${c.bd === 'transparent' ? '#d6d3d1' : c.bd}` }} />
-              ))}
-            </>)}
-            <Btn title="تكرار (Ctrl+D)" onClick={() => duplicate(selItem.id)}><CopyIcon size={15} /></Btn>
-            <Btn title="إلى الخلف" onClick={() => sendBack(selItem.id)}><SendToBack size={15} /></Btn>
-            <Btn title="حذف (Del)" onClick={() => remove(selItem.id)}><Trash2 size={15} /></Btn>
-          </>)}
-
-          <span className="ml-auto flex items-center gap-2 shrink-0">
-            <span className="font-bold" style={{ fontSize: 11, color: saved === 'full' ? '#fca5a5' : 'rgba(255,255,255,0.35)' }}>
-              {busy ? 'adding picture…'
-                : saved === 'full' ? 'المساحة ممتلئة — احذف صورًا من دروس أخرى'
-                : saved === 'saving' ? 'saving…' : saved === 'saved' ? 'saved ✓' : ''}
+          <span className="ml-auto flex items-center gap-1.5 shrink-0 pl-2">
+            <span className="font-bold whitespace-nowrap" style={{ fontSize: 10.5, color: saved === 'full' ? '#fca5a5' : 'rgba(255,255,255,0.3)' }}>
+              {busy ? '…' : saved === 'full' ? 'المساحة ممتلئة' : saved === 'saving' ? '…' : saved === 'saved' ? '✓' : ''}
             </span>
-            <Btn title="الاختصارات" active={helpOpen} onClick={() => setHelpOpen(o => !o)}><HelpCircle size={15} /></Btn>
+            <Btn title="الاختصارات" active={menu === 'help'} onClick={() => setMenu(m => m === 'help' ? null : 'help')}><HelpCircle size={15} /></Btn>
             <button onMouseDown={hold} onClick={() => { if (confirm('امسح كل ما في هذا اللوح؟')) { mark(); setItems([]); textEls.current = {}; setSel(null); touch() } }}
-              title="امسح اللوح" className="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition"><Trash2 size={14} /></button>
-            <button onClick={onClose} title="إغلاق (Esc)" className="px-2.5 py-1 rounded-lg font-black text-[#2a1d12] hover:brightness-105 transition flex items-center gap-1" style={{ background: GOLD, fontSize: 13 }}>
-              <X size={14} /> إغلاق
+              title="امسح اللوح" className="p-1 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition shrink-0"><Trash2 size={14} /></button>
+            <button onClick={onClose} title="إغلاق (Esc)" className="px-2.5 py-1 rounded-lg font-black text-[#2a1d12] hover:brightness-105 transition flex items-center gap-1 shrink-0" style={{ background: GOLD, fontSize: 12.5 }}>
+              <X size={13} /> إغلاق
             </button>
           </span>
 
-          {/* insert-from-lesson menu */}
-          {fromLessonOpen && lesson && (
-            <div dir="rtl" className="absolute top-full right-[22vw] mt-1 z-[220] rounded-xl bg-white shadow-2xl ring-1 ring-stone-200 overflow-hidden" style={{ minWidth: 190 }}>
-              {([['rule', 'القاعدة'], ['objectives', 'الأهداف'], ['example', 'مثال عشوائي'], ['homework', 'الواجب']] as const).map(([k, t]) => (
-                <button key={k} onClick={() => fromLesson(k)}
-                  className="w-full text-right px-3 py-2 font-bold hover:bg-amber-50 transition"
-                  style={{ fontFamily: "'Tajawal', sans-serif", fontSize: 13, color: INK }}>{t}</button>
-              ))}
-            </div>
+          {/* ── popovers ── */}
+          {menu === 'page' && (
+            <Pop align="right">
+              <div className="flex gap-1 mb-2">
+                {([['plain', 'سادة'], ['grid', 'مربّعات'], ['lines', 'أسطر']] as [Pattern, string][]).map(([v, t]) => (
+                  <button key={v} onClick={() => { setPage(p => ({ ...p, pattern: v })); touch() }}
+                    className="px-3 py-1.5 rounded-lg font-black transition"
+                    style={{ fontFamily: "'Tajawal', sans-serif", fontSize: 12, background: page.pattern === v ? GOLD : '#f5f5f4', color: INK }}>{t}</button>
+                ))}
+              </div>
+              <div className="flex gap-1.5 mb-2">
+                {PAPER.map(p => (
+                  <button key={p.v} onClick={() => { setPage(s => ({ ...s, paper: p.v })); touch() }} title={p.label}
+                    className="w-[26px] h-[26px] rounded-lg transition"
+                    style={{ background: p.v, boxShadow: page.paper === p.v ? `0 0 0 2.5px ${GOLD}` : '0 0 0 1.5px #d6d3d1' }} />
+                ))}
+              </div>
+              <button onClick={() => { setPage(p => ({ ...p, mark: !p.mark })); touch() }}
+                className="w-full text-right px-2 py-1.5 rounded-lg hover:bg-stone-100 font-bold flex items-center gap-2"
+                style={{ fontFamily: "'Tajawal', sans-serif", fontSize: 12, color: INK }}>
+                <span className="w-4 h-4 rounded grid place-items-center shrink-0" style={{ background: page.mark ? GOLD : '#e7e5e4' }}>{page.mark && <Check size={11} strokeWidth={4} />}</span>
+                توقيع inglizi.com على اللوح
+              </button>
+            </Pop>
           )}
 
-          {/* shortcuts */}
-          {helpOpen && (
-            <div dir="rtl" className="absolute top-full left-[1vw] mt-1 z-[220] rounded-xl bg-white shadow-2xl ring-1 ring-stone-200 p-3" style={{ minWidth: 300 }}>
-              {[['V / T / P', 'تحديد · نص · قلم'], ['A / L / R / O', 'سهم · خط · مستطيل · دائرة'], ['E', 'ممحاة'],
-                ['نقرة مزدوجة', 'صندوق نص في مكان النقر'], ['Ctrl+Z / Ctrl+Shift+Z', 'تراجع · إعادة'],
-                ['Ctrl+D', 'تكرار المحدّد'], ['Delete', 'حذف المحدّد'], ['الأسهم / Shift+الأسهم', 'تحريك ٢ · ٢٠ بكسل'],
-                ['Ctrl+V', 'لصق صورة'], ['Esc', 'خروج تدريجي ثم إغلاق']].map(([k, t]) => (
-                <div key={k} className="flex items-center gap-3 py-[3px]">
-                  <span dir="ltr" className="font-mono font-bold rounded px-1.5 shrink-0" style={{ background: '#f5f5f4', color: INK, fontSize: 11 }}>{k}</span>
-                  <span className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: 12 }}>{t}</span>
+          {menu === 'more' && selItem && (
+            <Pop align="right">
+              {selItem.kind === 'text' && (
+                <>
+                  <div className="flex gap-1.5 mb-2">
+                    {CARD_STYLES.map(c => (
+                      <button key={c.label} onClick={() => patch(selItem.id, { bg: c.bg, bd: c.bd })} title={c.label}
+                        className="w-[26px] h-[26px] rounded-lg transition"
+                        style={{ background: c.bg === 'transparent' ? '#fff' : c.bg, boxShadow: `inset 0 0 0 2px ${c.bd === 'transparent' ? '#d6d3d1' : c.bd}` }} />
+                    ))}
+                  </div>
+                  <button onClick={() => patch(selItem.id, { dir: selItem.dir === 'rtl' ? 'ltr' : 'rtl' })}
+                    className="w-full text-right px-2 py-1.5 rounded-lg hover:bg-stone-100 font-bold" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: 12, color: INK }}>
+                    اتجاه الكتابة: {selItem.dir === 'rtl' ? 'عربي ←' : 'إنجليزي →'}
+                  </button>
+                </>
+              )}
+              <button onClick={() => duplicate(selItem.id)} className="w-full text-right px-2 py-1.5 rounded-lg hover:bg-stone-100 font-bold" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: 12, color: INK }}>تكرار (Ctrl+D)</button>
+              <button onClick={() => sendBack(selItem.id)} className="w-full text-right px-2 py-1.5 rounded-lg hover:bg-stone-100 font-bold" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: 12, color: INK }}>إلى الخلف</button>
+            </Pop>
+          )}
+
+          {menu === 'lesson' && lesson && (
+            <Pop align="right">
+              {([['rule', 'القاعدة'], ['example', 'مثال'], ['objectives', 'الأهداف'], ['homework', 'الواجب']] as const).map(([k, t]) => (
+                <button key={k} onClick={() => fromLesson(k)} className="w-full text-right px-3 py-1.5 rounded-lg hover:bg-amber-50 font-bold"
+                  style={{ fontFamily: "'Tajawal', sans-serif", fontSize: 12.5, color: INK, minWidth: 150 }}>{t}</button>
+              ))}
+            </Pop>
+          )}
+
+          {menu === 'help' && (
+            <Pop align="right">
+              {[['V T P H', 'تحديد · نص · قلم · تظليل'], ['A O R', 'سهم · دائرة · مستطيل'], ['E', 'ممحاة'],
+                ['نقرة مزدوجة', 'اكتب في مكان النقر'], ['Ctrl+Z', 'تراجع'], ['Ctrl+D', 'تكرار'],
+                ['Delete', 'حذف'], ['الأسهم', 'تحريك دقيق'], ['Ctrl+V', 'لصق صورة'], ['Esc', 'خروج ثم إغلاق']].map(([k, t]) => (
+                <div key={k} className="flex items-center gap-3 py-[2px]" style={{ minWidth: 260 }}>
+                  <span dir="ltr" className="font-mono font-bold rounded px-1.5 shrink-0" style={{ background: '#f5f5f4', color: INK, fontSize: 10.5 }}>{k}</span>
+                  <span className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: 11.5 }}>{t}</span>
                 </div>
               ))}
-            </div>
+            </Pop>
           )}
         </div>
 
@@ -944,47 +922,38 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
           <div className="shrink-0 border-b border-stone-200 bg-stone-50 px-[1vw] py-[1vh]">
             <div className="flex items-center gap-2">
               <Search size={15} className="text-stone-400 shrink-0" />
-              <input
-                value={query}
-                onChange={e => setQuery(e.target.value)}
+              <input value={query} onChange={e => setQuery(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); void runSearch() } e.stopPropagation() }}
-                placeholder="ابحث عن صورة… بالعربية أو بالإنجليزية"
-                dir="auto"
+                placeholder="ابحث عن صورة… بالعربية أو بالإنجليزية" dir="auto"
                 className="flex-1 min-w-0 px-3 py-1.5 rounded-lg border border-stone-300 bg-white outline-none focus:border-yellow-400 font-bold"
-                style={{ fontSize: 14, color: INK }}
-              />
+                style={{ fontSize: 14, color: INK }} />
               <button onClick={() => void runSearch()} className="px-3 py-1.5 rounded-lg font-black text-[#2a1d12] shrink-0" style={{ background: GOLD, fontSize: 13 }}>بحث</button>
               <button onClick={() => setSearchOpen(false)} className="text-stone-400 hover:text-stone-700 shrink-0" aria-label="Close search"><X size={16} /></button>
             </div>
             <div className="mt-[0.8vh] max-h-[24vh] overflow-y-auto">
               {searching && <div className="py-3 text-center font-bold text-stone-400" style={{ fontSize: 13 }}>…جاري البحث</div>}
               {!searching && searched && !hits.length && (
-                <div className="py-3 text-center font-bold text-stone-400" style={{ fontSize: 13 }}>
-                  لا نتائج. جرّب كلمة أخرى — أو انسخ صورة من Google والصقها هنا مباشرة (Ctrl+V).
+                <div className="py-3 text-center font-bold text-stone-400" style={{ fontSize: 13 }}>لا نتائج. جرّب كلمة أخرى — أو انسخ صورة من Google والصقها هنا (Ctrl+V).</div>
+              )}
+              {!!hits.length && (<>
+                <div className="grid grid-cols-8 gap-2">
+                  {hits.map((h, i) => (
+                    <button key={i} onMouseDown={hold} onClick={() => addImage(h.full)} title={`${h.credit} — اضغط لوضعها، أو اسحبها إلى المكان الذي تريد`}
+                      className="relative aspect-[4/3] rounded-lg overflow-hidden ring-1 ring-stone-200 hover:ring-2 hover:ring-yellow-400 transition">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={h.thumb} alt="" draggable
+                        onDragStart={e => { e.dataTransfer.setData('text/uri-list', h.full); e.dataTransfer.setData('text/plain', h.full) }}
+                        className="w-full h-full object-cover" />
+                    </button>
+                  ))}
                 </div>
-              )}
-              {!!hits.length && (
-                <>
-                  <div className="grid grid-cols-8 gap-2">
-                    {hits.map((h, i) => (
-                      <button key={i} onMouseDown={hold} onClick={() => addImage(h.full)}
-                        title={`${h.credit} — اضغط لوضعها، أو اسحبها إلى المكان الذي تريد`}
-                        className="group relative aspect-[4/3] rounded-lg overflow-hidden ring-1 ring-stone-200 hover:ring-2 hover:ring-yellow-400 transition">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={h.thumb} alt="" draggable
-                          onDragStart={e => { e.dataTransfer.setData('text/uri-list', h.full); e.dataTransfer.setData('text/plain', h.full) }}
-                          className="w-full h-full object-cover" />
-                      </button>
-                    ))}
+                {provider && (
+                  <div className="mt-[0.6vh] flex items-center gap-2 flex-wrap font-bold text-stone-400" style={{ fontSize: 10.5 }}>
+                    <span>المصدر: {provider === 'unsplash' ? 'Unsplash — مرخّصة للاستعمال التجاري' : provider === 'google' ? 'Google Images — تحقّق من الحقوق' : provider}</span>
+                    {term && <span dir="ltr" className="rounded px-1.5 py-0.5" style={{ background: '#fef3c7', color: AMBER }}>searched: {term}</span>}
                   </div>
-                  {provider && (
-                    <div className="mt-[0.6vh] flex items-center gap-2 flex-wrap font-bold text-stone-400" style={{ fontSize: 10.5 }}>
-                      <span>المصدر: {provider === 'unsplash' ? 'Unsplash — مرخّصة للاستعمال التجاري' : provider === 'google' ? 'Google Images — تحقّق من الحقوق قبل النشر' : provider}</span>
-                      {term && <span dir="ltr" className="rounded px-1.5 py-0.5" style={{ background: '#fef3c7', color: AMBER }}>searched: {term}</span>}
-                    </div>
-                  )}
-                </>
-              )}
+                )}
+              </>)}
             </div>
           </div>
         )}
@@ -993,26 +962,19 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
           onChange={e => { const f = Array.from(e.target.files ?? []); e.target.value = ''; void insertFiles(f) }} />
 
         {/* ── the board ── */}
-        <div
-          ref={boardRef}
-          onPointerDown={onBoardPointerDown}
-          onDoubleClick={e => {
-            if (tool !== 'select') return
-            if (e.target === e.currentTarget || (e.target as HTMLElement).dataset.canvas) { const p = pointIn(e); addText(p.x, p.y) }
-          }}
-          onPaste={onPaste}
-          onDrop={onDrop}
+        <div ref={boardRef} onPointerDown={onBoardPointerDown}
+          onDoubleClick={e => { if (tool !== 'select') return; if (e.target === e.currentTarget || (e.target as HTMLElement).dataset.canvas) { const p = pointIn(e); addText(p.x, p.y) } }}
+          onPaste={onPaste} onDrop={onDrop}
           onDragOver={e => { e.preventDefault(); setDragOver(true) }}
           onDragLeave={e => { if (e.currentTarget === e.target) setDragOver(false) }}
           className="relative flex-1 min-h-0 overflow-auto"
-          style={{ ...BOARD_BG[bg], cursor: dragging ? 'grabbing' : drawTool ? 'crosshair' : tool === 'text' ? 'text' : 'default' }}
-        >
+          style={{ ...paperStyle, cursor: dragging ? 'grabbing' : drawTool ? 'crosshair' : tool === 'text' ? 'text' : 'default' }}>
+
           <div data-canvas="1" className="relative w-full" style={{ minHeight: Math.max(boardBottom + 320, 900) }}>
             {!items.length && !draft && (
               <div data-canvas="1" className="absolute inset-0 grid place-items-center pointer-events-none">
-                <div dir="rtl" className="text-center font-bold text-stone-300 leading-[1.9]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.3vw' }}>
-                  انقر نقرتين في أي مكان لتكتب هناك<br />
-                  <span style={{ fontSize: '1vw' }}>أو اختر أداة من الأعلى: قلم · سهم · شكل — واسحب على اللوح</span>
+                <div dir="rtl" className="text-center font-bold leading-[1.9]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.3vw', color: dark ? 'rgba(255,255,255,0.28)' : '#d6d3d1' }}>
+                  انقر نقرتين في أي مكان لتكتب هناك
                 </div>
               </div>
             )}
@@ -1025,20 +987,18 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
                   style={{ left: it.x, top: it.y, width: it.w, zIndex: it.z, pointerEvents: drawTool ? 'none' : 'auto' }}>
                   {on && !drawTool && (
                     <div onPointerDown={e => startDrag(e, it, 'move')}
-                      className="absolute -top-[26px] left-0 flex items-center gap-1 px-2 py-[3px] rounded-t-lg cursor-grab active:cursor-grabbing select-none"
+                      className="absolute -top-[24px] left-0 flex items-center gap-1 px-2 py-[2px] rounded-t-lg cursor-grab active:cursor-grabbing select-none"
                       style={{ background: GOLD, color: INK }}>
-                      <Move size={12} /><span className="font-black" style={{ fontSize: 10 }}>اسحب</span>
+                      <Move size={11} /><span className="font-black" style={{ fontSize: 9.5 }}>اسحب</span>
                     </div>
                   )}
 
                   {it.kind === 'text' ? (
                     <div
                       ref={el => { textEls.current[it.id] = el; if (el && !el.dataset.init) { el.innerHTML = it.html || ''; el.dataset.init = '1' } }}
-                      contentEditable
-                      suppressContentEditableWarning
-                      spellCheck={false}
-                      dir={it.dir || 'rtl'}
-                      onPointerDown={() => { setSel(it.id); bringFront(it.id) }}
+                      contentEditable suppressContentEditableWarning spellCheck={false}
+                      dir={it.dir || 'ltr'}
+                      onPointerDown={() => { setSel(it.id); bringFront(it.id); setMenu(null) }}
                       onInput={touch}
                       onBlur={() => {
                         // A box you opened but never typed into would linger as an invisible
@@ -1054,19 +1014,20 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
                       }}
                       className="note-box outline-none"
                       style={{
-                        ...chrome, minHeight: 44, padding: it.bg && it.bg !== 'transparent' ? '14px 18px' : '6px 10px',
+                        ...chrome, minHeight: 48,
+                        padding: it.bg && it.bg !== 'transparent' ? '16px 20px' : '6px 10px',
                         borderRadius: 12,
                         background: it.bg && it.bg !== 'transparent' ? it.bg : undefined,
                         boxShadow: it.bd && it.bd !== 'transparent' ? `inset 0 0 0 2px ${it.bd}` : undefined,
-                        color: it.bg === '#2a1d12' ? '#ffffff' : INK, fontSize: 30, lineHeight: 1.6,
-                        fontFamily: (it.dir || 'rtl') === 'rtl' ? "'Tajawal', 'Outfit', sans-serif" : "'Outfit', 'DM Sans', sans-serif",
-                        textAlign: (it.dir || 'rtl') === 'rtl' ? 'right' : 'left',
+                        color: (it.bg && it.bg !== 'transparent') ? INK : (dark ? '#ffffff' : INK),
+                        fontSize: 40, lineHeight: 1.5,
+                        fontFamily: (it.dir || 'ltr') === 'rtl' ? "'Tajawal', 'Outfit', sans-serif" : "'Outfit', 'DM Sans', sans-serif",
+                        textAlign: (it.dir || 'ltr') === 'rtl' ? 'right' : 'left',
                       }}
                     />
                   ) : it.kind === 'image' ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={it.src} alt="" draggable={false}
-                      onPointerDown={e => startDrag(e, it, 'move')}
+                    <img src={it.src} alt="" draggable={false} onPointerDown={e => startDrag(e, it, 'move')}
                       style={{ ...chrome, width: '100%', height: it.h ?? 'auto', borderRadius: 12, display: 'block', cursor: 'grab' }} />
                   ) : (
                     <div onPointerDown={e => startDrag(e, it, 'move')} style={{ ...chrome, borderRadius: 8, cursor: 'grab' }}>
@@ -1083,12 +1044,12 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
               )
             })}
 
-            {/* live preview of the stroke or shape being drawn */}
+            {/* live preview while drawing */}
             {draft && draft.tool !== 'eraser' && (
               <svg className="absolute inset-0 pointer-events-none" width="100%" height="100%" style={{ overflow: 'visible' }}>
-                {draft.tool === 'pen'
-                  ? <polyline fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"
-                      points={draft.pts.map(p => `${p[0]},${p[1]}`).join(' ')} />
+                {(draft.tool === 'pen' || draft.tool === 'mark')
+                  ? <polyline fill="none" stroke={color} strokeWidth={draft.tool === 'mark' ? sw * 3.5 : sw} opacity={draft.tool === 'mark' ? 0.35 : 1}
+                      strokeLinecap="round" strokeLinejoin="round" points={draft.pts.map(p => `${p[0]},${p[1]}`).join(' ')} />
                   : draft.tool === 'rect'
                     ? <rect fill="none" stroke={color} strokeWidth={sw} rx={8}
                         x={Math.min(draft.pts[0][0], draft.pts[1][0])} y={Math.min(draft.pts[0][1], draft.pts[1][1])}
@@ -1101,6 +1062,14 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
                           x1={draft.pts[0][0]} y1={draft.pts[0][1]} x2={draft.pts[1][0]} y2={draft.pts[1][1]} />}
               </svg>
             )}
+
+            {/* quiet signature — a screenshot that spreads still carries the brand */}
+            {page.mark && (
+              <div className="absolute bottom-3 left-4 pointer-events-none select-none font-black"
+                style={{ fontSize: 13, color: dark ? 'rgba(255,255,255,0.20)' : 'rgba(42,29,18,0.16)' }}>
+                inglizi.com
+              </div>
+            )}
           </div>
 
           {dragOver && (
@@ -1111,14 +1080,7 @@ function NotePad({ noteKey, label, labelAr, lesson, onClose, onDirty }: {
         </div>
       </div>
 
-      {/* Tailwind preflight strips list markers and table borders — put them back inside boxes. */}
       <style>{`
-        .note-box ul { list-style: disc; padding-inline-start: 1.5em; }
-        .note-box ol { list-style: decimal; padding-inline-start: 1.5em; }
-        .note-box li { margin: 0.1em 0; }
-        .note-box table { border-collapse: collapse; }
-        .note-box td, .note-box th { border: 1.5px solid #d6d3d1; padding: 8px 12px; min-width: 90px; }
-        .note-box th { background: #fef3c7; font-weight: 800; }
         .note-box b, .note-box strong { font-weight: 800; }
         .note-box img { max-width: 100%; border-radius: 10px; }
       `}</style>
@@ -1269,7 +1231,7 @@ export default function WritingDeck() {
   const phase = s.t === 'intro' || s.t === 'end' || s.t === 'unit' ? null : (PHASE[s.t as Phase])
   // One sheet per lesson (unit openers and the intro get their own too).
   const noteKey = noteKeyOf(s)
-  const noteLabel = L ? `Notes · Lesson ${numOf(L)}` : s.t === 'unit' ? `Notes · Unit ${s.index}` : 'Notes'
+  const noteLabel = L ? `درس ${numOf(L)}` : s.t === 'unit' ? `وحدة ${s.index}` : 'لوح'
   useEffect(() => { setHasNote(!!readNote(noteKey)) }, [noteKey])
   // Which unit the deck is standing in — drives the header chip and the drawer highlight.
   const activeUnit = s.t === 'unit' ? s.u : L ? unitOf(L.no) : null
@@ -1414,7 +1376,7 @@ export default function WritingDeck() {
 
       {/* notepad — over the slide, never instead of it */}
       {notesOpen && (
-        <NotePad noteKey={noteKey} label={noteLabel} labelAr="لوح الشرح" lesson={L}
+        <NotePad noteKey={noteKey} label={noteLabel} lesson={L}
           onClose={() => setNotesOpen(false)} onDirty={setHasNote} />
       )}
 
