@@ -26,9 +26,9 @@ import {
   StickyNote, List, ListOrdered, Eraser, Trash2,
   Image as ImageIcon, Upload, Search, Type, Move, SendToBack,
   MousePointer2, Pencil, ArrowUpRight, Square, Circle, Highlighter, LayoutGrid, MoreHorizontal,
-  Undo2, Redo2, Copy as CopyIcon, HelpCircle, Plus, Gamepad2,
+  Undo2, Redo2, Copy as CopyIcon, HelpCircle, Plus, Gamepad2, MessagesSquare, Share2,
 } from 'lucide-react'
-import { LESSONS, IRREGULAR_VERBS, REVIEWS, type Lesson, type Ex, type Example, type QA, type Irregular, type ReviewGame } from '@/data/writing-course'
+import { LESSONS, IRREGULAR_VERBS, REVIEWS, THREADS, type Lesson, type Ex, type Example, type QA, type Irregular, type ReviewGame, type Thread } from '@/data/writing-course'
 
 const INK = '#2a1d12'
 const GOLD = '#facc15'
@@ -136,11 +136,12 @@ const moduleOf = (no: number) => {
 const cefrOf = (L: Lesson) => L.cefr ?? unitOf(L.no).cefr
 const lessonsIn = (m: ModDef) => ORDERED.filter(L => L.no >= m.from && L.no <= m.to)
 
-type Phase = 'cover' | 'objectives' | 'rule' | 'explain' | 'form' | 'spelling' | 'irregulars' | 'examples' | 'exercises' | 'reading' | 'homework' | 'editing' | 'model' | 'plan' | 'toolkit' | 'write' | 'checklist' | 'review'
+type Phase = 'cover' | 'objectives' | 'rule' | 'explain' | 'form' | 'spelling' | 'irregulars' | 'examples' | 'exercises' | 'reading' | 'homework' | 'editing' | 'model' | 'plan' | 'toolkit' | 'write' | 'checklist' | 'review' | 'thread'
 type Slide =
   | { t: 'intro' }
   | { t: 'end' }
   | { t: 'unit'; u: UnitDef; index: number; count: number; startsAt: number }
+  | { t: 'thread'; u: UnitDef; index: number; thread: Thread }
   | { t: 'review'; u: UnitDef; index: number; game: ReviewGame; page: number; pages: number }
   | { t: 'cover'; L: Lesson }
   | { t: 'objectives'; L: Lesson }
@@ -179,6 +180,7 @@ const PHASE: Record<Phase, { en: string; ar: string; Icon: typeof Target }> = {
   write:         { en: 'Your Turn — Write!', ar: 'دورك — اكتب!', Icon: PenLine },
   checklist:     { en: 'Check Your Work', ar: 'راجع كتابتك',  Icon: ListChecks },
   review:        { en: 'Unit Review · Play', ar: 'مراجعة الوحدة · لعب', Icon: Gamepad2 },
+  thread:        { en: 'Seen in the Wild', ar: 'القاعدة في رسائل حقيقية', Icon: MessagesSquare },
 }
 
 /* Build the flat slide list + a lesson→cover-index map for jump navigation.
@@ -192,6 +194,9 @@ function buildSlides(): { slides: Slide[]; jump: Record<number, number>; unitJum
   const flushReview = (u: UnitDef | null) => {
     if (!u) return
     const ui = SYLLABUS.indexOf(u)
+    // See the grammar alive between two people first, then play with it.
+    const thread = THREADS[ui + 1]
+    if (thread) slides.push({ t: 'thread', u, index: ui + 1, thread })
     const games = REVIEWS[ui + 1] ?? []
     games.forEach((game, i) => slides.push({ t: 'review', u, index: ui + 1, game, page: i + 1, pages: games.length }))
   }
@@ -441,6 +446,12 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
     !wordDrag.current && Array.from(e.dataTransfer?.types ?? []).some(t => t === 'Files' || t === 'text/uri-list')
   const endDrag = useCallback(() => { dragDepth.current = 0; setDragOver(false) }, [])
   const [menu, setMenu] = useState<null | 'page' | 'more' | 'lesson' | 'help'>(null)
+  /* Share view: strips every piece of chrome and frames the board to a social
+     ratio so an OS screenshot is already the finished picture. Deliberately not a
+     rasteriser — rendering rich contentEditable text to canvas by hand would
+     silently drop the colours and sizes that make the board worth sharing. */
+  const [share, setShare] = useState<null | '1:1' | '4:5' | '9:16'>(null)
+  const shareRatio = share === '1:1' ? 1 : share === '4:5' ? 4 / 5 : 9 / 16
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
   const lastPoint = useRef({ x: 90, y: 90 })
@@ -830,6 +841,7 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
       if (meta && e.key.toLowerCase() === 'z') { e.preventDefault(); e.stopPropagation(); e.shiftKey ? redo() : undo(); return }
       if (meta && e.key.toLowerCase() === 'd' && selRef.current) { e.preventDefault(); e.stopPropagation(); duplicate(selRef.current); return }
       if (e.key === 'Escape') {
+        if (share) { e.stopPropagation(); e.preventDefault(); setShare(null); return }
         if (menu) { e.stopPropagation(); e.preventDefault(); setMenu(null); return }
         if (typing) { e.stopPropagation(); e.preventDefault(); ae!.blur(); return }
         if (selRef.current) { e.stopPropagation(); e.preventDefault(); setSel(null); return }
@@ -854,7 +866,7 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
     window.addEventListener('keydown', onKey, true)
     return () => window.removeEventListener('keydown', onKey, true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [touch, undo, redo, menu])
+  }, [touch, undo, redo, menu, share])
 
   const onPaste = (e: React.ClipboardEvent) => {
     const pics = Array.from(e.clipboardData?.items ?? [])
@@ -965,8 +977,10 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
 
   return (
     <div className="absolute inset-0 z-[200] flex flex-col" style={{ background: 'rgba(28,20,12,0.55)' }}>
-      <div className="relative m-[1.2vh] mx-[1.4vw] flex-1 min-h-0 flex flex-col rounded-[22px] overflow-hidden shadow-[0_40px_120px_-30px_rgba(0,0,0,0.7)] bg-white">
+      <div className={`relative m-[1.2vh] mx-[1.4vw] flex-1 min-h-0 flex flex-col rounded-[22px] overflow-hidden ${share ? '' : 'shadow-[0_40px_120px_-30px_rgba(0,0,0,0.7)] bg-white'}`}
+        style={share ? { background: 'transparent', padding: '7vh 2vw 2vh' } : undefined}>
 
+        {!share && (<>
         {/* ── one toolbar row, never wraps ──
             The scrolling row and the popovers must be SIBLINGS. A box with
             overflow-x:auto cannot keep overflow-y:visible — CSS promotes the
@@ -1035,6 +1049,7 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
             <span className="font-bold whitespace-nowrap" style={{ fontSize: 10.5, color: saved === 'full' ? '#fca5a5' : 'rgba(255,255,255,0.3)' }}>
               {busy ? '…' : saved === 'full' ? 'المساحة ممتلئة' : saved === 'saving' ? '…' : saved === 'saved' ? '✓' : ''}
             </span>
+            <Btn title="عرض للمشاركة — لقطة نظيفة للنشر" onClick={() => { setSel(null); setMenu(null); setShare('1:1') }}><Share2 size={15} /></Btn>
             <Btn title="الاختصارات" active={menu === 'help'} onClick={() => setMenu(m => m === 'help' ? null : 'help')}><HelpCircle size={15} /></Btn>
             <button onMouseDown={hold} onClick={() => { if (confirm('امسح كل ما في هذا اللوح؟')) { mark(); setItems([]); textEls.current = {}; setSel(null); touch() } }}
               title="امسح اللوح" className="p-1 rounded-lg text-white/50 hover:text-white hover:bg-white/10 transition shrink-0"><Trash2 size={14} /></button>
@@ -1159,6 +1174,8 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
           </div>
         )}
 
+        </>)}
+
         <input ref={fileInput} type="file" accept="image/*" multiple hidden
           onChange={e => { const f = Array.from(e.target.files ?? []); e.target.value = ''; void insertFiles(f) }} />
 
@@ -1169,8 +1186,10 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
           onDragEnter={e => { dragDepth.current++; if (isFileDrag(e)) setDragOver(true) }}
           onDragOver={e => { e.preventDefault(); if (isFileDrag(e)) setDragOver(true) }}
           onDragLeave={() => { dragDepth.current = Math.max(0, dragDepth.current - 1); if (!dragDepth.current) setDragOver(false) }}
-          className="relative flex-1 min-h-0 overflow-auto"
-          style={{ ...paperStyle, cursor: dragging ? 'grabbing' : drawTool ? 'crosshair' : tool === 'text' ? 'text' : 'default' }}>
+          className={share ? 'relative overflow-hidden' : 'relative flex-1 min-h-0 overflow-auto'}
+          style={share
+            ? { ...paperStyle, aspectRatio: String(shareRatio), maxHeight: '100%', maxWidth: '100%', margin: 'auto', boxShadow: '0 20px 60px -20px rgba(0,0,0,0.45)' }
+            : { ...paperStyle, cursor: dragging ? 'grabbing' : drawTool ? 'crosshair' : tool === 'text' ? 'text' : 'default' }}>
 
           <div data-canvas="1" className="relative w-full min-h-full"
             style={boardBottom ? { height: boardBottom + 140 } : undefined}>
@@ -1188,7 +1207,7 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
               return (
                 <div key={`${it.id}:${rev}`} className="absolute"
                   style={{ left: it.x, top: it.y, width: it.w, zIndex: it.z, pointerEvents: drawTool ? 'none' : 'auto' }}>
-                  {on && !drawTool && (
+                  {on && !drawTool && !share && (
                     <div className="absolute -top-[25px] left-0 flex items-center gap-[3px] select-none">
                       <div onPointerDown={e => startDrag(e, it, 'move')}
                         className="flex items-center gap-1 px-2 py-[2px] rounded-t-lg cursor-grab active:cursor-grabbing"
@@ -1299,7 +1318,7 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
                     </div>
                   )}
 
-                  {on && !drawTool && (
+                  {on && !drawTool && !share && (
                     <div onPointerDown={e => startDrag(e, it, 'resize')} title="اسحب لتغيير الحجم"
                       className="absolute -bottom-[9px] -right-[9px] w-[18px] h-[18px] rounded-full cursor-nwse-resize"
                       style={{ background: GOLD, boxShadow: '0 0 0 2px #fff' }} />
@@ -1344,7 +1363,7 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
         </div>
 
         {/* pages — floated at the bottom so the toolbar stays one clean line */}
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-1 rounded-full px-1.5 py-1"
+        {!share && <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-1 rounded-full px-1.5 py-1"
           style={{ background: '#ffffff', boxShadow: '0 8px 28px -10px rgba(42,29,18,0.45), inset 0 0 0 1.5px #e7e5e4' }}>
           <button onClick={() => goPage(pageIdx - 1)} disabled={pageIdx === 0} title="الصفحة السابقة"
             className="p-1.5 rounded-full text-stone-500 hover:bg-stone-100 disabled:opacity-25 transition"><ChevronRight size={15} /></button>
@@ -1357,7 +1376,21 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
             style={{ background: GOLD, fontSize: 12 }}><Plus size={13} strokeWidth={3} /> صفحة</button>
           <button onClick={removePage} title={pages.length > 1 ? 'احذف هذه الصفحة' : 'امسح هذه الصفحة'}
             className="p-1.5 rounded-full text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition"><Trash2 size={14} /></button>
-        </div>
+        </div>}
+
+        {/* share controls — outside the framed area so they never appear in the shot */}
+        {share && (
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[80] flex items-center gap-1 rounded-full px-2 py-1.5"
+            style={{ background: INK, boxShadow: '0 10px 30px -12px rgba(0,0,0,0.6)' }}>
+            {(['1:1', '4:5', '9:16'] as const).map(r => (
+              <button key={r} onClick={() => setShare(r)} className="px-2.5 py-1 rounded-full font-black transition"
+                style={{ fontSize: 12, background: share === r ? GOLD : 'transparent', color: share === r ? INK : 'rgba(255,255,255,0.7)' }}>{r}</button>
+            ))}
+            <span className="w-px h-4 mx-1" style={{ background: 'rgba(255,255,255,0.2)' }} />
+            <span dir="rtl" className="font-bold px-1" style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, fontFamily: "'Tajawal', sans-serif" }}>خذ لقطة شاشة الآن</span>
+            <button onClick={() => setShare(null)} className="px-2.5 py-1 rounded-full font-black" style={{ background: GOLD, color: INK, fontSize: 12 }}>إغلاق</button>
+          </div>
+        )}
       </div>
 
       <style>{`
@@ -1378,6 +1411,7 @@ const stepsOf = (s?: Slide) => {
   if (s.t === 'exercises') return 1
   if (s.t === 'editing') return 1
   if (s.t === 'review') return 1
+  if (s.t === 'thread') return 1
   if (s.t === 'write') return s.L.studio?.steps?.length ?? 0
   if (s.t === 'checklist') return s.L.studio?.checklist?.length ?? 0
   return 0
@@ -1517,7 +1551,7 @@ export default function WritingDeck() {
   const noteLabel = L ? `درس ${numOf(L)}` : s.t === 'unit' ? `وحدة ${s.index}` : 'لوح'
   useEffect(() => { setHasNote(!!readNote(noteKey)) }, [noteKey])
   // Which unit the deck is standing in — drives the header chip and the drawer highlight.
-  const activeUnit = s.t === 'unit' || s.t === 'review' ? s.u : L ? unitOf(L.no) : null
+  const activeUnit = s.t === 'unit' || s.t === 'review' || s.t === 'thread' ? s.u : L ? unitOf(L.no) : null
   const activeUnitIdx = activeUnit ? SYLLABUS.indexOf(activeUnit) : -1
 
   return (
@@ -1549,7 +1583,7 @@ export default function WritingDeck() {
         <span className="px-3.5 py-1.5 rounded-xl text-white font-black whitespace-nowrap flex items-center gap-2" style={{ background: INK }}>
           <PenLine size={15} style={{ color: GOLD }} /> {L ? `Lesson ${numOf(L)} / ${ORDERED.length}` : 'English from Zero'} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>{L ? L.tagAr : 'الإنجليزية من الصفر'}</span>
         </span>
-        {(L || s.t === 'unit' || s.t === 'review') && <span className="px-2.5 py-1.5 rounded-xl font-black whitespace-nowrap" style={{ background: '#ecfeff', color: '#0e7490', boxShadow: 'inset 0 0 0 1.5px #a5f3fc' }}>{L ? cefrOf(L) : (s.t === 'unit' || s.t === 'review') ? s.u.cefr : ''}</span>}
+        {(L || s.t === 'unit' || s.t === 'review' || s.t === 'thread') && <span className="px-2.5 py-1.5 rounded-xl font-black whitespace-nowrap" style={{ background: '#ecfeff', color: '#0e7490', boxShadow: 'inset 0 0 0 1.5px #a5f3fc' }}>{L ? cefrOf(L) : (s.t === 'unit' || s.t === 'review' || s.t === 'thread') ? s.u.cefr : ''}</span>}
         {phase && (
           <span className="px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap text-[#2a1d12] flex items-center gap-1.5" style={{ background: GOLD }}>
             <phase.Icon size={14} /> {phase.en} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>{phase.ar}</span>
@@ -1811,6 +1845,68 @@ function SlideView({ s, step, onJump, onJumpUnit }: { s: Slide; step: number; on
             )
           })}
         </div>
+      </div>
+    )
+  }
+
+  /* The unit's grammar, alive between two people. Chat renders as bubbles, email
+     as stacked lines; Space reveals what to point at. */
+  if (s.t === 'thread') {
+    const th = s.thread
+    const revealed = step >= 1
+    const chat = th.channel === 'chat'
+    return (
+      <div className="w-full max-w-[74vw] flex flex-col items-center gap-[1.8vh]">
+        <div className="flex flex-col items-center gap-[0.5vh]">
+          <span className="flex items-center gap-[0.6vw] rounded-full px-[1.4vw] py-[0.5vh] font-black" style={{ background: INK, color: GOLD, fontSize: '0.86vw' }}>
+            <MessagesSquare size={15} /> {chat ? 'WhatsApp' : 'Email'} · {th.a} ↔ {th.b}
+          </span>
+          <Heading en={th.title} ar={th.titleAr} size="2.1vw" />
+        </div>
+
+        <div className="w-full rounded-[28px] px-[2vw] py-[2vh] flex flex-col gap-[0.9vh]"
+          style={{ background: chat ? '#f0f2f5' : '#ffffff', boxShadow: chat ? 'none' : 'inset 0 0 0 1.5px #e7e5e4' }}>
+          {th.messages.map((m, i) => {
+            const mine = m.from === 'b'
+            if (!chat) return (
+              <div key={i} dir="ltr" className="w-full" style={{ paddingInlineStart: mine ? '2.4vw' : 0, borderInlineStart: mine ? `3px solid ${GOLD}` : 'none' }}>
+                <Marked text={m.text} className="block font-bold whitespace-pre-line leading-[1.55]" style={{ color: mine ? AMBER : INK, fontSize: '1.15vw' }} />
+              </div>
+            )
+            return (
+              <div key={i} dir="ltr" className={`w-full flex ${mine ? 'justify-end' : 'justify-start'}`}>
+                <div className="max-w-[72%] rounded-2xl px-[1.2vw] py-[0.9vh]"
+                  style={{ background: mine ? '#d9fdd3' : '#ffffff', boxShadow: '0 1px 2px rgba(0,0,0,0.12)' }}>
+                  <Marked text={m.text} className="block font-bold whitespace-pre-line leading-[1.5]" style={{ color: INK, fontSize: '1.12vw' }} />
+                  {m.time && <span className="block text-right font-bold text-stone-400" style={{ fontSize: '0.6vw' }}>{m.time}</span>}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {revealed ? (
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
+            className="w-full rounded-[22px] bg-amber-50 ring-1 ring-amber-200 px-[2vw] py-[1.4vh]">
+            <div className="font-black text-stone-400 uppercase tracking-[0.12em] mb-[0.6vh]" style={{ fontSize: '0.68vw' }}>
+              What to notice · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>ما ينبغي ملاحظته</span>
+            </div>
+            <div dir="ltr" className="grid grid-cols-2 gap-x-[1.6vw] gap-y-[0.4vh]">
+              {th.notice.map((n, i) => (
+                <div key={i} className="flex items-start gap-[0.6vw]">
+                  <span className="w-2 h-2 rounded-full shrink-0 mt-[0.7vh]" style={{ background: GOLD }} />
+                  <Marked text={n} className="font-bold" style={{ color: INK, fontSize: '1vw' }} />
+                </div>
+              ))}
+            </div>
+            <div dir="rtl" className="mt-[0.8vh] pt-[0.8vh] border-t border-amber-200 font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1vw' }}>{th.noticeAr}</div>
+          </motion.div>
+        ) : (
+          <div className="text-stone-400 font-bold" style={{ fontSize: '0.95vw' }}>
+            Press <kbd className="px-2 py-0.5 rounded bg-stone-100 ring-1 ring-stone-300 font-mono">Space</kbd> to see what to notice ·
+            <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}> اضغط مسافة لإظهار الملاحظات</span>
+          </div>
+        )}
       </div>
     )
   }
