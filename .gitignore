@@ -27,3 +27,6 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# stray tooling artifacts
+__pycache__/
