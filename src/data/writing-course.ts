@@ -111,6 +111,155 @@ const ALPHA: Ex[] = [
   return { en: `*${C}* ${C.toLowerCase()}  —  ${word}`, ar }
 })
 
+/* ── Unit review games ────────────────────────────────────────────────────────
+   Each unit ends in play rather than a summary slide. Three kinds, all built to
+   work as DECK slides: the challenge is on screen, the class answers out loud,
+   and Space reveals the solution.
+     reorder — scrambled tiles to rebuild into one correct sentence
+     match   — two columns to connect (shown shuffled, revealed paired)
+     pick    — choose the right option, with the reason attached
+   Keyed by unit index (1-based) so the syllabus in page.tsx stays presentation. */
+export type ReviewGame =
+  | { kind: 'reorder'; prompt: string; promptAr: string; tiles: string[]; answer: string }
+  | { kind: 'match'; prompt: string; promptAr: string; pairs: [string, string][] }
+  | { kind: 'pick'; prompt: string; promptAr: string; options: string[]; answer: number; why: string; whyAr: string }
+
+export const REVIEWS: Record<number, ReviewGame[]> = {
+  1: [
+    { kind: 'reorder', prompt: 'Rebuild the sentence — mind the capital and the full stop', promptAr: 'أعد بناء الجملة — انتبه للحرف الكبير والنقطة',
+      tiles: ['in', 'Rabat', 'my', 'family', 'lives', '.'], answer: '*My* family lives in Rabat*.*' },
+    { kind: 'pick', prompt: 'Which one is correct?', promptAr: 'أيّها الصحيح؟',
+      options: ['a hour', 'an hour', 'the hour'], answer: 1,
+      why: '*h* is silent, so the word opens on a VOWEL sound — the ear decides, not the letter.', whyAr: 'حرف h صامت فتبدأ الكلمة بصوت علّة، والعبرة بالسمع لا بالحرف.' },
+    { kind: 'match', prompt: 'Connect each contraction to its full form', promptAr: 'صِل كل اختصار بأصله',
+      pairs: [['I’m', 'I am'], ['don’t', 'do not'], ['it’s', 'it is'], ['can’t', 'cannot'], ['we’re', 'we are']] },
+    { kind: 'pick', prompt: 'Which sentence is punctuated correctly?', promptAr: 'أيّ جملة ترقيمها صحيح؟',
+      options: ['where do you live?', 'Where do you live.', 'Where do you live?'], answer: 2,
+      why: 'A capital to open, and *?* to close — a question needs both, not one.', whyAr: 'حرف كبير في البداية وعلامة استفهام في النهاية — كلاهما لازم.' },
+  ],
+  2: [
+    { kind: 'match', prompt: 'Connect the singular to its plural', promptAr: 'صِل المفرد بجمعه',
+      pairs: [['child', 'children'], ['box', 'boxes'], ['city', 'cities'], ['foot', 'feet'], ['person', 'people']] },
+    { kind: 'reorder', prompt: 'Build the phrase — where does the adjective go?', promptAr: 'ابنِ العبارة — أين تقع الصفة؟',
+      tiles: ['house', 'a', 'big'], answer: 'a *big* house' },
+    { kind: 'pick', prompt: 'Choose the right quantifier', promptAr: 'اختر الكمّية الصحيحة',
+      options: ['How much students are there?', 'How many students are there?', 'How many student are there?'], answer: 1,
+      why: '*students* can be counted, so *many* — and after a number English always pluralises.', whyAr: 'الطلاب يُعدّون فتأتي many، وبعد العدد تُجمع الكلمة دائمًا.' },
+    { kind: 'match', prompt: 'Connect the pronoun to its possessive', promptAr: 'صِل الضمير بصفة الملكية',
+      pairs: [['I', 'my'], ['he', 'his'], ['she', 'her'], ['it', 'its'], ['they', 'their']] },
+  ],
+  3: [
+    { kind: 'match', prompt: 'Connect the verb to its past simple', promptAr: 'صِل الفعل بماضيه',
+      pairs: [['go', 'went'], ['buy', 'bought'], ['see', 'saw'], ['eat', 'ate'], ['write', 'wrote']] },
+    { kind: 'reorder', prompt: 'Build the question', promptAr: 'ابنِ السؤال',
+      tiles: ['you', 'do', 'where', 'work', '?'], answer: '*Where do* you work*?*' },
+    { kind: 'pick', prompt: 'Habit or happening now?', promptAr: 'عادة أم يحدث الآن؟',
+      options: ['Look! It rains.', 'Look! It is raining.', 'Look! It raining.'], answer: 1,
+      why: '*Look!* signals THIS moment → present continuous, and it needs BOTH halves: *is* + *-ing*.', whyAr: 'كلمة Look تدلّ على اللحظة الآن، والمضارع المستمر يحتاج شطريه: is + ing.' },
+    { kind: 'pick', prompt: 'Which negative is correct?', promptAr: 'أيّ نفي صحيح؟',
+      options: ['He didn’t came to class.', 'He didn’t come to class.', 'He not came to class.'], answer: 1,
+      why: '*didn’t* already carries the past, so the main verb returns to its BARE form.', whyAr: 'didn’t تحمل الماضي فيعود الفعل الأصلي مجرّدًا.' },
+  ],
+  4: [
+    { kind: 'pick', prompt: 'in, on or at?', promptAr: 'أيّ حرف جرّ؟',
+      options: ['I was born in 1995.', 'I was born on 1995.', 'I was born at 1995.'], answer: 0,
+      why: '*in* for the big containers — years, months, seasons. *on* for days, *at* for clock times.', whyAr: 'in للأوعية الكبيرة كالسنوات والشهور، و on للأيام، و at للساعات.' },
+    { kind: 'match', prompt: 'Connect the adjective to its comparative', promptAr: 'صِل الصفة بصيغة المقارنة',
+      pairs: [['big', 'bigger'], ['easy', 'easier'], ['good', 'better'], ['expensive', 'more expensive'], ['bad', 'worse']] },
+    { kind: 'reorder', prompt: 'Build the passive sentence', promptAr: 'ابنِ الجملة المبنية للمجهول',
+      tiles: ['was', 'the', 'built', 'in', 'bridge', '1920', '.'], answer: 'The bridge *was built* in 1920*.*' },
+    { kind: 'pick', prompt: 'make or do?', promptAr: 'make أم do؟',
+      options: ['I did a mistake.', 'I made a mistake.', 'I make a mistake yesterday.'], answer: 1,
+      why: 'You *make* a mistake and *do* your homework — collocation is habit, not logic.', whyAr: 'نقول make a mistake و do homework؛ التلازم عادة لا منطق.' },
+  ],
+  5: [
+    { kind: 'pick', prompt: 'Sentence or fragment?', promptAr: 'جملة كاملة أم ناقصة؟',
+      options: ['Because I was tired.', 'I was tired.', 'When the rain started.'], answer: 1,
+      why: 'Only (2) can stand alone. *Because* and *When* make a clause DEPENDENT — it needs a main clause.', whyAr: 'الثانية وحدها تقف بذاتها؛ because و when تجعلان الجملة تابعة تحتاج جملة رئيسية.' },
+    { kind: 'reorder', prompt: 'Build the complex sentence', promptAr: 'ابنِ الجملة المعقّدة',
+      tiles: ['I', 'because', 'stayed', 'was', 'home', 'I', 'ill', '.'], answer: 'I stayed home *because* I was ill*.*' },
+    { kind: 'match', prompt: 'Connect each FANBOYS word to its meaning', promptAr: 'صِل كل أداة عطف بمعناها',
+      pairs: [['and', 'add'], ['but', 'contrast'], ['so', 'result'], ['or', 'choice'], ['for', 'reason']] },
+    { kind: 'pick', prompt: 'Which one fixes the comma splice?', promptAr: 'أيّها يصحّح الفاصلة الخاطئة؟',
+      options: ['I was late, I ran.', 'I was late, so I ran.', 'I was late I ran.'], answer: 1,
+      why: 'A comma is a PAUSE, not a join. Two full sentences need real glue: a FANBOYS, a full stop, or a semicolon.', whyAr: 'الفاصلة وقفة لا رابط؛ الجملتان الكاملتان تحتاجان رابطًا حقيقيًا.' },
+  ],
+  6: [
+    { kind: 'pick', prompt: 'Comma or no comma?', promptAr: 'فاصلة أم لا؟',
+      options: ['I like tea, and coffee.', 'I like tea and coffee.', 'I like, tea and coffee.'], answer: 1,
+      why: 'No comma — *coffee* is one word, not a full sentence. The comma only comes when BOTH sides could stand alone.', whyAr: 'لا فاصلة لأن الطرف الثاني كلمة لا جملة؛ الفاصلة حين يكون الطرفان جملتين.' },
+    { kind: 'reorder', prompt: 'Make the list parallel', promptAr: 'اجعل القائمة متوازية',
+      tiles: ['reading', 'I', 'writing', 'like', 'and', 'swimming', '.'], answer: 'I like *reading*, *writing* and *swimming*.' },
+    { kind: 'match', prompt: 'Connect the transition to its job', promptAr: 'صِل أداة الربط بوظيفتها',
+      pairs: [['However,', 'contrast'], ['Therefore,', 'result'], ['For example,', 'illustration'], ['Moreover,', 'addition'], ['In short,', 'closing']] },
+    { kind: 'pick', prompt: 'Which sounds like a writer, not a robot?', promptAr: 'أيّها بأسلوب كاتب لا آلة؟',
+      options: ['I woke up. I ate. I left. I worked.', 'After I woke up, I ate and then left for work.', 'I woke up and I ate and I left and I worked.'], answer: 1,
+      why: 'Vary the openings and the lengths. Four short sentences in a row read as a robot; four joined by *and* read as a child.', whyAr: 'نوّع البدايات والأطوال؛ الجمل القصيرة المتتالية آلية، وربطها كله بـ and طفوليّ.' },
+  ],
+  7: [
+    { kind: 'reorder', prompt: 'Put the paragraph in order', promptAr: 'رتّب الفقرة',
+      tiles: ['In short, my city is beautiful.', 'For example, the old medina glows at sunset.', 'My city is beautiful.', 'It is beautiful because of its light.'],
+      answer: 'My city is beautiful. → It is beautiful *because* of its light. → *For example*, the old medina glows at sunset. → *In short*, my city is beautiful.' },
+    { kind: 'pick', prompt: 'Which is a good topic sentence?', promptAr: 'أيّها جملة موضوعية جيّدة؟',
+      options: ['My city has 400,000 people.', 'My city is beautiful in winter.', 'Morocco is interesting.'], answer: 1,
+      why: 'It needs an ANGLE you can develop. (1) is a fact with nothing to add; (3) is a book, not a paragraph.', whyAr: 'تحتاج زاوية يمكن تطويرها؛ الأولى معلومة جافّة والثالثة تصلح لكتاب لا لفقرة.' },
+    { kind: 'match', prompt: 'Connect each R.E.D. letter to its question', promptAr: 'صِل كل حرف من R.E.D. بسؤاله',
+      pairs: [['R — Reason', 'why?'], ['E — Example', 'like what?'], ['D — Detail', 'what exactly?']] },
+    { kind: 'pick', prompt: 'Which sentence does NOT belong?', promptAr: 'أيّ جملة لا تنتمي؟',
+      options: ['Studying at night is better for me.', 'It is quiet after eleven.', 'My brother plays football on Fridays.'], answer: 2,
+      why: 'Off topic. Every supporting sentence must serve the topic sentence — if it does not, cut it.', whyAr: 'خارج الموضوع؛ كل جملة داعمة تخدم الجملة الموضوعية وإلا حُذفت.' },
+  ],
+  8: [
+    { kind: 'reorder', prompt: 'Put the formal email in order', promptAr: 'رتّب الإيميل الرسمي',
+      tiles: ['Kind regards, Omar Benali', 'Dear Mr. Alami,', 'Subject: Leave Request — 12–13 August', 'I am writing to request two days of leave.'],
+      answer: 'Subject → *Dear Mr. Alami,* → *I am writing to request…* → *Kind regards,* Omar Benali' },
+    { kind: 'match', prompt: 'Connect informal to formal', promptAr: 'صِل الودّي بالرسمي',
+      pairs: [['get', 'receive'], ['ask for', 'request'], ['find out', 'discover'], ['sort out', 'resolve'], ['a lot of', 'considerable']] },
+    { kind: 'pick', prompt: 'You do not know the reader’s name. Which opening?', promptAr: 'لا تعرف اسم القارئ — أيّ افتتاح؟',
+      options: ['Hi there,', 'Dear Sir or Madam,', 'Dear Friend,'], answer: 1,
+      why: 'Name unknown → *Dear Sir or Madam*, and it closes with *Yours faithfully*. Name known → *Dear Mr. X* and *Kind regards*.', whyAr: 'إن جهلت الاسم فـ Dear Sir or Madam ثم Yours faithfully، وإن عرفته فـ Dear Mr. ثم Kind regards.' },
+    { kind: 'pick', prompt: 'Which complaint will actually work?', promptAr: 'أيّ شكوى ستنجح فعلًا؟',
+      options: ['Your service is terrible and you are thieves!', 'Order #45872 has not arrived after three weeks. I would like delivery within five days or a full refund.', 'Please do something about my order soon.'], answer: 1,
+      why: 'Facts + a specific demand + a deadline. Anger gets filed; precision gets actioned.', whyAr: 'حقائق ومطلب محدّد ومهلة؛ الغضب يُؤرشَف والدقّة تُنفَّذ.' },
+  ],
+  9: [
+    { kind: 'match', prompt: 'Connect each perfect modal to its meaning', promptAr: 'صِل كل صيغة بمعناها',
+      pairs: [['should have', 'regret'], ['must have', 'confident guess'], ['can’t have', 'confident denial'], ['might have', 'possible guess'], ['needn’t have', 'it was unnecessary']] },
+    { kind: 'reorder', prompt: 'Build the third conditional', promptAr: 'ابنِ الشرط الثالث',
+      tiles: ['had', 'if', 'I', 'studied', 'I', 'passed', 'would', 'have', ','], answer: '*If* I *had studied*, I *would have passed*.' },
+    { kind: 'pick', prompt: 'Duty or memory?', promptAr: 'واجب أم ذكرى؟',
+      options: ['Remember locking the door — it is urgent.', 'Remember to lock the door — it is urgent.', 'Remember lock the door — it is urgent.'], answer: 1,
+      why: '*to* looks FORWARD to a duty; *-ing* looks BACK at a memory. The door is not locked yet.', whyAr: 'صيغة to تنظر إلى الأمام (واجب) و ing تنظر إلى الوراء (ذكرى).' },
+    { kind: 'pick', prompt: 'Report it correctly', promptAr: 'انقلها بشكل صحيح',
+      options: ['She asked me where do I live.', 'She asked me where I lived.', 'She asked me where did I live?'], answer: 1,
+      why: 'A reported question loses the question ORDER and the mark: statement order, no *do*, full stop.', whyAr: 'السؤال المنقول يفقد ترتيب السؤال وعلامته: ترتيب خبري بلا do وبنقطة.' },
+  ],
+  10: [
+    { kind: 'reorder', prompt: 'Put the introduction in order', promptAr: 'رتّب المقدّمة',
+      tiles: ['Schools should therefore teach writing, not only conversation.', 'Why do so many adults abandon a language they studied for years?', 'English has become the language of hiring across the region.'],
+      answer: 'Hook → Background → *Thesis last*' },
+    { kind: 'pick', prompt: 'Topic or thesis?', promptAr: 'موضوع أم أطروحة؟',
+      options: ['This essay is about online learning.', 'Online learning suits motivated adults but fails most teenagers.', 'Online learning is a modern subject.'], answer: 1,
+      why: 'A thesis is a claim someone could DISAGREE with. Announcing a subject is not taking a position.', whyAr: 'الأطروحة ادّعاء يمكن مخالفته؛ والإعلان عن موضوع ليس اتّخاذ موقف.' },
+    { kind: 'match', prompt: 'Connect each essay type to its shape', promptAr: 'صِل نوع المقال ببنائه',
+      pairs: [['Opinion', 'one side, held throughout'], ['For & against', 'two sides, verdict last'], ['Problem–solution', 'cause → matching remedy'], ['Counter-argument', 'admit → turn → answer']] },
+    { kind: 'reorder', prompt: 'Build the concession move', promptAr: 'ابنِ حركة التنازل',
+      tiles: ['completion rates remain below 10%.', 'It is true that online courses are cheaper.', 'However,'],
+      answer: '*It is true that…* → *However,* → *…the evidence*' },
+  ],
+  11: [
+    { kind: 'match', prompt: 'Connect the claim to its hedge', promptAr: 'صِل الادّعاء بتحوّطه',
+      pairs: [['All students hate exams.', 'Many students find exams stressful.'], ['This proves it.', 'This suggests it.'], ['Everybody knows…', 'It is widely accepted…'], ['It destroys concentration.', 'It appears to erode concentration.']] },
+    { kind: 'reorder', prompt: 'Build the cleft sentence', promptAr: 'ابنِ الجملة المشطورة',
+      tiles: ['is', 'what', 'need', 'time', 'we', '.'], answer: '*What* we need *is* time*.*' },
+    { kind: 'reorder', prompt: 'Build the inversion', promptAr: 'ابنِ الجملة المقلوبة',
+      tiles: ['I', 'have', 'never', 'such', 'seen', 'a', 'response', '.'], answer: '*Never have I seen* such a response*.*' },
+    { kind: 'pick', prompt: 'Which avoids the repetition best?', promptAr: 'أيّها يتجنّب التكرار أفضل؟',
+      options: ['I bought a new phone because my old phone broke.', 'I bought a new phone because my old one broke.', 'I bought a new phone because the phone I had before broke.'], answer: 1,
+      why: '*one* stands in for a countable noun already named. English reads repetition as a small vocabulary.', whyAr: 'كلمة one تنوب عن الاسم المذكور؛ والإنجليزية تقرأ التكرار ضيقَ حصيلة.' },
+  ],
+}
+
 export const LESSONS: Lesson[] = [
   /* ─────────────────────────── 1 · CAPITALIZATION ─────────────────────────── */
   {

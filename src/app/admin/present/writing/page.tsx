@@ -26,9 +26,9 @@ import {
   StickyNote, List, ListOrdered, Eraser, Trash2,
   Image as ImageIcon, Upload, Search, Type, Move, SendToBack,
   MousePointer2, Pencil, ArrowUpRight, Square, Circle, Highlighter, LayoutGrid, MoreHorizontal,
-  Undo2, Redo2, Copy as CopyIcon, HelpCircle, Plus,
+  Undo2, Redo2, Copy as CopyIcon, HelpCircle, Plus, Gamepad2,
 } from 'lucide-react'
-import { LESSONS, IRREGULAR_VERBS, type Lesson, type Ex, type Example, type QA, type Irregular } from '@/data/writing-course'
+import { LESSONS, IRREGULAR_VERBS, REVIEWS, type Lesson, type Ex, type Example, type QA, type Irregular, type ReviewGame } from '@/data/writing-course'
 
 const INK = '#2a1d12'
 const GOLD = '#facc15'
@@ -136,11 +136,12 @@ const moduleOf = (no: number) => {
 const cefrOf = (L: Lesson) => L.cefr ?? unitOf(L.no).cefr
 const lessonsIn = (m: ModDef) => ORDERED.filter(L => L.no >= m.from && L.no <= m.to)
 
-type Phase = 'cover' | 'objectives' | 'rule' | 'explain' | 'form' | 'spelling' | 'irregulars' | 'examples' | 'exercises' | 'reading' | 'homework' | 'editing' | 'model' | 'plan' | 'toolkit' | 'write' | 'checklist'
+type Phase = 'cover' | 'objectives' | 'rule' | 'explain' | 'form' | 'spelling' | 'irregulars' | 'examples' | 'exercises' | 'reading' | 'homework' | 'editing' | 'model' | 'plan' | 'toolkit' | 'write' | 'checklist' | 'review'
 type Slide =
   | { t: 'intro' }
   | { t: 'end' }
   | { t: 'unit'; u: UnitDef; index: number; count: number; startsAt: number }
+  | { t: 'review'; u: UnitDef; index: number; game: ReviewGame; page: number; pages: number }
   | { t: 'cover'; L: Lesson }
   | { t: 'objectives'; L: Lesson }
   | { t: 'rule'; L: Lesson }
@@ -177,6 +178,7 @@ const PHASE: Record<Phase, { en: string; ar: string; Icon: typeof Target }> = {
   toolkit:       { en: 'Toolkit',        ar: 'أدوات الكتابة', Icon: Wand2 },
   write:         { en: 'Your Turn — Write!', ar: 'دورك — اكتب!', Icon: PenLine },
   checklist:     { en: 'Check Your Work', ar: 'راجع كتابتك',  Icon: ListChecks },
+  review:        { en: 'Unit Review · Play', ar: 'مراجعة الوحدة · لعب', Icon: Gamepad2 },
 }
 
 /* Build the flat slide list + a lesson→cover-index map for jump navigation.
@@ -187,9 +189,16 @@ function buildSlides(): { slides: Slide[]; jump: Record<number, number>; unitJum
   const jump: Record<number, number> = {}
   const unitJump: number[] = []
   let currentUnit: UnitDef | null = null
+  const flushReview = (u: UnitDef | null) => {
+    if (!u) return
+    const ui = SYLLABUS.indexOf(u)
+    const games = REVIEWS[ui + 1] ?? []
+    games.forEach((game, i) => slides.push({ t: 'review', u, index: ui + 1, game, page: i + 1, pages: games.length }))
+  }
   for (const L of ORDERED) {
     const u = unitOf(L.no)
     if (u !== currentUnit) {
+      flushReview(currentUnit)   // close the unit we are leaving with its games
       currentUnit = u
       const ui = SYLLABUS.indexOf(u)
       unitJump[ui] = slides.length
@@ -231,6 +240,7 @@ function buildSlides(): { slides: Slide[]; jump: Record<number, number>; unitJum
     slides.push({ t: 'homework', L })
     if (L.editing) slides.push({ t: 'editing', L })
   }
+  flushReview(currentUnit)     // the last unit needs its games too
   slides.push({ t: 'end' })
   return { slides, jump, unitJump }
 }
@@ -1367,6 +1377,7 @@ const stepsOf = (s?: Slide) => {
   if (s.t === 'homework') return s.L.homework.length
   if (s.t === 'exercises') return 1
   if (s.t === 'editing') return 1
+  if (s.t === 'review') return 1
   if (s.t === 'write') return s.L.studio?.steps?.length ?? 0
   if (s.t === 'checklist') return s.L.studio?.checklist?.length ?? 0
   return 0
@@ -1506,7 +1517,7 @@ export default function WritingDeck() {
   const noteLabel = L ? `درس ${numOf(L)}` : s.t === 'unit' ? `وحدة ${s.index}` : 'لوح'
   useEffect(() => { setHasNote(!!readNote(noteKey)) }, [noteKey])
   // Which unit the deck is standing in — drives the header chip and the drawer highlight.
-  const activeUnit = s.t === 'unit' ? s.u : L ? unitOf(L.no) : null
+  const activeUnit = s.t === 'unit' || s.t === 'review' ? s.u : L ? unitOf(L.no) : null
   const activeUnitIdx = activeUnit ? SYLLABUS.indexOf(activeUnit) : -1
 
   return (
@@ -1538,13 +1549,14 @@ export default function WritingDeck() {
         <span className="px-3.5 py-1.5 rounded-xl text-white font-black whitespace-nowrap flex items-center gap-2" style={{ background: INK }}>
           <PenLine size={15} style={{ color: GOLD }} /> {L ? `Lesson ${numOf(L)} / ${ORDERED.length}` : 'English from Zero'} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>{L ? L.tagAr : 'الإنجليزية من الصفر'}</span>
         </span>
-        {(L || s.t === 'unit') && <span className="px-2.5 py-1.5 rounded-xl font-black whitespace-nowrap" style={{ background: '#ecfeff', color: '#0e7490', boxShadow: 'inset 0 0 0 1.5px #a5f3fc' }}>{L ? cefrOf(L) : s.t === 'unit' ? s.u.cefr : ''}</span>}
+        {(L || s.t === 'unit' || s.t === 'review') && <span className="px-2.5 py-1.5 rounded-xl font-black whitespace-nowrap" style={{ background: '#ecfeff', color: '#0e7490', boxShadow: 'inset 0 0 0 1.5px #a5f3fc' }}>{L ? cefrOf(L) : (s.t === 'unit' || s.t === 'review') ? s.u.cefr : ''}</span>}
         {phase && (
           <span className="px-3.5 py-1.5 rounded-xl font-bold whitespace-nowrap text-[#2a1d12] flex items-center gap-1.5" style={{ background: GOLD }}>
             <phase.Icon size={14} /> {phase.en} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>{phase.ar}</span>
             {s.t === 'examples' && s.pages > 1 ? ` · ${s.page}/${s.pages}` : ''}
             {s.t === 'exercises' && s.pages > 1 ? ` · ${s.page}/${s.pages}` : ''}
             {s.t === 'irregulars' && s.pages > 1 ? ` · ${s.page}/${s.pages}` : ''}
+            {s.t === 'review' && s.pages > 1 ? ` · ${s.page}/${s.pages}` : ''}
           </span>
         )}
         <div className="absolute right-[3vw] top-[2.4vh] flex items-center gap-2">
@@ -1799,6 +1811,128 @@ function SlideView({ s, step, onJump, onJumpUnit }: { s: Slide; step: number; on
             )
           })}
         </div>
+      </div>
+    )
+  }
+
+  /* Unit review game — the challenge is on screen, the class answers out loud,
+     Space reveals the solution. Tiles are shuffled deterministically from the
+     prompt so the scramble is stable every time you present the same slide. */
+  if (s.t === 'review') {
+    const g = s.game
+    const revealed = step >= 1
+    const seed = [...s.game.prompt].reduce((a, c) => a + c.charCodeAt(0), 0)
+    const shuffle = <T,>(arr: T[]) => {
+      const a = [...arr]
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = (seed * (i + 7)) % (i + 1)
+        ;[a[i], a[j]] = [a[j], a[i]]
+      }
+      return a
+    }
+    const Head = (
+      <div className="flex flex-col items-center gap-[0.6vh]">
+        <span className="flex items-center gap-[0.6vw] rounded-full px-[1.4vw] py-[0.6vh] font-black" style={{ background: INK, color: GOLD, fontSize: '0.9vw' }}>
+          <Gamepad2 size={16} /> {s.u.en.split(' · ')[1]} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>مراجعة الوحدة</span>
+        </span>
+        <Heading en={g.prompt} ar={g.promptAr} size="2.3vw" />
+      </div>
+    )
+    const Reveal = ({ children }: { children: React.ReactNode }) => revealed ? (
+      <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="w-full flex flex-col items-center gap-[1.6vh]">{children}</motion.div>
+    ) : (
+      <div className="text-stone-400 font-bold" style={{ fontSize: '1vw' }}>
+        Press <kbd className="px-2 py-0.5 rounded bg-stone-100 ring-1 ring-stone-300 font-mono">Space</kbd> to reveal ·
+        <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}> اضغط مسافة للحلّ</span>
+      </div>
+    )
+
+    if (g.kind === 'reorder') return (
+      <div className="w-full max-w-[80vw] flex flex-col items-center gap-[2.6vh]">
+        {Head}
+        <div className="flex flex-wrap items-center justify-center gap-[0.9vw]">
+          {shuffle(g.tiles).map((t, i) => (
+            <motion.span key={i} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}
+              className="rounded-2xl font-black" style={{ background: '#fff', color: INK, fontSize: '1.9vw', padding: '1vh 1.6vw', boxShadow: '0 10px 24px -14px rgba(42,29,18,0.6), inset 0 0 0 2.5px #fcd34d' }}>{t}</motion.span>
+          ))}
+        </div>
+        <Reveal>
+          <div className="w-full rounded-[32px] px-[3vw] py-[3vh] flex items-center justify-center gap-[1vw]" style={{ background: '#ecfdf5', boxShadow: 'inset 0 0 0 2.5px #6ee7b7' }}>
+            <Check size={28} className="text-emerald-600 shrink-0" strokeWidth={3} />
+            <Marked text={g.answer} className="font-black text-center leading-[1.3]" style={{ color: '#065f46', fontSize: '2.3vw' }} />
+          </div>
+        </Reveal>
+      </div>
+    )
+
+    if (g.kind === 'match') return (
+      <div className="w-full max-w-[76vw] flex flex-col items-center gap-[2.4vh]">
+        {Head}
+        {!revealed ? (
+          <div dir="ltr" className="w-full grid grid-cols-2 gap-x-[5vw] gap-y-[1.1vh]">
+            <div className="flex flex-col gap-[1.1vh]">
+              {g.pairs.map((p, i) => (
+                <span key={i} className="rounded-2xl text-center font-black" style={{ background: '#fff', color: INK, fontSize: '1.5vw', padding: '1vh 1vw', boxShadow: 'inset 0 0 0 2.5px #fcd34d' }}>{p[0]}</span>
+              ))}
+            </div>
+            <div className="flex flex-col gap-[1.1vh]">
+              {shuffle(g.pairs.map(p => p[1])).map((r, i) => (
+                <span key={i} className="rounded-2xl text-center font-black" style={{ background: '#f5f5f4', color: '#78716c', fontSize: '1.5vw', padding: '1vh 1vw', boxShadow: 'inset 0 0 0 2px #e7e5e4' }}>{r}</span>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <motion.div dir="ltr" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full flex flex-col gap-[1.1vh]">
+            {g.pairs.map((p, i) => (
+              <motion.div key={i} initial={{ opacity: 0, x: -14 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}
+                className="w-full grid grid-cols-[1fr_auto_1fr] items-center gap-[1vw] rounded-2xl px-[1.4vw] py-[1vh]" style={{ background: '#ecfdf5', boxShadow: 'inset 0 0 0 2px #6ee7b7' }}>
+                <span className="font-black text-right" style={{ color: INK, fontSize: '1.45vw' }}>{p[0]}</span>
+                <span className="font-black" style={{ color: '#059669', fontSize: '1.3vw' }}>———</span>
+                <span className="font-black text-left" style={{ color: '#065f46', fontSize: '1.45vw' }}>{p[1]}</span>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+        {!revealed && (
+          <div className="text-stone-400 font-bold" style={{ fontSize: '1vw' }}>
+            Press <kbd className="px-2 py-0.5 rounded bg-stone-100 ring-1 ring-stone-300 font-mono">Space</kbd> to connect them ·
+            <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}> اضغط مسافة للوصل</span>
+          </div>
+        )}
+      </div>
+    )
+
+    return (
+      <div className="w-full max-w-[76vw] flex flex-col items-center gap-[2.4vh]">
+        {Head}
+        <div className="w-full flex flex-col gap-[1.2vh]">
+          {g.options.map((o, i) => {
+            const right = revealed && i === g.answer
+            const wrong = revealed && i !== g.answer
+            return (
+              <div key={i} className="w-full flex items-center gap-[1.2vw] rounded-2xl px-[1.8vw] py-[1.4vh] transition"
+                style={{
+                  background: right ? '#ecfdf5' : '#ffffff',
+                  boxShadow: right ? 'inset 0 0 0 2.5px #6ee7b7' : 'inset 0 0 0 2px #e7e5e4',
+                  opacity: wrong ? 0.4 : 1,
+                }}>
+                <span className="grid place-items-center rounded-full font-black shrink-0" style={{ width: '2.4vw', height: '2.4vw', background: right ? '#059669' : '#f5f5f4', color: right ? '#fff' : '#a8a29e', fontSize: '1vw' }}>
+                  {right ? <Check size={18} strokeWidth={3} /> : String.fromCharCode(65 + i)}
+                </span>
+                <Marked text={o} className="font-black" style={{ color: right ? '#065f46' : INK, fontSize: '1.6vw' }} />
+              </div>
+            )
+          })}
+        </div>
+        <Reveal>
+          <div className="w-full rounded-2xl bg-amber-50 ring-1 ring-amber-200 px-[2.2vw] py-[1.6vh] flex items-start gap-[1vw]">
+            <Lightbulb size={20} style={{ color: AMBER }} className="mt-[0.3vh] shrink-0" />
+            <div className="min-w-0 flex-1">
+              <Marked text={g.why} className="block font-bold" style={{ color: AMBER, fontSize: '1.25vw' }} />
+              <span dir="rtl" className="block font-bold text-stone-500 mt-[0.3vh]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.15vw' }}>{g.whyAr}</span>
+            </div>
+          </div>
+        </Reveal>
       </div>
     )
   }
