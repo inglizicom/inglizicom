@@ -396,13 +396,17 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
   const [saved, setSaved] = useState<'idle' | 'saving' | 'saved' | 'full'>('idle')
   const [busy, setBusy] = useState(false)
   const [dragOver, setDragOver] = useState(false)
+  const dragDepth = useRef(0)
+  const wordDrag = useRef<{ id: string; i: number } | null>(null)   // declared before isFileDrag reads it
+  const isFileDrag = (e: React.DragEvent) =>
+    !wordDrag.current && Array.from(e.dataTransfer?.types ?? []).some(t => t === 'Files' || t === 'text/uri-list')
+  const endDrag = useCallback(() => { dragDepth.current = 0; setDragOver(false) }, [])
   const [menu, setMenu] = useState<null | 'page' | 'more' | 'lesson' | 'help'>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
   const lastPoint = useRef({ x: 90, y: 90 })
   const focusNext = useRef<string | null>(null)
   const [editWord, setEditWord] = useState<{ id: string; i: number } | null>(null)
-  const wordDrag = useRef<{ id: string; i: number } | null>(null)
 
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -474,6 +478,11 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
     try { document.execCommand('styleWithCSS', false, 'true') } catch { /* older engines */ }
   }, [noteKey])
   useEffect(() => () => { if (saveTimer.current) clearTimeout(saveTimer.current); persist() }, [persist])
+  useEffect(() => {
+    window.addEventListener('dragend', endDrag)
+    window.addEventListener('drop', endDrag)
+    return () => { window.removeEventListener('dragend', endDrag); window.removeEventListener('drop', endDrag) }
+  }, [endDrag])
   useEffect(() => {
     const id = focusNext.current; if (!id) return
     const el = textEls.current[id]
@@ -605,18 +614,38 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
   }
 
   /* ── dragging & scaling ───────────────────────────────────────────────── */
-  const dragRef = useRef<{ id: string; mode: 'move' | 'resize'; sx: number; sy: number; ox: number; oy: number; ow: number; ratio: number } | null>(null)
+  const dragRef = useRef<{
+    id: string; mode: 'move' | 'resize'; sx: number; sy: number
+    ox: number; oy: number; ow: number; ratio: number
+    before: NoteItem[]; moved: boolean
+  } | null>(null)
   const [dragging, setDragging] = useState(false)
+  // Selecting a shape or picture must take the caret out of whatever text box had
+  // it. startDrag preventDefaults, so the browser will not move focus by itself —
+  // and while a contentEditable stays focused the Delete key is treated as typing
+  // and never reaches the "remove the selected item" branch.
+  const blurEditor = () => {
+    const ae = document.activeElement as HTMLElement | null
+    if (ae?.isContentEditable) ae.blur()
+  }
+
   const startDrag = (e: React.PointerEvent, it: NoteItem, mode: 'move' | 'resize') => {
     e.preventDefault(); e.stopPropagation()
-    setSel(it.id); bringFront(it.id); mark()
-    dragRef.current = { id: it.id, mode, sx: e.clientX, sy: e.clientY, ox: it.x, oy: it.y, ow: it.w, ratio: it.kind !== 'text' && it.h ? it.h / it.w : 0 }
+    if (it.kind !== 'text') blurEditor()
+    setSel(it.id); bringFront(it.id)
+    dragRef.current = {
+      id: it.id, mode, sx: e.clientX, sy: e.clientY, ox: it.x, oy: it.y, ow: it.w,
+      ratio: it.kind !== 'text' && it.h ? it.h / it.w : 0,
+      before: snapshot(), moved: false,
+    }
     setDragging(true)
   }
   useEffect(() => {
     const move = (e: PointerEvent) => {
       const d = dragRef.current; if (!d) return
       const dx = e.clientX - d.sx, dy = e.clientY - d.sy
+      if (!d.moved && Math.abs(dx) + Math.abs(dy) < 3) return    // a click, not a drag
+      d.moved = true
       const maxX = (boardRef.current?.clientWidth ?? 1200) - 60
       setItems(list => list.map(it => {
         if (it.id !== d.id) return it
@@ -625,7 +654,15 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
         return d.ratio ? { ...it, w, h: Math.round(w * d.ratio) } : { ...it, w }
       }))
     }
-    const up = () => { if (!dragRef.current) return; dragRef.current = null; setDragging(false); touch() }
+    const up = () => {
+      const d = dragRef.current; if (!d) return
+      dragRef.current = null; setDragging(false)
+      if (!d.moved) return                                        // nothing changed, nothing to undo
+      past.current.push(d.before)
+      if (past.current.length > 60) past.current.shift()
+      future.current = []
+      touch()
+    }
     window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up)
     return () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up) }
   }, [touch])
@@ -634,12 +671,15 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
   const [draft, setDraft] = useState<{ tool: Tool; pts: Pt[] } | null>(null)
   const draftRef = useRef(draft); draftRef.current = draft
 
+  // Erasing is a drag, so history is marked once when the gesture starts — marking
+  // per pointermove would push dozens of entries and flush the real undo stack.
   const eraseAt = (x: number, y: number) => {
     const hit = itemsRef.current.filter(i => (i.kind === 'draw' || i.kind === 'shape')
       && x >= i.x - 6 && x <= i.x + i.w + 6 && y >= i.y - 6 && y <= i.y + (i.h ?? 0) + 6)
     if (!hit.length) return
     const ids = new Set(hit.map(i => i.id))
-    mutate(list => list.filter(i => !ids.has(i.id)))
+    setItems(list => list.filter(i => !ids.has(i.id)))
+    touch()
   }
 
   const onBoardPointerDown = (e: React.PointerEvent) => {
@@ -649,7 +689,7 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
     if (t === 'select') { if (onCanvas) { setSel(null); lastPoint.current = pointIn(e) } return }
     const p = pointIn(e); lastPoint.current = p
     if (t === 'text') { addText(p.x, p.y); return }
-    if (t === 'eraser') { setDraft({ tool: 'eraser', pts: [[p.x, p.y]] }); eraseAt(p.x, p.y); return }
+    if (t === 'eraser') { mark(); setDraft({ tool: 'eraser', pts: [[p.x, p.y]] }); eraseAt(p.x, p.y); return }
     e.preventDefault()
     setDraft({ tool: t, pts: [[p.x, p.y], [p.x, p.y]] })
   }
@@ -737,7 +777,7 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
     if (text && ae?.isContentEditable) { e.preventDefault(); document.execCommand('insertText', false, text); touch() }
   }
   const onDrop = (e: React.DragEvent) => {
-    e.preventDefault(); setDragOver(false)
+    e.preventDefault(); endDrag()
     const at = pointIn(e); lastPoint.current = at
     const files = Array.from(e.dataTransfer?.files ?? [])
     if (files.length) { void insertFiles(files, at); return }
@@ -896,7 +936,11 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
               onClick={() => selItem.words ? toText(selItem.id) : toWords(selItem.id)}>كلمات</Btn>
           )}
           {selItem && <Btn title="خيارات العنصر المحدّد" active={menu === 'more'} onClick={() => setMenu(m => m === 'more' ? null : 'more')}><MoreHorizontal size={15} /></Btn>}
-          {selItem && <Btn title="حذف (Del)" onClick={() => remove(selItem.id)}><Trash2 size={15} /></Btn>}
+          {selItem && (
+            <button onMouseDown={hold} onClick={() => remove(selItem.id)} title="حذف المحدّد (Del)"
+              className="px-2 py-1 rounded-lg font-black transition shrink-0 text-white hover:brightness-110"
+              style={{ background: '#dc2626' }}><Trash2 size={15} /></button>
+          )}
 
           <span className="ml-auto flex items-center gap-1.5 shrink-0 pl-2">
             <span className="font-bold whitespace-nowrap" style={{ fontSize: 10.5, color: saved === 'full' ? '#fca5a5' : 'rgba(255,255,255,0.3)' }}>
@@ -1033,8 +1077,9 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
         <div ref={boardRef} onPointerDown={onBoardPointerDown}
           onDoubleClick={e => { if (tool !== 'select') return; if (e.target === e.currentTarget || (e.target as HTMLElement).dataset.canvas) { const p = pointIn(e); addText(p.x, p.y) } }}
           onPaste={onPaste} onDrop={onDrop}
-          onDragOver={e => { e.preventDefault(); setDragOver(true) }}
-          onDragLeave={e => { if (e.currentTarget === e.target) setDragOver(false) }}
+          onDragEnter={e => { dragDepth.current++; if (isFileDrag(e)) setDragOver(true) }}
+          onDragOver={e => { e.preventDefault(); if (isFileDrag(e)) setDragOver(true) }}
+          onDragLeave={() => { dragDepth.current = Math.max(0, dragDepth.current - 1); if (!dragDepth.current) setDragOver(false) }}
           className="relative flex-1 min-h-0 overflow-auto"
           style={{ ...paperStyle, cursor: dragging ? 'grabbing' : drawTool ? 'crosshair' : tool === 'text' ? 'text' : 'default' }}>
 
@@ -1054,10 +1099,20 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
                 <div key={`${it.id}:${rev}`} className="absolute"
                   style={{ left: it.x, top: it.y, width: it.w, zIndex: it.z, pointerEvents: drawTool ? 'none' : 'auto' }}>
                   {on && !drawTool && (
-                    <div onPointerDown={e => startDrag(e, it, 'move')}
-                      className="absolute -top-[24px] left-0 flex items-center gap-1 px-2 py-[2px] rounded-t-lg cursor-grab active:cursor-grabbing select-none"
-                      style={{ background: GOLD, color: INK }}>
-                      <Move size={11} /><span className="font-black" style={{ fontSize: 9.5 }}>اسحب</span>
+                    <div className="absolute -top-[25px] left-0 flex items-center gap-[3px] select-none">
+                      <div onPointerDown={e => startDrag(e, it, 'move')}
+                        className="flex items-center gap-1 px-2 py-[2px] rounded-t-lg cursor-grab active:cursor-grabbing"
+                        style={{ background: GOLD, color: INK }}>
+                        <Move size={11} /><span className="font-black" style={{ fontSize: 9.5 }}>اسحب</span>
+                      </div>
+                      {/* A visible delete. The Delete key only reaches the board when no
+                          text box holds the caret, so a button is the reliable way out. */}
+                      <button onPointerDown={e => { e.preventDefault(); e.stopPropagation() }}
+                        onClick={() => remove(it.id)} title="حذف هذا العنصر"
+                        className="grid place-items-center rounded-t-lg px-[6px] py-[3px] hover:brightness-110 transition"
+                        style={{ background: '#dc2626', color: '#fff' }}>
+                        <X size={12} strokeWidth={3} />
+                      </button>
                     </div>
                   )}
 
@@ -1083,7 +1138,6 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
                             onKeyDown={e => {
                               e.stopPropagation()
                               if (e.key === 'Enter') { setWord(it.id, wi, e.currentTarget.value); setEditWord(null) }
-                              if (e.key === 'Escape') { setEditWord(null) }
                             }}
                             onBlur={e => { setWord(it.id, wi, e.currentTarget.value); setEditWord(null) }}
                             className="outline-none rounded-lg px-2 font-bold"
@@ -1091,12 +1145,13 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
                         ) : (
                           <span key={wi} draggable
                             onDragStart={e => { wordDrag.current = { id: it.id, i: wi }; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', 'w') }}
+                            onDragEnd={() => { wordDrag.current = null; endDrag() }}
                             onDragOver={e => { e.preventDefault(); e.stopPropagation() }}
                             onDrop={e => {
                               e.preventDefault(); e.stopPropagation()
                               const d = wordDrag.current
                               if (d && d.id === it.id) moveWord(it.id, d.i, wi)
-                              wordDrag.current = null
+                              wordDrag.current = null; endDrag()
                             }}
                             onClick={() => setEditWord({ id: it.id, i: wi })}
                             title="اضغط لتغيير الكلمة · اسحب لتبديل مكانها"
