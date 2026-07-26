@@ -7,6 +7,11 @@ import { TESTIMONIALS, STATS } from "@/data/testimonials"
 import { INDIVIDUAL_PLANS, PACK_PLANS, CLASS_PLANS, BUSINESS_PLANS } from "@/data/plans"
 import { openSubscribe } from "@/lib/lead-source"
 import ApproxPrice from "@/components/ApproxPrice"
+import {
+  Users, Star, Globe, MessageSquareQuote, PlayCircle, MessageCircle,
+  Target, FileText, ShieldCheck, Infinity as InfinityIcon, Compass, Trophy,
+  type LucideIcon,
+} from "lucide-react"
 
 /* ═══════════════════════════════════════════════════
    DATA
@@ -31,6 +36,20 @@ const SLIDES = [
 ]
 
 const WORDS_CYCLE = ["الإنجليزية", "المحادثة", "النطق", "الاستماع", "الطلاقة"]
+
+/* ═══════════════════════════════════════════════════
+   DESIGN TOKENS
+   The page was drifting: four different section rhythms, and stat tiles in
+   green / yellow / blue / purple on a brand that is blue and gold. Both are the
+   kind of thing a visitor feels as "unpolished" without being able to name it.
+   One rhythm, one gradient pair, one card treatment — declared here and reused.
+═══════════════════════════════════════════════════ */
+
+const SECTION = "py-20 sm:py-28 px-5 sm:px-6"        // major sections
+const SECTION_TIGHT = "py-14 sm:py-20 px-5 sm:px-6"  // supporting sections
+const GOLD = "from-amber-400 to-yellow-500"          // the single accent gradient
+const BLUE = "from-blue-600 to-blue-800"             // the single brand gradient
+const CARD = "rounded-2xl bg-white ring-1 ring-gray-200/80 shadow-sm hover:shadow-lg hover:ring-amber-300/70 transition-all duration-300"
 
 /* ═══════════════════════════════════════════════════
    ANIMATION VARIANTS
@@ -145,8 +164,8 @@ function HeroSlider() {
 
       {/* moving blobs with parallax */}
       <motion.div style={{ x: bgX, y: bgY }} className="absolute inset-0">
-        <div className="absolute top-10 right-10 w-[400px] h-[400px] bg-gradient-to-br from-blue-200/40 to-sky-200/20 rounded-full blur-3xl hero-blob-1" />
-        <div className="absolute bottom-10 left-10 w-[500px] h-[500px] bg-gradient-to-br from-blue-200/30 to-purple-200/10 rounded-full blur-3xl hero-blob-2" />
+        <div className="absolute top-10 right-10 w-[400px] h-[400px] bg-gradient-to-br from-blue-200/40 to-blue-100/20 rounded-full blur-3xl hero-blob-1" />
+        <div className="absolute bottom-10 left-10 w-[500px] h-[500px] bg-gradient-to-br from-amber-200/30 to-blue-200/10 rounded-full blur-3xl hero-blob-2" />
       </motion.div>
 
       <Particles count={12} className="opacity-30" />
@@ -351,7 +370,7 @@ function HeroSlider() {
    2. STATS
 ═══════════════════════════════════════════════════ */
 
-function StatItem({ num, suffix, label, icon, gradient }: { num: number; suffix: string; label: string; icon: string; gradient: string }) {
+function StatItem({ num, suffix, label, icon: Icon, accent }: { num: number; suffix: string; label: string; icon: LucideIcon; accent?: boolean }) {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, amount: 0.5 })
   const count = useCountUp(num, 2000, inView)
@@ -361,9 +380,9 @@ function StatItem({ num, suffix, label, icon, gradient }: { num: number; suffix:
       <motion.div
         whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
         transition={{ duration: 0.4 }}
-        className={`w-14 h-14 bg-gradient-to-br ${gradient} rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 shadow-lg group-hover:shadow-xl transition-shadow duration-300`}
+        className={`w-14 h-14 bg-gradient-to-br ${accent ? GOLD : BLUE} rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg group-hover:shadow-xl transition-shadow duration-300`}
       >
-        {icon}
+        <Icon size={24} strokeWidth={2.4} className={accent ? "text-gray-900" : "text-white"} />
       </motion.div>
       <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 tabular-nums">
         {suffix === "%" ? `${count}%` : suffix === "+" ? `${count}+` : suffix}
@@ -383,10 +402,11 @@ function StatsStrip() {
         variants={stagger}
         className="max-w-5xl mx-auto bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl shadow-gray-200/60 border border-gray-100/80 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8 p-6 sm:p-10"
       >
-        <StatItem num={STATS.students} suffix="+" label="طالب نشط" icon="👥" gradient="from-green-400 to-emerald-500" />
-        <StatItem num={97} suffix="%" label="راضين تماماً" icon="⭐" gradient="from-yellow-400 to-amber-500" />
-        <StatItem num={STATS.countries} suffix="+" label="دولة حول العالم" icon="🌍" gradient="from-blue-400 to-blue-600" />
-        <StatItem num={STATS.reviews} suffix="+" label="تقييم موثّق" icon="💬" gradient="from-purple-400 to-purple-600" />
+        {/* one gold accent draws the eye to the proof number; the rest support it */}
+        <StatItem num={STATS.students} suffix="+" label="طالب نشط" icon={Users} />
+        <StatItem num={97} suffix="%" label="راضين تماماً" icon={Star} accent />
+        <StatItem num={STATS.countries} suffix="+" label="دولة حول العالم" icon={Globe} />
+        <StatItem num={STATS.reviews} suffix="+" label="تقييم موثّق" icon={MessageSquareQuote} />
       </motion.div>
     </section>
   )
@@ -432,10 +452,10 @@ function ProgramsSection() {
       points: [`وفّر حتى ${maxPackSaving.toLocaleString()} درهم`, "رحلة متصلة من الصفر للطلاقة", "كوتشينغ ومتابعة شخصية"],
       href: "/pricing#packs",
       cta: "شوف الباكات",
-      gradient: "from-violet-500 to-purple-700",
-      border: "hover:border-violet-300",
-      accent: "text-violet-700",
-      chip: "bg-violet-50 text-violet-700",
+      gradient: "from-blue-700 to-blue-900",
+      border: "hover:border-blue-300",
+      accent: "text-blue-800",
+      chip: "bg-blue-50 text-blue-800",
     },
     {
       emoji: "👨‍🏫",
@@ -464,15 +484,15 @@ function ProgramsSection() {
       points: ["محاكاة اجتماعات حقيقية", "مفردات الأعمال والتفاوض", "تصحيح شخصي من الأستاذ"],
       href: "/business",
       cta: "اعرف المزيد",
-      gradient: "from-cyan-500 to-sky-700",
-      border: "hover:border-cyan-300",
-      accent: "text-cyan-700",
-      chip: "bg-cyan-50 text-cyan-700",
+      gradient: "from-slate-600 to-slate-800",
+      border: "hover:border-slate-300",
+      accent: "text-slate-700",
+      chip: "bg-slate-100 text-slate-700",
     },
   ]
 
   return (
-    <section id="programs" className="py-20 sm:py-24 px-5 sm:px-6 bg-gradient-to-b from-white via-gray-50/60 to-white relative overflow-hidden scroll-mt-16" dir="rtl">
+    <section id="programs" className={`${SECTION} bg-gradient-to-b from-white via-gray-50/60 to-white relative overflow-hidden scroll-mt-16`} dir="rtl">
       <div className="absolute top-20 left-0 w-[500px] h-[500px] bg-blue-100/20 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-20 right-0 w-[400px] h-[400px] bg-amber-100/20 rounded-full blur-3xl pointer-events-none" />
 
@@ -559,21 +579,21 @@ function HowItWorks() {
   const steps = [
     {
       num: "01",
-      icon: "🎯",
+      icon: Compass,
       title: "اختر مستواك",
       desc: "اختبار مجاني في 3 دقائق يحدد مستواك بدقة والباقة المناسبة لك — بلا تخمين.",
       pill: "3 دقائق",
     },
     {
       num: "02",
-      icon: "📹",
+      icon: PlayCircle,
       title: "ابدا تتعلّم",
       desc: "دروس فيديو قصيرة + مجموعة واتساب حية + متابعة يومية من الأستاذ حمزة شخصياً.",
       pill: "15 دقيقة / يوم",
     },
     {
       num: "03",
-      icon: "🏆",
+      icon: Trophy,
       title: "شوف النتيجة",
       desc: "فالأسبوع الأول حس بالفرق. فاليوم 30 — هضر محادثة كاملة. بضمان.",
       pill: "30 يوم",
@@ -581,7 +601,7 @@ function HowItWorks() {
   ]
 
   return (
-    <section className="py-20 sm:py-28 px-5 sm:px-6 bg-gradient-to-b from-blue-700 via-blue-800 to-blue-900 text-white relative overflow-hidden" dir="rtl">
+    <section className={`${SECTION} bg-gradient-to-b from-blue-700 via-blue-800 to-blue-900 text-white relative overflow-hidden`} dir="rtl">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_10%,rgba(251,191,36,0.18),transparent_40%),radial-gradient(circle_at_20%_90%,rgba(96,165,250,0.25),transparent_40%)]" />
       <Particles count={15} className="opacity-50" />
 
@@ -611,9 +631,9 @@ function HowItWorks() {
                   <motion.div
                     whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
                     transition={{ duration: 0.5 }}
-                    className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-3xl flex items-center justify-center text-3xl sm:text-4xl shadow-2xl shadow-blue-900/50 border border-blue-400/30"
+                    className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-3xl flex items-center justify-center shadow-2xl shadow-blue-900/50 border border-blue-400/30"
                   >
-                    {s.icon}
+                    <s.icon size={34} strokeWidth={2.2} className="text-amber-300" />
                   </motion.div>
                 </div>
 
@@ -643,16 +663,16 @@ function HowItWorks() {
 
 function WhatYouGet() {
   const items = [
-    { icon: "📹", title: "دروس فيديو مركّزة", desc: "5-8 دقائق للفيديو، بشرح عربي واضح — بلا حشو." },
-    { icon: "💬", title: "واتساب مع حمزة شخصياً", desc: "رسائل صوتية يصحّحها الأستاذ بنفسه — لا روبوت." },
-    { icon: "🎯", title: "متابعة أسبوعية بالاسم", desc: "واجبات بسيطة تُراجَع وتُصحَّح بتغذية راجعة مخصصة." },
-    { icon: "🎁", title: "مكتبة PDF + تمارين", desc: "ملخصات وتمارين تطبيقية تحمّلها وتراجعها متى شئت." },
-    { icon: "🏆", title: "ضمان الأسبوع الأول", desc: "ما حسّيتش بالفرق فالأسبوع الأول؟ كنرجعو ليك الفلوس." },
-    { icon: "♾️", title: "وصول مدى الحياة", desc: "المحتوى يبقى معك للأبد — بلا تاريخ انتهاء." },
+    { icon: PlayCircle, title: "دروس فيديو مركّزة", desc: "5-8 دقائق للفيديو، بشرح عربي واضح — بلا حشو." },
+    { icon: MessageCircle, title: "واتساب مع حمزة شخصياً", desc: "رسائل صوتية يصحّحها الأستاذ بنفسه — لا روبوت." },
+    { icon: Target, title: "متابعة أسبوعية بالاسم", desc: "واجبات بسيطة تُراجَع وتُصحَّح بتغذية راجعة مخصصة." },
+    { icon: FileText, title: "مكتبة PDF + تمارين", desc: "ملخصات وتمارين تطبيقية تحمّلها وتراجعها متى شئت." },
+    { icon: ShieldCheck, title: "ضمان الأسبوع الأول", desc: "ما حسّيتش بالفرق فالأسبوع الأول؟ كنرجعو ليك الفلوس." },
+    { icon: InfinityIcon, title: "وصول مدى الحياة", desc: "المحتوى يبقى معك للأبد — بلا تاريخ انتهاء." },
   ]
 
   return (
-    <section className="py-20 sm:py-24 px-5 sm:px-6 bg-gradient-to-b from-white to-gray-50 relative overflow-hidden" dir="rtl">
+    <section className={`${SECTION} bg-gradient-to-b from-white to-gray-50 relative overflow-hidden`} dir="rtl">
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-blue-100/60 to-transparent rounded-full blur-3xl" />
 
       <div className="max-w-5xl mx-auto relative z-10">
@@ -676,10 +696,10 @@ function WhatYouGet() {
               custom={i}
               variants={fadeUp}
               whileHover={{ y: -5 }}
-              className="flex items-start gap-4 bg-white rounded-2xl p-5 border-2 border-gray-100 hover:border-amber-200 shadow-sm hover:shadow-lg transition-all duration-300"
+              className={`flex items-start gap-4 p-5 ${CARD}`}
             >
-              <div className="w-12 h-12 shrink-0 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center text-xl shadow-md">
-                {item.icon}
+              <div className={`w-12 h-12 shrink-0 bg-gradient-to-br ${BLUE} rounded-xl flex items-center justify-center shadow-md`}>
+                <item.icon size={22} strokeWidth={2.3} className="text-white" />
               </div>
               <div className="min-w-0">
                 <h3 className="font-black text-[15px] text-gray-900 mb-1 leading-tight">{item.title}</h3>
@@ -724,7 +744,7 @@ function TestimonialsSection() {
   } as const
 
   return (
-    <section className="py-20 sm:py-24 px-5 sm:px-6 bg-gradient-to-b from-white via-amber-50/40 to-white relative overflow-hidden" dir="rtl">
+    <section className={`${SECTION} bg-gradient-to-b from-white via-amber-50/40 to-white relative overflow-hidden`} dir="rtl">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-gradient-radial from-amber-100/50 to-transparent blur-3xl" />
 
       <div className="max-w-6xl mx-auto relative z-10">
@@ -800,7 +820,7 @@ function TestimonialsSection() {
 
 function MofradatiSection() {
   return (
-    <section className="py-14 sm:py-16 px-5 sm:px-6 bg-gradient-to-b from-gray-50 to-white" dir="rtl">
+    <section className={`${SECTION_TIGHT} bg-gradient-to-b from-gray-50 to-white`} dir="rtl">
       <div className="max-w-4xl mx-auto">
         <motion.a
           initial="hidden"
@@ -858,7 +878,7 @@ function MiniFAQ() {
     },
   ]
   return (
-    <section className="py-14 sm:py-20 px-5 sm:px-6 bg-white" dir="rtl">
+    <section className={`${SECTION_TIGHT} bg-white`} dir="rtl">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-900 mb-2 leading-tight">
@@ -930,16 +950,16 @@ function FinalCTA() {
             href="/level-test"
             className="bg-white/10 backdrop-blur-md text-white font-bold px-8 sm:px-10 py-5 rounded-2xl border-2 border-white/30 hover:bg-white/20 hover:border-amber-400/50 transition-all duration-300 inline-flex items-center gap-2"
           >
-            🧭 اختبر مستواك أولاً
+            <Compass size={18} strokeWidth={2.4} /> اختبر مستواك أولاً
           </Link>
         </div>
 
         <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.5 }} className="mt-12 flex items-center justify-center gap-3 sm:gap-6 flex-wrap text-white/80 text-sm font-bold">
-          <span className="inline-flex items-center gap-1.5"><span className="text-amber-400">✅</span> ضمان استرجاع</span>
+          <span className="inline-flex items-center gap-2"><ShieldCheck size={17} className="text-amber-400" strokeWidth={2.4} /> ضمان استرجاع</span>
           <span className="w-1 h-1 bg-amber-400/60 rounded-full" />
-          <span className="inline-flex items-center gap-1.5"><span className="text-amber-400">💬</span> دعم واتساب شخصي</span>
+          <span className="inline-flex items-center gap-2"><MessageCircle size={17} className="text-amber-400" strokeWidth={2.4} /> دعم واتساب شخصي</span>
           <span className="w-1 h-1 bg-amber-400/60 rounded-full" />
-          <span className="inline-flex items-center gap-1.5"><span className="text-amber-400">♾️</span> وصول مدى الحياة</span>
+          <span className="inline-flex items-center gap-2"><InfinityIcon size={17} className="text-amber-400" strokeWidth={2.4} /> وصول مدى الحياة</span>
         </motion.div>
       </motion.div>
     </section>
