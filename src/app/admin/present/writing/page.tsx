@@ -84,7 +84,7 @@ const SYLLABUS: UnitDef[] = [
       { en: 'Complete Sentences', ar: 'الجمل الكاملة', from: 12, to: 13 },
       { en: 'Joining Ideas', ar: 'ربط الأفكار', from: 14, to: 16.5 },
     ] },
-  { en: 'Unit 6 · Punctuation & Style', short: 'Style', shortAr: 'الأسلوب', ar: 'الوحدة ٦ · الترقيم والأسلوب', cefr: 'A2–B1',
+  { en: 'Unit 6 · Punctuation & Style', short: 'Punctuation', shortAr: 'الترقيم', ar: 'الوحدة ٦ · الترقيم والأسلوب', cefr: 'A2–B1',
     promise: 'Punctuate cleanly and give your sentences rhythm — the polish readers feel.',
     promiseAr: 'ترقّم بدقّة وتمنح جملك إيقاعًا — الصقل الذي يشعر به القارئ.',
     modules: [
@@ -1728,6 +1728,12 @@ export default function WritingDeck() {
 function SlideView({ s, step, onJump, onJumpUnit }: { s: Slide; step: number; onJump: (no: number) => void; onJumpUnit: (ui: number) => void }) {
   if (s.t === 'intro') {
     const totalLessons = ORDERED.length
+    // Read the span off the syllabus rather than hard-coding it — this said
+    // "A1→B1" for a while after Units 9-11 pushed the course into B2 and C1.
+    const bands = ['A1', 'A2', 'B1', 'B2', 'C1']
+    const seen = SYLLABUS.flatMap(u => u.cefr.split('–'))
+    const lo = bands.find(b => seen.includes(b)) ?? 'A1'
+    const hi = [...bands].reverse().find(b => seen.includes(b)) ?? 'C1'
     return (
       <div className="w-full max-w-[88vw] flex flex-col items-center gap-[2.2vh] text-center">
         <div>
@@ -1740,15 +1746,17 @@ function SlideView({ s, step, onJump, onJumpUnit }: { s: Slide; step: number; on
 
         {/* the promise, in one line — what they can DO when the last slide ends */}
         <div dir="rtl" className="max-w-[62vw] font-bold text-stone-600 leading-[1.7]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.15vw' }}>
-          تبدأ من الحرف الأول، وتنتهي وأنت تكتب <span className="font-black" style={{ color: AMBER }}>فقرة كاملة وإيميلًا احترافيًا</span> بالإنجليزية — بثقة، وبقواعد تفهمها لا تحفظها.
+          تبدأ من الحرف الأول، وتنتهي وأنت تكتب <span className="font-black" style={{ color: AMBER }}>فقرة كاملة وإيميلًا احترافيًا ومقالًا مُحكمًا</span> بالإنجليزية — بثقة، وبقواعد تفهمها لا تحفظها.
         </div>
 
-        {/* headline numbers */}
-        <div dir="ltr" className="flex items-center gap-[2.4vw]">
-          {[[String(totalLessons), 'lessons', 'درسًا'], [String(SYLLABUS.length), 'units', 'وحدات'], ['A1→B1', 'CEFR level', 'المستوى']].map(([v, en, ar], i) => (
-            <div key={i} className="flex flex-col items-center">
+        {/* headline numbers — one plate so they read as a spec, not three stray stacks */}
+        <div dir="ltr" className="flex items-stretch rounded-[22px] bg-white px-[1vw] py-[1.2vh]"
+          style={{ boxShadow: '0 18px 44px -30px rgba(42,29,18,0.55), inset 0 0 0 1.5px #f0ece6' }}>
+          {[[String(totalLessons), 'lessons', 'درسًا'], [String(SYLLABUS.length), 'units', 'وحدات'], [`${lo}→${hi}`, 'CEFR level', 'المستوى']].map(([v, en, ar], i) => (
+            <div key={i} className="flex flex-col items-center px-[1.8vw]"
+              style={i ? { borderInlineStart: '1.5px solid #f0ece6' } : undefined}>
               <span className="font-black leading-none" style={{ color: INK, fontSize: '2.1vw' }}>{v}</span>
-              <span className="font-black text-stone-400 uppercase tracking-[0.12em]" style={{ fontSize: '0.66vw' }}>{en}</span>
+              <span className="font-black text-stone-400 uppercase tracking-[0.12em] mt-[0.4vh]" style={{ fontSize: '0.66vw' }}>{en}</span>
               <span dir="rtl" className="font-bold text-stone-300" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.7vw' }}>{ar}</span>
             </div>
           ))}
@@ -1759,16 +1767,17 @@ function SlideView({ s, step, onJump, onJumpUnit }: { s: Slide; step: number; on
           {/* the rail sits exactly on the circle centres: button padding + half the circle,
               and stops at the first/last centre (one half-column in from each edge). */}
           <div className="absolute h-[3px] rounded-full"
-            style={{ top: 'calc(0.8vh + 1.3vw)', left: `${50 / SYLLABUS.length}%`, right: `${50 / SYLLABUS.length}%`, background: 'linear-gradient(90deg,#fde68a,#facc15,#b45309)' }} />
+            style={{ top: 'calc(1.6vh + 1.3vw)', left: `${50 / SYLLABUS.length}%`, right: `${50 / SYLLABUS.length}%`, background: 'linear-gradient(90deg,#fde68a,#facc15,#b45309)' }} />
           <div className="relative grid gap-[0.7vw] w-full" style={{ gridTemplateColumns: `repeat(${SYLLABUS.length}, minmax(0,1fr))` }}>
             {SYLLABUS.map((u, ui) => {
               const count = u.modules.reduce((n, m) => n + lessonsIn(m).length, 0)
               return (
                 <button key={ui} onClick={() => onJumpUnit(ui)}
-                  className="group flex flex-col items-center gap-[0.5vh] rounded-2xl px-[0.5vw] py-[0.8vh] hover:bg-amber-50/70 transition">
+                  className="group flex flex-col items-center gap-[0.45vh] rounded-2xl px-[0.4vw] pt-[0.8vh] pb-[1vh] bg-white transition-all duration-200 hover:-translate-y-[3px]"
+                  style={{ boxShadow: '0 10px 26px -22px rgba(42,29,18,0.7), inset 0 0 0 1.5px #f2eee8' }}>
                   <span className="grid place-items-center rounded-full font-black shrink-0 ring-4 ring-white transition-transform group-hover:scale-110"
                     style={{ width: '2.6vw', height: '2.6vw', background: INK, color: GOLD, fontSize: '1vw' }}>{ui + 1}</span>
-                  <span className="font-black leading-tight" style={{ color: INK, fontSize: '0.88vw' }}>{u.short}</span>
+                  <span className="font-black leading-tight group-hover:text-[#b45309] transition-colors" style={{ color: INK, fontSize: '0.88vw' }}>{u.short}</span>
                   <span dir="rtl" className="font-bold text-stone-400 leading-tight" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.76vw' }}>{u.shortAr}</span>
                   <span className="rounded-md px-1.5 py-0.5 font-black" style={{ background: '#ecfeff', color: '#0e7490', fontSize: '0.62vw' }}>{u.cefr}</span>
                   <span className="font-bold text-stone-300" style={{ fontSize: '0.64vw' }}>{count} lessons</span>
