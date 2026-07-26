@@ -99,25 +99,6 @@ export const IRREGULAR_VERBS: Irregular[] = [
   { base: 'write', past: 'wrote', pp: 'written' },
 ]
 
-/* A–Z reference: each letter, its small form, and a beginner word. */
-const ALPHA: Ex[] = [
-  ['Apple', 'تفّاحة'], ['Ball', 'كرة'], ['Cat', 'قطة'], ['Dog', 'كلب'], ['Egg', 'بيضة'],
-  ['Fish', 'سمكة'], ['Girl', 'فتاة'], ['House', 'بيت'], ['Ice', 'ثلج'], ['Juice', 'عصير'],
-  ['Key', 'مفتاح'], ['Lion', 'أسد'], ['Moon', 'قمر'], ['Nose', 'أنف'], ['Orange', 'برتقالة'],
-  ['Pen', 'قلم'], ['Queen', 'ملكة'], ['Rain', 'مطر'], ['Sun', 'شمس'], ['Tree', 'شجرة'],
-  ['Umbrella', 'مظلّة'], ['Van', 'شاحنة'], ['Water', 'ماء'], ['Box', 'صندوق'], ['Yellow', 'أصفر'], ['Zebra', 'حمار وحشي'],
-].map(([word, ar], i) => {
-  const C = String.fromCharCode(65 + i)
-  return {
-    en: `*${C}* ${C.toLowerCase()}  —  ${word}`,
-    ar,
-    // Same reason on every card: the pair is ONE letter in two shapes, and the
-    // example word starts with it. That is the only point of the alphabet slides.
-    why: `Same letter, two shapes: *${C}* is the capital, *${C.toLowerCase()}* is the small one — and *${word}* begins with it.`,
-    whyAr: `حرف واحد بشكلين: ${C} كبير و${C.toLowerCase()} صغير، وكلمة ${word} تبدأ به.`,
-  }
-})
-
 /* ── Unit message threads ────────────────────────────────────────────────────
    Founder asked for "conversations applying the rules". In a WRITING course the
    honest form of that is a WRITTEN conversation — the WhatsApp and email threads
@@ -500,17 +481,17 @@ export const LESSONS: Lesson[] = [
   /* ─────────────────────────── 1 · CAPITALIZATION ─────────────────────────── */
   {
     no: 1, tag: 'Capitalization', tagAr: 'الحروف الكبيرة',
-    title: 'Capital & Small Letters — when to capitalize',
-    titleAr: 'الحروف الكبيرة والصغيرة — متى نستخدم الكبيرة',
+    title: 'Capital Letters — which words take one',
+    titleAr: 'الحروف الكبيرة — أيّ الكلمات تأخذها',
     objectives: [
-      { en: 'Tell CAPITAL letters from small letters', ar: 'التمييز بين الحرف الكبير والصغير' },
       { en: 'Capitalize the first word of every sentence', ar: 'كتابة أول كلمة في الجملة بحرف كبير' },
-      { en: 'Capitalize proper nouns (names, places)', ar: 'كتابة أسماء العَلَم بحرف كبير' },
-      { en: 'Always capitalize “I”, days and months', ar: 'كتابة I وأيام الأسبوع والأشهر بحرف كبير' },
+      { en: 'Know the CATEGORIES that always take a capital', ar: 'معرفة الفئات التي تأخذ حرفًا كبيرًا دائمًا' },
+      { en: 'Tell a *name* from a *type of thing*', ar: 'التمييز بين الاسم العَلَم واسم النوع' },
+      { en: 'Capitalize every word of a compound NAME', ar: 'كتابة كل كلمة في الاسم المركّب بحرف كبير' },
     ],
     rule: {
-      en: 'Start every sentence with a *CAPITAL* letter. Capitalize *names*, *cities*, *countries*, *languages*, *days*, *months*, and the word *I* — everywhere they appear.',
-      ar: 'ابدأ كل جملة بحرف كبير. واكتب أسماء الأشخاص والمدن والدول واللغات وأيام الأسبوع والأشهر وكلمة I بحرف كبير أينما وردت.',
+      en: 'Start every sentence with a *CAPITAL*. Then capitalize every *NAME*: people, cities, countries, nationalities, languages, days, months, institutions — and the word *I*. If the name is made of two words, *both* get a capital: *New York*, *Hassan Street*. A type of thing does not: *a city*, *a street*.',
+      ar: 'ابدأ كل جملة بحرف كبير، ثم اكتب كل *اسم عَلَم* بحرف كبير: الأشخاص والمدن والدول والجنسيات واللغات والأيام والأشهر والمؤسّسات، وكلمة I. وإن تكوّن الاسم من كلمتين فكلتاهما بحرف كبير. أما اسم النوع فلا.',
     },
     explain: {
       intro: 'In speaking, capitals are invisible. In writing, they are a rule — and a missing capital is a clear mistake a reader notices immediately.',
@@ -521,10 +502,32 @@ export const LESSONS: Lesson[] = [
         { en: 'Languages & nationalities: *A*rabic, *E*nglish, *F*rench', ar: 'اللغات والجنسيات' },
         { en: 'Days & months: *M*onday, *J*uly (but not seasons)', ar: 'الأيام والأشهر' },
         { en: 'The pronoun *I* is ALWAYS capital', ar: 'الضمير I دائمًا كبير' },
+        { en: 'A NAME takes a capital · a TYPE of thing does not: *Casablanca* vs *a city*', ar: 'الاسم العَلَم يأخذ حرفًا كبيرًا، واسم النوع لا: Casablanca مقابل a city' },
+        { en: 'Compound NAME → every word: *New York* · *Hassan Street* · *Atlas Mountains*', ar: 'الاسم المركّب: كل كلمة فيه بحرف كبير' },
+        { en: 'Compound TYPE → no words: *bus station* · *coffee shop* · *train ticket*', ar: 'التركيب الوصفي: لا حرف كبير في أيّ كلمة منه' },
       ],
     },
     examples: [
-      ...ALPHA,
+      /* Part 1 — the categories, one card each. Part 2 — name vs type, which is
+         where the real mistakes live, ending on the compound contrast. */
+      { en: 'People: *S*ara · *O*mar · *H*amza *E*l *Q*asraoui', ar: 'الأشخاص', why: 'Every part of a person’s name takes a capital — first, middle and family.', whyAr: 'كل جزء من اسم الشخص بحرف كبير: الأول والأوسط والعائلة.' },
+      { en: 'Cities: *R*abat · *C*asablanca · *D*ubai', ar: 'المدن', why: 'A city is a NAME, so it is capital wherever it appears in the sentence.', whyAr: 'المدينة اسم عَلَم فتُكتب بحرف كبير أينما وردت.' },
+      { en: 'Countries: *M*orocco · *E*gypt · *F*rance', ar: 'الدول', why: 'Same category as cities — countries are names, not descriptions.', whyAr: 'الدول كالمدن: أسماء لا أوصاف.' },
+      { en: 'Nationalities: a *M*oroccan engineer · an *E*gyptian friend', ar: 'الجنسيات', why: 'English capitalizes nationalities; Arabic does not — this one is easy to forget.', whyAr: 'الإنجليزية تكتب الجنسية بحرف كبير والعربية لا، ولهذا تُنسى.' },
+      { en: 'Languages: *A*rabic · *E*nglish · *F*rench', ar: 'اللغات', why: 'Languages come from country names, so they inherit the capital.', whyAr: 'اللغات مشتقّة من أسماء البلدان فورثت الحرف الكبير.' },
+      { en: 'Days: *M*onday · *F*riday · *S*unday', ar: 'الأيام', why: 'Days are proper nouns in English. In Arabic they are ordinary words.', whyAr: 'الأيام أسماء عَلَم في الإنجليزية، وكلمات عادية في العربية.' },
+      { en: 'Months: *J*anuary · *A*ugust · *R*amadan', ar: 'الأشهر', why: 'Months follow the same rule as days — but SEASONS do not: *summer*.', whyAr: 'الأشهر كالأيام، أما الفصول فلا: summer بحرف صغير.' },
+      { en: 'Titles before a name: *M*r. *A*lami · *D*r. *S*ara', ar: 'الألقاب قبل الاسم', why: 'The title is part of the name here, so it takes a capital too.', whyAr: 'اللقب جزء من الاسم هنا فيأخذ حرفًا كبيرًا أيضًا.' },
+      { en: 'The pronoun *I*: *I* think *I* can.', ar: 'الضمير I', why: 'The only pronoun English capitalizes, and it never depends on position.', whyAr: 'الضمير الوحيد الذي يُكتب كبيرًا، ولا يتوقّف على موضعه.' },
+      { en: 'NOT capital: *summer* · *north* · *the government* · *my school*', ar: 'لا تأخذ حرفًا كبيرًا', why: 'Seasons, directions and job/place TYPES are descriptions, not names.', whyAr: 'الفصول والجهات وأنواع الأماكن أوصاف لا أسماء.' },
+      { en: 'a city  →  *C*asablanca', ar: 'نوع ← اسم', why: 'Same thing, two ways of naming it. Only the NAME earns the capital.', whyAr: 'الشيء نفسه بطريقتين، والحرف الكبير للاسم وحده.' },
+      { en: 'a university  →  *A*l *A*khawayn *U*niversity', ar: 'نوع ← اسم مركّب', why: 'Now it is a name made of three words — so all three are capital.', whyAr: 'صار اسمًا من ثلاث كلمات، فكلّها بحرف كبير.' },
+      { en: 'a street  →  *H*assan *S*treet', ar: 'نوع ← اسم مركّب', why: 'Even *Street* takes a capital, because it is part of the name itself.', whyAr: 'حتى كلمة Street بحرف كبير لأنها جزء من الاسم.' },
+      { en: 'a mosque  →  *H*assan *II* *M*osque', ar: 'نوع ← اسم مركّب', why: 'Every word of the name, including the number and the word *Mosque*.', whyAr: 'كل كلمات الاسم، ومنها الرقم وكلمة Mosque.' },
+      { en: 'mountains  →  the *A*tlas *M*ountains', ar: 'نوع ← اسم مركّب', why: '*the* stays small — it is not part of the name, just an article.', whyAr: 'كلمة the تبقى صغيرة لأنها أداة لا جزء من الاسم.' },
+      { en: 'Compound NAME ✓: *N*ew *Y*ork · *U*nited *A*rab *E*mirates', ar: 'اسم مركّب: كل كلمة كبيرة', why: 'Two or three words, one name — so every word is capital.', whyAr: 'كلمتان أو ثلاث لاسم واحد، فكلّها بحرف كبير.' },
+      { en: 'Compound TYPE ✗: *bus station* · *coffee shop* · *train ticket*', ar: 'تركيب وصفي: بلا حرف كبير', why: 'THE contrast of this lesson: two words describing a KIND take no capitals.', whyAr: 'مفارقة الدرس: كلمتان تصفان نوعًا فلا حرف كبير فيهما.' },
+      { en: 'Compare: I waited at the *bus station* in *N*ew *Y*ork.', ar: 'قارن في جملة واحدة', why: 'One sentence, both rules: the type stays small, the name goes capital.', whyAr: 'جملة واحدة وقاعدتان: النوع صغير والاسم كبير.' },
       { en: '*M*y name is *S*ara.', ar: 'اسمي سارة.', why: 'Two capitals: the first word of the sentence, and a NAME.', whyAr: 'حرفان كبيران: أول الجملة، والاسم العلم.' },
       { en: '*I* live in *R*abat, *M*orocco.', ar: 'أعيش في الرباط، المغرب.', why: '*I* is always capital, wherever it stands — no other pronoun is.', whyAr: 'I كبيرة دائمًا أينما وقعت، ولا ضمير غيرها كذلك.' },
       { en: '*T*oday is *M*onday.', ar: 'اليوم هو الاثنين.', why: 'Days of the week are proper nouns in English — Arabic does not mark them.', whyAr: 'أيام الأسبوع أسماء علم في الإنجليزية، والعربية لا تميّزها.' },
@@ -539,12 +542,15 @@ export const LESSONS: Lesson[] = [
       { q: 'Correct: “ali and omar visited spain in august.”', a: '*A*li and *O*mar visited *S*pain in *A*ugust.' },
       { q: 'Correct: “my teacher mr. karim is from london.”', a: '*M*y teacher, *M*r. *K*arim, is from *L*ondon.' },
       { q: 'Which words must be capital: i · monday · book · morocco?', a: '*I*, *M*onday, *M*orocco (not “book”).' },
+      { q: 'Name or type? “we passed a mosque” · “we passed hassan II mosque”', a: 'Type → *a mosque*. Name → *H*assan *II* *M*osque — every word.' },
+      { q: 'Capitalize correctly: “i took a taxi from the bus station to hassan street.”', a: '*I* took a taxi from the *bus station* to *H*assan *S*treet.' },
+      { q: 'Why is “New York” capital but “coffee shop” is not?', a: '*New York* is a NAME (both words); *coffee shop* is a TYPE of place.' },
     ],
     reading: {
       title: 'A Short Introduction', titleAr: 'تعريف قصير',
       passage: [
         'My name is *O*mar, and I come from *F*es, a beautiful city in *M*orocco.',
-        'Every *M*onday, I study *E*nglish at the *A*merican *L*anguage *C*enter.',
+        'Every *M*onday, I study *E*nglish at the *A*merican *L*anguage *C*enter — a *language school* near the *bus station*.',
         'My teacher, *M*r. *K*arim, is from *L*ondon, and he is very patient.',
         'He always says that practice is the key to success.',
         'In *J*uly, I will travel to *S*pain to visit my brother *Y*usuf.',
@@ -555,12 +561,12 @@ export const LESSONS: Lesson[] = [
         { q: 'Why is “American Language Center” capitalized?', a: 'It is the *name* of a place (a proper noun).' },
         { q: 'Find two more words that must be capital and say why.', a: 'e.g. *J*uly (month), *S*pain (country), *Y*usuf (name).' },
       ],
-      tip: 'Notice: sentence starts, names, places, languages, days and months are all capital.',
-      tipAr: 'لاحظ: بدايات الجمل والأسماء والأماكن واللغات والأيام والأشهر كلها كبيرة.',
+      tip: 'Notice the pair: *American Language Center* is a NAME (all capital) but *language school* and *bus station* are TYPES (all small).',
+      tipAr: 'لاحظ المقابلة: American Language Center اسم فكلّه كبير، أما language school و bus station فنوعان فكلّهما صغير.',
     },
     homework: [
       { en: 'Write 5 sentences about your city; capitalize every proper noun', ar: 'اكتب ٥ جمل عن مدينتك مع كتابة أسماء العَلَم بحرف كبير' },
-      { en: 'List 6 proper nouns you use often (names, cities, countries)', ar: 'اكتب ٦ أسماء عَلَم تستعملها كثيرًا' },
+      { en: 'Write 4 pairs: a TYPE and its NAME (a city → Casablanca)', ar: 'اكتب ٤ أزواج: نوع واسمه (a city ← Casablanca)' },
       { en: 'Write 3 sentences using “I”, a day, and a month', ar: 'اكتب ٣ جمل تستعمل I ويومًا وشهرًا' },
     ],
     editing: {
