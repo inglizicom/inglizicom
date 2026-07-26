@@ -28,7 +28,7 @@ import {
   MousePointer2, Pencil, ArrowUpRight, Square, Circle, Highlighter, LayoutGrid, MoreHorizontal,
   Undo2, Redo2, Copy as CopyIcon, HelpCircle, Plus,
 } from 'lucide-react'
-import { LESSONS, IRREGULAR_VERBS, type Lesson, type Ex, type QA, type Irregular } from '@/data/writing-course'
+import { LESSONS, IRREGULAR_VERBS, type Lesson, type Ex, type Example, type QA, type Irregular } from '@/data/writing-course'
 
 const INK = '#2a1d12'
 const GOLD = '#facc15'
@@ -148,7 +148,7 @@ type Slide =
   | { t: 'form'; L: Lesson }
   | { t: 'spelling'; L: Lesson }
   | { t: 'irregulars'; L: Lesson; items: Irregular[]; page: number; pages: number; mode: 'past' | 'pp' }
-  | { t: 'examples'; L: Lesson; item: Ex; page: number; pages: number }
+  | { t: 'examples'; L: Lesson; item: Example; page: number; pages: number }
   | { t: 'exercises'; L: Lesson; item: QA; page: number; pages: number }
   | { t: 'reading'; L: Lesson }
   | { t: 'homework'; L: Lesson }
@@ -1969,10 +1969,21 @@ function SlideView({ s, step, onJump, onJumpUnit }: { s: Slide; step: number; on
             Example {s.page} / {s.pages} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>مثال {s.page} / {s.pages}</span>
           </span>
         </div>
-        <div className="w-full rounded-[40px] bg-white ring-1 ring-stone-200 shadow-[0_34px_80px_-38px_rgba(42,29,18,0.55)] px-[5vw] py-[7vh] flex flex-col items-center gap-[3.2vh]">
-          <Marked text={s.item.en} className="font-black text-center leading-[1.22]" style={{ color: INK, fontSize: short ? '4vw' : '3.1vw' }} />
+        <div className="w-full rounded-[40px] bg-white ring-1 ring-stone-200 shadow-[0_34px_80px_-38px_rgba(42,29,18,0.55)] px-[5vw] py-[5.5vh] flex flex-col items-center gap-[2.6vh]">
+          <Marked text={s.item.en} className="font-black text-center leading-[1.22]" style={{ color: INK, fontSize: short ? '3.7vw' : '2.9vw' }} />
           <div className="rounded-full" style={{ width: '34%', height: 3, background: '#f5f5f4' }} />
-          <div dir="rtl" className="font-black text-stone-500 text-center leading-[1.4]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: short ? '2.6vw' : '2.1vw' }}>{s.item.ar}</div>
+          <div dir="rtl" className="font-black text-stone-500 text-center leading-[1.4]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: short ? '2.4vw' : '2vw' }}>{s.item.ar}</div>
+          {/* WHY this example is written this way — the line the teacher would
+              otherwise have to invent on camera. */}
+          {s.item.why && (
+            <div className="w-full mt-[0.6vh] rounded-[22px] bg-amber-50 ring-1 ring-amber-200 px-[2.4vw] py-[1.6vh] flex items-start gap-[1vw]">
+              <Lightbulb size={20} style={{ color: AMBER }} className="mt-[0.4vh] shrink-0" />
+              <div className="min-w-0 flex-1">
+                <Marked text={s.item.why} className="block font-bold text-right" style={{ color: AMBER, fontSize: '1.25vw', textAlign: 'left' }} />
+                {s.item.whyAr && <span dir="rtl" className="block font-bold text-stone-500 mt-[0.4vh]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.15vw' }}>{s.item.whyAr}</span>}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     )
