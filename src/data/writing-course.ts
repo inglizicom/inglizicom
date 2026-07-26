@@ -118,6 +118,235 @@ const ALPHA: Ex[] = [
   }
 })
 
+/* ── Unit message threads ────────────────────────────────────────────────────
+   Founder asked for "conversations applying the rules". In a WRITING course the
+   honest form of that is a WRITTEN conversation — the WhatsApp and email threads
+   students actually produce all day — not a spoken dialogue, which is what the
+   A0/A1 course already sells.
+
+   One thread per unit, placed after its lessons and before its games: see the
+   grammar alive between two people, then play with it. *Highlights* mark the
+   unit's target structures. Keyed by unit index (1-based). */
+export type ThreadMsg = { from: 'a' | 'b'; text: string; time?: string }
+export type Thread = {
+  title: string; titleAr: string
+  a: string; b: string
+  channel: 'chat' | 'email'
+  messages: ThreadMsg[]
+  notice: string[]          // what to point at on screen
+  noticeAr: string
+}
+
+export const THREADS: Record<number, Thread> = {
+  1: {
+    title: 'Making a Plan', titleAr: 'ترتيب موعد', a: 'Sara', b: 'Yousef', channel: 'chat',
+    messages: [
+      { from: 'a', text: '*H*i *Y*ousef*!* *A*re you free on *S*aturday*?*', time: '09:12' },
+      { from: 'b', text: '*H*i *S*ara*.* *I* think so*.* *W*hat is the plan*?*', time: '09:14' },
+      { from: 'a', text: '*T*here is *a* new café near *H*assan *S*treet*.* *I*t opens at ten*.*', time: '09:15' },
+      { from: 'b', text: '*P*erfect*.* *I* *don’t* work on *S*aturday*,* so *I* am free all day*.*', time: '09:18' },
+      { from: 'a', text: '*G*reat*!* *L*et*’s* meet at *S*ara*’s* bakery first*?*', time: '09:19' },
+      { from: 'b', text: '*S*ee you there*.* *D*on*’t* be late*!*', time: '09:21' },
+    ],
+    notice: [
+      'Every message opens with a CAPITAL and closes with a mark',
+      'Names, days and streets are capitalised — *Y*ousef, *S*aturday, *H*assan',
+      '*a* new café (first mention) · *an* would be wrong before that sound',
+      'Apostrophes: *don’t* (missing letters) vs *Sara’s* (possession)',
+    ],
+    noticeAr: 'حرف كبير في أول كل رسالة وعلامة في آخرها · أسماء العلم والأيام والشوارع بحرف كبير · الأداة a لأول ذكر · الفاصلة العليا للاختصار وللملكية.',
+  },
+  2: {
+    title: 'The New Flat', titleAr: 'الشقّة الجديدة', a: 'Karim', b: 'Amine', channel: 'chat',
+    messages: [
+      { from: 'a', text: '*I am* in the new flat*!* *There are* three *rooms* and a small kitchen*.*', time: '18:02' },
+      { from: 'b', text: 'Nice*!* *Is there* a balcony*?*', time: '18:03' },
+      { from: 'a', text: '*There is* a *big* one*.* *Its* view *is* beautiful at sunset*.*', time: '18:05' },
+      { from: 'b', text: 'How *many* neighbours *are* there*?*', time: '18:06' },
+      { from: 'a', text: 'Only *a few*. *Their* children *are* very *quiet*.', time: '18:08' },
+      { from: 'b', text: 'And *my* favourite question — how *much* is the rent*?*', time: '18:09' },
+      { from: 'a', text: 'Less than *my* old place*.* Come and see *it* on Friday*.*', time: '18:11' },
+    ],
+    notice: [
+      '*There is* + singular · *There are* + plural — the verb looks FORWARD',
+      'Possessives agree with the OWNER: *its* view, *their* children, *my* place',
+      '*many* for countable neighbours · *much* for uncountable rent',
+      'Adjectives come BEFORE the noun: a *big* one, *quiet* children',
+    ],
+    noticeAr: 'There is للمفرد و There are للجمع · صفات الملكية تطابق المالك · many للمعدود و much لغير المعدود · الصفة قبل الاسم.',
+  },
+  3: {
+    title: 'Where Were You?', titleAr: 'أين كنت؟', a: 'Layla', b: 'Omar', channel: 'chat',
+    messages: [
+      { from: 'a', text: 'I *called* you twice yesterday*.* Where *were* you*?*', time: '20:40' },
+      { from: 'b', text: 'Sorry*!* I *was driving* to Fes when you *called*.', time: '20:42' },
+      { from: 'a', text: 'Ah*.* *Do* you *go* there often*?*', time: '20:43' },
+      { from: 'b', text: 'I *go* every month*.* My sister *lives* there*.*', time: '20:44' },
+      { from: 'a', text: 'I *have never been* to Fes*!*', time: '20:45' },
+      { from: 'b', text: 'Really*?* I *will take* you next time*.* We *are going to* visit her in May*.*', time: '20:47' },
+      { from: 'a', text: 'I *used to* dream about that city as a child*.* Thank you*!*', time: '20:49' },
+    ],
+    notice: [
+      'Past simple for finished actions: *called*, *were*',
+      'Past continuous interrupted by past simple: *was driving* when you *called*',
+      'Present simple for habits: I *go* every month · she *lives* there',
+      '*have never been* (experience, no date) · *will take* (decision now) · *are going to* (plan) · *used to* (habit that ended)',
+    ],
+    noticeAr: 'الماضي البسيط للمنتهي · المستمر يقطعه البسيط · المضارع للعادة · المضارع التام للتجربة · will للقرار و going to للخطة و used to لعادة انتهت.',
+  },
+  4: {
+    title: 'Choosing a Course', titleAr: 'اختيار دورة', a: 'Nadia', b: 'Hamza', channel: 'chat',
+    messages: [
+      { from: 'a', text: 'My brother *wants to improve* his English*.* Which course *is* better*?*', time: '11:03' },
+      { from: 'b', text: 'The evening one *is cheaper*, but the morning one *is more useful*.', time: '11:05' },
+      { from: 'a', text: 'He *works* until six*,* so he *can’t* come in the morning*.*', time: '11:06' },
+      { from: 'b', text: 'Then he *should* take the evening course*.* It *starts* *on* Monday *at* seven*.*', time: '11:08' },
+      { from: 'a', text: '*Does* he *have to* pay everything now*?*', time: '11:09' },
+      { from: 'b', text: 'No*.* The fee *can be paid* in two parts*.* Certificates *are given* *in* July*.*', time: '11:12' },
+      { from: 'a', text: 'That *is* *the best* option*.* He *enjoys studying* at night anyway*.*', time: '11:14' },
+    ],
+    notice: [
+      'Agreement: he *works*, it *starts*, she *lives* — third person takes *-s*',
+      'Prepositions: *on* Monday · *at* seven · *in* July',
+      'Modals: *can’t* (ability) · *should* (advice) · *have to* (outside obligation)',
+      'Comparatives: *cheaper* · *more useful* · *the best* — and the passive: *can be paid*',
+    ],
+    noticeAr: 'التطابق مع المفرد الغائب · حروف الجرّ on/at/in · الأفعال الناقصة · المقارنة والتفضيل · المبني للمجهول.',
+  },
+  5: {
+    title: 'Explaining the Delay', titleAr: 'شرح التأخير', a: 'Rachid', b: 'Salma', channel: 'chat',
+    messages: [
+      { from: 'a', text: 'The report *is* late*,* *and* I owe you an explanation*.*', time: '08:30' },
+      { from: 'b', text: 'Go on*.*', time: '08:31' },
+      { from: 'a', text: '*Because* two people were ill last week*,* we lost three days*.*', time: '08:33' },
+      { from: 'b', text: 'I understand*.* *When* will it be ready*?*', time: '08:34' },
+      { from: 'a', text: '*If* nothing else goes wrong*,* I will send it on Thursday*.*', time: '08:36' },
+      { from: 'b', text: 'Thursday works*,* *but* please tell me earlier next time*.*', time: '08:37' },
+      { from: 'a', text: 'You are right*.* *Although* it was outside my control*,* I should have written sooner*.*', time: '08:39' },
+    ],
+    notice: [
+      'Compound: two complete sentences joined by comma + FANBOYS (*and*, *but*)',
+      'Complex: *Because* / *When* / *If* / *Although* make a clause dependent',
+      'Dependent clause FIRST → comma. Main clause first → no comma',
+      'No fragments anywhere — every message has a subject and a verb',
+    ],
+    noticeAr: 'المركّبة بفاصلة وأداة عطف · المعقّدة بأدوات الربط التابع · الفاصلة حين تتقدّم الجملة التابعة · لا جمل ناقصة.',
+  },
+  6: {
+    title: 'Two Versions of the Same News', titleAr: 'الخبر نفسه بصيغتين', a: 'Draft', b: 'Better', channel: 'chat',
+    messages: [
+      { from: 'a', text: 'we finished the project it was hard we worked late everyone helped it is done now', time: 'draft' },
+      { from: 'b', text: 'We finished the project*.* *However,* it was harder than we expected*.*', time: 'better' },
+      { from: 'b', text: '*Therefore,* we worked late on Monday*,* Tuesday*,* *and* Wednesday*.*', time: 'better' },
+      { from: 'b', text: 'Everyone helped*:* Salma checked the data*,* Karim wrote the summary*,* *and* I edited it*.*', time: 'better' },
+      { from: 'b', text: '*In short,* it is done*.* *And* it is good*.*', time: 'better' },
+    ],
+    notice: [
+      'The draft has no punctuation and one rhythm — it is exhausting to read',
+      'Transitions signpost the turns: *However* · *Therefore* · *In short*',
+      'Commas in a series, and a parallel list of three clauses',
+      'The last line is deliberately SHORT — variety is what makes it land',
+    ],
+    noticeAr: 'المسودّة بلا ترقيم وبإيقاع واحد · أدوات الربط تدلّ على المنعطفات · الفواصل والقائمة المتوازية · الجملة الأخيرة قصيرة عمدًا.',
+  },
+  7: {
+    title: 'A Message That Is a Paragraph', titleAr: 'رسالة هي فقرة', a: 'Imane', b: 'Teacher', channel: 'chat',
+    messages: [
+      { from: 'a', text: 'Ustad, can I send my homework as one message*?*', time: '16:20' },
+      { from: 'b', text: 'Yes — but make it a real paragraph, not a list*.*', time: '16:21' },
+      { from: 'a', text: '*Reading at night changed my English.* First, it is quiet*,* *because* everyone at home is asleep by eleven*.*', time: '16:34' },
+      { from: 'a', text: '*For example,* the words I meet at midnight are still with me the next morning*.*', time: '16:34' },
+      { from: 'a', text: 'Second, nobody interrupts me*,* *so* I finish a whole chapter*.*', time: '16:35' },
+      { from: 'a', text: '*In short, the quiet hours taught me more than any class.*', time: '16:35' },
+      { from: 'b', text: 'That is a paragraph*.* Topic, two supports with R*.*E*.*D*.*, and a conclusion*.*', time: '16:38' },
+    ],
+    notice: [
+      'The first sentence is the TOPIC SENTENCE — a claim, not a fact',
+      'Support 1 + a *Reason* (because) + an *Example* (for example)',
+      'Support 2 + a *Detail*, joined with *so*',
+      'The conclusion echoes the topic in NEW words and adds nothing new',
+    ],
+    noticeAr: 'الجملة الأولى موضوعية وهي ادّعاء لا معلومة · دعم مع سبب ومثال · دعم ثانٍ مع تفصيل · خاتمة تُصدي الموضوع بكلمات جديدة.',
+  },
+  8: {
+    title: 'A Request and Its Reply', titleAr: 'طلب وردّ عليه', a: 'Omar Benali', b: 'Ms. Bennani', channel: 'email',
+    messages: [
+      { from: 'a', text: '*Subject: Leave Request — 12–13 August*' },
+      { from: 'a', text: '*Dear Ms. Bennani,*' },
+      { from: 'a', text: '*I am writing to request* two days of leave on 12 and 13 August for a family matter*.* I have completed this week’s reports*,* and Salma has kindly agreed to cover urgent requests*.*' },
+      { from: 'a', text: '*Please let me know if you need any further information.*' },
+      { from: 'a', text: '*Kind regards,*\nOmar Benali' },
+      { from: 'b', text: '*Dear Omar,*' },
+      { from: 'b', text: 'Thank you for arranging cover in advance*.* *I am happy to approve* both days*.* *Please find attached* the confirmation for your records*.*' },
+      { from: 'b', text: '*Kind regards,*\nL. Bennani' },
+    ],
+    notice: [
+      'Subject = topic + the detail that decides it (the dates)',
+      '*Dear* + title + FAMILY name, never the first name alone',
+      'The purpose lands in sentence one: *I am writing to request…*',
+      'No contractions, no emojis — and *Kind regards* because the name is known',
+    ],
+    noticeAr: 'الموضوع فكرة وتفصيل حاسم · Dear مع اللقب واسم العائلة · الغرض في الجملة الأولى · بلا اختصارات ولا رموز.',
+  },
+  9: {
+    title: 'What Went Wrong', titleAr: 'ما الذي حدث', a: 'Yassine', b: 'Manager', channel: 'chat',
+    messages: [
+      { from: 'a', text: 'The client says the file never arrived*.*', time: '09:02' },
+      { from: 'b', text: 'It *must have gone* to spam*.* I sent it on Friday*.*', time: '09:04' },
+      { from: 'a', text: 'She told me she *had checked* everything*,* and she asked *whether we had sent* it at all*.*', time: '09:06' },
+      { from: 'b', text: '*If I had copied* you in*,* we *would have known* on Friday*.*', time: '09:08' },
+      { from: 'a', text: '*Having read* the thread*,* I think the address *was mistyped*.', time: '09:10' },
+      { from: 'b', text: 'You are right*.* I *should have checked* it twice*.* *I wish I had.*', time: '09:12' },
+      { from: 'a', text: 'It *is said that* everyone does this once*.* I *had the address corrected* this morning*.*', time: '09:14' },
+    ],
+    notice: [
+      'Perfect modals: *must have gone* (guess) · *should have checked* (regret)',
+      'Third conditional: *If I had copied* … *we would have known*',
+      'Reported speech: she said she *had checked* · asked *whether we had sent*',
+      'Participle clause *Having read* · impersonal *It is said that* · causative *had the address corrected*',
+    ],
+    noticeAr: 'الأفعال الناقصة في الماضي · الشرط الثالث · الكلام المنقول · المشتقّات والمبني للمجهول غير الشخصي وصيغة التسبيب.',
+  },
+  10: {
+    title: 'An Argument in Messages', titleAr: 'نقاش في رسائل', a: 'Hind', b: 'Adil', channel: 'chat',
+    messages: [
+      { from: 'a', text: '*Schools should teach writing every day, not only in language class.*', time: '21:10' },
+      { from: 'b', text: 'That is a strong claim*.* Why*?*', time: '21:11' },
+      { from: 'a', text: '*The first reason is economic*: almost every job now tests written English before an interview*.*', time: '21:13' },
+      { from: 'b', text: '*It is true that* employers test writing*.* *However,* teachers have no time for another subject*.*', time: '21:15' },
+      { from: 'a', text: '*This objection ignores* the point*.* Writing is not a subject*;* it is how every subject is assessed*.*', time: '21:17' },
+      { from: 'b', text: '*Admittedly,* that changes the cost*.* *Even so,* the training would take years*.*', time: '21:19' },
+      { from: 'a', text: '*On balance,* years is still shorter than a generation that cannot write*.*', time: '21:21' },
+    ],
+    notice: [
+      'The opening message IS a thesis — arguable, specific, one sentence',
+      'Support with a named reason and evidence',
+      'Concession → turn → answer: *It is true that* … *However,* … *This objection ignores*',
+      '*Admittedly* / *Even so* / *On balance* — the language of a fair argument',
+    ],
+    noticeAr: 'الرسالة الأولى أطروحة قابلة للنقاش · دعم بسبب ودليل · اعتراف ثم انعطاف ثم ردّ · لغة الحجاج المنصف.',
+  },
+  11: {
+    title: 'The Same News, Three Ways', titleAr: 'الخبر نفسه بثلاث نبرات', a: 'Draft', b: 'Sent', channel: 'chat',
+    messages: [
+      { from: 'a', text: 'Informal: hey, we cant do the deadline, sorry!!', time: 'v1' },
+      { from: 'a', text: 'Over-formal: *It is hereby regretted that the aforementioned deadline shall not be met.*', time: 'v2' },
+      { from: 'b', text: '*Regrettably, the deadline is unlikely to be met.*', time: 'sent' },
+      { from: 'b', text: '*What has changed is* the supplier’s schedule, not our plan*.*', time: 'sent' },
+      { from: 'b', text: '*The delay appears to stem from* a shipping problem, and it *may add* about a week*.*', time: 'sent' },
+      { from: 'b', text: '*Never have we missed* a date without warning you first, and we are not starting now*.*', time: 'sent' },
+      { from: 'b', text: 'A revised plan follows tomorrow*.* If the date moves again, you will hear it from us first*.*', time: 'sent' },
+    ],
+    notice: [
+      'v1 breaks register; v2 is a costume. The sent version is neutral-formal and human',
+      'Hedging: *is unlikely to* · *appears to stem from* · *may add* — claiming exactly what is known',
+      'Cleft for emphasis: *What has changed is* the supplier’s schedule',
+      'Inversion for weight: *Never have we missed* a date — used once, not twice',
+    ],
+    noticeAr: 'الأولى تكسر المستوى والثانية تنكّر · التحوّط يدّعي بقدر ما تعرف · الجملة المشطورة للإبراز · القلب للتأكيد مرّة واحدة.',
+  },
+}
+
 /* ── Unit review games ────────────────────────────────────────────────────────
    Each unit ends in play rather than a summary slide. Three kinds, all built to
    work as DECK slides: the challenge is on screen, the class answers out loud,
