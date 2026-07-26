@@ -41,7 +41,7 @@ export type Studio = {
 }
 export type Lesson = {
   no: number
-  cefr?: 'A1' | 'A2' | 'B1' | 'B2'        // CEFR level; falls back to the unit level when omitted
+  cefr?: 'A1' | 'A2' | 'B1' | 'B2' | 'C1'  // CEFR level; falls back to the unit level when omitted
   tag: string; tagAr: string
   title: string; titleAr: string
   objectives: Ex[]
@@ -4667,4 +4667,1993 @@ export const LESSONS: Lesson[] = [
       ],
     },
   },
+
+  /* ═══════════════════ UNIT 9 · ADVANCED GRAMMAR (B2) ═══════════════════ */
+
+  /* ─────────────────────────── 30 · PERFECT MODALS ─────────────────────────── */
+  {
+    no: 30, cefr: 'B2', tag: 'Perfect modals', tagAr: 'الأفعال الناقصة في الماضي',
+    title: 'Perfect Modals — should have, must have, could have',
+    titleAr: 'must have / should have / could have — الحكم على الماضي',
+    objectives: [
+      { en: 'Judge a past action: regret, deduction, possibility', ar: 'الحكم على فعل ماضٍ: ندم أو استنتاج أو احتمال' },
+      { en: 'Build modal + *have* + past participle', ar: 'التكوين: فعل ناقص + have + التصريف الثالث' },
+      { en: 'Tell *must have* from *should have* from *could have*', ar: 'التمييز بين الثلاثة' },
+      { en: 'Write regret and criticism politely', ar: 'كتابة الندم والنقد بأدب' },
+    ],
+    rule: {
+      en: 'One shape for all of them: *modal + have + past participle*. The modal chooses the meaning — *should have* = regret or criticism · *must have* = a confident guess · *could/might have* = a possible guess · *can’t have* = a confident denial.',
+      ar: 'قالب واحد للجميع: فعل ناقص + have + التصريف الثالث. والفعل الناقص هو الذي يحدّد المعنى: should have ندم أو نقد · must have استنتاج واثق · could/might have احتمال · can’t have نفي واثق.',
+    },
+    explain: {
+      intro: 'This is the structure that lets you talk *about* the past instead of just reporting it. B1 says “I did not study and I failed.” B2 says “I *should have studied*” — same facts, but now there is a judgement in the sentence, and that judgement is what makes writing sound adult.',
+      introAr: 'هذا هو التركيب الذي يتيح لك أن تتحدّث *عن* الماضي لا أن تسرده فقط. المستوى B1 يقول: «لم أذاكر فرسبت»، أما B2 فيقول: «كان ينبغي أن أذاكر» — الحقائق نفسها، لكن ظهر حكم داخل الجملة، وهذا الحكم هو ما يجعل الكتابة ناضجة.',
+      points: [
+        { en: '*should have* + V3 = it did not happen, and that was a mistake', ar: 'should have = لم يحدث، وكان ذلك خطأ' },
+        { en: '*must have* + V3 = I am almost certain it happened', ar: 'must have = شبه متأكد أنه حدث' },
+        { en: '*can’t have* + V3 = I am almost certain it did NOT happen', ar: 'can’t have = شبه متأكد أنه لم يحدث' },
+        { en: '*could / might have* + V3 = maybe it happened — I am not sure', ar: 'could/might have = ربما حدث' },
+        { en: '*needn’t have* + V3 = you did it, but it was unnecessary', ar: 'needn’t have = فعلته دون حاجة' },
+        { en: 'In speech it shrinks to “should’ve” — but NEVER write “should of” ✗', ar: 'في الكلام تُختصر، لكن لا تكتب أبدًا should of' },
+      ],
+    },
+    form: {
+      affirmative: [
+        'You *should have called* me yesterday.',
+        'She *must have forgotten* the meeting.',
+        'They *might have missed* the train.',
+      ],
+      negative: [
+        'You *shouldn’t have said* that.',
+        'He *can’t have finished* already.',
+        'We *needn’t have hurried*.',
+      ],
+      question: [
+        '*Should* I *have told* him the truth?',
+        '*Could* she *have known* about it?',
+        '*What should* I *have done* differently?',
+      ],
+      note: 'The verb after *have* never changes: always the past participle (V3). “must have *went*” ✗ → “must have *gone*” ✓.',
+      noteAr: 'ما بعد have لا يتغيّر أبدًا: التصريف الثالث دائمًا.',
+    },
+    irregulars: 'pp',
+    examples: [
+      { en: 'I *should have studied* harder — the exam was difficult.', ar: 'كان ينبغي أن أذاكر أكثر.' },
+      { en: 'You *shouldn’t have paid* so much for that phone.', ar: 'ما كان ينبغي أن تدفع كل هذا.' },
+      { en: 'The lights are off; they *must have gone* out.', ar: 'الأنوار مطفأة، لا بدّ أنهم خرجوا.' },
+      { en: 'He *can’t have written* this alone — it is too long.', ar: 'يستحيل أنه كتبه وحده.' },
+      { en: 'She *might have left* her keys at the office.', ar: 'ربما تركت مفاتيحها في المكتب.' },
+      { en: 'We *needn’t have booked* — the place was empty.', ar: 'لم نكن بحاجة إلى الحجز.' },
+      { en: 'Professional: The delay *must have been caused* by the weather.', ar: 'مهني: لا بدّ أن الطقس سبّب التأخير.' },
+      { en: 'Professional: We *should have informed* the client sooner.', ar: 'مهني: كان علينا إبلاغ العميل أبكر.' },
+      { en: 'Softer criticism: *It might have been better to* wait.', ar: 'نقد ألطف: ربما كان الانتظار أفضل.' },
+    ],
+    exercises: [
+      { q: 'Regret: “I didn’t save any money.” →', a: 'I *should have saved* some money.' },
+      { q: 'Deduction: the ground is wet. →', a: 'It *must have rained*.' },
+      { q: 'Denial: “He finished 500 pages in one hour.” →', a: 'He *can’t have finished* it that fast.' },
+      { q: 'Fix: “You should of told me.”', a: 'You *should have* told me. — *of* is never a verb.' },
+      { q: 'Possibility: she is late, and you are not sure why. →', a: 'She *might have missed* the bus.' },
+      { q: 'Professional: soften “You forgot to attach the file.”', a: 'e.g. *The file might not have been attached.*' },
+    ],
+    reading: {
+      title: 'The Letter He Never Sent', titleAr: 'الرسالة التي لم يرسلها',
+      passage: [
+        'My uncle kept a letter in his drawer for thirty years.',
+        'He *should have posted* it the week he wrote it, and he knew that even then.',
+        'Something in him decided the words *might have sounded* foolish, or that his friend *must have already forgotten* the argument.',
+        'When we found the letter after he died, it was three lines long and perfectly kind.',
+        'His friend *can’t have known* it existed; the two of them never spoke again.',
+        'He *needn’t have worried* about the words at all — it was the silence that did the damage.',
+      ],
+      tip: 'Every judgement about the past uses the same shape: modal + have + V3. Only the modal changes.',
+      tipAr: 'كل حكم على الماضي بالقالب نفسه: فعل ناقص + have + التصريف الثالث، ولا يتغيّر إلا الفعل الناقص.',
+    },
+    homework: [
+      { en: 'Write 4 regrets about your own English learning', ar: 'اكتب ٤ جمل ندم عن تعلّمك للإنجليزية' },
+      { en: 'Look at a photo and write 3 deductions about it', ar: 'انظر إلى صورة واكتب ٣ استنتاجات عنها' },
+      { en: 'Write a polite professional line admitting a mistake', ar: 'اكتب جملة مهنية مهذّبة تعترف فيها بخطأ' },
+    ],
+    editing: {
+      wrong: [
+        'You should of call me before you come.',
+        'He must forgot the meeting, he is not here.',
+        'She can’t have went home, her car is outside.',
+      ],
+      correct: [
+        'You *should have called* me before you came.',
+        'He *must have forgotten* the meeting*;* he is not here.',
+        'She can’t have *gone* home*;* her car is outside.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 31 · CONDITIONALS 2 & 3 ─────────────────────────── */
+  {
+    no: 31, cefr: 'B2', tag: 'Conditionals 2 & 3', tagAr: 'الشرط الثاني والثالث',
+    title: 'Second, Third & Mixed Conditionals',
+    titleAr: 'الشرط الثاني والثالث والمختلط',
+    objectives: [
+      { en: 'Talk about unreal present and impossible past', ar: 'الحديث عن حاضر غير واقعي وماضٍ مستحيل' },
+      { en: 'Build: *if + past* → *would* · *if + had* → *would have*', ar: 'التكوين للنوعين' },
+      { en: 'Mix the two when the past still affects now', ar: 'المزج عندما يؤثّر الماضي في الحاضر' },
+      { en: 'Write hypotheses and regrets in an essay', ar: 'كتابة الافتراض والندم في مقال' },
+    ],
+    rule: {
+      en: 'Second: *If + past simple → would + base* — unreal NOW (If I *had* money, I *would travel*). Third: *If + had + V3 → would have + V3* — impossible PAST (If I *had studied*, I *would have passed*). Mixed: past condition, present result (If I *had studied* medicine, I *would be* a doctor now).',
+      ar: 'الثاني: if + ماضٍ بسيط ← would + مجرّد، لحاضر غير واقعي. الثالث: if + had + التصريف الثالث ← would have + التصريف الثالث، لماضٍ مستحيل. والمختلط: شرط في الماضي ونتيجة في الحاضر.',
+    },
+    explain: {
+      intro: 'The first conditional (lesson 35) is about the real future. These two are about worlds that do *not* exist: one you can imagine now, one that is closed for ever. Arabic marks this with «لو» rather than «إن», and English marks it by *moving the tense one step back* — which is why the grammar looks past even when the meaning is not.',
+      introAr: 'الشرط الأول يتحدّث عن مستقبل ممكن، أما هذان فعن عوالم غير موجودة: أحدها تتخيّله الآن، والآخر أُغلق إلى الأبد. العربية تميّزها بـ«لو» بدل «إن»، والإنجليزية تميّزها بإرجاع الزمن خطوة للوراء — ولهذا تبدو القواعد ماضية والمعنى ليس كذلك.',
+      points: [
+        { en: '2nd = unreal now or unlikely future: *If I won the lottery, I would…*', ar: 'الثاني: حاضر غير واقعي أو مستقبل بعيد الاحتمال' },
+        { en: '3rd = the past cannot change: *If I had known, I would have come.*', ar: 'الثالث: ماضٍ لا يمكن تغييره' },
+        { en: 'Mixed = past cause, present effect: *If I had saved, I would be free now.*', ar: 'المختلط: سبب ماضٍ ونتيجة حاضرة' },
+        { en: 'Formal English prefers *If I *were** — not “was” — in the 2nd', ar: 'الإنجليزية الرسمية تفضّل were لا was في الشرط الثاني' },
+        { en: 'The *if*-clause NEVER takes *would*: “If I would have…” ✗', ar: 'جملة الشرط لا تأخذ would أبدًا' },
+        { en: 'If first → comma. Result first → no comma.', ar: 'إن تقدّمت if فالفاصلة، وإن تأخّرت فلا' },
+      ],
+    },
+    form: {
+      affirmative: [
+        '2nd: If I *had* time, I *would learn* Spanish.',
+        '3rd: If she *had left* earlier, she *would have caught* it.',
+        'Mixed: If he *had studied*, he *would have* a job now.',
+      ],
+      negative: [
+        '2nd: If I *didn’t work* nights, I *wouldn’t be* so tired.',
+        '3rd: If they *hadn’t helped*, we *wouldn’t have finished*.',
+        'Mixed: If I *hadn’t moved*, I *wouldn’t know* you.',
+      ],
+      question: [
+        '*What would* you *do* if you *lost* your job?',
+        '*Would* you *have said* yes if he *had asked*?',
+        '*Where would* you *be* now if you *had stayed*?',
+      ],
+      note: 'Swap *would* for *could* or *might* to soften the result: “I *might have passed*.” Certainty is a choice.',
+      noteAr: 'استبدل would بـ could أو might لتخفيف النتيجة — درجة اليقين اختيارك.',
+    },
+    examples: [
+      { en: '*If I had* more time, I *would read* every evening.', ar: 'لو كان لديّ وقت أكثر لقرأت كل مساء.' },
+      { en: '*If I were* you, I *would take* the job.', ar: 'لو كنت مكانك لقبلت الوظيفة.' },
+      { en: '*If she had studied*, she *would have passed* easily.', ar: 'لو ذاكرت لنجحت بسهولة.' },
+      { en: '*If we hadn’t missed* the flight, we *would be* in Dubai now.', ar: 'لولا أننا فوّتنا الرحلة لكنّا في دبي الآن.' },
+      { en: 'I *would have called* you *if I had known* you were ill.', ar: 'كنت سأتصل لو علمت أنك مريض.' },
+      { en: '*If English weren’t* useful, nobody *would study* it.', ar: 'لو لم تكن الإنجليزية مفيدة ما درسها أحد.' },
+      { en: 'Essay: *If governments invested* more in schools, literacy *would rise*.', ar: 'مقال: لو استثمرت الحكومات أكثر لارتفع التعليم.' },
+      { en: 'Essay: *Had the policy been introduced* earlier, the crisis *would have been* smaller.', ar: 'مقال: لو طُبّقت السياسة أبكر لكانت الأزمة أصغر.' },
+      { en: 'Softer: *If I had been* in charge, things *might have been* different.', ar: 'أخف: ربما كانت الأمور مختلفة.' },
+    ],
+    exercises: [
+      { q: 'Unreal now: “I don’t have a car, so I take the bus.” →', a: '*If I had* a car, I *wouldn’t take* the bus.' },
+      { q: 'Impossible past: “She didn’t apply, so she didn’t get it.” →', a: '*If she had applied*, she *would have got* it.' },
+      { q: 'Mixed: “I didn’t learn to drive, so I can’t drive now.” →', a: '*If I had learned* to drive, I *could drive* now.' },
+      { q: 'Fix: “If I would have known, I would have told you.”', a: 'If I *had known*, I would have told you.' },
+      { q: 'Formal: rewrite “If I was rich…”', a: '*If I were* rich… — formal English keeps *were*.' },
+      { q: 'Essay opener: hypothesise about more reading in schools.', a: 'e.g. *If children read for pleasure daily, their writing would improve markedly.*' },
+    ],
+    reading: {
+      title: 'The Road Not Taken', titleAr: 'الطريق الذي لم يُسلك',
+      passage: [
+        'My mother was offered a place at a university in another city when she was nineteen, and she turned it down.',
+        '*If she had gone*, she says, she *would have become* a teacher of literature.',
+        'She would also, she adds without any drama, never *have met* my father — so I *would not be* sitting here asking her about it.',
+        '*If I were* braver, I might have asked whether she regrets it.',
+        'Instead I watched her fold the question away with the tea towel, the way she folds most questions.',
+        'Some doors you do not open twice, and *if you had*, you would be a stranger to yourself.',
+      ],
+      tip: 'Notice the mixed conditional: a decision in the past (had gone) with a result in the present (would not be sitting).',
+      tipAr: 'لاحظ الشرط المختلط: قرار في الماضي ونتيجة في الحاضر.',
+    },
+    homework: [
+      { en: 'Write 3 second conditionals about your ideal life', ar: 'اكتب ٣ جمل شرط ثانٍ عن حياتك المثالية' },
+      { en: 'Write 3 third conditionals about last year', ar: 'اكتب ٣ جمل شرط ثالث عن العام الماضي' },
+      { en: 'Write 2 mixed conditionals about a past choice', ar: 'اكتب جملتين مختلطتين عن قرار ماضٍ' },
+    ],
+    editing: {
+      wrong: [
+        'If I would have money, I will buy a house.',
+        'If she studied harder, she would have passed the exam last year.',
+        'If I was you I don’t accept this offer.',
+      ],
+      correct: [
+        'If I *had* money, I *would* buy a house.',
+        'If she *had studied* harder, she would have passed the exam last year.',
+        'If I *were* you*,* I *wouldn’t accept* this offer.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 32 · WISH & IF ONLY ─────────────────────────── */
+  {
+    no: 32, cefr: 'B2', tag: 'Wish & regret', tagAr: 'التمنّي والندم',
+    title: 'Wish & If Only — wanting a different reality',
+    titleAr: 'wish و if only — تمنّي واقع آخر',
+    objectives: [
+      { en: 'Express regret about now and about the past', ar: 'التعبير عن الندم في الحاضر والماضي' },
+      { en: 'Use *wish + past* and *wish + had + V3*', ar: 'استخدام الصيغتين' },
+      { en: 'Use *wish + would* to complain about others', ar: 'استخدام wish + would للشكوى' },
+      { en: 'Choose the emotional weight of *if only*', ar: 'اختيار الوزن العاطفي لـ if only' },
+    ],
+    rule: {
+      en: 'Move the tense one step back. Unhappy about NOW → *I wish I had* more time. Unhappy about the PAST → *I wish I had studied*. Annoyed by someone’s habit → *I wish he would stop*. *If only* replaces *I wish* and makes it stronger.',
+      ar: 'أرجِع الزمن خطوة. الاستياء من الحاضر: I wish I had. ومن الماضي: I wish I had studied. ومن عادة شخص: I wish he would stop. و if only بديل أقوى من I wish.',
+    },
+    explain: {
+      intro: 'Learners hear “wish” and reach for the future, because in Arabic «أتمنّى» points forward. In English it points at the *gap between reality and what you wanted* — which is why the grammar is backwards-looking. Getting this right is the difference between sounding hopeful and sounding regretful, and they are not the same sentence.',
+      introAr: 'يظن المتعلّم أن wish للمستقبل لأن «أتمنّى» في العربية تتّجه إلى الأمام، لكنها في الإنجليزية تشير إلى الفجوة بين الواقع وما كنت تريده — ولهذا تعود القواعد إلى الوراء. وإتقان هذا هو الفرق بين نبرة الأمل ونبرة الندم، وهما جملتان مختلفتان.',
+      points: [
+        { en: 'Now: *I wish I knew* the answer. (I do not know it)', ar: 'الحاضر: أتمنّى لو أعرف — وأنا لا أعرف' },
+        { en: 'Past: *I wish I had known*. (I did not know)', ar: 'الماضي: ليتني عرفت — ولم أعرف' },
+        { en: 'Others’ habits: *I wish you would listen.* (annoyance)', ar: 'عادات الآخرين: انزعاج' },
+        { en: '*I wish I were* — formal English keeps *were* for all persons', ar: 'الإنجليزية الرسمية تستعمل were لكل الضمائر' },
+        { en: '*If only* = the same grammar, more feeling: *If only I had listened!*', ar: 'if only بالقواعد نفسها لكن بمشاعر أقوى' },
+        { en: 'Never *wish + would* about yourself: “I wish I would…” ✗', ar: 'لا تستعمل wish + would عن نفسك' },
+      ],
+    },
+    form: {
+      affirmative: [
+        '*I wish I had* a bigger flat.',
+        '*I wish I had taken* that job.',
+        '*If only she were* here.',
+      ],
+      negative: [
+        '*I wish I didn’t have* to work Sundays.',
+        '*I wish I hadn’t said* that.',
+        '*If only it weren’t* so far.',
+      ],
+      question: [
+        '*Do you ever wish* you *had studied* something else?',
+        '*What do you wish* you *knew* at eighteen?',
+        '*Don’t you wish* they *would* answer?',
+      ],
+      note: 'The verb after *wish* is one tense back from reality. Reality present → wish past. Reality past → wish past perfect.',
+      noteAr: 'الفعل بعد wish يتأخّر زمنًا واحدًا عن الواقع.',
+    },
+    examples: [
+      { en: '*I wish I spoke* French — the interview was in French.', ar: 'ليتني أتحدّث الفرنسية.' },
+      { en: '*I wish I had applied* before the deadline.', ar: 'ليتني قدّمت قبل الموعد.' },
+      { en: '*I wish my neighbour would* turn the music down.', ar: 'ليت جاري يخفض الموسيقى.' },
+      { en: '*If only I had listened* to my teacher.', ar: 'ليتني أصغيت لأستاذي.' },
+      { en: '*I wish I weren’t* so shy in meetings.', ar: 'ليتني لست خجولًا في الاجتماعات.' },
+      { en: '*I wish I hadn’t spent* so much last month.', ar: 'ليتني لم أنفق كثيرًا الشهر الماضي.' },
+      { en: 'Professional: *We wish we had been informed* earlier.', ar: 'مهني: كنّا نتمنّى لو أُبلغنا أبكر.' },
+      { en: 'Compare: *I hope he comes* (possible) · *I wish he were here* (he is not).', ar: 'قارن: hope للممكن و wish لغير الواقع.' },
+    ],
+    exercises: [
+      { q: 'Reality: “I don’t have a car.” → wish', a: '*I wish I had* a car.' },
+      { q: 'Reality: “I didn’t study medicine.” → wish', a: '*I wish I had studied* medicine.' },
+      { q: 'Complaint: your colleague is always late. →', a: '*I wish he would* arrive on time.' },
+      { q: 'Fix: “I wish I would be taller.”', a: '*I wish I were* taller. — never *wish + would* about yourself.' },
+      { q: 'Make it stronger: “I wish I had saved money.”', a: '*If only* I had saved money*!*' },
+      { q: 'hope or wish? “___ you have a great trip.”', a: '*I hope* — the trip is still possible.' },
+    ],
+    reading: {
+      title: 'Things I Wish Someone Had Told Me', titleAr: 'أشياء ليت أحدًا أخبرني بها',
+      passage: [
+        'At twenty I believed that fluency arrived one morning like the post.',
+        '*I wish someone had told me* that it arrives instead in small, boring instalments, most of them on days you do not feel clever.',
+        '*I wish I had kept* a notebook from the beginning, and *if only I had spoken* more and worried less.',
+        'These days I still catch myself thinking *I wish I were* the kind of person who never makes mistakes in English.',
+        'Then I remember that the people I admire most make them constantly, cheerfully, in public.',
+        'That is probably the only thing I would go back and say.',
+      ],
+      tip: 'Regret about now → wish + past. Regret about the past → wish + had + V3. Count them in the passage.',
+      tipAr: 'ندم الحاضر: wish + ماضٍ. وندم الماضي: wish + had + التصريف الثالث. عُدّها في النص.',
+    },
+    homework: [
+      { en: 'Write 3 wishes about your life now', ar: 'اكتب ٣ أمنيات عن حياتك الآن' },
+      { en: 'Write 3 regrets about the past with *if only*', ar: 'اكتب ٣ جمل ندم بـ if only' },
+      { en: 'Write 2 polite complaints with *wish + would*', ar: 'اكتب شكويين مهذّبتين بـ wish + would' },
+    ],
+    editing: {
+      wrong: [
+        'I wish I will have more free time next year.',
+        'I wish I didn’t forget her birthday last week.',
+        'If only I would listen to my father then.',
+      ],
+      correct: [
+        'I wish I *had* more free time. / I *hope* I have more free time next year.',
+        'I wish I *hadn’t forgotten* her birthday last week.',
+        'If only I *had listened* to my father then.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 33 · REPORTED SPEECH ─────────────────────────── */
+  {
+    no: 33, cefr: 'B2', tag: 'Reported speech', tagAr: 'الكلام المنقول',
+    title: 'Reported Speech — saying what others said',
+    titleAr: 'الكلام المنقول — نقل كلام الآخرين',
+    objectives: [
+      { en: 'Shift tense, pronoun and time word one step back', ar: 'إرجاع الزمن والضمير وكلمة الزمن خطوة' },
+      { en: 'Report statements, questions and orders', ar: 'نقل الخبر والسؤال والأمر' },
+      { en: 'Choose a reporting verb that carries meaning', ar: 'اختيار فعل ناقل يحمل معنى' },
+      { en: 'Quote a source correctly in an essay or email', ar: 'الاقتباس بدقّة في مقال أو إيميل' },
+    ],
+    rule: {
+      en: 'Move everything one step back: tense (*am* → *was*), pronoun (*I* → *he*), time (*today* → *that day*), place (*here* → *there*). Questions lose the question order: “Where do you live?” → He asked *where I lived* — no *do*, no question mark.',
+      ar: 'أرجِع كل شيء خطوة: الزمن والضمير وكلمة الزمن والمكان. والسؤال المنقول يفقد ترتيب السؤال: بلا do وبلا علامة استفهام.',
+    },
+    explain: {
+      intro: 'Reported speech is not decoration — it is how you bring *evidence* into writing. An essay that says “Experts say obesity is rising” is weak; one that reports precisely who claimed what, and how strongly, is persuasive. The tense shift is mechanical; the *reporting verb* is where the skill lives.',
+      introAr: 'الكلام المنقول ليس زينة، بل هو كيف تُدخل *الدليل* إلى كتابتك. المقال الذي يقول «يقول الخبراء» ضعيف، والذي ينقل بدقّة من ادّعى وماذا وبأي قوّة مقنعٌ. إرجاع الزمن آليّ، أما المهارة فتكمن في اختيار الفعل الناقل.',
+      points: [
+        { en: 'present → past · past → past perfect · *will* → *would* · *can* → *could*', ar: 'المضارع ← ماضٍ · الماضي ← ماضٍ تام · will ← would' },
+        { en: 'time words shift: *tomorrow* → *the next day* · *yesterday* → *the day before*', ar: 'كلمات الزمن تتغيّر أيضًا' },
+        { en: 'Reported questions use *statement* order: …asked where I *lived* ✓', ar: 'السؤال المنقول بترتيب الجملة الخبرية' },
+        { en: 'Yes/No questions take *if* or *whether*: asked *whether* I had finished', ar: 'أسئلة نعم/لا تأخذ if أو whether' },
+        { en: 'Orders become *tell + object + to*: told me *to wait*', ar: 'الأمر يصبح tell + مفعول + to' },
+        { en: 'No shift needed for a permanent truth: he said water *boils* at 100°C', ar: 'الحقيقة الثابتة لا تتغيّر' },
+      ],
+    },
+    form: {
+      affirmative: [
+        '“I *am* tired.” → He said he *was* tired.',
+        '“I *finished*.” → She said she *had finished*.',
+        '“I *will* call.” → He said he *would* call.',
+      ],
+      negative: [
+        '“I *don’t* agree.” → She said she *didn’t* agree.',
+        '“I *haven’t* seen it.” → He said he *hadn’t* seen it.',
+        '“Don’t wait.” → She told us *not to wait*.',
+      ],
+      question: [
+        '“Where *do you* live?” → He asked *where I lived*.',
+        '“*Are you* ready?” → She asked *whether I was* ready.',
+        '“*Did* you send it?” → He asked *if I had sent* it.',
+      ],
+      note: 'Strong reporting verbs carry the attitude for you: *admitted*, *claimed*, *insisted*, *denied*, *warned*, *suggested*. “Said” is the weakest one you own.',
+      noteAr: 'الأفعال الناقلة القويّة تحمل الموقف نيابةً عنك، و said أضعفها.',
+    },
+    examples: [
+      { en: '“I *work* here.” → She said she *worked* there.', ar: 'قالت إنها تعمل هناك.' },
+      { en: '“We *are moving* tomorrow.” → They said they *were moving the next day*.', ar: 'قالوا إنهم سينتقلون في اليوم التالي.' },
+      { en: '“*Have* you finished?” → He asked *if I had finished*.', ar: 'سألني إن كنت انتهيت.' },
+      { en: '“*Please* sit down.” → She asked me *to sit down*.', ar: 'طلبت مني الجلوس.' },
+      { en: '“I didn’t take it.” → He *denied taking* it.', ar: 'أنكر أنه أخذها.' },
+      { en: '“You should rest.” → The doctor *advised me to rest*.', ar: 'نصحني الطبيب بالراحة.' },
+      { en: 'Essay: The report *claimed* that costs *had risen* sharply.', ar: 'مقال: ادّعى التقرير أن التكاليف ارتفعت بحدّة.' },
+      { en: 'Essay: Critics *warned* that the policy *would fail*.', ar: 'مقال: حذّر النقّاد من أن السياسة ستفشل.' },
+    ],
+    exercises: [
+      { q: 'Report: “I am studying English.” (she said)', a: 'She said she *was studying* English.' },
+      { q: 'Report: “Where is the station?” (he asked)', a: 'He asked *where the station was*.' },
+      { q: 'Report: “Don’t touch it.” (she told me)', a: 'She told me *not to touch* it.' },
+      { q: 'Report with a strong verb: “It was my fault.” (he …)', a: 'He *admitted* that it *had been* his fault.' },
+      { q: 'Fix: “She asked me where do I live.”', a: 'She asked me *where I lived*.' },
+      { q: 'Report a yes/no question: “Do you speak Arabic?”', a: 'He asked *whether I spoke* Arabic.' },
+    ],
+    reading: {
+      title: 'What the Neighbours Said', titleAr: 'ما قاله الجيران',
+      passage: [
+        'When the bakery closed, everyone on the street had a different account of it.',
+        'The barber insisted that the owner *had been* ill for months; the woman at number nine claimed she *had seen* him leave with two suitcases.',
+        'My mother, who dislikes gossip, said only that he *had always been* kind to her and that she *hoped* he *was* well.',
+        'A month later a letter arrived at the shop asking whether anyone *wanted* to buy the ovens.',
+        'It turned out he had simply retired and moved to his sister’s village.',
+        'Nobody had thought to ask him, and everybody had thought to explain him.',
+      ],
+      tip: 'Notice how *insisted*, *claimed* and *said only* judge the speaker before you read the content.',
+      tipAr: 'لاحظ كيف تحكم الأفعال الناقلة على المتكلّم قبل أن تقرأ المحتوى.',
+    },
+    homework: [
+      { en: 'Report 5 things people said to you today', ar: 'انقل ٥ عبارات قيلت لك اليوم' },
+      { en: 'Report 3 questions you were asked this week', ar: 'انقل ٣ أسئلة سُئلتها هذا الأسبوع' },
+      { en: 'Rewrite 3 “said” sentences with stronger reporting verbs', ar: 'أعد كتابة ٣ جمل بأفعال ناقلة أقوى' },
+    ],
+    editing: {
+      wrong: [
+        'He said me that he is very tired yesterday.',
+        'She asked me what time is the meeting?',
+        'They told to us don’t be late.',
+      ],
+      correct: [
+        'He *told* me that he *was* very tired *the day before*.',
+        'She asked me *what time the meeting was.*',
+        'They told *us not to be* late.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 34 · ADVANCED PASSIVE ─────────────────────────── */
+  {
+    no: 34, cefr: 'B2', tag: 'Advanced passive', tagAr: 'المبني للمجهول المتقدّم',
+    title: 'The Passive at B2 — impersonal report & causative',
+    titleAr: 'المبني للمجهول المتقدّم — الصيغة التقريرية و have something done',
+    objectives: [
+      { en: 'Report claims impersonally: *It is said that…*', ar: 'نقل الادّعاءات بصيغة غير شخصية' },
+      { en: 'Use *He is thought to be…* confidently', ar: 'استخدام الصيغة الثانية للتقرير' },
+      { en: 'Use the causative: *have / get something done*', ar: 'استخدام صيغة التسبيب' },
+      { en: 'Choose the passive for a reason, not by habit', ar: 'اختيار المبني للمجهول لغرض لا عادةً' },
+    ],
+    rule: {
+      en: 'Two impersonal report shapes: *It is said that he is rich* and *He is said to be rich* — both hide who is claiming. Causative: *have something done* = you arrange it, someone else does it (I *had my car repaired*). *Get* is the informal twin.',
+      ar: 'صيغتان للتقرير غير الشخصي: It is said that… و He is said to be… وكلتاهما تُخفيان القائل. وصيغة التسبيب: have something done أي أنك رتّبت الأمر وقام به غيرك، و get بديلها غير الرسمي.',
+    },
+    explain: {
+      intro: 'At B1 the passive answers “who did it does not matter.” At B2 it does something sharper: it lets you report a claim *without owning it*, which is the backbone of academic and journalistic English. It also lets you say that something was done *for* you without pretending you did it yourself — a distinction Arabic makes with «جعل» and English makes with word order.',
+      introAr: 'في B1 يقول المبني للمجهول: «الفاعل غير مهم». أما في B2 فيؤدّي دورًا أدقّ: ينقل ادّعاءً دون أن تتبنّاه، وهذا عمود الإنجليزية الأكاديمية والصحفية. كما يتيح لك القول إن شيئًا أُنجز لك دون ادّعاء أنك أنجزته بنفسك.',
+      points: [
+        { en: '*It is said / believed / reported that* + full clause', ar: 'الصيغة الأولى: It is said that + جملة كاملة' },
+        { en: '*He is said / thought / known to* + base verb', ar: 'الصيغة الثانية: He is said to + مجرّد' },
+        { en: 'For an earlier event: *is said to have been*', ar: 'لحدث أسبق: is said to have been' },
+        { en: 'Causative: *have + object + V3* — I *had my hair cut*', ar: 'التسبيب: have + مفعول + التصريف الثالث' },
+        { en: '*get something done* = the same, but informal', ar: 'get something done: المعنى نفسه بأسلوب غير رسمي' },
+        { en: '*I cut my hair* = I did it myself. *I had my hair cut* = the barber did.', ar: 'الفرق بين أن تفعلها بنفسك وأن يفعلها غيرك لك' },
+      ],
+    },
+    form: {
+      affirmative: [
+        '*It is believed that* the site is ancient.',
+        'The site *is believed to be* ancient.',
+        'She *had* her documents *translated*.',
+      ],
+      negative: [
+        '*It is not thought that* the plan will work.',
+        'The plan *is not expected to* succeed.',
+        'He *didn’t have* the car *serviced*.',
+      ],
+      question: [
+        '*Is it known* whether the report is finished?',
+        '*Where did* you *have* your CV *printed*?',
+        '*Have* you *had* your laptop *repaired*?',
+      ],
+      note: 'Passive by choice, not by habit. If you know who acted and it matters, name them — an essay full of “it is believed” sounds evasive.',
+      noteAr: 'اختر المبني للمجهول عن قصد لا عن عادة؛ المقال المملوء بـ it is believed يبدو متهرّبًا.',
+    },
+    irregulars: 'pp',
+    examples: [
+      { en: '*It is said that* coffee improves concentration.', ar: 'يُقال إن القهوة تحسّن التركيز.' },
+      { en: 'Coffee *is said to improve* concentration.', ar: 'يُقال إن القهوة تحسّن التركيز — بالصيغة الثانية.' },
+      { en: '*It is widely believed that* the language is dying.', ar: 'يُعتقد على نطاق واسع أن اللغة تندثر.' },
+      { en: 'The manuscript *is thought to have been written* in 1400.', ar: 'يُعتقد أن المخطوط كُتب عام ١٤٠٠.' },
+      { en: 'I *had my visa renewed* last week.', ar: 'جدّدتُ تأشيرتي — أي أنّ جهةً جدّدتها لي.' },
+      { en: 'We *are getting the office painted* on Friday.', ar: 'سنطلي المكتب — عبر عمّال.' },
+      { en: 'Compare: I *painted* the office ✗ (yourself) · I *had it painted* ✓', ar: 'قارن بين أن تطليه بنفسك وأن تُطليه' },
+      { en: 'Professional: Your request *is being reviewed* by the department.', ar: 'مهني: طلبك قيد المراجعة.' },
+    ],
+    exercises: [
+      { q: 'Impersonal: “People say he is honest.” (2 ways)', a: '*It is said that* he is honest. / He *is said to be* honest.' },
+      { q: 'Earlier event: “They believe the letter was sent.”', a: 'The letter *is believed to have been sent*.' },
+      { q: 'Causative: “A mechanic repaired my car.”', a: 'I *had my car repaired*.' },
+      { q: 'Which is right: “I cut my hair yesterday” or “I had my hair cut”?', a: 'Both exist — the first means *you* held the scissors.' },
+      { q: 'Formal report: “Experts think the economy will recover.”', a: 'The economy *is expected to recover*.' },
+      { q: 'Make it informal: “I had my phone fixed.”', a: 'I *got* my phone *fixed*.' },
+    ],
+    reading: {
+      title: 'The House on the Hill', titleAr: 'البيت الذي على التلّة',
+      passage: [
+        'The old house above our town *is said to be* two hundred years old, though nobody has checked.',
+        '*It is believed that* a French merchant built it, and he *is thought to have died* there alone.',
+        'Every few years someone buys it, *has the roof repaired*, and then quietly disappears from the story.',
+        'Last spring the newest owner *had the whole garden cleared*, and under the weeds we found a stone with a date on it.',
+        'The date did not match any version of the tale.',
+        '*It is now said that* the merchant never existed at all — which, in a small town, changes nothing.',
+      ],
+      tip: 'Every claim here is reported without a source. That is the impersonal passive doing its work — useful, and worth noticing when others use it on you.',
+      tipAr: 'كل ادّعاء هنا منقول بلا مصدر — هذا عمل المبني للمجهول غير الشخصي، ومن المفيد أن تنتبه إليه حين يستعمله غيرك معك.',
+    },
+    homework: [
+      { en: 'Write 4 impersonal claims about your city', ar: 'اكتب ٤ ادّعاءات غير شخصية عن مدينتك' },
+      { en: 'Rewrite 3 of them in the *is said to* form', ar: 'أعد كتابة ٣ منها بصيغة is said to' },
+      { en: 'Write 3 causative sentences about things you arranged', ar: 'اكتب ٣ جمل تسبيب عن أمور رتّبتها' },
+    ],
+    editing: {
+      wrong: [
+        'It is said he is to be very rich man.',
+        'I cutted my hair at the barber yesterday.',
+        'The bridge is believed to build in 1920.',
+      ],
+      correct: [
+        'It is said *that he is a* very rich man. / He *is said to be* very rich.',
+        'I *had my hair cut* at the barber yesterday.',
+        'The bridge is believed to *have been built* in 1920.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 35 · RELATIVE CLAUSES — ADVANCED ─────────────────────────── */
+  {
+    no: 35, cefr: 'B2', tag: 'Relative clauses +', tagAr: 'الجُمل الوصفية المتقدّمة',
+    title: 'Defining vs Non-Defining — the comma that changes meaning',
+    titleAr: 'الوصفية المحدِّدة وغير المحدِّدة — فاصلة تغيّر المعنى',
+    objectives: [
+      { en: 'Tell essential from extra information', ar: 'التمييز بين المعلومة الأساسية والإضافية' },
+      { en: 'Punctuate non-defining clauses correctly', ar: 'ترقيم الجملة غير المحدِّدة' },
+      { en: 'Use *which* to comment on a whole clause', ar: 'استخدام which للتعليق على جملة كاملة' },
+      { en: 'Shorten clauses: *the man sitting there*', ar: 'اختصار الجملة الوصفية' },
+    ],
+    rule: {
+      en: 'No commas = the clause *defines* which one you mean: “The student *who studies* passes.” Commas = extra information you could delete: “Karim, *who studies every night*, passed.” Never use *that* in a non-defining clause, and never drop the commas.',
+      ar: 'بلا فواصل: الجملة تحدّد أيّهما تقصد. وبالفواصل: معلومة إضافية يمكن حذفها. ولا تستعمل that في غير المحدِّدة، ولا تحذف الفواصل.',
+    },
+    explain: {
+      intro: 'Two identical-looking sentences can say opposite things, and the only difference is a pair of commas. “My brother who lives in Paris” implies you have several brothers; “My brother, who lives in Paris,” implies you have one. Examiners test this precisely because it proves you control meaning, not just grammar.',
+      introAr: 'جملتان متطابقتان في الشكل قد تقولان أمرين متناقضين، والفرق فاصلتان لا أكثر. «أخي الذي يعيش في باريس» تعني أن لك إخوة، أما «أخي، الذي يعيش في باريس،» فتعني أن لك أخًا واحدًا. ويُختبر هذا لأنه يثبت أنك تتحكّم في المعنى لا في القواعد فقط.',
+      points: [
+        { en: 'Defining = essential, NO commas, *that* is allowed', ar: 'المحدِّدة: أساسية بلا فواصل ويجوز فيها that' },
+        { en: 'Non-defining = extra, ALWAYS commas, *that* is forbidden', ar: 'غير المحدِّدة: إضافية بفواصل دائمًا و that ممنوعة' },
+        { en: 'You can drop the pronoun only when it is the *object*: the book (that) I read', ar: 'يجوز حذف الضمير إن كان مفعولًا فقط' },
+        { en: '*whose* = belonging to · *where* = place · *when* = time', ar: 'whose للملكية و where للمكان و when للزمان' },
+        { en: '*, which* can comment on the WHOLE sentence: He was late, *which* annoyed everyone.', ar: 'which قد تعلّق على الجملة كلها' },
+        { en: 'Reduce it: the man *who is sitting* there → the man *sitting* there', ar: 'الاختصار بحذف الضمير وفعل الكينونة' },
+      ],
+    },
+    form: {
+      affirmative: [
+        'Defining: The email *that arrived* today was urgent.',
+        'Non-defining: This email*,* *which arrived* today*,* was urgent.',
+        'Reduced: The email *arriving* today was urgent.',
+      ],
+      negative: [
+        'The candidate *who didn’t attend* was rejected.',
+        'Sara*,* *who doesn’t drive*, takes the train.',
+        'Anything *not marked* urgent can wait.',
+      ],
+      question: [
+        '*Who is* the man *who called* you?',
+        '*Which* is the file *(that) you need*?',
+        '*Is that* the school *where you studied*?',
+      ],
+      note: 'Arabic repeats the pronoun («الكتاب الذي قرأتُ*ه*»). English forbids it: “the book that I read *it*” ✗.',
+      noteAr: 'العربية تُعيد الضمير العائد، والإنجليزية تمنعه تمامًا.',
+    },
+    examples: [
+      { en: 'Students *who arrive late* will not be admitted.', ar: 'الطلاب الذين يصلون متأخرين لن يُسمح لهم.' },
+      { en: 'My sister*,* *who lives in Dubai*, is visiting.', ar: 'أختي، التي تعيش في دبي، ستزورنا.' },
+      { en: 'This is the café *where we first met*.', ar: 'هذا المقهى الذي التقينا فيه أول مرة.' },
+      { en: 'The writer *whose book you lent me* is Moroccan.', ar: 'الكاتب الذي أعرتني كتابه مغربي.' },
+      { en: 'He forgot the deadline*,* *which cost us the contract*.', ar: 'نسي الموعد، وهو ما كلّفنا العقد.' },
+      { en: 'Reduced: the woman *standing* by the door · the report *written* last year', ar: 'مختصرة: بلا ضمير وبلا فعل كينونة' },
+      { en: 'Essay: Countries *that invest in education* grow faster.', ar: 'مقال: الدول التي تستثمر في التعليم تنمو أسرع.' },
+      { en: 'Essay: Morocco*,* *which borders two seas*, has a mild climate.', ar: 'مقال: المغرب، الذي يطلّ على بحرين، معتدل المناخ.' },
+    ],
+    exercises: [
+      { q: 'Commas or not? “My father ___ who is a teacher ___ retired.” (one father)', a: 'Commas: My father*,* who is a teacher*,* retired.' },
+      { q: 'Fix: “Ahmed, that works with me, is late.”', a: 'Ahmed*,* *who* works with me, is late. — *that* is banned here.' },
+      { q: 'Fix: “The book which I read it was long.”', a: 'The book *(which) I read* was long.' },
+      { q: 'Join with *whose*: “I met a man. His car broke down.”', a: 'I met a man *whose car had broken down*.' },
+      { q: 'Comment on the whole clause: “She resigned. It shocked us.”', a: 'She resigned*, which* shocked us.' },
+      { q: 'Reduce: “the parcel that was delivered yesterday”', a: 'the parcel *delivered* yesterday' },
+    ],
+    reading: {
+      title: 'The Woman Who Fixed Watches', titleAr: 'المرأة التي كانت تصلح الساعات',
+      passage: [
+        'There was a shop near the station *that* repaired watches, run by a woman *whose* hands never seemed to hurry.',
+        'My grandfather*,* *who distrusted anything electric*, took his watch to her every autumn.',
+        'She would open the back, look for a long moment, and name a price *that* was always slightly too low.',
+        'The shop closed the year he died*,* *which* felt to me, at nine years old, like an arrangement between them.',
+        'The building *standing* there now sells phones.',
+        'Nobody repairs those; you simply buy the next one.',
+      ],
+      tip: 'Find the two clauses with commas: delete them and the sentence still stands. Delete the ones without commas and it collapses.',
+      tipAr: 'ابحث عن الجملتين المحاطتين بفواصل: احذفهما وتبقى الجملة قائمة، بخلاف اللواتي بلا فواصل.',
+    },
+    homework: [
+      { en: 'Write 4 defining clauses about types of people', ar: 'اكتب ٤ جمل محدِّدة عن أنواع من الناس' },
+      { en: 'Write 4 non-defining clauses about people you know', ar: 'اكتب ٤ جمل غير محدِّدة عن أشخاص تعرفهم' },
+      { en: 'Reduce 3 of your clauses to the short form', ar: 'اختصر ٣ من جملك' },
+    ],
+    editing: {
+      wrong: [
+        'My mother who lives with us she cooks every day.',
+        'The car which I bought it last year is broken.',
+        'Rabat that is the capital is smaller than Casablanca.',
+      ],
+      correct: [
+        'My mother*,* who lives with us*,* cooks every day.',
+        'The car *(which) I bought* last year is broken.',
+        'Rabat*,* *which* is the capital*,* is smaller than Casablanca.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 36 · PARTICIPLE CLAUSES ─────────────────────────── */
+  {
+    no: 36, cefr: 'B2', tag: 'Participle clauses', tagAr: 'الجُمل الاسمية بالمشتقّات',
+    title: 'Participle Clauses — writing two ideas in one breath',
+    titleAr: 'المشتقّات — فكرتان في نفَس واحد',
+    objectives: [
+      { en: 'Join two clauses without a conjunction', ar: 'ربط جملتين بلا أداة عطف' },
+      { en: 'Use *-ing* for the same subject and same time', ar: 'استخدام -ing لنفس الفاعل ونفس الزمن' },
+      { en: 'Use *Having + V3* for the earlier action', ar: 'استخدام Having + التصريف الثالث للأسبق' },
+      { en: 'Avoid the dangling participle', ar: 'تجنّب المشتقّ المعلّق' },
+    ],
+    rule: {
+      en: 'Same subject, same time → *-ing*: *Walking home, I saw her.* Same subject, earlier action → *Having + V3*: *Having finished, he left.* Passive meaning → *V3* alone: *Written in 1920, the book still sells.* The subject of the participle MUST be the subject of the main clause.',
+      ar: 'نفس الفاعل ونفس الزمن ← -ing. ونفس الفاعل مع فعل أسبق ← Having + التصريف الثالث. والمعنى المبني للمجهول ← التصريف الثالث وحده. ويجب أن يكون فاعل المشتقّ هو فاعل الجملة الرئيسية.',
+    },
+    explain: {
+      intro: 'This is the single structure that most changes how *advanced* your writing looks. Compare “Because I had finished my work, I went home” with “Having finished my work, I went home.” Same meaning, one clause lighter. Used twice in a paragraph it lifts you; used in every sentence it becomes a tic.',
+      introAr: 'هذا هو التركيب الذي يغيّر أكثر من غيره انطباع «التقدّم» في كتابتك. قارن بين الجملة الطويلة بـ because وبين Having finished my work — المعنى نفسه بجملة أخفّ. استعمله مرّتين في الفقرة فيرفعك، واستعمله في كل جملة فيصير عادة مزعجة.',
+      points: [
+        { en: '*-ing* = active, at the same time: *Opening the door, she smiled.*', ar: '‏-ing: مبني للمعلوم وفي الوقت نفسه' },
+        { en: '*Having + V3* = active, earlier: *Having eaten, we left.*', ar: 'Having + التصريف الثالث: أسبق زمنًا' },
+        { en: '*V3* alone = passive: *Built in 1890, the bridge still stands.*', ar: 'التصريف الثالث وحده: مبني للمجهول' },
+        { en: 'It can replace *because*, *after*, *while*, *since*', ar: 'يحلّ محلّ because و after و while و since' },
+        { en: 'DANGER: *Walking home, the rain started* ✗ — the rain was not walking', ar: 'خطر: المشتقّ المعلّق حين يختلف الفاعل' },
+        { en: 'Fix a dangler by restoring the subject: *While I was walking home, the rain started.*', ar: 'العلاج: أعد الفاعل إلى مكانه' },
+      ],
+    },
+    form: {
+      affirmative: [
+        '*Feeling tired*, I went to bed early.',
+        '*Having sent* the email, she relaxed.',
+        '*Printed* on thick paper, the book felt expensive.',
+      ],
+      negative: [
+        '*Not knowing* the answer, he stayed silent.',
+        '*Not having studied*, she failed.',
+        '*Not invited*, they stayed home.',
+      ],
+      question: [
+        '*Was it* difficult, *arriving* so late?',
+        '*What did* you do, *having finished* early?',
+        '*How did* it feel, *being chosen*?',
+      ],
+      note: 'Test every participle by asking “who is doing this?” If the answer is not the subject of the main clause, rewrite it.',
+      noteAr: 'اختبر كل مشتقّ بسؤال: من يقوم بهذا الفعل؟ فإن لم يكن فاعل الجملة الرئيسية فأعد الصياغة.',
+    },
+    examples: [
+      { en: '*Living abroad*, I learned to cook.', ar: 'حين عشت في الخارج تعلّمت الطبخ.' },
+      { en: '*Having lived* abroad, I understand the difficulty.', ar: 'بعد أن عشت في الخارج صرت أفهم الصعوبة.' },
+      { en: '*Written* in simple English, the book suits beginners.', ar: 'لأنه كُتب بإنجليزية بسيطة يناسب المبتدئين.' },
+      { en: '*Not wanting* to disturb him, I waited outside.', ar: 'لم أشأ إزعاجه فانتظرت في الخارج.' },
+      { en: '*Having read* the report, the manager approved it.', ar: 'بعد قراءة التقرير وافق المدير عليه.' },
+      { en: 'Essay: *Faced with* rising costs, families reduce spending.', ar: 'مقال: في مواجهة ارتفاع التكاليف تقلّل الأسر إنفاقها.' },
+      { en: 'Essay: *Having examined* the evidence, one conclusion emerges.', ar: 'مقال: بعد فحص الأدلة يبرز استنتاج واحد.' },
+      { en: '✗ Dangling: *Running for the bus, my bag fell.* — the bag was not running.', ar: 'معلّق: الحقيبة لم تكن تركض' },
+    ],
+    exercises: [
+      { q: 'Join: “Because I was tired, I left.”', a: '*Feeling* tired, I left.' },
+      { q: 'Join: “After she had eaten, she went out.”', a: '*Having eaten*, she went out.' },
+      { q: 'Passive: “The house was built in 1890. It still stands.”', a: '*Built* in 1890, the house still stands.' },
+      { q: 'Fix the dangler: “Walking home, the rain started.”', a: '*While I was walking* home, the rain started.' },
+      { q: 'Negative: “Because he didn’t know the city, he got lost.”', a: '*Not knowing* the city, he got lost.' },
+      { q: 'Essay opener with *Having*: about examining data.', a: 'e.g. *Having reviewed the data, we can draw two conclusions.*' },
+    ],
+    reading: {
+      title: 'The Last Train', titleAr: 'آخر قطار',
+      passage: [
+        '*Arriving* at the station twenty minutes late, I already knew what I would find.',
+        '*Having checked* the board twice, I sat on a cold bench and did the arithmetic of a taxi fare.',
+        '*Built* in 1923, the station keeps a clock that has been wrong for as long as anyone remembers.',
+        '*Not wanting* to phone my brother at midnight, I waited, watching the cleaners work their slow way along the platform.',
+        'One of them looked up, *smiling*, and told me there was a bus at one.',
+        'There was no bus at one, but I have never forgotten that he wanted there to be.',
+      ],
+      tip: 'Four participle clauses, four different jobs — time, earlier action, passive description, and reason.',
+      tipAr: 'أربع جُمل بالمشتقّات وأربع وظائف: الزمن، والفعل الأسبق، والوصف المبني للمجهول، والسبب.',
+    },
+    homework: [
+      { en: 'Rewrite 5 of your own sentences using participle clauses', ar: 'أعد كتابة ٥ من جملك بالمشتقّات' },
+      { en: 'Write 3 sentences with *Having + V3*', ar: 'اكتب ٣ جمل بـ Having + التصريف الثالث' },
+      { en: 'Find and fix 2 dangling participles you wrote', ar: 'اكتشف مشتقّين معلّقين وصحّحهما' },
+    ],
+    editing: {
+      wrong: [
+        'Opening the letter, my hands was shaking.',
+        'Having finish the exam, we went to eat.',
+        'Written by my friend, I enjoyed the article.',
+      ],
+      correct: [
+        '*As I opened* the letter, my hands *were* shaking.',
+        'Having *finished* the exam, we went to eat.',
+        '*I enjoyed the article, written by my friend.*',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 37 · VERB PATTERNS + ─────────────────────────── */
+  {
+    no: 37, cefr: 'B2', tag: 'Verb patterns +', tagAr: 'صيغ الأفعال المتقدّمة',
+    title: 'Verb Patterns that Change Meaning',
+    titleAr: 'أفعال يتغيّر معناها بتغيّر الصيغة',
+    objectives: [
+      { en: 'Use *remember/forget/stop/try* with both forms', ar: 'استخدام الأفعال التي تقبل الصيغتين' },
+      { en: 'Know when the meaning changes and when it does not', ar: 'معرفة متى يتغيّر المعنى' },
+      { en: 'Use *verb + object + to* patterns', ar: 'استخدام صيغة فعل + مفعول + to' },
+      { en: 'Write precise sentences about intention and memory', ar: 'كتابة جمل دقيقة عن النيّة والذاكرة' },
+    ],
+    rule: {
+      en: 'Some verbs take both forms with DIFFERENT meanings. *Remember to lock* (the duty comes first) vs *remember locking* (the memory comes first). *Stop to smoke* (you paused in order to smoke) vs *stop smoking* (you quit). The *-ing* looks backwards; the *to* looks forwards.',
+      ar: 'بعض الأفعال تقبل الصيغتين بمعنيين مختلفين: remember to تعني الواجب قبل الفعل، و remember doing تعني الذكرى بعده. و stop to أي توقّفتَ لتفعل، و stop doing أي أقلعت. فصيغة -ing تنظر إلى الوراء، وصيغة to تنظر إلى الأمام.',
+    },
+    explain: {
+      intro: 'These pairs are the difference between saying what you *meant* and saying what you *did*. “I stopped smoking” and “I stopped to smoke” describe opposite lives. Exam writing punishes the wrong choice heavily, because the reader cannot recover your intention from context.',
+      introAr: 'هذه الأزواج هي الفرق بين ما *قصدتَه* وما *فعلتَه*. فجملة «أقلعتُ عن التدخين» و«توقّفتُ لأدخّن» تصفان حياتين متناقضتين. والاختبارات تعاقب الخطأ هنا بشدّة لأن القارئ لا يستطيع استعادة قصدك من السياق.',
+      points: [
+        { en: '*remember to do* = the duty · *remember doing* = the memory', ar: 'remember to الواجب · remember doing الذكرى' },
+        { en: '*forget to do* = you failed to · *forget doing* = you have no memory of', ar: 'forget to نسيتَ أن تفعل · forget doing لا تذكر أنك فعلت' },
+        { en: '*stop to do* = pause in order to · *stop doing* = quit', ar: 'stop to توقّف لكي · stop doing أقلع' },
+        { en: '*try to do* = attempt something hard · *try doing* = experiment with a method', ar: 'try to حاول · try doing جرّب طريقة' },
+        { en: '*mean to do* = intend · *mean doing* = involve', ar: 'mean to ينوي · mean doing يستلزم' },
+        { en: '*regret to say* (bad news now) · *regret saying* (regret the past)', ar: 'regret to لخبر سيّئ الآن · regret doing لندم على ماضٍ' },
+      ],
+    },
+    form: {
+      affirmative: [
+        'Please *remember to send* the file.',
+        'I *remember sending* it last week.',
+        'We *stopped to rest* halfway.',
+      ],
+      negative: [
+        'Don’t *forget to call* the bank.',
+        'I *don’t remember signing* anything.',
+        'He *stopped smoking* two years ago.',
+      ],
+      question: [
+        '*Did you remember to lock* the door?',
+        '*Do you remember meeting* her?',
+        '*Have you tried restarting* it?',
+      ],
+      note: 'A useful test: *-ing* is a thing that already exists in the world; *to* is a thing still ahead of you.',
+      noteAr: 'اختبار مفيد: صيغة -ing شيء موجود فعلًا، وصيغة to شيء ما زال أمامك.',
+    },
+    examples: [
+      { en: '*Remember to bring* your passport tomorrow.', ar: 'تذكّر أن تُحضر جواز سفرك غدًا.' },
+      { en: 'I *remember bringing* it — it must be in the bag.', ar: 'أذكر أنني أحضرته.' },
+      { en: 'She *stopped studying* medicine after one year.', ar: 'توقّفت عن دراسة الطب بعد سنة.' },
+      { en: 'She *stopped to study* the map for a minute.', ar: 'توقّفت لتدرس الخريطة دقيقة.' },
+      { en: 'I *tried to open* the jar, but it was stuck.', ar: 'حاولت فتح البرطمان.' },
+      { en: '*Try adding* more salt — it might help.', ar: 'جرّب إضافة الملح.' },
+      { en: 'Professional: We *regret to inform* you that the post is filled.', ar: 'مهني: يؤسفنا إبلاغكم بشغل الوظيفة.' },
+      { en: 'Professional: I *regret sending* that email so quickly.', ar: 'مهني: أندم على إرسال ذلك الإيميل بسرعة.' },
+    ],
+    exercises: [
+      { q: 'Duty or memory? “Remember ___ (post) the letter — it is urgent.”', a: '*to post* — it has not happened yet.' },
+      { q: 'Duty or memory? “I remember ___ (post) it yesterday.”', a: '*posting* — it already happened.' },
+      { q: 'Quit or pause? “He stopped ___ (drink) coffee at night.”', a: '*drinking* — he quit.' },
+      { q: 'Attempt or experiment? “___ (try) turning it off and on.”', a: '*Try turning* — a method to experiment with.' },
+      { q: 'Formal bad news: begin a rejection line.', a: 'We *regret to inform* you that…' },
+      { q: 'Fix: “I forgot locking the door and someone came in.”', a: 'I forgot *to lock* the door…' },
+    ],
+    reading: {
+      title: 'What My Father Forgot', titleAr: 'ما نسيه أبي',
+      passage: [
+        'In his last years my father would forget *to take* his tablets, but he never forgot *taking* my mother to the sea in 1974.',
+        'He would stop *to describe* the colour of the water, then stop *describing* it because the word in English would not come.',
+        'I tried *to correct* him once and learned quickly not to.',
+        'Later I tried *sitting* quietly instead, and the stories grew longer.',
+        'He always meant *to write* it all down, though writing it down would have meant *choosing* which parts were true.',
+        'I remember *listening*. That turned out to be the useful part.',
+      ],
+      tip: 'Six pairs, six different meanings. Read it twice and swap one form — the sentence changes its life.',
+      tipAr: 'ستّة أزواج وستّة معانٍ. اقرأها مرّتين وبدّل صيغة واحدة لترى كيف تتغيّر الجملة.',
+    },
+    homework: [
+      { en: 'Write both versions of 4 verbs and explain the difference', ar: 'اكتب الصيغتين لأربعة أفعال واشرح الفرق' },
+      { en: 'Write 3 sentences about habits you stopped', ar: 'اكتب ٣ جمل عن عادات أقلعت عنها' },
+      { en: 'Write a professional line with *regret to inform*', ar: 'اكتب جملة مهنية بـ regret to inform' },
+    ],
+    editing: {
+      wrong: [
+        'Please remember locking the office before you leave.',
+        'I stopped to smoke last year and I feel better.',
+        'We regret informing you that your application failed.',
+      ],
+      correct: [
+        'Please remember *to lock* the office before you leave.',
+        'I stopped *smoking* last year and I feel better.',
+        'We regret *to inform* you that your application *was unsuccessful*.',
+      ],
+    },
+  },
+
+  /* ═══════════════════ UNIT 10 · ESSAYS & ARGUMENT (B2) ═══════════════════ */
+
+  /* ─────────────────────────── 38 · PARAGRAPH TO ESSAY ─────────────────────────── */
+  {
+    no: 38, cefr: 'B2', tag: 'The essay shape', tagAr: 'شكل المقال',
+    title: 'From Paragraph to Essay — the four-part shape',
+    titleAr: 'من الفقرة إلى المقال — البناء الرباعي',
+    objectives: [
+      { en: 'See an essay as paragraphs with one job each', ar: 'رؤية المقال كفقرات لكلٍّ منها وظيفة' },
+      { en: 'Write an introduction that earns the reader', ar: 'كتابة مقدّمة تكسب القارئ' },
+      { en: 'Give every body paragraph one controlling idea', ar: 'فكرة واحدة مسيطرة لكل فقرة' },
+      { en: 'Close without repeating yourself', ar: 'الختام دون تكرار' },
+    ],
+    rule: {
+      en: 'An essay is four moves: *Introduction* (hook → background → thesis) · *Body 1* (first main point + evidence) · *Body 2* (second main point + evidence) · *Conclusion* (restate the position in new words → implication). Four paragraphs, 250–300 words, is a complete essay.',
+      ar: 'المقال أربع حركات: مقدّمة (جذب ← خلفية ← أطروحة)، وفقرة أولى بنقطة ودليل، وفقرة ثانية بنقطة ودليل، وخاتمة تعيد الموقف بكلمات جديدة ثم تفتح أفقًا. أربع فقرات و٢٥٠–٣٠٠ كلمة مقال كامل.',
+    },
+    explain: {
+      intro: 'You already know how to build one paragraph: topic sentence, support, conclusion. An essay is that same shape one level up — the thesis is the essay’s topic sentence, and each body paragraph is one of its supports. Nothing new is being asked of you except *scale*.',
+      introAr: 'أنت تعرف بناء الفقرة: جملة موضوعية ودعم وخاتمة. والمقال هو البناء نفسه بمستوى أعلى: الأطروحة جملته الموضوعية، وكل فقرة من الجسم دعامة من دعائمها. فلا يُطلب منك جديد سوى *الحجم*.',
+      points: [
+        { en: 'Introduction = hook → background → *thesis* (the thesis goes LAST)', ar: 'المقدّمة: جذب ← خلفية ← أطروحة في الآخر' },
+        { en: 'One main idea per body paragraph — two ideas means two paragraphs', ar: 'فكرة رئيسية واحدة لكل فقرة' },
+        { en: 'Every body paragraph: topic sentence → explain → example → link', ar: 'كل فقرة: جملة موضوعية ← شرح ← مثال ← ربط' },
+        { en: 'Order your points weakest → strongest; the reader keeps the last one', ar: 'رتّب من الأضعف إلى الأقوى، فالأخيرة هي الباقية' },
+        { en: 'Conclusion: NEW words, NO new arguments, NO “In conclusion I think”', ar: 'الخاتمة بكلمات جديدة بلا حجج جديدة' },
+        { en: 'Plan for four minutes before writing; it saves twenty', ar: 'خطّط أربع دقائق قبل الكتابة توفّر عشرين' },
+      ],
+    },
+    examples: [
+      { en: 'Hook (question): *Why do so many adults abandon a language they once studied for years?*', ar: 'جذب بسؤال' },
+      { en: 'Hook (fact): *Nearly half of Moroccan graduates say English limits their job options.*', ar: 'جذب بحقيقة' },
+      { en: 'Background: *English has become the language of hiring across the region.*', ar: 'خلفية' },
+      { en: 'Thesis: *Schools should therefore teach writing, not only conversation.*', ar: 'أطروحة' },
+      { en: 'Body topic sentence: *The first reason is economic.*', ar: 'جملة موضوعية للفقرة' },
+      { en: 'Evidence: *For example, most job advertisements now require written English.*', ar: 'دليل' },
+      { en: 'Link: *This shift explains why writing deserves more classroom time.*', ar: 'ربط' },
+      { en: 'Conclusion: *A generation that can speak but not write will keep losing the interview it deserves.*', ar: 'خاتمة تفتح أفقًا' },
+    ],
+    exercises: [
+      { q: 'Where does the thesis go in the introduction?', a: '*Last* — after the hook and background.' },
+      { q: 'Your body paragraph has two ideas. Fix it.', a: 'Split it into *two paragraphs*, one idea each.' },
+      { q: 'Order these: strongest argument, weakest argument.', a: 'Weakest first, *strongest last*.' },
+      { q: 'What must a conclusion never contain?', a: 'A *new argument* — and no “In conclusion, I think…”.' },
+      { q: 'Write a hook (question) for: technology in classrooms.', a: 'e.g. *Can a tablet teach what a teacher cannot?*' },
+      { q: 'How many words is a complete 4-paragraph essay?', a: 'About *250–300*.' },
+    ],
+    reading: {
+      title: 'The Shape Under the Words', titleAr: 'البناء تحت الكلمات',
+      passage: [
+        'The first essay I ever wrote in English was two pages long and said one thing four times.',
+        'My teacher drew a box around each paragraph and asked me to write, in the margin, what job that paragraph did.',
+        'Three of the four boxes got the same answer, which was the whole problem in one page.',
+        'She told me that a reader forgives clumsy sentences but never forgives not knowing why they are still reading.',
+        'Since then I plan in boxes before I write in words, and the writing takes half the time.',
+        'The shape is not a cage; it is the thing that lets you stop worrying about the shape.',
+      ],
+      tip: 'Test any essay: write in the margin what job each paragraph does. Two paragraphs with the same job means one is redundant.',
+      tipAr: 'اختبر أي مقال: اكتب على الهامش وظيفة كل فقرة، فإن تكرّرت الوظيفة فإحداهما زائدة.',
+    },
+    homework: [
+      { en: 'Plan (do not write) 3 essays in boxes: 4 boxes each', ar: 'خطّط ٣ مقالات في صناديق دون كتابتها' },
+      { en: 'Write 3 hooks for the same topic: question, fact, story', ar: 'اكتب ٣ مقدّمات جاذبة للموضوع نفسه' },
+      { en: 'Write one full introduction: hook, background, thesis', ar: 'اكتب مقدّمة كاملة' },
+    ],
+    editing: {
+      wrong: [
+        'In this essay I will talk about the advantages and the disadvantages of the social media and I think it is bad.',
+        'In conclusion, I think that also we must say that the government should ban it.',
+      ],
+      correct: [
+        '*Social media has changed how a generation reads, writes and argues.* *This essay argues that its costs to concentration outweigh its benefits.*',
+        '*The evidence points one way: a tool built to interrupt us is a poor place to think.* — no new argument in a conclusion.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 39 · THE THESIS STATEMENT ─────────────────────────── */
+  {
+    no: 39, cefr: 'B2', tag: 'Thesis statement', tagAr: 'جملة الأطروحة',
+    title: 'The Thesis Statement — the sentence the essay obeys',
+    titleAr: 'جملة الأطروحة — الجملة التي يطيعها المقال',
+    objectives: [
+      { en: 'Write one sentence that controls the whole essay', ar: 'كتابة جملة واحدة تتحكّم في المقال' },
+      { en: 'Take a position instead of announcing a topic', ar: 'اتّخاذ موقف بدل الإعلان عن موضوع' },
+      { en: 'Make a thesis arguable, specific and provable', ar: 'جعل الأطروحة قابلة للنقاش ومحدّدة' },
+      { en: 'Signal the structure without listing mechanically', ar: 'الإشارة إلى البناء دون سرد آليّ' },
+    ],
+    rule: {
+      en: 'A thesis is a *claim someone could disagree with*. “This essay is about pollution” is a topic, not a thesis. “Cities should ban private cars from their centres” is a thesis — because a reasonable person could argue the opposite.',
+      ar: 'الأطروحة *ادّعاء يمكن أن يخالفك فيه أحد*. «هذا المقال عن التلوّث» موضوع لا أطروحة، أما «ينبغي للمدن أن تمنع السيارات من مراكزها» فأطروحة، لأن عاقلًا قد يقول عكسها.',
+    },
+    explain: {
+      intro: 'Almost every weak essay in the world fails at the same sentence. The writer announces a subject and then wanders. A thesis is a promise with a direction: it tells the reader what you will prove and, quietly, what you will not discuss. Once it exists, the essay almost plans itself.',
+      introAr: 'كل مقال ضعيف تقريبًا يسقط عند الجملة نفسها: يعلن الكاتب موضوعًا ثم يتيه. أما الأطروحة فوعدٌ له اتّجاه: تخبر القارئ بما ستُثبته، وتخبره ضمنًا بما لن تناقشه. وما إن توجد حتى يكاد المقال يخطّط نفسه.',
+      points: [
+        { en: 'Arguable: someone could reasonably disagree', ar: 'قابلة للنقاش: يمكن مخالفتها بعقل' },
+        { en: 'Specific: name the thing, not the field', ar: 'محدّدة: سمِّ الشيء لا المجال' },
+        { en: 'Provable *by you*, in 300 words, without research you do not have', ar: 'قابلة للإثبات بما لديك وفي حجم مقالك' },
+        { en: 'One sentence. If it needs two, it is two theses.', ar: 'جملة واحدة؛ فإن احتاجت جملتين فهي أطروحتان' },
+        { en: '*because* is your friend: X should Y *because* Z', ar: 'كلمة because صديقتك: X ينبغي Y لأن Z' },
+        { en: 'Avoid “I will talk about…” — announce nothing, claim something', ar: 'تجنّب «سأتحدّث عن» — لا تُعلن بل ادّعِ' },
+      ],
+    },
+    examples: [
+      { en: '✗ Topic: *This essay is about online learning.*', ar: 'موضوع لا أطروحة' },
+      { en: '✓ Thesis: *Online learning suits motivated adults but fails most teenagers.*', ar: 'أطروحة قابلة للنقاش' },
+      { en: '✗ Too broad: *Technology has changed everything.*', ar: 'فضفاضة جدًا' },
+      { en: '✓ Narrow: *Smartphones have made deep reading a minority skill.*', ar: 'محدّدة' },
+      { en: '✗ Not arguable: *Pollution is bad for health.*', ar: 'لا خلاف عليها فلا تصلح' },
+      { en: '✓ Arguable: *Morocco should tax private cars to fund public transport.*', ar: 'يمكن مخالفتها' },
+      { en: 'With *because*: *Schools should teach writing daily because employers test it first.*', ar: 'بصيغة because' },
+      { en: 'With concession: *Although travel is educational, it cannot replace formal study.*', ar: 'مع تنازل' },
+    ],
+    exercises: [
+      { q: 'Topic or thesis? “The problem of unemployment in Morocco.”', a: 'Topic — no claim. Add one: *…is caused less by a lack of jobs than by a mismatch of skills.*' },
+      { q: 'Make arguable: “Reading is useful.”', a: 'e.g. *Reading fiction builds empathy more effectively than any school subject.*' },
+      { q: 'Narrow it: “Social media affects society.”', a: 'e.g. *Instagram has changed how teenagers judge their own faces.*' },
+      { q: 'Add *because*: “Cities should limit cars.”', a: '…*because the health cost of traffic now exceeds its economic benefit.*' },
+      { q: 'Fix: “In this essay I will discuss the advantages of English.”', a: '*Fluent written English has become the single strongest advantage a Moroccan graduate can hold.*' },
+      { q: 'Write a thesis with concession about remote work.', a: 'e.g. *Although remote work saves time, it quietly costs young employees their training.*' },
+    ],
+    reading: {
+      title: 'One Sentence, Then the Rest', titleAr: 'جملة واحدة ثم البقيّة',
+      passage: [
+        'A friend of mine marks exam essays for a living, and she told me she can predict the grade from the first paragraph almost every time.',
+        'It is not the vocabulary and it is not the grammar.',
+        'It is whether the writer has decided anything.',
+        'An essay that says “there are many opinions about this topic” has already told her that no opinion is coming.',
+        'An essay whose fourth sentence takes a clear position, even a position she disagrees with, has her attention for the rest of the page.',
+        'Deciding is the hard part; the paragraphs afterwards are mostly obedience.',
+      ],
+      tip: 'Before you write, finish this out loud: “I am going to prove that…”. If you cannot, you have no thesis yet.',
+      tipAr: 'قبل الكتابة أكمل بصوت عالٍ: «سأُثبت أن…». فإن لم تستطع فليست لديك أطروحة بعد.',
+    },
+    homework: [
+      { en: 'Turn 5 topics into arguable theses', ar: 'حوّل ٥ مواضيع إلى أطروحات قابلة للنقاش' },
+      { en: 'Write 3 theses using *because*', ar: 'اكتب ٣ أطروحات بصيغة because' },
+      { en: 'Write 2 theses with a concession (*Although…*)', ar: 'اكتب أطروحتين بصيغة التنازل' },
+    ],
+    editing: {
+      wrong: [
+        'In this essay I am going to write about the tourism in Morocco and its effects.',
+        'Everybody knows that education is very important for all the people in the world.',
+      ],
+      correct: [
+        '*Mass tourism has funded Morocco’s coast while quietly emptying its old towns.*',
+        '*Free universities matter less than the quality of the first three years of school.*',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 40 · OPINION ESSAY ─────────────────────────── */
+  {
+    no: 40, cefr: 'B2', tag: 'Opinion essay', tagAr: 'مقال الرأي',
+    title: 'The Opinion Essay — defending one position',
+    titleAr: 'مقال الرأي — الدفاع عن موقف واحد',
+    objectives: [
+      { en: 'State and hold one position for a whole essay', ar: 'اتّخاذ موقف والثبات عليه' },
+      { en: 'Support opinion with reason, example and consequence', ar: 'دعم الرأي بالسبب والمثال والنتيجة' },
+      { en: 'Use opinion language at the right strength', ar: 'استخدام لغة الرأي بالقوّة المناسبة' },
+      { en: 'Write 250–300 words in four paragraphs', ar: 'كتابة ٢٥٠–٣٠٠ كلمة في أربع فقرات' },
+    ],
+    rule: {
+      en: 'Pick ONE side and never wobble. Introduction ends with your position. Each body paragraph gives one reason, developed with R.E.D. Conclusion restates the position more strongly than the introduction did. A “both sides” answer belongs in a different essay type.',
+      ar: 'اختر جانبًا واحدًا ولا تتذبذب. تنتهي المقدّمة بموقفك، وكل فقرة تقدّم سببًا مطوَّرًا بمنهج R.E.D.، وتعيد الخاتمة الموقف أقوى مما بدأت. أما «كلا الجانبين» فنوع آخر من المقالات.',
+    },
+    explain: {
+      intro: 'The commonest failure here is politeness. Writers hedge so hard that by paragraph three the reader cannot tell what they believe. In an opinion essay, balance is not fairness — it is indecision. You may acknowledge the other side, but only in order to defeat it.',
+      introAr: 'أشيع الأخطاء هنا هو المجاملة: يبالغ الكاتب في التحفّظ حتى لا يعود القارئ يعرف رأيه. والتوازن في مقال الرأي ليس إنصافًا بل تردّدًا. لك أن تعترف بالرأي الآخر، لكن لتهزمه لا لتساويه.',
+      points: [
+        { en: 'Strong: *I firmly believe* · *There is no doubt that*', ar: 'قويّة' },
+        { en: 'Measured: *In my view* · *It seems clear that*', ar: 'معتدلة' },
+        { en: 'Cautious: *It could be argued that* · *arguably*', ar: 'متحفّظة' },
+        { en: 'Never mix strengths at random — pick a register and hold it', ar: 'لا تخلط الدرجات عشوائيًا' },
+        { en: 'Acknowledge the other side once, then answer it', ar: 'اعترف بالرأي الآخر مرّة ثم ردّ عليه' },
+        { en: 'Avoid “I think” five times — the essay is already yours', ar: 'لا تكرّر I think — المقال لك أصلًا' },
+      ],
+    },
+    studio: {
+      prompt: { en: 'Some people believe children should start learning English at age 5. Do you agree? Write 250–300 words.', ar: 'يرى بعضهم أن الأطفال ينبغي أن يبدؤوا الإنجليزية في الخامسة. هل توافق؟ اكتب ٢٥٠–٣٠٠ كلمة.' },
+      model: {
+        title: 'A Model Opinion Essay', titleAr: 'مقال رأي نموذجي',
+        parts: [
+          { role: 'topic', en: 'Every parent I know asks the same question at the school gate: how early is too early for English?' },
+          { role: 'support', en: 'I firmly believe that starting at five is right, provided the lessons are spoken rather than written.' },
+          { role: 'support', en: 'The first reason is neurological: young children imitate sound without embarrassment, and accent is the one thing that hardens with age.' },
+          { role: 'support', en: 'A five-year-old repeats a difficult word cheerfully twenty times; a fifteen-year-old repeats it once and blushes.' },
+          { role: 'support', en: 'The second reason is confidence. Children who meet English as a game rather than an exam arrive at secondary school without fear, and fear, not ability, is what stops most learners.' },
+          { role: 'support', en: 'Critics reply that early English weakens the mother tongue. The evidence does not support this: bilingual children reach the same milestones in Arabic, only by a slightly different road.' },
+          { role: 'conclusion', en: 'Start them at five, then — but with songs, not spelling tests. What we teach at that age is not vocabulary; it is whether English feels like a door or a wall.' },
+        ],
+      },
+      plan: [
+        { label: 'Hook + background', ar: 'جذب وخلفية' },
+        { label: 'Thesis — your position', ar: 'الأطروحة — موقفك' },
+        { label: 'Reason 1 + R.E.D.', ar: 'السبب الأول مع التوسيع' },
+        { label: 'Reason 2 + R.E.D.', ar: 'السبب الثاني مع التوسيع' },
+        { label: 'The other side, answered', ar: 'الرأي الآخر والردّ عليه' },
+        { label: 'Conclusion — stronger, new words', ar: 'خاتمة أقوى بكلمات جديدة' },
+      ],
+      toolkit: [
+        { group: 'State your view', ar: 'إعلان الرأي', phrases: ['I firmly believe that…', 'In my view, …', 'There is little doubt that…', 'The evidence suggests that…'] },
+        { group: 'Support it', ar: 'الدعم', phrases: ['The first reason is…', 'This matters because…', 'For example, …', 'As a result, …'] },
+        { group: 'Answer the other side', ar: 'الردّ على المخالف', phrases: ['Critics reply that…', 'It is often argued that…', 'This objection ignores…', 'The evidence does not support this.'] },
+      ],
+      steps: [
+        { en: 'Decide your side in one sentence before writing anything.', ar: 'حدّد موقفك في جملة قبل أن تكتب.' },
+        { en: 'Choose your two strongest reasons; put the stronger second.', ar: 'اختر أقوى سببين وضع الأقوى ثانيًا.' },
+        { en: 'Develop each with R.E.D. — reason, example, detail.', ar: 'وسّع كلًّا منهما بمنهج R.E.D.' },
+        { en: 'Give the other side one sentence, then answer it.', ar: 'أعطِ الرأي الآخر جملة ثم ردّ عليه.' },
+        { en: 'End stronger than you began, in new words.', ar: 'اختم أقوى مما بدأت وبكلمات جديدة.' },
+      ],
+      checklist: [
+        { en: 'One clear position, held to the end', ar: 'موقف واحد واضح حتى النهاية' },
+        { en: 'Two developed reasons, not five thin ones', ar: 'سببان مطوَّران لا خمسة هزيلة' },
+        { en: 'The other side appears once — and loses', ar: 'الرأي الآخر يظهر مرّة ويُهزم' },
+        { en: 'No new argument in the conclusion', ar: 'لا حجّة جديدة في الخاتمة' },
+        { en: '250–300 words, four paragraphs', ar: '٢٥٠–٣٠٠ كلمة وأربع فقرات' },
+      ],
+    },
+    examples: [
+      { en: '*I firmly believe that* homework should be abolished before age ten.', ar: 'أعتقد جازمًا…' },
+      { en: '*The first reason is* economic*; the second is* moral.', ar: 'السبب الأول اقتصادي والثاني أخلاقي.' },
+      { en: '*Critics reply that* standards would fall. *This objection ignores* the evidence from Finland.', ar: 'يردّ النقّاد… وهذا الاعتراض يتجاهل…' },
+      { en: '*As a result*, children arrive at secondary school without fear.', ar: 'ونتيجةً لذلك…' },
+      { en: 'Weak ✗: *Maybe it is good, but also maybe it is bad.*', ar: 'ضعيفة: تذبذب' },
+      { en: 'Strong ✓: *The benefits are real, but they are smaller than the cost.*', ar: 'قويّة: اعتراف ثم حسم' },
+      { en: 'Conclusion move: *What we teach at that age is not vocabulary; it is confidence.*', ar: 'حركة الخاتمة: رفع المستوى' },
+      { en: 'Avoid ✗: *In conclusion, I think that I have said everything.*', ar: 'تجنّب الخاتمة الفارغة' },
+    ],
+    exercises: [
+      { q: 'Strengthen: “Maybe schools should teach cooking.”', a: '*Schools should teach cooking, and the case is stronger than for half the timetable.*' },
+      { q: 'Answer this objection: “Early English harms Arabic.”', a: 'e.g. *The evidence does not support this: bilingual children reach the same milestones in Arabic.*' },
+      { q: 'Which is a stronger closing? (a) “In conclusion I think it is good.” (b) “The question is not whether we can afford it, but whether we can afford not to.”', a: '(b) — it lifts the argument instead of repeating it.' },
+      { q: 'You wrote “I think” four times. Fix the register.', a: 'Replace with *In my view* once, then let the claims stand alone.' },
+      { q: 'Order two reasons: money, and children’s confidence.', a: 'Put the one you can prove best *second*.' },
+      { q: 'Write a one-sentence position on remote work.', a: 'e.g. *Remote work suits experienced staff and quietly abandons the young.*' },
+    ],
+    reading: {
+      title: 'The Essay That Would Not Choose', titleAr: 'المقال الذي رفض أن يختار',
+      passage: [
+        'I once spent a week on an essay about whether cities should ban cars, and I gave both sides everything.',
+        'Every argument had its answer; every answer had its qualification.',
+        'The teacher wrote a single line at the bottom: “Beautifully balanced. What do you think?”',
+        'It had honestly not occurred to me that the question required me.',
+        'I rewrote it in one evening, kept two of the eight arguments, and it was the first thing I wrote in English that anyone quoted back to me.',
+        'Fairness is a virtue in a judge and a weakness in an advocate.',
+      ],
+      tip: 'An opinion essay is advocacy, not judgement. Keep the other side — but keep it losing.',
+      tipAr: 'مقال الرأي مرافعة لا حُكم. أبقِ الرأي الآخر، لكن أبقِه خاسرًا.',
+    },
+    homework: [
+      { en: 'Write a full 250-word opinion essay on early English', ar: 'اكتب مقال رأي كاملًا في ٢٥٠ كلمة' },
+      { en: 'Underline your thesis and both topic sentences', ar: 'ضع خطًا تحت أطروحتك وجملتَي فقراتك' },
+      { en: 'Rewrite your conclusion twice; keep the stronger', ar: 'أعد كتابة خاتمتك مرّتين واحتفظ بالأقوى' },
+    ],
+    editing: {
+      wrong: [
+        'I think maybe the technology is good and also it is bad for the children in some situations.',
+        'In conclusion, I think that I agree and disagree with this topic.',
+      ],
+      correct: [
+        '*Technology helps children who already read well and harms those who do not.*',
+        '*The tool is not the problem; the absence of an adult beside it is.*',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 41 · FOR & AGAINST ─────────────────────────── */
+  {
+    no: 41, cefr: 'B2', tag: 'For & against', tagAr: 'مع وضدّ',
+    title: 'The For-and-Against Essay — balance on purpose',
+    titleAr: 'مقال مع وضدّ — توازن مقصود',
+    objectives: [
+      { en: 'Present both sides fairly and clearly', ar: 'عرض الجانبين بإنصاف ووضوح' },
+      { en: 'Keep your own voice out until the end', ar: 'تأجيل صوتك إلى الخاتمة' },
+      { en: 'Use contrast linkers accurately', ar: 'استخدام أدوات التضاد بدقّة' },
+      { en: 'Reach a conclusion the essay has earned', ar: 'الوصول إلى خاتمة يستحقّها المقال' },
+    ],
+    rule: {
+      en: 'Two body paragraphs: one for advantages, one for disadvantages — never mixed. The introduction promises balance, not a position. Your view appears once, in the conclusion, and must follow from what you wrote.',
+      ar: 'فقرتان: واحدة للمزايا وأخرى للعيوب دون خلط. وتَعِد المقدّمة بالتوازن لا بالموقف. ويظهر رأيك مرّة واحدة في الخاتمة، ويجب أن ينبع مما كتبت.',
+    },
+    explain: {
+      intro: 'This is the opposite discipline to the opinion essay, and mixing the two is the commonest exam mistake. Here your job is to be a fair guide for two paragraphs and a decisive one for two sentences. The examiner is watching whether your conclusion actually follows from your body — most do not.',
+      introAr: 'هذا انضباط معاكس لمقال الرأي، وخلط النوعين أشيع خطأ في الامتحانات. مهمّتك هنا أن تكون دليلًا منصفًا في فقرتين، وحاسمًا في جملتين. والمصحّح ينظر هل خاتمتك تنبع فعلًا من جسم مقالك — وأغلبها لا ينبع.',
+      points: [
+        { en: 'Paragraph 2 = advantages only. Paragraph 3 = disadvantages only.', ar: 'فقرة للمزايا وفقرة للعيوب فقط' },
+        { en: 'Give each side a comparable weight — two points each', ar: 'وزن متقارب: نقطتان لكل جانب' },
+        { en: '*However* / *On the other hand* open the second side', ar: 'أدوات فتح الجانب الثاني' },
+        { en: '*While* / *Whereas* contrast INSIDE one sentence', ar: 'while و whereas للتضاد داخل الجملة' },
+        { en: '*Despite* + noun · *Although* + clause — never “despite that he is”', ar: 'despite + اسم و although + جملة' },
+        { en: 'Your verdict belongs in the last two sentences, and nowhere else', ar: 'حكمك في آخر جملتين ولا مكان له سواهما' },
+      ],
+    },
+    examples: [
+      { en: 'Opening: *Remote work has divided employers into two camps.*', ar: 'افتتاح محايد' },
+      { en: 'Advantage: *The clearest benefit is time: commuting swallows an hour a day.*', ar: 'ميزة' },
+      { en: 'Advantage 2: *Furthermore, employees report deeper concentration at home.*', ar: 'ميزة ثانية' },
+      { en: 'Turn: *On the other hand, the costs fall unevenly.*', ar: 'الانتقال إلى الجانب الآخر' },
+      { en: 'Disadvantage: *Junior staff lose the informal training that happens beside a desk.*', ar: 'عيب' },
+      { en: 'Inside one sentence: *Experienced staff thrive at home, *whereas* new graduates struggle.*', ar: 'تضاد داخل الجملة' },
+      { en: '*Despite* the savings, many firms have reversed the policy.', ar: 'despite + اسم' },
+      { en: 'Verdict: *On balance, the model works — but only for those it was not designed to help.*', ar: 'حكم ينبع من الجسم' },
+    ],
+    exercises: [
+      { q: 'Fix: “Despite he was tired, he finished.”', a: '*Although* he was tired… / *Despite* being tired…' },
+      { q: 'Contrast in one sentence: cities are fast; villages are cheap.', a: 'Cities are faster*, whereas* villages are cheaper.' },
+      { q: 'Which paragraph holds your opinion?', a: 'Only the *conclusion* — the body stays neutral.' },
+      { q: 'Open the second side: you have just listed advantages.', a: '*On the other hand,* / *However,* …' },
+      { q: 'Balance check: 4 advantages, 1 disadvantage. Fix.', a: 'Cut to *two each*, or add a second disadvantage.' },
+      { q: 'Write a verdict for: tourism in a small town.', a: 'e.g. *On balance, tourism pays the town’s bills and slowly sells its character.*' },
+    ],
+    reading: {
+      title: 'Two Columns', titleAr: 'عمودان',
+      passage: [
+        'My grandfather made every large decision with a sheet of paper divided down the middle.',
+        'On the left he wrote what he would gain; on the right, what it would cost him.',
+        'He was strict about not writing in the second column while he was still filling the first, because, he said, a man who argues with himself too early never finishes either list.',
+        'Only when both columns were full did he allow himself an opinion, and he wrote it at the bottom in one line.',
+        '*Although* he never went to secondary school, he had understood the structure of an argument better than most graduates.',
+        'The lists are why the one line at the bottom was usually right.',
+      ],
+      tip: 'Fill both columns before you decide. That is literally the structure of this essay.',
+      tipAr: 'املأ العمودين قبل أن تقرّر — هذا حرفيًا بناء هذا المقال.',
+    },
+    homework: [
+      { en: 'Write a for-and-against essay on remote work', ar: 'اكتب مقال «مع وضدّ» عن العمل عن بُعد' },
+      { en: 'Write 5 sentences using *whereas* and *while*', ar: 'اكتب ٥ جمل بـ whereas و while' },
+      { en: 'Write 3 pairs: *Although* + clause / *Despite* + noun', ar: 'اكتب ٣ أزواج بـ although و despite' },
+    ],
+    editing: {
+      wrong: [
+        'In the one hand it is cheap, in the other hand it is slow.',
+        'Despite of the rain, the match was played and I think it was wrong.',
+      ],
+      correct: [
+        '*On the one hand* it is cheap*; on the other hand,* it is slow.',
+        '*Despite* the rain, the match was played. — and save your view for the conclusion.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 42 · PROBLEM–SOLUTION ─────────────────────────── */
+  {
+    no: 42, cefr: 'B2', tag: 'Problem–solution', tagAr: 'المشكلة والحلّ',
+    title: 'The Problem–Solution Essay',
+    titleAr: 'مقال المشكلة والحلّ',
+    objectives: [
+      { en: 'Define a problem precisely before solving it', ar: 'تحديد المشكلة بدقّة قبل حلّها' },
+      { en: 'Propose solutions that match the causes', ar: 'اقتراح حلول تطابق الأسباب' },
+      { en: 'Judge each solution honestly', ar: 'تقييم كل حلّ بأمانة' },
+      { en: 'Write with the language of cause and remedy', ar: 'الكتابة بلغة السبب والعلاج' },
+    ],
+    rule: {
+      en: 'Four moves: *name the problem* → *name its cause* → *propose a solution that attacks that cause* → *admit its limit*. A solution that does not match the cause you gave is the fastest way to lose a reader.',
+      ar: 'أربع حركات: سمِّ المشكلة، ثم سببها، ثم اقترح حلًّا يهاجم ذلك السبب، ثم اعترف بحدوده. والحلّ الذي لا يطابق السبب الذي ذكرته أسرع طريق لخسارة القارئ.',
+    },
+    explain: {
+      intro: 'Most weak answers describe a problem for three paragraphs and then offer “the government should do something”. The strength of this essay is not the size of your solution — it is the *link* between cause and remedy. If you blame traffic on poor public transport, your solution must be about buses, not about fines.',
+      introAr: 'أغلب الإجابات الضعيفة تصف المشكلة ثلاث فقرات ثم تقول «على الحكومة أن تفعل شيئًا». وقوّة هذا المقال ليست في حجم الحلّ بل في *الرابط* بين السبب والعلاج: إن نسبت الازدحام إلى ضعف النقل العام فليكن حلّك عن الحافلات لا عن الغرامات.',
+      points: [
+        { en: 'A problem needs a *who* and a *how much*, not just a name', ar: 'المشكلة تحتاج «مَن» و«كم» لا اسمًا فقط' },
+        { en: 'Cause language: *stems from*, *is driven by*, *is largely due to*', ar: 'لغة السبب' },
+        { en: 'Solution language: *One way to address this is…*, *A more realistic step would be…*', ar: 'لغة الحلّ' },
+        { en: 'Match remedy to cause — that link is the whole essay', ar: 'طابق العلاج مع السبب' },
+        { en: 'Admit the limit: *This would not eliminate the problem, but it would…*', ar: 'اعترف بحدود الحلّ' },
+        { en: 'Prefer one solution developed deeply to four listed shallowly', ar: 'حلّ واحد معمّق خير من أربعة مسرودة' },
+      ],
+    },
+    examples: [
+      { en: 'Problem: *Almost half of graduates in the region leave university unable to write a professional email.*', ar: 'مشكلة محدّدة بالأرقام' },
+      { en: 'Cause: *This stems largely from an exam system that rewards memory over production.*', ar: 'سبب' },
+      { en: 'Solution: *One way to address this is to make every subject assess one piece of writing.*', ar: 'حلّ يطابق السبب' },
+      { en: 'Evaluation: *This would not raise standards overnight, but it would make writing unavoidable.*', ar: 'تقييم صادق' },
+      { en: 'Cause verb: *Traffic congestion is driven by the absence of a reliable metro.*', ar: 'فعل سببيّ' },
+      { en: 'Realistic step: *A more realistic step would be to subsidise bus fares for students.*', ar: 'خطوة واقعية' },
+      { en: '✗ Mismatch: cause = poor transport → solution = higher fines.', ar: 'عدم تطابق بين السبب والحلّ' },
+      { en: '✓ Match: cause = poor transport → solution = more frequent buses.', ar: 'تطابق صحيح' },
+    ],
+    exercises: [
+      { q: 'Sharpen: “Unemployment is a problem.”', a: 'e.g. *Youth unemployment in Morocco stands near 30%, and graduates wait an average of two years for a first contract.*' },
+      { q: 'Cause verb: “Obesity ___ cheap processed food.”', a: '*is driven by* / *stems largely from*' },
+      { q: 'Cause = no libraries. Give a matching solution.', a: 'e.g. *Fund one public library per district* — not “tell children to read more”.' },
+      { q: 'Admit a limit for: free bus travel for students.', a: 'e.g. *This would not reduce car use among commuters, but it would change a generation’s habits.*' },
+      { q: 'Which is stronger: four listed solutions or one developed?', a: '*One developed* — depth proves thinking.' },
+      { q: 'Fix: cause = untrained teachers → solution = new textbooks.', a: 'Match it: *fund a national teacher-training year.*' },
+    ],
+    reading: {
+      title: 'The Broken Step', titleAr: 'الدرجة المكسورة',
+      passage: [
+        'The stairs at our old school had one broken step, and for three years the answer was a sign telling children to be careful.',
+        'Every term someone fell, and every term the sign was replaced with a bigger sign.',
+        'The problem was not that children were careless; the problem was that the step was broken.',
+        'A new headmaster arrived, read one report, and had it repaired in a morning for the price of the last two signs.',
+        'I think of that step whenever I read an essay that blames people for a system.',
+        'The cure has to touch the cause, or it is only a larger sign.',
+      ],
+      tip: 'Ask of every solution you propose: does this touch the cause I named, or only its symptom?',
+      tipAr: 'اسأل عن كل حلّ تقترحه: هل يمسّ السبب الذي ذكرته أم عَرَضه فقط؟',
+    },
+    homework: [
+      { en: 'Write a problem–solution essay on youth unemployment', ar: 'اكتب مقال مشكلة وحلّ عن بطالة الشباب' },
+      { en: 'For 3 problems, write cause + matching solution', ar: 'لثلاث مشكلات اكتب السبب والحلّ المطابق' },
+      { en: 'Write 3 honest limits for your own solutions', ar: 'اكتب ٣ اعترافات بحدود حلولك' },
+    ],
+    editing: {
+      wrong: [
+        'The problem of the pollution is very big and the government must do something about it.',
+        'The traffic is because many cars so we must to build more roads and this solve everything.',
+      ],
+      correct: [
+        '*Air quality in Casablanca now exceeds WHO limits on most winter days*, *largely because* heating still relies on diesel.',
+        'Congestion *stems from* the absence of a metro*; building more roads would attract more cars rather than fewer.*',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 43 · COUNTER-ARGUMENT ─────────────────────────── */
+  {
+    no: 43, cefr: 'B2', tag: 'Counter-argument', tagAr: 'الحجّة المضادّة',
+    title: 'Concession & Refutation — beating the other side',
+    titleAr: 'التنازل والردّ — هزيمة الرأي المخالف',
+    objectives: [
+      { en: 'State the opposing view fairly', ar: 'عرض الرأي المخالف بإنصاف' },
+      { en: 'Concede what is true before you answer', ar: 'الاعتراف بما هو صحيح قبل الردّ' },
+      { en: 'Refute with evidence, not volume', ar: 'الردّ بالدليل لا بالصوت' },
+      { en: 'Use the concession structures accurately', ar: 'استخدام تراكيب التنازل بدقّة' },
+    ],
+    rule: {
+      en: 'The move is three steps: *Admit* (It is true that…) → *Turn* (However / Nevertheless) → *Answer* (…but the evidence shows…). Refusing to admit anything makes you look afraid of the other side; admitting without turning makes you look defeated.',
+      ar: 'ثلاث خطوات: اعترف (صحيح أن…)، ثم انعطف (لكن)، ثم ردّ (…غير أن الأدلة تُظهر…). فرفض الاعتراف يجعلك خائفًا من الخصم، والاعتراف بلا انعطاف يجعلك مهزومًا.',
+    },
+    explain: {
+      intro: 'A reader who disagrees with you is already arguing in their head. If you never name their objection, you lose them silently. Naming it — and granting the part that is true — buys you the right to answer. This single move separates B2 writing from C1 writing more clearly than any grammar point.',
+      introAr: 'القارئ المخالف يجادلك في رأسه بالفعل، فإن لم تذكر اعتراضه خسرتَه بصمت. أما أن تذكره وتمنحه ما فيه من صواب فيمنحك حقّ الردّ. وهذه الحركة وحدها تفصل بين كتابة B2 وكتابة C1 أوضح من أي قاعدة نحوية.',
+      points: [
+        { en: 'Admit: *It is true that…* · *Admittedly, …* · *There is some force in…*', ar: 'صيغ الاعتراف' },
+        { en: 'Turn: *However* · *Nevertheless* · *Even so*', ar: 'صيغ الانعطاف' },
+        { en: 'Answer: *…but this overlooks…* · *…yet the evidence suggests…*', ar: 'صيغ الردّ' },
+        { en: 'Concede a *fact*, never your *position*', ar: 'تنازل عن حقيقة لا عن موقفك' },
+        { en: 'One counter-argument done well beats three mentioned', ar: 'حجّة مضادّة واحدة متقنة خير من ثلاث مذكورة' },
+        { en: 'Straw man ✗: never weaken their view to win easily', ar: 'لا تُضعف رأي خصمك لتفوز بسهولة' },
+      ],
+    },
+    examples: [
+      { en: '*It is true that* online courses are cheaper*. However,* completion rates remain below 10%.', ar: 'اعتراف ثم انعطاف ثم ردّ' },
+      { en: '*Admittedly*, the policy costs money*; even so,* the alternative costs more.', ar: 'admittedly + even so' },
+      { en: '*There is some force in* the argument that exams cause stress*, but* removing them shifts the stress to coursework.', ar: 'قوّة في الحجّة ثم ردّ' },
+      { en: '*Critics argue that…* *This objection, however, overlooks…*', ar: 'صيغة أكاديمية' },
+      { en: '*While* travel broadens the mind*, it cannot* replace formal study.', ar: 'تنازل داخل جملة واحدة' },
+      { en: '*Opponents are right to worry about* cost — *they are wrong about* the timescale.', ar: 'حقّ في شيء وخطأ في آخر' },
+      { en: '✗ Straw man: *Some people think children should never study at all.*', ar: 'تشويه رأي الخصم' },
+      { en: '✓ Fair: *Some argue that early formal study harms play. This deserves an answer.*', ar: 'عرض منصف' },
+    ],
+    exercises: [
+      { q: 'Concede then turn: “Cars pollute.” (you are pro-car in rural areas)', a: '*It is true that* cars pollute*; however,* rural families have no alternative.' },
+      { q: 'Fix the straw man: “My opponents want children to be ignorant.”', a: '*My opponents value play over early formal study.*' },
+      { q: 'Add a turn: “Admittedly the plan is expensive ___”', a: '*…even so, the cost of inaction is higher.*' },
+      { q: 'Which do you concede — a fact or your position?', a: 'A *fact*. Never your position.' },
+      { q: 'Answer: “Remote work isolates staff.”', a: 'e.g. *This is real, yet it describes bad management more than remote work itself.*' },
+      { q: 'One sentence, both halves: exams and stress.', a: '*While* exams create stress*, they also create the only deadline some students meet.*' },
+    ],
+    reading: {
+      title: 'The Man Who Argued Against Himself', titleAr: 'الرجل الذي جادل نفسه',
+      passage: [
+        'A teacher of mine used to begin every debate by giving the opposing team their best argument, out loud, better than they had prepared it.',
+        'It looked like generosity and it was in fact strategy.',
+        '*It was true*, he would say, that his own position had a real cost — and then, having said it first, he owned the rest of the hour.',
+        'The other team spent their time proving something already granted.',
+        '*Admittedly* this only works if your position can survive an honest hearing of the other one.',
+        '*Even so*, I have never seen the trick fail, and I have never seen anyone brave enough to copy it.',
+      ],
+      tip: 'Naming the objection first takes it away from your opponent. That is the whole technique.',
+      tipAr: 'أن تذكر الاعتراض أولًا يعني أن تنتزعه من خصمك — وهذه هي الحيلة كلها.',
+    },
+    homework: [
+      { en: 'Write 5 concession–refutation moves on 5 topics', ar: 'اكتب ٥ حركات تنازل وردّ في ٥ مواضيع' },
+      { en: 'Take your last opinion essay and add one counter-argument', ar: 'أضف حجّة مضادّة إلى آخر مقال رأي كتبته' },
+      { en: 'Write the strongest version of a view you disagree with', ar: 'اكتب أقوى صيغة لرأي تخالفه' },
+    ],
+    editing: {
+      wrong: [
+        'Some people say that it is expensive but they are stupid and wrong.',
+        'In spite of it is difficult, we must to do it.',
+      ],
+      correct: [
+        'Some argue that it is expensive*. It is true that the initial cost is high; however, the saving appears within three years.*',
+        '*Although it is difficult*, we must do it. / *In spite of the difficulty*, we must do it.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 44 · COHESION ─────────────────────────── */
+  {
+    no: 44, cefr: 'B2', tag: 'Cohesion', tagAr: 'التماسك',
+    title: 'Cohesion — making a whole essay hold together',
+    titleAr: 'التماسك — أن يتماسك المقال كلّه',
+    objectives: [
+      { en: 'Link paragraphs, not only sentences', ar: 'ربط الفقرات لا الجمل فقط' },
+      { en: 'Use reference words instead of repeating nouns', ar: 'استخدام الإحالة بدل تكرار الأسماء' },
+      { en: 'Carry an idea forward with old→new order', ar: 'حمل الفكرة بترتيب المعلوم ثم الجديد' },
+      { en: 'Stop over-using linking words', ar: 'التوقّف عن الإفراط في أدوات الربط' },
+    ],
+    rule: {
+      en: 'Cohesion is not a bag of connectors. It is three habits: *reference* (this, such, the latter), *old information first and new information last* in each sentence, and a *topic sentence that echoes the previous paragraph* before it turns.',
+      ar: 'التماسك ليس كيسًا من أدوات الربط، بل ثلاث عادات: الإحالة، وتقديم المعلوم وتأخير الجديد في كل جملة، وجملة موضوعية تُصدي الفقرة السابقة قبل أن تنعطف.',
+    },
+    explain: {
+      intro: 'Examiners write “mechanical” beside essays stuffed with *Firstly, Moreover, Furthermore*. Those words are signposts on a road that may not exist. Real cohesion happens *inside* the sentences: each one picks up a word from the one before and carries it a step further. Get that right and you need far fewer connectors.',
+      introAr: 'يكتب المصحّحون كلمة «آليّ» بجانب المقالات المحشوّة بـ Firstly و Moreover، فهذه لافتات على طريق قد لا يكون موجودًا. أما التماسك الحقيقي فيحدث *داخل* الجمل: كل جملة تلتقط كلمة من سابقتها وتمضي بها خطوة. أتقن هذا وستحتاج أدوات ربط أقلّ بكثير.',
+      points: [
+        { en: 'Reference: *this problem*, *such measures*, *the former / the latter*', ar: 'الإحالة: this و such و the former/the latter' },
+        { en: 'Old → new: start a sentence with what the reader already knows', ar: 'ابدأ بما يعرفه القارئ وانتهِ بالجديد' },
+        { en: 'Echo then turn: *While this solves the cost, it creates a second problem.*', ar: 'صدى ثم انعطاف' },
+        { en: 'Vary: not *Firstly / Secondly / Thirdly* down the page', ar: 'نوّع ولا تعدّد آليًا' },
+        { en: 'Repeat a key noun on purpose — synonyms can confuse in academic writing', ar: 'كرّر الاسم المفتاح عمدًا؛ المرادفات قد تُربك' },
+        { en: 'A paragraph that could be moved anywhere has no cohesion', ar: 'الفقرة التي تصلح لأي مكان لا تماسك فيها' },
+      ],
+    },
+    examples: [
+      { en: 'Reference: *Traffic has doubled. This growth has outpaced every plan.*', ar: 'إحالة بـ this + اسم' },
+      { en: 'Old→new ✓: *That decision created a second problem.*', ar: 'المعلوم أولًا' },
+      { en: 'Old→new ✗: *A second problem was created by that decision.*', ar: 'الجديد أولًا — أضعف' },
+      { en: 'Echo + turn: *These measures reduce cost. They do not, however, reduce risk.*', ar: 'صدى ثم انعطاف' },
+      { en: '*The former* is cheaper; *the latter* is faster.', ar: 'الأول… والثاني…' },
+      { en: '*Such policies* rarely survive an election.', ar: 'such + اسم للإحالة' },
+      { en: 'Paragraph link: *If cost is the first obstacle, training is the second.*', ar: 'ربط بين فقرتين' },
+      { en: '✗ Overloaded: *Firstly, moreover, in addition, furthermore, finally.*', ar: 'حشو أدوات الربط' },
+    ],
+    exercises: [
+      { q: 'Replace the repetition: “Pollution is rising. Pollution harms children.”', a: 'Pollution is rising*, and this rise harms children most.*' },
+      { q: 'Reorder old→new: “A new law was introduced by the ministry after the protests.”', a: '*After the protests, the ministry introduced a new law.*' },
+      { q: 'Link two paragraphs: para 2 was about cost; para 3 is about training.', a: 'e.g. *If cost is the first obstacle, training is the second.*' },
+      { q: 'Use *the latter*: “We could raise taxes or cut services.”', a: '…*The latter* would fall hardest on the poor.' },
+      { q: 'Fix: “Firstly… Secondly… Thirdly… Fourthly…”', a: 'Keep one or two; let the ideas carry the order.' },
+      { q: 'Reference with *such*: you just described three failing policies.', a: '*Such policies* rarely survive contact with a budget.' },
+    ],
+    reading: {
+      title: 'The Rope, Not the Signposts', titleAr: 'الحبل لا اللافتات',
+      passage: [
+        'A colleague once showed me two student essays with identical arguments and very different marks.',
+        'The weaker one used eleven linking words; the stronger used three.',
+        'What the stronger writer had done instead was end each sentence on the word the next sentence would begin with.',
+        'That habit pulled the paragraph forward like a rope, and *this rope* is what a reader actually feels.',
+        'Signposts tell you a road exists.',
+        'A rope means you are already being pulled along it.',
+      ],
+      tip: 'End a sentence on the idea the next one will open with. That handover is cohesion.',
+      tipAr: 'أنهِ الجملة بالفكرة التي ستفتتح بها التالية — هذا التسليم هو التماسك.',
+    },
+    homework: [
+      { en: 'Rewrite an old essay, removing half its linking words', ar: 'أعد كتابة مقال قديم بحذف نصف أدوات الربط' },
+      { en: 'Write 5 sentence pairs using old→new order', ar: 'اكتب ٥ أزواج بترتيب المعلوم ثم الجديد' },
+      { en: 'Write 4 paragraph-opening links that echo then turn', ar: 'اكتب ٤ جمل افتتاح تُصدي ثم تنعطف' },
+    ],
+    editing: {
+      wrong: [
+        'Firstly the cost is high. Moreover the cost is high for families. Furthermore the cost is a problem.',
+        'The government introduced the law. The law was introduced because of the protests happened before.',
+      ],
+      correct: [
+        'The cost is high*, and it falls hardest on families who already spend most of their income on rent.*',
+        '*After the protests, the government introduced the law.*',
+      ],
+    },
+  },
+
+  /* ═══════════════════ UNIT 11 · STYLE, STANCE & PRECISION (B2 → C1) ═══════════════════ */
+
+  /* ─────────────────────────── 45 · REGISTER ─────────────────────────── */
+  {
+    no: 45, cefr: 'B2', tag: 'Register', tagAr: 'مستوى اللغة',
+    title: 'Register — the same idea in three voices',
+    titleAr: 'مستوى اللغة — الفكرة نفسها بثلاثة أصوات',
+    objectives: [
+      { en: 'Hear the difference between informal, neutral and formal', ar: 'تمييز الودّي والمحايد والرسمي' },
+      { en: 'Swap phrasal verbs for single formal verbs', ar: 'استبدال الأفعال المركّبة بأفعال رسمية' },
+      { en: 'Keep one register for a whole text', ar: 'الثبات على مستوى واحد في النص كلّه' },
+      { en: 'Choose register by reader, not by mood', ar: 'اختيار المستوى حسب القارئ لا حسب المزاج' },
+    ],
+    rule: {
+      en: 'Three dials move together: *vocabulary* (get → receive), *grammar* (contractions, phrasal verbs) and *distance* (I think → it appears that). Move all three or none. A formal sentence with one “kind of” in it collapses.',
+      ar: 'ثلاثة مؤشّرات تتحرّك معًا: المفردات، والقواعد (الاختصارات والأفعال المركّبة)، والمسافة. حرّكها جميعًا أو لا تحرّك شيئًا؛ فالجملة الرسمية تنهار بكلمة عامية واحدة.',
+    },
+    explain: {
+      intro: 'Register mistakes rarely break grammar — they break *trust*. A cover letter that says “I really wanna work with you guys” is grammatical and unemployable. Learners over-correct in the other direction too, producing letters so stiff no human wrote them. The skill is choosing a level and staying inside it for every sentence.',
+      introAr: 'أخطاء المستوى نادرًا ما تكسر القواعد، لكنها تكسر *الثقة*. فرسالة تقول «أرغب بشدّة في العمل معكم يا رفاق» سليمة نحويًا وغير قابلة للتوظيف. ويبالغ المتعلّمون في الاتجاه الآخر أيضًا فينتجون رسائل متيبّسة لم يكتبها بشر. والمهارة أن تختار مستوى وتبقى داخله في كل جملة.',
+      points: [
+        { en: 'Formal prefers a single verb: *set up* → *establish* · *find out* → *discover*', ar: 'الرسمي يفضّل الفعل المفرد على المركّب' },
+        { en: 'Formal avoids contractions: *don’t* → *do not*', ar: 'الرسمي يتجنّب الاختصارات' },
+        { en: 'Formal avoids *get*: get better → *improve* · get money → *obtain funding*', ar: 'الرسمي يتجنّب get' },
+        { en: 'Formal adds distance: *I think* → *It appears that* · *arguably*', ar: 'الرسمي يزيد المسافة' },
+        { en: 'Neutral is the safe default for most professional email', ar: 'المحايد هو الخيار الآمن لأغلب الإيميلات المهنية' },
+        { en: 'Slang, emojis and “!!!” have no formal register at all', ar: 'العامية والرموز وعلامات التعجّب لا مكان لها في الرسمي' },
+      ],
+    },
+    examples: [
+      { en: 'Informal: *We need to sort this out fast.*', ar: 'ودّي' },
+      { en: 'Neutral: *We should resolve this quickly.*', ar: 'محايد' },
+      { en: 'Formal: *This matter requires prompt resolution.*', ar: 'رسمي' },
+      { en: 'get → *receive / obtain* · give → *provide* · ask for → *request*', ar: 'أزواج شائعة' },
+      { en: 'go up → *rise / increase* · go down → *fall / decline*', ar: 'الصعود والهبوط' },
+      { en: 'a lot of → *considerable* · loads of → *substantial*', ar: 'الكمّيات' },
+      { en: 'Informal: *The thing is, it didn’t work.*', ar: 'ودّي' },
+      { en: 'Formal: *The approach proved unsuccessful.*', ar: 'رسمي' },
+      { en: '✗ Mixed: *We hereby request that you get back to us ASAP.*', ar: 'خلط بين مستويين' },
+    ],
+    exercises: [
+      { q: 'Formalise: “We found out that the numbers went up a lot.”', a: '*We discovered that the figures rose considerably.*' },
+      { q: 'Formalise: “Can you get back to me soon?”', a: '*I would appreciate a reply at your earliest convenience.*' },
+      { q: 'Which is out of place: “The committee do not tolerate this kind of stuff.”', a: '*stuff* — use *behaviour* / *conduct*.' },
+      { q: 'Make it warmer (neutral): “Your request has been denied.”', a: '*Unfortunately, we are unable to approve your request at this time.*' },
+      { q: 'Replace the phrasal verb: “They set up a new company.”', a: 'They *established* a new company.' },
+      { q: 'One informal word ruins this: “The results were, like, really good.”', a: 'Remove *like* and *really*: *The results were excellent.*' },
+    ],
+    reading: {
+      title: 'Two Letters', titleAr: 'رسالتان',
+      passage: [
+        'A cousin of mine applied for the same post twice, two years apart.',
+        'The first letter began “Hi guys, I saw your ad and I’m super interested”, and it was never answered.',
+        'The second began “Dear Ms Bennani, I am writing to apply for the position of logistics assistant”, and it was.',
+        'Nothing about his experience had changed in those two years, and he was, if anything, less qualified than the first time.',
+        'What had changed was that he had learned to hear how he sounded to a stranger.',
+        'Register is simply the ability to imagine the reader before you imagine yourself.',
+      ],
+      tip: 'Before sending anything, read the first line as if you were the receiver — a stranger with two hundred emails.',
+      tipAr: 'قبل أن ترسل، اقرأ السطر الأول بعين المستقبِل — غريبٌ أمامه مئتا رسالة.',
+    },
+    homework: [
+      { en: 'Write one message in all three registers', ar: 'اكتب رسالة واحدة بالمستويات الثلاثة' },
+      { en: 'Formalise 10 phrasal verbs you use often', ar: 'حوّل ١٠ أفعال مركّبة تستعملها إلى رسمية' },
+      { en: 'Find one register mistake in something you sent last month', ar: 'اكتشف خطأ مستوى في رسالة أرسلتها' },
+    ],
+    editing: {
+      wrong: [
+        'Dear Sir, I wanna know if you got my CV, thanks a lot!!!',
+        'We hereby inform you that the stuff you asked for is gonna be late.',
+      ],
+      correct: [
+        'Dear Sir*, I am writing to confirm whether you received my CV. Thank you for your time.*',
+        'We *regret to inform you that the materials you requested will be delayed.*',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 46 · HEDGING ─────────────────────────── */
+  {
+    no: 46, cefr: 'C1', tag: 'Hedging', tagAr: 'التحوّط',
+    title: 'Hedging — claiming carefully and sounding stronger',
+    titleAr: 'التحوّط — أن تدّعي بحذر فتبدو أقوى',
+    objectives: [
+      { en: 'Match the strength of a claim to your evidence', ar: 'مطابقة قوّة الادّعاء لقوّة الدليل' },
+      { en: 'Use modal, adverb and verb hedges', ar: 'استخدام التحوّط بالأفعال الناقصة والظروف والأفعال' },
+      { en: 'Avoid absolute words that invite a counter-example', ar: 'تجنّب المطلقات التي تستدعي مثالًا مضادًّا' },
+      { en: 'Hedge without disappearing', ar: 'التحوّط دون أن يختفي موقفك' },
+    ],
+    rule: {
+      en: 'Never claim more than you can defend. *All students hate exams* dies to one counter-example; *Many students find exams stressful* survives. Hedge with modals (*may, might, tend to*), adverbs (*generally, largely, arguably*) or verbs (*suggest, indicate, appear*).',
+      ar: 'لا تدّعِ أكثر مما تستطيع الدفاع عنه. «كل الطلاب يكرهون الامتحانات» تسقط بمثال واحد، أما «كثير من الطلاب يجدونها مرهقة» فتصمد. وتحوّط بالأفعال الناقصة أو الظروف أو الأفعال.',
+    },
+    explain: {
+      intro: 'Beginners think confidence means absolutes. In academic and professional English the opposite is true: the most authoritative writers are the most precise about the *limits* of what they know. A hedged claim is harder to attack, which is exactly why it reads as stronger — you have already conceded the ground your opponent was going to take.',
+      introAr: 'يظنّ المبتدئ أن الثقة تعني الإطلاق، والأمر في الإنجليزية الأكاديمية والمهنية عكس ذلك: أكثر الكتّاب سلطةً أدقّهم في تحديد *حدود* ما يعرفون. فالادّعاء المتحوّط أصعب في المهاجمة، ولهذا يُقرأ أقوى: لأنك تنازلتَ سلفًا عن الأرض التي كان خصمك سيأخذها.',
+      points: [
+        { en: 'Modal: *may*, *might*, *can*, *tend to*, *is likely to*', ar: 'تحوّط بالأفعال الناقصة' },
+        { en: 'Adverb: *generally*, *largely*, *arguably*, *to some extent*', ar: 'تحوّط بالظروف' },
+        { en: 'Verb: *suggest*, *indicate*, *appear*, *point to*', ar: 'تحوّط بالأفعال' },
+        { en: 'Quantity: *most*, *many*, *a significant number* — rarely *all*', ar: 'تحوّط بالكمّيات' },
+        { en: 'Attribute: *according to*, *the data suggest* — put the claim on a source', ar: 'أسنِد الادّعاء إلى مصدر' },
+        { en: 'Do NOT stack hedges: *It may perhaps possibly be…* ✗ — one is enough', ar: 'لا تُكدّس التحوّط — واحد يكفي' },
+      ],
+    },
+    examples: [
+      { en: '✗ *Social media destroys concentration.* → ✓ *Social media appears to erode sustained attention.*', ar: 'من الإطلاق إلى الدقّة' },
+      { en: '✗ *Everyone knows that…* → ✓ *It is widely accepted that…*', ar: 'تعميم ← صيغة مقبولة' },
+      { en: '*The data suggest* a link rather than a cause.', ar: 'الأدلة تشير لا تُثبت' },
+      { en: 'Students *tend to* underestimate how long writing takes.', ar: 'tend to للميل العام' },
+      { en: '*Arguably*, the policy has done more harm than good.', ar: 'arguably للرأي القابل للنقاش' },
+      { en: '*To some extent*, the criticism is fair.', ar: 'إلى حدٍّ ما' },
+      { en: '*This is likely to* affect younger employees most.', ar: 'is likely to للاحتمال المرجّح' },
+      { en: '✗ Over-hedged: *It might possibly perhaps be somewhat true.*', ar: 'إفراط في التحوّط' },
+    ],
+    exercises: [
+      { q: 'Hedge: “Exams cause depression.”', a: '*Exams may contribute to anxiety in some students.*' },
+      { q: 'Hedge: “All Moroccans speak French.”', a: '*Many Moroccans speak French, particularly in urban areas.*' },
+      { q: 'Attribute it: “Reading improves empathy.”', a: '*Studies suggest that reading fiction improves empathy.*' },
+      { q: 'Fix the stacking: “It may perhaps possibly help.”', a: '*It may help.*' },
+      { q: 'Strengthen without absolutes: “Maybe it is sometimes a bit useful.”', a: '*It is generally useful.*' },
+      { q: 'Which invites a counter-example: “Most” or “All”?', a: '*All* — one exception destroys it.' },
+    ],
+    reading: {
+      title: 'The Word That Saved the Paper', titleAr: 'الكلمة التي أنقذت البحث',
+      passage: [
+        'A researcher I know had a paper rejected twice, and the second reviewer sent a single line of feedback.',
+        'It said that the argument was sound but the verbs were not.',
+        'She had written that her results *proved* something; she changed *proved* to *indicate* and the paper was accepted with almost no other edit.',
+        'Nothing in the study had changed, and no claim had been weakened in substance.',
+        'What changed was that the sentence now described exactly how much she knew.',
+        'Confidence, in this language, is measured by precision rather than volume.',
+      ],
+      tip: 'Ask of every claim: could one counter-example destroy this sentence? If yes, hedge it.',
+      tipAr: 'اسأل عن كل ادّعاء: هل يهدمه مثال مضادّ واحد؟ فإن كان كذلك فتحوّط.',
+    },
+    homework: [
+      { en: 'Hedge 10 absolute claims you have written', ar: 'حوّل ١٠ ادّعاءات مطلقة إلى متحوّطة' },
+      { en: 'Rewrite one paragraph attributing every claim', ar: 'أعد كتابة فقرة بإسناد كل ادّعاء إلى مصدر' },
+      { en: 'Find an over-hedged sentence and cut it to one hedge', ar: 'اكتشف جملة مفرطة في التحوّط واختصرها' },
+    ],
+    editing: {
+      wrong: [
+        'Everybody knows that all young people are addicted to their phones and this always destroys their studies.',
+        'It may perhaps possibly be somewhat likely that the plan could maybe work.',
+      ],
+      correct: [
+        '*Many young people report using their phones compulsively, and this appears to affect study time.*',
+        '*The plan may work.*',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 47 · NOMINALISATION ─────────────────────────── */
+  {
+    no: 47, cefr: 'C1', tag: 'Nominalisation', tagAr: 'التحويل إلى أسماء',
+    title: 'Nominalisation — turning actions into ideas',
+    titleAr: 'التحويل إلى أسماء — من الفعل إلى الفكرة',
+    objectives: [
+      { en: 'Turn verbs and adjectives into nouns', ar: 'تحويل الأفعال والصفات إلى أسماء' },
+      { en: 'Compress two sentences into one noun phrase', ar: 'ضغط جملتين في عبارة اسمية' },
+      { en: 'Recognise when it clarifies and when it obscures', ar: 'معرفة متى يُوضّح ومتى يُعتّم' },
+      { en: 'Write formal, information-dense sentences', ar: 'كتابة جمل رسمية مكثّفة' },
+    ],
+    rule: {
+      en: 'Make the action a *thing*: *decide* → *the decision* · *fail* → *the failure* · *grow* → *growth*. This lets an action become the subject of a new sentence: “Prices rose. This caused protests.” → “*The rise in prices* caused protests.”',
+      ar: 'اجعل الفعل *شيئًا*: decide ← the decision. وهذا يتيح للحدث أن يصير فاعلًا لجملة جديدة: «ارتفعت الأسعار فاحتجّ الناس» ← «تسبّب *ارتفاع الأسعار* في احتجاجات».',
+    },
+    explain: {
+      intro: 'This is the single most visible feature of academic English, and the reason a research abstract sounds different from speech. It compresses: one noun phrase can carry a whole clause, which lets you fit an argument into a sentence. It is also the most abused device in the language — the same trick that makes writing dense makes bureaucratic prose unreadable.',
+      introAr: 'هذه أبرز سمة في الإنجليزية الأكاديمية، وسبب اختلاف ملخّص البحث عن الكلام. فهي تضغط: عبارة اسمية واحدة تحمل جملة كاملة، فتتّسع الجملة لحجّة كاملة. وهي أيضًا أكثر الأدوات إساءةَ استعمال: الحيلة نفسها التي تكثّف الكتابة تجعل لغة البيروقراطية غير مقروءة.',
+      points: [
+        { en: '‑tion: examine → *examination* · introduce → *introduction*', ar: 'لاحقة ‑tion' },
+        { en: '‑ment: develop → *development* · improve → *improvement*', ar: 'لاحقة ‑ment' },
+        { en: '‑ance/‑ence: perform → *performance* · differ → *difference*', ar: 'لاحقتا ‑ance و‑ence' },
+        { en: '‑ity/‑ness from adjectives: able → *ability* · dark → *darkness*', ar: 'من الصفات' },
+        { en: 'It lets the ACTION become the subject — that is the whole power', ar: 'تتيح للحدث أن يصير فاعلًا — وهذه قوّتها' },
+        { en: 'Too much = fog: prefer a verb when the doer matters', ar: 'الإفراط ضباب — فضّل الفعل حين يهمّ الفاعل' },
+      ],
+    },
+    examples: [
+      { en: '*Prices rose sharply. This caused protests.* → *The sharp rise in prices caused protests.*', ar: 'ضغط جملتين في واحدة' },
+      { en: '*They decided quickly, and it surprised everyone.* → *Their rapid decision surprised everyone.*', ar: 'الفعل يصير فاعلًا' },
+      { en: '*Students perform better when they read.* → *Reading improves student performance.*', ar: 'صيغة أكاديمية' },
+      { en: 'analyse → *analysis* · argue → *argument* · conclude → *conclusion*', ar: 'أزواج شائعة' },
+      { en: 'Academic: *The introduction of the policy led to a marked improvement.*', ar: 'أكاديمي' },
+      { en: 'Report: *A reduction in staff turnover followed the pay increase.*', ar: 'تقرير' },
+      { en: '✗ Fog: *The implementation of the utilisation of resources…*', ar: 'ضباب بيروقراطي' },
+      { en: '✓ Clear: *We used the resources better.*', ar: 'واضح' },
+    ],
+    exercises: [
+      { q: 'Nominalise: “The company grew quickly, which worried rivals.”', a: '*The company’s rapid growth worried rivals.*' },
+      { q: 'Nominalise: “They failed to plan, so the project collapsed.”', a: '*A failure to plan caused the project to collapse.*' },
+      { q: 'Noun from *decide* · *perform* · *able*', a: '*decision* · *performance* · *ability*' },
+      { q: 'Un-fog: “The utilisation of this methodology…”', a: '*Using this method…*' },
+      { q: 'Compress: “Teachers were trained. Results improved.”', a: '*Teacher training improved results.*' },
+      { q: 'When should you NOT nominalise?', a: 'When the *doer matters* — “the decision was made” hides who decided.' },
+    ],
+    reading: {
+      title: 'The Sentence That Hid a Person', titleAr: 'الجملة التي أخفت إنسانًا',
+      passage: [
+        'The letter announcing the closure of the factory contained no people at all.',
+        'There had been a *review*, followed by a *restructuring*, resulting in a *reduction in headcount* — and every one of those nouns had once been a verb with a person attached to it.',
+        'Somebody reviewed. Somebody restructured. Somebody decided that four hundred people would stop being paid in March.',
+        '*The transformation of actions into things* is a genuine tool of clear academic writing, and it is also the oldest way of avoiding a name.',
+        'Learn it because your reports will need it.',
+        'Notice it because your rights may depend on it.',
+      ],
+      tip: 'Every nominalisation hides a verb, and every verb has a doer. Ask who, and you will know whether the writer wanted you to.',
+      tipAr: 'كل اسم محوَّل يُخفي فعلًا، ولكل فعل فاعل. اسأل: مَن؟ لتعرف هل أراد الكاتب أن تعرف.',
+    },
+    homework: [
+      { en: 'Nominalise 10 verbs and use each in a sentence', ar: 'حوّل ١٠ أفعال إلى أسماء واستعمل كلًّا في جملة' },
+      { en: 'Compress 5 sentence pairs into one noun phrase each', ar: 'اضغط ٥ أزواج من الجمل في عبارات اسمية' },
+      { en: 'Take a bureaucratic sentence and restore its verbs', ar: 'خذ جملة بيروقراطية وأعد إليها أفعالها' },
+    ],
+    editing: {
+      wrong: [
+        'The implementation of the improvement of the communication was done by the team.',
+        'There was a decrease of the numbers of the students who are attending.',
+      ],
+      correct: [
+        '*The team improved communication.*',
+        '*Attendance fell.* / *A fall in attendance followed.*',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 48 · CLEFT SENTENCES ─────────────────────────── */
+  {
+    no: 48, cefr: 'C1', tag: 'Cleft sentences', tagAr: 'الجمل المشطورة',
+    title: 'Cleft Sentences — putting the spotlight where you want it',
+    titleAr: 'الجمل المشطورة — توجيه الضوء حيث تريد',
+    objectives: [
+      { en: 'Emphasise one part of a sentence deliberately', ar: 'إبراز جزء بعينه من الجملة عمدًا' },
+      { en: 'Use *It is … that* and *What … is*', ar: 'استخدام الصيغتين' },
+      { en: 'Correct a misunderstanding elegantly', ar: 'تصحيح سوء فهم بأناقة' },
+      { en: 'Vary sentence openings in an essay', ar: 'تنويع بدايات الجمل في المقال' },
+    ],
+    rule: {
+      en: 'Split one sentence into two parts so the reader must look where you point. *It-cleft*: “Ahmed broke it” → *It was Ahmed who broke it.* *Wh-cleft*: “We need time” → *What we need is time.* Same facts, different spotlight.',
+      ar: 'اشطر الجملة إلى جزأين ليضطرّ القارئ إلى النظر حيث تشير. الصيغة الأولى بـ It was… who، والثانية بـ What… is. الحقائق نفسها والضوء مختلف.',
+    },
+    explain: {
+      intro: 'English has almost no free word order, so it cannot emphasise by moving words the way Arabic can. Instead it builds a small frame around the important part. This is why cleft sentences feel so useful once you meet them: they give you back the emphasis that English grammar otherwise takes away.',
+      introAr: 'الإنجليزية لا تكاد تملك حرّية ترتيب الكلمات، فلا تستطيع الإبراز بتقديم الكلمة كما تفعل العربية، فتبني بدل ذلك إطارًا صغيرًا حول الجزء المهمّ. ولهذا تشعر بفائدة الجملة المشطورة فور معرفتها: إنها تُعيد إليك الإبراز الذي سلبته منك القواعد.',
+      points: [
+        { en: '*It is/was + X + that/who* — spotlight on X', ar: 'الصيغة الأولى: الضوء على X' },
+        { en: '*What + clause + is/was* — spotlight on the end', ar: 'الصيغة الثانية: الضوء على النهاية' },
+        { en: '*All (that) I want is…* — a narrowing spotlight', ar: 'صيغة التضييق' },
+        { en: '*The reason (why) … is that…* — spotlight on the cause', ar: 'الضوء على السبب' },
+        { en: 'Perfect for correcting: *It wasn’t me who said that.*', ar: 'مثالية للتصحيح' },
+        { en: 'Use sparingly — two per essay is emphasis, six is noise', ar: 'استعملها باعتدال: اثنتان إبراز وستّ ضجيج' },
+      ],
+    },
+    form: {
+      affirmative: [
+        '*It was* the price *that* changed my mind.',
+        '*What* I need *is* more time.',
+        '*The reason* he left *is that* nobody listened.',
+      ],
+      negative: [
+        '*It wasn’t* the food *that* was the problem.',
+        '*What* she didn’t say *was* more important.',
+        '*All* he wanted *was* an apology.',
+      ],
+      question: [
+        '*Was it* you *who* called?',
+        '*What is it that* worries you most?',
+        '*Is that why* you left?',
+      ],
+      note: 'Use *who* for people and *that* for everything else, though *that* is acceptable for people in most writing.',
+      noteAr: 'استعمل who للأشخاص و that لغيرهم، ويجوز that للأشخاص في أغلب الكتابة.',
+    },
+    examples: [
+      { en: 'Neutral: *Fatima wrote the report.* → *It was Fatima who wrote the report.*', ar: 'الضوء على الفاعل' },
+      { en: '*It was the report that Fatima wrote* (not the letter).', ar: 'الضوء على المفعول' },
+      { en: '*What surprised me was the silence.*', ar: 'الضوء على النهاية' },
+      { en: '*What we need is a plan, not another meeting.*', ar: 'مقارنة حادّة' },
+      { en: '*All I asked for was a receipt.*', ar: 'تضييق للتأكيد' },
+      { en: '*The reason the policy failed is that nobody explained it.*', ar: 'الضوء على السبب' },
+      { en: 'Correcting: *It wasn’t the cost that stopped us; it was the timing.*', ar: 'تصحيح أنيق' },
+      { en: 'Essay: *What this debate ignores is the cost to the poorest households.*', ar: 'مقال: إبراز الإغفال' },
+    ],
+    exercises: [
+      { q: 'Emphasise “Karim”: “Karim found the mistake.”', a: '*It was Karim who found the mistake.*' },
+      { q: 'Emphasise the end: “I want honesty.”', a: '*What I want is honesty.*' },
+      { q: 'Correct politely: they think you complained about the price.', a: '*It wasn’t the price that I complained about.*' },
+      { q: 'Spotlight the cause: “The plan failed because it was rushed.”', a: '*The reason the plan failed is that it was rushed.*' },
+      { q: 'Narrow it: “I only asked for an apology.”', a: '*All I asked for was an apology.*' },
+      { q: 'Essay use: emphasise what a debate overlooks.', a: 'e.g. *What this argument overlooks is who pays for it.*' },
+    ],
+    reading: {
+      title: 'It Was Never the Money', titleAr: 'لم يكن المال قطّ',
+      passage: [
+        'When my brother left his job everyone assumed he had been offered more elsewhere.',
+        '*It was not the salary that made him go*, though that is the version the family still prefers.',
+        '*What he could not accept was* being asked to sign something he had not read.',
+        '*The reason he never explained this is that* explaining it would have named a person.',
+        '*All he ever said was* that it had stopped feeling like his work.',
+        'Ten years on, *it is that sentence* I still think about whenever I am asked to sign anything quickly.',
+      ],
+      tip: 'Four clefts, four different spotlights. Rewrite one flat and feel how much emphasis you lose.',
+      tipAr: 'أربع جمل مشطورة وأربعة مواضع ضوء. أعد كتابة واحدة عادية لتشعر بحجم ما فقدتَه من الإبراز.',
+    },
+    homework: [
+      { en: 'Write 5 it-clefts correcting a misunderstanding', ar: 'اكتب ٥ جمل مشطورة لتصحيح سوء فهم' },
+      { en: 'Write 5 wh-clefts about what you want or need', ar: 'اكتب ٥ جمل بصيغة What… is' },
+      { en: 'Add two clefts to an essay you already wrote', ar: 'أضف جملتين مشطورتين إلى مقال كتبته' },
+    ],
+    editing: {
+      wrong: [
+        'Is the price what I don’t like it.',
+        'What I need is to have more of the time for study.',
+        'It is because of he was late that we missed it.',
+      ],
+      correct: [
+        '*It is the price that I don’t like.*',
+        '*What I need is more time to study.*',
+        '*It was because he was late that we missed it.*',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 49 · INVERSION ─────────────────────────── */
+  {
+    no: 49, cefr: 'C1', tag: 'Inversion', tagAr: 'التقديم والتأخير',
+    title: 'Inversion for Emphasis — Never have I seen…',
+    titleAr: 'القلب للتأكيد — Never have I seen…',
+    objectives: [
+      { en: 'Invert after a negative or limiting adverb', ar: 'القلب بعد ظرف نفي أو تقييد' },
+      { en: 'Build the question word order in a statement', ar: 'استخدام ترتيب السؤال في جملة خبرية' },
+      { en: 'Use *Not only… but also* correctly', ar: 'استخدام Not only… but also بدقّة' },
+      { en: 'Know when inversion is too much', ar: 'معرفة متى يصير القلب مبالغة' },
+    ],
+    rule: {
+      en: 'Put a negative or limiting adverb first, and the subject and auxiliary swap places — exactly like a question. *I have never seen…* → *Never have I seen…* Triggers: *Never, Rarely, Seldom, Not only, No sooner, Only then, Under no circumstances, Little did…*',
+      ar: 'قدّم ظرف النفي أو التقييد فينقلب ترتيب الفاعل والفعل المساعد تمامًا كالسؤال. ومن مُطلِقاته: Never و Rarely و Not only و No sooner و Only then و Little did.',
+    },
+    explain: {
+      intro: 'This is the most theatrical structure in formal English, and the fastest way to sound like a native writer — or, used twice in a paragraph, like someone performing one. It belongs in openings, conclusions and single moments of emphasis. Never in the middle of ordinary description, which is a sentence that has just proved the point.',
+      introAr: 'هذا أكثر تراكيب الإنجليزية الرسمية مسرحيةً، وأسرع طريق لتبدو ككاتب أصيل — أو، إن استعملته مرّتين في فقرة، كمن يؤدّي دور كاتب. مكانه المقدّمات والخواتيم ولحظات التأكيد المفردة، لا وسط الوصف العادي.',
+      points: [
+        { en: '*Never / Rarely / Seldom + auxiliary + subject*', ar: 'بعد ظروف النفي' },
+        { en: '*Not only did he… but he also…*', ar: 'صيغة not only' },
+        { en: '*No sooner had I… than…* (than, never “when”)', ar: 'No sooner… than' },
+        { en: '*Only when / Only after* + clause, THEN invert the main clause', ar: 'Only when: القلب في الجملة الرئيسية' },
+        { en: '*Little did I know…* — a fixed dramatic phrase', ar: 'عبارة درامية ثابتة' },
+        { en: 'If there is no auxiliary, add *do/does/did*: *Rarely does he complain.*', ar: 'إن لم يوجد فعل مساعد فأضف do/does/did' },
+      ],
+    },
+    form: {
+      affirmative: [
+        '*Never have I seen* such a response.',
+        '*Not only did she apologise*, *but she also* refunded us.',
+        '*No sooner had we sat down than* the phone rang.',
+      ],
+      negative: [
+        '*Under no circumstances should* you share the password.',
+        '*Rarely does* the committee reject a proposal.',
+        '*Little did they know* how much it would cost.',
+      ],
+      question: [
+        '*Have you ever seen* anything like it?',
+        '*Did she not only apologise but also pay*?',
+        '*Was it only then that* you understood?',
+      ],
+      note: 'Only the FIRST clause after *Only when…* stays normal; the main clause inverts: “Only when he left *did I understand*.”',
+      noteAr: 'بعد Only when تبقى جملة الشرط عادية وينقلب ترتيب الجملة الرئيسية.',
+    },
+    examples: [
+      { en: '*Never have I read* a clearer explanation.', ar: 'لم أقرأ قطّ شرحًا أوضح.' },
+      { en: '*Rarely does a policy* survive its first winter.', ar: 'نادرًا ما تصمد سياسة أول شتاء لها.' },
+      { en: '*Not only is the plan expensive*, *but it is also* slow.', ar: 'ليست الخطة مكلفة فحسب بل بطيئة أيضًا.' },
+      { en: '*No sooner had the law passed than* protests began.', ar: 'ما إن صدر القانون حتى بدأت الاحتجاجات.' },
+      { en: '*Only after the report was published did* the minister respond.', ar: 'لم يردّ الوزير إلا بعد نشر التقرير.' },
+      { en: '*Under no circumstances should* data be shared without consent.', ar: 'لا يجوز بأي حال مشاركة البيانات.' },
+      { en: '*Little did we know* that the meeting would last four hours.', ar: 'لم نكن ندري أن الاجتماع سيطول.' },
+      { en: 'Essay opener: *Seldom has a single technology divided opinion so sharply.*', ar: 'افتتاح مقال' },
+    ],
+    exercises: [
+      { q: 'Invert: “I have never heard such nonsense.”', a: '*Never have I heard* such nonsense.' },
+      { q: 'Invert: “He rarely admits a mistake.”', a: '*Rarely does he admit* a mistake.' },
+      { q: 'Complete: “No sooner had she arrived ___”', a: '…*than* the meeting began. (never *when*)' },
+      { q: 'Invert: “She not only wrote it but also designed it.”', a: '*Not only did she write it, but she also designed it.*' },
+      { q: 'Fix: “Never I have seen this before.”', a: '*Never have I seen* this before.' },
+      { q: 'Essay opener with *Seldom* about AI.', a: 'e.g. *Seldom has a technology arrived with so little agreement about its purpose.*' },
+    ],
+    reading: {
+      title: 'The Night the Power Went', titleAr: 'ليلة انقطاع الكهرباء',
+      passage: [
+        '*Never had our street been so quiet* as the night the power failed across the whole district.',
+        '*No sooner had the lights gone* out *than* doors began opening along the row.',
+        '*Not only did* neighbours who had not spoken in years share candles, *but they also* shared dinner on the steps.',
+        '*Little did anyone know* that the fault would take two days to repair.',
+        '*Only when the electricity returned did* we go back indoors and stop knowing each other.',
+        '*Rarely does* a city give you a gift and take it back so precisely.',
+      ],
+      tip: 'Five inversions in six sentences is deliberately too many — it shows the pattern. In your own writing, use one.',
+      tipAr: 'خمس جمل مقلوبة في ستّ مبالغة مقصودة لإظهار النمط؛ أما في كتابتك فاستعمل واحدة.',
+    },
+    homework: [
+      { en: 'Write 6 inverted sentences, one per trigger word', ar: 'اكتب ٦ جمل مقلوبة بمُطلِق مختلف لكل واحدة' },
+      { en: 'Rewrite 3 flat sentences from an old essay', ar: 'أعد كتابة ٣ جمل عادية من مقال قديم' },
+      { en: 'Write one essay opening using *Seldom* or *Never*', ar: 'اكتب افتتاح مقال بـ Seldom أو Never' },
+    ],
+    editing: {
+      wrong: [
+        'Never I saw such a beautiful place before.',
+        'No sooner I had arrived when the rain started.',
+        'Not only he was late but also he forgot the file.',
+      ],
+      correct: [
+        '*Never had I seen* such a beautiful place before.',
+        '*No sooner had I arrived than* the rain started.',
+        '*Not only was he late, but he also forgot* the file.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 50 · AVOIDING REPETITION ─────────────────────────── */
+  {
+    no: 50, cefr: 'C1', tag: 'Avoiding repetition', tagAr: 'تجنّب التكرار',
+    title: 'Substitution & Ellipsis — saying it once',
+    titleAr: 'الاستبدال والحذف — أن تقولها مرّة واحدة',
+    objectives: [
+      { en: 'Replace a repeated phrase with *one*, *do so*, *so*', ar: 'استبدال العبارة المكرّرة' },
+      { en: 'Leave out words the reader can recover', ar: 'حذف ما يستطيع القارئ استعادته' },
+      { en: 'Use synonyms without changing meaning', ar: 'استخدام المرادف دون تغيير المعنى' },
+      { en: 'Tighten a paragraph by a third', ar: 'تقليص الفقرة بمقدار الثلث' },
+    ],
+    rule: {
+      en: 'English hates repeating a phrase it has just used. Substitute (*one*, *ones*, *do so*, *so*, *such*) or delete entirely (*I wanted to help but I couldn’t [help]*). Arabic tolerates repetition as emphasis; English reads it as clumsiness.',
+      ar: 'الإنجليزية تكره تكرار عبارة قالتها للتوّ، فإما أن تستبدل (one و do so و so) أو تحذف تمامًا. والعربية تحتمل التكرار توكيدًا، أما الإنجليزية فتقرؤه ركاكةً.',
+    },
+    explain: {
+      intro: 'This is the invisible skill: nobody notices it when it is done, and everybody notices it when it is missing. Repetition in English signals either emphasis or a limited vocabulary, and readers assume the second. The cure is not synonyms — it is knowing which words can be replaced by a placeholder or removed altogether.',
+      introAr: 'هذه مهارة خفيّة: لا يلاحظها أحد إن أُتقنت، ويلاحظها الجميع إن غابت. فالتكرار في الإنجليزية إمّا توكيد أو ضيق حصيلة، والقارئ يفترض الثاني. والعلاج ليس المرادفات، بل معرفة ما يمكن استبداله بضمير نائب أو حذفه تمامًا.',
+      points: [
+        { en: '*one/ones* replaces a countable noun: the red one', ar: 'one تنوب عن الاسم المعدود' },
+        { en: '*do so / do that* replaces a whole verb phrase', ar: 'do so تنوب عن عبارة فعلية كاملة' },
+        { en: '*so* after think/hope/believe: *I think so.*', ar: 'so بعد أفعال الظنّ' },
+        { en: 'Ellipsis: *She can swim and [she can] dive.*', ar: 'الحذف بعد أدوات العطف' },
+        { en: '*such* refers back to a described category', ar: 'such تُحيل إلى فئة موصوفة' },
+        { en: 'Repeat a technical term on purpose — precision beats variety', ar: 'كرّر المصطلح التقني عمدًا؛ الدقّة قبل التنويع' },
+      ],
+    },
+    examples: [
+      { en: '✗ *I have a blue pen and a red pen.* → ✓ *I have a blue pen and a red one.*', ar: 'استبدال بـ one' },
+      { en: '✗ *He asked me to sign it, so I signed it.* → ✓ *…so I did so.*', ar: 'استبدال بـ do so' },
+      { en: '*Will it rain? — I hope not. / I think so.*', ar: 'so و not النائبتان' },
+      { en: 'Ellipsis: *She speaks French and [she speaks] Spanish.*', ar: 'حذف الفعل المكرّر' },
+      { en: 'Ellipsis: *I would help if I could [help].*', ar: 'حذف بعد could' },
+      { en: '*Such measures* rarely work. (= the measures just described)', ar: 'إحالة بـ such' },
+      { en: 'Essay: *The first policy failed; the second did too.*', ar: 'مقال: حذف واستبدال' },
+      { en: 'Keep the term: in a legal or medical text, repeat *the defendant* — do not vary it.', ar: 'في النص القانوني كرّر المصطلح ولا تنوّعه' },
+    ],
+    exercises: [
+      { q: 'Substitute: “I need a bag. I want a small bag.”', a: 'I need a bag — a small *one*.' },
+      { q: 'Substitute: “They asked me to wait, so I waited.”', a: '…so I *did so*.' },
+      { q: 'Ellipsis: “She can drive and she can ride.”', a: 'She can drive and *ride*.' },
+      { q: 'Answer with *so*: “Is he coming?”', a: '*I think so.* / *I hope so.*' },
+      { q: 'Use *such*: you just listed three failing policies.', a: '*Such policies* rarely last a full term.' },
+      { q: 'When SHOULD you repeat a word?', a: 'When it is a *technical or legal term* — precision outranks variety.' },
+    ],
+    reading: {
+      title: 'The Editor’s Pencil', titleAr: 'قلم المحرّر',
+      passage: [
+        'The first editor I worked with crossed out roughly a third of every page and never added a word.',
+        'She would circle a phrase, find where it had appeared two lines earlier, and draw a line between the two.',
+        'I asked her once for a rule and she said there wasn’t one; you simply stop saying things the reader is still holding.',
+        'Where I had written “the second proposal was rejected as the first proposal had been rejected”, she left “the second was rejected too”.',
+        'It said everything mine had said, and it did so in seven words.',
+        'I have never written a page since without hearing that pencil.',
+      ],
+      tip: 'Find any phrase repeated within three lines. One of the two can almost always go.',
+      tipAr: 'ابحث عن عبارة تكرّرت خلال ثلاثة أسطر، فإحداهما تكاد تكون قابلة للحذف دائمًا.',
+    },
+    homework: [
+      { en: 'Cut a page of your writing by one third without losing meaning', ar: 'اختصر صفحة من كتابتك ثلثًا دون فقد المعنى' },
+      { en: 'Write 5 sentences using *one*, *do so*, *so*, *such*', ar: 'اكتب ٥ جمل بأدوات الاستبدال' },
+      { en: 'Find 3 repetitions in an old essay and fix them', ar: 'اكتشف ٣ تكرارات في مقال قديم وصحّحها' },
+    ],
+    editing: {
+      wrong: [
+        'I bought a new phone because my old phone was broken and the new phone is faster.',
+        'He said he will come and I hope that he will come.',
+      ],
+      correct: [
+        'I bought a new phone because my old *one* was broken*, and it is faster.*',
+        'He said he *would* come*, and I hope so.*',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 51 · PRECISION & COLLOCATION ─────────────────────────── */
+  {
+    no: 51, cefr: 'C1', tag: 'Precision', tagAr: 'الدقّة',
+    title: 'Precision — collocation and the exact word',
+    titleAr: 'الدقّة — المتلازمات والكلمة المضبوطة',
+    objectives: [
+      { en: 'Choose words that habitually go together', ar: 'اختيار الكلمات التي تتلازم عادةً' },
+      { en: 'Replace vague verbs with exact ones', ar: 'استبدال الأفعال الغامضة بأخرى دقيقة' },
+      { en: 'Avoid dictionary synonyms that break collocation', ar: 'تجنّب مرادفات القاموس التي تكسر التلازم' },
+      { en: 'Cut empty intensifiers', ar: 'حذف المؤكّدات الفارغة' },
+    ],
+    rule: {
+      en: 'Words keep company. You *make* a decision but *do* your homework; rain is *heavy*, not *strong*; a mistake is *serious*, not *big*. A synonym that is correct in meaning can still be wrong in company — and that is what marks a non-native sentence.',
+      ar: 'الكلمات تُصاحب بعضها: نقول make a decision لا do a decision، والمطر heavy لا strong، والخطأ serious لا big. فالمرادف الصحيح في المعنى قد يكون خاطئًا في الصحبة، وهذا ما يكشف الجملة غير الأصيلة.',
+    },
+    explain: {
+      intro: 'By C1 your grammar is rarely the problem. What still marks the writing is word partnership: every language pairs its words by habit, not by logic, and no rule predicts them. This is why reading matters more than studying at this level — collocation is absorbed, not derived.',
+      introAr: 'عند مستوى C1 نادرًا ما تكون القواعد هي المشكلة؛ ما يكشف الكتابة هو تلازم الألفاظ: فكل لغة تُزاوج كلماتها بالعادة لا بالمنطق، ولا قاعدة تتنبّأ بها. ولهذا تصير القراءة في هذا المستوى أهمّ من الدراسة، لأن التلازم يُكتسَب ولا يُستنتَج.',
+      points: [
+        { en: '*make* a decision / a mistake / progress · *do* homework / research / business', ar: 'الفرق بين make و do' },
+        { en: 'strong: coffee, wind, argument · heavy: rain, traffic, meal', ar: 'strong مقابل heavy' },
+        { en: 'Replace *very + weak adjective*: very big → *enormous*', ar: 'استبدل very + صفة ضعيفة بصفة قويّة' },
+        { en: 'Exact verbs: *rise, soar, plummet, decline* beat *go up/down*', ar: 'أفعال دقيقة للحركة' },
+        { en: '*a serious mistake* ✓ · *a big mistake* (informal) · *a large mistake* ✗', ar: 'درجات وصف الخطأ' },
+        { en: 'When unsure, choose the plain word — a wrong fancy word costs more', ar: 'عند الشكّ اختر الكلمة البسيطة؛ الفخمة الخاطئة أغلى ثمنًا' },
+      ],
+    },
+    examples: [
+      { en: '*make* a decision · *take* a decision (UK, formal) · ✗ *do* a decision', ar: 'قرار' },
+      { en: '*heavy* rain · *heavy* traffic · ✗ *strong* rain', ar: 'المطر والزحام' },
+      { en: '*strong* coffee · *strong* argument · ✗ *powerful* coffee', ar: 'القهوة والحجّة' },
+      { en: '*Prices soared* (sharp rise) · *Prices edged up* (small rise)', ar: 'دقّة وصف الارتفاع' },
+      { en: '*Sales plummeted* beats *sales went down a lot*.', ar: 'الهبوط الحادّ' },
+      { en: '*a serious concern* · *a growing concern* · ✗ *a big concern* (in formal text)', ar: 'وصف القلق' },
+      { en: '*conduct* research · *reach* a conclusion · *meet* a deadline', ar: 'متلازمات أكاديمية' },
+      { en: '✗ *I did a big effort.* → ✓ *I made a considerable effort.*', ar: 'تصحيح تلازم' },
+    ],
+    exercises: [
+      { q: 'make or do? “___ a decision” · “___ research”', a: '*make* a decision · *do/conduct* research' },
+      { q: 'Fix: “There was a strong rain yesterday.”', a: '*heavy* rain' },
+      { q: 'One word for “went up very quickly”:', a: '*soared* / *surged*' },
+      { q: 'Fix: “It was a very big mistake.” (formal)', a: 'It was a *serious* mistake.' },
+      { q: 'Collocate: “___ a deadline” · “___ a conclusion”', a: '*meet* a deadline · *reach* a conclusion' },
+      { q: 'Why is “powerful coffee” wrong if powerful means strong?', a: 'Meaning is right, *company* is wrong — collocation is habit, not logic.' },
+    ],
+    reading: {
+      title: 'The Almost-Right Word', titleAr: 'الكلمة التي كادت تكون صحيحة',
+      passage: [
+        'A student of mine once described a rainstorm as “strong” and a coffee as “heavy”, and every word in both sentences was in the dictionary.',
+        'He had swapped two adjectives that mean roughly the same thing and produced two sentences no English speaker would write.',
+        'When I explained, he asked me for the rule.',
+        'There is no rule; there is only company, and company is learned by keeping it.',
+        'I told him to read forty pages a week and stop translating adjectives, and within a year the problem had quietly disappeared.',
+        'The difference between the almost-right word and the right word, as Mark Twain said, is the difference between the lightning bug and the lightning.',
+      ],
+      tip: 'When a sentence feels slightly foreign but you cannot find the error, suspect collocation before grammar.',
+      tipAr: 'إذا شعرتَ أن الجملة غريبة قليلًا ولم تجد الخطأ فاتّهم التلازم قبل القواعد.',
+    },
+    homework: [
+      { en: 'Learn 15 collocations with *make*, *do*, *take*', ar: 'تعلّم ١٥ تلازمًا مع make و do و take' },
+      { en: 'Replace 10 “very + adjective” pairs with one strong word', ar: 'استبدل ١٠ عبارات very + صفة بكلمة قويّة' },
+      { en: 'Rewrite a paragraph using exact movement verbs', ar: 'أعد كتابة فقرة بأفعال حركة دقيقة' },
+    ],
+    editing: {
+      wrong: [
+        'I did a big mistake in the exam and I felt very very bad.',
+        'The traffic was very strong so we did a decision to walk.',
+      ],
+      correct: [
+        'I *made a serious mistake* in the exam and felt *dreadful*.',
+        'The traffic was *heavy*, so we *made a decision* to walk.',
+      ],
+    },
+  },
+
+  /* ─────────────────────────── 52 · SUMMARISING ─────────────────────────── */
+  {
+    no: 52, cefr: 'C1', tag: 'Summarising', tagAr: 'التلخيص وإعادة الصياغة',
+    title: 'Summarising & Paraphrasing — using a source honestly',
+    titleAr: 'التلخيص وإعادة الصياغة — استعمال المصدر بأمانة',
+    objectives: [
+      { en: 'Reduce a text to its argument, not its words', ar: 'ردّ النص إلى حجّته لا إلى ألفاظه' },
+      { en: 'Paraphrase by changing structure, not just synonyms', ar: 'إعادة الصياغة بتغيير البناء لا المرادفات' },
+      { en: 'Attribute a source accurately', ar: 'إسناد المصدر بدقّة' },
+      { en: 'Avoid accidental plagiarism', ar: 'تجنّب الانتحال غير المقصود' },
+    ],
+    rule: {
+      en: 'A summary keeps the *argument* and drops the examples. A paraphrase keeps the *meaning* and changes the structure — swapping synonyms while keeping the sentence shape is not paraphrase, it is plagiarism with a thesaurus. Always name the source.',
+      ar: 'التلخيص يحتفظ بالحجّة ويحذف الأمثلة، وإعادة الصياغة تحتفظ بالمعنى وتغيّر البناء. أما تبديل المرادفات مع بقاء شكل الجملة فليس إعادة صياغة بل انتحال بمعجم. وسمِّ المصدر دائمًا.',
+    },
+    explain: {
+      intro: 'This is the skill every exam and every workplace assumes you have. A summary proves you understood; a paraphrase proves you can think in the idea rather than in its wording. The reliable method is mechanical: read, close the text, write from memory, then check. If you can see the original while you write, you will copy its shape without meaning to.',
+      introAr: 'هذه مهارة يفترض كل امتحان وكل عمل أنك تملكها. فالتلخيص يُثبت أنك فهمت، وإعادة الصياغة تُثبت أنك تفكّر داخل الفكرة لا داخل ألفاظها. والطريقة المضمونة آليّة: اقرأ، ثم أغلق النص، ثم اكتب من الذاكرة، ثم راجع. فإن بقي الأصل أمام عينيك نسختَ بناءه دون أن تقصد.',
+      points: [
+        { en: 'Summary = the claim + the main reasons. Cut every example.', ar: 'التلخيص: الادّعاء والأسباب، وتُحذف الأمثلة' },
+        { en: 'Aim for one third of the original, or less', ar: 'استهدف ثلث الأصل أو أقلّ' },
+        { en: 'Paraphrase: change word class and sentence order, not just words', ar: 'غيّر نوع الكلمة وترتيب الجملة لا الكلمات فقط' },
+        { en: 'Close the book. Write from memory. Then compare.', ar: 'أغلق النص واكتب من الذاكرة ثم قارن' },
+        { en: 'Attribute: *According to X…* · *X argues that…*', ar: 'صيغ الإسناد' },
+        { en: 'Keep technical terms unchanged — you may not paraphrase *photosynthesis*', ar: 'أبقِ المصطلحات التقنية كما هي' },
+      ],
+    },
+    examples: [
+      { en: 'Original: *The study found that students who read for pleasure outperformed their peers in writing tests.*', ar: 'النصّ الأصلي' },
+      { en: '✗ Synonym-swap: *The research discovered that pupils who read for enjoyment did better than their classmates in writing exams.*', ar: 'تبديل مرادفات — ليس إعادة صياغة' },
+      { en: '✓ Paraphrase: *According to the study, voluntary reading was associated with stronger writing performance.*', ar: 'إعادة صياغة حقيقية: بناء مختلف' },
+      { en: 'Summary verb: *argues, claims, demonstrates, concludes, warns*', ar: 'أفعال التلخيص' },
+      { en: '*According to Ahmed (2023), the policy failed for administrative reasons.*', ar: 'إسناد بالاسم والسنة' },
+      { en: '*The author concludes that reform is unlikely without funding.*', ar: 'خاتمة الملخّص' },
+      { en: 'Nominalise to compress: *Prices rose and people protested* → *The price rise triggered protests.*', ar: 'الضغط بالتحويل إلى أسماء' },
+      { en: 'Keep unchanged: *photosynthesis*, *inflation*, *the passive voice*.', ar: 'مصطلحات لا تُغيَّر' },
+    ],
+    exercises: [
+      { q: 'Summarise in one line: an essay arguing schools should teach cooking because diet-related illness is rising.', a: 'e.g. *The author argues that schools should teach cooking to combat rising diet-related illness.*' },
+      { q: 'Is swapping synonyms a paraphrase?', a: 'No — you must change the *structure* too, or it is plagiarism.' },
+      { q: 'Paraphrase: “Many students struggle to organise their ideas.”', a: 'e.g. *Organisation, rather than grammar, is the main obstacle for many learners.*' },
+      { q: 'Add attribution: “Reading improves vocabulary.”', a: '*According to the study, reading improves vocabulary.*' },
+      { q: 'What is the reliable method?', a: 'Read → *close the text* → write from memory → compare.' },
+      { q: 'How long should a summary be?', a: 'About *one third* of the original or less.' },
+    ],
+    reading: {
+      title: 'What I Could Still Remember', titleAr: 'ما بقي في ذاكرتي',
+      passage: [
+        'At university a tutor banned us from writing summaries with the book open.',
+        'We complained that we would forget the details, and she said that was precisely the point.',
+        'What survives an hour in your memory, she told us, is the argument; what disappears is the decoration.',
+        'The first summary I wrote that way was a third the length of my usual ones and the first that received a comment rather than a correction.',
+        'I still cannot write a paraphrase with the original in front of me without stealing its rhythm.',
+        'Neither, I suspect, can anyone else — they simply do not notice that they have.',
+      ],
+      tip: 'If your paraphrase follows the original sentence by sentence, you copied its structure. Close the text and start again.',
+      tipAr: 'إن سارت إعادة صياغتك جملةً بجملة مع الأصل فقد نسختَ بناءه. أغلق النص وابدأ من جديد.',
+    },
+    homework: [
+      { en: 'Summarise a 300-word article in 60 words', ar: 'لخّص مقالًا من ٣٠٠ كلمة في ٦٠' },
+      { en: 'Paraphrase 5 sentences by changing structure', ar: 'أعد صياغة ٥ جمل بتغيير البناء' },
+      { en: 'Summarise one lesson of this course from memory', ar: 'لخّص أحد دروس هذه الدورة من ذاكرتك' },
+    ],
+    editing: {
+      wrong: [
+        'The writer say that the pollution is bad and he give many examples about the cars and the factories and the rubbish.',
+        'According to the article, it says that the situation is very bad situation.',
+      ],
+      correct: [
+        'The writer *argues* that vehicle and industrial emissions are the principal sources of urban pollution.',
+        'According to the article, *conditions have deteriorated sharply.*',
+      ],
+    },
+  },
+
 ]

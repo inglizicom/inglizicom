@@ -105,6 +105,28 @@ const SYLLABUS: UnitDef[] = [
       { en: 'Emails that Connect', ar: 'إيميلات تصل', from: 26, to: 27.9 },
       { en: 'Writing that Wins', ar: 'كتابة تُقنع', from: 28, to: 29.9 },
     ] },
+  { en: 'Unit 9 · Advanced Grammar', short: 'Advanced', shortAr: 'قواعد متقدّمة', ar: 'الوحدة ٩ · القواعد المتقدّمة', cefr: 'B2',
+    promise: 'Judge the past, imagine the unreal, report what others said.',
+    promiseAr: 'تحكم على الماضي، وتتخيّل غير الواقع، وتنقل كلام الآخرين.',
+    modules: [
+      { en: 'Modals, Conditionals & Regret', ar: 'الأفعال الناقصة والشرط والندم', from: 30, to: 32.9 },
+      { en: 'Reporting, Voice & Clauses', ar: 'النقل والمبني للمجهول والجُمل', from: 33, to: 37.9 },
+    ] },
+  { en: 'Unit 10 · Essays & Argument', short: 'Essays', shortAr: 'المقالات', ar: 'الوحدة ١٠ · المقال والحجاج', cefr: 'B2',
+    promise: 'Build a full essay — thesis, evidence, counter-argument, conclusion.',
+    promiseAr: 'تبني مقالًا كاملًا: أطروحة ودليلًا وحجّة مضادّة وخاتمة.',
+    modules: [
+      { en: 'Essay Foundations', ar: 'أسس المقال', from: 38, to: 40.9 },
+      { en: 'Building an Argument', ar: 'بناء الحجّة', from: 41, to: 44.9 },
+    ] },
+  { en: 'Unit 11 · Style, Stance & Precision', short: 'Style', shortAr: 'الأسلوب', ar: 'الوحدة ١١ · الأسلوب والموقف والدقّة', cefr: 'B2–C1',
+    promise: 'Write with the control of an advanced writer — register, nuance, emphasis.',
+    promiseAr: 'تكتب بتحكّم الكاتب المتقدّم: مستوى اللغة والنبرة والإبراز.',
+    modules: [
+      { en: 'Register & Stance', ar: 'مستوى اللغة والموقف', from: 45, to: 47.9 },
+      { en: 'Emphasis & Economy', ar: 'الإبراز والاقتصاد', from: 48, to: 50.9 },
+      { en: 'Precision & Sources', ar: 'الدقّة والمصادر', from: 51, to: 52.9 },
+    ] },
 ]
 const unitOf = (no: number) => SYLLABUS.find(u => u.modules.some(m => no >= m.from && no <= m.to)) ?? SYLLABUS[0]
 const moduleOf = (no: number) => {
