@@ -279,6 +279,8 @@ type NoteItem = {
   z: number
   html?: string
   dir?: 'rtl' | 'ltr'
+  words?: string[]                // present ⇒ the box is in word mode
+  fs?: number                     // font size in px, used by word mode
   bg?: string; bd?: string        // card fill + border, for an emphasis box
   src?: string
   pts?: Pt[]                      // stroke points, normalised 0..1 inside w×h
@@ -399,6 +401,8 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
   const fileInput = useRef<HTMLInputElement>(null)
   const lastPoint = useRef({ x: 90, y: 90 })
   const focusNext = useRef<string | null>(null)
+  const [editWord, setEditWord] = useState<{ id: string; i: number } | null>(null)
+  const wordDrag = useRef<{ id: string; i: number } | null>(null)
 
   const [searchOpen, setSearchOpen] = useState(false)
   const [query, setQuery] = useState('')
@@ -529,6 +533,54 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
     mutate(list => list.map(i => i.id === id ? { ...i, z: min - 1 } : i)); setMenu(null)
   }
   const patch = (id: string, p: Partial<NoteItem>) => mutate(list => list.map(i => i.id === id ? { ...i, ...p } : i))
+
+  /* ── word mode ────────────────────────────────────────────────────────────
+     Turn a finished sentence into draggable word chips. The point is teaching a
+     transformation without retyping: "You are happy." → swap two chips and edit
+     one → "Are you happy?". Click a chip to replace it, drag it to reorder,
+     clear it to delete it. Plain text by design — chips carry no inline styling,
+     so the box keeps one size (fs) while it is in word mode. */
+  const splitWords = (t: string) => t.replace(/\s+/g, ' ').trim().split(' ').filter(Boolean)
+  const withWords = (it: NoteItem, words: string[]): NoteItem => ({ ...it, words, html: words.join(' ') })
+
+  const toWords = (id: string) => {
+    const txt = (textEls.current[id]?.innerText ?? '').trim()
+    const words = splitWords(txt)
+    mutate(list => list.map(i => i.id === id ? { ...withWords(i, words.length ? words : ['']), fs: i.fs ?? 40 } : i))
+    setRev(r => r + 1); setEditWord(null)
+  }
+  const toText = (id: string) => {
+    mutate(list => list.map(i => i.id === id ? { ...i, html: (i.words ?? []).join(' '), words: undefined } : i))
+    setRev(r => r + 1); setEditWord(null)
+  }
+  const setWord = (id: string, i: number, val: string) => {
+    mutate(list => list.map(it => {
+      if (it.id !== id || !it.words) return it
+      const w = [...it.words]
+      const v = val.replace(/\s+/g, ' ').trim()
+      if (!v) w.splice(i, 1)
+      else { const parts = v.split(' '); w.splice(i, 1, ...parts) }   // typing two words splits into two chips
+      return withWords(it, w)
+    }))
+    setRev(r => r + 1)
+  }
+  const moveWord = (id: string, from: number, to: number) => {
+    if (from === to) return
+    mutate(list => list.map(it => {
+      if (it.id !== id || !it.words) return it
+      const w = [...it.words]
+      const [m] = w.splice(from, 1)
+      w.splice(to > from ? to - 1 : to, 0, m)
+      return withWords(it, w)
+    }))
+    setRev(r => r + 1)
+  }
+  const addWord = (id: string) => {
+    const it = itemsRef.current.find(i => i.id === id); if (!it?.words) return
+    mutate(list => list.map(i => i.id === id ? withWords(i, [...(i.words ?? []), 'word']) : i))
+    setRev(r => r + 1)
+    setEditWord({ id, i: it.words.length })
+  }
 
   /* Drop a piece of the lesson onto the board — no retyping on camera. */
   const fromLesson = (what: 'rule' | 'objectives' | 'example' | 'homework') => {
@@ -786,8 +838,13 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
     <div className="absolute inset-0 z-[200] flex flex-col" style={{ background: 'rgba(28,20,12,0.55)' }}>
       <div className="m-[1.2vh] mx-[1.4vw] flex-1 min-h-0 flex flex-col rounded-[22px] overflow-hidden shadow-[0_40px_120px_-30px_rgba(0,0,0,0.7)] bg-white">
 
-        {/* ── one toolbar row, never wraps ── */}
-        <div className="shrink-0 flex items-center gap-[3px] flex-nowrap overflow-x-auto overflow-y-visible px-[0.8vw] py-[0.8vh] relative" style={{ background: INK }}>
+        {/* ── one toolbar row, never wraps ──
+            The scrolling row and the popovers must be SIBLINGS. A box with
+            overflow-x:auto cannot keep overflow-y:visible — CSS promotes the
+            visible axis to auto — so a popover rendered inside the row gets
+            clipped and looks like a dead button. */}
+        <div className="shrink-0 relative" style={{ background: INK }}>
+        <div className="flex items-center gap-[3px] flex-nowrap overflow-x-auto px-[0.8vw] py-[0.8vh]">
           <span className="font-black text-white shrink-0 whitespace-nowrap ml-1" style={{ fontSize: 12.5 }}>{label}</span>
           <Sep />
 
@@ -816,7 +873,10 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
           ))}
           <Sep />
 
-          {TEXT_SIZES.map(t => <Btn key={t.px} title={`حجم النص ${t.label}`} onClick={() => setSize(t.px)}>{t.label}</Btn>)}
+          {TEXT_SIZES.map(t => (
+            <Btn key={t.px} title={`حجم النص ${t.label}`}
+              onClick={() => selItem?.words ? patch(selItem.id, { fs: parseInt(t.px, 10) }) : setSize(t.px)}>{t.label}</Btn>
+          ))}
           <Btn title="عريض" onClick={() => cmd('bold')}><b>B</b></Btn>
           <Btn title="تحته خط" onClick={() => cmd('underline')}><u>U</u></Btn>
           <Sep />
@@ -831,6 +891,10 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
           <Btn title="تراجع (Ctrl+Z)" onClick={undo}><Undo2 size={15} /></Btn>
           <Btn title="إعادة (Ctrl+Shift+Z)" onClick={redo}><Redo2 size={15} /></Btn>
           <Btn title="شكل الصفحة ولونها" active={menu === 'page'} onClick={() => setMenu(m => m === 'page' ? null : 'page')}><LayoutGrid size={15} /></Btn>
+          {selItem?.kind === 'text' && (
+            <Btn wide title="وضع الكلمات — استبدل أو رتّب كلمة كلمة" active={!!selItem.words}
+              onClick={() => selItem.words ? toText(selItem.id) : toWords(selItem.id)}>كلمات</Btn>
+          )}
           {selItem && <Btn title="خيارات العنصر المحدّد" active={menu === 'more'} onClick={() => setMenu(m => m === 'more' ? null : 'more')}><MoreHorizontal size={15} /></Btn>}
           {selItem && <Btn title="حذف (Del)" onClick={() => remove(selItem.id)}><Trash2 size={15} /></Btn>}
 
@@ -846,7 +910,9 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
             </button>
           </span>
 
-          {/* ── popovers ── */}
+        </div>
+
+          {/* ── popovers: siblings of the scroll row, never inside it ── */}
           {menu === 'page' && (
             <Pop align="right">
               <div className="flex gap-1 mb-2">
@@ -907,7 +973,9 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
             <Pop align="right">
               {[['V T P H', 'تحديد · نص · قلم · تظليل'], ['A O R', 'سهم · دائرة · مستطيل'], ['E', 'ممحاة'],
                 ['نقرة مزدوجة', 'اكتب في مكان النقر'], ['Ctrl+Z', 'تراجع'], ['Ctrl+D', 'تكرار'],
-                ['Delete', 'حذف'], ['الأسهم', 'تحريك دقيق'], ['Ctrl+V', 'لصق صورة'], ['Esc', 'خروج ثم إغلاق']].map(([k, t]) => (
+                ['Delete', 'حذف'], ['الأسهم', 'تحريك دقيق'], ['Ctrl+V', 'لصق صورة'],
+                ['كلمات', 'حوّل الجملة إلى كلمات: اضغط كلمة لتغييرها، اسحبها لتبديل مكانها'],
+                ['Esc', 'خروج ثم إغلاق']].map(([k, t]) => (
                 <div key={k} className="flex items-center gap-3 py-[2px]" style={{ minWidth: 260 }}>
                   <span dir="ltr" className="font-mono font-bold rounded px-1.5 shrink-0" style={{ background: '#f5f5f4', color: INK, fontSize: 10.5 }}>{k}</span>
                   <span className="font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: 11.5 }}>{t}</span>
@@ -993,7 +1061,58 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
                     </div>
                   )}
 
-                  {it.kind === 'text' ? (
+                  {it.kind === 'text' && it.words ? (
+                    /* word mode — chips you can replace and reorder */
+                    <div onPointerDown={() => { setSel(it.id); bringFront(it.id); setMenu(null) }}
+                      className="flex flex-wrap items-center gap-[8px]"
+                      style={{
+                        ...chrome, minHeight: 48,
+                        padding: it.bg && it.bg !== 'transparent' ? '16px 20px' : '6px 10px',
+                        borderRadius: 12,
+                        background: it.bg && it.bg !== 'transparent' ? it.bg : undefined,
+                        boxShadow: it.bd && it.bd !== 'transparent' ? `inset 0 0 0 2px ${it.bd}` : undefined,
+                        direction: (it.dir || 'ltr') as 'rtl' | 'ltr',
+                        fontSize: it.fs ?? 40, lineHeight: 1.4,
+                        fontFamily: (it.dir || 'ltr') === 'rtl' ? "'Tajawal', 'Outfit', sans-serif" : "'Outfit', 'DM Sans', sans-serif",
+                      }}>
+                      {it.words.map((w, wi) => {
+                        const editing = editWord?.id === it.id && editWord.i === wi
+                        return editing ? (
+                          <input key={wi} autoFocus defaultValue={w}
+                            onFocus={e => e.currentTarget.select()}
+                            onKeyDown={e => {
+                              e.stopPropagation()
+                              if (e.key === 'Enter') { setWord(it.id, wi, e.currentTarget.value); setEditWord(null) }
+                              if (e.key === 'Escape') { setEditWord(null) }
+                            }}
+                            onBlur={e => { setWord(it.id, wi, e.currentTarget.value); setEditWord(null) }}
+                            className="outline-none rounded-lg px-2 font-bold"
+                            style={{ fontSize: 'inherit', fontFamily: 'inherit', width: `${Math.max(3, w.length + 2)}ch`, color: INK, background: '#fff', boxShadow: `0 0 0 2.5px ${GOLD}` }} />
+                        ) : (
+                          <span key={wi} draggable
+                            onDragStart={e => { wordDrag.current = { id: it.id, i: wi }; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', 'w') }}
+                            onDragOver={e => { e.preventDefault(); e.stopPropagation() }}
+                            onDrop={e => {
+                              e.preventDefault(); e.stopPropagation()
+                              const d = wordDrag.current
+                              if (d && d.id === it.id) moveWord(it.id, d.i, wi)
+                              wordDrag.current = null
+                            }}
+                            onClick={() => setEditWord({ id: it.id, i: wi })}
+                            title="اضغط لتغيير الكلمة · اسحب لتبديل مكانها"
+                            className="cursor-pointer rounded-lg px-2 font-bold transition hover:brightness-95"
+                            style={{
+                              color: (it.bg && it.bg !== 'transparent') ? INK : (dark ? '#fff' : INK),
+                              background: dark ? 'rgba(255,255,255,0.09)' : 'rgba(42,29,18,0.055)',
+                              boxShadow: `inset 0 0 0 1.5px ${dark ? 'rgba(255,255,255,0.16)' : 'rgba(42,29,18,0.10)'}`,
+                            }}>{w}</span>
+                        )
+                      })}
+                      <button onClick={() => addWord(it.id)} title="أضف كلمة"
+                        className="rounded-lg px-2 font-black opacity-45 hover:opacity-100 transition"
+                        style={{ fontSize: 'inherit', color: AMBER, background: '#fef3c7' }}>+</button>
+                    </div>
+                  ) : it.kind === 'text' ? (
                     <div
                       ref={el => { textEls.current[it.id] = el; if (el && !el.dataset.init) { el.innerHTML = it.html || ''; el.dataset.init = '1' } }}
                       contentEditable suppressContentEditableWarning spellCheck={false}
@@ -1020,7 +1139,7 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
                         background: it.bg && it.bg !== 'transparent' ? it.bg : undefined,
                         boxShadow: it.bd && it.bd !== 'transparent' ? `inset 0 0 0 2px ${it.bd}` : undefined,
                         color: (it.bg && it.bg !== 'transparent') ? INK : (dark ? '#ffffff' : INK),
-                        fontSize: 40, lineHeight: 1.5,
+                        fontSize: it.fs ?? 40, lineHeight: 1.5,
                         fontFamily: (it.dir || 'ltr') === 'rtl' ? "'Tajawal', 'Outfit', sans-serif" : "'Outfit', 'DM Sans', sans-serif",
                         textAlign: (it.dir || 'ltr') === 'rtl' ? 'right' : 'left',
                       }}
