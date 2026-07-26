@@ -26,7 +26,7 @@ import {
   StickyNote, List, ListOrdered, Eraser, Trash2,
   Image as ImageIcon, Upload, Search, Type, Move, SendToBack,
   MousePointer2, Pencil, ArrowUpRight, Square, Circle, Highlighter, LayoutGrid, MoreHorizontal,
-  Undo2, Redo2, Copy as CopyIcon, HelpCircle,
+  Undo2, Redo2, Copy as CopyIcon, HelpCircle, Plus,
 } from 'lucide-react'
 import { LESSONS, IRREGULAR_VERBS, type Lesson, type Ex, type QA, type Irregular } from '@/data/writing-course'
 
@@ -305,21 +305,23 @@ const PAPER = [
 ]
 const isDarkPaper = (p: string) => ['#0f2a22', '#1c1917'].includes(p)
 
-/* v4 = {page, items}. v3/v2 = {items}. Anything else is a v1 HTML note — keep it
-   as one text box rather than dropping work already done. */
-function loadBoard(key: string): { items: NoteItem[]; page: Page } {
+/* v5 = {page, pages:[items,…]} — a lesson can hold several boards, so explaining
+   something new never means wiping what is already drawn.
+   v4/v3/v2 = a single {items}; anything else is a v1 HTML note. Every older shape
+   loads as page 1 rather than being dropped. */
+function loadBoard(key: string): { pages: NoteItem[][]; page: Page } {
   const dflt: Page = { pattern: 'plain', paper: '#ffffff', mark: true }
   const raw = readNote(key)
-  if (!raw) return { items: [], page: dflt }
+  if (!raw) return { pages: [[]], page: dflt }
   if (raw.trim().startsWith('{')) {
     try {
       const p = JSON.parse(raw)
-      if (Array.isArray(p?.items)) {
-        return { items: p.items as NoteItem[], page: { ...dflt, ...(p.page ?? {}), ...(p.bg ? { pattern: p.bg } : {}) } }
-      }
+      const page: Page = { ...dflt, ...(p.page ?? {}), ...(p.bg ? { pattern: p.bg } : {}) }
+      if (Array.isArray(p?.pages) && p.pages.length) return { pages: p.pages as NoteItem[][], page }
+      if (Array.isArray(p?.items)) return { pages: [p.items as NoteItem[]], page }
     } catch { /* fall through and treat it as v1 HTML */ }
   }
-  return { items: [{ id: uid(), kind: 'text', x: 70, y: 60, w: 900, html: raw, dir: 'rtl', z: 1 }], page: dflt }
+  return { pages: [[{ id: uid(), kind: 'text', x: 70, y: 60, w: 900, html: raw, dir: 'rtl', z: 1 }]], page: dflt }
 }
 
 /* Shrink a pasted/dropped/uploaded picture before it goes on the board.
@@ -386,6 +388,11 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
   const [items, setItems] = useState<NoteItem[]>([])
   const itemsRef = useRef(items); itemsRef.current = items
   const [page, setPage] = useState<Page>({ pattern: 'plain', paper: '#ffffff', mark: true })
+  // `items` is always the CURRENT page; `pages` keeps the rest.
+  const [pages, setPages] = useState<NoteItem[][]>([[]])
+  const pagesRef = useRef(pages); pagesRef.current = pages
+  const [pageIdx, setPageIdx] = useState(0)
+  const pageIdxRef = useRef(pageIdx); pageIdxRef.current = pageIdx
   const [rev, setRev] = useState(0)
   const [sel, setSel] = useState<string | null>(null)
   const selRef = useRef(sel); selRef.current = sel
@@ -428,9 +435,11 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
   const isBlank = (it: NoteItem) => it.kind === 'text' && (it.html || '').replace(/<br>|&nbsp;|\s/g, '') === ''
 
   const persist = useCallback(() => {
-    const list = snapshot().filter(it => !isBlank(it))
+    const all = [...pagesRef.current]
+    all[pageIdxRef.current] = snapshot().filter(it => !isBlank(it))
+    const anything = all.some(pg => pg.length)
     try {
-      if (list.length) { localStorage.setItem(NOTE_PREFIX + noteKey, JSON.stringify({ v: 4, page, items: list })); onDirty(true) }
+      if (anything) { localStorage.setItem(NOTE_PREFIX + noteKey, JSON.stringify({ v: 5, page, pages: all })); onDirty(true) }
       else { localStorage.removeItem(NOTE_PREFIX + noteKey); onDirty(false) }
       setSaved('saved')
     } catch {
@@ -473,7 +482,9 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
   useEffect(() => {
     textEls.current = {}
     const b = loadBoard(noteKey)
-    setItems(b.items); setPage(b.page); setSel(null); setRev(r => r + 1)
+    setPages(b.pages); pagesRef.current = b.pages
+    setPageIdx(0); pageIdxRef.current = 0
+    setItems(b.pages[0] ?? []); setPage(b.page); setSel(null); setRev(r => r + 1)
     past.current = []; future.current = []
     try { document.execCommand('styleWithCSS', false, 'true') } catch { /* older engines */ }
   }, [noteKey])
@@ -542,6 +553,52 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
     mutate(list => list.map(i => i.id === id ? { ...i, z: min - 1 } : i)); setMenu(null)
   }
   const patch = (id: string, p: Partial<NoteItem>) => mutate(list => list.map(i => i.id === id ? { ...i, ...p } : i))
+
+  /* ── pages ────────────────────────────────────────────────────────────────
+     Explaining something new should not mean erasing what is already on the
+     board. Each lesson holds as many pages as it needs; switching commits the
+     visible one first so nothing is lost, and history resets per page because
+     an undo that reached across pages would be surprising. */
+  const goPage = (i: number) => {
+    const snap = snapshot().filter(it => !isBlank(it))
+    const all = [...pagesRef.current]
+    all[pageIdxRef.current] = snap
+    if (i < 0 || i >= all.length) return
+    pagesRef.current = all; setPages(all)
+    textEls.current = {}
+    setItems(all[i] ?? []); setPageIdx(i); pageIdxRef.current = i
+    setSel(null); setEditWord(null); setRev(r => r + 1)
+    past.current = []; future.current = []
+    touch()
+  }
+  const addPage = () => {
+    const snap = snapshot().filter(it => !isBlank(it))
+    const all = [...pagesRef.current]
+    all[pageIdxRef.current] = snap
+    all.splice(pageIdxRef.current + 1, 0, [])
+    pagesRef.current = all; setPages(all)
+    textEls.current = {}
+    const next = pageIdxRef.current + 1
+    setItems([]); setPageIdx(next); pageIdxRef.current = next
+    setSel(null); setEditWord(null); setRev(r => r + 1)
+    past.current = []; future.current = []
+    touch()
+  }
+  const removePage = () => {
+    if (pagesRef.current.length <= 1) {   // last page: clear it instead of removing it
+      mark(); setItems([]); textEls.current = {}; setSel(null); touch(); return
+    }
+    if (!confirm('احذف هذه الصفحة؟')) return
+    const all = [...pagesRef.current]
+    all.splice(pageIdxRef.current, 1)
+    const next = Math.max(0, pageIdxRef.current - 1)
+    pagesRef.current = all; setPages(all)
+    textEls.current = {}
+    setItems(all[next] ?? []); setPageIdx(next); pageIdxRef.current = next
+    setSel(null); setEditWord(null); setRev(r => r + 1)
+    past.current = []; future.current = []
+    touch()
+  }
 
   /* ── word mode ────────────────────────────────────────────────────────────
      Turn a finished sentence into draggable word chips. The point is teaching a
@@ -876,7 +933,7 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
 
   return (
     <div className="absolute inset-0 z-[200] flex flex-col" style={{ background: 'rgba(28,20,12,0.55)' }}>
-      <div className="m-[1.2vh] mx-[1.4vw] flex-1 min-h-0 flex flex-col rounded-[22px] overflow-hidden shadow-[0_40px_120px_-30px_rgba(0,0,0,0.7)] bg-white">
+      <div className="relative m-[1.2vh] mx-[1.4vw] flex-1 min-h-0 flex flex-col rounded-[22px] overflow-hidden shadow-[0_40px_120px_-30px_rgba(0,0,0,0.7)] bg-white">
 
         {/* ── one toolbar row, never wraps ──
             The scrolling row and the popovers must be SIBLINGS. A box with
@@ -884,7 +941,7 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
             visible axis to auto — so a popover rendered inside the row gets
             clipped and looks like a dead button. */}
         <div className="shrink-0 relative" style={{ background: INK }}>
-        <div className="flex items-center gap-[3px] flex-nowrap overflow-x-auto px-[0.8vw] py-[0.8vh]">
+        <div className="nb-tools flex items-center gap-[3px] flex-nowrap overflow-x-auto px-[0.8vw] py-[0.8vh]">
           <span className="font-black text-white shrink-0 whitespace-nowrap ml-1" style={{ fontSize: 12.5 }}>{label}</span>
           <Sep />
 
@@ -1083,7 +1140,8 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
           className="relative flex-1 min-h-0 overflow-auto"
           style={{ ...paperStyle, cursor: dragging ? 'grabbing' : drawTool ? 'crosshair' : tool === 'text' ? 'text' : 'default' }}>
 
-          <div data-canvas="1" className="relative w-full" style={{ minHeight: Math.max(boardBottom + 320, 900) }}>
+          <div data-canvas="1" className="relative w-full min-h-full"
+            style={boardBottom ? { height: boardBottom + 140 } : undefined}>
             {!items.length && !draft && (
               <div data-canvas="1" className="absolute inset-0 grid place-items-center pointer-events-none">
                 <div dir="rtl" className="text-center font-bold leading-[1.9]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.3vw', color: dark ? 'rgba(255,255,255,0.28)' : '#d6d3d1' }}>
@@ -1252,9 +1310,27 @@ function NotePad({ noteKey, label, lesson, onClose, onDirty }: {
             </div>
           )}
         </div>
+
+        {/* pages — floated at the bottom so the toolbar stays one clean line */}
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-1 rounded-full px-1.5 py-1"
+          style={{ background: '#ffffff', boxShadow: '0 8px 28px -10px rgba(42,29,18,0.45), inset 0 0 0 1.5px #e7e5e4' }}>
+          <button onClick={() => goPage(pageIdx - 1)} disabled={pageIdx === 0} title="الصفحة السابقة"
+            className="p-1.5 rounded-full text-stone-500 hover:bg-stone-100 disabled:opacity-25 transition"><ChevronRight size={15} /></button>
+          <span className="font-black tabular-nums px-1 select-none" style={{ color: INK, fontSize: 12.5 }}>{pageIdx + 1} / {pages.length}</span>
+          <button onClick={() => goPage(pageIdx + 1)} disabled={pageIdx >= pages.length - 1} title="الصفحة التالية"
+            className="p-1.5 rounded-full text-stone-500 hover:bg-stone-100 disabled:opacity-25 transition"><ChevronLeft size={15} /></button>
+          <span className="w-px h-4 bg-stone-200 mx-0.5" />
+          <button onClick={addPage} title="صفحة جديدة — ما كتبته هنا يبقى محفوظًا"
+            className="flex items-center gap-1 px-2.5 py-1 rounded-full font-black text-[#2a1d12] hover:brightness-95 transition"
+            style={{ background: GOLD, fontSize: 12 }}><Plus size={13} strokeWidth={3} /> صفحة</button>
+          <button onClick={removePage} title={pages.length > 1 ? 'احذف هذه الصفحة' : 'امسح هذه الصفحة'}
+            className="p-1.5 rounded-full text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition"><Trash2 size={14} /></button>
+        </div>
       </div>
 
       <style>{`
+        .nb-tools { scrollbar-width: none; -ms-overflow-style: none; }
+        .nb-tools::-webkit-scrollbar { display: none; }
         .note-box b, .note-box strong { font-weight: 800; }
         .note-box img { max-width: 100%; border-radius: 10px; }
       `}</style>
