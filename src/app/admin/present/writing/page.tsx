@@ -273,6 +273,184 @@ function buildSlides(): { slides: Slide[]; jump: Record<number, number>; unitJum
   return { slides, jump, unitJump }
 }
 
+/* ── Review games — actually playable ────────────────────────────────────────
+   These used to reveal the answer on Space and nothing else, which gave students
+   no way to try, be wrong, and fix it — the part that does the learning. Each is
+   now interactive: place tiles, connect pairs, choose an option and be told you
+   are wrong. Space still reveals, as the teacher's override. Each lives in its
+   own component so its attempt state resets when the slide changes. */
+
+function ReorderGame({ g, revealed, AC }: { g: Extract<ReviewGame, { kind: 'reorder' }>; revealed: boolean; AC: Accent }) {
+  const [placed, setPlaced] = useState<number[]>([])          // indices into shuffled
+  const shuffled = useMemo(() => {
+    const seed = [...g.prompt].reduce((a, c) => a + c.charCodeAt(0), 0)
+    const a = g.tiles.map((t, i) => ({ t, i }))
+    for (let i = a.length - 1; i > 0; i--) { const j = (seed * (i + 7)) % (i + 1); [a[i], a[j]] = [a[j], a[i]] }
+    return a
+  }, [g])
+  const full = placed.length === g.tiles.length
+  const attempt = placed.map(i => shuffled[i].t)
+  const correct = full && attempt.every((t, i) => t === g.solution[i])
+  const long = g.tiles.some(t => t.length > 24)
+
+  const Tile = ({ text, onClick, tone }: { text: string; onClick?: () => void; tone: 'pool' | 'ok' | 'bad' | 'set' }) => (
+    <button onClick={e => { e.currentTarget.blur(); onClick?.() }} disabled={revealed}
+      className={`rounded-2xl font-black transit ion-all ${onClick && !revealed ? 'hover:-translate-y-[3px] cursor-pointer' : 'cursor-default'}`}
+      style={{
+        fontSize: long ? '1.15vw' : '1.8vw', padding: long ? '0.9vh 1.2vw' : '1vh 1.5vw',
+        maxWidth: long ? '62vw' : undefined, textAlign: long ? 'left' : 'center',
+        background: tone === 'ok' ? '#ecfdf5' : tone === 'bad' ? '#fef2f2' : '#fff',
+        color: tone === 'ok' ? '#065f46' : tone === 'bad' ? '#991b1b' : INK,
+        boxShadow: `0 10px 24px -18px rgba(42,29,18,0.6), inset 0 0 0 2.5px ${tone === 'ok' ? '#6ee7b7' : tone === 'bad' ? '#fca5a5' : AC.ring}`,
+      }}>{text}</button>
+  )
+
+  return (
+    <>
+      {/* the pool */}
+      <div className="flex flex-wrap items-center justify-center gap-[0.8vw] min-h-[6vh]">
+        {shuffled.map((x, i) => placed.includes(i) ? null : (
+          <Tile key={i} text={x.t} tone="pool" onClick={() => setPlaced(p => [...p, i])} />
+        ))}
+        {!placed.length && <span className="font-bold text-stone-300" style={{ fontSize: '0.9vw' }}>اضغط الكلمات بالترتيب الصحيح</span>}
+      </div>
+
+      {/* the answer line */}
+      <div className="w-full rounded-[26px] px-[2vw] py-[2vh] flex flex-wrap items-center justify-center gap-[0.8vw] min-h-[9vh]"
+        style={{ background: full ? (correct ? '#ecfdf5' : '#fef2f2') : '#fafaf9', boxShadow: `inset 0 0 0 2px ${full ? (correct ? '#6ee7b7' : '#fca5a5') : '#e7e5e4'}` }}>
+        {placed.length
+          ? placed.map((idx, k) => (
+              <Tile key={k} text={shuffled[idx].t} tone={full ? (correct ? 'ok' : 'bad') : 'set'}
+                onClick={() => setPlaced(p => p.filter((_, j) => j !== k))} />
+            ))
+          : <span className="font-bold text-stone-300" style={{ fontSize: '1vw' }}>… ابنِ الجملة هنا</span>}
+      </div>
+
+      {full && !revealed && (
+        <div className="flex items-center gap-[1vw]">
+          {correct
+            ? <span className="flex items-center gap-2 font-black" style={{ color: '#059669', fontSize: '1.5vw' }}><Check size={26} strokeWidth={3} /> صحيح!</span>
+            : <>
+                <span className="font-black" style={{ color: '#dc2626', fontSize: '1.3vw' }}>ليس بعد — جرّب مرّة أخرى</span>
+                <button onClick={e => { e.currentTarget.blur(); setPlaced([]) }} className="px-[1.2vw] py-[0.7vh] rounded-xl font-black" style={{ background: GOLD, color: INK, fontSize: '1vw' }}>أعد المحاولة</button>
+              </>}
+        </div>
+      )}
+      {revealed && (
+        <div className="w-full rounded-[28px] px-[3vw] py-[2.4vh] flex items-center justify-center gap-[1vw]" style={{ background: '#ecfdf5', boxShadow: 'inset 0 0 0 2.5px #6ee7b7' }}>
+          <Check size={28} className="text-emerald-600 shrink-0" strokeWidth={3} />
+          <Marked text={g.answer} className="font-black text-center leading-[1.3]" style={{ color: '#065f46', fontSize: long ? '1.4vw' : '2.2vw' }} />
+        </div>
+      )}
+    </>
+  )
+}
+
+function MatchGame({ g, revealed, AC }: { g: Extract<ReviewGame, { kind: 'match' }>; revealed: boolean; AC: Accent }) {
+  const [pick, setPick] = useState<number | null>(null)     // selected LEFT index
+  const [done, setDone] = useState<number[]>([])            // solved left indices
+  const [wrong, setWrong] = useState<number | null>(null)   // right index flashing red
+  const rights = useMemo(() => {
+    const seed = [...g.prompt].reduce((a, c) => a + c.charCodeAt(0), 0)
+    const a = g.pairs.map((p, i) => ({ t: p[1], i }))
+    for (let i = a.length - 1; i > 0; i--) { const j = (seed * (i + 5)) % (i + 1); [a[i], a[j]] = [a[j], a[i]] }
+    return a
+  }, [g])
+  const all = done.length === g.pairs.length
+
+  const tryRight = (rightIdx: number) => {
+    if (pick == null || revealed) return
+    if (rightIdx === pick) { setDone(d => [...d, pick]); setPick(null) }
+    else { setWrong(rightIdx); setTimeout(() => setWrong(null), 550); setPick(null) }
+  }
+
+  return (
+    <>
+      <div dir="ltr" className="w-full grid grid-cols-2 gap-x-[4vw] gap-y-[1vh]">
+        <div className="flex flex-col gap-[1vh]">
+          {g.pairs.map((p, i) => {
+            const solved = done.includes(i) || revealed
+            return (
+              <button key={i} disabled={solved} onClick={e => { e.currentTarget.blur(); setPick(i) }}
+                className={`rounded-2xl text-center font-black transition-all ${solved ? '' : 'hover:-translate-y-[2px]'}`}
+                style={{
+                  fontSize: '1.45vw', padding: '1vh 1vw',
+                  background: solved ? '#ecfdf5' : '#fff', color: solved ? '#065f46' : INK,
+                  boxShadow: `inset 0 0 0 ${pick === i ? 3 : 2.5}px ${solved ? '#6ee7b7' : pick === i ? AC.ink : AC.ring}`,
+                }}>{p[0]}</button>
+            )
+          })}
+        </div>
+        <div className="flex flex-col gap-[1vh]">
+          {rights.map((r, k) => {
+            const solved = done.includes(r.i) || revealed
+            return (
+              <button key={k} disabled={solved} onClick={e => { e.currentTarget.blur(); tryRight(r.i) }}
+                className={`rounded-2xl text-center font-black transition-all ${solved ? '' : 'hover:-translate-y-[2px]'}`}
+                style={{
+                  fontSize: '1.45vw', padding: '1vh 1vw',
+                  background: solved ? '#ecfdf5' : wrong === r.i ? '#fef2f2' : '#f5f5f4',
+                  color: solved ? '#065f46' : wrong === r.i ? '#991b1b' : '#78716c',
+                  boxShadow: `inset 0 0 0 2px ${solved ? '#6ee7b7' : wrong === r.i ? '#fca5a5' : '#e7e5e4'}`,
+                }}>{r.t}</button>
+            )
+          })}
+        </div>
+      </div>
+      <div className="font-bold" style={{ fontSize: '1vw', color: all ? '#059669' : '#a8a29e' }}>
+        {all ? '✓ كلّها صحيحة!' : pick != null ? 'الآن اختر ما يقابلها ←' : 'اضغط كلمة على اليمين ثم ما يقابلها'}
+      </div>
+    </>
+  )
+}
+
+function PickGame({ g, revealed, AC }: { g: Extract<ReviewGame, { kind: 'pick' }>; revealed: boolean; AC: Accent }) {
+  const [tried, setTried] = useState<number[]>([])
+  const got = tried.includes(g.answer) || revealed
+  return (
+    <>
+      <div className="w-full flex flex-col gap-[1.2vh]">
+        {g.options.map((o, i) => {
+          const isRight = i === g.answer && (got || tried.includes(i))
+          const isWrong = tried.includes(i) && i !== g.answer
+          const dim = got && i !== g.answer
+          return (
+            <button key={i} disabled={got} onClick={e => { e.currentTarget.blur(); setTried(t => t.includes(i) ? t : [...t, i]) }}
+              className={`w-full flex items-center gap-[1.2vw] rounded-2xl px-[1.8vw] py-[1.4vh] transition-all ${got ? '' : 'hover:-translate-y-[2px]'}`}
+              style={{
+                background: isRight ? '#ecfdf5' : isWrong ? '#fef2f2' : '#fff',
+                boxShadow: `inset 0 0 0 ${isRight || isWrong ? 2.5 : 2}px ${isRight ? '#6ee7b7' : isWrong ? '#fca5a5' : AC.ring}`,
+                opacity: dim ? 0.4 : 1,
+              }}>
+              <span className="grid place-items-center rounded-full font-black shrink-0"
+                style={{ width: '2.4vw', height: '2.4vw', fontSize: '1vw',
+                  background: isRight ? '#059669' : isWrong ? '#dc2626' : AC.tint,
+                  color: isRight || isWrong ? '#fff' : AC.ink }}>
+                {isRight ? <Check size={18} strokeWidth={3} /> : isWrong ? <X size={18} strokeWidth={3} /> : String.fromCharCode(65 + i)}
+              </span>
+              <Marked text={o} className="font-black text-left" style={{ color: isRight ? '#065f46' : isWrong ? '#991b1b' : INK, fontSize: '1.6vw' }} />
+            </button>
+          )
+        })}
+      </div>
+      {!got && tried.length > 0 && (
+        <span className="font-black" style={{ color: '#dc2626', fontSize: '1.2vw' }}>ليس هذا — جرّب غيره</span>
+      )}
+      {got && (
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+          className="w-full rounded-2xl px-[2.2vw] py-[1.6vh] flex items-start gap-[1vw]"
+          style={{ background: AC.tint, boxShadow: `inset 0 0 0 1.5px ${AC.ring}` }}>
+          <Lightbulb size={20} style={{ color: AC.ink }} className="mt-[0.3vh] shrink-0" />
+          <div className="min-w-0 flex-1">
+            <Marked text={g.why} className="block font-bold" style={{ color: AC.ink, fontSize: '1.25vw' }} />
+            <span dir="rtl" className="block font-bold text-stone-500 mt-[0.3vh]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.15vw' }}>{g.whyAr}</span>
+          </div>
+        </motion.div>
+      )}
+    </>
+  )
+}
+
 /* Which accent is this slide wearing? */
 function accentOf(s: Slide): Accent {
   const u = (s.t === 'unit' || s.t === 'review' || s.t === 'thread') ? s.u
@@ -1958,118 +2136,24 @@ function SlideView({ s, step, onJump, onJumpUnit }: { s: Slide; step: number; on
   if (s.t === 'review') {
     const g = s.game
     const revealed = step >= 1
-    const seed = [...s.game.prompt].reduce((a, c) => a + c.charCodeAt(0), 0)
-    const shuffle = <T,>(arr: T[]) => {
-      const a = [...arr]
-      for (let i = a.length - 1; i > 0; i--) {
-        const j = (seed * (i + 7)) % (i + 1)
-        ;[a[i], a[j]] = [a[j], a[i]]
-      }
-      return a
-    }
-    const Head = (
-      <div className="flex flex-col items-center gap-[0.6vh]">
-        <span className="flex items-center gap-[0.6vw] rounded-full px-[1.4vw] py-[0.6vh] font-black" style={{ background: INK, color: GOLD, fontSize: '0.9vw' }}>
-          <Gamepad2 size={16} /> {s.u.en.split(' · ')[1]} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>مراجعة الوحدة</span>
-        </span>
-        <Heading en={g.prompt} ar={g.promptAr} size="2.3vw" />
-      </div>
-    )
-    const Reveal = ({ children }: { children: React.ReactNode }) => revealed ? (
-      <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="w-full flex flex-col items-center gap-[1.6vh]">{children}</motion.div>
-    ) : (
-      <div className="text-stone-400 font-bold" style={{ fontSize: '1vw' }}>
-        Press <kbd className="px-2 py-0.5 rounded bg-stone-100 ring-1 ring-stone-300 font-mono">Space</kbd> to reveal ·
-        <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}> اضغط مسافة للحلّ</span>
-      </div>
-    )
-
-    if (g.kind === 'reorder') return (
-      <div className="w-full max-w-[80vw] flex flex-col items-center gap-[2.6vh]">
-        {Head}
-        <div className="flex flex-wrap items-center justify-center gap-[0.9vw]">
-          {shuffle(g.tiles).map((t, i) => (
-            <motion.span key={i} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}
-              className="rounded-2xl font-black" style={{ background: '#fff', color: INK, fontSize: '1.9vw', padding: '1vh 1.6vw', boxShadow: '0 10px 24px -14px rgba(42,29,18,0.6), inset 0 0 0 2.5px #fcd34d' }}>{t}</motion.span>
-          ))}
-        </div>
-        <Reveal>
-          <div className="w-full rounded-[32px] px-[3vw] py-[3vh] flex items-center justify-center gap-[1vw]" style={{ background: '#ecfdf5', boxShadow: 'inset 0 0 0 2.5px #6ee7b7' }}>
-            <Check size={28} className="text-emerald-600 shrink-0" strokeWidth={3} />
-            <Marked text={g.answer} className="font-black text-center leading-[1.3]" style={{ color: '#065f46', fontSize: '2.3vw' }} />
-          </div>
-        </Reveal>
-      </div>
-    )
-
-    if (g.kind === 'match') return (
-      <div className="w-full max-w-[76vw] flex flex-col items-center gap-[2.4vh]">
-        {Head}
-        {!revealed ? (
-          <div dir="ltr" className="w-full grid grid-cols-2 gap-x-[5vw] gap-y-[1.1vh]">
-            <div className="flex flex-col gap-[1.1vh]">
-              {g.pairs.map((p, i) => (
-                <span key={i} className="rounded-2xl text-center font-black" style={{ background: '#fff', color: INK, fontSize: '1.5vw', padding: '1vh 1vw', boxShadow: 'inset 0 0 0 2.5px #fcd34d' }}>{p[0]}</span>
-              ))}
-            </div>
-            <div className="flex flex-col gap-[1.1vh]">
-              {shuffle(g.pairs.map(p => p[1])).map((r, i) => (
-                <span key={i} className="rounded-2xl text-center font-black" style={{ background: '#f5f5f4', color: '#78716c', fontSize: '1.5vw', padding: '1vh 1vw', boxShadow: 'inset 0 0 0 2px #e7e5e4' }}>{r}</span>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <motion.div dir="ltr" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full flex flex-col gap-[1.1vh]">
-            {g.pairs.map((p, i) => (
-              <motion.div key={i} initial={{ opacity: 0, x: -14 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}
-                className="w-full grid grid-cols-[1fr_auto_1fr] items-center gap-[1vw] rounded-2xl px-[1.4vw] py-[1vh]" style={{ background: '#ecfdf5', boxShadow: 'inset 0 0 0 2px #6ee7b7' }}>
-                <span className="font-black text-right" style={{ color: INK, fontSize: '1.45vw' }}>{p[0]}</span>
-                <span className="font-black" style={{ color: '#059669', fontSize: '1.3vw' }}>———</span>
-                <span className="font-black text-left" style={{ color: '#065f46', fontSize: '1.45vw' }}>{p[1]}</span>
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
-        {!revealed && (
-          <div className="text-stone-400 font-bold" style={{ fontSize: '1vw' }}>
-            Press <kbd className="px-2 py-0.5 rounded bg-stone-100 ring-1 ring-stone-300 font-mono">Space</kbd> to connect them ·
-            <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}> اضغط مسافة للوصل</span>
-          </div>
-        )}
-      </div>
-    )
-
     return (
-      <div className="w-full max-w-[76vw] flex flex-col items-center gap-[2.4vh]">
-        {Head}
-        <div className="w-full flex flex-col gap-[1.2vh]">
-          {g.options.map((o, i) => {
-            const right = revealed && i === g.answer
-            const wrong = revealed && i !== g.answer
-            return (
-              <div key={i} className="w-full flex items-center gap-[1.2vw] rounded-2xl px-[1.8vw] py-[1.4vh] transition"
-                style={{
-                  background: right ? '#ecfdf5' : '#ffffff',
-                  boxShadow: right ? 'inset 0 0 0 2.5px #6ee7b7' : 'inset 0 0 0 2px #e7e5e4',
-                  opacity: wrong ? 0.4 : 1,
-                }}>
-                <span className="grid place-items-center rounded-full font-black shrink-0" style={{ width: '2.4vw', height: '2.4vw', background: right ? '#059669' : '#f5f5f4', color: right ? '#fff' : '#a8a29e', fontSize: '1vw' }}>
-                  {right ? <Check size={18} strokeWidth={3} /> : String.fromCharCode(65 + i)}
-                </span>
-                <Marked text={o} className="font-black" style={{ color: right ? '#065f46' : INK, fontSize: '1.6vw' }} />
-              </div>
-            )
-          })}
+      <div className="w-full max-w-[80vw] flex flex-col items-center gap-[2.2vh]">
+        <div className="flex flex-col items-center gap-[0.6vh]">
+          <span className="flex items-center gap-[0.6vw] rounded-full px-[1.4vw] py-[0.6vh] font-black" style={{ background: INK, color: GOLD, fontSize: '0.9vw' }}>
+            <Gamepad2 size={16} /> {s.u.en.split(' · ')[1]} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>مراجعة الوحدة</span>
+          </span>
+          <Heading en={g.prompt} ar={g.promptAr} size="2.3vw" />
         </div>
-        <Reveal>
-          <div className="w-full rounded-2xl bg-amber-50 ring-1 ring-amber-200 px-[2.2vw] py-[1.6vh] flex items-start gap-[1vw]">
-            <Lightbulb size={20} style={{ color: AMBER }} className="mt-[0.3vh] shrink-0" />
-            <div className="min-w-0 flex-1">
-              <Marked text={g.why} className="block font-bold" style={{ color: AMBER, fontSize: '1.25vw' }} />
-              <span dir="rtl" className="block font-bold text-stone-500 mt-[0.3vh]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.15vw' }}>{g.whyAr}</span>
-            </div>
-          </div>
-        </Reveal>
+
+        {g.kind === 'reorder' ? <ReorderGame g={g} revealed={revealed} AC={AC} />
+          : g.kind === 'match' ? <MatchGame g={g} revealed={revealed} AC={AC} />
+          : <PickGame g={g} revealed={revealed} AC={AC} />}
+
+        {!revealed && (
+          <span className="font-bold text-stone-300" style={{ fontSize: '0.82vw' }}>
+            حاول أولًا · <kbd className="px-1.5 py-0.5 rounded bg-stone-100 ring-1 ring-stone-200 font-mono">Space</kbd> يُظهر الحلّ
+          </span>
+        )}
       </div>
     )
   }
