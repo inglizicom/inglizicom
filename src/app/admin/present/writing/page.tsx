@@ -159,11 +159,12 @@ const UNIT_ACCENT: Accent[] = [
 ]
 const FALLBACK_ACCENT: Accent = { ink: AMBER, tint: '#fef3c7', ring: '#fcd34d' }
 
-type Phase = 'cover' | 'objectives' | 'rule' | 'explain' | 'form' | 'spelling' | 'irregulars' | 'examples' | 'exercises' | 'reading' | 'homework' | 'editing' | 'model' | 'plan' | 'toolkit' | 'write' | 'checklist' | 'review' | 'thread'
+type Phase = 'cover' | 'objectives' | 'rule' | 'explain' | 'form' | 'spelling' | 'irregulars' | 'examples' | 'exercises' | 'reading' | 'homework' | 'editing' | 'model' | 'plan' | 'toolkit' | 'write' | 'checklist' | 'review' | 'thread' | 'play'
 type Slide =
   | { t: 'intro' }
   | { t: 'end' }
   | { t: 'unit'; u: UnitDef; index: number; count: number; startsAt: number }
+  | { t: 'play'; L: Lesson; game: ReviewGame }
   | { t: 'thread'; u: UnitDef; index: number; thread: Thread }
   | { t: 'review'; u: UnitDef; index: number; game: ReviewGame; page: number; pages: number }
   | { t: 'cover'; L: Lesson }
@@ -204,6 +205,7 @@ const PHASE: Record<Phase, { en: string; ar: string; Icon: typeof Target }> = {
   checklist:     { en: 'Check Your Work', ar: 'راجع كتابتك',  Icon: ListChecks },
   review:        { en: 'Unit Review · Play', ar: 'مراجعة الوحدة · لعب', Icon: Gamepad2 },
   thread:        { en: 'Seen in the Wild', ar: 'القاعدة في رسائل حقيقية', Icon: MessagesSquare },
+  play:          { en: 'Your Turn — Play', ar: 'دورك — العب', Icon: Gamepad2 },
 }
 
 /* Build the flat slide list + a lesson→cover-index map for jump navigation.
@@ -267,10 +269,50 @@ function buildSlides(): { slides: Slide[]; jump: Record<number, number>; unitJum
     }
     slides.push({ t: 'homework', L })
     if (L.editing) slides.push({ t: 'editing', L })
+    const play = quickPlay(L)                       // close every lesson on a game
+    if (play) slides.push({ t: 'play', L, game: play })
   }
   flushReview(currentUnit)     // the last unit needs its games too
   slides.push({ t: 'end' })
   return { slides, jump, unitJump }
+}
+
+/* ── One game after EVERY lesson ──────────────────────────────────────────────
+   Games only closed a unit, so a student could sit through nine tense lessons
+   before touching one. Each lesson now ends with a rebuild of a sentence taken
+   from its OWN material — examples first, then the reading passage, then the
+   corrected find-the-mistakes lines — so the practice is always the grammar just
+   taught, and no new content had to be invented to get it.
+   Three lessons carry no sentence short enough to rebuild; they are written out. */
+const HAND_PICKED: Record<number, string> = {
+  38: 'Every good essay makes one promise and keeps it.',
+  42: 'A solution must attack the cause you named.',
+  45: 'Formal writing respects a reader who is busy.',
+}
+
+function quickPlay(L: Lesson): ReviewGame | null {
+  const clean = (t: string) => t.replace(/\*/g, '')
+  const usable = (t: string) => {
+    if (/[→✗✓·—:;"()]/.test(t)) return false
+    if (!/[.?!]$/.test(t)) return false
+    const w = t.slice(0, -1).trim().split(/\s+/).filter(Boolean)
+    return w.length >= 5 && w.length <= 11
+  }
+  const pool = [
+    ...(L.examples ?? []).map(e => e.en),
+    ...(L.reading?.passage ?? []),
+    ...(L.editing?.correct ?? []),
+  ].map(clean).filter(usable)
+  const sentence = pool[0] ?? HAND_PICKED[L.no]
+  if (!sentence) return null
+  const mark = sentence.slice(-1)
+  const words = sentence.slice(0, -1).trim().split(/\s+/)
+  const solution = [...words, mark]        // the end mark is its own tile on purpose
+  return {
+    kind: 'reorder',
+    prompt: 'Rebuild the sentence', promptAr: 'أعد بناء الجملة',
+    tiles: solution, solution, answer: sentence,
+  }
 }
 
 /* ── Review games — actually playable ────────────────────────────────────────
@@ -283,7 +325,7 @@ function buildSlides(): { slides: Slide[]; jump: Record<number, number>; unitJum
 function ReorderGame({ g, revealed, AC }: { g: Extract<ReviewGame, { kind: 'reorder' }>; revealed: boolean; AC: Accent }) {
   const [placed, setPlaced] = useState<number[]>([])          // indices into shuffled
   const shuffled = useMemo(() => {
-    const seed = [...g.prompt].reduce((a, c) => a + c.charCodeAt(0), 0)
+    const seed = [...g.answer].reduce((a, c) => a + c.charCodeAt(0), 0)
     const a = g.tiles.map((t, i) => ({ t, i }))
     for (let i = a.length - 1; i > 0; i--) { const j = (seed * (i + 7)) % (i + 1); [a[i], a[j]] = [a[j], a[i]] }
     return a
@@ -1621,6 +1663,7 @@ const stepsOf = (s?: Slide) => {
   if (s.t === 'editing') return 1
   if (s.t === 'review') return 1
   if (s.t === 'thread') return 1
+  if (s.t === 'play') return 1
   if (s.t === 'write') return s.L.studio?.steps?.length ?? 0
   if (s.t === 'checklist') return s.L.studio?.checklist?.length ?? 0
   return 0
@@ -2133,6 +2176,28 @@ function SlideView({ s, step, onJump, onJumpUnit }: { s: Slide; step: number; on
   /* Unit review game — the challenge is on screen, the class answers out loud,
      Space reveals the solution. Tiles are shuffled deterministically from the
      prompt so the scramble is stable every time you present the same slide. */
+  /* the game that closes a lesson — same mechanics as the unit games */
+  if (s.t === 'play') {
+    const revealed = step >= 1
+    return (
+      <div className="w-full max-w-[80vw] flex flex-col items-center gap-[2.2vh]">
+        <div className="flex flex-col items-center gap-[0.6vh]">
+          <span className="flex items-center gap-[0.6vw] rounded-full px-[1.4vw] py-[0.6vh] font-black"
+            style={{ background: AC.tint, color: AC.ink, boxShadow: `inset 0 0 0 1.5px ${AC.ring}` }}>
+            <Gamepad2 size={16} /> Lesson {numOf(s.L)} · {s.L.tag} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>دورك</span>
+          </span>
+          <Heading en="Rebuild the sentence" ar="أعد بناء الجملة" size="2.3vw" />
+        </div>
+        <ReorderGame g={s.game as Extract<ReviewGame, { kind: 'reorder' }>} revealed={revealed} AC={AC} />
+        {!revealed && (
+          <span className="font-bold text-stone-300" style={{ fontSize: '0.82vw' }}>
+            حاول أولًا · <kbd className="px-1.5 py-0.5 rounded bg-stone-100 ring-1 ring-stone-200 font-mono">Space</kbd> يُظهر الحلّ
+          </span>
+        )}
+      </div>
+    )
+  }
+
   if (s.t === 'review') {
     const g = s.game
     const revealed = step >= 1
