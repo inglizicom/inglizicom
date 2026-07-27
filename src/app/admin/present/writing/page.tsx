@@ -136,6 +136,29 @@ const moduleOf = (no: number) => {
 const cefrOf = (L: Lesson) => L.cefr ?? unitOf(L.no).cefr
 const lessonsIn = (m: ModDef) => ORDERED.filter(L => L.no >= m.from && L.no <= m.to)
 
+/* ── Unit accents ─────────────────────────────────────────────────────────────
+   1836 slides in exactly one colour is a long afternoon. INK stays the brand and
+   GOLD stays the chrome (header, buttons, board), but the CONTENT accent shifts
+   per unit — so a student feels they have walked into a new room, and the
+   teacher gets a visual cue for where they are. Deep, muted tones with a light
+   tint companion; only one is ever on screen at a time, so it reads as a theme
+   rather than a rainbow. */
+type Accent = { ink: string; tint: string; ring: string }
+const UNIT_ACCENT: Accent[] = [
+  { ink: '#b45309', tint: '#fef3c7', ring: '#fcd34d' },  // 1  Mechanics — amber
+  { ink: '#0f766e', tint: '#ccfbf1', ring: '#5eead4' },  // 2  Words — teal
+  { ink: '#4338ca', tint: '#e0e7ff', ring: '#a5b4fc' },  // 3  Tenses — indigo
+  { ink: '#be123c', tint: '#ffe4e6', ring: '#fda4af' },  // 4  Precision — rose
+  { ink: '#047857', tint: '#d1fae5', ring: '#6ee7b7' },  // 5  Sentences — emerald
+  { ink: '#6d28d9', tint: '#ede9fe', ring: '#c4b5fd' },  // 6  Punctuation — violet
+  { ink: '#c2410c', tint: '#ffedd5', ring: '#fdba74' },  // 7  Paragraphs — orange
+  { ink: '#1d4ed8', tint: '#dbeafe', ring: '#93c5fd' },  // 8  Professional — blue
+  { ink: '#a21caf', tint: '#fae8ff', ring: '#f0abfc' },  // 9  Advanced — fuchsia
+  { ink: '#0e7490', tint: '#cffafe', ring: '#67e8f9' },  // 10 Essays — cyan
+  { ink: '#7c2d12', tint: '#ffedd5', ring: '#fdba74' },  // 11 Style/C1 — bronze
+]
+const FALLBACK_ACCENT: Accent = { ink: AMBER, tint: '#fef3c7', ring: '#fcd34d' }
+
 type Phase = 'cover' | 'objectives' | 'rule' | 'explain' | 'form' | 'spelling' | 'irregulars' | 'examples' | 'exercises' | 'reading' | 'homework' | 'editing' | 'model' | 'plan' | 'toolkit' | 'write' | 'checklist' | 'review' | 'thread'
 type Slide =
   | { t: 'intro' }
@@ -248,6 +271,14 @@ function buildSlides(): { slides: Slide[]; jump: Record<number, number>; unitJum
   flushReview(currentUnit)     // the last unit needs its games too
   slides.push({ t: 'end' })
   return { slides, jump, unitJump }
+}
+
+/* Which accent is this slide wearing? */
+function accentOf(s: Slide): Accent {
+  const u = (s.t === 'unit' || s.t === 'review' || s.t === 'thread') ? s.u
+    : ('L' in s ? unitOf(s.L.no) : null)
+  const i = u ? SYLLABUS.indexOf(u) : -1
+  return UNIT_ACCENT[i] ?? FALLBACK_ACCENT
 }
 
 /* Reveal *marked* parts of an English string. */
@@ -1726,6 +1757,7 @@ export default function WritingDeck() {
 
 /* ═══ per-phase renderers ═══ */
 function SlideView({ s, step, onJump, onJumpUnit }: { s: Slide; step: number; onJump: (no: number) => void; onJumpUnit: (ui: number) => void }) {
+  const AC = accentOf(s)   // this unit's colour — see UNIT_ACCENT
   if (s.t === 'intro') {
     const totalLessons = ORDERED.length
     // Read the span off the syllabus rather than hard-coding it — this said
@@ -1815,7 +1847,7 @@ function SlideView({ s, step, onJump, onJumpUnit }: { s: Slide; step: number; on
       <div className="w-full max-w-[74vw] flex flex-col items-center gap-[2.4vh] text-center">
         <div className="flex items-center gap-[0.8vw]">
           <span className="rounded-lg px-2.5 py-1 font-black" style={{ background: '#ecfeff', color: '#0e7490', boxShadow: 'inset 0 0 0 1.5px #a5f3fc', fontSize: '0.9vw' }}>CEFR {u.cefr}</span>
-          <span className="font-black tracking-[0.14em] uppercase" style={{ color: AMBER, fontSize: '0.9vw' }}>{s.count} lessons · starts at lesson {s.startsAt}</span>
+          <span className="font-black tracking-[0.14em] uppercase" style={{ color: AC.ink, fontSize: '0.9vw' }}>{s.count} lessons · starts at lesson {s.startsAt}</span>
         </div>
         <div>
           <div className="inline-block mb-[1.2vh] px-6 py-2 rounded-full font-black tracking-[0.18em]" style={{ background: GOLD, color: INK, fontSize: '1.1vw' }}>
@@ -1825,7 +1857,7 @@ function SlideView({ s, step, onJump, onJumpUnit }: { s: Slide; step: number; on
           <div dir="rtl" className="mt-[0.8vh] font-black text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '2.1vw' }}>{u.ar.split(' · ')[1]}</div>
         </div>
         {/* the unit's promise */}
-        <div className="w-full rounded-[28px] bg-amber-50 ring-2 ring-amber-200 px-[3vw] py-[2.2vh]">
+        <div className="w-full rounded-[28px] px-[3vw] py-[2.2vh]" style={{ background: AC.tint, boxShadow: `inset 0 0 0 2px ${AC.ring}` }}>
           <div className="font-black text-stone-400 uppercase tracking-[0.14em] mb-[0.8vh]" style={{ fontSize: '0.72vw' }}>By the end of this unit · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>في نهاية هذه الوحدة</span></div>
           <div className="font-black leading-[1.35]" style={{ color: INK, fontSize: '1.5vw' }}>{u.promise}</div>
           <div dir="rtl" className="mt-[0.8vh] font-bold text-stone-600 leading-[1.6]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.3vw' }}>{u.promiseAr}</div>
@@ -1837,16 +1869,16 @@ function SlideView({ s, step, onJump, onJumpUnit }: { s: Slide; step: number; on
             return (
               <div key={mi} className="rounded-2xl bg-white ring-1 ring-stone-200 px-[1.2vw] py-[1.2vh] text-left">
                 <div className="flex items-baseline gap-[0.5vw] mb-[0.7vh]">
-                  <span className="font-black" style={{ color: AMBER, fontSize: '0.98vw' }}>{m.en}</span>
+                  <span className="font-black" style={{ color: AC.ink, fontSize: '0.98vw' }}>{m.en}</span>
                   <span className="ml-auto font-bold text-stone-300" style={{ fontSize: '0.72vw' }}>{items.length}</span>
                 </div>
                 <div dir="rtl" className="font-bold text-stone-400 mb-[0.8vh]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '0.82vw' }}>{m.ar}</div>
                 <div className="flex flex-wrap gap-[0.35vw]">
                   {items.map(L2 => (
                     <button key={L2.no} onClick={() => onJump(L2.no)}
-                      className="rounded-lg bg-stone-50 ring-1 ring-stone-200 hover:ring-yellow-400 hover:bg-amber-50 transition px-[0.5vw] py-[0.35vh] font-bold"
+                      className="rounded-lg bg-stone-50 ring-1 ring-stone-200 transition px-[0.5vw] py-[0.35vh] font-bold hover:brightness-95"
                       style={{ color: INK, fontSize: '0.78vw' }}>
-                      <span className="font-black" style={{ color: AMBER }}>{numOf(L2)}</span> {L2.tag}
+                      <span className="font-black" style={{ color: AC.ink }}>{numOf(L2)}</span> {L2.tag}
                     </button>
                   ))}
                 </div>
@@ -1896,14 +1928,14 @@ function SlideView({ s, step, onJump, onJumpUnit }: { s: Slide; step: number; on
 
         {revealed ? (
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
-            className="w-full rounded-[22px] bg-amber-50 ring-1 ring-amber-200 px-[2vw] py-[1.4vh]">
+            className="w-full rounded-[22px] px-[2vw] py-[1.4vh]" style={{ background: AC.tint, boxShadow: `inset 0 0 0 1.5px ${AC.ring}` }}>
             <div className="font-black text-stone-400 uppercase tracking-[0.12em] mb-[0.6vh]" style={{ fontSize: '0.68vw' }}>
               What to notice · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>ما ينبغي ملاحظته</span>
             </div>
             <div dir="ltr" className="grid grid-cols-2 gap-x-[1.6vw] gap-y-[0.4vh]">
               {th.notice.map((n, i) => (
                 <div key={i} className="flex items-start gap-[0.6vw]">
-                  <span className="w-2 h-2 rounded-full shrink-0 mt-[0.7vh]" style={{ background: GOLD }} />
+                  <span className="w-2 h-2 rounded-full shrink-0 mt-[0.7vh]" style={{ background: AC.ink }} />
                   <Marked text={n} className="font-bold" style={{ color: INK, fontSize: '1vw' }} />
                 </div>
               ))}
@@ -2050,7 +2082,7 @@ function SlideView({ s, step, onJump, onJumpUnit }: { s: Slide; step: number; on
       <div className="text-center max-w-[80vw]">
         <div className="flex items-center justify-center gap-[0.8vw] mb-[1.4vh]">
           <span className="rounded-lg px-2.5 py-1 font-black" style={{ background: '#ecfeff', color: '#0e7490', boxShadow: 'inset 0 0 0 1.5px #a5f3fc', fontSize: '0.9vw' }}>CEFR {cefrOf(s.L)}</span>
-          <span className="font-black tracking-[0.1em] uppercase" style={{ color: AMBER, fontSize: '0.9vw' }}>{u.en} <span className="text-stone-300">›</span> {m.en}</span>
+          <span className="font-black tracking-[0.1em] uppercase" style={{ color: AC.ink, fontSize: '0.9vw' }}>{u.en} <span className="text-stone-300">›</span> {m.en}</span>
         </div>
         <div className="inline-block mb-[1.6vh] px-5 py-2 rounded-full font-black tracking-[0.15em] text-[1.1vw]" style={{ background: GOLD, color: INK }}>
           LESSON {n} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>الدرس {n}</span>
@@ -2083,12 +2115,13 @@ function SlideView({ s, step, onJump, onJumpUnit }: { s: Slide; step: number; on
   if (s.t === 'rule') return (
     <div className="w-full max-w-[74vw] flex flex-col items-center gap-[3vh]">
       <div className="flex items-center gap-[0.8vw]">
-        <Lightbulb size={26} style={{ color: AMBER }} />
+        <Lightbulb size={26} style={{ color: AC.ink }} />
         <Heading en="The Rule" ar="القاعدة" />
       </div>
-      <div className="w-full rounded-[32px] bg-amber-50 ring-2 ring-amber-200 px-[3vw] py-[3.2vh] shadow-[0_24px_60px_-34px_rgba(180,120,20,0.6)]">
+      <div className="w-full rounded-[32px] px-[3vw] py-[3.2vh]"
+        style={{ background: AC.tint, boxShadow: `inset 0 0 0 2px ${AC.ring}, 0 24px 60px -34px rgba(42,29,18,0.45)` }}>
         <Marked text={s.L.rule.en} className="block font-black leading-[1.35]" style={{ color: INK, fontSize: '2vw' }} />
-        <div dir="rtl" className="mt-[1.8vh] pt-[1.8vh] border-t border-amber-200 font-bold text-stone-600 leading-[1.7]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.7vw' }}>{s.L.rule.ar}</div>
+        <div dir="rtl" className="mt-[1.8vh] pt-[1.8vh] font-bold text-stone-600 leading-[1.7]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.7vw', borderTop: `1.5px solid ${AC.ring}` }}>{s.L.rule.ar}</div>
       </div>
     </div>
   )
@@ -2113,7 +2146,7 @@ function SlideView({ s, step, onJump, onJumpUnit }: { s: Slide; step: number; on
         <div dir="ltr" className="grid grid-cols-2 gap-x-[1.6vw] gap-y-[1vh] w-full">
           {ex.points.map((p, i) => (
             <div key={i} className="flex items-start gap-[0.8vw] rounded-2xl bg-white ring-1 ring-stone-200 px-[1.3vw] py-[1.1vh]">
-              <span className="w-2.5 h-2.5 rounded-full shrink-0 mt-[0.7vh]" style={{ background: GOLD }} />
+              <span className="w-2.5 h-2.5 rounded-full shrink-0 mt-[0.7vh]" style={{ background: AC.ink }} />
               <span className="min-w-0 flex-1">
                 <Marked text={p.en} className="block font-bold leading-[1.4]" style={{ color: INK, fontSize: enSize }} />
                 <span dir="rtl" className="block font-bold text-stone-400 leading-[1.5] mt-[0.2vh]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: arSize }}>{p.ar}</span>
@@ -2215,10 +2248,11 @@ function SlideView({ s, step, onJump, onJumpUnit }: { s: Slide; step: number; on
           {/* WHY this example is written this way — the line the teacher would
               otherwise have to invent on camera. */}
           {s.item.why && (
-            <div className="w-full mt-[0.6vh] rounded-[22px] bg-amber-50 ring-1 ring-amber-200 px-[2.4vw] py-[1.6vh] flex items-start gap-[1vw]">
-              <Lightbulb size={20} style={{ color: AMBER }} className="mt-[0.4vh] shrink-0" />
+            <div className="w-full mt-[0.6vh] rounded-[22px] px-[2.4vw] py-[1.6vh] flex items-start gap-[1vw]"
+              style={{ background: AC.tint, boxShadow: `inset 0 0 0 1.5px ${AC.ring}` }}>
+              <Lightbulb size={20} style={{ color: AC.ink }} className="mt-[0.4vh] shrink-0" />
               <div className="min-w-0 flex-1">
-                <Marked text={s.item.why} className="block font-bold text-right" style={{ color: AMBER, fontSize: '1.25vw', textAlign: 'left' }} />
+                <Marked text={s.item.why} className="block font-bold text-right" style={{ color: AC.ink, fontSize: '1.25vw', textAlign: 'left' }} />
                 {s.item.whyAr && <span dir="rtl" className="block font-bold text-stone-500 mt-[0.4vh]" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1.15vw' }}>{s.item.whyAr}</span>}
               </div>
             </div>
@@ -2279,10 +2313,11 @@ function SlideView({ s, step, onJump, onJumpUnit }: { s: Slide; step: number; on
             {R.passage.map((ln, i) => (<span key={i}><Marked text={ln} className="font-bold" /> </span>))}
           </p>
           {R.tip && (
-            <div className="mt-[2vh] flex items-start gap-[0.9vw] rounded-2xl bg-amber-50 ring-1 ring-amber-200 px-[1.6vw] py-[1.3vh]">
-              <Sparkles size={17} style={{ color: AMBER }} className="mt-[0.3vh] shrink-0" />
+            <div className="mt-[2vh] flex items-start gap-[0.9vw] rounded-2xl px-[1.6vw] py-[1.3vh]"
+              style={{ background: AC.tint, boxShadow: `inset 0 0 0 1.5px ${AC.ring}` }}>
+              <Sparkles size={17} style={{ color: AC.ink }} className="mt-[0.3vh] shrink-0" />
               <div>
-                <span className="font-bold" style={{ color: AMBER, fontSize: '1.05vw' }}>{R.tip}</span>
+                <span className="font-bold" style={{ color: AC.ink, fontSize: '1.05vw' }}>{R.tip}</span>
                 <span dir="rtl" className="block font-bold text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif", fontSize: '1vw' }}>{R.tipAr}</span>
               </div>
             </div>

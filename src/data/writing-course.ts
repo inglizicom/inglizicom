@@ -715,6 +715,13 @@ export const LESSONS: Lesson[] = [
       { en: 'I like apples. (general, no article)', ar: 'أحب التفاح (عام).', why: 'THE Arabic-speaker trap: a general plural takes NO article at all.', whyAr: 'فخّ الناطق بالعربية: الجمع العام بلا أداة إطلاقًا.' },
       { en: 'Open *the* window, please.', ar: 'افتح النافذة من فضلك.', why: '*the* again — there is one particular window we are both looking at.', whyAr: 'the لأن النافذة معيّنة نتشارك معرفتها.' },
       { en: 'She is *a* doctor.', ar: 'هي طبيبة.', why: 'Jobs take *a*: she is one doctor among many, not the only one.', whyAr: 'المهنة تأخذ a لأنها واحدة من كثيرات.' },
+
+      /* now in a sentence — a writing course has to show the rule working */
+      { en: 'I bought *a* book yesterday, and *the* book was excellent.', ar: 'اشتريت كتابًا، وكان الكتاب ممتازًا.', why: 'First mention takes *a*; the second takes *the* because the reader now knows it.', whyAr: 'أول ذكر a، والثاني the لأن القارئ صار يعرفه.' },
+      { en: '*The* teacher gave us *an* exercise about *the* environment.', ar: 'أعطانا المعلّم تمرينًا عن البيئة.', why: 'Three articles in one sentence, each chosen for a different reason.', whyAr: 'ثلاث أدوات في جملة واحدة لكلٍّ سببها.' },
+      { en: '✗ I like *the* coffee. → ✓ I like coffee.', ar: 'الفخّ العربي', why: 'Talking about coffee IN GENERAL takes no article at all.', whyAr: 'الحديث عن القهوة عمومًا بلا أداة.' },
+      { en: 'She works as *a* nurse at *the* hospital near my house.', ar: 'تعمل ممرّضة في المستشفى القريب.', why: 'A job takes *a*; a specific building we both know takes *the*.', whyAr: 'المهنة a، والمبنى المعروف the.' },
+      { en: '*The* students who arrive late will not enter *the* exam hall.', ar: 'الطلاب المتأخّرون لن يدخلوا القاعة.', why: '*the* twice — both nouns are narrowed to a specific group and place.', whyAr: 'the مرّتين لأن كليهما محدّد.' },
     ],
     exercises: [
       { q: 'a / an / the? “I saw ___ cat. ___ cat was black.”', a: '*a* cat. *The* cat was black.' },
@@ -797,6 +804,12 @@ export const LESSONS: Lesson[] = [
       { en: 'Omar parked *his* car.', ar: 'ركن عمر سيارته.', why: '*Omar* is *he*, so *his* — even though the car could be anything.', whyAr: 'عمر = he فتأخذ his مهما كان المملوك.' },
       { en: 'The dog wags *its* tail.', ar: 'يهز الكلب ذيله.', why: 'The dog is *it*, so *its*. Animals take *its* unless you name them.', whyAr: 'الكلب = it فتأخذ its، والحيوان يأخذها ما لم يُسمَّ.' },
       { en: 'We finished *our* project.', ar: 'أنهينا مشروعنا.', why: '*We* → *our*. Trace the pronoun back and the choice is automatic.', whyAr: 'we ← our؛ تتبّع الضمير يجعل الاختيار تلقائيًا.' },
+
+      /* now in a sentence — a writing course has to show the rule working */
+      { en: 'Sara forgot *her* keys, so *her* brother lent her *his*.', ar: 'نسيت سارة مفاتيحها فأعارها أخوها مفاتيحه.', why: '*her* then *his* — the form follows the OWNER, never the object.', whyAr: 'الصيغة تتبع المالك لا المملوك.' },
+      { en: '✗ Sara took his book (meaning her own). → ✓ Sara took *her* book.', ar: 'الفخّ العربي', why: 'Arabic agrees with the noun; English agrees with the person who owns it.', whyAr: 'العربية تطابق الاسم والإنجليزية تطابق المالك.' },
+      { en: '*Our* company changed *its* name last year.', ar: 'غيّرت شركتنا اسمها العام الماضي.', why: 'A company is *it*, so *its* — and never with an apostrophe.', whyAr: 'الشركة it فتأخذ its بلا فاصلة عليا.' },
+      { en: '*Their* children finished *their* homework before dinner.', ar: 'أنهى أطفالهم واجبهم قبل العشاء.', why: 'One form for a plural owner, whatever the thing owned.', whyAr: 'صيغة واحدة للمالك الجمع مهما كان المملوك.' },
     ],
     exercises: [
       { q: 'Fix: “Sara loves his job.” (Sara = female)', a: 'Sara loves *her* job.' },
@@ -2222,6 +2235,12 @@ export const LESSONS: Lesson[] = [
       { en: 'the boys*’* team', ar: 'فريق الأولاد (جمع)', why: 'Same rule: many boys own one team, so the apostrophe follows the *s*.', whyAr: 'القاعدة نفسها: مالكون كُثر فالفاصلة بعد s.' }, { en: 'It*’s* raining. (It is)', ar: 'إنها تمطر.', why: '*It’s* unpacks to *it is* — that is the test, every single time.', whyAr: 'it’s تُفكّ إلى it is، وهذا هو الاختبار دائمًا.' },
       { en: 'The dog wags *its* tail.', ar: 'يهز الكلب ذيله.', why: '*its* is possessive and takes NO apostrophe — like *his* and *hers*.', whyAr: 'its ملكية بلا فاصلة مثل his و hers.' }, { en: 'You*’re* right. (You are)', ar: 'أنت محق.', why: '*You’re* = you are. If it will not unpack, it is the wrong word.', whyAr: 'you’re = you are، فإن لم تُفكّ فالكلمة خاطئة.' },
       { en: 'We*’re* ready. (We are)', ar: 'نحن مستعدون.', why: '*We’re* = we are — the apostrophe replaces the missing *a*.', whyAr: 'الفاصلة تحلّ محلّ a المحذوفة.' }, { en: 'Omar*’s* phone', ar: 'هاتف عمر', why: 'Back to possession: a name plus *’s* is the commonest pattern of all.', whyAr: 'عودة إلى الملكية: اسم + ’s أشيع الأنماط.' },
+
+      /* now in a sentence — a writing course has to show the rule working */
+      { en: '*It’s* been a long week, and the team *hasn’t* finished *its* report.', ar: 'كان أسبوعًا طويلًا ولم ينهِ الفريق تقريره.', why: '*It’s* = it has · *its* = belongs to it. Both here, one apostrophe apart.', whyAr: 'it’s اختصار و its ملكية، وهما هنا معًا.' },
+      { en: '✗ The car lost it’s wheel. → ✓ The car lost *its* wheel.', ar: 'الخطأ الأشهر', why: 'If *it is* or *it has* does not fit, the apostrophe is wrong.', whyAr: 'إن لم تصحّ it is أو it has فالفاصلة خطأ.' },
+      { en: 'The *students’* results and the *teacher’s* comments arrived together.', ar: 'نتائج الطلاب وملاحظات المعلّم وصلت معًا.', why: 'Plural owner → apostrophe after the s. Singular owner → before it.', whyAr: 'المالك الجمع بعد s والمفرد قبلها.' },
+      { en: '✗ I bought three book’s. → ✓ I bought three *books*.', ar: 'الفاصلة لا تصنع جمعًا', why: 'An apostrophe never makes a plural — only contraction or possession.', whyAr: 'الفاصلة العليا للاختصار والملكية فقط.' },
     ],
     exercises: [
       { q: 'Contract: “I am not tired.”', a: '*I’m* not tired.' },
@@ -2307,6 +2326,13 @@ export const LESSONS: Lesson[] = [
       { en: 'country → countr*ies*', ar: 'دول', why: '*r* is a consonant — check the letter BEFORE the y, not the y itself.', whyAr: 'انظر إلى الحرف قبل y لا إلى y نفسها.' }, { en: 'man → *men*', ar: 'رجال', why: 'Irregular: the WORD changes, not the ending. These must be memorised.', whyAr: 'الشاذّ يغيّر الكلمة لا النهاية، وتُحفظ حفظًا.' }, { en: 'woman → *women*', ar: 'نساء', why: 'Same vowel change as *man* — note it is spelled *women* but said /wɪmɪn/.', whyAr: 'التغيير نفسه، وانتبه إلى اختلاف النطق عن الكتابة.' },
       { en: 'child → *children*', ar: 'أطفال', why: 'An old plural ending that survives in only a few words.', whyAr: 'نهاية جمع قديمة بقيت في كلمات قليلة.' }, { en: 'foot → *feet*', ar: 'أقدام', why: 'The vowel changes inside the word: *oo* → *ee*.', whyAr: 'يتغيّر حرف العلّة داخل الكلمة.' }, { en: 'tooth → *teeth*', ar: 'أسنان', why: 'The same *oo* → *ee* pattern. Learn the pair together.', whyAr: 'النمط نفسه، فاحفظ الزوجين معًا.' },
       { en: 'person → *people*', ar: 'أشخاص', why: 'A completely different word — and *peoples* means nations, not persons.', whyAr: 'كلمة مختلفة تمامًا، و peoples تعني شعوبًا.' },
+
+      /* now in a sentence — a writing course has to show the rule working */
+      { en: 'Three *children* were playing with two *dogs* in the street.', ar: 'كان ثلاثة أطفال يلعبون مع كلبين.', why: 'Irregular and regular plural side by side — after a number, both must be plural.', whyAr: 'جمع شاذّ وآخر منتظم معًا، وبعد العدد يُجمع كلاهما.' },
+      { en: '✗ five book → ✓ five *books*', ar: 'الفخّ العربي', why: 'English pluralises after every number. Arabic does not, which is why this slips.', whyAr: 'الإنجليزية تجمع بعد كل عدد بخلاف العربية.' },
+      { en: 'The *people* in these two *cities* speak three *languages*.', ar: 'سكان هاتين المدينتين يتحدّثون ثلاث لغات.', why: '*people* is already plural; *cities* takes -ies; *languages* takes plain -s.', whyAr: 'people جمع أصلًا، و cities بـ ies، و languages بـ s.' },
+      { en: 'I need some *information* and two *pieces* of *advice*.', ar: 'أحتاج معلومات ونصيحتين.', why: '*information* and *advice* never take -s — you count them with *pieces*.', whyAr: 'لا تُجمعان أبدًا، وتُعدّان بكلمة pieces.' },
+      { en: 'My *feet* hurt because these *shoes* are too small.', ar: 'قدماي تؤلماني لأن هذا الحذاء ضيّق.', why: 'One irregular plural, one regular — and the verb follows each.', whyAr: 'جمع شاذّ وآخر منتظم، والفعل يتبع كلًّا منهما.' },
     ],
     exercises: [
       { q: 'Plural: “three (box)”', a: 'three box*es*' },
@@ -2477,6 +2503,13 @@ export const LESSONS: Lesson[] = [
       { en: '*at* night', ar: 'في الليل', why: 'THE exception: *at night*, not *in the night*. Memorise this one.', whyAr: 'الاستثناء: at night لا in the night، وتُحفظ.' }, { en: '*in* Morocco', ar: 'في المغرب', why: 'For PLACE, *in* means enclosed — a country has borders.', whyAr: 'للمكان: in تعني داخل حدود.' }, { en: '*in* Casablanca', ar: 'في الدار البيضاء', why: '*in* for cities too, for the same reason: you are inside them.', whyAr: 'in للمدن للسبب نفسه.' },
       { en: '*on* Hassan Street', ar: 'في شارع الحسن', why: '*on* for a STREET — you are on a surface, not inside a box.', whyAr: 'on للشارع لأنك على سطح لا داخل صندوق.' }, { en: '*at* the bus stop', ar: 'عند موقف الحافلة', why: '*at* for a POINT — a bus stop is a spot, not an area.', whyAr: 'at للنقطة؛ الموقف نقطة لا مساحة.' }, { en: '*at* home', ar: 'في البيت', why: '*at home* takes no article — a fixed phrase worth learning whole.', whyAr: 'at home بلا أداة، وهي عبارة ثابتة تُحفظ كاملة.' },
       { en: '*at* school', ar: 'في المدرسة', why: '*at school* means the activity, not the building — same for *at work*.', whyAr: 'at school تعني النشاط لا المبنى، وكذلك at work.' }, { en: '*on* the table', ar: 'على الطاولة', why: '*on* for a flat surface you can rest something upon.', whyAr: 'on للسطح المستوي الذي تضع عليه شيئًا.' }, { en: '*in* the box', ar: 'في الصندوق', why: '*in* for an enclosed space — the box has sides, the table does not.', whyAr: 'in للحيّز المغلق؛ الصندوق له جوانب والطاولة لا.' },
+
+      /* now in a sentence — a writing course has to show the rule working */
+      { en: 'The meeting is *on* Monday *at* nine *in* the morning.', ar: 'الاجتماع يوم الاثنين الساعة التاسعة صباحًا.', why: 'All three in one sentence: day → *on*, clock time → *at*, part of day → *in*.', whyAr: 'الثلاثة في جملة: اليوم on والساعة at وجزء اليوم in.' },
+      { en: 'I was born *in* 1995 *in* a small town *in* Morocco.', ar: 'وُلدت عام ١٩٩٥ في بلدة صغيرة في المغرب.', why: '*in* for a year, a town and a country — the big containers, all three.', whyAr: 'in للسنة والبلدة والدولة: الأوعية الكبيرة.' },
+      { en: 'He waited *at* the bus stop *on* Hassan Street *for* an hour.', ar: 'انتظر في الموقف بشارع الحسن ساعة.', why: 'Point → *at*, surface → *on*, duration → *for*.', whyAr: 'النقطة at والسطح on والمدّة for.' },
+      { en: '✗ in Monday → ✓ *on* Monday · ✗ at July → ✓ *in* July', ar: 'أخطاء شائعة', why: 'Days always take *on*; months always take *in*. These two are worth memorising.', whyAr: 'الأيام on والشهور in، وهما يُحفظان.' },
+      { en: 'Put the file *on* the desk, not *in* the drawer.', ar: 'ضع الملف على المكتب لا في الدرج.', why: '*on* is a surface you rest something upon; *in* is an enclosed space.', whyAr: 'on سطح تضع عليه، و in حيّز مغلق.' },
     ],
     exercises: [
       { q: 'in/on/at: “___ Monday”', a: '*on* Monday' },
@@ -3305,6 +3338,12 @@ export const LESSONS: Lesson[] = [
       { en: 'My grandmother is *kind and wise*.', ar: 'جدتي طيبة وحكيمة.', why: 'Two adjectives after *be* are joined by *and*, not by a comma.', whyAr: 'صفتان بعد be تُربطان بـ and لا بفاصلة.' },
       { en: 'a *beautiful old* mosque', ar: 'مسجد قديم جميل', why: 'Two adjectives before a noun follow a fixed order: opinion before age.', whyAr: 'صفتان قبل الاسم بترتيب ثابت: الرأي قبل العمر.' },
       { en: 'a *small red* bag', ar: 'حقيبة حمراء صغيرة', why: 'Size comes before colour — the order is habit, and English speakers all share it.', whyAr: 'الحجم قبل اللون، وهو ترتيب متّفق عليه بالعادة.' },
+
+      /* now in a sentence — a writing course has to show the rule working */
+      { en: 'She lives in a *small quiet* village near a *beautiful old* mosque.', ar: 'تعيش في قرية صغيرة هادئة قرب مسجد قديم جميل.', why: 'Two adjectives before each noun, in the fixed English order.', whyAr: 'صفتان قبل كل اسم بالترتيب الإنجليزي الثابت.' },
+      { en: '✗ a car red → ✓ a *red* car', ar: 'الفخّ العربي', why: 'Arabic puts the adjective after the noun; English always puts it before.', whyAr: 'العربية تؤخّر الصفة والإنجليزية تقدّمها دائمًا.' },
+      { en: 'The exam was *long* and *difficult*, but the questions were *fair*.', ar: 'كان الامتحان طويلًا وصعبًا لكن الأسئلة كانت عادلة.', why: 'After *be* the adjective follows — the only place it comes after the noun.', whyAr: 'بعد فعل الكينونة تأتي الصفة، وهو الموضع الوحيد.' },
+      { en: '✗ two talls buildings → ✓ two *tall* buildings', ar: 'لا تُجمع الصفة', why: 'Adjectives never take a plural -s, however plural the noun is.', whyAr: 'الصفة لا تُجمع مهما جُمع الاسم.' },
     ],
     exercises: [
       { q: 'Order: “car / a / fast”', a: 'a *fast car*' },
