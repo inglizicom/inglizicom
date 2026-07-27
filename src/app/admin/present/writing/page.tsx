@@ -164,7 +164,7 @@ type Slide =
   | { t: 'intro' }
   | { t: 'end' }
   | { t: 'unit'; u: UnitDef; index: number; count: number; startsAt: number }
-  | { t: 'play'; L: Lesson; game: ReviewGame }
+  | { t: 'play'; L: Lesson; game: ReviewGame; page: number; pages: number }
   | { t: 'thread'; u: UnitDef; index: number; thread: Thread }
   | { t: 'review'; u: UnitDef; index: number; game: ReviewGame; page: number; pages: number }
   | { t: 'cover'; L: Lesson }
@@ -269,8 +269,9 @@ function buildSlides(): { slides: Slide[]; jump: Record<number, number>; unitJum
     }
     slides.push({ t: 'homework', L })
     if (L.editing) slides.push({ t: 'editing', L })
-    const play = quickPlay(L)                       // close every lesson on a game
-    if (play) slides.push({ t: 'play', L, game: play })
+    // close every lesson on a practice SET, not a single question
+    const plays = quickPlay(L)
+    plays.forEach((game, i) => slides.push({ t: 'play', L, game, page: i + 1, pages: plays.length }))
   }
   flushReview(currentUnit)     // the last unit needs its games too
   slides.push({ t: 'end' })
@@ -284,13 +285,14 @@ function buildSlides(): { slides: Slide[]; jump: Record<number, number>; unitJum
    corrected find-the-mistakes lines — so the practice is always the grammar just
    taught, and no new content had to be invented to get it.
    Three lessons carry no sentence short enough to rebuild; they are written out. */
-const HAND_PICKED: Record<number, string> = {
-  38: 'Every good essay makes one promise and keeps it.',
-  42: 'A solution must attack the cause you named.',
-  45: 'Formal writing respects a reader who is busy.',
+const HAND_PICKED: Record<number, string[]> = {
+  22.5: ['Every support needs a reason or an example.', 'A long paragraph is a short one expanded.', 'Small habits quietly rebuild a whole year.'],
+  38: ['Every good essay makes one promise and keeps it.', 'The conclusion must not open a new argument.'],
+  42: ['A solution must attack the cause you named.', 'The cure has to touch the cause.'],
+  45: ['Formal writing respects a reader who is busy.', 'Register means imagining the reader first.'],
 }
 
-function quickPlay(L: Lesson): ReviewGame | null {
+function quickPlay(L: Lesson): ReviewGame[] {
   const clean = (t: string) => t.replace(/\*/g, '')
   const usable = (t: string) => {
     if (/[→✗✓·—:;"()]/.test(t)) return false
@@ -298,21 +300,45 @@ function quickPlay(L: Lesson): ReviewGame | null {
     const w = t.slice(0, -1).trim().split(/\s+/).filter(Boolean)
     return w.length >= 5 && w.length <= 11
   }
+  const games: ReviewGame[] = []
+
+  // 1-3 rebuilds, each from a DIFFERENT sentence of this lesson
+  const seen = new Set<string>()
   const pool = [
     ...(L.examples ?? []).map(e => e.en),
     ...(L.reading?.passage ?? []),
     ...(L.editing?.correct ?? []),
-  ].map(clean).filter(usable)
-  const sentence = pool[0] ?? HAND_PICKED[L.no]
-  if (!sentence) return null
-  const mark = sentence.slice(-1)
-  const words = sentence.slice(0, -1).trim().split(/\s+/)
-  const solution = [...words, mark]        // the end mark is its own tile on purpose
-  return {
-    kind: 'reorder',
-    prompt: 'Rebuild the sentence', promptAr: 'أعد بناء الجملة',
-    tiles: solution, solution, answer: sentence,
+  ].map(clean).filter(usable).filter(t => (seen.has(t) ? false : (seen.add(t), true)))
+  const sentences = [...pool, ...(HAND_PICKED[L.no] ?? [])].slice(0, 3)
+  for (const sentence of sentences) {
+    const mark = sentence.slice(-1)
+    const words = sentence.slice(0, -1).trim().split(/\s+/)
+    const solution = [...words, mark]      // the end mark is its own tile on purpose
+    games.push({
+      kind: 'reorder', prompt: 'Rebuild the sentence', promptAr: 'أعد بناء الجملة',
+      tiles: solution, solution, answer: sentence,
+    })
   }
+
+  // spot-the-correct, straight from the lesson's own find-the-mistakes pairs.
+  // Highlights are STRIPPED from the options — the corrected line carries *marks*
+  // and leaving them in would point at the answer — then shown in the reason.
+  const pairs = (L.editing?.wrong ?? []).map((w, i) => [w, L.editing!.correct[i]] as const)
+  for (const [wrong, right] of pairs.slice(0, 3)) {
+    const a = clean(wrong).trim(), b = clean(right).trim()
+    if (!a || !b || a === b || b.length > 130) continue
+    const rightFirst = (a.length + b.length) % 2 === 0     // stable, not always second
+    games.push({
+      kind: 'pick',
+      prompt: 'Which one is correct?', promptAr: 'أيّهما الصحيح؟',
+      options: rightFirst ? [b, a] : [a, b],
+      answer: rightFirst ? 0 : 1,
+      why: `Corrected: ${right}`,
+      whyAr: 'الفروق مظلّلة في الجملة الصحيحة.',
+    })
+  }
+
+  return games.slice(0, 5)
 }
 
 /* ── Review games — actually playable ────────────────────────────────────────
@@ -1843,6 +1869,7 @@ export default function WritingDeck() {
             {s.t === 'exercises' && s.pages > 1 ? ` · ${s.page}/${s.pages}` : ''}
             {s.t === 'irregulars' && s.pages > 1 ? ` · ${s.page}/${s.pages}` : ''}
             {s.t === 'review' && s.pages > 1 ? ` · ${s.page}/${s.pages}` : ''}
+            {s.t === 'play' && s.pages > 1 ? ` · ${s.page}/${s.pages}` : ''}
           </span>
         )}
         <div className="absolute right-[3vw] top-[2.4vh] flex items-center gap-2">
@@ -2176,19 +2203,22 @@ function SlideView({ s, step, onJump, onJumpUnit }: { s: Slide; step: number; on
   /* Unit review game — the challenge is on screen, the class answers out loud,
      Space reveals the solution. Tiles are shuffled deterministically from the
      prompt so the scramble is stable every time you present the same slide. */
-  /* the game that closes a lesson — same mechanics as the unit games */
+  /* the practice set that closes a lesson — same mechanics as the unit games */
   if (s.t === 'play') {
     const revealed = step >= 1
+    const g = s.game
     return (
       <div className="w-full max-w-[80vw] flex flex-col items-center gap-[2.2vh]">
         <div className="flex flex-col items-center gap-[0.6vh]">
           <span className="flex items-center gap-[0.6vw] rounded-full px-[1.4vw] py-[0.6vh] font-black"
             style={{ background: AC.tint, color: AC.ink, boxShadow: `inset 0 0 0 1.5px ${AC.ring}` }}>
-            <Gamepad2 size={16} /> Lesson {numOf(s.L)} · {s.L.tag} · <span style={{ fontFamily: "'Tajawal', sans-serif" }}>دورك</span>
+            <Gamepad2 size={16} /> Lesson {numOf(s.L)} · {s.L.tag} · <span className="opacity-60">{s.page}/{s.pages}</span>
           </span>
-          <Heading en="Rebuild the sentence" ar="أعد بناء الجملة" size="2.3vw" />
+          <Heading en={g.prompt} ar={g.promptAr} size="2.3vw" />
         </div>
-        <ReorderGame g={s.game as Extract<ReviewGame, { kind: 'reorder' }>} revealed={revealed} AC={AC} />
+        {g.kind === 'reorder'
+          ? <ReorderGame g={g} revealed={revealed} AC={AC} />
+          : <PickGame g={g as Extract<ReviewGame, { kind: 'pick' }>} revealed={revealed} AC={AC} />}
         {!revealed && (
           <span className="font-bold text-stone-300" style={{ fontSize: '0.82vw' }}>
             حاول أولًا · <kbd className="px-1.5 py-0.5 rounded bg-stone-100 ring-1 ring-stone-200 font-mono">Space</kbd> يُظهر الحلّ
