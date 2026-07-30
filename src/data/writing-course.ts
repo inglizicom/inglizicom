@@ -7,6 +7,10 @@
  *   Reading passage → Comprehension (the passage USED as an exercise) →
  *   Homework → Find-the-Mistakes (an error passage the learner corrects).
  *
+ * Weight: an example or exercise carrying `extra: true` is skipped by the deck's
+ * default (light) run and appears only in عرض موسّع. Keep the LIGHT set of a lesson
+ * around ten examples and five exercises — a first lesson has to be swallowable.
+ *
  * Formatting: wrap any part of an ENGLISH string in *asterisks* to spotlight it
  * (a capital, a comma, a conjunction, a correction). Arabic never uses it.
  */
@@ -16,8 +20,13 @@ export type Ex = { en: string; ar: string }
    WHY it is written that way — shown under the sentence so the teacher never has
    to reconstruct the point live. A bare sentence plus a translation is not a
    lesson; the reason is the lesson. */
-export type Example = Ex & { why?: string; whyAr?: string }
-export type QA = { q: string; a: string }
+/* `extra: true` marks a card as OPTIONAL depth: it is real teaching material, but the
+   lesson stands without it. The deck runs in "light" mode by default and skips extras,
+   so a first lesson is a swallowable 10 cards instead of 25; the teacher flips the
+   عرض موسّع switch (or ?full=1) when a class wants the long version. Mark the drills a
+   strong student would find repetitive — never the card that carries the point. */
+export type Example = Ex & { why?: string; whyAr?: string; extra?: true }
+export type QA = { q: string; a: string; extra?: true }
 export type Reading = {
   title: string; titleAr: string
   passage: string[]          // real connected prose (rendered as one flowing paragraph)
@@ -513,42 +522,45 @@ export const LESSONS: Lesson[] = [
     },
     examples: [
       /* Part 1 — the categories, one card each. Part 2 — name vs type, which is
-         where the real mistakes live, ending on the compound contrast. */
+         where the real mistakes live, ending on the compound contrast.
+         Ten cards run in light mode: one card per category the learner cannot guess
+         from Arabic, then the name-vs-type contrast. The rest are `extra` — same
+         rule proved a second time, useful for a slow class, dead weight on a recording. */
       { en: 'People: *S*ara · *O*mar · *H*amza *E*l *Q*asraoui', ar: 'الأشخاص', why: 'Every part of a person’s name takes a capital — first, middle and family.', whyAr: 'كل جزء من اسم الشخص بحرف كبير: الأول والأوسط والعائلة.' },
       { en: 'Cities: *R*abat · *C*asablanca · *D*ubai', ar: 'المدن', why: 'A city is a NAME, so it is capital wherever it appears in the sentence.', whyAr: 'المدينة اسم عَلَم فتُكتب بحرف كبير أينما وردت.' },
-      { en: 'Countries: *M*orocco · *E*gypt · *F*rance', ar: 'الدول', why: 'Same category as cities — countries are names, not descriptions.', whyAr: 'الدول كالمدن: أسماء لا أوصاف.' },
-      { en: 'Nationalities: a *M*oroccan engineer · an *E*gyptian friend', ar: 'الجنسيات', why: 'English capitalizes nationalities; Arabic does not — this one is easy to forget.', whyAr: 'الإنجليزية تكتب الجنسية بحرف كبير والعربية لا، ولهذا تُنسى.' },
+      { en: 'Countries: *M*orocco · *E*gypt · *F*rance', ar: 'الدول', why: 'Same category as cities — countries are names, not descriptions.', whyAr: 'الدول كالمدن: أسماء لا أوصاف.', extra: true },
+      { en: 'Nationalities: a *M*oroccan engineer · an *E*gyptian friend', ar: 'الجنسيات', why: 'English capitalizes nationalities; Arabic does not — this one is easy to forget.', whyAr: 'الإنجليزية تكتب الجنسية بحرف كبير والعربية لا، ولهذا تُنسى.', extra: true },
       { en: 'Languages: *A*rabic · *E*nglish · *F*rench', ar: 'اللغات', why: 'Languages come from country names, so they inherit the capital.', whyAr: 'اللغات مشتقّة من أسماء البلدان فورثت الحرف الكبير.' },
       { en: 'Days: *M*onday · *F*riday · *S*unday', ar: 'الأيام', why: 'Days are proper nouns in English. In Arabic they are ordinary words.', whyAr: 'الأيام أسماء عَلَم في الإنجليزية، وكلمات عادية في العربية.' },
-      { en: 'Months: *J*anuary · *A*ugust · *R*amadan', ar: 'الأشهر', why: 'Months follow the same rule as days — but SEASONS do not: *summer*.', whyAr: 'الأشهر كالأيام، أما الفصول فلا: summer بحرف صغير.' },
-      { en: 'Titles before a name: *M*r. *A*lami · *D*r. *S*ara', ar: 'الألقاب قبل الاسم', why: 'The title is part of the name here, so it takes a capital too.', whyAr: 'اللقب جزء من الاسم هنا فيأخذ حرفًا كبيرًا أيضًا.' },
+      { en: 'Months: *J*anuary · *A*ugust · *R*amadan', ar: 'الأشهر', why: 'Months follow the same rule as days — but SEASONS do not: *summer*.', whyAr: 'الأشهر كالأيام، أما الفصول فلا: summer بحرف صغير.', extra: true },
+      { en: 'Titles before a name: *M*r. *A*lami · *D*r. *S*ara', ar: 'الألقاب قبل الاسم', why: 'The title is part of the name here, so it takes a capital too.', whyAr: 'اللقب جزء من الاسم هنا فيأخذ حرفًا كبيرًا أيضًا.', extra: true },
       { en: 'The pronoun *I*: *I* think *I* can.', ar: 'الضمير I', why: 'The only pronoun English capitalizes, and it never depends on position.', whyAr: 'الضمير الوحيد الذي يُكتب كبيرًا، ولا يتوقّف على موضعه.' },
       { en: 'NOT capital: *summer* · *north* · *the government* · *my school*', ar: 'لا تأخذ حرفًا كبيرًا', why: 'Seasons, directions and job/place TYPES are descriptions, not names.', whyAr: 'الفصول والجهات وأنواع الأماكن أوصاف لا أسماء.' },
       { en: 'a city  →  *C*asablanca', ar: 'نوع ← اسم', why: 'Same thing, two ways of naming it. Only the NAME earns the capital.', whyAr: 'الشيء نفسه بطريقتين، والحرف الكبير للاسم وحده.' },
-      { en: 'a university  →  *A*l *A*khawayn *U*niversity', ar: 'نوع ← اسم مركّب', why: 'Now it is a name made of three words — so all three are capital.', whyAr: 'صار اسمًا من ثلاث كلمات، فكلّها بحرف كبير.' },
-      { en: 'a street  →  *H*assan *S*treet', ar: 'نوع ← اسم مركّب', why: 'Even *Street* takes a capital, because it is part of the name itself.', whyAr: 'حتى كلمة Street بحرف كبير لأنها جزء من الاسم.' },
-      { en: 'a mosque  →  *H*assan *II* *M*osque', ar: 'نوع ← اسم مركّب', why: 'Every word of the name, including the number and the word *Mosque*.', whyAr: 'كل كلمات الاسم، ومنها الرقم وكلمة Mosque.' },
-      { en: 'mountains  →  the *A*tlas *M*ountains', ar: 'نوع ← اسم مركّب', why: '*the* stays small — it is not part of the name, just an article.', whyAr: 'كلمة the تبقى صغيرة لأنها أداة لا جزء من الاسم.' },
+      { en: 'a university  →  *A*l *A*khawayn *U*niversity', ar: 'نوع ← اسم مركّب', why: 'Now it is a name made of three words — so all three are capital.', whyAr: 'صار اسمًا من ثلاث كلمات، فكلّها بحرف كبير.', extra: true },
+      { en: 'a street  →  *H*assan *S*treet', ar: 'نوع ← اسم مركّب', why: 'Even *Street* takes a capital, because it is part of the name itself.', whyAr: 'حتى كلمة Street بحرف كبير لأنها جزء من الاسم.', extra: true },
+      { en: 'a mosque  →  *H*assan *II* *M*osque', ar: 'نوع ← اسم مركّب', why: 'Every word of the name, including the number and the word *Mosque*.', whyAr: 'كل كلمات الاسم، ومنها الرقم وكلمة Mosque.', extra: true },
+      { en: 'mountains  →  the *A*tlas *M*ountains', ar: 'نوع ← اسم مركّب', why: '*the* stays small — it is not part of the name, just an article.', whyAr: 'كلمة the تبقى صغيرة لأنها أداة لا جزء من الاسم.', extra: true },
       { en: 'Compound NAME ✓: *N*ew *Y*ork · *U*nited *A*rab *E*mirates', ar: 'اسم مركّب: كل كلمة كبيرة', why: 'Two or three words, one name — so every word is capital.', whyAr: 'كلمتان أو ثلاث لاسم واحد، فكلّها بحرف كبير.' },
       { en: 'Compound TYPE ✗: *bus station* · *coffee shop* · *train ticket*', ar: 'تركيب وصفي: بلا حرف كبير', why: 'THE contrast of this lesson: two words describing a KIND take no capitals.', whyAr: 'مفارقة الدرس: كلمتان تصفان نوعًا فلا حرف كبير فيهما.' },
       { en: 'Compare: I waited at the *bus station* in *N*ew *Y*ork.', ar: 'قارن في جملة واحدة', why: 'One sentence, both rules: the type stays small, the name goes capital.', whyAr: 'جملة واحدة وقاعدتان: النوع صغير والاسم كبير.' },
-      { en: '*M*y name is *S*ara.', ar: 'اسمي سارة.', why: 'Two capitals: the first word of the sentence, and a NAME.', whyAr: 'حرفان كبيران: أول الجملة، والاسم العلم.' },
-      { en: '*I* live in *R*abat, *M*orocco.', ar: 'أعيش في الرباط، المغرب.', why: '*I* is always capital, wherever it stands — no other pronoun is.', whyAr: 'I كبيرة دائمًا أينما وقعت، ولا ضمير غيرها كذلك.' },
-      { en: '*T*oday is *M*onday.', ar: 'اليوم هو الاثنين.', why: 'Days of the week are proper nouns in English — Arabic does not mark them.', whyAr: 'أيام الأسبوع أسماء علم في الإنجليزية، والعربية لا تميّزها.' },
-      { en: '*W*e speak *A*rabic and *E*nglish.', ar: 'نتحدّث العربية والإنجليزية.', why: 'Languages take a capital too, because they come from country names.', whyAr: 'اللغات تأخذ حرفًا كبيرًا لأنها مشتقّة من أسماء البلدان.' },
-      { en: '*A*li and *O*mar are friends.', ar: 'علي وعمر صديقان.', why: 'Both names are capitalised, even in the middle of the subject.', whyAr: 'الاسمان كبيران ولو كانا في وسط الفاعل.' },
-      { en: '*I* was born in *J*uly.', ar: 'وُلدت في يوليوز.', why: 'Months are proper nouns, exactly like days.', whyAr: 'الشهور أسماء علم كالأيام تمامًا.' },
-      { en: '*S*he studies at *H*arvard.', ar: 'تدرس في هارفارد.', why: 'The name of an institution is a proper noun — *school* alone would not be.', whyAr: 'اسم المؤسّسة علم، أما كلمة school وحدها فلا.' },
+      { en: '*M*y name is *S*ara.', ar: 'اسمي سارة.', why: 'Two capitals: the first word of the sentence, and a NAME.', whyAr: 'حرفان كبيران: أول الجملة، والاسم العلم.', extra: true },
+      { en: '*I* live in *R*abat, *M*orocco.', ar: 'أعيش في الرباط، المغرب.', why: '*I* is always capital, wherever it stands — no other pronoun is.', whyAr: 'I كبيرة دائمًا أينما وقعت، ولا ضمير غيرها كذلك.', extra: true },
+      { en: '*T*oday is *M*onday.', ar: 'اليوم هو الاثنين.', why: 'Days of the week are proper nouns in English — Arabic does not mark them.', whyAr: 'أيام الأسبوع أسماء علم في الإنجليزية، والعربية لا تميّزها.', extra: true },
+      { en: '*W*e speak *A*rabic and *E*nglish.', ar: 'نتحدّث العربية والإنجليزية.', why: 'Languages take a capital too, because they come from country names.', whyAr: 'اللغات تأخذ حرفًا كبيرًا لأنها مشتقّة من أسماء البلدان.', extra: true },
+      { en: '*A*li and *O*mar are friends.', ar: 'علي وعمر صديقان.', why: 'Both names are capitalised, even in the middle of the subject.', whyAr: 'الاسمان كبيران ولو كانا في وسط الفاعل.', extra: true },
+      { en: '*I* was born in *J*uly.', ar: 'وُلدت في يوليوز.', why: 'Months are proper nouns, exactly like days.', whyAr: 'الشهور أسماء علم كالأيام تمامًا.', extra: true },
+      { en: '*S*he studies at *H*arvard.', ar: 'تدرس في هارفارد.', why: 'The name of an institution is a proper noun — *school* alone would not be.', whyAr: 'اسم المؤسّسة علم، أما كلمة school وحدها فلا.', extra: true },
     ],
     exercises: [
       { q: 'Correct: “my name is sara and i live in rabat.”', a: '*M*y name is *S*ara, and *I* live in *R*abat.' },
       { q: 'Correct: “on monday we study english and french.”', a: 'On *M*onday we study *E*nglish and *F*rench.' },
-      { q: 'Correct: “ali and omar visited spain in august.”', a: '*A*li and *O*mar visited *S*pain in *A*ugust.' },
-      { q: 'Correct: “my teacher mr. karim is from london.”', a: '*M*y teacher, *M*r. *K*arim, is from *L*ondon.' },
+      { q: 'Correct: “ali and omar visited spain in august.”', a: '*A*li and *O*mar visited *S*pain in *A*ugust.', extra: true },
+      { q: 'Correct: “my teacher mr. karim is from london.”', a: '*M*y teacher, *M*r. *K*arim, is from *L*ondon.', extra: true },
       { q: 'Which words must be capital: i · monday · book · morocco?', a: '*I*, *M*onday, *M*orocco (not “book”).' },
       { q: 'Name or type? “we passed a mosque” · “we passed hassan II mosque”', a: 'Type → *a mosque*. Name → *H*assan *II* *M*osque — every word.' },
       { q: 'Capitalize correctly: “i took a taxi from the bus station to hassan street.”', a: '*I* took a taxi from the *bus station* to *H*assan *S*treet.' },
-      { q: 'Why is “New York” capital but “coffee shop” is not?', a: '*New York* is a NAME (both words); *coffee shop* is a TYPE of place.' },
+      { q: 'Why is “New York” capital but “coffee shop” is not?', a: '*New York* is a NAME (both words); *coffee shop* is a TYPE of place.', extra: true },
     ],
     reading: {
       title: 'A Short Introduction', titleAr: 'تعريف قصير',
@@ -627,24 +639,24 @@ export const LESSONS: Lesson[] = [
       { en: 'Arabic: كتب can lose its marks. English: *because* cannot lose its vowels.', ar: 'العربية تسقط الحركات والإنجليزية لا', why: 'THE reason for this lesson. Arabic vowels are optional marks; English vowels are letters.', whyAr: 'سبب هذا الدرس: حركات العربية اختيارية، وعلل الإنجليزية حروف.' },
       { en: '✗ becuse · schol · frend  →  ✓ bec*au*se · sch*oo*l · fri*e*nd', ar: 'أخطاء الإسقاط الشائعة', why: 'Three misspellings, one cause: a vowel was heard faintly and left out.', whyAr: 'ثلاثة أخطاء بسبب واحد: علّة سُمعت خافتة فحُذفت.' },
       { en: 'RULE 1 — silent *-e*: hop → hop*e* · tap → tap*e* · bit → bit*e*', ar: 'القاعدة ١: e الصامتة', why: 'The final *e* is never pronounced — it reaches back and lengthens the vowel before it.', whyAr: 'e الأخيرة لا تُنطق، بل تمدّ العلّة التي قبلها.' },
-      { en: 'It changes the WORD: *not* → *note* · *man* → *mane* · *cut* → *cute*', ar: 'وتغيّر الكلمة نفسها', why: 'One silent letter, a different word entirely. This is why it cannot be forgotten.', whyAr: 'حرف صامت واحد يغيّر الكلمة كلّها، ولهذا لا يُنسى.' },
+      { en: 'It changes the WORD: *not* → *note* · *man* → *mane* · *cut* → *cute*', ar: 'وتغيّر الكلمة نفسها', why: 'One silent letter, a different word entirely. This is why it cannot be forgotten.', whyAr: 'حرف صامت واحد يغيّر الكلمة كلّها، ولهذا لا يُنسى.', extra: true },
       { en: 'RULE 2 — SHORT vowel doubles: si*t* → si*tt*ing · sto*p* → sto*pp*ed · ru*n* → ru*nn*ing', ar: 'القاعدة ٢: العلّة القصيرة تضاعف', why: 'One short vowel + one final consonant → double it, or the vowel would read long.', whyAr: 'علّة قصيرة وحرف أخير واحد فيُضاعَف، وإلا قُرئت العلّة طويلة.' },
-      { en: 'But NOT after two vowels: r*ai*n → r*ai*ning · w*ai*t → w*ai*ted', ar: 'ولا تُضاعَف بعد علّتين', why: 'Two vowels already make the sound long, so nothing needs doubling.', whyAr: 'العلّتان تُطيلان الصوت أصلًا فلا حاجة إلى المضاعفة.' },
+      { en: 'But NOT after two vowels: r*ai*n → r*ai*ning · w*ai*t → w*ai*ted', ar: 'ولا تُضاعَف بعد علّتين', why: 'Two vowels already make the sound long, so nothing needs doubling.', whyAr: 'العلّتان تُطيلان الصوت أصلًا فلا حاجة إلى المضاعفة.', extra: true },
       { en: 'RULE 3 — drop the *e* before *-ing*: mak*e* → mak*ing* · writ*e* → writ*ing*', ar: 'القاعدة ٣: احذف e قبل ing', why: 'The silent *e* has done its job; *-ing* takes over, so the *e* goes.', whyAr: 'أدّت e الصامتة دورها فتنسحب أمام ing.' },
       { en: 'RULE 4 — consonant + *y* → *-ies*: cit*y* → cit*ies* · stud*y* → stud*ies*', ar: 'القاعدة ٤: ساكن + y ← ies', why: 'Check the letter BEFORE the y, never the y itself. Consonant → change it.', whyAr: 'انظر إلى الحرف قبل y لا إلى y نفسها.' },
       { en: 'But vowel + *y* stays: b*oy* → b*oys* · pl*ay* → pl*ays* · k*ey* → k*eys*', ar: 'وعلّة + y تبقى', why: 'A vowel already sits before the y, so English leaves the word alone.', whyAr: 'قبل y علّة فتُترك الكلمة كما هي.' },
       { en: 'The four rules on one verb: *stop* → *stopping* · *stopped* · *stops*', ar: 'القواعد على فعل واحد', why: 'This is what the lesson buys you: any verb, any ending, no guessing.', whyAr: 'هذا ما يمنحه الدرس: أي فعل وأي نهاية بلا تخمين.' },
-      { en: 'And on a noun: *baby* → *babies* · *city* → *cities* · *day* → *days*', ar: 'وعلى الأسماء', why: 'The same *-y* rule runs plurals and verbs alike — learn it once.', whyAr: 'قاعدة y نفسها تحكم الجمع والأفعال، فتُتعلَّم مرّة واحدة.' },
-      { en: 'a / an follows the SOUND: *an* hour · *a* university · *an* MBA', ar: 'a أو an حسب الصوت', why: 'The ear decides, not the letter — *hour* opens on a vowel sound, *university* does not.', whyAr: 'الأذن تقرّر لا الحرف.' },
-      { en: 'Long words are just syllables: *res*·*tau*·*rant* · *beau*·*ti*·*ful*', ar: 'الكلمات الطويلة مقاطع', why: 'Break it at the vowels and a frightening word becomes three easy ones.', whyAr: 'قسّمها عند أحرف العلّة تصر الكلمة المخيفة ثلاثًا سهلة.' },
+      { en: 'And on a noun: *baby* → *babies* · *city* → *cities* · *day* → *days*', ar: 'وعلى الأسماء', why: 'The same *-y* rule runs plurals and verbs alike — learn it once.', whyAr: 'قاعدة y نفسها تحكم الجمع والأفعال، فتُتعلَّم مرّة واحدة.', extra: true },
+      { en: 'a / an follows the SOUND: *an* hour · *a* university · *an* MBA', ar: 'a أو an حسب الصوت', why: 'The ear decides, not the letter — *hour* opens on a vowel sound, *university* does not.', whyAr: 'الأذن تقرّر لا الحرف.', extra: true },
+      { en: 'Long words are just syllables: *res*·*tau*·*rant* · *beau*·*ti*·*ful*', ar: 'الكلمات الطويلة مقاطع', why: 'Break it at the vowels and a frightening word becomes three easy ones.', whyAr: 'قسّمها عند أحرف العلّة تصر الكلمة المخيفة ثلاثًا سهلة.', extra: true },
     ],
     exercises: [
       { q: 'Add *-ing*: sit · make · rain', a: 'si*tt*ing (short vowel doubles) · mak*ing* (drop the e) · r*ai*ning (two vowels, no change)' },
       { q: 'Add *-ed*: stop · study · play', a: 'sto*pp*ed · stud*ied* · pla*yed*' },
       { q: 'Plural: city · baby · boy · key', a: 'cit*ies* · bab*ies* · bo*ys* · ke*ys*' },
-      { q: 'What does the silent *-e* do to “hop”?', a: 'hop → hop*e* — it lengthens the vowel and changes the word.' },
+      { q: 'What does the silent *-e* do to “hop”?', a: 'hop → hop*e* — it lengthens the vowel and changes the word.', extra: true },
       { q: 'Fix: “I am writting becuse I am studing.”', a: 'I am *writing* *because* I am *studying*.' },
-      { q: 'a or an? “___ hour · ___ university · ___ orange”', a: '*an* hour · *a* university · *an* orange — the SOUND decides.' },
+      { q: 'a or an? “___ hour · ___ university · ___ orange”', a: '*an* hour · *a* university · *an* orange — the SOUND decides.', extra: true },
     ],
     reading: {
       title: 'Sounds First', titleAr: 'الصوت أولًا',
@@ -710,22 +722,22 @@ export const LESSONS: Lesson[] = [
       ],
     },
     examples: [
-      { en: '*a* book', ar: 'كتاب', why: '*b* is a consonant sound, so *a*. This is the default choice.', whyAr: 'صوت ساكن فتأخذ a، وهذا هو الأصل.' }, { en: '*a* car', ar: 'سيارة', why: '*c* is a consonant sound — the ear decides, and it hears /k/.', whyAr: 'الأذن تسمع صوتًا ساكنًا فتختار a.' }, { en: '*a* house', ar: 'بيت', why: '*h* here is pronounced, so it counts as a consonant sound.', whyAr: 'حرف h منطوق هنا فيُعدّ صوتًا ساكنًا.' },
-      { en: '*a* university', ar: 'جامعة', why: 'The KEY example: *u* is a vowel LETTER but sounds like *y*, so *a*.', whyAr: 'المثال المفتاح: u حرف علّة لكن صوتها y فتأخذ a.' }, { en: '*a* teacher', ar: 'معلّم', why: '*t* is a consonant — and jobs take an article, unlike in Arabic.', whyAr: 'صوت ساكن، والمهن تأخذ أداة بخلاف العربية.' },
-      { en: '*an* apple', ar: 'تفاحة', why: '*a* is a vowel sound, so *an* — the extra *n* makes it easy to say.', whyAr: 'صوت علّة فتأخذ an، والنون تسهّل النطق.' }, { en: '*an* egg', ar: 'بيضة', why: '*e* is a vowel sound. Say it aloud and the *an* becomes obvious.', whyAr: 'انطقها بصوت عالٍ ليتّضح اختيار an.' }, { en: '*an* orange', ar: 'برتقالة', why: '*o* is a vowel sound, so *an* again.', whyAr: 'صوت علّة فتتكرّر an.' },
-      { en: '*an* hour', ar: 'ساعة', why: 'The KEY example: *h* is SILENT, so the word opens on a vowel sound → *an*.', whyAr: 'المثال المفتاح: h صامتة فتبدأ الكلمة بصوت علّة.' }, { en: '*an* idea', ar: 'فكرة', why: '*i* is a vowel sound — abstract nouns take articles too when countable.', whyAr: 'صوت علّة، والأسماء المجرّدة المعدودة تأخذ أداة.' }, { en: '*an* umbrella', ar: 'مظلّة', why: '*u* here sounds like *uh*, not *yoo* — compare with *university* above.', whyAr: 'صوت u هنا يخالف university فتغيّرت الأداة.' },
-      { en: '*the* sun', ar: 'الشمس', why: '*the* because there is only ONE — uniqueness always takes *the*.', whyAr: 'the لأنها فريدة، والفريد يأخذ the دائمًا.' }, { en: '*the* moon', ar: 'القمر', why: 'Unique again: no one asks "which moon?".', whyAr: 'فريدة أيضًا فلا يسأل أحد: أي قمر؟' }, { en: '*the* door', ar: 'الباب', why: '*the* because we both know which door — shared knowledge, not uniqueness.', whyAr: 'the لأننا نعرف الباب المقصود — معرفة مشتركة.' },
-      { en: '*the* teacher (you know who)', ar: 'المعلّم المعروف', why: 'The bracket says it: *the* means the reader can identify which one.', whyAr: 'the تعني أن القارئ يستطيع تحديد أيّهما.' },
+      { en: '*a* book', ar: 'كتاب', why: '*b* is a consonant sound, so *a*. This is the default choice.', whyAr: 'صوت ساكن فتأخذ a، وهذا هو الأصل.' }, { en: '*a* car', ar: 'سيارة', why: '*c* is a consonant sound — the ear decides, and it hears /k/.', whyAr: 'الأذن تسمع صوتًا ساكنًا فتختار a.', extra: true }, { en: '*a* house', ar: 'بيت', why: '*h* here is pronounced, so it counts as a consonant sound.', whyAr: 'حرف h منطوق هنا فيُعدّ صوتًا ساكنًا.', extra: true },
+      { en: '*a* university', ar: 'جامعة', why: 'The KEY example: *u* is a vowel LETTER but sounds like *y*, so *a*.', whyAr: 'المثال المفتاح: u حرف علّة لكن صوتها y فتأخذ a.' }, { en: '*a* teacher', ar: 'معلّم', why: '*t* is a consonant — and jobs take an article, unlike in Arabic.', whyAr: 'صوت ساكن، والمهن تأخذ أداة بخلاف العربية.', extra: true },
+      { en: '*an* apple', ar: 'تفاحة', why: '*a* is a vowel sound, so *an* — the extra *n* makes it easy to say.', whyAr: 'صوت علّة فتأخذ an، والنون تسهّل النطق.' }, { en: '*an* egg', ar: 'بيضة', why: '*e* is a vowel sound. Say it aloud and the *an* becomes obvious.', whyAr: 'انطقها بصوت عالٍ ليتّضح اختيار an.', extra: true }, { en: '*an* orange', ar: 'برتقالة', why: '*o* is a vowel sound, so *an* again.', whyAr: 'صوت علّة فتتكرّر an.', extra: true },
+      { en: '*an* hour', ar: 'ساعة', why: 'The KEY example: *h* is SILENT, so the word opens on a vowel sound → *an*.', whyAr: 'المثال المفتاح: h صامتة فتبدأ الكلمة بصوت علّة.' }, { en: '*an* idea', ar: 'فكرة', why: '*i* is a vowel sound — abstract nouns take articles too when countable.', whyAr: 'صوت علّة، والأسماء المجرّدة المعدودة تأخذ أداة.', extra: true }, { en: '*an* umbrella', ar: 'مظلّة', why: '*u* here sounds like *uh*, not *yoo* — compare with *university* above.', whyAr: 'صوت u هنا يخالف university فتغيّرت الأداة.' },
+      { en: '*the* sun', ar: 'الشمس', why: '*the* because there is only ONE — uniqueness always takes *the*.', whyAr: 'the لأنها فريدة، والفريد يأخذ the دائمًا.' }, { en: '*the* moon', ar: 'القمر', why: 'Unique again: no one asks "which moon?".', whyAr: 'فريدة أيضًا فلا يسأل أحد: أي قمر؟', extra: true }, { en: '*the* door', ar: 'الباب', why: '*the* because we both know which door — shared knowledge, not uniqueness.', whyAr: 'the لأننا نعرف الباب المقصود — معرفة مشتركة.' },
+      { en: '*the* teacher (you know who)', ar: 'المعلّم المعروف', why: 'The bracket says it: *the* means the reader can identify which one.', whyAr: 'the تعني أن القارئ يستطيع تحديد أيّهما.', extra: true },
       { en: 'I like apples. (general, no article)', ar: 'أحب التفاح (عام).', why: 'THE Arabic-speaker trap: a general plural takes NO article at all.', whyAr: 'فخّ الناطق بالعربية: الجمع العام بلا أداة إطلاقًا.' },
-      { en: 'Open *the* window, please.', ar: 'افتح النافذة من فضلك.', why: '*the* again — there is one particular window we are both looking at.', whyAr: 'the لأن النافذة معيّنة نتشارك معرفتها.' },
+      { en: 'Open *the* window, please.', ar: 'افتح النافذة من فضلك.', why: '*the* again — there is one particular window we are both looking at.', whyAr: 'the لأن النافذة معيّنة نتشارك معرفتها.', extra: true },
       { en: 'She is *a* doctor.', ar: 'هي طبيبة.', why: 'Jobs take *a*: she is one doctor among many, not the only one.', whyAr: 'المهنة تأخذ a لأنها واحدة من كثيرات.' },
 
       /* now in a sentence — a writing course has to show the rule working */
       { en: 'I bought *a* book yesterday, and *the* book was excellent.', ar: 'اشتريت كتابًا، وكان الكتاب ممتازًا.', why: 'First mention takes *a*; the second takes *the* because the reader now knows it.', whyAr: 'أول ذكر a، والثاني the لأن القارئ صار يعرفه.' },
-      { en: '*The* teacher gave us *an* exercise about *the* environment.', ar: 'أعطانا المعلّم تمرينًا عن البيئة.', why: 'Three articles in one sentence, each chosen for a different reason.', whyAr: 'ثلاث أدوات في جملة واحدة لكلٍّ سببها.' },
-      { en: '✗ I like *the* coffee. → ✓ I like coffee.', ar: 'الفخّ العربي', why: 'Talking about coffee IN GENERAL takes no article at all.', whyAr: 'الحديث عن القهوة عمومًا بلا أداة.' },
-      { en: 'She works as *a* nurse at *the* hospital near my house.', ar: 'تعمل ممرّضة في المستشفى القريب.', why: 'A job takes *a*; a specific building we both know takes *the*.', whyAr: 'المهنة a، والمبنى المعروف the.' },
-      { en: '*The* students who arrive late will not enter *the* exam hall.', ar: 'الطلاب المتأخّرون لن يدخلوا القاعة.', why: '*the* twice — both nouns are narrowed to a specific group and place.', whyAr: 'the مرّتين لأن كليهما محدّد.' },
+      { en: '*The* teacher gave us *an* exercise about *the* environment.', ar: 'أعطانا المعلّم تمرينًا عن البيئة.', why: 'Three articles in one sentence, each chosen for a different reason.', whyAr: 'ثلاث أدوات في جملة واحدة لكلٍّ سببها.', extra: true },
+      { en: '✗ I like *the* coffee. → ✓ I like coffee.', ar: 'الفخّ العربي', why: 'Talking about coffee IN GENERAL takes no article at all.', whyAr: 'الحديث عن القهوة عمومًا بلا أداة.', extra: true },
+      { en: 'She works as *a* nurse at *the* hospital near my house.', ar: 'تعمل ممرّضة في المستشفى القريب.', why: 'A job takes *a*; a specific building we both know takes *the*.', whyAr: 'المهنة a، والمبنى المعروف the.', extra: true },
+      { en: '*The* students who arrive late will not enter *the* exam hall.', ar: 'الطلاب المتأخّرون لن يدخلوا القاعة.', why: '*the* twice — both nouns are narrowed to a specific group and place.', whyAr: 'the مرّتين لأن كليهما محدّد.', extra: true },
     ],
     exercises: [
       { q: 'a / an / the? “I saw ___ cat. ___ cat was black.”', a: '*a* cat. *The* cat was black.' },
@@ -2153,12 +2165,12 @@ export const LESSONS: Lesson[] = [
       ],
     },
     examples: [
-      { en: 'I am a teacher*.*', ar: 'أنا معلّم.', why: 'A finished statement takes a full stop — it tells the reader the idea is complete.', whyAr: 'الخبر المكتمل ينتهي بنقطة تُعلم القارئ أن الفكرة تمّت.' }, { en: 'She works in a bank*.*', ar: 'تعمل في بنك.', why: 'Same rule for any statement, however long: one idea, one full stop.', whyAr: 'القاعدة نفسها لأي خبر مهما طال: فكرة واحدة ونقطة واحدة.' },
+      { en: 'I am a teacher*.*', ar: 'أنا معلّم.', why: 'A finished statement takes a full stop — it tells the reader the idea is complete.', whyAr: 'الخبر المكتمل ينتهي بنقطة تُعلم القارئ أن الفكرة تمّت.' }, { en: 'She works in a bank*.*', ar: 'تعمل في بنك.', why: 'Same rule for any statement, however long: one idea, one full stop.', whyAr: 'القاعدة نفسها لأي خبر مهما طال: فكرة واحدة ونقطة واحدة.', extra: true },
       { en: 'Do you speak English*?*', ar: 'هل تتحدّث الإنجليزية؟', why: '*Do* opens a real question, so the sentence must close with *?*.', whyAr: 'Do تفتح سؤالًا حقيقيًا فتُختم الجملة بعلامة استفهام.' }, { en: 'Where is the station*?*', ar: 'أين المحطة؟', why: 'A *wh-* word also asks, so the mark is *?* even without *do*.', whyAr: 'أدوات الاستفهام تسأل أيضًا فالعلامة ؟ ولو بلا do.' },
-      { en: 'What time is it*?*', ar: 'كم الساعة؟', why: 'Still a question: the mark follows the MEANING, not the word order.', whyAr: 'ما زال سؤالًا؛ العلامة تتبع المعنى لا ترتيب الكلمات.' }, { en: 'Be careful*!*', ar: 'انتبه!', why: 'A warning carries strong feeling, so *!* is earned here.', whyAr: 'التحذير يحمل انفعالًا قويًا فتُستحقّ علامة التعجّب.' },
-      { en: 'What a beautiful day*!*', ar: 'يا له من يوم جميل!', why: '*What a…* is an exclamation by design — it never takes a full stop.', whyAr: 'صيغة What a تعجّبية بطبيعتها فلا تأخذ نقطة.' }, { en: 'I passed the exam*!*', ar: 'نجحت في الامتحان!', why: 'Good news, genuine feeling — this is what *!* is actually for.', whyAr: 'خبر سارّ وانفعال صادق، وهذا هو موضع علامة التعجّب.' },
-      { en: 'He is my brother*.*', ar: 'هو أخي.', why: 'A calm statement of fact: no feeling, so no *!*.', whyAr: 'خبر هادئ بلا انفعال فلا علامة تعجّب.' }, { en: 'Are you ready*?*', ar: 'هل أنت مستعد؟', why: '*Are* at the front signals a yes/no question → *?*.', whyAr: 'تقديم Are علامة على سؤال نعم/لا.' },
-      { en: 'Please sit down*.*', ar: 'اجلس من فضلك.', why: '*Please* makes it polite, but it is still an instruction, so a full stop.', whyAr: 'please تجعله مهذّبًا لكنه يبقى أمرًا فينتهي بنقطة.' }, { en: 'Help*!*', ar: 'النجدة!', why: 'One word can be a whole sentence when the feeling is complete.', whyAr: 'الكلمة الواحدة قد تكون جملة كاملة إذا اكتمل الانفعال.' },
+      { en: 'What time is it*?*', ar: 'كم الساعة؟', why: 'Still a question: the mark follows the MEANING, not the word order.', whyAr: 'ما زال سؤالًا؛ العلامة تتبع المعنى لا ترتيب الكلمات.', extra: true }, { en: 'Be careful*!*', ar: 'انتبه!', why: 'A warning carries strong feeling, so *!* is earned here.', whyAr: 'التحذير يحمل انفعالًا قويًا فتُستحقّ علامة التعجّب.' },
+      { en: 'What a beautiful day*!*', ar: 'يا له من يوم جميل!', why: '*What a…* is an exclamation by design — it never takes a full stop.', whyAr: 'صيغة What a تعجّبية بطبيعتها فلا تأخذ نقطة.' }, { en: 'I passed the exam*!*', ar: 'نجحت في الامتحان!', why: 'Good news, genuine feeling — this is what *!* is actually for.', whyAr: 'خبر سارّ وانفعال صادق، وهذا هو موضع علامة التعجّب.', extra: true },
+      { en: 'He is my brother*.*', ar: 'هو أخي.', why: 'A calm statement of fact: no feeling, so no *!*.', whyAr: 'خبر هادئ بلا انفعال فلا علامة تعجّب.' }, { en: 'Are you ready*?*', ar: 'هل أنت مستعد؟', why: '*Are* at the front signals a yes/no question → *?*.', whyAr: 'تقديم Are علامة على سؤال نعم/لا.', extra: true },
+      { en: 'Please sit down*.*', ar: 'اجلس من فضلك.', why: '*Please* makes it polite, but it is still an instruction, so a full stop.', whyAr: 'please تجعله مهذّبًا لكنه يبقى أمرًا فينتهي بنقطة.' }, { en: 'Help*!*', ar: 'النجدة!', why: 'One word can be a whole sentence when the feeling is complete.', whyAr: 'الكلمة الواحدة قد تكون جملة كاملة إذا اكتمل الانفعال.', extra: true },
       { en: 'Can you help me*?*', ar: 'هل يمكنك مساعدتي؟', why: '*Can you…* asks rather than orders, so the polite request takes *?*.', whyAr: 'Can you تسأل ولا تأمر فيأخذ الطلب المهذّب ؟' }, { en: 'We won the match*!*', ar: 'فزنا بالمباراة!', why: 'Compare with number 9: same grammar, different feeling, different mark.', whyAr: 'قارنها بالمثال ٩: القواعد نفسها والانفعال مختلف فاختلفت العلامة.' },
     ],
     exercises: [
@@ -2233,17 +2245,17 @@ export const LESSONS: Lesson[] = [
     },
     examples: [
       { en: 'I*’m* happy. (I am)', ar: 'أنا سعيد.', why: 'The apostrophe sits exactly where the missing letter was: I *a*m.', whyAr: 'الفاصلة تقف مكان الحرف المحذوف تمامًا.' }, { en: 'don*’t* (do not)', ar: 'لا (نفي)', why: '*do not* loses the *o*, and the apostrophe marks the gap.', whyAr: 'في don’t حُذفت o ووضعت الفاصلة مكانها.' },
-      { en: 'can*’t* (cannot)', ar: 'لا يستطيع', why: '*cannot* loses *no* — one apostrophe can replace two letters.', whyAr: 'الفاصلة الواحدة قد تنوب عن حرفين.' }, { en: 'She*’s* a doctor. (She is)', ar: 'هي طبيبة.', why: 'Careful: this *’s* is *is*, not possession. Context tells you which.', whyAr: 'انتبه: هذه ’s تعني is لا الملكية، والسياق يفصل.' },
-      { en: 'Sara*’s* book', ar: 'كتاب سارة', why: 'Now it IS possession — one owner, so *’s* after the name.', whyAr: 'هنا ملكية: مالك مفرد فـ ’s بعد الاسم.' }, { en: 'the teacher*’s* desk', ar: 'مكتب المعلّم', why: 'The apostrophe goes after the OWNER, never after the thing owned.', whyAr: 'الفاصلة بعد المالك لا بعد المملوك.' },
-      { en: 'my brother*’s* car', ar: 'سيارة أخي', why: 'Two words, one owner: the *’s* attaches to *brother*, the owner.', whyAr: 'مالك واحد فتلتصق ’s بالمالك.' }, { en: 'the students*’* classroom', ar: 'قاعة الطلاب (جمع)', why: 'Plural owners already ending in *s* → the apostrophe goes AFTER it.', whyAr: 'الجمع المنتهي بـ s تأتي الفاصلة بعده.' },
-      { en: 'the boys*’* team', ar: 'فريق الأولاد (جمع)', why: 'Same rule: many boys own one team, so the apostrophe follows the *s*.', whyAr: 'القاعدة نفسها: مالكون كُثر فالفاصلة بعد s.' }, { en: 'It*’s* raining. (It is)', ar: 'إنها تمطر.', why: '*It’s* unpacks to *it is* — that is the test, every single time.', whyAr: 'it’s تُفكّ إلى it is، وهذا هو الاختبار دائمًا.' },
+      { en: 'can*’t* (cannot)', ar: 'لا يستطيع', why: '*cannot* loses *no* — one apostrophe can replace two letters.', whyAr: 'الفاصلة الواحدة قد تنوب عن حرفين.', extra: true }, { en: 'She*’s* a doctor. (She is)', ar: 'هي طبيبة.', why: 'Careful: this *’s* is *is*, not possession. Context tells you which.', whyAr: 'انتبه: هذه ’s تعني is لا الملكية، والسياق يفصل.' },
+      { en: 'Sara*’s* book', ar: 'كتاب سارة', why: 'Now it IS possession — one owner, so *’s* after the name.', whyAr: 'هنا ملكية: مالك مفرد فـ ’s بعد الاسم.' }, { en: 'the teacher*’s* desk', ar: 'مكتب المعلّم', why: 'The apostrophe goes after the OWNER, never after the thing owned.', whyAr: 'الفاصلة بعد المالك لا بعد المملوك.', extra: true },
+      { en: 'my brother*’s* car', ar: 'سيارة أخي', why: 'Two words, one owner: the *’s* attaches to *brother*, the owner.', whyAr: 'مالك واحد فتلتصق ’s بالمالك.', extra: true }, { en: 'the students*’* classroom', ar: 'قاعة الطلاب (جمع)', why: 'Plural owners already ending in *s* → the apostrophe goes AFTER it.', whyAr: 'الجمع المنتهي بـ s تأتي الفاصلة بعده.' },
+      { en: 'the boys*’* team', ar: 'فريق الأولاد (جمع)', why: 'Same rule: many boys own one team, so the apostrophe follows the *s*.', whyAr: 'القاعدة نفسها: مالكون كُثر فالفاصلة بعد s.', extra: true }, { en: 'It*’s* raining. (It is)', ar: 'إنها تمطر.', why: '*It’s* unpacks to *it is* — that is the test, every single time.', whyAr: 'it’s تُفكّ إلى it is، وهذا هو الاختبار دائمًا.' },
       { en: 'The dog wags *its* tail.', ar: 'يهز الكلب ذيله.', why: '*its* is possessive and takes NO apostrophe — like *his* and *hers*.', whyAr: 'its ملكية بلا فاصلة مثل his و hers.' }, { en: 'You*’re* right. (You are)', ar: 'أنت محق.', why: '*You’re* = you are. If it will not unpack, it is the wrong word.', whyAr: 'you’re = you are، فإن لم تُفكّ فالكلمة خاطئة.' },
-      { en: 'We*’re* ready. (We are)', ar: 'نحن مستعدون.', why: '*We’re* = we are — the apostrophe replaces the missing *a*.', whyAr: 'الفاصلة تحلّ محلّ a المحذوفة.' }, { en: 'Omar*’s* phone', ar: 'هاتف عمر', why: 'Back to possession: a name plus *’s* is the commonest pattern of all.', whyAr: 'عودة إلى الملكية: اسم + ’s أشيع الأنماط.' },
+      { en: 'We*’re* ready. (We are)', ar: 'نحن مستعدون.', why: '*We’re* = we are — the apostrophe replaces the missing *a*.', whyAr: 'الفاصلة تحلّ محلّ a المحذوفة.', extra: true }, { en: 'Omar*’s* phone', ar: 'هاتف عمر', why: 'Back to possession: a name plus *’s* is the commonest pattern of all.', whyAr: 'عودة إلى الملكية: اسم + ’s أشيع الأنماط.', extra: true },
 
       /* now in a sentence — a writing course has to show the rule working */
-      { en: '*It’s* been a long week, and the team *hasn’t* finished *its* report.', ar: 'كان أسبوعًا طويلًا ولم ينهِ الفريق تقريره.', why: '*It’s* = it has · *its* = belongs to it. Both here, one apostrophe apart.', whyAr: 'it’s اختصار و its ملكية، وهما هنا معًا.' },
+      { en: '*It’s* been a long week, and the team *hasn’t* finished *its* report.', ar: 'كان أسبوعًا طويلًا ولم ينهِ الفريق تقريره.', why: '*It’s* = it has · *its* = belongs to it. Both here, one apostrophe apart.', whyAr: 'it’s اختصار و its ملكية، وهما هنا معًا.', extra: true },
       { en: '✗ The car lost it’s wheel. → ✓ The car lost *its* wheel.', ar: 'الخطأ الأشهر', why: 'If *it is* or *it has* does not fit, the apostrophe is wrong.', whyAr: 'إن لم تصحّ it is أو it has فالفاصلة خطأ.' },
-      { en: 'The *students’* results and the *teacher’s* comments arrived together.', ar: 'نتائج الطلاب وملاحظات المعلّم وصلت معًا.', why: 'Plural owner → apostrophe after the s. Singular owner → before it.', whyAr: 'المالك الجمع بعد s والمفرد قبلها.' },
+      { en: 'The *students’* results and the *teacher’s* comments arrived together.', ar: 'نتائج الطلاب وملاحظات المعلّم وصلت معًا.', why: 'Plural owner → apostrophe after the s. Singular owner → before it.', whyAr: 'المالك الجمع بعد s والمفرد قبلها.', extra: true },
       { en: '✗ I bought three book’s. → ✓ I bought three *books*.', ar: 'الفاصلة لا تصنع جمعًا', why: 'An apostrophe never makes a plural — only contraction or possession.', whyAr: 'الفاصلة العليا للاختصار والملكية فقط.' },
     ],
     exercises: [

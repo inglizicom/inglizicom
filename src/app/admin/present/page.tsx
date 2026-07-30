@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Loader2, Play, Presentation, Download, MessageSquareQuote, Pencil, PenLine } from 'lucide-react'
+import { Loader2, Play, Presentation, Download, MessageSquareQuote, Pencil, PenLine, Waves } from 'lucide-react'
 import { fetchModules, type LmsModule } from '@/lib/lms'
 
 const COURSE_ID = '53f91433-429b-473e-87e6-20739206a3e3' // RealLife English — الإنجليزية للمواقف اليومية
@@ -48,6 +48,15 @@ export default function PresentIndexPage() {
       <div className="flex items-center justify-between rounded-xl border-2 border-stone-300 bg-white px-4 py-3 mb-4">
         <span className="flex items-center gap-2 font-bold text-[14px] text-stone-800"><PenLine size={18} className="text-yellow-600" /> English from Zero — <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}>الإنجليزية من الصفر</span> <span className="text-[11px] font-semibold text-stone-400">· 50 lessons · A1→B1 + professional writing</span></span>
         <Link href="/admin/present/writing" className="flex items-center gap-1.5 text-[12px] font-bold text-yellow-700 hover:text-yellow-800"><Play size={14} /> Launch deck</Link>
+      </div>
+
+      {/* Connected-speech deck — the pronunciation course (dark studio, linking arcs, 3 gears) */}
+      <div className="flex items-center justify-between rounded-xl border-2 border-zinc-800 bg-zinc-900 px-4 py-3 mb-4">
+        <span className="flex items-center gap-2 font-bold text-[14px] text-zinc-100">
+          <Waves size={18} className="text-emerald-400" /> LEGO English — <span dir="rtl" style={{ fontFamily: "'Tajawal', sans-serif" }}>ليغو الإنجليزية</span>
+          <span className="text-[11px] font-semibold text-zinc-500">· 44 lessons · connected speech · A0→A2</span>
+        </span>
+        <Link href="/admin/present/pronunciation" className="flex items-center gap-1.5 text-[12px] font-bold text-emerald-400 hover:text-emerald-300"><Play size={14} /> Launch deck</Link>
       </div>
 
       {loading ? (
