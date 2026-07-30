@@ -688,7 +688,7 @@ function SlideView({ s, step, say, onJump, onJumpUnit }: {
     <div className="w-full max-w-[86vw] flex flex-col items-center gap-[2.6vh] text-center">
       <div className="flex items-center gap-[0.7vw]">
         <Waves size={20} style={{ color: ACCENTS[3].hex }} />
-        <span className="font-black tracking-[0.3em] uppercase" style={{ color: ACCENTS[3].hex, fontSize: '0.9vw' }}>Connected Speech · A0 → A2</span>
+        <span className="font-black tracking-[0.3em] uppercase" style={{ color: ACCENTS[3].hex, fontSize: '0.9vw' }}>American English · Connected Speech · A0 → A2</span>
       </div>
       <h1 className="font-black leading-[0.95] tracking-tight" style={{ color: TEXT, fontSize: '5.4vw' }}>
         LEGO <span style={{ color: ACCENTS[0].hex }}>English</span>
@@ -697,6 +697,7 @@ function SlideView({ s, step, say, onJump, onJumpUnit }: {
       <Ar className="font-bold max-w-[54vw]" style={{ color: MUTED, fontSize: '1.25vw', lineHeight: 2 }}>
         لماذا لا تفهمهم وهم يتكلّمون؟ لأنهم لا ينطقون الكلمات مفردة — بل يلصقونها.
         في هذه الدورة تتعلّم كيف تلتصق الكلمات ببعضها كقطع الليغو: تسمعها، ثم تنطقها.
+        النموذج المعتمد هو <b>الإنجليزية الأمريكية</b> — لهجة الإعلام والعمل، وأقرب اللهجات إلى فمك العربي.
       </Ar>
       <div className="mt-[1vh] grid grid-cols-3 gap-[1vw] w-full max-w-[70vw]">
         {UNITS.map((u, i) => (
