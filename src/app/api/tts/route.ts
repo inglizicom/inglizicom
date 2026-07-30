@@ -86,12 +86,21 @@ async function googleTTS(text: string, style: string = GEMINI_STYLE): Promise<Bu
  *
  * GET, not POST, on purpose: the URL is the cache key, so the browser, any CDN and
  * the map below all reuse one take — a line replayed ten times is synthesised once. */
-type Gear = 'slow' | 'natural' | 'fast'
+type Gear = 'clear' | 'slow' | 'natural' | 'fast'
 const GEARS: Record<Gear, { speed: number; how: string; google: string }> = {
+  // The plain, unreduced model — for a learner who wants to be understood, not to
+  // acquire an accent. Every word is its full dictionary self.
+  clear: {
+    speed: 0.72,
+    how: 'You are a patient English teacher demonstrating a word for a beginner. Speak very slowly and deliberately with exaggerated clarity, give every word its full dictionary pronunciation, and leave a small pause between words. Do NOT run words together.',
+    google: 'Read this very slowly and clearly, in neutral English, giving every word its full separate pronunciation, with a small pause between words: ',
+  },
+  // The connected form, but slow enough to copy. This is the take that teaches: the
+  // words are already joined and reduced, and the student can still hear every part.
   slow: {
-    speed: 0.75,
-    how: 'You are a patient English pronunciation teacher demonstrating a model for beginners. Speak very slowly and deliberately with exaggerated clarity, give every vowel its full value, and leave a small pause between words.',
-    google: 'Read this very slowly and deliberately, in General American English, like a pronunciation teacher demonstrating each word separately to beginners: ',
+    speed: 0.72,
+    how: 'Speak slowly and gently, but keep the words LINKED and reduced exactly as written — this is relaxed American connected speech played back at half speed so a learner can copy it. Do not re-separate the words or restore the full forms; simply say the linked version slowly.',
+    google: 'Read this slowly but keep the words linked and run together exactly as written, like relaxed American speech slowed down for a learner to copy: ',
   },
   natural: {
     speed: 1,

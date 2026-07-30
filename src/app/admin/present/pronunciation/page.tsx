@@ -92,11 +92,11 @@ const plain = (t: string) => t
 
    Text is cleaned before it is spoken: notation marks go, a trailing label like
    "(careful)" goes, ✓/✗ go — you never want the model reading the scaffolding. */
-type Gear = 'slow' | 'natural' | 'fast'
-const DEVICE_RATE: Record<Gear, number> = { slow: 0.6, natural: 0.95, fast: 1.2 }
+type Gear = 'clear' | 'slow' | 'natural' | 'fast'
+const DEVICE_RATE: Record<Gear, number> = { clear: 0.55, slow: 0.6, natural: 0.95, fast: 1.2 }
 /* gpt-4o-mini-tts follows the style instruction more than the speed number, so the
    final tempo ladder is guaranteed here, on playback, with the pitch preserved. */
-const PLAY_RATE: Record<Gear, number> = { slow: 1, natural: 1, fast: 1.12 }
+const PLAY_RATE: Record<Gear, number> = { clear: 1, slow: 1, natural: 1, fast: 1.12 }
 /* ── what the voice is actually given ────────────────────────────────────────
    The deck was showing «wuh-ruh-yuh-FRUHM» while the voice carefully said "Where
    are you from" — so the model on screen and the model in the ear disagreed, which
@@ -127,10 +127,10 @@ const FAST: [RegExp, string][] = [
   [/\band\b/gi, "an'"], [/\bto\b/gi, 'ta'], [/\bfor\b/gi, 'fer'], [/\bof\b/gi, "o'"],
 ]
 const reduce = (text: string, gear: Gear) => {
-  if (gear === 'slow') return text
+  if (gear === 'clear') return text          // no reduction at all — the dictionary model
   let t = text
   for (const [re, to] of MEDIUM) t = t.replace(re, m => cap(m, to))
-  if (gear === 'fast') {
+  {
     for (const [re, to] of FAST) t = t.replace(re, m => cap(m, to))
     // t drops between consonants: las(t) night · nex(t) day · jus(t) go. Kept out of the
     // table above because that path runs every match through cap() and eats capture groups.
@@ -304,12 +304,16 @@ function SpeakBtn({ onClick, label, accent, big }: { onClick: () => void; label?
    medium speed, connected at native speed. One button is a demo; three buttons are
    a lesson, because the ear only learns the fast form by hearing what it came from. */
 const GEAR_UI: { key: Gear; en: string; ar: string; Icon: typeof Target }[] = [
-  { key: 'slow', en: 'Word by word', ar: 'كلمة كلمة', Icon: TurtleIcon },
-  { key: 'natural', en: 'Connected', ar: 'مترابطة', Icon: Gauge },
-  { key: 'fast', en: 'Native speed', ar: 'سرعة الناطق', Icon: Rabbit },
+  // 1 · the plain model, for a learner who wants to be understood, not to sound American
+  { key: 'clear', en: 'Clear · slow', ar: 'نطق عادي — ببطء', Icon: Volume2 },
+  // 2-4 · the SAME connected American form at three speeds. The slow one is the one
+  // students can actually copy; the fast one is the one they have to survive.
+  { key: 'slow', en: 'Linked · slow', ar: 'أمريكي مترابط — ببطء', Icon: TurtleIcon },
+  { key: 'natural', en: 'Linked · medium', ar: 'مترابط — متوسط', Icon: Gauge },
+  { key: 'fast', en: 'Linked · fast', ar: 'مترابط — سريع', Icon: Rabbit },
 ]
-function GearRow({ text, accent, say, compact }: {
-  text: string; accent: string; compact?: boolean
+function GearRow({ text, accent, say, compact, icons }: {
+  text: string; accent: string; compact?: boolean; icons?: boolean
   say: (t: string, g?: Gear, onEnd?: () => void) => void
 }) {
   const [on, setOn] = useState<Gear | null>(null)
@@ -317,16 +321,17 @@ function GearRow({ text, accent, say, compact }: {
   return (
     <div className="flex items-center gap-[0.5vw] flex-wrap justify-center">
       {GEAR_UI.map(g => (
-        <button key={g.key} onClick={e => { e.stopPropagation(); setOn(g.key); say(text, g.key) }}
+        <button key={g.key} title={`${g.en} · ${g.ar}`} onClick={e => { e.stopPropagation(); setOn(g.key); say(text, g.key) }}
           className="flex items-center gap-[0.4vw] rounded-2xl font-black transition hover:brightness-125"
           style={{
-            padding: compact ? '0.5vh 0.7vw' : '0.8vh 1.1vw',
+            padding: icons ? '0.45vh 0.5vw' : compact ? '0.5vh 0.7vw' : '0.8vh 1.1vw',
             fontSize: compact ? '0.75vw' : '0.88vw',
             background: on === g.key ? accent : 'rgba(255,255,255,0.06)',
             color: on === g.key ? '#07070c' : MUTED,
             boxShadow: on === g.key ? `0 0 40px -10px ${accent}` : `inset 0 0 0 1.5px ${LINE}`,
           }}>
-          <g.Icon size={compact ? 13 : 15} /> {g.en} <Ar inline style={{ opacity: 0.75 }}>· {g.ar}</Ar>
+          <g.Icon size={icons ? 14 : compact ? 13 : 15} />
+          {!icons && <>{g.en} <Ar inline style={{ opacity: 0.75 }}>· {g.ar}</Ar></>}
         </button>
       ))}
     </div>
@@ -495,7 +500,7 @@ const stepsOf = (s?: Slide) => {
   if (s.t === 'how') return s.L.how.length
   if (s.t === 'bricks') return s.L.bricks?.length ?? 0
   if (s.t === 'drill') return s.L.drill?.length ?? 0
-  if (s.t === 'gears') return 2          // slow → natural → fast
+  if (s.t === 'gears') return 3          // clear → linked slow → medium → fast
   if (s.t === 'pairs' || s.t === 'decode' || s.t === 'play' || s.t === 'beats' || s.t === 'practice') return 1
   if (s.t === 'spellings') return s.rows.length
   if (s.t === 'goal') return 1
@@ -553,13 +558,16 @@ function Panel({ children, accent, glow, className, style }: { children: React.R
 /** The three-gear player — the heart of the course. */
 function GearBox({ g, step, accent, say }: { g: GearLine; step: number; accent: string; say: (t: string, g?: Gear) => void }) {
   const vw = useVW()
+  /* Four takes of one sentence. `clear` and `slow` share the careful sound-spelling —
+     what changes between them is whether the words are joined at all. */
   const gears = [
-    { key: 'slow', Icon: Turtle, label: 'Slow', ar: 'بطيء', rate: 0.55, text: g.slow },
-    { key: 'natural', Icon: Gauge, label: 'Natural', ar: 'طبيعي', rate: 0.92, text: g.natural },
-    { key: 'fast', Icon: Rabbit, label: 'Native', ar: 'سريع', rate: 1.22, text: g.fast },
+    { key: 'clear' as Gear, Icon: Volume2, label: 'Clear', ar: 'نطق عادي', text: g.slow },
+    { key: 'slow' as Gear, Icon: Turtle, label: 'Linked · slow', ar: 'مترابط ببطء', text: g.natural },
+    { key: 'natural' as Gear, Icon: Gauge, label: 'Linked · medium', ar: 'مترابط متوسط', text: g.natural },
+    { key: 'fast' as Gear, Icon: Rabbit, label: 'Linked · fast', ar: 'مترابط سريع', text: g.fast },
   ]
   const [picked, setPicked] = useState(0)
-  useEffect(() => { setPicked(Math.min(step, 2)) }, [step, g])
+  useEffect(() => { setPicked(Math.min(step, 3)) }, [step, g])
   const cur = gears[picked]
   return (
     <div className="w-full flex flex-col items-center gap-[2.2vh]">
@@ -571,7 +579,7 @@ function GearBox({ g, step, accent, say }: { g: GearLine; step: number; accent: 
           const on = i === picked
           const open = i <= step
           return (
-            <button key={x.key} disabled={!open} onClick={() => { setPicked(i); say(g.en, x.key as Gear) }}
+            <button key={x.key} disabled={!open} onClick={() => { setPicked(i); say(g.en, x.key) }}
               className="flex items-center gap-[0.45vw] rounded-2xl transition disabled:opacity-25"
               style={{
                 padding: '0.9vh 1.2vw',
@@ -590,13 +598,14 @@ function GearBox({ g, step, accent, say }: { g: GearLine; step: number; accent: 
       <Panel accent={accent} glow className="w-full px-[2vw] py-[2.4vh] flex flex-col items-center gap-[1.2vh]">
         <div className="flex items-center gap-[0.6vw]">
           <cur.Icon size={16} style={{ color: accent }} />
-          <span className="font-black tracking-[0.2em] uppercase" style={{ color: accent, fontSize: '0.72vw' }}>{cur.label} · {Math.round(cur.rate * 100)}%</span>
+          <span className="font-black tracking-[0.2em] uppercase" style={{ color: accent, fontSize: '0.72vw' }}>{cur.label}</span>
+          <Ar inline className="font-bold" style={{ color: MUTED, fontSize: '0.72vw' }}>· {cur.ar}</Ar>
         </div>
         <Say text={cur.text} size={picked === 0 ? 30 : picked === 1 ? 34 : 38} accent={accent} />
-        <SpeakBtn onClick={() => say(g.en, cur.key as Gear)} accent={accent} label="استمع" big />
+        <SpeakBtn onClick={() => say(g.en, cur.key)} accent={accent} label="استمع" big />
       </Panel>
 
-      {g.why && step >= 2 && (
+      {g.why && step >= 3 && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
           className="max-w-[62vw] text-center font-bold" style={{ color: FAINT, fontSize: '0.95vw' }}>
           {g.why}
@@ -897,14 +906,16 @@ function SlideView({ s, step, say, onJump, onJumpUnit }: {
         {(s.L.bricks ?? []).map((b: Brick, i) => i >= step ? (
           <div key={i} className="rounded-2xl h-[9vh]" style={{ boxShadow: `inset 0 0 0 1.5px ${LINE}`, opacity: 0.3 }} />
         ) : (
-          <motion.button key={i} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.24 }}
-            onClick={() => say(b.en, 'natural')}
-            className="rounded-2xl px-[1.2vw] py-[1.4vh] flex flex-col items-center gap-[0.5vh] transition hover:brightness-125"
+          <motion.div key={i} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.24 }}
+            className="rounded-2xl px-[1.2vw] py-[1.4vh] flex flex-col items-center gap-[0.5vh]"
             style={{ background: PANEL, boxShadow: `inset 0 0 0 1.5px ${AC.hex}33` }}>
             <Linked text={b.en} size={26} accent={AC.hex} />
             <Say text={b.say} size={19} accent={AC.hex} />
             <Ar className="font-bold" style={{ color: FAINT, fontSize: '0.85vw' }}>{b.ar}</Ar>
-          </motion.button>
+            {/* Four takes on every brick — the plain model, then the linked one slowed
+                down (the copyable one), at speed, and at native speed. */}
+            <div className="mt-[0.4vh]"><GearRow text={b.en} accent={AC.hex} say={say} icons /></div>
+          </motion.div>
         ))}
       </div>
     </div>
@@ -1125,17 +1136,18 @@ export default function PronunciationDeck() {
   }, [])
 
   /* The sentence the S key and the gear keys act on. */
+  /* The line the S key and the four gear keys act on for this slide. */
   const audible = useMemo(() => {
-    if (s.t === 'gears') return [s.item.en, s.item.en, s.item.en] as const
-    if (s.t === 'decode') return [s.item.real, s.item.real, s.item.real] as const
-    if (s.t === 'beats') return [s.item.en, s.item.en, s.item.en] as const
-    if (s.t === 'play') return [s.sentence, s.sentence, s.sentence] as const
-    if (s.t === 'pairs') return [s.item.a, s.item.a, s.item.b] as const
+    if (s.t === 'gears' || s.t === 'beats') return s.item.en
+    if (s.t === 'practice') return s.item.en
+    if (s.t === 'decode') return s.item.real
+    if (s.t === 'play') return s.sentence
+    if (s.t === 'pairs') return s.item.b       // the real, connected side of the pair
     return null
   }, [s])
 
   // Fetch the line for this slide before anyone asks for it.
-  useEffect(() => { if (audible) prime(audible[1], 'natural') }, [audible, prime])
+  useEffect(() => { if (audible) { prime(audible, 'clear'); prime(audible, 'natural') } }, [audible, prime])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -1147,11 +1159,10 @@ export default function PronunciationDeck() {
       else if (k === 'n') { e.preventDefault(); setNotesOpen(true) }
       else if (k === 'f') toggleFs()
       else if (k === 'escape') setDrawerOpen(false)
-      else if (k === 's' && audible) { e.preventDefault(); say(audible[1], 'natural') }
-      else if (['1', '2', '3'].includes(e.key) && audible) {
+      else if (k === 's' && audible) { e.preventDefault(); say(audible, 'natural') }
+      else if (['1', '2', '3', '4'].includes(e.key) && audible) {
         e.preventDefault()
-        const i = Number(e.key) - 1
-        say(audible[i], (['slow', 'natural', 'fast'] as const)[i])
+        say(audible, (['clear', 'slow', 'natural', 'fast'] as const)[Number(e.key) - 1])
       }
     }
     window.addEventListener('keydown', onKey)
@@ -1444,7 +1455,7 @@ export default function PronunciationDeck() {
             <span style={{ textDecoration: 'line-through', opacity: 0.5 }}>t</span> dropped · <Ar inline>محذوف</Ar>
           </span>
           <span className="flex items-center gap-[0.35vw] font-black" style={{ fontSize: '0.66vw', color: engine === 'real' ? FAINT : '#fb7185' }}>
-            <Volume2 size={11} /> S · 1 2 3 · <Ar inline>{engine === 'real' ? 'صوت حقيقي' : 'صوت الجهاز — تعذّر الصوت الحقيقي'}</Ar>
+            <Volume2 size={11} /> S · 1 2 3 4 · <Ar inline>{engine === 'real' ? 'صوت حقيقي' : 'صوت الجهاز — تعذّر الصوت الحقيقي'}</Ar>
           </span>
         </div>
       )}
