@@ -118,6 +118,20 @@ const GEARS: Record<Gear, { speed: number; how: string; google: string }> = {
 const deckCache = new Map<string, { body: Buffer; type: string }>()
 const DECK_CACHE_MAX = 400
 
+/* This endpoint is reachable from the public /free page now, and every miss costs
+   a synthesis. A cached line is free, so only misses are counted — a visitor can
+   replay the pack all day, but nobody can drive an arbitrary-text bill. */
+const hits = new Map<string, { n: number; until: number }>()
+const LIMIT = 40, WINDOW = 60_000
+function overLimit(ip: string) {
+  const now = Date.now()
+  const h = hits.get(ip)
+  if (!h || now > h.until) { hits.set(ip, { n: 1, until: now + WINDOW }); return false }
+  h.n++
+  if (hits.size > 5000) for (const [k, v] of hits) if (now > v.until) hits.delete(k)
+  return h.n > LIMIT
+}
+
 export async function GET(req: Request) {
   const url = new URL(req.url)
   const text = (url.searchParams.get('t') || '').trim().slice(0, 400)
@@ -125,6 +139,13 @@ export async function GET(req: Request) {
   const voice = (url.searchParams.get('v') || 'coral').replace(/[^a-z]/g, '')
   if (!text) return NextResponse.json({ error: 'text required' }, { status: 400 })
   if (!GEARS[gear]) return NextResponse.json({ error: 'bad gear' }, { status: 400 })
+
+  // Browsers stamp sec-fetch-site themselves, so this quietly refuses other people's
+  // sites embedding our voice while leaving our own pages (and curl) alone. It runs
+  // before the cache, or a hotlinker would simply be served the cached take.
+  if (req.headers.get('sec-fetch-site') === 'cross-site') {
+    return NextResponse.json({ error: 'forbidden' }, { status: 403 })
+  }
 
   const key = `${gear}|${voice}|${text}`
   const hit = deckCache.get(key)
@@ -134,6 +155,10 @@ export async function GET(req: Request) {
       headers: { 'Content-Type': type, 'Cache-Control': CACHE, 'X-Tts-Cache': cached ? 'hit' : 'miss' },
     })
   if (hit) return send(hit.body, hit.type, true)
+
+  // Only a MISS is rate-limited: cached replays stay free for real learners.
+  const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'anon'
+  if (overLimit(ip)) return NextResponse.json({ error: 'slow down' }, { status: 429 })
 
   const keep = (body: Buffer, type: string) => {
     if (deckCache.size >= DECK_CACHE_MAX) deckCache.delete(deckCache.keys().next().value as string)
