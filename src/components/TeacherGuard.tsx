@@ -10,7 +10,7 @@ import { ensureTeacherProfile, fetchTeacherProfile, type TeacherProfile } from '
 
 type State = 'checking' | 'allowed' | 'denied' | 'unauthenticated'
 
-/** Gate for teachers.inglizi.com.
+/** Gate for teacher.inglizi.com.
  *
  *  Allows role = 'teacher'. Founders are allowed through as a *preview* so the
  *  owner can see what a teacher sees — they get no teacher rows, because every

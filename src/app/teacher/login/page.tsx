@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { GraduationCap, Loader2, Lock, Mail } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
-/** teachers.inglizi.com sign-in.
+/** teacher.inglizi.com sign-in.
  *  Teachers get an email + password created by the founder — there is no
  *  self-signup, on purpose. */
 export default function TeacherLoginPage() {

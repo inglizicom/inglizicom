@@ -20,7 +20,7 @@ import { useStaff } from '@/lib/staff-context'
  *
  * One row per teacher with the numbers that matter: how many students they
  * hold, classes and hours this month, attendance rate, rating, and reports
- * owed. Creating an account here provisions a login for teachers.inglizi.com.
+ * owed. Creating an account here provisions a login for teacher.inglizi.com.
  */
 export default function AdminTeachersPage() {
   const me = useStaff()
@@ -56,7 +56,7 @@ export default function AdminTeachersPage() {
         </div>
         <div className="flex gap-2">
           <a
-            href="https://teachers.inglizi.com" target="_blank" rel="noopener noreferrer"
+            href="https://teacher.inglizi.com" target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-300 text-gray-700 text-[13px] font-bold hover:bg-gray-50 transition"
           >
             <ExternalLink size={15} /> فضاء الأساتذة
@@ -88,7 +88,7 @@ export default function AdminTeachersPage() {
           </div>
           <div className="font-black text-gray-700">لا أساتذة بعد</div>
           <p className="text-[13px] text-gray-400 mt-1 max-w-sm mx-auto">
-            أنشئ حساب أستاذ، ثم أسنِد إليه طلابه — سيفتح فضاءه على teachers.inglizi.com.
+            أنشئ حساب أستاذ، ثم أسنِد إليه طلابه — سيفتح فضاءه على teacher.inglizi.com.
           </p>
         </div>
       ) : (

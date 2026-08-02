@@ -81,10 +81,11 @@ export function middleware(request: NextRequest) {
   }
 
   // ── Teacher space subdomain ───────────────────────────────
-  // teachers.inglizi.com → /teacher/*  (its own dashboard, not the CRM)
+  // teacher.inglizi.com → /teacher/*  (its own dashboard, not the CRM)
   const isTeacherHost =
-    host === 'teachers.inglizi.com' ||
     host === 'teacher.inglizi.com' ||
+    host === 'teachers.inglizi.com' ||          // plural kept as an alias only
+    host.startsWith('teacher.localhost') ||
     host.startsWith('teachers.localhost') ||
     request.nextUrl.searchParams.get('_teacher') === '1'
 
@@ -99,7 +100,7 @@ export function middleware(request: NextRequest) {
       return NextResponse.next()
     }
     // Everything else maps under /teacher, so the browser URL stays clean:
-    // teachers.inglizi.com/classes → /teacher/classes
+    // teacher.inglizi.com/classes → /teacher/classes
     const url = request.nextUrl.clone()
     url.pathname = pathname === '/' ? '/teacher' : `/teacher${pathname}`
     return NextResponse.rewrite(url)

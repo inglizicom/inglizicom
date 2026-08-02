@@ -11,7 +11,7 @@ const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
 /**
- * Create a teaching account (email + password) for teachers.inglizi.com.
+ * Create a teaching account (email + password) for teacher.inglizi.com.
  *
  * Founder-only. Mirrors create-assistant, but lands on role = 'teacher' and
  * seeds the teacher_profiles row so the new teacher opens onto a real profile

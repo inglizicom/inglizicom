@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation'
 import TeacherGuard from '@/components/TeacherGuard'
 import TeacherShell from './TeacherShell'
 
-/** teachers.inglizi.com — the teaching space.
+/** teacher.inglizi.com — the teaching space.
  *
  *  Everything is gated except /teacher/login, which has to stay reachable while
  *  signed out (the guard redirects here). */

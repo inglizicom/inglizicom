@@ -1,7 +1,7 @@
 import { supabase } from './supabase'
 
 /**
- * Data layer for teachers.inglizi.com.
+ * Data layer for teacher.inglizi.com.
  *
  * A teacher is not CRM staff: every crm_* table returns zero rows to them, by
  * policy. Anything that crosses that line goes through a security-definer RPC
