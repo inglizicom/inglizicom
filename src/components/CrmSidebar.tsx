@@ -7,6 +7,7 @@ import type { LucideIcon } from 'lucide-react'
 import {
   LayoutDashboard, Users, GraduationCap, CalendarCheck, CreditCard,
   BarChart3, Settings, LogOut, X, Menu, Headphones, ShieldCheck, Route, BookOpen, Inbox, Megaphone, Trophy,
+  UserCog,
 } from 'lucide-react'
 
 interface NavDef {
@@ -30,6 +31,7 @@ const NAV: NavDef[] = [
   { id: 'announcements', labelAr: 'الإعلانات',        icon: Megaphone,       path: '/announcements' },
   { id: 'gamification', labelAr: 'المكافآت والتحديات', icon: Trophy,          path: '/gamification' },
   { id: 'verify',    labelAr: 'التحقق من طالب',      icon: ShieldCheck,     path: '/verify' },
+  { id: 'teachers',  labelAr: 'الأساتذة',            icon: UserCog,         path: '/teachers',  founder: true },
   { id: 'revenue',   labelAr: 'الإيرادات والتقارير', icon: BarChart3,       path: '/analytics', founder: true },
   { id: 'settings',  labelAr: 'الإعدادات',          icon: Settings,        path: '/settings',  founder: true },
 ]

@@ -1,0 +1,536 @@
+<title>Teacher Dashboard — Diagnostic &amp; Build Spec</title>
+
+<style>
+  :root {
+    --paper:      #FBFAF6;
+    --card:       #FFFFFF;
+    --ink:        #14130F;
+    --ink-2:      #4A473D;
+    --ink-3:      #7C776A;
+    --line:       #E3E0D5;
+    --line-soft:  #EEECE4;
+    --accent:     #C79A05;
+    --accent-ink: #6B5200;
+    --accent-bg:  #FCF3D4;
+    --good:       #1E7A52;
+    --good-bg:    #E4F2EA;
+    --warn:       #9A6206;
+    --warn-bg:    #FBEEDA;
+    --crit:       #A32219;
+    --crit-bg:    #F9E5E3;
+    --shadow:     0 1px 2px rgba(20,19,15,.05), 0 8px 24px -18px rgba(20,19,15,.35);
+
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper:      #0D0D0C;
+      --card:       #171715;
+      --ink:        #F4F2EA;
+      --ink-2:      #B9B5A8;
+      --ink-3:      #86816F;
+      --line:       #2C2B26;
+      --line-soft:  #232320;
+      --accent:     #F2C230;
+      --accent-ink: #F7D66B;
+      --accent-bg:  #2A2410;
+      --good:       #58C495;
+      --good-bg:    #12251C;
+      --warn:       #E2AE55;
+      --warn-bg:    #291F0F;
+      --crit:       #E8837A;
+      --crit-bg:    #2A1614;
+      --shadow:     0 1px 2px rgba(0,0,0,.4), 0 10px 30px -20px rgba(0,0,0,.9);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #0D0D0C; --card: #171715; --ink: #F4F2EA; --ink-2: #B9B5A8; --ink-3: #86816F;
+    --line: #2C2B26; --line-soft: #232320; --accent: #F2C230; --accent-ink: #F7D66B; --accent-bg: #2A2410;
+    --good: #58C495; --good-bg: #12251C; --warn: #E2AE55; --warn-bg: #291F0F; --crit: #E8837A; --crit-bg: #2A1614;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -20px rgba(0,0,0,.9);
+  }
+  :root[data-theme="light"] {
+    --paper: #FBFAF6; --card: #FFFFFF; --ink: #14130F; --ink-2: #4A473D; --ink-3: #7C776A;
+    --line: #E3E0D5; --line-soft: #EEECE4; --accent: #C79A05; --accent-ink: #6B5200; --accent-bg: #FCF3D4;
+    --good: #1E7A52; --good-bg: #E4F2EA; --warn: #9A6206; --warn-bg: #FBEEDA; --crit: #A32219; --crit-bg: #F9E5E3;
+    --shadow: 0 1px 2px rgba(20,19,15,.05), 0 8px 24px -18px rgba(20,19,15,.35);
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px 96px; }
+  .prose { max-width: 68ch; }
+
+  /* ── Masthead ─────────────────────────────── */
+  .mast { padding: 64px 0 36px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+  .kicker {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--accent-ink); background: var(--accent-bg); border: 1px solid var(--line);
+    display: inline-block; padding: 4px 10px; border-radius: 3px;
+  }
+  h1 {
+    font-size: clamp(30px, 5.2vw, 46px); line-height: 1.06; letter-spacing: -.035em;
+    font-weight: 800; text-wrap: balance; margin: 18px 0 14px;
+  }
+  .standfirst { font-size: 18px; color: var(--ink-2); max-width: 60ch; }
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 24px;
+    font-family: var(--mono); font-size: 11.5px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+  .meta b { color: var(--ink); font-weight: 600; }
+
+  /* ── Sections ─────────────────────────────── */
+  section { padding-top: 52px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--ink-3); margin-bottom: 10px;
+  }
+  h2 {
+    font-size: clamp(21px, 3vw, 27px); font-weight: 750; letter-spacing: -.02em;
+    line-height: 1.2; text-wrap: balance; margin-bottom: 12px;
+  }
+  h3 { font-size: 16px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 4px; }
+  p { margin-bottom: 14px; }
+  p:last-child { margin-bottom: 0; }
+  a { color: var(--accent-ink); text-underline-offset: 3px; }
+  a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+  code {
+    font-family: var(--mono); font-size: .86em; background: var(--line-soft);
+    border: 1px solid var(--line); border-radius: 3px; padding: 1px 5px; color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+  strong { font-weight: 650; }
+
+  /* ── Chips ────────────────────────────────── */
+  .chip {
+    display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 600;
+    letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; border-radius: 3px;
+    border: 1px solid transparent; white-space: nowrap;
+  }
+  .chip-missing { color: var(--crit); background: var(--crit-bg); border-color: color-mix(in srgb, var(--crit) 25%, transparent); }
+  .chip-partial { color: var(--warn); background: var(--warn-bg); border-color: color-mix(in srgb, var(--warn) 25%, transparent); }
+  .chip-exists  { color: var(--good); background: var(--good-bg); border-color: color-mix(in srgb, var(--good) 25%, transparent); }
+
+  /* ── Tables ───────────────────────────────── */
+  .scroller { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--card); box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 560px; }
+  th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+  thead th {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--ink-3); font-weight: 600; background: var(--line-soft); border-bottom: 1px solid var(--line);
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.center, th.center { text-align: center; }
+  .yes { color: var(--good); font-weight: 700; }
+  .no  { color: var(--ink-3); }
+  .part { color: var(--warn); font-weight: 700; }
+
+  /* ── Module cards ─────────────────────────── */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+    padding: 18px 20px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 10px;
+  }
+  .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 14.5px; color: var(--ink-2); }
+  .card li { padding-left: 15px; position: relative; }
+  .card li::before {
+    content: ""; position: absolute; left: 0; top: .62em; width: 5px; height: 5px;
+    border-radius: 50%; background: var(--accent);
+  }
+  .source {
+    font-family: var(--mono); font-size: 11px; line-height: 1.5; color: var(--ink-3);
+    border-top: 1px dashed var(--line); padding-top: 10px; margin-top: auto;
+  }
+  .source b { color: var(--ink-2); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; font-size: 10px; }
+
+  /* ── Callout ──────────────────────────────── */
+  .callout {
+    background: var(--card); border: 1px solid color-mix(in srgb, var(--crit) 32%, var(--line));
+    border-radius: 8px; padding: 20px 22px; box-shadow: var(--shadow);
+  }
+  .callout h3 { color: var(--crit); margin-bottom: 8px; }
+  .callout p { color: var(--ink-2); }
+
+  /* ── Phases ───────────────────────────────── */
+  .phases { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--card); box-shadow: var(--shadow); overflow: hidden; }
+  .phase { display: grid; grid-template-columns: 64px 1fr; gap: 18px; padding: 18px 20px; border-bottom: 1px solid var(--line-soft); }
+  .phase:last-child { border-bottom: 0; }
+  .phase-n {
+    font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: .1em;
+    color: var(--accent-ink); background: var(--accent-bg); border: 1px solid var(--line);
+    border-radius: 4px; height: fit-content; padding: 5px 0; text-align: center;
+  }
+  .phase p { font-size: 14.5px; color: var(--ink-2); margin: 0; }
+  .phase-ship { font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: .05em; margin-top: 6px !important; }
+
+  /* ── Decisions ────────────────────────────── */
+  .decision { border: 1px solid var(--line); border-radius: 8px; background: var(--card); padding: 18px 20px; box-shadow: var(--shadow); }
+  .decision + .decision { margin-top: 12px; }
+  .decision p { font-size: 14.5px; color: var(--ink-2); }
+  .rec {
+    display: inline-block; margin-top: 4px; font-size: 14px; color: var(--ink);
+    background: var(--accent-bg); border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+    border-radius: 5px; padding: 7px 12px;
+  }
+  .rec b { font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-ink); }
+
+  .stack { display: flex; flex-direction: column; gap: 14px; }
+  hr.rule { border: 0; border-top: 1px solid var(--line); margin: 0; }
+
+  footer { margin-top: 64px; padding-top: 22px; border-top: 1px solid var(--line); font-size: 13.5px; color: var(--ink-3); }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="wrap">
+
+  <header class="mast">
+    <span class="kicker">Confirmed · phase 1 built</span>
+    <h1>teachers.inglizi.com</h1>
+    <p class="standfirst">
+      What the CRM had, what a teacher actually needs on their own page, and the
+      teaching space now standing on its own subdomain — with the security model
+      tightened rather than loosened.
+    </p>
+    <div class="meta">
+      <span>Branch <b>feat/pronunciation-deck</b></span>
+      <span>Stack <b>Next.js 14 · Supabase RLS</b></span>
+      <span>Status <b>phase 1 in the repo, not yet migrated</b></span>
+    </div>
+  </header>
+
+  <section>
+    <div class="eyebrow">What exists today</div>
+    <h2>The CRM has no concept of a teacher</h2>
+    <div class="prose">
+      <p>
+        Roles today are <code>founder</code>, <code>assistant</code>, <code>student</code> — that's the whole
+        list in <code>src/lib/staff-db.ts</code>, and <code>StaffGuard</code> only knows two gates:
+        <em>staff</em> (founder or assistant) and <em>founder</em>. There is no third door.
+      </p>
+      <p>
+        The pieces a teacher page would sit on top of are partly there. File upload already works
+        (<code>lms_resources</code> → <code>student-files</code> bucket). Presence, submissions, coins and
+        certificates all exist. What's missing is everything that makes teaching schedulable and
+        accountable: <strong>who teaches whom</strong>, <strong>when the class is</strong>, and
+        <strong>what happened in it</strong>.
+      </p>
+    </div>
+
+    <div class="scroller" style="margin-top:22px">
+      <table>
+        <thead>
+          <tr><th>Capability</th><th>Today</th><th>Where it lives</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Teacher role &amp; login</td><td><span class="chip chip-missing">missing</span></td><td>Roles stop at assistant</td></tr>
+          <tr><td>Teacher ↔ student assignment</td><td><span class="chip chip-missing">missing</span></td><td><code>crm_students</code> has no owner column</td></tr>
+          <tr><td>Class schedule / upcoming classes</td><td><span class="chip chip-missing">missing</span></td><td>No table anywhere; <code>/today</code> is follow-ups &amp; payments</td></tr>
+          <tr><td>Attendance</td><td><span class="chip chip-missing">missing</span></td><td>—</td></tr>
+          <tr><td>Lesson reports</td><td><span class="chip chip-missing">missing</span></td><td>—</td></tr>
+          <tr><td>Teacher payroll / hours</td><td><span class="chip chip-missing">missing</span></td><td>Revenue is student-side only</td></tr>
+          <tr><td>Material upload (PDF, DOC…)</td><td><span class="chip chip-partial">partial</span></td><td><code>lms.ts</code> uploads to a course, not to a teacher</td></tr>
+          <tr><td>Grading submissions</td><td><span class="chip chip-partial">partial</span></td><td>Manual correction exists in <code>/sales/submissions</code>, unscoped</td></tr>
+          <tr><td>Student progress &amp; presence</td><td><span class="chip chip-exists">exists</span></td><td>Live pulse, coins, exam results</td></tr>
+          <tr><td>Messaging students</td><td><span class="chip chip-exists">exists</span></td><td>WhatsApp links, broadcast, announcements</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">The one thing to get right</div>
+    <h2>A teacher must not be an assistant with a nicer page</h2>
+    <div class="callout">
+      <h3>Every CRM table is gated by <code>is_crm_staff()</code> — founder or assistant, all rows.</h3>
+      <p>
+        If a teacher is created as an assistant, they can read every student, every lead, every payment
+        and the revenue board — and RLS will happily allow it, because the policy never asks
+        <em>whose</em> student it is. The teacher role has to arrive with its own database function
+        (<code>is_teacher()</code>) and row-scoped policies: a teacher sees the students assigned to them
+        and nothing else. This is the part that has to be built first, not retrofitted.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">The teacher's own space</div>
+    <h2>Eight blocks, in the order a teacher's day runs</h2>
+    <div class="prose">
+      <p>
+        Landing at <code>teachers.inglizi.com</code>, the teacher sees their own dashboard —
+        never the sidebar the sales team sees. Blocks 1–4 are the daily loop; 5–8 are the record.
+      </p>
+    </div>
+
+    <div class="grid" style="margin-top:22px">
+
+      <article class="card">
+        <div class="card-head"><h3>Today &amp; upcoming classes</h3><span class="chip chip-missing">new</span></div>
+        <ul>
+          <li>Next class with a countdown and a one-tap join link</li>
+          <li>Week strip: group and private sessions, level and student count</li>
+          <li>Mark <em>started</em> / <em>done</em> / <em>cancelled</em> inline</li>
+          <li>Reschedule with an automatic WhatsApp notice to the students</li>
+        </ul>
+        <div class="source"><b>Needs</b><br>class_sessions</div>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h3>Attendance</h3><span class="chip chip-missing">new</span></div>
+        <ul>
+          <li>Roster for the session, present / late / absent in one pass</li>
+          <li>Absence auto-flags the student for follow-up in the sales CRM</li>
+          <li>Per-student attendance rate, visible to the founder</li>
+        </ul>
+        <div class="source"><b>Needs</b><br>class_attendance</div>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h3>Lesson report</h3><span class="chip chip-missing">new</span></div>
+        <ul>
+          <li>What was covered, homework assigned, materials used</li>
+          <li>Per-student note: participation, difficulty, a flag for "needs help"</li>
+          <li>A private line to the founder, separate from the student-visible part</li>
+          <li>Locked reminder: a finished class with no report shows red until filed</li>
+        </ul>
+        <div class="source"><b>Needs</b><br>lesson_reports</div>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h3>My students</h3><span class="chip chip-partial">scope existing</span></div>
+        <ul>
+          <li>Only the students assigned to this teacher</li>
+          <li>Level, course, lessons completed, exam scores, coins, streak</li>
+          <li>Last seen online, and an at-risk flag on inactivity</li>
+          <li>Open a student to see history, notes and past reports</li>
+        </ul>
+        <div class="source"><b>Reuses</b><br>crm_students · student_presence · gamification<br><b>Needs</b><br>teacher_students</div>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h3>Materials library</h3><span class="chip chip-partial">extend existing</span></div>
+        <ul>
+          <li>Upload PDF, DOC/DOCX, PPT, images, audio — drag and drop</li>
+          <li>Tag by course, unit and level; version replaces, keeps the link</li>
+          <li>Choose who sees it: only me · my students · a whole course</li>
+          <li>Download count per file, so dead material is obvious</li>
+        </ul>
+        <div class="source"><b>Reuses</b><br>student-files bucket · lms.ts upload path<br><b>Needs</b><br>teacher_materials + path-scoped storage policy</div>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h3>Homework &amp; grading</h3><span class="chip chip-partial">scope existing</span></div>
+        <ul>
+          <li>Assign homework straight from a lesson report</li>
+          <li>Inbox of submissions from this teacher's students only</li>
+          <li>Manual correction with written feedback and coin award</li>
+        </ul>
+        <div class="source"><b>Reuses</b><br>student submissions · manual correction flow</div>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h3>My performance</h3><span class="chip chip-missing">new</span></div>
+        <ul>
+          <li>Classes taught this month, hours, cancellations</li>
+          <li>Attendance rate across their students</li>
+          <li>Report compliance — filed vs. owed</li>
+          <li>Average progress of their students vs. the school average</li>
+        </ul>
+        <div class="source"><b>Derived</b><br>SQL aggregate over sessions + attendance + reports</div>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h3>Profile, rating &amp; reviews</h3><span class="chip chip-missing">new</span></div>
+        <ul>
+          <li>Tutor card: photo, headline, bio, levels, specialties, languages</li>
+          <li>Star rating with the 5→1 distribution, and every student's written feedback</li>
+          <li>Students rate from their own portal; only a student the teacher actually holds can review them</li>
+          <li>The same card can power a public "meet the teachers" page later</li>
+        </ul>
+        <div class="source"><b>Needs</b><br>teacher_profiles · teacher_reviews</div>
+      </article>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">The founder's side</div>
+    <h2>What you get at <code>/admin/teachers</code></h2>
+    <div class="prose">
+      <p>
+        The teacher page is only half of it. The reason to build this is the view it gives you: one
+        table of every teacher with classes taught, students held, attendance rate and reports owed —
+        so an underperforming teacher is visible in a glance rather than in a complaint.
+      </p>
+      <p>
+        From there you create teacher accounts (same email + password flow that creates assistants
+        today), assign or move students between teachers, read every lesson report, and see the
+        activity log of what each teacher uploaded and when.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Permissions</div>
+    <h2>Who can see what</h2>
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr><th>Area</th><th class="center">Founder</th><th class="center">Assistant</th><th class="center">Teacher</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Revenue, payments, dues</td><td class="center yes">full</td><td class="center part">limited</td><td class="center no">none</td></tr>
+          <tr><td>Leads pipeline</td><td class="center yes">full</td><td class="center yes">full</td><td class="center no">none</td></tr>
+          <tr><td>Student records</td><td class="center yes">all</td><td class="center yes">all</td><td class="center part">assigned only</td></tr>
+          <tr><td>Student phone numbers</td><td class="center yes">yes</td><td class="center yes">yes</td><td class="center part">masked</td></tr>
+          <tr><td>Class schedule</td><td class="center yes">all</td><td class="center yes">read</td><td class="center part">own</td></tr>
+          <tr><td>Lesson reports</td><td class="center yes">read all</td><td class="center no">none</td><td class="center part">write own</td></tr>
+          <tr><td>Materials</td><td class="center yes">all</td><td class="center yes">read</td><td class="center part">own + course</td></tr>
+          <tr><td>Grade submissions</td><td class="center yes">all</td><td class="center yes">all</td><td class="center part">own students</td></tr>
+          <tr><td>Broadcast &amp; announcements</td><td class="center yes">yes</td><td class="center yes">yes</td><td class="center part">own classes</td></tr>
+          <tr><td>Create staff accounts</td><td class="center yes">yes</td><td class="center no">no</td><td class="center no">no</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Data model</div>
+    <h2>Five new tables, one new role</h2>
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr><th>Table</th><th>Holds</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>teacher_profiles</code></td><td>bio, photo, levels, specialties, availability, pay model, hire date, active flag — keyed to <code>profiles.id</code></td></tr>
+          <tr><td><code>teacher_students</code></td><td>assignment join table, so co-teaching and handovers work without rewriting the student row</td></tr>
+          <tr><td><code>class_sessions</code></td><td>teacher, course, title, start time, duration, group/private, meeting link, status</td></tr>
+          <tr><td><code>class_attendance</code></td><td>session × student, present/late/absent, minutes attended</td></tr>
+          <tr><td><code>lesson_reports</code></td><td>one per session: covered, homework, per-student notes, private note to founder</td></tr>
+          <tr><td><code>teacher_materials</code></td><td>file path in <code>student-files</code> under <code>teachers/{id}/</code>, visibility, download count</td></tr>
+          <tr><td><code>teacher_reviews</code></td><td>one rating + comment per student per teacher, published flag, rolled onto the profile by trigger</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="prose" style="margin-top:18px">
+      <p>
+        Plus <code>role = 'teacher'</code> in <code>profiles</code>, an <code>is_teacher()</code> SQL
+        function, a <code>TeacherGuard</code> that gates the space (and lets the founder preview it),
+        and the <code>teachers.inglizi.com</code> host branch in <code>middleware.ts</code>.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Rollout</div>
+    <h2>Four phases, each one shippable</h2>
+    <div class="phases">
+      <div class="phase">
+        <div class="phase-n">01 ✓</div>
+        <div>
+          <h3>Role, gate and the space itself</h3>
+          <p>Teacher role, <code>is_teacher()</code>, row-scoped RLS, TeacherGuard, the subdomain and its dashboard, profile with rating and reviews, roster with masked phones, founder screen to create a teacher and assign students. Classes, attendance, reports and the materials library came along with it.</p>
+          <p class="phase-ship">Written. Runs once the two migrations are applied and the domain is pointed.</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-n">02 ◐</div>
+        <div>
+          <h3>Loop closing</h3>
+          <p><strong>Done:</strong> absences flow into the CRM activity feed by trigger, with an absence board on the founder screen; students rate their teachers from their own portal, and only a student the teacher actually holds can submit one.</p>
+          <p><strong>Left:</strong> WhatsApp notice when a class is rescheduled, founder's feed of every lesson report.</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-n">03</div>
+        <div>
+          <h3>Teaching, not just admin</h3>
+          <p>Homework assigned from a report, submissions inbox scoped to the teacher's own students, manual correction with coin awards, materials shared per class.</p>
+          <p class="phase-ship">Ships: a teacher can run the whole cycle without touching the CRM.</p>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-n">04</div>
+        <div>
+          <h3>Performance and payroll</h3>
+          <p>Teacher scorecard, founder comparison table, hours and earnings statement if you want pay tracked in-app.</p>
+          <p class="phase-ship">Ships: teaching quality becomes a number you can act on.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Decided</div>
+    <h2>The four calls, and how they landed</h2>
+    <div class="stack" style="margin-top:18px">
+
+      <div class="decision">
+        <h3>Phone numbers · masked</h3>
+        <p>A teacher sees <code>+2126••••11</code> — the masking happens in SQL, so the real number never reaches the browser. The WhatsApp button hits <code>/api/teacher/wa/[studentId]</code>, which checks the assignment server-side and 302s to wa.me. Full numbers stay founder and assistant only.</p>
+      </div>
+
+      <div class="decision">
+        <h3>Classes · group and private</h3>
+        <p>One <code>class_sessions</code> table covers both, with a free-text meeting link so WhatsApp video, Meet, Zoom or an in-person room all work.</p>
+      </div>
+
+      <div class="decision">
+        <h3>Pay · hours now, money later</h3>
+        <p>Hours and class counts accrue from the first scheduled class. <code>pay_model</code> and <code>hourly_rate_mad</code> exist on the profile but only the founder can write them — a database trigger pins those fields, along with the rating, against self-editing.</p>
+      </div>
+
+      <div class="decision">
+        <h3>Home · its own subdomain</h3>
+        <p><strong>teachers.inglizi.com</strong>, its own dashboard and its own design — warm paper, white cards, a top bar instead of the CRM's black sidebar, and the tutor-platform furniture: profile card, rating, review distribution, student feedback.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Built</div>
+    <h2>What is in the repo now</h2>
+    <div class="scroller">
+      <table>
+        <thead><tr><th>Piece</th><th>Where</th></tr></thead>
+        <tbody>
+          <tr><td>Teacher role, 7 tables, RLS, RPCs, storage policy</td><td><code>supabase/migrations/043_teacher_role.sql</code> + <code>044_teachers.sql</code></td></tr>
+          <tr><td>Subdomain routing</td><td><code>src/middleware.ts</code> — teachers.inglizi.com → <code>/teacher/*</code></td></tr>
+          <tr><td>Access gate + founder preview</td><td><code>src/components/TeacherGuard.tsx</code></td></tr>
+          <tr><td>Data layer</td><td><code>src/lib/teachers.ts</code></td></tr>
+          <tr><td>Dashboard, profile + reviews, students, classes, class detail, materials, reports, login</td><td><code>src/app/teacher/*</code></td></tr>
+          <tr><td>Masked-phone WhatsApp redirect</td><td><code>src/app/api/teacher/wa/[studentId]/route.ts</code></td></tr>
+          <tr><td>Founder scoreboard + account creation + student assignment + absence board</td><td><code>src/app/admin/teachers/page.tsx</code></td></tr>
+          <tr><td>Absence → CRM activity feed, absence summary RPC</td><td><code>supabase/migrations/045_absence_flag.sql</code></td></tr>
+          <tr><td>Student-side rating &amp; review form</td><td><code>src/components/student/MyTeachersCard.tsx</code> (home tab of the portal)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    Two things are still yours to do, because neither can be reached from here. Run <code>043</code> alone,
+    then <code>044</code>, then <code>045</code> in the Supabase SQL editor — 043 has to go on its own,
+    because Postgres refuses to use a new enum value in the transaction that added it. Then add
+    <code>teachers.inglizi.com</code> as a domain on the <code>inglizicom</code> Vercel project; the
+    <code>VERCEL_TOKEN</code> in <code>.env.local</code> still returns <code>invalidToken</code>, so the API
+    route is closed until that token is replaced. After both, create a teacher from
+    <code>/admin/teachers</code> and the space is live.
+  </footer>
+
+</div>

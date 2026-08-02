@@ -29,6 +29,7 @@ import RewardsCenter from '@/components/RewardsCenter'
 import PracticeHub from '@/components/PracticeHub'
 import VocabGames from '@/components/VocabGames'
 import PictureWordGame from '@/components/PictureWordGame'
+import MyTeachersCard from '@/components/student/MyTeachersCard'
 import { fetchCertificate, type Certificate } from '@/lib/lms'
 import { earnCoins, streakBonus, fetchCoins, type EarnAction, type CoinSummary } from '@/lib/gamification'
 import { courseTheme, themeForKey } from '@/lib/course-theme'
@@ -1050,6 +1051,9 @@ function Portal() {
                 </Card>
               )}
             </div>
+
+            {/* My teachers + rating — full width */}
+            {!demo && <MyTeachersCard token={token} />}
 
             {/* Teacher message — full width */}
             {s.admin_message && (

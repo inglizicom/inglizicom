@@ -33,6 +33,7 @@ const ADMIN_ROUTES: Record<string, string> = {
   '/broadcast':   '/sales/broadcast',
   '/revenue':     '/sales/revenue',
   '/support':     '/sales/support',
+  '/teachers':    '/admin/teachers',
   '/analytics':   '/admin/analytics',
   '/activity':    '/admin/activity',
   '/settings':    '/admin/settings',
@@ -76,6 +77,31 @@ export function middleware(request: NextRequest) {
     }
     const url = request.nextUrl.clone()
     url.pathname = '/student-space'
+    return NextResponse.rewrite(url)
+  }
+
+  // ── Teacher space subdomain ───────────────────────────────
+  // teachers.inglizi.com → /teacher/*  (its own dashboard, not the CRM)
+  const isTeacherHost =
+    host === 'teachers.inglizi.com' ||
+    host === 'teacher.inglizi.com' ||
+    host.startsWith('teachers.localhost') ||
+    request.nextUrl.searchParams.get('_teacher') === '1'
+
+  if (isTeacherHost) {
+    if (
+      pathname.startsWith('/_next') ||
+      pathname.startsWith('/api') ||
+      pathname.startsWith('/auth') ||
+      pathname.startsWith('/certificate') ||
+      pathname.startsWith('/teacher')
+    ) {
+      return NextResponse.next()
+    }
+    // Everything else maps under /teacher, so the browser URL stays clean:
+    // teachers.inglizi.com/classes → /teacher/classes
+    const url = request.nextUrl.clone()
+    url.pathname = pathname === '/' ? '/teacher' : `/teacher${pathname}`
     return NextResponse.rewrite(url)
   }
 

@@ -1,0 +1,466 @@
+'use client'
+
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  AlertTriangle, Check, Copy, Eye, EyeOff, GraduationCap, Loader2, Lock,
+  Mail, Plus, Search, Star, User as UserIcon, Users, X, ExternalLink,
+} from 'lucide-react'
+import {
+  assignStudent, createTeacher, fetchAbsenceSummary, fetchAssignedIds,
+  fetchTeachersScoreboard, unassignStudent,
+  type AbsenceRow, type ScoreboardRow,
+} from '@/lib/teachers'
+import { fetchStudents } from '@/lib/crm-db'
+import type { CrmStudent } from '@/lib/crm-types'
+import { logActivity } from '@/lib/activity-log-db'
+import { useStaff } from '@/lib/staff-context'
+
+/**
+ * الأساتذة — founder view of the teaching team.
+ *
+ * One row per teacher with the numbers that matter: how many students they
+ * hold, classes and hours this month, attendance rate, rating, and reports
+ * owed. Creating an account here provisions a login for teachers.inglizi.com.
+ */
+export default function AdminTeachersPage() {
+  const me = useStaff()
+  const [rows, setRows]       = useState<ScoreboardRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [adding, setAdding]   = useState(false)
+  const [assignFor, setAssignFor] = useState<ScoreboardRow | null>(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setRows(await fetchTeachersScoreboard())
+    setLoading(false)
+  }, [])
+
+  useEffect(() => { load() }, [load])
+
+  const totals = useMemo(() => ({
+    teachers: rows.length,
+    students: rows.reduce((a, r) => a + (r.students ?? 0), 0),
+    hours:    rows.reduce((a, r) => a + Number(r.hours_month ?? 0), 0),
+    owed:     rows.reduce((a, r) => a + (r.reports_owed ?? 0), 0),
+  }), [rows])
+
+  return (
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-5" dir="rtl">
+
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-gray-900">الأساتذة</h1>
+          <p className="text-gray-500 text-sm font-semibold mt-0.5">
+            {totals.teachers} أستاذ · {totals.students} طالب مسنَد · {totals.hours} ساعة هذا الشهر
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <a
+            href="https://teachers.inglizi.com" target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-300 text-gray-700 text-[13px] font-bold hover:bg-gray-50 transition"
+          >
+            <ExternalLink size={15} /> فضاء الأساتذة
+          </a>
+          <button
+            onClick={() => setAdding(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-900 text-white text-[13px] font-bold hover:bg-gray-800 transition"
+          >
+            <Plus size={16} /> أستاذ جديد
+          </button>
+        </div>
+      </div>
+
+      {totals.owed > 0 && (
+        <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+          <AlertTriangle size={17} className="text-red-500 shrink-0" />
+          <span className="text-[13.5px] font-bold text-red-800">
+            {totals.owed} حصة منتهية بدون تقرير عبر الفريق.
+          </span>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="py-24 flex justify-center text-gray-400"><Loader2 size={20} className="animate-spin" /></div>
+      ) : rows.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-gray-200 py-16 text-center">
+          <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-400">
+            <GraduationCap size={24} />
+          </div>
+          <div className="font-black text-gray-700">لا أساتذة بعد</div>
+          <p className="text-[13px] text-gray-400 mt-1 max-w-sm mx-auto">
+            أنشئ حساب أستاذ، ثم أسنِد إليه طلابه — سيفتح فضاءه على teachers.inglizi.com.
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-gray-200 overflow-x-auto">
+          <table className="w-full text-sm min-w-[52rem]">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200 text-[11px] font-black text-gray-500">
+                <th className="text-right px-5 py-3">الأستاذ</th>
+                <th className="text-center px-3 py-3">الطلاب</th>
+                <th className="text-center px-3 py-3">حصص الشهر</th>
+                <th className="text-center px-3 py-3">الساعات</th>
+                <th className="text-center px-3 py-3">الحضور</th>
+                <th className="text-center px-3 py-3">التقييم</th>
+                <th className="text-center px-3 py-3">تقارير ناقصة</th>
+                <th className="px-3 py-3"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {rows.map(t => (
+                <tr key={t.id} className="hover:bg-gray-50/70">
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-3">
+                      {t.avatar_url
+                        ? /* eslint-disable-next-line @next/next/no-img-element */
+                          <img src={t.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover border border-gray-200" />
+                        : <div className="w-9 h-9 rounded-full bg-gray-900 text-yellow-400 flex items-center justify-center font-black text-[13px]">
+                            {(t.display_name ?? t.email ?? '?').trim().charAt(0).toUpperCase()}
+                          </div>}
+                      <div className="min-w-0">
+                        <div className="font-black text-[13.5px] text-gray-900 truncate">{t.display_name ?? '—'}</div>
+                        <div className="text-[11px] text-gray-400 font-semibold truncate" dir="ltr">{t.email}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="text-center px-3 font-black tabular-nums">{t.students}</td>
+                  <td className="text-center px-3 font-black tabular-nums">{t.classes_month}</td>
+                  <td className="text-center px-3 font-black tabular-nums">{t.hours_month}</td>
+                  <td className="text-center px-3 font-black tabular-nums">
+                    {t.attendance_rate != null ? `${t.attendance_rate}%` : '—'}
+                  </td>
+                  <td className="text-center px-3">
+                    {t.rating_count > 0 ? (
+                      <span className="inline-flex items-center gap-1 font-black tabular-nums">
+                        <Star size={13} className="fill-yellow-400 text-yellow-400" />
+                        {Number(t.rating_avg).toFixed(1)}
+                        <span className="text-[11px] text-gray-400 font-bold">({t.rating_count})</span>
+                      </span>
+                    ) : <span className="text-gray-300 font-bold">—</span>}
+                  </td>
+                  <td className="text-center px-3">
+                    {t.reports_owed > 0
+                      ? <span className="px-2.5 py-1 rounded-full bg-red-50 border border-red-200 text-red-700 text-[11.5px] font-black">{t.reports_owed}</span>
+                      : <span className="text-emerald-600 font-black">✓</span>}
+                  </td>
+                  <td className="px-3 text-left">
+                    <button
+                      onClick={() => setAssignFor(t)}
+                      className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 text-[12px] font-bold hover:bg-gray-100 transition whitespace-nowrap"
+                    >
+                      الطلاب
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <AbsencePanel />
+
+      {adding && (
+        <NewTeacherModal
+          onClose={() => setAdding(false)}
+          onCreated={async (email) => {
+            await logActivity({ action: 'teacher_created', entityType: 'teacher', metadata: { email } }).catch(() => {})
+            setAdding(false); load()
+          }}
+        />
+      )}
+
+      {assignFor && (
+        <AssignModal
+          teacher={assignFor}
+          actorId={me.id}
+          onClose={() => { setAssignFor(null); load() }}
+        />
+      )}
+    </div>
+  )
+}
+
+/* ── Absences ────────────────────────────────────────── */
+
+/** Marked absent by a teacher → surfaced here for follow-up. The trigger in
+ *  045_absence_flag.sql also drops each absence into the CRM activity feed. */
+function AbsencePanel() {
+  const [rows, setRows]       = useState<AbsenceRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [days, setDays]       = useState(30)
+
+  useEffect(() => {
+    let alive = true
+    setLoading(true)
+    fetchAbsenceSummary(days).then(r => { if (alive) { setRows(r); setLoading(false) } })
+    return () => { alive = false }
+  }, [days])
+
+  if (!loading && rows.length === 0) return null
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-end justify-between gap-3 pt-2">
+        <div>
+          <h2 className="text-lg font-black tracking-tight text-gray-900">الغيابات</h2>
+          <p className="text-gray-500 text-[13px] font-semibold">طلاب سجّل الأساتذة غيابهم — يستحقون متابعة.</p>
+        </div>
+        <div className="flex gap-1.5">
+          {[7, 30, 90].map(d => (
+            <button
+              key={d}
+              onClick={() => setDays(d)}
+              className={`px-3 py-1.5 rounded-lg text-[12px] font-bold transition ${
+                days === d ? 'bg-gray-900 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+            >
+              {d} يوم
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="py-10 flex justify-center text-gray-400"><Loader2 size={18} className="animate-spin" /></div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-gray-200 overflow-x-auto">
+          <table className="w-full text-sm min-w-[38rem]">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200 text-[11px] font-black text-gray-500">
+                <th className="text-right px-5 py-3">الطالب</th>
+                <th className="text-right px-3 py-3">الأستاذ</th>
+                <th className="text-center px-3 py-3">غيابات</th>
+                <th className="text-center px-3 py-3">الحضور</th>
+                <th className="text-center px-3 py-3">آخر غياب</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {rows.map(r => (
+                <tr key={r.student_id} className="hover:bg-gray-50/70">
+                  <td className="px-5 py-3">
+                    <div className="font-black text-[13.5px] text-gray-900">{r.full_name}</div>
+                    <div className="text-[11px] text-gray-400 font-semibold">{r.course ?? '—'}</div>
+                  </td>
+                  <td className="px-3 text-[12.5px] font-semibold text-gray-600">{r.teacher ?? '—'}</td>
+                  <td className="text-center px-3">
+                    <span className="px-2.5 py-1 rounded-full bg-red-50 border border-red-200 text-red-700 text-[11.5px] font-black tabular-nums">
+                      {r.absences}
+                    </span>
+                  </td>
+                  <td className="text-center px-3 font-black tabular-nums">
+                    {r.attendance_rate != null ? `${r.attendance_rate}%` : '—'}
+                  </td>
+                  <td className="text-center px-3 text-[12px] font-semibold text-gray-500">
+                    {r.last_absence ? new Date(r.last_absence).toLocaleDateString('ar-MA', { day: 'numeric', month: 'short' }) : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ── Create a teaching account ───────────────────────── */
+
+function NewTeacherModal({
+  onClose, onCreated,
+}: { onClose: () => void; onCreated: (email: string) => void }) {
+  const [name, setName]         = useState('')
+  const [email, setEmail]       = useState('')
+  const [password, setPassword] = useState(() => suggestPassword())
+  const [show, setShow]         = useState(true)
+  const [busy, setBusy]         = useState(false)
+  const [error, setError]       = useState<string | null>(null)
+  const [copied, setCopied]     = useState(false)
+
+  async function submit() {
+    setBusy(true); setError(null)
+    try {
+      await createTeacher(email, password, name)
+      onCreated(email.trim().toLowerCase())
+    } catch (e: any) {
+      setError(e?.message ?? 'تعذّر إنشاء الحساب.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Modal title="أستاذ جديد" onClose={onClose}>
+      <div className="space-y-4">
+        <FieldRow icon={UserIcon} label="الاسم الكامل">
+          <input value={name} onChange={e => setName(e.target.value)} className={inp} placeholder="مثلاً: سعاد بنعلي" />
+        </FieldRow>
+        <FieldRow icon={Mail} label="البريد الإلكتروني">
+          <input value={email} onChange={e => setEmail(e.target.value)} dir="ltr" className={`${inp} text-left`} placeholder="teacher@inglizi.com" />
+        </FieldRow>
+        <FieldRow icon={Lock} label="كلمة المرور">
+          <div className="flex gap-2">
+            <input
+              type={show ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
+              dir="ltr" className={`${inp} text-left font-mono`}
+            />
+            <button onClick={() => setShow(v => !v)} className="px-3 rounded-xl border border-gray-300 text-gray-500 hover:bg-gray-50" aria-label="إظهار">
+              {show ? <EyeOff size={15} /> : <Eye size={15} />}
+            </button>
+            <button
+              onClick={() => { navigator.clipboard.writeText(password); setCopied(true); setTimeout(() => setCopied(false), 1800) }}
+              className="px-3 rounded-xl border border-gray-300 text-gray-500 hover:bg-gray-50" aria-label="نسخ"
+            >
+              {copied ? <Check size={15} className="text-emerald-600" /> : <Copy size={15} />}
+            </button>
+          </div>
+          <p className="text-[11.5px] text-gray-400 font-semibold mt-1.5">
+            انسخها وأرسلها للأستاذ — لن تظهر مرة أخرى.
+          </p>
+        </FieldRow>
+
+        {error && (
+          <div className="rounded-xl bg-red-50 border border-red-200 px-3.5 py-2.5 text-[13px] font-bold text-red-700">{error}</div>
+        )}
+
+        <button
+          onClick={submit} disabled={busy || !email.trim() || password.length < 8}
+          className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gray-900 text-white text-sm font-black hover:bg-gray-800 transition disabled:opacity-50"
+        >
+          {busy && <Loader2 size={16} className="animate-spin" />} إنشاء الحساب
+        </button>
+      </div>
+    </Modal>
+  )
+}
+
+/* ── Assign students ─────────────────────────────────── */
+
+function AssignModal({
+  teacher, actorId, onClose,
+}: { teacher: ScoreboardRow; actorId: string; onClose: () => void }) {
+  const [students, setStudents] = useState<CrmStudent[]>([])
+  const [assigned, setAssigned] = useState<Set<string>>(new Set())
+  const [loading, setLoading]   = useState(true)
+  const [q, setQ]               = useState('')
+  const [savingId, setSaving]   = useState<string | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      const [all, ids] = await Promise.all([
+        fetchStudents({ active: true }), fetchAssignedIds(teacher.id),
+      ])
+      if (!alive) return
+      setStudents(all); setAssigned(new Set(ids)); setLoading(false)
+    })()
+    return () => { alive = false }
+  }, [teacher.id])
+
+  const filtered = useMemo(() => {
+    const needle = q.trim().toLowerCase()
+    if (!needle) return students
+    return students.filter(s => s.full_name.toLowerCase().includes(needle))
+  }, [students, q])
+
+  async function toggle(s: CrmStudent) {
+    setSaving(s.id)
+    const on = assigned.has(s.id)
+    const ok = on
+      ? await unassignStudent(teacher.id, s.id)
+      : await assignStudent(teacher.id, s.id, actorId)
+    if (ok) {
+      setAssigned(prev => {
+        const next = new Set(prev)
+        on ? next.delete(s.id) : next.add(s.id)
+        return next
+      })
+    }
+    setSaving(null)
+  }
+
+  return (
+    <Modal title={`طلاب ${teacher.display_name ?? ''}`} onClose={onClose}>
+      <div className="space-y-3">
+        <div className="relative">
+          <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input value={q} onChange={e => setQ(e.target.value)} className={`${inp} pr-10`} placeholder="ابحث عن طالب…" />
+        </div>
+
+        <div className="flex items-center gap-2 text-[12.5px] font-bold text-gray-500">
+          <Users size={14} /> {assigned.size} مسنَد
+        </div>
+
+        {loading ? (
+          <div className="py-14 flex justify-center text-gray-400"><Loader2 size={18} className="animate-spin" /></div>
+        ) : (
+          <div className="max-h-80 overflow-y-auto rounded-xl border border-gray-200 divide-y divide-gray-100">
+            {filtered.map(s => {
+              const on = assigned.has(s.id)
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => toggle(s)}
+                  disabled={savingId === s.id}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition text-right disabled:opacity-50"
+                >
+                  <span className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 ${
+                    on ? 'bg-gray-900 border-gray-900 text-white' : 'border-gray-300'}`}>
+                    {savingId === s.id ? <Loader2 size={11} className="animate-spin" /> : on ? <Check size={13} /> : null}
+                  </span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block font-bold text-[13.5px] text-gray-900 truncate">{s.full_name}</span>
+                    <span className="block text-[11px] text-gray-400 font-semibold truncate">
+                      {s.course ?? '—'} · {s.student_type === 'private_student' ? 'فردي' : 'دورة'}
+                    </span>
+                  </span>
+                </button>
+              )
+            })}
+            {filtered.length === 0 && (
+              <div className="py-10 text-center text-[13px] font-semibold text-gray-400">لا نتائج</div>
+            )}
+          </div>
+        )}
+      </div>
+    </Modal>
+  )
+}
+
+/* ── Shared bits ─────────────────────────────────────── */
+
+const inp =
+  'w-full px-3.5 py-2.5 rounded-xl border border-gray-300 bg-white text-[14px] font-semibold ' +
+  'focus:outline-none focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10 transition'
+
+function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl border border-gray-200 shadow-xl max-h-[92vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
+          <h2 className="font-black text-[16px] text-gray-900">{title}</h2>
+          <button onClick={onClose} aria-label="إغلاق" className="text-gray-400 hover:text-gray-600"><X size={19} /></button>
+        </div>
+        <div className="p-5">{children}</div>
+      </div>
+    </div>
+  )
+}
+
+function FieldRow({ icon: Icon, label, children }: { icon: typeof Mail; label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <span className="flex items-center gap-1.5 text-[12px] font-black text-gray-500 mb-1.5">
+        <Icon size={13} /> {label}
+      </span>
+      {children}
+    </div>
+  )
+}
+
+/** A readable password the founder can dictate over the phone. */
+function suggestPassword(): string {
+  const words = ['inglizi', 'teach', 'class', 'lesson', 'speak', 'fluent']
+  const w = words[Math.floor(Math.random() * words.length)]
+  return `${w}-${Math.floor(1000 + Math.random() * 9000)}`
+}

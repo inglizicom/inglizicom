@@ -23,6 +23,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 
   const title =
     pathname.includes('/analytics') ? 'الإيرادات والتقارير'
+    : pathname.includes('/teachers')  ? 'الأساتذة'
     : pathname.includes('/settings')  ? 'الإعدادات'
     : 'لوحة الإدارة'
 
