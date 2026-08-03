@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { CalendarPlus, ChevronLeft, Loader2, Video, X } from 'lucide-react'
+import { CalendarDays, CalendarPlus, ChevronLeft, Loader2, Video, X } from 'lucide-react'
 import { useTeacher } from '@/lib/teacher-context'
 import {
   createSession, fetchSessions,
   type ClassSession, type SessionStatus,
 } from '@/lib/teachers'
-import { Card, Empty, Pill, SectionTitle, fmtDate, fmtTime, STATUS_AR } from '../_ui'
+import { Card, DemoBanner, Empty, PageHero, Pill, SectionTitle, fmtDate, fmtTime, STATUS_AR } from '../_ui'
+import { DEMO_SESSIONS, isTeacherDemo } from '../_demo'
 
 const LEVELS = ['A0', 'A1', 'A2', 'B1', 'B2', 'C1']
 
@@ -21,7 +22,10 @@ export default function TeacherClassesPage() {
   const [tab,      setTab]      = useState<'upcoming' | 'past'>('upcoming')
   const [adding,   setAdding]   = useState(false)
 
+  const [demo, setDemo] = useState(false)
+
   const load = useCallback(async () => {
+    if (isTeacherDemo()) { setDemo(true); setSessions(DEMO_SESSIONS); setLoading(false); return }
     setLoading(true)
     const rows = await fetchSessions(teacher.id)
     setSessions(rows)
@@ -44,21 +48,28 @@ export default function TeacherClassesPage() {
   }, {})
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-[26px] font-black tracking-tight">حصصي</h1>
-          <p className="text-stone-500 text-sm font-semibold mt-0.5">
-            {upcoming.length} حصة قادمة · {past.length} منتهية
-          </p>
-        </div>
-        <button
-          onClick={() => setAdding(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-900 text-white text-[13px] font-bold hover:bg-stone-800 transition"
-        >
-          <CalendarPlus size={16} /> برمج حصة
-        </button>
-      </div>
+    <div className="space-y-4">
+      {demo && <DemoBanner />}
+
+      <PageHero
+        icon={CalendarDays} tone="blue" title="حصصي"
+        subtitle="الجدول الكامل — القادم والمنتهي"
+        stats={[
+          { label: 'قادمة',        value: upcoming.length },
+          { label: 'منتهية',       value: past.filter(s => s.status === 'done').length },
+          { label: 'ساعات مُنجزة', value: Math.round(past.filter(s => s.status === 'done').reduce((a, s) => a + s.duration_min, 0) / 6) / 10 },
+          { label: 'ملغاة',        value: past.filter(s => s.status === 'cancelled').length },
+        ]}
+        action={
+          <button
+            onClick={() => !demo && setAdding(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-stone-900 text-[13px] font-black hover:bg-stone-100 transition shadow disabled:opacity-50"
+            disabled={demo}
+          >
+            <CalendarPlus size={16} /> برمج حصة
+          </button>
+        }
+      />
 
       <div className="flex gap-1.5">
         {([['upcoming', 'القادمة'], ['past', 'السابقة']] as const).map(([key, label]) => (

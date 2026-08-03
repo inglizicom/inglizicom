@@ -8,7 +8,8 @@ import {
   fetchReports, fetchReportsOwed, fetchSessions,
   type ClassSession, type LessonReport,
 } from '@/lib/teachers'
-import { Card, Empty, SectionTitle, fmtDateTime } from '../_ui'
+import { Card, DemoBanner, Empty, PageHero, SectionTitle, fmtDateTime } from '../_ui'
+import { DEMO_REPORTS, DEMO_REPORTS_OWED, DEMO_SESSIONS, isTeacherDemo } from '../_demo'
 
 /** Reports filed, and — more importantly — reports owed. A finished class with
  *  no write-up is the thing this page exists to make uncomfortable. */
@@ -19,7 +20,14 @@ export default function TeacherReportsPage() {
   const [sessions, setSessions] = useState<Record<string, ClassSession>>({})
   const [loading,  setLoading]  = useState(true)
 
+  const [demo, setDemo] = useState(false)
+
   const load = useCallback(async () => {
+    if (isTeacherDemo()) {
+      setDemo(true); setOwed(DEMO_REPORTS_OWED); setReports(DEMO_REPORTS)
+      setSessions(Object.fromEntries(DEMO_SESSIONS.map(s => [s.id, s])))
+      setLoading(false); return
+    }
     const [o, r, all] = await Promise.all([
       fetchReportsOwed(teacher.id), fetchReports(teacher.id), fetchSessions(teacher.id),
     ])
@@ -35,13 +43,19 @@ export default function TeacherReportsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-[26px] font-black tracking-tight">تقارير الدروس</h1>
-        <p className="text-stone-500 text-sm font-semibold mt-0.5">
-          {reports.length} تقرير · {owed.length} في الانتظار
-        </p>
-      </div>
+    <div className="space-y-5">
+      {demo && <DemoBanner />}
+
+      <PageHero
+        icon={ClipboardList} tone="rose" title="تقارير الدروس"
+        subtitle="سجل ما أُنجز في كل حصة — لك وللإدارة"
+        stats={[
+          { label: 'تقرير مرسل',   value: reports.length },
+          { label: 'في الانتظار',  value: owed.length },
+          { label: 'يحتاج متابعة', value: reports.reduce((a, r) => a + (r.student_notes ?? []).filter(n => n.needs_help).length, 0) },
+          { label: 'مع واجب',      value: reports.filter(r => !!r.homework).length },
+        ]}
+      />
 
       {owed.length > 0 && (
         <div>

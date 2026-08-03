@@ -12,7 +12,8 @@ import {
   type ClassSession, type TeacherOverview,
 } from '@/lib/teachers'
 import { AreaTrend, AttendanceBar, BarChart, Ring, Spark, VIZ } from './_charts'
-import { Card, Empty, Pill, SectionTitle, fmtDateTime, fromNow, STATUS_AR } from './_ui'
+import { Card, DemoBanner, Empty, Pill, SectionTitle, fmtDateTime, fromNow, STATUS_AR } from './_ui'
+import { DEMO_ATTENDANCE, DEMO_OVERVIEW, DEMO_REPORTS_OWED, DEMO_SESSIONS, isTeacherDemo } from './_demo'
 
 export default function TeacherDashboard() {
   const teacher = useTeacher()
@@ -22,8 +23,15 @@ export default function TeacherDashboard() {
   const [att,      setAtt]      = useState({ present: 0, late: 0, absent: 0, excused: 0 })
   const [loading,  setLoading]  = useState(true)
 
+  const [demo, setDemo] = useState(false)
+
   useEffect(() => {
     let alive = true
+    if (isTeacherDemo()) {
+      setDemo(true); setOv(DEMO_OVERVIEW); setSessions(DEMO_SESSIONS)
+      setOwed(DEMO_REPORTS_OWED); setAtt(DEMO_ATTENDANCE); setLoading(false)
+      return
+    }
     ;(async () => {
       const [o, s, r, a] = await Promise.all([
         fetchTeacherOverview(),
@@ -78,23 +86,24 @@ export default function TeacherDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {demo && <DemoBanner />}
 
       {/* ── Hero ─────────────────────────────────────── */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-l from-stone-900 via-stone-800 to-stone-900 text-white p-6 sm:p-7">
-        <div className="absolute -top-16 -left-10 w-56 h-56 rounded-full bg-amber-400/20 blur-3xl" aria-hidden />
-        <div className="absolute -bottom-20 right-10 w-56 h-56 rounded-full bg-emerald-400/10 blur-3xl" aria-hidden />
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-700 via-violet-700 to-fuchsia-700 text-white p-6 sm:p-7 shadow-xl">
+        <div className="absolute -top-16 -left-10 w-64 h-64 rounded-full bg-amber-400/30 blur-3xl" aria-hidden />
+        <div className="absolute -bottom-24 right-6 w-64 h-64 rounded-full bg-cyan-300/20 blur-3xl" aria-hidden />
 
         <div className="relative flex flex-wrap items-center gap-6">
           <div className="flex-1 min-w-[15rem]">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-[11.5px] font-bold text-amber-200 mb-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur text-[11.5px] font-bold text-amber-200 mb-3">
               <Sparkles size={12} />
               {new Date().toLocaleDateString('ar-MA', { weekday: 'long', day: 'numeric', month: 'long' })}
             </div>
             <h1 className="text-[27px] sm:text-[32px] font-black tracking-tight leading-tight">
               {name ? `أهلاً ${name}` : 'أهلاً بك'} 👋
             </h1>
-            <p className="text-stone-300 text-[14px] font-semibold mt-1.5">
+            <p className="text-white/80 text-[14px] font-semibold mt-1.5">
               {next
                 ? <>حصتك القادمة <span className="text-amber-300 font-black">{fromNow(next.starts_at)}</span> — {next.title}</>
                 : 'لا حصص مبرمجة. أضف حصة ليبدأ العدّ.'}
@@ -119,7 +128,7 @@ export default function TeacherDashboard() {
               <div className="text-center">
                 <Ring pct={attRate} color="#fbbf24" label="حضور" size={96} />
               </div>
-              <div className="hidden sm:block space-y-2.5 border-r border-white/10 pr-5">
+              <div className="hidden sm:block space-y-2.5 border-r border-white/20 pr-5">
                 <HeroStat value={ov?.students_total ?? 0} label="طالب" />
                 <HeroStat value={ov?.hours_month ?? 0}    label="ساعة هذا الشهر" />
               </div>

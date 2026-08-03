@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Loader2, MessageCircle, Search, Users, ShieldCheck } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { fetchMyStudents, type MyStudent } from '@/lib/teachers'
-import { Card, Empty, Pill } from '../_ui'
+import { Card, DemoBanner, Empty, PageHero, Pill } from '../_ui'
+import { DEMO_STUDENTS, isTeacherDemo } from '../_demo'
 
 /** The roster. Phone numbers arrive masked from the database — messaging goes
  *  through /api/teacher/wa, which resolves the real number server-side. */
@@ -13,8 +14,11 @@ export default function TeacherStudentsPage() {
   const [loading,  setLoading]  = useState(true)
   const [q,        setQ]        = useState('')
 
+  const [demo, setDemo] = useState(false)
+
   useEffect(() => {
     let alive = true
+    if (isTeacherDemo()) { setDemo(true); setStudents(DEMO_STUDENTS); setLoading(false); return }
     fetchMyStudents().then(s => { if (alive) { setStudents(s); setLoading(false) } })
     return () => { alive = false }
   }, [])
@@ -28,6 +32,7 @@ export default function TeacherStudentsPage() {
   }, [students, q])
 
   async function message(student: MyStudent) {
+    if (demo) return
     const { data: { session } } = await supabase.auth.getSession()
     const token = session?.access_token
     if (!token) return
@@ -39,23 +44,28 @@ export default function TeacherStudentsPage() {
   }
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-[26px] font-black tracking-tight">طلابي</h1>
-          <p className="text-stone-500 text-sm font-semibold mt-0.5">
-            {students.length} طالب مسنَد إليك
-          </p>
-        </div>
-        <div className="relative w-full sm:w-64">
-          <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400" />
-          <input
-            value={q} onChange={e => setQ(e.target.value)}
-            placeholder="ابحث باسم الطالب…"
-            className="w-full pr-10 pl-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-[13.5px] font-semibold
-                       focus:outline-none focus:border-stone-900 focus:ring-2 focus:ring-stone-900/10 transition"
-          />
-        </div>
+    <div className="space-y-4">
+      {demo && <DemoBanner />}
+
+      <PageHero
+        icon={Users} tone="violet" title="طلابي"
+        subtitle="الطلاب المسنَدون إليك — أرقام الهاتف محجوبة"
+        stats={[
+          { label: 'إجمالي',   value: students.length },
+          { label: 'نشط',      value: students.filter(s => s.is_active).length },
+          { label: 'دورات',    value: students.filter(s => s.student_type !== 'private_student').length },
+          { label: 'فردي',     value: students.filter(s => s.student_type === 'private_student').length },
+        ]}
+      />
+
+      <div className="relative w-full sm:w-72">
+        <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400" />
+        <input
+          value={q} onChange={e => setQ(e.target.value)}
+          placeholder="ابحث باسم الطالب…"
+          className="w-full pr-10 pl-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-[13.5px] font-semibold
+                     focus:outline-none focus:border-stone-900 focus:ring-2 focus:ring-stone-900/10 transition"
+        />
       </div>
 
       {/* Why the number is hidden — say it once, plainly. */}

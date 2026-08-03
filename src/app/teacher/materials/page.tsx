@@ -10,7 +10,8 @@ import {
   deleteMaterial, fetchMaterials, formatSize, materialUrl, uploadMaterial,
   type MaterialVisibility, type TeacherMaterial,
 } from '@/lib/teachers'
-import { Card, Empty } from '../_ui'
+import { Card, DemoBanner, Empty, PageHero } from '../_ui'
+import { DEMO_MATERIALS, isTeacherDemo } from '../_demo'
 
 const ICONS: Record<string, typeof FileText> = {
   pdf: FileText, doc: FileText, slides: Presentation, sheet: Sheet,
@@ -35,7 +36,10 @@ export default function TeacherMaterialsPage() {
   const [error, setError]     = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
+  const [demo, setDemo] = useState(false)
+
   const load = useCallback(async () => {
+    if (isTeacherDemo()) { setDemo(true); setItems(DEMO_MATERIALS); setLoading(false); return }
     setItems(await fetchMaterials(teacher.id))
     setLoading(false)
   }, [teacher.id])
@@ -63,13 +67,19 @@ export default function TeacherMaterialsPage() {
   }
 
   return (
-    <div className="space-y-5">
-      <div>
-        <h1 className="text-[26px] font-black tracking-tight">ملفاتي</h1>
-        <p className="text-stone-500 text-sm font-semibold mt-0.5">
-          دروسك ومرفقاتك — PDF، Word، عروض، صوتيات وفيديو.
-        </p>
-      </div>
+    <div className="space-y-4">
+      {demo && <DemoBanner />}
+
+      <PageHero
+        icon={FolderOpen} tone="emerald" title="ملفاتي"
+        subtitle="دروسك ومرفقاتك — PDF، Word، عروض، صوتيات وفيديو"
+        stats={[
+          { label: 'ملف',        value: items.length },
+          { label: 'الحجم',      value: formatSize(items.reduce((a, m) => a + (m.size_bytes ?? 0), 0)) },
+          { label: 'تحميلات',    value: items.reduce((a, m) => a + m.download_count, 0) },
+          { label: 'خاص بي',     value: items.filter(m => m.visibility === 'private').length },
+        ]}
+      />
 
       {/* Upload */}
       <Card className="p-5">
