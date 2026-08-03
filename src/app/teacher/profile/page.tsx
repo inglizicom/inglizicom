@@ -104,15 +104,25 @@ export default function TeacherProfilePage() {
 
       {/* ── Tutor card ───────────────────────────────── */}
       <Card className="overflow-hidden">
-        <div className="h-24 bg-gradient-to-l from-amber-200 via-amber-100 to-stone-100" />
+        <div className="relative h-32 bg-gradient-to-l from-stone-900 via-stone-800 to-stone-900 overflow-hidden">
+          <div className="absolute -top-10 left-16 w-48 h-48 rounded-full bg-amber-400/25 blur-3xl" aria-hidden />
+          <div className="absolute -bottom-16 right-8 w-48 h-48 rounded-full bg-emerald-400/10 blur-3xl" aria-hidden />
+          {(p?.levels?.length ?? 0) > 0 && (
+            <div className="absolute bottom-3 left-5 flex gap-1.5">
+              {p!.levels.map(l => (
+                <span key={l} className="px-2.5 py-1 rounded-lg bg-white/10 backdrop-blur text-white text-[11px] font-black">{l}</span>
+              ))}
+            </div>
+          )}
+        </div>
         <div className="px-5 sm:px-7 pb-6 -mt-12">
           <div className="flex flex-wrap items-end gap-5">
 
             <div className="relative">
               {p?.avatar_url
                 ? /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={p.avatar_url} alt="" className="w-24 h-24 rounded-2xl object-cover border-4 border-white shadow-sm" />
-                : <div className="w-24 h-24 rounded-2xl bg-stone-900 text-amber-400 border-4 border-white shadow-sm flex items-center justify-center text-3xl font-black">
+                  <img src={p.avatar_url} alt="" className="w-24 h-24 rounded-2xl object-cover border-4 border-white shadow-md" />
+                : <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-500 text-stone-900 border-4 border-white shadow-md flex items-center justify-center text-3xl font-black">
                     {shown.trim().charAt(0)}
                   </div>}
               <button
@@ -154,17 +164,19 @@ export default function TeacherProfilePage() {
       {/* ── Numbers ──────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { icon: Users,        label: 'طلابي',          value: ov?.students_total ?? 0 },
-          { icon: CalendarDays, label: 'حصص هذا الشهر',  value: ov?.classes_month ?? 0 },
-          { icon: Clock,        label: 'ساعات التدريس',  value: ov?.hours_month ?? 0 },
-          { icon: TrendingUp,   label: 'نسبة الحضور',    value: ov?.attendance_rate != null ? `${ov.attendance_rate}%` : '—' },
+          { icon: Users,        label: 'طلابي',          value: ov?.students_total ?? 0,  tone: 'bg-amber-100 text-amber-700' },
+          { icon: CalendarDays, label: 'حصص هذا الشهر',  value: ov?.classes_month ?? 0,   tone: 'bg-blue-100 text-blue-700' },
+          { icon: Clock,        label: 'ساعات التدريس',  value: ov?.hours_month ?? 0,     tone: 'bg-emerald-100 text-emerald-700' },
+          { icon: TrendingUp,   label: 'نسبة الحضور',    value: ov?.attendance_rate != null ? `${ov.attendance_rate}%` : '—', tone: 'bg-violet-100 text-violet-700' },
         ].map(s => (
-          <Card key={s.label} className="p-4">
-            <div className="flex items-center gap-2 text-stone-400 mb-1">
-              <s.icon size={15} />
-              <span className="text-[11.5px] font-bold">{s.label}</span>
+          <Card key={s.label} className="p-4 flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${s.tone}`}>
+              <s.icon size={18} />
             </div>
-            <div className="text-[24px] font-black tabular-nums leading-none">{s.value}</div>
+            <div className="min-w-0">
+              <div className="text-[11.5px] font-bold text-stone-400 truncate">{s.label}</div>
+              <div className="text-[23px] font-black tabular-nums leading-tight">{s.value}</div>
+            </div>
           </Card>
         ))}
       </div>

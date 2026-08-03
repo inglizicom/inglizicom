@@ -297,6 +297,24 @@ export async function markAttendance(
   return true
 }
 
+/** Attendance tallied across every session this teacher has run — feeds the
+ *  attendance bar on the dashboard. */
+export async function fetchAttendanceTotals(
+  teacherId: string,
+): Promise<{ present: number; late: number; absent: number; excused: number }> {
+  const empty = { present: 0, late: 0, absent: 0, excused: 0 }
+  const { data, error } = await supabase
+    .from('class_attendance')
+    .select('status, class_sessions!inner(teacher_id)')
+    .eq('class_sessions.teacher_id', teacherId)
+  if (error) { console.error('fetchAttendanceTotals', error.message); return empty }
+  return (data ?? []).reduce((acc: typeof empty, row: any) => {
+    const k = row.status as keyof typeof empty
+    if (k in acc) acc[k] += 1
+    return acc
+  }, { ...empty })
+}
+
 /* ── Lesson reports ────────────────────────────────────── */
 
 export async function fetchReport(sessionId: string): Promise<LessonReport | null> {
