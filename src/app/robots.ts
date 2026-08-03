@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/admin/', '/sales/', '/crm-login', '/student-space', '/private/', '/api/'],
+        disallow: ['/admin/', '/sales/', '/crm-login', '/student-space', '/teacher', '/private/', '/api/'],
       },
     ],
     sitemap: 'https://inglizi.com/sitemap.xml',
