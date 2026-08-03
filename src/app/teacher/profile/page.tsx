@@ -1,270 +1,425 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
-  Camera, Check, Loader2, MessageSquareQuote, Pencil, Plus, X,
-  Users, CalendarDays, Clock, TrendingUp,
+  Award, BadgeCheck, BookOpen, Camera, CalendarClock, Clock, Flame, GraduationCap,
+  Image as ImageIcon, Languages, Loader2, MessageSquareQuote, Pencil, ShieldCheck,
+  Sparkles, Star, Trophy, Users, Video, XCircle,
 } from 'lucide-react'
 import { useTeacher } from '@/lib/teacher-context'
 import {
-  fetchMyReviews, fetchMyStudents, fetchTeacherOverview, saveTeacherProfile,
-  uploadTeacherAvatar,
-  type MyStudent, type TeacherOverview, type TeacherReview,
+  fetchTeacherProfileFull, uploadTeacherAvatar, uploadTeacherCover,
+  type TeacherProfileFull,
 } from '@/lib/teachers'
-import { Card, Empty, SectionTitle, Stars } from '../_ui'
+import { Donut, HBars, Ring, VIZ } from '../_charts'
+import { Card, Empty, Pill, SectionTitle, Stars, fmtTime, STATUS_AR } from '../_ui'
+import ProfileEditor from './ProfileEditor'
 
-const LEVELS = ['A0', 'A1', 'A2', 'B1', 'B2', 'C1']
-
-/** The teacher's public face: the card a student would judge them by, plus the
- *  reviews those students left. Editing happens in place — no separate screen. */
+/**
+ * The tutor page. Two kinds of block, kept visually distinct on purpose:
+ * declared blocks carry a pencil and are the teacher's own claims; computed
+ * blocks carry no editing affordance at all, because they come from rows.
+ */
 export default function TeacherProfilePage() {
   const teacher = useTeacher()
-  const p       = teacher.profile
-
+  const [full, setFull]       = useState<TeacherProfileFull | null>(null)
+  const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
-  const [saving,  setSaving]  = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const fileRef = useRef<HTMLInputElement>(null)
+  const [busyCover, setBusyCover] = useState(false)
+  const [busyAvatar, setBusyAvatar] = useState(false)
 
-  const [displayName, setDisplayName] = useState(p?.display_name ?? '')
-  const [headline,    setHeadline]    = useState(p?.headline ?? '')
-  const [bio,         setBio]         = useState(p?.bio ?? '')
-  const [whatsapp,    setWhatsapp]    = useState(p?.whatsapp ?? '')
-  const [levels,      setLevels]      = useState<string[]>(p?.levels ?? [])
-  const [specialties, setSpecialties] = useState<string[]>(p?.specialties ?? [])
-  const [languages,   setLanguages]   = useState<string[]>(p?.languages ?? [])
-  const [specInput,   setSpecInput]   = useState('')
-  const [langInput,   setLangInput]   = useState('')
+  async function load() {
+    const f = await fetchTeacherProfileFull(teacher.id)
+    setFull(f); setLoading(false)
+  }
+  useEffect(() => { load() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [teacher.id])
 
-  const [reviews,  setReviews]  = useState<TeacherReview[]>([])
-  const [students, setStudents] = useState<MyStudent[]>([])
-  const [ov,       setOv]       = useState<TeacherOverview | null>(null)
-  const [loading,  setLoading]  = useState(true)
-
-  useEffect(() => {
-    let alive = true
-    ;(async () => {
-      const [r, s, o] = await Promise.all([
-        fetchMyReviews(teacher.id), fetchMyStudents(), fetchTeacherOverview(),
-      ])
-      if (!alive) return
-      setReviews(r); setStudents(s); setOv(o); setLoading(false)
-    })()
-    return () => { alive = false }
-  }, [teacher.id])
-
-  // Re-seed the form whenever the stored profile changes under us.
-  useEffect(() => {
-    if (!p || editing) return
-    setDisplayName(p.display_name ?? ''); setHeadline(p.headline ?? '')
-    setBio(p.bio ?? ''); setWhatsapp(p.whatsapp ?? '')
-    setLevels(p.levels ?? []); setSpecialties(p.specialties ?? []); setLanguages(p.languages ?? [])
-  }, [p, editing])
-
-  const nameOf = useMemo(() => {
-    const map = new Map(students.map(s => [s.id, s.full_name]))
-    return (id: string) => map.get(id) ?? 'طالب'
-  }, [students])
-
-  const distribution = useMemo(() => {
-    const counts = [0, 0, 0, 0, 0]   // index 0 = 1 star
-    reviews.forEach(r => { if (r.rating >= 1 && r.rating <= 5) counts[r.rating - 1] += 1 })
-    return counts
-  }, [reviews])
-
-  async function save() {
-    setSaving(true)
-    const ok = await saveTeacherProfile(teacher.id, {
-      display_name: displayName.trim() || null,
-      headline:     headline.trim() || null,
-      bio:          bio.trim() || null,
-      whatsapp:     whatsapp.trim() || null,
-      levels, specialties, languages,
-    })
-    setSaving(false)
-    if (ok) { await teacher.refresh(); setEditing(false) }
+  if (loading) {
+    return <div className="py-32 flex justify-center text-stone-400"><Loader2 size={20} className="animate-spin" /></div>
+  }
+  if (!full) {
+    return <Card className="p-10 text-center font-black text-stone-600">تعذّر تحميل الملف الشخصي.</Card>
   }
 
+  const p = full.profile
+  const s = full.stats
+  const name = p.display_name || full.identity.full_name || 'أستاذ'
+
+  async function onCover(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0]; if (!f) return
+    setBusyCover(true); await uploadTeacherCover(teacher.id, f); await load(); await teacher.refresh(); setBusyCover(false)
+  }
   async function onAvatar(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploading(true)
-    await uploadTeacherAvatar(teacher.id, file)
-    await teacher.refresh()
-    setUploading(false)
-    if (fileRef.current) fileRef.current.value = ''
+    const f = e.target.files?.[0]; if (!f) return
+    setBusyAvatar(true); await uploadTeacherAvatar(teacher.id, f); await load(); await teacher.refresh(); setBusyAvatar(false)
   }
-
-  const shown   = p?.display_name || teacher.fullName || teacher.email || 'أستاذ'
-  const rating  = p?.rating_avg ?? 0
-  const count   = p?.rating_count ?? 0
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-5">
 
-      {/* ── Tutor card ───────────────────────────────── */}
+      {/* ═══ Identity ═══════════════════════════════════ */}
       <Card className="overflow-hidden">
-        <div className="relative h-32 bg-gradient-to-l from-stone-900 via-stone-800 to-stone-900 overflow-hidden">
-          <div className="absolute -top-10 left-16 w-48 h-48 rounded-full bg-amber-400/25 blur-3xl" aria-hidden />
-          <div className="absolute -bottom-16 right-8 w-48 h-48 rounded-full bg-emerald-400/10 blur-3xl" aria-hidden />
-          {(p?.levels?.length ?? 0) > 0 && (
-            <div className="absolute bottom-3 left-5 flex gap-1.5">
-              {p!.levels.map(l => (
-                <span key={l} className="px-2.5 py-1 rounded-lg bg-white/10 backdrop-blur text-white text-[11px] font-black">{l}</span>
-              ))}
+        {/* Cover */}
+        <div className="relative h-40 sm:h-52 bg-gradient-to-l from-indigo-900 via-violet-800 to-fuchsia-700 overflow-hidden">
+          {p.cover_url && (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={p.cover_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
+          <label className="absolute top-3 left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/40 backdrop-blur text-white text-[11.5px] font-bold cursor-pointer hover:bg-black/60 transition">
+            {busyCover ? <Loader2 size={13} className="animate-spin" /> : <ImageIcon size={13} />}
+            تغيير الغلاف
+            <input type="file" accept="image/*" hidden onChange={onCover} />
+          </label>
+
+          {s.is_top_rated && (
+            <div className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-400 text-stone-900 text-[12px] font-black shadow-lg">
+              <Trophy size={13} /> أستاذ متميّز
             </div>
           )}
         </div>
-        <div className="px-5 sm:px-7 pb-6 -mt-12">
-          <div className="flex flex-wrap items-end gap-5">
 
+        <div className="px-5 sm:px-7 pb-6 -mt-14 relative">
+          <div className="flex flex-wrap items-end gap-5">
             <div className="relative">
-              {p?.avatar_url
+              {p.avatar_url
                 ? /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={p.avatar_url} alt="" className="w-24 h-24 rounded-2xl object-cover border-4 border-white shadow-md" />
-                : <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-500 text-stone-900 border-4 border-white shadow-md flex items-center justify-center text-3xl font-black">
-                    {shown.trim().charAt(0)}
+                  <img src={p.avatar_url} alt="" className="w-28 h-28 rounded-2xl object-cover border-4 border-white shadow-lg" />
+                : <div className="w-28 h-28 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white border-4 border-white shadow-lg flex items-center justify-center text-4xl font-black">
+                    {name.trim().charAt(0)}
                   </div>}
-              <button
-                onClick={() => fileRef.current?.click()}
-                className="absolute -bottom-1 -left-1 w-8 h-8 rounded-full bg-stone-900 text-white flex items-center justify-center shadow hover:bg-stone-700 transition"
-                aria-label="تغيير الصورة"
-              >
-                {uploading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
-              </button>
-              <input ref={fileRef} type="file" accept="image/*" hidden onChange={onAvatar} />
+              <label className="absolute -bottom-1 -left-1 w-9 h-9 rounded-full bg-stone-900 text-white flex items-center justify-center shadow cursor-pointer hover:bg-stone-700 transition">
+                {busyAvatar ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+                <input type="file" accept="image/*" hidden onChange={onAvatar} />
+              </label>
             </div>
 
-            <div className="flex-1 min-w-[14rem] pb-1">
-              <h1 className="text-[24px] font-black tracking-tight">{shown}</h1>
-              <p className="text-stone-500 text-[14px] font-semibold">
-                {p?.headline || 'أضف عنواناً مهنياً — مثلاً: محادثة وتحضير IELTS · 5 سنوات خبرة'}
+            <div className="flex-1 min-w-[15rem] pb-1">
+              <h1 className="font-display text-[30px] sm:text-[38px] font-black tracking-tight leading-none">{name}</h1>
+              <p className="text-[15px] font-bold text-violet-700 mt-2">
+                {p.tagline || 'أضف جملة تصف ما تُتقنه أكثر'}
               </p>
-              <div className="flex items-center gap-2 mt-2">
-                <Stars value={rating} />
-                <span className="text-[13px] font-black tabular-nums">{count ? Number(rating).toFixed(1) : '—'}</span>
-                <span className="text-[12.5px] text-stone-400 font-semibold">
-                  {count ? `(${count} تقييم)` : 'لا تقييمات بعد'}
-                </span>
+
+              <div className="flex flex-wrap items-center gap-3 mt-3">
+                <div className="flex items-center gap-1.5">
+                  <Stars value={s.rating_avg} size={15} />
+                  <span className="text-[14px] font-black tabular-nums">
+                    {s.rating_count ? Number(s.rating_avg).toFixed(1) : '—'}
+                  </span>
+                  <span className="text-[12.5px] text-stone-400 font-semibold">
+                    {s.rating_count ? `(${s.rating_count} تقييم)` : 'لا تقييمات بعد'}
+                  </span>
+                </div>
+                {p.english_level && (
+                  <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[12px] font-black">
+                    <Languages size={12} /> الإنجليزية {p.english_level}
+                  </span>
+                )}
+                {p.years_experience != null && (
+                  <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-[12px] font-black">
+                    <Clock size={12} /> {p.years_experience} سنوات خبرة
+                  </span>
+                )}
               </div>
             </div>
 
             <button
-              onClick={() => (editing ? save() : setEditing(true))}
-              disabled={saving}
-              className="mb-1 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-900 text-white text-[13px] font-bold hover:bg-stone-800 transition disabled:opacity-50"
+              onClick={() => setEditing(true)}
+              className="mb-1 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-stone-900 text-white text-[13px] font-black hover:bg-stone-800 transition"
             >
-              {saving ? <Loader2 size={15} className="animate-spin" /> : editing ? <Check size={15} /> : <Pencil size={15} />}
-              {editing ? 'حفظ' : 'تعديل الملف'}
+              <Pencil size={15} /> تعديل الملف
             </button>
           </div>
         </div>
       </Card>
 
-      {/* ── Numbers ──────────────────────────────────── */}
+      {/* ═══ Headline numbers ═══════════════════════════ */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {[
-          { icon: Users,        label: 'طلابي',          value: ov?.students_total ?? 0,  tone: 'bg-amber-100 text-amber-700' },
-          { icon: CalendarDays, label: 'حصص هذا الشهر',  value: ov?.classes_month ?? 0,   tone: 'bg-blue-100 text-blue-700' },
-          { icon: Clock,        label: 'ساعات التدريس',  value: ov?.hours_month ?? 0,     tone: 'bg-emerald-100 text-emerald-700' },
-          { icon: TrendingUp,   label: 'نسبة الحضور',    value: ov?.attendance_rate != null ? `${ov.attendance_rate}%` : '—', tone: 'bg-violet-100 text-violet-700' },
-        ].map(s => (
-          <Card key={s.label} className="p-4 flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${s.tone}`}>
-              <s.icon size={18} />
-            </div>
-            <div className="min-w-0">
-              <div className="text-[11.5px] font-bold text-stone-400 truncate">{s.label}</div>
-              <div className="text-[23px] font-black tabular-nums leading-tight">{s.value}</div>
-            </div>
-          </Card>
-        ))}
+        <Stat icon={Users}        tone="violet" label="إجمالي الطلاب"  value={s.students_total} sub={`${s.students_active} نشط`} />
+        <Stat icon={GraduationCap} tone="blue"  label="حصص أُنجزت"     value={s.classes_done}   sub={`${s.hours_total} ساعة`} />
+        <Stat icon={BadgeCheck}   tone="emerald" label="امتحانات صُحّحت" value={s.exams_corrected} sub={`${s.exams_passed} ناجح`} />
+        <Stat icon={Star}         tone="amber"  label="التقييم"        value={s.rating_count ? Number(s.rating_avg).toFixed(1) : '—'} sub={`${s.rating_count} تقييم`} />
       </div>
 
-      {/* ── Details ──────────────────────────────────── */}
-      <Card className="p-5 sm:p-6 space-y-5">
-        <SectionTitle>عن الأستاذ</SectionTitle>
+      {/* ═══ Bio + competences ══════════════════════════ */}
+      <div className="grid lg:grid-cols-3 gap-3">
+        <Card className="p-5 sm:p-6 lg:col-span-2">
+          <SectionTitle>نبذة</SectionTitle>
+          <p className="text-[14.5px] leading-[1.9] text-stone-600 whitespace-pre-wrap">
+            {p.bio || 'لا نبذة بعد — اضغط «تعديل الملف».'}
+          </p>
 
-        {editing ? (
-          <div className="space-y-4">
-            <Field label="الاسم المعروض">
-              <input value={displayName} onChange={e => setDisplayName(e.target.value)} className={inputCls} placeholder="حمزة القصراوي" />
-            </Field>
-            <Field label="العنوان المهني">
-              <input value={headline} onChange={e => setHeadline(e.target.value)} className={inputCls} placeholder="محادثة وتحضير IELTS · 5 سنوات خبرة" />
-            </Field>
-            <Field label="نبذة">
-              <textarea value={bio} onChange={e => setBio(e.target.value)} rows={4} className={inputCls} placeholder="كيف تُدرّس، ولمن، وما الذي يميّز حصصك…" />
-            </Field>
-            <Field label="واتساب">
-              <input value={whatsapp} onChange={e => setWhatsapp(e.target.value)} dir="ltr" className={`${inputCls} text-left`} placeholder="+2126…" />
-            </Field>
-
-            <Field label="المستويات التي تُدرّسها">
+          {p.competences.length > 0 && (
+            <div className="mt-5 pt-5 border-t border-stone-100">
+              <h3 className="text-[13px] font-black text-stone-500 mb-2.5">المهارات والكفاءات</h3>
               <div className="flex flex-wrap gap-2">
-                {LEVELS.map(l => {
-                  const on = levels.includes(l)
-                  return (
-                    <button
-                      key={l}
-                      onClick={() => setLevels(v => on ? v.filter(x => x !== l) : [...v, l])}
-                      className={`px-3.5 py-1.5 rounded-full text-[12.5px] font-bold border transition ${
-                        on ? 'bg-stone-900 text-white border-stone-900' : 'bg-white text-stone-600 border-stone-300 hover:border-stone-400'}`}
-                    >
-                      {l}
-                    </button>
-                  )
-                })}
+                {p.competences.map(c => (
+                  <span key={c} className="px-3 py-1.5 rounded-lg bg-violet-50 text-violet-800 text-[12.5px] font-bold border border-violet-100">
+                    {c}
+                  </span>
+                ))}
               </div>
-            </Field>
+            </div>
+          )}
+        </Card>
 
-            <TagField label="التخصصات" items={specialties} setItems={setSpecialties}
-                      input={specInput} setInput={setSpecInput} placeholder="محادثة، نطق، إنجليزية الأعمال…" />
-            <TagField label="اللغات" items={languages} setItems={setLanguages}
-                      input={langInput} setInput={setLangInput} placeholder="العربية، الفرنسية…" />
-
-            <button onClick={() => setEditing(false)} className="text-[13px] font-bold text-stone-500 hover:text-stone-700">
-              إلغاء
-            </button>
-          </div>
-        ) : (
+        <Card className="p-5 sm:p-6">
+          <SectionTitle>ماذا يُدرّس</SectionTitle>
           <div className="space-y-4">
-            <p className="text-[14.5px] leading-relaxed text-stone-600 whitespace-pre-wrap">
-              {p?.bio || 'لا نبذة بعد — اضغط «تعديل الملف» لكتابة تعريف بك يراه الطلاب.'}
-            </p>
-            <ChipRow label="المستويات"  items={p?.levels ?? []} />
-            <ChipRow label="التخصصات"  items={p?.specialties ?? []} />
-            <ChipRow label="اللغات"    items={p?.languages ?? []} />
+            {p.levels.length > 0 && (
+              <div>
+                <h3 className="text-[12px] font-black text-stone-400 mb-2">المستويات</h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {p.levels.map(l => (
+                    <span key={l} className="px-3 py-1.5 rounded-lg bg-stone-900 text-white text-[12px] font-black">{l}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {p.teaches.length > 0 && (
+              <div>
+                <h3 className="text-[12px] font-black text-emerald-700 mb-2 flex items-center gap-1.5">
+                  <ShieldCheck size={13} /> يُدرّس
+                </h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {p.teaches.map(t => (
+                    <span key={t} className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 text-[12px] font-bold border border-emerald-200">{t}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {p.not_teaches.length > 0 && (
+              <div>
+                <h3 className="text-[12px] font-black text-stone-400 mb-2 flex items-center gap-1.5">
+                  <XCircle size={13} /> لا يُدرّس
+                </h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {p.not_teaches.map(t => (
+                    <span key={t} className="px-2.5 py-1 rounded-lg bg-stone-100 text-stone-500 text-[12px] font-bold line-through">{t}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {(p.age_min || p.age_max) && (
+              <div className="pt-3 border-t border-stone-100">
+                <h3 className="text-[12px] font-black text-stone-400 mb-1">الفئة العمرية</h3>
+                <p className="text-[15px] font-black">
+                  {p.age_min ?? '—'} – {p.age_max ?? '—'} سنة
+                </p>
+              </div>
+            )}
+          </div>
+        </Card>
+      </div>
+
+      {/* ═══ Who he actually teaches — computed ═════════ */}
+      <div className="grid lg:grid-cols-3 gap-3">
+        <Card className="p-5">
+          <SectionTitle>طلابي حسب الجنس</SectionTitle>
+          <Donut data={[
+            { label: 'ذكور', value: full.gender_split.male },
+            { label: 'إناث', value: full.gender_split.female },
+            { label: 'غير محدد', value: full.gender_split.unknown },
+          ]} />
+        </Card>
+
+        <Card className="p-5">
+          <SectionTitle action={full.avg_age ? <span className="text-[11.5px] font-bold text-stone-400">المتوسط {full.avg_age} سنة</span> : undefined}>
+            الأعمار
+          </SectionTitle>
+          {full.age_bands.length > 0
+            ? <HBars data={full.age_bands.map(b => ({ label: b.band, value: b.count }))} color="#7c3aed" />
+            : <p className="py-8 text-center text-[12.5px] font-bold text-stone-300">
+                أضف سنة ميلاد الطلاب في الـCRM ليظهر هذا الرسم.
+              </p>}
+        </Card>
+
+        <Card className="p-5">
+          <SectionTitle>المستويات</SectionTitle>
+          <HBars data={full.level_split.map(l => ({ label: l.level, value: l.count }))} color={VIZ.amber} />
+        </Card>
+      </div>
+
+      {/* ═══ Weekly schedule ════════════════════════════ */}
+      <Card className="p-5 sm:p-6">
+        <SectionTitle action={<span className="text-[11.5px] font-bold text-stone-400">الأسبوعان القادمان</span>}>
+          <span className="flex items-center gap-2"><CalendarClock size={17} className="text-blue-600" /> جدول الحصص</span>
+        </SectionTitle>
+
+        {full.upcoming.length === 0 ? (
+          <Empty icon={CalendarClock} title="لا حصص مبرمجة" hint="الحصص التي تبرمجها تظهر هنا بتوقيتها وعنوانها." />
+        ) : (
+          <div className="space-y-2">
+            {full.upcoming.map(u => (
+              <div key={u.id} className="flex items-center gap-4 p-3 rounded-xl border border-stone-200 hover:border-blue-300 transition">
+                <div className="w-16 text-center shrink-0 py-1 rounded-lg bg-blue-50">
+                  <div className="text-[10.5px] font-bold text-blue-500">
+                    {new Date(u.starts_at).toLocaleDateString('ar-MA', { weekday: 'short' })}
+                  </div>
+                  <div className="text-[15px] font-black text-blue-900 tabular-nums leading-tight">{fmtTime(u.starts_at)}</div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-black text-[14.5px] truncate">{u.title}</div>
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                    <Pill tone="muted">{STATUS_AR[u.mode]}</Pill>
+                    {u.level && <Pill tone="muted">{u.level}</Pill>}
+                    <span className="text-[11.5px] font-bold text-stone-400">{u.duration_min} دقيقة</span>
+                  </div>
+                </div>
+                {u.meeting_url && (
+                  <a href={u.meeting_url} target="_blank" rel="noopener noreferrer"
+                     className="p-2 rounded-lg bg-stone-900 text-white hover:bg-stone-700 transition shrink-0" aria-label="دخول">
+                    <Video size={15} />
+                  </a>
+                )}
+              </div>
+            ))}
           </div>
         )}
       </Card>
 
-      {/* ── Reviews ──────────────────────────────────── */}
-      <div id="reviews">
-        <SectionTitle>آراء الطلاب</SectionTitle>
+      {/* ═══ Top students ═══════════════════════════════ */}
+      <Card className="p-5 sm:p-6">
+        <SectionTitle action={<span className="text-[11.5px] font-bold text-stone-400">حسب النقاط والمواظبة والامتحانات</span>}>
+          <span className="flex items-center gap-2"><Trophy size={17} className="text-amber-500" /> أبرز طلابي</span>
+        </SectionTitle>
 
+        {full.top_students.length === 0 ? (
+          <Empty icon={Users} title="لا طلاب مسنَدين بعد" hint="تُسنِد الإدارة الطلاب إليك، وتظهر نتائجهم هنا تلقائياً." />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[34rem]">
+              <thead>
+                <tr className="text-[11px] font-black text-stone-400 border-b border-stone-200">
+                  <th className="text-right pb-2">#</th>
+                  <th className="text-right pb-2">الطالب</th>
+                  <th className="text-center pb-2">المستوى</th>
+                  <th className="text-center pb-2">النقاط</th>
+                  <th className="text-center pb-2">المواظبة</th>
+                  <th className="text-center pb-2">امتحانات</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-stone-100">
+                {full.top_students.slice(0, 8).map((st, i) => (
+                  <tr key={st.id} className="hover:bg-amber-50/40">
+                    <td className="py-2.5">
+                      <span className={`inline-flex w-6 h-6 rounded-lg items-center justify-center text-[11px] font-black ${
+                        i === 0 ? 'bg-amber-400 text-stone-900'
+                        : i === 1 ? 'bg-stone-300 text-stone-800'
+                        : i === 2 ? 'bg-orange-300 text-stone-900'
+                        : 'bg-stone-100 text-stone-500'}`}>{i + 1}</span>
+                    </td>
+                    <td className="py-2.5">
+                      <div className="flex items-center gap-2.5">
+                        {st.avatar_url
+                          ? /* eslint-disable-next-line @next/next/no-img-element */
+                            <img src={st.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover" />
+                          : <div className="w-8 h-8 rounded-full bg-stone-100 text-stone-500 flex items-center justify-center font-black text-[12px]">
+                              {st.name.trim().charAt(0)}
+                            </div>}
+                        <span className="font-bold text-[13.5px] truncate">{st.name}</span>
+                      </div>
+                    </td>
+                    <td className="text-center text-[12px] font-bold text-stone-500">{st.level ?? '—'}</td>
+                    <td className="text-center font-black tabular-nums text-amber-700">{st.coins}</td>
+                    <td className="text-center">
+                      <span className="inline-flex items-center gap-1 font-black tabular-nums text-orange-600">
+                        <Flame size={12} /> {st.streak}
+                      </span>
+                    </td>
+                    <td className="text-center font-black tabular-nums text-emerald-700">{st.exams_passed}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      {/* ═══ Qualifications ═════════════════════════════ */}
+      {(p.certificates.length > 0 || p.experiences.length > 0) && (
+        <div className="grid lg:grid-cols-2 gap-3">
+          {p.certificates.length > 0 && (
+            <Card className="p-5 sm:p-6">
+              <SectionTitle><span className="flex items-center gap-2"><Award size={17} className="text-amber-600" /> الشهادات</span></SectionTitle>
+              <div className="space-y-3">
+                {p.certificates.map((c, i) => (
+                  <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-amber-50/60 border border-amber-100">
+                    <div className="w-9 h-9 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                      <Award size={16} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-black text-[13.5px]">{c.title}</div>
+                      <div className="text-[12px] text-stone-500 font-semibold">
+                        {[c.issuer, c.year].filter(Boolean).join(' · ')}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {p.experiences.length > 0 && (
+            <Card className="p-5 sm:p-6">
+              <SectionTitle><span className="flex items-center gap-2"><BookOpen size={17} className="text-blue-600" /> الخبرات</span></SectionTitle>
+              <div className="relative pr-4">
+                <div className="absolute right-1 top-2 bottom-2 w-px bg-stone-200" aria-hidden />
+                <div className="space-y-4">
+                  {p.experiences.map((e, i) => (
+                    <div key={i} className="relative">
+                      <span className="absolute -right-[13px] top-1.5 w-2.5 h-2.5 rounded-full bg-blue-500 ring-4 ring-white" aria-hidden />
+                      <div className="font-black text-[13.5px]">{e.role}</div>
+                      <div className="text-[12px] text-stone-500 font-bold">
+                        {[e.org, [e.from, e.to].filter(Boolean).join(' – ')].filter(Boolean).join(' · ')}
+                      </div>
+                      {e.description && <p className="text-[12.5px] text-stone-500 mt-1 leading-relaxed">{e.description}</p>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Card>
+          )}
+        </div>
+      )}
+
+      {/* ═══ What students like ═════════════════════════ */}
+      {p.liked_qualities.length > 0 && (
         <Card className="p-5 sm:p-6">
-          {loading ? (
-            <div className="py-10 flex justify-center text-stone-400"><Loader2 size={18} className="animate-spin" /></div>
-          ) : reviews.length === 0 ? (
-            <Empty
-              icon={MessageSquareQuote}
-              title="لا تقييمات بعد"
-              hint="يظهر هنا رأي كل طالب بعد أن يقيّمك من فضائه الخاص."
-            />
+          <SectionTitle><span className="flex items-center gap-2"><Sparkles size={17} className="text-fuchsia-600" /> ما يحبه الطلاب</span></SectionTitle>
+          <div className="flex flex-wrap gap-2">
+            {p.liked_qualities.map((q, i) => (
+              <span key={q} className={`px-3.5 py-2 rounded-xl text-[13px] font-bold border ${
+                ['bg-fuchsia-50 text-fuchsia-800 border-fuchsia-200',
+                 'bg-blue-50 text-blue-800 border-blue-200',
+                 'bg-emerald-50 text-emerald-800 border-emerald-200',
+                 'bg-amber-50 text-amber-800 border-amber-200'][i % 4]}`}>
+                {q}
+              </span>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* ═══ Testimonials ═══════════════════════════════ */}
+      <div id="reviews">
+        <SectionTitle><span className="flex items-center gap-2"><MessageSquareQuote size={17} className="text-violet-600" /> آراء الطلاب</span></SectionTitle>
+        <Card className="p-5 sm:p-6">
+          {full.testimonials.length === 0 ? (
+            <Empty icon={MessageSquareQuote} title="لا تقييمات بعد"
+                   hint="يظهر هنا رأي كل طالب بعد أن يقيّمك من فضائه الخاص." />
           ) : (
             <div className="space-y-6">
-              {/* Distribution */}
-              <div className="flex flex-wrap gap-6 items-center pb-5 border-b border-stone-100">
+              <div className="flex flex-wrap gap-7 items-center pb-5 border-b border-stone-100">
                 <div className="text-center">
-                  <div className="text-[40px] font-black leading-none tabular-nums">{Number(rating).toFixed(1)}</div>
-                  <Stars value={rating} size={15} />
-                  <div className="text-[12px] text-stone-400 font-semibold mt-1">{count} تقييم</div>
+                  <div className="text-[42px] font-black leading-none tabular-nums">{Number(s.rating_avg).toFixed(1)}</div>
+                  <Stars value={s.rating_avg} size={15} />
+                  <div className="text-[12px] text-stone-400 font-semibold mt-1">{s.rating_count} تقييم</div>
                 </div>
                 <div className="flex-1 min-w-[12rem] space-y-1.5">
                   {[5, 4, 3, 2, 1].map(star => {
-                    const n   = distribution[star - 1]
-                    const pct = count ? Math.round((n / count) * 100) : 0
+                    const n   = full.rating_breakdown[String(star)] ?? 0
+                    const pct = s.rating_count ? Math.round((n / s.rating_count) * 100) : 0
                     return (
                       <div key={star} className="flex items-center gap-2.5">
                         <span className="text-[11.5px] font-bold text-stone-400 w-3 tabular-nums">{star}</span>
@@ -276,29 +431,26 @@ export default function TeacherProfilePage() {
                     )
                   })}
                 </div>
+                {s.attendance_rate != null && (
+                  <div className="text-center">
+                    <Ring pct={s.attendance_rate} label="حضور" size={84} color="#7c3aed" />
+                  </div>
+                )}
               </div>
 
-              {/* The reviews themselves */}
-              <div className="divide-y divide-stone-100">
-                {reviews.map(r => (
-                  <div key={r.id} className="py-4 first:pt-0 last:pb-0">
-                    <div className="flex items-center justify-between gap-3 mb-1.5">
+              <div className="grid sm:grid-cols-2 gap-3">
+                {full.testimonials.map(t => (
+                  <div key={t.id} className="p-4 rounded-2xl bg-gradient-to-br from-violet-50 to-white border border-violet-100">
+                    <div className="flex items-center justify-between gap-2 mb-2">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-stone-100 text-stone-500 flex items-center justify-center font-black text-[13px]">
-                          {nameOf(r.student_id).trim().charAt(0)}
+                        <div className="w-8 h-8 rounded-full bg-violet-200 text-violet-800 flex items-center justify-center font-black text-[12px]">
+                          {(t.student_name ?? 'ط').trim().charAt(0)}
                         </div>
-                        <span className="font-bold text-[14px]">{nameOf(r.student_id)}</span>
+                        <span className="font-black text-[13px]">{t.student_name ?? 'طالب'}</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Stars value={r.rating} size={13} />
-                        <span className="text-[11.5px] text-stone-400 font-semibold">
-                          {new Date(r.created_at).toLocaleDateString('ar-MA', { day: 'numeric', month: 'short' })}
-                        </span>
-                      </div>
+                      <Stars value={t.rating} size={12} />
                     </div>
-                    {r.comment && (
-                      <p className="text-[14px] text-stone-600 leading-relaxed pr-10">{r.comment}</p>
-                    )}
+                    {t.comment && <p className="text-[13.5px] text-stone-600 leading-relaxed">{t.comment}</p>}
                   </div>
                 ))}
               </div>
@@ -306,72 +458,43 @@ export default function TeacherProfilePage() {
           )}
         </Card>
       </div>
+
+      {editing && (
+        <ProfileEditor
+          teacherId={teacher.id}
+          profile={p}
+          onClose={() => setEditing(false)}
+          onSaved={async () => { setEditing(false); await load(); await teacher.refresh() }}
+        />
+      )}
     </div>
   )
 }
 
-/* ── Small form pieces ───────────────────────────────── */
+/* ── Stat tile ───────────────────────────────────────── */
 
-const inputCls =
-  'w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-[14px] font-semibold ' +
-  'focus:outline-none focus:border-stone-900 focus:ring-2 focus:ring-stone-900/10 transition'
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="block text-[12px] font-black text-stone-500 mb-1.5">{label}</span>
-      {children}
-    </label>
-  )
-}
-
-function ChipRow({ label, items }: { label: string; items: string[] }) {
-  if (items.length === 0) return null
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="text-[12px] font-black text-stone-400 ml-1">{label}</span>
-      {items.map(i => (
-        <span key={i} className="px-3 py-1 rounded-full bg-stone-100 text-stone-700 text-[12.5px] font-bold">{i}</span>
-      ))}
-    </div>
-  )
-}
-
-function TagField({
-  label, items, setItems, input, setInput, placeholder,
+function Stat({
+  icon: Icon, label, value, sub, tone,
 }: {
-  label: string; items: string[]; setItems: (v: string[]) => void
-  input: string; setInput: (v: string) => void; placeholder: string
+  icon: typeof Users; label: string; value: React.ReactNode; sub?: string
+  tone: 'violet' | 'blue' | 'emerald' | 'amber'
 }) {
-  function add() {
-    const v = input.trim()
-    if (!v || items.includes(v)) { setInput(''); return }
-    setItems([...items, v]); setInput('')
+  const tones = {
+    violet:  'from-violet-500 to-fuchsia-500',
+    blue:    'from-blue-500 to-cyan-500',
+    emerald: 'from-emerald-500 to-teal-500',
+    amber:   'from-amber-400 to-orange-500',
   }
   return (
-    <Field label={label}>
-      <div className="flex flex-wrap gap-2 mb-2">
-        {items.map(i => (
-          <span key={i} className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 text-stone-700 text-[12.5px] font-bold">
-            {i}
-            <button onClick={() => setItems(items.filter(x => x !== i))} aria-label={`حذف ${i}`} className="text-stone-400 hover:text-red-500">
-              <X size={12} />
-            </button>
-          </span>
-        ))}
+    <Card className="p-4 flex items-center gap-3.5">
+      <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shrink-0 shadow-sm`}>
+        <Icon size={20} />
       </div>
-      <div className="flex gap-2">
-        <input
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add() } }}
-          className={inputCls}
-          placeholder={placeholder}
-        />
-        <button onClick={add} className="px-3.5 rounded-xl border border-stone-300 text-stone-600 hover:bg-stone-50 transition" aria-label="إضافة">
-          <Plus size={16} />
-        </button>
+      <div className="min-w-0">
+        <div className="text-[11.5px] font-bold text-stone-400 truncate">{label}</div>
+        <div className="text-[24px] font-black leading-tight tabular-nums">{value}</div>
+        {sub && <div className="text-[11px] text-stone-400 font-semibold truncate">{sub}</div>}
       </div>
-    </Field>
+    </Card>
   )
 }

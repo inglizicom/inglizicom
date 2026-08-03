@@ -216,6 +216,92 @@ export function Ring({
   )
 }
 
+/* ── Donut: a split of two or three parts ──────────────── */
+// Categorical slots 1–3 of the reference palette — the only trio that clears the
+// all-pairs CVD gate, which a pie needs (every slice is compared to every other).
+export const SLICE = ['#2a78d6', '#eb6834', '#1baf7a'] as const
+
+export function Donut({
+  data, size = 128,
+}: { data: { label: string; value: number }[]; size?: number }) {
+  const [hover, setHover] = useState<number | null>(null)
+  const rows  = data.filter(d => d.value > 0).slice(0, 3)
+  const total = rows.reduce((a, d) => a + d.value, 0)
+
+  if (total === 0) {
+    return <div className="py-10 text-center text-[12.5px] font-bold text-stone-300">لا بيانات بعد</div>
+  }
+
+  const r = (size - 22) / 2
+  const c = 2 * Math.PI * r
+  let acc = 0
+
+  return (
+    <div className="flex items-center gap-5 flex-wrap">
+      <svg width={size} height={size} className="-rotate-90 shrink-0" role="img">
+        {rows.map((d, i) => {
+          const frac = d.value / total
+          // 2px surface gap between slices, expressed as a dash gap
+          const len  = Math.max(0, frac * c - 3)
+          const el = (
+            <circle
+              key={i}
+              cx={size / 2} cy={size / 2} r={r} fill="none"
+              stroke={SLICE[i]} strokeWidth="14" strokeLinecap="butt"
+              strokeDasharray={`${len} ${c - len}`}
+              strokeDashoffset={-acc * c}
+              opacity={hover === null || hover === i ? 1 : 0.35}
+              onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}
+              style={{ transition: 'opacity .12s' }}
+            />
+          )
+          acc += frac
+          return el
+        })}
+      </svg>
+
+      {/* labels always visible — aqua sits under 3:1 on white, so the text carries it */}
+      <div className="space-y-2 min-w-[7rem]">
+        {rows.map((d, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: SLICE[i] }} />
+            <span className="text-[12.5px] font-bold text-stone-600">{d.label}</span>
+            <span className="text-[12.5px] font-black text-stone-900 tabular-nums mr-auto">
+              {d.value} · {Math.round((d.value / total) * 100)}%
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/* ── Horizontal bars: ranked bands, one hue ────────────── */
+
+export function HBars({
+  data, color = VIZ.amber, unit = '',
+}: { data: { label: string; value: number }[]; color?: string; unit?: string }) {
+  const max = Math.max(1, ...data.map(d => d.value))
+  if (data.length === 0) {
+    return <div className="py-8 text-center text-[12.5px] font-bold text-stone-300">لا بيانات بعد</div>
+  }
+  return (
+    <div className="space-y-2.5">
+      {data.map(d => (
+        <div key={d.label} className="flex items-center gap-3">
+          <span className="w-20 text-[12px] font-bold text-stone-500 shrink-0 truncate">{d.label}</span>
+          <div className="flex-1 h-6 bg-stone-100 rounded-md overflow-hidden">
+            <div className="h-full rounded-md flex items-center justify-end pl-2 transition-all duration-500"
+                 style={{ width: `${Math.max(6, (d.value / max) * 100)}%`, background: color }}>
+              <span className="text-[11px] font-black text-white tabular-nums">{d.value}{unit}</span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 /* ── Sparkline: trend inside a stat tile ───────────────── */
 
 export function Spark({ data, color = VIZ.amber }: { data: number[]; color?: string }) {

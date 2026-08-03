@@ -37,6 +37,55 @@ export interface TeacherProfile {
 
 export interface AvailabilityWindow { day: number; from: string; to: string }
 
+export interface Certificate  { title: string; issuer?: string; year?: string; url?: string }
+export interface ExperienceRow { role: string; org?: string; from?: string; to?: string; description?: string }
+
+/** Everything a teacher declares about themselves — editable, never derived. */
+export interface TeacherDeclared {
+  cover_url:        string | null
+  tagline:          string | null
+  english_level:    string | null
+  competences:      string[]
+  liked_qualities:  string[]
+  certificates:     Certificate[]
+  experiences:      ExperienceRow[]
+  teaches:          string[]
+  not_teaches:      string[]
+  age_min:          number | null
+  age_max:          number | null
+  years_experience: number | null
+}
+
+/** Everything the rows already know — recomputed, never typed in. */
+export interface TeacherProfileFull {
+  profile:  TeacherProfile & TeacherDeclared
+  identity: { email: string | null; full_name: string | null }
+  stats: {
+    students_total: number; students_active: number
+    classes_done: number;   hours_total: number
+    reports_written: number; materials: number
+    exams_corrected: number; exams_passed: number
+    attendance_rate: number | null
+    rating_avg: number; rating_count: number
+    is_top_rated: boolean
+  }
+  gender_split:  { male: number; female: number; unknown: number }
+  age_bands:     { band: string; count: number }[]
+  avg_age:       number | null
+  level_split:   { level: string; count: number }[]
+  upcoming:      ClassSession[]
+  top_students: {
+    id: string; name: string; avatar_url: string | null; level: string | null
+    coins: number; streak: number; exams_passed: number
+    last_seen: string | null; score: number
+  }[]
+  testimonials: {
+    id: string; rating: number; comment: string | null; created_at: string
+    student_name: string | null; student_avatar: string | null
+  }[]
+  rating_breakdown: Record<string, number>
+}
+
 export interface TeacherOverview {
   students_total:  number
   classes_month:   number
@@ -175,7 +224,26 @@ export async function ensureTeacherProfile(id: string, fallbackName?: string | n
   return data as TeacherProfile | null
 }
 
-export async function saveTeacherProfile(id: string, patch: Partial<TeacherProfile>): Promise<boolean> {
+/** The whole tutor page — declared fields plus every computed aggregate. */
+export async function fetchTeacherProfileFull(teacherId: string): Promise<TeacherProfileFull | null> {
+  const { data, error } = await supabase.rpc('teacher_profile_full', { p_teacher: teacherId })
+  if (error) { console.error('fetchTeacherProfileFull', error.message); return null }
+  if (!data || !data.profile) return null
+  return data as TeacherProfileFull
+}
+
+export async function uploadTeacherCover(id: string, file: File): Promise<string | null> {
+  const path = `teachers/${id}/cover_${Date.now()}_${safeName(file.name)}`
+  const { error } = await supabase.storage.from(BUCKET).upload(path, file, { upsert: true })
+  if (error) { console.error('uploadTeacherCover', error.message); return null }
+  const url = supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl
+  await saveTeacherProfile(id, { cover_url: url } as Partial<TeacherProfile & TeacherDeclared>)
+  return url
+}
+
+export async function saveTeacherProfile(
+  id: string, patch: Partial<TeacherProfile & TeacherDeclared>,
+): Promise<boolean> {
   const { error } = await supabase.from('teacher_profiles').update(patch).eq('id', id)
   if (error) { console.error('saveTeacherProfile', error.message); return false }
   return true
