@@ -11,12 +11,28 @@ module.exports = {
         sans: ['Tajawal', 'sans-serif'],
         arabic: ['Tajawal', 'sans-serif'],
         display: ['Outfit', 'system-ui', 'sans-serif'],
-        // Teacher space — a modern Arabic face with real weight range.
-        plex: ['"IBM Plex Sans Arabic"', 'Tajawal', 'sans-serif'],
+        // Teacher space. Inter leads for Latin and numerals — it has no Arabic
+        // coverage, so IBM Plex Sans Arabic sits behind it and picks up every
+        // Arabic glyph. One stack, both scripts, no fallback surprises.
+        plex: ['Inter', '"IBM Plex Sans Arabic"', 'Tajawal', 'sans-serif'],
         serif: ['Lora', 'Georgia', 'serif'],
         ui: ['"DM Sans"', 'system-ui', 'sans-serif'],
       },
       colors: {
+        // Teacher space palette — dark first.
+        ink: {
+          bg:    '#0B1020',
+          card:  '#151C32',
+          line:  '#232C4A',
+          text:  '#FFFFFF',
+          muted: '#94A3B8',
+        },
+        prim:  '#5B5FEF',
+        sec:   '#8B5CF6',
+        acc:   '#38BDF8',
+        ok:    '#22C55E',
+        warn:  '#F59E0B',
+        bad:   '#EF4444',
         brand: {
           50:  '#eff6ff',
           100: '#dbeafe',

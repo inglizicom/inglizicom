@@ -4,16 +4,16 @@ import type { LucideIcon } from 'lucide-react'
 import { FlaskConical, Star } from 'lucide-react'
 import { Counter, Reveal } from './_motion'
 
-/* Shared surfaces for the teaching space. Warm paper, white cards, one amber
-   accent — deliberately not the CRM's black chrome. */
+/* Shared surfaces for the teaching space. Dark planes lit from above; colour is
+   structural, never decorative. Shared by every page in the space. */
 
 /** The surface everything sits on: a hairline ring rather than a border, and a
  *  two-part shadow — a tight contact shadow plus a wide soft one — so cards read
  *  as lifted off the mesh instead of drawn onto it. */
 export function Card({ className = '', children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className={`bg-white/90 backdrop-blur-sm rounded-2xl ring-1 ring-stone-900/[.06]
-                     shadow-[0_1px_2px_rgba(24,24,27,.04),0_12px_32px_-20px_rgba(24,24,27,.45)]
+    <div className={`bg-[#151C32] rounded-[22px] ring-1 ring-white/[.06]
+                     shadow-[0_1px_0_0_rgba(255,255,255,.06)_inset,0_24px_48px_-24px_rgba(0,0,0,.8)]
                      ${className}`}>
       {children}
     </div>
@@ -23,11 +23,11 @@ export function Card({ className = '', children }: { className?: string; childre
 /* ── Page hero ─────────────────────────────────────────── */
 
 const TONE = {
-  amber:   { chip: 'bg-amber-100 text-amber-700',     bar: 'from-amber-400 to-orange-500' },
-  blue:    { chip: 'bg-blue-100 text-blue-700',       bar: 'from-blue-500 to-indigo-500' },
-  violet:  { chip: 'bg-violet-100 text-violet-700',   bar: 'from-violet-500 to-fuchsia-500' },
-  emerald: { chip: 'bg-emerald-100 text-emerald-700', bar: 'from-emerald-500 to-teal-500' },
-  rose:    { chip: 'bg-rose-100 text-rose-700',       bar: 'from-rose-500 to-pink-500' },
+  amber:   { chip: 'bg-gradient-to-br from-[#F59E0B] to-[#EF4444] text-white', bar: 'from-[#F59E0B] to-[#EF4444]' },
+  blue:    { chip: 'bg-gradient-to-br from-[#38BDF8] to-[#5B5FEF] text-white', bar: 'from-[#38BDF8] to-[#5B5FEF]' },
+  violet:  { chip: 'bg-gradient-to-br from-[#5B5FEF] to-[#8B5CF6] text-white', bar: 'from-[#5B5FEF] to-[#8B5CF6]' },
+  emerald: { chip: 'bg-gradient-to-br from-[#22C55E] to-[#38BDF8] text-white', bar: 'from-[#22C55E] to-[#38BDF8]' },
+  rose:    { chip: 'bg-gradient-to-br from-[#EF4444] to-[#8B5CF6] text-white', bar: 'from-[#EF4444] to-[#8B5CF6]' },
 }
 export type Tone = keyof typeof TONE
 
@@ -52,8 +52,8 @@ export function PageHero({
           <Icon size={21} />
         </span>
         <div className="flex-1 min-w-[11rem]">
-          <h1 className="text-[24px] sm:text-[27px] font-black tracking-tight leading-none">{title}</h1>
-          {subtitle && <p className="text-stone-400 text-[13px] font-bold mt-1">{subtitle}</p>}
+          <h1 className="text-[24px] sm:text-[27px] font-bold tracking-tight leading-none text-white">{title}</h1>
+          {subtitle && <p className="text-slate-400 text-[13px] font-medium mt-1">{subtitle}</p>}
         </div>
         {action}
       </div>
@@ -62,17 +62,16 @@ export function PageHero({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {stats.map((s, i) => (
             <Reveal key={s.label} delay={i * 60}>
-              <div className="group relative overflow-hidden bg-white/90 backdrop-blur-sm rounded-2xl
-                              ring-1 ring-stone-900/[.06] px-4 py-3
-                              shadow-[0_1px_2px_rgba(24,24,27,.04),0_12px_30px_-22px_rgba(24,24,27,.5)]
-                              hover:shadow-[0_2px_6px_rgba(24,24,27,.07),0_18px_36px_-20px_rgba(24,24,27,.6)]
-                              hover:-translate-y-1 transition-all duration-300">
+              <div className="group relative overflow-hidden bg-[#151C32] rounded-[20px]
+                              ring-1 ring-white/[.06] px-4 py-3
+                              shadow-[0_1px_0_0_rgba(255,255,255,.06)_inset,0_20px_40px_-24px_rgba(0,0,0,.8)]
+                              hover:ring-white/[.12] hover:-translate-y-1 transition-all duration-300">
                 <span className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-l ${t.bar}`} aria-hidden />
                 {/* the colour breathes on hover instead of the card changing shape */}
                 <span className={`absolute -top-10 -left-6 w-24 h-24 rounded-full bg-gradient-to-l ${t.bar}
                                   opacity-0 group-hover:opacity-20 blur-2xl transition-opacity duration-500`} aria-hidden />
-                <div className="relative text-[10.5px] font-bold text-stone-400 truncate">{s.label}</div>
-                <Counter value={s.value} suffix={s.suffix} className="relative text-[23px] font-black leading-tight" />
+                <div className="relative text-[10.5px] font-medium text-slate-400 truncate">{s.label}</div>
+                <Counter value={s.value} suffix={s.suffix} className="relative text-[23px] font-bold leading-tight text-white" />
               </div>
             </Reveal>
           ))}
@@ -85,12 +84,12 @@ export function PageHero({
 /** Shown on every page while `?demo=1` is active. */
 export function DemoBanner() {
   return (
-    <div className="flex items-center gap-2.5 rounded-2xl bg-fuchsia-50 border border-fuchsia-200 px-4 py-2.5">
-      <FlaskConical size={15} className="text-fuchsia-600 shrink-0" />
-      <span className="text-[12.5px] font-bold text-fuchsia-900">
+    <div className="flex items-center gap-2.5 rounded-2xl bg-fuchsia-500/[.08] ring-1 ring-fuchsia-500/20 px-4 py-2.5">
+      <FlaskConical size={15} className="text-fuchsia-400 shrink-0" />
+      <span className="text-[12.5px] font-medium text-fuchsia-200">
         معاينة ببيانات وهمية — لا شيء هنا حقيقي.
       </span>
-      <a href="?demo=0" className="mr-auto text-[12px] font-black text-fuchsia-700 hover:text-fuchsia-900 underline underline-offset-2">
+      <a href="?demo=0" className="mr-auto text-[12px] font-bold text-fuchsia-300 hover:text-white underline underline-offset-2">
         إيقاف المعاينة
       </a>
     </div>
@@ -100,7 +99,7 @@ export function DemoBanner() {
 export function SectionTitle({ children, action }: { children: React.ReactNode; action?: React.ReactNode }) {
   return (
     <div className="flex items-end justify-between gap-3 mb-3">
-      <h2 className="text-[17px] font-black tracking-tight">{children}</h2>
+      <h2 className="text-[16px] font-bold tracking-tight text-white">{children}</h2>
       {action}
     </div>
   )
@@ -113,10 +112,10 @@ export function StatTile({
   tone?: 'neutral' | 'amber' | 'good' | 'alert'
 }) {
   const tones = {
-    neutral: 'bg-stone-100 text-stone-600',
-    amber:   'bg-amber-100 text-amber-700',
-    good:    'bg-emerald-100 text-emerald-700',
-    alert:   'bg-red-100 text-red-600',
+    neutral: 'bg-white/[.06] text-slate-300',
+    amber:   'bg-amber-500/15 text-amber-300',
+    good:    'bg-emerald-500/15 text-emerald-300',
+    alert:   'bg-rose-500/15 text-rose-300',
   }
   return (
     <Card className="p-4 flex items-center gap-3.5">
@@ -124,9 +123,9 @@ export function StatTile({
         <Icon size={19} />
       </div>
       <div className="min-w-0">
-        <div className="text-[11.5px] font-bold text-stone-400 truncate">{label}</div>
-        <div className="text-[22px] font-black leading-tight tabular-nums">{value}</div>
-        {sub && <div className="text-[11px] text-stone-400 font-semibold truncate">{sub}</div>}
+        <div className="text-[11.5px] font-medium text-slate-400 truncate">{label}</div>
+        <div className="text-[22px] font-bold leading-tight tabular-nums text-white">{value}</div>
+        {sub && <div className="text-[11px] text-slate-500 font-medium truncate">{sub}</div>}
       </div>
     </Card>
   )
@@ -139,7 +138,7 @@ export function Stars({ value, size = 14 }: { value: number; size?: number }) {
         <Star
           key={i}
           size={size}
-          className={i <= Math.round(value) ? 'fill-amber-400 text-amber-400' : 'text-stone-300'}
+          className={i <= Math.round(value) ? 'fill-amber-400 text-amber-400' : 'text-white/15'}
         />
       ))}
     </span>
@@ -149,22 +148,22 @@ export function Stars({ value, size = 14 }: { value: number; size?: number }) {
 export function Empty({ icon: Icon, title, hint }: { icon: LucideIcon; title: string; hint?: string }) {
   return (
     <div className="py-14 text-center">
-      <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-stone-100 flex items-center justify-center text-stone-400">
+      <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-white/[.05] flex items-center justify-center text-slate-500">
         <Icon size={24} />
       </div>
-      <div className="font-black text-stone-700">{title}</div>
-      {hint && <div className="text-[13px] text-stone-400 mt-1 max-w-sm mx-auto">{hint}</div>}
+      <div className="font-bold text-slate-200">{title}</div>
+      {hint && <div className="text-[13px] text-slate-500 mt-1 max-w-sm mx-auto">{hint}</div>}
     </div>
   )
 }
 
 export function Pill({ tone, children }: { tone: 'scheduled' | 'live' | 'done' | 'cancelled' | 'muted'; children: React.ReactNode }) {
   const tones = {
-    scheduled: 'bg-blue-50 text-blue-700 border-blue-200',
-    live:      'bg-emerald-50 text-emerald-700 border-emerald-200',
-    done:      'bg-stone-100 text-stone-600 border-stone-200',
-    cancelled: 'bg-red-50 text-red-600 border-red-200',
-    muted:     'bg-stone-50 text-stone-500 border-stone-200',
+    scheduled: 'bg-[#38BDF8]/15 text-sky-300 border-[#38BDF8]/25',
+    live:      'bg-emerald-500/15 text-emerald-300 border-emerald-500/25',
+    done:      'bg-white/[.06] text-slate-400 border-white/[.08]',
+    cancelled: 'bg-rose-500/15 text-rose-300 border-rose-500/25',
+    muted:     'bg-white/[.05] text-slate-400 border-white/[.07]',
   }
   return (
     <span className={`inline-block px-2.5 py-1 rounded-full border text-[11px] font-bold ${tones[tone]}`}>
