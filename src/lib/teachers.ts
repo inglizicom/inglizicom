@@ -533,6 +533,55 @@ export async function createTeacher(
   return { id: json.id as string, adopted: !!json.adopted }
 }
 
+/* ── Managing an existing teaching account (founder only) ─ */
+
+export interface DeleteImpact {
+  classes: number; reports: number; materials: number; students: number; reviews: number
+}
+
+async function authHeader(): Promise<Record<string, string>> {
+  const { data: { session } } = await supabase.auth.getSession()
+  const token = session?.access_token
+  if (!token) throw new Error('Your session expired — please sign in again.')
+  return { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+}
+
+/** What a delete would take with it — shown before the founder confirms. */
+export async function fetchDeleteImpact(teacherId: string): Promise<DeleteImpact> {
+  const res  = await fetch(`/api/admin/teacher/${teacherId}`, { headers: await authHeader() })
+  const json = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(json?.error ?? 'Could not read the account.')
+  return json as DeleteImpact
+}
+
+/** Change email, reset the password, or rename. Any subset. */
+export async function updateTeacherAccount(
+  teacherId: string, patch: { email?: string; password?: string; full_name?: string },
+): Promise<void> {
+  const res = await fetch(`/api/admin/teacher/${teacherId}`, {
+    method: 'PATCH', headers: await authHeader(), body: JSON.stringify(patch),
+  })
+  const json = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(json?.error ?? 'Could not update the account.')
+}
+
+/** Irreversible — cascades through classes, attendance, reports and materials. */
+export async function deleteTeacherAccount(teacherId: string): Promise<void> {
+  const res = await fetch(`/api/admin/teacher/${teacherId}`, {
+    method: 'DELETE', headers: await authHeader(),
+  })
+  const json = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(json?.error ?? 'Could not delete the account.')
+}
+
+/** Suspend without destroying anything — the safe alternative to delete. */
+export async function setTeacherActive(teacherId: string, active: boolean): Promise<boolean> {
+  const { error } = await supabase
+    .from('teacher_profiles').update({ is_active: active }).eq('id', teacherId)
+  if (error) { console.error('setTeacherActive', error.message); return false }
+  return true
+}
+
 /* ── Small helpers ─────────────────────────────────────── */
 
 function safeName(name: string): string {

@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  AlertTriangle, Check, Copy, Eye, EyeOff, GraduationCap, Loader2, Lock,
-  Mail, Plus, Search, Star, User as UserIcon, Users, X, ExternalLink,
+  AlertTriangle, Check, Copy, Eye, EyeOff, GraduationCap, KeyRound, Loader2, Lock,
+  Mail, Plus, Search, Settings2, Star, Trash2, User as UserIcon, Users, X, ExternalLink,
 } from 'lucide-react'
 import {
-  assignStudent, createTeacher, fetchAbsenceSummary, fetchAssignedIds,
-  fetchTeachersScoreboard, unassignStudent, TeacherEmailTakenError,
-  type AbsenceRow, type ScoreboardRow,
+  assignStudent, createTeacher, deleteTeacherAccount, fetchAbsenceSummary,
+  fetchAssignedIds, fetchDeleteImpact, fetchTeachersScoreboard, setTeacherActive,
+  unassignStudent, updateTeacherAccount, TeacherEmailTakenError,
+  type AbsenceRow, type DeleteImpact, type ScoreboardRow,
 } from '@/lib/teachers'
 import { fetchStudents } from '@/lib/crm-db'
 import type { CrmStudent } from '@/lib/crm-types'
@@ -28,6 +29,7 @@ export default function AdminTeachersPage() {
   const [loading, setLoading] = useState(true)
   const [adding, setAdding]   = useState(false)
   const [assignFor, setAssignFor] = useState<ScoreboardRow | null>(null)
+  const [manageFor, setManageFor] = useState<ScoreboardRow | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -144,12 +146,21 @@ export default function AdminTeachersPage() {
                       : <span className="text-emerald-600 font-black">✓</span>}
                   </td>
                   <td className="px-3 text-left">
-                    <button
-                      onClick={() => setAssignFor(t)}
-                      className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 text-[12px] font-bold hover:bg-gray-100 transition whitespace-nowrap"
-                    >
-                      الطلاب
-                    </button>
+                    <div className="flex items-center gap-1.5 justify-end">
+                      <button
+                        onClick={() => setAssignFor(t)}
+                        className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 text-[12px] font-bold hover:bg-gray-100 transition whitespace-nowrap"
+                      >
+                        الطلاب
+                      </button>
+                      <button
+                        onClick={() => setManageFor(t)}
+                        aria-label="إدارة الحساب"
+                        className="p-1.5 rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition"
+                      >
+                        <Settings2 size={15} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -175,6 +186,14 @@ export default function AdminTeachersPage() {
           teacher={assignFor}
           actorId={me.id}
           onClose={() => { setAssignFor(null); load() }}
+        />
+      )}
+
+      {manageFor && (
+        <ManageTeacherModal
+          teacher={manageFor}
+          onClose={() => setManageFor(null)}
+          onChanged={() => { setManageFor(null); load() }}
         />
       )}
     </div>
@@ -359,6 +378,182 @@ function NewTeacherModal({
             {busy && <Loader2 size={16} className="animate-spin" />} إنشاء الحساب
           </button>
         )}
+      </div>
+    </Modal>
+  )
+}
+
+/* ── Manage an existing account ──────────────────────── */
+
+function ManageTeacherModal({
+  teacher, onClose, onChanged,
+}: { teacher: ScoreboardRow; onClose: () => void; onChanged: () => void }) {
+  const [name, setName]       = useState(teacher.display_name ?? '')
+  const [email, setEmail]     = useState(teacher.email ?? '')
+  const [password, setPass]   = useState('')
+  const [active, setActive]   = useState(teacher.is_active)
+  const [busy, setBusy]       = useState(false)
+  const [msg, setMsg]         = useState<string | null>(null)
+  const [error, setError]     = useState<string | null>(null)
+  const [copied, setCopied]   = useState(false)
+
+  const [impact, setImpact]   = useState<DeleteImpact | null>(null)
+  const [confirmText, setConfirmText] = useState('')
+  const [danger, setDanger]   = useState(false)
+
+  async function save() {
+    setBusy(true); setError(null); setMsg(null)
+    try {
+      const patch: { email?: string; password?: string; full_name?: string } = {}
+      if (email.trim().toLowerCase() !== (teacher.email ?? '').toLowerCase()) patch.email = email
+      if (name.trim() !== (teacher.display_name ?? ''))                       patch.full_name = name
+      if (password)                                                          patch.password = password
+
+      if (Object.keys(patch).length > 0) await updateTeacherAccount(teacher.id, patch)
+      if (active !== teacher.is_active)  await setTeacherActive(teacher.id, active)
+
+      setMsg(password ? 'تم الحفظ — انسخ كلمة المرور الجديدة الآن.' : 'تم الحفظ.')
+      if (!password) onChanged()
+    } catch (e: any) {
+      setError(e?.message ?? 'تعذّر الحفظ.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function openDanger() {
+    setDanger(true); setError(null)
+    try { setImpact(await fetchDeleteImpact(teacher.id)) }
+    catch (e: any) { setError(e?.message ?? 'تعذّر قراءة بيانات الحساب.') }
+  }
+
+  async function reallyDelete() {
+    setBusy(true); setError(null)
+    try { await deleteTeacherAccount(teacher.id); onChanged() }
+    catch (e: any) { setError(e?.message ?? 'تعذّر الحذف.'); setBusy(false) }
+  }
+
+  const totalLoss = impact
+    ? impact.classes + impact.reports + impact.materials + impact.reviews
+    : 0
+
+  return (
+    <Modal title={`إدارة ${teacher.display_name ?? 'الأستاذ'}`} onClose={onClose}>
+      <div className="space-y-4">
+
+        <FieldRow icon={UserIcon} label="الاسم المعروض">
+          <input value={name} onChange={e => setName(e.target.value)} className={inp} />
+        </FieldRow>
+
+        <FieldRow icon={Mail} label="البريد الإلكتروني">
+          <input value={email} onChange={e => setEmail(e.target.value)} dir="ltr" className={`${inp} text-left`} />
+        </FieldRow>
+
+        <FieldRow icon={KeyRound} label="كلمة مرور جديدة">
+          <div className="flex gap-2">
+            <input
+              value={password} onChange={e => setPass(e.target.value)} dir="ltr"
+              className={`${inp} text-left font-mono`} placeholder="اتركها فارغة لعدم التغيير"
+            />
+            <button
+              onClick={() => { setPass(suggestPassword()); setCopied(false) }}
+              className="px-3 rounded-xl border border-gray-300 text-gray-500 hover:bg-gray-50 whitespace-nowrap text-[12px] font-bold"
+            >
+              توليد
+            </button>
+            {password && (
+              <button
+                onClick={() => { navigator.clipboard.writeText(password); setCopied(true); setTimeout(() => setCopied(false), 1800) }}
+                className="px-3 rounded-xl border border-gray-300 text-gray-500 hover:bg-gray-50" aria-label="نسخ"
+              >
+                {copied ? <Check size={15} className="text-emerald-600" /> : <Copy size={15} />}
+              </button>
+            )}
+          </div>
+          <p className="text-[11.5px] text-gray-400 font-semibold mt-1.5">
+            لا يمكن استرجاع كلمة المرور القديمة — يمكنك فقط تعيين واحدة جديدة.
+          </p>
+        </FieldRow>
+
+        <label className="flex items-center gap-2.5 cursor-pointer">
+          <input type="checkbox" checked={active} onChange={e => setActive(e.target.checked)}
+                 className="w-4 h-4 rounded accent-gray-900" />
+          <span className="text-[13px] font-bold text-gray-700">حساب نشط</span>
+          <span className="text-[11.5px] text-gray-400 font-semibold">— إيقافه يمنعه من الظهور دون حذف أي شيء</span>
+        </label>
+
+        {msg   && <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-3.5 py-2.5 text-[13px] font-bold text-emerald-700">{msg}</div>}
+        {error && <div className="rounded-xl bg-red-50 border border-red-200 px-3.5 py-2.5 text-[13px] font-bold text-red-700">{error}</div>}
+
+        <div className="flex gap-2">
+          <button
+            onClick={save} disabled={busy}
+            className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gray-900 text-white text-sm font-black hover:bg-gray-800 transition disabled:opacity-50"
+          >
+            {busy && <Loader2 size={16} className="animate-spin" />} حفظ
+          </button>
+          {msg && (
+            <button onClick={onChanged} className="px-5 py-3 rounded-xl border border-gray-300 text-gray-600 text-sm font-bold hover:bg-gray-50">
+              تم
+            </button>
+          )}
+        </div>
+
+        {/* ── Danger zone ─────────────────────────────── */}
+        <div className="pt-4 mt-1 border-t border-gray-200">
+          {!danger ? (
+            <button onClick={openDanger} className="flex items-center gap-2 text-[13px] font-bold text-red-600 hover:text-red-700">
+              <Trash2 size={15} /> حذف الحساب نهائياً
+            </button>
+          ) : (
+            <div className="rounded-xl bg-red-50 border border-red-200 p-4 space-y-3">
+              <div className="flex items-start gap-2.5">
+                <AlertTriangle size={16} className="text-red-600 shrink-0 mt-0.5" />
+                <div className="text-[13px] font-bold text-red-900 leading-relaxed">
+                  {impact === null ? 'جاري حساب ما سيُحذف…' : totalLoss === 0 ? (
+                    <>لا بيانات مرتبطة بهذا الحساب — الحذف آمن.</>
+                  ) : (
+                    <>
+                      الحذف سيمسح نهائياً:
+                      <ul className="font-semibold mt-1.5 space-y-0.5">
+                        {impact.classes   > 0 && <li>· {impact.classes} حصة وكل سجلات الحضور فيها</li>}
+                        {impact.reports   > 0 && <li>· {impact.reports} تقرير درس</li>}
+                        {impact.materials > 0 && <li>· {impact.materials} ملف</li>}
+                        {impact.reviews   > 0 && <li>· {impact.reviews} تقييم من الطلاب</li>}
+                        {impact.students  > 0 && <li>· إسناد {impact.students} طالب (الطلاب أنفسهم لن يُحذفوا)</li>}
+                      </ul>
+                      <div className="mt-2 font-black">لا يمكن التراجع. إن كنت تريد فقط منعه من الدخول، أوقف الحساب بدل حذفه.</div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {impact !== null && (
+                <>
+                  <div>
+                    <label className="block text-[12px] font-black text-red-800 mb-1.5">
+                      اكتب <span className="font-mono">حذف</span> للتأكيد
+                    </label>
+                    <input value={confirmText} onChange={e => setConfirmText(e.target.value)}
+                           className="w-full px-3 py-2 rounded-lg border border-red-300 bg-white text-[14px] font-bold focus:outline-none focus:border-red-600" />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={reallyDelete} disabled={busy || confirmText.trim() !== 'حذف'}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 text-white text-[13px] font-black hover:bg-red-700 transition disabled:opacity-40"
+                    >
+                      {busy && <Loader2 size={14} className="animate-spin" />} احذف نهائياً
+                    </button>
+                    <button onClick={() => { setDanger(false); setConfirmText('') }}
+                            className="px-4 py-2.5 text-[13px] font-bold text-gray-500 hover:text-gray-700">
+                      إلغاء
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </Modal>
   )
