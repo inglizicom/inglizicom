@@ -316,18 +316,20 @@ export function HBars({
   return (
     <div className="space-y-2.5" ref={ref}>
       {data.map((d, i) => (
-        <div key={d.label} className="flex items-center gap-3">
-          <span className="w-20 text-[12px] font-bold text-stone-500 shrink-0 truncate">{d.label}</span>
-          <div className="flex-1 h-6 bg-stone-100 rounded-md overflow-hidden">
-            <div className="h-full rounded-md flex items-center justify-end pl-2"
+        <div key={d.label} className="flex items-center gap-2.5">
+          <span className="w-16 sm:w-20 text-[11.5px] font-bold text-stone-500 shrink-0 truncate">{d.label}</span>
+          <div className="flex-1 min-w-0 h-6 bg-stone-100 rounded-lg overflow-hidden">
+            <div className="h-full rounded-lg"
                  style={{
-                   width: seen ? `${Math.max(6, (d.value / max) * 100)}%` : '0%',
+                   width: seen ? `${Math.max(4, (d.value / max) * 100)}%` : '0%',
                    background: color,
                    transition: `width .8s cubic-bezier(.22,1,.36,1) ${i * 70}ms`,
-                 }}>
-              <span className="text-[11px] font-black text-white tabular-nums whitespace-nowrap">{d.value}{unit}</span>
-            </div>
+                 }} />
           </div>
+          {/* the value sits outside the bar — inside, a short bar clipped it */}
+          <span className="w-9 text-[11.5px] font-black text-stone-700 tabular-nums shrink-0 text-left">
+            {d.value}{unit}
+          </span>
         </div>
       ))}
     </div>

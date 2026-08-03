@@ -7,9 +7,14 @@ import { Counter, Reveal } from './_motion'
 /* Shared surfaces for the teaching space. Warm paper, white cards, one amber
    accent — deliberately not the CRM's black chrome. */
 
+/** The surface everything sits on: a hairline ring rather than a border, and a
+ *  two-part shadow — a tight contact shadow plus a wide soft one — so cards read
+ *  as lifted off the mesh instead of drawn onto it. */
 export function Card({ className = '', children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className={`bg-white rounded-2xl border border-stone-200/80 shadow-[0_1px_2px_rgba(28,25,23,.04),0_8px_24px_-18px_rgba(28,25,23,.4)] ${className}`}>
+    <div className={`bg-white/90 backdrop-blur-sm rounded-2xl ring-1 ring-stone-900/[.06]
+                     shadow-[0_1px_2px_rgba(24,24,27,.04),0_12px_32px_-20px_rgba(24,24,27,.45)]
+                     ${className}`}>
       {children}
     </div>
   )
@@ -57,13 +62,17 @@ export function PageHero({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {stats.map((s, i) => (
             <Reveal key={s.label} delay={i * 60}>
-              <div className="relative overflow-hidden bg-white rounded-2xl border border-stone-200/80 px-4 py-3
-                              shadow-[0_1px_2px_rgba(28,25,23,.04),0_10px_26px_-20px_rgba(28,25,23,.5)]
-                              hover:shadow-[0_2px_4px_rgba(28,25,23,.06),0_14px_30px_-18px_rgba(28,25,23,.55)]
-                              hover:-translate-y-0.5 transition duration-300">
-                <span className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${t.bar}`} aria-hidden />
-                <div className="text-[10.5px] font-bold text-stone-400 truncate">{s.label}</div>
-                <Counter value={s.value} suffix={s.suffix} className="text-[23px] font-black leading-tight" />
+              <div className="group relative overflow-hidden bg-white/90 backdrop-blur-sm rounded-2xl
+                              ring-1 ring-stone-900/[.06] px-4 py-3
+                              shadow-[0_1px_2px_rgba(24,24,27,.04),0_12px_30px_-22px_rgba(24,24,27,.5)]
+                              hover:shadow-[0_2px_6px_rgba(24,24,27,.07),0_18px_36px_-20px_rgba(24,24,27,.6)]
+                              hover:-translate-y-1 transition-all duration-300">
+                <span className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-l ${t.bar}`} aria-hidden />
+                {/* the colour breathes on hover instead of the card changing shape */}
+                <span className={`absolute -top-10 -left-6 w-24 h-24 rounded-full bg-gradient-to-l ${t.bar}
+                                  opacity-0 group-hover:opacity-20 blur-2xl transition-opacity duration-500`} aria-hidden />
+                <div className="relative text-[10.5px] font-bold text-stone-400 truncate">{s.label}</div>
+                <Counter value={s.value} suffix={s.suffix} className="relative text-[23px] font-black leading-tight" />
               </div>
             </Reveal>
           ))}

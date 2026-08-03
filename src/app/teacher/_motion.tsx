@@ -30,7 +30,15 @@ export function useInView<T extends HTMLElement>(threshold = 0.2) {
       { threshold, rootMargin: '0px 0px -40px 0px' },
     )
     io.observe(el)
-    return () => io.disconnect()
+
+    // Safety net: content that animates in must never be able to stay invisible.
+    // If the observer hasn't fired in three seconds — a print, a screenshot
+    // pass, an anchor jump, a browser that throttles observers in a background
+    // tab — show everything anyway. A missed animation is nothing; a blank
+    // chart is a broken page.
+    const fallback = window.setTimeout(() => { setSeen(true); io.disconnect() }, 3000)
+
+    return () => { io.disconnect(); window.clearTimeout(fallback) }
   }, [seen, threshold])
 
   return { ref, seen }

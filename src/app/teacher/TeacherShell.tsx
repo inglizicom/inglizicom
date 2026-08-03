@@ -60,7 +60,18 @@ export default function TeacherShell({ children }: { children: React.ReactNode }
   const current = NAV.find(n => isActive(n.segment))
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#F5F3EE] font-plex text-stone-900">
+    <div dir="rtl" className="relative min-h-screen bg-[#FAFAFB] font-plex text-stone-900">
+      {/* A quiet mesh behind everything — depth without a pattern you can name. */}
+      <div
+        className="pointer-events-none fixed inset-0 -z-10"
+        aria-hidden
+        style={{
+          backgroundImage:
+            'radial-gradient(60rem 32rem at 82% -8%, rgba(139,92,246,.13), transparent 60%),' +
+            'radial-gradient(48rem 28rem at 8% 4%, rgba(6,182,212,.10), transparent 58%),' +
+            'radial-gradient(40rem 26rem at 50% 100%, rgba(244,114,182,.08), transparent 62%)',
+        }}
+      />
 
       {/* ── Bar ─────────────────────────────────────────── */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-stone-200/80">

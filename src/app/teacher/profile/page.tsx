@@ -168,7 +168,11 @@ export default function TeacherProfilePage() {
       <div className="grid lg:grid-cols-3 gap-4 items-start">
 
         {/* ── Main column ───────────────────────────── */}
-        <div className="lg:col-span-2 space-y-4">
+        {/* min-w-0: a grid item defaults to min-width:auto, which stops it
+            shrinking below its content — the students table then pushed the
+            whole page sideways on a phone instead of scrolling inside its own
+            container. */}
+        <div className="lg:col-span-2 min-w-0 space-y-4">
 
           <Panel className="p-5 sm:p-6">
             <Head icon={Sparkles} tone="violet">نبذة</Head>
@@ -230,8 +234,8 @@ export default function TeacherProfilePage() {
             {full.top_students.length === 0 ? (
               <Empty icon={Users} title="لا طلاب مسنَدين بعد" hint="تُسنِد الإدارة الطلاب إليك، وتظهر نتائجهم هنا تلقائياً." />
             ) : (
-              <div className="overflow-x-auto -mx-1">
-                <table className="w-full text-sm min-w-[32rem]">
+              <div className="overflow-x-auto -mx-1 px-1">
+                <table className="w-full text-sm min-w-[30rem]">
                   <thead>
                     <tr className="text-[11px] font-black text-stone-400 border-b border-stone-200">
                       <th className="text-right pb-2 pr-1">#</th>
@@ -332,7 +336,7 @@ export default function TeacherProfilePage() {
         </div>
 
         {/* ── Sidebar ───────────────────────────────── */}
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
 
           <Panel className="p-5">
             <Head icon={BookOpen} tone="emerald">ماذا يُدرّس</Head>
@@ -491,9 +495,9 @@ function Panel({ className = '', id, children }: { className?: string; id?: stri
     <Reveal>
       <section
         id={id}
-        className={`bg-white rounded-3xl border border-stone-200/80
-                    shadow-[0_1px_3px_rgba(28,25,23,.05),0_18px_40px_-28px_rgba(28,25,23,.5)]
-                    hover:shadow-[0_2px_6px_rgba(28,25,23,.07),0_24px_50px_-26px_rgba(28,25,23,.55)]
+        className={`bg-white/90 backdrop-blur-sm rounded-3xl ring-1 ring-stone-900/[.06]
+                    shadow-[0_1px_3px_rgba(24,24,27,.04),0_20px_44px_-30px_rgba(24,24,27,.5)]
+                    hover:shadow-[0_2px_8px_rgba(24,24,27,.06),0_28px_56px_-28px_rgba(24,24,27,.6)]
                     transition-shadow duration-300 ${className}`}
       >
         {children}
