@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import {
   assignStudent, createTeacher, fetchAbsenceSummary, fetchAssignedIds,
-  fetchTeachersScoreboard, unassignStudent,
+  fetchTeachersScoreboard, unassignStudent, TeacherEmailTakenError,
   type AbsenceRow, type ScoreboardRow,
 } from '@/lib/teachers'
 import { fetchStudents } from '@/lib/crm-db'
@@ -275,14 +275,19 @@ function NewTeacherModal({
   const [busy, setBusy]         = useState(false)
   const [error, setError]       = useState<string | null>(null)
   const [copied, setCopied]     = useState(false)
+  const [takenBy, setTakenBy]   = useState<{ role: string; name: string | null } | null>(null)
 
-  async function submit() {
-    setBusy(true); setError(null)
+  async function submit(convert = false) {
+    setBusy(true); setError(null); if (!convert) setTakenBy(null)
     try {
-      await createTeacher(email, password, name)
+      await createTeacher(email, password, name, convert)
       onCreated(email.trim().toLowerCase())
     } catch (e: any) {
-      setError(e?.message ?? 'تعذّر إنشاء الحساب.')
+      if (e instanceof TeacherEmailTakenError) {
+        setTakenBy({ role: e.existingRole, name: e.existingName })
+      } else {
+        setError(e?.message ?? 'تعذّر إنشاء الحساب.')
+      }
     } finally {
       setBusy(false)
     }
@@ -322,12 +327,38 @@ function NewTeacherModal({
           <div className="rounded-xl bg-red-50 border border-red-200 px-3.5 py-2.5 text-[13px] font-bold text-red-700">{error}</div>
         )}
 
-        <button
-          onClick={submit} disabled={busy || !email.trim() || password.length < 8}
-          className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gray-900 text-white text-sm font-black hover:bg-gray-800 transition disabled:opacity-50"
-        >
-          {busy && <Loader2 size={16} className="animate-spin" />} إنشاء الحساب
-        </button>
+        {takenBy ? (
+          <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 space-y-3">
+            <div className="flex items-start gap-2.5">
+              <AlertTriangle size={16} className="text-amber-600 shrink-0 mt-0.5" />
+              <div className="text-[13px] font-bold text-amber-900 leading-relaxed">
+                يوجد حساب بهذا البريد
+                {takenBy.name ? ` باسم «${takenBy.name}»` : ''} — صلاحيته الحالية: {takenBy.role}.
+                <div className="font-semibold text-amber-800 mt-1">
+                  التحويل إلى أستاذ سيغيّر كلمة مروره إلى الكلمة أعلاه. إن كان حساب طالب، لن يستطيع الدخول بكلمته القديمة.
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => submit(true)} disabled={busy}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-600 text-white text-[13px] font-black hover:bg-amber-700 transition disabled:opacity-50"
+              >
+                {busy && <Loader2 size={14} className="animate-spin" />} حوّله إلى أستاذ
+              </button>
+              <button onClick={() => setTakenBy(null)} className="px-4 py-2.5 text-[13px] font-bold text-gray-500 hover:text-gray-700">
+                إلغاء
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => submit()} disabled={busy || !email.trim() || password.length < 8}
+            className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gray-900 text-white text-sm font-black hover:bg-gray-800 transition disabled:opacity-50"
+          >
+            {busy && <Loader2 size={16} className="animate-spin" />} إنشاء الحساب
+          </button>
+        )}
       </div>
     </Modal>
   )

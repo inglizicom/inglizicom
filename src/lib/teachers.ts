@@ -479,8 +479,25 @@ export async function fetchAssignedIds(teacherId: string): Promise<string[]> {
   return (data ?? []).map((r: any) => r.student_id as string)
 }
 
-/** Founder-only: create a teaching account (email + password, no signup needed). */
-export async function createTeacher(email: string, password: string, fullName?: string): Promise<{ id: string }> {
+/** Raised when the email already has an account — the caller must confirm the
+ *  conversion, because it resets that account's password. */
+export class TeacherEmailTakenError extends Error {
+  existingRole: string
+  existingName: string | null
+  constructor(message: string, existingRole: string, existingName: string | null) {
+    super(message)
+    this.name = 'TeacherEmailTakenError'
+    this.existingRole = existingRole
+    this.existingName = existingName
+  }
+}
+
+/** Founder-only: create a teaching account (email + password, no signup needed).
+ *  Pass convert = true only after the founder has confirmed taking over an
+ *  existing account. */
+export async function createTeacher(
+  email: string, password: string, fullName?: string, convert = false,
+): Promise<{ id: string; adopted: boolean }> {
   const { data: { session } } = await supabase.auth.getSession()
   const token = session?.access_token
   if (!token) throw new Error('Your session expired — please sign in again.')
@@ -488,11 +505,14 @@ export async function createTeacher(email: string, password: string, fullName?: 
   const res = await fetch('/api/admin/create-teacher', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body:    JSON.stringify({ email, password, full_name: fullName }),
+    body:    JSON.stringify({ email, password, full_name: fullName, convert }),
   })
   const json = await res.json().catch(() => ({}))
+  if (res.status === 409 && json?.needs_confirmation) {
+    throw new TeacherEmailTakenError(json.error ?? '', json.existing_role ?? 'student', json.existing_name ?? null)
+  }
   if (!res.ok) throw new Error(json?.error ?? 'Could not create the teacher account.')
-  return { id: json.id as string }
+  return { id: json.id as string, adopted: !!json.adopted }
 }
 
 /* ── Small helpers ─────────────────────────────────────── */
