@@ -1,6 +1,7 @@
 'use client'
 
 import { useId, useState } from 'react'
+import { Counter, useInView } from './_motion'
 
 /**
  * Hand-rolled SVG charts for the teaching space — no chart library, so nothing
@@ -40,11 +41,12 @@ export function BarChart({
   unit?: string
 }) {
   const [hover, setHover] = useState<number | null>(null)
+  const { ref, seen } = useInView<HTMLDivElement>()
   const max = Math.max(1, ...data.map(d => d.value))
   const barW = 100 / Math.max(data.length, 1)
 
   return (
-    <div className="relative">
+    <div className="relative" ref={ref}>
       <svg viewBox={`0 0 100 ${height}`} preserveAspectRatio="none" className="w-full" style={{ height }} role="img">
         {/* recessive grid — three lines is enough to read level */}
         {[0.25, 0.5, 0.75].map(f => (
@@ -52,7 +54,8 @@ export function BarChart({
                 stroke={VIZ.grid} strokeWidth="1" vectorEffect="non-scaling-stroke" />
         ))}
         {data.map((d, i) => {
-          const h = d.value === 0 ? 0 : Math.max(3, (d.value / max) * (height - 22))
+          const full = d.value === 0 ? 0 : Math.max(3, (d.value / max) * (height - 22))
+          const h = seen ? full : 0
           const w = barW * 0.56
           const x = i * barW + (barW - w) / 2
           return (
@@ -64,7 +67,10 @@ export function BarChart({
               opacity={hover === null || hover === i ? 1 : 0.35}
               onMouseEnter={() => setHover(i)}
               onMouseLeave={() => setHover(null)}
-              style={{ transition: 'opacity .12s' }}
+              style={{
+                // each bar starts a beat after the one before it
+                transition: `height .7s cubic-bezier(.22,1,.36,1) ${i * 55}ms, y .7s cubic-bezier(.22,1,.36,1) ${i * 55}ms, opacity .12s`,
+              }}
             />
           )
         })}
@@ -100,6 +106,7 @@ export function AreaTrend({
 }) {
   const gid = useId().replace(/:/g, '')
   const [hover, setHover] = useState<number | null>(null)
+  const { ref, seen } = useInView<HTMLDivElement>()
   if (data.length < 2) return <div className="h-[120px] flex items-center justify-center text-[12px] font-bold text-stone-300">لا بيانات كافية بعد</div>
 
   const max  = Math.max(1, ...data.map(d => d.value))
@@ -109,7 +116,7 @@ export function AreaTrend({
   const pts = data.map((d, i) => `${i * stepX},${y(d.value)}`).join(' ')
 
   return (
-    <div className="relative"
+    <div className="relative" ref={ref}
          onMouseLeave={() => setHover(null)}>
       <svg viewBox={`0 0 100 ${height}`} preserveAspectRatio="none" className="w-full" style={{ height }} role="img">
         <defs>
@@ -118,9 +125,17 @@ export function AreaTrend({
             <stop offset="100%" stopColor={color} stopOpacity="0" />
           </linearGradient>
         </defs>
-        <polygon points={`0,${height} ${pts} 100,${height}`} fill={`url(#${gid})`} />
+        <polygon points={`0,${height} ${pts} 100,${height}`} fill={`url(#${gid})`}
+                 style={{ opacity: seen ? 1 : 0, transition: 'opacity .8s ease-out .25s' }} />
+        {/* the line draws itself left to right on entry */}
         <polyline points={pts} fill="none" stroke={color} strokeWidth="2"
-                  strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+                  strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke"
+                  pathLength={1}
+                  style={{
+                    strokeDasharray: 1,
+                    strokeDashoffset: seen ? 0 : 1,
+                    transition: 'stroke-dashoffset 1s cubic-bezier(.22,1,.36,1)',
+                  }} />
         {/* emphasised endpoint */}
         <circle cx={100} cy={y(data[data.length - 1].value)} r="4" fill={color}
                 stroke="#fff" strokeWidth="2" vectorEffect="non-scaling-stroke" />
@@ -154,6 +169,7 @@ export function AreaTrend({
 export function AttendanceBar({
   present, late, absent,
 }: { present: number; late: number; absent: number }) {
+  const { ref, seen } = useInView<HTMLDivElement>()
   const total = present + late + absent
   const rows = [
     { key: 'present', label: 'حاضر',  value: present, color: VIZ.present },
@@ -166,11 +182,19 @@ export function AttendanceBar({
   }
 
   return (
-    <div>
+    <div ref={ref}>
       {/* 2px gaps between segments come from the flex gap, not from strokes */}
       <div className="flex gap-[2px] h-3.5 rounded-full overflow-hidden">
-        {rows.map(r => (
-          <div key={r.key} style={{ width: `${(r.value / total) * 100}%`, background: r.color }} title={`${r.label}: ${r.value}`} />
+        {rows.map((r, i) => (
+          <div
+            key={r.key}
+            style={{
+              width: seen ? `${(r.value / total) * 100}%` : '0%',
+              background: r.color,
+              transition: `width .8s cubic-bezier(.22,1,.36,1) ${i * 90}ms`,
+            }}
+            title={`${r.label}: ${r.value}`}
+          />
         ))}
       </div>
 
@@ -195,21 +219,23 @@ export function AttendanceBar({
 export function Ring({
   pct, size = 92, color = VIZ.amber, label,
 }: { pct: number; size?: number; color?: string; label?: string }) {
+  const { ref, seen } = useInView<HTMLDivElement>()
   const r = (size - 12) / 2
   const c = 2 * Math.PI * r
   const clamped = Math.max(0, Math.min(100, pct))
   return (
-    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+    <div ref={ref} className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90" role="img" aria-label={`${clamped}%`}>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={VIZ.grid} strokeWidth="7" />
         <circle
           cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth="7"
-          strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c - (clamped / 100) * c}
-          style={{ transition: 'stroke-dashoffset .6s ease-out' }}
+          strokeLinecap="round" strokeDasharray={c}
+          strokeDashoffset={seen ? c - (clamped / 100) * c : c}
+          style={{ transition: 'stroke-dashoffset 1.1s cubic-bezier(.22,1,.36,1)' }}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-[19px] font-black tabular-nums leading-none">{Math.round(clamped)}%</span>
+        <Counter value={Math.round(clamped)} suffix="%" className="text-[19px] font-black leading-none" />
         {label && <span className="text-[9.5px] font-bold text-stone-400 mt-0.5">{label}</span>}
       </div>
     </div>
@@ -225,6 +251,7 @@ export function Donut({
   data, size = 128,
 }: { data: { label: string; value: number }[]; size?: number }) {
   const [hover, setHover] = useState<number | null>(null)
+  const { ref, seen } = useInView<HTMLDivElement>()
   const rows  = data.filter(d => d.value > 0).slice(0, 3)
   const total = rows.reduce((a, d) => a + d.value, 0)
 
@@ -237,7 +264,7 @@ export function Donut({
   let acc = 0
 
   return (
-    <div className="flex items-center gap-5 flex-wrap">
+    <div className="flex items-center gap-5 flex-wrap" ref={ref}>
       <svg width={size} height={size} className="-rotate-90 shrink-0" role="img">
         {rows.map((d, i) => {
           const frac = d.value / total
@@ -248,11 +275,11 @@ export function Donut({
               key={i}
               cx={size / 2} cy={size / 2} r={r} fill="none"
               stroke={SLICE[i]} strokeWidth="14" strokeLinecap="butt"
-              strokeDasharray={`${len} ${c - len}`}
+              strokeDasharray={seen ? `${len} ${c - len}` : `0 ${c}`}
               strokeDashoffset={-acc * c}
               opacity={hover === null || hover === i ? 1 : 0.35}
               onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}
-              style={{ transition: 'opacity .12s' }}
+              style={{ transition: `stroke-dasharray .8s cubic-bezier(.22,1,.36,1) ${i * 120}ms, opacity .12s` }}
             />
           )
           acc += frac
@@ -281,19 +308,24 @@ export function Donut({
 export function HBars({
   data, color = VIZ.amber, unit = '',
 }: { data: { label: string; value: number }[]; color?: string; unit?: string }) {
+  const { ref, seen } = useInView<HTMLDivElement>()
   const max = Math.max(1, ...data.map(d => d.value))
   if (data.length === 0) {
     return <div className="py-8 text-center text-[12.5px] font-bold text-stone-300">لا بيانات بعد</div>
   }
   return (
-    <div className="space-y-2.5">
-      {data.map(d => (
+    <div className="space-y-2.5" ref={ref}>
+      {data.map((d, i) => (
         <div key={d.label} className="flex items-center gap-3">
           <span className="w-20 text-[12px] font-bold text-stone-500 shrink-0 truncate">{d.label}</span>
           <div className="flex-1 h-6 bg-stone-100 rounded-md overflow-hidden">
-            <div className="h-full rounded-md flex items-center justify-end pl-2 transition-all duration-500"
-                 style={{ width: `${Math.max(6, (d.value / max) * 100)}%`, background: color }}>
-              <span className="text-[11px] font-black text-white tabular-nums">{d.value}{unit}</span>
+            <div className="h-full rounded-md flex items-center justify-end pl-2"
+                 style={{
+                   width: seen ? `${Math.max(6, (d.value / max) * 100)}%` : '0%',
+                   background: color,
+                   transition: `width .8s cubic-bezier(.22,1,.36,1) ${i * 70}ms`,
+                 }}>
+              <span className="text-[11px] font-black text-white tabular-nums whitespace-nowrap">{d.value}{unit}</span>
             </div>
           </div>
         </div>

@@ -2,56 +2,51 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import {
   LayoutGrid, CalendarDays, Users, ClipboardList, FolderOpen,
-  UserRound, LogOut, Menu, X, Star,
+  UserRound, LogOut, Menu, X, Star, ChevronLeft,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useTeacher } from '@/lib/teacher-context'
 
 /**
- * The teaching space wears a top bar, not the CRM's black sidebar — a teacher
- * is not an operator of the business, and the space shouldn't feel like one.
- * Warm paper, white cards, a single amber accent carried from the brand.
+ * Navigation lives in a drawer on the right — the reading side in Arabic — so
+ * the content keeps the full width and the chrome disappears when it isn't
+ * wanted. A slim bar holds only the trigger, the brand and the account.
  */
 
-interface NavItem { segment: string; label: string; icon: LucideIcon }
+interface NavItem { segment: string; label: string; icon: LucideIcon; hint: string }
 
 const NAV: NavItem[] = [
-  { segment: '',          label: 'لوحتي',      icon: LayoutGrid },
-  { segment: 'classes',   label: 'حصصي',       icon: CalendarDays },
-  { segment: 'students',  label: 'طلابي',      icon: Users },
-  { segment: 'reports',   label: 'تقارير الدروس', icon: ClipboardList },
-  { segment: 'materials', label: 'الملفات',    icon: FolderOpen },
-  { segment: 'profile',   label: 'ملفي',       icon: UserRound },
+  { segment: '',          label: 'لوحتي',        icon: LayoutGrid,    hint: 'نظرة عامة على أسبوعك' },
+  { segment: 'classes',   label: 'حصصي',         icon: CalendarDays,  hint: 'الجدول والحضور' },
+  { segment: 'students',  label: 'طلابي',        icon: Users,         hint: 'من تُدرّسهم' },
+  { segment: 'reports',   label: 'تقارير الدروس', icon: ClipboardList, hint: 'ما أُنجز في كل حصة' },
+  { segment: 'materials', label: 'ملفاتي',       icon: FolderOpen,    hint: 'الدروس والمرفقات' },
+  { segment: 'profile',   label: 'ملفي الشخصي',  icon: UserRound,     hint: 'صفحتك كما تُرى' },
 ]
 
 export default function TeacherShell({ children }: { children: React.ReactNode }) {
   const teacher  = useTeacher()
   const router   = useRouter()
   const pathname = usePathname() ?? '/teacher'
-  const [open, setOpen]     = useState(false)
-  const [menu, setMenu]     = useState(false)
-  const menuRef             = useRef<HTMLDivElement>(null)
+  const [open, setOpen] = useState(false)
 
-  useEffect(() => { setOpen(false); setMenu(false) }, [pathname])
+  useEffect(() => { setOpen(false) }, [pathname])
 
+  // Escape closes the drawer, and the body stops scrolling behind it.
   useEffect(() => {
-    function onClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenu(false)
-    }
-    document.addEventListener('mousedown', onClick)
-    return () => document.removeEventListener('mousedown', onClick)
-  }, [])
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('keydown', onKey)
+    document.body.style.overflow = open ? 'hidden' : ''
+    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = '' }
+  }, [open])
 
-  function href(segment: string) { return segment ? `/teacher/${segment}` : '/teacher' }
-
-  function isActive(segment: string) {
-    if (!segment) return pathname === '/teacher' || pathname === '/teacher/'
-    return pathname.startsWith(`/teacher/${segment}`)
-  }
+  const href = (s: string) => (s ? `/teacher/${s}` : '/teacher')
+  const isActive = (s: string) =>
+    s ? pathname.startsWith(`/teacher/${s}`) : pathname === '/teacher' || pathname === '/teacher/'
 
   async function signOut() {
     await supabase.auth.signOut()
@@ -62,15 +57,25 @@ export default function TeacherShell({ children }: { children: React.ReactNode }
   const initial = name.trim().charAt(0).toUpperCase()
   const rating  = teacher.profile?.rating_avg ?? 0
   const reviews = teacher.profile?.rating_count ?? 0
+  const current = NAV.find(n => isActive(n.segment))
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#F6F4EF] font-sans text-stone-900">
-      {/* ── Top bar ─────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-white/85 backdrop-blur border-b border-stone-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-4">
+    <div dir="rtl" className="min-h-screen bg-[#F5F3EE] font-plex text-stone-900">
+
+      {/* ── Bar ─────────────────────────────────────────── */}
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-stone-200/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
+
+          <button
+            onClick={() => setOpen(true)}
+            aria-label="القائمة"
+            className="w-10 h-10 rounded-xl bg-stone-900 text-white flex items-center justify-center hover:bg-stone-700 transition shadow-sm"
+          >
+            <Menu size={19} />
+          </button>
 
           <Link href="/teacher" className="flex items-center gap-2.5 shrink-0">
-            <div className="w-9 h-9 rounded-xl bg-stone-900 text-amber-400 flex items-center justify-center font-black text-base">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center font-black text-base shadow-sm">
               إ
             </div>
             <div className="leading-tight hidden sm:block">
@@ -79,109 +84,116 @@ export default function TeacherShell({ children }: { children: React.ReactNode }
             </div>
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden lg:flex items-center gap-1 mr-2">
-            {NAV.map(item => {
-              const active = isActive(item.segment)
-              return (
-                <Link
-                  key={item.segment || 'home'}
-                  href={href(item.segment)}
-                  className={[
-                    'flex items-center gap-2 px-3.5 py-2 rounded-xl text-[13.5px] font-bold transition',
-                    active
-                      ? 'bg-stone-900 text-white'
-                      : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100',
-                  ].join(' ')}
-                >
-                  <item.icon size={16} />
-                  {item.label}
-                </Link>
-              )
-            })}
-          </nav>
+          {/* Where am I — the drawer is closed most of the time */}
+          {current && (
+            <div className="hidden md:flex items-center gap-1.5 text-stone-400 text-[13px] font-bold mr-2">
+              <ChevronLeft size={14} />
+              <span className="text-stone-700">{current.label}</span>
+            </div>
+          )}
 
           <div className="flex-1" />
 
-          {/* Rating pill — a teacher's standing, always visible */}
           {reviews > 0 && (
-            <Link
-              href="/teacher/profile#reviews"
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[13px] font-bold"
-            >
+            <Link href="/teacher/profile#reviews"
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-l from-amber-100 to-orange-100 border border-amber-200 text-amber-800 text-[13px] font-black">
               <Star size={14} className="fill-amber-400 text-amber-400" />
               {Number(rating).toFixed(1)}
               <span className="text-amber-600/70 font-semibold">({reviews})</span>
             </Link>
           )}
 
-          {/* Account */}
-          <div className="relative" ref={menuRef}>
-            <button
-              onClick={() => setMenu(v => !v)}
-              className="flex items-center gap-2 pr-1 pl-2 py-1 rounded-full hover:bg-stone-100 transition"
-              aria-label="حسابي"
-            >
-              {teacher.profile?.avatar_url
-                ? /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={teacher.profile.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover border border-stone-200" />
-                : <div className="w-9 h-9 rounded-full bg-amber-400 text-stone-900 flex items-center justify-center font-black">{initial}</div>}
-              <span className="hidden sm:block text-[13px] font-bold text-stone-700 max-w-[9rem] truncate">{name}</span>
-            </button>
-
-            {menu && (
-              <div className="absolute left-0 mt-2 w-56 bg-white rounded-2xl border border-stone-200 shadow-lg overflow-hidden">
-                <div className="px-4 py-3 border-b border-stone-100">
-                  <div className="text-[13px] font-black truncate">{name}</div>
-                  <div className="text-[11px] text-stone-400 truncate">{teacher.email}</div>
-                </div>
-                <Link href="/teacher/profile" className="flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold text-stone-700 hover:bg-stone-50">
-                  <UserRound size={15} /> ملفي الشخصي
-                </Link>
-                <button onClick={signOut} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[13px] font-semibold text-red-600 hover:bg-red-50">
-                  <LogOut size={15} /> تسجيل الخروج
-                </button>
-              </div>
-            )}
-          </div>
-
-          <button
-            className="lg:hidden w-9 h-9 rounded-xl bg-stone-900 text-white flex items-center justify-center"
-            onClick={() => setOpen(true)}
-            aria-label="القائمة"
-          >
-            <Menu size={18} />
-          </button>
+          <Link href="/teacher/profile" aria-label="ملفي" className="shrink-0">
+            {teacher.profile?.avatar_url
+              ? /* eslint-disable-next-line @next/next/no-img-element */
+                <img src={teacher.profile.avatar_url} alt="" className="w-10 h-10 rounded-xl object-cover border-2 border-white shadow" />
+              : <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white flex items-center justify-center font-black shadow">{initial}</div>}
+          </Link>
         </div>
       </header>
 
-      {/* ── Mobile drawer ───────────────────────────────── */}
-      {open && (
-        <div className="lg:hidden fixed inset-0 z-50">
-          <div className="absolute inset-0 bg-stone-900/50 backdrop-blur-sm" onClick={() => setOpen(false)} />
-          <nav className="absolute top-0 right-0 h-full w-64 bg-white p-4 flex flex-col gap-1 shadow-xl">
-            <div className="flex items-center justify-between mb-3 px-1">
-              <span className="font-black">فضاء الأساتذة</span>
-              <button onClick={() => setOpen(false)} aria-label="إغلاق" className="text-stone-400"><X size={20} /></button>
-            </div>
-            {NAV.map(item => (
-              <Link
-                key={item.segment || 'home'}
-                href={href(item.segment)}
-                className={[
-                  'flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-bold transition',
-                  isActive(item.segment) ? 'bg-stone-900 text-white' : 'text-stone-600 hover:bg-stone-100',
-                ].join(' ')}
-              >
-                <item.icon size={17} />
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-      )}
+      {/* ── Drawer ──────────────────────────────────────── */}
+      <div
+        className={`fixed inset-0 z-50 ${open ? '' : 'pointer-events-none'}`}
+        aria-hidden={!open}
+      >
+        <div
+          onClick={() => setOpen(false)}
+          className="absolute inset-0 bg-stone-950/50 backdrop-blur-sm transition-opacity duration-300"
+          style={{ opacity: open ? 1 : 0 }}
+        />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-7 pb-20">{children}</main>
+        <aside
+          className="absolute top-0 right-0 h-full w-[19rem] max-w-[86vw] bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-out"
+          style={{ transform: open ? 'translateX(0)' : 'translateX(100%)' }}
+        >
+          {/* Identity card */}
+          <div className="relative p-5 pb-6 bg-gradient-to-br from-violet-700 via-indigo-700 to-fuchsia-700 text-white overflow-hidden">
+            <div className="absolute -top-16 -left-10 w-48 h-48 rounded-full bg-amber-400/25 blur-3xl" aria-hidden />
+            <button
+              onClick={() => setOpen(false)} aria-label="إغلاق"
+              className="absolute top-4 left-4 w-8 h-8 rounded-lg bg-white/15 backdrop-blur flex items-center justify-center hover:bg-white/25 transition"
+            >
+              <X size={16} />
+            </button>
+
+            <div className="relative flex items-center gap-3 mt-1">
+              {teacher.profile?.avatar_url
+                ? /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={teacher.profile.avatar_url} alt="" className="w-14 h-14 rounded-2xl object-cover border-2 border-white/70" />
+                : <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur border-2 border-white/40 flex items-center justify-center text-2xl font-black">{initial}</div>}
+              <div className="min-w-0">
+                <div className="font-black text-[16px] truncate">{name}</div>
+                <div className="text-[11.5px] text-white/70 truncate">{teacher.email}</div>
+                {reviews > 0 && (
+                  <div className="flex items-center gap-1 mt-1 text-[12px] font-black text-amber-200">
+                    <Star size={12} className="fill-amber-300 text-amber-300" />
+                    {Number(rating).toFixed(1)} <span className="text-white/50 font-semibold">({reviews})</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Links */}
+          <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+            {NAV.map(item => {
+              const active = isActive(item.segment)
+              return (
+                <Link
+                  key={item.segment || 'home'}
+                  href={href(item.segment)}
+                  className={`flex items-center gap-3 px-3.5 py-3 rounded-2xl transition group ${
+                    active ? 'bg-stone-900 text-white shadow-lg' : 'hover:bg-stone-100'}`}
+                >
+                  <span className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition ${
+                    active ? 'bg-white/15' : 'bg-stone-100 text-stone-500 group-hover:bg-white'}`}>
+                    <item.icon size={18} />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[14px] font-black leading-tight">{item.label}</span>
+                    <span className={`block text-[11px] font-semibold truncate ${active ? 'text-white/60' : 'text-stone-400'}`}>
+                      {item.hint}
+                    </span>
+                  </span>
+                </Link>
+              )
+            })}
+          </nav>
+
+          <div className="p-3 border-t border-stone-100">
+            <button
+              onClick={signOut}
+              className="w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-red-600 hover:bg-red-50 transition"
+            >
+              <span className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center shrink-0"><LogOut size={17} /></span>
+              <span className="text-[14px] font-black">تسجيل الخروج</span>
+            </button>
+          </div>
+        </aside>
+      </div>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 pb-20">{children}</main>
     </div>
   )
 }

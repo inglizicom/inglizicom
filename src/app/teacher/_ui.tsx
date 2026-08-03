@@ -2,6 +2,7 @@
 
 import type { LucideIcon } from 'lucide-react'
 import { FlaskConical, Star } from 'lucide-react'
+import { Counter, Reveal } from './_motion'
 
 /* Shared surfaces for the teaching space. Warm paper, white cards, one amber
    accent — deliberately not the CRM's black chrome. */
@@ -16,53 +17,59 @@ export function Card({ className = '', children }: { className?: string; childre
 
 /* ── Page hero ─────────────────────────────────────────── */
 
-const HERO_TONE = {
-  amber:   'from-amber-500 via-orange-500 to-rose-500',
-  blue:    'from-blue-600 via-indigo-600 to-violet-600',
-  violet:  'from-violet-700 via-purple-600 to-fuchsia-600',
-  emerald: 'from-emerald-600 via-teal-600 to-cyan-600',
-  rose:    'from-rose-600 via-pink-600 to-fuchsia-600',
+const TONE = {
+  amber:   { chip: 'bg-amber-100 text-amber-700',     bar: 'from-amber-400 to-orange-500' },
+  blue:    { chip: 'bg-blue-100 text-blue-700',       bar: 'from-blue-500 to-indigo-500' },
+  violet:  { chip: 'bg-violet-100 text-violet-700',   bar: 'from-violet-500 to-fuchsia-500' },
+  emerald: { chip: 'bg-emerald-100 text-emerald-700', bar: 'from-emerald-500 to-teal-500' },
+  rose:    { chip: 'bg-rose-100 text-rose-700',       bar: 'from-rose-500 to-pink-500' },
 }
+export type Tone = keyof typeof TONE
 
-/** Every page opens on one of these — a coloured band with the title and the
- *  two or three numbers that page is about, so no screen starts on a white box. */
+/** A compact page header: title, a coloured icon, and the page's own numbers as
+ *  small cards that count up on entry. Deliberately not a full-bleed hero —
+ *  the detail below is what matters, and a banner on every screen delays it. */
 export function PageHero({
   icon: Icon, title, subtitle, tone, stats, action,
 }: {
   icon: LucideIcon
   title: string
   subtitle?: string
-  tone: keyof typeof HERO_TONE
-  stats?: { label: string; value: React.ReactNode }[]
+  tone: Tone
+  stats?: { label: string; value: number; suffix?: string }[]
   action?: React.ReactNode
 }) {
+  const t = TONE[tone]
   return (
-    <section className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${HERO_TONE[tone]} text-white p-5 sm:p-6 shadow-lg`}>
-      <div className="absolute -top-20 -left-12 w-64 h-64 rounded-full bg-white/15 blur-3xl" aria-hidden />
-      <div className="absolute -bottom-24 right-4 w-64 h-64 rounded-full bg-black/15 blur-3xl" aria-hidden />
-
-      <div className="relative flex flex-wrap items-center gap-4">
-        <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center shrink-0 border border-white/20">
-          <Icon size={26} />
-        </div>
-        <div className="flex-1 min-w-[12rem]">
-          <h1 className="font-display text-[26px] sm:text-[32px] font-black tracking-tight leading-none">{title}</h1>
-          {subtitle && <p className="text-white/75 text-[13.5px] font-semibold mt-1.5">{subtitle}</p>}
+    <div className="space-y-3.5">
+      <div className="flex flex-wrap items-center gap-3.5">
+        <span className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${t.chip}`}>
+          <Icon size={21} />
+        </span>
+        <div className="flex-1 min-w-[11rem]">
+          <h1 className="text-[24px] sm:text-[27px] font-black tracking-tight leading-none">{title}</h1>
+          {subtitle && <p className="text-stone-400 text-[13px] font-bold mt-1">{subtitle}</p>}
         </div>
         {action}
       </div>
 
       {stats && stats.length > 0 && (
-        <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-5">
-          {stats.map(s => (
-            <div key={s.label} className="rounded-2xl bg-white/12 backdrop-blur border border-white/15 px-3.5 py-2.5">
-              <div className="text-[10.5px] font-bold text-white/60 truncate">{s.label}</div>
-              <div className="text-[21px] font-black leading-tight tabular-nums">{s.value}</div>
-            </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          {stats.map((s, i) => (
+            <Reveal key={s.label} delay={i * 60}>
+              <div className="relative overflow-hidden bg-white rounded-2xl border border-stone-200/80 px-4 py-3
+                              shadow-[0_1px_2px_rgba(28,25,23,.04),0_10px_26px_-20px_rgba(28,25,23,.5)]
+                              hover:shadow-[0_2px_4px_rgba(28,25,23,.06),0_14px_30px_-18px_rgba(28,25,23,.55)]
+                              hover:-translate-y-0.5 transition duration-300">
+                <span className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-l ${t.bar}`} aria-hidden />
+                <div className="text-[10.5px] font-bold text-stone-400 truncate">{s.label}</div>
+                <Counter value={s.value} suffix={s.suffix} className="text-[23px] font-black leading-tight" />
+              </div>
+            </Reveal>
           ))}
         </div>
       )}
-    </section>
+    </div>
   )
 }
 

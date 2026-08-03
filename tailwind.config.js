@@ -11,6 +11,8 @@ module.exports = {
         sans: ['Tajawal', 'sans-serif'],
         arabic: ['Tajawal', 'sans-serif'],
         display: ['Outfit', 'system-ui', 'sans-serif'],
+        // Teacher space — a modern Arabic face with real weight range.
+        plex: ['"IBM Plex Sans Arabic"', 'Tajawal', 'sans-serif'],
         serif: ['Lora', 'Georgia', 'serif'],
         ui: ['"DM Sans"', 'system-ui', 'sans-serif'],
       },

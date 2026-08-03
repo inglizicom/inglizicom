@@ -74,10 +74,10 @@ export default function TeacherMaterialsPage() {
         icon={FolderOpen} tone="emerald" title="ملفاتي"
         subtitle="دروسك ومرفقاتك — PDF، Word، عروض، صوتيات وفيديو"
         stats={[
-          { label: 'ملف',        value: items.length },
-          { label: 'الحجم',      value: formatSize(items.reduce((a, m) => a + (m.size_bytes ?? 0), 0)) },
-          { label: 'تحميلات',    value: items.reduce((a, m) => a + m.download_count, 0) },
-          { label: 'خاص بي',     value: items.filter(m => m.visibility === 'private').length },
+          { label: 'ملف',     value: items.length },
+          { label: 'ميغابايت', value: Math.round(items.reduce((a, m) => a + (m.size_bytes ?? 0), 0) / 1048576) },
+          { label: 'تحميل',   value: items.reduce((a, m) => a + m.download_count, 0) },
+          { label: 'خاص بي',  value: items.filter(m => m.visibility === 'private').length },
         ]}
       />
 

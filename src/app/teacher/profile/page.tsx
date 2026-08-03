@@ -12,6 +12,7 @@ import {
   type TeacherProfileFull,
 } from '@/lib/teachers'
 import { Donut, HBars, Ring, VIZ } from '../_charts'
+import { Counter, Reveal } from '../_motion'
 import { Empty, Pill, Stars, fmtTime, STATUS_AR } from '../_ui'
 import ProfileEditor from './ProfileEditor'
 import { DEMO_PROFILE } from './demoData'
@@ -483,11 +484,21 @@ const HEAD_TONE = {
   fuchsia: 'bg-fuchsia-100 text-fuchsia-700',
 }
 
+/** Every block reveals as it reaches the viewport — that's where the page's
+ *  sense of life comes from, not from anything looping on its own. */
 function Panel({ className = '', id, children }: { className?: string; id?: string; children: React.ReactNode }) {
   return (
-    <section id={id} className={`bg-white rounded-3xl border border-stone-200/90 shadow-[0_1px_3px_rgba(28,25,23,.05)] ${className}`}>
-      {children}
-    </section>
+    <Reveal>
+      <section
+        id={id}
+        className={`bg-white rounded-3xl border border-stone-200/80
+                    shadow-[0_1px_3px_rgba(28,25,23,.05),0_18px_40px_-28px_rgba(28,25,23,.5)]
+                    hover:shadow-[0_2px_6px_rgba(28,25,23,.07),0_24px_50px_-26px_rgba(28,25,23,.55)]
+                    transition-shadow duration-300 ${className}`}
+      >
+        {children}
+      </section>
+    </Reveal>
   )
 }
 
@@ -516,7 +527,7 @@ function Glass({
         <Icon size={13} />
         <span className="text-[10.5px] font-bold truncate">{label}</span>
       </div>
-      <div className="text-[22px] font-black leading-none tabular-nums">{value}</div>
+      <div className="text-[22px] font-black leading-none">{typeof value === 'number' ? <Counter value={value} /> : value}</div>
       {sub && <div className="text-[10.5px] font-semibold text-white/50 mt-1 truncate">{sub}</div>}
     </div>
   )
