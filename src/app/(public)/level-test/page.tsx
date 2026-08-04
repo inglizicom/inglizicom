@@ -791,6 +791,14 @@ function QuestionBody({
    INTRO
    ══════════════════════════════════════════════════════════════════════════ */
 
+/**
+ * The intro has one job: get the button pressed.
+ *
+ * So the button sits above the fold on the smallest phone we support, and
+ * everything that merely explains the test lives below it. The four features
+ * are a two-column grid even on mobile — as full-width rows they left most of
+ * their own width empty and pushed the button off the screen.
+ */
 function Intro({ onStart }: { onStart: () => void }) {
   const total = LEVEL_ORDER.reduce((n, l) => n + (QUESTIONS[l]?.length ?? 0), 0)
   return (
@@ -799,49 +807,62 @@ function Intro({ onStart }: { onStart: () => void }) {
            style={{ backgroundImage:
              'radial-gradient(46rem 30rem at 85% -8%, rgba(245,158,11,.14), transparent 62%),' +
              'radial-gradient(40rem 26rem at 6% 6%, rgba(59,130,246,.12), transparent 60%)' }} />
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10 text-center animate-fade-up">
-        <div className="w-20 h-20 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shadow-2xl">
-          <Brain size={38} className="text-black" />
+
+      {/* the site header is fixed at 60px, so the page has to clear it itself —
+          without this the icon sits behind the logo */}
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-[76px] sm:pt-24 pb-12 text-center animate-fade-up">
+
+        {/* ── Above the fold: what it is, and the way in ── */}
+        <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-yellow-400 to-amber-500
+                        flex items-center justify-center shadow-2xl">
+          <Brain size={30} className="text-black sm:hidden" />
+          <Brain size={38} className="text-black hidden sm:block" />
         </div>
 
-        <h1 className="text-3xl sm:text-4xl font-black text-white mb-3 leading-tight">
+        <h1 className="text-[26px] sm:text-4xl font-black text-white mb-2.5 leading-[1.2]">
           اختبر مستواك في الإنجليزية
         </h1>
-        <p className="text-slate-400 font-semibold mb-8 leading-relaxed">
+        <p className="text-slate-400 text-[14px] sm:text-base font-semibold mb-5 leading-relaxed">
           اختبار حقيقي من <span className="text-white">A0</span> إلى <span className="text-white">C1</span> —
-          {' '}{total} سؤالاً في القواعد والمفردات والاستيعاب والاستماع، ثم كتابة تُصحَّح تلقائياً.
+          {' '}{total} سؤالاً، ثم كتابة تُصحَّح تلقائياً.
         </p>
 
-        <div className="grid sm:grid-cols-2 gap-3 mb-6 text-right">
+        <button onClick={onStart}
+                className="w-full px-12 py-4 rounded-2xl bg-gradient-to-l from-yellow-400 to-amber-500 text-black
+                           font-black text-lg hover:brightness-110 active:scale-[.99] transition shadow-2xl">
+          ابدأ الاختبار
+        </button>
+        <p className="text-slate-500 text-[12px] font-semibold mt-2.5 flex items-center justify-center gap-1.5">
+          <Sparkles size={12} className="text-yellow-400" />
+          مجاني · بملء الشاشة · ينتهي عند نفاد قلوبك
+        </p>
+
+        {/* ── Below: what's inside ── */}
+        <div className="grid grid-cols-2 gap-2.5 mt-8 text-right">
           {[
-            { icon: Heart,      t: 'قلوب تزداد مع الصعوبة', s: '3 قلوب في A0 وتصل إلى 5 في C1. ما يتبقّى منها يرفع نتيجتك.' },
-            { icon: Headphones, t: 'استماع حقيقي',          s: 'تستمع وتكتب ما سمعته، أو تكمل الفراغات.' },
-            { icon: ListChecks, t: '16 سؤالاً لكل مستوى',   s: 'اختيار، اختيارات متعددة، فراغات، ترتيب، قراءة.' },
-            { icon: PenLine,    t: 'كتابة مصحّحة آلياً',    s: 'تكتب فقرة ونعطيك التصحيح والملاحظات.' },
+            { icon: Heart,      t: 'قلوب تتزايد',   s: '3 في A0 · 5 في C1' },
+            { icon: Headphones, t: 'استماع حقيقي',  s: 'تسمع وتكتب' },
+            { icon: ListChecks, t: '16 سؤالاً',     s: 'لكل مستوى' },
+            { icon: PenLine,    t: 'كتابة مصحّحة',  s: 'تصحيح تلقائي' },
           ].map((f, i) => (
-            <div key={i} className="bg-white/[.04] ring-1 ring-white/10 rounded-2xl p-4 flex items-start gap-3">
-              <span className="w-9 h-9 rounded-xl bg-yellow-400/15 flex items-center justify-center shrink-0">
+            <div key={i} className="bg-white/[.04] ring-1 ring-white/10 rounded-2xl p-3.5">
+              <span className="w-9 h-9 rounded-xl bg-yellow-400/15 flex items-center justify-center mb-2">
                 <f.icon size={17} className="text-yellow-400" />
               </span>
-              <div className="min-w-0">
-                <div className="text-white font-bold text-[14px]">{f.t}</div>
-                <div className="text-slate-500 text-[12px] leading-relaxed mt-0.5">{f.s}</div>
-              </div>
+              <div className="text-white font-bold text-[13.5px] leading-tight">{f.t}</div>
+              <div className="text-slate-500 text-[11.5px] leading-tight mt-1">{f.s}</div>
             </div>
           ))}
         </div>
 
-        <div className="flex items-center justify-center gap-2 mb-6 text-slate-500 text-[12px] font-semibold">
-          <Sparkles size={13} className="text-yellow-400" />
-          يفتح الاختبار بملء الشاشة لتركيز أفضل
+        <div className="mt-6 bg-white/[.03] ring-1 ring-white/[.07] rounded-2xl p-4 text-right">
+          <h2 className="text-white font-bold text-[14px] mb-2">كيف يعمل الاختبار؟</h2>
+          <ul className="space-y-1.5 text-slate-400 text-[12.5px] leading-relaxed">
+            <li>• تبدأ من A0 وتصعد مستوى بعد مستوى حتى تنفد قلوبك.</li>
+            <li>• كل خطأ يكلّفك قلباً — والقلوب المتبقية ترفع نتيجتك النهائية.</li>
+            <li>• في النهاية تكتب فقرة، نصحّحها لك، ونقترح الدورة المناسبة.</li>
+          </ul>
         </div>
-
-        <button onClick={onStart}
-                className="w-full sm:w-auto px-12 py-4 rounded-2xl bg-gradient-to-l from-yellow-400 to-amber-500 text-black
-                           font-black text-lg hover:brightness-110 active:scale-[.99] transition shadow-2xl">
-          ابدأ الاختبار
-        </button>
-        <p className="text-slate-600 text-xs font-semibold mt-4">مجاني تماماً · ينتهي عند نفاد قلوبك</p>
       </div>
     </main>
   )
