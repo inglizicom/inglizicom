@@ -1,953 +1,517 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
-  CheckCircle2, XCircle, Brain, Trophy, Volume2,
-  ArrowLeft, ChevronRight, MessageCircle, RotateCcw,
-  AlertTriangle, Star, TrendingUp, BarChart2, Play, Crown,
+  Heart, CheckCircle2, XCircle, Volume2, Loader2, RotateCcw, MessageCircle,
+  Trophy, Sparkles, PenLine, Headphones, BookOpen, Brain, ListChecks,
+  Type, Shuffle, Award,
 } from 'lucide-react'
+import {
+  QUESTIONS, WRITING_PROMPTS, LEVEL_ORDER, LEVEL_META, HEARTS,
+  CEFR_FEEDBACK, SKILL_LABELS, TYPE_LABELS, recommendPlan,
+  type CEFRLevel, type Question, type QType, type SkillKey,
+} from '@/data/placement-test'
+import { isCorrect, gradeWriting, finalLevel, type WritingReport } from '@/lib/placement'
 import { getPlan } from '@/data/plans'
-import { COURSES } from '@/data/courses'
-import { openSubscribe } from '@/lib/lead-source'
 import { createSubscriptionLead, getAttribution } from '@/lib/leads-db'
 
-/* ══════════════════════════════════════════════════════════════
-   TYPES
-══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════════════
+   PLACEMENT TEST
+   ══════════════════════════════════════════════════════════════════════════
 
-type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1'
-type QType     = 'grammar' | 'vocabulary' | 'correction' | 'ordering' | 'reading' | 'listening'
-type SkillKey  = 'grammar' | 'vocabulary' | 'comprehension' | 'structure'
+   Six levels, three hearts each. Lose all three and the test ends — you are
+   placed at the last level you finished. Clear a level and the next one
+   starts with a fresh three, because being stretched should not be punished
+   with the debt of the level before.
 
-interface Question {
-  id:            number
-  level:         CEFRLevel
-  type:          QType
-  skill:         SkillKey
-  question:      string
-  arabicHint:    string
-  passage?:      string
-  audioText?:    string
-  options?:      string[]
-  answer?:       number
-  words?:        string[]
-  correctOrder?: number[]
-  explanation:   string
-}
+   After the quiz comes one piece of writing, graded automatically. It can move
+   the final placement by one level in either direction: a quiz can be guessed,
+   a paragraph cannot.
+   ══════════════════════════════════════════════════════════════════════════ */
 
-interface SkillStat { correct: number; total: number }
-
-/* ══════════════════════════════════════════════════════════════
-   CONSTANTS
-══════════════════════════════════════════════════════════════ */
-
-const LEVEL_ORDER: CEFRLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1']
-const MISTAKES_TO_FAIL = 3
 const WHATSAPP = '212764189311'
-const waUrl = (msg: string) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`
 
-const LEVEL_STYLE: Record<CEFRLevel, {
-  bg: string; color: string; border: string; glow: string; label: string
-}> = {
-  A1: { bg:'bg-amber-500',   color:'text-amber-400',   border:'border-amber-400',   glow:'shadow-amber-500/40',   label:'مبتدئ'       },
-  A2: { bg:'bg-orange-500',  color:'text-orange-400',  border:'border-orange-400',  glow:'shadow-orange-500/40',  label:'أساسي'       },
-  B1: { bg:'bg-blue-500',    color:'text-blue-400',    border:'border-blue-400',    glow:'shadow-blue-500/40',    label:'متوسط'       },
-  B2: { bg:'bg-purple-500',  color:'text-purple-400',  border:'border-purple-400',  glow:'shadow-purple-500/40',  label:'فوق المتوسط' },
-  C1: { bg:'bg-emerald-500', color:'text-emerald-400', border:'border-emerald-400', glow:'shadow-emerald-500/40', label:'متقدم'       },
+type Phase = 'intro' | 'quiz' | 'levelUp' | 'writing' | 'grading' | 'result'
+
+interface Answered { qid: number; ok: boolean; skill: SkillKey; level: CEFRLevel }
+
+const TYPE_ICON: Record<QType, typeof Brain> = {
+  mcq: Brain, multi: ListChecks, gap: Type, order: Shuffle,
+  reading: BookOpen, listenMcq: Headphones, listenGap: Headphones, listenWrite: Headphones,
 }
 
-const CEFR_FEEDBACK: Record<CEFRLevel, { ar: string; canDo: string[]; focus: string[] }> = {
-  A1: {
-    ar: 'أنت في بداية رحلتك. تفهم الكلمات البسيطة والتعبيرات اليومية. كل المتحدثين بدأوا من هنا!',
-    canDo: ['تقديم نفسك والآخرين', 'فهم الكلمات اليومية البسيطة', 'الإجابة على أسئلة بسيطة عن نفسك'],
-    focus:  ['الأفعال الأساسية: be, have, do', 'المفردات اليومية الأساسية', 'الجملة البسيطة: Subject + Verb + Object'],
-  },
-  A2: {
-    ar: 'تستطيع التواصل في المواقف اليومية البسيطة. أساسك جيد — الآن نبنيه للطلاقة الحقيقية!',
-    canDo: ['وصف حياتك اليومية والمحيط', 'التعامل مع مواقف التسوق والسفر البسيطة', 'فهم الرسائل والإشعارات القصيرة'],
-    focus:  ['الماضي البسيط والمستمر', 'Present Perfect للتجارب', 'حروف الجر والتعابير الاصطلاحية'],
-  },
-  B1: {
-    ar: 'مستوى ممتاز! تستطيع التعبير عن آرائك والتعامل مع معظم المواقف. أنت قريب من الطلاقة!',
-    canDo: ['التعبير عن أفكارك ومشاعرك بوضوح', 'التعامل مع معظم مواقف العمل والسفر', 'فهم معظم المحادثات العادية'],
-    focus:  ['جمل الشرط (Conditionals)', 'المبني للمجهول (Passive Voice)', 'الخطاب غير المباشر (Reported Speech)'],
-  },
-  B2: {
-    ar: 'مستوى متقدم جداً! تناقش موضوعات معقدة وتتفاعل بثقة مع المتحدثين الأصليين.',
-    canDo: ['فهم الأفكار الرئيسية في نصوص معقدة', 'التعبير بطلاقة دون بحث عن كلمات', 'المشاركة في نقاشات متخصصة'],
-    focus:  ['الجمل الوصفية المعقدة', 'أسلوب الكتابة الرسمية والأكاديمية', 'المفردات المتقدمة والأكاديمية'],
-  },
-  C1: {
-    ar: 'مستوى احترافي! إنجليزيتك قريبة من مستوى الناطقين الأصليين. يمكنك تعليم الآخرين!',
-    canDo: ['التعبير عن أفكار معقدة بمرونة ودقة', 'فهم النصوص الطويلة والضمنية', 'الكتابة الأكاديمية المتقنة'],
-    focus:  ['الفروق الأسلوبية الدقيقة', 'أساليب الخطابة والإقناع', 'الأساليب البلاغية المتقدمة'],
-  },
-}
+/* ── Audio ──────────────────────────────────────────────────────────────── */
 
-const SKILL_LABELS: Record<SkillKey, { ar: string; en: string }> = {
-  grammar:      { ar: 'القواعد',   en: 'Grammar'       },
-  vocabulary:   { ar: 'المفردات',  en: 'Vocabulary'    },
-  comprehension:{ ar: 'الاستيعاب', en: 'Comprehension'  },
-  structure:    { ar: 'التركيب',   en: 'Structure'     },
-}
+/** Neural voice when the server can provide one, browser voice when it can't.
+ *  Listening questions are the one place a robotic voice really hurts, so we
+ *  try the good one first and degrade rather than fail. */
+function useSpeech() {
+  const [busy, setBusy] = useState(false)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const cache = useRef<Map<string, string>>(new Map())
 
-const TYPE_META: Record<QType, { label: string; icon: string }> = {
-  grammar:    { label: 'قواعد نحوية', icon: '📖' },
-  vocabulary: { label: 'مفردات',      icon: '📝' },
-  correction: { label: 'صحّح الخطأ', icon: '✏️' },
-  ordering:   { label: 'رتّب الجملة',icon: '🔢' },
-  reading:    { label: 'قراءة وفهم', icon: '📄' },
-  listening:  { label: 'استماع',     icon: '🔊' },
-}
+  useEffect(() => () => {
+    audioRef.current?.pause()
+    cache.current.forEach(url => URL.revokeObjectURL(url))
+    if (typeof window !== 'undefined') window.speechSynthesis?.cancel()
+  }, [])
 
-/* ══════════════════════════════════════════════════════════════
-   QUESTION BANK  —  12 questions × 5 levels = 60 questions
-   CEFR-accurate, pedagogically sequenced, no randomisation
-══════════════════════════════════════════════════════════════ */
+  function browserVoice(text: string) {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return
+    window.speechSynthesis.cancel()
+    const u = new SpeechSynthesisUtterance(text)
+    u.lang = 'en-US'; u.rate = 0.85
+    u.onend = () => setBusy(false)
+    u.onerror = () => setBusy(false)
+    window.speechSynthesis.speak(u)
+  }
 
-const QUESTIONS: Record<CEFRLevel, Question[]> = {
+  async function say(text: string) {
+    setBusy(true)
+    audioRef.current?.pause()
 
-  /* ─── A1  ─────────────────────────────────────────────────────────
-     Target: beginners who understand simple words and basic phrases  */
-  A1: [
-    {
-      id:101, level:'A1', type:'grammar', skill:'grammar',
-      question: 'I ___ a student.',
-      arabicHint: 'أكمل الجملة بالفعل الصحيح:',
-      options: ['is', 'am', 'are', 'be'],
-      answer: 1,
-      explanation: 'مع "I" نستخدم دائماً "am". ✓ I am a student.\n(He/She/It → is | We/You/They → are)',
-    },
-    {
-      id:102, level:'A1', type:'vocabulary', skill:'vocabulary',
-      question: 'What is the opposite of "hot"?',
-      arabicHint: 'ما هو عكس كلمة "hot" (حار)؟',
-      options: ['warm', 'cold', 'big', 'fast'],
-      answer: 1,
-      explanation: '"Hot" ↔ "Cold". "It\'s very cold today — bring a jacket!" ✓',
-    },
-    {
-      id:103, level:'A1', type:'grammar', skill:'grammar',
-      question: 'She has ___ cat.',
-      arabicHint: 'أضف الأداة الصحيحة (a / an):',
-      options: ['a', 'an', 'the', '—'],
-      answer: 0,
-      explanation: '"a" قبل الأصوات الساكنة: a cat, a dog, a book. ✓\n"an" قبل الأصوات المتحركة: an apple, an egg, an umbrella.',
-    },
-    {
-      id:104, level:'A1', type:'ordering', skill:'structure',
-      question: 'Arrange the words to form a correct sentence:',
-      arabicHint: 'رتّب الكلمات لتكوين جملة صحيحة:',
-      words: ['I', 'morning', 'every', 'exercise'],
-      correctOrder: [0, 3, 2, 1],
-      explanation: '"I exercise every morning." ✓\nالترتيب: الضمير + الفعل + الظرف الزمني',
-    },
-    {
-      id:105, level:'A1', type:'grammar', skill:'grammar',
-      question: 'There are three ___ in the park.',
-      arabicHint: 'اختر جمع كلمة "child":',
-      options: ['child', 'childs', 'children', 'childrens'],
-      answer: 2,
-      explanation: '"Child" لها جمع شاذ (irregular): child → children. ✓\n(بدون -s أو -es — مثل: man→men, foot→feet, tooth→teeth)',
-    },
-    {
-      id:106, level:'A1', type:'correction', skill:'structure',
-      question: 'Find the error in this sentence:\n\n"She go to school every day."',
-      arabicHint: 'ابحث عن الخطأ النحوي في الجملة:',
-      options: [
-        '"She" should be "Her"',
-        '"go" should be "goes" — he/she/it requires -s in simple present',
-        '"every day" should be "everyday"',
-        'The sentence is correct',
-      ],
-      answer: 1,
-      explanation: 'في المضارع البسيط مع he/she/it نضيف -s للفعل:\n✓ She goes to school every day.\n(I/You/We/They → go | He/She/It → goes)',
-    },
-    {
-      id:107, level:'A1', type:'vocabulary', skill:'vocabulary',
-      question: 'What does "expensive" mean?',
-      arabicHint: 'ما معنى كلمة "expensive"؟',
-      options: ['cheap — رخيص', 'old — قديم', 'costly — غالٍ', 'small — صغير'],
-      answer: 2,
-      explanation: '"Expensive" = costly = غالٍ / مكلف. ✓\nOpposite: "cheap" (رخيص). "This restaurant is too expensive for me."',
-    },
-    {
-      id:108, level:'A1', type:'grammar', skill:'grammar',
-      question: 'My parents ___ a new car.',
-      arabicHint: 'اختر الفعل الصحيح مع "parents" (جمع):',
-      options: ['has', 'have', 'is having', 'are have'],
-      answer: 1,
-      explanation: '"Have" مع الجمع (parents, they, we, you). ✓\n"Has" مع المفرد الغائب (he, she, it).\n✓ My parents have a new car.',
-    },
-    {
-      id:109, level:'A1', type:'ordering', skill:'structure',
-      question: 'Arrange the words to form a question:',
-      arabicHint: 'رتّب الكلمات لتكوين سؤال صحيح:',
-      words: ['you', 'Where', 'from', 'are'],
-      correctOrder: [1, 3, 0, 2],
-      explanation: '"Where are you from?" ✓\nالأسئلة: أداة استفهام + فعل مساعد + فاعل',
-    },
-    {
-      id:110, level:'A1', type:'reading', skill:'comprehension',
-      passage: 'Tom is 10 years old. He lives in London with his mother and father. He has a cat named Whiskers. Every morning, he eats breakfast and walks to school.',
-      question: 'Where does Tom live?',
-      arabicHint: 'أين يعيش توم؟',
-      options: ['Paris', 'New York', 'London', 'Cairo'],
-      answer: 2,
-      explanation: 'من النص: "He lives in London" — لندن هي الإجابة الصحيحة. ✓',
-    },
-    {
-      id:111, level:'A1', type:'grammar', skill:'grammar',
-      question: '___ are my books. (pointing to books near you)',
-      arabicHint: 'أنت تشير إلى كتب قريبة منك (جمع). أي كلمة تستخدم؟',
-      options: ['This', 'That', 'These', 'Those'],
-      answer: 2,
-      explanation: '"These" للجمع القريب. "Those" للجمع البعيد.\n(This = مفرد قريب | That = مفرد بعيد)\n✓ These are my books.',
-    },
-    {
-      id:112, level:'A1', type:'listening', skill:'comprehension',
-      audioText: 'Hello! My name is Ahmed. I am from Morocco. I have two brothers and one sister.',
-      question: 'How many siblings does Ahmed have in total?',
-      arabicHint: 'كم عدد أشقاء أحمد في المجموع؟',
-      options: ['One', 'Two', 'Three', 'Four'],
-      answer: 2,
-      explanation: 'Ahmed has two brothers + one sister = three siblings in total. ✓',
-    },
-  ],
-
-  /* ─── A2  ──────────────────────────────────────────────────────────
-     Target: can communicate in simple, routine situations              */
-  A2: [
-    {
-      id:201, level:'A2', type:'grammar', skill:'grammar',
-      question: 'I ___ never been to Japan.',
-      arabicHint: 'أكمل الجملة بالفعل المناسب (Present Perfect):',
-      options: ['have', 'had', 'am', 'did'],
-      answer: 0,
-      explanation: 'Present Perfect مع "never": have/has + past participle.\n✓ I have never been to Japan.\n(تجربة حياتية بدون وقت محدد)',
-    },
-    {
-      id:202, level:'A2', type:'vocabulary', skill:'vocabulary',
-      question: 'To "suggest" means to:',
-      arabicHint: 'ما معنى فعل "suggest"؟',
-      options: ['demand — يطلب بإلحاح', 'refuse — يرفض', 'propose — يقترح', 'complain — يشتكي'],
-      answer: 2,
-      explanation: '"Suggest" = to propose an idea = يقترح. ✓\n"I suggest we go to the cinema tonight." (أقترح أن نذهب للسينما الليلة)',
-    },
-    {
-      id:203, level:'A2', type:'grammar', skill:'grammar',
-      question: 'The exam is ___ Monday morning.',
-      arabicHint: 'اختر حرف الجر المناسب للأيام:',
-      options: ['in', 'at', 'on', 'by'],
-      answer: 2,
-      explanation: '"On" + أيام الأسبوع والتواريخ المحددة. ✓\non Monday | on Friday evening | on 15th March\n("in" للأشهر والفصول | "at" للأوقات كـ at 7pm)',
-    },
-    {
-      id:204, level:'A2', type:'ordering', skill:'structure',
-      question: 'Arrange the words to form a correct sentence:',
-      arabicHint: 'رتّب الكلمات لتكوين جملة في الماضي البسيط:',
-      words: ['She', 'book', 'interesting', 'an', 'read'],
-      correctOrder: [0, 4, 3, 2, 1],
-      explanation: '"She read an interesting book." ✓\n(Subject + Verb + Article + Adjective + Noun)',
-    },
-    {
-      id:205, level:'A2', type:'correction', skill:'structure',
-      question: 'Find the error in this sentence:\n\n"Yesterday I have visited my grandmother."',
-      arabicHint: 'ابحث عن الخطأ النحوي:',
-      options: [
-        '"Yesterday" should be "Last day"',
-        '"have visited" should be "visited" — use Simple Past with "yesterday"',
-        '"my grandmother" should be "the grandmother"',
-        'The sentence is correct',
-      ],
-      answer: 1,
-      explanation: 'مع كلمات الماضي المحدد (yesterday, last week, in 2019) نستخدم Simple Past دائماً:\n✓ Yesterday I visited my grandmother.\n(لا يمكن استخدام Present Perfect مع "yesterday")',
-    },
-    {
-      id:206, level:'A2', type:'grammar', skill:'grammar',
-      question: 'This restaurant is ___ than the one near my house.',
-      arabicHint: 'اختر شكل المقارنة الصحيح للصفة "expensive":',
-      options: ['more expensive', 'most expensive', 'expensiver', 'expensivest'],
-      answer: 0,
-      explanation: 'الصفات الطويلة (2+ مقاطع): more/most + الصفة.\n✓ more expensive (مقارنة) | the most expensive (تفضيل)\n(الصفات القصيرة: cheaper, taller, bigger)',
-    },
-    {
-      id:207, level:'A2', type:'reading', skill:'comprehension',
-      passage: 'Last summer, Maria went on holiday to Spain. She visited many museums and tried different local foods. The weather was very hot, so she spent a lot of time at the beach. She also made new friends from different countries.',
-      question: 'Why did Maria spend a lot of time at the beach?',
-      arabicHint: 'لماذا أمضت ماريا وقتاً طويلاً على الشاطئ؟',
-      options: [
-        'She liked swimming very much',
-        'The weather was very hot',
-        'She wanted to meet new friends',
-        'The museums were closed',
-      ],
-      answer: 1,
-      explanation: 'من النص: "The weather was very hot, so she spent a lot of time at the beach." ✓\nالسبب المذكور صراحةً هو الطقس الحار.',
-    },
-    {
-      id:208, level:'A2', type:'grammar', skill:'grammar',
-      question: "You ___ wear a seatbelt. It's the law.",
-      arabicHint: 'اختر الفعل المناسب للتعبير عن الإلزام القانوني:',
-      options: ['can', 'might', 'must', 'would'],
-      answer: 2,
-      explanation: '"Must" = إلزام قوي (قانون / قاعدة). ✓\n"Can" = إمكانية | "Might" = احتمال | "Would" = ماضٍ / تمني\n✓ You must wear a seatbelt. (قانون)',
-    },
-    {
-      id:209, level:'A2', type:'vocabulary', skill:'vocabulary',
-      question: 'What does the phrasal verb "to give up" mean?',
-      arabicHint: 'ما معنى التعبير الفعلي "give up"؟',
-      options: ['to continue — يستمر', 'to start — يبدأ', 'to quit / stop trying — يستسلم', 'to improve — يتحسن'],
-      answer: 2,
-      explanation: '"Give up" = to stop trying, to quit = يستسلم. ✓\n"Don\'t give up — you can do it!" (لا تستسلم، تستطيع!)',
-    },
-    {
-      id:210, level:'A2', type:'ordering', skill:'structure',
-      question: 'Arrange the words to form a question:',
-      arabicHint: 'رتّب الكلمات لتكوين سؤال في المضارع المستمر:',
-      words: ['doing', 'are', 'you', 'What'],
-      correctOrder: [3, 1, 2, 0],
-      explanation: '"What are you doing?" ✓\nالأسئلة بالمضارع المستمر: Wh-word + are/is/am + subject + verb-ing',
-    },
-    {
-      id:211, level:'A2', type:'grammar', skill:'grammar',
-      question: 'I ___ TV when my phone rang.',
-      arabicHint: 'اختر الزمن الصحيح: فعل مستمر انقطع بحدث مفاجئ:',
-      options: ['watched', 'was watching', 'am watching', 'have watched'],
-      answer: 1,
-      explanation: 'الماضي المستمر (Past Continuous) = was/were + V-ing\nيُستخدم لفعل كان جارياً حين انقطع بحدث آخر.\n✓ I was watching TV when my phone rang.',
-    },
-    {
-      id:212, level:'A2', type:'listening', skill:'comprehension',
-      audioText: "Excuse me, could you tell me how to get to the train station? I need to catch the 3 o'clock train to the city.",
-      question: 'Where does the person want to go?',
-      arabicHint: 'أين يريد الشخص الذهاب؟',
-      options: ['المستشفى — Hospital', 'المطار — Airport', 'محطة القطار — Train Station', 'الفندق — Hotel'],
-      answer: 2,
-      explanation: 'قال الشخص: "how to get to the train station" — محطة القطار. ✓',
-    },
-  ],
-
-  /* ─── B1  ───────────────────────────────────────────────────────────
-     Target: can deal with most situations likely to arise while travelling */
-  B1: [
-    {
-      id:301, level:'B1', type:'grammar', skill:'grammar',
-      question: "I ___ this film twice. It's really good.",
-      arabicHint: 'اختر الزمن الصحيح للتعبير عن تجربة بدون وقت محدد:',
-      options: ['saw', 'have seen', 'am seeing', 'see'],
-      answer: 1,
-      explanation: 'Present Perfect للتجارب بدون وقت محدد.\n✓ I have seen this film twice.\n("saw" = Simple Past — يحتاج وقتاً محدداً: "I saw it yesterday")',
-    },
-    {
-      id:302, level:'B1', type:'vocabulary', skill:'vocabulary',
-      question: 'The doctor said the treatment was ___ — it worked exactly as expected.',
-      arabicHint: 'اختر الكلمة المناسبة لوصف علاج نجح كما هو متوقع:',
-      options: ['disastrous — كارثي', 'effective — فعّال', 'irrelevant — غير ذي صلة', 'controversial — مثير للجدل'],
-      answer: 1,
-      explanation: '"Effective" = فعّال، ينجح في تحقيق النتيجة المطلوبة. ✓\n"The vaccine proved highly effective against the virus."',
-    },
-    {
-      id:303, level:'B1', type:'grammar', skill:'grammar',
-      question: 'If I ___ more money, I would travel the world.',
-      arabicHint: 'اختر شكل الفعل الصحيح (Conditional Type 2 — شرط غير حقيقي):',
-      options: ['had', 'have', 'will have', 'would have'],
-      answer: 0,
-      explanation: 'Conditional Type 2 = شرط غير حقيقي في الحاضر/المستقبل:\nIf + past simple → would + infinitive.\n✓ If I had more money, I would travel. (لكني لا أملك)',
-    },
-    {
-      id:304, level:'B1', type:'ordering', skill:'structure',
-      question: 'Arrange to form a conditional sentence:',
-      arabicHint: 'رتّب الكلمات لتكوين جملة شرطية صحيحة:',
-      words: ['harder', 'If', 'worked', 'would', 'Omar', 'pass', 'he'],
-      correctOrder: [1, 4, 2, 0, 6, 3, 5],
-      explanation: '"If Omar worked harder, he would pass." ✓\n(If + subject + past simple, subject + would + base verb)',
-    },
-    {
-      id:305, level:'B1', type:'correction', skill:'structure',
-      question: 'Find the error:\n\n"The manager asked to his team to work overtime."',
-      arabicHint: 'حدّد الخطأ النحوي:',
-      options: [
-        '"to his team" should be "his team" — \'ask\' takes a direct object with no preposition',
-        '"work overtime" should be "working overtime"',
-        '"The manager" should be "A manager"',
-        'The sentence is correct',
-      ],
-      answer: 0,
-      explanation: '"Ask" + مفعول به مباشر (بدون حرف جر):\n✓ The manager asked his team to work overtime.\n("asked TO his team" = خطأ | "asked FOR help" = صحيح)',
-    },
-    {
-      id:306, level:'B1', type:'grammar', skill:'grammar',
-      question: 'The bridge ___ in 1995.',
-      arabicHint: 'اختر المبني للمجهول في الماضي البسيط:',
-      options: ['built', 'was built', 'has built', 'is built'],
-      answer: 1,
-      explanation: 'المبني للمجهول في الماضي البسيط: was/were + past participle.\n✓ The bridge was built in 1995.\n(المبني للمعلوم: "They built the bridge in 1995.")',
-    },
-    {
-      id:307, level:'B1', type:'reading', skill:'comprehension',
-      passage: 'Remote work has become increasingly common since the pandemic. While many employees appreciate the flexibility it offers, some managers argue that it reduces team cohesion and productivity. Studies show mixed results — some workers are more productive at home, while others struggle without the structure of an office environment.',
-      question: 'According to the passage, what do some managers argue about remote work?',
-      arabicHint: 'ماذا يجادل بعض المديرين حول العمل عن بعد؟',
-      options: [
-        'It improves team cohesion significantly',
-        'It reduces team cohesion and productivity',
-        'It makes all workers more productive',
-        'It should replace office work entirely',
-      ],
-      answer: 1,
-      explanation: 'من النص: "some managers argue that it reduces team cohesion and productivity." ✓\nلاحظ: الدراسات أظهرت نتائج مختلطة — ليس كل العمال أكثر إنتاجاً في المنزل.',
-    },
-    {
-      id:308, level:'B1', type:'grammar', skill:'grammar',
-      question: 'She said, "I am tired." → She said that she ___ tired.',
-      arabicHint: 'حوّل إلى خطاب غير مباشر (Reported Speech):',
-      options: ['is', 'was', 'had been', 'were'],
-      answer: 1,
-      explanation: 'Reported Speech: الزمن "يتراجع" خطوة للخلف:\nam/is → was | are → were | was/were → had been\n✓ She said that she was tired.',
-    },
-    {
-      id:309, level:'B1', type:'vocabulary', skill:'vocabulary',
-      question: 'You should ___ a decision soon.',
-      arabicHint: 'اختر الفعل الصحيح مع "decision" (تلازم لفظي):',
-      options: ['do', 'take', 'make', 'have'],
-      answer: 2,
-      explanation: 'التلازم اللفظي الصحيح: "make a decision". ✓\nكذلك: make an effort | make a mistake | make progress\n(vs. "take a break | take notes | do homework")',
-    },
-    {
-      id:310, level:'B1', type:'ordering', skill:'structure',
-      question: 'Arrange to form a Present Perfect Continuous sentence:',
-      arabicHint: 'رتّب لتكوين جملة في المضارع التام المستمر:',
-      words: ['been', 'I', 'have', 'for', 'waiting', 'two', 'hours'],
-      correctOrder: [1, 2, 0, 4, 3, 5, 6],
-      explanation: '"I have been waiting for two hours." ✓\nPresent Perfect Continuous: have/has + been + V-ing\nيعبّر عن فعل بدأ في الماضي ولا يزال مستمراً.',
-    },
-    {
-      id:311, level:'B1', type:'correction', skill:'structure',
-      question: 'Find the error:\n\n"The number of students in the class are increasing every year."',
-      arabicHint: 'حدّد خطأ توافق الفعل مع الفاعل:',
-      options: [
-        '"number" should be "numbers"',
-        '"are" should be "is" — "the number of" takes a singular verb',
-        '"every year" should be "each years"',
-        'The sentence is correct',
-      ],
-      answer: 1,
-      explanation: '"The number of + noun" → فعل مفرد. ✓\n✓ The number of students is increasing.\n(لكن: "A number of students are..." — فعل جمع)',
-    },
-    {
-      id:312, level:'B1', type:'listening', skill:'comprehension',
-      audioText: "I've been applying for jobs for six months. I always get to the interview stage, but I freeze up when they ask me to talk about myself. My written English is fine, but speaking confidently under pressure is a completely different challenge for me.",
-      question: "What is the speaker's main challenge?",
-      arabicHint: 'ما هو التحدي الرئيسي للمتحدث؟',
-      options: [
-        'Writing a CV in English',
-        'Getting invited to job interviews',
-        'Speaking confidently under pressure',
-        'Understanding different English accents',
-      ],
-      answer: 2,
-      explanation: '"speaking confidently under pressure is a completely different challenge" — التحدث بثقة تحت الضغط. ✓',
-    },
-  ],
-
-  /* ─── B2  ──────────────────────────────────────────────────────────
-     Target: can interact with a degree of fluency and spontaneity     */
-  B2: [
-    {
-      id:401, level:'B2', type:'grammar', skill:'grammar',
-      question: 'My sister, ___ lives in Paris, is a doctor.',
-      arabicHint: 'اختر الضمير الصحيح في الجملة الوصفية غير التعريفية (بعد الفاصلة):',
-      options: ['that', 'which', 'who', 'whose'],
-      answer: 2,
-      explanation: 'الجمل الوصفية غير التعريفية (Non-defining): للأشخاص نستخدم "who" بعد الفاصلة.\n✓ My sister, who lives in Paris, is a doctor.\n("that" لا يُستخدم بعد فاصلة في هذا النوع)',
-    },
-    {
-      id:402, level:'B2', type:'vocabulary', skill:'vocabulary',
-      question: "The government's response to the crisis was criticized for being too ___.",
-      arabicHint: 'اختر الكلمة التي تعني: متردد، غير حاسم:',
-      options: ['proactive — استباقي', 'pragmatic — براغماتي', 'tentative — متردد', 'decisive — حاسم'],
-      answer: 2,
-      explanation: '"Tentative" = hesitant, uncertain = متردد، غير حاسم. ✓\n"The plan was tentative — nothing was confirmed yet."',
-    },
-    {
-      id:403, level:'B2', type:'grammar', skill:'grammar',
-      question: 'If she ___ harder at school, she would be working as an engineer now.',
-      arabicHint: 'اختر الشكل الصحيح (Mixed Conditional — ماضٍ → نتيجة حاضرة):',
-      options: ['studied', 'had studied', 'would study', 'has studied'],
-      answer: 1,
-      explanation: 'Mixed Conditional: شرط في الماضي → نتيجة في الحاضر:\nIf + past perfect → would + infinitive\n✓ If she had studied harder (past), she would be an engineer (now).',
-    },
-    {
-      id:404, level:'B2', type:'ordering', skill:'structure',
-      question: 'Arrange to form a formal participial phrase sentence:',
-      arabicHint: 'رتّب لتكوين جملة رسمية بعبارة مشاركية:',
-      words: ['reviewed', 'Having', 'management', 'report', 'approved', 'the', 'it'],
-      correctOrder: [1, 0, 5, 3, 2, 4, 6],
-      explanation: '"Having reviewed the report, management approved it." ✓\n"Having + past participle" = perfect participle (يدل على فعل اكتمل قبل الفعل الرئيسي)',
-    },
-    {
-      id:405, level:'B2', type:'correction', skill:'structure',
-      question: 'Find the error:\n\n"Despite of his wealth, he remained humble."',
-      arabicHint: 'حدّد الخطأ في استخدام "despite":',
-      options: [
-        '"Despite of" should be "Despite" — \'despite\' is never followed by \'of\'',
-        '"remained" should be "remains"',
-        '"humble" should be "humbleness"',
-        'The sentence is correct',
-      ],
-      answer: 0,
-      explanation: '"Despite" لا تحتاج "of":\n✓ Despite his wealth, he remained humble.\n✓ In spite of his wealth... (هذا صحيح — لكن ليس "despite of")',
-    },
-    {
-      id:406, level:'B2', type:'grammar', skill:'grammar',
-      question: 'Not only ___ the project on time, but he also exceeded all expectations.',
-      arabicHint: 'اختر الصيغة الصحيحة بعد "Not only" (قلب الترتيب النحوي):',
-      options: ['he finished', 'did he finish', 'he did finish', 'has he finished'],
-      answer: 1,
-      explanation: 'بعد أدوات النفي في بداية الجملة (Not only, Never, Rarely, Hardly) يجب قلب الترتيب:\nNot only + auxiliary + subject + main verb\n✓ Not only did he finish... (Did + he + finish)',
-    },
-    {
-      id:407, level:'B2', type:'reading', skill:'comprehension',
-      passage: "The concept of 'digital literacy' has evolved considerably. Originally referring to basic computer skills, it now encompasses the ability to critically evaluate online information, understand algorithmic bias, and navigate privacy concerns. As artificial intelligence permeates daily life, educators argue that digital literacy must expand yet again to include an understanding of machine learning and its societal implications.",
-      question: "According to the passage, how has the definition of 'digital literacy' changed?",
-      arabicHint: 'كيف تغير مفهوم "محو الأمية الرقمية" وفق النص؟',
-      options: [
-        'It narrowed to focus only on privacy concerns',
-        'It expanded to include more complex skills over time',
-        'It now focuses primarily on social media use',
-        'It has remained the same since it was first defined',
-      ],
-      answer: 1,
-      explanation: 'من النص: "has evolved considerably... it now encompasses... must expand yet again" — المفهوم توسّع باستمرار. ✓',
-    },
-    {
-      id:408, level:'B2', type:'grammar', skill:'grammar',
-      question: 'The doctor recommended that he ___ more rest.',
-      arabicHint: 'اختر شكل الفعل الصحيح بعد "recommended that":',
-      options: ['gets', 'get', 'should gets', 'is getting'],
-      answer: 1,
-      explanation: 'Mandative Subjunctive بعد: recommend, suggest, insist, demand, require:\nthat + subject + base form (بدون -s حتى مع he/she/it)\n✓ The doctor recommended that he get more rest.',
-    },
-    {
-      id:409, level:'B2', type:'vocabulary', skill:'vocabulary',
-      question: 'The research paper ___ several key points that need further investigation.',
-      arabicHint: 'اختر الكلمة التي تعني: يغفل عن / لا يأخذ بعين الاعتبار:',
-      options: ['overlooks — يغفل عن', 'overrides — يتجاوز', 'overwhelms — يُرهق', 'overruns — يتخطى الحد'],
-      answer: 0,
-      explanation: '"Overlook" = to fail to notice or consider = يغفل عن. ✓\n"The report overlooks some important data." (يغفل عن بيانات مهمة)',
-    },
-    {
-      id:410, level:'B2', type:'ordering', skill:'structure',
-      question: 'Arrange to form a Present Perfect Passive sentence:',
-      arabicHint: 'رتّب لتكوين جملة في المبني للمجهول التام:',
-      words: ['significantly', 'The', 'policy', 'revised', 'been', 'has'],
-      correctOrder: [1, 2, 5, 4, 0, 3],
-      explanation: '"The policy has been significantly revised." ✓\nPresent Perfect Passive: has/have + been + past participle\n(+ adverb "significantly" قبل التصريف الثالث)',
-    },
-    {
-      id:411, level:'B2', type:'correction', skill:'structure',
-      question: 'Find the cohesion error:\n\n"The meeting was very productive. Conversely, everyone agreed on the next steps."',
-      arabicHint: 'حدّد خطأ الربط المنطقي بين الجملتين:',
-      options: [
-        '"Conversely" should be "Moreover" — the sentences agree, not contrast',
-        '"productive" should be "unproductive"',
-        '"agreed" should be "disagreed"',
-        'The sentences are correct',
-      ],
-      answer: 0,
-      explanation: '"Conversely" يعني "على النقيض" — لكن الجملتين متوافقتان في المعنى. الصواب:\n✓ "Moreover / Furthermore / In addition, everyone agreed..."\n(Conversely = تناقض | Moreover = إضافة)',
-    },
-    {
-      id:412, level:'B2', type:'listening', skill:'comprehension',
-      audioText: "While I acknowledge that remote work has offered undeniable flexibility, one cannot ignore the subtle erosion of workplace culture and the challenges it poses for junior employees who need in-person mentorship to develop professionally.",
-      question: "What is the speaker's overall stance on remote work?",
-      arabicHint: 'ما هو الموقف الضمني للمتحدث من العمل عن بعد؟',
-      options: [
-        'Fully supportive of remote work',
-        'Completely opposed to remote work',
-        'Acknowledges benefits but concerned about negative impacts',
-        'Completely neutral — presents both sides equally',
-      ],
-      answer: 2,
-      explanation: '"While I acknowledge..." = يعترف بالفائدة. "one cannot ignore... challenges" = ينتقد.\nالموقف الضمني: يعترف بالفوائد لكنه قلق من تأثيرها السلبي. ✓',
-    },
-  ],
-
-  /* ─── C1  ──────────────────────────────────────────────────────────
-     Target: can express ideas fluently and spontaneously             */
-  C1: [
-    {
-      id:501, level:'C1', type:'grammar', skill:'grammar',
-      question: 'Scarcely ___ she entered the room ___ the phone rang.',
-      arabicHint: 'اختر الزوج الصحيح لتركيب "Scarcely... when" الرسمي:',
-      options: ['had / when', 'did / than', 'was / when', 'had / than'],
-      answer: 0,
-      explanation: '"Scarcely had... when" — تركيب قلب رسمي لحدثين متتاليين جداً:\n✓ Scarcely had she entered the room when the phone rang.\n(بكاد أن دخلت حتى رنّ الهاتف)',
-    },
-    {
-      id:502, level:'C1', type:'vocabulary', skill:'vocabulary',
-      question: 'His speech was full of ___ — subtle references to events and texts that only an educated audience would recognize.',
-      arabicHint: 'اختر الكلمة الصحيحة: إشارات ضمنية لأحداث أو نصوص أدبية:',
-      options: ['allusions — إشارات ضمنية', 'illusions — أوهام', 'delusions — أوهام مرضية', 'confusions — تشويش'],
-      answer: 0,
-      explanation: '"Allusion" = indirect reference = إلماح، إشارة ضمنية. ✓\nلا تخلط مع "illusion" (وهم بصري) أو "delusion" (هذيان).\n"The poem is full of biblical allusions."',
-    },
-    {
-      id:503, level:'C1', type:'grammar', skill:'grammar',
-      question: "She ___ have left early — her coat is still here.",
-      arabicHint: 'اختر الفعل المناسب للاستنتاج المنطقي السلبي في الماضي:',
-      options: ["can't", "mustn't", "needn't", "shouldn't"],
-      answer: 0,
-      explanation: '"Can\'t have + past participle" = استنتاج منطقي سلبي في الماضي (certainty it didn\'t happen).\n✓ She can\'t have left — her coat is here.\n("mustn\'t" = نهي في الحاضر | "needn\'t have" = لم يكن ضرورياً)',
-    },
-    {
-      id:504, level:'C1', type:'ordering', skill:'structure',
-      question: 'Arrange to form a formal negative Past Perfect Passive:',
-      arabicHint: 'رتّب لتكوين جملة رسمية في المبني للمجهول التام الماضي المنفي:',
-      words: ['been', 'properly', 'The', 'implemented', 'strategy', 'had', 'not'],
-      correctOrder: [2, 4, 5, 6, 0, 1, 3],
-      explanation: '"The strategy had not been properly implemented." ✓\nPast Perfect Passive: had + (not) + been + past participle\n+ adverb "properly" يأتي قبل التصريف الثالث',
-    },
-    {
-      id:505, level:'C1', type:'correction', skill:'structure',
-      question: 'Find the error in formal academic writing:\n\n"The committee discussed about the new proposals at length."',
-      arabicHint: 'حدّد الخطأ في الجملة الرسمية:',
-      options: [
-        '"discussed about" should be "discussed" — \'discuss\' is transitive, no preposition needed',
-        '"at length" should be "at large"',
-        '"proposals" should be "proposal"',
-        'The sentence is correct',
-      ],
-      answer: 0,
-      explanation: '"Discuss" = فعل متعدٍّ (transitive) لا يحتاج حرف جر:\n✓ The committee discussed the new proposals.\n("talk about" ✓ | "discuss about" ✗)',
-    },
-    {
-      id:506, level:'C1', type:'grammar', skill:'grammar',
-      question: 'Mary can play the piano, and so ___ her brother.',
-      arabicHint: 'اختر الفعل المناسب في الحذف الجملي (Ellipsis):',
-      options: ['can', 'does', 'is', 'has'],
-      answer: 0,
-      explanation: 'الحذف الجملي بـ "so": so + auxiliary + subject\nنستخدم نفس الفعل المساعد: "can" → "so can her brother".\n✓ Mary can play the piano, and so can her brother.',
-    },
-    {
-      id:507, level:'C1', type:'reading', skill:'comprehension',
-      passage: "The paradox of choice, as articulated by psychologist Barry Schwartz, posits that while freedom of choice ostensibly maximizes individual welfare, an overabundance of options can paradoxically lead to decision paralysis, diminished satisfaction, and heightened regret. Modern consumers, confronted with near-infinite product varieties, often experience what Schwartz terms 'maximizers anxiety' — the relentless pursuit of the objectively best option, which ultimately undermines contentment.",
-      question: 'What is the central paradox described in the passage?',
-      arabicHint: 'ما هي المفارقة المحورية في النص؟',
-      options: [
-        'Having too many choices can decrease rather than increase satisfaction',
-        'Consumers always prefer fewer, higher-quality products',
-        'Freedom of choice leads directly to greater individual welfare',
-        'Maximizers consistently make better decisions than others',
-      ],
-      answer: 0,
-      explanation: 'من النص: "freedom of choice ostensibly maximizes welfare" لكن "an overabundance of options can paradoxically lead to... diminished satisfaction".\nالمفارقة: المزيد من الخيارات ≠ المزيد من السعادة. ✓',
-    },
-    {
-      id:508, level:'C1', type:'grammar', skill:'grammar',
-      question: 'It is essential that every employee ___ the new policy by Friday.',
-      arabicHint: 'اختر الشكل الصحيح للمضارع الافتراضي بعد "essential that":',
-      options: ['reads', 'read', 'has read', 'should reads'],
-      answer: 1,
-      explanation: 'Mandative Subjunctive بعد: essential / important / vital / necessary / crucial that:\nصيغة المصدر (base form) بدون -s في أي حال:\n✓ It is essential that every employee read the policy.',
-    },
-    {
-      id:509, level:'C1', type:'vocabulary', skill:'vocabulary',
-      question: 'Which word has the most NEGATIVE connotation in a professional context?',
-      arabicHint: 'أي كلمة لها أكثر دلالة سلبية في السياق المهني؟',
-      options: ['determined — عازم', 'tenacious — مثابر', 'obstinate — عنيد سلباً', 'persistent — مستمر'],
-      answer: 2,
-      explanation: '"Obstinate" = unreasonably stubborn = عنيد بشكل غير منطقي — دلالة سلبية. ✓\nبينما: determined, tenacious, persistent = إيجابية (عزم ومثابرة).\n"His obstinate refusal to compromise derailed the negotiations."',
-    },
-    {
-      id:510, level:'C1', type:'ordering', skill:'structure',
-      question: 'Arrange to form a formal sentence with "not only... but also":',
-      arabicHint: 'رتّب لتكوين جملة رسمية بتركيب "not only... but also":',
-      words: ['also', 'The', 'not', 'unprecedented', 'findings', 'but', 'significant', 'were', 'only'],
-      correctOrder: [1, 4, 7, 2, 8, 6, 5, 0, 3],
-      explanation: '"The findings were not only significant but also unprecedented." ✓\n"not only... but also" يربط صفتين أو فكرتين متوازيتين بأسلوب رسمي مؤكَّد.',
-    },
-    {
-      id:511, level:'C1', type:'listening', skill:'comprehension',
-      audioText: "Let me ask you this: if we truly believed in equal opportunity, would we not ensure that every child — regardless of their postcode, their parents' income, or the language spoken at home — had access to the same quality of education? The answer, I believe, is self-evident.",
-      question: 'Which rhetorical device does the speaker primarily use?',
-      arabicHint: 'ما هو الأسلوب البلاغي الذي يستخدمه المتحدث بشكل رئيسي؟',
-      options: [
-        'A rhetorical question — implying the answer is obvious without stating it directly',
-        'Statistical evidence to prove an educational gap',
-        'A personal anecdote to evoke empathy',
-        'A neutral comparison between two educational systems',
-      ],
-      answer: 0,
-      explanation: 'الاستفهام البلاغي (Rhetorical question): يطرح سؤالاً لا يتوقع إجابة — الإجابة "بديهية".\n"would we not ensure...?" = يُقنع المستمع بمسلّمة.\n"The answer, I believe, is self-evident." يؤكد ذلك. ✓',
-    },
-    {
-      id:512, level:'C1', type:'correction', skill:'structure',
-      question: 'Find the subject-verb agreement error:\n\n"The research findings, along with the committee\'s recommendations, was published last month."',
-      arabicHint: 'حدّد خطأ توافق الفعل مع الفاعل الحقيقي:',
-      options: [
-        '"was" should be "were" — the true subject "findings" is plural',
-        '"along with" should be "together with"',
-        '"published" should be "publicized"',
-        'The sentence is correct',
-      ],
-      answer: 0,
-      explanation: 'الفاعل الحقيقي هو "findings" (جمع). عبارة "along with..." لا تغيّر توافق الفعل:\n✓ The research findings... were published.\n(قارن: "The manager, along with his team, was present." — "manager" مفرد → was ✓)',
-    },
-  ],
-}
-
-/* ══════════════════════════════════════════════════════════════
-   AUDIO HELPERS
-══════════════════════════════════════════════════════════════ */
-
-function playSound(type: 'correct' | 'wrong') {
-  try {
-    const ctx  = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
-    const osc  = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.connect(gain); gain.connect(ctx.destination)
-    osc.type = 'sine'
-    if (type === 'correct') {
-      osc.frequency.setValueAtTime(523.25, ctx.currentTime)
-      osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.12)
-      osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.24)
-      gain.gain.setValueAtTime(0.18, ctx.currentTime)
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6)
-      osc.start(); osc.stop(ctx.currentTime + 0.6)
-    } else {
-      osc.frequency.setValueAtTime(311.13, ctx.currentTime)
-      osc.frequency.setValueAtTime(246.94, ctx.currentTime + 0.18)
-      gain.gain.setValueAtTime(0.16, ctx.currentTime)
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5)
-      osc.start(); osc.stop(ctx.currentTime + 0.5)
+    const cached = cache.current.get(text)
+    if (cached) {
+      const a = new Audio(cached)
+      audioRef.current = a
+      a.onended = () => setBusy(false)
+      a.play().catch(() => { setBusy(false); browserVoice(text) })
+      return
     }
-  } catch { /* browser may block audio ctx */ }
-}
 
-function speak(text: string) {
-  if (typeof window === 'undefined') return
-  window.speechSynthesis.cancel()
-  const u = new SpeechSynthesisUtterance(text)
-  u.lang = 'en-US'; u.rate = 0.88; u.pitch = 1
-  window.speechSynthesis.speak(u)
-}
-
-/* ══════════════════════════════════════════════════════════════
-   COMPONENT
-══════════════════════════════════════════════════════════════ */
-
-const EMPTY_SKILLS: Record<SkillKey, SkillStat> = {
-  grammar: {correct:0,total:0}, vocabulary: {correct:0,total:0},
-  comprehension: {correct:0,total:0}, structure: {correct:0,total:0},
-}
-
-type Phase = 'intro' | 'testing' | 'levelComplete' | 'result'
-
-/** Map a CEFR result level → the plan we recommend. */
-function recommendPlanForLevel(level: string): string {
-  if (level === 'A1')               return 'basic'
-  if (level === 'A2' || level === 'B1') return 'pro'
-  if (level === 'B2' || level === 'C1') return 'premium'
-  return 'basic'
-}
-
-/** Three free sample lessons from the recommended plan's course. */
-function freeSamplesForPlan(planId: string): { title: string; duration: string; youtubeId: string }[] {
-  const plan = getPlan(planId)
-  if (!plan?.courseSlug) return []
-  const course = COURSES.find(c => c.slug === plan.courseSlug)
-  if (!course) return []
-  const free: { title: string; duration: string; youtubeId: string }[] = []
-  for (const section of course.curriculum) {
-    for (const lesson of section.lessons) {
-      if (lesson.isFree && lesson.youtubeId) {
-        free.push({ title: lesson.title, duration: lesson.duration, youtubeId: lesson.youtubeId })
-        if (free.length >= 3) return free
-      }
+    try {
+      const res = await fetch('/api/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, provider: 'google' }),
+        signal: AbortSignal.timeout(9000),
+      })
+      if (!res.ok) throw new Error('tts')
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      cache.current.set(text, url)
+      const a = new Audio(url)
+      audioRef.current = a
+      a.onended = () => setBusy(false)
+      a.onerror = () => { setBusy(false); browserVoice(text) }
+      await a.play()
+    } catch {
+      browserVoice(text)
     }
   }
-  return free
+
+  return { say, busy }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════ */
 
 export default function LevelTestPage() {
-
-  /* ── Phase ── */
   const [phase, setPhase] = useState<Phase>('intro')
 
-  /* ── Test position ── */
-  const [levelIdx,    setLevelIdx]    = useState(0)   // index in LEVEL_ORDER
-  const [questionIdx, setQuestionIdx] = useState(0)   // index within current level
-  const [mistakes,    setMistakes]    = useState(0)   // mistakes in current level
-  const [lastPassedLevelIdx, setLastPassedLevelIdx] = useState(-1)
-  const [levelCorrect, setLevelCorrect] = useState(0) // correct in current level (for level-complete screen)
+  const [levelIdx, setLevelIdx] = useState(0)
+  const [qIdx, setQIdx]         = useState(0)
+  const [hearts, setHearts]     = useState(HEARTS)
+  const [clearedIdx, setClearedIdx] = useState(-1)   // last level fully passed
 
-  /* ── Answer state ── */
-  const [answered,    setAnswered]    = useState<'waiting'|'correct'|'wrong'>('waiting')
-  const [selOption,   setSelOption]   = useState<number|null>(null)
-  const [reorderSel,  setReorderSel]  = useState<number[]>([])
-  const [audioPlayed, setAudioPlayed] = useState(false)
+  const [log, setLog] = useState<Answered[]>([])
 
-  /* ── Scoring ── */
-  const [skillStats,    setSkillStats]    = useState<Record<SkillKey, SkillStat>>({...EMPTY_SKILLS})
-  const [totalCorrect,  setTotalCorrect]  = useState(0)
-  const [totalAnswered, setTotalAnswered] = useState(0)
+  /* response state for the current question */
+  const [option, setOption]   = useState<number | null>(null)
+  const [multi, setMulti]     = useState<number[]>([])
+  const [texts, setTexts]     = useState<string[]>([])
+  const [order, setOrder]     = useState<number[]>([])
+  const [verdict, setVerdict] = useState<'waiting' | 'correct' | 'wrong'>('waiting')
+  const [heard, setHeard]     = useState(false)
 
-  /* ── Derived ── */
-  const currentLevel   = LEVEL_ORDER[levelIdx]
-  const levelQuestions = QUESTIONS[currentLevel]
-  const currentQ       = levelQuestions[questionIdx]
-  const totalInLevel   = levelQuestions.length
-  const progressPct    = Math.round((questionIdx / totalInLevel) * 100)
+  /* writing */
+  const [essay, setEssay]     = useState('')
+  const [report, setReport]   = useState<WritingReport | null>(null)
 
-  /* ── On reaching result screen: persist locally + save anon lead to Supabase ── */
+  const { say, busy: speaking } = useSpeech()
+
+  const level = LEVEL_ORDER[levelIdx]
+  const bank  = QUESTIONS[level] ?? []
+  const q     = bank[qIdx]
+
+  /* Reset the response slots whenever we move to a new question. */
   useEffect(() => {
-    if (phase !== 'result') return
-    const finalLevel = lastPassedLevelIdx >= 0 ? LEVEL_ORDER[lastPassedLevelIdx] : 'A1'
-    const score      = totalAnswered > 0 ? Math.round(totalCorrect / totalAnswered * 100) : 0
-    const strengths: SkillKey[] = []
-    const weaknesses: SkillKey[] = []
-    for (const s of Object.keys(skillStats) as SkillKey[]) {
-      if (skillStats[s].total === 0) continue
-      const acc = skillStats[s].correct / skillStats[s].total
-      if (acc >= 0.7)  strengths.push(s)
-      if (acc < 0.5)   weaknesses.push(s)
+    setOption(null); setMulti([]); setOrder([]); setVerdict('waiting'); setHeard(false)
+    setTexts(q?.type === 'listenGap' ? Array(q.accept?.length ?? 1).fill('')
+           : q?.type === 'gap'       ? Array(q.accept?.length ?? 1).fill('')
+           : [''])
+  }, [q?.id, q?.type, q?.accept?.length])
+
+  /* ── Flow ─────────────────────────────────────────────────────────────── */
+
+  function submit() {
+    if (!q || verdict !== 'waiting') return
+    const ok = isCorrect(q, { option, multi, text: texts, order })
+    setVerdict(ok ? 'correct' : 'wrong')
+    setLog(l => [...l, { qid: q.id, ok, skill: q.skill, level: q.level }])
+    if (!ok) setHearts(h => h - 1)
+  }
+
+  function next() {
+    if (hearts <= 0) { startWriting(); return }
+    if (qIdx + 1 < bank.length) { setQIdx(i => i + 1); return }
+    // level cleared
+    setClearedIdx(levelIdx)
+    if (levelIdx + 1 < LEVEL_ORDER.length) setPhase('levelUp')
+    else startWriting()
+  }
+
+  function nextLevel() {
+    setLevelIdx(i => i + 1)
+    setQIdx(0)
+    setHearts(HEARTS)
+    setPhase('quiz')
+  }
+
+  function startWriting() {
+    setPhase('writing')
+  }
+
+  async function submitWriting() {
+    setPhase('grading')
+    const promptLevel = LEVEL_ORDER[Math.max(0, clearedIdx)]
+    const r = await gradeWriting(essay, WRITING_PROMPTS[promptLevel], promptLevel)
+    setReport(r)
+    setPhase('result')
+  }
+
+  function skipWriting() {
+    setReport(null)
+    setPhase('result')
+  }
+
+  function restart() {
+    setPhase('intro'); setLevelIdx(0); setQIdx(0); setHearts(HEARTS)
+    setClearedIdx(-1); setLog([]); setEssay(''); setReport(null)
+  }
+
+  /* ── Derived ──────────────────────────────────────────────────────────── */
+
+  const quizLevel: CEFRLevel = clearedIdx >= 0 ? LEVEL_ORDER[clearedIdx] : 'A0'
+  const placement = useMemo(() => finalLevel(quizLevel, report), [quizLevel, report])
+
+  const skillStats = useMemo(() => {
+    const out: Partial<Record<SkillKey, { correct: number; total: number }>> = {}
+    for (const a of log) {
+      const s = out[a.skill] ?? { correct: 0, total: 0 }
+      s.total++; if (a.ok) s.correct++
+      out[a.skill] = s
     }
-    const result = { level: finalLevel, score, strengths, weaknesses, date: new Date().toISOString() }
-    try {
-      const prev = JSON.parse(localStorage.getItem('inglizi_results') || '[]') as unknown[]
-      localStorage.setItem('inglizi_results', JSON.stringify([result, ...prev].slice(0, 10)))
-    } catch { /* ignore storage errors */ }
+    return out
+  }, [log])
 
-    /* Fire-and-forget anon lead save for attribution — even if the visitor
-       never clicks subscribe, we know they took the test. */
-    const recommended = recommendPlanForLevel(finalLevel)
-    createSubscriptionLead({
-      planId:          'test_completed',
-      fullName:        'Anonymous test-taker',
-      level:           finalLevel,
-      testScore:       score,
-      recommendedPlan: recommended,
-      source:          'test_completed',
-      ...getAttribution(),
-    }).catch(() => { /* silent — non-critical */ })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase])
+  /* ═══ INTRO ═══════════════════════════════════════════════════════════ */
+  if (phase === 'intro') return <Intro onStart={() => setPhase('quiz')} />
 
-  /* ─────────────────── HANDLERS ─────────────────── */
+  /* ═══ LEVEL UP ════════════════════════════════════════════════════════ */
+  if (phase === 'levelUp') {
+    const done = LEVEL_ORDER[clearedIdx]
+    const nxt  = LEVEL_ORDER[clearedIdx + 1]
+    return (
+      <Shell>
+        <div className="max-w-lg mx-auto text-center py-10 animate-fade-up">
+          <div className="w-24 h-24 mx-auto mb-6 rounded-3xl flex items-center justify-center shadow-2xl"
+               style={{ background: `linear-gradient(135deg, ${LEVEL_META[done].from}, ${LEVEL_META[done].to})` }}>
+            <Trophy size={44} className="text-white" />
+          </div>
+          <h2 className="text-3xl font-black text-white mb-2">أنهيت مستوى {done} 🎉</h2>
+          <p className="text-slate-400 font-semibold mb-1">{LEVEL_META[done].label} — {LEVEL_META[done].sub}</p>
+          <p className="text-slate-500 text-sm mb-8">
+            بقيت لك <span className="text-rose-400 font-bold">{hearts}</span> من {HEARTS} قلوب في هذا المستوى.
+          </p>
 
-  function commitAnswer(ok: boolean) {
-    const newMistakes = ok ? mistakes : mistakes + 1
-    setAnswered(ok ? 'correct' : 'wrong')
-    setMistakes(newMistakes)
-    setTotalAnswered(n => n + 1)
-    if (ok) { setTotalCorrect(n => n + 1); setLevelCorrect(n => n + 1) }
-    setSkillStats(prev => ({
-      ...prev,
-      [currentQ.skill]: {
-        correct: prev[currentQ.skill].correct + (ok ? 1 : 0),
-        total:   prev[currentQ.skill].total + 1,
-      },
-    }))
-    playSound(ok ? 'correct' : 'wrong')
+          <div className="bg-white/5 ring-1 ring-white/10 rounded-2xl p-5 mb-8">
+            <p className="text-slate-300 text-sm font-semibold mb-1">التالي: مستوى {nxt}</p>
+            <p className="text-slate-500 text-xs">{LEVEL_META[nxt].label} — تبدأ بـ {HEARTS} قلوب جديدة.</p>
+          </div>
+
+          <div className="flex flex-col gap-2.5">
+            <button onClick={nextLevel}
+                    className="w-full py-4 rounded-2xl bg-gradient-to-l from-yellow-400 to-amber-500 text-black font-black text-lg hover:brightness-110 transition shadow-xl">
+              أكمل إلى {nxt} ←
+            </button>
+            <button onClick={startWriting}
+                    className="w-full py-3 rounded-2xl bg-white/5 ring-1 ring-white/10 text-slate-300 font-bold hover:bg-white/10 transition">
+              أتوقف هنا وأرى نتيجتي
+            </button>
+          </div>
+        </div>
+      </Shell>
+    )
   }
 
-  function handleOption(idx: number) {
-    if (answered !== 'waiting') return
-    if (currentQ.type === 'listening' && !audioPlayed) return
-    setSelOption(idx)
-    commitAnswer(idx === currentQ.answer)
+  /* ═══ WRITING ═════════════════════════════════════════════════════════ */
+  if (phase === 'writing') {
+    const wp = WRITING_PROMPTS[LEVEL_ORDER[Math.max(0, clearedIdx)]]
+    const words = essay.trim() ? essay.trim().split(/\s+/).filter(Boolean).length : 0
+    const enough = words >= Math.min(wp.minWords, 10)
+    return (
+      <Shell>
+        <div className="max-w-2xl mx-auto py-6 animate-fade-up">
+          <div className="flex items-center gap-3 mb-6">
+            <span className="w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg">
+              <PenLine size={20} className="text-white" />
+            </span>
+            <div>
+              <h2 className="text-xl font-black text-white">اختبار الكتابة</h2>
+              <p className="text-slate-500 text-xs font-semibold">آخر خطوة — يُصحَّح تلقائياً</p>
+            </div>
+          </div>
+
+          <div className="bg-white/5 ring-1 ring-white/10 rounded-2xl p-5 mb-4">
+            <p className="text-slate-400 text-[13px] font-semibold mb-2">{wp.hint}</p>
+            <p className="text-white text-lg font-bold leading-relaxed mb-4" dir="ltr">{wp.prompt}</p>
+            <ul className="space-y-1.5">
+              {wp.bullets.map((b, i) => (
+                <li key={i} className="flex items-start gap-2 text-slate-400 text-[13px]">
+                  <span className="text-yellow-400 mt-0.5">•</span> <span>{b}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <textarea
+            value={essay} onChange={e => setEssay(e.target.value)}
+            dir="ltr" rows={9} placeholder="Write your answer here…"
+            className="w-full p-4 rounded-2xl bg-white/[.04] ring-1 ring-white/10 text-white text-[15px] leading-relaxed
+                       placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-yellow-400/60 transition text-left"
+          />
+
+          <div className="flex items-center justify-between mt-2 mb-6">
+            <span className={`text-xs font-bold ${enough ? 'text-emerald-400' : 'text-slate-500'}`}>
+              {words} كلمة {wp.minWords ? `· المطلوب ${wp.minWords}` : ''}
+            </span>
+            {!enough && <span className="text-slate-600 text-xs">اكتب 10 كلمات على الأقل</span>}
+          </div>
+
+          <div className="flex flex-col gap-2.5">
+            <button onClick={submitWriting} disabled={!enough}
+                    className="w-full py-4 rounded-2xl bg-gradient-to-l from-yellow-400 to-amber-500 text-black font-black text-lg
+                               hover:brightness-110 transition shadow-xl disabled:opacity-40 disabled:cursor-not-allowed">
+              صحّح كتابتي وأظهر النتيجة
+            </button>
+            <button onClick={skipWriting}
+                    className="w-full py-3 rounded-2xl text-slate-500 font-bold hover:text-slate-300 transition text-sm">
+              تخطّي الكتابة
+            </button>
+          </div>
+        </div>
+      </Shell>
+    )
   }
 
-  function handleReorderCheck() {
-    if (answered !== 'waiting') return
-    commitAnswer(JSON.stringify(reorderSel) === JSON.stringify(currentQ.correctOrder))
+  /* ═══ GRADING ═════════════════════════════════════════════════════════ */
+  if (phase === 'grading') {
+    return (
+      <Shell>
+        <div className="max-w-md mx-auto py-24 text-center">
+          <Loader2 size={40} className="mx-auto text-yellow-400 animate-spin mb-5" />
+          <h2 className="text-xl font-black text-white mb-2">جاري تصحيح كتابتك…</h2>
+          <p className="text-slate-500 text-sm">نحلّل القواعد والمفردات والتراكيب.</p>
+        </div>
+      </Shell>
+    )
   }
 
-  function handleContinue() {
-    // Level failed: 3 mistakes reached
-    if (mistakes >= MISTAKES_TO_FAIL) {
-      setPhase('result')
-      return
-    }
-
-    const nextIdx  = questionIdx + 1
-    const isDone   = nextIdx >= totalInLevel
-
-    if (isDone) {
-      // Level passed
-      setLastPassedLevelIdx(levelIdx)
-      if (levelIdx >= LEVEL_ORDER.length - 1) {
-        setPhase('result')
-      } else {
-        setPhase('levelComplete')
-      }
-      return
-    }
-
-    // Next question in same level
-    setQuestionIdx(nextIdx)
-    setAnswered('waiting')
-    setSelOption(null)
-    setReorderSel([])
-    setAudioPlayed(false)
+  /* ═══ RESULT ══════════════════════════════════════════════════════════ */
+  if (phase === 'result') {
+    return (
+      <Result
+        level={placement.level} adjusted={placement.adjusted} quizLevel={quizLevel}
+        report={report} log={log} skillStats={skillStats} onRestart={restart}
+      />
+    )
   }
 
-  function startNextLevel() {
-    setLevelIdx(prev => prev + 1)
-    setQuestionIdx(0)
-    setMistakes(0)
-    setLevelCorrect(0)
-    setAnswered('waiting')
-    setSelOption(null)
-    setReorderSel([])
-    setAudioPlayed(false)
-    setPhase('testing')
-  }
+  /* ═══ QUIZ ════════════════════════════════════════════════════════════ */
+  if (!q) return null
+  const Icon = TYPE_ICON[q.type]
+  const needsAudio = q.type.startsWith('listen')
+  const answered = verdict !== 'waiting'
 
-  function resetTest() {
-    setPhase('intro')
-    setLevelIdx(0); setQuestionIdx(0); setMistakes(0)
-    setLastPassedLevelIdx(-1); setLevelCorrect(0)
-    setAnswered('waiting'); setSelOption(null)
-    setReorderSel([]); setAudioPlayed(false)
-    setSkillStats({...EMPTY_SKILLS})
-    setTotalCorrect(0); setTotalAnswered(0)
-  }
+  const canSubmit =
+    q.type === 'mcq' || q.type === 'reading' || q.type === 'listenMcq' ? option !== null
+    : q.type === 'multi' ? multi.length > 0
+    : q.type === 'order' ? order.length === (q.words?.length ?? 0)
+    : texts.some(t => t.trim().length > 0)
 
-  /* ─────────────────── RENDER HELPERS ─────────────────── */
+  return (
+    <Shell>
+      {/* progress + hearts */}
+      <div className="max-w-2xl mx-auto mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-lg text-xs font-black text-white shadow"
+                  style={{ background: `linear-gradient(135deg, ${LEVEL_META[level].from}, ${LEVEL_META[level].to})` }}>
+              {level}
+            </span>
+            <span className="text-slate-500 text-xs font-bold">{LEVEL_META[level].label}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            {Array.from({ length: HEARTS }).map((_, i) => (
+              <Heart key={i} size={20}
+                     className={i < hearts ? 'text-rose-500 fill-rose-500' : 'text-slate-700'} />
+            ))}
+          </div>
+        </div>
+        <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+          <div className="h-full rounded-full bg-gradient-to-l from-yellow-400 to-amber-500 transition-all duration-500"
+               style={{ width: `${((qIdx + (answered ? 1 : 0)) / bank.length) * 100}%` }} />
+        </div>
+        <div className="flex justify-between mt-1.5">
+          <span className="text-slate-600 text-[11px] font-bold">سؤال {qIdx + 1} من {bank.length}</span>
+          <span className="text-slate-600 text-[11px] font-bold">{TYPE_LABELS[q.type]}</span>
+        </div>
+      </div>
 
-  function renderOptions() {
-    if (!currentQ.options) return null
+      {/* the question */}
+      <div className="max-w-2xl mx-auto" key={q.id}>
+        <div className="animate-fade-up">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="w-8 h-8 rounded-xl bg-white/[.06] ring-1 ring-white/10 flex items-center justify-center">
+              <Icon size={15} className="text-yellow-400" />
+            </span>
+            <span className="text-slate-400 text-[13px] font-bold">{q.hint}</span>
+          </div>
+
+          {q.passage && (
+            <pre className="bg-white/[.04] ring-1 ring-white/10 rounded-2xl p-4 mb-4 text-slate-200 text-[14px]
+                            leading-relaxed whitespace-pre-wrap font-sans text-left" dir="ltr">{q.passage}</pre>
+          )}
+
+          {needsAudio && (
+            <AudioBox text={q.audio!} onPlay={() => { say(q.audio!); setHeard(true) }}
+                      speaking={speaking} heard={heard} revealed={answered} />
+          )}
+
+          {q.type !== 'listenWrite' && (
+            <h2 className="text-white text-xl sm:text-2xl font-black mb-5 leading-snug"
+                dir={/[؀-ۿ]/.test(q.question) ? 'rtl' : 'ltr'}>
+              {q.question}
+            </h2>
+          )}
+
+          <QuestionBody
+            q={q} answered={answered} verdict={verdict}
+            option={option} setOption={setOption}
+            multi={multi} setMulti={setMulti}
+            texts={texts} setTexts={setTexts}
+            order={order} setOrder={setOrder}
+          />
+
+          {answered && (
+            <div className={`mt-5 rounded-2xl p-4 ring-1 animate-fade-up ${
+              verdict === 'correct' ? 'bg-emerald-500/10 ring-emerald-500/30' : 'bg-rose-500/10 ring-rose-500/30'}`}>
+              <div className="flex items-center gap-2 mb-2">
+                {verdict === 'correct'
+                  ? <><CheckCircle2 size={18} className="text-emerald-400" /><span className="font-black text-emerald-300">إجابة صحيحة</span></>
+                  : <><XCircle size={18} className="text-rose-400" /><span className="font-black text-rose-300">إجابة خاطئة</span></>}
+              </div>
+              <p className="text-slate-300 text-[13.5px] leading-relaxed whitespace-pre-line">{q.explain}</p>
+            </div>
+          )}
+
+          <div className="mt-6 pb-10">
+            {!answered ? (
+              <button onClick={submit} disabled={!canSubmit || (needsAudio && !heard)}
+                      className="w-full py-4 rounded-2xl bg-gradient-to-l from-yellow-400 to-amber-500 text-black font-black text-lg
+                                 hover:brightness-110 transition shadow-xl disabled:opacity-30 disabled:cursor-not-allowed">
+                {needsAudio && !heard ? 'استمع أولاً' : 'تحقّق'}
+              </button>
+            ) : (
+              <button onClick={next}
+                      className="w-full py-4 rounded-2xl bg-white text-black font-black text-lg hover:bg-slate-100 transition shadow-xl">
+                {hearts <= 0 ? 'انتهى الاختبار — أظهر النتيجة'
+                  : qIdx + 1 < bank.length ? 'السؤال التالي ←'
+                  : 'أنهيت المستوى ←'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </Shell>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PIECES
+   ══════════════════════════════════════════════════════════════════════════ */
+
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <main dir="rtl" className="min-h-screen bg-[#0B1020] font-sans">
+      <div className="pointer-events-none fixed top-0 left-0 w-screen h-screen -z-10"
+           style={{ backgroundImage:
+             'radial-gradient(46rem 30rem at 85% -8%, rgba(245,158,11,.14), transparent 62%),' +
+             'radial-gradient(40rem 26rem at 6% 6%, rgba(59,130,246,.12), transparent 60%)' }} />
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">{children}</div>
+    </main>
+  )
+}
+
+function AudioBox({
+  text, onPlay, speaking, heard, revealed,
+}: { text: string; onPlay: () => void; speaking: boolean; heard: boolean; revealed: boolean }) {
+  return (
+    <div className="mb-5 rounded-2xl bg-gradient-to-l from-blue-500/10 to-violet-500/10 ring-1 ring-blue-400/25 p-5">
+      <button onClick={onPlay} disabled={speaking}
+              className="w-full flex items-center justify-center gap-3 py-4 rounded-xl bg-blue-500 hover:bg-blue-400
+                         transition text-white font-black text-lg shadow-lg disabled:opacity-70">
+        {speaking ? <Loader2 size={22} className="animate-spin" /> : <Volume2 size={22} />}
+        {speaking ? 'جاري التشغيل…' : heard ? 'استمع مرة أخرى' : 'اضغط للاستماع'}
+      </button>
+      <p className="text-blue-200/60 text-[11.5px] font-semibold text-center mt-2.5">
+        {heard ? 'يمكنك الإعادة بقدر ما تحتاج' : 'يجب الاستماع قبل الإجابة'}
+      </p>
+      {/* the transcript is a teaching moment, so it appears only after answering */}
+      {revealed && (
+        <p className="mt-3 pt-3 border-t border-blue-400/20 text-blue-100 text-[13px] text-left leading-relaxed" dir="ltr">
+          “{text}”
+        </p>
+      )}
+    </div>
+  )
+}
+
+function QuestionBody({
+  q, answered, verdict, option, setOption, multi, setMulti, texts, setTexts, order, setOrder,
+}: {
+  q: Question; answered: boolean; verdict: 'waiting' | 'correct' | 'wrong'
+  option: number | null; setOption: (n: number) => void
+  multi: number[]; setMulti: React.Dispatch<React.SetStateAction<number[]>>
+  texts: string[]; setTexts: React.Dispatch<React.SetStateAction<string[]>>
+  order: number[]; setOrder: React.Dispatch<React.SetStateAction<number[]>>
+}) {
+
+  /* ── single choice ── */
+  if (q.type === 'mcq' || q.type === 'reading' || q.type === 'listenMcq') {
     return (
       <div className="space-y-2.5">
-        {currentQ.options.map((opt, idx) => {
-          const isCorrect  = idx === currentQ.answer
-          const isSelected = idx === selOption
-          let cls = 'w-full text-right px-4 py-3.5 rounded-2xl border text-sm font-medium transition-all duration-200 flex items-center gap-3 '
-          if (answered === 'waiting') {
-            cls += 'bg-white/[0.05] border-white/15 text-white hover:bg-white/10 hover:border-white/30 cursor-pointer active:scale-[0.99]'
-          } else if (isCorrect) {
-            cls += 'bg-emerald-500/15 border-emerald-400/50 text-emerald-200'
-          } else if (isSelected && answered === 'wrong') {
-            cls += 'bg-red-500/15 border-red-400/50 text-red-300'
-          } else {
-            cls += 'bg-white/[0.02] border-white/8 text-white/30 cursor-default'
-          }
+        {(q.options ?? []).map((opt, i) => {
+          const chosen = option === i
+          const right  = answered && i === q.answer
+          const wrong  = answered && chosen && i !== q.answer
           return (
-            <button key={idx} onClick={() => handleOption(idx)} disabled={answered !== 'waiting'} className={cls}>
-              <span className={`flex-shrink-0 w-7 h-7 rounded-full border text-[11px] font-black flex items-center justify-center ${
-                answered !== 'waiting' && isCorrect ? 'bg-emerald-500 border-emerald-500 text-white'
-                : answered !== 'waiting' && isSelected ? 'bg-red-500 border-red-500 text-white'
-                : 'border-white/20 text-white/40'
-              }`}>
-                {answered !== 'waiting' && isCorrect ? <CheckCircle2 size={13}/> :
-                 answered !== 'waiting' && isSelected ? <XCircle size={13}/> :
-                 String.fromCharCode(65 + idx)}
+            <button key={i} onClick={() => !answered && setOption(i)} disabled={answered}
+                    dir={/[؀-ۿ]/.test(opt) ? 'rtl' : 'ltr'}
+                    className={`w-full text-right p-4 rounded-2xl ring-1 font-bold text-[15px] transition-all
+                      ${right ? 'bg-emerald-500/15 ring-emerald-400/50 text-emerald-200'
+                        : wrong ? 'bg-rose-500/15 ring-rose-400/50 text-rose-200'
+                        : chosen ? 'bg-yellow-400/15 ring-yellow-400/50 text-white'
+                        : 'bg-white/[.04] ring-white/10 text-slate-200 hover:bg-white/[.08] hover:ring-white/20'}`}>
+              <span className="flex items-center gap-3">
+                <span className={`w-7 h-7 rounded-lg shrink-0 flex items-center justify-center text-xs font-black
+                  ${right ? 'bg-emerald-400 text-black' : wrong ? 'bg-rose-400 text-black'
+                    : chosen ? 'bg-yellow-400 text-black' : 'bg-white/10 text-slate-400'}`}>
+                  {right ? '✓' : wrong ? '✕' : String.fromCharCode(65 + i)}
+                </span>
+                <span className="flex-1" dir="ltr">{opt}</span>
               </span>
-              <span className="flex-1 leading-snug whitespace-pre-line">{opt}</span>
             </button>
           )
         })}
@@ -955,617 +519,506 @@ export default function LevelTestPage() {
     )
   }
 
-  function renderQuestionBody() {
-    /* Ordering */
-    if (currentQ.type === 'ordering') {
-      const built    = reorderSel.map(i => currentQ.words![i])
-      const allPlace = reorderSel.length === currentQ.words!.length
-      return (
-        <div className="space-y-4">
-          <div className="min-h-[52px] bg-white/[0.06] rounded-2xl border border-white/10 p-3 flex flex-wrap gap-2 items-center">
-            {built.length === 0
-              ? <span className="text-white/25 text-sm">انقر على الكلمات أدناه لبناء الجملة...</span>
-              : built.map((w, i) => (
-                <button key={i} disabled={answered !== 'waiting'}
-                  onClick={() => { if (answered !== 'waiting') return; setReorderSel(p => p.filter((_,j) => j !== i)) }}
-                  className="bg-brand-600 hover:bg-brand-500 disabled:opacity-60 text-white font-bold text-sm px-3 py-1.5 rounded-xl transition-colors">
-                  {w} ×
-                </button>
-              ))}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {currentQ.words!.map((w, idx) => {
-              const isSel = reorderSel.includes(idx)
-              return (
-                <button key={idx}
-                  onClick={() => { if (answered !== 'waiting' || isSel) return; setReorderSel(p => [...p, idx]) }}
-                  disabled={answered !== 'waiting' || isSel}
-                  className={`px-4 py-2 rounded-xl font-bold text-sm border transition-all ${
-                    isSel ? 'bg-white/5 text-white/20 border-white/8'
-                          : 'bg-white/10 text-white border-white/20 hover:bg-white/20 active:scale-95'
-                  }`}>
-                  {isSel ? '—' : w}
-                </button>
-              )
-            })}
-          </div>
-          {answered === 'waiting' && (
-            <button onClick={handleReorderCheck} disabled={!allPlace}
-              className={`w-full py-3.5 rounded-2xl font-black text-base transition-all ${
-                allPlace ? 'bg-brand-600 hover:bg-brand-500 text-white shadow-lg' : 'bg-white/10 text-white/30 cursor-not-allowed'
-              }`}>
-              تحقق من الإجابة ✓
-            </button>
-          )}
+  /* ── multiple correct ── */
+  if (q.type === 'multi') {
+    // functional update: two taps inside one React batch would otherwise both
+    // read the same stale array and the first selection would vanish
+    const toggle = (i: number) =>
+      setMulti(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i])
+    return (
+      <>
+        <p className="text-slate-500 text-xs font-bold mb-2.5">يمكن اختيار أكثر من إجابة</p>
+        <div className="space-y-2.5">
+          {(q.options ?? []).map((opt, i) => {
+            const chosen = multi.includes(i)
+            const should = (q.answers ?? []).includes(i)
+            const right  = answered && should
+            const wrong  = answered && chosen && !should
+            return (
+              <button key={i} onClick={() => !answered && toggle(i)} disabled={answered}
+                      className={`w-full text-right p-4 rounded-2xl ring-1 font-bold text-[15px] transition-all
+                        ${right ? 'bg-emerald-500/15 ring-emerald-400/50 text-emerald-200'
+                          : wrong ? 'bg-rose-500/15 ring-rose-400/50 text-rose-200'
+                          : chosen ? 'bg-yellow-400/15 ring-yellow-400/50 text-white'
+                          : 'bg-white/[.04] ring-white/10 text-slate-200 hover:bg-white/[.08]'}`}>
+                <span className="flex items-center gap-3">
+                  <span className={`w-6 h-6 rounded-md shrink-0 flex items-center justify-center text-xs font-black ring-1
+                    ${right ? 'bg-emerald-400 text-black ring-emerald-400'
+                      : wrong ? 'bg-rose-400 text-black ring-rose-400'
+                      : chosen ? 'bg-yellow-400 text-black ring-yellow-400' : 'ring-white/25 text-transparent'}`}>
+                    ✓
+                  </span>
+                  <span className="flex-1" dir="ltr">{opt}</span>
+                </span>
+              </button>
+            )
+          })}
         </div>
-      )
-    }
-
-    /* Listening */
-    if (currentQ.type === 'listening') {
-      return (
-        <div className="space-y-4">
-          <div className="bg-white/[0.05] border border-white/10 rounded-2xl p-4 flex items-center gap-4">
-            <button onClick={() => { speak(currentQ.audioText!); setAudioPlayed(true) }}
-              className="w-14 h-14 rounded-full bg-brand-600 hover:bg-brand-500 flex items-center justify-center text-white shadow-lg flex-shrink-0 transition-all active:scale-90">
-              <Volume2 size={22}/>
-            </button>
-            <div className="flex-1">
-              <p className="text-white font-bold text-sm">{audioPlayed ? '✓ استمعت — يمكنك الإجابة' : 'اضغط للاستماع أولاً'}</p>
-              <p className="text-white/35 text-xs mt-0.5">يمكنك الاستماع أكثر من مرة</p>
-            </div>
-            {audioPlayed && (
-              <button onClick={() => speak(currentQ.audioText!)} className="text-xs text-blue-300 hover:text-blue-200 font-semibold shrink-0">↩ أعد</button>
-            )}
-          </div>
-          {audioPlayed || answered !== 'waiting'
-            ? renderOptions()
-            : <p className="text-center text-white/30 text-sm py-2">استمع أولاً ثم ستظهر خيارات الإجابة</p>
-          }
-        </div>
-      )
-    }
-
-    /* Reading */
-    if (currentQ.type === 'reading' && currentQ.passage) {
-      return (
-        <div className="space-y-4">
-          <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-4">
-            <p className="text-[11px] text-blue-300 font-black uppercase tracking-widest mb-3">📄 اقرأ النص ثم أجب</p>
-            <p className="text-white/75 text-sm leading-relaxed" dir="ltr">{currentQ.passage}</p>
-          </div>
-          {renderOptions()}
-        </div>
-      )
-    }
-
-    /* MCQ / grammar / vocabulary / correction */
-    return renderOptions()
+      </>
+    )
   }
 
-  /* ═══════════════════════════════════════════════════
-     PHASE: INTRO
-  ═══════════════════════════════════════════════════ */
-  if (phase === 'intro') return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-950 via-brand-950 to-gray-950 flex items-center justify-center px-4 py-16">
-      <div className="max-w-2xl w-full text-center">
-        <div className="inline-flex items-center justify-center w-24 h-24 bg-brand-600 rounded-3xl shadow-2xl shadow-brand-500/40 mb-8">
-          <Brain size={42} className="text-white"/>
+  /* ── typed gaps ── */
+  if (q.type === 'gap' || q.type === 'listenGap') {
+    const template = q.type === 'listenGap' ? (q.transcript ?? '') : q.question
+    const parts = template.split('___')
+    return (
+      <div className="bg-white/[.04] ring-1 ring-white/10 rounded-2xl p-5">
+        <p className="text-white text-[17px] leading-[2.4] text-left" dir="ltr">
+          {parts.map((part, i) => (
+            <span key={i}>
+              {part}
+              {i < parts.length - 1 && (
+                <input
+                  value={texts[i] ?? ''} disabled={answered}
+                  onChange={e => setTexts(prev => { const t = [...prev]; t[i] = e.target.value; return t })}
+                  className={`inline-block mx-1 px-3 py-1 w-32 rounded-lg text-center font-bold ring-1 transition
+                    ${answered
+                      ? verdict === 'correct'
+                        ? 'bg-emerald-500/15 ring-emerald-400/50 text-emerald-200'
+                        : 'bg-rose-500/15 ring-rose-400/50 text-rose-200'
+                      : 'bg-white/10 ring-white/20 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400/60'}`}
+                  placeholder="…"
+                />
+              )}
+            </span>
+          ))}
+        </p>
+        {answered && verdict === 'wrong' && (
+          <p className="mt-3 pt-3 border-t border-white/10 text-emerald-300 text-[13px] font-bold text-left" dir="ltr">
+            ✓ {(q.accept ?? []).map(a => a[0]).join('  ·  ')}
+          </p>
+        )}
+      </div>
+    )
+  }
+
+  /* ── dictation ── */
+  if (q.type === 'listenWrite') {
+    return (
+      <div>
+        <textarea
+          value={texts[0] ?? ''} disabled={answered}
+          onChange={e => setTexts([e.target.value])}
+          dir="ltr" rows={3} placeholder="Type what you hear…"
+          className={`w-full p-4 rounded-2xl ring-1 text-white text-[16px] leading-relaxed text-left transition
+            ${answered
+              ? verdict === 'correct' ? 'bg-emerald-500/10 ring-emerald-400/40' : 'bg-rose-500/10 ring-rose-400/40'
+              : 'bg-white/[.04] ring-white/10 focus:outline-none focus:ring-2 focus:ring-yellow-400/60'}`}
+        />
+        <p className="text-slate-600 text-[11px] font-semibold mt-2">
+          لا تقلق بشأن علامات الترقيم — نحن نقيس ما سمعته.
+        </p>
+      </div>
+    )
+  }
+
+  /* ── reorder ── */
+  if (q.type === 'order') {
+    const words = q.words ?? []
+    const pick = (i: number) => {
+      if (answered) return
+      setOrder(prev => prev.includes(i) ? prev : [...prev, i])
+    }
+    const undo = () => { if (!answered) setOrder(prev => prev.slice(0, -1)) }
+    return (
+      <div>
+        <div className={`min-h-[68px] rounded-2xl p-3 mb-4 ring-1 flex flex-wrap gap-2 items-center
+          ${answered ? verdict === 'correct' ? 'bg-emerald-500/10 ring-emerald-400/40' : 'bg-rose-500/10 ring-rose-400/40'
+            : 'bg-white/[.04] ring-white/10'}`} dir="ltr">
+          {order.length === 0
+            ? <span className="text-slate-600 text-sm px-2">اضغط الكلمات بالترتيب…</span>
+            : order.map((wi, k) => (
+                <span key={k} className="px-3 py-2 rounded-xl bg-yellow-400 text-black font-bold text-[15px]">
+                  {words[wi]}
+                </span>
+              ))}
         </div>
-        <span className="inline-block bg-white/10 text-blue-200 text-sm font-bold px-4 py-1.5 rounded-full mb-5">
-          اختبار تحديد المستوى الحقيقي — CEFR
-        </span>
-        <h1 className="text-5xl sm:text-6xl font-black text-white mb-4 leading-tight">
-          اكتشف مستواك<br/>
-          <span className="text-brand-400">الحقيقي</span>
+
+        <div className="flex flex-wrap gap-2 mb-3" dir="ltr">
+          {words.map((w, i) => (
+            <button key={i} onClick={() => pick(i)} disabled={answered || order.includes(i)}
+                    className={`px-3 py-2 rounded-xl font-bold text-[15px] ring-1 transition
+                      ${order.includes(i) ? 'opacity-25 ring-white/10 text-slate-600'
+                        : 'bg-white/[.06] ring-white/15 text-white hover:bg-white/[.12]'}`}>
+              {w}
+            </button>
+          ))}
+        </div>
+
+        {!answered && order.length > 0 && (
+          <button onClick={undo} className="text-slate-500 text-xs font-bold hover:text-slate-300 transition">
+            ↩ تراجع عن آخر كلمة
+          </button>
+        )}
+        {answered && verdict === 'wrong' && (
+          <p className="text-emerald-300 text-[14px] font-bold text-left mt-2" dir="ltr">
+            ✓ {(q.correctOrder ?? []).map(i => words[i]).join(' ')}
+          </p>
+        )}
+      </div>
+    )
+  }
+
+  return null
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   INTRO
+   ══════════════════════════════════════════════════════════════════════════ */
+
+function Intro({ onStart }: { onStart: () => void }) {
+  return (
+    <Shell>
+      <div className="max-w-2xl mx-auto py-8 text-center animate-fade-up">
+        <div className="w-20 h-20 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shadow-2xl">
+          <Brain size={38} className="text-black" />
+        </div>
+
+        <h1 className="text-3xl sm:text-4xl font-black text-white mb-3 leading-tight">
+          اختبر مستواك في الإنجليزية
         </h1>
-        <p className="text-white/55 text-lg mb-8 max-w-lg mx-auto leading-relaxed">
-          اختبار تكيّفي من مستوى A1 إلى C1 — قواعد، مفردات، قراءة، استماع.<br/>
-          النتيجة فورية مع تحليل كامل لنقاط قوتك وضعفك.
+        <p className="text-slate-400 font-semibold mb-8 leading-relaxed">
+          من <span className="text-white">A0</span> إلى <span className="text-white">C1</span> — قواعد ومفردات
+          واستيعاب واستماع وكتابة. النتيجة في نهاية الاختبار مع الدورة المناسبة لك.
         </p>
 
-        {/* How it works */}
-        <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-5 mb-8 text-right">
-          <p className="text-white/50 text-xs font-black uppercase tracking-widest text-center mb-4">كيف يعمل الاختبار</p>
-          <div className="space-y-3">
-            {[
-              { icon: '🎯', text: 'يبدأ الاختبار من المستوى A1 ويتقدم حتى C1' },
-              { icon: '📊', text: 'كل مستوى يحتوي 12 سؤالاً متدرجاً في الصعوبة' },
-              { icon: '⚠️', text: '3 أخطاء في مستوى واحد → يتوقف الاختبار ويُحدَّد مستواك' },
-              { icon: '✅', text: 'اجتاز المستوى → انتقل للمستوى التالي' },
-            ].map(({ icon, text }) => (
-              <div key={text} className="flex items-center gap-3">
-                <span className="text-lg w-7 text-center flex-shrink-0">{icon}</span>
-                <p className="text-white/65 text-sm">{text}</p>
+        <div className="grid sm:grid-cols-2 gap-3 mb-8 text-right">
+          {[
+            { icon: Heart,      t: 'ثلاثة قلوب لكل مستوى', s: 'تخسر قلباً مع كل خطأ. تنتهي القلوب → ينتهي الاختبار.' },
+            { icon: Headphones, t: 'أسئلة استماع حقيقية',   s: 'تستمع وتكتب ما سمعته أو تكمل الفراغات.' },
+            { icon: ListChecks, t: 'أنواع أسئلة متنوعة',    s: 'اختيار، اختيارات متعددة، فراغات، ترتيب، قراءة.' },
+            { icon: PenLine,    t: 'اختبار كتابة مصحّح',    s: 'تكتب فقرة ونصحّحها لك تلقائياً في النهاية.' },
+          ].map((f, i) => (
+            <div key={i} className="bg-white/[.04] ring-1 ring-white/10 rounded-2xl p-4 flex items-start gap-3">
+              <span className="w-9 h-9 rounded-xl bg-yellow-400/15 flex items-center justify-center shrink-0">
+                <f.icon size={17} className="text-yellow-400" />
+              </span>
+              <div>
+                <div className="text-white font-bold text-[14px]">{f.t}</div>
+                <div className="text-slate-500 text-[12px] leading-relaxed mt-0.5">{f.s}</div>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* CEFR level pills */}
-        <div className="flex items-center justify-center gap-2 mb-8 flex-wrap">
-          {LEVEL_ORDER.map((l, i) => (
-            <div key={l} className="flex items-center gap-1.5">
-              <span className={`${LEVEL_STYLE[l].bg} text-white font-black text-sm px-4 py-2 rounded-xl shadow-lg`}>{l}</span>
-              {i < 4 && <ChevronRight size={13} className="text-white/25"/>}
             </div>
           ))}
         </div>
 
-        <button onClick={() => setPhase('testing')}
-          className="bg-brand-600 hover:bg-brand-500 active:scale-95 text-white font-black py-5 px-14 rounded-2xl text-xl shadow-2xl shadow-brand-500/40 transition-all flex items-center gap-3 mx-auto">
-          ابدأ الاختبار <ArrowLeft size={22}/>
+        <button onClick={onStart}
+                className="w-full sm:w-auto px-12 py-4 rounded-2xl bg-gradient-to-l from-yellow-400 to-amber-500 text-black
+                           font-black text-lg hover:brightness-110 transition shadow-2xl">
+          ابدأ الاختبار
         </button>
-        <p className="text-white/25 text-sm mt-4">مجاني 100% · بدون تسجيل · النتيجة في 15 دقيقة</p>
+        <p className="text-slate-600 text-xs font-semibold mt-4">مجاني تماماً · حوالي 10 دقائق</p>
       </div>
-    </main>
+    </Shell>
   )
+}
 
-  /* ═══════════════════════════════════════════════════
-     PHASE: LEVEL COMPLETE
-  ═══════════════════════════════════════════════════ */
-  if (phase === 'levelComplete') {
-    const nextLevel = LEVEL_ORDER[levelIdx + 1]
-    const s         = LEVEL_STYLE[currentLevel]
-    return (
-      <main className="min-h-screen bg-gradient-to-br from-gray-950 via-brand-950 to-gray-950 flex items-center justify-center px-4">
-        <div className="max-w-md w-full text-center">
-          <div className={`inline-flex items-center justify-center w-28 h-28 rounded-3xl ${s.bg} shadow-2xl ${s.glow} mb-6 animate-bounce`}>
-            <span className="text-white font-black text-4xl">{currentLevel}</span>
-          </div>
-          <p className="text-white/50 text-sm font-bold uppercase tracking-widest mb-2">مرحباً — أحسنت!</p>
-          <h2 className="text-4xl font-black text-white mb-2">اجتزت المستوى {currentLevel} ✓</h2>
-          <p className={`text-lg font-black ${s.color} mb-6`}>{LEVEL_STYLE[currentLevel].label}</p>
-          <div className="bg-white/[0.06] border border-white/10 rounded-2xl px-8 py-4 inline-flex gap-8 mb-8">
-            <div className="text-center">
-              <p className="text-white/35 text-xs mb-1">صحيح</p>
-              <p className="text-2xl font-black text-emerald-400">{levelCorrect}</p>
-            </div>
-            <div className="w-px bg-white/15"/>
-            <div className="text-center">
-              <p className="text-white/35 text-xs mb-1">إجمالي</p>
-              <p className="text-2xl font-black text-white">{totalInLevel}</p>
-            </div>
-            <div className="w-px bg-white/15"/>
-            <div className="text-center">
-              <p className="text-white/35 text-xs mb-1">أخطاء</p>
-              <p className={`text-2xl font-black ${mistakes > 0 ? 'text-amber-400' : 'text-white'}`}>{mistakes}</p>
-            </div>
-          </div>
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <span className="text-white/40 text-sm">الآن ننتقل إلى</span>
-            <span className={`${LEVEL_STYLE[nextLevel].bg} text-white font-black text-sm px-4 py-1.5 rounded-xl`}>{nextLevel}</span>
-            <span className={`${LEVEL_STYLE[nextLevel].color} text-sm font-bold`}>{LEVEL_STYLE[nextLevel].label}</span>
-          </div>
-          <button onClick={startNextLevel}
-            className={`${LEVEL_STYLE[nextLevel].bg} hover:opacity-90 active:scale-95 text-white font-black py-4 px-12 rounded-2xl text-lg shadow-2xl transition-all`}>
-            انتقل إلى {nextLevel} →
-          </button>
-        </div>
-      </main>
-    )
-  }
+/* ══════════════════════════════════════════════════════════════════════════
+   RESULT
+   ══════════════════════════════════════════════════════════════════════════ */
 
-  /* ═══════════════════════════════════════════════════
-     PHASE: RESULT
-  ═══════════════════════════════════════════════════ */
-  if (phase === 'result') {
-    const finalLevel = lastPassedLevelIdx >= 0 ? LEVEL_ORDER[lastPassedLevelIdx] : 'A1'
-    const style      = LEVEL_STYLE[finalLevel]
-    const info       = CEFR_FEEDBACK[finalLevel]
-    const score      = totalAnswered > 0 ? Math.round(totalCorrect / totalAnswered * 100) : 0
-    const strengths: SkillKey[] = []
-    const weaknesses: SkillKey[] = []
-    for (const s of Object.keys(skillStats) as SkillKey[]) {
-      if (skillStats[s].total === 0) continue
-      const acc = skillStats[s].correct / skillStats[s].total
-      if (acc >= 0.7) strengths.push(s)
-      if (acc < 0.5)  weaknesses.push(s)
-    }
-    const resultObj = { level: finalLevel, score, strengths, weaknesses }
-
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-brand-950 to-gray-950">
-        {/* Banner */}
-        <div className={`${style.bg} py-2 text-center`}>
-          <p className="text-white text-sm font-bold">🎉 اكتمل الاختبار! — Test Complete!</p>
-        </div>
-
-        <div className="max-w-4xl mx-auto px-4 py-10 space-y-5">
-
-          {/* Hero result card */}
-          <div className="bg-white/[0.04] border border-white/10 rounded-3xl p-8 sm:p-12 text-center">
-            <p className="text-white/40 text-xs font-black uppercase tracking-widest mb-4">نتيجة اختبار CEFR</p>
-            <div className={`inline-flex items-center justify-center w-28 h-28 rounded-3xl ${style.bg} shadow-2xl ${style.glow} mb-5`}>
-              <span className="text-white font-black text-4xl">{finalLevel}</span>
-            </div>
-            <h1 className={`text-5xl font-black ${style.color} mb-2`}>{LEVEL_STYLE[finalLevel].label}</h1>
-            <p className="text-white/60 text-lg max-w-xl mx-auto mb-7 leading-relaxed">{info.ar}</p>
-
-            {/* Stats */}
-            <div className="inline-flex items-center gap-6 bg-white/10 rounded-2xl px-8 py-4 mb-7 flex-wrap justify-center">
-              {[
-                { label: 'الأسئلة',   val: totalAnswered,   color: 'text-white' },
-                { label: 'صحيح',      val: totalCorrect,    color: 'text-emerald-400' },
-                { label: 'الدقة',     val: `${score}%`,     color: score >= 70 ? 'text-emerald-400' : 'text-amber-400' },
-              ].map((item, i) => (
-                <div key={item.label} className="flex items-center gap-6">
-                  {i > 0 && <div className="w-px h-8 bg-white/20"/>}
-                  <div className="text-center">
-                    <p className="text-white/35 text-xs mb-0.5">{item.label}</p>
-                    <p className={`text-2xl font-black ${item.color}`}>{item.val}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* JSON result badge */}
-            <div className="bg-white/[0.03] border border-white/10 rounded-xl p-4 text-left max-w-sm mx-auto mb-7 font-mono text-xs text-white/50 leading-relaxed">
-              <span className="text-white/30">{'{'}</span>{'\n'}
-              {'  '}<span className="text-blue-300">level</span>: <span className="text-amber-300">"{resultObj.level}"</span>,{'\n'}
-              {'  '}<span className="text-blue-300">score</span>: <span className="text-emerald-300">{resultObj.score}</span>,{'\n'}
-              {'  '}<span className="text-blue-300">strengths</span>: <span className="text-emerald-300">[{resultObj.strengths.map(s => `"${SKILL_LABELS[s].en}"`).join(', ')}]</span>,{'\n'}
-              {'  '}<span className="text-blue-300">weaknesses</span>: <span className="text-red-300">[{resultObj.weaknesses.map(s => `"${SKILL_LABELS[s].en}"`).join(', ')}]</span>{'\n'}
-              <span className="text-white/30">{'}'}</span>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => openSubscribe({
-                source:          `test_result_${recommendPlanForLevel(finalLevel)}`,
-                planId:          recommendPlanForLevel(finalLevel),
-                recommendedPlan: recommendPlanForLevel(finalLevel),
-                testScore:       score,
-                defaultLevel:    finalLevel,
-              })}
-              className={`inline-flex items-center gap-3 ${style.bg} text-white font-black py-4 px-10 rounded-2xl shadow-2xl ${style.glow} text-lg hover:opacity-90 transition-opacity`}
-            >
-              🚀 سجّل الآن فالباقة المناسبة
-            </button>
-            <p className="text-white/25 text-sm mt-3">غتفتح واتساب — كنجاوبك شخصياً فأقل من ساعة</p>
-          </div>
-
-          {/* Recommended plan card */}
-          {(() => {
-            const recId   = recommendPlanForLevel(finalLevel)
-            const rec     = getPlan(recId)
-            const samples = freeSamplesForPlan(recId)
-            if (!rec) return null
-            return (
-              <div className="bg-gradient-to-br from-emerald-500/10 via-white/[0.04] to-emerald-500/5 border border-emerald-500/30 rounded-3xl p-6 sm:p-8">
-                <div className="flex items-start gap-3 mb-4">
-                  <div className="inline-flex items-center gap-1.5 bg-emerald-500 text-white text-[11px] font-black px-3 py-1 rounded-full">
-                    <Crown size={12} /> الباقة المقترحة ليك
-                  </div>
-                </div>
-                <h2 className="text-white font-black text-2xl sm:text-3xl leading-tight mb-1">
-                  {rec.title_ar}
-                </h2>
-                <p className="text-white/60 text-sm font-semibold mb-5">{rec.subtitle_ar}</p>
-
-                <div className="flex items-baseline gap-3 mb-5">
-                  <span className="text-white font-black text-4xl">{rec.amount_mad.toLocaleString()}</span>
-                  <span className="text-white/60 text-sm font-bold">درهم</span>
-                  {rec.originalAmount && rec.originalAmount > rec.amount_mad && (
-                    <span className="text-white/30 text-sm font-bold line-through">
-                      {rec.originalAmount.toLocaleString()}
-                    </span>
-                  )}
-                </div>
-
-                <div className="mb-5">
-                  <p className="text-white/40 text-xs font-black uppercase tracking-wider mb-2">غتتعلّم:</p>
-                  <ul className="space-y-1.5">
-                    {rec.lifetimePerks.slice(0, 5).map((f, i) => (
-                      <li key={i} className="flex items-start gap-2 text-white/80 text-sm">
-                        <CheckCircle2 size={14} className="text-emerald-400 shrink-0 mt-0.5" />
-                        <span>{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {samples.length > 0 && (
-                  <div className="mb-5">
-                    <p className="text-white/40 text-xs font-black uppercase tracking-wider mb-3">
-                      🎁 {samples.length} دروس مجانية لتجرّبها قبل الاشتراك:
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      {samples.map((s, i) => (
-                        <Link
-                          key={i}
-                          href={`/courses/${rec.courseSlug}/watch`}
-                          className="group flex items-center gap-3 bg-white/[0.04] border border-white/10 hover:border-emerald-400/50 rounded-xl p-3 transition-colors"
-                        >
-                          <div className="w-10 h-10 shrink-0 bg-emerald-500/20 border border-emerald-500/30 rounded-lg flex items-center justify-center">
-                            <Play size={14} className="text-emerald-400 fill-emerald-400" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-white text-xs font-bold leading-tight line-clamp-2">{s.title}</p>
-                            <p className="text-white/40 text-[10px] font-semibold mt-0.5">{s.duration}</p>
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <button
-                    type="button"
-                    onClick={() => openSubscribe({
-                      source:          `test_result_${recId}`,
-                      planId:          recId,
-                      recommendedPlan: recId,
-                      testScore:       score,
-                      defaultLevel:    finalLevel,
-                    })}
-                    className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-white font-black text-sm py-3.5 rounded-2xl inline-flex items-center justify-center gap-2 transition-colors shadow-lg shadow-emerald-900/30"
-                  >
-                    <MessageCircle size={16} />
-                    سجّل الآن — جاوبني فواتساب
-                  </button>
-                  <Link
-                    href="/pricing"
-                    onClick={() => { try { window.sessionStorage.setItem('inglizi.lead_source', 'test_result_browse') } catch {} }}
-                    className="flex-1 bg-white/10 hover:bg-white/15 border border-white/15 text-white font-bold text-sm py-3.5 rounded-2xl inline-flex items-center justify-center gap-2 transition-colors"
-                  >
-                    شوف باقي الباقات
-                  </Link>
-                </div>
-              </div>
-            )
-          })()}
-
-          {/* Skill breakdown */}
-          <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-6">
-            <h3 className="font-black text-white mb-5 flex items-center gap-2">
-              <BarChart2 size={18} className="text-brand-400"/> تفصيل الأداء حسب المهارة
-            </h3>
-            <div className="space-y-4">
-              {(Object.keys(SKILL_LABELS) as SkillKey[]).map(sk => {
-                const st  = skillStats[sk]
-                if (st.total === 0) return null
-                const pct = Math.round((st.correct / st.total) * 100)
-                return (
-                  <div key={sk}>
-                    <div className="flex justify-between mb-1.5">
-                      <span className="text-white/65 text-sm font-semibold">
-                        {SKILL_LABELS[sk].ar} <span className="text-white/30 text-xs">({SKILL_LABELS[sk].en})</span>
-                      </span>
-                      <span className={`text-sm font-black ${pct>=70?'text-emerald-400':pct>=50?'text-amber-400':'text-red-400'}`}>
-                        {pct}% ({st.correct}/{st.total})
-                      </span>
-                    </div>
-                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full transition-all duration-700 ${pct>=70?'bg-emerald-500':pct>=50?'bg-amber-500':'bg-red-500'}`}
-                        style={{width:`${pct}%`}}/>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Strengths & Weaknesses */}
-          {(strengths.length > 0 || weaknesses.length > 0) && (
-            <div className="grid md:grid-cols-2 gap-5">
-              {strengths.length > 0 && (
-                <div className="bg-emerald-500/[0.08] border border-emerald-500/20 rounded-2xl p-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Star size={16} className="text-emerald-400"/>
-                    <h3 className="font-black text-white text-sm">نقاط قوتك</h3>
-                  </div>
-                  <div className="space-y-2">
-                    {strengths.map(s => (
-                      <div key={s} className="flex items-center gap-2 text-emerald-300 text-sm">
-                        <CheckCircle2 size={14}/> {SKILL_LABELS[s].ar} ({SKILL_LABELS[s].en})
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {weaknesses.length > 0 && (
-                <div className="bg-red-500/[0.08] border border-red-500/20 rounded-2xl p-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <TrendingUp size={16} className="text-red-400"/>
-                    <h3 className="font-black text-white text-sm">مجالات التحسين</h3>
-                  </div>
-                  <div className="space-y-2">
-                    {weaknesses.map(s => (
-                      <div key={s} className="flex items-center gap-2 text-red-300 text-sm">
-                        <AlertTriangle size={14}/> {SKILL_LABELS[s].ar} ({SKILL_LABELS[s].en})
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Can do / Focus areas */}
-          <div className="grid md:grid-cols-2 gap-5">
-            <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <CheckCircle2 size={16} className="text-emerald-400"/>
-                <h3 className="font-black text-white text-sm">ما تستطيع فعله الآن</h3>
-              </div>
-              <ul className="space-y-2.5">
-                {info.canDo.map((item, i) => (
-                  <li key={i} className="flex items-start gap-2 text-white/60 text-sm">
-                    <span className="text-emerald-400 font-black mt-0.5 flex-shrink-0">✓</span>{item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="bg-white/[0.04] border border-white/10 rounded-2xl p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <AlertTriangle size={16} className="text-orange-400"/>
-                <h3 className="font-black text-white text-sm">ركّز على تطوير</h3>
-              </div>
-              <ul className="space-y-2.5">
-                {info.focus.map((item, i) => (
-                  <li key={i} className="flex items-start gap-2 text-white/60 text-sm">
-                    <span className="text-orange-400 font-black mt-0.5 flex-shrink-0">→</span>{item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Link href="/courses"
-              className="flex-1 bg-brand-600 hover:bg-brand-500 text-white font-black py-4 rounded-2xl text-center text-lg transition-colors flex items-center justify-center gap-2">
-              <Trophy size={20}/> عرض برامج التدريب
-            </Link>
-            <button onClick={resetTest}
-              className="flex-1 bg-white/10 hover:bg-white/15 border border-white/10 text-white font-black py-4 rounded-2xl text-lg transition-colors flex items-center justify-center gap-2">
-              <RotateCcw size={20}/> إعادة الاختبار
-            </button>
-          </div>
-
-          <div className="flex justify-center">
-            <a href={waUrl('Hello, I need help improving my English')} target="_blank" rel="noopener noreferrer"
-              className="flex items-center gap-2 text-[#25d366] hover:text-[#1ebe5d] text-sm font-bold transition-colors">
-              <MessageCircle size={16}/> تحدث مع المعلم مباشرة عبر واتساب
-            </a>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  /* ═══════════════════════════════════════════════════
-     PHASE: TESTING
-  ═══════════════════════════════════════════════════ */
-  const style = LEVEL_STYLE[currentLevel]
-  const isFailing = mistakes >= MISTAKES_TO_FAIL
+function Result({
+  level, adjusted, quizLevel, report, log, skillStats, onRestart,
+}: {
+  level: CEFRLevel
+  adjusted: 'up' | 'down' | null
+  quizLevel: CEFRLevel
+  report: WritingReport | null
+  log: Answered[]
+  skillStats: Partial<Record<SkillKey, { correct: number; total: number }>>
+  onRestart: () => void
+}) {
+  const meta = LEVEL_META[level]
+  const fb   = CEFR_FEEDBACK[level]
+  const planId = recommendPlan(level)
+  const plan = getPlan(planId)
+  const correct = log.filter(a => a.ok).length
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
+    <Shell>
+      <div className="max-w-2xl mx-auto py-6 space-y-5 animate-fade-up">
 
-      {/* ── Level progress bar (top) ── */}
-      <div className="h-1 bg-white/10">
-        <div className={`h-full ${style.bg} transition-all duration-500`} style={{width:`${progressPct}%`}}/>
-      </div>
+        {/* ── the verdict ── */}
+        <div className="text-center">
+          <div className="w-24 h-24 mx-auto mb-5 rounded-3xl flex items-center justify-center shadow-2xl"
+               style={{ background: `linear-gradient(135deg, ${meta.from}, ${meta.to})` }}>
+            <Award size={44} className="text-white" />
+          </div>
+          <p className="text-slate-500 font-bold text-sm mb-1">مستواك في الإنجليزية</p>
+          <h1 className="text-6xl font-black text-white mb-2 tracking-tight">{level}</h1>
+          <p className={`text-lg font-black ${meta.text}`}>{meta.label}</p>
+          <p className="text-slate-500 text-sm font-semibold">{meta.sub}</p>
 
-      <div className="max-w-3xl mx-auto px-4 py-8">
-
-        {/* ── Header: level + question counter + mistake dots ── */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <span className={`${style.bg} text-white font-black text-sm px-4 py-2 rounded-xl shadow-lg`}>{currentLevel}</span>
-            <span className={`text-sm font-bold ${style.color}`}>{LEVEL_STYLE[currentLevel].label}</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-white/40 text-sm font-semibold">سؤال {questionIdx+1} / {totalInLevel}</span>
-            {/* Mistake dots */}
-            <div className="flex gap-1.5 items-center" title={`${mistakes} / ${MISTAKES_TO_FAIL} أخطاء`}>
-              {[0,1,2].map(i => (
-                <span key={i} className={`w-3 h-3 rounded-full transition-colors ${i < mistakes ? 'bg-red-500' : 'bg-white/15'}`}/>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ── Level progress bar (under header) ── */}
-        <div className="mb-6">
-          <div className="flex justify-between text-xs text-white/30 mb-1.5">
-            <span>تقدمك في المستوى {currentLevel}</span>
-            <span>{questionIdx}/{totalInLevel}</span>
-          </div>
-          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-            <div className={`h-full ${style.bg} rounded-full transition-all duration-500`} style={{width:`${progressPct}%`}}/>
-          </div>
-          {/* Mistake warning */}
-          {mistakes > 0 && (
-            <p className={`text-xs mt-1.5 font-semibold ${mistakes >= 2 ? 'text-red-400' : 'text-amber-400'}`}>
-              {mistakes === 1 ? '⚠️ خطأ واحد — تبقّى 2 قبل انتهاء المستوى' :
-               mistakes === 2 ? '⚠️ خطآن — تنبّه: خطأ آخر يُنهي المستوى!' :
-               '🛑 وصلت الحد الأقصى من الأخطاء في هذا المستوى'}
+          {adjusted && (
+            <p className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[.06] ring-1 ring-white/10 text-[12px] font-bold text-slate-300">
+              <Sparkles size={12} className="text-yellow-400" />
+              {adjusted === 'down'
+                ? `اجتزت أسئلة ${quizLevel}، لكن كتابتك تناسب ${level} — وضعناك حيث ستتقدم فعلاً.`
+                : `كتابتك أقوى من نتيجة الأسئلة — رفعناك من ${quizLevel} إلى ${level}.`}
             </p>
           )}
         </div>
 
-        {/* ── Question card ── */}
-        <div className="bg-white/[0.04] border border-white/10 rounded-3xl p-6 mb-4">
+        <p className="text-slate-300 text-[15px] leading-relaxed text-center bg-white/[.04] ring-1 ring-white/10 rounded-2xl p-5">
+          {fb.summary}
+        </p>
 
-          {/* Type badge + Arabic hint */}
-          <div className="flex items-center justify-between mb-4">
-            <span className="inline-flex items-center gap-1.5 bg-white/10 text-blue-200 text-xs font-bold px-3 py-1.5 rounded-full">
-              {TYPE_META[currentQ.type].icon} {TYPE_META[currentQ.type].label}
-            </span>
-            <span className={`text-xs font-black px-2 py-1 rounded-lg ${style.bg} text-white`}>{currentLevel}</span>
-          </div>
-
-          {/* Question text */}
-          <p className="text-white font-bold text-base md:text-lg mb-2 leading-relaxed whitespace-pre-line" dir="ltr">
-            {currentQ.question}
-          </p>
-          {currentQ.arabicHint && (
-            <p className="text-white/45 text-sm mb-5">{currentQ.arabicHint}</p>
-          )}
-
-          {/* Question body (options / reorder / reading / listening) */}
-          {renderQuestionBody()}
-
-          {/* ── Feedback after answering ── */}
-          {answered !== 'waiting' && (
-            <div className={`mt-5 rounded-2xl p-4 border ${
-              answered === 'correct'
-                ? 'bg-emerald-500/10 border-emerald-500/25'
-                : 'bg-red-500/10 border-red-500/25'
-            }`}>
-              <div className="flex items-center gap-2 mb-2">
-                {answered === 'correct'
-                  ? <CheckCircle2 size={17} className="text-emerald-400"/>
-                  : <XCircle size={17} className="text-red-400"/>}
-                <p className={`font-black text-sm ${answered === 'correct' ? 'text-emerald-300' : 'text-red-300'}`}>
-                  {answered === 'correct' ? 'إجابة صحيحة! ✓' : 'إجابة خاطئة ✗'}
-                </p>
-                {answered === 'wrong' && mistakes >= MISTAKES_TO_FAIL && (
-                  <span className="mr-auto bg-red-500 text-white text-xs font-black px-2 py-0.5 rounded-full">🛑 انتهى المستوى</span>
-                )}
-              </div>
-              <p className="text-white/60 text-sm leading-relaxed whitespace-pre-line" dir="ltr">
-                {currentQ.explanation}
-              </p>
-              <button onClick={handleContinue}
-                className={`mt-4 w-full py-3 rounded-2xl font-black text-base transition-all active:scale-95 ${
-                  isFailing
-                    ? 'bg-red-500 hover:bg-red-600 text-white'
-                    : answered === 'correct'
-                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
-                    : 'bg-white/10 hover:bg-white/15 text-white border border-white/15'
-                }`}>
-                {isFailing
-                  ? '📊 عرض مستواي النهائي'
-                  : questionIdx + 1 >= totalInLevel
-                  ? levelIdx + 1 >= LEVEL_ORDER.length ? '🏆 النتيجة النهائية' : `✓ اجتزت ${currentLevel} — انتقل إلى ${LEVEL_ORDER[levelIdx+1]}`
-                  : 'السؤال التالي →'
-                }
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* ── CEFR level trail ── */}
-        <div className="flex items-center justify-center gap-2 flex-wrap">
-          {LEVEL_ORDER.map((l, i) => (
-            <div key={l} className="flex items-center gap-1.5">
-              <span className={`text-xs font-black px-3 py-1.5 rounded-lg transition-all ${
-                l === currentLevel ? `${LEVEL_STYLE[l].bg} text-white shadow-lg` :
-                i < levelIdx      ? 'bg-white/15 text-white/70' :
-                                    'bg-white/5 text-white/20'
-              }`}>
-                {l} {i < levelIdx ? '✓' : ''}
-              </span>
-              {i < 4 && <ChevronRight size={11} className="text-white/15"/>}
+        {/* ── numbers ── */}
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { v: `${correct}/${log.length}`, l: 'إجابة صحيحة' },
+            { v: quizLevel, l: 'أعلى مستوى اجتزته' },
+            { v: report ? `${report.score}%` : '—', l: 'درجة الكتابة' },
+          ].map((s, i) => (
+            <div key={i} className="bg-white/[.04] ring-1 ring-white/10 rounded-2xl p-4 text-center">
+              <div className="text-2xl font-black text-white tabular-nums">{s.v}</div>
+              <div className="text-slate-500 text-[11px] font-bold mt-1">{s.l}</div>
             </div>
           ))}
         </div>
+
+        {/* ── skills ── */}
+        <div className="bg-white/[.04] ring-1 ring-white/10 rounded-2xl p-5">
+          <h3 className="text-white font-black mb-4">أداؤك حسب المهارة</h3>
+          <div className="space-y-3">
+            {(Object.keys(skillStats) as SkillKey[]).map(k => {
+              const s = skillStats[k]!
+              const pct = s.total ? Math.round((s.correct / s.total) * 100) : 0
+              return (
+                <div key={k}>
+                  <div className="flex justify-between text-[12.5px] font-bold mb-1.5">
+                    <span className="text-slate-300">{SKILL_LABELS[k]}</span>
+                    <span className="text-slate-500 tabular-nums">{s.correct}/{s.total}</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-700"
+                         style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${meta.from}, ${meta.to})` }} />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* ── writing feedback ── */}
+        {report && <WritingFeedback report={report} />}
+
+        {/* ── what to work on ── */}
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div className="bg-emerald-500/[.07] ring-1 ring-emerald-500/20 rounded-2xl p-5">
+            <h3 className="text-emerald-300 font-black mb-3 text-[14px]">تستطيع الآن</h3>
+            <ul className="space-y-2">
+              {fb.canDo.map((c, i) => (
+                <li key={i} className="flex items-start gap-2 text-slate-300 text-[13px]">
+                  <CheckCircle2 size={14} className="text-emerald-400 mt-0.5 shrink-0" /><span>{c}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="bg-amber-500/[.07] ring-1 ring-amber-500/20 rounded-2xl p-5">
+            <h3 className="text-amber-300 font-black mb-3 text-[14px]">ركّز على</h3>
+            <ul className="space-y-2">
+              {fb.focus.map((c, i) => (
+                <li key={i} className="flex items-start gap-2 text-slate-300 text-[13px]">
+                  <span className="text-amber-400 mt-0.5 shrink-0">→</span><span>{c}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* ── the offer ── */}
+        {plan && <SubscribeCard level={level} plan={plan} />}
+
+        <div className="flex flex-col sm:flex-row gap-2.5 pb-12">
+          <button onClick={onRestart}
+                  className="flex-1 py-3.5 rounded-2xl bg-white/[.06] ring-1 ring-white/10 text-slate-300 font-bold hover:bg-white/10 transition
+                             flex items-center justify-center gap-2">
+            <RotateCcw size={16} /> أعد الاختبار
+          </button>
+          <Link href="/courses"
+                className="flex-1 py-3.5 rounded-2xl bg-white/[.06] ring-1 ring-white/10 text-slate-300 font-bold hover:bg-white/10 transition
+                           flex items-center justify-center gap-2">
+            <BookOpen size={16} /> تصفّح كل الدورات
+          </Link>
+        </div>
       </div>
-    </main>
+    </Shell>
+  )
+}
+
+function WritingFeedback({ report }: { report: WritingReport }) {
+  return (
+    <div className="bg-violet-500/[.07] ring-1 ring-violet-500/20 rounded-2xl p-5">
+      <div className="flex items-center gap-2.5 mb-4">
+        <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
+          <PenLine size={16} className="text-white" />
+        </span>
+        <div className="flex-1">
+          <h3 className="text-white font-black text-[15px]">تصحيح كتابتك</h3>
+          <p className="text-slate-500 text-[11.5px] font-semibold">
+            {report.words} كلمة · {report.sentences} جملة
+            {report.source === 'local' && ' · تحليل آلي مبدئي'}
+          </p>
+        </div>
+        <div className="text-center">
+          <div className="text-2xl font-black text-white tabular-nums">{report.score}</div>
+          <div className="text-slate-500 text-[10px] font-bold">من 100</div>
+        </div>
+      </div>
+
+      {report.strengths.length > 0 && (
+        <div className="mb-4">
+          <h4 className="text-emerald-300 font-bold text-[12.5px] mb-2">نقاط القوة</h4>
+          <ul className="space-y-1.5">
+            {report.strengths.map((s, i) => (
+              <li key={i} className="flex items-start gap-2 text-slate-300 text-[13px]">
+                <CheckCircle2 size={13} className="text-emerald-400 mt-0.5 shrink-0" /><span>{s}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {report.issues.length > 0 && (
+        <div>
+          <h4 className="text-amber-300 font-bold text-[12.5px] mb-2">ما يحتاج تصحيحاً</h4>
+          <div className="space-y-2">
+            {report.issues.map((iss, i) => (
+              <div key={i} className="bg-black/20 rounded-xl p-3">
+                <div className="flex flex-wrap items-center gap-2 mb-1" dir="ltr">
+                  <code className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-200 text-[12px] font-mono line-through">
+                    {iss.fragment}
+                  </code>
+                  {iss.fix && (
+                    <>
+                      <span className="text-slate-600">→</span>
+                      <code className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-200 text-[12px] font-mono">
+                        {iss.fix}
+                      </code>
+                    </>
+                  )}
+                </div>
+                <p className="text-slate-400 text-[12.5px]">{iss.note}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {report.corrected && (
+        <details className="mt-4 group">
+          <summary className="cursor-pointer text-violet-300 font-bold text-[13px] hover:text-violet-200 transition">
+            اعرض نصك بعد التصحيح
+          </summary>
+          <p className="mt-2 p-3 rounded-xl bg-black/20 text-slate-200 text-[13.5px] leading-relaxed text-left" dir="ltr">
+            {report.corrected}
+          </p>
+        </details>
+      )}
+    </div>
+  )
+}
+
+/* ── The conversion step ─────────────────────────────────────────────────── */
+
+function SubscribeCard({ level, plan }: { level: CEFRLevel; plan: NonNullable<ReturnType<typeof getPlan>> }) {
+  const [name, setName]   = useState('')
+  const [phone, setPhone] = useState('')
+  const [busy, setBusy]   = useState(false)
+  const [sent, setSent]   = useState(false)
+
+  const waText =
+    `مرحباً أستاذ حمزة 👋\n` +
+    `أنهيت اختبار المستوى ونتيجتي: ${level} (${LEVEL_META[level].label}).\n` +
+    `الدورة المقترحة لي: ${plan.title_ar}.\n` +
+    (name ? `اسمي: ${name}\n` : '') +
+    `أريد التسجيل والبدء.`
+
+  async function go(e: React.FormEvent) {
+    e.preventDefault()
+    if (!name.trim()) return
+    setBusy(true)
+    // Record the lead first so a closed WhatsApp tab never loses it, but never
+    // let a failed insert stand between the learner and the conversation.
+    try {
+      await createSubscriptionLead({
+        planId: plan.id,
+        level,
+        fullName: name.trim(),
+        phone: phone.trim() || undefined,
+        amountMad: plan.amount_mad,
+        source: 'level-test',
+        planInterest: plan.id,
+        ...getAttribution(),
+      })
+    } catch { /* the conversation matters more than the record */ }
+    setSent(true); setBusy(false)
+    window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(waText)}`, '_blank', 'noopener')
+  }
+
+  return (
+    <div className="rounded-3xl bg-gradient-to-br from-yellow-400/[.12] to-amber-500/[.06] ring-1 ring-yellow-400/25 p-6">
+      <div className="flex items-center gap-2 mb-1">
+        <Sparkles size={16} className="text-yellow-400" />
+        <span className="text-yellow-400 font-black text-[12px] tracking-wide">الدورة المناسبة لمستواك</span>
+      </div>
+      <h3 className="text-white text-2xl font-black mb-1">{plan.title_ar}</h3>
+      <p className="text-slate-400 text-[14px] font-semibold mb-4">{plan.subtitle_ar}</p>
+
+      <div className="flex flex-wrap items-baseline gap-2 mb-5">
+        <span className="text-3xl font-black text-white tabular-nums">{plan.amount_mad}</span>
+        <span className="text-slate-400 font-bold">درهم</span>
+        {plan.originalAmount && (
+          <span className="text-slate-600 line-through text-sm tabular-nums">{plan.originalAmount}</span>
+        )}
+        <span className="text-slate-500 text-[12px] font-semibold mr-auto">
+          {plan.levelFrom} → {plan.levelTo}
+        </span>
+      </div>
+
+      {plan.idealFor_ar && (
+        <p className="text-slate-300 text-[13.5px] leading-relaxed bg-black/20 rounded-xl p-3.5 mb-5">
+          {plan.idealFor_ar}
+        </p>
+      )}
+
+      {sent ? (
+        <div className="text-center py-4">
+          <CheckCircle2 size={32} className="mx-auto text-emerald-400 mb-2" />
+          <p className="text-white font-black mb-1">تم إرسال طلبك</p>
+          <p className="text-slate-400 text-[13px] mb-4">إن لم تُفتح المحادثة تلقائياً، اضغط الزر:</p>
+          <a href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(waText)}`}
+             target="_blank" rel="noopener noreferrer"
+             className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-emerald-500 text-white font-black hover:bg-emerald-400 transition">
+            <MessageCircle size={18} /> افتح واتساب
+          </a>
+        </div>
+      ) : (
+        <form onSubmit={go} className="space-y-2.5">
+          <input
+            value={name} onChange={e => setName(e.target.value)} required
+            placeholder="اسمك الكامل"
+            className="w-full px-4 py-3.5 rounded-xl bg-white/[.06] ring-1 ring-white/15 text-white font-semibold
+                       placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-yellow-400/60 transition"
+          />
+          <input
+            value={phone} onChange={e => setPhone(e.target.value)} dir="ltr"
+            placeholder="رقم الهاتف (اختياري)" inputMode="tel"
+            className="w-full px-4 py-3.5 rounded-xl bg-white/[.06] ring-1 ring-white/15 text-white font-semibold text-right
+                       placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-yellow-400/60 transition"
+          />
+          <button type="submit" disabled={busy || !name.trim()}
+                  className="w-full py-4 rounded-2xl bg-emerald-500 text-white font-black text-lg hover:bg-emerald-400
+                             transition shadow-xl disabled:opacity-40 flex items-center justify-center gap-2">
+            {busy ? <Loader2 size={20} className="animate-spin" /> : <MessageCircle size={20} />}
+            سجّل الآن عبر واتساب
+          </button>
+          <p className="text-slate-600 text-[11px] font-semibold text-center">
+            نرسل لك التفاصيل مباشرة — بلا التزام.
+          </p>
+        </form>
+      )}
+    </div>
   )
 }
