@@ -279,22 +279,72 @@ export async function gradeWriting(
    FINAL PLACEMENT
    ══════════════════════════════════════════════════════════════════════════ */
 
+export interface HeartRecord {
+  /** Hearts still unspent when the level ended. */
+  left:      number
+  /** Hearts the level started with. */
+  available: number
+  level:     CEFRLevel
+  /** Did they finish every question in it? */
+  cleared:   boolean
+}
+
 /**
- * The quiz decides the level; the writing can nudge it by one step at most.
+ * The final placement.
  *
- * A learner who cleared B1 but writes like an A2 is placed at A2 — better a
- * class they can survive than one they will quietly drop out of. The reverse
- * lift is allowed too, but only by one level and only from a strong piece.
+ * Three inputs, in descending authority:
+ *
+ *   1. The highest level cleared — the floor. Nothing moves you below it except
+ *      writing that plainly contradicts it.
+ *   2. Hearts banked across the whole test — how comfortably you held those
+ *      levels. Clearing B1 with every heart intact is a different result from
+ *      clearing it on your last one, and the two should not read the same.
+ *   3. The writing — the only evidence here that cannot be guessed.
+ *
+ * Each of 2 and 3 may move the result by one level, and the total movement is
+ * capped at one. Placing someone above what they can produce wastes their money
+ * and their time; placing them below wastes their patience. One step is as much
+ * as any single signal should be trusted for.
  */
-export function finalLevel(quizLevel: CEFRLevel, writing: WritingReport | null): {
-  level: CEFRLevel; adjusted: 'up' | 'down' | null
+export function finalLevel(
+  quizLevel: CEFRLevel,
+  writing: WritingReport | null,
+  hearts: HeartRecord[] = [],
+): {
+  level: CEFRLevel
+  adjusted: 'up' | 'down' | null
+  reason: 'writing' | 'hearts' | null
+  heartsLeft: number
+  heartsAvailable: number
+  comfort: number
 } {
   const order: CEFRLevel[] = ['A0', 'A1', 'A2', 'B1', 'B2', 'C1']
   const qi = order.indexOf(quizLevel)
-  if (!writing || writing.words < 10) return { level: quizLevel, adjusted: null }
 
-  const wi = order.indexOf(writing.estimated)
-  if (wi < qi - 1) return { level: order[qi - 1], adjusted: 'down' }
-  if (wi > qi + 1 && writing.score >= 75) return { level: order[qi + 1], adjusted: 'up' }
-  return { level: quizLevel, adjusted: null }
+  const heartsLeft = hearts.reduce((n, h) => n + h.left, 0)
+  const heartsAvailable = hearts.reduce((n, h) => n + h.available, 0)
+  /** 0–1: share of hearts kept across every level attempted. */
+  const comfort = heartsAvailable > 0 ? heartsLeft / heartsAvailable : 0
+
+  const base = { heartsLeft, heartsAvailable, comfort }
+
+  // Writing speaks first, because it is the hardest signal to fake.
+  if (writing && writing.words >= 10) {
+    const wi = order.indexOf(writing.estimated)
+    if (wi < qi - 1) return { level: order[qi - 1], adjusted: 'down', reason: 'writing', ...base }
+    if (wi > qi + 1 && writing.score >= 75 && qi + 1 < order.length) {
+      return { level: order[qi + 1], adjusted: 'up', reason: 'writing', ...base }
+    }
+  }
+
+  // Otherwise the hearts decide whether the level was owned or survived.
+  const clearedAny = hearts.some(h => h.cleared)
+  if (clearedAny && comfort >= 0.85 && qi + 1 < order.length) {
+    return { level: order[qi + 1], adjusted: 'up', reason: 'hearts', ...base }
+  }
+  if (comfort > 0 && comfort <= 0.25 && qi > 0) {
+    return { level: order[qi - 1], adjusted: 'down', reason: 'hearts', ...base }
+  }
+
+  return { level: quizLevel, adjusted: null, reason: null, ...base }
 }

@@ -71,11 +71,24 @@ export interface WritingPrompt {
 
 /* ── Level order + presentation ─────────────────────────────────────────── */
 
-export const LEVEL_ORDER: CEFRLevel[] = ['A0', 'A1', 'A2', 'B1', 'B2', 'C1']
+const LEVEL_ORDER_VALUES: CEFRLevel[] = ['A0', 'A1', 'A2', 'B1', 'B2', 'C1']
+export const LEVEL_ORDER: CEFRLevel[] = LEVEL_ORDER_VALUES
 
-/** Hearts per level. Three everywhere — losing all three ends the test and
- *  places the student at the last level they cleared. */
-export const HEARTS = 3
+/**
+ * Hearts per level. They grow with difficulty, because a mistake at C1 is a
+ * different kind of event from a mistake at A0 — at the top a learner is being
+ * asked to weigh nuance, and one slip should not end a twenty-minute test.
+ *
+ * Unspent hearts are banked. At the end the total says how comfortably the
+ * learner held their level, which is what separates "scraped through B1" from
+ * "owns B1", and it is allowed to move the final placement.
+ */
+export const HEARTS_BY_LEVEL: Record<CEFRLevel, number> = {
+  A0: 3, A1: 3, A2: 4, B1: 4, B2: 5, C1: 5,
+}
+
+/** Total hearts available if someone clears every level. */
+export const TOTAL_HEARTS = LEVEL_ORDER_VALUES.reduce((n, l) => n + HEARTS_BY_LEVEL[l], 0)
 
 export const LEVEL_META: Record<CEFRLevel, {
   label: string; sub: string; from: string; to: string; ring: string; text: string
@@ -205,6 +218,38 @@ export const QUESTIONS: Record<CEFRLevel, Question[]> = {
       passage: 'Ali is 10 years old. Sara is 12 years old.',
       options: ['Ali', 'Sara', 'Both same', 'We don\'t know'], answer: 1,
       explain: 'Sara عمرها 12 و Ali عمره 10 — إذن Sara أكبر (older).' },
+
+    { id: 61, level: 'A0', type: 'gap', skill: 'grammar',
+      hint: 'اكتب الكلمة الناقصة:', question: 'I ___ from Morocco.',
+      accept: [['am']],
+      explain: 'مع I نستخدم am. ✓ I am from Morocco.' },
+
+    { id: 62, level: 'A0', type: 'mcq', skill: 'grammar',
+      hint: 'اختر الجمع الصحيح:', question: 'one book → two ___',
+      options: ['book', 'books', 'bookes', 'books\''], answer: 1,
+      explain: 'الجمع العادي يضيف s فقط. ✓ two books.' },
+
+    { id: 63, level: 'A0', type: 'multi', skill: 'vocabulary',
+      hint: 'اختر كل أيام الأسبوع:', question: 'Which words are days of the week?',
+      options: ['Monday', 'January', 'Friday', 'Sunday', 'March'], answers: [0, 2, 3],
+      explain: 'أيام: Monday · Friday · Sunday. أما January و March فشهران.' },
+
+    { id: 64, level: 'A0', type: 'order', skill: 'grammar',
+      hint: 'رتّب الكلمات لتكوين سؤال:', question: 'كوّن السؤال',
+      words: ['you', 'Where', 'from', 'are', '?'], correctOrder: [1, 3, 0, 2, 4],
+      explain: 'Where are you from? = من أين أنت؟' },
+
+    { id: 65, level: 'A0', type: 'listenGap', skill: 'listening',
+      hint: 'استمع ثم أكمل الفراغ:', question: 'أكمل النص',
+      audio: 'I am ten years old.',
+      transcript: 'I am ___ years old.',
+      accept: [['ten', '10']],
+      explain: '"I am ten years old." = عمري عشر سنوات.' },
+
+    { id: 66, level: 'A0', type: 'mcq', skill: 'vocabulary',
+      hint: 'اختر الكلمة الصحيحة:', question: 'How ___ are you? (السؤال عن العمر)',
+      options: ['much', 'many', 'old', 'long'], answer: 2,
+      explain: 'How old are you? = كم عمرك؟' },
   ],
 
   /* ─── A1 ─────────────────────────────────────────────────────────────── */
@@ -262,6 +307,44 @@ export const QUESTIONS: Record<CEFRLevel, Question[]> = {
       audio: 'I go to work by bus.',
       accept: [['i go to work by bus']],
       explain: '"I go to work by bus." = أذهب إلى العمل بالحافلة.' },
+
+    { id: 67, level: 'A1', type: 'mcq', skill: 'grammar',
+      hint: 'اختر الصحيح:', question: 'That is ___ sister. (أخت المتكلم)',
+      options: ['me', 'my', 'mine', 'I'], answer: 1,
+      explain: 'my + اسم (ملكية). ✓ my sister. (mine تأتي وحدها: It is mine.)' },
+
+    { id: 68, level: 'A1', type: 'gap', skill: 'grammar',
+      hint: 'اكتب الكلمة الناقصة:', question: 'There ___ three books on the desk.',
+      accept: [['are']],
+      explain: 'الجمع (three books) → There are.' },
+
+    { id: 69, level: 'A1', type: 'multi', skill: 'grammar',
+      hint: 'اختر كل الجمل الصحيحة:', question: 'Which sentences are correct?',
+      options: [
+        'He is watching TV now.',
+        'He watching TV now.',
+        'They are eat lunch.',
+        'They are eating lunch.',
+      ], answers: [0, 3],
+      explain: 'المضارع المستمر = be + verb-ing. ✓ is watching · ✓ are eating. ✗ ناقصة be · ✗ are eat.' },
+
+    { id: 70, level: 'A1', type: 'order', skill: 'grammar',
+      hint: 'رتّب الكلمات لتكوين سؤال:', question: 'كوّن السؤال',
+      words: ['do', 'time', 'What', 'start', 'you', 'work', '?'],
+      correctOrder: [2, 1, 0, 4, 3, 5, 6],
+      explain: 'What time do you start work? = في أي ساعة تبدأ العمل؟' },
+
+    { id: 71, level: 'A1', type: 'listenMcq', skill: 'listening',
+      hint: 'استمع وأجب:', question: 'Where does the speaker want to go?',
+      audio: 'Excuse me, could you tell me how to get to the train station, please?',
+      options: ['The airport', 'The train station', 'The hospital', 'The market'], answer: 1,
+      explain: '"how to get to the train station" — يسأل عن محطة القطار.' },
+
+    { id: 72, level: 'A1', type: 'reading', skill: 'comprehension',
+      hint: 'اقرأ الرسالة وأجب:', question: 'What should Omar bring?',
+      passage: 'Hi Omar,\nThe study group is at my house on Saturday at 4 p.m.\nPlease bring your notebook. I have the books already.\nSee you!\nNour',
+      options: ['The books', 'His notebook', 'Nothing', 'Food'], answer: 1,
+      explain: '"Please bring your notebook" — الكتب موجودة عند نور.' },
   ],
 
   /* ─── A2 ─────────────────────────────────────────────────────────────── */
@@ -331,6 +414,45 @@ export const QUESTIONS: Record<CEFRLevel, Question[]> = {
       audio: 'She has never eaten Japanese food.',
       accept: [['she has never eaten japanese food']],
       explain: '"She has never eaten Japanese food." = لم تتذوق الطعام الياباني أبداً.' },
+
+    { id: 73, level: 'A2', type: 'mcq', skill: 'grammar',
+      hint: 'اختر الصحيح:', question: 'Look at those clouds! It ___ rain.',
+      options: ['will', 'is going to', 'would', 'goes to'], answer: 1,
+      explain: 'دليل حاضر أمامنا → be going to. (will للقرار اللحظي أو التوقع بلا دليل)' },
+
+    { id: 74, level: 'A2', type: 'gap', skill: 'grammar',
+      hint: 'أكمل جملة الشرط الأولى:', question: 'If it rains tomorrow, we ___ stay at home.',
+      accept: [['will', "'ll", 'will probably']],
+      explain: 'First conditional: If + مضارع بسيط، will + مصدر. ✓ we will stay.' },
+
+    { id: 75, level: 'A2', type: 'multi', skill: 'vocabulary',
+      hint: 'اختر كل التصريفات الماضية الصحيحة:', question: 'Which are correct past forms?',
+      options: ['buyed', 'bought', 'taught', 'teached', 'went'], answers: [1, 2, 4],
+      explain: 'buy→bought · teach→taught · go→went. أما buyed و teached فخاطئتان.' },
+
+    { id: 76, level: 'A2', type: 'order', skill: 'grammar',
+      hint: 'رتّب الكلمات:', question: 'كوّن الجملة',
+      words: ['already', 'have', 'I', 'homework', 'my', 'finished'],
+      correctOrder: [2, 1, 0, 5, 4, 3],
+      explain: 'I have already finished my homework. — already تأتي بين have والتصريف الثالث.' },
+
+    { id: 77, level: 'A2', type: 'listenGap', skill: 'listening',
+      hint: 'استمع ثم أكمل الفراغات:', question: 'أكمل النص',
+      audio: 'I usually wake up at seven and have breakfast with my family.',
+      transcript: 'I usually ___ up at ___ and have breakfast with my family.',
+      accept: [['wake'], ['seven', '7']],
+      explain: '"I usually wake up at seven…" — wake up = يستيقظ.' },
+
+    { id: 78, level: 'A2', type: 'reading', skill: 'comprehension',
+      hint: 'اقرأ الإعلان وأجب:', question: 'Who can get the discount?',
+      passage: 'CITY GYM — SPECIAL OFFER\n50% off the first month.\nOffer valid for new members only.\nYou must show a student card.\nEnds 30 June.',
+      options: [
+        'Anyone who joins.',
+        'New members with a student card.',
+        'Only old members.',
+        'Anyone after 30 June.',
+      ], answer: 1,
+      explain: '"new members only" + "must show a student card" — الشرطان معاً.' },
   ],
 
   /* ─── B1 ─────────────────────────────────────────────────────────────── */
@@ -405,6 +527,54 @@ export const QUESTIONS: Record<CEFRLevel, Question[]> = {
         "I don't understand it.",
       ], answer: 0,
       explain: 'not my cup of tea = ليس من ذوقي / لا يعجبني.' },
+
+    { id: 79, level: 'B1', type: 'mcq', skill: 'grammar',
+      hint: 'اختر الصحيح:', question: 'I ___ smoke, but I stopped three years ago.',
+      options: ['use to', 'used to', 'am used to', 'was used to'], answer: 1,
+      explain: 'used to + مصدر = عادة ماضية انتهت. (be used to = معتاد على)' },
+
+    { id: 80, level: 'B1', type: 'gap', skill: 'grammar',
+      hint: 'اكتب اسم الموصول المناسب:', question: 'The woman ___ helped me was very kind.',
+      accept: [['who', 'that']],
+      explain: 'للعاقل نستخدم who (أو that). ✓ The woman who helped me…' },
+
+    { id: 81, level: 'B1', type: 'multi', skill: 'grammar',
+      hint: 'اختر كل جمل الشرط الصحيحة:', question: 'Which conditionals are correct?',
+      options: [
+        'If I were you, I would apologise.',
+        'If I would be you, I apologise.',
+        'If she studies, she will pass.',
+        'If she will study, she passes.',
+      ], answers: [0, 2],
+      explain: '✓ Second: If + were, would. ✓ First: If + مضارع, will. ✗ لا نضع would/will بعد if.' },
+
+    { id: 82, level: 'B1', type: 'order', skill: 'grammar',
+      hint: 'رتّب الكلمات:', question: 'كوّن الجملة',
+      words: ['told', 'he', 'me', 'busy', 'He', 'was'],
+      correctOrder: [4, 0, 2, 1, 5, 3],
+      explain: 'He told me he was busy. — الخطاب غير المباشر: is → was.' },
+
+    { id: 83, level: 'B1', type: 'listenMcq', skill: 'listening',
+      hint: 'استمع وأجب:', question: 'What does the speaker recommend?',
+      audio: 'If you want my honest advice, book the flight now. Prices always go up in the last two weeks, and you will end up paying almost double.',
+      options: [
+        'Wait two more weeks.',
+        'Book the flight immediately.',
+        'Choose a different destination.',
+        'Travel by train instead.',
+      ], answer: 1,
+      explain: '"book the flight now" — لأن الأسعار ترتفع في الأسبوعين الأخيرين.' },
+
+    { id: 84, level: 'B1', type: 'reading', skill: 'comprehension',
+      hint: 'اقرأ وأجب:', question: 'What is the writer\'s main point about mistakes?',
+      passage: 'Most learners treat a mistake as evidence that they are not good enough, and so they stop speaking. But a mistake is simply information: it shows exactly where the gap is. The learners who improve fastest are rarely the most talented — they are the ones who are willing to be wrong out loud, several times a day, in front of somebody who will correct them.',
+      options: [
+        'Mistakes should be avoided by preparing more.',
+        'Mistakes reveal what to work on, so speaking despite them helps.',
+        'Talented learners make fewer mistakes.',
+        'Correction discourages learners.',
+      ], answer: 1,
+      explain: '"a mistake is simply information: it shows exactly where the gap is" + من يتحسّن هم من يخطئون بصوت عالٍ.' },
   ],
 
   /* ─── B2 ─────────────────────────────────────────────────────────────── */
@@ -478,6 +648,51 @@ export const QUESTIONS: Record<CEFRLevel, Question[]> = {
       audio: 'The proposal was rejected despite widespread public support.',
       accept: [['the proposal was rejected despite widespread public support']],
       explain: '"The proposal was rejected despite widespread public support." = رُفض المقترح رغم التأييد الشعبي الواسع.' },
+
+    { id: 85, level: 'B2', type: 'mcq', skill: 'grammar',
+      hint: 'اختر الصحيح:', question: 'It was the manager ___ made the final decision.',
+      options: ['which', 'who', 'whom', 'what'], answer: 1,
+      explain: 'جملة cleft للتأكيد: It was + شخص + who + فعل. (whom تأتي كمفعول لا كفاعل)' },
+
+    { id: 86, level: 'B2', type: 'gap', skill: 'vocabulary',
+      hint: 'أكمل التلازم اللفظي:', question: 'The new law will come into ___ next January.',
+      accept: [['force', 'effect']],
+      explain: 'come into force / come into effect = يدخل حيّز التنفيذ.' },
+
+    { id: 87, level: 'B2', type: 'multi', skill: 'vocabulary',
+      hint: 'اختر كل التعبيرات الرسمية المناسبة لرسالة عمل:', question: 'Which are appropriate in a formal email?',
+      options: [
+        'I am writing to enquire about…',
+        'Hey, quick question…',
+        'I would be grateful if you could…',
+        'Gimme a shout.',
+        'Please find attached…',
+      ], answers: [0, 2, 4],
+      explain: 'الرسمية: I am writing to enquire · I would be grateful · Please find attached. أما Hey و Gimme فعاميّة.' },
+
+    { id: 88, level: 'B2', type: 'order', skill: 'grammar',
+      hint: 'رتّب الكلمات:', question: 'كوّن الجملة',
+      words: ['sooner', 'No', 'had', 'left', 'she', 'than', 'rang', 'it'],
+      correctOrder: [1, 0, 2, 4, 3, 5, 7, 6],
+      explain: 'No sooner had she left than it rang. — قلب إجباري بعد No sooner، ويتبعه than.' },
+
+    { id: 89, level: 'B2', type: 'listenGap', skill: 'listening',
+      hint: 'استمع ثم أكمل الفراغات:', question: 'أكمل النص',
+      audio: 'The findings suggest that early intervention significantly reduces long-term costs.',
+      transcript: 'The findings ___ that early intervention ___ reduces long-term costs.',
+      accept: [['suggest', 'suggests'], ['significantly']],
+      explain: '"The findings suggest that early intervention significantly reduces…"' },
+
+    { id: 90, level: 'B2', type: 'reading', skill: 'comprehension',
+      hint: 'اقرأ وأجب:', question: 'What does the writer imply about the study?',
+      passage: 'The study, funded by the very industry whose products it evaluated, concluded that the products were safe. Its methodology was sound and its authors reputable. Still, readers might reasonably ask why the only three trials showing harm were excluded on grounds that were never fully explained.',
+      options: [
+        'It was clearly fraudulent.',
+        'Its conclusions should be treated with caution despite appearing rigorous.',
+        'The methodology was weak.',
+        'The authors were unqualified.',
+      ], answer: 1,
+      explain: 'الكاتب يقرّ بجودة المنهج والباحثين، لكنه يشير إلى التمويل واستبعاد التجارب — دعوة إلى الحذر لا اتهام صريح.' },
   ],
 
   /* ─── C1 ─────────────────────────────────────────────────────────────── */
@@ -542,6 +757,46 @@ export const QUESTIONS: Record<CEFRLevel, Question[]> = {
       hint: 'اختر التفسير الصحيح:', question: '"The policy was, to put it mildly, ill-conceived." The speaker is being ___',
       options: ['enthusiastic', 'sarcastic and understated', 'neutral', 'apologetic'], answer: 1,
       explain: '"to put it mildly" تعني أن الوصف أخف مما يستحق — سخرية عبر التقليل (understatement).' },
+
+    { id: 91, level: 'C1', type: 'mcq', skill: 'grammar',
+      hint: 'اختر الصحيح:', question: 'Were it not ___ her intervention, the project would have collapsed.',
+      options: ['of', 'for', 'to', 'by'], answer: 1,
+      explain: 'were it not for = لولا. صيغة شرطية مقلوبة بدل If it were not for.' },
+
+    { id: 92, level: 'C1', type: 'gap', skill: 'vocabulary',
+      hint: 'أكمل التعبير الاصطلاحي:', question: 'The minister was economical with the ___ about the costs.',
+      accept: [['truth']],
+      explain: 'economical with the truth = يقول جزءاً من الحقيقة فقط — تهذيب ساخر لوصف الكذب.' },
+
+    { id: 93, level: 'C1', type: 'multi', skill: 'vocabulary',
+      hint: 'اختر كل ما يعني "مؤقت":', question: 'Which words mean "temporary"?',
+      options: ['ephemeral', 'perennial', 'transient', 'enduring', 'fleeting'],
+      answers: [0, 2, 4],
+      explain: 'ephemeral · transient · fleeting = زائل/مؤقت. أما perennial و enduring = دائم/مستمر.' },
+
+    { id: 94, level: 'C1', type: 'order', skill: 'grammar',
+      hint: 'رتّب الكلمات:', question: 'كوّن الجملة',
+      words: ['later', 'Only', 'did', 'we', 'realise', 'the', 'significance'],
+      correctOrder: [1, 0, 2, 3, 4, 5, 6],
+      explain: 'Only later did we realise the significance. — بعد Only + ظرف في بداية الجملة يجب القلب: did we realise.' },
+
+    { id: 95, level: 'C1', type: 'listenGap', skill: 'listening',
+      hint: 'استمع ثم أكمل الفراغات:', question: 'أكمل النص',
+      audio: 'The argument, however elegantly framed, ultimately rests on an unexamined premise.',
+      transcript: 'The argument, however ___ framed, ultimately ___ on an unexamined premise.',
+      accept: [['elegantly'], ['rests']],
+      explain: '"…however elegantly framed, ultimately rests on an unexamined premise." — rest on = يقوم على.' },
+
+    { id: 96, level: 'C1', type: 'reading', skill: 'comprehension',
+      hint: 'اقرأ وأجب:', question: 'Which best describes the passage\'s argumentative move?',
+      passage: 'Critics of the reform insist it will burden small businesses. They are right — it will. But the question was never whether the burden exists; it was who should carry it. For thirty years that cost has been borne, invisibly, by the people the reform is designed to protect. To call its redistribution a new burden is to mistake the moment a cost becomes visible for the moment it begins.',
+      options: [
+        'It refutes the critics\' facts.',
+        'It concedes the facts but reframes the question.',
+        'It appeals to emotion instead of evidence.',
+        'It avoids the criticism entirely.',
+      ], answer: 1,
+      explain: '"They are right — it will. But the question was never whether…" — يسلّم بالوقائع ثم يعيد صياغة السؤال نفسه.' },
   ],
 }
 
