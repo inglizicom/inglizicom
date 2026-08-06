@@ -108,8 +108,11 @@ body.in-game .cards { min-width: 0; }
 body.in-game .side {
   min-height: 0;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  /* The instruction is the thing being learned, so it gets a floor. If the
+     column runs out of room the deck scrolls rather than crushing it. */
+  grid-template-rows: auto minmax(130px, 1fr) auto auto;
   gap: 10px;
+  overflow-y: auto;
 }
 body.in-game .side > :nth-child(2) { min-height: 0; overflow: auto; }   /* instructions */
 body.in-game .side > :nth-child(3) { flex: 0 0 auto; }                  /* the action */
@@ -131,7 +134,7 @@ body.in-game .feedback { min-height: 0; }
      rest — on a phone the play surface is the scarce resource. */
   body.in-game .side {
     max-height: min(36vh, 312px);
-    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(76px, 1fr) auto;
     gap: 8px;
   }
   body.in-game .side > :nth-child(4) { display: none; }  /* feedback line */
@@ -140,10 +143,18 @@ body.in-game .feedback { min-height: 0; }
   body.in-game .panel-h,
   body.in-game .instr-h { font-size: 8px; margin-bottom: 7px; }
 
-  /* score row, compacted */
-  body.in-game .pcard { padding: 7px 6px; }
-  body.in-game .pcard-name { font-size: 8px; margin-bottom: 3px; }
-  body.in-game .pcard-score { font-size: 15px; }
+  /* Score becomes a single thin strip — on a phone the header and the
+     "0 arrived" line cost more height than they are worth, and that
+     height is what the action button needs. */
+  body.in-game .side > :nth-child(1) { padding: 6px 8px; }
+  body.in-game .side > :nth-child(1) .panel-h { display: none; }
+  body.in-game .players { gap: 6px; }
+  body.in-game .pcard {
+    padding: 5px 8px; display: flex; align-items: center;
+    justify-content: center; gap: 8px; border-width: 2px;
+  }
+  body.in-game .pcard-name { font-size: 8.5px; margin-bottom: 0; }
+  body.in-game .pcard-score { font-size: 14px; }
   body.in-game .pcard-sub { display: none; }
 
   body.in-game .instr-list li { font-size: 13.5px; padding: 8px 10px; }
@@ -206,6 +217,17 @@ body.in-game .feedback { min-height: 0; }
   body.in-game .topbar { padding: 4px 10px; }
   body.in-game .topbar .game-title span,
   body.in-game .topbar .mode-pill { display: none; }
+
+  /* One row of five: in landscape height is the scarce thing, and a
+     second row of controls is what pushes the action button off. */
+  body.in-game .controls { grid-template-columns: repeat(5, 1fr); gap: 5px; }
+  body.in-game .ctrl.go,
+  body.in-game .ctrl.arrive { grid-column: auto; }
+  body.in-game .ctrl { padding: 7px 2px; }
+  body.in-game .ctrl .c-ico { font-size: 15px; }
+  body.in-game .ctrl .c-lab { font-size: 6.5px; }
+  body.in-game .side > :nth-child(1) { padding: 4px 6px; }
+  body.in-game .side .panel, body.in-game .side .instr { padding: 8px 10px; }
 }
 
 /* ── classroom board: scale everything up for distance + touch ───── */
@@ -225,6 +247,15 @@ body.in-game .feedback { min-height: 0; }
   body.in-game .game-area.is-shown { grid-template-columns: minmax(0, 1fr) clamp(360px, 22vw, 480px); }
 }
 @media (min-width: 2400px) { body.in-game { font-size: 22px; } }
+
+/* Laptop-height windows: the control pad gives way, the instruction stays. */
+@media (min-width: 1024px) and (max-height: 900px) {
+  body.in-game .ctrl { padding: 12px 6px; gap: 4px; }
+  body.in-game .ctrl .c-ico { font-size: 20px; }
+  body.in-game .ctrl .c-lab { font-size: 8px; }
+  body.in-game .kbd-hint { font-size: 10px; margin-top: 6px; }
+  body.in-game .side .panel { padding: 12px 14px; }
+}
 
 /* Touch targets never drop below the comfortable minimum */
 @media (pointer: coarse) {

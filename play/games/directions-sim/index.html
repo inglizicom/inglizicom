@@ -64,28 +64,31 @@
     @media(max-width:1080px){.game-area.is-shown{grid-template-columns:1fr}}
 
     .map-wrap{padding:18px;border-radius:22px;background:linear-gradient(180deg,#0f0f10,#18181b);border:3px solid var(--border);box-shadow:0 0 60px -14px rgba(59,130,246,.25) inset}
-    .map{display:grid;gap:0;width:100%;aspect-ratio:1/1;max-width:720px;margin:0 auto}
-    .cell{position:relative;display:flex;align-items:center;justify-content:center}
-    .cell.road{background:var(--road)}
-    .cell.node{background:var(--road)}
-    .cell.blockcell{background:linear-gradient(160deg,#4a4238,#332e2a);border-radius:6px;border:1px solid #574c40;box-shadow:0 2px 6px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:3px}
-    /* dashed centre lines on straight road segments */
-    .cell.road.h::after{content:"";position:absolute;left:0;right:0;top:50%;height:2px;transform:translateY(-50%);background:repeating-linear-gradient(90deg,var(--road-line) 0 8px,transparent 8px 16px);opacity:.55}
-    .cell.road.v::after{content:"";position:absolute;top:0;bottom:0;left:50%;width:2px;transform:translateX(-50%);background:repeating-linear-gradient(180deg,var(--road-line) 0 8px,transparent 8px 16px);opacity:.55}
+    .map{display:grid;gap:2px;width:100%;aspect-ratio:1/1;margin:0 auto;background:#1a1a1e;border-radius:8px;padding:2px}
+    .cell{position:relative;display:flex;align-items:center;justify-content:center;border-radius:3px}
+    .cell.road{background:#2c2c31}
+    .cell.cross{background:#313136}
+    /* a dashed centre line so a road reads as a road */
+    .cell.road::after{content:"";position:absolute;background:repeating-linear-gradient(var(--ang),rgba(200,200,210,.5) 0 6px,transparent 6px 13px)}
+    .cell.road.h::after{--ang:90deg;left:8%;right:8%;top:50%;height:2px;transform:translateY(-50%)}
+    .cell.road.v::after{--ang:180deg;top:8%;bottom:8%;left:50%;width:2px;transform:translateX(-50%)}
+    .cell.bld{background:linear-gradient(160deg,#4c443a,#332e29);border:1px solid #5d5145;border-radius:5px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:2px;
+      box-shadow:0 2px 5px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06)}
+    .lm{font-size:clamp(13px,2.1vw,24px);line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))}
+    .lm-name{font-size:8px;font-weight:800;color:#cbc3b8;text-align:center;line-height:1.05;margin-top:2px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .cell.bld.is-target.is-revealed{background:rgba(74,222,128,.2);border-color:var(--green);box-shadow:0 0 18px rgba(74,222,128,.45)}
+    .cell.bld.is-target.is-revealed .lm-name{color:var(--green)}
 
-    .lm{font-size:clamp(15px,2.4vw,26px);line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))}
-    .lm-name{font-size:9px;font-weight:800;color:#c9c2b8;text-align:center;line-height:1.1;margin-top:3px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:.01em}
-    .blockcell.is-target.is-revealed{background:rgba(74,222,128,.18);border-color:var(--green);box-shadow:0 0 20px rgba(74,222,128,.4)}
-    .blockcell.is-target.is-revealed .lm-name{color:var(--green)}
-
-    /* the character */
-    .actor{position:absolute;left:0;top:0;z-index:5;font-size:clamp(18px,3.2vw,34px);line-height:1;transition:transform .30s cubic-bezier(.22,.86,.36,1);will-change:transform;pointer-events:none;filter:drop-shadow(0 0 9px rgba(251,191,36,.9))}
-    .actor.is-bump{animation:bump .3s ease}
-    @keyframes bump{0%,100%{filter:drop-shadow(0 0 8px rgba(251,191,36,.85))}50%{filter:drop-shadow(0 0 14px rgba(248,113,113,1))}}
-    .map-inner{position:relative;width:100%;max-width:720px;margin:0 auto}
+    /* The marker: a plain disc with a nose showing which way it faces.
+       A car emoji cannot show direction and reads as a toy. */
+    .actor{position:absolute;left:0;top:0;z-index:6;pointer-events:none;
+      transition:transform .26s cubic-bezier(.25,.8,.35,1);will-change:transform}
+    .actor svg{display:block;filter:drop-shadow(0 0 6px rgba(251,191,36,.75))}
+    .actor.is-bump svg{filter:drop-shadow(0 0 10px rgba(248,113,113,1))}
 
     /* trail breadcrumbs */
-    .trail{position:absolute;z-index:4;width:7px;height:7px;border-radius:50%;background:var(--gold);opacity:.4;transform:translate(-50%,-50%);pointer-events:none}
+    .trail{position:absolute;z-index:5;width:6px;height:6px;border-radius:50%;background:var(--gold);opacity:.35;transform:translate(-50%,-50%);pointer-events:none}
 
     /* ── SIDE PANEL ────────────────────────────────────── */
     .side{display:flex;flex-direction:column;gap:14px}
@@ -363,31 +366,42 @@
 const GAME_ID = 'directions-sim'
 
 /* ── Geometry ──────────────────────────────────────────────────
-   The city is N×N intersections. The DOM grid is (2N-1)×(2N-1):
-     (even,even) → intersection      (odd,odd)  → building block
-     (odd,even)/(even,odd) → road segment
-   Intersection (x,y) lives at grid column 2x, row 2y.          */
-const N = 6
-const DIM = 2 * N - 1
+   The city is one square grid of cells, N×N.
 
-/* Facing: 0=North 1=East 2=South 3=West */
-const DIRS = [{dx:0,dy:-1},{dx:1,dy:0},{dx:0,dy:1},{dx:-1,dy:0}]
-const DIR_NAME = ['north','east','south','west']
-/* Rotation applied to the car emoji, which points north at 0deg. */
-const DIR_ROT = [0, 90, 180, 270]
+     · a cell on an even row OR an even column is road
+     · a cell on an odd row AND an odd column is a building
+
+   The marker moves ONE CELL per "go", so a cell is a block of
+   frontage. That matters: a building is then EDGE-adjacent to the
+   road beside it, so "the bank is on your right" means the bank is
+   literally the next cell to your right — you are standing next to
+   it, not looking at it across a corner.
+
+   Turning mid-block does nothing useful on purpose: the cell to your
+   side is a building, so you can only really turn at a crossing,
+   exactly as in a real street. */
+const N = 9
+
+const isRoad     = (r, c) => r >= 0 && r < N && c >= 0 && c < N && (r % 2 === 0 || c % 2 === 0)
+const isBuilding = (r, c) => r >= 0 && r < N && c >= 0 && c < N && r % 2 === 1 && c % 2 === 1
+const isCrossing = (r, c) => r >= 0 && r < N && c >= 0 && c < N && r % 2 === 0 && c % 2 === 0
+
+/* Facing: 0=N 1=E 2=S 3=W, as (dr, dc) */
+const DIRS = [{dr:-1,dc:0},{dr:0,dc:1},{dr:1,dc:0},{dr:0,dc:-1}]
+const DIR_NAME = ['north', 'east', 'south', 'west']
+const DIR_ROT  = [0, 90, 180, 270]
 
 const LEVELS = {
-  easy:     { label:'EASY',   cefr:'A1', legs:2, maxBlocks:2, routes:5, drip:true,  hideText:false, replays:99, timer:0,   base:100, decoys:4,  peek:false,
-              desc:'One instruction at a time, on screen and read aloud. <b>Turn left, turn right, go straight.</b> No timer — take as long as you need.' },
-  medium:   { label:'MEDIUM', cefr:'A2', legs:3, maxBlocks:3, routes:5, drip:false, hideText:false, replays:3,  timer:0,   base:150, decoys:6,  peek:false,
-              desc:'The whole route at once, still written down. Adds <b>ordinals</b> — “take the second left”. Listen again up to 3 times.' },
-  hard:     { label:'HARD',   cefr:'B1', legs:4, maxBlocks:3, routes:5, drip:false, hideText:true,  replays:2,  timer:90,  base:220, decoys:8,  peek:true,
+  easy:     { label:'EASY',   cefr:'A1', legs:2, maxOrd:1, routes:5, drip:true,  hideText:false, replays:99, timer:0,   base:100, decoys:5,  peek:false,
+              desc:'One instruction at a time, on screen and read aloud. <b>Turn left, turn right, go straight.</b> No timer.' },
+  medium:   { label:'MEDIUM', cefr:'A2', legs:3, maxOrd:2, routes:5, drip:false, hideText:false, replays:3,  timer:0,   base:150, decoys:7,  peek:false,
+              desc:'The whole route at once, still written. Adds <b>ordinals</b> — “take the second left”. Listen again up to 3 times.' },
+  hard:     { label:'HARD',   cefr:'B1', legs:4, maxOrd:2, routes:5, drip:false, hideText:true,  replays:2,  timer:90,  base:220, decoys:10, peek:true,
               desc:'<b>Listening only</b> — the text is hidden. Adds landmarks: “go past the park”, “it’s opposite the bank”. 90s per route.' },
-  hardplus: { label:'HARD +', cefr:'B2', legs:5, maxBlocks:4, routes:5, drip:false, hideText:true,  replays:1,  timer:70,  base:320, decoys:11, peek:true,
-              desc:'Heard <b>once</b>. Five legs, longer streets, more decoy buildings, 70 seconds. This is the real thing.' },
+  hardplus: { label:'HARD +', cefr:'B2', legs:5, maxOrd:2, routes:5, drip:false, hideText:true,  replays:1,  timer:70,  base:320, decoys:13, peek:true,
+              desc:'Heard <b>once</b>. Five legs, more decoy buildings, 70 seconds. This is the real thing.' },
 }
 
-/* ── City landmarks ───────────────────────────────────────────── */
 const LANDMARKS = [
   {e:'🏦',n:'bank'},        {e:'🏫',n:'school'},      {e:'🏥',n:'hospital'},
   {e:'🌳',n:'park'},        {e:'🛒',n:'supermarket'}, {e:'📮',n:'post office'},
@@ -401,101 +415,92 @@ const LANDMARKS = [
 
 const ORDINALS = ['first','second','third','fourth','fifth','sixth']
 
-/* ── Small helpers ────────────────────────────────────────────── */
 const rnd  = n => Math.floor(Math.random() * n)
 const pick = a => a[rnd(a.length)]
-const inBounds = (x,y) => x >= 0 && x < N && y >= 0 && y < N
-const turnDir  = (d,t) => t === 'left' ? (d + 3) % 4 : (d + 1) % 4
+const turnDir = (d, t) => t === 'left' ? (d + 3) % 4 : (d + 1) % 4
+const sideCell = (r, c, dir, side) => {
+  const d = DIRS[side === 'right' ? (dir + 1) % 4 : (dir + 3) % 4]
+  return { r: r + d.dr, c: c + d.dc }
+}
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=rnd(i+1);const t=a[i];a[i]=a[j];a[j]=t} return a }
 
 /* ════════════════════════════════════════════════════════════════
    ROUTE GENERATION
-   Builds legs of {turn, blocks}: turn first (null on leg 0), then
-   drive `blocks` intersections forward. Everything stays in bounds.
+
+   Every leg but the last runs an EVEN number of cells, so it lands on
+   a crossing where the next turn is possible. The last leg runs an ODD
+   number, so it stops halfway along a block — beside the destination.
    ════════════════════════════════════════════════════════════════ */
 function buildRoute(cfg) {
-  for (let attempt = 0; attempt < 400; attempt++) {
+  for (let attempt = 0; attempt < 500; attempt++) {
     const route = tryRoute(cfg)
     if (route) return route
   }
-  return tryRoute({ ...cfg, legs: 2, maxBlocks: 1 }) || null
+  return null
 }
 
 function tryRoute(cfg) {
-  /* Start on an edge, facing into the city, so leg 1 always has room. */
-  const edges = [
-    { x: rnd(N), y: N - 1, dir: 0 },  // bottom edge, facing north
-    { x: 0,      y: rnd(N), dir: 1 }, // left edge,   facing east
-    { x: rnd(N), y: 0,      dir: 2 }, // top edge,    facing south
-    { x: N - 1,  y: rnd(N), dir: 3 }, // right edge,  facing west
+  /* Start at a crossing on the edge, facing into the city. */
+  const evens = []
+  for (let i = 0; i < N; i += 2) evens.push(i)
+  const starts = [
+    { r: N - 1 - ((N - 1) % 2), c: pick(evens), dir: 0 },
+    { r: pick(evens), c: 0,     dir: 1 },
+    { r: 0,           c: pick(evens), dir: 2 },
+    { r: pick(evens), c: N - 1 - ((N - 1) % 2), dir: 3 },
   ]
-  const start = pick(edges)
-  let x = start.x, y = start.y, dir = start.dir
+  const start = pick(starts)
+  if (!isCrossing(start.r, start.c)) return null
 
-  const legs = []
-  const path = [{ x, y }]
+  let r = start.r, c = start.c, dir = start.dir
+  const legs = [], path = [{ r, c }]
 
   for (let i = 0; i < cfg.legs; i++) {
     let turn = null
     if (i > 0) {
-      /* Only consider turns that leave at least one block of road. */
-      const options = ['left', 'right'].filter(t => {
+      const opts = ['left', 'right'].filter(t => {
         const nd = turnDir(dir, t)
-        return inBounds(x + DIRS[nd].dx, y + DIRS[nd].dy)
+        return isRoad(r + DIRS[nd].dr * 2, c + DIRS[nd].dc * 2)
       })
-      if (!options.length) return null
-      turn = pick(options)
+      if (!opts.length) return null
+      turn = pick(opts)
       dir = turnDir(dir, turn)
     }
 
-    /* How far can we drive before leaving the grid? */
+    const last = i === cfg.legs - 1
+    /* how many junctions can we still pass in this direction? */
     let room = 0
-    let cx = x, cy = y
-    while (inBounds(cx + DIRS[dir].dx, cy + DIRS[dir].dy) && room < cfg.maxBlocks) {
-      cx += DIRS[dir].dx; cy += DIRS[dir].dy; room++
+    while (isRoad(r + DIRS[dir].dr * (room + 1) * 2, c + DIRS[dir].dc * (room + 1) * 2)) room++
+    if (last) {
+      /* the final leg only needs one cell of road to stop beside */
+      const cells = 1 + 2 * rnd(Math.min(room, cfg.maxOrd))
+      const nr = r + DIRS[dir].dr * cells, nc = c + DIRS[dir].dc * cells
+      if (!isRoad(nr, nc)) return null
+      for (let k = 1; k <= cells; k++) path.push({ r: r + DIRS[dir].dr * k, c: c + DIRS[dir].dc * k })
+      r = nr; c = nc
+      legs.push({ turn, cells, ord: null })
+    } else {
+      if (room < 1) return null
+      const ord = 1 + rnd(Math.min(room, cfg.maxOrd))
+      const cells = ord * 2
+      for (let k = 1; k <= cells; k++) path.push({ r: r + DIRS[dir].dr * k, c: c + DIRS[dir].dc * k })
+      r += DIRS[dir].dr * cells; c += DIRS[dir].dc * cells
+      legs.push({ turn, cells, ord })
     }
-    if (room < 1) return null
-
-    const blocks = 1 + rnd(room)
-    for (let b = 0; b < blocks; b++) {
-      x += DIRS[dir].dx; y += DIRS[dir].dy
-      path.push({ x, y })
-    }
-    legs.push({ turn, blocks })
   }
 
-  /* The destination sits in a building block beside the final
-     intersection, in the quadrant ahead of the car. */
-  const side = pick(['left', 'right'])
-  const target = blockBeside(x, y, dir, side)
-  if (!target) {
-    const other = side === 'left' ? 'right' : 'left'
-    const alt = blockBeside(x, y, dir, other)
-    if (!alt) return null
-    return finish(start, legs, path, alt, other, x, y, dir)
+  /* Destination: the cell immediately to the marker's left or right.
+     It shares a wall with where the marker stops — that is the whole
+     point of the rebuild. */
+  const sides = shuffle(['left', 'right'])
+  let side = null, target = null
+  for (const s of sides) {
+    const cell = sideCell(r, c, dir, s)
+    if (isBuilding(cell.r, cell.c)) { side = s; target = cell; break }
   }
-  return finish(start, legs, path, target, side, x, y, dir)
-}
+  if (!target) return null
 
-function finish(start, legs, path, block, side, endX, endY, endDir) {
-  return {
-    start, legs, path, side,
-    end: { x: endX, y: endY, dir: endDir },
-    targetBlock: block,
-  }
-}
-
-/* Building block touching intersection (x,y) on the given side,
-   in the half ahead of the car. Returns DOM grid coords or null. */
-function blockBeside(x, y, dir, side) {
-  const gx = 2 * x, gy = 2 * y
-  const f = DIRS[dir]
-  const rd = DIRS[(dir + 1) % 4]           // "right" unit vector
-  const s = side === 'right' ? 1 : -1
-  const bx = gx + f.dx + s * rd.dx
-  const by = gy + f.dy + s * rd.dy
-  if (bx < 0 || bx >= DIM || by < 0 || by >= DIM) return null
-  if (bx % 2 === 0 || by % 2 === 0) return null   // must be a building cell
-  return { gx: bx, gy: by }
+  return { start, legs, path, side, end: { r, c, dir }, target }
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -503,59 +508,49 @@ function blockBeside(x, y, dir, side) {
    ════════════════════════════════════════════════════════════════ */
 function writeDirections(route, cfg, level, targetName, waypoints) {
   const out = []
-  const blocksPhrase = n => n === 1 ? 'one block' : n + ' blocks'
+  const blocks = n => n === 1 ? 'one block' : n + ' blocks'
   const legs = route.legs
   const n = legs.length
 
   if (level === 'easy') {
-    /* Easy spells out the model literally: drive, then turn, then drive.
-       Each sentence is exactly one action the player performs. */
     legs.forEach((leg, i) => {
       if (i > 0) out.push('Turn ' + leg.turn + '.')
-      out.push('Go straight for ' + blocksPhrase(leg.blocks) + '.')
+      out.push('Go straight for ' + blocks(leg.cells) + '.')
     })
     out.push('Stop. The ' + targetName + ' is on your ' + route.side + '.')
     return out
   }
 
-  /* From A2 up we use natural direction-giving language. The ordinal in
-     "take the second left" counts junctions along the road you are ALREADY
-     on — so it comes from the previous leg's block count, not this one's. */
-  let lastTemplate = ''
+  let lastKey = ''
   const choose = opts => {
-    const fresh = opts.filter(o => o.key !== lastTemplate)
+    const fresh = opts.filter(o => o.key !== lastKey)
     const o = pick(fresh.length ? fresh : opts)
-    lastTemplate = o.key
+    lastKey = o.key
     return o.text
   }
 
+  /* Turns are described by how many junctions you pass first, which is
+     what "take the second left" actually means. */
   for (let i = 1; i < n; i++) {
-    const runBefore = legs[i - 1].blocks   // junctions passed before turning
+    const ordBefore = legs[i - 1].ord          // junctions passed on the road you are on
     const turn = legs[i].turn
-    const wp = waypoints[i - 1]            // landmark on the road we are on now
+    const wp = waypoints[i - 1]
 
-    const opts = [{ key: 'ord', text: 'Take the ' + ORDINALS[runBefore - 1] + ' ' + turn + '.' }]
-
+    const opts = [{ key:'ord', text: 'Take the ' + ORDINALS[ordBefore - 1] + ' ' + turn + '.' }]
     if (level !== 'medium') {
-      opts.push({ key: 'straight',
-        text: 'Go straight for ' + blocksPhrase(runBefore) + ', then turn ' + turn + '.' })
-      if (runBefore === 1) {
-        opts.push({ key: 'lights', text: 'At the traffic lights, turn ' + turn + '.' })
-      }
-      /* Only when the run is exactly 2 blocks: the landmark sits at the
-         first junction, so "go past it, then turn" can only mean the
-         second junction. Any longer and the phrase stops being precise. */
-      if (wp && runBefore === 2) {
-        opts.push({ key: 'past', text: 'Go past the ' + wp.name + ', then turn ' + turn + '.' })
-      }
+      opts.push({ key:'straight', text: 'Go straight for ' + blocks(legs[i - 1].cells) + ', then turn ' + turn + '.' })
+      if (ordBefore === 1) opts.push({ key:'lights', text: 'At the traffic lights, turn ' + turn + '.' })
+      /* Only when the turn is at the very next junction. Any further and
+         "go past the park, then turn" does not say which junction, and the
+         student loses a point to the wording rather than to their English. */
+      if (wp && ordBefore === 1) opts.push({ key:'past', text: 'Go past the ' + wp.name + ', then turn ' + turn + '.' })
     }
     out.push(choose(opts))
   }
 
-  /* Whatever is left after the last turn, plus where the place actually is. */
-  const finalRun = legs[n - 1].blocks
+  const finalCells = legs[n - 1].cells
   const opp = route.oppositeName
-  let tail = 'Go straight for ' + blocksPhrase(finalRun) + '. '
+  let tail = 'Go straight for ' + blocks(finalCells) + '. '
   if (opp && level === 'hardplus') {
     tail += 'The ' + targetName + ' is on your ' + route.side + ', opposite the ' + opp + '.'
   } else if (opp && level === 'hard') {
@@ -580,16 +575,14 @@ function loadVoices() {
 }
 if (window.speechSynthesis) { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices }
 
-function speakLines(lines, rate) {
+function speakLines(lines) {
   if (!window.speechSynthesis) return
   speechSynthesis.cancel()
-  lines.forEach((line, i) => {
+  lines.forEach(line => {
     const u = new SpeechSynthesisUtterance(line)
     u.lang = 'en-US'
     if (enVoice) u.voice = enVoice
-    u.rate = rate || 0.88
-    /* A beat between instructions so learners can process each one. */
-    if (i > 0) u.text = line
+    u.rate = 0.88
     speechSynthesis.speak(u)
   })
 }
@@ -602,46 +595,47 @@ const S = {
   mode: 1, level: 'easy', cfg: LEVELS.easy,
   names: ['Player 1', 'Player 2'],
   scores: [0, 0], arrived: [0, 0],
-  turn: 0,                 // whose turn (index)
-  routeIndex: [0, 0],      // routes completed per player
+  turn: 0, routeIndex: [0, 0],
   route: null, lines: [], targetName: '', targetEmoji: '',
-  pos: {x:0,y:0}, dir: 0, heading: 0, moves: 0, wrongTurns: 0,
+  pos: {r:0,c:0}, dir: 0, heading: 0, moves: 0,
   replaysLeft: 0, peeked: false, revealed: false,
-  dripIndex: 0,            // easy mode: which instruction is showing
-  timeLeft: 0, timerId: null, locked: true, over: false,
-  cells: [], actorEl: null, blockMap: {},
+  dripIndex: 0,
+  timeLeft: 0, timerId: null, locked: true,
+  cells: [], actorEl: null, placed: {},
 }
 
-/* ── DOM ─────────────────────────────────────────────────────── */
 const $ = id => document.getElementById(id)
 const setupEl = $('setup'), gameArea = $('gameArea'), mapEl = $('map')
 const feedbackEl = $('feedback')
 
 /* ════════════════════════════════════════════════════════════════
-   MAP RENDERING
+   MAP
    ════════════════════════════════════════════════════════════════ */
+const MARKER_SVG =
+  '<svg viewBox="0 0 40 40" width="100%" height="100%">' +
+  '<circle cx="20" cy="22" r="11" fill="#fbbf24" stroke="#7a5200" stroke-width="2"/>' +
+  '<path d="M20 2 L30 18 L20 13 L10 18 Z" fill="#fcd34d" stroke="#7a5200" stroke-width="1.5" stroke-linejoin="round"/>' +
+  '<circle cx="20" cy="22" r="4" fill="#7a5200"/>' +
+  '</svg>'
+
+function cellAt(r, c) { return S.cells[r * N + c] }
+
 function renderMap() {
   mapEl.innerHTML = ''
-  /* renderMap runs once per route — clear the previous car and trail
-     or every round would leave another one behind. */
   mapEl.parentElement.querySelectorAll('.actor, .trail').forEach(n => n.remove())
-
-  /* Roads are thin, blocks are fat — gives the grid a city look. */
-  const track = []
-  for (let i = 0; i < DIM; i++) track.push(i % 2 === 0 ? '0.34fr' : '1fr')
-  mapEl.style.gridTemplateColumns = track.join(' ')
-  mapEl.style.gridTemplateRows = track.join(' ')
+  mapEl.style.gridTemplateColumns = 'repeat(' + N + ', 1fr)'
+  mapEl.style.gridTemplateRows = 'repeat(' + N + ', 1fr)'
 
   S.cells = []
-  for (let row = 0; row < DIM; row++) {
-    for (let col = 0; col < DIM; col++) {
+  for (let r = 0; r < N; r++) {
+    for (let c = 0; c < N; c++) {
       const d = document.createElement('div')
-      const evenCol = col % 2 === 0, evenRow = row % 2 === 0
-      if (evenCol && evenRow)       d.className = 'cell node'
-      else if (evenCol && !evenRow) d.className = 'cell road v'
-      else if (!evenCol && evenRow) d.className = 'cell road h'
-      else                          d.className = 'cell blockcell'
-      d.dataset.gx = col; d.dataset.gy = row
+      let cls = 'cell '
+      if (isBuilding(r, c))      cls += 'bld'
+      else if (isCrossing(r, c)) cls += 'cross'
+      else                       cls += 'road ' + (r % 2 === 0 ? 'h' : 'v')
+      d.className = cls
+      d.dataset.r = r; d.dataset.c = c
       mapEl.appendChild(d)
       S.cells.push(d)
     }
@@ -649,70 +643,69 @@ function renderMap() {
 
   S.actorEl = document.createElement('div')
   S.actorEl.className = 'actor'
-  S.actorEl.textContent = '🚗'
+  S.actorEl.innerHTML = MARKER_SVG
   mapEl.parentElement.appendChild(S.actorEl)
 }
 
-function cellAt(gx, gy) { return S.cells[gy * DIM + gx] }
+function paintBuilding(cell, lm, isTarget) {
+  const el = cellAt(cell.r, cell.c)
+  if (!el) return
+  el.innerHTML = '<span class="lm">' + lm.e + '</span><span class="lm-name">' + lm.n + '</span>'
+  if (isTarget) el.classList.add('is-target')
+  S.placed[cell.r + ',' + cell.c] = lm.n
+}
 
-/* Place the destination + decoy landmarks. */
+/* Destination, the building facing it across the street, waypoints the
+   route drives past, then decoys. */
 function placeLandmarks(route, cfg) {
-  S.blockMap = {}
-  const blocks = []
-  for (let row = 1; row < DIM; row += 2)
-    for (let col = 1; col < DIM; col += 2) blocks.push({ gx: col, gy: row })
+  S.placed = {}
+  const all = []
+  for (let r = 1; r < N; r += 2) for (let c = 1; c < N; c += 2) all.push({ r, c })
 
-  /* Destination first, so it is never overwritten. */
   const target = pick(LANDMARKS)
   S.targetName = target.n; S.targetEmoji = target.e
-  paintBlock(route.targetBlock, target, true)
+  paintBuilding(route.target, target, true)
 
-  /* A landmark directly across the street — powers "opposite the …". */
-  route.oppositeName = null
-  const acrossX = 2 * route.end.x - route.targetBlock.gx
-  const acrossY = 2 * route.end.y - route.targetBlock.gy
-  const used = [target.n]
-
-  const pool = LANDMARKS.filter(l => l.n !== target.n)
+  const pool = shuffle(LANDMARKS.filter(l => l.n !== target.n))
   let pi = 0
   const nextLm = () => pool[(pi++) % pool.length]
 
-  if (acrossX > 0 && acrossX < DIM && acrossY > 0 && acrossY < DIM &&
-      acrossX % 2 === 1 && acrossY % 2 === 1) {
-    const opp = nextLm()
-    paintBlock({ gx: acrossX, gy: acrossY }, opp, false)
-    if (cfg.decoys > 5) route.oppositeName = opp.n
-    used.push(opp.n)
+  /* Directly across the road from the destination. */
+  route.oppositeName = null
+  const opp = sideCell(route.end.r, route.end.c, route.end.dir,
+                       route.side === 'right' ? 'left' : 'right')
+  if (isBuilding(opp.r, opp.c)) {
+    const lm = nextLm()
+    paintBuilding(opp, lm, false)
+    if (cfg.decoys > 6) route.oppositeName = lm.n
   }
 
-  /* Waypoints: a landmark beside an intersection the route passes
-     through, so "go past the X" refers to something really there. */
+  /* A landmark beside a cell the route actually passes, so "go past the
+     park" refers to something the driver really goes past. */
   const waypoints = {}
-  let cursor = 0
+  let idx = 0
   route.legs.forEach((leg, i) => {
-    const before = cursor
-    cursor += leg.blocks
-    /* Leg 0 counts too — it is the road the very first turn is taken from. */
-    if (leg.blocks < 2) return
-    const node = route.path[before + 1]
+    const startIdx = idx
+    idx += leg.cells
+    if (i === route.legs.length - 1 || leg.cells < 2) return
+    const node = route.path[startIdx + 1]
     if (!node) return
-    const b = blockBeside(node.x, node.y, dirOfLeg(route, i), pick(['left','right']))
-    if (!b || keyOf(b) in S.blockMap) return
-    const lm = nextLm()
-    paintBlock(b, lm, false)
-    waypoints[i] = { name: lm.n }
-    used.push(lm.n)
+    const dir = dirOfLeg(route, i)
+    for (const s of ['left', 'right']) {
+      const b = sideCell(node.r, node.c, dir, s)
+      if (isBuilding(b.r, b.c) && !(b.r + ',' + b.c in S.placed)) {
+        const lm = nextLm()
+        paintBuilding(b, lm, false)
+        waypoints[i] = { name: lm.n }
+        return
+      }
+    }
   })
 
-  /* Decoys everywhere else. */
-  const free = blocks.filter(b => !(keyOf(b) in S.blockMap))
-  shuffle(free)
-  for (let i = 0; i < Math.min(cfg.decoys, free.length); i++) paintBlock(free[i], nextLm(), false)
-
+  const free = shuffle(all.filter(b => !(b.r + ',' + b.c in S.placed)))
+  for (let i = 0; i < Math.min(cfg.decoys, free.length); i++) paintBuilding(free[i], nextLm(), false)
   return waypoints
 }
-
-function keyOf(b) { return b.gx + ',' + b.gy }
 
 function dirOfLeg(route, legIndex) {
   let d = route.start.dir
@@ -720,52 +713,35 @@ function dirOfLeg(route, legIndex) {
   return d
 }
 
-function paintBlock(b, lm, isTarget) {
-  const el = cellAt(b.gx, b.gy)
-  if (!el) return
-  el.innerHTML = '<span class="lm">' + lm.e + '</span><span class="lm-name">' + lm.n + '</span>'
-  if (isTarget) el.classList.add('is-target')
-  S.blockMap[keyOf(b)] = lm.n
-}
-
-function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); const t = a[i]; a[i] = a[j]; a[j] = t } }
-
-/* Position the car over intersection (x,y). */
-/* The car is placed with a single composited transform. Offsets are read
-   from layout (offsetLeft/Top against .map-inner) rather than from
-   viewport rects, so it stays correct when the map is centred inside a
-   larger box and when the page is scrolled or resized. */
-function nodeCentre(gx, gy) {
-  const node = cellAt(gx, gy)
-  if (!node) return null
-  return { x: node.offsetLeft + node.offsetWidth / 2,
-           y: node.offsetTop  + node.offsetHeight / 2 }
+/* ── marker placement ─────────────────────────────────────────── */
+function cellCentre(r, c) {
+  const el = cellAt(r, c)
+  if (!el) return null
+  return { x: el.offsetLeft + el.offsetWidth / 2, y: el.offsetTop + el.offsetHeight / 2, s: el.offsetWidth }
 }
 
 function paintActor(animate) {
-  const c = nodeCentre(2 * S.pos.x, 2 * S.pos.y)
-  if (!c || !S.actorEl) return
+  const p = cellCentre(S.pos.r, S.pos.c)
+  if (!p || !S.actorEl) return
+  const size = Math.max(14, p.s * 0.78)
+  S.actorEl.style.width = size + 'px'
+  S.actorEl.style.height = size + 'px'
   if (!animate) S.actorEl.style.transition = 'none'
-  /* S.heading is continuous, so turning west from north rotates 90°
-     the short way instead of unwinding 270°. */
   S.actorEl.style.transform =
-    'translate(' + c.x + 'px,' + c.y + 'px) translate(-50%,-50%) rotate(' + S.heading + 'deg)'
+    'translate(' + (p.x - size / 2) + 'px,' + (p.y - size / 2) + 'px) rotate(' + S.heading + 'deg)'
   if (!animate) { void S.actorEl.offsetWidth; S.actorEl.style.transition = '' }
 }
 
 function dropTrail() {
-  const c = nodeCentre(2 * S.pos.x, 2 * S.pos.y)
-  if (!c) return
+  const p = cellCentre(S.pos.r, S.pos.c)
+  if (!p) return
   const t = document.createElement('div')
   t.className = 'trail'
-  t.style.left = c.x + 'px'
-  t.style.top = c.y + 'px'
+  t.style.left = p.x + 'px'
+  t.style.top = p.y + 'px'
   mapEl.parentElement.appendChild(t)
 }
-
-function clearTrail() {
-  mapEl.parentElement.querySelectorAll('.trail').forEach(t => t.remove())
-}
+function clearTrail() { mapEl.parentElement.querySelectorAll('.trail').forEach(t => t.remove()) }
 
 /* ════════════════════════════════════════════════════════════════
    ROUND FLOW
@@ -774,7 +750,7 @@ function startGame() {
   S.names[0] = ($('p1-name').value || 'Player 1').trim().slice(0, 12)
   S.names[1] = ($('p2-name').value || 'Player 2').trim().slice(0, 12)
   S.scores = [0, 0]; S.arrived = [0, 0]; S.routeIndex = [0, 0]
-  S.turn = 0; S.over = false
+  S.turn = 0
   S.cfg = LEVELS[S.level]
 
   $('pname1').textContent = S.names[0]
@@ -794,7 +770,7 @@ function startGame() {
 
 function newRound() {
   stopTimer(); stopSpeak()
-  S.locked = false; S.moves = 0; S.wrongTurns = 0
+  S.locked = false; S.moves = 0
   S.peeked = false; S.revealed = false; S.dripIndex = 0
   S.replaysLeft = S.cfg.replays
 
@@ -806,10 +782,11 @@ function newRound() {
   const waypoints = placeLandmarks(route, S.cfg)
   S.lines = writeDirections(route, S.cfg, S.level, S.targetName, waypoints)
 
-  S.pos = { x: route.start.x, y: route.start.y }
+  S.pos = { r: route.start.r, c: route.start.c }
   S.dir = route.start.dir
   S.heading = DIR_ROT[S.dir]
   clearTrail()
+  if (window.PlayShell) PlayShell.fit()
   requestAnimationFrame(() => paintActor(false))
 
   $('routeNum').textContent = (S.routeIndex[S.turn] + 1)
@@ -818,9 +795,7 @@ function newRound() {
   paintInstructions()
   setFeedback('You are facing ' + DIR_NAME[S.dir] + '. Listen, then drive.', 'info')
 
-  const spoken = S.cfg.drip ? [S.lines[0]] : S.lines
-  setTimeout(() => speakLines(spoken), 350)
-
+  setTimeout(() => speakLines(S.cfg.drip ? [S.lines[0]] : S.lines), 350)
   if (S.cfg.timer) startTimer(S.cfg.timer)
   setControls(true)
 }
@@ -833,32 +808,21 @@ function paintInstructions() {
     body.innerHTML = '<div class="instr-hidden"><span class="big">🎧</span>' +
       'Listening only at this level.<br>Press <b>Listen again</b> to repeat.</div>'
     $('stepCount').textContent = ''
-  } else if (S.cfg.drip) {
-    /* Easy: one instruction at a time. */
-    const ul = document.createElement('ul')
-    ul.className = 'instr-list'
-    S.lines.forEach((l, i) => {
-      if (i > S.dripIndex) return
-      const li = document.createElement('li')
-      li.textContent = l
-      if (i < S.dripIndex) li.classList.add('is-done')
-      else li.classList.add('is-current')
-      ul.appendChild(li)
-    })
-    body.innerHTML = ''
-    body.appendChild(ul)
-    $('stepCount').textContent = (S.dripIndex + 1) + '/' + S.lines.length
   } else {
     const ul = document.createElement('ul')
     ul.className = 'instr-list'
-    S.lines.forEach(l => {
+    S.lines.forEach((l, i) => {
+      if (S.cfg.drip && i > S.dripIndex) return
       const li = document.createElement('li')
       li.textContent = l
+      if (S.cfg.drip) li.classList.add(i < S.dripIndex ? 'is-done' : 'is-current')
       ul.appendChild(li)
     })
     body.innerHTML = ''
     body.appendChild(ul)
-    $('stepCount').textContent = S.lines.length + ' steps'
+    $('stepCount').textContent = S.cfg.drip
+      ? (S.dripIndex + 1) + '/' + S.lines.length
+      : S.lines.length + ' steps'
   }
 
   $('replay-btn').disabled = S.replaysLeft <= 0
@@ -868,10 +832,8 @@ function paintInstructions() {
   $('peek-btn').disabled = S.peeked || !S.cfg.hideText
 }
 
-/* Easy mode reveals the next instruction once the current one is done. */
 function advanceDrip() {
-  if (!S.cfg.drip) return
-  if (S.dripIndex >= S.lines.length - 1) return
+  if (S.dripIndex >= S.lines.length - 1) { paintInstructions(); return }
   S.dripIndex++
   paintInstructions()
   speakLines([S.lines[S.dripIndex]])
@@ -886,24 +848,26 @@ function setFeedback(msg, kind) {
   feedbackEl.className = 'feedback' + (kind ? ' is-' + kind : '')
 }
 
-/* ── Driving ──────────────────────────────────────────────────── */
+/* ── driving ──────────────────────────────────────────────────── */
 function doGo() {
   if (S.locked) return
-  const nx = S.pos.x + DIRS[S.dir].dx, ny = S.pos.y + DIRS[S.dir].dy
-  if (!inBounds(nx, ny)) {
+  const nr = S.pos.r + DIRS[S.dir].dr, nc = S.pos.c + DIRS[S.dir].dc
+  if (!isRoad(nr, nc)) {
     S.actorEl.classList.add('is-bump')
-    setTimeout(() => S.actorEl.classList.remove('is-bump'), 320)
-    setFeedback("That's the edge of the city — you can't go that way.", 'wrong')
+    setTimeout(() => S.actorEl.classList.remove('is-bump'), 300)
+    setFeedback(isBuilding(nr, nc)
+      ? "There's a building in front of you — you can't drive through it."
+      : "That's the edge of the city — you can't go that way.", 'wrong')
     if (window.PlaySounds) PlaySounds.wrong()
     return
   }
   dropTrail()
-  S.pos = { x: nx, y: ny }
+  S.pos = { r: nr, c: nc }
   S.moves++
   $('moveCount').textContent = S.moves
   paintActor(true)
   if (window.PlaySounds) PlaySounds.tick()
-  setFeedback('Driving ' + DIR_NAME[S.dir] + '…', '')
+  reportSurroundings()
   checkDripProgress()
 }
 
@@ -914,8 +878,8 @@ function doTurn(t) {
   S.moves++
   $('moveCount').textContent = S.moves
   paintActor(true)
-  if (window.PlaySounds) PlaySounds.turn ? PlaySounds.turn() : PlaySounds.click()
-  setFeedback('You turned ' + t + '. Now facing ' + DIR_NAME[S.dir] + '.', '')
+  if (window.PlaySounds) { PlaySounds.turn ? PlaySounds.turn() : PlaySounds.click() }
+  reportSurroundings()
   checkDripProgress()
 }
 
@@ -927,32 +891,43 @@ function doUturn() {
   $('moveCount').textContent = S.moves
   paintActor(true)
   if (window.PlaySounds) PlaySounds.click()
-  setFeedback('U-turn. Now facing ' + DIR_NAME[S.dir] + '.', '')
+  reportSurroundings()
 }
 
-/* In easy mode, move to the next instruction once this one is satisfied. */
+/* Say what is beside you — this is the whole skill being practised. */
+function reportSurroundings() {
+  const l = sideCell(S.pos.r, S.pos.c, S.dir, 'left')
+  const r = sideCell(S.pos.r, S.pos.c, S.dir, 'right')
+  const ln = S.placed[l.r + ',' + l.c], rn = S.placed[r.r + ',' + r.c]
+  const bits = []
+  if (ln) bits.push(ln + ' on your left')
+  if (rn) bits.push(rn + ' on your right')
+  setFeedback(bits.length ? 'Facing ' + DIR_NAME[S.dir] + ' · ' + bits.join(' · ')
+                          : 'Facing ' + DIR_NAME[S.dir], bits.length ? 'info' : '')
+}
+
 function checkDripProgress() {
   if (!S.cfg.drip) return
-  const line = S.lines[S.dripIndex] || ''
   const expected = expectedStateAfter(S.dripIndex)
   if (!expected) return
-  if (S.pos.x === expected.x && S.pos.y === expected.y && S.dir === expected.dir) advanceDrip()
+  if (S.pos.r === expected.r && S.pos.c === expected.c && S.dir === expected.dir) advanceDrip()
 }
 
-/* Where the car should be after completing instruction #i (easy mode,
-   where every line is exactly one turn or one straight run). */
+/* Easy mode writes one action per sentence, so the target state after
+   sentence i can be replayed exactly. */
 function expectedStateAfter(i) {
-  let x = S.route.start.x, y = S.route.start.y, d = S.route.start.dir
+  let r = S.route.start.r, c = S.route.start.c, d = S.route.start.dir
   let idx = -1
   for (let l = 0; l < S.route.legs.length; l++) {
     const leg = S.route.legs[l]
     if (leg.turn) {
       d = turnDir(d, leg.turn); idx++
-      if (idx === i) return { x, y, dir: d }
+      if (idx === i) return { r, c, dir: d }
     }
-    for (let b = 0; b < leg.blocks; b++) { x += DIRS[d].dx; y += DIRS[d].dy }
+    r += DIRS[d].dr * leg.cells
+    c += DIRS[d].dc * leg.cells
     idx++
-    if (idx === i) return { x, y, dir: d }
+    if (idx === i) return { r, c, dir: d }
   }
   return null
 }
@@ -963,14 +938,18 @@ function doArrive() {
   setControls(false)
   stopTimer(); stopSpeak()
 
-  const end = S.route.end
-  const atRightPlace = S.pos.x === end.x && S.pos.y === end.y
-  /* Being on the right corner but facing the wrong way still counts as
-     arriving — the destination is visible from the intersection. */
-  const facingRight = S.dir === end.dir
+  const t = S.route.target
+  /* Correct means the destination is the cell on the side you were told
+     — you are beside it, facing the right way. Nothing else counts. */
+  const onSide = sideCell(S.pos.r, S.pos.c, S.dir, S.route.side)
+  const correct = onSide.r === t.r && onSide.c === t.c
 
-  const tEl = document.querySelector('.blockcell.is-target')
-  if (tEl) tEl.classList.add('is-revealed')
+  /* Right building, wrong side or wrong facing — worth saying out loud. */
+  const otherSide = sideCell(S.pos.r, S.pos.c, S.dir, S.route.side === 'right' ? 'left' : 'right')
+  const besideButWrongSide = !correct && otherSide.r === t.r && otherSide.c === t.c
+
+  const el = cellAt(t.r, t.c)
+  if (el) el.classList.add('is-revealed')
 
   const cfg = S.cfg
   const perfect = idealMoves()
@@ -978,46 +957,45 @@ function doArrive() {
   const lines = []
   let total = 0
 
-  if (atRightPlace) {
+  if (correct) {
     total += cfg.base
-    lines.push({ label: 'Arrived at the ' + S.targetName, val: '+' + cfg.base })
+    lines.push({ label: 'Stopped beside the ' + S.targetName + ', on your ' + S.route.side, val: '+' + cfg.base })
     S.arrived[S.turn]++
-
-    if (facingRight) { total += 40; lines.push({ label: 'Correct final direction', val: '+40' }) }
-
     if (extra === 0) { total += 60; lines.push({ label: 'Perfect route — no extra moves', val: '+60' }) }
     else { const p = Math.min(extra * 10, cfg.base); total -= p; lines.push({ label: extra + ' extra move' + (extra > 1 ? 's' : ''), val: '−' + p, neg: true }) }
-
     if (cfg.timer && S.timeLeft > 0) {
       const b = S.timeLeft * 2
       total += b
       lines.push({ label: 'Time bonus (' + S.timeLeft + 's left)', val: '+' + b })
     }
+  } else if (besideButWrongSide) {
+    lines.push({ label: 'The ' + S.targetName + ' was on your other side', val: '+0' })
   } else {
-    lines.push({ label: 'Wrong place — that is not the ' + S.targetName, val: '+0' })
+    lines.push({ label: 'Not beside the ' + S.targetName, val: '+0' })
   }
 
   if (S.peeked) { total -= 15; lines.push({ label: 'Used “show text”', val: '−15', neg: true }) }
-
   total = Math.max(0, total)
   S.scores[S.turn] += total
 
-  showRoundResult(atRightPlace, total, lines)
+  showRoundResult(correct, besideButWrongSide, total, lines)
 }
 
 function idealMoves() {
-  /* One move per turn + one per block. */
-  return S.route.legs.reduce((n, leg) => n + (leg.turn ? 1 : 0) + leg.blocks, 0)
+  return S.route.legs.reduce((n, leg) => n + (leg.turn ? 1 : 0) + leg.cells, 0)
 }
 
-function showRoundResult(ok, total, lines) {
+function showRoundResult(ok, wrongSide, total, lines) {
   $('roundEmoji').textContent = ok ? '🎯' : '🤷'
-  $('roundTitle').textContent = ok ? 'YOU ARRIVED!' : 'NOT QUITE'
+  $('roundTitle').textContent = ok ? 'YOU ARRIVED!' : (wrongSide ? 'ALMOST — WRONG SIDE' : 'NOT QUITE')
   $('roundSub').innerHTML = ok
-    ? 'You found the <b>' + S.targetName + '</b>.' +
+    ? 'You stopped right beside the <b>' + S.targetName + '</b>, on your ' + S.route.side + '.' +
       '<span class="route-recap">' + S.lines.join(' ') + '</span>'
-    : 'The <b>' + S.targetName + '</b> was somewhere else. It is glowing green on the map.' +
-      '<span class="route-recap">' + S.lines.join(' ') + '</span>'
+    : (wrongSide
+        ? 'You were next to the <b>' + S.targetName + '</b>, but it was on your ' + S.route.side + '.' +
+          '<span class="route-recap">' + S.lines.join(' ') + '</span>'
+        : 'The <b>' + S.targetName + '</b> is glowing green on the map.' +
+          '<span class="route-recap">' + S.lines.join(' ') + '</span>')
 
   const box = $('scoreLines')
   box.innerHTML = ''
@@ -1051,7 +1029,6 @@ function updateScoreboard() {
   $('pcard2').classList.toggle('is-turn', S.turn === 1)
 }
 
-/* ── Round advance / hand-off ─────────────────────────────────── */
 function nextRoute() {
   $('roundOvl').classList.remove('is-shown')
   S.routeIndex[S.turn]++
@@ -1061,22 +1038,18 @@ function nextRoute() {
     newRound()
     return
   }
-
-  /* 2P: alternate, each player plays cfg.routes routes of their own. */
   const done = S.routeIndex[0] >= S.cfg.routes && S.routeIndex[1] >= S.cfg.routes
   if (done) return endGame()
 
   let next = 1 - S.turn
-  if (S.routeIndex[next] >= S.cfg.routes) next = S.turn   // other player finished
+  if (S.routeIndex[next] >= S.cfg.routes) next = S.turn
   S.turn = next
   updateScoreboard()
-
   $('handoffName').textContent = S.names[S.turn]
   $('handoffOvl').classList.add('is-shown')
 }
 
 function endGame() {
-  S.over = true
   stopTimer(); stopSpeak()
   $('finalScores').classList.toggle('is-solo', S.mode === 1)
   $('fname1').textContent = S.names[0]
@@ -1086,7 +1059,7 @@ function endGame() {
   $('fs1').classList.remove('is-winner'); $('fs2').classList.remove('is-winner')
 
   if (S.mode === 1) {
-    $('finalEmoji').textContent = S.arrived[0] === S.cfg.routes ? '🏆' : '🚗'
+    $('finalEmoji').textContent = S.arrived[0] === S.cfg.routes ? '🏆' : '🧭'
     $('finalTitle').textContent = 'ROUTE COMPLETE'
     $('finalSub').innerHTML = 'You arrived at <b>' + S.arrived[0] + ' of ' + S.cfg.routes +
       '</b> destinations on ' + S.cfg.label + '.'
@@ -1108,7 +1081,7 @@ function endGame() {
   $('finalOvl').classList.add('is-shown')
 }
 
-/* ── Timer ────────────────────────────────────────────────────── */
+/* ── timer ────────────────────────────────────────────────────── */
 function startTimer(secs) {
   S.timeLeft = secs
   paintTimer()
@@ -1153,13 +1126,11 @@ $('levDesc').innerHTML = LEVELS.easy.desc
 
 $('start-btn').addEventListener('click', startGame)
 $('btn-go').addEventListener('click', doGo)
-/* Press and hold to keep rolling — tapping once per block is tiring on
-   a phone and unusable on a wall-mounted board. */
 ;(function holdToDrive(){
   const b = $('btn-go'); let timer = 0, delay = 0
   const stop = () => { clearTimeout(timer); timer = 0 }
-  const step = () => { if (S.locked) return stop(); doGo(); delay = Math.max(170, delay - 40); timer = setTimeout(step, delay) }
-  b.addEventListener('pointerdown', () => { stop(); delay = 330; timer = setTimeout(step, 420) })
+  const step = () => { if (S.locked) return stop(); doGo(); delay = Math.max(150, delay - 40); timer = setTimeout(step, delay) }
+  b.addEventListener('pointerdown', () => { stop(); delay = 300; timer = setTimeout(step, 400) })
   ;['pointerup','pointerleave','pointercancel'].forEach(e => b.addEventListener(e, stop))
 })()
 $('btn-left').addEventListener('click', () => doTurn('left'))
