@@ -1,5 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { fetchPublishedArticles } from '@/lib/articles-db'
+import { PLANS } from '@/data/plans'
+import { COURSES } from '@/data/courses'
 
 const BASE = 'https://inglizi.com'
 
@@ -20,6 +22,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/terms`,      changeFrequency: 'yearly',  priority: 0.2 },
   ]
 
+  /* One indexable landing page per package and per course level — each one
+     carries its own price, FAQ and Product structured data. */
+  const planPages: MetadataRoute.Sitemap = PLANS.map(p => ({
+    url: `${BASE}/pricing/${p.id}`,
+    changeFrequency: 'weekly' as const,
+    priority: p.highlight || p.isPremium ? 0.85 : 0.75,
+  }))
+
+  const coursePages: MetadataRoute.Sitemap = COURSES.map(c => ({
+    url: `${BASE}/courses/${c.slug}`,
+    changeFrequency: 'weekly' as const,
+    priority: 0.75,
+  }))
+
   let articles: MetadataRoute.Sitemap = []
   try {
     const rows = await fetchPublishedArticles()
@@ -32,5 +48,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Sitemap must still render if the DB is unreachable.
   }
 
-  return [...staticPages, ...articles]
+  return [...staticPages, ...planPages, ...coursePages, ...articles]
 }
