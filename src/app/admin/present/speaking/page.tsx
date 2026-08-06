@@ -24,7 +24,7 @@ import {
   ChevronLeft, ChevronRight, ArrowLeft, Maximize2, Minimize2, Mic, Target,
   MessagesSquare, BookOpen, Repeat, Flame, Home, Volume2, Route, Zap, ListChecks,
 } from 'lucide-react'
-import { ORDERED, PHASES, PROTOCOL, FOCUS, type Lesson } from '@/data/speaking-course'
+import { ORDERED, PHASES, PROTOCOL, FOCUS, weekOf, dayOf, type Lesson } from '@/data/speaking-course'
 
 const INK = '#0f172a'
 const ACCENT = '#0ea5e9'
@@ -177,7 +177,7 @@ export default function SpeakingDeck() {
       {lesson && (
         <div className="flex items-center gap-1.5 px-5 py-2 overflow-x-auto border-b" style={{ borderColor: '#1e293b' }}>
           <span className="text-[10px] font-black tracking-widest uppercase shrink-0 mr-1" style={{ color: colour }}>
-            L{lesson.no}
+            W{weekOf(lesson.no)} · D{dayOf(lesson.no)}
           </span>
           {railStages.map(p => {
             const M = PHASE_META[p]
@@ -249,14 +249,14 @@ function Cover({ onJump }: { onJump: (n: number) => void }) {
   return (
     <div className="max-w-5xl mx-auto w-full">
       <div className="flex items-center gap-2 text-[11px] font-black tracking-[0.3em] uppercase mb-3" style={{ color: ACCENT }}>
-        <Mic size={14} /> Private course · 8 weeks
+        <Mic size={14} /> Private course · 48 days · 6 a week
       </div>
       <h1 className="text-4xl sm:text-5xl font-black leading-tight mb-3" style={{ color: '#f8fafc' }}>Speak Your Work</h1>
       <p className="text-slate-400 text-lg mb-2">From the coffee break to the conference stage, in eight weeks.</p>
       <p className="text-slate-500 text-sm mb-8 max-w-2xl">
-        Twenty lessons. Four weeks of ordinary life first — meeting people, the weekend, a taxi,
-        a restaurant — because the fear is what stops her, not the vocabulary. Her job appears in
-        week five, the stage in week seven.
+        Forty-eight daily lessons. Four weeks of ordinary life first — meeting people, the weekend,
+        a taxi, a restaurant — because the fear is what stops her, not the vocabulary. Her job appears
+        on day 25, the stage on day 39. Every sixth day is review: no new material, she just talks.
       </p>
 
       <div className="grid sm:grid-cols-2 gap-3">
@@ -276,7 +276,7 @@ function Cover({ onJump }: { onJump: (n: number) => void }) {
                   className="text-[11px] font-bold px-2 py-1 rounded-md border hover:brightness-125 transition"
                   style={{ borderColor: '#334155', color: '#cbd5e1' }}
                 >
-                  {l.no}. {l.tag}
+                  D{l.no} · {l.tag}
                 </button>
               ))}
             </div>
@@ -367,10 +367,10 @@ function PhaseSlide({ no }: { no: number }) {
       <p dir="rtl" className="text-2xl font-bold text-slate-400 mb-6" style={{ fontFamily: "'Tajawal', sans-serif" }}>{ph.titleAr}</p>
       <p className="text-slate-400 text-lg leading-relaxed mb-2 max-w-xl mx-auto">{ph.aim}</p>
       <p dir="rtl" className="text-slate-600 mb-8 max-w-xl mx-auto" style={{ fontFamily: "'Tajawal', sans-serif" }}>{ph.aimAr}</p>
-      <div className="flex flex-wrap gap-2 justify-center">
+      <div className="flex flex-wrap gap-2 justify-center max-w-3xl mx-auto">
         {lessons.map(l => (
           <span key={l.no} className="text-[12px] font-bold px-3 py-1.5 rounded-full border" style={{ borderColor: col, color: col }}>
-            {l.no}. {l.title}
+            D{l.no} · {l.tag}
           </span>
         ))}
       </div>
@@ -385,7 +385,7 @@ function LessonSlide({ lesson, phase, colour, showAlt }: {
   return (
     <div className="max-w-4xl mx-auto w-full">
       <div className="flex items-center gap-2 text-[11px] font-black tracking-[0.3em] uppercase mb-3" style={{ color: colour }}>
-        <M.icon size={14} /> Lesson {lesson.no} · {M.label}
+        <M.icon size={14} /> Day {lesson.no} · Week {weekOf(lesson.no)} · {M.label}
       </div>
       <h2 className="text-2xl sm:text-3xl font-black leading-tight mb-1" style={{ color: '#f8fafc' }}>{lesson.title}</h2>
       <p dir="rtl" className="text-slate-500 mb-6" style={{ fontFamily: "'Tajawal', sans-serif" }}>{lesson.titleAr}</p>
