@@ -252,10 +252,11 @@ function Cover({ onJump }: { onJump: (n: number) => void }) {
         <Mic size={14} /> Private course · 8 weeks
       </div>
       <h1 className="text-4xl sm:text-5xl font-black leading-tight mb-3" style={{ color: '#f8fafc' }}>Speak Your Work</h1>
-      <p className="text-slate-400 text-lg mb-2">English for Earth Observation — meetings, projects, conferences.</p>
+      <p className="text-slate-400 text-lg mb-2">From the coffee break to the conference stage, in eight weeks.</p>
       <p className="text-slate-500 text-sm mb-8 max-w-2xl">
-        Sixteen lessons. Every one gives ready-made phrases, drilled against her own projects,
-        until the sentence arrives before the translation does.
+        Twenty lessons. Four weeks of ordinary life first — meeting people, the weekend, a taxi,
+        a restaurant — because the fear is what stops her, not the vocabulary. Her job appears in
+        week five, the stage in week seven.
       </p>
 
       <div className="grid sm:grid-cols-2 gap-3">
