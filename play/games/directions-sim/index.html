@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex, nofollow">
+  <title>Directions Simulator — 1P/2P · Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Press+Start+2P&family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}button{font-family:inherit;cursor:pointer}a{text-decoration:none;color:inherit}
+    :root{--ink:#0c0a09;--bg:#0c0a09;--paper:#1c1917;--paper-2:#292524;--border:#44403c;--gold:#fbbf24;--gold-2:#fcd34d;--text:#fafaf9;--text-2:#d6d3d1;--text-muted:#a8a29e;--neon:#3b82f6;--neon-2:#60a5fa;--pink:#ec4899;--pink-2:#f472b6;--green:#4ade80;--red:#f87171;--orange:#fb923c;--purple:#a78bfa;--road:#26262b;--road-line:#8a8a93;--display:'Outfit',sans-serif;--arcade:'Press Start 2P',monospace;--arabic:'Cairo',sans-serif}
+    html,body{background:var(--bg);color:var(--text);font-family:var(--display);font-size:16px;min-height:100%;-webkit-font-smoothing:antialiased}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 60% 40% at 80% 0%,rgba(59,130,246,.10),transparent 60%),radial-gradient(ellipse 50% 35% at 20% 100%,rgba(236,72,153,.10),transparent 60%)}
+    body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:40px 40px}
+
+    .topbar{position:sticky;top:0;z-index:100;background:rgba(12,10,9,.92);backdrop-filter:blur(18px) saturate(180%);border-bottom:1px solid var(--border);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .back-link{display:inline-flex;align-items:center;gap:10px;padding:12px 20px;border-radius:999px;background:var(--paper);border:1px solid var(--border);font-size:16px;font-weight:700;color:var(--text-2)}
+    .back-link:hover{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+    .game-title{font-family:var(--arcade);font-size:18px;color:var(--gold);letter-spacing:.05em;display:flex;align-items:center;gap:8px}
+    .mode-pill{font-family:var(--arcade);font-size:13px;padding:8px 18px;border-radius:999px;background:rgba(59,130,246,.15);color:var(--neon);border:1px solid rgba(59,130,246,.4);letter-spacing:.15em}
+    .page{position:relative;z-index:2;max-width:1500px;margin:0 auto;padding:24px 24px 60px}
+
+    /* ── SETUP ─────────────────────────────────────────── */
+    .setup{padding:44px 32px;border-radius:22px;background:var(--paper);border:2px solid var(--border);text-align:center;max-width:980px;margin:0 auto}
+    .setup h2{font-family:var(--arcade);font-size:22px;color:var(--gold);margin-bottom:14px;letter-spacing:.05em}
+    .setup .intro{font-size:17px;line-height:1.6;color:var(--text-2);margin-bottom:10px}
+    .setup .intro-ar{font-family:var(--arabic);direction:rtl;font-size:16px;color:var(--text-muted);margin-bottom:30px}
+    .field-label{font-family:var(--arcade);font-size:10px;color:var(--text-muted);letter-spacing:.18em;margin-bottom:12px}
+
+    .mode-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
+    @media(max-width:640px){.mode-row{grid-template-columns:1fr}}
+    .mode-card{padding:22px 18px;border-radius:16px;background:var(--paper-2);border:3px solid var(--border);transition:all .18s ease;text-align:center}
+    .mode-card:hover{border-color:var(--gold-2)}
+    .mode-card.is-active{border-color:var(--gold);background:rgba(251,191,36,.10);box-shadow:0 0 26px -6px rgba(251,191,36,.45)}
+    .mode-card .mc-emoji{font-size:38px;line-height:1;margin-bottom:10px}
+    .mode-card .mc-name{font-family:var(--arcade);font-size:13px;color:var(--text);letter-spacing:.1em;margin-bottom:8px}
+    .mode-card.is-active .mc-name{color:var(--gold)}
+    .mode-card .mc-desc{font-size:13px;color:var(--text-muted);line-height:1.45}
+
+    .player-inputs{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:28px}
+    @media(max-width:640px){.player-inputs{grid-template-columns:1fr}}
+    .player-inputs.is-solo{grid-template-columns:1fr;max-width:420px;margin-left:auto;margin-right:auto}
+    .player-inputs.is-solo .player-input.p2{display:none}
+    .player-input{padding:20px;border-radius:14px;background:var(--paper-2);border:3px solid var(--border)}
+    .player-input.p1{border-color:rgba(59,130,246,.5)}
+    .player-input.p2{border-color:rgba(236,72,153,.5)}
+    .player-input label{display:block;font-family:var(--arcade);font-size:12px;letter-spacing:.15em;margin-bottom:12px}
+    .player-input.p1 label{color:var(--neon)} .player-input.p2 label{color:var(--pink)}
+    .player-input input{width:100%;padding:14px;border-radius:10px;background:var(--ink);border:2px solid var(--border);color:var(--text);font-family:var(--display);font-size:20px;font-weight:700;text-align:center;outline:none}
+    .player-input input:focus{border-color:var(--gold)}
+
+    .level-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+    @media(max-width:760px){.level-row{grid-template-columns:1fr 1fr}}
+    .lev-btn{padding:16px 12px;border-radius:14px;background:transparent;border:2px solid var(--border);color:var(--text-2);transition:all .18s ease;text-align:center}
+    .lev-btn:hover{border-color:var(--gold);color:var(--gold)}
+    .lev-btn.is-active{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+    .lev-btn .lv-name{font-family:var(--arcade);font-size:12px;letter-spacing:.08em;display:block;margin-bottom:7px}
+    .lev-btn .lv-cefr{font-size:12px;font-weight:800;opacity:.75;display:block}
+    .lev-desc{min-height:44px;font-size:14px;color:var(--text-muted);line-height:1.5;margin-bottom:26px;padding:0 8px}
+    .lev-desc b{color:var(--gold-2)}
+
+    /* ── GAME ──────────────────────────────────────────── */
+    .game-area{display:none}
+    .game-area.is-shown{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:22px;align-items:start}
+    @media(max-width:1080px){.game-area.is-shown{grid-template-columns:1fr}}
+
+    .map-wrap{padding:18px;border-radius:22px;background:linear-gradient(180deg,#0f0f10,#18181b);border:3px solid var(--border);box-shadow:0 0 60px -14px rgba(59,130,246,.25) inset}
+    .map{display:grid;gap:0;width:100%;aspect-ratio:1/1;max-width:720px;margin:0 auto}
+    .cell{position:relative;display:flex;align-items:center;justify-content:center}
+    .cell.road{background:var(--road)}
+    .cell.node{background:var(--road)}
+    .cell.blockcell{background:linear-gradient(160deg,#4a4238,#332e2a);border-radius:6px;border:1px solid #574c40;box-shadow:0 2px 6px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:3px}
+    /* dashed centre lines on straight road segments */
+    .cell.road.h::after{content:"";position:absolute;left:0;right:0;top:50%;height:2px;transform:translateY(-50%);background:repeating-linear-gradient(90deg,var(--road-line) 0 8px,transparent 8px 16px);opacity:.55}
+    .cell.road.v::after{content:"";position:absolute;top:0;bottom:0;left:50%;width:2px;transform:translateX(-50%);background:repeating-linear-gradient(180deg,var(--road-line) 0 8px,transparent 8px 16px);opacity:.55}
+
+    .lm{font-size:clamp(15px,2.4vw,26px);line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))}
+    .lm-name{font-size:9px;font-weight:800;color:#c9c2b8;text-align:center;line-height:1.1;margin-top:3px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:.01em}
+    .blockcell.is-target.is-revealed{background:rgba(74,222,128,.18);border-color:var(--green);box-shadow:0 0 20px rgba(74,222,128,.4)}
+    .blockcell.is-target.is-revealed .lm-name{color:var(--green)}
+
+    /* the character */
+    .actor{position:absolute;z-index:5;font-size:clamp(18px,3vw,32px);line-height:1;transition:transform .32s cubic-bezier(.34,1.3,.64,1),left .32s cubic-bezier(.34,1.3,.64,1),top .32s cubic-bezier(.34,1.3,.64,1);pointer-events:none;filter:drop-shadow(0 0 8px rgba(251,191,36,.85))}
+    .actor.is-bump{animation:bump .3s ease}
+    @keyframes bump{0%,100%{filter:drop-shadow(0 0 8px rgba(251,191,36,.85))}50%{filter:drop-shadow(0 0 14px rgba(248,113,113,1))}}
+    .map-inner{position:relative;width:100%;max-width:720px;margin:0 auto}
+
+    /* trail breadcrumbs */
+    .trail{position:absolute;z-index:4;width:7px;height:7px;border-radius:50%;background:var(--gold);opacity:.4;transform:translate(-50%,-50%);pointer-events:none}
+
+    /* ── SIDE PANEL ────────────────────────────────────── */
+    .side{display:flex;flex-direction:column;gap:14px}
+    .panel{padding:18px;border-radius:16px;background:var(--paper);border:2px solid var(--border)}
+    .panel-h{font-family:var(--arcade);font-size:10px;color:var(--text-muted);letter-spacing:.18em;margin-bottom:12px}
+
+    .players{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .players.is-solo{grid-template-columns:1fr}
+    .players.is-solo .pcard.p2{display:none}
+    .pcard{padding:14px 10px;border-radius:12px;background:var(--paper-2);border:3px solid var(--border);text-align:center;transition:all .22s ease}
+    .pcard.p1{border-color:rgba(59,130,246,.45)} .pcard.p2{border-color:rgba(236,72,153,.45)}
+    .pcard.p1.is-turn{border-color:var(--neon);box-shadow:0 0 22px -4px rgba(59,130,246,.7);transform:scale(1.04)}
+    .pcard.p2.is-turn{border-color:var(--pink);box-shadow:0 0 22px -4px rgba(236,72,153,.7);transform:scale(1.04)}
+    .pcard-name{font-family:var(--arcade);font-size:11px;letter-spacing:.08em;margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .pcard.p1 .pcard-name{color:var(--neon)} .pcard.p2 .pcard-name{color:var(--pink)}
+    .pcard-score{font-family:var(--arcade);font-size:22px;color:var(--gold);text-shadow:0 0 12px rgba(251,191,36,.4)}
+    .pcard-sub{font-size:11px;color:var(--text-muted);margin-top:6px}
+
+    .instr{padding:18px;border-radius:16px;background:linear-gradient(180deg,rgba(59,130,246,.10),rgba(59,130,246,.03));border:2px solid rgba(59,130,246,.4)}
+    .instr-h{font-family:var(--arcade);font-size:10px;color:var(--neon-2);letter-spacing:.18em;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .instr-h .step-count{color:var(--text-muted)}
+    .instr-list{display:flex;flex-direction:column;gap:9px;list-style:none}
+    .instr-list li{font-size:16px;font-weight:700;line-height:1.45;color:var(--text);padding:11px 13px;border-radius:10px;background:rgba(0,0,0,.35);border-left:4px solid var(--border);transition:all .2s ease}
+    .instr-list li.is-done{opacity:.4;border-left-color:var(--green);text-decoration:line-through}
+    .instr-list li.is-current{border-left-color:var(--gold);background:rgba(251,191,36,.12);box-shadow:0 0 16px -6px rgba(251,191,36,.6)}
+    .instr-hidden{text-align:center;padding:24px 12px;color:var(--text-muted);font-size:14px;line-height:1.6}
+    .instr-hidden .big{font-size:44px;display:block;margin-bottom:10px}
+
+    .audio-row{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
+    .mini-btn{flex:1;min-width:120px;padding:12px 10px;border-radius:10px;background:var(--paper-2);border:2px solid var(--border);color:var(--text-2);font-size:13px;font-weight:800;transition:all .18s ease}
+    .mini-btn:hover:not(:disabled){border-color:var(--gold);color:var(--gold)}
+    .mini-btn:disabled{opacity:.35;cursor:not-allowed}
+    .mini-btn.is-cost{border-color:rgba(248,113,113,.5);color:var(--red)}
+    .mini-btn.is-cost:hover:not(:disabled){background:rgba(248,113,113,.12);border-color:var(--red);color:var(--red)}
+
+    /* ── CONTROLS ──────────────────────────────────────── */
+    .controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+    .ctrl{padding:20px 8px;border-radius:14px;background:var(--paper-2);border:3px solid var(--border);color:var(--text);transition:all .14s ease;display:flex;flex-direction:column;align-items:center;gap:7px}
+    .ctrl:hover:not(:disabled){border-color:var(--gold);background:rgba(251,191,36,.10);transform:translateY(-2px)}
+    .ctrl:active:not(:disabled){transform:translateY(1px) scale(.97)}
+    .ctrl:disabled{opacity:.3;cursor:not-allowed}
+    .ctrl .c-ico{font-size:26px;line-height:1}
+    .ctrl .c-lab{font-family:var(--arcade);font-size:9px;letter-spacing:.06em;color:var(--text-muted);text-align:center;line-height:1.3}
+    .ctrl.go{grid-column:1/-1;border-color:rgba(59,130,246,.5)}
+    .ctrl.go:hover:not(:disabled){border-color:var(--neon);background:rgba(59,130,246,.14)}
+    .ctrl.arrive{grid-column:1/-1;border-color:rgba(74,222,128,.5)}
+    .ctrl.arrive:hover:not(:disabled){border-color:var(--green);background:rgba(74,222,128,.14)}
+    .ctrl.arrive .c-lab{color:var(--green)}
+    .kbd-hint{font-size:11px;color:var(--text-dim,#78716c);text-align:center;margin-top:10px;line-height:1.5}
+
+    .statbar{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:14px;padding:14px 18px;border-radius:14px;background:var(--paper);border:2px solid var(--border)}
+    .stat{font-family:var(--arcade);font-size:11px;color:var(--text-muted);letter-spacing:.1em}
+    .stat b{color:var(--gold);font-size:16px;margin-left:6px}
+    .stat.timer b.low{color:var(--red)}
+
+    .feedback{min-height:26px;font-family:var(--arcade);font-size:12px;text-align:center;color:var(--text-muted);letter-spacing:.08em;line-height:1.7;padding:0 6px}
+    .feedback.is-right{color:var(--green)} .feedback.is-wrong{color:var(--red)} .feedback.is-info{color:var(--gold)}
+
+    /* ── OVERLAYS ──────────────────────────────────────── */
+    .ovl{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.94);backdrop-filter:blur(12px);padding:28px}
+    .ovl.is-shown{display:flex}
+    .ovl-card{padding:44px 36px;background:var(--paper);border:4px solid var(--gold);border-radius:24px;text-align:center;max-width:660px;width:100%;box-shadow:0 0 80px rgba(251,191,36,.45);max-height:90vh;overflow-y:auto}
+    .ovl-emoji{font-size:88px;line-height:1;margin-bottom:12px;animation:bounce 1s ease infinite alternate}
+    @keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-12px)}}
+    .ovl-title{font-family:var(--arcade);font-size:24px;color:var(--gold);letter-spacing:.06em;margin-bottom:14px;text-shadow:0 0 20px rgba(251,191,36,.5);line-height:1.4}
+    .ovl-sub{font-size:17px;color:var(--text-2);margin-bottom:24px;line-height:1.6}
+    .ovl-sub .route-recap{display:block;margin-top:14px;font-size:14px;color:var(--text-muted);font-style:italic}
+    .score-lines{display:flex;flex-direction:column;gap:8px;margin-bottom:26px;text-align:left;max-width:340px;margin-left:auto;margin-right:auto}
+    .score-line{display:flex;justify-content:space-between;gap:14px;font-size:15px;padding:9px 14px;border-radius:9px;background:var(--paper-2)}
+    .score-line span:last-child{font-weight:900;color:var(--gold)}
+    .score-line.is-neg span:last-child{color:var(--red)}
+    .score-line.is-total{background:rgba(251,191,36,.14);border:2px solid rgba(251,191,36,.4);font-weight:900}
+
+    .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+    .btn{padding:16px 28px;border-radius:12px;font-family:var(--display);font-size:17px;font-weight:800;transition:all .18s ease;border:none}
+    .btn.is-gold{background:linear-gradient(135deg,var(--gold),var(--gold-2));color:var(--ink);box-shadow:0 8px 18px -4px rgba(251,191,36,.5)}
+    .btn.is-gold:hover{transform:translateY(-2px)}
+    .btn.is-ghost{background:transparent;color:var(--text-2);border:2px solid var(--border)}
+    .btn.is-ghost:hover{border-color:var(--neon);color:var(--neon)}
+
+    .final-scores{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:26px}
+    .final-scores.is-solo{grid-template-columns:1fr;max-width:260px;margin-left:auto;margin-right:auto}
+    .final-scores.is-solo .fscore.p2{display:none}
+    .fscore{padding:20px 14px;border-radius:14px;background:var(--paper-2);border:3px solid var(--border)}
+    .fscore.p1{border-color:rgba(59,130,246,.5)} .fscore.p2{border-color:rgba(236,72,153,.5)}
+    .fscore.is-winner{border-color:var(--gold);box-shadow:0 0 26px -6px rgba(251,191,36,.6)}
+    .fscore-name{font-family:var(--arcade);font-size:11px;letter-spacing:.08em;margin-bottom:10px}
+    .fscore.p1 .fscore-name{color:var(--neon)} .fscore.p2 .fscore-name{color:var(--pink)}
+    .fscore-val{font-family:var(--arcade);font-size:26px;color:var(--gold)}
+
+    .handoff-name{color:var(--gold);font-weight:900}
+    .vocab-strip{margin-top:22px;padding-top:18px;border-top:1px dashed var(--border);font-size:13px;color:var(--text-muted);line-height:1.7;text-align:left}
+    .vocab-strip b{color:var(--gold-2);font-family:var(--arcade);font-size:9px;letter-spacing:.15em;display:block;margin-bottom:8px}
+    .vocab-strip code{background:var(--paper-2);padding:2px 7px;border-radius:5px;color:var(--text-2);font-family:var(--display);font-weight:700}
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">
+    <svg width="30" height="30" viewBox="0 0 64 64" style="vertical-align:middle" aria-hidden="true">
+      <rect x="4" y="26" width="56" height="12" fill="#3f3f46" rx="2"/>
+      <rect x="26" y="4" width="12" height="56" fill="#3f3f46" rx="2"/>
+      <rect x="10" y="31" width="8" height="2" fill="#a8a29e"/><rect x="46" y="31" width="8" height="2" fill="#a8a29e"/>
+      <rect x="31" y="10" width="2" height="8" fill="#a8a29e"/><rect x="31" y="46" width="2" height="8" fill="#a8a29e"/>
+      <path d="M32 20 L38 32 L32 29 L26 32 Z" fill="#fbbf24"/>
+    </svg>
+    DIRECTIONS
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="mode-pill" id="modePill">1P / 2P</div>
+    <div id="muteHost"></div>
+  </div>
+</nav>
+
+<main class="page">
+
+  <!-- ══════════ SETUP ══════════ -->
+  <div class="setup" id="setup">
+    <h2>DIRECTIONS SIMULATOR</h2>
+    <p class="intro">Listen to the directions, then <b>drive the car</b> through the city.<br>Turn left, turn right, go straight — and stop at the right place.</p>
+    <p class="intro-ar">استمع إلى الإرشادات وحرّك السيارة في المدينة — انعطف يميناً أو يساراً وتوقّف في المكان الصحيح.</p>
+
+    <div class="field-label">PLAYERS</div>
+    <div class="mode-row">
+      <button class="mode-card is-active" data-mode="1" type="button">
+        <div class="mc-emoji">🚗</div>
+        <div class="mc-name">1 PLAYER</div>
+        <div class="mc-desc">Practise alone. 5 routes, beat your own best score.</div>
+      </button>
+      <button class="mode-card" data-mode="2" type="button">
+        <div class="mc-emoji">🚗🏎️</div>
+        <div class="mc-name">2 PLAYERS</div>
+        <div class="mc-desc">Take turns on one device. Different routes each, highest score wins.</div>
+      </button>
+    </div>
+
+    <div class="field-label">NAMES</div>
+    <div class="player-inputs is-solo" id="playerInputs">
+      <div class="player-input p1"><label>PLAYER 1 🚗</label><input id="p1-name" type="text" value="Player 1" maxlength="12"></div>
+      <div class="player-input p2"><label>PLAYER 2 🏎️</label><input id="p2-name" type="text" value="Player 2" maxlength="12"></div>
+    </div>
+
+    <div class="field-label">DIFFICULTY</div>
+    <div class="level-row">
+      <button class="lev-btn is-active" data-level="easy"  type="button"><span class="lv-name">EASY</span><span class="lv-cefr">A1</span></button>
+      <button class="lev-btn"           data-level="medium" type="button"><span class="lv-name">MEDIUM</span><span class="lv-cefr">A2</span></button>
+      <button class="lev-btn"           data-level="hard"   type="button"><span class="lv-name">HARD</span><span class="lv-cefr">B1</span></button>
+      <button class="lev-btn"           data-level="hardplus" type="button"><span class="lv-name">HARD +</span><span class="lv-cefr">B2</span></button>
+    </div>
+    <div class="lev-desc" id="levDesc"></div>
+
+    <div class="actions">
+      <button class="btn is-gold" id="start-btn" type="button">▶ START DRIVING</button>
+    </div>
+  </div>
+
+  <!-- ══════════ GAME ══════════ -->
+  <div class="game-area" id="gameArea">
+
+    <div>
+      <div class="statbar">
+        <span class="stat">ROUTE <b id="routeNum">1</b>/<b id="routeTotal">5</b></span>
+        <span class="stat">MOVES <b id="moveCount">0</b></span>
+        <span class="stat timer" id="timerStat">TIME <b id="timerVal">--</b></span>
+        <span class="stat">LEVEL <b id="levelTag">EASY</b></span>
+      </div>
+
+      <div class="map-wrap">
+        <div class="map-inner">
+          <div class="map" id="map"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="panel">
+        <div class="panel-h">SCORE</div>
+        <div class="players is-solo" id="playersPanel">
+          <div class="pcard p1 is-turn" id="pcard1">
+            <div class="pcard-name" id="pname1">Player 1</div>
+            <div class="pcard-score" id="pscore1">0</div>
+            <div class="pcard-sub" id="psub1">0 arrived</div>
+          </div>
+          <div class="pcard p2" id="pcard2">
+            <div class="pcard-name" id="pname2">Player 2</div>
+            <div class="pcard-score" id="pscore2">0</div>
+            <div class="pcard-sub" id="psub2">0 arrived</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="instr">
+        <div class="instr-h"><span>YOUR DIRECTIONS</span><span class="step-count" id="stepCount"></span></div>
+        <div id="instrBody"></div>
+        <div class="audio-row">
+          <button class="mini-btn" id="replay-btn" type="button">🔊 Listen again</button>
+          <button class="mini-btn is-cost" id="peek-btn" type="button">👁 Show text (−15)</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-h">DRIVE</div>
+        <div class="controls">
+          <button class="ctrl go" id="btn-go" type="button"><span class="c-ico">⬆️</span><span class="c-lab">GO STRAIGHT</span></button>
+          <button class="ctrl" id="btn-left" type="button"><span class="c-ico">↰</span><span class="c-lab">TURN<br>LEFT</span></button>
+          <button class="ctrl" id="btn-uturn" type="button"><span class="c-ico">↻</span><span class="c-lab">U-<br>TURN</span></button>
+          <button class="ctrl" id="btn-right" type="button"><span class="c-ico">↱</span><span class="c-lab">TURN<br>RIGHT</span></button>
+          <button class="ctrl arrive" id="btn-arrive" type="button"><span class="c-ico">🏁</span><span class="c-lab">I'M HERE — STOP!</span></button>
+        </div>
+        <div class="kbd-hint">Keyboard: <b>↑</b> go · <b>←</b> left · <b>→</b> right · <b>↓</b> U-turn · <b>Enter</b> arrive</div>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+    </div>
+  </div>
+</main>
+
+<!-- ══════════ ROUND RESULT ══════════ -->
+<div class="ovl" id="roundOvl">
+  <div class="ovl-card">
+    <div class="ovl-emoji" id="roundEmoji">🎯</div>
+    <div class="ovl-title" id="roundTitle">YOU ARRIVED!</div>
+    <div class="ovl-sub" id="roundSub"></div>
+    <div class="score-lines" id="scoreLines"></div>
+    <div class="actions">
+      <button class="btn is-gold" id="next-btn" type="button">NEXT ROUTE →</button>
+    </div>
+    <div class="vocab-strip" id="vocabStrip"></div>
+  </div>
+</div>
+
+<!-- ══════════ HAND-OFF (2P) ══════════ -->
+<div class="ovl" id="handoffOvl">
+  <div class="ovl-card">
+    <div class="ovl-emoji">🔄</div>
+    <div class="ovl-title">PASS THE DEVICE</div>
+    <div class="ovl-sub">It's <span class="handoff-name" id="handoffName">Player 2</span>'s turn.<br>Get ready — a new route is waiting.</div>
+    <div class="actions"><button class="btn is-gold" id="handoff-btn" type="button">I'M READY ▶</button></div>
+  </div>
+</div>
+
+<!-- ══════════ FINAL ══════════ -->
+<div class="ovl" id="finalOvl">
+  <div class="ovl-card">
+    <div class="ovl-emoji" id="finalEmoji">🏆</div>
+    <div class="ovl-title" id="finalTitle">GAME OVER</div>
+    <div class="ovl-sub" id="finalSub"></div>
+    <div class="final-scores is-solo" id="finalScores">
+      <div class="fscore p1" id="fs1"><div class="fscore-name" id="fname1">Player 1</div><div class="fscore-val" id="fval1">0</div></div>
+      <div class="fscore p2" id="fs2"><div class="fscore-name" id="fname2">Player 2</div><div class="fscore-val" id="fval2">0</div></div>
+    </div>
+    <div class="actions">
+      <button class="btn is-gold" id="again-btn" type="button">PLAY AGAIN</button>
+      <button class="btn is-ghost" id="setup-btn" type="button">CHANGE SETTINGS</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../_shared/sounds.js"></script>
+<script src="../../_shared/progress.js"></script>
+<script>
+/* ════════════════════════════════════════════════════════════════
+   DIRECTIONS SIMULATOR — Inglizi.com Play
+   Grammar focus: imperatives + prepositions of movement and place.
+
+   Routes are generated procedurally, so the game never repeats:
+   a random legal path through the city grid is built first, and the
+   English directions are then WRITTEN FROM that path. The sentence
+   and the map can therefore never disagree.
+   ════════════════════════════════════════════════════════════════ */
+
+const GAME_ID = 'directions-sim'
+
+/* ── Geometry ──────────────────────────────────────────────────
+   The city is N×N intersections. The DOM grid is (2N-1)×(2N-1):
+     (even,even) → intersection      (odd,odd)  → building block
+     (odd,even)/(even,odd) → road segment
+   Intersection (x,y) lives at grid column 2x, row 2y.          */
+const N = 6
+const DIM = 2 * N - 1
+
+/* Facing: 0=North 1=East 2=South 3=West */
+const DIRS = [{dx:0,dy:-1},{dx:1,dy:0},{dx:0,dy:1},{dx:-1,dy:0}]
+const DIR_NAME = ['north','east','south','west']
+/* Rotation applied to the car emoji, which points north at 0deg. */
+const DIR_ROT = [0, 90, 180, 270]
+
+const LEVELS = {
+  easy:     { label:'EASY',   cefr:'A1', legs:2, maxBlocks:2, routes:5, drip:true,  hideText:false, replays:99, timer:0,   base:100, decoys:4,  peek:false,
+              desc:'One instruction at a time, on screen and read aloud. <b>Turn left, turn right, go straight.</b> No timer — take as long as you need.' },
+  medium:   { label:'MEDIUM', cefr:'A2', legs:3, maxBlocks:3, routes:5, drip:false, hideText:false, replays:3,  timer:0,   base:150, decoys:6,  peek:false,
+              desc:'The whole route at once, still written down. Adds <b>ordinals</b> — “take the second left”. Listen again up to 3 times.' },
+  hard:     { label:'HARD',   cefr:'B1', legs:4, maxBlocks:3, routes:5, drip:false, hideText:true,  replays:2,  timer:90,  base:220, decoys:8,  peek:true,
+              desc:'<b>Listening only</b> — the text is hidden. Adds landmarks: “go past the park”, “it’s opposite the bank”. 90s per route.' },
+  hardplus: { label:'HARD +', cefr:'B2', legs:5, maxBlocks:4, routes:5, drip:false, hideText:true,  replays:1,  timer:70,  base:320, decoys:11, peek:true,
+              desc:'Heard <b>once</b>. Five legs, longer streets, more decoy buildings, 70 seconds. This is the real thing.' },
+}
+
+/* ── City landmarks ───────────────────────────────────────────── */
+const LANDMARKS = [
+  {e:'🏦',n:'bank'},        {e:'🏫',n:'school'},      {e:'🏥',n:'hospital'},
+  {e:'🌳',n:'park'},        {e:'🛒',n:'supermarket'}, {e:'📮',n:'post office'},
+  {e:'📚',n:'library'},     {e:'☕',n:'café'},         {e:'🎬',n:'cinema'},
+  {e:'💊',n:'pharmacy'},    {e:'🚌',n:'bus station'}, {e:'🏛️',n:'museum'},
+  {e:'🥐',n:'bakery'},      {e:'🚓',n:'police station'},{e:'🏨',n:'hotel'},
+  {e:'🍽️',n:'restaurant'}, {e:'⛽',n:'petrol station'},{e:'🏋️',n:'gym'},
+  {e:'🕌',n:'mosque'},      {e:'🍕',n:'pizza place'},  {e:'✂️',n:'barber shop'},
+  {e:'🏟️',n:'stadium'},    {e:'🧺',n:'laundry'},      {e:'🖥️',n:'internet café'},
+]
+
+const ORDINALS = ['first','second','third','fourth','fifth','sixth']
+
+/* ── Small helpers ────────────────────────────────────────────── */
+const rnd  = n => Math.floor(Math.random() * n)
+const pick = a => a[rnd(a.length)]
+const inBounds = (x,y) => x >= 0 && x < N && y >= 0 && y < N
+const turnDir  = (d,t) => t === 'left' ? (d + 3) % 4 : (d + 1) % 4
+
+/* ════════════════════════════════════════════════════════════════
+   ROUTE GENERATION
+   Builds legs of {turn, blocks}: turn first (null on leg 0), then
+   drive `blocks` intersections forward. Everything stays in bounds.
+   ════════════════════════════════════════════════════════════════ */
+function buildRoute(cfg) {
+  for (let attempt = 0; attempt < 400; attempt++) {
+    const route = tryRoute(cfg)
+    if (route) return route
+  }
+  return tryRoute({ ...cfg, legs: 2, maxBlocks: 1 }) || null
+}
+
+function tryRoute(cfg) {
+  /* Start on an edge, facing into the city, so leg 1 always has room. */
+  const edges = [
+    { x: rnd(N), y: N - 1, dir: 0 },  // bottom edge, facing north
+    { x: 0,      y: rnd(N), dir: 1 }, // left edge,   facing east
+    { x: rnd(N), y: 0,      dir: 2 }, // top edge,    facing south
+    { x: N - 1,  y: rnd(N), dir: 3 }, // right edge,  facing west
+  ]
+  const start = pick(edges)
+  let x = start.x, y = start.y, dir = start.dir
+
+  const legs = []
+  const path = [{ x, y }]
+
+  for (let i = 0; i < cfg.legs; i++) {
+    let turn = null
+    if (i > 0) {
+      /* Only consider turns that leave at least one block of road. */
+      const options = ['left', 'right'].filter(t => {
+        const nd = turnDir(dir, t)
+        return inBounds(x + DIRS[nd].dx, y + DIRS[nd].dy)
+      })
+      if (!options.length) return null
+      turn = pick(options)
+      dir = turnDir(dir, turn)
+    }
+
+    /* How far can we drive before leaving the grid? */
+    let room = 0
+    let cx = x, cy = y
+    while (inBounds(cx + DIRS[dir].dx, cy + DIRS[dir].dy) && room < cfg.maxBlocks) {
+      cx += DIRS[dir].dx; cy += DIRS[dir].dy; room++
+    }
+    if (room < 1) return null
+
+    const blocks = 1 + rnd(room)
+    for (let b = 0; b < blocks; b++) {
+      x += DIRS[dir].dx; y += DIRS[dir].dy
+      path.push({ x, y })
+    }
+    legs.push({ turn, blocks })
+  }
+
+  /* The destination sits in a building block beside the final
+     intersection, in the quadrant ahead of the car. */
+  const side = pick(['left', 'right'])
+  const target = blockBeside(x, y, dir, side)
+  if (!target) {
+    const other = side === 'left' ? 'right' : 'left'
+    const alt = blockBeside(x, y, dir, other)
+    if (!alt) return null
+    return finish(start, legs, path, alt, other, x, y, dir)
+  }
+  return finish(start, legs, path, target, side, x, y, dir)
+}
+
+function finish(start, legs, path, block, side, endX, endY, endDir) {
+  return {
+    start, legs, path, side,
+    end: { x: endX, y: endY, dir: endDir },
+    targetBlock: block,
+  }
+}
+
+/* Building block touching intersection (x,y) on the given side,
+   in the half ahead of the car. Returns DOM grid coords or null. */
+function blockBeside(x, y, dir, side) {
+  const gx = 2 * x, gy = 2 * y
+  const f = DIRS[dir]
+  const rd = DIRS[(dir + 1) % 4]           // "right" unit vector
+  const s = side === 'right' ? 1 : -1
+  const bx = gx + f.dx + s * rd.dx
+  const by = gy + f.dy + s * rd.dy
+  if (bx < 0 || bx >= DIM || by < 0 || by >= DIM) return null
+  if (bx % 2 === 0 || by % 2 === 0) return null   // must be a building cell
+  return { gx: bx, gy: by }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SENTENCE GENERATION — written from the route, never invented.
+   ════════════════════════════════════════════════════════════════ */
+function writeDirections(route, cfg, level, targetName, waypoints) {
+  const out = []
+  const blocksPhrase = n => n === 1 ? 'one block' : n + ' blocks'
+  const legs = route.legs
+  const n = legs.length
+
+  if (level === 'easy') {
+    /* Easy spells out the model literally: drive, then turn, then drive.
+       Each sentence is exactly one action the player performs. */
+    legs.forEach((leg, i) => {
+      if (i > 0) out.push('Turn ' + leg.turn + '.')
+      out.push('Go straight for ' + blocksPhrase(leg.blocks) + '.')
+    })
+    out.push('Stop. The ' + targetName + ' is on your ' + route.side + '.')
+    return out
+  }
+
+  /* From A2 up we use natural direction-giving language. The ordinal in
+     "take the second left" counts junctions along the road you are ALREADY
+     on — so it comes from the previous leg's block count, not this one's. */
+  let lastTemplate = ''
+  const choose = opts => {
+    const fresh = opts.filter(o => o.key !== lastTemplate)
+    const o = pick(fresh.length ? fresh : opts)
+    lastTemplate = o.key
+    return o.text
+  }
+
+  for (let i = 1; i < n; i++) {
+    const runBefore = legs[i - 1].blocks   // junctions passed before turning
+    const turn = legs[i].turn
+    const wp = waypoints[i - 1]            // landmark on the road we are on now
+
+    const opts = [{ key: 'ord', text: 'Take the ' + ORDINALS[runBefore - 1] + ' ' + turn + '.' }]
+
+    if (level !== 'medium') {
+      opts.push({ key: 'straight',
+        text: 'Go straight for ' + blocksPhrase(runBefore) + ', then turn ' + turn + '.' })
+      if (runBefore === 1) {
+        opts.push({ key: 'lights', text: 'At the traffic lights, turn ' + turn + '.' })
+      }
+      /* Only when the run is exactly 2 blocks: the landmark sits at the
+         first junction, so "go past it, then turn" can only mean the
+         second junction. Any longer and the phrase stops being precise. */
+      if (wp && runBefore === 2) {
+        opts.push({ key: 'past', text: 'Go past the ' + wp.name + ', then turn ' + turn + '.' })
+      }
+    }
+    out.push(choose(opts))
+  }
+
+  /* Whatever is left after the last turn, plus where the place actually is. */
+  const finalRun = legs[n - 1].blocks
+  const opp = route.oppositeName
+  let tail = 'Go straight for ' + blocksPhrase(finalRun) + '. '
+  if (opp && level === 'hardplus') {
+    tail += 'The ' + targetName + ' is on your ' + route.side + ', opposite the ' + opp + '.'
+  } else if (opp && level === 'hard') {
+    tail += "It's opposite the " + opp + ', on your ' + route.side + '.'
+  } else {
+    tail += 'The ' + targetName + ' is on your ' + route.side + '.'
+  }
+  out.push(tail)
+  return out
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SPEECH
+   ════════════════════════════════════════════════════════════════ */
+let enVoice = null
+function loadVoices() {
+  if (!window.speechSynthesis) return
+  const v = speechSynthesis.getVoices()
+  enVoice = v.find(x => x.lang === 'en-US' && /Samantha|Allison|Karen|Daniel/i.test(x.name))
+    || v.find(x => x.lang === 'en-US')
+    || v.find(x => x.lang && x.lang.startsWith('en')) || null
+}
+if (window.speechSynthesis) { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices }
+
+function speakLines(lines, rate) {
+  if (!window.speechSynthesis) return
+  speechSynthesis.cancel()
+  lines.forEach((line, i) => {
+    const u = new SpeechSynthesisUtterance(line)
+    u.lang = 'en-US'
+    if (enVoice) u.voice = enVoice
+    u.rate = rate || 0.88
+    /* A beat between instructions so learners can process each one. */
+    if (i > 0) u.text = line
+    speechSynthesis.speak(u)
+  })
+}
+function stopSpeak() { if (window.speechSynthesis) speechSynthesis.cancel() }
+
+/* ════════════════════════════════════════════════════════════════
+   STATE
+   ════════════════════════════════════════════════════════════════ */
+const S = {
+  mode: 1, level: 'easy', cfg: LEVELS.easy,
+  names: ['Player 1', 'Player 2'],
+  scores: [0, 0], arrived: [0, 0],
+  turn: 0,                 // whose turn (index)
+  routeIndex: [0, 0],      // routes completed per player
+  route: null, lines: [], targetName: '', targetEmoji: '',
+  pos: {x:0,y:0}, dir: 0, moves: 0, wrongTurns: 0,
+  replaysLeft: 0, peeked: false, revealed: false,
+  dripIndex: 0,            // easy mode: which instruction is showing
+  timeLeft: 0, timerId: null, locked: true, over: false,
+  cells: [], actorEl: null, blockMap: {},
+}
+
+/* ── DOM ─────────────────────────────────────────────────────── */
+const $ = id => document.getElementById(id)
+const setupEl = $('setup'), gameArea = $('gameArea'), mapEl = $('map')
+const feedbackEl = $('feedback')
+
+/* ════════════════════════════════════════════════════════════════
+   MAP RENDERING
+   ════════════════════════════════════════════════════════════════ */
+function renderMap() {
+  mapEl.innerHTML = ''
+  /* renderMap runs once per route — clear the previous car and trail
+     or every round would leave another one behind. */
+  mapEl.parentElement.querySelectorAll('.actor, .trail').forEach(n => n.remove())
+
+  /* Roads are thin, blocks are fat — gives the grid a city look. */
+  const track = []
+  for (let i = 0; i < DIM; i++) track.push(i % 2 === 0 ? '0.34fr' : '1fr')
+  mapEl.style.gridTemplateColumns = track.join(' ')
+  mapEl.style.gridTemplateRows = track.join(' ')
+
+  S.cells = []
+  for (let row = 0; row < DIM; row++) {
+    for (let col = 0; col < DIM; col++) {
+      const d = document.createElement('div')
+      const evenCol = col % 2 === 0, evenRow = row % 2 === 0
+      if (evenCol && evenRow)       d.className = 'cell node'
+      else if (evenCol && !evenRow) d.className = 'cell road v'
+      else if (!evenCol && evenRow) d.className = 'cell road h'
+      else                          d.className = 'cell blockcell'
+      d.dataset.gx = col; d.dataset.gy = row
+      mapEl.appendChild(d)
+      S.cells.push(d)
+    }
+  }
+
+  S.actorEl = document.createElement('div')
+  S.actorEl.className = 'actor'
+  S.actorEl.textContent = '🚗'
+  mapEl.parentElement.appendChild(S.actorEl)
+}
+
+function cellAt(gx, gy) { return S.cells[gy * DIM + gx] }
+
+/* Place the destination + decoy landmarks. */
+function placeLandmarks(route, cfg) {
+  S.blockMap = {}
+  const blocks = []
+  for (let row = 1; row < DIM; row += 2)
+    for (let col = 1; col < DIM; col += 2) blocks.push({ gx: col, gy: row })
+
+  /* Destination first, so it is never overwritten. */
+  const target = pick(LANDMARKS)
+  S.targetName = target.n; S.targetEmoji = target.e
+  paintBlock(route.targetBlock, target, true)
+
+  /* A landmark directly across the street — powers "opposite the …". */
+  route.oppositeName = null
+  const acrossX = 2 * route.end.x - route.targetBlock.gx
+  const acrossY = 2 * route.end.y - route.targetBlock.gy
+  const used = [target.n]
+
+  const pool = LANDMARKS.filter(l => l.n !== target.n)
+  let pi = 0
+  const nextLm = () => pool[(pi++) % pool.length]
+
+  if (acrossX > 0 && acrossX < DIM && acrossY > 0 && acrossY < DIM &&
+      acrossX % 2 === 1 && acrossY % 2 === 1) {
+    const opp = nextLm()
+    paintBlock({ gx: acrossX, gy: acrossY }, opp, false)
+    if (cfg.decoys > 5) route.oppositeName = opp.n
+    used.push(opp.n)
+  }
+
+  /* Waypoints: a landmark beside an intersection the route passes
+     through, so "go past the X" refers to something really there. */
+  const waypoints = {}
+  let cursor = 0
+  route.legs.forEach((leg, i) => {
+    const before = cursor
+    cursor += leg.blocks
+    /* Leg 0 counts too — it is the road the very first turn is taken from. */
+    if (leg.blocks < 2) return
+    const node = route.path[before + 1]
+    if (!node) return
+    const b = blockBeside(node.x, node.y, dirOfLeg(route, i), pick(['left','right']))
+    if (!b || keyOf(b) in S.blockMap) return
+    const lm = nextLm()
+    paintBlock(b, lm, false)
+    waypoints[i] = { name: lm.n }
+    used.push(lm.n)
+  })
+
+  /* Decoys everywhere else. */
+  const free = blocks.filter(b => !(keyOf(b) in S.blockMap))
+  shuffle(free)
+  for (let i = 0; i < Math.min(cfg.decoys, free.length); i++) paintBlock(free[i], nextLm(), false)
+
+  return waypoints
+}
+
+function keyOf(b) { return b.gx + ',' + b.gy }
+
+function dirOfLeg(route, legIndex) {
+  let d = route.start.dir
+  for (let i = 1; i <= legIndex; i++) d = turnDir(d, route.legs[i].turn)
+  return d
+}
+
+function paintBlock(b, lm, isTarget) {
+  const el = cellAt(b.gx, b.gy)
+  if (!el) return
+  el.innerHTML = '<span class="lm">' + lm.e + '</span><span class="lm-name">' + lm.n + '</span>'
+  if (isTarget) el.classList.add('is-target')
+  S.blockMap[keyOf(b)] = lm.n
+}
+
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); const t = a[i]; a[i] = a[j]; a[j] = t } }
+
+/* Position the car over intersection (x,y). */
+function paintActor(animate) {
+  const node = cellAt(2 * S.pos.x, 2 * S.pos.y)
+  if (!node || !S.actorEl) return
+  if (!animate) S.actorEl.style.transition = 'none'
+  const mapRect = mapEl.getBoundingClientRect()
+  const r = node.getBoundingClientRect()
+  S.actorEl.style.left = (r.left - mapRect.left + r.width / 2) + 'px'
+  S.actorEl.style.top = (r.top - mapRect.top + r.height / 2) + 'px'
+  S.actorEl.style.transform = 'translate(-50%,-50%) rotate(' + DIR_ROT[S.dir] + 'deg)'
+  if (!animate) { void S.actorEl.offsetWidth; S.actorEl.style.transition = '' }
+}
+
+function dropTrail() {
+  const node = cellAt(2 * S.pos.x, 2 * S.pos.y)
+  if (!node) return
+  const mapRect = mapEl.getBoundingClientRect(), r = node.getBoundingClientRect()
+  const t = document.createElement('div')
+  t.className = 'trail'
+  t.style.left = (r.left - mapRect.left + r.width / 2) + 'px'
+  t.style.top = (r.top - mapRect.top + r.height / 2) + 'px'
+  mapEl.parentElement.appendChild(t)
+}
+
+function clearTrail() {
+  mapEl.parentElement.querySelectorAll('.trail').forEach(t => t.remove())
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ROUND FLOW
+   ════════════════════════════════════════════════════════════════ */
+function startGame() {
+  S.names[0] = ($('p1-name').value || 'Player 1').trim().slice(0, 12)
+  S.names[1] = ($('p2-name').value || 'Player 2').trim().slice(0, 12)
+  S.scores = [0, 0]; S.arrived = [0, 0]; S.routeIndex = [0, 0]
+  S.turn = 0; S.over = false
+  S.cfg = LEVELS[S.level]
+
+  $('pname1').textContent = S.names[0]
+  $('pname2').textContent = S.names[1]
+  $('routeTotal').textContent = S.cfg.routes
+  $('levelTag').textContent = S.cfg.label
+  $('playersPanel').classList.toggle('is-solo', S.mode === 1)
+  $('modePill').textContent = S.mode === 1 ? '1P · SOLO' : '2P · LOCAL'
+  $('timerStat').style.display = S.cfg.timer ? '' : 'none'
+  $('peek-btn').style.display = S.cfg.peek ? '' : 'none'
+
+  setupEl.style.display = 'none'
+  gameArea.classList.add('is-shown')
+  renderMap()
+  newRound()
+}
+
+function newRound() {
+  stopTimer(); stopSpeak()
+  S.locked = false; S.moves = 0; S.wrongTurns = 0
+  S.peeked = false; S.revealed = false; S.dripIndex = 0
+  S.replaysLeft = S.cfg.replays
+
+  const route = buildRoute(S.cfg)
+  if (!route) { setFeedback('Could not build a route — try again.', 'wrong'); return }
+  S.route = route
+
+  renderMap()
+  const waypoints = placeLandmarks(route, S.cfg)
+  S.lines = writeDirections(route, S.cfg, S.level, S.targetName, waypoints)
+
+  S.pos = { x: route.start.x, y: route.start.y }
+  S.dir = route.start.dir
+  clearTrail()
+  requestAnimationFrame(() => paintActor(false))
+
+  $('routeNum').textContent = (S.routeIndex[S.turn] + 1)
+  $('moveCount').textContent = '0'
+  updateScoreboard()
+  paintInstructions()
+  setFeedback('You are facing ' + DIR_NAME[S.dir] + '. Listen, then drive.', 'info')
+
+  const spoken = S.cfg.drip ? [S.lines[0]] : S.lines
+  setTimeout(() => speakLines(spoken), 350)
+
+  if (S.cfg.timer) startTimer(S.cfg.timer)
+  setControls(true)
+}
+
+function paintInstructions() {
+  const body = $('instrBody')
+  const hidden = S.cfg.hideText && !S.revealed
+
+  if (hidden) {
+    body.innerHTML = '<div class="instr-hidden"><span class="big">🎧</span>' +
+      'Listening only at this level.<br>Press <b>Listen again</b> to repeat.</div>'
+    $('stepCount').textContent = ''
+  } else if (S.cfg.drip) {
+    /* Easy: one instruction at a time. */
+    const ul = document.createElement('ul')
+    ul.className = 'instr-list'
+    S.lines.forEach((l, i) => {
+      if (i > S.dripIndex) return
+      const li = document.createElement('li')
+      li.textContent = l
+      if (i < S.dripIndex) li.classList.add('is-done')
+      else li.classList.add('is-current')
+      ul.appendChild(li)
+    })
+    body.innerHTML = ''
+    body.appendChild(ul)
+    $('stepCount').textContent = (S.dripIndex + 1) + '/' + S.lines.length
+  } else {
+    const ul = document.createElement('ul')
+    ul.className = 'instr-list'
+    S.lines.forEach(l => {
+      const li = document.createElement('li')
+      li.textContent = l
+      ul.appendChild(li)
+    })
+    body.innerHTML = ''
+    body.appendChild(ul)
+    $('stepCount').textContent = S.lines.length + ' steps'
+  }
+
+  $('replay-btn').disabled = S.replaysLeft <= 0
+  $('replay-btn').textContent = S.cfg.replays >= 99
+    ? '🔊 Listen again'
+    : '🔊 Listen again (' + S.replaysLeft + ')'
+  $('peek-btn').disabled = S.peeked || !S.cfg.hideText
+}
+
+/* Easy mode reveals the next instruction once the current one is done. */
+function advanceDrip() {
+  if (!S.cfg.drip) return
+  if (S.dripIndex >= S.lines.length - 1) return
+  S.dripIndex++
+  paintInstructions()
+  speakLines([S.lines[S.dripIndex]])
+}
+
+function setControls(on) {
+  ;['btn-go','btn-left','btn-right','btn-uturn','btn-arrive'].forEach(id => { $(id).disabled = !on })
+}
+
+function setFeedback(msg, kind) {
+  feedbackEl.textContent = msg
+  feedbackEl.className = 'feedback' + (kind ? ' is-' + kind : '')
+}
+
+/* ── Driving ──────────────────────────────────────────────────── */
+function doGo() {
+  if (S.locked) return
+  const nx = S.pos.x + DIRS[S.dir].dx, ny = S.pos.y + DIRS[S.dir].dy
+  if (!inBounds(nx, ny)) {
+    S.actorEl.classList.add('is-bump')
+    setTimeout(() => S.actorEl.classList.remove('is-bump'), 320)
+    setFeedback("That's the edge of the city — you can't go that way.", 'wrong')
+    if (window.PlaySounds) PlaySounds.wrong()
+    return
+  }
+  dropTrail()
+  S.pos = { x: nx, y: ny }
+  S.moves++
+  $('moveCount').textContent = S.moves
+  paintActor(true)
+  if (window.PlaySounds) PlaySounds.tick()
+  setFeedback('Driving ' + DIR_NAME[S.dir] + '…', '')
+  checkDripProgress()
+}
+
+function doTurn(t) {
+  if (S.locked) return
+  S.dir = turnDir(S.dir, t)
+  S.moves++
+  $('moveCount').textContent = S.moves
+  paintActor(true)
+  if (window.PlaySounds) PlaySounds.turn ? PlaySounds.turn() : PlaySounds.click()
+  setFeedback('You turned ' + t + '. Now facing ' + DIR_NAME[S.dir] + '.', '')
+  checkDripProgress()
+}
+
+function doUturn() {
+  if (S.locked) return
+  S.dir = (S.dir + 2) % 4
+  S.moves++
+  $('moveCount').textContent = S.moves
+  paintActor(true)
+  if (window.PlaySounds) PlaySounds.click()
+  setFeedback('U-turn. Now facing ' + DIR_NAME[S.dir] + '.', '')
+}
+
+/* In easy mode, move to the next instruction once this one is satisfied. */
+function checkDripProgress() {
+  if (!S.cfg.drip) return
+  const line = S.lines[S.dripIndex] || ''
+  const expected = expectedStateAfter(S.dripIndex)
+  if (!expected) return
+  if (S.pos.x === expected.x && S.pos.y === expected.y && S.dir === expected.dir) advanceDrip()
+}
+
+/* Where the car should be after completing instruction #i (easy mode,
+   where every line is exactly one turn or one straight run). */
+function expectedStateAfter(i) {
+  let x = S.route.start.x, y = S.route.start.y, d = S.route.start.dir
+  let idx = -1
+  for (let l = 0; l < S.route.legs.length; l++) {
+    const leg = S.route.legs[l]
+    if (leg.turn) {
+      d = turnDir(d, leg.turn); idx++
+      if (idx === i) return { x, y, dir: d }
+    }
+    for (let b = 0; b < leg.blocks; b++) { x += DIRS[d].dx; y += DIRS[d].dy }
+    idx++
+    if (idx === i) return { x, y, dir: d }
+  }
+  return null
+}
+
+function doArrive() {
+  if (S.locked) return
+  S.locked = true
+  setControls(false)
+  stopTimer(); stopSpeak()
+
+  const end = S.route.end
+  const atRightPlace = S.pos.x === end.x && S.pos.y === end.y
+  /* Being on the right corner but facing the wrong way still counts as
+     arriving — the destination is visible from the intersection. */
+  const facingRight = S.dir === end.dir
+
+  const tEl = document.querySelector('.blockcell.is-target')
+  if (tEl) tEl.classList.add('is-revealed')
+
+  const cfg = S.cfg
+  const perfect = idealMoves()
+  const extra = Math.max(0, S.moves - perfect)
+  const lines = []
+  let total = 0
+
+  if (atRightPlace) {
+    total += cfg.base
+    lines.push({ label: 'Arrived at the ' + S.targetName, val: '+' + cfg.base })
+    S.arrived[S.turn]++
+
+    if (facingRight) { total += 40; lines.push({ label: 'Correct final direction', val: '+40' }) }
+
+    if (extra === 0) { total += 60; lines.push({ label: 'Perfect route — no extra moves', val: '+60' }) }
+    else { const p = Math.min(extra * 10, cfg.base); total -= p; lines.push({ label: extra + ' extra move' + (extra > 1 ? 's' : ''), val: '−' + p, neg: true }) }
+
+    if (cfg.timer && S.timeLeft > 0) {
+      const b = S.timeLeft * 2
+      total += b
+      lines.push({ label: 'Time bonus (' + S.timeLeft + 's left)', val: '+' + b })
+    }
+  } else {
+    lines.push({ label: 'Wrong place — that is not the ' + S.targetName, val: '+0' })
+  }
+
+  if (S.peeked) { total -= 15; lines.push({ label: 'Used “show text”', val: '−15', neg: true }) }
+
+  total = Math.max(0, total)
+  S.scores[S.turn] += total
+
+  showRoundResult(atRightPlace, total, lines)
+}
+
+function idealMoves() {
+  /* One move per turn + one per block. */
+  return S.route.legs.reduce((n, leg) => n + (leg.turn ? 1 : 0) + leg.blocks, 0)
+}
+
+function showRoundResult(ok, total, lines) {
+  $('roundEmoji').textContent = ok ? '🎯' : '🤷'
+  $('roundTitle').textContent = ok ? 'YOU ARRIVED!' : 'NOT QUITE'
+  $('roundSub').innerHTML = ok
+    ? 'You found the <b>' + S.targetName + '</b>.' +
+      '<span class="route-recap">' + S.lines.join(' ') + '</span>'
+    : 'The <b>' + S.targetName + '</b> was somewhere else. It is glowing green on the map.' +
+      '<span class="route-recap">' + S.lines.join(' ') + '</span>'
+
+  const box = $('scoreLines')
+  box.innerHTML = ''
+  lines.forEach(l => {
+    const d = document.createElement('div')
+    d.className = 'score-line' + (l.neg ? ' is-neg' : '')
+    d.innerHTML = '<span>' + l.label + '</span><span>' + l.val + '</span>'
+    box.appendChild(d)
+  })
+  const t = document.createElement('div')
+  t.className = 'score-line is-total'
+  t.innerHTML = '<span>ROUTE TOTAL</span><span>+' + total + '</span>'
+  box.appendChild(t)
+
+  $('vocabStrip').innerHTML = '<b>WORDS FROM THIS ROUTE</b>' +
+    '<code>go straight</code> <code>turn left</code> <code>turn right</code> ' +
+    '<code>take the ' + ORDINALS[0] + ' left</code> <code>go past</code> ' +
+    '<code>on your ' + S.route.side + '</code> <code>opposite</code>'
+
+  updateScoreboard()
+  if (window.PlaySounds) { ok ? PlaySounds.win() : PlaySounds.lose() }
+  $('roundOvl').classList.add('is-shown')
+}
+
+function updateScoreboard() {
+  $('pscore1').textContent = S.scores[0]
+  $('pscore2').textContent = S.scores[1]
+  $('psub1').textContent = S.arrived[0] + ' arrived'
+  $('psub2').textContent = S.arrived[1] + ' arrived'
+  $('pcard1').classList.toggle('is-turn', S.turn === 0)
+  $('pcard2').classList.toggle('is-turn', S.turn === 1)
+}
+
+/* ── Round advance / hand-off ─────────────────────────────────── */
+function nextRoute() {
+  $('roundOvl').classList.remove('is-shown')
+  S.routeIndex[S.turn]++
+
+  if (S.mode === 1) {
+    if (S.routeIndex[0] >= S.cfg.routes) return endGame()
+    newRound()
+    return
+  }
+
+  /* 2P: alternate, each player plays cfg.routes routes of their own. */
+  const done = S.routeIndex[0] >= S.cfg.routes && S.routeIndex[1] >= S.cfg.routes
+  if (done) return endGame()
+
+  let next = 1 - S.turn
+  if (S.routeIndex[next] >= S.cfg.routes) next = S.turn   // other player finished
+  S.turn = next
+  updateScoreboard()
+
+  $('handoffName').textContent = S.names[S.turn]
+  $('handoffOvl').classList.add('is-shown')
+}
+
+function endGame() {
+  S.over = true
+  stopTimer(); stopSpeak()
+  $('finalScores').classList.toggle('is-solo', S.mode === 1)
+  $('fname1').textContent = S.names[0]
+  $('fname2').textContent = S.names[1]
+  $('fval1').textContent = S.scores[0]
+  $('fval2').textContent = S.scores[1]
+  $('fs1').classList.remove('is-winner'); $('fs2').classList.remove('is-winner')
+
+  if (S.mode === 1) {
+    $('finalEmoji').textContent = S.arrived[0] === S.cfg.routes ? '🏆' : '🚗'
+    $('finalTitle').textContent = 'ROUTE COMPLETE'
+    $('finalSub').innerHTML = 'You arrived at <b>' + S.arrived[0] + ' of ' + S.cfg.routes +
+      '</b> destinations on ' + S.cfg.label + '.'
+    $('fs1').classList.add('is-winner')
+  } else {
+    const w = S.scores[0] === S.scores[1] ? -1 : (S.scores[0] > S.scores[1] ? 0 : 1)
+    $('finalEmoji').textContent = w === -1 ? '🤝' : '🏆'
+    $('finalTitle').textContent = w === -1 ? "IT'S A DRAW!" : S.names[w].toUpperCase() + ' WINS!'
+    $('finalSub').innerHTML = S.names[0] + ' arrived ' + S.arrived[0] + '× · ' +
+      S.names[1] + ' arrived ' + S.arrived[1] + '×'
+    if (w >= 0) $(w === 0 ? 'fs1' : 'fs2').classList.add('is-winner')
+  }
+
+  if (window.PlayProgress) {
+    const best = Math.max(S.scores[0], S.mode === 2 ? S.scores[1] : 0)
+    PlayProgress.record(GAME_ID, S.cfg.cefr, best, S.cfg.routes * (S.cfg.base + 100))
+  }
+  if (window.PlaySounds) PlaySounds.win()
+  $('finalOvl').classList.add('is-shown')
+}
+
+/* ── Timer ────────────────────────────────────────────────────── */
+function startTimer(secs) {
+  S.timeLeft = secs
+  paintTimer()
+  S.timerId = setInterval(() => {
+    S.timeLeft--
+    paintTimer()
+    if (S.timeLeft <= 5 && S.timeLeft > 0 && window.PlaySounds) PlaySounds.tickLow()
+    if (S.timeLeft <= 0) { stopTimer(); timeUp() }
+  }, 1000)
+}
+function stopTimer() { if (S.timerId) { clearInterval(S.timerId); S.timerId = null } }
+function paintTimer() {
+  const b = $('timerVal')
+  b.textContent = S.timeLeft + 's'
+  b.classList.toggle('low', S.timeLeft <= 10)
+}
+function timeUp() {
+  if (S.locked) return
+  setFeedback("Time's up!", 'wrong')
+  doArrive()
+}
+
+/* ════════════════════════════════════════════════════════════════
+   WIRING
+   ════════════════════════════════════════════════════════════════ */
+document.querySelectorAll('.mode-card').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.mode-card').forEach(x => x.classList.remove('is-active'))
+  b.classList.add('is-active')
+  S.mode = Number(b.dataset.mode)
+  $('playerInputs').classList.toggle('is-solo', S.mode === 1)
+  if (window.PlaySounds) PlaySounds.click()
+}))
+
+document.querySelectorAll('.lev-btn').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.lev-btn').forEach(x => x.classList.remove('is-active'))
+  b.classList.add('is-active')
+  S.level = b.dataset.level
+  $('levDesc').innerHTML = LEVELS[S.level].desc
+  if (window.PlaySounds) PlaySounds.click()
+}))
+$('levDesc').innerHTML = LEVELS.easy.desc
+
+$('start-btn').addEventListener('click', startGame)
+$('btn-go').addEventListener('click', doGo)
+$('btn-left').addEventListener('click', () => doTurn('left'))
+$('btn-right').addEventListener('click', () => doTurn('right'))
+$('btn-uturn').addEventListener('click', doUturn)
+$('btn-arrive').addEventListener('click', doArrive)
+$('next-btn').addEventListener('click', nextRoute)
+
+$('handoff-btn').addEventListener('click', () => {
+  $('handoffOvl').classList.remove('is-shown')
+  newRound()
+})
+
+$('replay-btn').addEventListener('click', () => {
+  if (S.replaysLeft <= 0) return
+  S.replaysLeft--
+  speakLines(S.cfg.drip ? [S.lines[S.dripIndex]] : S.lines)
+  paintInstructions()
+})
+
+$('peek-btn').addEventListener('click', () => {
+  if (S.peeked) return
+  S.peeked = true; S.revealed = true
+  paintInstructions()
+  setFeedback('Text revealed — 15 points will be deducted.', 'wrong')
+})
+
+$('again-btn').addEventListener('click', () => {
+  $('finalOvl').classList.remove('is-shown')
+  startGame()
+})
+$('setup-btn').addEventListener('click', () => {
+  $('finalOvl').classList.remove('is-shown')
+  gameArea.classList.remove('is-shown')
+  setupEl.style.display = 'block'
+  stopTimer(); stopSpeak()
+})
+
+document.addEventListener('keydown', e => {
+  if (!gameArea.classList.contains('is-shown') || S.locked) return
+  if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return
+  if (e.key === 'ArrowUp')    { e.preventDefault(); doGo() }
+  if (e.key === 'ArrowLeft')  { e.preventDefault(); doTurn('left') }
+  if (e.key === 'ArrowRight') { e.preventDefault(); doTurn('right') }
+  if (e.key === 'ArrowDown')  { e.preventDefault(); doUturn() }
+  if (e.key === 'Enter')      { e.preventDefault(); doArrive() }
+})
+
+window.addEventListener('resize', () => { if (S.route) paintActor(false) })
+
+if (window.PlaySounds) PlaySounds.injectMuteButton(document.getElementById('muteHost'))
+</script>
+</body>
+</html>
