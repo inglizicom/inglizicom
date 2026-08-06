@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex, nofollow">
+  <title>Room Simulator — Prepositions · 1P/2P · Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Press+Start+2P&family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}button{font-family:inherit;cursor:pointer}a{text-decoration:none;color:inherit}
+    :root{--ink:#0c0a09;--bg:#0c0a09;--paper:#1c1917;--paper-2:#292524;--border:#44403c;--gold:#fbbf24;--gold-2:#fcd34d;--text:#fafaf9;--text-2:#d6d3d1;--text-muted:#a8a29e;--neon:#3b82f6;--neon-2:#60a5fa;--pink:#ec4899;--green:#4ade80;--red:#f87171;--purple:#a78bfa;--wall:#3a332c;--floor:#241f1b;--display:'Outfit',sans-serif;--arcade:'Press Start 2P',monospace;--arabic:'Cairo',sans-serif}
+    html,body{background:var(--bg);color:var(--text);font-family:var(--display);font-size:16px;min-height:100%;-webkit-font-smoothing:antialiased}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 60% 40% at 80% 0%,rgba(167,139,250,.10),transparent 60%),radial-gradient(ellipse 50% 35% at 20% 100%,rgba(236,72,153,.08),transparent 60%)}
+    body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:40px 40px}
+
+    .topbar{position:sticky;top:0;z-index:100;background:rgba(12,10,9,.92);backdrop-filter:blur(18px) saturate(180%);border-bottom:1px solid var(--border);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .back-link{display:inline-flex;align-items:center;gap:10px;padding:12px 20px;border-radius:999px;background:var(--paper);border:1px solid var(--border);font-size:16px;font-weight:700;color:var(--text-2)}
+    .back-link:hover{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+    .game-title{font-family:var(--arcade);font-size:18px;color:var(--gold);letter-spacing:.05em;display:flex;align-items:center;gap:8px}
+    .mode-pill{font-family:var(--arcade);font-size:13px;padding:8px 18px;border-radius:999px;background:rgba(167,139,250,.15);color:var(--purple);border:1px solid rgba(167,139,250,.4);letter-spacing:.15em}
+    .page{position:relative;z-index:2;max-width:1500px;margin:0 auto;padding:24px 24px 60px}
+
+    /* ── SETUP ─────────────────────────────────────────── */
+    .setup{padding:44px 32px;border-radius:22px;background:var(--paper);border:2px solid var(--border);text-align:center;max-width:980px;margin:0 auto}
+    .setup h2{font-family:var(--arcade);font-size:22px;color:var(--gold);margin-bottom:14px;letter-spacing:.05em}
+    .setup .intro{font-size:17px;line-height:1.6;color:var(--text-2);margin-bottom:10px}
+    .setup .intro-ar{font-family:var(--arabic);direction:rtl;font-size:16px;color:var(--text-muted);margin-bottom:30px}
+    .field-label{font-family:var(--arcade);font-size:10px;color:var(--text-muted);letter-spacing:.18em;margin-bottom:12px}
+    .mode-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
+    @media(max-width:640px){.mode-row{grid-template-columns:1fr}}
+    .mode-card{padding:22px 18px;border-radius:16px;background:var(--paper-2);border:3px solid var(--border);transition:all .18s ease;text-align:center}
+    .mode-card:hover{border-color:var(--gold-2)}
+    .mode-card.is-active{border-color:var(--gold);background:rgba(251,191,36,.10);box-shadow:0 0 26px -6px rgba(251,191,36,.45)}
+    .mode-card .mc-emoji{font-size:38px;line-height:1;margin-bottom:10px}
+    .mode-card .mc-name{font-family:var(--arcade);font-size:13px;color:var(--text);letter-spacing:.1em;margin-bottom:8px}
+    .mode-card.is-active .mc-name{color:var(--gold)}
+    .mode-card .mc-desc{font-size:13px;color:var(--text-muted);line-height:1.45}
+    .player-inputs{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:28px}
+    @media(max-width:640px){.player-inputs{grid-template-columns:1fr}}
+    .player-inputs.is-solo{grid-template-columns:1fr;max-width:420px;margin-left:auto;margin-right:auto}
+    .player-inputs.is-solo .player-input.p2{display:none}
+    .player-input{padding:20px;border-radius:14px;background:var(--paper-2);border:3px solid var(--border)}
+    .player-input.p1{border-color:rgba(59,130,246,.5)} .player-input.p2{border-color:rgba(236,72,153,.5)}
+    .player-input label{display:block;font-family:var(--arcade);font-size:12px;letter-spacing:.15em;margin-bottom:12px}
+    .player-input.p1 label{color:var(--neon)} .player-input.p2 label{color:var(--pink)}
+    .player-input input{width:100%;padding:14px;border-radius:10px;background:var(--ink);border:2px solid var(--border);color:var(--text);font-family:var(--display);font-size:20px;font-weight:700;text-align:center;outline:none}
+    .player-input input:focus{border-color:var(--gold)}
+    .level-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+    @media(max-width:760px){.level-row{grid-template-columns:1fr 1fr}}
+    .lev-btn{padding:16px 12px;border-radius:14px;background:transparent;border:2px solid var(--border);color:var(--text-2);transition:all .18s ease;text-align:center}
+    .lev-btn:hover{border-color:var(--gold);color:var(--gold)}
+    .lev-btn.is-active{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+    .lev-btn .lv-name{font-family:var(--arcade);font-size:12px;letter-spacing:.08em;display:block;margin-bottom:7px}
+    .lev-btn .lv-cefr{font-size:12px;font-weight:800;opacity:.75;display:block}
+    .lev-desc{min-height:44px;font-size:14px;color:var(--text-muted);line-height:1.5;margin-bottom:26px;padding:0 8px}
+    .lev-desc b{color:var(--gold-2)}
+
+    /* ── GAME ──────────────────────────────────────────── */
+    .game-area{display:none}
+    .game-area.is-shown{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:22px;align-items:start}
+    @media(max-width:1080px){.game-area.is-shown{grid-template-columns:1fr}}
+
+    .statbar{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:14px;padding:14px 18px;border-radius:14px;background:var(--paper);border:2px solid var(--border)}
+    .stat{font-family:var(--arcade);font-size:11px;color:var(--text-muted);letter-spacing:.1em}
+    .stat b{color:var(--gold);font-size:16px;margin-left:6px}
+    .stat.timer b.low{color:var(--red)}
+
+    .room-wrap{padding:16px;border-radius:22px;background:var(--paper);border:3px solid var(--border)}
+    .room{position:relative;width:100%;aspect-ratio:4/3;border-radius:14px;overflow:hidden;
+      background:linear-gradient(180deg,var(--wall) 0%,var(--wall) 68%,var(--floor) 68%,var(--floor) 100%)}
+    .room::after{content:"";position:absolute;left:0;right:0;top:68%;height:5px;background:linear-gradient(180deg,#4a4139,rgba(0,0,0,.55));box-shadow:0 -1px 0 rgba(255,255,255,.05)}
+
+    .furn{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px;pointer-events:none;z-index:2}
+    .furn .f-ico{font-size:clamp(26px,4.4vw,52px);line-height:1;filter:drop-shadow(0 3px 5px rgba(0,0,0,.65))}
+    .furn .f-name{font-size:10px;font-weight:800;color:#cfc6ba;letter-spacing:.01em;text-shadow:0 1px 3px rgba(0,0,0,.9)}
+
+    /* drop slots */
+    .slot{position:absolute;transform:translate(-50%,-50%);z-index:5;width:clamp(30px,4.6vw,46px);height:clamp(30px,4.6vw,46px);
+      border-radius:50%;border:2px dashed rgba(251,191,36,.45);background:rgba(251,191,36,.07);
+      display:flex;align-items:center;justify-content:center;transition:all .16s ease;cursor:pointer;padding:0}
+    .slot:hover{border-color:var(--gold);background:rgba(251,191,36,.22);transform:translate(-50%,-50%) scale(1.14)}
+    .slot.is-armed{border-style:solid;border-color:var(--gold);box-shadow:0 0 16px rgba(251,191,36,.55)}
+    .slot.depth-back{opacity:.72;transform:translate(-50%,-50%) scale(.82)}
+    .slot.depth-back:hover{transform:translate(-50%,-50%) scale(.94)}
+    .slot.depth-front{box-shadow:0 4px 12px rgba(0,0,0,.6)}
+    .slot.is-filled{border-style:solid;border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.06)}
+    .slot .placed{font-size:clamp(17px,2.7vw,28px);line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))}
+    .slot.is-correct{border-color:var(--green);background:rgba(74,222,128,.24);box-shadow:0 0 18px rgba(74,222,128,.5)}
+    .slot.is-wrong{border-color:var(--red);background:rgba(248,113,113,.22)}
+    .slot.is-answer{border-color:var(--green);border-style:dashed;animation:pulseAns 1s ease infinite}
+    @keyframes pulseAns{0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,.5)}50%{box-shadow:0 0 20px 6px rgba(74,222,128,.35)}}
+
+    /* object tray */
+    .tray{margin-top:14px;padding:14px;border-radius:16px;background:var(--paper-2);border:2px solid var(--border)}
+    .tray-h{font-family:var(--arcade);font-size:10px;color:var(--text-muted);letter-spacing:.18em;margin-bottom:12px}
+    .tray-items{display:flex;gap:10px;flex-wrap:wrap;min-height:64px}
+    .titem{padding:9px 13px;border-radius:12px;background:var(--ink);border:3px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .16s ease;min-width:66px}
+    .titem:hover:not(:disabled){border-color:var(--gold);transform:translateY(-3px)}
+    .titem.is-armed{border-color:var(--gold);background:rgba(251,191,36,.14);box-shadow:0 0 18px -3px rgba(251,191,36,.6);transform:translateY(-3px)}
+    .titem:disabled{opacity:.28;cursor:not-allowed}
+    .titem .ti-ico{font-size:26px;line-height:1}
+    .titem .ti-name{font-size:10px;font-weight:800;color:var(--text-muted)}
+    .titem.is-armed .ti-name{color:var(--gold)}
+
+    /* ── SIDE ──────────────────────────────────────────── */
+    .side{display:flex;flex-direction:column;gap:14px}
+    .panel{padding:18px;border-radius:16px;background:var(--paper);border:2px solid var(--border)}
+    .panel-h{font-family:var(--arcade);font-size:10px;color:var(--text-muted);letter-spacing:.18em;margin-bottom:12px}
+    .players{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .players.is-solo{grid-template-columns:1fr}
+    .players.is-solo .pcard.p2{display:none}
+    .pcard{padding:14px 10px;border-radius:12px;background:var(--paper-2);border:3px solid var(--border);text-align:center;transition:all .22s ease}
+    .pcard.p1{border-color:rgba(59,130,246,.45)} .pcard.p2{border-color:rgba(236,72,153,.45)}
+    .pcard.p1.is-turn{border-color:var(--neon);box-shadow:0 0 22px -4px rgba(59,130,246,.7);transform:scale(1.04)}
+    .pcard.p2.is-turn{border-color:var(--pink);box-shadow:0 0 22px -4px rgba(236,72,153,.7);transform:scale(1.04)}
+    .pcard-name{font-family:var(--arcade);font-size:11px;letter-spacing:.08em;margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .pcard.p1 .pcard-name{color:var(--neon)} .pcard.p2 .pcard-name{color:var(--pink)}
+    .pcard-score{font-family:var(--arcade);font-size:22px;color:var(--gold);text-shadow:0 0 12px rgba(251,191,36,.4)}
+    .pcard-sub{font-size:11px;color:var(--text-muted);margin-top:6px}
+
+    .instr{padding:18px;border-radius:16px;background:linear-gradient(180deg,rgba(167,139,250,.10),rgba(167,139,250,.03));border:2px solid rgba(167,139,250,.4)}
+    .instr-h{font-family:var(--arcade);font-size:10px;color:var(--purple);letter-spacing:.18em;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .instr-h .step-count{color:var(--text-muted)}
+    .instr-list{display:flex;flex-direction:column;gap:9px;list-style:none}
+    .instr-list li{font-size:16px;font-weight:700;line-height:1.45;color:var(--text);padding:11px 13px;border-radius:10px;background:rgba(0,0,0,.35);border-left:4px solid var(--border);transition:all .2s ease}
+    .instr-list li.is-done{opacity:.45;border-left-color:var(--green)}
+    .instr-list li.is-current{border-left-color:var(--gold);background:rgba(251,191,36,.12);box-shadow:0 0 16px -6px rgba(251,191,36,.6)}
+    .instr-hidden{text-align:center;padding:24px 12px;color:var(--text-muted);font-size:14px;line-height:1.6}
+    .instr-hidden .big{font-size:44px;display:block;margin-bottom:10px}
+    .audio-row{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
+    .mini-btn{flex:1;min-width:120px;padding:12px 10px;border-radius:10px;background:var(--paper-2);border:2px solid var(--border);color:var(--text-2);font-size:13px;font-weight:800;transition:all .18s ease}
+    .mini-btn:hover:not(:disabled){border-color:var(--gold);color:var(--gold)}
+    .mini-btn:disabled{opacity:.35;cursor:not-allowed}
+    .mini-btn.is-cost{border-color:rgba(248,113,113,.5);color:var(--red)}
+    .mini-btn.is-cost:hover:not(:disabled){background:rgba(248,113,113,.12);border-color:var(--red)}
+
+    .btn{padding:16px 28px;border-radius:12px;font-family:var(--display);font-size:17px;font-weight:800;transition:all .18s ease;border:none}
+    .btn.is-gold{background:linear-gradient(135deg,var(--gold),var(--gold-2));color:var(--ink);box-shadow:0 8px 18px -4px rgba(251,191,36,.5)}
+    .btn.is-gold:hover{transform:translateY(-2px)}
+    .btn.is-ghost{background:transparent;color:var(--text-2);border:2px solid var(--border)}
+    .btn.is-ghost:hover{border-color:var(--neon);color:var(--neon)}
+    .btn.is-wide{width:100%}
+    .btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+    .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+    .feedback{min-height:26px;font-family:var(--arcade);font-size:12px;text-align:center;color:var(--text-muted);letter-spacing:.08em;line-height:1.7;padding:0 6px}
+    .feedback.is-right{color:var(--green)} .feedback.is-wrong{color:var(--red)} .feedback.is-info{color:var(--gold)}
+
+    /* ── OVERLAYS ──────────────────────────────────────── */
+    .ovl{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.94);backdrop-filter:blur(12px);padding:28px}
+    .ovl.is-shown{display:flex}
+    .ovl-card{padding:44px 36px;background:var(--paper);border:4px solid var(--gold);border-radius:24px;text-align:center;max-width:660px;width:100%;box-shadow:0 0 80px rgba(251,191,36,.45);max-height:90vh;overflow-y:auto}
+    .ovl-emoji{font-size:88px;line-height:1;margin-bottom:12px;animation:bounce 1s ease infinite alternate}
+    @keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-12px)}}
+    .ovl-title{font-family:var(--arcade);font-size:24px;color:var(--gold);letter-spacing:.06em;margin-bottom:14px;text-shadow:0 0 20px rgba(251,191,36,.5);line-height:1.4}
+    .ovl-sub{font-size:17px;color:var(--text-2);margin-bottom:24px;line-height:1.6}
+    .review{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;text-align:left}
+    .rev{display:flex;gap:11px;align-items:flex-start;padding:11px 14px;border-radius:10px;background:var(--paper-2);font-size:14.5px;line-height:1.45}
+    .rev.ok{border-left:4px solid var(--green)} .rev.no{border-left:4px solid var(--red)}
+    .rev .rev-mark{font-size:17px;line-height:1.2}
+    .rev .rev-fix{display:block;color:var(--text-muted);font-size:13px;margin-top:3px}
+    .score-lines{display:flex;flex-direction:column;gap:8px;margin-bottom:26px;text-align:left;max-width:340px;margin-left:auto;margin-right:auto}
+    .score-line{display:flex;justify-content:space-between;gap:14px;font-size:15px;padding:9px 14px;border-radius:9px;background:var(--paper-2)}
+    .score-line span:last-child{font-weight:900;color:var(--gold)}
+    .score-line.is-neg span:last-child{color:var(--red)}
+    .score-line.is-total{background:rgba(251,191,36,.14);border:2px solid rgba(251,191,36,.4);font-weight:900}
+    .final-scores{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:26px}
+    .final-scores.is-solo{grid-template-columns:1fr;max-width:260px;margin-left:auto;margin-right:auto}
+    .final-scores.is-solo .fscore.p2{display:none}
+    .fscore{padding:20px 14px;border-radius:14px;background:var(--paper-2);border:3px solid var(--border)}
+    .fscore.p1{border-color:rgba(59,130,246,.5)} .fscore.p2{border-color:rgba(236,72,153,.5)}
+    .fscore.is-winner{border-color:var(--gold);box-shadow:0 0 26px -6px rgba(251,191,36,.6)}
+    .fscore-name{font-family:var(--arcade);font-size:11px;letter-spacing:.08em;margin-bottom:10px}
+    .fscore.p1 .fscore-name{color:var(--neon)} .fscore.p2 .fscore-name{color:var(--pink)}
+    .fscore-val{font-family:var(--arcade);font-size:26px;color:var(--gold)}
+    .handoff-name{color:var(--gold);font-weight:900}
+    .vocab-strip{margin-top:22px;padding-top:18px;border-top:1px dashed var(--border);font-size:13px;color:var(--text-muted);line-height:1.9;text-align:left}
+    .vocab-strip b{color:var(--gold-2);font-family:var(--arcade);font-size:9px;letter-spacing:.15em;display:block;margin-bottom:8px}
+    .vocab-strip code{background:var(--paper-2);padding:2px 7px;border-radius:5px;color:var(--text-2);font-family:var(--display);font-weight:700}
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">
+    <svg width="30" height="30" viewBox="0 0 64 64" style="vertical-align:middle" aria-hidden="true">
+      <rect x="6" y="10" width="52" height="34" rx="3" fill="#2b2622" stroke="#57534e" stroke-width="2"/>
+      <rect x="10" y="44" width="44" height="10" fill="#1f1b18"/>
+      <rect x="14" y="30" width="18" height="12" rx="2" fill="#a78bfa"/>
+      <circle cx="44" cy="24" r="7" fill="#fbbf24"/>
+    </svg>
+    ROOM
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="mode-pill" id="modePill">1P / 2P</div>
+    <div id="muteHost"></div>
+  </div>
+</nav>
+
+<main class="page">
+
+  <!-- ══════════ SETUP ══════════ -->
+  <div class="setup" id="setup">
+    <h2>ROOM SIMULATOR</h2>
+    <p class="intro">Listen to where things go, then <b>put them there</b>.<br>On the table, under the chair, next to the lamp, between the sofa and the window.</p>
+    <p class="intro-ar">استمع إلى مكان كل شيء ثم ضعه في مكانه الصحيح — على، تحت، بجانب، بين، خلف، أمام.</p>
+
+    <div class="field-label">PLAYERS</div>
+    <div class="mode-row">
+      <button class="mode-card is-active" data-mode="1" type="button">
+        <div class="mc-emoji">🧸</div><div class="mc-name">1 PLAYER</div>
+        <div class="mc-desc">Practise alone. 5 rooms, beat your own best score.</div>
+      </button>
+      <button class="mode-card" data-mode="2" type="button">
+        <div class="mc-emoji">🧸🎒</div><div class="mc-name">2 PLAYERS</div>
+        <div class="mc-desc">Take turns on one device. A different room each, highest score wins.</div>
+      </button>
+    </div>
+
+    <div class="field-label">NAMES</div>
+    <div class="player-inputs is-solo" id="playerInputs">
+      <div class="player-input p1"><label>PLAYER 1 🧸</label><input id="p1-name" type="text" value="Player 1" maxlength="12"></div>
+      <div class="player-input p2"><label>PLAYER 2 🎒</label><input id="p2-name" type="text" value="Player 2" maxlength="12"></div>
+    </div>
+
+    <div class="field-label">DIFFICULTY</div>
+    <div class="level-row">
+      <button class="lev-btn is-active" data-level="easy"     type="button"><span class="lv-name">EASY</span><span class="lv-cefr">A1</span></button>
+      <button class="lev-btn"           data-level="medium"   type="button"><span class="lv-name">MEDIUM</span><span class="lv-cefr">A2</span></button>
+      <button class="lev-btn"           data-level="hard"     type="button"><span class="lv-name">HARD</span><span class="lv-cefr">B1</span></button>
+      <button class="lev-btn"           data-level="hardplus" type="button"><span class="lv-name">HARD +</span><span class="lv-cefr">B2</span></button>
+    </div>
+    <div class="lev-desc" id="levDesc"></div>
+
+    <div class="actions"><button class="btn is-gold" id="start-btn" type="button">▶ START</button></div>
+  </div>
+
+  <!-- ══════════ GAME ══════════ -->
+  <div class="game-area" id="gameArea">
+    <div>
+      <div class="statbar">
+        <span class="stat">ROOM <b id="roundNum">1</b>/<b id="roundTotal">5</b></span>
+        <span class="stat">PLACED <b id="placedCount">0</b>/<b id="placedTotal">3</b></span>
+        <span class="stat timer" id="timerStat">TIME <b id="timerVal">--</b></span>
+        <span class="stat">LEVEL <b id="levelTag">EASY</b></span>
+      </div>
+
+      <div class="room-wrap">
+        <div class="room" id="room"></div>
+        <div class="tray">
+          <div class="tray-h">1 · PICK AN OBJECT &nbsp;→&nbsp; 2 · CLICK WHERE IT GOES</div>
+          <div class="tray-items" id="tray"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="panel">
+        <div class="panel-h">SCORE</div>
+        <div class="players is-solo" id="playersPanel">
+          <div class="pcard p1 is-turn" id="pcard1"><div class="pcard-name" id="pname1">Player 1</div><div class="pcard-score" id="pscore1">0</div><div class="pcard-sub" id="psub1">0 correct</div></div>
+          <div class="pcard p2" id="pcard2"><div class="pcard-name" id="pname2">Player 2</div><div class="pcard-score" id="pscore2">0</div><div class="pcard-sub" id="psub2">0 correct</div></div>
+        </div>
+      </div>
+
+      <div class="instr">
+        <div class="instr-h"><span>WHERE THINGS GO</span><span class="step-count" id="stepCount"></span></div>
+        <div id="instrBody"></div>
+        <div class="audio-row">
+          <button class="mini-btn" id="replay-btn" type="button">🔊 Listen again</button>
+          <button class="mini-btn is-cost" id="peek-btn" type="button">👁 Show text (−15)</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-h">WHEN YOU ARE READY</div>
+        <button class="btn is-gold is-wide" id="check-btn" type="button" disabled>✓ CHECK THE ROOM</button>
+        <button class="btn is-ghost is-wide" id="clear-btn" type="button" style="margin-top:10px;font-size:14px;padding:11px">↺ Take everything back</button>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+    </div>
+  </div>
+</main>
+
+<!-- ══════════ ROUND RESULT ══════════ -->
+<div class="ovl" id="roundOvl">
+  <div class="ovl-card">
+    <div class="ovl-emoji" id="roundEmoji">🎯</div>
+    <div class="ovl-title" id="roundTitle">ROOM CHECKED</div>
+    <div class="ovl-sub" id="roundSub"></div>
+    <div class="review" id="review"></div>
+    <div class="score-lines" id="scoreLines"></div>
+    <div class="actions"><button class="btn is-gold" id="next-btn" type="button">NEXT ROOM →</button></div>
+    <div class="vocab-strip" id="vocabStrip"></div>
+  </div>
+</div>
+
+<div class="ovl" id="handoffOvl">
+  <div class="ovl-card">
+    <div class="ovl-emoji">🔄</div>
+    <div class="ovl-title">PASS THE DEVICE</div>
+    <div class="ovl-sub">It's <span class="handoff-name" id="handoffName">Player 2</span>'s turn.<br>A new room is waiting.</div>
+    <div class="actions"><button class="btn is-gold" id="handoff-btn" type="button">I'M READY ▶</button></div>
+  </div>
+</div>
+
+<div class="ovl" id="finalOvl">
+  <div class="ovl-card">
+    <div class="ovl-emoji" id="finalEmoji">🏆</div>
+    <div class="ovl-title" id="finalTitle">GAME OVER</div>
+    <div class="ovl-sub" id="finalSub"></div>
+    <div class="final-scores is-solo" id="finalScores">
+      <div class="fscore p1" id="fs1"><div class="fscore-name" id="fname1">Player 1</div><div class="fscore-val" id="fval1">0</div></div>
+      <div class="fscore p2" id="fs2"><div class="fscore-name" id="fname2">Player 2</div><div class="fscore-val" id="fval2">0</div></div>
+    </div>
+    <div class="actions">
+      <button class="btn is-gold" id="again-btn" type="button">PLAY AGAIN</button>
+      <button class="btn is-ghost" id="setup-btn" type="button">CHANGE SETTINGS</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../_shared/sounds.js"></script>
+<script src="../../_shared/progress.js"></script>
+<script>
+/* ════════════════════════════════════════════════════════════════
+   ROOM SIMULATOR — Inglizi.com Play
+   Grammar focus: prepositions of place.
+
+   Same principle as the Directions Simulator: the placement is
+   decided FIRST from the room's real geometry, and the English is
+   written from it — so the sentence and the room always agree.
+   ════════════════════════════════════════════════════════════════ */
+
+const GAME_ID = 'room-prepositions'
+
+/* ── The room ─────────────────────────────────────────────────
+   Positions are % of the room box. The floor line sits at 68%,
+   so anything standing on the floor is anchored near it.        */
+const TABLE_SVG =
+  '<svg viewBox="0 0 64 40" width="1em" height="0.62em" style="width:clamp(30px,5vw,60px);height:auto">' +
+  '<rect x="2" y="8" width="60" height="7" rx="2" fill="#8a6240"/>' +
+  '<rect x="2" y="8" width="60" height="3" rx="1.5" fill="#a87a52"/>' +
+  '<rect x="8" y="15" width="6" height="23" fill="#6b4a2f"/>' +
+  '<rect x="50" y="15" width="6" height="23" fill="#6b4a2f"/>' +
+  '</svg>'
+
+const FURNITURE = [
+  { id:'shelf',    name:'shelf',    ico:'📚', x:16, y:22, preps:['on','under','above'] },
+  { id:'window',   name:'window',   ico:'🪟', x:50, y:19, preps:['next to','under'] },
+  { id:'picture',  name:'picture',  ico:'🖼️', x:82, y:20, preps:['next to','under'] },
+  { id:'lamp',     name:'lamp',     ico:'💡', x:27, y:47, preps:['next to','behind'] },
+  { id:'table',    name:'table',    svg:TABLE_SVG, x:47, y:56, preps:['on','under','next to','in front of','behind'] },
+  { id:'cupboard', name:'cupboard', ico:'🗄️', x:88, y:47, preps:['in','next to'] },
+  { id:'sofa',     name:'sofa',     ico:'🛋️', x:24, y:74, preps:['on','next to','behind','in front of'] },
+  { id:'box',      name:'box',      ico:'📦', x:62, y:80, preps:['in','on','next to'] },
+  { id:'chair',    name:'chair',    ico:'🪑', x:80, y:76, preps:['on','under','next to'] },
+  { id:'rug',      name:'rug',      ico:'🟫', x:45, y:88, preps:['on'] },
+]
+
+/* Where a slot sits relative to its furniture, in % of the room. */
+const PREP_OFFSET = {
+  'on':          { dx: 0,   dy: -8,  depth:'' },
+  'under':       { dx: 0,   dy: 8.5, depth:'' },
+  'in':          { dx: 0,   dy: 0,   depth:'' },
+  'next to':     { dx: 10,  dy: 0,   depth:'' },
+  'above':       { dx: 0,   dy: -15, depth:'' },
+  'behind':      { dx: -7,  dy: -6,  depth:'back' },
+  'in front of': { dx: 5.5, dy: 7.5, depth:'front' },
+}
+
+const OBJECTS = [
+  {ico:'🥤',n:'cup'},   {ico:'📗',n:'book'},  {ico:'🐈',n:'cat'},   {ico:'⚽',n:'ball'},
+  {ico:'🔑',n:'keys'},  {ico:'📱',n:'phone'}, {ico:'🎒',n:'bag'},   {ico:'🍎',n:'apple'},
+  {ico:'🎩',n:'hat'},   {ico:'👟',n:'shoe'},  {ico:'🧸',n:'teddy'}, {ico:'🪴',n:'plant'},
+  {ico:'✏️',n:'pencil'},{ico:'🧦',n:'sock'},  {ico:'⌚',n:'watch'},  {ico:'🕶️',n:'glasses'},
+]
+
+const LEVELS = {
+  easy: { label:'EASY', cefr:'A1', items:3, drip:true, hideText:false, replays:99, timer:0, base:60, peek:false,
+    furn:['shelf','table','box','chair','rug'], preps:['on','under','in'],
+    desc:'One object at a time, on screen and read aloud. Just <b>on, under, in</b>. No timer.' },
+  medium: { label:'MEDIUM', cefr:'A2', items:4, drip:false, hideText:false, replays:3, timer:0, base:95, peek:false,
+    furn:['shelf','table','box','chair','rug','sofa','lamp','window'], preps:['on','under','in','next to','behind','in front of'],
+    desc:'All four at once, still written. Adds <b>next to, behind, in front of</b>. 3 replays.' },
+  hard: { label:'HARD', cefr:'B1', items:5, drip:false, hideText:true, replays:2, timer:100, base:150, peek:true, between:true,
+    furn:null, preps:['on','under','in','next to','behind','in front of','above'],
+    desc:'<b>Listening only</b> — the text is hidden. Adds <b>above</b> and <b>between … and …</b>. 100s.' },
+  hardplus: { label:'HARD +', cefr:'B2', items:6, drip:false, hideText:true, replays:1, timer:80, base:220, peek:true, between:true, chain:true,
+    furn:null, preps:['on','under','in','next to','behind','in front of','above'],
+    desc:'Heard <b>once</b>. Six objects, instructions <b>joined into pairs</b>, whole room full of slots. 80 seconds.' },
+}
+
+/* ── helpers ──────────────────────────────────────────────────── */
+const rnd  = n => Math.floor(Math.random() * n)
+const pick = a => a[rnd(a.length)]
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=rnd(i+1);const t=a[i];a[i]=a[j];a[j]=t} return a }
+
+/* ════════════════════════════════════════════════════════════════
+   SLOT BUILDING
+   Every (furniture, preposition) pair becomes one clickable slot.
+   Slots that land too close together are dropped, so a click is
+   never ambiguous — the student's English is tested, not their aim.
+   ════════════════════════════════════════════════════════════════ */
+const MIN_GAP = 8.5   // % of the room box
+
+function buildSlots(cfg) {
+  const furn = cfg.furn ? FURNITURE.filter(f => cfg.furn.includes(f.id)) : FURNITURE.slice()
+  const slots = []
+
+  furn.forEach(f => {
+    f.preps.forEach(p => {
+      if (!cfg.preps.includes(p)) return
+      const o = PREP_OFFSET[p]
+      const x = f.x + o.dx, y = f.y + o.dy
+      if (x < 4 || x > 96 || y < 4 || y > 96) return
+      slots.push({ id: f.id + '|' + p, x, y, prep: p, ref: f.name, depth: o.depth,
+                   phrase: p + ' the ' + f.name })
+    })
+  })
+
+  /* "between A and B" — the midpoint of two furniture that are far
+     enough apart to be read as two separate things. */
+  if (cfg.between) {
+    for (let i = 0; i < furn.length; i++) {
+      for (let j = i + 1; j < furn.length; j++) {
+        const a = furn[i], b = furn[j]
+        const d = Math.hypot(a.x - b.x, a.y - b.y)
+        if (d < 22 || d > 42) continue
+        const x = (a.x + b.x) / 2, y = (a.y + b.y) / 2
+        slots.push({ id: 'btw|' + a.id + '|' + b.id, x, y, prep: 'between', ref: a.name + ' and ' + b.name,
+                     depth: '', phrase: 'between the ' + a.name + ' and the ' + b.name })
+      }
+    }
+  }
+
+  /* Drop anything that would sit on top of an earlier slot. */
+  const kept = []
+  shuffle(slots)
+  slots.forEach(s => {
+    if (kept.some(k => Math.hypot(k.x - s.x, k.y - s.y) < MIN_GAP)) return
+    kept.push(s)
+  })
+  return kept
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ROUND BUILDING
+   ════════════════════════════════════════════════════════════════ */
+function buildRound(cfg) {
+  const slots = buildSlots(cfg)
+  if (slots.length < cfg.items + 2) return null
+
+  const chosen = shuffle(slots.slice()).slice(0, cfg.items)
+  const objs = shuffle(OBJECTS.slice()).slice(0, cfg.items)
+
+  const tasks = chosen.map((s, i) => ({ obj: objs[i], slot: s }))
+  return { slots, tasks }
+}
+
+/* Write the English from the tasks — never the other way round. */
+function writeLines(tasks, cfg) {
+  const one = t => 'Put the ' + t.obj.n + ' ' + t.slot.phrase
+  if (!cfg.chain) return tasks.map(t => one(t) + '.')
+
+  /* hard+ joins them in pairs, the way a person really speaks. */
+  const out = []
+  for (let i = 0; i < tasks.length; i += 2) {
+    const a = tasks[i], b = tasks[i + 1]
+    if (!b) { out.push(one(a) + '.'); break }
+    out.push(one(a) + ', and put the ' + b.obj.n + ' ' + b.slot.phrase + '.')
+  }
+  return out
+}
+
+/* ── speech ───────────────────────────────────────────────────── */
+let enVoice = null
+function loadVoices(){
+  if(!window.speechSynthesis) return
+  const v = speechSynthesis.getVoices()
+  enVoice = v.find(x=>x.lang==='en-US' && /Samantha|Allison|Karen|Daniel/i.test(x.name))
+    || v.find(x=>x.lang==='en-US') || v.find(x=>x.lang && x.lang.startsWith('en')) || null
+}
+if(window.speechSynthesis){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices }
+function speakLines(lines){
+  if(!window.speechSynthesis) return
+  speechSynthesis.cancel()
+  lines.forEach(l=>{
+    const u=new SpeechSynthesisUtterance(l)
+    u.lang='en-US'; if(enVoice) u.voice=enVoice; u.rate=0.88
+    speechSynthesis.speak(u)
+  })
+}
+function stopSpeak(){ if(window.speechSynthesis) speechSynthesis.cancel() }
+
+/* ════════════════════════════════════════════════════════════════
+   STATE
+   ════════════════════════════════════════════════════════════════ */
+const S = {
+  mode:1, level:'easy', cfg:LEVELS.easy,
+  names:['Player 1','Player 2'], scores:[0,0], correct:[0,0],
+  turn:0, roundIndex:[0,0],
+  round:null, lines:[], placements:{},   // slotId -> object name
+  armed:null,                            // object currently picked up
+  dripIndex:0, replaysLeft:0, peeked:false, revealed:false,
+  timeLeft:0, timerId:null, locked:true,
+}
+
+const $ = id => document.getElementById(id)
+const setupEl = $('setup'), gameArea = $('gameArea'), roomEl = $('room'), trayEl = $('tray')
+
+/* ════════════════════════════════════════════════════════════════
+   RENDERING
+   ════════════════════════════════════════════════════════════════ */
+function renderRoom() {
+  roomEl.innerHTML = ''
+  const cfg = S.cfg
+  const furn = cfg.furn ? FURNITURE.filter(f => cfg.furn.includes(f.id)) : FURNITURE
+
+  furn.forEach(f => {
+    const d = document.createElement('div')
+    d.className = 'furn'
+    d.style.left = f.x + '%'; d.style.top = f.y + '%'
+    const art = f.svg ? f.svg : '<span class="f-ico">' + f.ico + '</span>'
+    d.innerHTML = art + '<span class="f-name">' + f.name + '</span>'
+    roomEl.appendChild(d)
+  })
+
+  S.round.slots.forEach(s => {
+    const b = document.createElement('button')
+    b.type = 'button'
+    b.className = 'slot' + (s.depth ? ' depth-' + s.depth : '')
+    b.style.left = s.x + '%'; b.style.top = s.y + '%'
+    b.dataset.slot = s.id
+    b.title = s.phrase
+    b.setAttribute('aria-label', s.phrase)
+    b.addEventListener('click', () => onSlot(s.id))
+    roomEl.appendChild(b)
+  })
+}
+
+function renderTray() {
+  trayEl.innerHTML = ''
+  S.round.tasks.forEach(t => {
+    const placed = Object.values(S.placements).includes(t.obj.n)
+    const b = document.createElement('button')
+    b.type = 'button'
+    b.className = 'titem' + (S.armed === t.obj.n ? ' is-armed' : '')
+    b.disabled = placed || S.locked
+    b.innerHTML = '<span class="ti-ico">' + t.obj.ico + '</span><span class="ti-name">' + t.obj.n + '</span>'
+    b.addEventListener('click', () => {
+      S.armed = S.armed === t.obj.n ? null : t.obj.n
+      if (window.PlaySounds) PlaySounds.click()
+      renderTray(); paintSlots()
+      setFeedback(S.armed ? 'Now click where the ' + S.armed + ' goes.' : '', 'info')
+    })
+    trayEl.appendChild(b)
+  })
+}
+
+function paintSlots() {
+  roomEl.querySelectorAll('.slot').forEach(el => {
+    const id = el.dataset.slot
+    const obj = S.placements[id]
+    el.classList.toggle('is-armed', !!S.armed && !obj)
+    el.classList.toggle('is-filled', !!obj)
+    if (obj) {
+      const o = OBJECTS.find(x => x.n === obj)
+      el.innerHTML = '<span class="placed">' + (o ? o.ico : '?') + '</span>'
+    } else {
+      el.innerHTML = ''
+    }
+  })
+  const n = Object.keys(S.placements).length
+  $('placedCount').textContent = n
+  $('check-btn').disabled = n === 0 || S.locked
+}
+
+function onSlot(slotId) {
+  if (S.locked) return
+
+  /* Clicking a filled slot takes the object back. */
+  if (S.placements[slotId]) {
+    const back = S.placements[slotId]
+    delete S.placements[slotId]
+    S.armed = back
+    if (window.PlaySounds) PlaySounds.click()
+    renderTray(); paintSlots()
+    if (S.cfg.drip) paintInstructions()   // that line is no longer done
+    setFeedback('Took the ' + back + ' back. Click a new place for it.', 'info')
+    return
+  }
+
+  if (!S.armed) { setFeedback('Pick an object from the tray first.', 'wrong'); return }
+
+  S.placements[slotId] = S.armed
+  const justPlaced = S.armed
+  S.armed = null
+  if (window.PlaySounds) PlaySounds.tick()
+  renderTray(); paintSlots()
+  setFeedback('Placed the ' + justPlaced + '.', '')
+
+  if (S.cfg.drip) advanceDrip()
+}
+
+/* ── instructions ─────────────────────────────────────────────── */
+function paintInstructions() {
+  const body = $('instrBody')
+  const hidden = S.cfg.hideText && !S.revealed
+
+  if (hidden) {
+    body.innerHTML = '<div class="instr-hidden"><span class="big">🎧</span>Listening only at this level.<br>Press <b>Listen again</b> to repeat.</div>'
+    $('stepCount').textContent = ''
+  } else {
+    const ul = document.createElement('ul')
+    ul.className = 'instr-list'
+    const placedNames = Object.values(S.placements)
+    S.lines.forEach((l, i) => {
+      if (S.cfg.drip && i > S.dripIndex) return
+      const li = document.createElement('li')
+      li.textContent = l
+      if (S.cfg.drip) {
+        /* Done is decided by the room, not by a counter — otherwise the
+           last instruction stays "current" forever once it is carried out. */
+        const task = S.round.tasks[i]
+        const done = task && placedNames.includes(task.obj.n)
+        li.classList.add(done ? 'is-done' : 'is-current')
+      }
+      ul.appendChild(li)
+    })
+    body.innerHTML = ''
+    body.appendChild(ul)
+    $('stepCount').textContent = S.cfg.drip
+      ? (S.dripIndex + 1) + '/' + S.lines.length
+      : S.lines.length + ' things'
+  }
+
+  $('replay-btn').disabled = S.replaysLeft <= 0
+  $('replay-btn').textContent = S.cfg.replays >= 99 ? '🔊 Listen again' : '🔊 Listen again (' + S.replaysLeft + ')'
+  $('peek-btn').disabled = S.peeked || !S.cfg.hideText
+  $('peek-btn').style.display = S.cfg.peek ? '' : 'none'
+}
+
+function advanceDrip() {
+  if (S.dripIndex >= S.lines.length - 1) {
+    paintInstructions()   // no more to reveal — just refresh what is done
+    return
+  }
+  S.dripIndex++
+  paintInstructions()
+  speakLines([S.lines[S.dripIndex]])
+}
+
+function setFeedback(msg, kind) {
+  $('feedback').textContent = msg
+  $('feedback').className = 'feedback' + (kind ? ' is-' + kind : '')
+}
+
+/* ════════════════════════════════════════════════════════════════
+   FLOW
+   ════════════════════════════════════════════════════════════════ */
+function startGame() {
+  S.names[0] = ($('p1-name').value || 'Player 1').trim().slice(0,12)
+  S.names[1] = ($('p2-name').value || 'Player 2').trim().slice(0,12)
+  S.scores=[0,0]; S.correct=[0,0]; S.roundIndex=[0,0]; S.turn=0
+  S.cfg = LEVELS[S.level]
+
+  $('pname1').textContent = S.names[0]
+  $('pname2').textContent = S.names[1]
+  $('roundTotal').textContent = 5
+  $('levelTag').textContent = S.cfg.label
+  $('playersPanel').classList.toggle('is-solo', S.mode === 1)
+  $('modePill').textContent = S.mode === 1 ? '1P · SOLO' : '2P · LOCAL'
+  $('timerStat').style.display = S.cfg.timer ? '' : 'none'
+
+  setupEl.style.display = 'none'
+  gameArea.classList.add('is-shown')
+  newRound()
+}
+
+function newRound() {
+  stopTimer(); stopSpeak()
+  S.locked = false; S.placements = {}; S.armed = null
+  S.dripIndex = 0; S.peeked = false; S.revealed = false
+  S.replaysLeft = S.cfg.replays
+
+  let round = null
+  for (let i = 0; i < 60 && !round; i++) round = buildRound(S.cfg)
+  if (!round) { setFeedback('Could not build a room — try again.', 'wrong'); return }
+  S.round = round
+  S.lines = writeLines(round.tasks, S.cfg)
+
+  renderRoom(); renderTray(); paintSlots(); paintInstructions()
+  $('roundNum').textContent = S.roundIndex[S.turn] + 1
+  $('placedTotal').textContent = S.cfg.items
+  updateScoreboard()
+  setFeedback('Listen, then pick an object and click where it goes.', 'info')
+
+  setTimeout(() => speakLines(S.cfg.drip ? [S.lines[0]] : S.lines), 350)
+  if (S.cfg.timer) startTimer(S.cfg.timer)
+}
+
+function checkRoom() {
+  if (S.locked) return
+  S.locked = true
+  stopTimer(); stopSpeak()
+  renderTray()
+
+  const cfg = S.cfg
+  let right = 0
+  const rows = []
+
+  S.round.tasks.forEach(t => {
+    const placedHere = S.placements[t.slot.id]
+    const ok = placedHere === t.obj.n
+    if (ok) right++
+    /* Where did the object actually end up? */
+    let wrongSlotId = null
+    Object.keys(S.placements).forEach(sid => { if (S.placements[sid] === t.obj.n) wrongSlotId = sid })
+    const wrongSlot = wrongSlotId ? S.round.slots.find(s => s.id === wrongSlotId) : null
+
+    rows.push({
+      ok, obj: t.obj,
+      want: t.slot.phrase,
+      got: ok ? null : (wrongSlot ? wrongSlot.phrase : null),
+      slotId: t.slot.id,
+    })
+
+    const el = roomEl.querySelector('[data-slot="' + t.slot.id + '"]')
+    if (el) el.classList.add(ok ? 'is-correct' : 'is-answer')
+  })
+
+  /* Mark anything sitting in a slot that no instruction asked for. */
+  Object.keys(S.placements).forEach(sid => {
+    const wanted = S.round.tasks.some(t => t.slot.id === sid && t.obj.n === S.placements[sid])
+    if (!wanted) {
+      const el = roomEl.querySelector('[data-slot="' + sid + '"]')
+      if (el && !el.classList.contains('is-correct')) el.classList.add('is-wrong')
+    }
+  })
+
+  const lines = []
+  let total = right * cfg.base
+  lines.push({ label: right + ' of ' + cfg.items + ' in the right place', val: '+' + (right * cfg.base) })
+
+  if (right === cfg.items) {
+    total += 80
+    lines.push({ label: 'Perfect room', val: '+80' })
+    if (cfg.timer && S.timeLeft > 0) {
+      const b = S.timeLeft * 2
+      total += b
+      lines.push({ label: 'Time bonus (' + S.timeLeft + 's left)', val: '+' + b })
+    }
+  }
+  if (S.peeked) { total -= 15; lines.push({ label: 'Used “show text”', val: '−15', neg: true }) }
+
+  total = Math.max(0, total)
+  S.scores[S.turn] += total
+  S.correct[S.turn] += right
+
+  showResult(right, total, lines, rows)
+}
+
+function showResult(right, total, lines, rows) {
+  const all = right === S.cfg.items
+  $('roundEmoji').textContent = all ? '🏅' : (right > 0 ? '🎯' : '🤷')
+  $('roundTitle').textContent = all ? 'PERFECT ROOM!' : right + ' / ' + S.cfg.items + ' CORRECT'
+  $('roundSub').textContent = all
+    ? 'Everything is exactly where it should be.'
+    : 'The correct places are flashing green in the room.'
+
+  const rev = $('review')
+  rev.innerHTML = ''
+  rows.forEach(r => {
+    const d = document.createElement('div')
+    d.className = 'rev ' + (r.ok ? 'ok' : 'no')
+    let html = '<span class="rev-mark">' + (r.ok ? '✅' : '❌') + '</span><span>' +
+               '<b>' + r.obj.ico + ' ' + r.obj.n + '</b> → ' + r.want
+    if (!r.ok) {
+      html += '<span class="rev-fix">' +
+        (r.got ? 'you put it ' + r.got : 'you did not place it') + '</span>'
+    }
+    html += '</span>'
+    d.innerHTML = html
+    rev.appendChild(d)
+  })
+
+  const box = $('scoreLines')
+  box.innerHTML = ''
+  lines.forEach(l => {
+    const d = document.createElement('div')
+    d.className = 'score-line' + (l.neg ? ' is-neg' : '')
+    d.innerHTML = '<span>' + l.label + '</span><span>' + l.val + '</span>'
+    box.appendChild(d)
+  })
+  const t = document.createElement('div')
+  t.className = 'score-line is-total'
+  t.innerHTML = '<span>ROOM TOTAL</span><span>+' + total + '</span>'
+  box.appendChild(t)
+
+  const preps = [...new Set(S.round.tasks.map(x => x.slot.prep))]
+  $('vocabStrip').innerHTML = '<b>PREPOSITIONS IN THIS ROOM</b>' +
+    preps.map(p => '<code>' + p + '</code>').join(' ')
+
+  updateScoreboard()
+  if (window.PlaySounds) { all ? PlaySounds.win() : (right ? PlaySounds.correct() : PlaySounds.lose()) }
+  $('roundOvl').classList.add('is-shown')
+}
+
+function updateScoreboard() {
+  $('pscore1').textContent = S.scores[0]
+  $('pscore2').textContent = S.scores[1]
+  $('psub1').textContent = S.correct[0] + ' correct'
+  $('psub2').textContent = S.correct[1] + ' correct'
+  $('pcard1').classList.toggle('is-turn', S.turn === 0)
+  $('pcard2').classList.toggle('is-turn', S.turn === 1)
+}
+
+function nextRound() {
+  $('roundOvl').classList.remove('is-shown')
+  S.roundIndex[S.turn]++
+
+  if (S.mode === 1) {
+    if (S.roundIndex[0] >= 5) return endGame()
+    newRound(); return
+  }
+  if (S.roundIndex[0] >= 5 && S.roundIndex[1] >= 5) return endGame()
+
+  let next = 1 - S.turn
+  if (S.roundIndex[next] >= 5) next = S.turn
+  S.turn = next
+  updateScoreboard()
+  $('handoffName').textContent = S.names[S.turn]
+  $('handoffOvl').classList.add('is-shown')
+}
+
+function endGame() {
+  stopTimer(); stopSpeak()
+  $('finalScores').classList.toggle('is-solo', S.mode === 1)
+  $('fname1').textContent = S.names[0]; $('fname2').textContent = S.names[1]
+  $('fval1').textContent = S.scores[0]; $('fval2').textContent = S.scores[1]
+  $('fs1').classList.remove('is-winner'); $('fs2').classList.remove('is-winner')
+
+  const perPlayer = 5 * S.cfg.items
+  if (S.mode === 1) {
+    $('finalEmoji').textContent = S.correct[0] === perPlayer ? '🏆' : '🧸'
+    $('finalTitle').textContent = 'ROOMS FINISHED'
+    $('finalSub').innerHTML = 'You placed <b>' + S.correct[0] + ' of ' + perPlayer + '</b> objects correctly on ' + S.cfg.label + '.'
+    $('fs1').classList.add('is-winner')
+  } else {
+    const w = S.scores[0] === S.scores[1] ? -1 : (S.scores[0] > S.scores[1] ? 0 : 1)
+    $('finalEmoji').textContent = w === -1 ? '🤝' : '🏆'
+    $('finalTitle').textContent = w === -1 ? "IT'S A DRAW!" : S.names[w].toUpperCase() + ' WINS!'
+    $('finalSub').innerHTML = S.names[0] + ': ' + S.correct[0] + ' correct · ' + S.names[1] + ': ' + S.correct[1] + ' correct'
+    if (w >= 0) $(w === 0 ? 'fs1' : 'fs2').classList.add('is-winner')
+  }
+
+  if (window.PlayProgress) {
+    const best = Math.max(S.scores[0], S.mode === 2 ? S.scores[1] : 0)
+    PlayProgress.record(GAME_ID, S.cfg.cefr, best, 5 * (S.cfg.items * S.cfg.base + 80))
+  }
+  if (window.PlaySounds) PlaySounds.win()
+  $('finalOvl').classList.add('is-shown')
+}
+
+/* ── timer ────────────────────────────────────────────────────── */
+function startTimer(secs){
+  S.timeLeft = secs; paintTimer()
+  S.timerId = setInterval(()=>{
+    S.timeLeft--; paintTimer()
+    if(S.timeLeft<=5 && S.timeLeft>0 && window.PlaySounds) PlaySounds.tickLow()
+    if(S.timeLeft<=0){ stopTimer(); if(!S.locked){ setFeedback("Time's up!", 'wrong'); checkRoom() } }
+  },1000)
+}
+function stopTimer(){ if(S.timerId){ clearInterval(S.timerId); S.timerId=null } }
+function paintTimer(){
+  const b=$('timerVal'); b.textContent=S.timeLeft+'s'; b.classList.toggle('low', S.timeLeft<=12)
+}
+
+/* ════════════════════════════════════════════════════════════════
+   WIRING
+   ════════════════════════════════════════════════════════════════ */
+document.querySelectorAll('.mode-card').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.mode-card').forEach(x => x.classList.remove('is-active'))
+  b.classList.add('is-active')
+  S.mode = Number(b.dataset.mode)
+  $('playerInputs').classList.toggle('is-solo', S.mode === 1)
+  if (window.PlaySounds) PlaySounds.click()
+}))
+
+document.querySelectorAll('.lev-btn').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.lev-btn').forEach(x => x.classList.remove('is-active'))
+  b.classList.add('is-active')
+  S.level = b.dataset.level
+  $('levDesc').innerHTML = LEVELS[S.level].desc
+  if (window.PlaySounds) PlaySounds.click()
+}))
+$('levDesc').innerHTML = LEVELS.easy.desc
+
+$('start-btn').addEventListener('click', startGame)
+$('check-btn').addEventListener('click', checkRoom)
+$('next-btn').addEventListener('click', nextRound)
+$('clear-btn').addEventListener('click', () => {
+  if (S.locked) return
+  S.placements = {}; S.armed = null
+  renderTray(); paintSlots()
+  setFeedback('Everything is back in the tray.', 'info')
+})
+$('handoff-btn').addEventListener('click', () => {
+  $('handoffOvl').classList.remove('is-shown')
+  newRound()
+})
+$('replay-btn').addEventListener('click', () => {
+  if (S.replaysLeft <= 0) return
+  S.replaysLeft--
+  speakLines(S.cfg.drip ? [S.lines[S.dripIndex]] : S.lines)
+  paintInstructions()
+})
+$('peek-btn').addEventListener('click', () => {
+  if (S.peeked) return
+  S.peeked = true; S.revealed = true
+  paintInstructions()
+  setFeedback('Text revealed — 15 points will be deducted.', 'wrong')
+})
+$('again-btn').addEventListener('click', () => { $('finalOvl').classList.remove('is-shown'); startGame() })
+$('setup-btn').addEventListener('click', () => {
+  $('finalOvl').classList.remove('is-shown')
+  gameArea.classList.remove('is-shown')
+  setupEl.style.display = 'block'
+  stopTimer(); stopSpeak()
+})
+
+if (window.PlaySounds) PlaySounds.injectMuteButton(document.getElementById('muteHost'))
+</script>
+</body>
+</html>
