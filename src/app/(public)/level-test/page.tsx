@@ -16,6 +16,7 @@ import {
   isCorrect, gradeWriting, finalLevel,
   type WritingReport, type HeartRecord,
 } from '@/lib/placement'
+import { savePlacement } from '@/lib/placement-handoff'
 import {
   unlockAudio, sfxCorrect, sfxWrong, sfxHeartLost, sfxLevelUp, sfxHeartGained,
   sfxFinish, startMusic, stopMusic, duckMusic,
@@ -1009,7 +1010,7 @@ function Result({
           </div>
         </div>
 
-        {plan && <SubscribeCard level={level} plan={plan} />}
+        {plan && <SubscribeCard level={level} plan={plan} onExit={onExit} />}
 
         <div className="flex flex-col sm:flex-row gap-2.5">
           <button onClick={onRestart}
@@ -1100,11 +1101,19 @@ function WritingFeedback({ report }: { report: WritingReport }) {
   )
 }
 
-function SubscribeCard({ level, plan }: { level: CEFRLevel; plan: NonNullable<ReturnType<typeof getPlan>> }) {
+function SubscribeCard({ level, plan, onExit }: {
+  level:  CEFRLevel
+  plan:   NonNullable<ReturnType<typeof getPlan>>
+  onExit: () => void
+}) {
   const [name, setName]   = useState('')
   const [phone, setPhone] = useState('')
   const [busy, setBusy]   = useState(false)
   const [sent, setSent]   = useState(false)
+
+  /* Keep the result for the session so the package page can pick it up if the
+     visitor would rather read the details before giving us a number. */
+  useEffect(() => { savePlacement(level, plan.id) }, [level, plan.id])
 
   const waText =
     `مرحباً أستاذ حمزة 👋\n` +
@@ -1181,6 +1190,16 @@ function SubscribeCard({ level, plan }: { level: CEFRLevel; plan: NonNullable<Re
           <p className="text-slate-600 text-[11px] font-semibold text-center">نرسل لك التفاصيل مباشرة — بلا التزام.</p>
         </form>
       )}
+
+      {/* Not ready to give a number yet — read the full package first. */}
+      <Link
+        href={`/pricing/${plan.id}`}
+        onClick={onExit}
+        className="mt-3 w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-white/[.06] ring-1 ring-white/10
+                   text-slate-300 font-bold text-[13.5px] hover:bg-white/10 transition"
+      >
+        <BookOpen size={15} /> شوف تفاصيل «{plan.title_ar}» كاملة
+      </Link>
     </div>
   )
 }
