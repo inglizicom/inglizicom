@@ -14,6 +14,7 @@ import { TESTIMONIALS, STATS } from '@/data/testimonials'
 import {
   SectionHeadline, PackCard, IndividualCard, TrustBadge, WhatsAppCTABox,
 } from '@/components/pricing/PlanCards'
+import PlanCompare from '@/components/pricing/PlanCompare'
 
 const FAQ_PREVIEW: { q: string; a: string }[] = [
   {
@@ -142,6 +143,8 @@ export default function PricingPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
           {PACK_PLANS.map(p => <PackCard key={p.id} plan={p} />)}
         </div>
+
+        <PlanCompare plans={PACK_PLANS} title="قارن الباكات جنباً إلى جنب" />
       </div>
 
       {/* ════════════════════════════════════════════════════
@@ -160,6 +163,8 @@ export default function PricingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 items-stretch">
           {INDIVIDUAL_PLANS.map(p => <IndividualCard key={p.id} plan={p} />)}
         </div>
+
+        <PlanCompare plans={INDIVIDUAL_PLANS} title="قارن المستويات جنباً إلى جنب" />
 
         {/* What a subscription unlocks — full showcase lives on /courses */}
         <div className="mt-10 max-w-3xl mx-auto bg-[#0a1628] border border-[#1a2d4a] rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">

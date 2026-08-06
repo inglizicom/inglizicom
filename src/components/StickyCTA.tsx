@@ -22,6 +22,12 @@ const HIDE_ON_PATHS = [
   '/admin',
 ]
 
+/** Pages that ship their own, better-targeted sticky bar. */
+const HIDE_ON_PATTERNS = [
+  /^\/pricing\/.+/,        // per-plan pages → StickyPlanBar (names the plan + price)
+  /^\/courses\/[^/]+$/,    // course detail → its own price + seats bar
+]
+
 export default function StickyCTA() {
   const pathname = usePathname() ?? '/'
   const [visible,   setVisible]   = useState(false)
@@ -37,6 +43,7 @@ export default function StickyCTA() {
   }, [])
 
   const blocked = HIDE_ON_PATHS.some(p => pathname.startsWith(p))
+    || HIDE_ON_PATTERNS.some(re => re.test(pathname))
   if (blocked || dismissed || !visible) return null
 
   return (

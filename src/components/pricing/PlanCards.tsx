@@ -8,6 +8,7 @@
  */
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
   Check, ArrowLeft, Flame, Package, Target, Video, Zap, Crown, MessageCircle,
@@ -87,6 +88,18 @@ export function PerkList({ perks, accent, dense = false }: { perks: string[]; ac
   )
 }
 
+/** Secondary link to the package's own page — where the full story lives. */
+export function PlanDetailsLink({ plan }: { plan: Plan }) {
+  return (
+    <Link
+      href={`/pricing/${plan.id}`}
+      className="mt-2 flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl border border-[#1e3455] hover:border-gray-500 text-gray-400 hover:text-white text-xs font-black transition-colors no-underline"
+    >
+      التفاصيل الكاملة والرحلة <ArrowLeft className="w-3.5 h-3.5" />
+    </Link>
+  )
+}
+
 export function PackCard({ plan, source = 'pricing_pack_' }: { plan: Plan; source?: string }) {
   const c = COLOR_STYLES[plan.color]
   const savings = plan.originalAmount && plan.originalAmount > plan.amount_mad
@@ -145,6 +158,7 @@ export function PackCard({ plan, source = 'pricing_pack_' }: { plan: Plan; sourc
       >
         اشترك في الباك <ArrowLeft className="w-4 h-4" />
       </button>
+      <PlanDetailsLink plan={plan} />
     </motion.div>
   )
 }
@@ -213,6 +227,7 @@ export function IndividualCard({ plan, source = 'pricing_card_' }: { plan: Plan;
       >
         اشترك الآن <ArrowLeft className="w-4 h-4" />
       </button>
+      <PlanDetailsLink plan={plan} />
     </motion.div>
   )
 }
@@ -278,6 +293,7 @@ export function ClassCard({ plan, source = 'classes_card_' }: { plan: Plan; sour
       >
         احجز الحصص <ArrowLeft className="w-4 h-4" />
       </button>
+      <PlanDetailsLink plan={plan} />
     </motion.div>
   )
 }
@@ -340,6 +356,7 @@ export function BusinessCard({ plan, source = 'business_page' }: { plan: Plan; s
           >
             اشترك في البرنامج المهني <ArrowLeft className="w-5 h-5" />
           </button>
+          <PlanDetailsLink plan={plan} />
         </div>
       </div>
     </motion.div>
