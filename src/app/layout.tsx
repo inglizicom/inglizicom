@@ -43,6 +43,12 @@ export const metadata: Metadata = {
       'تعلم الإنجليزية من الصفر إلى الطلاقة مع دروس قصيرة ومتابعة شخصية من الأستاذ حمزة القصراوي.',
   },
   robots: { index: true, follow: true },
+  /* Meta Business domain verification — renders
+     <meta name="facebook-domain-verification" content="…"> into <head>.
+     Must stay on the site for Meta to keep the domain verified. */
+  verification: {
+    other: { 'facebook-domain-verification': '3qs1ja47epmd4kzrftmrgxw5ill7wj' },
+  },
   manifest: '/manifest.webmanifest',
   icons: {
     icon: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
