@@ -73,33 +73,46 @@
     .furn .f-ico{font-size:clamp(26px,4.4vw,52px);line-height:1;filter:drop-shadow(0 3px 5px rgba(0,0,0,.65))}
     .furn .f-name{font-size:10px;font-weight:800;color:#cfc6ba;letter-spacing:.01em;text-shadow:0 1px 3px rgba(0,0,0,.9)}
 
-    /* drop slots */
-    .slot{position:absolute;transform:translate(-50%,-50%);z-index:5;width:clamp(30px,4.6vw,46px);height:clamp(30px,4.6vw,46px);
-      border-radius:50%;border:2px dashed rgba(251,191,36,.45);background:rgba(251,191,36,.07);
-      display:flex;align-items:center;justify-content:center;transition:all .16s ease;cursor:pointer;padding:0}
-    .slot:hover{border-color:var(--gold);background:rgba(251,191,36,.22);transform:translate(-50%,-50%) scale(1.14)}
-    .slot.is-armed{border-style:solid;border-color:var(--gold);box-shadow:0 0 16px rgba(251,191,36,.55)}
-    .slot.depth-back{opacity:.72;transform:translate(-50%,-50%) scale(.82)}
-    .slot.depth-back:hover{transform:translate(-50%,-50%) scale(.94)}
+    /* Slots appear only for the furniture you tap, so the room is quiet
+       until you have made the first half of the decision. */
+    .furn{cursor:pointer;pointer-events:auto}
+    .furn.is-pick{filter:drop-shadow(0 0 10px rgba(251,191,36,.9))}
+    .furn.is-pick .f-name{color:var(--gold)}
+    .furn.is-dim{opacity:.45}
+    .slot{position:absolute;transform:translate(-50%,-50%);z-index:6;
+      min-width:clamp(30px,4.4vw,44px);height:clamp(30px,4.4vw,44px);padding:0 7px;
+      border-radius:999px;border:2px solid var(--gold);background:rgba(251,191,36,.16);
+      display:flex;align-items:center;justify-content:center;gap:4px;transition:transform .14s ease,background .14s ease;
+      cursor:pointer;white-space:nowrap;animation:slotIn .18s ease}
+    @keyframes slotIn{from{opacity:0;transform:translate(-50%,-50%) scale(.7)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+    .slot:hover{background:rgba(251,191,36,.34);transform:translate(-50%,-50%) scale(1.1)}
+    .slot .s-lab{font-size:10.5px;font-weight:900;color:var(--gold-2)}
+    .slot.depth-back{opacity:.8;transform:translate(-50%,-50%) scale(.88)}
     .slot.depth-front{box-shadow:0 4px 12px rgba(0,0,0,.6)}
-    .slot.is-filled{border-style:solid;border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.06)}
-    .slot .placed{font-size:clamp(17px,2.7vw,28px);line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))}
-    .slot.is-correct{border-color:var(--green);background:rgba(74,222,128,.24);box-shadow:0 0 18px rgba(74,222,128,.5)}
-    .slot.is-wrong{border-color:var(--red);background:rgba(248,113,113,.22)}
-    .slot.is-answer{border-color:var(--green);border-style:dashed;animation:pulseAns 1s ease infinite}
-    @keyframes pulseAns{0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,.5)}50%{box-shadow:0 0 20px 6px rgba(74,222,128,.35)}}
+    .slot.is-right{border-color:var(--green);background:rgba(74,222,128,.3)}
+    .slot.is-right .s-lab{color:var(--green)}
+    .slot.is-wrong{border-color:var(--red);background:rgba(248,113,113,.26)}
+    .slot.is-wrong .s-lab{color:var(--red)}
+    .slot.is-answer{border-color:var(--green);animation:ansPulse 1s ease infinite}
+    @keyframes ansPulse{0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,.55)}50%{box-shadow:0 0 20px 7px rgba(74,222,128,.3)}}
 
-    /* object tray */
-    .tray{margin-top:14px;padding:14px;border-radius:16px;background:var(--paper-2);border:2px solid var(--border)}
-    .tray-h{font-family:var(--arcade);font-size:10px;color:var(--text-muted);letter-spacing:.18em;margin-bottom:12px}
-    .tray-items{display:flex;gap:10px;flex-wrap:wrap;min-height:64px}
-    .titem{padding:9px 13px;border-radius:12px;background:var(--ink);border:3px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .16s ease;min-width:66px}
-    .titem:hover:not(:disabled){border-color:var(--gold);transform:translateY(-3px)}
-    .titem.is-armed{border-color:var(--gold);background:rgba(251,191,36,.14);box-shadow:0 0 18px -3px rgba(251,191,36,.6);transform:translateY(-3px)}
-    .titem:disabled{opacity:.28;cursor:not-allowed}
-    .titem .ti-ico{font-size:26px;line-height:1}
-    .titem .ti-name{font-size:10px;font-weight:800;color:var(--text-muted)}
-    .titem.is-armed .ti-name{color:var(--gold)}
+    /* the one thing being asked right now */
+    .quest{margin-top:12px;padding:14px 16px;border-radius:16px;background:linear-gradient(180deg,rgba(167,139,250,.14),rgba(167,139,250,.04));
+      border:2px solid rgba(167,139,250,.45);display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+    .quest .q-num{font-family:var(--arcade);font-size:10px;color:var(--purple);letter-spacing:.15em;white-space:nowrap}
+    .quest .q-obj{font-size:30px;line-height:1}
+    .quest .q-text{flex:1;min-width:170px;font-size:clamp(15px,1.9vw,20px);font-weight:800;line-height:1.4;color:var(--text)}
+    .quest .q-hidden{flex:1;min-width:170px;font-size:14px;color:var(--text-muted);display:flex;align-items:center;gap:9px}
+    .quest .q-hidden b{font-size:24px}
+    .quest .q-step{font-family:var(--arcade);font-size:9px;color:var(--gold);letter-spacing:.1em;white-space:nowrap}
+    @media (max-width:1023px),(max-height:719px){
+      .quest{margin-top:9px;padding:10px 12px;gap:9px}
+      .quest .q-text{font-size:14px;min-width:130px}
+      .quest .q-obj{font-size:24px}
+      .quest .q-num,.quest .q-step{font-size:8px}
+      .instr .instr-list{display:none}
+      .slot .s-lab{font-size:9.5px}
+    }
 
     /* ── SIDE ──────────────────────────────────────────── */
     .side{display:flex;flex-direction:column;gap:14px}
@@ -239,17 +252,14 @@
     <div>
       <div class="statbar">
         <span class="stat">ROOM <b id="roundNum">1</b>/<b id="roundTotal">5</b></span>
-        <span class="stat">PLACED <b id="placedCount">0</b>/<b id="placedTotal">3</b></span>
+        <span class="stat">RIGHT <b id="placedCount">0</b>/<b id="placedTotal">3</b></span>
         <span class="stat timer" id="timerStat">TIME <b id="timerVal">--</b></span>
         <span class="stat">LEVEL <b id="levelTag">EASY</b></span>
       </div>
 
       <div class="room-wrap">
         <div class="stage"><div class="room" id="room" data-fit="1.45"></div></div>
-        <div class="tray">
-          <div class="tray-h">1 · PICK AN OBJECT &nbsp;→&nbsp; 2 · CLICK WHERE IT GOES</div>
-          <div class="tray-items" id="tray"></div>
-        </div>
+        <div class="quest" id="quest"></div>
       </div>
     </div>
 
@@ -263,7 +273,7 @@
       </div>
 
       <div class="instr">
-        <div class="instr-h"><span>WHERE THINGS GO</span><span class="step-count" id="stepCount"></span></div>
+        <div class="instr-h"><span>THE INSTRUCTION</span><span class="step-count" id="stepCount"></span></div>
         <div id="instrBody"></div>
         <div class="audio-row">
           <button class="mini-btn" id="replay-btn" type="button">🔊 Listen again</button>
@@ -272,9 +282,10 @@
       </div>
 
       <div class="panel">
-        <div class="panel-h">WHEN YOU ARE READY</div>
-        <button class="btn is-gold is-wide" id="check-btn" type="button" disabled>✓ CHECK THE ROOM</button>
-        <button class="btn is-ghost is-wide" id="clear-btn" type="button" style="margin-top:10px;font-size:14px;padding:11px">↺ Take everything back</button>
+        <div class="panel-h">PROGRESS</div>
+        <div id="progress" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
+        <button class="btn is-gold is-wide" id="next-q-btn" type="button" style="display:none">NEXT →</button>
+        <button class="btn is-ghost is-wide" id="back-btn" type="button" style="margin-top:8px;font-size:13px;padding:9px;display:none">↺ Pick different furniture</button>
       </div>
 
       <div class="feedback" id="feedback"></div>
@@ -328,18 +339,16 @@
    ROOM SIMULATOR — Inglizi.com Play
    Grammar focus: prepositions of place.
 
-   Same principle as the Directions Simulator: the placement is
-   decided FIRST from the room's real geometry, and the English is
-   written from it — so the sentence and the room always agree.
+   One object at a time, in two taps: choose the furniture, then choose
+   the position. Nothing is on screen until you have chosen, so the room
+   stays a room instead of a field of markers — and both halves of the
+   sentence get tested, the noun and the preposition.
    ════════════════════════════════════════════════════════════════ */
 
 const GAME_ID = 'room-prepositions'
 
-/* ── The room ─────────────────────────────────────────────────
-   Positions are % of the room box. The floor line sits at 68%,
-   so anything standing on the floor is anchored near it.        */
 const TABLE_SVG =
-  '<svg viewBox="0 0 64 40" width="1em" height="0.62em" style="width:clamp(30px,5vw,60px);height:auto">' +
+  '<svg viewBox="0 0 64 40" style="width:clamp(30px,5vw,60px);height:auto">' +
   '<rect x="2" y="8" width="60" height="7" rx="2" fill="#8a6240"/>' +
   '<rect x="2" y="8" width="60" height="3" rx="1.5" fill="#a87a52"/>' +
   '<rect x="8" y="15" width="6" height="23" fill="#6b4a2f"/>' +
@@ -359,15 +368,14 @@ const FURNITURE = [
   { id:'rug',      name:'rug',      ico:'🟫', x:45, y:86, preps:['on'] },
 ]
 
-/* Where a slot sits relative to its furniture, in % of the room. */
 const PREP_OFFSET = {
-  'on':          { dx: 0,   dy: -8,  depth:'' },
-  'under':       { dx: 0,   dy: 8.5, depth:'' },
+  'on':          { dx: 0,   dy: -9,  depth:'' },
+  'under':       { dx: 0,   dy: 9,   depth:'' },
   'in':          { dx: 0,   dy: 0,   depth:'' },
-  'next to':     { dx: 10,  dy: 0,   depth:'' },
-  'above':       { dx: 0,   dy: -15, depth:'' },
-  'behind':      { dx: -7,  dy: -6,  depth:'back' },
-  'in front of': { dx: 5.5, dy: 7.5, depth:'front' },
+  'next to':     { dx: 13,  dy: 0,   depth:'' },
+  'above':       { dx: 0,   dy: -17, depth:'' },
+  'behind':      { dx: -11, dy: -7,  depth:'back' },
+  'in front of': { dx: 8,   dy: 9,   depth:'front' },
 }
 
 const OBJECTS = [
@@ -378,101 +386,80 @@ const OBJECTS = [
 ]
 
 const LEVELS = {
-  easy: { label:'EASY', cefr:'A1', items:3, drip:true, hideText:false, replays:99, timer:0, base:60, peek:false,
-    furn:['shelf','table','box','chair','rug'], preps:['on','under','in'],
-    desc:'One object at a time, on screen and read aloud. Just <b>on, under, in</b>. No timer.' },
-  medium: { label:'MEDIUM', cefr:'A2', items:4, drip:false, hideText:false, replays:3, timer:0, base:95, peek:false,
-    furn:['shelf','table','box','chair','rug','sofa','lamp','window'], preps:['on','under','in','next to','behind','in front of'],
-    desc:'All four at once, still written. Adds <b>next to, behind, in front of</b>. 3 replays.' },
-  hard: { label:'HARD', cefr:'B1', items:5, drip:false, hideText:true, replays:2, timer:100, base:150, peek:true, between:true,
-    furn:null, preps:['on','under','in','next to','behind','in front of','above'],
-    desc:'<b>Listening only</b> — the text is hidden. Adds <b>above</b> and <b>between … and …</b>. 100s.' },
-  hardplus: { label:'HARD +', cefr:'B2', items:6, drip:false, hideText:true, replays:1, timer:80, base:220, peek:true, between:true, chain:true,
-    furn:null, preps:['on','under','in','next to','behind','in front of','above'],
-    desc:'Heard <b>once</b>. Six objects, instructions <b>joined into pairs</b>, whole room full of slots. 80 seconds.' },
+  easy: { label:'EASY', cefr:'A1', items:4, labels:true, hideText:false, replays:99, timer:0, base:80, peek:false,
+    furn:['shelf','table','box','chair','rug'], preps:['on','under','in'], between:false,
+    desc:'One object at a time. Only <b>on, under, in</b>, and every position is labelled. No timer.' },
+  medium: { label:'MEDIUM', cefr:'A2', items:5, labels:true, hideText:false, replays:3, timer:0, base:110, peek:false,
+    furn:['shelf','table','box','chair','rug','sofa','lamp','window'],
+    preps:['on','under','in','next to','behind','in front of'], between:false,
+    desc:'More furniture and more positions — <b>next to, behind, in front of</b>. Still labelled. 3 replays.' },
+  hard: { label:'HARD', cefr:'B1', items:5, labels:false, hideText:true, replays:2, timer:100, base:170, peek:true,
+    furn:null, preps:['on','under','in','next to','behind','in front of','above'], between:true,
+    desc:'<b>Listening only, and the positions are no longer labelled</b> — you place it by where it is, not by reading. Adds <b>above</b> and <b>between</b>. 100s.' },
+  hardplus: { label:'HARD +', cefr:'B2', items:6, labels:false, hideText:true, replays:1, timer:80, base:240, peek:true,
+    furn:null, preps:['on','under','in','next to','behind','in front of','above'], between:true,
+    desc:'Heard <b>once</b>, nothing labelled, the whole room in play. 80 seconds.' },
 }
 
-/* ── helpers ──────────────────────────────────────────────────── */
 const rnd  = n => Math.floor(Math.random() * n)
 const pick = a => a[rnd(a.length)]
 function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=rnd(i+1);const t=a[i];a[i]=a[j];a[j]=t} return a }
 
 /* ════════════════════════════════════════════════════════════════
-   SLOT BUILDING
-   Every (furniture, preposition) pair becomes one clickable slot.
-   Slots that land too close together are dropped, so a click is
-   never ambiguous — the student's English is tested, not their aim.
+   SLOTS — belong to one piece of furniture, and only appear when it
+   is chosen. Two slots of the same furniture can never sit on top of
+   each other, so a tap is never ambiguous.
    ════════════════════════════════════════════════════════════════ */
-const MIN_GAP = 8.5   // % of the room box
+const MIN_GAP = 7
 
-function buildSlots(cfg) {
-  const furn = cfg.furn ? FURNITURE.filter(f => cfg.furn.includes(f.id)) : FURNITURE.slice()
-  const slots = []
-
-  furn.forEach(f => {
-    f.preps.forEach(p => {
-      if (!cfg.preps.includes(p)) return
-      const o = PREP_OFFSET[p]
-      const x = f.x + o.dx, y = f.y + o.dy
-      if (x < 4 || x > 96 || y < 4 || y > 96) return
-      slots.push({ id: f.id + '|' + p, x, y, prep: p, ref: f.name, depth: o.depth,
-                   phrase: p + ' the ' + f.name })
-    })
+function slotsFor(f, cfg, allFurn) {
+  const out = []
+  f.preps.forEach(p => {
+    if (!cfg.preps.includes(p)) return
+    const o = PREP_OFFSET[p]
+    const x = f.x + o.dx, y = f.y + o.dy
+    if (x < 5 || x > 95 || y < 5 || y > 95) return
+    out.push({ id: f.id + '|' + p, x, y, prep: p, depth: o.depth,
+               label: p, phrase: p + ' the ' + f.name })
   })
 
-  /* "between A and B" — the midpoint of two furniture that are far
-     enough apart to be read as two separate things. */
   if (cfg.between) {
-    for (let i = 0; i < furn.length; i++) {
-      for (let j = i + 1; j < furn.length; j++) {
-        const a = furn[i], b = furn[j]
-        const d = Math.hypot(a.x - b.x, a.y - b.y)
-        if (d < 22 || d > 42) continue
-        const x = (a.x + b.x) / 2, y = (a.y + b.y) / 2
-        slots.push({ id: 'btw|' + a.id + '|' + b.id, x, y, prep: 'between', ref: a.name + ' and ' + b.name,
-                     depth: '', phrase: 'between the ' + a.name + ' and the ' + b.name })
-      }
-    }
+    allFurn.forEach(g => {
+      if (g.id === f.id) return
+      const d = Math.hypot(f.x - g.x, f.y - g.y)
+      if (d < 24 || d > 44) return
+      out.push({ id: 'btw|' + f.id + '|' + g.id, x: (f.x + g.x) / 2, y: (f.y + g.y) / 2,
+                 prep: 'between', depth: '', label: 'between',
+                 phrase: 'between the ' + f.name + ' and the ' + g.name })
+    })
   }
 
-  /* Drop anything that would sit on top of an earlier slot. */
   const kept = []
-  shuffle(slots)
-  slots.forEach(s => {
+  out.forEach(s => {
     if (kept.some(k => Math.hypot(k.x - s.x, k.y - s.y) < MIN_GAP)) return
     kept.push(s)
   })
   return kept
 }
 
-/* ════════════════════════════════════════════════════════════════
-   ROUND BUILDING
-   ════════════════════════════════════════════════════════════════ */
 function buildRound(cfg) {
-  const slots = buildSlots(cfg)
-  if (slots.length < cfg.items + 2) return null
+  const furn = cfg.furn ? FURNITURE.filter(f => cfg.furn.includes(f.id)) : FURNITURE.slice()
+  const bank = []
+  furn.forEach(f => slotsFor(f, cfg, furn).forEach(s => bank.push({ ...s, furn: f })))
+  if (bank.length < cfg.items) return null
 
-  const chosen = shuffle(slots.slice()).slice(0, cfg.items)
+  /* One task per piece of furniture at most, so the first tap is always
+     a real decision rather than the same cupboard five times. */
+  const byFurn = {}
+  shuffle(bank).forEach(s => { if (!byFurn[s.furn.id]) byFurn[s.furn.id] = s })
+  const chosen = shuffle(Object.values(byFurn)).slice(0, cfg.items)
+  if (chosen.length < cfg.items) return null
+
   const objs = shuffle(OBJECTS.slice()).slice(0, cfg.items)
-
-  const tasks = chosen.map((s, i) => ({ obj: objs[i], slot: s }))
-  return { slots, tasks }
+  return { furn, tasks: chosen.map((s, i) => ({ obj: objs[i], slot: s })) }
 }
 
-/* Write the English from the tasks — never the other way round. */
-function writeLines(tasks, cfg) {
-  const one = t => 'Put the ' + t.obj.n + ' ' + t.slot.phrase
-  if (!cfg.chain) return tasks.map(t => one(t) + '.')
-
-  /* hard+ joins them in pairs, the way a person really speaks. */
-  const out = []
-  for (let i = 0; i < tasks.length; i += 2) {
-    const a = tasks[i], b = tasks[i + 1]
-    if (!b) { out.push(one(a) + '.'); break }
-    out.push(one(a) + ', and put the ' + b.obj.n + ' ' + b.slot.phrase + '.')
-  }
-  return out
-}
+const lineFor = t => 'Put the ' + t.obj.n + ' ' + t.slot.phrase + '.'
 
 /* ── speech ───────────────────────────────────────────────────── */
 let enVoice = null
@@ -483,14 +470,12 @@ function loadVoices(){
     || v.find(x=>x.lang==='en-US') || v.find(x=>x.lang && x.lang.startsWith('en')) || null
 }
 if(window.speechSynthesis){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices }
-function speakLines(lines){
+function speak(t){
   if(!window.speechSynthesis) return
   speechSynthesis.cancel()
-  lines.forEach(l=>{
-    const u=new SpeechSynthesisUtterance(l)
-    u.lang='en-US'; if(enVoice) u.voice=enVoice; u.rate=0.88
-    speechSynthesis.speak(u)
-  })
+  const u=new SpeechSynthesisUtterance(t)
+  u.lang='en-US'; if(enVoice) u.voice=enVoice; u.rate=0.88
+  speechSynthesis.speak(u)
 }
 function stopSpeak(){ if(window.speechSynthesis) speechSynthesis.cancel() }
 
@@ -501,435 +486,327 @@ const S = {
   mode:1, level:'easy', cfg:LEVELS.easy,
   names:['Player 1','Player 2'], scores:[0,0], correct:[0,0],
   turn:0, roundIndex:[0,0],
-  round:null, lines:[], placements:{},   // slotId -> object name
-  armed:null,                            // object currently picked up
-  dripIndex:0, replaysLeft:0, peeked:false, revealed:false,
+  round:null, qIndex:0, qText:'', answered:false, roundRight:0, results:[],
+  pickedFurn:null,
+  replaysLeft:0, peeked:false, revealed:false,
   timeLeft:0, timerId:null, locked:true,
 }
 
 const $ = id => document.getElementById(id)
-const setupEl = $('setup'), gameArea = $('gameArea'), roomEl = $('room'), trayEl = $('tray')
+const setupEl=$('setup'), gameArea=$('gameArea'), roomEl=$('room')
+const task = () => S.round.tasks[S.qIndex]
 
 /* ════════════════════════════════════════════════════════════════
    RENDERING
    ════════════════════════════════════════════════════════════════ */
 function renderRoom() {
   roomEl.innerHTML = ''
-  const cfg = S.cfg
-  const furn = cfg.furn ? FURNITURE.filter(f => cfg.furn.includes(f.id)) : FURNITURE
-
-  furn.forEach(f => {
+  S.round.furn.forEach(f => {
     const d = document.createElement('div')
-    d.className = 'furn'
+    d.className = 'furn' + (S.pickedFurn === f.id ? ' is-pick' : (S.pickedFurn ? ' is-dim' : ''))
     d.style.left = f.x + '%'; d.style.top = f.y + '%'
-    const art = f.svg ? f.svg : '<span class="f-ico">' + f.ico + '</span>'
-    d.innerHTML = art + '<span class="f-name">' + f.name + '</span>'
+    d.dataset.furn = f.id
+    d.innerHTML = (f.svg ? f.svg : '<span class="f-ico">' + f.ico + '</span>') +
+                  '<span class="f-name">' + f.name + '</span>'
+    if (!S.answered && !S.locked) d.addEventListener('click', () => pickFurniture(f.id))
     roomEl.appendChild(d)
   })
 
-  S.round.slots.forEach(s => {
-    const b = document.createElement('button')
-    b.type = 'button'
-    b.className = 'slot' + (s.depth ? ' depth-' + s.depth : '')
-    b.style.left = s.x + '%'; b.style.top = s.y + '%'
-    b.dataset.slot = s.id
-    b.title = s.phrase
-    b.setAttribute('aria-label', s.phrase)
-    b.addEventListener('click', () => onSlot(s.id))
-    roomEl.appendChild(b)
-  })
-}
-
-function renderTray() {
-  trayEl.innerHTML = ''
-  S.round.tasks.forEach(t => {
-    const placed = Object.values(S.placements).includes(t.obj.n)
-    const b = document.createElement('button')
-    b.type = 'button'
-    b.className = 'titem' + (S.armed === t.obj.n ? ' is-armed' : '')
-    b.disabled = placed || S.locked
-    b.innerHTML = '<span class="ti-ico">' + t.obj.ico + '</span><span class="ti-name">' + t.obj.n + '</span>'
-    b.addEventListener('click', () => {
-      S.armed = S.armed === t.obj.n ? null : t.obj.n
-      if (window.PlaySounds) PlaySounds.click()
-      renderTray(); paintSlots()
-      setFeedback(S.armed ? 'Now click where the ' + S.armed + ' goes.' : '', 'info')
+  if (S.pickedFurn) {
+    const f = S.round.furn.find(x => x.id === S.pickedFurn)
+    slotsFor(f, S.cfg, S.round.furn).forEach(s => {
+      const b = document.createElement('button')
+      b.type = 'button'
+      b.className = 'slot' + (s.depth ? ' depth-' + s.depth : '')
+      b.style.left = s.x + '%'; b.style.top = s.y + '%'
+      b.dataset.slot = s.id
+      b.title = s.phrase
+      b.setAttribute('aria-label', s.phrase)
+      if (S.cfg.labels) b.innerHTML = '<span class="s-lab">' + s.label + '</span>'
+      if (!S.answered && !S.locked) b.addEventListener('click', () => answer(s.id))
+      roomEl.appendChild(b)
     })
-    trayEl.appendChild(b)
-  })
-}
-
-function paintSlots() {
-  roomEl.querySelectorAll('.slot').forEach(el => {
-    const id = el.dataset.slot
-    const obj = S.placements[id]
-    el.classList.toggle('is-armed', !!S.armed && !obj)
-    el.classList.toggle('is-filled', !!obj)
-    if (obj) {
-      const o = OBJECTS.find(x => x.n === obj)
-      el.innerHTML = '<span class="placed">' + (o ? o.ico : '?') + '</span>'
-    } else {
-      el.innerHTML = ''
-    }
-  })
-  const n = Object.keys(S.placements).length
-  $('placedCount').textContent = n
-  $('check-btn').disabled = n === 0 || S.locked
-}
-
-function onSlot(slotId) {
-  if (S.locked) return
-
-  /* Clicking a filled slot takes the object back. */
-  if (S.placements[slotId]) {
-    const back = S.placements[slotId]
-    delete S.placements[slotId]
-    S.armed = back
-    if (window.PlaySounds) PlaySounds.click()
-    renderTray(); paintSlots()
-    if (S.cfg.drip) paintInstructions()   // that line is no longer done
-    setFeedback('Took the ' + back + ' back. Click a new place for it.', 'info')
-    return
   }
-
-  if (!S.armed) { setFeedback('Pick an object from the tray first.', 'wrong'); return }
-
-  S.placements[slotId] = S.armed
-  const justPlaced = S.armed
-  S.armed = null
-  if (window.PlaySounds) PlaySounds.tick()
-  renderTray(); paintSlots()
-  setFeedback('Placed the ' + justPlaced + '.', '')
-
-  if (S.cfg.drip) advanceDrip()
 }
 
-/* ── instructions ─────────────────────────────────────────────── */
+function renderQuestion() {
+  const hidden = S.cfg.hideText && !S.revealed
+  const t = task()
+  $('quest').innerHTML =
+    '<span class="q-num">Q' + (S.qIndex + 1) + '/' + S.round.tasks.length + '</span>' +
+    '<span class="q-obj">' + t.obj.ico + '</span>' +
+    (hidden
+      ? '<span class="q-hidden"><b>🎧</b> Listening only — press <b style="font-size:13px">Listen again</b>.</span>'
+      : '<span class="q-text">' + S.qText + '</span>') +
+    '<span class="q-step">' + (S.pickedFurn ? '2 · WHERE?' : '1 · WHICH FURNITURE?') + '</span>'
+}
+
+function renderProgress() {
+  const el = $('progress'); el.innerHTML = ''
+  S.round.tasks.forEach((_, i) => {
+    const r = S.results[i]
+    const d = document.createElement('span')
+    d.style.cssText = 'width:22px;height:22px;border-radius:6px;display:flex;align-items:center;' +
+      'justify-content:center;font-size:12px;font-weight:900;border:2px solid ' +
+      (r === true ? 'var(--green);color:var(--green);background:rgba(74,222,128,.14)'
+       : r === false ? 'var(--red);color:var(--red);background:rgba(248,113,113,.12)'
+       : (i === S.qIndex ? 'var(--gold);color:var(--gold);background:rgba(251,191,36,.12)'
+                         : 'var(--border);color:var(--text-muted)'))
+    d.textContent = r === true ? '✓' : r === false ? '✕' : (i + 1)
+    el.appendChild(d)
+  })
+  $('placedCount').textContent = S.roundRight
+  $('placedTotal').textContent = S.round.tasks.length
+}
+
 function paintInstructions() {
   const body = $('instrBody')
   const hidden = S.cfg.hideText && !S.revealed
-
   if (hidden) {
-    body.innerHTML = '<div class="instr-hidden"><span class="big">🎧</span>Listening only at this level.<br>Press <b>Listen again</b> to repeat.</div>'
+    body.innerHTML = '<div class="instr-hidden"><span class="big">🎧</span>Spoken only.<br>Press <b>Listen again</b> to repeat.</div>'
     $('stepCount').textContent = ''
   } else {
-    const ul = document.createElement('ul')
-    ul.className = 'instr-list'
-    const placedNames = Object.values(S.placements)
-    S.lines.forEach((l, i) => {
-      if (S.cfg.drip && i > S.dripIndex) return
-      const li = document.createElement('li')
-      li.textContent = l
-      if (S.cfg.drip) {
-        /* Done is decided by the room, not by a counter — otherwise the
-           last instruction stays "current" forever once it is carried out. */
-        const task = S.round.tasks[i]
-        const done = task && placedNames.includes(task.obj.n)
-        li.classList.add(done ? 'is-done' : 'is-current')
-      }
-      ul.appendChild(li)
-    })
-    body.innerHTML = ''
-    body.appendChild(ul)
-    $('stepCount').textContent = S.cfg.drip
-      ? (S.dripIndex + 1) + '/' + S.lines.length
-      : S.lines.length + ' things'
+    body.innerHTML = '<ul class="instr-list"><li class="is-current">' + S.qText + '</li></ul>'
+    $('stepCount').textContent = (S.qIndex + 1) + '/' + S.round.tasks.length
   }
-
   $('replay-btn').disabled = S.replaysLeft <= 0
   $('replay-btn').textContent = S.cfg.replays >= 99 ? '🔊 Listen again' : '🔊 Listen again (' + S.replaysLeft + ')'
   $('peek-btn').disabled = S.peeked || !S.cfg.hideText
   $('peek-btn').style.display = S.cfg.peek ? '' : 'none'
 }
 
-function advanceDrip() {
-  if (S.dripIndex >= S.lines.length - 1) {
-    paintInstructions()   // no more to reveal — just refresh what is done
-    return
-  }
-  S.dripIndex++
-  paintInstructions()
-  speakLines([S.lines[S.dripIndex]])
+function setFeedback(msg, kind) {
+  $('feedback').textContent = msg || ''
+  $('feedback').className = 'feedback' + (kind ? ' is-' + kind : '')
 }
 
-function setFeedback(msg, kind) {
-  $('feedback').textContent = msg
-  $('feedback').className = 'feedback' + (kind ? ' is-' + kind : '')
+/* ── the two taps ─────────────────────────────────────────────── */
+function pickFurniture(id) {
+  if (S.locked || S.answered) return
+  S.pickedFurn = S.pickedFurn === id ? null : id
+  if (window.PlaySounds) PlaySounds.click()
+  renderRoom(); renderQuestion()
+  $('back-btn').style.display = S.pickedFurn ? '' : 'none'
+  setFeedback(S.pickedFurn ? 'Now tap where it goes.' : '', 'info')
+}
+
+function answer(slotId) {
+  if (S.locked || S.answered) return
+  S.answered = true
+  const want = task().slot
+  const ok = slotId === want.id
+  S.results[S.qIndex] = ok
+  if (ok) { S.roundRight++; S.correct[S.turn]++; S.scores[S.turn] += S.cfg.base }
+
+  /* Make sure the right answer is on screen even if it belonged to
+     another piece of furniture. */
+  if (!ok && want.furn.id !== S.pickedFurn) {
+    S.pickedFurn = want.furn.id
+    renderRoom()
+  }
+  roomEl.querySelectorAll('.slot').forEach(el => {
+    if (el.dataset.slot === want.id) el.classList.add(ok ? 'is-right' : 'is-answer')
+    else if (el.dataset.slot === slotId) el.classList.add('is-wrong')
+  })
+
+  setFeedback(ok ? 'Yes — ' + lineFor(task()).replace(/^Put/, 'put')
+                 : 'No — it goes ' + want.phrase + '.', ok ? 'right' : 'wrong')
+  renderProgress(); renderQuestion(); updateScoreboard()
+  if (window.PlaySounds) { ok ? PlaySounds.correct() : PlaySounds.wrong() }
+
+  $('back-btn').style.display = 'none'
+  const btn = $('next-q-btn')
+  btn.textContent = S.qIndex >= S.round.tasks.length - 1 ? 'SEE THE SCORE →' : 'NEXT →'
+  btn.style.display = ''
 }
 
 /* ════════════════════════════════════════════════════════════════
    FLOW
    ════════════════════════════════════════════════════════════════ */
 function startGame() {
-  S.names[0] = ($('p1-name').value || 'Player 1').trim().slice(0,12)
-  S.names[1] = ($('p2-name').value || 'Player 2').trim().slice(0,12)
+  S.names[0]=($('p1-name').value||'Player 1').trim().slice(0,12)
+  S.names[1]=($('p2-name').value||'Player 2').trim().slice(0,12)
   S.scores=[0,0]; S.correct=[0,0]; S.roundIndex=[0,0]; S.turn=0
-  S.cfg = LEVELS[S.level]
-
-  $('pname1').textContent = S.names[0]
-  $('pname2').textContent = S.names[1]
-  $('roundTotal').textContent = 5
-  $('levelTag').textContent = S.cfg.label
-  $('playersPanel').classList.toggle('is-solo', S.mode === 1)
-  $('modePill').textContent = S.mode === 1 ? '1P · SOLO' : '2P · LOCAL'
-  $('timerStat').style.display = S.cfg.timer ? '' : 'none'
-
-  setupEl.style.display = 'none'
+  S.cfg=LEVELS[S.level]
+  $('pname1').textContent=S.names[0]; $('pname2').textContent=S.names[1]
+  $('roundTotal').textContent=5
+  $('levelTag').textContent=S.cfg.label
+  $('playersPanel').classList.toggle('is-solo',S.mode===1)
+  $('modePill').textContent=S.mode===1?'1P · SOLO':'2P · LOCAL'
+  $('timerStat').style.display=S.cfg.timer?'':'none'
+  setupEl.style.display='none'
   gameArea.classList.add('is-shown')
   newRound()
 }
 
 function newRound() {
   stopTimer(); stopSpeak()
-  S.locked = false; S.placements = {}; S.armed = null
-  S.dripIndex = 0; S.peeked = false; S.revealed = false
-  S.replaysLeft = S.cfg.replays
+  S.locked=false; S.answered=false; S.qIndex=0; S.roundRight=0
+  S.results=[]; S.pickedFurn=null
+  S.peeked=false; S.revealed=false; S.replaysLeft=S.cfg.replays
 
-  let round = null
-  for (let i = 0; i < 60 && !round; i++) round = buildRound(S.cfg)
-  if (!round) { setFeedback('Could not build a room — try again.', 'wrong'); return }
-  S.round = round
-  S.lines = writeLines(round.tasks, S.cfg)
+  let r=null
+  for(let i=0;i<80 && !r;i++) r=buildRound(S.cfg)
+  if(!r){ setFeedback('Could not build a room — try again.','wrong'); return }
+  S.round=r
 
-  renderRoom(); renderTray(); paintSlots(); paintInstructions()
-  $('roundNum').textContent = S.roundIndex[S.turn] + 1
-  $('placedTotal').textContent = S.cfg.items
+  $('roundNum').textContent=S.roundIndex[S.turn]+1
   updateScoreboard()
-  setFeedback('Listen, then pick an object and click where it goes.', 'info')
-
-  setTimeout(() => speakLines(S.cfg.drip ? [S.lines[0]] : S.lines), 350)
+  if (window.PlayShell) PlayShell.fit()
+  askQuestion()
   if (S.cfg.timer) startTimer(S.cfg.timer)
 }
 
-function checkRoom() {
-  if (S.locked) return
-  S.locked = true
-  stopTimer(); stopSpeak()
-  renderTray()
-
-  const cfg = S.cfg
-  let right = 0
-  const rows = []
-
-  S.round.tasks.forEach(t => {
-    const placedHere = S.placements[t.slot.id]
-    const ok = placedHere === t.obj.n
-    if (ok) right++
-    /* Where did the object actually end up? */
-    let wrongSlotId = null
-    Object.keys(S.placements).forEach(sid => { if (S.placements[sid] === t.obj.n) wrongSlotId = sid })
-    const wrongSlot = wrongSlotId ? S.round.slots.find(s => s.id === wrongSlotId) : null
-
-    rows.push({
-      ok, obj: t.obj,
-      want: t.slot.phrase,
-      got: ok ? null : (wrongSlot ? wrongSlot.phrase : null),
-      slotId: t.slot.id,
-    })
-
-    const el = roomEl.querySelector('[data-slot="' + t.slot.id + '"]')
-    if (el) el.classList.add(ok ? 'is-correct' : 'is-answer')
-  })
-
-  /* Mark anything sitting in a slot that no instruction asked for. */
-  Object.keys(S.placements).forEach(sid => {
-    const wanted = S.round.tasks.some(t => t.slot.id === sid && t.obj.n === S.placements[sid])
-    if (!wanted) {
-      const el = roomEl.querySelector('[data-slot="' + sid + '"]')
-      if (el && !el.classList.contains('is-correct')) el.classList.add('is-wrong')
-    }
-  })
-
-  const lines = []
-  let total = right * cfg.base
-  lines.push({ label: right + ' of ' + cfg.items + ' in the right place', val: '+' + (right * cfg.base) })
-
-  if (right === cfg.items) {
-    total += 80
-    lines.push({ label: 'Perfect room', val: '+80' })
-    if (cfg.timer && S.timeLeft > 0) {
-      const b = S.timeLeft * 2
-      total += b
-      lines.push({ label: 'Time bonus (' + S.timeLeft + 's left)', val: '+' + b })
-    }
-  }
-  if (S.peeked) { total -= 15; lines.push({ label: 'Used “show text”', val: '−15', neg: true }) }
-
-  total = Math.max(0, total)
-  S.scores[S.turn] += total
-  S.correct[S.turn] += right
-
-  showResult(right, total, lines, rows)
+function askQuestion() {
+  S.answered=false; S.pickedFurn=null
+  S.qText = lineFor(task())
+  renderRoom(); renderQuestion(); renderProgress(); paintInstructions()
+  $('next-q-btn').style.display='none'
+  $('back-btn').style.display='none'
+  setFeedback('Listen, then tap the furniture.','info')
+  setTimeout(()=>speak(S.qText), 260)
 }
 
-function showResult(right, total, lines, rows) {
-  const all = right === S.cfg.items
-  $('roundEmoji').textContent = all ? '🏅' : (right > 0 ? '🎯' : '🤷')
-  $('roundTitle').textContent = all ? 'PERFECT ROOM!' : right + ' / ' + S.cfg.items + ' CORRECT'
-  $('roundSub').textContent = all
-    ? 'Everything is exactly where it should be.'
-    : 'The correct places are flashing green in the room.'
+function nextQuestion() {
+  if (S.qIndex >= S.round.tasks.length - 1) return finishRound()
+  S.qIndex++
+  askQuestion()
+}
 
-  const rev = $('review')
-  rev.innerHTML = ''
-  rows.forEach(r => {
-    const d = document.createElement('div')
-    d.className = 'rev ' + (r.ok ? 'ok' : 'no')
-    let html = '<span class="rev-mark">' + (r.ok ? '✅' : '❌') + '</span><span>' +
-               '<b>' + r.obj.ico + ' ' + r.obj.n + '</b> → ' + r.want
-    if (!r.ok) {
-      html += '<span class="rev-fix">' +
-        (r.got ? 'you put it ' + r.got : 'you did not place it') + '</span>'
-    }
-    html += '</span>'
-    d.innerHTML = html
+function finishRound() {
+  S.locked=true; stopTimer(); stopSpeak()
+  const n=S.round.tasks.length, all=S.roundRight===n
+  let bonus=0
+  const lines=[{label:S.roundRight+' of '+n+' in the right place', val:'+'+(S.roundRight*S.cfg.base)}]
+  if(all){
+    bonus+=80; lines.push({label:'Perfect room',val:'+80'})
+    if(S.cfg.timer&&S.timeLeft>0){const b=S.timeLeft*2;bonus+=b;lines.push({label:'Time bonus ('+S.timeLeft+'s left)',val:'+'+b})}
+  }
+  if(S.peeked){bonus-=15;lines.push({label:'Used “show text”',val:'−15',neg:true})}
+  S.scores[S.turn]=Math.max(0,S.scores[S.turn]+bonus)
+
+  $('roundEmoji').textContent = all?'🏅':(S.roundRight?'🎯':'🤷')
+  $('roundTitle').textContent = all?'PERFECT ROOM!':S.roundRight+' / '+n+' CORRECT'
+  $('roundSub').textContent = all?'Everything went exactly where it should.':'Here is where each thing belonged.'
+
+  const rev=$('review'); rev.innerHTML=''
+  S.round.tasks.forEach((t,i)=>{
+    const ok=S.results[i]===true
+    const d=document.createElement('div')
+    d.className='rev '+(ok?'ok':'no')
+    d.innerHTML='<span class="rev-mark">'+(ok?'✅':'❌')+'</span><span><b>'+t.obj.ico+' '+t.obj.n+'</b> → '+t.slot.phrase+'</span>'
     rev.appendChild(d)
   })
 
-  const box = $('scoreLines')
-  box.innerHTML = ''
-  lines.forEach(l => {
-    const d = document.createElement('div')
-    d.className = 'score-line' + (l.neg ? ' is-neg' : '')
-    d.innerHTML = '<span>' + l.label + '</span><span>' + l.val + '</span>'
-    box.appendChild(d)
-  })
-  const t = document.createElement('div')
-  t.className = 'score-line is-total'
-  t.innerHTML = '<span>ROOM TOTAL</span><span>+' + total + '</span>'
-  box.appendChild(t)
+  const box=$('scoreLines'); box.innerHTML=''
+  lines.forEach(l=>{const d=document.createElement('div')
+    d.className='score-line'+(l.neg?' is-neg':'')
+    d.innerHTML='<span>'+l.label+'</span><span>'+l.val+'</span>'; box.appendChild(d)})
 
-  const preps = [...new Set(S.round.tasks.map(x => x.slot.prep))]
-  $('vocabStrip').innerHTML = '<b>PREPOSITIONS IN THIS ROOM</b>' +
-    preps.map(p => '<code>' + p + '</code>').join(' ')
+  const preps=[...new Set(S.round.tasks.map(x=>x.slot.prep))]
+  $('vocabStrip').innerHTML='<b>PREPOSITIONS IN THIS ROOM</b>'+preps.map(p=>'<code>'+p+'</code>').join(' ')
 
   updateScoreboard()
-  if (window.PlaySounds) { all ? PlaySounds.win() : (right ? PlaySounds.correct() : PlaySounds.lose()) }
+  if(window.PlaySounds){ all?PlaySounds.win():PlaySounds.correct() }
   $('roundOvl').classList.add('is-shown')
 }
 
 function updateScoreboard() {
-  $('pscore1').textContent = S.scores[0]
-  $('pscore2').textContent = S.scores[1]
-  $('psub1').textContent = S.correct[0] + ' correct'
-  $('psub2').textContent = S.correct[1] + ' correct'
-  $('pcard1').classList.toggle('is-turn', S.turn === 0)
-  $('pcard2').classList.toggle('is-turn', S.turn === 1)
+  $('pscore1').textContent=S.scores[0]; $('pscore2').textContent=S.scores[1]
+  $('psub1').textContent=S.correct[0]+' correct'; $('psub2').textContent=S.correct[1]+' correct'
+  $('pcard1').classList.toggle('is-turn',S.turn===0)
+  $('pcard2').classList.toggle('is-turn',S.turn===1)
 }
 
 function nextRound() {
   $('roundOvl').classList.remove('is-shown')
   S.roundIndex[S.turn]++
-
-  if (S.mode === 1) {
-    if (S.roundIndex[0] >= 5) return endGame()
-    newRound(); return
-  }
-  if (S.roundIndex[0] >= 5 && S.roundIndex[1] >= 5) return endGame()
-
-  let next = 1 - S.turn
-  if (S.roundIndex[next] >= 5) next = S.turn
-  S.turn = next
-  updateScoreboard()
-  $('handoffName').textContent = S.names[S.turn]
+  if(S.mode===1){ if(S.roundIndex[0]>=5) return endGame(); newRound(); return }
+  if(S.roundIndex[0]>=5&&S.roundIndex[1]>=5) return endGame()
+  let next=1-S.turn
+  if(S.roundIndex[next]>=5) next=S.turn
+  S.turn=next; updateScoreboard()
+  $('handoffName').textContent=S.names[S.turn]
   $('handoffOvl').classList.add('is-shown')
 }
 
 function endGame() {
   stopTimer(); stopSpeak()
-  $('finalScores').classList.toggle('is-solo', S.mode === 1)
-  $('fname1').textContent = S.names[0]; $('fname2').textContent = S.names[1]
-  $('fval1').textContent = S.scores[0]; $('fval2').textContent = S.scores[1]
+  $('finalScores').classList.toggle('is-solo',S.mode===1)
+  $('fname1').textContent=S.names[0]; $('fname2').textContent=S.names[1]
+  $('fval1').textContent=S.scores[0]; $('fval2').textContent=S.scores[1]
   $('fs1').classList.remove('is-winner'); $('fs2').classList.remove('is-winner')
-
-  const perPlayer = 5 * S.cfg.items
-  if (S.mode === 1) {
-    $('finalEmoji').textContent = S.correct[0] === perPlayer ? '🏆' : '🧸'
-    $('finalTitle').textContent = 'ROOMS FINISHED'
-    $('finalSub').innerHTML = 'You placed <b>' + S.correct[0] + ' of ' + perPlayer + '</b> objects correctly on ' + S.cfg.label + '.'
+  if(S.mode===1){
+    $('finalEmoji').textContent='🧸'
+    $('finalTitle').textContent='ROOMS FINISHED'
+    $('finalSub').innerHTML='You placed <b>'+S.correct[0]+'</b> correctly on '+S.cfg.label+'.'
     $('fs1').classList.add('is-winner')
   } else {
-    const w = S.scores[0] === S.scores[1] ? -1 : (S.scores[0] > S.scores[1] ? 0 : 1)
-    $('finalEmoji').textContent = w === -1 ? '🤝' : '🏆'
-    $('finalTitle').textContent = w === -1 ? "IT'S A DRAW!" : S.names[w].toUpperCase() + ' WINS!'
-    $('finalSub').innerHTML = S.names[0] + ': ' + S.correct[0] + ' correct · ' + S.names[1] + ': ' + S.correct[1] + ' correct'
-    if (w >= 0) $(w === 0 ? 'fs1' : 'fs2').classList.add('is-winner')
+    const w=S.scores[0]===S.scores[1]?-1:(S.scores[0]>S.scores[1]?0:1)
+    $('finalEmoji').textContent=w===-1?'🤝':'🏆'
+    $('finalTitle').textContent=w===-1?"IT'S A DRAW!":S.names[w].toUpperCase()+' WINS!'
+    $('finalSub').innerHTML=S.names[0]+': '+S.correct[0]+' · '+S.names[1]+': '+S.correct[1]
+    if(w>=0) $(w===0?'fs1':'fs2').classList.add('is-winner')
   }
-
-  if (window.PlayProgress) {
-    const best = Math.max(S.scores[0], S.mode === 2 ? S.scores[1] : 0)
-    PlayProgress.record(GAME_ID, S.cfg.cefr, best, 5 * (S.cfg.items * S.cfg.base + 80))
+  if(window.PlayProgress){
+    const best=Math.max(S.scores[0],S.mode===2?S.scores[1]:0)
+    PlayProgress.record(GAME_ID,S.cfg.cefr,best,5*(S.cfg.items*S.cfg.base+80))
   }
-  if (window.PlaySounds) PlaySounds.win()
+  if(window.PlaySounds) PlaySounds.win()
   $('finalOvl').classList.add('is-shown')
 }
 
-/* ── timer ────────────────────────────────────────────────────── */
 function startTimer(secs){
-  S.timeLeft = secs; paintTimer()
-  S.timerId = setInterval(()=>{
+  S.timeLeft=secs; paintTimer()
+  S.timerId=setInterval(()=>{
     S.timeLeft--; paintTimer()
-    if(S.timeLeft<=5 && S.timeLeft>0 && window.PlaySounds) PlaySounds.tickLow()
-    if(S.timeLeft<=0){ stopTimer(); if(!S.locked){ setFeedback("Time's up!", 'wrong'); checkRoom() } }
+    if(S.timeLeft<=5&&S.timeLeft>0&&window.PlaySounds) PlaySounds.tickLow()
+    if(S.timeLeft<=0){ stopTimer(); if(!S.locked) finishRound() }
   },1000)
 }
-function stopTimer(){ if(S.timerId){ clearInterval(S.timerId); S.timerId=null } }
-function paintTimer(){
-  const b=$('timerVal'); b.textContent=S.timeLeft+'s'; b.classList.toggle('low', S.timeLeft<=12)
-}
+function stopTimer(){ if(S.timerId){clearInterval(S.timerId); S.timerId=null} }
+function paintTimer(){ const b=$('timerVal'); b.textContent=S.timeLeft+'s'; b.classList.toggle('low',S.timeLeft<=12) }
 
 /* ════════════════════════════════════════════════════════════════
    WIRING
    ════════════════════════════════════════════════════════════════ */
-document.querySelectorAll('.mode-card').forEach(b => b.addEventListener('click', () => {
-  document.querySelectorAll('.mode-card').forEach(x => x.classList.remove('is-active'))
-  b.classList.add('is-active')
-  S.mode = Number(b.dataset.mode)
-  $('playerInputs').classList.toggle('is-solo', S.mode === 1)
-  if (window.PlaySounds) PlaySounds.click()
+document.querySelectorAll('.mode-card').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.mode-card').forEach(x=>x.classList.remove('is-active'))
+  b.classList.add('is-active'); S.mode=Number(b.dataset.mode)
+  $('playerInputs').classList.toggle('is-solo',S.mode===1)
+  if(window.PlaySounds) PlaySounds.click()
 }))
-
-document.querySelectorAll('.lev-btn').forEach(b => b.addEventListener('click', () => {
-  document.querySelectorAll('.lev-btn').forEach(x => x.classList.remove('is-active'))
-  b.classList.add('is-active')
-  S.level = b.dataset.level
-  $('levDesc').innerHTML = LEVELS[S.level].desc
-  if (window.PlaySounds) PlaySounds.click()
+document.querySelectorAll('.lev-btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.lev-btn').forEach(x=>x.classList.remove('is-active'))
+  b.classList.add('is-active'); S.level=b.dataset.level
+  $('levDesc').innerHTML=LEVELS[S.level].desc
+  if(window.PlaySounds) PlaySounds.click()
 }))
-$('levDesc').innerHTML = LEVELS.easy.desc
+$('levDesc').innerHTML=LEVELS.easy.desc
 
-$('start-btn').addEventListener('click', startGame)
-$('check-btn').addEventListener('click', checkRoom)
-$('next-btn').addEventListener('click', nextRound)
-$('clear-btn').addEventListener('click', () => {
-  if (S.locked) return
-  S.placements = {}; S.armed = null
-  renderTray(); paintSlots()
-  setFeedback('Everything is back in the tray.', 'info')
+$('start-btn').addEventListener('click',startGame)
+$('next-q-btn').addEventListener('click',nextQuestion)
+$('next-btn').addEventListener('click',nextRound)
+$('back-btn').addEventListener('click',()=>{ if(!S.answered) pickFurniture(S.pickedFurn) })
+$('handoff-btn').addEventListener('click',()=>{ $('handoffOvl').classList.remove('is-shown'); newRound() })
+$('replay-btn').addEventListener('click',()=>{
+  if(S.replaysLeft<=0) return
+  S.replaysLeft--; speak(S.qText); paintInstructions()
 })
-$('handoff-btn').addEventListener('click', () => {
-  $('handoffOvl').classList.remove('is-shown')
-  newRound()
+$('peek-btn').addEventListener('click',()=>{
+  if(S.peeked) return
+  S.peeked=true; S.revealed=true
+  renderQuestion(); paintInstructions()
+  setFeedback('Text revealed — 15 points will be deducted.','wrong')
 })
-$('replay-btn').addEventListener('click', () => {
-  if (S.replaysLeft <= 0) return
-  S.replaysLeft--
-  speakLines(S.cfg.drip ? [S.lines[S.dripIndex]] : S.lines)
-  paintInstructions()
-})
-$('peek-btn').addEventListener('click', () => {
-  if (S.peeked) return
-  S.peeked = true; S.revealed = true
-  paintInstructions()
-  setFeedback('Text revealed — 15 points will be deducted.', 'wrong')
-})
-$('again-btn').addEventListener('click', () => { $('finalOvl').classList.remove('is-shown'); startGame() })
-$('setup-btn').addEventListener('click', () => {
+$('again-btn').addEventListener('click',()=>{ $('finalOvl').classList.remove('is-shown'); startGame() })
+$('setup-btn').addEventListener('click',()=>{
   $('finalOvl').classList.remove('is-shown')
   gameArea.classList.remove('is-shown')
-  setupEl.style.display = 'block'
+  setupEl.style.display='block'
   stopTimer(); stopSpeak()
 })
+window.onShellResize = () => {}
 
 if (window.PlaySounds) PlaySounds.injectMuteButton(document.getElementById('muteHost'))
 </script>

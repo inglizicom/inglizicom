@@ -68,34 +68,31 @@
     .scene{border-radius:16px;padding:22px 18px;background:linear-gradient(180deg,#173a3f 0%,#1d4b45 46%,#2c4a2a 46%,#22391f 100%);
       display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;min-height:300px;align-content:center}
 
-    .actor{position:relative;background:rgba(0,0,0,.34);border:3px solid rgba(255,255,255,.10);border-radius:16px;padding:14px 10px 12px;
-      display:flex;flex-direction:column;align-items:center;gap:7px;transition:all .18s ease;cursor:pointer}
+    .actor{position:relative;background:rgba(0,0,0,.34);border:3px solid rgba(255,255,255,.10);border-radius:16px;padding:12px 8px 10px;
+      min-height:clamp(112px,20vh,210px);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transition:transform .14s ease,border-color .14s ease,box-shadow .14s ease;cursor:pointer}
     .actor:hover:not(:disabled){border-color:var(--gold-2);transform:translateY(-3px)}
-    .actor.is-armed{border-color:var(--gold);background:rgba(251,191,36,.14);box-shadow:0 0 22px -4px rgba(251,191,36,.7);transform:translateY(-3px)}
     .actor:disabled{cursor:default}
-    .actor .a-person{font-size:clamp(34px,5vw,52px);line-height:1;filter:drop-shadow(0 3px 5px rgba(0,0,0,.6))}
-    .actor .a-label{font-size:12.5px;font-weight:800;color:#e8f0ea;text-shadow:0 1px 3px rgba(0,0,0,.9);text-align:center;line-height:1.25}
-    .actor .a-doing{width:100%;min-height:46px;border-radius:10px;background:rgba(0,0,0,.42);border:2px dashed rgba(255,255,255,.16);
-      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 3px}
-    .actor .a-doing.is-set{border-style:solid;border-color:rgba(45,212,191,.55);background:rgba(45,212,191,.12)}
-    .actor .a-doing .d-ico{font-size:20px;line-height:1}
+    .actor .a-person{font-size:clamp(28px,5.4vh,60px);line-height:1;filter:drop-shadow(0 3px 5px rgba(0,0,0,.6))}
+    .actor .a-label{font-size:12.5px;font-weight:800;color:#e8f0ea;text-shadow:0 1px 3px rgba(0,0,0,.9);text-align:center;line-height:1.2}
+    .actor .a-doing{width:100%;border-radius:10px;background:rgba(45,212,191,.12);border:2px solid rgba(45,212,191,.4);
+      display:flex;align-items:center;justify-content:center;gap:5px;padding:5px 4px}
+    .actor .a-doing .d-ico{font-size:17px;line-height:1}
     .actor .a-doing .d-txt{font-size:10.5px;font-weight:800;color:var(--teal);text-align:center;line-height:1.15}
-    .actor .a-doing .d-empty{font-size:19px;color:rgba(255,255,255,.28)}
-    .actor.is-correct{border-color:var(--green);box-shadow:0 0 20px -4px rgba(74,222,128,.6)}
-    .actor.is-wrong{border-color:var(--red)}
-    .actor .a-fix{position:absolute;left:6px;right:6px;bottom:-11px;font-size:10px;font-weight:800;color:var(--red);
-      background:var(--ink);border:1px solid var(--red);border-radius:6px;padding:2px 4px;text-align:center;line-height:1.2}
+    .actor.is-right{border-color:var(--green);box-shadow:0 0 22px -3px rgba(74,222,128,.7)}
+    .actor.is-wrong{border-color:var(--red);box-shadow:0 0 22px -3px rgba(248,113,113,.6)}
+    .actor.is-answer{border-color:var(--green);animation:ansPulse 1s ease infinite}
+    @keyframes ansPulse{0%,100%{box-shadow:0 0 0 0 rgba(74,222,128,.55)}50%{box-shadow:0 0 22px 7px rgba(74,222,128,.3)}}
+    .actor.is-dim{opacity:.4}
 
-    .palette{margin-top:14px;padding:14px;border-radius:16px;background:var(--paper-2);border:2px solid var(--border)}
-    .palette-h{font-family:var(--arcade);font-size:10px;color:var(--text-muted);letter-spacing:.18em;margin-bottom:12px}
-    .acts{display:flex;gap:9px;flex-wrap:wrap}
-    .act{padding:9px 12px;border-radius:12px;background:var(--ink);border:3px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .16s ease;min-width:80px}
-    .act:hover:not(:disabled){border-color:var(--gold);transform:translateY(-3px)}
-    .act.is-armed{border-color:var(--gold);background:rgba(251,191,36,.14);box-shadow:0 0 18px -3px rgba(251,191,36,.6);transform:translateY(-3px)}
-    .act:disabled{opacity:.26;cursor:not-allowed}
-    .act .ac-ico{font-size:24px;line-height:1}
-    .act .ac-txt{font-size:10.5px;font-weight:800;color:var(--text-muted);text-align:center;line-height:1.15}
-    .act.is-armed .ac-txt{color:var(--gold)}
+    /* the question — the one thing the student is answering right now */
+    .quest{margin-top:14px;padding:16px 18px;border-radius:16px;background:linear-gradient(180deg,rgba(45,212,191,.14),rgba(45,212,191,.04));
+      border:2px solid rgba(45,212,191,.45);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+    .quest .q-num{font-family:var(--arcade);font-size:10px;color:var(--teal);letter-spacing:.15em;white-space:nowrap}
+    .quest .q-text{flex:1;min-width:180px;font-size:clamp(16px,2vw,21px);font-weight:800;line-height:1.4;color:var(--text)}
+    .quest .q-hidden{flex:1;min-width:180px;font-size:14px;color:var(--text-muted);display:flex;align-items:center;gap:9px}
+    .quest .q-hidden b{font-size:26px}
+    .quest .q-ask{font-family:var(--arcade);font-size:10px;color:var(--gold);letter-spacing:.12em;white-space:nowrap}
 
     /* ── SIDE ──────────────────────────────────────────── */
     .side{display:flex;flex-direction:column;gap:14px}
@@ -171,6 +168,17 @@
     .vocab-strip{margin-top:22px;padding-top:18px;border-top:1px dashed var(--border);font-size:13px;color:var(--text-muted);line-height:1.9;text-align:left}
     .vocab-strip b{color:var(--gold-2);font-family:var(--arcade);font-size:9px;letter-spacing:.15em;display:block;margin-bottom:8px}
     .vocab-strip code{background:var(--paper-2);padding:2px 7px;border-radius:5px;color:var(--text-2);font-family:var(--display);font-weight:700}
+
+    /* Phone: cards size to their content so both rows fit, and the
+       sentence is shown once — beside the people, where you are looking
+       — instead of twice. */
+    @media (max-width:1023px), (max-height:719px) {
+      .actor{min-height:0 !important}
+      .instr .instr-list{display:none}
+      .quest{margin-top:10px;padding:11px 13px;gap:8px}
+      .quest .q-text{font-size:15px;min-width:140px}
+      .quest .q-num,.quest .q-ask{font-size:8px}
+    }
   </style>
   <link rel="stylesheet" href="../../_shared/game-shell.css">
 </head>
@@ -233,17 +241,14 @@
     <div>
       <div class="statbar">
         <span class="stat">SCENE <b id="roundNum">1</b>/<b id="roundTotal">5</b></span>
-        <span class="stat">DONE <b id="doneCount">0</b>/<b id="doneTotal">3</b></span>
+        <span class="stat">RIGHT <b id="doneCount">0</b>/<b id="doneTotal">4</b></span>
         <span class="stat timer" id="timerStat">TIME <b id="timerVal">--</b></span>
         <span class="stat">LEVEL <b id="levelTag">EASY</b></span>
       </div>
 
       <div class="scene-wrap">
         <div class="scene" id="scene"></div>
-        <div class="palette">
-          <div class="palette-h">1 · PICK A PERSON &nbsp;→&nbsp; 2 · PICK WHAT THEY ARE DOING</div>
-          <div class="acts" id="acts"></div>
-        </div>
+        <div class="quest" id="quest"></div>
       </div>
     </div>
 
@@ -257,7 +262,7 @@
       </div>
 
       <div class="instr">
-        <div class="instr-h"><span>WHAT IS HAPPENING</span><span class="step-count" id="stepCount"></span></div>
+        <div class="instr-h"><span>THE SCENE</span><span class="step-count" id="stepCount"></span></div>
         <div id="instrBody"></div>
         <div class="audio-row">
           <button class="mini-btn" id="replay-btn" type="button">🔊 Listen again</button>
@@ -266,9 +271,9 @@
       </div>
 
       <div class="panel">
-        <div class="panel-h">WHEN YOU ARE READY</div>
-        <button class="btn is-gold is-wide" id="check-btn" type="button" disabled>✓ CHECK THE SCENE</button>
-        <button class="btn is-ghost is-wide" id="clear-btn" type="button" style="margin-top:10px;font-size:14px;padding:11px">↺ Start over</button>
+        <div class="panel-h">PROGRESS</div>
+        <div id="progress" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
+        <button class="btn is-gold is-wide" id="next-q-btn" type="button" style="display:none">NEXT →</button>
       </div>
 
       <div class="feedback" id="feedback"></div>
@@ -319,17 +324,19 @@
 <script>
 /* ════════════════════════════════════════════════════════════════
    RIGHT NOW — Inglizi.com Play
-   Grammar focus: present continuous (be + -ing), and telling it
-   apart from the present simple.
+   Grammar focus: present continuous, and telling it apart from the
+   present simple.
 
-   Same rule as the other two simulators on this track: the scene is
-   decided first, and the English is written from it.
+   One sentence at a time; you tap the person it is about. The purpose
+   is readable in two seconds without any explanation, which the first
+   version was not.
+
+   Everyone on stage is already visibly doing something, so the sentence
+   is checked against the world rather than the student building it.
    ════════════════════════════════════════════════════════════════ */
 
 const GAME_ID = 'right-now'
 
-/* be-form and pronoun travel with the subject, so agreement is never
-   guessed at when a sentence is written. */
 const PEOPLE = [
   { id:'man',      ico:'👨', np:'The man',        pro:'he',   be:'is',  neg:"isn't"  },
   { id:'woman',    ico:'👩', np:'The woman',      pro:'she',  be:'is',  neg:"isn't"  },
@@ -340,13 +347,11 @@ const PEOPLE = [
   { id:'baby',     ico:'👶', np:'The baby',       pro:'he',   be:'is',  neg:"isn't"  },
   { id:'dog',      ico:'🐕', np:'The dog',        pro:'it',   be:'is',  neg:"isn't"  },
   { id:'cat',      ico:'🐈', np:'The cat',        pro:'it',   be:'is',  neg:"isn't"  },
-  { id:'children', ico:'🧑‍🤝‍🧑', np:'The children',   pro:'they', be:'are', neg:"aren't", plural:true },
+  { id:'children', ico:'🧑‍🤝‍🧑', np:'The children', pro:'they', be:'are', neg:"aren't", plural:true },
   { id:'boys',     ico:'👬', np:'The boys',       pro:'they', be:'are', neg:"aren't", plural:true },
   { id:'girls',    ico:'👭', np:'The girls',      pro:'they', be:'are', neg:"aren't", plural:true },
 ]
 
-/* `ing` is the whole verb phrase after be. `human` marks actions that
-   only make sense for a person, so a dog is never made to cook. */
 const ACTIONS = [
   { id:'running',  ico:'🏃', ing:'running' },
   { id:'walking',  ico:'🚶', ing:'walking' },
@@ -354,12 +359,10 @@ const ACTIONS = [
   { id:'eating',   ico:'🍎', ing:'eating' },
   { id:'drinking', ico:'🥤', ing:'drinking' },
   { id:'jumping',  ico:'🤸', ing:'jumping' },
-  { id:'sitting',  ico:'🪑', ing:'sitting down' },
   { id:'laughing', ico:'😂', ing:'laughing' },
   { id:'crying',   ico:'😢', ing:'crying' },
   { id:'swimming', ico:'🏊', ing:'swimming' },
   { id:'reading',  ico:'📖', ing:'reading a book',        human:true },
-  { id:'writing',  ico:'✍️', ing:'writing',               human:true },
   { id:'singing',  ico:'🎤', ing:'singing',               human:true },
   { id:'dancing',  ico:'💃', ing:'dancing',               human:true },
   { id:'football', ico:'⚽', ing:'playing football',      human:true },
@@ -369,33 +372,29 @@ const ACTIONS = [
   { id:'music',    ico:'🎧', ing:'listening to music',    human:true },
   { id:'photo',    ico:'📸', ing:'taking a photo',        human:true },
   { id:'drawing',  ico:'🎨', ing:'drawing',               human:true },
-  { id:'climbing', ico:'🧗', ing:'climbing a tree',       human:true },
 ]
 
-/* Habits for the present-simple contrast at Hard+. Stored in both
-   forms so "the children" never ends up with "works". */
 const HABITS = [
-  { sg:'works in a shop',        pl:'work in a shop' },
-  { sg:'goes to school',         pl:'go to school' },
+  { sg:'works in a shop',          pl:'work in a shop' },
+  { sg:'goes to school',           pl:'go to school' },
   { sg:'plays football on Friday', pl:'play football on Friday' },
-  { sg:'reads a lot',            pl:'read a lot' },
-  { sg:'gets up early',          pl:'get up early' },
-  { sg:'lives near the park',    pl:'live near the park' },
+  { sg:'reads a lot',              pl:'read a lot' },
+  { sg:'gets up early',            pl:'get up early' },
 ]
 
 const LEVELS = {
-  easy: { label:'EASY', cefr:'A1', people:3, extraActs:3, drip:true, hideText:false, replays:99, timer:0, base:70, peek:false,
+  easy: { label:'EASY', cefr:'A1', people:4, twins:0, hideText:false, replays:99, timer:0, base:80, peek:false,
     allowPlural:false, forms:['plain'],
-    desc:'One person at a time, on screen and read aloud. Simple sentences: <b>The girl is running.</b>' },
-  medium: { label:'MEDIUM', cefr:'A2', people:4, extraActs:5, drip:false, hideText:false, replays:3, timer:0, base:100, peek:false,
+    desc:'Four people, each doing something different. You hear <b>The girl is running</b> and tap the girl. Written and read aloud.' },
+  medium: { label:'MEDIUM', cefr:'A2', people:5, twins:1, hideText:false, replays:3, timer:0, base:110, peek:false,
     allowPlural:true, forms:['plain'],
-    desc:'All of them at once, still written. Adds plurals — <b>The children are playing</b> — so <b>is</b> and <b>are</b> both matter.' },
-  hard: { label:'HARD', cefr:'B1', people:5, extraActs:7, drip:false, hideText:true, replays:2, timer:100, base:160, peek:true,
+    desc:'Five people, and <b>two of them are doing the same thing</b> — so the subject matters. Adds plurals: <b>are</b> as well as <b>is</b>.' },
+  hard: { label:'HARD', cefr:'B1', people:6, twins:1, hideText:true, replays:2, timer:90, base:170, peek:true,
     allowPlural:true, forms:['plain','negative'],
-    desc:'<b>Listening only.</b> Adds corrections: <b>The man isn’t sleeping — he’s reading a book.</b> Act on what is true. 100s.' },
-  hardplus: { label:'HARD +', cefr:'B2', people:6, extraActs:9, drip:false, hideText:true, replays:1, timer:80, base:230, peek:true,
-    allowPlural:true, forms:['plain','negative','habit','while'],
-    desc:'Heard <b>once</b>. Mixes in the present simple — <b>She works in a shop, but right now she is cooking.</b> Only <b>right now</b> counts. 80s.' },
+    desc:'<b>Listening only.</b> Adds corrections: <b>The man isn’t sleeping — he’s reading.</b> Tap who is really doing it. 90s.' },
+  hardplus: { label:'HARD +', cefr:'B2', people:6, twins:2, hideText:true, replays:1, timer:70, base:240, peek:true,
+    allowPlural:true, forms:['plain','negative','habit'],
+    desc:'Heard <b>once</b>. Mixes in the present simple — <b>She works in a shop, but right now she is cooking.</b> Only <b>right now</b> counts. 70s.' },
 }
 
 const rnd  = n => Math.floor(Math.random() * n)
@@ -403,14 +402,17 @@ const pick = a => a[rnd(a.length)]
 function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=rnd(i+1);const t=a[i];a[i]=a[j];a[j]=t} return a }
 
 /* ════════════════════════════════════════════════════════════════
-   SCENE BUILDING
+   SCENE
+
+   `twins` is the point of the harder levels: two people doing the SAME
+   thing, so hearing the verb is not enough — the subject has to be
+   heard too. The question is only ever asked about a person whose
+   (subject, action) pair is unique, so exactly one tap is right.
    ════════════════════════════════════════════════════════════════ */
 function buildScene(cfg) {
   const pool = PEOPLE.filter(p => cfg.allowPlural || !p.plural)
   if (pool.length < cfg.people) return null
 
-  /* Keep at most two plural groups on screen. Three of them look alike as
-     icons, and the point of the level is is/are — not telling 👬 from 👭. */
   const shuffled = shuffle(pool.slice())
   const people = []
   let plurals = 0
@@ -422,61 +424,60 @@ function buildScene(cfg) {
   }
   if (people.length < cfg.people) return null
 
-  /* One action each, never repeated — two people doing the same thing
-     would make the instruction impossible to act on unambiguously. */
+  const cast = []
   const used = new Set()
-  const tasks = []
   for (const p of people) {
-    const isAnimal = p.id === 'dog' || p.id === 'cat'
-    const ok = ACTIONS.filter(a => !used.has(a.id) && (!a.human || !isAnimal))
+    const animal = p.id === 'dog' || p.id === 'cat'
+    const ok = ACTIONS.filter(a => !used.has(a.id) && (!a.human || !animal))
     if (!ok.length) return null
     const a = pick(ok)
     used.add(a.id)
-    tasks.push({ person: p, action: a })
+    cast.push({ person: p, action: a })
   }
 
-  /* Distractor actions fill the palette. */
-  const extras = shuffle(ACTIONS.filter(a => !used.has(a.id))).slice(0, cfg.extraActs)
-  const palette = shuffle(tasks.map(t => t.action).concat(extras))
+  /* Give some pairs the same action. */
+  for (let t = 0; t < cfg.twins; t++) {
+    const idx = shuffle(cast.map((_, i) => i))
+    let done = false
+    for (const i of idx) {
+      for (const j of idx) {
+        if (i === j || done) continue
+        const a = cast[i].action, target = cast[j]
+        const animal = target.person.id === 'dog' || target.person.id === 'cat'
+        if (a.human && animal) continue
+        if (cast.filter(c => c.action.id === a.id).length > 1) continue
+        if (cast.filter(c => c.action.id === target.action.id).length > 1) continue
+        target.action = a
+        done = true
+      }
+      if (done) break
+    }
+  }
 
-  return { tasks, palette }
+  /* Ask only about people whose person+action pair is unambiguous. */
+  const questions = shuffle(cast.slice())
+  return { cast, questions }
 }
 
-/* Write the English from the scene — never the other way round. */
-function writeLines(scene, cfg) {
-  return scene.tasks.map(t => {
-    const p = t.person, a = t.action
-    const form = pick(cfg.forms)
+/* The sentence is written from the scene, never the other way round. */
+function writeQuestion(entry, scene, cfg) {
+  const p = entry.person, a = entry.action
+  const form = pick(cfg.forms)
 
-    if (form === 'negative') {
-      /* Name something they are NOT doing, then the truth. The wrong
-         verb must be one nobody else is doing, or the correction would
-         contradict another sentence in the same scene. */
-      const taken = new Set(scene.tasks.map(x => x.action.id))
-      const isAnimal = p.id === 'dog' || p.id === 'cat'
-      const decoys = ACTIONS.filter(x => !taken.has(x.id) && (!x.human || !isAnimal))
-      if (decoys.length) {
-        const d = pick(decoys)
-        return { text: p.np + ' ' + p.neg + ' ' + d.ing + ' — ' + p.pro + ' ' + p.be + ' ' + a.ing + '.',
-                 personId: p.id, actionId: a.id }
-      }
+  if (form === 'negative') {
+    const taken = new Set(scene.cast.map(x => x.action.id))
+    const animal = p.id === 'dog' || p.id === 'cat'
+    const decoys = ACTIONS.filter(x => !taken.has(x.id) && (!x.human || !animal))
+    if (decoys.length) {
+      const d = pick(decoys)
+      return p.np + ' ' + p.neg + ' ' + d.ing + ' — ' + p.pro + ' ' + p.be + ' ' + a.ing + '.'
     }
-
-    if (form === 'habit') {
-      const h = pick(HABITS)
-      return { text: p.np + ' ' + (p.plural ? h.pl : h.sg) + ', but right now ' +
-                     p.pro + ' ' + p.be + ' ' + a.ing + '.',
-               personId: p.id, actionId: a.id }
-    }
-
-    if (form === 'while') {
-      return { text: 'Look at ' + p.np.toLowerCase().replace(/^the /, 'the ') + ' — ' +
-                     p.pro + ' ' + p.be + ' ' + a.ing + ' right now.',
-               personId: p.id, actionId: a.id }
-    }
-
-    return { text: p.np + ' ' + p.be + ' ' + a.ing + '.', personId: p.id, actionId: a.id }
-  })
+  }
+  if (form === 'habit') {
+    const h = pick(HABITS)
+    return p.np + ' ' + (p.plural ? h.pl : h.sg) + ', but right now ' + p.pro + ' ' + p.be + ' ' + a.ing + '.'
+  }
+  return p.np + ' ' + p.be + ' ' + a.ing + '.'
 }
 
 /* ── speech ───────────────────────────────────────────────────── */
@@ -488,14 +489,12 @@ function loadVoices(){
     || v.find(x=>x.lang==='en-US') || v.find(x=>x.lang && x.lang.startsWith('en')) || null
 }
 if(window.speechSynthesis){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices }
-function speakLines(lines){
+function speak(text){
   if(!window.speechSynthesis) return
   speechSynthesis.cancel()
-  lines.forEach(l=>{
-    const u=new SpeechSynthesisUtterance(l.replace(/—/g,','))
-    u.lang='en-US'; if(enVoice) u.voice=enVoice; u.rate=0.88
-    speechSynthesis.speak(u)
-  })
+  const u=new SpeechSynthesisUtterance(String(text).replace(/—/g,','))
+  u.lang='en-US'; if(enVoice) u.voice=enVoice; u.rate=0.88
+  speechSynthesis.speak(u)
 }
 function stopSpeak(){ if(window.speechSynthesis) speechSynthesis.cancel() }
 
@@ -506,147 +505,80 @@ const S = {
   mode:1, level:'easy', cfg:LEVELS.easy,
   names:['Player 1','Player 2'], scores:[0,0], correct:[0,0],
   turn:0, roundIndex:[0,0],
-  scene:null, lines:[], doing:{},        // personId -> actionId
-  armedPerson:null, armedAction:null,
-  dripIndex:0, replaysLeft:0, peeked:false, revealed:false,
+  scene:null, qIndex:0, qText:'', answered:false, roundRight:0,
+  replaysLeft:0, peeked:false, revealed:false,
   timeLeft:0, timerId:null, locked:true,
+  results:[],
 }
 
 const $ = id => document.getElementById(id)
-const setupEl = $('setup'), gameArea = $('gameArea'), sceneEl = $('scene'), actsEl = $('acts')
+const setupEl=$('setup'), gameArea=$('gameArea'), sceneEl=$('scene')
 
 /* ════════════════════════════════════════════════════════════════
    RENDERING
    ════════════════════════════════════════════════════════════════ */
 function renderScene() {
   sceneEl.innerHTML = ''
-  S.scene.tasks.forEach(t => {
-    const p = t.person
-    const doingId = S.doing[p.id]
-    const act = doingId ? ACTIONS.find(a => a.id === doingId) : null
-
+  S.scene.cast.forEach(c => {
     const b = document.createElement('button')
     b.type = 'button'
-    b.className = 'actor' + (S.armedPerson === p.id ? ' is-armed' : '')
-    b.dataset.person = p.id
-    b.disabled = S.locked
+    b.className = 'actor'
+    b.dataset.person = c.person.id
+    b.disabled = S.locked || S.answered
     b.innerHTML =
-      '<span class="a-person">' + p.ico + '</span>' +
-      '<span class="a-label">' + p.np + '</span>' +
-      '<span class="a-doing' + (act ? ' is-set' : '') + '">' +
-        (act ? '<span class="d-ico">' + act.ico + '</span><span class="d-txt">' + act.ing + '</span>'
-             : '<span class="d-empty">?</span>') +
-      '</span>'
-    b.addEventListener('click', () => onPerson(p.id))
+      '<span class="a-person">' + c.person.ico + '</span>' +
+      '<span class="a-label">' + c.person.np + '</span>' +
+      '<span class="a-doing"><span class="d-ico">' + c.action.ico + '</span>' +
+      '<span class="d-txt">' + c.action.ing + '</span></span>'
+    b.addEventListener('click', () => answer(c.person.id))
     sceneEl.appendChild(b)
   })
-  const n = Object.keys(S.doing).length
-  $('doneCount').textContent = n
-  $('check-btn').disabled = n === 0 || S.locked
 }
 
-function renderPalette() {
-  actsEl.innerHTML = ''
-  S.scene.palette.forEach(a => {
-    const inUse = Object.values(S.doing).includes(a.id)
-    const b = document.createElement('button')
-    b.type = 'button'
-    b.className = 'act' + (S.armedAction === a.id ? ' is-armed' : '')
-    b.dataset.action = a.id
-    b.disabled = inUse || S.locked
-    b.innerHTML = '<span class="ac-ico">' + a.ico + '</span><span class="ac-txt">' + a.ing + '</span>'
-    b.addEventListener('click', () => onAction(a.id))
-    actsEl.appendChild(b)
+function renderQuestion() {
+  const q = $('quest')
+  const hidden = S.cfg.hideText && !S.revealed
+  q.innerHTML =
+    '<span class="q-num">Q' + (S.qIndex + 1) + '/' + S.scene.questions.length + '</span>' +
+    (hidden
+      ? '<span class="q-hidden"><b>🎧</b> Listening only — press <b style="font-size:14px">Listen again</b> to repeat.</span>'
+      : '<span class="q-text">' + S.qText + '</span>') +
+    '<span class="q-ask">WHO IS IT?</span>'
+}
+
+function renderProgress() {
+  const el = $('progress')
+  el.innerHTML = ''
+  S.scene.questions.forEach((_, i) => {
+    const d = document.createElement('span')
+    const r = S.results[i]
+    d.style.cssText = 'width:22px;height:22px;border-radius:6px;display:flex;align-items:center;' +
+      'justify-content:center;font-size:12px;font-weight:900;border:2px solid ' +
+      (r === true ? 'var(--green);color:var(--green);background:rgba(74,222,128,.14)'
+       : r === false ? 'var(--red);color:var(--red);background:rgba(248,113,113,.12)'
+       : (i === S.qIndex ? 'var(--gold);color:var(--gold);background:rgba(251,191,36,.12)'
+                         : 'var(--border);color:var(--text-muted)'))
+    d.textContent = r === true ? '✓' : r === false ? '✕' : (i + 1)
+    el.appendChild(d)
   })
+  $('doneCount').textContent = S.roundRight
+  $('doneTotal').textContent = S.scene.questions.length
 }
 
-/* Either order works: person then action, or action then person. */
-function onPerson(pid) {
-  if (S.locked) return
-
-  /* Clicking someone who is already doing something clears them. */
-  if (S.doing[pid] && !S.armedAction) {
-    delete S.doing[pid]
-    S.armedPerson = pid
-    if (window.PlaySounds) PlaySounds.click()
-    return repaint('Cleared. Now pick what they are doing.')
-  }
-
-  if (S.armedAction) {
-    S.doing[pid] = S.armedAction
-    const a = ACTIONS.find(x => x.id === S.armedAction)
-    S.armedAction = null; S.armedPerson = null
-    if (window.PlaySounds) PlaySounds.tick()
-    return repaint('Now ' + a.ing + '.')
-  }
-
-  S.armedPerson = S.armedPerson === pid ? null : pid
-  if (window.PlaySounds) PlaySounds.click()
-  repaint(S.armedPerson ? 'Now pick what they are doing.' : '')
-}
-
-function onAction(aid) {
-  if (S.locked) return
-  if (S.armedPerson) {
-    S.doing[S.armedPerson] = aid
-    const a = ACTIONS.find(x => x.id === aid)
-    S.armedPerson = null; S.armedAction = null
-    if (window.PlaySounds) PlaySounds.tick()
-    return repaint('Now ' + a.ing + '.')
-  }
-  S.armedAction = S.armedAction === aid ? null : aid
-  if (window.PlaySounds) PlaySounds.click()
-  repaint(S.armedAction ? 'Now pick who is doing it.' : '')
-}
-
-function repaint(msg) {
-  renderScene(); renderPalette()
-  if (S.cfg.drip) { advanceDrip() } else if (msg !== undefined) setFeedback(msg, 'info')
-  if (S.cfg.drip && msg !== undefined) setFeedback(msg, 'info')
-}
-
-/* ── instructions ─────────────────────────────────────────────── */
 function paintInstructions() {
   const body = $('instrBody')
   const hidden = S.cfg.hideText && !S.revealed
-
   if (hidden) {
-    body.innerHTML = '<div class="instr-hidden"><span class="big">🎧</span>Listening only at this level.<br>Press <b>Listen again</b> to repeat.</div>'
+    body.innerHTML = '<div class="instr-hidden"><span class="big">🎧</span>The sentence is spoken only.<br>Press <b>Listen again</b> to repeat.</div>'
     $('stepCount').textContent = ''
   } else {
-    const ul = document.createElement('ul')
-    ul.className = 'instr-list'
-    S.lines.forEach((l, i) => {
-      if (S.cfg.drip && i > S.dripIndex) return
-      const li = document.createElement('li')
-      li.textContent = l.text
-      if (S.cfg.drip) {
-        /* Done is read from the scene, not from a counter. */
-        li.classList.add(S.doing[l.personId] ? 'is-done' : 'is-current')
-      }
-      ul.appendChild(li)
-    })
-    body.innerHTML = ''
-    body.appendChild(ul)
-    $('stepCount').textContent = S.cfg.drip
-      ? (S.dripIndex + 1) + '/' + S.lines.length
-      : S.lines.length + ' people'
+    body.innerHTML = '<ul class="instr-list"><li class="is-current">' + S.qText + '</li></ul>'
+    $('stepCount').textContent = (S.qIndex + 1) + '/' + S.scene.questions.length
   }
-
   $('replay-btn').disabled = S.replaysLeft <= 0
   $('replay-btn').textContent = S.cfg.replays >= 99 ? '🔊 Listen again' : '🔊 Listen again (' + S.replaysLeft + ')'
   $('peek-btn').disabled = S.peeked || !S.cfg.hideText
   $('peek-btn').style.display = S.cfg.peek ? '' : 'none'
-}
-
-function advanceDrip() {
-  if (S.dripIndex < S.lines.length - 1 && S.doing[S.lines[S.dripIndex].personId]) {
-    S.dripIndex++
-    paintInstructions()
-    speakLines([S.lines[S.dripIndex].text])
-    return
-  }
-  paintInstructions()
 }
 
 function setFeedback(msg, kind) {
@@ -658,254 +590,221 @@ function setFeedback(msg, kind) {
    FLOW
    ════════════════════════════════════════════════════════════════ */
 function startGame() {
-  S.names[0] = ($('p1-name').value || 'Player 1').trim().slice(0,12)
-  S.names[1] = ($('p2-name').value || 'Player 2').trim().slice(0,12)
+  S.names[0]=($('p1-name').value||'Player 1').trim().slice(0,12)
+  S.names[1]=($('p2-name').value||'Player 2').trim().slice(0,12)
   S.scores=[0,0]; S.correct=[0,0]; S.roundIndex=[0,0]; S.turn=0
-  S.cfg = LEVELS[S.level]
-
-  $('pname1').textContent = S.names[0]
-  $('pname2').textContent = S.names[1]
-  $('roundTotal').textContent = 5
-  $('levelTag').textContent = S.cfg.label
-  $('playersPanel').classList.toggle('is-solo', S.mode === 1)
-  $('modePill').textContent = S.mode === 1 ? '1P · SOLO' : '2P · LOCAL'
-  $('timerStat').style.display = S.cfg.timer ? '' : 'none'
-
-  setupEl.style.display = 'none'
+  S.cfg=LEVELS[S.level]
+  $('pname1').textContent=S.names[0]; $('pname2').textContent=S.names[1]
+  $('roundTotal').textContent=5
+  $('levelTag').textContent=S.cfg.label
+  $('playersPanel').classList.toggle('is-solo', S.mode===1)
+  $('modePill').textContent = S.mode===1?'1P · SOLO':'2P · LOCAL'
+  $('timerStat').style.display = S.cfg.timer?'':'none'
+  setupEl.style.display='none'
   gameArea.classList.add('is-shown')
   newRound()
 }
 
 function newRound() {
   stopTimer(); stopSpeak()
-  S.locked = false; S.doing = {}; S.armedPerson = null; S.armedAction = null
-  S.dripIndex = 0; S.peeked = false; S.revealed = false
-  S.replaysLeft = S.cfg.replays
+  S.locked=false; S.answered=false; S.qIndex=0; S.roundRight=0
+  S.peeked=false; S.revealed=false; S.replaysLeft=S.cfg.replays
+  S.results=[]
 
-  let scene = null
-  for (let i = 0; i < 60 && !scene; i++) scene = buildScene(S.cfg)
-  if (!scene) { setFeedback('Could not build a scene — try again.', 'wrong'); return }
-  S.scene = scene
-  S.lines = writeLines(scene, S.cfg)
+  let scene=null
+  for(let i=0;i<80 && !scene;i++) scene=buildScene(S.cfg)
+  if(!scene){ setFeedback('Could not build a scene — try again.','wrong'); return }
+  S.scene=scene
 
-  renderScene(); renderPalette(); paintInstructions()
-  $('roundNum').textContent = S.roundIndex[S.turn] + 1
-  $('doneTotal').textContent = S.cfg.people
+  $('roundNum').textContent=S.roundIndex[S.turn]+1
+  $('next-q-btn').style.display='none'
   updateScoreboard()
-  setFeedback('Listen, then pick a person and what they are doing.', 'info')
-
-  setTimeout(() => speakLines(S.cfg.drip ? [S.lines[0].text] : S.lines.map(l => l.text)), 350)
+  askQuestion()
   if (S.cfg.timer) startTimer(S.cfg.timer)
 }
 
-function checkScene() {
-  if (S.locked) return
-  S.locked = true
-  stopTimer(); stopSpeak()
-
-  let right = 0
-  const rows = []
-  S.scene.tasks.forEach(t => {
-    const got = S.doing[t.person.id]
-    const ok = got === t.action.id
-    if (ok) right++
-    const gotAct = got ? ACTIONS.find(a => a.id === got) : null
-    rows.push({ ok, person: t.person, want: t.action, got: gotAct })
-
-    const el = sceneEl.querySelector('[data-person="' + t.person.id + '"]')
-    if (el) {
-      el.classList.add(ok ? 'is-correct' : 'is-wrong')
-      if (!ok) {
-        const fix = document.createElement('span')
-        fix.className = 'a-fix'
-        fix.textContent = t.action.ing
-        el.appendChild(fix)
-      }
-    }
-  })
-
-  renderPalette()
-
-  const cfg = S.cfg
-  const lines = []
-  let total = right * cfg.base
-  lines.push({ label: right + ' of ' + cfg.people + ' doing the right thing', val: '+' + (right * cfg.base) })
-  if (right === cfg.people) {
-    total += 90
-    lines.push({ label: 'Whole scene correct', val: '+90' })
-    if (cfg.timer && S.timeLeft > 0) {
-      const b = S.timeLeft * 2; total += b
-      lines.push({ label: 'Time bonus (' + S.timeLeft + 's left)', val: '+' + b })
-    }
-  }
-  if (S.peeked) { total -= 15; lines.push({ label: 'Used “show text”', val: '−15', neg: true }) }
-  total = Math.max(0, total)
-
-  S.scores[S.turn] += total
-  S.correct[S.turn] += right
-  showResult(right, total, lines, rows)
+function askQuestion() {
+  S.answered=false
+  S.qText = writeQuestion(S.scene.questions[S.qIndex], S.scene, S.cfg)
+  renderScene(); renderQuestion(); renderProgress(); paintInstructions()
+  $('next-q-btn').style.display='none'
+  setFeedback('Listen, then tap the person.','info')
+  setTimeout(()=>speak(S.qText), 260)
 }
 
-function showResult(right, total, lines, rows) {
-  const all = right === S.cfg.people
-  $('roundEmoji').textContent = all ? '🏅' : (right > 0 ? '🎯' : '🤷')
-  $('roundTitle').textContent = all ? 'WHOLE SCENE RIGHT!' : right + ' / ' + S.cfg.people + ' CORRECT'
-  $('roundSub').textContent = all
-    ? 'Everyone is doing exactly what you heard.'
-    : 'The right action is written under anyone you got wrong.'
+function answer(personId) {
+  if (S.locked || S.answered) return
+  S.answered = true
+  const want = S.scene.questions[S.qIndex].person
+  const ok = personId === want.id
+  S.results[S.qIndex] = ok
+  if (ok) { S.roundRight++; S.correct[S.turn]++; S.scores[S.turn] += S.cfg.base }
 
-  const rev = $('review')
-  rev.innerHTML = ''
-  rows.forEach(r => {
+  sceneEl.querySelectorAll('.actor').forEach(el => {
+    el.disabled = true
+    if (el.dataset.person === want.id) el.classList.add(ok ? 'is-right' : 'is-answer')
+    else if (el.dataset.person === personId) el.classList.add('is-wrong')
+    else el.classList.add('is-dim')
+  })
+
+  const chosen = S.scene.cast.find(c => c.person.id === personId)
+  setFeedback(ok
+    ? 'Yes — ' + want.np.toLowerCase() + ' ' + want.be + ' ' + S.scene.questions[S.qIndex].action.ing + '.'
+    : (chosen ? 'No — that is ' + chosen.person.np.toLowerCase() + ', ' + chosen.person.pro + ' ' + chosen.person.be + ' ' + chosen.action.ing + '.' : 'No.'),
+    ok ? 'right' : 'wrong')
+
+  renderProgress()
+  updateScoreboard()
+  if (window.PlaySounds) { ok ? PlaySounds.correct() : PlaySounds.wrong() }
+
+  const last = S.qIndex >= S.scene.questions.length - 1
+  const btn = $('next-q-btn')
+  btn.textContent = last ? 'SEE THE SCORE →' : 'NEXT →'
+  btn.style.display = ''
+}
+
+function nextQuestion() {
+  if (S.qIndex >= S.scene.questions.length - 1) return finishRound()
+  S.qIndex++
+  askQuestion()
+}
+
+function finishRound() {
+  S.locked = true
+  stopTimer(); stopSpeak()
+  const n = S.scene.questions.length
+  const all = S.roundRight === n
+  let bonus = 0
+  const lines = [{ label: S.roundRight + ' of ' + n + ' right', val: '+' + (S.roundRight * S.cfg.base) }]
+  if (all) {
+    bonus += 90
+    lines.push({ label: 'Whole scene right', val: '+90' })
+    if (S.cfg.timer && S.timeLeft > 0) { const b = S.timeLeft * 2; bonus += b; lines.push({ label:'Time bonus ('+S.timeLeft+'s left)', val:'+'+b }) }
+  }
+  if (S.peeked) { bonus -= 15; lines.push({ label:'Used “show text”', val:'−15', neg:true }) }
+  S.scores[S.turn] = Math.max(0, S.scores[S.turn] + bonus)
+
+  $('roundEmoji').textContent = all ? '🏅' : (S.roundRight ? '🎯' : '🤷')
+  $('roundTitle').textContent = all ? 'ALL RIGHT!' : S.roundRight + ' / ' + n + ' CORRECT'
+  $('roundSub').textContent = all ? 'You found everyone.' : 'Here is who was doing what.'
+
+  const rev = $('review'); rev.innerHTML = ''
+  S.scene.cast.forEach(c => {
     const d = document.createElement('div')
-    d.className = 'rev ' + (r.ok ? 'ok' : 'no')
-    let h = '<span class="rev-mark">' + (r.ok ? '✅' : '❌') + '</span><span><b>' +
-            r.person.ico + ' ' + r.person.np + ' ' + r.person.be + ' ' + r.want.ing + '.</b>'
-    if (!r.ok) {
-      h += '<span class="rev-fix">' +
-        (r.got ? 'you made ' + r.person.pro + ' ' + r.got.ing : 'you left ' + r.person.pro + ' with nothing to do') +
-        '</span>'
-    }
-    h += '</span>'
-    d.innerHTML = h
+    d.className = 'rev ok'
+    d.innerHTML = '<span class="rev-mark">' + c.person.ico + '</span><span><b>' +
+      c.person.np + ' ' + c.person.be + ' ' + c.action.ing + '.</b></span>'
     rev.appendChild(d)
   })
 
-  const box = $('scoreLines')
-  box.innerHTML = ''
+  const box = $('scoreLines'); box.innerHTML = ''
   lines.forEach(l => {
     const d = document.createElement('div')
     d.className = 'score-line' + (l.neg ? ' is-neg' : '')
     d.innerHTML = '<span>' + l.label + '</span><span>' + l.val + '</span>'
     box.appendChild(d)
   })
-  const t = document.createElement('div')
-  t.className = 'score-line is-total'
-  t.innerHTML = '<span>SCENE TOTAL</span><span>+' + total + '</span>'
-  box.appendChild(t)
-
-  const bes = [...new Set(S.scene.tasks.map(x => x.person.be))]
+  const bes = [...new Set(S.scene.cast.map(x => x.person.be))]
   $('vocabStrip').innerHTML = '<b>THE PATTERN</b>' +
-    bes.map(b => '<code>subject + ' + b + ' + verb-ing</code>').join(' ') +
-    ' <code>right now</code>'
+    bes.map(b => '<code>subject + ' + b + ' + verb-ing</code>').join(' ') + ' <code>right now</code>'
 
   updateScoreboard()
-  if (window.PlaySounds) { all ? PlaySounds.win() : (right ? PlaySounds.correct() : PlaySounds.lose()) }
+  if (window.PlaySounds) { all ? PlaySounds.win() : PlaySounds.correct() }
   $('roundOvl').classList.add('is-shown')
 }
 
 function updateScoreboard() {
-  $('pscore1').textContent = S.scores[0]
-  $('pscore2').textContent = S.scores[1]
-  $('psub1').textContent = S.correct[0] + ' correct'
-  $('psub2').textContent = S.correct[1] + ' correct'
-  $('pcard1').classList.toggle('is-turn', S.turn === 0)
-  $('pcard2').classList.toggle('is-turn', S.turn === 1)
+  $('pscore1').textContent=S.scores[0]; $('pscore2').textContent=S.scores[1]
+  $('psub1').textContent=S.correct[0]+' correct'; $('psub2').textContent=S.correct[1]+' correct'
+  $('pcard1').classList.toggle('is-turn',S.turn===0)
+  $('pcard2').classList.toggle('is-turn',S.turn===1)
 }
 
 function nextRound() {
   $('roundOvl').classList.remove('is-shown')
   S.roundIndex[S.turn]++
-  if (S.mode === 1) {
-    if (S.roundIndex[0] >= 5) return endGame()
-    newRound(); return
-  }
-  if (S.roundIndex[0] >= 5 && S.roundIndex[1] >= 5) return endGame()
-  let next = 1 - S.turn
-  if (S.roundIndex[next] >= 5) next = S.turn
-  S.turn = next
-  updateScoreboard()
-  $('handoffName').textContent = S.names[S.turn]
+  if (S.mode===1) { if (S.roundIndex[0]>=5) return endGame(); newRound(); return }
+  if (S.roundIndex[0]>=5 && S.roundIndex[1]>=5) return endGame()
+  let next=1-S.turn
+  if (S.roundIndex[next]>=5) next=S.turn
+  S.turn=next; updateScoreboard()
+  $('handoffName').textContent=S.names[S.turn]
   $('handoffOvl').classList.add('is-shown')
 }
 
 function endGame() {
   stopTimer(); stopSpeak()
-  $('finalScores').classList.toggle('is-solo', S.mode === 1)
-  $('fname1').textContent = S.names[0]; $('fname2').textContent = S.names[1]
-  $('fval1').textContent = S.scores[0]; $('fval2').textContent = S.scores[1]
+  $('finalScores').classList.toggle('is-solo',S.mode===1)
+  $('fname1').textContent=S.names[0]; $('fname2').textContent=S.names[1]
+  $('fval1').textContent=S.scores[0]; $('fval2').textContent=S.scores[1]
   $('fs1').classList.remove('is-winner'); $('fs2').classList.remove('is-winner')
-
-  const per = 5 * S.cfg.people
-  if (S.mode === 1) {
-    $('finalEmoji').textContent = S.correct[0] === per ? '🏆' : '🎬'
-    $('finalTitle').textContent = 'SCENES FINISHED'
-    $('finalSub').innerHTML = 'You got <b>' + S.correct[0] + ' of ' + per + '</b> people right on ' + S.cfg.label + '.'
+  if (S.mode===1) {
+    $('finalEmoji').textContent='🎬'
+    $('finalTitle').textContent='SCENES FINISHED'
+    $('finalSub').innerHTML='You got <b>'+S.correct[0]+'</b> right on '+S.cfg.label+'.'
     $('fs1').classList.add('is-winner')
   } else {
-    const w = S.scores[0] === S.scores[1] ? -1 : (S.scores[0] > S.scores[1] ? 0 : 1)
-    $('finalEmoji').textContent = w === -1 ? '🤝' : '🏆'
-    $('finalTitle').textContent = w === -1 ? "IT'S A DRAW!" : S.names[w].toUpperCase() + ' WINS!'
-    $('finalSub').innerHTML = S.names[0] + ': ' + S.correct[0] + ' correct · ' + S.names[1] + ': ' + S.correct[1] + ' correct'
-    if (w >= 0) $(w === 0 ? 'fs1' : 'fs2').classList.add('is-winner')
+    const w = S.scores[0]===S.scores[1] ? -1 : (S.scores[0]>S.scores[1]?0:1)
+    $('finalEmoji').textContent = w===-1?'🤝':'🏆'
+    $('finalTitle').textContent = w===-1?"IT'S A DRAW!":S.names[w].toUpperCase()+' WINS!'
+    $('finalSub').innerHTML = S.names[0]+': '+S.correct[0]+' · '+S.names[1]+': '+S.correct[1]
+    if (w>=0) $(w===0?'fs1':'fs2').classList.add('is-winner')
   }
-
   if (window.PlayProgress) {
-    const best = Math.max(S.scores[0], S.mode === 2 ? S.scores[1] : 0)
-    PlayProgress.record(GAME_ID, S.cfg.cefr, best, 5 * (S.cfg.people * S.cfg.base + 90))
+    const best=Math.max(S.scores[0], S.mode===2?S.scores[1]:0)
+    PlayProgress.record(GAME_ID,S.cfg.cefr,best,5*(S.cfg.people*S.cfg.base+90))
   }
   if (window.PlaySounds) PlaySounds.win()
   $('finalOvl').classList.add('is-shown')
 }
 
 function startTimer(secs){
-  S.timeLeft = secs; paintTimer()
-  S.timerId = setInterval(()=>{
+  S.timeLeft=secs; paintTimer()
+  S.timerId=setInterval(()=>{
     S.timeLeft--; paintTimer()
-    if(S.timeLeft<=5 && S.timeLeft>0 && window.PlaySounds) PlaySounds.tickLow()
-    if(S.timeLeft<=0){ stopTimer(); if(!S.locked){ setFeedback("Time's up!", 'wrong'); checkScene() } }
+    if(S.timeLeft<=5&&S.timeLeft>0&&window.PlaySounds) PlaySounds.tickLow()
+    if(S.timeLeft<=0){ stopTimer(); if(!S.locked) finishRound() }
   },1000)
 }
-function stopTimer(){ if(S.timerId){ clearInterval(S.timerId); S.timerId=null } }
-function paintTimer(){ const b=$('timerVal'); b.textContent=S.timeLeft+'s'; b.classList.toggle('low', S.timeLeft<=12) }
+function stopTimer(){ if(S.timerId){clearInterval(S.timerId); S.timerId=null} }
+function paintTimer(){ const b=$('timerVal'); b.textContent=S.timeLeft+'s'; b.classList.toggle('low',S.timeLeft<=12) }
 
 /* ════════════════════════════════════════════════════════════════
    WIRING
    ════════════════════════════════════════════════════════════════ */
-document.querySelectorAll('.mode-card').forEach(b => b.addEventListener('click', () => {
-  document.querySelectorAll('.mode-card').forEach(x => x.classList.remove('is-active'))
-  b.classList.add('is-active')
-  S.mode = Number(b.dataset.mode)
-  $('playerInputs').classList.toggle('is-solo', S.mode === 1)
-  if (window.PlaySounds) PlaySounds.click()
+document.querySelectorAll('.mode-card').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.mode-card').forEach(x=>x.classList.remove('is-active'))
+  b.classList.add('is-active'); S.mode=Number(b.dataset.mode)
+  $('playerInputs').classList.toggle('is-solo',S.mode===1)
+  if(window.PlaySounds) PlaySounds.click()
 }))
-document.querySelectorAll('.lev-btn').forEach(b => b.addEventListener('click', () => {
-  document.querySelectorAll('.lev-btn').forEach(x => x.classList.remove('is-active'))
-  b.classList.add('is-active')
-  S.level = b.dataset.level
-  $('levDesc').innerHTML = LEVELS[S.level].desc
-  if (window.PlaySounds) PlaySounds.click()
+document.querySelectorAll('.lev-btn').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.lev-btn').forEach(x=>x.classList.remove('is-active'))
+  b.classList.add('is-active'); S.level=b.dataset.level
+  $('levDesc').innerHTML=LEVELS[S.level].desc
+  if(window.PlaySounds) PlaySounds.click()
 }))
-$('levDesc').innerHTML = LEVELS.easy.desc
+$('levDesc').innerHTML=LEVELS.easy.desc
 
-$('start-btn').addEventListener('click', startGame)
-$('check-btn').addEventListener('click', checkScene)
-$('next-btn').addEventListener('click', nextRound)
-$('clear-btn').addEventListener('click', () => {
-  if (S.locked) return
-  S.doing = {}; S.armedPerson = null; S.armedAction = null
-  S.dripIndex = 0
-  renderScene(); renderPalette(); paintInstructions()
-  setFeedback('Cleared — nobody is doing anything now.', 'info')
+$('start-btn').addEventListener('click',startGame)
+$('next-q-btn').addEventListener('click',nextQuestion)
+$('next-btn').addEventListener('click',nextRound)
+$('handoff-btn').addEventListener('click',()=>{ $('handoffOvl').classList.remove('is-shown'); newRound() })
+$('replay-btn').addEventListener('click',()=>{
+  if(S.replaysLeft<=0) return
+  S.replaysLeft--; speak(S.qText); paintInstructions()
 })
-$('handoff-btn').addEventListener('click', () => { $('handoffOvl').classList.remove('is-shown'); newRound() })
-$('replay-btn').addEventListener('click', () => {
-  if (S.replaysLeft <= 0) return
-  S.replaysLeft--
-  speakLines(S.cfg.drip ? [S.lines[S.dripIndex].text] : S.lines.map(l => l.text))
-  paintInstructions()
+$('peek-btn').addEventListener('click',()=>{
+  if(S.peeked) return
+  S.peeked=true; S.revealed=true
+  renderQuestion(); paintInstructions()
+  setFeedback('Text revealed — 15 points will be deducted.','wrong')
 })
-$('peek-btn').addEventListener('click', () => {
-  if (S.peeked) return
-  S.peeked = true; S.revealed = true
-  paintInstructions()
-  setFeedback('Text revealed — 15 points will be deducted.', 'wrong')
-})
-$('again-btn').addEventListener('click', () => { $('finalOvl').classList.remove('is-shown'); startGame() })
-$('setup-btn').addEventListener('click', () => {
+$('again-btn').addEventListener('click',()=>{ $('finalOvl').classList.remove('is-shown'); startGame() })
+$('setup-btn').addEventListener('click',()=>{
   $('finalOvl').classList.remove('is-shown')
   gameArea.classList.remove('is-shown')
-  setupEl.style.display = 'block'
+  setupEl.style.display='block'
   stopTimer(); stopSpeak()
 })
 
