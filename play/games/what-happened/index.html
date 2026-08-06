@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex, nofollow">
+  <title>What Happened? — Past Simple · 1P/2P · Play · Inglizi.com</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Press+Start+2P&family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}button{font-family:inherit;cursor:pointer}a{text-decoration:none;color:inherit}
+    :root{--ink:#0c0a09;--bg:#0c0a09;--paper:#1c1917;--paper-2:#292524;--border:#44403c;--gold:#fbbf24;--gold-2:#fcd34d;--text:#fafaf9;--text-2:#d6d3d1;--text-muted:#a8a29e;--neon:#3b82f6;--pink:#ec4899;--green:#4ade80;--red:#f87171;--amber:#f59e0b;--sepia:#b08968;--display:'Outfit',sans-serif;--arcade:'Press Start 2P',monospace;--arabic:'Cairo',sans-serif}
+    html,body{background:var(--bg);color:var(--text);font-family:var(--display);font-size:16px;min-height:100%;-webkit-font-smoothing:antialiased}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 60% 40% at 80% 0%,rgba(176,137,104,.12),transparent 60%),radial-gradient(ellipse 50% 35% at 20% 100%,rgba(245,158,11,.08),transparent 60%)}
+    body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:40px 40px}
+
+    .topbar{position:sticky;top:0;z-index:100;background:rgba(12,10,9,.92);backdrop-filter:blur(18px) saturate(180%);border-bottom:1px solid var(--border);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+    .back-link{display:inline-flex;align-items:center;gap:10px;padding:12px 20px;border-radius:999px;background:var(--paper);border:1px solid var(--border);font-size:16px;font-weight:700;color:var(--text-2)}
+    .back-link:hover{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+    .game-title{font-family:var(--arcade);font-size:18px;color:var(--gold);letter-spacing:.05em;display:flex;align-items:center;gap:8px}
+    .mode-pill{font-family:var(--arcade);font-size:13px;padding:8px 18px;border-radius:999px;background:rgba(176,137,104,.18);color:var(--sepia);border:1px solid rgba(176,137,104,.45);letter-spacing:.15em}
+    .page{position:relative;z-index:2;max-width:1500px;margin:0 auto;padding:24px 24px 60px}
+
+    /* ── SETUP ─────────────────────────────────────────── */
+    .setup{padding:44px 32px;border-radius:22px;background:var(--paper);border:2px solid var(--border);text-align:center;max-width:980px;margin:0 auto}
+    .setup h2{font-family:var(--arcade);font-size:22px;color:var(--gold);margin-bottom:14px;letter-spacing:.05em}
+    .setup .intro{font-size:17px;line-height:1.6;color:var(--text-2);margin-bottom:10px}
+    .setup .intro-ar{font-family:var(--arabic);direction:rtl;font-size:16px;color:var(--text-muted);margin-bottom:30px}
+    .field-label{font-family:var(--arcade);font-size:10px;color:var(--text-muted);letter-spacing:.18em;margin-bottom:12px}
+    .mode-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px}
+    @media(max-width:640px){.mode-row{grid-template-columns:1fr}}
+    .mode-card{padding:22px 18px;border-radius:16px;background:var(--paper-2);border:3px solid var(--border);transition:all .18s ease;text-align:center}
+    .mode-card:hover{border-color:var(--gold-2)}
+    .mode-card.is-active{border-color:var(--gold);background:rgba(251,191,36,.10);box-shadow:0 0 26px -6px rgba(251,191,36,.45)}
+    .mode-card .mc-emoji{font-size:38px;line-height:1;margin-bottom:10px}
+    .mode-card .mc-name{font-family:var(--arcade);font-size:13px;color:var(--text);letter-spacing:.1em;margin-bottom:8px}
+    .mode-card.is-active .mc-name{color:var(--gold)}
+    .mode-card .mc-desc{font-size:13px;color:var(--text-muted);line-height:1.45}
+    .player-inputs{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:28px}
+    @media(max-width:640px){.player-inputs{grid-template-columns:1fr}}
+    .player-inputs.is-solo{grid-template-columns:1fr;max-width:420px;margin-left:auto;margin-right:auto}
+    .player-inputs.is-solo .player-input.p2{display:none}
+    .player-input{padding:20px;border-radius:14px;background:var(--paper-2);border:3px solid var(--border)}
+    .player-input.p1{border-color:rgba(59,130,246,.5)} .player-input.p2{border-color:rgba(236,72,153,.5)}
+    .player-input label{display:block;font-family:var(--arcade);font-size:12px;letter-spacing:.15em;margin-bottom:12px}
+    .player-input.p1 label{color:var(--neon)} .player-input.p2 label{color:var(--pink)}
+    .player-input input{width:100%;padding:14px;border-radius:10px;background:var(--ink);border:2px solid var(--border);color:var(--text);font-family:var(--display);font-size:20px;font-weight:700;text-align:center;outline:none}
+    .player-input input:focus{border-color:var(--gold)}
+    .level-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+    @media(max-width:760px){.level-row{grid-template-columns:1fr 1fr}}
+    .lev-btn{padding:16px 12px;border-radius:14px;background:transparent;border:2px solid var(--border);color:var(--text-2);transition:all .18s ease;text-align:center}
+    .lev-btn:hover{border-color:var(--gold);color:var(--gold)}
+    .lev-btn.is-active{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+    .lev-btn .lv-name{font-family:var(--arcade);font-size:12px;letter-spacing:.08em;display:block;margin-bottom:7px}
+    .lev-btn .lv-cefr{font-size:12px;font-weight:800;opacity:.75;display:block}
+    .lev-desc{min-height:44px;font-size:14px;color:var(--text-muted);line-height:1.5;margin-bottom:26px;padding:0 8px}
+    .lev-desc b{color:var(--gold-2)}
+
+    /* ── GAME ──────────────────────────────────────────── */
+    .game-area{display:none}
+    .game-area.is-shown{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:22px;align-items:start}
+    @media(max-width:1080px){.game-area.is-shown{grid-template-columns:1fr}}
+
+    .statbar{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:14px;padding:14px 18px;border-radius:14px;background:var(--paper);border:2px solid var(--border)}
+    .stat{font-family:var(--arcade);font-size:11px;color:var(--text-muted);letter-spacing:.1em}
+    .stat b{color:var(--gold);font-size:16px;margin-left:6px}
+    .stat.timer b.low{color:var(--red)}
+
+    .board{padding:18px;border-radius:22px;background:var(--paper);border:3px solid var(--border)}
+    .story-head{font-family:var(--arcade);font-size:11px;color:var(--sepia);letter-spacing:.15em;margin-bottom:4px}
+    .story-title{font-size:19px;font-weight:900;color:var(--text);margin-bottom:16px}
+
+    /* timeline */
+    .timeline{position:relative;display:grid;gap:11px;grid-template-columns:repeat(auto-fit,minmax(126px,1fr));padding:18px 14px;border-radius:16px;
+      background:linear-gradient(180deg,rgba(176,137,104,.10),rgba(0,0,0,.28));border:2px solid rgba(176,137,104,.28)}
+    .tl-slot{position:relative;min-height:132px;border-radius:13px;border:2px dashed rgba(176,137,104,.45);background:rgba(0,0,0,.32);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:9px 6px;transition:all .16s ease}
+    .tl-slot:hover:not(:disabled){border-color:var(--gold);background:rgba(251,191,36,.10)}
+    .tl-slot.is-armed{border-color:var(--gold);border-style:solid;box-shadow:0 0 18px -3px rgba(251,191,36,.6)}
+    .tl-slot.is-filled{border-style:solid;border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.05)}
+    .tl-num{position:absolute;top:6px;left:8px;font-family:var(--arcade);font-size:10px;color:var(--sepia)}
+    .tl-slot .ev-ico{font-size:30px;line-height:1}
+    .tl-slot .ev-txt{font-size:11.5px;font-weight:800;text-align:center;line-height:1.25;color:var(--text-2);padding:0 2px}
+    .tl-slot .ev-empty{font-size:22px;color:rgba(255,255,255,.2)}
+    .tl-slot.is-correct{border-color:var(--green);background:rgba(74,222,128,.16);box-shadow:0 0 16px -3px rgba(74,222,128,.5)}
+    .tl-slot.is-wrong{border-color:var(--red);background:rgba(248,113,113,.14)}
+    .tl-fix{position:absolute;left:5px;right:5px;bottom:-11px;font-size:9.5px;font-weight:800;color:var(--red);background:var(--ink);
+      border:1px solid var(--red);border-radius:6px;padding:2px 3px;text-align:center;line-height:1.2}
+
+    /* card tray */
+    .tray{margin-top:16px;padding:14px;border-radius:16px;background:var(--paper-2);border:2px solid var(--border)}
+    .tray-h{font-family:var(--arcade);font-size:10px;color:var(--text-muted);letter-spacing:.18em;margin-bottom:12px}
+    .cards{display:flex;gap:10px;flex-wrap:wrap;min-height:96px}
+    .card{width:120px;min-height:92px;padding:10px 7px;border-radius:12px;background:var(--ink);border:3px solid var(--border);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:all .16s ease}
+    .card:hover:not(:disabled){border-color:var(--gold);transform:translateY(-3px)}
+    .card.is-armed{border-color:var(--gold);background:rgba(251,191,36,.14);box-shadow:0 0 18px -3px rgba(251,191,36,.6);transform:translateY(-3px)}
+    .card:disabled{opacity:.25;cursor:not-allowed}
+    .card .ev-ico{font-size:26px;line-height:1}
+    .card .ev-txt{font-size:11px;font-weight:800;color:var(--text-muted);text-align:center;line-height:1.2}
+    .card.is-armed .ev-txt{color:var(--gold)}
+    .card.was-decoy{border-color:var(--red);background:rgba(248,113,113,.10)}
+    .card.was-decoy .ev-txt{color:var(--red)}
+
+    /* ── SIDE ──────────────────────────────────────────── */
+    .side{display:flex;flex-direction:column;gap:14px}
+    .panel{padding:18px;border-radius:16px;background:var(--paper);border:2px solid var(--border)}
+    .panel-h{font-family:var(--arcade);font-size:10px;color:var(--text-muted);letter-spacing:.18em;margin-bottom:12px}
+    .players{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .players.is-solo{grid-template-columns:1fr}
+    .players.is-solo .pcard.p2{display:none}
+    .pcard{padding:14px 10px;border-radius:12px;background:var(--paper-2);border:3px solid var(--border);text-align:center;transition:all .22s ease}
+    .pcard.p1{border-color:rgba(59,130,246,.45)} .pcard.p2{border-color:rgba(236,72,153,.45)}
+    .pcard.p1.is-turn{border-color:var(--neon);box-shadow:0 0 22px -4px rgba(59,130,246,.7);transform:scale(1.04)}
+    .pcard.p2.is-turn{border-color:var(--pink);box-shadow:0 0 22px -4px rgba(236,72,153,.7);transform:scale(1.04)}
+    .pcard-name{font-family:var(--arcade);font-size:11px;letter-spacing:.08em;margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .pcard.p1 .pcard-name{color:var(--neon)} .pcard.p2 .pcard-name{color:var(--pink)}
+    .pcard-score{font-family:var(--arcade);font-size:22px;color:var(--gold);text-shadow:0 0 12px rgba(251,191,36,.4)}
+    .pcard-sub{font-size:11px;color:var(--text-muted);margin-top:6px}
+
+    .instr{padding:18px;border-radius:16px;background:linear-gradient(180deg,rgba(176,137,104,.12),rgba(176,137,104,.03));border:2px solid rgba(176,137,104,.42)}
+    .instr-h{font-family:var(--arcade);font-size:10px;color:var(--sepia);letter-spacing:.18em;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .instr-h .step-count{color:var(--text-muted)}
+    .instr-list{display:flex;flex-direction:column;gap:9px;list-style:none}
+    .instr-list li{font-size:15.5px;font-weight:700;line-height:1.45;color:var(--text);padding:11px 13px;border-radius:10px;background:rgba(0,0,0,.35);border-left:4px solid var(--border)}
+    .instr-list li.is-neg{border-left-color:var(--red)}
+    .instr-hidden{text-align:center;padding:24px 12px;color:var(--text-muted);font-size:14px;line-height:1.6}
+    .instr-hidden .big{font-size:44px;display:block;margin-bottom:10px}
+    .audio-row{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
+    .mini-btn{flex:1;min-width:120px;padding:12px 10px;border-radius:10px;background:var(--paper-2);border:2px solid var(--border);color:var(--text-2);font-size:13px;font-weight:800;transition:all .18s ease}
+    .mini-btn:hover:not(:disabled){border-color:var(--gold);color:var(--gold)}
+    .mini-btn:disabled{opacity:.35;cursor:not-allowed}
+    .mini-btn.is-cost{border-color:rgba(248,113,113,.5);color:var(--red)}
+    .mini-btn.is-cost:hover:not(:disabled){background:rgba(248,113,113,.12);border-color:var(--red)}
+
+    .btn{padding:16px 28px;border-radius:12px;font-family:var(--display);font-size:17px;font-weight:800;transition:all .18s ease;border:none}
+    .btn.is-gold{background:linear-gradient(135deg,var(--gold),var(--gold-2));color:var(--ink);box-shadow:0 8px 18px -4px rgba(251,191,36,.5)}
+    .btn.is-gold:hover{transform:translateY(-2px)}
+    .btn.is-ghost{background:transparent;color:var(--text-2);border:2px solid var(--border)}
+    .btn.is-ghost:hover{border-color:var(--neon);color:var(--neon)}
+    .btn.is-wide{width:100%}
+    .btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+    .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+    .feedback{min-height:26px;font-family:var(--arcade);font-size:12px;text-align:center;color:var(--text-muted);letter-spacing:.08em;line-height:1.7;padding:0 6px}
+    .feedback.is-right{color:var(--green)} .feedback.is-wrong{color:var(--red)} .feedback.is-info{color:var(--gold)}
+
+    /* ── OVERLAYS ──────────────────────────────────────── */
+    .ovl{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.94);backdrop-filter:blur(12px);padding:28px}
+    .ovl.is-shown{display:flex}
+    .ovl-card{padding:44px 36px;background:var(--paper);border:4px solid var(--gold);border-radius:24px;text-align:center;max-width:680px;width:100%;box-shadow:0 0 80px rgba(251,191,36,.45);max-height:90vh;overflow-y:auto}
+    .ovl-emoji{font-size:88px;line-height:1;margin-bottom:12px;animation:bounce 1s ease infinite alternate}
+    @keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-12px)}}
+    .ovl-title{font-family:var(--arcade);font-size:24px;color:var(--gold);letter-spacing:.06em;margin-bottom:14px;text-shadow:0 0 20px rgba(251,191,36,.5);line-height:1.4}
+    .ovl-sub{font-size:17px;color:var(--text-2);margin-bottom:24px;line-height:1.6}
+    .truth{display:flex;flex-direction:column;gap:7px;margin-bottom:24px;text-align:left}
+    .truth-row{display:flex;gap:10px;align-items:center;padding:10px 13px;border-radius:10px;background:var(--paper-2);font-size:14.5px}
+    .truth-row.ok{border-left:4px solid var(--green)} .truth-row.no{border-left:4px solid var(--red)}
+    .truth-row .t-n{font-family:var(--arcade);font-size:10px;color:var(--sepia);min-width:18px}
+    .truth-row .t-you{margin-left:auto;font-size:12px;color:var(--text-muted);text-align:right}
+    .score-lines{display:flex;flex-direction:column;gap:8px;margin-bottom:26px;text-align:left;max-width:340px;margin-left:auto;margin-right:auto}
+    .score-line{display:flex;justify-content:space-between;gap:14px;font-size:15px;padding:9px 14px;border-radius:9px;background:var(--paper-2)}
+    .score-line span:last-child{font-weight:900;color:var(--gold)}
+    .score-line.is-neg span:last-child{color:var(--red)}
+    .score-line.is-total{background:rgba(251,191,36,.14);border:2px solid rgba(251,191,36,.4);font-weight:900}
+    .final-scores{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:26px}
+    .final-scores.is-solo{grid-template-columns:1fr;max-width:260px;margin-left:auto;margin-right:auto}
+    .final-scores.is-solo .fscore.p2{display:none}
+    .fscore{padding:20px 14px;border-radius:14px;background:var(--paper-2);border:3px solid var(--border)}
+    .fscore.p1{border-color:rgba(59,130,246,.5)} .fscore.p2{border-color:rgba(236,72,153,.5)}
+    .fscore.is-winner{border-color:var(--gold);box-shadow:0 0 26px -6px rgba(251,191,36,.6)}
+    .fscore-name{font-family:var(--arcade);font-size:11px;letter-spacing:.08em;margin-bottom:10px}
+    .fscore.p1 .fscore-name{color:var(--neon)} .fscore.p2 .fscore-name{color:var(--pink)}
+    .fscore-val{font-family:var(--arcade);font-size:26px;color:var(--gold)}
+    .handoff-name{color:var(--gold);font-weight:900}
+    .vocab-strip{margin-top:22px;padding-top:18px;border-top:1px dashed var(--border);font-size:13px;color:var(--text-muted);line-height:1.9;text-align:left}
+    .vocab-strip b{color:var(--gold-2);font-family:var(--arcade);font-size:9px;letter-spacing:.15em;display:block;margin-bottom:8px}
+    .vocab-strip code{background:var(--paper-2);padding:2px 7px;border-radius:5px;color:var(--text-2);font-family:var(--display);font-weight:700}
+  </style>
+</head>
+<body>
+<nav class="topbar">
+  <a href="../../" class="back-link">← All games</a>
+  <div class="game-title">
+    <svg width="30" height="30" viewBox="0 0 64 64" style="vertical-align:middle" aria-hidden="true">
+      <line x1="6" y1="32" x2="58" y2="32" stroke="#b08968" stroke-width="4"/>
+      <circle cx="16" cy="32" r="7" fill="#fbbf24"/>
+      <circle cx="32" cy="32" r="7" fill="#b08968"/>
+      <circle cx="48" cy="32" r="7" fill="#b08968"/>
+    </svg>
+    WHAT HAPPENED
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="mode-pill" id="modePill">1P / 2P</div>
+    <div id="muteHost"></div>
+  </div>
+</nav>
+
+<main class="page">
+
+  <!-- ══════════ SETUP ══════════ -->
+  <div class="setup" id="setup">
+    <h2>WHAT HAPPENED?</h2>
+    <p class="intro">Listen to the story, then put it back <b>in the order it happened</b>.<br>Careful — the order you hear is not always the order of events.</p>
+    <p class="intro-ar">استمع إلى القصة ثم رتّب الأحداث حسب ترتيب وقوعها الحقيقي — انتبه، ترتيب الكلام ليس دائماً ترتيب الأحداث.</p>
+
+    <div class="field-label">PLAYERS</div>
+    <div class="mode-row">
+      <button class="mode-card is-active" data-mode="1" type="button">
+        <div class="mc-emoji">🕰️</div><div class="mc-name">1 PLAYER</div>
+        <div class="mc-desc">Practise alone. 5 stories, beat your own best score.</div>
+      </button>
+      <button class="mode-card" data-mode="2" type="button">
+        <div class="mc-emoji">🕰️🔍</div><div class="mc-name">2 PLAYERS</div>
+        <div class="mc-desc">Take turns on one device. A different story each, highest score wins.</div>
+      </button>
+    </div>
+
+    <div class="field-label">NAMES</div>
+    <div class="player-inputs is-solo" id="playerInputs">
+      <div class="player-input p1"><label>PLAYER 1 🕰️</label><input id="p1-name" type="text" value="Player 1" maxlength="12"></div>
+      <div class="player-input p2"><label>PLAYER 2 🔍</label><input id="p2-name" type="text" value="Player 2" maxlength="12"></div>
+    </div>
+
+    <div class="field-label">DIFFICULTY</div>
+    <div class="level-row">
+      <button class="lev-btn is-active" data-level="easy"     type="button"><span class="lv-name">EASY</span><span class="lv-cefr">A1</span></button>
+      <button class="lev-btn"           data-level="medium"   type="button"><span class="lv-name">MEDIUM</span><span class="lv-cefr">A2</span></button>
+      <button class="lev-btn"           data-level="hard"     type="button"><span class="lv-name">HARD</span><span class="lv-cefr">B1</span></button>
+      <button class="lev-btn"           data-level="hardplus" type="button"><span class="lv-name">HARD +</span><span class="lv-cefr">B2</span></button>
+    </div>
+    <div class="lev-desc" id="levDesc"></div>
+
+    <div class="actions"><button class="btn is-gold" id="start-btn" type="button">▶ START</button></div>
+  </div>
+
+  <!-- ══════════ GAME ══════════ -->
+  <div class="game-area" id="gameArea">
+    <div>
+      <div class="statbar">
+        <span class="stat">STORY <b id="roundNum">1</b>/<b id="roundTotal">5</b></span>
+        <span class="stat">PLACED <b id="placedCount">0</b>/<b id="placedTotal">3</b></span>
+        <span class="stat timer" id="timerStat">TIME <b id="timerVal">--</b></span>
+        <span class="stat">LEVEL <b id="levelTag">EASY</b></span>
+      </div>
+
+      <div class="board">
+        <div class="story-head" id="storyHead">THE STORY</div>
+        <div class="story-title" id="storyTitle"></div>
+        <div class="timeline" id="timeline"></div>
+        <div class="tray">
+          <div class="tray-h">1 · PICK A CARD &nbsp;→&nbsp; 2 · PUT IT WHERE IT BELONGS &nbsp;·&nbsp; NOT EVERY CARD HAPPENED</div>
+          <div class="cards" id="cards"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="panel">
+        <div class="panel-h">SCORE</div>
+        <div class="players is-solo" id="playersPanel">
+          <div class="pcard p1 is-turn" id="pcard1"><div class="pcard-name" id="pname1">Player 1</div><div class="pcard-score" id="pscore1">0</div><div class="pcard-sub" id="psub1">0 correct</div></div>
+          <div class="pcard p2" id="pcard2"><div class="pcard-name" id="pname2">Player 2</div><div class="pcard-score" id="pscore2">0</div><div class="pcard-sub" id="psub2">0 correct</div></div>
+        </div>
+      </div>
+
+      <div class="instr">
+        <div class="instr-h"><span>THE STORY</span><span class="step-count" id="stepCount"></span></div>
+        <div id="instrBody"></div>
+        <div class="audio-row">
+          <button class="mini-btn" id="replay-btn" type="button">🔊 Listen again</button>
+          <button class="mini-btn is-cost" id="peek-btn" type="button">👁 Show text (−15)</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-h">WHEN YOU ARE READY</div>
+        <button class="btn is-gold is-wide" id="check-btn" type="button" disabled>✓ CHECK THE STORY</button>
+        <button class="btn is-ghost is-wide" id="clear-btn" type="button" style="margin-top:10px;font-size:14px;padding:11px">↺ Start over</button>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+    </div>
+  </div>
+</main>
+
+<div class="ovl" id="roundOvl">
+  <div class="ovl-card">
+    <div class="ovl-emoji" id="roundEmoji">🕰️</div>
+    <div class="ovl-title" id="roundTitle">STORY CHECKED</div>
+    <div class="ovl-sub" id="roundSub"></div>
+    <div class="truth" id="truth"></div>
+    <div class="score-lines" id="scoreLines"></div>
+    <div class="actions"><button class="btn is-gold" id="next-btn" type="button">NEXT STORY →</button></div>
+    <div class="vocab-strip" id="vocabStrip"></div>
+  </div>
+</div>
+
+<div class="ovl" id="handoffOvl">
+  <div class="ovl-card">
+    <div class="ovl-emoji">🔄</div>
+    <div class="ovl-title">PASS THE DEVICE</div>
+    <div class="ovl-sub">It's <span class="handoff-name" id="handoffName">Player 2</span>'s turn.<br>A new story is waiting.</div>
+    <div class="actions"><button class="btn is-gold" id="handoff-btn" type="button">I'M READY ▶</button></div>
+  </div>
+</div>
+
+<div class="ovl" id="finalOvl">
+  <div class="ovl-card">
+    <div class="ovl-emoji" id="finalEmoji">🏆</div>
+    <div class="ovl-title" id="finalTitle">GAME OVER</div>
+    <div class="ovl-sub" id="finalSub"></div>
+    <div class="final-scores is-solo" id="finalScores">
+      <div class="fscore p1" id="fs1"><div class="fscore-name" id="fname1">Player 1</div><div class="fscore-val" id="fval1">0</div></div>
+      <div class="fscore p2" id="fs2"><div class="fscore-name" id="fname2">Player 2</div><div class="fscore-val" id="fval2">0</div></div>
+    </div>
+    <div class="actions">
+      <button class="btn is-gold" id="again-btn" type="button">PLAY AGAIN</button>
+      <button class="btn is-ghost" id="setup-btn" type="button">CHANGE SETTINGS</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../_shared/sounds.js"></script>
+<script src="../../_shared/progress.js"></script>
+<script>
+/* ════════════════════════════════════════════════════════════════
+   WHAT HAPPENED? — Inglizi.com Play
+   Grammar focus: past simple narration, and the gap between the
+   order events are TOLD in and the order they HAPPENED in.
+
+   The true order is fixed first; the narration is written from it.
+   At the harder levels some sentences deliberately invert the
+   telling order with "after", which is where B1 listeners come
+   unstuck — and the only way to score is to hear it correctly.
+   ════════════════════════════════════════════════════════════════ */
+
+const GAME_ID = 'what-happened'
+
+/* Each story is a fixed chronological chain. `past` is the exact
+   phrase printed on the card, and it appears verbatim in the
+   narration so a learner can always match what they heard. */
+const STORIES = [
+  { who:'Omar', pro:'he', title:'A school morning', head:'YESTERDAY MORNING',
+    events:[
+      {ico:'⏰',past:'woke up early'}, {ico:'🚿',past:'took a shower'},
+      {ico:'👕',past:'got dressed'},   {ico:'🥣',past:'ate breakfast'},
+      {ico:'🪥',past:'brushed his teeth'}, {ico:'🚌',past:'took the bus'},
+      {ico:'🏫',past:'arrived at school'}, {ico:'📚',past:'started the lesson'},
+    ],
+    decoys:[{ico:'🚲',past:'rode his bike'},{ico:'🍕',past:'ordered a pizza'},{ico:'🎮',past:'played video games'}] },
+
+  { who:'Sara', pro:'she', title:'A trip to London', head:'LAST SUMMER',
+    events:[
+      {ico:'🎒',past:'packed her bag'},  {ico:'🚕',past:'called a taxi'},
+      {ico:'✈️',past:'arrived at the airport'}, {ico:'🎫',past:'checked in'},
+      {ico:'🛫',past:'got on the plane'}, {ico:'🛬',past:'landed in London'},
+      {ico:'🏨',past:'found a hotel'},    {ico:'😴',past:'fell asleep'},
+    ],
+    decoys:[{ico:'🚂',past:'took the train'},{ico:'🏊',past:'went swimming'},{ico:'🛒',past:'went shopping'}] },
+
+  { who:'Youssef', pro:'he', title:'The birthday party', head:'LAST SATURDAY',
+    events:[
+      {ico:'🛒',past:'bought the food'}, {ico:'🧹',past:'cleaned the house'},
+      {ico:'🎂',past:'made a cake'},     {ico:'📞',past:'called his friends'},
+      {ico:'🚪',past:'opened the door'}, {ico:'💃',past:'danced'},
+      {ico:'🍰',past:'ate the cake'},    {ico:'👋',past:'said goodbye'},
+    ],
+    decoys:[{ico:'🎣',past:'went fishing'},{ico:'📺',past:'watched a film'},{ico:'💤',past:'took a nap'}] },
+
+  { who:'Amina', pro:'she', title:'A rainy day', head:'ON MONDAY',
+    events:[
+      {ico:'😪',past:'woke up late'},    {ico:'🏃',past:'ran to the stop'},
+      {ico:'🚌',past:'missed the bus'},  {ico:'🌧️',past:'walked in the rain'},
+      {ico:'💧',past:'arrived wet'},     {ico:'☕',past:'drank a hot tea'},
+      {ico:'📖',past:'read a book'},     {ico:'😴',past:'fell asleep'},
+    ],
+    decoys:[{ico:'🚗',past:'drove a car'},{ico:'🍔',past:'made a burger'},{ico:'🎧',past:'listened to music'}] },
+
+  { who:'Karim', pro:'he', title:'The football match', head:'ON FRIDAY',
+    events:[
+      {ico:'👟',past:'put on his boots'}, {ico:'🏟️',past:'walked to the stadium'},
+      {ico:'🤸',past:'warmed up'},        {ico:'⚽',past:'scored a goal'},
+      {ico:'🏆',past:'won the match'},    {ico:'🎉',past:'celebrated'},
+      {ico:'🚿',past:'had a shower'},     {ico:'🏠',past:'went home'},
+    ],
+    decoys:[{ico:'🤕',past:'hurt his leg'},{ico:'🍫',past:'bought chocolate'},{ico:'📱',past:'lost his phone'}] },
+]
+
+const LEVELS = {
+  easy: { label:'EASY', cefr:'A1', events:3, decoys:0, invert:0, negate:0, hideText:false, replays:99, timer:0, base:80, peek:false,
+    desc:'Three events, told in order, on screen and read aloud. <b>First… Then… Finally…</b>' },
+  medium: { label:'MEDIUM', cefr:'A2', events:4, decoys:1, invert:0, negate:1, hideText:false, replays:3, timer:0, base:110, peek:false,
+    desc:'Four events plus one that <b>did not happen</b> — “He didn’t take the bus.” Leave that card in the tray.' },
+  hard: { label:'HARD', cefr:'B1', events:5, decoys:2, invert:1, negate:1, hideText:true, replays:2, timer:110, base:170, peek:true,
+    desc:'<b>Listening only.</b> One sentence uses <b>after</b>, so it is told backwards: “He ate breakfast after he got dressed.” 110s.' },
+  hardplus: { label:'HARD +', cefr:'B2', events:6, decoys:3, invert:2, negate:2, hideText:true, replays:1, timer:90, base:250, peek:true,
+    desc:'Heard <b>once</b>. Six events, two told backwards with <b>after</b>, two things that never happened. 90 seconds.' },
+}
+
+const MARKERS = ['First,', 'Then', 'After that,', 'Next,', 'Later,', 'Finally,']
+
+const rnd  = n => Math.floor(Math.random() * n)
+const pick = a => a[rnd(a.length)]
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=rnd(i+1);const t=a[i];a[i]=a[j];a[j]=t} return a }
+
+/* ════════════════════════════════════════════════════════════════
+   STORY BUILDING
+   ════════════════════════════════════════════════════════════════ */
+function buildStory(cfg) {
+  const s = pick(STORIES)
+  if (s.events.length < cfg.events || s.decoys.length < cfg.decoys) return null
+
+  /* Take a contiguous run so the chain still reads as one morning. */
+  const start = rnd(s.events.length - cfg.events + 1)
+  const chain = s.events.slice(start, start + cfg.events)
+    .map((e, i) => ({ ...e, id: 'e' + i, order: i }))
+
+  const decoys = shuffle(s.decoys.slice()).slice(0, cfg.decoys)
+    .map((e, i) => ({ ...e, id: 'd' + i, decoy: true }))
+
+  /* Which decoys are called out as not happening, and which simply
+     never come up — both mean "leave it in the tray". */
+  const negated = shuffle(decoys.slice()).slice(0, Math.min(cfg.negate, decoys.length))
+
+  return { story: s, chain, decoys, negated, cards: shuffle(chain.concat(decoys)) }
+}
+
+/* Write the narration from the chain — never the other way round. */
+function writeLines(built, cfg) {
+  const { story: s, chain, negated } = built
+  const lines = []
+  const used = new Array(chain.length).fill(false)
+
+  /* Choose which adjacent pairs get told backwards with "after". */
+  const invertAt = []
+  const candidates = []
+  for (let i = 1; i < chain.length; i++) candidates.push(i)
+  shuffle(candidates)
+  for (const i of candidates) {
+    if (invertAt.length >= cfg.invert) break
+    if (invertAt.includes(i - 1) || invertAt.includes(i + 1)) continue
+    invertAt.push(i)
+  }
+
+  let m = 0
+  for (let i = 0; i < chain.length; i++) {
+    if (used[i]) continue
+
+    /* Look AHEAD, not back: by the time the loop reaches i, i-1 has
+       already been written as its own sentence, so a backward check can
+       never fire and no story would ever be told out of order. */
+    if (invertAt.includes(i + 1) && !used[i + 1]) {
+      /* "B after A" — B is said first but happened second. */
+      const a = chain[i], b = chain[i + 1]
+      const subject = m === 0 ? s.who : cap(s.pro)
+      lines.push({ text: subject + ' ' + b.past + ' after ' + s.pro + ' ' + a.past + '.',
+                   ids: [b.id, a.id], kind: 'invert' })
+      used[i] = true; used[i + 1] = true
+      m += 2
+      continue
+    }
+
+    const marker = MARKERS[Math.min(m, MARKERS.length - 1)]
+    const subject = m === 0 ? s.who : s.pro
+    lines.push({ text: marker + ' ' + subject + ' ' + chain[i].past + '.',
+                 ids: [chain[i].id], kind: 'plain' })
+    used[i] = true
+    m++
+  }
+
+  /* Last line always closes the story so "Finally" is never orphaned. */
+  if (lines.length && lines[lines.length - 1].kind === 'plain') {
+    lines[lines.length - 1].text = lines[lines.length - 1].text
+      .replace(/^(First,|Then|After that,|Next,|Later,)\s/, 'Finally, ')
+  }
+
+  negated.forEach(d => {
+    lines.push({ text: cap(s.pro) + " didn't " + toBase(d.past) + '.', ids: [d.id], kind: 'negative' })
+  })
+
+  return lines
+}
+
+const cap = w => w.charAt(0).toUpperCase() + w.slice(1)
+
+/* Past → base form for the negative, so "didn't took" can never appear. */
+const IRREGULAR = {
+  'woke up early':'wake up early', 'took a shower':'take a shower', 'got dressed':'get dressed',
+  'ate breakfast':'eat breakfast', 'brushed his teeth':'brush his teeth', 'took the bus':'take the bus',
+  'arrived at school':'arrive at school', 'started the lesson':'start the lesson',
+  'packed her bag':'pack her bag', 'called a taxi':'call a taxi', 'arrived at the airport':'arrive at the airport',
+  'checked in':'check in', 'got on the plane':'get on the plane', 'landed in London':'land in London',
+  'found a hotel':'find a hotel', 'fell asleep':'fall asleep',
+  'bought the food':'buy the food', 'cleaned the house':'clean the house', 'made a cake':'make a cake',
+  'called his friends':'call his friends', 'opened the door':'open the door', 'danced':'dance',
+  'ate the cake':'eat the cake', 'said goodbye':'say goodbye',
+  'woke up late':'wake up late', 'ran to the stop':'run to the stop', 'missed the bus':'miss the bus',
+  'walked in the rain':'walk in the rain', 'arrived wet':'arrive wet', 'drank a hot tea':'drink a hot tea',
+  'read a book':'read a book',
+  'put on his boots':'put on his boots', 'walked to the stadium':'walk to the stadium', 'warmed up':'warm up',
+  'scored a goal':'score a goal', 'won the match':'win the match', 'celebrated':'celebrate',
+  'had a shower':'have a shower', 'went home':'go home',
+  'rode his bike':'ride his bike', 'ordered a pizza':'order a pizza', 'played video games':'play video games',
+  'took the train':'take the train', 'went swimming':'go swimming', 'went shopping':'go shopping',
+  'went fishing':'go fishing', 'watched a film':'watch a film', 'took a nap':'take a nap',
+  'drove a car':'drive a car', 'made a burger':'make a burger', 'listened to music':'listen to music',
+  'hurt his leg':'hurt his leg', 'bought chocolate':'buy chocolate', 'lost his phone':'lose his phone',
+}
+function toBase(past) { return IRREGULAR[past] || past }
+
+/* ── speech ───────────────────────────────────────────────────── */
+let enVoice = null
+function loadVoices(){
+  if(!window.speechSynthesis) return
+  const v = speechSynthesis.getVoices()
+  enVoice = v.find(x=>x.lang==='en-US' && /Samantha|Allison|Karen|Daniel/i.test(x.name))
+    || v.find(x=>x.lang==='en-US') || v.find(x=>x.lang && x.lang.startsWith('en')) || null
+}
+if(window.speechSynthesis){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices }
+function speakLines(lines){
+  if(!window.speechSynthesis) return
+  speechSynthesis.cancel()
+  lines.forEach(l=>{
+    const u=new SpeechSynthesisUtterance(l)
+    u.lang='en-US'; if(enVoice) u.voice=enVoice; u.rate=0.87
+    speechSynthesis.speak(u)
+  })
+}
+function stopSpeak(){ if(window.speechSynthesis) speechSynthesis.cancel() }
+
+/* ════════════════════════════════════════════════════════════════
+   STATE
+   ════════════════════════════════════════════════════════════════ */
+const S = {
+  mode:1, level:'easy', cfg:LEVELS.easy,
+  names:['Player 1','Player 2'], scores:[0,0], correct:[0,0],
+  turn:0, roundIndex:[0,0],
+  built:null, lines:[], slots:[],       // slots[i] = card id or null
+  armedCard:null, armedSlot:null,
+  replaysLeft:0, peeked:false, revealed:false,
+  timeLeft:0, timerId:null, locked:true,
+}
+
+const $ = id => document.getElementById(id)
+const setupEl = $('setup'), gameArea = $('gameArea'), tlEl = $('timeline'), cardsEl = $('cards')
+
+const cardById = id => S.built.cards.find(c => c.id === id)
+
+/* ════════════════════════════════════════════════════════════════
+   RENDERING
+   ════════════════════════════════════════════════════════════════ */
+function renderTimeline() {
+  tlEl.innerHTML = ''
+  S.slots.forEach((cid, i) => {
+    const c = cid ? cardById(cid) : null
+    const b = document.createElement('button')
+    b.type = 'button'
+    b.className = 'tl-slot' + (c ? ' is-filled' : '') + (S.armedSlot === i ? ' is-armed' : '')
+    b.dataset.slot = i
+    b.disabled = S.locked
+    b.innerHTML = '<span class="tl-num">' + (i + 1) + '</span>' +
+      (c ? '<span class="ev-ico">' + c.ico + '</span><span class="ev-txt">' + c.past + '</span>'
+         : '<span class="ev-empty">?</span>')
+    b.addEventListener('click', () => onSlot(i))
+    tlEl.appendChild(b)
+  })
+  const n = S.slots.filter(Boolean).length
+  $('placedCount').textContent = n
+  $('check-btn').disabled = n === 0 || S.locked
+}
+
+function renderCards() {
+  cardsEl.innerHTML = ''
+  S.built.cards.forEach(c => {
+    const placed = S.slots.includes(c.id)
+    const b = document.createElement('button')
+    b.type = 'button'
+    b.className = 'card' + (S.armedCard === c.id ? ' is-armed' : '')
+    b.dataset.card = c.id
+    b.disabled = placed || S.locked
+    b.innerHTML = '<span class="ev-ico">' + c.ico + '</span><span class="ev-txt">' + c.past + '</span>'
+    b.addEventListener('click', () => onCard(c.id))
+    cardsEl.appendChild(b)
+  })
+}
+
+function onSlot(i) {
+  if (S.locked) return
+  if (S.armedCard) {
+    /* If that card is somewhere else already, move it. */
+    const at = S.slots.indexOf(S.armedCard)
+    if (at >= 0) S.slots[at] = null
+    S.slots[i] = S.armedCard
+    S.armedCard = null; S.armedSlot = null
+    if (window.PlaySounds) PlaySounds.tick()
+    return repaint('')
+  }
+  if (S.slots[i]) {           // take it back out
+    const c = cardById(S.slots[i])
+    S.slots[i] = null
+    S.armedCard = c.id
+    if (window.PlaySounds) PlaySounds.click()
+    return repaint('Took "' + c.past + '" back. Pick a new place.')
+  }
+  S.armedSlot = S.armedSlot === i ? null : i
+  if (window.PlaySounds) PlaySounds.click()
+  repaint(S.armedSlot !== null ? 'Now pick the card for step ' + (i + 1) + '.' : '')
+}
+
+function onCard(cid) {
+  if (S.locked) return
+  if (S.armedSlot !== null) {
+    S.slots[S.armedSlot] = cid
+    S.armedSlot = null; S.armedCard = null
+    if (window.PlaySounds) PlaySounds.tick()
+    return repaint('')
+  }
+  S.armedCard = S.armedCard === cid ? null : cid
+  if (window.PlaySounds) PlaySounds.click()
+  repaint(S.armedCard ? 'Now pick where it goes on the timeline.' : '')
+}
+
+function repaint(msg) {
+  renderTimeline(); renderCards()
+  if (msg !== undefined) setFeedback(msg, 'info')
+}
+
+function paintInstructions() {
+  const body = $('instrBody')
+  if (S.cfg.hideText && !S.revealed) {
+    body.innerHTML = '<div class="instr-hidden"><span class="big">🎧</span>Listening only at this level.<br>Press <b>Listen again</b> to repeat.</div>'
+    $('stepCount').textContent = ''
+  } else {
+    const ul = document.createElement('ul')
+    ul.className = 'instr-list'
+    S.lines.forEach(l => {
+      const li = document.createElement('li')
+      li.textContent = l.text
+      if (l.kind === 'negative') li.classList.add('is-neg')
+      ul.appendChild(li)
+    })
+    body.innerHTML = ''
+    body.appendChild(ul)
+    $('stepCount').textContent = S.lines.length + ' sentences'
+  }
+  $('replay-btn').disabled = S.replaysLeft <= 0
+  $('replay-btn').textContent = S.cfg.replays >= 99 ? '🔊 Listen again' : '🔊 Listen again (' + S.replaysLeft + ')'
+  $('peek-btn').disabled = S.peeked || !S.cfg.hideText
+  $('peek-btn').style.display = S.cfg.peek ? '' : 'none'
+}
+
+function setFeedback(msg, kind) {
+  $('feedback').textContent = msg || ''
+  $('feedback').className = 'feedback' + (kind ? ' is-' + kind : '')
+}
+
+/* ════════════════════════════════════════════════════════════════
+   FLOW
+   ════════════════════════════════════════════════════════════════ */
+function startGame() {
+  S.names[0] = ($('p1-name').value || 'Player 1').trim().slice(0,12)
+  S.names[1] = ($('p2-name').value || 'Player 2').trim().slice(0,12)
+  S.scores=[0,0]; S.correct=[0,0]; S.roundIndex=[0,0]; S.turn=0
+  S.cfg = LEVELS[S.level]
+
+  $('pname1').textContent = S.names[0]
+  $('pname2').textContent = S.names[1]
+  $('roundTotal').textContent = 5
+  $('levelTag').textContent = S.cfg.label
+  $('playersPanel').classList.toggle('is-solo', S.mode === 1)
+  $('modePill').textContent = S.mode === 1 ? '1P · SOLO' : '2P · LOCAL'
+  $('timerStat').style.display = S.cfg.timer ? '' : 'none'
+
+  setupEl.style.display = 'none'
+  gameArea.classList.add('is-shown')
+  newRound()
+}
+
+function newRound() {
+  stopTimer(); stopSpeak()
+  S.locked = false; S.armedCard = null; S.armedSlot = null
+  S.peeked = false; S.revealed = false
+  S.replaysLeft = S.cfg.replays
+
+  let built = null
+  for (let i = 0; i < 60 && !built; i++) built = buildStory(S.cfg)
+  if (!built) { setFeedback('Could not build a story — try again.', 'wrong'); return }
+  S.built = built
+  S.lines = writeLines(built, S.cfg)
+  S.slots = new Array(S.cfg.events).fill(null)
+
+  $('storyHead').textContent = built.story.head
+  $('storyTitle').textContent = built.story.title + ' — ' + built.story.who
+  $('roundNum').textContent = S.roundIndex[S.turn] + 1
+  $('placedTotal').textContent = S.cfg.events
+
+  renderTimeline(); renderCards(); paintInstructions()
+  updateScoreboard()
+  setFeedback('Listen, then put the events in order.', 'info')
+  setTimeout(() => speakLines(S.lines.map(l => l.text)), 350)
+  if (S.cfg.timer) startTimer(S.cfg.timer)
+}
+
+function checkStory() {
+  if (S.locked) return
+  S.locked = true
+  stopTimer(); stopSpeak()
+
+  let right = 0
+  const rows = []
+  S.built.chain.forEach((e, i) => {
+    const got = S.slots[i] ? cardById(S.slots[i]) : null
+    const ok = got && got.id === e.id
+    if (ok) right++
+    rows.push({ ok, n: i + 1, want: e, got })
+    const el = tlEl.querySelector('[data-slot="' + i + '"]')
+    if (el) {
+      el.classList.add(ok ? 'is-correct' : 'is-wrong')
+      if (!ok) {
+        const fix = document.createElement('span')
+        fix.className = 'tl-fix'
+        fix.textContent = e.past
+        el.appendChild(fix)
+      }
+    }
+  })
+
+  /* A decoy on the timeline is its own mistake — mark it in the tray. */
+  let decoysUsed = 0
+  S.built.decoys.forEach(d => {
+    if (S.slots.includes(d.id)) decoysUsed++
+    const el = cardsEl.querySelector('[data-card="' + d.id + '"]')
+    if (el) el.classList.add('was-decoy')
+  })
+
+  const cfg = S.cfg
+  const lines = []
+  let total = right * cfg.base
+  lines.push({ label: right + ' of ' + cfg.events + ' in the right place', val: '+' + (right * cfg.base) })
+
+  if (cfg.decoys) {
+    if (decoysUsed === 0) { total += 50; lines.push({ label: 'Left out everything that never happened', val: '+50' }) }
+    else { const p = decoysUsed * 40; total -= p; lines.push({ label: decoysUsed + ' event' + (decoysUsed>1?'s':'') + ' that never happened', val: '−' + p, neg: true }) }
+  }
+  if (right === cfg.events) {
+    total += 90
+    lines.push({ label: 'Whole story in order', val: '+90' })
+    if (cfg.timer && S.timeLeft > 0) {
+      const b = S.timeLeft * 2; total += b
+      lines.push({ label: 'Time bonus (' + S.timeLeft + 's left)', val: '+' + b })
+    }
+  }
+  if (S.peeked) { total -= 15; lines.push({ label: 'Used “show text”', val: '−15', neg: true }) }
+  total = Math.max(0, total)
+
+  S.scores[S.turn] += total
+  S.correct[S.turn] += right
+  showResult(right, decoysUsed, total, lines, rows)
+}
+
+function showResult(right, decoysUsed, total, lines, rows) {
+  const all = right === S.cfg.events && decoysUsed === 0
+  $('roundEmoji').textContent = all ? '🏅' : (right > 0 ? '🕰️' : '🤷')
+  $('roundTitle').textContent = all ? 'EXACTLY RIGHT!' : right + ' / ' + S.cfg.events + ' IN ORDER'
+  $('roundSub').textContent = all
+    ? 'That is exactly how it happened.'
+    : 'Here is what really happened, step by step.'
+
+  const t = $('truth')
+  t.innerHTML = ''
+  rows.forEach(r => {
+    const d = document.createElement('div')
+    d.className = 'truth-row ' + (r.ok ? 'ok' : 'no')
+    d.innerHTML = '<span class="t-n">' + r.n + '</span>' +
+      '<span>' + r.want.ico + ' ' + S.built.story.who + ' ' + r.want.past + '</span>' +
+      (r.ok ? '' : '<span class="t-you">you put: ' + (r.got ? r.got.past : '—') + '</span>')
+    t.appendChild(d)
+  })
+
+  const box = $('scoreLines')
+  box.innerHTML = ''
+  lines.forEach(l => {
+    const d = document.createElement('div')
+    d.className = 'score-line' + (l.neg ? ' is-neg' : '')
+    d.innerHTML = '<span>' + l.label + '</span><span>' + l.val + '</span>'
+    box.appendChild(d)
+  })
+  const tot = document.createElement('div')
+  tot.className = 'score-line is-total'
+  tot.innerHTML = '<span>STORY TOTAL</span><span>+' + total + '</span>'
+  box.appendChild(tot)
+
+  const hadInvert = S.lines.some(l => l.kind === 'invert')
+  const hadNeg = S.lines.some(l => l.kind === 'negative')
+  $('vocabStrip').innerHTML = '<b>WHAT THIS STORY USED</b>' +
+    '<code>past simple</code> <code>First / Then / Finally</code>' +
+    (hadInvert ? ' <code>X after Y</code>' : '') +
+    (hadNeg ? " <code>didn't + base verb</code>" : '')
+
+  updateScoreboard()
+  if (window.PlaySounds) { all ? PlaySounds.win() : (right ? PlaySounds.correct() : PlaySounds.lose()) }
+  $('roundOvl').classList.add('is-shown')
+}
+
+function updateScoreboard() {
+  $('pscore1').textContent = S.scores[0]
+  $('pscore2').textContent = S.scores[1]
+  $('psub1').textContent = S.correct[0] + ' correct'
+  $('psub2').textContent = S.correct[1] + ' correct'
+  $('pcard1').classList.toggle('is-turn', S.turn === 0)
+  $('pcard2').classList.toggle('is-turn', S.turn === 1)
+}
+
+function nextRound() {
+  $('roundOvl').classList.remove('is-shown')
+  S.roundIndex[S.turn]++
+  if (S.mode === 1) {
+    if (S.roundIndex[0] >= 5) return endGame()
+    newRound(); return
+  }
+  if (S.roundIndex[0] >= 5 && S.roundIndex[1] >= 5) return endGame()
+  let next = 1 - S.turn
+  if (S.roundIndex[next] >= 5) next = S.turn
+  S.turn = next
+  updateScoreboard()
+  $('handoffName').textContent = S.names[S.turn]
+  $('handoffOvl').classList.add('is-shown')
+}
+
+function endGame() {
+  stopTimer(); stopSpeak()
+  $('finalScores').classList.toggle('is-solo', S.mode === 1)
+  $('fname1').textContent = S.names[0]; $('fname2').textContent = S.names[1]
+  $('fval1').textContent = S.scores[0]; $('fval2').textContent = S.scores[1]
+  $('fs1').classList.remove('is-winner'); $('fs2').classList.remove('is-winner')
+
+  const per = 5 * S.cfg.events
+  if (S.mode === 1) {
+    $('finalEmoji').textContent = S.correct[0] === per ? '🏆' : '🕰️'
+    $('finalTitle').textContent = 'STORIES FINISHED'
+    $('finalSub').innerHTML = 'You placed <b>' + S.correct[0] + ' of ' + per + '</b> events correctly on ' + S.cfg.label + '.'
+    $('fs1').classList.add('is-winner')
+  } else {
+    const w = S.scores[0] === S.scores[1] ? -1 : (S.scores[0] > S.scores[1] ? 0 : 1)
+    $('finalEmoji').textContent = w === -1 ? '🤝' : '🏆'
+    $('finalTitle').textContent = w === -1 ? "IT'S A DRAW!" : S.names[w].toUpperCase() + ' WINS!'
+    $('finalSub').innerHTML = S.names[0] + ': ' + S.correct[0] + ' correct · ' + S.names[1] + ': ' + S.correct[1] + ' correct'
+    if (w >= 0) $(w === 0 ? 'fs1' : 'fs2').classList.add('is-winner')
+  }
+
+  if (window.PlayProgress) {
+    const best = Math.max(S.scores[0], S.mode === 2 ? S.scores[1] : 0)
+    PlayProgress.record(GAME_ID, S.cfg.cefr, best, 5 * (S.cfg.events * S.cfg.base + 140))
+  }
+  if (window.PlaySounds) PlaySounds.win()
+  $('finalOvl').classList.add('is-shown')
+}
+
+function startTimer(secs){
+  S.timeLeft = secs; paintTimer()
+  S.timerId = setInterval(()=>{
+    S.timeLeft--; paintTimer()
+    if(S.timeLeft<=5 && S.timeLeft>0 && window.PlaySounds) PlaySounds.tickLow()
+    if(S.timeLeft<=0){ stopTimer(); if(!S.locked){ setFeedback("Time's up!", 'wrong'); checkStory() } }
+  },1000)
+}
+function stopTimer(){ if(S.timerId){ clearInterval(S.timerId); S.timerId=null } }
+function paintTimer(){ const b=$('timerVal'); b.textContent=S.timeLeft+'s'; b.classList.toggle('low', S.timeLeft<=12) }
+
+/* ════════════════════════════════════════════════════════════════
+   WIRING
+   ════════════════════════════════════════════════════════════════ */
+document.querySelectorAll('.mode-card').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.mode-card').forEach(x => x.classList.remove('is-active'))
+  b.classList.add('is-active')
+  S.mode = Number(b.dataset.mode)
+  $('playerInputs').classList.toggle('is-solo', S.mode === 1)
+  if (window.PlaySounds) PlaySounds.click()
+}))
+document.querySelectorAll('.lev-btn').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.lev-btn').forEach(x => x.classList.remove('is-active'))
+  b.classList.add('is-active')
+  S.level = b.dataset.level
+  $('levDesc').innerHTML = LEVELS[S.level].desc
+  if (window.PlaySounds) PlaySounds.click()
+}))
+$('levDesc').innerHTML = LEVELS.easy.desc
+
+$('start-btn').addEventListener('click', startGame)
+$('check-btn').addEventListener('click', checkStory)
+$('next-btn').addEventListener('click', nextRound)
+$('clear-btn').addEventListener('click', () => {
+  if (S.locked) return
+  S.slots = new Array(S.cfg.events).fill(null)
+  S.armedCard = null; S.armedSlot = null
+  repaint('Timeline cleared.')
+})
+$('handoff-btn').addEventListener('click', () => { $('handoffOvl').classList.remove('is-shown'); newRound() })
+$('replay-btn').addEventListener('click', () => {
+  if (S.replaysLeft <= 0) return
+  S.replaysLeft--
+  speakLines(S.lines.map(l => l.text))
+  paintInstructions()
+})
+$('peek-btn').addEventListener('click', () => {
+  if (S.peeked) return
+  S.peeked = true; S.revealed = true
+  paintInstructions()
+  setFeedback('Text revealed — 15 points will be deducted.', 'wrong')
+})
+$('again-btn').addEventListener('click', () => { $('finalOvl').classList.remove('is-shown'); startGame() })
+$('setup-btn').addEventListener('click', () => {
+  $('finalOvl').classList.remove('is-shown')
+  gameArea.classList.remove('is-shown')
+  setupEl.style.display = 'block'
+  stopTimer(); stopSpeak()
+})
+
+if (window.PlaySounds) PlaySounds.injectMuteButton(document.getElementById('muteHost'))
+</script>
+</body>
+</html>
