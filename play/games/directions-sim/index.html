@@ -79,7 +79,7 @@
     .blockcell.is-target.is-revealed .lm-name{color:var(--green)}
 
     /* the character */
-    .actor{position:absolute;z-index:5;font-size:clamp(18px,3vw,32px);line-height:1;transition:transform .32s cubic-bezier(.34,1.3,.64,1),left .32s cubic-bezier(.34,1.3,.64,1),top .32s cubic-bezier(.34,1.3,.64,1);pointer-events:none;filter:drop-shadow(0 0 8px rgba(251,191,36,.85))}
+    .actor{position:absolute;left:0;top:0;z-index:5;font-size:clamp(18px,3.2vw,34px);line-height:1;transition:transform .30s cubic-bezier(.22,.86,.36,1);will-change:transform;pointer-events:none;filter:drop-shadow(0 0 9px rgba(251,191,36,.9))}
     .actor.is-bump{animation:bump .3s ease}
     @keyframes bump{0%,100%{filter:drop-shadow(0 0 8px rgba(251,191,36,.85))}50%{filter:drop-shadow(0 0 14px rgba(248,113,113,1))}}
     .map-inner{position:relative;width:100%;max-width:720px;margin:0 auto}
@@ -181,6 +181,7 @@
     .vocab-strip b{color:var(--gold-2);font-family:var(--arcade);font-size:9px;letter-spacing:.15em;display:block;margin-bottom:8px}
     .vocab-strip code{background:var(--paper-2);padding:2px 7px;border-radius:5px;color:var(--text-2);font-family:var(--display);font-weight:700}
   </style>
+  <link rel="stylesheet" href="../../_shared/game-shell.css">
 </head>
 <body>
 <nav class="topbar">
@@ -256,7 +257,7 @@
 
       <div class="map-wrap">
         <div class="map-inner">
-          <div class="map" id="map"></div>
+          <div class="map" id="map" data-fit="1"></div>
         </div>
       </div>
     </div>
@@ -345,6 +346,7 @@
   </div>
 </div>
 
+<script src="../../_shared/game-shell.js"></script>
 <script src="../../_shared/sounds.js"></script>
 <script src="../../_shared/progress.js"></script>
 <script>
@@ -603,7 +605,7 @@ const S = {
   turn: 0,                 // whose turn (index)
   routeIndex: [0, 0],      // routes completed per player
   route: null, lines: [], targetName: '', targetEmoji: '',
-  pos: {x:0,y:0}, dir: 0, moves: 0, wrongTurns: 0,
+  pos: {x:0,y:0}, dir: 0, heading: 0, moves: 0, wrongTurns: 0,
   replaysLeft: 0, peeked: false, revealed: false,
   dripIndex: 0,            // easy mode: which instruction is showing
   timeLeft: 0, timerId: null, locked: true, over: false,
@@ -729,26 +731,35 @@ function paintBlock(b, lm, isTarget) {
 function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); const t = a[i]; a[i] = a[j]; a[j] = t } }
 
 /* Position the car over intersection (x,y). */
+/* The car is placed with a single composited transform. Offsets are read
+   from layout (offsetLeft/Top against .map-inner) rather than from
+   viewport rects, so it stays correct when the map is centred inside a
+   larger box and when the page is scrolled or resized. */
+function nodeCentre(gx, gy) {
+  const node = cellAt(gx, gy)
+  if (!node) return null
+  return { x: node.offsetLeft + node.offsetWidth / 2,
+           y: node.offsetTop  + node.offsetHeight / 2 }
+}
+
 function paintActor(animate) {
-  const node = cellAt(2 * S.pos.x, 2 * S.pos.y)
-  if (!node || !S.actorEl) return
+  const c = nodeCentre(2 * S.pos.x, 2 * S.pos.y)
+  if (!c || !S.actorEl) return
   if (!animate) S.actorEl.style.transition = 'none'
-  const mapRect = mapEl.getBoundingClientRect()
-  const r = node.getBoundingClientRect()
-  S.actorEl.style.left = (r.left - mapRect.left + r.width / 2) + 'px'
-  S.actorEl.style.top = (r.top - mapRect.top + r.height / 2) + 'px'
-  S.actorEl.style.transform = 'translate(-50%,-50%) rotate(' + DIR_ROT[S.dir] + 'deg)'
+  /* S.heading is continuous, so turning west from north rotates 90°
+     the short way instead of unwinding 270°. */
+  S.actorEl.style.transform =
+    'translate(' + c.x + 'px,' + c.y + 'px) translate(-50%,-50%) rotate(' + S.heading + 'deg)'
   if (!animate) { void S.actorEl.offsetWidth; S.actorEl.style.transition = '' }
 }
 
 function dropTrail() {
-  const node = cellAt(2 * S.pos.x, 2 * S.pos.y)
-  if (!node) return
-  const mapRect = mapEl.getBoundingClientRect(), r = node.getBoundingClientRect()
+  const c = nodeCentre(2 * S.pos.x, 2 * S.pos.y)
+  if (!c) return
   const t = document.createElement('div')
   t.className = 'trail'
-  t.style.left = (r.left - mapRect.left + r.width / 2) + 'px'
-  t.style.top = (r.top - mapRect.top + r.height / 2) + 'px'
+  t.style.left = c.x + 'px'
+  t.style.top = c.y + 'px'
   mapEl.parentElement.appendChild(t)
 }
 
@@ -797,6 +808,7 @@ function newRound() {
 
   S.pos = { x: route.start.x, y: route.start.y }
   S.dir = route.start.dir
+  S.heading = DIR_ROT[S.dir]
   clearTrail()
   requestAnimationFrame(() => paintActor(false))
 
@@ -898,6 +910,7 @@ function doGo() {
 function doTurn(t) {
   if (S.locked) return
   S.dir = turnDir(S.dir, t)
+  S.heading += (t === 'left' ? -90 : 90)
   S.moves++
   $('moveCount').textContent = S.moves
   paintActor(true)
@@ -909,6 +922,7 @@ function doTurn(t) {
 function doUturn() {
   if (S.locked) return
   S.dir = (S.dir + 2) % 4
+  S.heading += 180
   S.moves++
   $('moveCount').textContent = S.moves
   paintActor(true)
@@ -1139,6 +1153,15 @@ $('levDesc').innerHTML = LEVELS.easy.desc
 
 $('start-btn').addEventListener('click', startGame)
 $('btn-go').addEventListener('click', doGo)
+/* Press and hold to keep rolling — tapping once per block is tiring on
+   a phone and unusable on a wall-mounted board. */
+;(function holdToDrive(){
+  const b = $('btn-go'); let timer = 0, delay = 0
+  const stop = () => { clearTimeout(timer); timer = 0 }
+  const step = () => { if (S.locked) return stop(); doGo(); delay = Math.max(170, delay - 40); timer = setTimeout(step, delay) }
+  b.addEventListener('pointerdown', () => { stop(); delay = 330; timer = setTimeout(step, 420) })
+  ;['pointerup','pointerleave','pointercancel'].forEach(e => b.addEventListener(e, stop))
+})()
 $('btn-left').addEventListener('click', () => doTurn('left'))
 $('btn-right').addEventListener('click', () => doTurn('right'))
 $('btn-uturn').addEventListener('click', doUturn)
@@ -1185,6 +1208,8 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Enter')      { e.preventDefault(); doArrive() }
 })
 
+/* game-shell.js calls this after it refits the map. */
+window.onShellResize = () => { if (S.route) paintActor(false) }
 window.addEventListener('resize', () => { if (S.route) paintActor(false) })
 
 if (window.PlaySounds) PlaySounds.injectMuteButton(document.getElementById('muteHost'))

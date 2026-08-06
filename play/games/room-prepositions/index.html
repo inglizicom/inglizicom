@@ -176,6 +176,7 @@
     .vocab-strip b{color:var(--gold-2);font-family:var(--arcade);font-size:9px;letter-spacing:.15em;display:block;margin-bottom:8px}
     .vocab-strip code{background:var(--paper-2);padding:2px 7px;border-radius:5px;color:var(--text-2);font-family:var(--display);font-weight:700}
   </style>
+  <link rel="stylesheet" href="../../_shared/game-shell.css">
 </head>
 <body>
 <nav class="topbar">
@@ -244,7 +245,7 @@
       </div>
 
       <div class="room-wrap">
-        <div class="room" id="room"></div>
+        <div class="stage"><div class="room" id="room" data-fit="1.45"></div></div>
         <div class="tray">
           <div class="tray-h">1 · PICK AN OBJECT &nbsp;→&nbsp; 2 · CLICK WHERE IT GOES</div>
           <div class="tray-items" id="tray"></div>
@@ -319,6 +320,7 @@
   </div>
 </div>
 
+<script src="../../_shared/game-shell.js"></script>
 <script src="../../_shared/sounds.js"></script>
 <script src="../../_shared/progress.js"></script>
 <script>
@@ -354,7 +356,7 @@ const FURNITURE = [
   { id:'sofa',     name:'sofa',     ico:'🛋️', x:24, y:74, preps:['on','next to','behind','in front of'] },
   { id:'box',      name:'box',      ico:'📦', x:62, y:80, preps:['in','on','next to'] },
   { id:'chair',    name:'chair',    ico:'🪑', x:80, y:76, preps:['on','under','next to'] },
-  { id:'rug',      name:'rug',      ico:'🟫', x:45, y:88, preps:['on'] },
+  { id:'rug',      name:'rug',      ico:'🟫', x:45, y:86, preps:['on'] },
 ]
 
 /* Where a slot sits relative to its furniture, in % of the room. */
