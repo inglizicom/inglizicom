@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Loader2, Play, Presentation, Download, MessageSquareQuote, Pencil, PenLine, Waves } from 'lucide-react'
+import { Loader2, Play, Presentation, Download, MessageSquareQuote, Pencil, PenLine, Waves, Mic } from 'lucide-react'
 import { fetchModules, type LmsModule } from '@/lib/lms'
 
 const COURSE_ID = '53f91433-429b-473e-87e6-20739206a3e3' // RealLife English — الإنجليزية للمواقف اليومية
@@ -57,6 +57,15 @@ export default function PresentIndexPage() {
           <span className="text-[11px] font-semibold text-zinc-500">· 44 lessons · connected speech · A0→A2</span>
         </span>
         <Link href="/admin/present/pronunciation" className="flex items-center gap-1.5 text-[12px] font-bold text-emerald-400 hover:text-emerald-300"><Play size={14} /> Launch deck</Link>
+      </div>
+
+      {/* Private 1:1 speaking course — professional English for an EO engineer */}
+      <div className="flex items-center justify-between rounded-xl border-2 border-sky-700 bg-slate-900 px-4 py-3 mb-4">
+        <span className="flex items-center gap-2 font-bold text-[14px] text-slate-100">
+          <Mic size={18} className="text-sky-400" /> Speak Your Work — <span className="text-slate-300">English for Earth Observation</span>
+          <span className="text-[11px] font-semibold text-slate-500">· 16 lessons · 8 weeks · private 1:1 · speaking only</span>
+        </span>
+        <Link href="/admin/present/speaking" className="flex items-center gap-1.5 text-[12px] font-bold text-sky-400 hover:text-sky-300"><Play size={14} /> Launch deck</Link>
       </div>
 
       {loading ? (
