@@ -290,6 +290,10 @@ export const LESSONS: Lesson[] = [
               'Now I am a colleague you have known for years.',
               'Now I speak too fast — handle it.',
               'Now end the conversation and walk away.'],
+    vocab: [ { en: "a colleague", ar: "\u0632\u0645\u064a\u0644", say: "KOL-eeg" }, { en: "a mission", ar: "\u0645\u0647\u0645\u0629 \u0645\u064a\u062f\u0627\u0646\u064a\u0629", say: "MISH-un" }, { en: "a workshop", ar: "\u0648\u0631\u0634\u0629", say: "WERK-shop" }, { en: "a partner", ar: "\u0634\u0631\u064a\u0643", say: "PART-ner" } ],
+    model: { title: "Day 6 is hers, not yours", titleAr: "\u0627\u0644\u064a\u0648\u0645 \u0627\u0644\u0633\u0627\u062f\u0633 \u0644\u0647\u0627 \u0644\u0627 \u0644\u0643",
+      lines: ["Greet \u2192 small talk \u2192 about you \u2192 an opinion \u2192 close.", "Three minutes, then five, then five again.", "You only count the stops. Say the number out loud at the end.", "Target for week 1: fewer than five stops in three minutes."],
+      note: "A review day is not a light day. She speaks for fifty minutes and you speak for ten.", noteAr: "\u064a\u0648\u0645 \u0627\u0644\u0645\u0631\u0627\u062c\u0639\u0629 \u0644\u064a\u0633 \u064a\u0648\u0645\u0627\u064b \u062e\u0641\u064a\u0641\u0627\u064b. \u0647\u064a \u062a\u062a\u0643\u0644\u0645 \u062e\u0645\u0633\u064a\u0646 \u062f\u0642\u064a\u0642\u0629 \u0648\u0623\u0646\u062a \u0639\u0634\u0631\u0627\u064b." },
     homework: { en: 'Record a 3-minute conversation with yourself, both sides.', ar: 'سجّلي حديثاً من 3 دقائق مع نفسك، بالدورين.' } },
 
   /* ═══ WEEK 2 ═══ */
@@ -312,6 +316,9 @@ export const LESSONS: Lesson[] = [
       slots: ['nine / Monday', 'half past two / Thursday', 'quarter to five / the fifteenth'],
       note: 'Drill 13/30, 14/40, 15/50 until they never sound the same. This causes real problems in real meetings.' },
     hotSeat: ['What time is it?', 'When is your next trip?', 'How long does the flight take?', 'Say 1975. Say 2019. Say 250,000.'],
+    model: { title: "Numbers she will actually say", titleAr: "\u0627\u0644\u0623\u0631\u0642\u0627\u0645 \u0627\u0644\u062a\u064a \u0633\u062a\u0642\u0648\u0644\u0647\u0627 \u0641\u0639\u0644\u0627\u064b",
+      lines: ["The meeting is at half past nine on Tuesday.", "The mission is from the fifth to the twelfth of March.", "The flight takes about four hours.", "We started in two thousand and four.", "The area is two hundred and fifty thousand square kilometres."],
+      note: "Use HER numbers from day 7 \u2014 project dates, flight times, areas. General number drills do not transfer.", noteAr: "\u0627\u0633\u062a\u062e\u062f\u0645 \u0623\u0631\u0642\u0627\u0645\u0647\u0627 \u0645\u0646 \u0627\u0644\u064a\u0648\u0645 \u0627\u0644\u0633\u0627\u0628\u0639 \u2014 \u062a\u0648\u0627\u0631\u064a\u062e \u0627\u0644\u0645\u0634\u0627\u0631\u064a\u0639 \u0648\u0623\u0648\u0642\u0627\u062a \u0627\u0644\u0631\u062d\u0644\u0627\u062a \u0648\u0627\u0644\u0645\u0633\u0627\u062d\u0627\u062a. \u0627\u0644\u062a\u0645\u0627\u0631\u064a\u0646 \u0627\u0644\u0639\u0627\u0645\u0629 \u0644\u0627 \u062a\u0646\u062a\u0642\u0644." },
     homework: { en: 'Read ten numbers and three dates aloud, twice.', ar: 'اقرئي عشرة أرقام وثلاثة تواريخ بصوت عالٍ مرتين.' } },
 
   { no: 8, phase: 1, tag: 'Questions', tagAr: 'الأسئلة',
@@ -357,6 +364,7 @@ export const LESSONS: Lesson[] = [
     drill: { frame: 'Yes, ______ . And ______ .', frameAr: 'نعم، ______ . و______ .',
       slots: ['exactly / I do it every month', 'I think so / it is very useful', 'sometimes / it depends on the season'] },
     hotSeat: ['[Ten fast yes/no questions] — never answer with one word.'],
+    vocab: [ { en: "exactly", ar: "\u062a\u0645\u0627\u0645\u0627\u064b", say: "ig-ZAKT-lee" }, { en: "it depends", ar: "\u064a\u0639\u062a\u0645\u062f", say: "it di-PENDZ" }, { en: "actually", ar: "\u0641\u064a \u0627\u0644\u0648\u0627\u0642\u0639", say: "AK-chuh-lee" }, { en: "sometimes", ar: "\u0623\u062d\u064a\u0627\u0646\u0627\u064b", say: "SUM-times" } ],
     homework: { en: 'Record: ten answers, none shorter than five words.', ar: 'سجّلي عشر إجابات، لا تقل أي منها عن خمس كلمات.' } },
 
   { no: 10, phase: 1, tag: 'Feelings', tagAr: 'المشاعر',
@@ -375,6 +383,9 @@ export const LESSONS: Lesson[] = [
              { en: 'worried', ar: 'قلقة', say: 'WUR-eed' }, { en: 'pleased', ar: 'مسرورة', say: 'PLEEZD' },
              { en: 'a shame', ar: 'أمر مؤسف', say: 'SHAYM' } ],
     hotSeat: ['How are you, really?', 'I lost my luggage — react.', 'I got the contract — react.'],
+    model: { title: "Feelings tied to work facts", titleAr: "\u0645\u0634\u0627\u0639\u0631 \u0645\u0631\u0628\u0648\u0637\u0629 \u0628\u062d\u0642\u0627\u0626\u0642 \u0627\u0644\u0639\u0645\u0644",
+      lines: ["I'm a bit tired \u2014 I came back from Gabon last night.", "I'm very happy with the results.", "I'm a little worried about the deadline.", "I'm really pleased the client accepted it."],
+      note: "Tie every feeling to a work fact. It doubles as fluency practice and it is what she will actually say.", noteAr: "\u0627\u0631\u0628\u0637\u064a \u0643\u0644 \u0634\u0639\u0648\u0631 \u0628\u062d\u0642\u064a\u0642\u0629 \u0645\u0646 \u0627\u0644\u0639\u0645\u0644. \u062a\u062f\u0631\u064a\u0628 \u0639\u0644\u0649 \u0627\u0644\u0637\u0644\u0627\u0642\u0629 \u0648\u0647\u0648 \u0645\u0627 \u0633\u062a\u0642\u0648\u0644\u0647 \u0641\u0639\u0644\u0627\u064b." },
     homework: { en: 'Record: how you felt about three things this week.', ar: 'سجّلي: شعورك تجاه ثلاثة أمور هذا الأسبوع.' } },
 
   { no: 11, phase: 1, tag: 'Politeness', tagAr: 'اللباقة',
@@ -409,6 +420,10 @@ export const LESSONS: Lesson[] = [
     hotSeat: ['Five minutes. I will ask, you answer, and you also ask me.',
               'Every time you stop, I write it down. Target: fewer than three stops.',
               'Now do the same five minutes again. Beat your number.'],
+    vocab: [ { en: "a deadline", ar: "\u0645\u0648\u0639\u062f \u0646\u0647\u0627\u0626\u064a", say: "DED-line" }, { en: "a report", ar: "\u062a\u0642\u0631\u064a\u0631", say: "ri-PORT" }, { en: "a client", ar: "\u0639\u0645\u064a\u0644", say: "KLY-ent" }, { en: "a field trip", ar: "\u0631\u062d\u0644\u0629 \u0645\u064a\u062f\u0627\u0646\u064a\u0629", say: "FEELD trip" } ],
+    model: { title: "Week 2 test \u2014 five minutes", titleAr: "\u0627\u062e\u062a\u0628\u0627\u0631 \u0627\u0644\u0623\u0633\u0628\u0648\u0639 \u0627\u0644\u062b\u0627\u0646\u064a \u2014 \u062e\u0645\u0633 \u062f\u0642\u0627\u0626\u0642",
+      lines: ["Five minutes, and you count every stop.", "Then tell her the number.", "Then she does the same five minutes again.", "Her second number is always lower. Show her \u2014 it is the first proof the course works."],
+      note: "Counting stops is the only measure that matters this month. Not grammar, not vocabulary. Stops.", noteAr: "\u0639\u062f\u0651 \u0627\u0644\u062a\u0648\u0642\u0651\u0641\u0627\u062a \u0647\u0648 \u0627\u0644\u0645\u0642\u064a\u0627\u0633 \u0627\u0644\u0648\u062d\u064a\u062f \u0647\u0630\u0627 \u0627\u0644\u0634\u0647\u0631. \u0644\u0627 \u0627\u0644\u0642\u0648\u0627\u0639\u062f \u0648\u0644\u0627 \u0627\u0644\u0645\u0641\u0631\u062f\u0627\u062a. \u0627\u0644\u062a\u0648\u0642\u0651\u0641\u0627\u062a." },
     homework: { en: 'Record five minutes of you talking. Send it whatever it sounds like.', ar: 'سجّلي خمس دقائق من كلامك. أرسليها مهما كان شكلها.' } },
 
   /* ═══ WEEK 3 ═══ */
@@ -481,6 +496,8 @@ export const LESSONS: Lesson[] = [
     drill: { frame: "Next ______ I'm going to ______ .", frameAr: '______ القادم سأذهب إلى ______ .',
       slots: ['week / Gabon', 'month / a conference in Paris', 'year / start a new project'] },
     hotSeat: ['What are you doing next week?', 'What are your plans this year?', 'What will you do after this course?'],
+    model: { title: "Her real next month", titleAr: "\u0634\u0647\u0631\u0647\u0627 \u0627\u0644\u0642\u0627\u062f\u0645 \u0627\u0644\u062d\u0642\u064a\u0642\u064a",
+      lines: ["Next week I'm going to Libreville for a workshop.", "In March we start the new project with the agency.", "I'm going to present the results at a conference in June.", "I'm not sure yet about the second mission."] },
     homework: { en: 'Record 60 seconds: your plans for next month.', ar: 'سجّلي 60 ثانية: خططك للشهر القادم.' } },
 
   { no: 16, phase: 2, tag: 'Airport', tagAr: 'المطار',
@@ -499,6 +516,8 @@ export const LESSONS: Lesson[] = [
              { en: 'luggage', ar: 'أمتعة', say: 'LUG-ij — never "luggages"' },
              { en: 'boarding pass', ar: 'بطاقة صعود', say: 'BOR-ding pass' }, { en: 'delayed', ar: 'متأخرة', say: 'di-LAYD' } ],
     hotSeat: ['[Check-in desk] — check in.', 'Your flight is delayed. Ask about it.', 'Find your gate.'],
+    model: { title: "Her real airport", titleAr: "\u0645\u0637\u0627\u0631\u0647\u0627 \u0627\u0644\u062d\u0642\u064a\u0642\u064a",
+      lines: ["Excuse me, where is gate twelve, please?", "My flight to Libreville is at four.", "Just one bag, and this laptop.", "Is the flight on time? It is delayed? How long?"] },
     homework: { en: 'Record: checking in at an airport, both sides.', ar: 'سجّلي: تسجيل الوصول في المطار بالدورين.' } },
 
   { no: 17, phase: 2, tag: 'Taxi & hotel', tagAr: 'التاكسي والفندق',
@@ -530,6 +549,9 @@ export const LESSONS: Lesson[] = [
     chunks: [ { en: 'No new phrases. One long story, past tense.', ar: 'لا عبارات جديدة. حكاية واحدة طويلة بالماضي.' } ],
     hotSeat: ['Tell me about your last trip — from leaving home to the hotel room.',
               'Now put a problem in the middle of it.', 'Now tell it in ninety seconds.'],
+    vocab: [ { en: "a site", ar: "\u0645\u0648\u0642\u0639", say: "SITE" }, { en: "a survey", ar: "\u0645\u0633\u062d \u0645\u064a\u062f\u0627\u0646\u064a", say: "SER-vay" }, { en: "equipment", ar: "\u0645\u0639\u062f\u0627\u062a", say: "i-KWIP-ment" }, { en: "a visa", ar: "\u062a\u0623\u0634\u064a\u0631\u0629", say: "VEE-zuh" } ],
+    model: { title: "One trip, told properly", titleAr: "\u0631\u062d\u0644\u0629 \u0648\u0627\u062d\u062f\u0629 \u062a\u064f\u0631\u0648\u0649 \u0643\u0645\u0627 \u064a\u0646\u0628\u063a\u064a",
+      lines: ["Leaving home, the airport, the flight, arriving, the taxi, the hotel.", "Now put ONE problem in it: lost bag, delay, no visa, no taxi.", "Now tell it again in ninety seconds.", "Now tell it as if it happened to a colleague."] },
     homework: { en: 'Record the whole trip story, one take, no notes.', ar: 'سجّلي حكاية الرحلة كاملة، تسجيل واحد بلا ورقة.' } },
 
   /* ═══ WEEK 4 ═══ */
@@ -570,6 +592,9 @@ export const LESSONS: Lesson[] = [
     vocab: [ { en: 'expensive', ar: 'غالٍ', say: 'ik-SPEN-siv' }, { en: 'cheap', ar: 'رخيص', say: 'CHEEP' },
              { en: 'a budget', ar: 'ميزانية', say: 'BUJ-it' }, { en: 'to cost', ar: 'يكلّف', say: 'KOST' } ],
     hotSeat: ['[Shopkeeper] — buy something and ask the price.', 'It is too expensive — say so politely.', 'Negotiate.'],
+    model: { title: "Money in her real work", titleAr: "\u0627\u0644\u0645\u0627\u0644 \u0641\u064a \u0639\u0645\u0644\u0647\u0627 \u0627\u0644\u062d\u0642\u064a\u0642\u064a",
+      lines: ["How much is it per square kilometre?", "That is a bit expensive for our budget.", "Do you have a cheaper option for a smaller area?", "Can we do it in two phases?"],
+      note: "The shopping phrases are the same phrases she needs to negotiate a contract. Tell her that \u2014 it changes how she practises.", noteAr: "\u0639\u0628\u0627\u0631\u0627\u062a \u0627\u0644\u062a\u0633\u0648\u0651\u0642 \u0647\u064a \u0646\u0641\u0633\u0647\u0627 \u0639\u0628\u0627\u0631\u0627\u062a \u0627\u0644\u062a\u0641\u0627\u0648\u0636 \u0639\u0644\u0649 \u0639\u0642\u062f. \u0642\u0644 \u0644\u0647\u0627 \u0630\u0644\u0643 \u0641\u064a\u062a\u063a\u064a\u0651\u0631 \u0623\u0633\u0644\u0648\u0628 \u062a\u062f\u0631\u064a\u0628\u0647\u0627." },
     homework: { en: 'Record: buying something, including the price.', ar: 'سجّلي: شراء شيء مع ذكر السعر.' } },
 
   { no: 21, phase: 2, tag: 'Phone', tagAr: 'الهاتف',
@@ -587,6 +612,8 @@ export const LESSONS: Lesson[] = [
     vocab: [ { en: 'to call back', ar: 'يعاود الاتصال', say: 'kawl BAK' }, { en: 'the line', ar: 'الخط', say: 'LINE' },
              { en: 'to hang up', ar: 'يُنهي المكالمة', say: 'hang UP' } ],
     hotSeat: ['[I call you] — answer.', 'The line is bad — deal with it.', 'End the call politely.'],
+    model: { title: "A real call", titleAr: "\u0645\u0643\u0627\u0644\u0645\u0629 \u062d\u0642\u064a\u0642\u064a\u0629",
+      lines: ["Hello, this is Salma speaking. Can you hear me?", "Sorry, the line is bad \u2014 could you repeat that?", "Yes, of course. I will send you the report today.", "Thank you. Talk to you soon. Bye."] },
     homework: { en: 'Record a 40-second phone call, both sides.', ar: 'سجّلي مكالمة 40 ثانية بالدورين.' } },
 
   { no: 22, phase: 2, tag: 'Your country', tagAr: 'بلدك',
@@ -604,6 +631,8 @@ export const LESSONS: Lesson[] = [
     vocab: [ { en: 'famous for', ar: 'مشهور بـ', say: 'FAY-mus for' }, { en: 'the coast', ar: 'الساحل', say: 'KOHST' },
              { en: 'the mountains', ar: 'الجبال', say: 'MOWN-tins' }, { en: 'the desert', ar: 'الصحراء', say: 'DEZ-ert — one *s*, stress first' } ],
     hotSeat: ['Tell me about Morocco.', 'Where should I visit? Why?', 'What is the food like?'],
+    model: { title: "Morocco, in four lines", titleAr: "\u0627\u0644\u0645\u063a\u0631\u0628 \u0641\u064a \u0623\u0631\u0628\u0639\u0629 \u0623\u0633\u0637\u0631",
+      lines: ["Morocco is in the north-west of Africa, on the coast.", "I live in Rabat, near the sea.", "You should visit Chefchaouen \u2014 it is a blue city in the mountains.", "And the food is amazing. Come in spring, not August."] },
     homework: { en: 'Record 60 seconds: why someone should visit your country.', ar: 'سجّلي 60 ثانية: لماذا يجب زيارة بلدك.' } },
 
   { no: 23, phase: 2, tag: 'Problems', tagAr: 'المشكلات',
@@ -621,6 +650,8 @@ export const LESSONS: Lesson[] = [
     vocab: [ { en: 'a problem', ar: 'مشكلة', say: 'PROB-lem' }, { en: 'to lose / lost', ar: 'يفقد / فقد', say: 'LOOZ / LOST' },
              { en: 'broken', ar: 'معطّل', say: 'BROH-ken' }, { en: 'a chemist', ar: 'صيدلية', say: 'KEM-ist — the *ch* is a *k*' } ],
     hotSeat: ['Your room has no hot water — complain politely.', 'You lost your passport.', 'You feel ill at a conference.'],
+    model: { title: "When it goes wrong on a mission", titleAr: "\u062d\u064a\u0646 \u064a\u0633\u0648\u0621 \u0627\u0644\u0623\u0645\u0631 \u0641\u064a \u0645\u0647\u0645\u0629",
+      lines: ["There's a problem with the equipment \u2014 it doesn't work.", "We lost a day because of the weather.", "Could you help me find a technician?", "I will let the client know today."] },
     homework: { en: 'Record: three problems and how you would ask for help.', ar: 'سجّلي: ثلاث مشكلات وكيف تطلبين المساعدة.' } },
 
   { no: 24, phase: 2, tag: 'Review', tagAr: 'مراجعة',
@@ -631,6 +662,10 @@ export const LESSONS: Lesson[] = [
     hotSeat: ['Ten minutes. Anything except your job.',
               'Compare this with day 1. Tell her what changed — she will not have noticed.',
               'Next week we start talking about your work. You are ready.'],
+    vocab: [ { en: "progress", ar: "\u062a\u0642\u062f\u0651\u0645", say: "PROG-res" }, { en: "to improve", ar: "\u064a\u062a\u062d\u0633\u0651\u0646", say: "im-PROOV" }, { en: "confident", ar: "\u0648\u0627\u062b\u0642\u0629", say: "KON-fi-dent" }, { en: "fluent", ar: "\u0637\u0644\u064a\u0642\u0629", say: "FLOO-ent" } ],
+    model: { title: "The half-way recording", titleAr: "\u062a\u0633\u062c\u064a\u0644 \u0645\u0646\u062a\u0635\u0641 \u0627\u0644\u0637\u0631\u064a\u0642",
+      lines: ["Ten minutes. Anything except her job.", "Record it. Save it. Do not delete it.", "On day 48 you play it back to her before she speaks.", "Tell her that today, so she takes it seriously."],
+      note: "This recording is the most motivating object in the course. It only works if she makes it properly.", noteAr: "\u0647\u0630\u0627 \u0627\u0644\u062a\u0633\u062c\u064a\u0644 \u0623\u0643\u062b\u0631 \u0645\u0627 \u064a\u062d\u0641\u0651\u0632\u0647\u0627 \u0641\u064a \u0627\u0644\u062f\u0648\u0631\u0629. \u0648\u0644\u0627 \u064a\u0646\u0641\u0639 \u0625\u0644\u0627 \u0625\u0630\u0627 \u0635\u0646\u0639\u062a\u0647 \u0628\u062c\u062f\u064a\u0629." },
     homework: { en: 'Record ten minutes. Keep it — you will listen to it again on day 48.', ar: 'سجّلي عشر دقائق. احتفظي بها — ستسمعينها في اليوم 48.' } },
 
   /* ═══ WEEK 5 ═══ */
@@ -676,6 +711,8 @@ export const LESSONS: Lesson[] = [
     vocab: [ { en: 'a company', ar: 'شركة', say: 'KUM-puh-nee' }, { en: 'a client', ar: 'عميل', say: 'KLY-ent' },
              { en: 'a government', ar: 'حكومة', say: 'GUV-ern-ment' }, { en: 'to found / I founded', ar: 'يؤسّس', say: 'FOWND-ed' } ],
     hotSeat: ['Tell me about your company.', 'Who are your clients?', 'How many people work with you?'],
+    model: { title: "Africa EO Services, in five lines", titleAr: "\u0627\u0644\u0634\u0631\u0643\u0629 \u0641\u064a \u062e\u0645\u0633\u0629 \u0623\u0633\u0637\u0631",
+      lines: ["I have my own company. It is called Africa EO Services, in Morocco.", "I started it because the data existed but nobody was using it.", "We are a small team, but we work in more than fifteen African countries.", "Our clients are governments, agencies and researchers.", "My job is to design the solution and make sure it is delivered."] },
     homework: { en: 'Record 60 seconds: your company.', ar: 'سجّلي 60 ثانية: شركتك.' } },
 
   { no: 27, phase: 3, tag: 'Experience', tagAr: 'الخبرة',
@@ -762,6 +799,10 @@ export const LESSONS: Lesson[] = [
     canSay: 'Everything from days 25–29.',
     chunks: [ { en: 'No new phrases. Three explanations, three levels.', ar: 'لا عبارات جديدة. ثلاثة شروح بثلاثة مستويات.' } ],
     hotSeat: ['Explain your job to a child.', 'Now to a taxi driver.', 'Now to a minister.', 'Now in twenty seconds.'],
+    vocab: [ { en: "a solution", ar: "\u062d\u0644", say: "suh-LOO-shun" }, { en: "a decision", ar: "\u0642\u0631\u0627\u0631", say: "di-SIZH-un" }, { en: "to deliver", ar: "\u064a\u0633\u0644\u0651\u0645", say: "di-LIV-er" }, { en: "an agency", ar: "\u0648\u0643\u0627\u0644\u0629", say: "AY-jen-see" } ],
+    model: { title: "Same job, three audiences", titleAr: "\u0627\u0644\u0645\u0647\u0646\u0629 \u0646\u0641\u0633\u0647\u0627 \u0644\u062b\u0644\u0627\u062b\u0629 \u062c\u0645\u0627\u0647\u064a\u0631",
+      lines: ["To a child: I look at pictures of the Earth taken from space.", "To a taxi driver: I work with satellites. We help countries with water and forests.", "To a minister: We turn satellite data into decisions for water, forest and agriculture management.", "Same truth, three levels. She chooses the level, not the listener."],
+      note: "If she can only do the third one, she is stuck. The first one is what saves her at a dinner.", noteAr: "\u0625\u0646 \u0623\u062a\u0642\u0646\u062a \u0627\u0644\u062b\u0627\u0644\u062b\u0629 \u0648\u062d\u062f\u0647\u0627 \u0641\u0647\u064a \u0639\u0627\u0644\u0642\u0629. \u0627\u0644\u0623\u0648\u0644\u0649 \u0647\u064a \u0645\u0627 \u064a\u0646\u0642\u0630\u0647\u0627 \u0639\u0644\u0649 \u0627\u0644\u0639\u0634\u0627\u0621." },
     homework: { en: 'Record all three versions back to back.', ar: 'سجّلي النسخ الثلاث تباعاً.' } },
 
   /* ═══ WEEK 6 ═══ */
@@ -785,6 +826,8 @@ export const LESSONS: Lesson[] = [
     drill: { frame: 'We monitor ______ so that ______ .', frameAr: 'نراقب ______ حتى ______ .',
       slots: ['the forest / the government can act', 'the water / farmers can plan', 'the crops / they know when to harvest'] },
     hotSeat: ['What do you monitor?', 'Why does it matter?', 'Who uses the result?'],
+    model: { title: "Why the forest work matters", titleAr: "\u0644\u0645\u0627\u0630\u0627 \u064a\u0647\u0645\u0651 \u0639\u0645\u0644 \u0627\u0644\u063a\u0627\u0628\u0627\u062a",
+      lines: ["We watch the forest with satellite images, every month.", "We can see exactly where the trees are disappearing.", "Before, the government only knew a year later.", "Now they know in weeks, and they can send someone.", "That is the whole value: not the picture, the speed."] },
     homework: { en: 'Record: ten field words, each inside a full sentence.', ar: 'سجّلي: عشر كلمات من مجالك داخل جمل كاملة.' } },
 
   { no: 32, phase: 3, tag: 'Field words 2', tagAr: 'مفردات المجال ٢',
@@ -856,6 +899,7 @@ export const LESSONS: Lesson[] = [
       slots: ['the data is not free / we start with one country', 'that season is cloudy / we use radar',
               'the team is small / we do it in two phases'] },
     hotSeat: ['I want the whole map in two weeks.', 'Your price is too high.', 'Why not just use free data?'],
+    vocab: [ { en: "to compromise", ar: "\u064a\u062a\u0646\u0627\u0632\u0644", say: "KOM-pruh-mize" }, { en: "a constraint", ar: "\u0642\u064a\u062f", say: "kun-STRAYNT" }, { en: "realistic", ar: "\u0648\u0627\u0642\u0639\u064a", say: "ree-uh-LIS-tik" }, { en: "an alternative", ar: "\u0628\u062f\u064a\u0644", say: "awl-TER-nuh-tiv" } ],
     homework: { en: 'Record: disagree politely with three requests.', ar: 'سجّلي: اعترضي بلباقة على ثلاثة طلبات.' } },
 
   { no: 35, phase: 3, tag: 'Video calls', tagAr: 'مكالمات الفيديو',
@@ -885,6 +929,10 @@ export const LESSONS: Lesson[] = [
     chunks: [ { en: 'No new phrases. One meeting, she leads it.', ar: 'لا عبارات جديدة. اجتماع واحد تقوده هي.' } ],
     hotSeat: ['You are chairing. Open the meeting.', 'I disagree with you — handle it.',
               'I ask something you do not know — handle it.', 'Close the meeting.'],
+    vocab: [ { en: "to chair", ar: "\u064a\u062a\u0631\u0623\u0633", say: "CHAIR" }, { en: "an outcome", ar: "\u0646\u062a\u064a\u062c\u0629", say: "OWT-kum" }, { en: "to follow up", ar: "\u064a\u062a\u0627\u0628\u0639", say: "FOL-oh up" }, { en: "minutes", ar: "\u0645\u062d\u0636\u0631", say: "MIN-its" } ],
+    model: { title: "She runs the whole meeting", titleAr: "\u0647\u064a \u062a\u062f\u064a\u0631 \u0627\u0644\u0627\u062c\u062a\u0645\u0627\u0639 \u0643\u0627\u0645\u0644\u0627\u064b",
+      lines: ["Open it. Set the agenda. Give the timing.", "Let someone disagree with her \u2014 she handles it.", "Ask her something she does not know \u2014 she handles it.", "Close with three action points and a date."],
+      note: "By day 36 she should be able to chair, not just attend. That is the difference the course is selling.", noteAr: "\u0628\u062d\u0644\u0648\u0644 \u0627\u0644\u064a\u0648\u0645 36 \u064a\u0646\u0628\u063a\u064a \u0623\u0646 \u062a\u062a\u0631\u0623\u0633 \u0644\u0627 \u0623\u0646 \u062a\u062d\u0636\u0631 \u0641\u0642\u0637. \u0647\u0630\u0627 \u0647\u0648 \u0627\u0644\u0641\u0631\u0642 \u0627\u0644\u0630\u064a \u062a\u0628\u064a\u0639\u0647 \u0627\u0644\u062f\u0648\u0631\u0629." },
     homework: { en: 'Record a 3-minute meeting, both sides.', ar: 'سجّلي اجتماعاً من 3 دقائق بالدورين.' } },
 
   /* ═══ WEEK 7 ═══ */
@@ -934,6 +982,9 @@ export const LESSONS: Lesson[] = [
               'this is the same place in 2019 and 2023 / the change is very clear',
               'the blue line is the water level / it drops every summer'] },
     hotSeat: ['[Point at an imaginary slide] — describe it.', 'Now the before-and-after.', 'What is the one thing they should remember?'],
+    model: { title: "Talking over her own slide", titleAr: "\u0627\u0644\u062a\u0639\u0644\u064a\u0642 \u0639\u0644\u0649 \u0634\u0631\u064a\u062d\u062a\u0647\u0627",
+      lines: ["This map shows the Gulf of Guinea, in March last year.", "The dark lines you can see here are oil on the water.", "On the left is the radar image. On the right is what our model found.", "The important thing is the black shape here \u2014 that came from a ship, not a platform."],
+      note: "She must never read the slide. The slide shows; she explains what it MEANS.", noteAr: "\u064a\u062c\u0628 \u0623\u0644\u0627 \u062a\u0642\u0631\u0623 \u0627\u0644\u0634\u0631\u064a\u062d\u0629 \u0623\u0628\u062f\u0627\u064b. \u0627\u0644\u0634\u0631\u064a\u062d\u0629 \u062a\u064f\u0638\u0647\u0631 \u0648\u0647\u064a \u062a\u0634\u0631\u062d \u0627\u0644\u0645\u0639\u0646\u0649." },
     homework: { en: 'Take one real slide of yours and record yourself talking over it.', ar: 'خذي شريحة حقيقية وسجّلي تعليقك عليها.' } },
 
   { no: 39, phase: 4, tag: 'Structure', tagAr: 'الهيكل',
@@ -961,6 +1012,7 @@ export const LESSONS: Lesson[] = [
       slots: ['the problem / our method / the results', 'the context / the data / the next steps',
               'why it matters / what we did / what we learned'] },
     hotSeat: ['Open a talk about your work.', 'Now close it.', 'Do the opening in half the words.'],
+    vocab: [ { en: "an outline", ar: "\u0645\u062e\u0637\u0637", say: "OWT-line" }, { en: "to signpost", ar: "\u064a\u0634\u064a\u0631 \u0625\u0644\u0649 \u0627\u0644\u0645\u0633\u0627\u0631", say: "SINE-post" }, { en: "to sum up", ar: "\u064a\u0644\u062e\u0651\u0635", say: "sum UP" }, { en: "an audience", ar: "\u062c\u0645\u0647\u0648\u0631", say: "AW-dee-ens" }, { en: "a takeaway", ar: "\u062e\u0644\u0627\u0635\u0629", say: "TAYK-uh-way" } ],
     homework: { en: 'Record the first 90 seconds of a talk.', ar: 'سجّلي أول 90 ثانية من عرض.' } },
 
   { no: 40, phase: 4, tag: 'Project 1', tagAr: 'المشروع ١',
@@ -987,6 +1039,7 @@ export const LESSONS: Lesson[] = [
       frameAr: 'كان العميل ______ . كانت المشكلة ______ . ما فعلناه هو ______ .',
       slots: ['GERNAC / river navigation', 'CAFWS / forest monitoring', 'MISBAR / crop monitoring'] },
     hotSeat: ['Tell me about CAFWS.', 'Tell me about GERNAC.', 'Which are you proudest of? Why?'],
+    vocab: [ { en: "a challenge", ar: "\u062a\u062d\u062f\u064d\u0651", say: "CHAL-inj" }, { en: "an outcome", ar: "\u0646\u062a\u064a\u062c\u0629", say: "OWT-kum" }, { en: "a stakeholder", ar: "\u0637\u0631\u0641 \u0645\u0639\u0646\u064a", say: "STAKE-hold-er" }, { en: "capacity building", ar: "\u0628\u0646\u0627\u0621 \u0627\u0644\u0642\u062f\u0631\u0627\u062a", say: "kuh-PAS-i-tee BIL-ding" }, { en: "sustainable", ar: "\u0645\u0633\u062a\u062f\u0627\u0645", say: "sus-TAY-nuh-bul" } ],
     homework: { en: 'Record two projects, five sentences each.', ar: 'سجّلي مشروعين، خمس جمل لكل واحد.' } },
 
   { no: 41, phase: 4, tag: 'Project 2', tagAr: 'المشروع ٢',
@@ -1001,6 +1054,10 @@ export const LESSONS: Lesson[] = [
       { en: 'The one I am proudest of is ______ , because ______ .', ar: 'أفخر ما أنجزت هو ______ ، لأن ______ .' },
     ],
     hotSeat: ['GERNAC — go.', 'CAFWS — go.', 'MISBAR — go.', 'Now all three in ninety seconds.'],
+    vocab: [ { en: "navigation", ar: "\u0645\u0644\u0627\u062d\u0629", say: "nav-i-GAY-shun" }, { en: "a basin", ar: "\u062d\u0648\u0636", say: "BAY-sin" }, { en: "monitoring", ar: "\u0631\u0635\u062f", say: "MON-i-ter-ing" }, { en: "a yield", ar: "\u063a\u0644\u0651\u0629", say: "YEELD" }, { en: "to scale up", ar: "\u064a\u0648\u0633\u0651\u0639", say: "skayl UP" } ],
+    model: { title: "Three projects, one shape", titleAr: "\u062b\u0644\u0627\u062b\u0629 \u0645\u0634\u0627\u0631\u064a\u0639 \u0628\u0642\u0627\u0644\u0628 \u0648\u0627\u062d\u062f",
+      lines: ["GERNAC: the client could not move boats safely on the river. We mapped the water. Now they can plan the season.", "CAFWS: Gabon could not see its forest. We built the monitoring. Now they see it monthly.", "MISBAR: six countries needed crop information. We built it, and we trained their teams to run it.", "Notice: every one is problem, then what we built, then what changed. Never the technology first."],
+      note: "If she starts with the satellite she loses the room. She starts with the person who had the problem.", noteAr: "\u0625\u0646 \u0628\u062f\u0623\u062a \u0628\u0627\u0644\u0642\u0645\u0631 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064a \u062e\u0633\u0631\u062a \u0627\u0644\u0642\u0627\u0639\u0629. \u062a\u0628\u062f\u0623 \u0628\u0645\u0646 \u0643\u0627\u0646\u062a \u0644\u062f\u064a\u0647 \u0627\u0644\u0645\u0634\u0643\u0644\u0629." },
     homework: { en: 'Record all three, one take, no notes.', ar: 'سجّلي الثلاثة، تسجيل واحد بلا ورقة.' } },
 
   { no: 42, phase: 4, tag: 'Review', tagAr: 'مراجعة',
@@ -1011,6 +1068,10 @@ export const LESSONS: Lesson[] = [
     hotSeat: ['Stand up. Five minutes. I will not interrupt.',
               'Now again, and I will interrupt twice.',
               'Now again, in three minutes.'],
+    vocab: [ { en: "nervous", ar: "\u0645\u062a\u0648\u062a\u0631\u0629", say: "NER-vus" }, { en: "to pause", ar: "\u064a\u062a\u0648\u0642\u0651\u0641 \u0642\u0644\u064a\u0644\u0627\u064b", say: "PAWZ" }, { en: "to breathe", ar: "\u064a\u062a\u0646\u0641\u0651\u0633", say: "BREETH" }, { en: "pace", ar: "\u0625\u064a\u0642\u0627\u0639", say: "PAYS" } ],
+    model: { title: "Standing up changes everything", titleAr: "\u0627\u0644\u0648\u0642\u0648\u0641 \u064a\u063a\u064a\u0651\u0631 \u0643\u0644 \u0634\u064a\u0621",
+      lines: ["She stands. You sit. No notes in her hand.", "Five minutes, uninterrupted.", "Then again, and you interrupt twice.", "Then again in three minutes.", "Tell her: pause instead of saying euh. A pause sounds confident; a filler sounds lost."],
+      note: "French speakers fill silence with euh. In English, silence is fine. Train the pause \u2014 it is worth more than any phrase.", noteAr: "\u0627\u0644\u0641\u0631\u0646\u0633\u064a\u0648\u0646 \u064a\u0645\u0644\u0623\u0648\u0646 \u0627\u0644\u0635\u0645\u062a \u0628\u0640\u00abeuh\u00bb. \u0628\u0627\u0644\u0625\u0646\u062c\u0644\u064a\u0632\u064a\u0629 \u0627\u0644\u0635\u0645\u062a \u0645\u0642\u0628\u0648\u0644. \u062f\u0631\u0651\u0628\u0647\u0627 \u0639\u0644\u0649 \u0627\u0644\u062a\u0648\u0642\u0651\u0641 \u2014 \u0623\u062b\u0645\u0646 \u0645\u0646 \u0623\u064a \u0639\u0628\u0627\u0631\u0629." },
     homework: { en: 'Record the whole five-minute talk on video, standing.', ar: 'سجّلي العرض كاملاً بالفيديو، واقفة.' } },
 
   /* ═══ WEEK 8 ═══ */
@@ -1034,6 +1095,7 @@ export const LESSONS: Lesson[] = [
       noteAr: '«لا أعرف، سأرسله» ما يقوله الكبار. اختلاق رقم ما يفعله المتوتّر.' },
     hotSeat: ['How much does it cost per square kilometre?', 'Why not use free data?',
               'Is your accuracy good enough for a court case?', 'Will AI replace you?'],
+    vocab: [ { en: "a figure", ar: "\u0631\u0642\u0645", say: "FIG-er" }, { en: "to estimate", ar: "\u064a\u0642\u062f\u0651\u0631", say: "ES-ti-mayt" }, { en: "to verify", ar: "\u064a\u062a\u062d\u0642\u0651\u0642", say: "VER-i-fye" }, { en: "reliable", ar: "\u0645\u0648\u062b\u0648\u0642", say: "ri-LY-uh-bul" }, { en: "a limitation", ar: "\u0642\u064a\u062f / \u062d\u062f\u0651", say: "lim-i-TAY-shun" } ],
     homework: { en: 'Get a colleague to fire five hard questions in English. Record the answers.', ar: 'اطلبي من زميل خمسة أسئلة صعبة بالإنجليزية. وسجّلي إجاباتك.' } },
 
   { no: 44, phase: 4, tag: 'Networking', tagAr: 'التواصل',
@@ -1056,6 +1118,7 @@ export const LESSONS: Lesson[] = [
       note: 'Compliment → who you are → the link → a small easy next step. Never ask for anything big at a coffee break. And the last line is day 1 — show her.',
       noteAr: 'مجاملة ← من أنتِ ← الرابط ← خطوة صغيرة. لا تطلبي شيئاً كبيراً في الاستراحة. والسطر الأخير هو اليوم الأول — أرِها ذلك.' },
     hotSeat: ['[Stranger with a coffee] — start.', 'Now end it politely.', 'Again, in thirty seconds.'],
+    vocab: [ { en: "a contact", ar: "\u062c\u0647\u0629 \u0627\u062a\u0635\u0627\u0644", say: "KON-takt" }, { en: "to follow up", ar: "\u064a\u062a\u0627\u0628\u0639", say: "FOL-oh up" }, { en: "a proposal", ar: "\u0645\u0642\u062a\u0631\u062d", say: "pruh-POH-zul" }, { en: "collaboration", ar: "\u062a\u0639\u0627\u0648\u0646", say: "kuh-lab-uh-RAY-shun" }, { en: "a consortium", ar: "\u0627\u0626\u062a\u0644\u0627\u0641", say: "kun-SOR-tee-um" } ],
     homework: { en: 'Record your 60-second pitch: who you are, what you do, what you want.', ar: 'سجّلي عرضك في 60 ثانية: من أنتِ، ماذا تعملين، وماذا تريدين.' } },
 
   { no: 45, phase: 4, tag: 'Chairing', tagAr: 'إدارة الجلسة',
@@ -1073,6 +1136,8 @@ export const LESSONS: Lesson[] = [
     vocab: [ { en: 'a speaker', ar: 'متحدث', say: 'SPEE-ker' }, { en: 'a session', ar: 'جلسة', say: 'SESH-un' },
              { en: 'a workshop', ar: 'ورشة', say: 'WERK-shop' }, { en: 'to introduce', ar: 'يقدّم', say: 'in-truh-DOOS' } ],
     hotSeat: ['Open a session.', 'A speaker is going too long — stop him politely.', 'Close the session.'],
+    model: { title: "Chairing, in five lines", titleAr: "\u0625\u062f\u0627\u0631\u0629 \u0627\u0644\u062c\u0644\u0633\u0629 \u0641\u064a \u062e\u0645\u0633\u0629 \u0623\u0633\u0637\u0631",
+      lines: ["Welcome, everyone. Thank you for coming.", "We have three speakers today, and we finish at four.", "Our first speaker is Doctor Ndong, from Libreville.", "Thank you. We have time for two questions \u2014 please keep them short.", "Thank you all. We continue after the coffee break."] },
     homework: { en: 'Record: opening and closing a workshop.', ar: 'سجّلي: افتتاح ورشة وختامها.' } },
 
   { no: 46, phase: 4, tag: 'Teaching', tagAr: 'التدريب',
@@ -1090,6 +1155,9 @@ export const LESSONS: Lesson[] = [
     vocab: [ { en: 'to click', ar: 'يضغط', say: 'KLIK' }, { en: 'a folder', ar: 'مجلّد', say: 'FOHL-der' },
              { en: 'a layer', ar: 'طبقة', say: 'LAY-er' }, { en: 'to open a file', ar: 'يفتح ملفاً', say: 'FILE' } ],
     hotSeat: ['Teach me to open a file in QGIS.', 'Someone is lost — help them.', 'Close the training.'],
+    model: { title: "Training a room in English", titleAr: "\u062a\u062f\u0631\u064a\u0628 \u0645\u062c\u0645\u0648\u0639\u0629 \u0628\u0627\u0644\u0625\u0646\u062c\u0644\u064a\u0632\u064a\u0629",
+      lines: ["Today we are going to learn how to open a Sentinel image in QGIS.", "First, open the folder. Then click on the file \u2014 it ends in dot t-i-f.", "Can everyone see this? Good. Now try it yourselves.", "Any questions so far? Do not worry, it is normal at the beginning."],
+      note: "Capacity building is a real part of her job and it is all spoken. This lesson pays for itself immediately.", noteAr: "\u0628\u0646\u0627\u0621 \u0627\u0644\u0642\u062f\u0631\u0627\u062a \u062c\u0632\u0621 \u062d\u0642\u064a\u0642\u064a \u0645\u0646 \u0639\u0645\u0644\u0647\u0627 \u0648\u0643\u0644\u0647 \u0643\u0644\u0627\u0645. \u0647\u0630\u0647 \u0627\u0644\u062d\u0635\u0629 \u062a\u0633\u062f\u0651\u062f \u0643\u0644\u0641\u062a\u0647\u0627 \u0641\u0648\u0631\u0627\u064b." },
     homework: { en: 'Record: two minutes teaching one small technical step.', ar: 'سجّلي: دقيقتين لتعليم خطوة تقنية صغيرة.' } },
 
   { no: 47, phase: 4, tag: 'Your pitch', tagAr: 'عرضك',
@@ -1104,6 +1172,10 @@ export const LESSONS: Lesson[] = [
       { en: 'Part 5 — thank you, and how to reach me (10 seconds).', ar: 'الجزء ٥ — شكراً وكيفية التواصل (10 ثوانٍ).' },
     ],
     hotSeat: ['Three minutes. Go.', 'Now cut it to ninety seconds.', 'Now to thirty.', 'Now to one sentence.'],
+    vocab: [ { en: "a pitch", ar: "\u0639\u0631\u0636 \u0645\u0648\u062c\u0632", say: "PICH" }, { en: "an opportunity", ar: "\u0641\u0631\u0635\u0629", say: "op-er-TOO-ni-tee" }, { en: "a partnership", ar: "\u0634\u0631\u0627\u0643\u0629", say: "PART-ner-ship" }, { en: "funding", ar: "\u062a\u0645\u0648\u064a\u0644", say: "FUND-ing" }, { en: "impact", ar: "\u0623\u062b\u0631", say: "IM-pakt" } ],
+    model: { title: "The three-minute pitch, timed", titleAr: "\u0627\u0644\u0639\u0631\u0636 \u0641\u064a \u062b\u0644\u0627\u062b \u062f\u0642\u0627\u0626\u0642 \u0628\u0627\u0644\u062a\u0648\u0642\u064a\u062a",
+      lines: ["20 seconds \u2014 I am Salma. I run an Earth Observation company in Morocco.", "40 seconds \u2014 Africa has the satellite data, but not the people to turn it into decisions. That is the gap.", "60 seconds \u2014 In Gabon we built forest monitoring. They went from knowing a year later to knowing in weeks.", "30 seconds \u2014 I am looking for partners for the Gulf of Guinea oil work.", "10 seconds \u2014 Thank you. My email is on the last slide."],
+      note: "Time her with a phone, out loud. Three minutes is short and she will overrun the first four times.", noteAr: "\u0648\u0642\u0651\u062a\u064a \u0644\u0647\u0627 \u0628\u0627\u0644\u0647\u0627\u062a\u0641 \u0628\u0635\u0648\u062a \u0639\u0627\u0644\u064d. \u062b\u0644\u0627\u062b \u062f\u0642\u0627\u0626\u0642 \u0642\u0635\u064a\u0631\u0629 \u0648\u0633\u062a\u062a\u062c\u0627\u0648\u0632\u0647\u0627 \u0641\u064a \u0627\u0644\u0645\u0631\u0627\u062a \u0627\u0644\u0623\u0631\u0628\u0639 \u0627\u0644\u0623\u0648\u0644\u0649." },
     homework: { en: 'Record the three-minute pitch on video. This is the deliverable.', ar: 'سجّلي العرض بالفيديو ثلاث دقائق. هذا هو المُخرَج.' } },
 
   { no: 48, phase: 4, tag: 'Day 48', tagAr: 'اليوم ٤٨',
@@ -1118,6 +1190,10 @@ export const LESSONS: Lesson[] = [
     hotSeat: ['Fifteen minutes. Anything. I will only ask questions.',
               'What can you say now that you could not say on day 1?',
               'What is still hard? That is month three.'],
+    vocab: [ { en: "to improve", ar: "\u064a\u062a\u062d\u0633\u0651\u0646", say: "im-PROOV" }, { en: "progress", ar: "\u062a\u0642\u062f\u0651\u0645", say: "PROG-res" }, { en: "a habit", ar: "\u0639\u0627\u062f\u0629", say: "HAB-it" }, { en: "to keep going", ar: "\u064a\u0633\u062a\u0645\u0631\u0651", say: "keep GOH-ing" } ],
+    model: { title: "Day 48", titleAr: "\u0627\u0644\u064a\u0648\u0645 \u0627\u0644\u062b\u0627\u0645\u0646 \u0648\u0627\u0644\u0623\u0631\u0628\u0639\u0648\u0646",
+      lines: ["Play the day-24 recording. Say nothing while it plays.", "Then ask her to talk for fifteen minutes.", "Then tell her what changed \u2014 she will not have heard it herself.", "Then ask: what is still hard? That list is month three.", "And the habit does not stop: one real sentence, to one real person, every day."],
+      note: "Do not skip the playback. Eight weeks of work is invisible to the person doing it, and this is the only way she sees it.", noteAr: "\u0644\u0627 \u062a\u062a\u062e\u0637\u064e\u0651 \u0625\u0639\u0627\u062f\u0629 \u0627\u0644\u062a\u0634\u063a\u064a\u0644. \u062b\u0645\u0627\u0646\u064a\u0629 \u0623\u0633\u0627\u0628\u064a\u0639 \u0645\u0646 \u0627\u0644\u0639\u0645\u0644 \u063a\u064a\u0631 \u0645\u0631\u0626\u064a\u0629 \u0644\u0635\u0627\u062d\u0628\u062a\u0647\u0627\u060c \u0648\u0647\u0630\u0647 \u0627\u0644\u0637\u0631\u064a\u0642\u0629 \u0627\u0644\u0648\u062d\u064a\u062f\u0629 \u0644\u062a\u0631\u0627\u0647\u0627." },
     homework: { en: 'Keep the daily habit: one real sentence to one real person. Forever.', ar: 'استمرّي على العادة اليومية: جملة حقيقية لشخص حقيقي. دائماً.' } },
 ]
 
