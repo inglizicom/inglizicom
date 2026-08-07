@@ -29,14 +29,14 @@ import { ORDERED, PHASES, PROTOCOL, FOCUS, weekOf, dayOf, type Lesson } from '@/
    white paper, ink brown, gold. A projected deck reads best on white, and
    using one palette across the decks means the teacher never re-learns a UI. */
 const INK    = '#2a1d12'
-const GOLD   = '#facc15'
-const AMBER  = '#b45309'
+const GOLD   = '#d4a017'   // real gold, not lemon
+const AMBER  = '#92400e'
 const PAPER  = '#ffffff'
-const CARD   = '#fffbeb'   // warm card
-const CARD2  = '#fef3c7'   // raised card
+const CARD   = '#fdf6e3'   // warm card
+const CARD2  = '#fcefc7'   // raised card
 const LINE   = '#e7e5e4'   // stone-200
 const TEXT   = '#2a1d12'
-const MUTED  = '#78716c'   // stone-500
+const MUTED  = '#57534e'   // stone-600 — darker, easier to read
 const DIM    = '#a8a29e'   // stone-400
 const ACCENT = '#b45309'
 
@@ -44,11 +44,12 @@ const ACCENT = '#b45309'
    is in without reading anything. */
 const PHASE_COLOR: Record<number, string> = { 1: '#b45309', 2: '#15803d', 3: '#6d28d9', 4: '#a16207' }
 
-type Phase = 'goal' | 'chunks' | 'vocab' | 'model' | 'drill' | 'hotseat' | 'homework'
+type Phase = 'goal' | 'chunks' | 'vocab' | 'depth' | 'model' | 'drill' | 'hotseat' | 'homework'
 const PHASE_META: Record<Phase, { label: string; ar: string; icon: typeof Target }> = {
   goal:     { label: 'Goal',     ar: 'الهدف',     icon: Target },
   chunks:   { label: 'Phrases',  ar: 'العبارات',  icon: MessagesSquare },
   vocab:    { label: 'Words',    ar: 'الكلمات',   icon: BookOpen },
+  depth:    { label: 'Nuance',   ar: 'الدقائق',   icon: Zap },
   model:    { label: 'Model',    ar: 'النموذج',   icon: Volume2 },
   drill:    { label: 'Drill',    ar: 'التمرين',   icon: Repeat },
   hotseat:  { label: 'Hot seat', ar: 'الأسئلة',   icon: Flame },
@@ -83,6 +84,7 @@ function buildSlides(): Slide[] {
     ORDERED.filter(l => l.phase === ph.no).forEach(lesson => {
       const stages: Phase[] = ['goal', 'chunks']
       if (lesson.vocab?.length)   stages.push('vocab')
+      if (lesson.depth)           stages.push('depth')
       if (lesson.model)           stages.push('model')
       if (lesson.drill)           stages.push('drill')
       if (lesson.hotSeat?.length) stages.push('hotseat')
@@ -135,6 +137,7 @@ export default function SpeakingDeck() {
     if (!lesson) return []
     const st: Phase[] = ['goal', 'chunks']
     if (lesson.vocab?.length)   st.push('vocab')
+    if (lesson.depth)           st.push('depth')
     if (lesson.model)           st.push('model')
     if (lesson.drill)           st.push('drill')
     if (lesson.hotSeat?.length) st.push('hotseat')
@@ -428,7 +431,7 @@ function LessonSlide({ lesson, phase, colour, showAlt }: {
           {lesson.chunks.map(c => (
             <div key={c.en} className="rounded-xl border p-4" style={{ borderColor: LINE, background: CARD }}>
               <div className="flex items-start justify-between gap-4 flex-wrap">
-                <p className="text-[17px] sm:text-xl font-bold leading-snug flex-1 min-w-0"><Hi text={c.en} color={colour} /></p>
+                <p className="text-[18px] sm:text-[22px] font-black leading-snug flex-1 min-w-0"><Hi text={c.en} color={colour} /></p>
                 {c.use && (
                   <span className="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded shrink-0"
                         style={{ background: LINE, color: GOLD }}>{c.use}</span>
@@ -450,7 +453,7 @@ function LessonSlide({ lesson, phase, colour, showAlt }: {
         <div className="grid sm:grid-cols-2 gap-2.5">
           {lesson.vocab.map(v => (
             <div key={v.en} className="rounded-xl border p-4" style={{ borderColor: LINE, background: CARD }}>
-              <div className="font-black text-lg">{v.en}</div>
+              <div className="font-black text-xl">{v.en}</div>
               <div dir="rtl" className="text-stone-500 text-[14px]" style={{ fontFamily: "'Tajawal', sans-serif" }}>{v.ar}</div>
               {v.say && (
                 <div className="text-[12.5px] mt-2 flex items-start gap-1.5" style={{ color: GOLD }}>
@@ -462,13 +465,53 @@ function LessonSlide({ lesson, phase, colour, showAlt }: {
         </div>
       )}
 
+      {phase === 'depth' && lesson.depth && (
+        <div className="space-y-4">
+          <div className="rounded-xl border-2 p-5" style={{ borderColor: colour, background: CARD }}>
+            <div className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: colour }}>Why this works</div>
+            <p className="text-[17px] font-bold leading-relaxed">{lesson.depth.why}</p>
+            <p dir="rtl" className="text-stone-500 text-[14px] mt-2" style={{ fontFamily: "'Tajawal', sans-serif" }}>{lesson.depth.whyAr}</p>
+          </div>
+
+          <div>
+            <div className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: AMBER }}>What a French speaker says — and what to say instead</div>
+            <div className="space-y-2">
+              {lesson.depth.mistakes.map(m => (
+                <div key={m.wrong} className="rounded-xl border p-4" style={{ borderColor: LINE, background: PAPER }}>
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <span className="text-[16px] font-black line-through" style={{ color: '#b91c1c' }}>{m.wrong}</span>
+                    <span className="text-stone-400">→</span>
+                    <span className="text-[17px] font-black" style={{ color: '#15803d' }}>{m.right}</span>
+                  </div>
+                  <p className="text-[13.5px] text-stone-500 mt-1.5">{m.note}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {lesson.depth.upgrade && (
+            <div>
+              <div className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: colour }}>Say it like the most senior person in the room</div>
+              <div className="space-y-2">
+                {lesson.depth.upgrade.map(u => (
+                  <div key={u.pro} className="rounded-xl border p-4" style={{ borderColor: LINE, background: CARD2 }}>
+                    <div className="text-[14px] text-stone-500 mb-1">{u.plain}</div>
+                    <div className="text-[18px] font-black" style={{ color: INK }}>↑ {u.pro}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {phase === 'model' && lesson.model && (
         <div>
           <div className="text-[11px] font-black tracking-widest uppercase mb-1" style={{ color: colour }}>{lesson.model.title}</div>
           <div dir="rtl" className="text-stone-500 text-[13px] mb-4" style={{ fontFamily: "'Tajawal', sans-serif" }}>{lesson.model.titleAr}</div>
           <div className="rounded-xl border p-5 sm:p-6 space-y-3" style={{ borderColor: colour, background: CARD }}>
             {lesson.model.lines.map((l, i) => (
-              <p key={i} className="text-lg sm:text-[22px] font-bold leading-snug flex gap-3">
+              <p key={i} className="text-lg sm:text-[23px] font-black leading-snug flex gap-3">
                 <span className="text-stone-500 font-mono text-sm shrink-0 pt-1.5">{i + 1}</span>
                 <span><Hi text={l} color={colour} /></span>
               </p>
@@ -493,7 +536,7 @@ function LessonSlide({ lesson, phase, colour, showAlt }: {
           <div className="text-[11px] font-black tracking-widest uppercase text-stone-500 mb-2">Swap these in</div>
           <div className="space-y-2">
             {lesson.drill.slots.map(sl => (
-              <div key={sl} className="rounded-lg border px-4 py-3 text-[16px] font-bold" style={{ borderColor: LINE, background: CARD2 }}>
+              <div key={sl} className="rounded-lg border px-4 py-3 text-[17px] font-black" style={{ borderColor: LINE, background: CARD2 }}>
                 {sl}
               </div>
             ))}
@@ -511,7 +554,7 @@ function LessonSlide({ lesson, phase, colour, showAlt }: {
             {lesson.hotSeat.map((q, i) => (
               <div key={q} className="rounded-xl border p-4 flex items-start gap-4" style={{ borderColor: LINE, background: CARD }}>
                 <span className="text-2xl font-black shrink-0" style={{ color: colour }}>{i + 1}</span>
-                <p className="text-lg sm:text-xl font-bold leading-snug">{q}</p>
+                <p className="text-lg sm:text-xl font-black leading-snug">{q}</p>
               </div>
             ))}
           </div>

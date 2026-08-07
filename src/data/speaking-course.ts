@@ -56,6 +56,20 @@ export type Model = { title: string; titleAr: string; lines: string[]; note?: st
 /** Rapid substitution: one frame, many facts. This is where fluency is made. */
 export type Drill = { frame: string; frameAr: string; slots: string[]; note?: string }
 
+/** The part that makes a lesson worth a senior professional's hour.
+ *
+ *  `why` is the mechanism — adults do not accept "just say it", they want to
+ *  know what the phrase is DOING. `mistakes` are contrastive: the specific
+ *  errors a French speaker makes, which generic courses never address and
+ *  which are the fastest wins available to her. `upgrade` gives the same idea
+ *  at a higher register, so she is never stuck sounding like a beginner in a
+ *  room where she is the most senior person present. */
+export type Depth = {
+  why: string; whyAr: string
+  mistakes: { wrong: string; right: string; note: string }[]
+  upgrade?: { plain: string; pro: string }[]
+}
+
 export type Lesson = {
   no: number
   phase: 1 | 2 | 3 | 4
@@ -70,6 +84,7 @@ export type Lesson = {
   drill?: Drill
   /** Questions the teacher fires at her — she answers out loud, no writing. */
   hotSeat?: string[]
+  depth?: Depth
   homework: Ex
 }
 
@@ -175,6 +190,9 @@ export const LESSONS: Lesson[] = [
       slots: ['a new colleague', 'someone at a conference', 'a neighbour', 'a taxi driver'],
       note: 'Twenty repetitions. Until it is one sound, not four sentences.' },
     hotSeat: ['[Walk in as a stranger] — greet me.', 'Again, smiling.', 'Now end the conversation.'],
+    depth: { why: "A greeting is a fixed ritual, not a sentence you build. Native speakers run 'Nice to meet you' as one sound. If she assembles it word by word she is already behind the conversation.", whyAr: "\u0627\u0644\u062a\u062d\u064a\u0629 \u0637\u0642\u0633 \u062b\u0627\u0628\u062a \u0644\u0627 \u062c\u0645\u0644\u0629 \u062a\u064f\u0628\u0646\u0649. \u0627\u0644\u0646\u0627\u0637\u0642 \u0627\u0644\u0623\u0635\u0644\u064a \u064a\u0642\u0648\u0644\u0647\u0627 \u0643\u0635\u0648\u062a \u0648\u0627\u062d\u062f. \u0625\u0646 \u0631\u0643\u0651\u0628\u062a\u0647\u0627 \u0643\u0644\u0645\u0629 \u0643\u0644\u0645\u0629 \u0641\u0642\u062f \u062a\u0623\u062e\u0651\u0631\u062a \u0639\u0646 \u0627\u0644\u062d\u062f\u064a\u062b.",
+      mistakes: [{ wrong: "Enchanted / Enchant\u00e9e.", right: "Nice to meet you.", note: "A direct translation of enchant\u00e9. Nobody says it." }, { wrong: "How are you? \u2014 I am fine.", right: "I'm fine, thanks. And you?", note: "Without the return question the conversation dies on you." }, { wrong: "I am Salma, and you are?", right: "I'm Salma. Sorry, what was your name?", note: "The French 'et vous ?' sounds abrupt in English." }],
+      upgrade: [{ plain: "Hi, I'm Salma.", pro: "Hello, I'm Salma Bennani, from Africa EO Services." }, { plain: "Nice to meet you.", pro: "It's a pleasure to meet you." }] },
     homework: { en: 'Say "Hi, how are you?" to one real person in English.', ar: 'قولي «Hi, how are you?» لشخص حقيقي بالإنجليزية.' } },
 
   { no: 2, phase: 1, tag: 'Small talk', tagAr: 'الحديث الخفيف',
@@ -200,6 +218,9 @@ export const LESSONS: Lesson[] = [
     drill: { frame: 'How was your ______ ? — It was ______ , thanks.', frameAr: 'كيف كانت ______ ؟ — كانت ______ ، شكراً.',
       slots: ['weekend / good', 'journey / long', 'day / very busy', 'holiday / wonderful'] },
     hotSeat: ['[Silence in a lift] — say something.', 'Ask me about my weekend.', 'I gave a boring answer — keep it going.'],
+    depth: { why: "Small talk is not information exchange. It is a signal that you are safe to talk to. The content does not matter; the willingness does \u2014 which is why any answer works.", whyAr: "\u0627\u0644\u062d\u062f\u064a\u062b \u0627\u0644\u062e\u0641\u064a\u0641 \u0644\u064a\u0633 \u062a\u0628\u0627\u062f\u0644 \u0645\u0639\u0644\u0648\u0645\u0627\u062a \u0628\u0644 \u0625\u0634\u0627\u0631\u0629 \u0623\u0646\u0643 \u0634\u062e\u0635 \u064a\u0633\u0647\u0644 \u0627\u0644\u062d\u062f\u064a\u062b \u0645\u0639\u0647. \u0627\u0644\u0645\u062d\u062a\u0648\u0649 \u0644\u0627 \u064a\u0647\u0645 \u0628\u0644 \u0627\u0644\u0627\u0633\u062a\u0639\u062f\u0627\u062f.",
+      mistakes: [{ wrong: "It makes hot.", right: "It's hot.", note: "'Il fait chaud' translates with 'it is', never 'it makes'." }, { wrong: "How was your week-end?", right: "How was your weekend?", note: "One word in English, no hyphen." }, { wrong: "I passed a good weekend.", right: "I had a good weekend.", note: "'Passer' is a false friend \u2014 English uses 'have'." }],
+      upgrade: [{ plain: "How was your weekend?", pro: "Did you manage to get any rest this weekend?" }] },
     homework: { en: 'Record 60 seconds: your weekend, five sentences.', ar: 'سجّلي 60 ثانية: عطلتك في خمس جمل.' } },
 
   { no: 3, phase: 1, tag: 'About you', tagAr: 'عنكِ',
@@ -222,6 +243,9 @@ export const LESSONS: Lesson[] = [
       note: 'That last line is armour. Say it once and nothing after it is judged.',
       noteAr: 'السطر الأخير درع. قوليه مرة ولن يُحاسب ما بعده.' },
     hotSeat: ['Tell me about yourself — not your job.', 'What do you do at the weekend?', 'Tell me about your family.'],
+    depth: { why: "Saying 'my English is not perfect, but I'm learning' once, early, removes the fear from the whole conversation \u2014 hers and theirs. After it, nobody is grading her.", whyAr: "\u0642\u0648\u0644 \u00ab\u0625\u0646\u062c\u0644\u064a\u0632\u064a\u062a\u064a \u0644\u064a\u0633\u062a \u0645\u062b\u0627\u0644\u064a\u0629 \u0644\u0643\u0646\u0646\u064a \u0623\u062a\u0639\u0644\u0651\u0645\u00bb \u0645\u0631\u0629 \u0648\u0627\u062d\u062f\u0629 \u0645\u0628\u0643\u0631\u0627\u064b \u064a\u0632\u064a\u0644 \u0627\u0644\u062e\u0648\u0641 \u0645\u0646 \u0627\u0644\u062d\u062f\u064a\u062b \u0643\u0644\u0647. \u0628\u0639\u062f\u0647\u0627 \u0644\u0627 \u0623\u062d\u062f \u064a\u062d\u0627\u0633\u0628\u0647\u0627.",
+      mistakes: [{ wrong: "I have 45 years.", right: "I'm 45.", note: "Age uses 'be' in English, never 'have'." }, { wrong: "I live here since 2010.", right: "I've lived here since 2010.", note: "'Depuis' with a present tense is the single most common French error." }, { wrong: "I have two childs.", right: "I have two children.", note: "Irregular plural \u2014 learn it as a word, not a rule." }],
+      upgrade: [{ plain: "I live in Rabat.", pro: "I'm based in Rabat." }, { plain: "I speak a little English.", pro: "I'm working on my English at the moment." }] },
     homework: { en: 'Record 60 seconds about your life. Not one word about work.', ar: 'سجّلي 60 ثانية عن حياتك. بلا كلمة عن العمل.' } },
 
   { no: 4, phase: 1, tag: 'Opinions', tagAr: 'الآراء',
@@ -247,6 +271,9 @@ export const LESSONS: Lesson[] = [
     drill: { frame: 'I think ______ , because ______ .', frameAr: 'أعتقد ______ ، لأن ______ .',
       slots: ['it is a good idea / it is simple', 'we need more time / the area is big', 'this one is better / it is cheaper'] },
     hotSeat: ['Tea or coffee? Why?', 'Rabat or Casablanca? Why?', 'Do you agree with me? Say why.'],
+    depth: { why: "An opinion with a reason sounds fluent even in short, simple sentences. 'Because' does more for her perceived level than any advanced vocabulary would.", whyAr: "\u0627\u0644\u0631\u0623\u064a \u0645\u0639 \u0633\u0628\u0628 \u064a\u0628\u062f\u0648 \u0637\u0644\u064a\u0642\u0627\u064b \u062d\u062a\u0649 \u0628\u062c\u0645\u0644 \u0642\u0635\u064a\u0631\u0629. \u00abBecause\u00bb \u062a\u0631\u0641\u0639 \u0645\u0633\u062a\u0648\u0627\u0647\u0627 \u0627\u0644\u0638\u0627\u0647\u0631 \u0623\u0643\u062b\u0631 \u0645\u0646 \u0623\u064a \u0645\u0641\u0631\u062f\u0627\u062a \u0645\u062a\u0642\u062f\u0645\u0629.",
+      mistakes: [{ wrong: "I am agree.", right: "I agree.", note: "'Agree' is already a verb in English \u2014 never 'am agree'." }, { wrong: "I am not agree with this.", right: "I don't agree with that.", note: "Same error, negative form." }, { wrong: "It depend of the season.", right: "It depends on the season.", note: "'Depend on', never 'depend of'." }],
+      upgrade: [{ plain: "I think it's good.", pro: "I'd say that's the right approach." }, { plain: "I don't agree.", pro: "I see it slightly differently." }] },
     homework: { en: 'Record three opinions, each with "because".', ar: 'سجّلي ثلاثة آراء، كل واحد مع «because».' } },
 
   { no: 5, phase: 1, tag: 'Survival', tagAr: 'النجاة',
@@ -276,6 +303,9 @@ export const LESSONS: Lesson[] = [
       slots: ['a taxi', 'a receipt', 'an umbrella', 'a fridge', 'a satellite'],
       note: 'Name an easy object and forbid the word. She has ten seconds to make you guess it.' },
     hotSeat: ['[Speak fast and mumble] — stop me.', 'Explain "umbrella" without the word.', 'Explain "airport" without the word.'],
+    depth: { why: "Talking your way round a missing word is the difference between sounding fluent and sounding like a beginner. Fluent speakers do not know every word \u2014 they never stop.", whyAr: "\u0627\u0644\u0627\u0644\u062a\u0641\u0627\u0641 \u062d\u0648\u0644 \u0627\u0644\u0643\u0644\u0645\u0629 \u0627\u0644\u0646\u0627\u0642\u0635\u0629 \u0647\u0648 \u0627\u0644\u0641\u0631\u0642 \u0628\u064a\u0646 \u0645\u0646 \u062a\u0628\u062f\u0648 \u0637\u0644\u064a\u0642\u0629 \u0648\u0645\u0646 \u062a\u0628\u062f\u0648 \u0645\u0628\u062a\u062f\u0626\u0629. \u0627\u0644\u0637\u0644\u064a\u0642 \u0644\u0627 \u064a\u0639\u0631\u0641 \u0643\u0644 \u0627\u0644\u0643\u0644\u0645\u0627\u062a \u2014 \u0628\u0644 \u0644\u0627 \u064a\u062a\u0648\u0642\u0651\u0641.",
+      mistakes: [{ wrong: "Repeat, please.", right: "Sorry, could you say that again?", note: "Bare 'repeat' sounds like an order in English." }, { wrong: "What means this word?", right: "What does this word mean?", note: "Word order \u2014 English needs the auxiliary." }, { wrong: "How I can say this?", right: "How do you say this in English?", note: "Same auxiliary problem." }],
+      upgrade: [{ plain: "Say that again, please.", pro: "Sorry, would you mind repeating that?" }, { plain: "I don't understand.", pro: "I'm not quite following \u2014 could you take me through that again?" }] },
     homework: { en: 'Five objects at home. Record yourself describing each WITHOUT its name.', ar: 'خمسة أشياء في البيت. سجّلي وصف كل واحد دون اسمه.' } },
 
   { no: 6, phase: 1, tag: 'Review', tagAr: 'مراجعة',
@@ -319,6 +349,9 @@ export const LESSONS: Lesson[] = [
     model: { title: "Numbers she will actually say", titleAr: "\u0627\u0644\u0623\u0631\u0642\u0627\u0645 \u0627\u0644\u062a\u064a \u0633\u062a\u0642\u0648\u0644\u0647\u0627 \u0641\u0639\u0644\u0627\u064b",
       lines: ["The meeting is at half past nine on Tuesday.", "The mission is from the fifth to the twelfth of March.", "The flight takes about four hours.", "We started in two thousand and four.", "The area is two hundred and fifty thousand square kilometres."],
       note: "Use HER numbers from day 7 \u2014 project dates, flight times, areas. General number drills do not transfer.", noteAr: "\u0627\u0633\u062a\u062e\u062f\u0645 \u0623\u0631\u0642\u0627\u0645\u0647\u0627 \u0645\u0646 \u0627\u0644\u064a\u0648\u0645 \u0627\u0644\u0633\u0627\u0628\u0639 \u2014 \u062a\u0648\u0627\u0631\u064a\u062e \u0627\u0644\u0645\u0634\u0627\u0631\u064a\u0639 \u0648\u0623\u0648\u0642\u0627\u062a \u0627\u0644\u0631\u062d\u0644\u0627\u062a \u0648\u0627\u0644\u0645\u0633\u0627\u062d\u0627\u062a. \u0627\u0644\u062a\u0645\u0627\u0631\u064a\u0646 \u0627\u0644\u0639\u0627\u0645\u0629 \u0644\u0627 \u062a\u0646\u062a\u0642\u0644." },
+    depth: { why: "Numbers are where fluent speakers still stumble, because they are said in chunks a listener expects. 13 and 30 differ only in stress, and in a budget meeting that difference costs money.", whyAr: "\u0627\u0644\u0623\u0631\u0642\u0627\u0645 \u062d\u064a\u062b \u064a\u062a\u0644\u0639\u062b\u0645 \u062d\u062a\u0649 \u0627\u0644\u0637\u0644\u064a\u0642\u060c \u0644\u0623\u0646\u0647\u0627 \u062a\u064f\u0642\u0627\u0644 \u0628\u0645\u0642\u0627\u0637\u0639 \u064a\u062a\u0648\u0642\u0651\u0639\u0647\u0627 \u0627\u0644\u0633\u0627\u0645\u0639. 13 \u064830 \u064a\u062e\u062a\u0644\u0641\u0627\u0646 \u0628\u0627\u0644\u0646\u0628\u0631 \u0641\u0642\u0637\u060c \u0648\u0641\u064a \u0627\u062c\u062a\u0645\u0627\u0639 \u0645\u064a\u0632\u0627\u0646\u064a\u0629 \u064a\u0643\u0644\u0651\u0641 \u0627\u0644\u0641\u0631\u0642 \u0645\u0627\u0644\u0627\u064b.",
+      mistakes: [{ wrong: "thirty for 13", right: "thir-TEEN for 13, THIR-ty for 30", note: "Stress at the end = teen. Stress at the front = ty." }, { wrong: "the 15 March", right: "the fifteenth of March", note: "English needs the ordinal in speech." }, { wrong: "two thousand four", right: "two thousand AND four", note: "British English keeps the 'and'." }],
+      upgrade: [{ plain: "It costs 50,000.", pro: "We're looking at roughly fifty thousand." }] },
     homework: { en: 'Read ten numbers and three dates aloud, twice.', ar: 'اقرئي عشرة أرقام وثلاثة تواريخ بصوت عالٍ مرتين.' } },
 
   { no: 8, phase: 1, tag: 'Questions', tagAr: 'الأسئلة',
@@ -342,6 +375,9 @@ export const LESSONS: Lesson[] = [
       note: 'When she is tired or lost, she should ASK. Every question buys thirty seconds and makes her look interested rather than stuck.',
       noteAr: 'حين تتعب أو تتوه، لتسأل. كل سؤال يكسب ثلاثين ثانية ويجعلها تبدو مهتمة لا عالقة.' },
     hotSeat: ['Ask me five questions in a row.', 'I gave a one-word answer — ask again.', 'Ask me something personal, politely.'],
+    depth: { why: "Asking is easier than answering, and it buys thirty seconds every time. A question also makes her look interested rather than stuck \u2014 the same silence reads completely differently.", whyAr: "\u0627\u0644\u0633\u0624\u0627\u0644 \u0623\u0633\u0647\u0644 \u0645\u0646 \u0627\u0644\u0625\u062c\u0627\u0628\u0629 \u0648\u064a\u0643\u0633\u0628 \u062b\u0644\u0627\u062b\u064a\u0646 \u062b\u0627\u0646\u064a\u0629 \u0641\u064a \u0643\u0644 \u0645\u0631\u0629. \u0643\u0645\u0627 \u064a\u062c\u0639\u0644\u0647\u0627 \u062a\u0628\u062f\u0648 \u0645\u0647\u062a\u0645\u0629 \u0644\u0627 \u0639\u0627\u0644\u0642\u0629 \u2014 \u0627\u0644\u0635\u0645\u062a \u0646\u0641\u0633\u0647 \u064a\u064f\u0642\u0631\u0623 \u0628\u0634\u0643\u0644 \u0645\u062e\u062a\u0644\u0641 \u062a\u0645\u0627\u0645\u0627\u064b.",
+      mistakes: [{ wrong: "You work where?", right: "Where do you work?", note: "French keeps the question word at the end; English puts it first." }, { wrong: "Since when you are here?", right: "How long have you been here?", note: "The natural English question is 'how long'." }, { wrong: "What is your opinion about?", right: "What do you think about it?", note: "'What do you think' is far more natural than 'what is your opinion'." }],
+      upgrade: [{ plain: "What do you think?", pro: "I'd be interested in your view on this." }, { plain: "Why?", pro: "What's the reasoning behind that?" }] },
     homework: { en: 'Record ten questions you could ask a new colleague.', ar: 'سجّلي عشرة أسئلة يمكن أن تسأليها لزميل جديد.' } },
 
   { no: 9, phase: 1, tag: 'Short answers', tagAr: 'الإجابات القصيرة',
@@ -386,6 +422,9 @@ export const LESSONS: Lesson[] = [
     model: { title: "Feelings tied to work facts", titleAr: "\u0645\u0634\u0627\u0639\u0631 \u0645\u0631\u0628\u0648\u0637\u0629 \u0628\u062d\u0642\u0627\u0626\u0642 \u0627\u0644\u0639\u0645\u0644",
       lines: ["I'm a bit tired \u2014 I came back from Gabon last night.", "I'm very happy with the results.", "I'm a little worried about the deadline.", "I'm really pleased the client accepted it."],
       note: "Tie every feeling to a work fact. It doubles as fluency practice and it is what she will actually say.", noteAr: "\u0627\u0631\u0628\u0637\u064a \u0643\u0644 \u0634\u0639\u0648\u0631 \u0628\u062d\u0642\u064a\u0642\u0629 \u0645\u0646 \u0627\u0644\u0639\u0645\u0644. \u062a\u062f\u0631\u064a\u0628 \u0639\u0644\u0649 \u0627\u0644\u0637\u0644\u0627\u0642\u0629 \u0648\u0647\u0648 \u0645\u0627 \u0633\u062a\u0642\u0648\u0644\u0647 \u0641\u0639\u0644\u0627\u064b." },
+    depth: { why: "Naming a feeling and attaching it to a work fact does two jobs at once: it is fluency practice, and it is what she will genuinely need to say in a real week.", whyAr: "\u062a\u0633\u0645\u064a\u0629 \u0627\u0644\u0634\u0639\u0648\u0631 \u0648\u0631\u0628\u0637\u0647 \u0628\u062d\u0642\u064a\u0642\u0629 \u0645\u0646 \u0627\u0644\u0639\u0645\u0644 \u064a\u0624\u062f\u0651\u064a \u0645\u0647\u0645\u062a\u064a\u0646: \u062a\u062f\u0631\u064a\u0628 \u0639\u0644\u0649 \u0627\u0644\u0637\u0644\u0627\u0642\u0629 \u0648\u0645\u0627 \u0633\u062a\u062d\u062a\u0627\u062c \u0642\u0648\u0644\u0647 \u0641\u0639\u0644\u0627\u064b \u0641\u064a \u0623\u0633\u0628\u0648\u0639 \u062d\u0642\u064a\u0642\u064a.",
+      mistakes: [{ wrong: "I am boring.", right: "I'm bored.", note: "'Boring' describes the thing, 'bored' describes you. This one is embarrassing." }, { wrong: "I am agree it is tired.", right: "I'm tired.", note: "Same -ed / -ing trap." }, { wrong: "I am very happy of the result.", right: "I'm very happy with the result.", note: "'Happy with', not 'happy of'." }],
+      upgrade: [{ plain: "I'm worried.", pro: "I do have some concerns about the timeline." }] },
     homework: { en: 'Record: how you felt about three things this week.', ar: 'سجّلي: شعورك تجاه ثلاثة أمور هذا الأسبوع.' } },
 
   { no: 11, phase: 1, tag: 'Politeness', tagAr: 'اللباقة',
@@ -410,6 +449,9 @@ export const LESSONS: Lesson[] = [
       note: 'French speakers often sound blunt in English, not because they are rude but because they translate directly. Turning it into a question fixes it.',
       noteAr: 'الفرنسيون يبدون أحياناً حادّين بالإنجليزية لا لقلة أدب بل لأنهم يترجمون حرفياً. تحويلها إلى سؤال يحلّ المشكلة.' },
     hotSeat: ['Ask me for the report — three levels of politeness.', 'You stepped on my foot.', 'You need to get past me.'],
+    depth: { why: "English politeness lives in the GRAMMAR, not in the words. The same request becomes polite by turning into a question. French speakers sound blunt in English not from rudeness but from translating the imperative directly.", whyAr: "\u0627\u0644\u0644\u0628\u0627\u0642\u0629 \u0627\u0644\u0625\u0646\u062c\u0644\u064a\u0632\u064a\u0629 \u0641\u064a \u0627\u0644\u0642\u0648\u0627\u0639\u062f \u0644\u0627 \u0641\u064a \u0627\u0644\u0643\u0644\u0645\u0627\u062a. \u0627\u0644\u0637\u0644\u0628 \u0646\u0641\u0633\u0647 \u064a\u0635\u0628\u062d \u0644\u0628\u0642\u0627\u064b \u0628\u062a\u062d\u0648\u064a\u0644\u0647 \u0625\u0644\u0649 \u0633\u0624\u0627\u0644. \u0627\u0644\u0641\u0631\u0646\u0633\u064a\u0648\u0646 \u064a\u0628\u062f\u0648\u0646 \u062d\u0627\u062f\u0651\u064a\u0646 \u0644\u0627 \u0644\u0642\u0644\u0629 \u0623\u062f\u0628 \u0628\u0644 \u0644\u062a\u0631\u062c\u0645\u0629 \u0635\u064a\u063a\u0629 \u0627\u0644\u0623\u0645\u0631 \u062d\u0631\u0641\u064a\u0627\u064b.",
+      mistakes: [{ wrong: "Send me the report.", right: "Could you send me the report?", note: "Direct imperative reads as an order to an English ear." }, { wrong: "I want a coffee.", right: "Could I have a coffee, please?", note: "'I want' is for children in English." }, { wrong: "Excuse me for the delay.", right: "Sorry for the delay.", note: "'Excuse me' gets attention; 'sorry' apologises." }],
+      upgrade: [{ plain: "Can you send it?", pro: "Would you mind sending it over when you get a moment?" }, { plain: "I need this by Friday.", pro: "Would Friday be realistic for you?" }] },
     homework: { en: 'Record five requests, each as a polite question.', ar: 'سجّلي خمسة طلبات، كل واحد كسؤال لبق.' } },
 
   { no: 12, phase: 1, tag: 'Review', tagAr: 'مراجعة',
@@ -450,6 +492,9 @@ export const LESSONS: Lesson[] = [
       frameAr: 'في الصباح ______ . بعد الظهر ______ . في المساء ______ .',
       slots: ['get up early / have meetings / read', 'work / go out / cook', 'travel / write / rest'] },
     hotSeat: ['Describe your day.', 'Now in thirty seconds.', 'Now describe a BAD day.'],
+    depth: { why: "Sequencing words carry the listener. Without 'then', 'after that', 'finally', even correct sentences sound like a list, and the listener stops following after four of them.", whyAr: "\u0643\u0644\u0645\u0627\u062a \u0627\u0644\u062a\u0631\u062a\u064a\u0628 \u062a\u062d\u0645\u0644 \u0627\u0644\u0633\u0627\u0645\u0639. \u0628\u062f\u0648\u0646 \u00ab\u062b\u0645\u00bb \u0648\u00ab\u0628\u0639\u062f \u0630\u0644\u0643\u00bb \u0648\u00ab\u0623\u062e\u064a\u0631\u0627\u064b\u00bb \u062a\u0628\u062f\u0648 \u0627\u0644\u062c\u0645\u0644 \u0627\u0644\u0635\u062d\u064a\u062d\u0629 \u0642\u0627\u0626\u0645\u0629\u060c \u0648\u064a\u062a\u0648\u0642\u0651\u0641 \u0627\u0644\u0633\u0627\u0645\u0639 \u0639\u0646 \u0627\u0644\u0645\u062a\u0627\u0628\u0639\u0629 \u0628\u0639\u062f \u0623\u0631\u0628\u0639 \u0645\u0646\u0647\u0627.",
+      mistakes: [{ wrong: "I make sport.", right: "I do sport. / I go to the gym.", note: "'Faire du sport' does not translate with 'make'." }, { wrong: "I take my breakfast.", right: "I have breakfast.", note: "'Prendre' translates with 'have' here." }, { wrong: "At the morning.", right: "In the morning.", note: "In the morning, in the afternoon \u2014 but AT night." }],
+      upgrade: [{ plain: "I go to the office.", pro: "I head into the office around eight." }] },
     homework: { en: 'Record 60 seconds: your whole day, in order.', ar: 'سجّلي 60 ثانية: يومك كله بالترتيب.' } },
 
   { no: 14, phase: 2, tag: 'Yesterday', tagAr: 'أمس',
@@ -477,6 +522,9 @@ export const LESSONS: Lesson[] = [
       frameAr: 'أمس ______ . ثم ______ . لكن ______ . وفي النهاية ______ .',
       slots: ['went to the office', 'travelled to Tunis', 'had a long meeting'] },
     hotSeat: ['Tell me about yesterday.', 'Tell me about a difficult journey.', 'Tell me a story with a problem.'],
+    depth: { why: "Every story a person remembers has the same shape: setup, then a problem, then a resolution. Teaching the shape is worth more than teaching the past tense, because the shape is what makes people listen.", whyAr: "\u0643\u0644 \u062d\u0643\u0627\u064a\u0629 \u062a\u064f\u0630\u0643\u0631 \u0644\u0647\u0627 \u0627\u0644\u0642\u0627\u0644\u0628 \u0646\u0641\u0633\u0647: \u062a\u0645\u0647\u064a\u062f \u062b\u0645 \u0645\u0634\u0643\u0644\u0629 \u062b\u0645 \u062d\u0644. \u062a\u0639\u0644\u064a\u0645 \u0627\u0644\u0642\u0627\u0644\u0628 \u0623\u062b\u0645\u0646 \u0645\u0646 \u062a\u0639\u0644\u064a\u0645 \u0627\u0644\u0645\u0627\u0636\u064a \u0644\u0623\u0646 \u0627\u0644\u0642\u0627\u0644\u0628 \u0647\u0648 \u0645\u0627 \u064a\u062c\u0639\u0644 \u0627\u0644\u0646\u0627\u0633 \u064a\u0646\u0635\u062a\u0648\u0646.",
+      mistakes: [{ wrong: "I have gone to Gabon last month.", right: "I went to Gabon last month.", note: "With a finished past time, use the past simple, not the present perfect." }, { wrong: "It was very long, the journey.", right: "The journey was very long.", note: "French allows the afterthought subject; English does not." }, { wrong: "I am arrived at 6.", right: "I arrived at 6.", note: "No 'be' with the past simple in English." }],
+      upgrade: [{ plain: "It was difficult.", pro: "It turned out to be more complicated than we expected." }] },
     homework: { en: 'Record 60 seconds: something that happened last month.', ar: 'سجّلي 60 ثانية: شيء حدث الشهر الماضي.' } },
 
   { no: 15, phase: 2, tag: 'Next week', tagAr: 'الأسبوع القادم',
@@ -540,6 +588,9 @@ export const LESSONS: Lesson[] = [
               'How much is it? … Could I have a receipt, please?', 'Good evening. I have a reservation under Salma.',
               'What time is breakfast? Thank you very much.'] },
     hotSeat: ['[Taxi driver] — get to your hotel.', '[Reception] — check in.', 'Ask about breakfast and wifi.'],
+    depth: { why: "Hotel and taxi English is a fixed script of about twelve sentences. Learning it as a script removes an entire category of travel anxiety, and she travels constantly.", whyAr: "\u0625\u0646\u062c\u0644\u064a\u0632\u064a\u0629 \u0627\u0644\u0641\u0646\u062f\u0642 \u0648\u0627\u0644\u062a\u0627\u0643\u0633\u064a \u0646\u0635\u0651 \u062b\u0627\u0628\u062a \u0645\u0646 \u0646\u062d\u0648 \u0627\u062b\u0646\u062a\u064a \u0639\u0634\u0631\u0629 \u062c\u0645\u0644\u0629. \u062d\u0641\u0638\u0647 \u0643\u0646\u0635\u0651 \u064a\u0632\u064a\u0644 \u0641\u0626\u0629 \u0643\u0627\u0645\u0644\u0629 \u0645\u0646 \u0642\u0644\u0642 \u0627\u0644\u0633\u0641\u0631\u060c \u0648\u0647\u064a \u062a\u0633\u0627\u0641\u0631 \u0628\u0627\u0633\u062a\u0645\u0631\u0627\u0631.",
+      mistakes: [{ wrong: "I have a reservation at the name of Salma.", right: "I have a reservation under the name Salma.", note: "'Under', not 'at'." }, { wrong: "The note, please.", right: "The bill, please.", note: "'Note' is a false friend \u2014 it means a written remark." }, { wrong: "I want to rest one more night.", right: "I'd like to stay one more night.", note: "'Rester' means stay, not rest." }],
+      upgrade: [{ plain: "I have a reservation.", pro: "I'm checking in \u2014 the booking should be under Bennani." }] },
     homework: { en: 'Record: arriving at a hotel and checking in.', ar: 'سجّلي: الوصول إلى فندق وتسجيل الدخول.' } },
 
   { no: 18, phase: 2, tag: 'Review', tagAr: 'مراجعة',
@@ -575,6 +626,9 @@ export const LESSONS: Lesson[] = [
       note: 'Dinner is where partnerships are made. She does not need perfect English here — she needs to be present and warm.',
       noteAr: 'العشاء حيث تُصنع الشراكات. لا تحتاج إنجليزية مثالية — تحتاج أن تكون حاضرة ودافئة.' },
     hotSeat: ['[Waiter] — order a meal.', 'I invited you — thank me.', 'Compliment the food.'],
+    depth: { why: "Dinner is where partnerships actually form. She does not need perfect English at a table \u2014 she needs to be present, warm and able to keep her end of a conversation going.", whyAr: "\u0627\u0644\u0639\u0634\u0627\u0621 \u062d\u064a\u062b \u062a\u064f\u0635\u0646\u0639 \u0627\u0644\u0634\u0631\u0627\u0643\u0627\u062a \u0641\u0639\u0644\u0627\u064b. \u0644\u0627 \u062a\u062d\u062a\u0627\u062c \u0625\u0646\u062c\u0644\u064a\u0632\u064a\u0629 \u0645\u062b\u0627\u0644\u064a\u0629 \u0639\u0644\u0649 \u0627\u0644\u0637\u0627\u0648\u0644\u0629 \u0628\u0644 \u0623\u0646 \u062a\u0643\u0648\u0646 \u062d\u0627\u0636\u0631\u0629 \u0648\u062f\u0627\u0641\u0626\u0629 \u0648\u0642\u0627\u062f\u0631\u0629 \u0639\u0644\u0649 \u0645\u0648\u0627\u0635\u0644\u0629 \u062f\u0648\u0631\u0647\u0627 \u0641\u064a \u0627\u0644\u062d\u062f\u064a\u062b.",
+      mistakes: [{ wrong: "I take the fish.", right: "I'll have the fish.", note: "'Prendre' again \u2014 English uses 'have' when ordering." }, { wrong: "It is delicious, this plate.", right: "This dish is delicious.", note: "'Plat' is a dish, not a plate." }, { wrong: "The addition, please.", right: "The bill, please.", note: "'Addition' is a false friend." }],
+      upgrade: [{ plain: "It's very good.", pro: "This is excellent \u2014 thank you for the recommendation." }] },
     homework: { en: 'Record: ordering a full meal and one compliment.', ar: 'سجّلي: طلب وجبة كاملة ومجاملة واحدة.' } },
 
   { no: 20, phase: 2, tag: 'Money', tagAr: 'المال',
@@ -595,6 +649,9 @@ export const LESSONS: Lesson[] = [
     model: { title: "Money in her real work", titleAr: "\u0627\u0644\u0645\u0627\u0644 \u0641\u064a \u0639\u0645\u0644\u0647\u0627 \u0627\u0644\u062d\u0642\u064a\u0642\u064a",
       lines: ["How much is it per square kilometre?", "That is a bit expensive for our budget.", "Do you have a cheaper option for a smaller area?", "Can we do it in two phases?"],
       note: "The shopping phrases are the same phrases she needs to negotiate a contract. Tell her that \u2014 it changes how she practises.", noteAr: "\u0639\u0628\u0627\u0631\u0627\u062a \u0627\u0644\u062a\u0633\u0648\u0651\u0642 \u0647\u064a \u0646\u0641\u0633\u0647\u0627 \u0639\u0628\u0627\u0631\u0627\u062a \u0627\u0644\u062a\u0641\u0627\u0648\u0636 \u0639\u0644\u0649 \u0639\u0642\u062f. \u0642\u0644 \u0644\u0647\u0627 \u0630\u0644\u0643 \u0641\u064a\u062a\u063a\u064a\u0651\u0631 \u0623\u0633\u0644\u0648\u0628 \u062a\u062f\u0631\u064a\u0628\u0647\u0627." },
+    depth: { why: "The phrases she uses to buy something are the same phrases she uses to negotiate a contract. Telling her that changes how seriously she practises this lesson.", whyAr: "\u0627\u0644\u0639\u0628\u0627\u0631\u0627\u062a \u0627\u0644\u062a\u064a \u062a\u0634\u062a\u0631\u064a \u0628\u0647\u0627 \u0647\u064a \u0646\u0641\u0633\u0647\u0627 \u0627\u0644\u062a\u064a \u062a\u062a\u0641\u0627\u0648\u0636 \u0628\u0647\u0627 \u0639\u0644\u0649 \u0639\u0642\u062f. \u0642\u0648\u0644 \u0630\u0644\u0643 \u064a\u063a\u064a\u0651\u0631 \u062c\u062f\u064a\u0629 \u062a\u062f\u0631\u064a\u0628\u0647\u0627 \u0639\u0644\u0649 \u0647\u0630\u0647 \u0627\u0644\u062d\u0635\u0629.",
+      mistakes: [{ wrong: "It is too much expensive.", right: "It's too expensive.", note: "'Too' already carries the excess \u2014 never 'too much + adjective'." }, { wrong: "What is the price of this?", right: "How much is this?", note: "Natural English uses 'how much'." }, { wrong: "I pay with card.", right: "I'll pay by card.", note: "'By card', 'by cash', 'by transfer'." }],
+      upgrade: [{ plain: "It's too expensive.", pro: "That's outside the budget we've been allocated." }] },
     homework: { en: 'Record: buying something, including the price.', ar: 'سجّلي: شراء شيء مع ذكر السعر.' } },
 
   { no: 21, phase: 2, tag: 'Phone', tagAr: 'الهاتف',
@@ -614,6 +671,9 @@ export const LESSONS: Lesson[] = [
     hotSeat: ['[I call you] — answer.', 'The line is bad — deal with it.', 'End the call politely.'],
     model: { title: "A real call", titleAr: "\u0645\u0643\u0627\u0644\u0645\u0629 \u062d\u0642\u064a\u0642\u064a\u0629",
       lines: ["Hello, this is Salma speaking. Can you hear me?", "Sorry, the line is bad \u2014 could you repeat that?", "Yes, of course. I will send you the report today.", "Thank you. Talk to you soon. Bye."] },
+    depth: { why: "On the phone she loses the face and the hands, which is where half her meaning normally lives. The fixed opening line buys her the first ten seconds while her ear adjusts.", whyAr: "\u0639\u0644\u0649 \u0627\u0644\u0647\u0627\u062a\u0641 \u062a\u0641\u0642\u062f \u0627\u0644\u0648\u062c\u0647 \u0648\u0627\u0644\u064a\u062f\u064a\u0646 \u062d\u064a\u062b \u064a\u0639\u064a\u0634 \u0646\u0635\u0641 \u0645\u0639\u0646\u0627\u0647\u0627 \u0639\u0627\u062f\u0629. \u0627\u0644\u062c\u0645\u0644\u0629 \u0627\u0644\u0627\u0641\u062a\u062a\u0627\u062d\u064a\u0629 \u0627\u0644\u062b\u0627\u0628\u062a\u0629 \u062a\u0643\u0633\u0628 \u0644\u0647\u0627 \u0623\u0648\u0644 \u0639\u0634\u0631 \u062b\u0648\u0627\u0646\u064d \u0631\u064a\u062b\u0645\u0627 \u062a\u062a\u0643\u064a\u0651\u0641 \u0623\u0630\u0646\u0647\u0627.",
+      mistakes: [{ wrong: "Hello, I am Salma.", right: "Hello, this is Salma speaking.", note: "On the phone English uses 'this is', not 'I am'." }, { wrong: "I don't hear you.", right: "I can't hear you.", note: "With senses English uses 'can' \u2014 can see, can hear." }, { wrong: "Wait a little.", right: "Just a moment, please.", note: "'Wait' alone is an order." }],
+      upgrade: [{ plain: "Call me back.", pro: "Would it be easier to pick this up later today?" }] },
     homework: { en: 'Record a 40-second phone call, both sides.', ar: 'سجّلي مكالمة 40 ثانية بالدورين.' } },
 
   { no: 22, phase: 2, tag: 'Your country', tagAr: 'بلدك',
@@ -652,6 +712,9 @@ export const LESSONS: Lesson[] = [
     hotSeat: ['Your room has no hot water — complain politely.', 'You lost your passport.', 'You feel ill at a conference.'],
     model: { title: "When it goes wrong on a mission", titleAr: "\u062d\u064a\u0646 \u064a\u0633\u0648\u0621 \u0627\u0644\u0623\u0645\u0631 \u0641\u064a \u0645\u0647\u0645\u0629",
       lines: ["There's a problem with the equipment \u2014 it doesn't work.", "We lost a day because of the weather.", "Could you help me find a technician?", "I will let the client know today."] },
+    depth: { why: "A problem stated calmly and specifically gets solved. A problem stated apologetically gets ignored. The grammar matters less than the fact that she says it at all.", whyAr: "\u0627\u0644\u0645\u0634\u0643\u0644\u0629 \u0627\u0644\u0645\u0630\u0643\u0648\u0631\u0629 \u0628\u0647\u062f\u0648\u0621 \u0648\u062a\u062d\u062f\u064a\u062f \u062a\u064f\u062d\u0644. \u0648\u0627\u0644\u0645\u0630\u0643\u0648\u0631\u0629 \u0628\u0627\u0639\u062a\u0630\u0627\u0631 \u062a\u064f\u0647\u0645\u0644. \u0627\u0644\u0642\u0648\u0627\u0639\u062f \u0623\u0642\u0644 \u0623\u0647\u0645\u064a\u0629 \u0645\u0646 \u0645\u062c\u0631\u062f \u0642\u0648\u0644\u0647\u0627.",
+      mistakes: [{ wrong: "I have lost my luggages.", right: "I've lost my luggage.", note: "'Luggage' has no plural in English." }, { wrong: "It does not walk.", right: "It doesn't work.", note: "'Marcher' is a false friend \u2014 English says 'work'." }, { wrong: "I am malade.", right: "I'm ill. / I don't feel well.", note: "Say 'I don't feel well' \u2014 it is softer and always right." }],
+      upgrade: [{ plain: "There's a problem.", pro: "We've hit a small issue I'd like to flag." }] },
     homework: { en: 'Record: three problems and how you would ask for help.', ar: 'سجّلي: ثلاث مشكلات وكيف تطلبين المساعدة.' } },
 
   { no: 24, phase: 2, tag: 'Review', tagAr: 'مراجعة',
@@ -694,6 +757,9 @@ export const LESSONS: Lesson[] = [
     drill: { frame: 'I work with ______ . We help ______ .', frameAr: 'أعمل مع ______ . نساعد ______ .',
       slots: ['satellites / countries in Africa', 'maps / farmers and governments', 'data / people who make decisions'] },
     hotSeat: ['What do you do — the simple way.', 'Now the professional way.', 'Now explain it to a ten-year-old.'],
+    depth: { why: "She has been trying to say the professional version since day one and failing, which is why she goes quiet. Giving her the simple version first is not dumbing down \u2014 it gives her something she can actually deploy while the other one is still forming.", whyAr: "\u0643\u0627\u0646\u062a \u062a\u062d\u0627\u0648\u0644 \u0642\u0648\u0644 \u0627\u0644\u0646\u0633\u062e\u0629 \u0627\u0644\u0645\u0647\u0646\u064a\u0629 \u0645\u0646\u0630 \u0627\u0644\u064a\u0648\u0645 \u0627\u0644\u0623\u0648\u0644 \u0648\u062a\u0641\u0634\u0644\u060c \u0648\u0644\u0647\u0630\u0627 \u062a\u0635\u0645\u062a. \u0625\u0639\u0637\u0627\u0624\u0647\u0627 \u0627\u0644\u0646\u0633\u062e\u0629 \u0627\u0644\u0628\u0633\u064a\u0637\u0629 \u0623\u0648\u0644\u0627\u064b \u0644\u064a\u0633 \u062a\u0628\u0633\u064a\u0637\u0627\u064b \u0645\u062e\u0644\u0627\u064b \u0628\u0644 \u064a\u0645\u0646\u062d\u0647\u0627 \u0645\u0627 \u062a\u0633\u062a\u0637\u064a\u0639 \u0627\u0633\u062a\u062e\u062f\u0627\u0645\u0647 \u0641\u0639\u0644\u0627\u064b \u0631\u064a\u062b\u0645\u0627 \u062a\u062a\u0643\u0648\u0651\u0646 \u0627\u0644\u0623\u062e\u0631\u0649.",
+      mistakes: [{ wrong: "I am engineer.", right: "I'm an engineer.", note: "English needs the article with a job." }, { wrong: "I work in the domain of remote sensing.", right: "I work in remote sensing.", note: "'Domaine' translates as 'field', and here it is not needed at all." }, { wrong: "I make satellite images.", right: "I work with satellite images.", note: "'Faire' is not 'make' here." }],
+      upgrade: [{ plain: "I work with satellites.", pro: "I'm a remote sensing engineer specialising in operational Earth Observation." }, { plain: "We help countries.", pro: "We support public institutions across fifteen African countries." }] },
     homework: { en: 'Record both versions of your job.', ar: 'سجّلي نسختي مهنتك.' } },
 
   { no: 26, phase: 3, tag: 'Company', tagAr: 'الشركة',
@@ -713,6 +779,9 @@ export const LESSONS: Lesson[] = [
     hotSeat: ['Tell me about your company.', 'Who are your clients?', 'How many people work with you?'],
     model: { title: "Africa EO Services, in five lines", titleAr: "\u0627\u0644\u0634\u0631\u0643\u0629 \u0641\u064a \u062e\u0645\u0633\u0629 \u0623\u0633\u0637\u0631",
       lines: ["I have my own company. It is called Africa EO Services, in Morocco.", "I started it because the data existed but nobody was using it.", "We are a small team, but we work in more than fifteen African countries.", "Our clients are governments, agencies and researchers.", "My job is to design the solution and make sure it is delivered."] },
+    depth: { why: "Her company is her credibility. Three facts said confidently beat ten facts said hesitantly, and the number of countries does more work than any adjective could.", whyAr: "\u0634\u0631\u0643\u062a\u0647\u0627 \u0647\u064a \u0645\u0635\u062f\u0627\u0642\u064a\u062a\u0647\u0627. \u062b\u0644\u0627\u062b \u062d\u0642\u0627\u0626\u0642 \u062a\u064f\u0642\u0627\u0644 \u0628\u062b\u0642\u0629 \u0623\u0641\u0636\u0644 \u0645\u0646 \u0639\u0634\u0631 \u062a\u064f\u0642\u0627\u0644 \u0628\u062a\u0631\u062f\u062f\u060c \u0648\u0639\u062f\u062f \u0627\u0644\u062f\u0648\u0644 \u064a\u0639\u0645\u0644 \u0623\u0643\u062b\u0631 \u0645\u0646 \u0623\u064a \u0635\u0641\u0629.",
+      mistakes: [{ wrong: "I am responsible of the company.", right: "I'm responsible for the company.", note: "'Responsible for', never 'of'." }, { wrong: "We are 5 persons.", right: "There are five of us. / We're a team of five.", note: "'Persons' is legal English; people say 'people'." }, { wrong: "Our society works with governments.", right: "Our company works with governments.", note: "'Soci\u00e9t\u00e9' is a false friend \u2014 'society' means something else entirely." }],
+      upgrade: [{ plain: "I have my own company.", pro: "I founded and run Africa EO Services." }, { plain: "We are small.", pro: "We're deliberately lean \u2014 fifteen countries with a core team." }] },
     homework: { en: 'Record 60 seconds: your company.', ar: 'سجّلي 60 ثانية: شركتك.' } },
 
   { no: 27, phase: 3, tag: 'Experience', tagAr: 'الخبرة',
@@ -737,6 +806,9 @@ export const LESSONS: Lesson[] = [
       note: 'Three examples then "and others". A long list bores them and makes her stumble.',
       noteAr: 'ثلاثة أمثلة ثم «وغيرها». القائمة الطويلة تُمل وتُوقعها في التلعثم.' },
     hotSeat: ['How long have you been doing this?', 'Which countries?', 'What was your hardest project?'],
+    depth: { why: "Twenty-one years is her strongest single asset in any room, and she currently buries it. Said in one clean sentence at the start, it changes how everything after it is heard.", whyAr: "\u0648\u0627\u062d\u062f \u0648\u0639\u0634\u0631\u0648\u0646 \u0639\u0627\u0645\u0627\u064b \u0623\u0642\u0648\u0649 \u0645\u0627 \u062a\u0645\u0644\u0643 \u0641\u064a \u0623\u064a \u0642\u0627\u0639\u0629\u060c \u0648\u0647\u064a \u062a\u062f\u0641\u0646\u0647 \u062d\u0627\u0644\u064a\u0627\u064b. \u0642\u0648\u0644\u0647 \u0641\u064a \u062c\u0645\u0644\u0629 \u0646\u0638\u064a\u0641\u0629 \u0641\u064a \u0627\u0644\u0628\u062f\u0627\u064a\u0629 \u064a\u063a\u064a\u0651\u0631 \u0643\u064a\u0641 \u064a\u064f\u0633\u0645\u0639 \u0643\u0644 \u0645\u0627 \u0628\u0639\u062f\u0647.",
+      mistakes: [{ wrong: "I work here since 13 years.", right: "I've been working here for thirteen years.", note: "'Since' takes a point in time; 'for' takes a duration." }, { wrong: "I have worked in Gabon in 2019.", right: "I worked in Gabon in 2019.", note: "A finished year takes the past simple." }, { wrong: "I have 21 years of experience in this domain.", right: "I have twenty-one years' experience in this field.", note: "'Field', and note the possessive apostrophe." }],
+      upgrade: [{ plain: "I've done this for 21 years.", pro: "I've spent the past two decades in operational Earth Observation." }] },
     homework: { en: 'Record 60 seconds: your career in five sentences.', ar: 'سجّلي 60 ثانية: مسيرتك في خمس جمل.' } },
 
   { no: 28, phase: 3, tag: 'Explaining', tagAr: 'الشرح',
@@ -765,6 +837,9 @@ export const LESSONS: Lesson[] = [
       slots: ['radar sees through clouds / a torch in the dark', 'we compare two dates / two photos of the same room',
               'the model predicts the flood / a weather forecast'] },
     hotSeat: ['What is a satellite? I know nothing.', 'Why radar and not a photo?', 'Say it again — simpler.'],
+    depth: { why: "Explaining a technical thing simply is not a lesser skill \u2014 it is the skill that wins contracts, because the person signing is rarely the technical one.", whyAr: "\u0634\u0631\u062d \u0627\u0644\u0623\u0645\u0631 \u0627\u0644\u062a\u0642\u0646\u064a \u0628\u0628\u0633\u0627\u0637\u0629 \u0644\u064a\u0633 \u0645\u0647\u0627\u0631\u0629 \u0623\u062f\u0646\u0649 \u0628\u0644 \u0627\u0644\u0645\u0647\u0627\u0631\u0629 \u0627\u0644\u062a\u064a \u062a\u0631\u0628\u062d \u0627\u0644\u0639\u0642\u0648\u062f\u060c \u0644\u0623\u0646 \u0645\u0646 \u064a\u0648\u0642\u0651\u0639 \u0646\u0627\u062f\u0631\u0627\u064b \u0645\u0627 \u064a\u0643\u0648\u0646 \u0627\u0644\u062a\u0642\u0646\u064a.",
+      mistakes: [{ wrong: "I will explain you the process.", right: "I'll explain the process to you.", note: "'Explain' needs 'to' before the person. Very common." }, { wrong: "It permits to see the changes.", right: "It allows us to see the changes.", note: "'Permettre de' does not map onto 'permit to'." }, { wrong: "The informations are clear.", right: "The information is clear.", note: "'Information' is uncountable in English." }],
+      upgrade: [{ plain: "Basically, it's a camera in space.", pro: "In simple terms, it's an imaging system in orbit." }, { plain: "Does that make sense?", pro: "Is that clear so far, or shall I go into more detail?" }] },
     homework: { en: 'Explain your work to a family member who is not an engineer. Record it.', ar: 'اشرحي عملك لفرد من العائلة ليس مهندساً. وسجّليه.' } },
 
   { no: 29, phase: 3, tag: 'Process', tagAr: 'الخطوات',
@@ -791,6 +866,9 @@ export const LESSONS: Lesson[] = [
       slots: ['collect the data / run the model / deliver the maps', 'meet the client / define the need / propose a solution',
               'prepare the course / train the users / collect the feedback'] },
     hotSeat: ['How do you go from a satellite to a map?', 'How long does it take?', 'What is the hardest step?'],
+    depth: { why: "A process explained in steps is a process the client trusts. Sequencing words are also thinking time \u2014 each one buys her a second to build the next clause.", whyAr: "\u0627\u0644\u0639\u0645\u0644\u064a\u0629 \u0627\u0644\u0645\u0634\u0631\u0648\u062d\u0629 \u0628\u062e\u0637\u0648\u0627\u062a \u0639\u0645\u0644\u064a\u0629 \u064a\u062b\u0642 \u0628\u0647\u0627 \u0627\u0644\u0639\u0645\u064a\u0644. \u0643\u0644\u0645\u0627\u062a \u0627\u0644\u062a\u0631\u062a\u064a\u0628 \u0623\u064a\u0636\u0627\u064b \u0648\u0642\u062a \u0644\u0644\u062a\u0641\u0643\u064a\u0631 \u2014 \u0643\u0644 \u0648\u0627\u062d\u062f\u0629 \u062a\u0643\u0633\u0628 \u062b\u0627\u0646\u064a\u0629 \u0644\u0628\u0646\u0627\u0621 \u0627\u0644\u062c\u0645\u0644\u0629 \u0627\u0644\u062a\u0627\u0644\u064a\u0629.",
+      mistakes: [{ wrong: "In first, we collect.", right: "First, we collect.", note: "No 'in' before 'first'." }, { wrong: "After, we treat the images.", right: "Then we process the images.", note: "'Traiter' is 'process', not 'treat'." }, { wrong: "It takes two weeks approximately.", right: "It takes about two weeks.", note: "'About' is what people actually say." }],
+      upgrade: [{ plain: "First we collect the data.", pro: "The workflow starts with data acquisition." }] },
     homework: { en: 'Record: the process of one project, in six steps.', ar: 'سجّلي: خطوات مشروع في ست خطوات.' } },
 
   { no: 30, phase: 3, tag: 'Review', tagAr: 'مراجعة',
@@ -851,6 +929,9 @@ export const LESSONS: Lesson[] = [
               'The computer learns the difference between oil from a ship, from a platform, and natural oil.',
               'Then we estimate where it came from and where it is going.'] },
     hotSeat: ['What are you working on right now?', 'Why is that difficult?', 'Who uses the result?'],
+    depth: { why: "This is her frontier work and the thing that makes her interesting at a conference. She should be able to say it without notes, because it is what people will ask her about.", whyAr: "\u0647\u0630\u0627 \u0639\u0645\u0644\u0647\u0627 \u0627\u0644\u0637\u0644\u064a\u0639\u064a \u0648\u0645\u0627 \u064a\u062c\u0639\u0644\u0647\u0627 \u0645\u062b\u064a\u0631\u0629 \u0644\u0644\u0627\u0647\u062a\u0645\u0627\u0645 \u0641\u064a \u0645\u0624\u062a\u0645\u0631. \u064a\u0646\u0628\u063a\u064a \u0623\u0646 \u062a\u0642\u0648\u0644\u0647 \u0628\u0644\u0627 \u0648\u0631\u0642\u0629 \u0644\u0623\u0646\u0647 \u0645\u0627 \u0633\u064a\u0633\u0623\u0644\u0648\u0646\u0647\u0627 \u0639\u0646\u0647.",
+      mistakes: [{ wrong: "The IA", right: "AI / artificial intelligence", note: "In English the letters are A-I, not I-A." }, { wrong: "We can detect if it is a boat or a platform.", right: "We can tell whether it came from a ship or a platform.", note: "'Tell' = distinguish. 'Whether' for an either/or." }, { wrong: "It is a very actual subject.", right: "It's a very current topic.", note: "'Actuel' means current, not 'actual'. A classic false friend." }],
+      upgrade: [{ plain: "We find oil on the sea.", pro: "We detect and classify hydrocarbon slicks from radar imagery." }] },
     homework: { en: 'Record 60 seconds on your oil-detection work.', ar: 'سجّلي 60 ثانية عن عملك في كشف النفط.' } },
 
   { no: 33, phase: 3, tag: 'Meetings 1', tagAr: 'الاجتماعات ١',
@@ -873,6 +954,9 @@ export const LESSONS: Lesson[] = [
       note: 'Interrupt, then immediately give the reason they should listen — her experience. Never apologise first.',
       noteAr: 'تدخّلي ثم اذكري فوراً سبب وجوب الاستماع — خبرتها. لا تعتذري في البداية.' },
     hotSeat: ['[Talk over her] — interrupt me.', 'Add something to what I said.', 'Come in with your experience.'],
+    depth: { why: "Interrupting is not rude in an English-language meeting \u2014 waiting for a gap is how you never speak. The polite interrupt exists precisely so that people can take the floor.", whyAr: "\u0627\u0644\u0645\u0642\u0627\u0637\u0639\u0629 \u0644\u064a\u0633\u062a \u0648\u0642\u0627\u062d\u0629 \u0641\u064a \u0627\u062c\u062a\u0645\u0627\u0639 \u0628\u0627\u0644\u0625\u0646\u062c\u0644\u064a\u0632\u064a\u0629 \u2014 \u0627\u0646\u062a\u0638\u0627\u0631 \u0627\u0644\u0641\u0631\u0635\u0629 \u0647\u0648 \u0643\u064a\u0641 \u0644\u0627 \u062a\u062a\u0643\u0644\u0645\u064a\u0646 \u0623\u0628\u062f\u0627\u064b. \u0635\u064a\u063a\u0629 \u0627\u0644\u0645\u0642\u0627\u0637\u0639\u0629 \u0627\u0644\u0644\u0628\u0642\u0629 \u0645\u0648\u062c\u0648\u062f\u0629 \u062a\u062d\u062f\u064a\u062f\u0627\u064b \u0644\u064a\u0623\u062e\u0630 \u0627\u0644\u0646\u0627\u0633 \u0627\u0644\u0643\u0644\u0645\u0629.",
+      mistakes: [{ wrong: "I want to say something.", right: "Can I come in here?", note: "'I want' is blunt; the question form is the norm." }, { wrong: "Excuse me, I precise that...", right: "Can I just add that...", note: "'Pr\u00e9ciser' has no direct verb \u2014 use 'add' or 'clarify'." }, { wrong: "I assist to the meeting.", right: "I'm attending the meeting.", note: "'Assister \u00e0' means attend. Big false friend." }],
+      upgrade: [{ plain: "Can I add something?", pro: "If I could just come in on that point \u2014" }] },
     homework: { en: 'In your next meeting, use "Can I come in here?" once.', ar: 'في اجتماعك القادم استخدمي العبارة مرة.' } },
 
   { no: 34, phase: 3, tag: 'Meetings 2', tagAr: 'الاجتماعات ٢',
@@ -900,6 +984,9 @@ export const LESSONS: Lesson[] = [
               'the team is small / we do it in two phases'] },
     hotSeat: ['I want the whole map in two weeks.', 'Your price is too high.', 'Why not just use free data?'],
     vocab: [ { en: "to compromise", ar: "\u064a\u062a\u0646\u0627\u0632\u0644", say: "KOM-pruh-mize" }, { en: "a constraint", ar: "\u0642\u064a\u062f", say: "kun-STRAYNT" }, { en: "realistic", ar: "\u0648\u0627\u0642\u0639\u064a", say: "ree-uh-LIS-tik" }, { en: "an alternative", ar: "\u0628\u062f\u064a\u0644", say: "awl-TER-nuh-tiv" } ],
+    depth: { why: "Disagreeing well is a senior skill and she already has the substance. The formula agree \u2192 but \u2192 reason \u2192 alternative lets her push back hard without any relationship cost.", whyAr: "\u0627\u0644\u0627\u0639\u062a\u0631\u0627\u0636 \u0627\u0644\u062c\u064a\u062f \u0645\u0647\u0627\u0631\u0629 \u0642\u064a\u0627\u062f\u064a\u0629 \u0648\u0627\u0644\u0645\u0636\u0645\u0648\u0646 \u0644\u062f\u064a\u0647\u0627 \u0623\u0635\u0644\u0627\u064b. \u0635\u064a\u063a\u0629 \u0645\u0648\u0627\u0641\u0642\u0629 \u2190 \u0644\u0643\u0646 \u2190 \u0633\u0628\u0628 \u2190 \u0628\u062f\u064a\u0644 \u062a\u062a\u064a\u062d \u0644\u0647\u0627 \u0627\u0644\u0627\u0639\u062a\u0631\u0627\u0636 \u0628\u0642\u0648\u0629 \u062f\u0648\u0646 \u0643\u0644\u0641\u0629 \u0639\u0644\u0649 \u0627\u0644\u0639\u0644\u0627\u0642\u0629.",
+      mistakes: [{ wrong: "I am not d'accord.", right: "I don't agree. / I see it differently.", note: "Slipping into French is the tell she is under pressure." }, { wrong: "You have not reason.", right: "You're wrong. / I don't think that's right.", note: "'Avoir raison' does not translate literally." }, { wrong: "It is not possible to do that in one month.", right: "One month would be very difficult.", note: "Softening keeps the negotiation open." }],
+      upgrade: [{ plain: "I don't agree.", pro: "I'd push back on that slightly." }, { plain: "That's impossible.", pro: "That would be extremely challenging within that timeframe." }] },
     homework: { en: 'Record: disagree politely with three requests.', ar: 'سجّلي: اعترضي بلباقة على ثلاثة طلبات.' } },
 
   { no: 35, phase: 3, tag: 'Video calls', tagAr: 'مكالمات الفيديو',
@@ -959,6 +1046,9 @@ export const LESSONS: Lesson[] = [
       note: 'Always compare after a big number. "The size of the UK" is remembered; 250,000 km² is not.',
       noteAr: 'قارني بعد كل رقم كبير. «بحجم بريطانيا» يُحفظ، أما 250,000 كم² فلا.' },
     hotSeat: ['How big is the area?', 'What is the accuracy?', 'Say that number again, faster.'],
+    depth: { why: "A number without a comparison is forgotten before the next slide. 'The size of the UK' survives the coffee break; 250,000 km\u00b2 does not.", whyAr: "\u0627\u0644\u0631\u0642\u0645 \u0628\u0644\u0627 \u0645\u0642\u0627\u0631\u0646\u0629 \u064a\u064f\u0646\u0633\u0649 \u0642\u0628\u0644 \u0627\u0644\u0634\u0631\u064a\u062d\u0629 \u0627\u0644\u062a\u0627\u0644\u064a\u0629. \u00ab\u0628\u062d\u062c\u0645 \u0628\u0631\u064a\u0637\u0627\u0646\u064a\u0627\u00bb \u064a\u0646\u062c\u0648 \u0645\u0646 \u0627\u0633\u062a\u0631\u0627\u062d\u0629 \u0627\u0644\u0642\u0647\u0648\u0629\u060c \u0623\u0645\u0627 250,000 \u0643\u0645\u00b2 \u0641\u0644\u0627.",
+      mistakes: [{ wrong: "A important area.", right: "A large area.", note: "'Important' means significant, not big, in English." }, { wrong: "It has augmented of 30%.", right: "It went up by 30%. / It increased by 30%.", note: "'By' for the amount of change." }, { wrong: "The double.", right: "Twice as much. / It doubled.", note: "'Le double' has no direct noun form." }],
+      upgrade: [{ plain: "It went up a lot.", pro: "We saw a marked increase, on the order of thirty per cent." }] },
     homework: { en: 'Read your own report figures aloud, three times.', ar: 'اقرئي أرقام تقريرك بصوت عالٍ ثلاث مرات.' } },
 
   { no: 38, phase: 4, tag: 'Visuals', tagAr: 'الصور والرسوم',
@@ -1013,6 +1103,9 @@ export const LESSONS: Lesson[] = [
               'why it matters / what we did / what we learned'] },
     hotSeat: ['Open a talk about your work.', 'Now close it.', 'Do the opening in half the words.'],
     vocab: [ { en: "an outline", ar: "\u0645\u062e\u0637\u0637", say: "OWT-line" }, { en: "to signpost", ar: "\u064a\u0634\u064a\u0631 \u0625\u0644\u0649 \u0627\u0644\u0645\u0633\u0627\u0631", say: "SINE-post" }, { en: "to sum up", ar: "\u064a\u0644\u062e\u0651\u0635", say: "sum UP" }, { en: "an audience", ar: "\u062c\u0645\u0647\u0648\u0631", say: "AW-dee-ens" }, { en: "a takeaway", ar: "\u062e\u0644\u0627\u0635\u0629", say: "TAYK-uh-way" } ],
+    depth: { why: "Three sections, announced at the start. The announcement is what lets a listener relax \u2014 they now know how long they are committing to and where they are at any point.", whyAr: "\u062b\u0644\u0627\u062b\u0629 \u0645\u062d\u0627\u0648\u0631 \u062a\u064f\u0639\u0644\u0646 \u0641\u064a \u0627\u0644\u0628\u062f\u0627\u064a\u0629. \u0627\u0644\u0625\u0639\u0644\u0627\u0646 \u0647\u0648 \u0645\u0627 \u064a\u064f\u0631\u064a\u062d \u0627\u0644\u0633\u0627\u0645\u0639 \u2014 \u064a\u0639\u0631\u0641 \u0627\u0644\u0622\u0646 \u0643\u0645 \u0633\u064a\u0644\u062a\u0632\u0645 \u0648\u0623\u064a\u0646 \u0647\u0648 \u0641\u064a \u0643\u0644 \u0644\u062d\u0638\u0629.",
+      mistakes: [{ wrong: "I will present you my work.", right: "I'll talk you through our work.", note: "'Present you' needs 'to'; and 'talk through' is warmer." }, { wrong: "In a first time, I will explain...", right: "First, I'll explain...", note: "'Dans un premier temps' is very French; English just says 'first'." }, { wrong: "To finish, I resume.", right: "To sum up...", note: "'R\u00e9sumer' is 'sum up'; 'resume' means start again." }],
+      upgrade: [{ plain: "Today I'll cover three things.", pro: "I'd like to take you through three things this morning." }] },
     homework: { en: 'Record the first 90 seconds of a talk.', ar: 'سجّلي أول 90 ثانية من عرض.' } },
 
   { no: 40, phase: 4, tag: 'Project 1', tagAr: 'المشروع ١',
@@ -1072,6 +1165,9 @@ export const LESSONS: Lesson[] = [
     model: { title: "Standing up changes everything", titleAr: "\u0627\u0644\u0648\u0642\u0648\u0641 \u064a\u063a\u064a\u0651\u0631 \u0643\u0644 \u0634\u064a\u0621",
       lines: ["She stands. You sit. No notes in her hand.", "Five minutes, uninterrupted.", "Then again, and you interrupt twice.", "Then again in three minutes.", "Tell her: pause instead of saying euh. A pause sounds confident; a filler sounds lost."],
       note: "French speakers fill silence with euh. In English, silence is fine. Train the pause \u2014 it is worth more than any phrase.", noteAr: "\u0627\u0644\u0641\u0631\u0646\u0633\u064a\u0648\u0646 \u064a\u0645\u0644\u0623\u0648\u0646 \u0627\u0644\u0635\u0645\u062a \u0628\u0640\u00abeuh\u00bb. \u0628\u0627\u0644\u0625\u0646\u062c\u0644\u064a\u0632\u064a\u0629 \u0627\u0644\u0635\u0645\u062a \u0645\u0642\u0628\u0648\u0644. \u062f\u0631\u0651\u0628\u0647\u0627 \u0639\u0644\u0649 \u0627\u0644\u062a\u0648\u0642\u0651\u0641 \u2014 \u0623\u062b\u0645\u0646 \u0645\u0646 \u0623\u064a \u0639\u0628\u0627\u0631\u0629." },
+    depth: { why: "She will fill silence with 'euh' because French does. In English a pause reads as confidence and a filler reads as lost. Training the pause is worth more than any phrase in the course.", whyAr: "\u0633\u062a\u0645\u0644\u0623 \u0627\u0644\u0635\u0645\u062a \u0628\u0640\u00abeuh\u00bb \u0644\u0623\u0646 \u0627\u0644\u0641\u0631\u0646\u0633\u064a\u0629 \u062a\u0641\u0639\u0644. \u0628\u0627\u0644\u0625\u0646\u062c\u0644\u064a\u0632\u064a\u0629 \u0627\u0644\u062a\u0648\u0642\u0651\u0641 \u064a\u064f\u0642\u0631\u0623 \u062b\u0642\u0629\u064b \u0648\u0627\u0644\u062d\u0634\u0648 \u064a\u064f\u0642\u0631\u0623 \u0636\u064a\u0627\u0639\u0627\u064b. \u062a\u062f\u0631\u064a\u0628 \u0627\u0644\u062a\u0648\u0642\u0651\u0641 \u0623\u062b\u0645\u0646 \u0645\u0646 \u0623\u064a \u0639\u0628\u0627\u0631\u0629 \u0641\u064a \u0627\u0644\u062f\u0648\u0631\u0629.",
+      mistakes: [{ wrong: "euh\u2026 / bah\u2026", right: "[silence]", note: "Two seconds of silence sounds deliberate. Two seconds of 'euh' does not." }, { wrong: "Voil\u00e0.", right: "So. / And that's the picture.", note: "'Voil\u00e0' slips out under pressure and breaks the English." }, { wrong: "Speaking too fast when nervous", right: "Slow down and pause at every full stop.", note: "Speed is the enemy of an accent people already have to work at." }],
+      upgrade: [{ plain: "So, that's it.", pro: "So that's the overview \u2014 I'll stop there and take questions." }] },
     homework: { en: 'Record the whole five-minute talk on video, standing.', ar: 'سجّلي العرض كاملاً بالفيديو، واقفة.' } },
 
   /* ═══ WEEK 8 ═══ */
@@ -1096,6 +1192,9 @@ export const LESSONS: Lesson[] = [
     hotSeat: ['How much does it cost per square kilometre?', 'Why not use free data?',
               'Is your accuracy good enough for a court case?', 'Will AI replace you?'],
     vocab: [ { en: "a figure", ar: "\u0631\u0642\u0645", say: "FIG-er" }, { en: "to estimate", ar: "\u064a\u0642\u062f\u0651\u0631", say: "ES-ti-mayt" }, { en: "to verify", ar: "\u064a\u062a\u062d\u0642\u0651\u0642", say: "VER-i-fye" }, { en: "reliable", ar: "\u0645\u0648\u062b\u0648\u0642", say: "ri-LY-uh-bul" }, { en: "a limitation", ar: "\u0642\u064a\u062f / \u062d\u062f\u0651", say: "lim-i-TAY-shun" } ],
+    depth: { why: "'I don't know, I'll send it after' is what senior people say. Inventing a figure is what nervous people do, and one invented figure can undo a whole presentation.", whyAr: "\u00ab\u0644\u0627 \u0623\u0639\u0631\u0641\u060c \u0633\u0623\u0631\u0633\u0644\u0647 \u0644\u0627\u062d\u0642\u0627\u064b\u00bb \u0645\u0627 \u064a\u0642\u0648\u0644\u0647 \u0627\u0644\u0643\u0628\u0627\u0631. \u0627\u062e\u062a\u0644\u0627\u0642 \u0631\u0642\u0645 \u0645\u0627 \u064a\u0641\u0639\u0644\u0647 \u0627\u0644\u0645\u062a\u0648\u062a\u0651\u0631\u060c \u0648\u0631\u0642\u0645 \u0648\u0627\u062d\u062f \u0645\u062e\u062a\u0644\u0642 \u0642\u062f \u064a\u0647\u062f\u0645 \u0639\u0631\u0636\u0627\u064b \u0643\u0627\u0645\u0644\u0627\u064b.",
+      mistakes: [{ wrong: "I don't know, sorry.", right: "That's a good question \u2014 I don't have that figure with me.", note: "Never apologise for not carrying a number in your head." }, { wrong: "It is more or less 90%.", right: "It's around ninety per cent.", note: "'More or less' sounds vague; 'around' sounds precise about being approximate." }, { wrong: "I am not sure to understand.", right: "I'm not sure I follow \u2014 are you asking about...?", note: "'Sure to' is a French structure." }],
+      upgrade: [{ plain: "I'll send it later.", pro: "I'll follow up with the exact figures after the session." }] },
     homework: { en: 'Get a colleague to fire five hard questions in English. Record the answers.', ar: 'اطلبي من زميل خمسة أسئلة صعبة بالإنجليزية. وسجّلي إجاباتك.' } },
 
   { no: 44, phase: 4, tag: 'Networking', tagAr: 'التواصل',
@@ -1119,6 +1218,9 @@ export const LESSONS: Lesson[] = [
       noteAr: 'مجاملة ← من أنتِ ← الرابط ← خطوة صغيرة. لا تطلبي شيئاً كبيراً في الاستراحة. والسطر الأخير هو اليوم الأول — أرِها ذلك.' },
     hotSeat: ['[Stranger with a coffee] — start.', 'Now end it politely.', 'Again, in thirty seconds.'],
     vocab: [ { en: "a contact", ar: "\u062c\u0647\u0629 \u0627\u062a\u0635\u0627\u0644", say: "KON-takt" }, { en: "to follow up", ar: "\u064a\u062a\u0627\u0628\u0639", say: "FOL-oh up" }, { en: "a proposal", ar: "\u0645\u0642\u062a\u0631\u062d", say: "pruh-POH-zul" }, { en: "collaboration", ar: "\u062a\u0639\u0627\u0648\u0646", say: "kuh-lab-uh-RAY-shun" }, { en: "a consortium", ar: "\u0627\u0626\u062a\u0644\u0627\u0641", say: "kun-SOR-tee-um" } ],
+    depth: { why: "Ninety seconds at a coffee break generates more work than a full talk does, because the talk is one-way. The formula is compliment, who you are, the link, then one small easy next step.", whyAr: "\u062a\u0633\u0639\u0648\u0646 \u062b\u0627\u0646\u064a\u0629 \u0641\u064a \u0627\u0633\u062a\u0631\u0627\u062d\u0629 \u0642\u0647\u0648\u0629 \u062a\u0648\u0644\u0651\u062f \u0639\u0645\u0644\u0627\u064b \u0623\u0643\u062b\u0631 \u0645\u0646 \u0645\u062d\u0627\u0636\u0631\u0629 \u0643\u0627\u0645\u0644\u0629 \u0644\u0623\u0646 \u0627\u0644\u0645\u062d\u0627\u0636\u0631\u0629 \u0628\u0627\u062a\u062c\u0627\u0647 \u0648\u0627\u062d\u062f. \u0627\u0644\u0635\u064a\u063a\u0629: \u0645\u062c\u0627\u0645\u0644\u0629\u060c \u0645\u0646 \u0623\u0646\u062a\u0650\u060c \u0627\u0644\u0631\u0627\u0628\u0637\u060c \u062b\u0645 \u062e\u0637\u0648\u0629 \u0635\u063a\u064a\u0631\u0629 \u0633\u0647\u0644\u0629.",
+      mistakes: [{ wrong: "I liked your presentation.", right: "I really enjoyed your talk.", note: "'Talk' at a conference, and 'enjoyed' is warmer." }, { wrong: "Can I have your card?", right: "Could I send you an email about it?", note: "Asking for a card is a transaction; asking to write is a relationship." }, { wrong: "We can maybe collaborate.", right: "There might be something we could do together.", note: "Softer, and it invites a yes." }],
+      upgrade: [{ plain: "We should stay in touch.", pro: "It'd be good to keep this conversation going \u2014 may I follow up next week?" }] },
     homework: { en: 'Record your 60-second pitch: who you are, what you do, what you want.', ar: 'سجّلي عرضك في 60 ثانية: من أنتِ، ماذا تعملين، وماذا تريدين.' } },
 
   { no: 45, phase: 4, tag: 'Chairing', tagAr: 'إدارة الجلسة',
@@ -1176,6 +1278,9 @@ export const LESSONS: Lesson[] = [
     model: { title: "The three-minute pitch, timed", titleAr: "\u0627\u0644\u0639\u0631\u0636 \u0641\u064a \u062b\u0644\u0627\u062b \u062f\u0642\u0627\u0626\u0642 \u0628\u0627\u0644\u062a\u0648\u0642\u064a\u062a",
       lines: ["20 seconds \u2014 I am Salma. I run an Earth Observation company in Morocco.", "40 seconds \u2014 Africa has the satellite data, but not the people to turn it into decisions. That is the gap.", "60 seconds \u2014 In Gabon we built forest monitoring. They went from knowing a year later to knowing in weeks.", "30 seconds \u2014 I am looking for partners for the Gulf of Guinea oil work.", "10 seconds \u2014 Thank you. My email is on the last slide."],
       note: "Time her with a phone, out loud. Three minutes is short and she will overrun the first four times.", noteAr: "\u0648\u0642\u0651\u062a\u064a \u0644\u0647\u0627 \u0628\u0627\u0644\u0647\u0627\u062a\u0641 \u0628\u0635\u0648\u062a \u0639\u0627\u0644\u064d. \u062b\u0644\u0627\u062b \u062f\u0642\u0627\u0626\u0642 \u0642\u0635\u064a\u0631\u0629 \u0648\u0633\u062a\u062a\u062c\u0627\u0648\u0632\u0647\u0627 \u0641\u064a \u0627\u0644\u0645\u0631\u0627\u062a \u0627\u0644\u0623\u0631\u0628\u0639 \u0627\u0644\u0623\u0648\u0644\u0649." },
+    depth: { why: "Three minutes is short and she will overrun by a minute the first four times. The cure is not more practice at three minutes \u2014 it is cutting the content until it fits.", whyAr: "\u062b\u0644\u0627\u062b \u062f\u0642\u0627\u0626\u0642 \u0642\u0635\u064a\u0631\u0629 \u0648\u0633\u062a\u062a\u062c\u0627\u0648\u0632\u0647\u0627 \u0628\u062f\u0642\u064a\u0642\u0629 \u0641\u064a \u0627\u0644\u0645\u0631\u0627\u062a \u0627\u0644\u0623\u0631\u0628\u0639 \u0627\u0644\u0623\u0648\u0644\u0649. \u0627\u0644\u0639\u0644\u0627\u062c \u0644\u064a\u0633 \u0645\u0632\u064a\u062f\u0627\u064b \u0645\u0646 \u0627\u0644\u062a\u062f\u0631\u064a\u0628 \u0628\u0644 \u062d\u0630\u0641 \u0627\u0644\u0645\u062d\u062a\u0648\u0649 \u062d\u062a\u0649 \u064a\u062a\u0633\u0639.",
+      mistakes: [{ wrong: "I am going to present you my company.", right: "Let me tell you what we do.", note: "Shorter, warmer, and it starts the clock on content not on preamble." }, { wrong: "We are leader in Africa.", right: "We're one of the few teams doing this in Africa.", note: "Confident without a claim she would have to defend." }, { wrong: "I search partners.", right: "I'm looking for partners.", note: "'Chercher' is 'look for'; 'search' needs 'for' too and sounds technical." }],
+      upgrade: [{ plain: "I want to find partners.", pro: "I'm here looking for two or three partners for the Gulf of Guinea work." }] },
     homework: { en: 'Record the three-minute pitch on video. This is the deliverable.', ar: 'سجّلي العرض بالفيديو ثلاث دقائق. هذا هو المُخرَج.' } },
 
   { no: 48, phase: 4, tag: 'Day 48', tagAr: 'اليوم ٤٨',
