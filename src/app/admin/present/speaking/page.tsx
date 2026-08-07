@@ -44,7 +44,7 @@ const ACCENT = '#b45309'
    is in without reading anything. */
 const PHASE_COLOR: Record<number, string> = { 1: '#b45309', 2: '#15803d', 3: '#6d28d9', 4: '#a16207' }
 
-type Phase = 'goal' | 'chunks' | 'vocab' | 'depth' | 'model' | 'drill' | 'hotseat' | 'homework'
+type Phase = 'goal' | 'chunks' | 'vocab' | 'depth' | 'model' | 'drill' | 'dialogue' | 'speech' | 'hotseat' | 'homework'
 const PHASE_META: Record<Phase, { label: string; ar: string; icon: typeof Target }> = {
   goal:     { label: 'Goal',     ar: 'الهدف',     icon: Target },
   chunks:   { label: 'Phrases',  ar: 'العبارات',  icon: MessagesSquare },
@@ -52,6 +52,8 @@ const PHASE_META: Record<Phase, { label: string; ar: string; icon: typeof Target
   depth:    { label: 'Nuance',   ar: 'الدقائق',   icon: Zap },
   model:    { label: 'Model',    ar: 'النموذج',   icon: Volume2 },
   drill:    { label: 'Drill',    ar: 'التمرين',   icon: Repeat },
+  dialogue: { label: 'Conversation', ar: 'الحوار', icon: MessagesSquare },
+  speech:   { label: 'Say it all',   ar: 'قوليها كاملة', icon: Mic },
   hotseat:  { label: 'Hot seat', ar: 'الأسئلة',   icon: Flame },
   homework: { label: 'Homework', ar: 'الواجب',    icon: ListChecks },
 }
@@ -87,6 +89,8 @@ function buildSlides(): Slide[] {
       if (lesson.depth)           stages.push('depth')
       if (lesson.model)           stages.push('model')
       if (lesson.drill)           stages.push('drill')
+      if (lesson.dialogue)        stages.push('dialogue')
+      if (lesson.speech)          stages.push('speech')
       if (lesson.hotSeat?.length) stages.push('hotseat')
       stages.push('homework')
       stages.forEach(phase => out.push({ k: 'lesson', lesson, phase }))
@@ -140,6 +144,8 @@ export default function SpeakingDeck() {
     if (lesson.depth)           st.push('depth')
     if (lesson.model)           st.push('model')
     if (lesson.drill)           st.push('drill')
+    if (lesson.dialogue)        st.push('dialogue')
+    if (lesson.speech)          st.push('speech')
     if (lesson.hotSeat?.length) st.push('hotseat')
     st.push('homework')
     return st
@@ -542,6 +548,52 @@ function LessonSlide({ lesson, phase, colour, showAlt }: {
             ))}
           </div>
           {lesson.drill.note && <p className="text-stone-500 text-[13px] mt-4">{lesson.drill.note}</p>}
+        </div>
+      )}
+
+      {phase === 'dialogue' && lesson.dialogue && (
+        <div>
+          <div className="text-[11px] font-black tracking-widest uppercase mb-1" style={{ color: colour }}>{lesson.dialogue.title}</div>
+          <p className="text-stone-500 text-[14px] mb-1">{lesson.dialogue.setting}</p>
+          <p dir="rtl" className="text-stone-500 text-[13px] mb-4" style={{ fontFamily: "'Tajawal', sans-serif" }}>{lesson.dialogue.settingAr}</p>
+          <div className="space-y-2">
+            {lesson.dialogue.turns.map((t, i) => (
+              <div key={i} className={`flex gap-3 ${t.who === 'B' ? 'flex-row-reverse text-right' : ''}`}>
+                <span className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-black"
+                      style={{ background: t.who === 'A' ? CARD2 : colour, color: t.who === 'A' ? AMBER : PAPER }}>
+                  {t.who}
+                </span>
+                <div className="rounded-2xl px-4 py-3 max-w-[80%]"
+                     style={{ background: t.who === 'A' ? CARD : PAPER, border: '1px solid ' + LINE }}>
+                  <p className="text-[17px] font-black leading-snug">{t.en}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-stone-500 text-[13px] mt-5 pt-4 border-t" style={{ borderColor: LINE }}>
+            You take A, she takes B. Then swap and run it again — the second time is where it sticks.
+          </p>
+        </div>
+      )}
+
+      {phase === 'speech' && lesson.speech && (
+        <div>
+          <div className="text-[11px] font-black tracking-widest uppercase mb-1" style={{ color: colour }}>{lesson.speech.title}</div>
+          <p dir="rtl" className="text-stone-500 text-[13px] mb-4" style={{ fontFamily: "'Tajawal', sans-serif" }}>{lesson.speech.titleAr}</p>
+          <div className="rounded-2xl border-2 p-6 sm:p-8" style={{ borderColor: colour, background: CARD }}>
+            {lesson.speech.lines.map((l, i) => (
+              <p key={i} className="text-[19px] sm:text-[23px] font-black leading-relaxed mb-2.5">{l}</p>
+            ))}
+          </div>
+          {lesson.speech.note && (
+            <div className="mt-4 rounded-xl border p-4" style={{ borderColor: LINE, background: CARD2 }}>
+              <p className="text-[14.5px] font-bold leading-relaxed" style={{ color: AMBER }}>{lesson.speech.note}</p>
+              <p dir="rtl" className="text-stone-500 text-[13px] mt-1" style={{ fontFamily: "'Tajawal', sans-serif" }}>{lesson.speech.noteAr}</p>
+            </div>
+          )}
+          <p className="text-stone-500 text-[13px] mt-4">
+            She says the whole thing, out loud, three times. No stopping to correct — corrections come after the third run.
+          </p>
         </div>
       )}
 
