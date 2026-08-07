@@ -563,15 +563,26 @@ function LessonSlide({ lesson, phase, colour, showAlt }: {
                       style={{ background: t.who === 'A' ? CARD2 : colour, color: t.who === 'A' ? AMBER : PAPER }}>
                   {t.who}
                 </span>
-                <div className="rounded-2xl px-4 py-3 max-w-[80%]"
+                <div className="rounded-2xl px-4 py-3 max-w-[82%]"
                      style={{ background: t.who === 'A' ? CARD : PAPER, border: '1px solid ' + LINE }}>
-                  <p className="text-[17px] font-black leading-snug">{t.en}</p>
+                  <p className="text-[17px] font-black leading-snug"><Hi text={t.en} color={AMBER} /></p>
+                  {t.ar && <p dir="rtl" className="text-[13.5px] text-stone-500 mt-1" style={{ fontFamily: "'Tajawal', sans-serif" }}>{t.ar}</p>}
+                  {t.note && (
+                    <p className="text-[12px] mt-1.5 pt-1.5 border-t italic" style={{ borderColor: LINE, color: colour }}>{t.note}</p>
+                  )}
                 </div>
               </div>
             ))}
           </div>
-          <p className="text-stone-500 text-[13px] mt-5 pt-4 border-t" style={{ borderColor: LINE }}>
-            You take A, she takes B. Then swap and run it again — the second time is where it sticks.
+          {lesson.dialogue.watch && (
+            <div className="mt-5 rounded-xl border p-4" style={{ borderColor: LINE, background: CARD2 }}>
+              <div className="text-[11px] font-black tracking-widest uppercase mb-1" style={{ color: AMBER }}>Listen for this on the second run</div>
+              <p className="text-[15px] font-bold">{lesson.dialogue.watch.en}</p>
+              <p dir="rtl" className="text-stone-500 text-[13px] mt-1" style={{ fontFamily: "'Tajawal', sans-serif" }}>{lesson.dialogue.watch.ar}</p>
+            </div>
+          )}
+          <p className="text-stone-500 text-[13px] mt-4 pt-4 border-t" style={{ borderColor: LINE }}>
+            You take A, she takes B. Run it. Then swap and run it again — the second time is where it sticks.
           </p>
         </div>
       )}
