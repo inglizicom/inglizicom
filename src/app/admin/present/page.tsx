@@ -63,7 +63,7 @@ export default function PresentIndexPage() {
       <div className="flex items-center justify-between rounded-xl border-2 border-amber-800 bg-stone-900 px-4 py-3 mb-4">
         <span className="flex items-center gap-2 font-bold text-[14px] text-slate-100">
           <Mic size={18} className="text-amber-400" /> Speak Your Work — <span className="text-slate-300">English for Earth Observation</span>
-          <span className="text-[11px] font-semibold text-slate-500">· 48 daily lessons · 8 weeks · real life first, business after · private 1:1</span>
+          <span className="text-[11px] font-semibold text-slate-500">· 48 daily lessons · 8 weeks · life → bridge → work, every week · ESL for Arabic speakers</span>
         </span>
         <a href="/admin/present/speaking" target="_blank" rel="noopener" className="flex items-center gap-1.5 text-[12px] font-bold text-amber-400 hover:text-amber-300"><Play size={14} /> Launch deck ↗</a>
       </div>
