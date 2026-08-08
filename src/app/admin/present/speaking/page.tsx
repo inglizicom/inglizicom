@@ -5,9 +5,13 @@
  *
  * A private course for one senior Earth Observation professional who has to
  * speak English in meetings, conferences and project presentations. It is a
- * SPEAKING deck, not a grammar deck: every lesson runs
- *   Goal → Phrases → Words → Model → Drill → Hot seat → Homework
- * and the teacher's job on every slide is to get her talking, not to explain.
+ * SPEAKING deck, not a grammar deck. Every lesson runs a fixed sixty-minute
+ * shape, defined once in STAGE_PLAN and rendered in that order here:
+ *   Warm-up → Mission → Model → Phrases → Her words → Nuance →
+ *   Drill → Conversation → Hot seat → Say it all → Exit check → Homework
+ * Recall before teaching, input before output, measurement before homework.
+ * Thirty-eight of the sixty minutes are her producing language. The teacher's
+ * job on every slide is to get her talking, not to explain.
  *
  * The rail under the header keeps that path on screen so neither of them loses
  * the thread mid-lesson. Phrases above A1 carry a simpler fallback the teacher
@@ -23,7 +27,7 @@ import {
   ChevronLeft, ChevronRight, ArrowLeft, Maximize2, Minimize2, Mic, Target,
   MessagesSquare, BookOpen, Repeat, Flame, Home, Volume2, Route, Zap, ListChecks,
 } from 'lucide-react'
-import { ORDERED, PHASES, PROTOCOL, FOCUS, weekOf, dayOf, type Lesson } from '@/data/speaking-course'
+import { ORDERED, PHASES, PROTOCOL, FOCUS, weekOf, dayOf, type Lesson , STAGE_PLAN, warmUpFor } from '@/data/speaking-course'
 
 /* Same visual language as "English from Zero" (/admin/present/writing):
    white paper, ink brown, gold. A projected deck reads best on white, and
@@ -44,23 +48,44 @@ const ACCENT = '#b45309'
    is in without reading anything. */
 const PHASE_COLOR: Record<number, string> = { 1: '#b45309', 2: '#15803d', 3: '#6d28d9', 4: '#a16207' }
 
-type Phase = 'goal' | 'chunks' | 'vocab' | 'depth' | 'model' | 'drill' | 'dialogue' | 'speech' | 'hotseat' | 'homework'
+/* The lesson runs in the order of STAGE_PLAN, not in the order the content
+   happens to sit in the data file. Recall first, then target, then input, then
+   language, then production, then measurement. */
+type Phase = 'warmup' | 'goal' | 'model' | 'chunks' | 'vocab' | 'depth' | 'drill' | 'dialogue' | 'hotseat' | 'speech' | 'exit' | 'homework'
 const PHASE_META: Record<Phase, { label: string; ar: string; icon: typeof Target }> = {
-  goal:     { label: 'Goal',     ar: 'الهدف',     icon: Target },
-  chunks:   { label: 'Phrases',  ar: 'العبارات',  icon: MessagesSquare },
-  vocab:    { label: 'Words',    ar: 'الكلمات',   icon: BookOpen },
-  depth:    { label: 'Nuance',   ar: 'الدقائق',   icon: Zap },
+  warmup:   { label: 'Warm-up',  ar: 'إحماء',     icon: Repeat },
+  goal:     { label: 'Mission',  ar: 'المهمة',    icon: Target },
   model:    { label: 'Model',    ar: 'النموذج',   icon: Volume2 },
+  chunks:   { label: 'Phrases',  ar: 'العبارات',  icon: MessagesSquare },
+  vocab:    { label: 'Her words', ar: 'كلماتها',  icon: BookOpen },
+  depth:    { label: 'Nuance',   ar: 'الدقائق',   icon: Zap },
   drill:    { label: 'Drill',    ar: 'التمرين',   icon: Repeat },
   dialogue: { label: 'Conversation', ar: 'الحوار', icon: MessagesSquare },
-  speech:   { label: 'Say it all',   ar: 'قوليها كاملة', icon: Mic },
   hotseat:  { label: 'Hot seat', ar: 'الأسئلة',   icon: Flame },
+  speech:   { label: 'Say it all',   ar: 'قوليها كاملة', icon: Mic },
+  exit:     { label: 'Exit check', ar: 'اختبار الخروج', icon: Target },
   homework: { label: 'Homework', ar: 'الواجب',    icon: ListChecks },
+}
+/** Minute budget per stage, looked up from the single source in the data file. */
+const MINS: Partial<Record<Phase, number>> = Object.fromEntries(
+  STAGE_PLAN.map(s => [s.key as Phase, s.mins])
+) as Partial<Record<Phase, number>>
+
+/** The stages this particular lesson actually has, in teaching order. */
+function stagesOf(lesson: Lesson): Phase[] {
+  const has: Partial<Record<Phase, boolean>> = {
+    warmup: true, goal: true, chunks: true, exit: true, homework: true,
+    model: !!lesson.model, vocab: !!lesson.vocab?.length, depth: !!lesson.depth,
+    drill: !!lesson.drill, dialogue: !!lesson.dialogue, speech: !!lesson.speech,
+    hotseat: !!lesson.hotSeat?.length,
+  }
+  return STAGE_PLAN.map(s => s.key as Phase).filter(k => has[k])
 }
 
 type Slide =
   | { k: 'cover' }
   | { k: 'focus' }
+  | { k: 'plan' }
   | { k: 'protocol' }
   | { k: 'phase'; phase: number }
   | { k: 'lesson'; lesson: Lesson; phase: Phase }
@@ -80,20 +105,11 @@ function Hi({ text, color = GOLD }: { text: string; color?: string }) {
 }
 
 function buildSlides(): Slide[] {
-  const out: Slide[] = [{ k: 'cover' }, { k: 'focus' }, { k: 'protocol' }]
+  const out: Slide[] = [{ k: 'cover' }, { k: 'focus' }, { k: 'plan' }, { k: 'protocol' }]
   PHASES.forEach(ph => {
     out.push({ k: 'phase', phase: ph.no })
     ORDERED.filter(l => l.phase === ph.no).forEach(lesson => {
-      const stages: Phase[] = ['goal', 'chunks']
-      if (lesson.vocab?.length)   stages.push('vocab')
-      if (lesson.depth)           stages.push('depth')
-      if (lesson.model)           stages.push('model')
-      if (lesson.drill)           stages.push('drill')
-      if (lesson.dialogue)        stages.push('dialogue')
-      if (lesson.speech)          stages.push('speech')
-      if (lesson.hotSeat?.length) stages.push('hotseat')
-      stages.push('homework')
-      stages.forEach(phase => out.push({ k: 'lesson', lesson, phase }))
+      stagesOf(lesson).forEach(phase => out.push({ k: 'lesson', lesson, phase }))
     })
   })
   return out
@@ -137,22 +153,10 @@ export default function SpeakingDeck() {
   const colour = lesson ? PHASE_COLOR[lesson.phase] : (s.k === 'phase' ? PHASE_COLOR[s.phase] : ACCENT)
 
   /* The stage rail for the lesson we are inside. */
-  const railStages: Phase[] = useMemo(() => {
-    if (!lesson) return []
-    const st: Phase[] = ['goal', 'chunks']
-    if (lesson.vocab?.length)   st.push('vocab')
-    if (lesson.depth)           st.push('depth')
-    if (lesson.model)           st.push('model')
-    if (lesson.drill)           st.push('drill')
-    if (lesson.dialogue)        st.push('dialogue')
-    if (lesson.speech)          st.push('speech')
-    if (lesson.hotSeat?.length) st.push('hotseat')
-    st.push('homework')
-    return st
-  }, [lesson])
+  const railStages: Phase[] = useMemo(() => (lesson ? stagesOf(lesson) : []), [lesson])
 
   const jumpTo = (lessonNo: number) => {
-    const at = slides.findIndex(x => x.k === 'lesson' && x.lesson.no === lessonNo && x.phase === 'goal')
+    const at = slides.findIndex(x => x.k === 'lesson' && x.lesson.no === lessonNo && x.phase === 'warmup')
     if (at >= 0) setIdx(at)
   }
   const jumpStage = (p: Phase) => {
@@ -218,9 +222,15 @@ export default function SpeakingDeck() {
                 }}
               >
                 <M.icon size={11} /> {M.label}
+                {MINS[p] && <span className="font-mono opacity-60">{MINS[p]}′</span>}
               </button>
             )
           })}
+          {/* Running total, so the teacher can see at a glance whether the
+              lesson is still inside the hour before deciding to linger. */}
+          <span className="ml-auto shrink-0 text-[10px] font-mono font-bold pl-3" style={{ color: DIM }}>
+            {railStages.reduce((t, p) => t + (MINS[p] ?? 0), 0)} min
+          </span>
         </div>
       )}
 
@@ -240,6 +250,7 @@ export default function SpeakingDeck() {
         >
           {s.k === 'cover'    && <Cover onJump={jumpTo} onFull={toggleFs} />}
           {s.k === 'focus'    && <FocusSlide />}
+          {s.k === 'plan'     && <PlanSlide />}
           {s.k === 'protocol' && <ProtocolSlide />}
           {s.k === 'phase'    && <PhaseSlide no={s.phase} />}
           {s.k === 'lesson'   && <LessonSlide lesson={s.lesson} phase={s.phase} colour={colour} showAlt={showAlt} />}
@@ -350,6 +361,71 @@ function FocusSlide() {
   )
 }
 
+/** The shape of every lesson, with its minute budget. This slide exists so the
+ *  teacher can see the whole hour before starting it — the old deck had no
+ *  clock at all, which is why the speaking at the end kept getting cut. */
+function PlanSlide() {
+  const total = STAGE_PLAN.reduce((t, s) => t + s.mins, 0)
+  return (
+    <div className="max-w-4xl mx-auto w-full">
+      <div className="flex items-center gap-2 text-[11px] font-black tracking-[0.3em] uppercase mb-3" style={{ color: ACCENT }}>
+        <Route size={14} /> The shape of every lesson
+      </div>
+      <h2 className="text-3xl sm:text-4xl font-black mb-1" style={{ color: TEXT }}>Sixty minutes, and she talks in the first one</h2>
+      <p dir="rtl" className="text-stone-500 mb-6" style={{ fontFamily: "'Tajawal', sans-serif" }}>
+        ستون دقيقة، وتتكلّم هي في الدقيقة الأولى
+      </p>
+
+      <div className="rounded-xl border p-4 mb-5 text-[13px] leading-relaxed" style={{ borderColor: LINE, background: CARD }}>
+        Three rules built into the order. <b>Recall before teaching</b> — the first five minutes
+        are yesterday and last week, not new material. <b>Input before output</b> — she hears the
+        model before she is asked to produce. <b>Measurement before homework</b> — the exit check
+        is the last thing, so it survives a lesson that runs late.
+      </div>
+
+      {/* A proportional bar: where the hour actually goes. Twenty of the sixty
+          minutes are her producing under pressure, and that is the point. */}
+      <div className="flex w-full h-3 rounded-full overflow-hidden mb-5" style={{ background: LINE }}>
+        {STAGE_PLAN.map((s, i) => (
+          <div key={s.key}
+               title={`${s.label} — ${s.mins} min`}
+               style={{
+                 width: `${(s.mins / total) * 100}%`,
+                 background: ['dialogue', 'hotseat', 'drill', 'warmup'].includes(s.key) ? GOLD : i % 2 ? '#e7d9b8' : '#f0e4c8',
+               }} />
+        ))}
+      </div>
+
+      <div className="grid sm:grid-cols-2 gap-2.5">
+        {STAGE_PLAN.map(s => {
+          const speaking = ['warmup', 'drill', 'dialogue', 'hotseat', 'speech', 'exit'].includes(s.key)
+          return (
+            <div key={s.key} className="rounded-xl border p-3.5 flex items-start gap-3"
+                 style={{ borderColor: speaking ? GOLD : LINE, background: speaking ? '#fffbeb' : CARD }}>
+              <span className="text-[13px] font-mono font-black shrink-0 w-9 text-right" style={{ color: speaking ? AMBER : DIM }}>
+                {s.mins}′
+              </span>
+              <div className="min-w-0">
+                <p className="font-black text-[15px] leading-tight">
+                  {s.label}
+                  <span dir="rtl" className="text-stone-400 font-bold text-[13px] mr-2" style={{ fontFamily: "'Tajawal', sans-serif" }}>{s.ar}</span>
+                </p>
+                <p className="text-[12.5px] text-stone-600 leading-snug mt-0.5">{s.why}</p>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <p className="text-[12.5px] text-stone-600 mt-5 border-t pt-4" style={{ borderColor: LINE }}>
+        <b>Thirty-eight of the sixty minutes are her speaking</b> — warm-up, drill, conversation, hot seat,
+        speech and exit check. If a lesson ends and that was not true, the lesson went wrong, however
+        good the material was.
+      </p>
+    </div>
+  )
+}
+
 function ProtocolSlide() {
   return (
     <div className="max-w-4xl mx-auto w-full">
@@ -416,6 +492,54 @@ function LessonSlide({ lesson, phase, colour, showAlt }: {
       <h2 className="text-2xl sm:text-3xl font-black leading-tight mb-1" style={{ color: TEXT }}>{lesson.title}</h2>
       <p dir="rtl" className="text-stone-500 mb-6" style={{ fontFamily: "'Tajawal', sans-serif" }}>{lesson.titleAr}</p>
 
+      {/* ── WARM-UP — she speaks before anything is taught ── */}
+      {phase === 'warmup' && (() => {
+        const w = warmUpFor(lesson.no)
+        return (
+          <div className="space-y-5">
+            <div className="rounded-xl border-2 p-5" style={{ borderColor: colour, background: CARD2 }}>
+              <div className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: colour }}>
+                Sixty seconds · she talks · correct nothing
+              </div>
+              <p className="text-2xl sm:text-3xl font-black leading-snug">{lesson.warm.open.en}</p>
+              <p dir="rtl" className="text-stone-500 mt-1.5 text-lg" style={{ fontFamily: "'Tajawal', sans-serif" }}>{lesson.warm.open.ar}</p>
+            </div>
+
+            {w.back.length > 0 && (
+              <div>
+                <div className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: MUTED }}>
+                  From yesterday — she must use all of these
+                </div>
+                <div className="space-y-2">
+                  {w.back.map(b => (
+                    <div key={b.en} className="rounded-lg border px-4 py-2.5 flex items-baseline gap-3" style={{ borderColor: LINE, background: CARD }}>
+                      <span className="text-[10px] font-mono font-bold shrink-0" style={{ color: DIM }}>D{b.from}</span>
+                      <div className="min-w-0">
+                        <p className="text-[17px] font-black leading-snug"><Hi text={b.en} color={colour} /></p>
+                        <p dir="rtl" className="text-stone-500 text-sm" style={{ fontFamily: "'Tajawal', sans-serif" }}>{b.ar}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {w.far && (
+              <div className="rounded-xl border p-4" style={{ borderColor: GOLD, background: '#fffbeb' }}>
+                <div className="text-[11px] font-black tracking-widest uppercase mb-1" style={{ color: AMBER }}>
+                  From a week ago — day {w.far.from}
+                </div>
+                <p className="text-[17px] font-black leading-snug"><Hi text={w.far.en} color={AMBER} /></p>
+                <p dir="rtl" className="text-stone-500 text-sm" style={{ fontFamily: "'Tajawal', sans-serif" }}>{w.far.ar}</p>
+                <p className="text-[12px] text-stone-500 mt-2 border-t pt-2" style={{ borderColor: LINE }}>
+                  A phrase starts to disappear about a week after it is taught. This is the one line that stops that happening.
+                </p>
+              </div>
+            )}
+          </div>
+        )
+      })()}
+
       {phase === 'goal' && (
         <div className="space-y-5">
           <div className="rounded-xl border p-5" style={{ borderColor: colour, background: CARD }}>
@@ -426,9 +550,44 @@ function LessonSlide({ lesson, phase, colour, showAlt }: {
             <p className="text-stone-600 text-lg">{lesson.goal.en}</p>
             <p dir="rtl" className="text-stone-500" style={{ fontFamily: "'Tajawal', sans-serif" }}>{lesson.goal.ar}</p>
           </div>
+          {/* Telling her the exit check NOW is most of why it works. She spends
+              the hour aiming at something instead of receiving material. */}
+          <div className="rounded-xl border-2 border-dashed p-4" style={{ borderColor: GOLD, background: '#fffbeb' }}>
+            <div className="text-[11px] font-black tracking-widest uppercase mb-1.5" style={{ color: AMBER }}>
+              Tell her now — this is what she has to do at the end
+            </div>
+            <p className="text-[18px] font-black leading-snug">{lesson.exit.task}</p>
+            <p dir="rtl" className="text-stone-500 text-sm mt-1" style={{ fontFamily: "'Tajawal', sans-serif" }}>{lesson.exit.taskAr}</p>
+          </div>
           <p className="text-stone-500 text-[12px] border-t pt-4" style={{ borderColor: LINE }}>
             Teacher: she talks, you listen. Correct only what stops understanding.
           </p>
+        </div>
+      )}
+
+      {/* ── EXIT CHECK — pass, or it runs again tomorrow ── */}
+      {phase === 'exit' && (
+        <div className="space-y-5">
+          <div className="rounded-xl border-2 p-5" style={{ borderColor: colour, background: CARD2 }}>
+            <div className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: colour }}>She does this now</div>
+            <p className="text-2xl sm:text-3xl font-black leading-snug">{lesson.exit.task}</p>
+            <p dir="rtl" className="text-stone-500 mt-1.5 text-lg" style={{ fontFamily: "'Tajawal', sans-serif" }}>{lesson.exit.taskAr}</p>
+          </div>
+          <div className="rounded-xl border p-5" style={{ borderColor: GOLD, background: '#fffbeb' }}>
+            <div className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: AMBER }}>
+              What you are actually judging
+            </div>
+            <p className="text-[19px] font-black leading-snug">{lesson.exit.pass}</p>
+            <p dir="rtl" className="text-stone-500 mt-1" style={{ fontFamily: "'Tajawal', sans-serif" }}>{lesson.exit.passAr}</p>
+          </div>
+          <div className="rounded-xl border p-4 text-[13px] leading-relaxed" style={{ borderColor: LINE, background: CARD }}>
+            <b>If she cannot do it, the lesson is not finished.</b> Do not move on and hope.
+            Put it at the top of tomorrow&apos;s warm-up and run it again before the new material.
+            In an everyday course one unlearned day quietly poisons the next six.
+            <p dir="rtl" className="text-stone-500 mt-2" style={{ fontFamily: "'Tajawal', sans-serif" }}>
+              إن لم تستطع، فالدرس لم ينتهِ. أعِده في إحماء الغد قبل المادة الجديدة.
+            </p>
+          </div>
         </div>
       )}
 

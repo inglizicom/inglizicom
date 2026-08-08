@@ -36,6 +36,34 @@
 
 export type Ex = { en: string; ar: string }
 
+/** THE SHAPE OF ONE LESSON — sixty minutes, and she talks in the first one.
+ *
+ *  The old plan was a content list: here are the phrases, here are the words,
+ *  now practise. It failed for three reasons. She did not open her mouth until
+ *  halfway through. There was no clock, so the free speaking at the end was
+ *  always the part that got cut. And nothing at the end said whether the lesson
+ *  had actually worked, so a weak day looked exactly like a strong one.
+ *
+ *  The new plan fixes all three. It opens with her talking before anything is
+ *  taught (`warm`), it carries a minute budget for every stage (`STAGE_PLAN`),
+ *  and it ends with one measurable thing she either can or cannot do (`exit`).
+ *  If she cannot, the lesson is not finished — it is re-run at the top of
+ *  tomorrow, which is what `warm` is for. */
+
+/** The first five minutes. She speaks before the teacher explains anything.
+ *  `open` is a free-talk question — sixty seconds, and the teacher corrects
+ *  NOTHING during it. The point is to get the mouth moving in English, not to
+ *  be right. Recall of yesterday's and last week's phrases is derived from the
+ *  course itself by `warmUpFor()`, so it can never drift out of date. */
+export type Warm = { open: Ex }
+
+/** The measurable end of the lesson. `task` is what she does; `pass` is what
+ *  the teacher is actually judging, written so a different teacher would reach
+ *  the same verdict. A lesson she cannot pass is repeated tomorrow, not left
+ *  behind — in an everyday course, one unlearned day poisons the next six. */
+export type ExitCheck = { task: string; taskAr: string; pass: string; passAr: string }
+
+
 /** A ready-to-say phrase. `use` tells her WHEN to reach for it.
  *
  *  `alt` is the SAFETY NET. Several phrases here are above A1 as grammar
@@ -100,6 +128,8 @@ export type Lesson = {
   phase: 1 | 2 | 3 | 4
   tag: string; tagAr: string
   title: string; titleAr: string
+  warm: Warm
+  exit: ExitCheck
   goal: Ex
   /** The single sentence she should leave the lesson able to say. */
   canSay: string
@@ -193,6 +223,9 @@ export const LESSONS: Lesson[] = [
   /* ═══ WEEK 1 ═══ */
   { no: 1, phase: 1, tag: 'Hello', tagAr: 'التحية',
     title: 'Meeting people without freezing', titleAr: 'لقاء الناس دون تجمّد',
+    warm: { open: { en: "Tell me your name and one true thing about today. Anything.", ar: "\u0642\u0648\u0644\u064a \u0627\u0633\u0645\u0643 \u0648\u0634\u064a\u0626\u0627\u064b \u0648\u0627\u062d\u062f\u0627\u064b \u0635\u062d\u064a\u062d\u0627\u064b \u0639\u0646 \u0627\u0644\u064a\u0648\u0645. \u0623\u064a \u0634\u064a\u0621." } },
+    exit: { task: "Greet me three times \u2014 a stranger, a colleague, someone senior. Thirty seconds each.", taskAr: "\u062d\u064a\u0651\u064a\u0646\u064a \u062b\u0644\u0627\u062b \u0645\u0631\u0627\u062a \u2014 \u063a\u0631\u064a\u0628\u060c \u0632\u0645\u064a\u0644\u060c \u0634\u062e\u0635 \u0643\u0628\u064a\u0631. \u062b\u0644\u0627\u062b\u0648\u0646 \u062b\u0627\u0646\u064a\u0629 \u0644\u0643\u0644\u064d\u0651.",
+      pass: "Thirty seconds each with no silence over three seconds, and she asked me a question every time.", passAr: "\u062b\u0644\u0627\u062b\u0648\u0646 \u062b\u0627\u0646\u064a\u0629 \u0644\u0643\u0644\u064d\u0651 \u0628\u0644\u0627 \u0635\u0645\u062a \u064a\u062a\u062c\u0627\u0648\u0632 \u062b\u0644\u0627\u062b \u062b\u0648\u0627\u0646\u064d\u060c \u0648\u0633\u0623\u0644\u062a\u0646\u064a \u0633\u0624\u0627\u0644\u0627\u064b \u0641\u064a \u0643\u0644 \u0645\u0631\u0629." },
     goal: { en: 'Greet someone and keep it alive for thirty seconds.', ar: 'تحية شخص وإبقاء الحديث حياً ثلاثين ثانية.' },
     canSay: "Hi, I'm Salma. Nice to meet you. How are you?",
     chunks: [
@@ -230,6 +263,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 2, phase: 1, tag: 'Small talk', tagAr: 'الحديث الخفيف',
     title: 'The weather, the weekend, the journey', titleAr: 'الطقس، العطلة، الرحلة',
+    warm: { open: { en: "What was the weather like when you left the house?", ar: "\u0643\u064a\u0641 \u0643\u0627\u0646 \u0627\u0644\u0637\u0642\u0633 \u062d\u064a\u0646 \u063a\u0627\u062f\u0631\u062a\u0650 \u0627\u0644\u0645\u0646\u0632\u0644\u061f" } },
+    exit: { task: "Fill two minutes using nothing but weather, the weekend and the journey.", taskAr: "\u0627\u0645\u0644\u0626\u064a \u062f\u0642\u064a\u0642\u062a\u064a\u0646 \u0628\u0627\u0644\u0637\u0642\u0633 \u0648\u0627\u0644\u0639\u0637\u0644\u0629 \u0648\u0627\u0644\u0631\u062d\u0644\u0629 \u0641\u0642\u0637.",
+      pass: "Two minutes, no topic used twice, no gap longer than three seconds.", passAr: "\u062f\u0642\u064a\u0642\u062a\u0627\u0646\u060c \u0644\u0627 \u0645\u0648\u0636\u0648\u0639 \u0645\u0643\u0631\u0631\u060c \u0648\u0644\u0627 \u0641\u062c\u0648\u0629 \u062a\u062a\u062c\u0627\u0648\u0632 \u062b\u0644\u0627\u062b \u062b\u0648\u0627\u0646\u064d." },
     goal: { en: 'Fill a silence with easy, safe conversation.', ar: 'ملء الصمت بحديث سهل وآمن.' },
     canSay: "It's very hot today, isn't it? How was your weekend?",
     chunks: [
@@ -263,6 +299,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 3, phase: 1, tag: 'About you', tagAr: 'عنكِ',
     title: 'Talking about yourself — not your job', titleAr: 'الحديث عن نفسك — لا عن عملك',
+    warm: { open: { en: "Tell me one thing about your family. One sentence.", ar: "\u0623\u062e\u0628\u0631\u064a\u0646\u064a \u0634\u064a\u0626\u0627\u064b \u0639\u0646 \u0639\u0627\u0626\u0644\u062a\u0643. \u062c\u0645\u0644\u0629 \u0648\u0627\u062d\u062f\u0629." } },
+    exit: { task: "Ninety seconds about your life with no mention of your work.", taskAr: "\u062a\u0633\u0639\u0648\u0646 \u062b\u0627\u0646\u064a\u0629 \u0639\u0646 \u062d\u064a\u0627\u062a\u0643 \u062f\u0648\u0646 \u0630\u0643\u0631 \u0639\u0645\u0644\u0643.",
+      pass: "Ninety seconds, zero work words, at least four different topics.", passAr: "\u062a\u0633\u0639\u0648\u0646 \u062b\u0627\u0646\u064a\u0629\u060c \u0635\u0641\u0631 \u0643\u0644\u0645\u0627\u062a \u0639\u0645\u0644\u060c \u0648\u0623\u0631\u0628\u0639\u0629 \u0645\u0648\u0627\u0636\u064a\u0639 \u0645\u062e\u062a\u0644\u0641\u0629 \u0639\u0644\u0649 \u0627\u0644\u0623\u0642\u0644." },
     goal: { en: 'Talk about your life, family and city simply.', ar: 'الحديث عن حياتك وعائلتك ومدينتك ببساطة.' },
     canSay: 'I live in Rabat. I have two children. I like walking and reading.',
     chunks: [
@@ -294,6 +333,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 4, phase: 1, tag: 'Opinions', tagAr: 'الآراء',
     title: 'Saying what you like, want and think', titleAr: 'قول ما تحبين وتريدين وترين',
+    warm: { open: { en: "Tell me one thing you like and one thing you don't.", ar: "\u0623\u062e\u0628\u0631\u064a\u0646\u064a \u0628\u0634\u064a\u0621 \u062a\u062d\u0628\u064a\u0646\u0647 \u0648\u0634\u064a\u0621 \u0644\u0627 \u062a\u062d\u0628\u064a\u0646\u0647." } },
+    exit: { task: "Answer six questions, and add an opinion to every single answer.", taskAr: "\u0623\u062c\u064a\u0628\u064a \u0639\u0644\u0649 \u0633\u062a\u0629 \u0623\u0633\u0626\u0644\u0629\u060c \u0648\u0623\u0636\u064a\u0641\u064a \u0631\u0623\u064a\u0627\u064b \u0644\u0643\u0644 \u062c\u0648\u0627\u0628.",
+      pass: "Six answers, six opinions, and not one of them was only 'yes' or 'no'.", passAr: "\u0633\u062a\u0629 \u0623\u062c\u0648\u0628\u0629 \u0648\u0633\u062a\u0629 \u0622\u0631\u0627\u0621\u060c \u0648\u0644\u0627 \u0648\u0627\u062d\u062f \u0645\u0646\u0647\u0627 \u0643\u0627\u0646 \u00ab\u0646\u0639\u0645\u00bb \u0623\u0648 \u00ab\u0644\u0627\u00bb \u0641\u0642\u0637." },
     goal: { en: 'Give an opinion instead of only answering.', ar: 'إبداء رأي بدل الاكتفاء بالإجابة.' },
     canSay: "I think it's a good idea, because it's simple.",
     chunks: [
@@ -327,6 +369,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 5, phase: 1, tag: 'Survival', tagAr: 'النجاة',
     title: "When you don't understand", titleAr: 'حين لا تفهمين',
+    warm: { open: { en: "Describe something in this room without naming it.", ar: "\u0635\u0641\u064a \u0634\u064a\u0626\u0627\u064b \u0641\u064a \u0647\u0630\u0647 \u0627\u0644\u063a\u0631\u0641\u0629 \u062f\u0648\u0646 \u062a\u0633\u0645\u064a\u062a\u0647." } },
+    exit: { task: "I use three words you do not know. Handle all three without stopping.", taskAr: "\u0633\u0623\u0633\u062a\u062e\u062f\u0645 \u062b\u0644\u0627\u062b \u0643\u0644\u0645\u0627\u062a \u0644\u0627 \u062a\u0639\u0631\u0641\u064a\u0646\u0647\u0627. \u062a\u0639\u0627\u0645\u0644\u064a \u0645\u0639 \u0627\u0644\u062b\u0644\u0627\u062b \u062f\u0648\u0646 \u062a\u0648\u0642\u0641.",
+      pass: "Three recoveries, no French, and the conversation never actually stopped.", passAr: "\u062b\u0644\u0627\u062b \u0627\u0633\u062a\u0639\u0627\u062f\u0627\u062a\u060c \u0628\u0644\u0627 \u0641\u0631\u0646\u0633\u064a\u0629\u060c \u0648\u0644\u0645 \u064a\u062a\u0648\u0642\u0641 \u0627\u0644\u062d\u062f\u064a\u062b \u0641\u0639\u0644\u064a\u0627\u064b." },
     goal: { en: 'Never freeze. Ask again, buy time, or go round the word.', ar: 'ألّا تتجمّدي. أعيدي السؤال أو اكسبي وقتاً أو التفّي حول الكلمة.' },
     canSay: 'Sorry, could you say that again a bit more slowly?',
     chunks: [
@@ -365,6 +410,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 6, phase: 1, tag: 'Review', tagAr: 'مراجعة',
     title: 'Week 1 review — a real conversation', titleAr: 'مراجعة الأسبوع الأول — حديث حقيقي',
+    warm: { open: { en: "How was yesterday? Two sentences.", ar: "\u0643\u064a\u0641 \u0643\u0627\u0646 \u0623\u0645\u0633\u061f \u062c\u0645\u0644\u062a\u0627\u0646." } },
+    exit: { task: "Three minutes with a stranger. I will not help you.", taskAr: "\u062b\u0644\u0627\u062b \u062f\u0642\u0627\u0626\u0642 \u0645\u0639 \u063a\u0631\u064a\u0628. \u0644\u0646 \u0623\u0633\u0627\u0639\u062f\u0643.",
+      pass: "Three minutes, at least five questions from her, and no sentence restarted.", passAr: "\u062b\u0644\u0627\u062b \u062f\u0642\u0627\u0626\u0642\u060c \u062e\u0645\u0633\u0629 \u0623\u0633\u0626\u0644\u0629 \u0645\u0646\u0647\u0627 \u0639\u0644\u0649 \u0627\u0644\u0623\u0642\u0644\u060c \u0648\u0628\u0644\u0627 \u0625\u0639\u0627\u062f\u0629 \u0623\u064a \u062c\u0645\u0644\u0629." },
     goal: { en: 'Hold a three-minute conversation with no new material.', ar: 'إدارة حديث لثلاث دقائق بلا مادة جديدة.' },
     canSay: 'Everything from days 1–5, in one unbroken conversation.',
     chunks: [
@@ -390,6 +438,9 @@ export const LESSONS: Lesson[] = [
   /* ═══ WEEK 2 ═══ */
   { no: 7, phase: 1, tag: 'Numbers & time', tagAr: 'الأرقام والوقت',
     title: 'Numbers, days and the time', titleAr: 'الأرقام والأيام والوقت',
+    warm: { open: { en: "What time did you get up? And what is the date today?", ar: "\u0645\u062a\u0649 \u0627\u0633\u062a\u064a\u0642\u0638\u062a\u0650\u061f \u0648\u0645\u0627 \u062a\u0627\u0631\u064a\u062e \u0627\u0644\u064a\u0648\u0645\u061f" } },
+    exit: { task: "Fix a meeting with me while I change the time three times.", taskAr: "\u062d\u062f\u0651\u062f\u064a \u0645\u0639\u064a \u0627\u062c\u062a\u0645\u0627\u0639\u0627\u064b \u0628\u064a\u0646\u0645\u0627 \u0623\u063a\u064a\u0651\u0631 \u0627\u0644\u0648\u0642\u062a \u062b\u0644\u0627\u062b \u0645\u0631\u0627\u062a.",
+      pass: "Every number repeated back, and the final date and time are correct.", passAr: "\u0643\u0644 \u0631\u0642\u0645 \u0623\u064f\u0639\u064a\u062f\u060c \u0648\u0627\u0644\u062a\u0627\u0631\u064a\u062e \u0648\u0627\u0644\u0648\u0642\u062a \u0627\u0644\u0646\u0647\u0627\u0626\u064a\u0627\u0646 \u0635\u062d\u064a\u062d\u0627\u0646." },
     goal: { en: 'Say numbers, dates and times without hesitating.', ar: 'نطق الأرقام والتواريخ والأوقات دون تردد.' },
     canSay: "It's half past three on Tuesday the fifteenth.",
     chunks: [
@@ -422,6 +473,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 8, phase: 1, tag: 'Questions', tagAr: 'الأسئلة',
     title: 'Asking questions — the six words', titleAr: 'طرح الأسئلة — الكلمات الست',
+    warm: { open: { en: "Ask me three questions. Now, before I say anything.", ar: "\u0627\u0633\u0623\u0644\u064a\u0646\u064a \u062b\u0644\u0627\u062b\u0629 \u0623\u0633\u0626\u0644\u0629. \u0627\u0644\u0622\u0646 \u0642\u0628\u0644 \u0623\u0646 \u0623\u062a\u0643\u0644\u0645." } },
+    exit: { task: "Interview me for two minutes. I answer only what you ask.", taskAr: "\u062d\u0627\u0648\u0631\u064a\u0646\u064a \u062f\u0642\u064a\u0642\u062a\u064a\u0646. \u0623\u062c\u064a\u0628 \u0641\u0642\u0637 \u0639\u0645\u0651\u0627 \u062a\u0633\u0623\u0644\u064a\u0646.",
+      pass: "At least eight questions, using all six question words.", passAr: "\u062b\u0645\u0627\u0646\u064a\u0629 \u0623\u0633\u0626\u0644\u0629 \u0639\u0644\u0649 \u0627\u0644\u0623\u0642\u0644 \u0628\u0627\u0633\u062a\u062e\u062f\u0627\u0645 \u0623\u062f\u0648\u0627\u062a \u0627\u0644\u0627\u0633\u062a\u0641\u0647\u0627\u0645 \u0627\u0644\u0633\u062a." },
     goal: { en: 'Ask, so you are not the only one talking.', ar: 'اسألي كي لا تكوني وحدك من يتكلم.' },
     canSay: 'Where do you work? How long have you been here?',
     chunks: [
@@ -454,6 +508,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 9, phase: 1, tag: 'Short answers', tagAr: 'الإجابات القصيرة',
     title: 'Yes, no, and everything between', titleAr: 'نعم ولا وما بينهما',
+    warm: { open: { en: "Ask me a yes-or-no question, and I will answer 'it depends'.", ar: "\u0627\u0633\u0623\u0644\u064a\u0646\u064a \u0633\u0624\u0627\u0644\u0627\u064b \u0628\u0646\u0639\u0645 \u0623\u0648 \u0644\u0627\u060c \u0648\u0633\u0623\u062c\u064a\u0628 \u00ab\u064a\u0639\u062a\u0645\u062f\u00bb." } },
+    exit: { task: " Refuse two invitations without saying no, and accept one.", taskAr: "\u0627\u0631\u0641\u0636\u064a \u062f\u0639\u0648\u062a\u064a\u0646 \u062f\u0648\u0646 \u0642\u0648\u0644 \u0644\u0627\u060c \u0648\u0627\u0642\u0628\u0644\u064a \u0648\u0627\u062d\u062f\u0629.",
+      pass: "I never felt refused, and she never actually said the word yes.", passAr: "\u0644\u0645 \u0623\u0634\u0639\u0631 \u0628\u0627\u0644\u0631\u0641\u0636\u060c \u0648\u0644\u0645 \u062a\u0642\u0644 \u0643\u0644\u0645\u0629 \u0646\u0639\u0645 \u0641\u0639\u0644\u064a\u0627\u064b." },
     goal: { en: 'Answer in a way that keeps the conversation moving.', ar: 'الإجابة بطريقة تُبقي الحديث متحركاً.' },
     canSay: "Yes, exactly. / Not really, no. / I'm not sure, actually.",
     chunks: [
@@ -482,6 +539,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 10, phase: 1, tag: 'Feelings', tagAr: 'المشاعر',
     title: 'Saying how you feel', titleAr: 'قول ما تشعرين به',
+    warm: { open: { en: "How are you, really?", ar: "\u0643\u064a\u0641 \u062d\u0627\u0644\u0643\u060c \u062d\u0642\u0627\u064b\u061f" } },
+    exit: { task: "I tell you bad news. Stay in the conversation for one full minute.", taskAr: "\u0633\u0623\u062e\u0628\u0631\u0643 \u0628\u062e\u0628\u0631 \u0633\u064a\u0626. \u0627\u0628\u0642\u064a \u0641\u064a \u0627\u0644\u062d\u062f\u064a\u062b \u062f\u0642\u064a\u0642\u0629 \u0643\u0627\u0645\u0644\u0629.",
+      pass: "She stayed with it, asked two follow-up questions, and did not change the subject.", passAr: "\u0628\u0642\u064a\u062a \u0645\u0639\u0647 \u0648\u0633\u0623\u0644\u062a \u0633\u0624\u0627\u0644\u064a\u0646 \u0645\u062a\u0627\u0628\u0639\u064a\u0646 \u0648\u0644\u0645 \u062a\u063a\u064a\u0651\u0631 \u0627\u0644\u0645\u0648\u0636\u0648\u0639." },
     goal: { en: 'Say how you are — beyond "fine".', ar: 'قول حالك — أبعد من «بخير».' },
     canSay: "I'm a bit tired today, but I'm fine.",
     chunks: [
@@ -511,6 +571,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 11, phase: 1, tag: 'Politeness', tagAr: 'اللباقة',
     title: 'Please, thank you, sorry, excuse me', titleAr: 'من فضلك، شكراً، آسفة، عذراً',
+    warm: { open: { en: "Thank me for something. Anything at all.", ar: "\u0627\u0634\u0643\u0631\u064a\u0646\u064a \u0639\u0644\u0649 \u0634\u064a\u0621. \u0623\u064a \u0634\u064a\u0621." } },
+    exit: { task: "Interrupt me, ask me a favour, and apologise \u2014 all three politely.", taskAr: "\u0642\u0627\u0637\u0639\u064a\u0646\u064a\u060c \u0627\u0637\u0644\u0628\u064a \u0645\u0646\u064a \u062e\u062f\u0645\u0629\u060c \u0648\u0627\u0639\u062a\u0630\u0631\u064a \u2014 \u0627\u0644\u062b\u0644\u0627\u062b\u0629 \u0628\u0623\u062f\u0628.",
+      pass: "Three polite moves, and none of them landed as French-direct.", passAr: "\u062b\u0644\u0627\u062b \u062d\u0631\u0643\u0627\u062a \u0645\u0647\u0630\u0628\u0629\u060c \u0648\u0644\u0645 \u062a\u0635\u0644 \u0623\u064a \u0645\u0646\u0647\u0627 \u0643\u0641\u0631\u0646\u0633\u064a\u0629 \u0645\u0628\u0627\u0634\u0631\u0629." },
     goal: { en: 'Sound polite in English, which is not the same as in French.', ar: 'أن تبدي لبقة بالإنجليزية، وهي ليست كالفرنسية.' },
     canSay: 'Excuse me, could you help me, please? — Thank you so much.',
     chunks: [
@@ -544,6 +607,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 12, phase: 1, tag: 'Review', tagAr: 'مراجعة',
     title: 'Week 2 review — five minutes, no stopping', titleAr: 'مراجعة الأسبوع الثاني — خمس دقائق بلا توقّف',
+    warm: { open: { en: "Tell me about your weekend.", ar: "\u062d\u062f\u0651\u062b\u064a\u0646\u064a \u0639\u0646 \u0639\u0637\u0644\u062a\u0643." } },
+    exit: { task: "Five minutes with a partner who gives one-word answers.", taskAr: "\u062e\u0645\u0633 \u062f\u0642\u0627\u0626\u0642 \u0645\u0639 \u0634\u062e\u0635 \u064a\u062c\u064a\u0628 \u0628\u0643\u0644\u0645\u0629 \u0648\u0627\u062d\u062f\u0629.",
+      pass: "Five minutes, no freeze, and most of her lines were questions.", passAr: "\u062e\u0645\u0633 \u062f\u0642\u0627\u0626\u0642 \u0628\u0644\u0627 \u062a\u062c\u0645\u0651\u062f\u060c \u0648\u0645\u0639\u0638\u0645 \u062c\u0645\u0644\u0647\u0627 \u0643\u0627\u0646\u062a \u0623\u0633\u0626\u0644\u0629." },
     goal: { en: 'Five minutes of conversation without freezing once.', ar: 'خمس دقائق حديث دون تجمّد ولو مرة.' },
     canSay: 'Everything from days 1–11, in one unbroken conversation.',
     chunks: [ { en: 'No new phrases. She talks, you time it.', ar: 'لا عبارات جديدة. هي تتكلم وأنت تقيس الوقت.' } ],
@@ -565,6 +631,9 @@ export const LESSONS: Lesson[] = [
   /* ═══ WEEK 3 ═══ */
   { no: 13, phase: 2, tag: 'Your day', tagAr: 'يومك',
     title: 'Your day, from morning to night', titleAr: 'يومك من الصباح إلى الليل',
+    warm: { open: { en: "What did you do before this lesson?", ar: "\u0645\u0627\u0630\u0627 \u0641\u0639\u0644\u062a\u0650 \u0642\u0628\u0644 \u0647\u0630\u0647 \u0627\u0644\u062d\u0635\u0629\u061f" } },
+    exit: { task: "Your whole day, morning to night, while I interrupt six times.", taskAr: "\u064a\u0648\u0645\u0643 \u0643\u0627\u0645\u0644\u0627\u064b \u0645\u0646 \u0627\u0644\u0635\u0628\u0627\u062d \u0644\u0644\u0645\u0633\u0627\u0621 \u0628\u064a\u0646\u0645\u0627 \u0623\u0642\u0627\u0637\u0639 \u0633\u062a \u0645\u0631\u0627\u062a.",
+      pass: "The order survived all six interruptions.", passAr: "\u0646\u062c\u0627 \u0627\u0644\u062a\u0631\u062a\u064a\u0628 \u0645\u0646 \u0627\u0644\u0645\u0642\u0627\u0637\u0639\u0627\u062a \u0627\u0644\u0633\u062a." },
     goal: { en: 'Describe a normal day in order, without stopping.', ar: 'وصف يوم عادي بالترتيب دون توقّف.' },
     canSay: 'I get up at six, I have breakfast, and then I go to work.',
     chunks: [
@@ -598,6 +667,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 14, phase: 2, tag: 'Yesterday', tagAr: 'أمس',
     title: 'Telling a short story — what happened', titleAr: 'حكاية قصيرة — ماذا حدث',
+    warm: { open: { en: "Tell me one thing that happened last week.", ar: "\u0623\u062e\u0628\u0631\u064a\u0646\u064a \u0628\u0634\u064a\u0621 \u062d\u062f\u062b \u0627\u0644\u0623\u0633\u0628\u0648\u0639 \u0627\u0644\u0645\u0627\u0636\u064a." } },
+    exit: { task: "Tell a two-minute story with a beginning, a problem and an end.", taskAr: "\u0627\u062d\u0643\u064a \u0642\u0635\u0629 \u062f\u0642\u064a\u0642\u062a\u064a\u0646 \u0644\u0647\u0627 \u0628\u062f\u0627\u064a\u0629 \u0648\u0645\u0634\u0643\u0644\u0629 \u0648\u0646\u0647\u0627\u064a\u0629.",
+      pass: "Past tense throughout, and the point arrived at the end, not the start.", passAr: "\u0627\u0644\u0645\u0627\u0636\u064a \u0637\u0648\u0627\u0644 \u0627\u0644\u0648\u0642\u062a\u060c \u0648\u0627\u0644\u0645\u063a\u0632\u0649 \u0648\u0635\u0644 \u0641\u064a \u0627\u0644\u0646\u0647\u0627\u064a\u0629 \u0644\u0627 \u0627\u0644\u0628\u062f\u0627\u064a\u0629." },
     goal: { en: 'Tell something that happened, in the past.', ar: 'حكاية شيء حدث، بصيغة الماضي.' },
     canSay: 'Yesterday I went to the airport, but the flight was late.',
     chunks: [
@@ -634,6 +706,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 15, phase: 2, tag: 'Next week', tagAr: 'الأسبوع القادم',
     title: 'Plans and the future', titleAr: 'الخطط والمستقبل',
+    warm: { open: { en: "What are you doing tomorrow?", ar: "\u0645\u0627\u0630\u0627 \u0633\u062a\u0641\u0639\u0644\u064a\u0646 \u063a\u062f\u0627\u064b\u061f" } },
+    exit: { task: "Talk about next month, marking what is certain, likely and only possible.", taskAr: "\u062a\u062d\u062f\u062b\u064a \u0639\u0646 \u0627\u0644\u0634\u0647\u0631 \u0627\u0644\u0642\u0627\u062f\u0645 \u0645\u0645\u064a\u0651\u0632\u0629 \u0627\u0644\u0645\u0624\u0643\u062f \u0648\u0627\u0644\u0645\u0631\u062c\u0651\u062d \u0648\u0627\u0644\u0645\u0645\u0643\u0646 \u0641\u0642\u0637.",
+      pass: "Three levels of certainty, and I could hear the difference between them.", passAr: "\u062b\u0644\u0627\u062b\u0629 \u0645\u0633\u062a\u0648\u064a\u0627\u062a \u064a\u0642\u064a\u0646\u060c \u0648\u0633\u0645\u0639\u062a \u0627\u0644\u0641\u0631\u0642 \u0628\u064a\u0646\u0647\u0627." },
     goal: { en: 'Talk about what you are going to do.', ar: 'الحديث عمّا ستفعلينه.' },
     canSay: "Next week I'm going to Gabon for a workshop.",
     chunks: [
@@ -660,6 +735,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 16, phase: 2, tag: 'Airport', tagAr: 'المطار',
     title: 'The airport and the plane', titleAr: 'المطار والطائرة',
+    warm: { open: { en: "When did you last fly, and where to?", ar: "\u0645\u062a\u0649 \u0633\u0627\u0641\u0631\u062a\u0650 \u062c\u0648\u0627\u064b \u0622\u062e\u0631 \u0645\u0631\u0629 \u0648\u0625\u0644\u0649 \u0623\u064a\u0646\u061f" } },
+    exit: { task: "Check in, learn your flight is delayed, and solve your connection.", taskAr: "\u0633\u062c\u0651\u0644\u064a \u0627\u0644\u062f\u062e\u0648\u0644\u060c \u0648\u0627\u0639\u0644\u0645\u064a \u0628\u062a\u0623\u062e\u0631 \u0631\u062d\u0644\u062a\u0643\u060c \u0648\u062d\u0644\u0651\u064a \u0645\u0634\u0643\u0644\u0629 \u0627\u0644\u0631\u0628\u0637.",
+      pass: "She asked what the delay meant for HER, instead of only accepting it.", passAr: "\u0633\u0623\u0644\u062a \u0639\u0645\u0651\u0627 \u064a\u0639\u0646\u064a\u0647 \u0627\u0644\u062a\u0623\u062e\u064a\u0631 \u0644\u0647\u0627 \u0628\u062f\u0644 \u0642\u0628\u0648\u0644\u0647 \u0641\u0642\u0637." },
     goal: { en: 'Get through an airport alone in English.', ar: 'اجتياز المطار وحدك بالإنجليزية.' },
     canSay: 'Excuse me, where is gate twelve? My flight is at four.',
     chunks: [
@@ -685,6 +763,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 17, phase: 2, tag: 'Taxi & hotel', tagAr: 'التاكسي والفندق',
     title: 'Taxi, hotel, checking in', titleAr: 'التاكسي والفندق وتسجيل الدخول',
+    warm: { open: { en: "Describe the last hotel room you stayed in.", ar: "\u0635\u0641\u064a \u0622\u062e\u0631 \u063a\u0631\u0641\u0629 \u0641\u0646\u062f\u0642 \u0646\u0632\u0644\u062a\u0650 \u0641\u064a\u0647\u0627." } },
+    exit: { task: "Check in, find the room is wrong, and get it fixed.", taskAr: "\u0633\u062c\u0651\u0644\u064a \u0627\u0644\u062f\u062e\u0648\u0644\u060c \u0627\u0643\u062a\u0634\u0641\u064a \u0623\u0646 \u0627\u0644\u063a\u0631\u0641\u0629 \u062e\u0627\u0637\u0626\u0629\u060c \u0648\u0627\u062d\u0635\u0644\u064a \u0639\u0644\u0649 \u0627\u0644\u062d\u0644.",
+      pass: "She complained, got the fix, and never once blamed the person.", passAr: "\u0627\u0634\u062a\u0643\u062a \u0648\u062d\u0635\u0644\u062a \u0639\u0644\u0649 \u0627\u0644\u062d\u0644 \u0648\u0644\u0645 \u062a\u0644\u0645 \u0627\u0644\u0634\u062e\u0635 \u0623\u0628\u062f\u0627\u064b." },
     goal: { en: 'Arrive in a new city and get to your room.', ar: 'الوصول إلى مدينة جديدة والوصول إلى غرفتك.' },
     canSay: 'Could you take me to the Hilton, please? — I have a reservation under Salma.',
     chunks: [
@@ -715,6 +796,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 18, phase: 2, tag: 'Review', tagAr: 'مراجعة',
     title: 'Week 3 review — narrate a whole trip', titleAr: 'مراجعة الأسبوع الثالث — احكي رحلة كاملة',
+    warm: { open: { en: "Where was your last trip?", ar: "\u0623\u064a\u0646 \u0643\u0627\u0646\u062a \u0631\u062d\u0644\u062a\u0643 \u0627\u0644\u0623\u062e\u064a\u0631\u0629\u061f" } },
+    exit: { task: "Tell the whole trip, front door to hotel room, in the past.", taskAr: "\u0627\u062d\u0643\u064a \u0627\u0644\u0631\u062d\u0644\u0629 \u0643\u0627\u0645\u0644\u0629 \u0645\u0646 \u0628\u0627\u0628 \u0627\u0644\u0628\u064a\u062a \u0644\u063a\u0631\u0641\u0629 \u0627\u0644\u0641\u0646\u062f\u0642 \u0628\u0627\u0644\u0645\u0627\u0636\u064a.",
+      pass: "Correct order, past tense throughout, and it was worth listening to.", passAr: "\u062a\u0631\u062a\u064a\u0628 \u0635\u062d\u064a\u062d \u0648\u0645\u0627\u0636\u064d \u0637\u0648\u0627\u0644 \u0627\u0644\u0648\u0642\u062a\u060c \u0648\u0643\u0627\u0646\u062a \u062a\u0633\u062a\u062d\u0642 \u0627\u0644\u0627\u0633\u062a\u0645\u0627\u0639." },
     goal: { en: 'Tell the story of a trip from door to hotel room.', ar: 'حكاية رحلة من الباب إلى غرفة الفندق.' },
     canSay: 'Everything from days 13–17, in one story.',
     chunks: [ { en: 'No new phrases. One long story, past tense.', ar: 'لا عبارات جديدة. حكاية واحدة طويلة بالماضي.' } ],
@@ -734,6 +818,9 @@ export const LESSONS: Lesson[] = [
   /* ═══ WEEK 4 ═══ */
   { no: 19, phase: 2, tag: 'Eating out', tagAr: 'المطاعم',
     title: 'Restaurants and being a guest', titleAr: 'المطاعم وأن تكوني ضيفة',
+    warm: { open: { en: "What did you eat yesterday?", ar: "\u0645\u0627\u0630\u0627 \u0623\u0643\u0644\u062a\u0650 \u0623\u0645\u0633\u061f" } },
+    exit: { task: "Order a meal and hold two minutes of dinner conversation.", taskAr: "\u0627\u0637\u0644\u0628\u064a \u0648\u062c\u0628\u0629 \u0648\u0623\u062f\u064a\u0631\u064a \u062f\u0642\u064a\u0642\u062a\u064a\u0646 \u0645\u0646 \u062d\u062f\u064a\u062b \u0627\u0644\u0639\u0634\u0627\u0621.",
+      pass: "She ordered, declined something, and asked the table a question.", passAr: "\u0637\u0644\u0628\u062a \u0648\u0631\u0641\u0636\u062a \u0634\u064a\u0626\u0627\u064b \u0648\u0633\u0623\u0644\u062a \u0627\u0644\u0637\u0627\u0648\u0644\u0629 \u0633\u0624\u0627\u0644\u0627\u064b." },
     goal: { en: 'Order food and hold a dinner conversation.', ar: 'طلب الطعام وإدارة حديث على العشاء.' },
     canSay: 'I would like the fish, please. It looks delicious.',
     chunks: [
@@ -764,6 +851,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 20, phase: 2, tag: 'Money', tagAr: 'المال',
     title: 'Shopping, prices and paying', titleAr: 'التسوّق والأسعار والدفع',
+    warm: { open: { en: "What was the last thing you bought?", ar: "\u0645\u0627 \u0622\u062e\u0631 \u0634\u064a\u0621 \u0627\u0634\u062a\u0631\u064a\u062a\u0650\u0647\u061f" } },
+    exit: { task: "Buy something, question the price, and handle a broken card machine.", taskAr: "\u0627\u0634\u062a\u0631\u064a \u0634\u064a\u0626\u0627\u064b\u060c \u0627\u0639\u062a\u0631\u0636\u064a \u0639\u0644\u0649 \u0627\u0644\u0633\u0639\u0631\u060c \u0648\u062a\u0639\u0627\u0645\u0644\u064a \u0645\u0639 \u062c\u0647\u0627\u0632 \u0628\u0637\u0627\u0642\u0629 \u0645\u0639\u0637\u0644.",
+      pass: "She asked the price, asked for cheaper, and asked what the difference was.", passAr: "\u0633\u0623\u0644\u062a \u0639\u0646 \u0627\u0644\u0633\u0639\u0631 \u0648\u0637\u0644\u0628\u062a \u0627\u0644\u0623\u0631\u062e\u0635 \u0648\u0633\u0623\u0644\u062a \u0639\u0646 \u0627\u0644\u0641\u0631\u0642." },
     goal: { en: 'Buy things and talk about cost.', ar: 'الشراء والحديث عن التكلفة.' },
     canSay: 'How much is this? Can I pay by card?',
     chunks: [
@@ -792,6 +882,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 21, phase: 2, tag: 'Phone', tagAr: 'الهاتف',
     title: 'On the phone', titleAr: 'على الهاتف',
+    warm: { open: { en: "Who did you last speak to on the phone?", ar: "\u0645\u0646 \u0622\u062e\u0631 \u0645\u0646 \u0643\u0644\u0651\u0645\u062a\u0650\u0647 \u0647\u0627\u062a\u0641\u064a\u0627\u064b\u061f" } },
+    exit: { task: "Take a call on a bad line and come away with one date, correct.", taskAr: "\u0627\u0633\u062a\u0642\u0628\u0644\u064a \u0645\u0643\u0627\u0644\u0645\u0629 \u0639\u0644\u0649 \u062e\u0637 \u0633\u064a\u0626 \u0648\u0627\u062e\u0631\u062c\u064a \u0628\u062a\u0627\u0631\u064a\u062e \u0648\u0627\u062d\u062f \u0635\u062d\u064a\u062d.",
+      pass: "She said she could not hear, every time, and repeated the date back.", passAr: "\u0642\u0627\u0644\u062a \u0625\u0646\u0647\u0627 \u0644\u0627 \u062a\u0633\u0645\u0639 \u0641\u064a \u0643\u0644 \u0645\u0631\u0629 \u0648\u0623\u0639\u0627\u062f\u062a \u0627\u0644\u062a\u0627\u0631\u064a\u062e." },
     goal: { en: 'Make and take a call without panic.', ar: 'إجراء مكالمة وتلقّيها دون ارتباك.' },
     canSay: 'Hello, this is Salma speaking. Can you hear me?',
     chunks: [
@@ -819,6 +912,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 22, phase: 2, tag: 'Your country', tagAr: 'بلدك',
     title: 'Your city, your country, your culture', titleAr: 'مدينتك وبلدك وثقافتك',
+    warm: { open: { en: "Describe your city in three sentences.", ar: "\u0635\u0641\u064a \u0645\u062f\u064a\u0646\u062a\u0643 \u0641\u064a \u062b\u0644\u0627\u062b \u062c\u0645\u0644." } },
+    exit: { task: "Answer four questions about Morocco. One of them contains something wrong.", taskAr: "\u0623\u062c\u064a\u0628\u064a \u0639\u0644\u0649 \u0623\u0631\u0628\u0639\u0629 \u0623\u0633\u0626\u0644\u0629 \u0639\u0646 \u0627\u0644\u0645\u063a\u0631\u0628. \u0623\u062d\u062f\u0647\u0627 \u064a\u062d\u0645\u0644 \u062e\u0637\u0623.",
+      pass: "She corrected the wrong one without arguing with me.", passAr: "\u0635\u062d\u0651\u062d\u062a \u0627\u0644\u062e\u0627\u0637\u0626 \u062f\u0648\u0646 \u0645\u062c\u0627\u062f\u0644\u062a\u064a." },
     goal: { en: 'Answer the question every foreigner asks you.', ar: 'الإجابة على السؤال الذي يسأله كل أجنبي.' },
     canSay: 'Morocco is beautiful. You should visit Chefchaouen — it is a blue city in the mountains.',
     chunks: [
@@ -843,6 +939,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 23, phase: 2, tag: 'Problems', tagAr: 'المشكلات',
     title: 'When something goes wrong', titleAr: 'حين يسوء شيء',
+    warm: { open: { en: "Tell me about something that went wrong recently.", ar: "\u062d\u062f\u0651\u062b\u064a\u0646\u064a \u0639\u0646 \u0634\u064a\u0621 \u0633\u0627\u0621 \u0645\u0624\u062e\u0631\u0627\u064b." } },
+    exit: { task: "Report a lost bag to someone who wants you to go away.", taskAr: "\u0628\u0644\u0651\u063a\u064a \u0639\u0646 \u062d\u0642\u064a\u0628\u0629 \u0636\u0627\u0626\u0639\u0629 \u0644\u0634\u062e\u0635 \u064a\u0631\u064a\u062f\u0643 \u0623\u0646 \u062a\u0646\u0635\u0631\u0641\u064a.",
+      pass: "Three specific questions instead of complaining \u2014 and she got a result.", passAr: "\u062b\u0644\u0627\u062b\u0629 \u0623\u0633\u0626\u0644\u0629 \u0645\u062d\u062f\u062f\u0629 \u0628\u062f\u0644 \u0627\u0644\u0634\u0643\u0648\u0649 \u2014 \u0648\u062d\u0635\u0644\u062a \u0639\u0644\u0649 \u0646\u062a\u064a\u062c\u0629." },
     goal: { en: 'Explain a problem and ask for help.', ar: 'شرح مشكلة وطلب المساعدة.' },
     canSay: "There's a problem with my room. Could you help me, please?",
     chunks: [
@@ -870,6 +969,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 24, phase: 2, tag: 'Review', tagAr: 'مراجعة',
     title: 'Month 1 review — ten minutes of you', titleAr: 'مراجعة الشهر الأول — عشر دقائق من كلامك',
+    warm: { open: { en: "Just talk. Ten minutes. I will ask four questions in total.", ar: "\u062a\u062d\u062f\u062b\u064a \u0641\u0642\u0637. \u0639\u0634\u0631 \u062f\u0642\u0627\u0626\u0642. \u0633\u0623\u0633\u0623\u0644 \u0623\u0631\u0628\u0639\u0629 \u0623\u0633\u0626\u0644\u0629 \u0625\u062c\u0645\u0627\u0644\u0627\u064b." } },
+    exit: { task: "Ten minutes of conversation, recorded start to finish.", taskAr: "\u0639\u0634\u0631 \u062f\u0642\u0627\u0626\u0642 \u062d\u062f\u064a\u062b\u060c \u0645\u0633\u062c\u0651\u0644\u0629 \u0645\u0646 \u0627\u0644\u0628\u062f\u0627\u064a\u0629 \u0644\u0644\u0646\u0647\u0627\u064a\u0629.",
+      pass: "Under sixty seconds of total silence. KEEP THIS RECORDING \u2014 day 48 needs it.", passAr: "\u0623\u0642\u0644 \u0645\u0646 \u0633\u062a\u064a\u0646 \u062b\u0627\u0646\u064a\u0629 \u0635\u0645\u062a \u0625\u062c\u0645\u0627\u0644\u0627\u064b. \u0627\u062d\u062a\u0641\u0638 \u0628\u0627\u0644\u062a\u0633\u062c\u064a\u0644 \u2014 \u0627\u0644\u064a\u0648\u0645 48 \u064a\u062d\u062a\u0627\u062c\u0647." },
     goal: { en: 'Ten minutes of conversation. Halfway point.', ar: 'عشر دقائق حديث. منتصف الطريق.' },
     canSay: 'Everything from days 1–23, unprompted.',
     chunks: [ { en: 'No new phrases. This is the half-way test.', ar: 'لا عبارات جديدة. هذا اختبار منتصف الطريق.' } ],
@@ -891,6 +993,9 @@ export const LESSONS: Lesson[] = [
   /* ═══ WEEK 5 ═══ */
   { no: 25, phase: 3, tag: 'What you do', tagAr: 'ماذا تعملين',
     title: 'What you do — the simple version', titleAr: 'ماذا تعملين — النسخة البسيطة',
+    warm: { open: { en: "What do you do? One sentence, right now.", ar: "\u0645\u0627\u0630\u0627 \u062a\u0639\u0645\u0644\u064a\u0646\u061f \u062c\u0645\u0644\u0629 \u0648\u0627\u062d\u062f\u0629 \u0627\u0644\u0622\u0646." } },
+    exit: { task: "Explain your job three times: to a child, a minister, an engineer.", taskAr: "\u0627\u0634\u0631\u062d\u064a \u0639\u0645\u0644\u0643 \u062b\u0644\u0627\u062b \u0645\u0631\u0627\u062a: \u0644\u0637\u0641\u0644 \u0648\u0644\u0648\u0632\u064a\u0631 \u0648\u0644\u0645\u0647\u0646\u062f\u0633.",
+      pass: "The child's version contained no technical word at all.", passAr: "\u0646\u0633\u062e\u0629 \u0627\u0644\u0637\u0641\u0644 \u0644\u0645 \u062a\u062d\u0645\u0644 \u0623\u064a \u0643\u0644\u0645\u0629 \u062a\u0642\u0646\u064a\u0629." },
     goal: { en: 'Say your job so anybody understands.', ar: 'قول مهنتك بحيث يفهمها الجميع.' },
     canSay: 'I work with satellites. We look at the Earth from space to help people.',
     chunks: [
@@ -927,6 +1032,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 26, phase: 3, tag: 'Company', tagAr: 'الشركة',
     title: 'Your company and your team', titleAr: 'شركتك وفريقك',
+    warm: { open: { en: "How many people work with you?", ar: "\u0643\u0645 \u0634\u062e\u0635\u0627\u064b \u064a\u0639\u0645\u0644 \u0645\u0639\u0643\u061f" } },
+    exit: { task: "Defend a seven-person team to a client who wants a big firm.", taskAr: "\u062f\u0627\u0641\u0639\u064a \u0639\u0646 \u0641\u0631\u064a\u0642 \u0645\u0646 \u0633\u0628\u0639\u0629 \u0623\u0645\u0627\u0645 \u0639\u0645\u064a\u0644 \u064a\u0631\u064a\u062f \u0634\u0631\u0643\u0629 \u0643\u0628\u064a\u0631\u0629.",
+      pass: "She never once sounded apologetic about the number.", passAr: "\u0644\u0645 \u062a\u0628\u062f\u064f \u0645\u0639\u062a\u0630\u0631\u0629 \u0639\u0646 \u0627\u0644\u0631\u0642\u0645 \u0648\u0644\u0648 \u0645\u0631\u0629." },
     goal: { en: 'Talk about the company you built.', ar: 'الحديث عن الشركة التي بنيتِها.' },
     canSay: 'I have my own company. We are a small team, and we work in fifteen countries.',
     chunks: [
@@ -954,6 +1062,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 27, phase: 3, tag: 'Experience', tagAr: 'الخبرة',
     title: 'Your experience — years and countries', titleAr: 'خبرتك — السنوات والدول',
+    warm: { open: { en: "What year did you start in this field?", ar: "\u0641\u064a \u0623\u064a \u0639\u0627\u0645 \u0628\u062f\u0623\u062a\u0650 \u0641\u064a \u0647\u0630\u0627 \u0627\u0644\u0645\u062c\u0627\u0644\u061f" } },
+    exit: { task: "Give your entire background in ninety seconds.", taskAr: "\u0623\u0639\u0637\u064a \u062e\u0644\u0641\u064a\u062a\u0643 \u0643\u0627\u0645\u0644\u0629 \u0641\u064a \u062a\u0633\u0639\u064a\u0646 \u062b\u0627\u0646\u064a\u0629.",
+      pass: "Years, countries and one story. Nothing else got in.", passAr: "\u0633\u0646\u0648\u0627\u062a \u0648\u062f\u0648\u0644 \u0648\u0642\u0635\u0629 \u0648\u0627\u062d\u062f\u0629. \u0644\u0627 \u0634\u064a\u0621 \u0622\u062e\u0631 \u062f\u062e\u0644." },
     goal: { en: 'Say how long and where, fast.', ar: 'قول المدة والمكان بسرعة.' },
     canSay: "I've been doing this for twenty-one years, thirteen of them in Africa.",
     chunks: [
@@ -987,6 +1098,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 28, phase: 3, tag: 'Explaining', tagAr: 'الشرح',
     title: 'Explaining satellites to a non-expert', titleAr: 'شرح الأقمار لغير المختص',
+    warm: { open: { en: "What does a satellite actually see?", ar: "\u0645\u0627\u0630\u0627 \u064a\u0631\u0649 \u0627\u0644\u0642\u0645\u0631 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064a \u0641\u0639\u0644\u0627\u064b\u061f" } },
+    exit: { task: "Explain your work to a journalist who will quote you.", taskAr: "\u0627\u0634\u0631\u062d\u064a \u0639\u0645\u0644\u0643 \u0644\u0635\u062d\u0641\u064a\u0629 \u0633\u062a\u0642\u062a\u0628\u0633 \u0643\u0644\u0627\u0645\u0643.",
+      pass: "Every number was hedged and every comparison was an everyday one.", passAr: "\u0643\u0644 \u0631\u0642\u0645 \u0645\u0642\u064a\u0651\u062f \u0648\u0643\u0644 \u062a\u0634\u0628\u064a\u0647 \u064a\u0648\u0645\u064a." },
     goal: { en: 'Explain your work in easy English.', ar: 'شرح عملك بإنجليزية سهلة.' },
     canSay: 'Basically, the satellite takes a picture of the same place every few days, so we can see what changed.',
     chunks: [
@@ -1023,6 +1137,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 29, phase: 3, tag: 'Process', tagAr: 'الخطوات',
     title: 'Explaining a process, step by step', titleAr: 'شرح عملية خطوة بخطوة',
+    warm: { open: { en: "How do you make a change map? First step only.", ar: "\u0643\u064a\u0641 \u062a\u0635\u0646\u0639\u064a\u0646 \u062e\u0631\u064a\u0637\u0629 \u062a\u063a\u064a\u0651\u0631\u061f \u0627\u0644\u062e\u0637\u0648\u0629 \u0627\u0644\u0623\u0648\u0644\u0649 \u0641\u0642\u0637." } },
+    exit: { task: "Walk me through the method while I interrupt at every step.", taskAr: "\u0627\u0634\u0631\u062d\u064a \u0627\u0644\u0645\u0646\u0647\u062c\u064a\u0629 \u0628\u064a\u0646\u0645\u0627 \u0623\u0642\u0627\u0637\u0639 \u0639\u0646\u062f \u0643\u0644 \u062e\u0637\u0648\u0629.",
+      pass: "First, then, after that, finally \u2014 all four survived.", passAr: "\u0623\u0648\u0644\u0627\u064b\u060c \u062b\u0645\u060c \u0628\u0639\u062f \u0630\u0644\u0643\u060c \u0623\u062e\u064a\u0631\u0627\u064b \u2014 \u0646\u062c\u062a \u0627\u0644\u0623\u0631\u0628\u0639." },
     goal: { en: 'Walk someone through how the work is done.', ar: 'اصطحاب المستمع خطوة بخطوة في طريقة العمل.' },
     canSay: 'First we collect the images, then we process them, and finally we deliver the maps.',
     chunks: [
@@ -1057,6 +1174,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 30, phase: 3, tag: 'Review', tagAr: 'مراجعة',
     title: 'Week 5 review — explain your job three ways', titleAr: 'مراجعة الأسبوع الخامس — اشرحي عملك بثلاث طرق',
+    warm: { open: { en: "Explain your job to an eight-year-old. Go.", ar: "\u0627\u0634\u0631\u062d\u064a \u0639\u0645\u0644\u0643 \u0644\u0637\u0641\u0644\u0629 \u0641\u064a \u0627\u0644\u062b\u0627\u0645\u0646\u0629. \u0627\u0628\u062f\u0626\u064a." } },
+    exit: { task: "Same job, three audiences, in whatever order I ask for them.", taskAr: "\u0627\u0644\u0639\u0645\u0644 \u0646\u0641\u0633\u0647 \u0644\u062b\u0644\u0627\u062b\u0629 \u062c\u0645\u0627\u0647\u064a\u0631 \u0628\u0623\u064a \u062a\u0631\u062a\u064a\u0628 \u0623\u0637\u0644\u0628\u0647.",
+      pass: "She switched register instantly, with no warning and no run-up.", passAr: "\u0628\u062f\u0651\u0644\u062a \u0627\u0644\u0645\u0633\u062a\u0648\u0649 \u0641\u0648\u0631\u0627\u064b \u0628\u0644\u0627 \u0625\u0646\u0630\u0627\u0631 \u0648\u0644\u0627 \u062a\u0645\u0647\u064a\u062f." },
     goal: { en: 'Same job, three audiences.', ar: 'المهنة نفسها لثلاثة جماهير.' },
     canSay: 'Everything from days 25–29.',
     chunks: [ { en: 'No new phrases. Three explanations, three levels.', ar: 'لا عبارات جديدة. ثلاثة شروح بثلاثة مستويات.' } ],
@@ -1076,6 +1196,9 @@ export const LESSONS: Lesson[] = [
   /* ═══ WEEK 6 ═══ */
   { no: 31, phase: 3, tag: 'Field words 1', tagAr: 'مفردات المجال ١',
     title: 'Water, forests, farming', titleAr: 'المياه والغابات والزراعة',
+    warm: { open: { en: "Name three things you monitor.", ar: "\u0633\u0645\u0651\u064a \u062b\u0644\u0627\u062b\u0629 \u0623\u0634\u064a\u0627\u0621 \u062a\u0631\u0635\u062f\u064a\u0646\u0647\u0627." } },
+    exit: { task: "Convince a ministry with forty-two ground stations to add satellites.", taskAr: "\u0623\u0642\u0646\u0639\u064a \u0648\u0632\u0627\u0631\u0629 \u0644\u062f\u064a\u0647\u0627 \u0627\u062b\u0646\u062a\u0627\u0646 \u0648\u0623\u0631\u0628\u0639\u0648\u0646 \u0645\u062d\u0637\u0629 \u0623\u0631\u0636\u064a\u0629 \u0628\u0625\u0636\u0627\u0641\u0629 \u0627\u0644\u0623\u0642\u0645\u0627\u0631.",
+      pass: "'Newer, not better' \u2014 she never said his stations were wrong.", passAr: "\u00ab\u0623\u062d\u062f\u062b \u0644\u0627 \u0623\u0641\u0636\u0644\u00bb \u2014 \u0644\u0645 \u062a\u0642\u0644 \u0625\u0646 \u0645\u062d\u0637\u0627\u062a\u0647 \u062e\u0627\u0637\u0626\u0629." },
     goal: { en: 'Own the words of your land projects.', ar: 'إتقان مفردات مشاريعك البرية.' },
     canSay: 'We monitor the forest and we map the water resources.',
     chunks: [
@@ -1105,6 +1228,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 32, phase: 3, tag: 'Field words 2', tagAr: 'مفردات المجال ٢',
     title: 'The sea, oil and AI', titleAr: 'البحر والنفط والذكاء الاصطناعي',
+    warm: { open: { en: "What are you working on right now?", ar: "\u0639\u0644\u0649 \u0645\u0627\u0630\u0627 \u062a\u0639\u0645\u0644\u064a\u0646 \u0627\u0644\u0622\u0646\u061f" } },
+    exit: { task: "Defend the AI work to a reviewer who has heard it all before.", taskAr: "\u062f\u0627\u0641\u0639\u064a \u0639\u0646 \u0639\u0645\u0644 \u0627\u0644\u0630\u0643\u0627\u0621 \u0627\u0644\u0627\u0635\u0637\u0646\u0627\u0639\u064a \u0623\u0645\u0627\u0645 \u0645\u0631\u0627\u062c\u0639 \u0633\u0645\u0639 \u0643\u0644 \u0634\u064a\u0621.",
+      pass: "She volunteered a limit before being asked, at least twice.", passAr: "\u0630\u0643\u0631\u062a \u062d\u062f\u0651\u0627\u064b \u0642\u0628\u0644 \u0623\u0646 \u062a\u064f\u0633\u0623\u0644 \u0645\u0631\u062a\u064a\u0646 \u0639\u0644\u0649 \u0627\u0644\u0623\u0642\u0644." },
     goal: { en: 'Talk about your current work with confidence.', ar: 'الحديث عن عملك الحالي بثقة.' },
     canSay: 'We use radar images to detect oil on the sea, and AI to say where it came from.',
     chunks: [
@@ -1137,6 +1263,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 33, phase: 3, tag: 'Meetings 1', tagAr: 'الاجتماعات ١',
     title: 'Getting into the conversation', titleAr: 'الدخول في النقاش',
+    warm: { open: { en: "Interrupt me. Right now, before I finish this sentence.", ar: "\u0642\u0627\u0637\u0639\u064a\u0646\u064a. \u0627\u0644\u0622\u0646 \u0642\u0628\u0644 \u0623\u0646 \u0623\u064f\u0646\u0647\u064a \u0647\u0630\u0647 \u0627\u0644\u062c\u0645\u0644\u0629." } },
+    exit: { task: "Take the floor three times in a conversation you are not leading.", taskAr: "\u062e\u0630\u064a \u0627\u0644\u0643\u0644\u0645\u0629 \u062b\u0644\u0627\u062b \u0645\u0631\u0627\u062a \u0641\u064a \u062d\u062f\u064a\u062b \u0644\u0627 \u062a\u0642\u0648\u062f\u064a\u0646\u0647.",
+      pass: "No apology before speaking. Not once out of the three.", passAr: "\u0628\u0644\u0627 \u0627\u0639\u062a\u0630\u0627\u0631 \u0642\u0628\u0644 \u0627\u0644\u0643\u0644\u0627\u0645. \u0648\u0644\u0627 \u0645\u0631\u0629 \u0645\u0646 \u0627\u0644\u062b\u0644\u0627\u062b." },
     goal: { en: 'Take the floor instead of waiting for a gap.', ar: 'أخذ الكلمة بدل انتظار فرصة.' },
     canSay: 'Can I come in here? In my experience, this is where it usually fails.',
     chunks: [
@@ -1168,6 +1297,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 34, phase: 3, tag: 'Meetings 2', tagAr: 'الاجتماعات ٢',
     title: 'Agreeing and disagreeing', titleAr: 'الموافقة والاعتراض',
+    warm: { open: { en: "Disagree with me about something. Anything.", ar: "\u0627\u062e\u062a\u0644\u0641\u064a \u0645\u0639\u064a \u062d\u0648\u0644 \u0634\u064a\u0621. \u0623\u064a \u0634\u064a\u0621." } },
+    exit: { task: "Say no to a deadline you cannot meet, and keep the client.", taskAr: "\u0642\u0648\u0644\u064a \u0644\u0627 \u0644\u0645\u0648\u0639\u062f \u0644\u0627 \u062a\u0633\u062a\u0637\u064a\u0639\u064a\u0646\u0647\u060c \u0648\u0627\u062d\u062a\u0641\u0638\u064a \u0628\u0627\u0644\u0639\u0645\u064a\u0644.",
+      pass: "Agree, but, reason, alternative, hand it back \u2014 all five moves.", passAr: "\u0645\u0648\u0627\u0641\u0642\u0629\u060c \u0644\u0643\u0646\u060c \u0633\u0628\u0628\u060c \u0628\u062f\u064a\u0644\u060c \u0625\u0639\u0627\u062f\u0629 \u0627\u0644\u0642\u0631\u0627\u0631 \u2014 \u0627\u0644\u062d\u0631\u0643\u0627\u062a \u0627\u0644\u062e\u0645\u0633." },
     goal: { en: 'Disagree without damaging the relationship.', ar: 'الاعتراض دون الإضرار بالعلاقة.' },
     canSay: 'I see your point, but in practice that is very difficult.',
     chunks: [
@@ -1204,6 +1336,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 35, phase: 3, tag: 'Video calls', tagAr: 'مكالمات الفيديو',
     title: 'Video calls and closing a meeting', titleAr: 'مكالمات الفيديو وإنهاء الاجتماع',
+    warm: { open: { en: "Can you hear me? Now share your screen.", ar: "\u0647\u0644 \u062a\u0633\u0645\u0639\u0646\u064a\u061f \u0627\u0644\u0622\u0646 \u0634\u0627\u0631\u0643\u064a \u0634\u0627\u0634\u062a\u0643." } },
+    exit: { task: "Run a call where one is muted, one freezes and one arrives late.", taskAr: "\u0623\u062f\u064a\u0631\u064a \u0645\u0643\u0627\u0644\u0645\u0629 \u0641\u064a\u0647\u0627 \u0645\u0643\u062a\u0648\u0645 \u0648\u0645\u062a\u062c\u0645\u0651\u062f \u0648\u0645\u062a\u0623\u062e\u0631.",
+      pass: "The meeting never stopped moving, not for any of the three.", passAr: "\u0644\u0645 \u064a\u062a\u0648\u0642\u0641 \u0627\u0644\u0627\u062c\u062a\u0645\u0627\u0639 \u0639\u0646 \u0627\u0644\u062d\u0631\u0643\u0629 \u0644\u0623\u064a \u0645\u0646 \u0627\u0644\u062b\u0644\u0627\u062b\u0629." },
     goal: { en: 'Run a call and close it like the person in charge.', ar: 'إدارة مكالمة وإنهاؤها كمن يقود.' },
     canSay: 'Let me recap the actions before we finish.',
     chunks: [
@@ -1229,6 +1364,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 36, phase: 3, tag: 'Review', tagAr: 'مراجعة',
     title: 'Week 6 review — a full meeting', titleAr: 'مراجعة الأسبوع السادس — اجتماع كامل',
+    warm: { open: { en: "Open a meeting. Now.", ar: "\u0627\u0641\u062a\u062a\u062d\u064a \u0627\u062c\u062a\u0645\u0627\u0639\u0627\u064b. \u0627\u0644\u0622\u0646." } },
+    exit: { task: "Chair a full meeting, from hello to action points.", taskAr: "\u062a\u0631\u0623\u0651\u0633\u064a \u0627\u062c\u062a\u0645\u0627\u0639\u0627\u064b \u0643\u0627\u0645\u0644\u0627\u064b \u0645\u0646 \u0627\u0644\u062a\u062d\u064a\u0629 \u0644\u0644\u0645\u0647\u0627\u0645.",
+      pass: "Shape announced, one item parked, actions summarised, parked item returned to.", passAr: "\u0642\u0627\u0644\u0628 \u0645\u0639\u0644\u0646 \u0648\u0628\u0646\u062f \u0645\u0624\u062c\u0651\u0644 \u0648\u0645\u0647\u0627\u0645 \u0645\u0644\u062e\u0651\u0635\u0629 \u0648\u0639\u0648\u062f\u0629 \u0644\u0644\u0645\u0624\u062c\u0651\u0644." },
     goal: { en: 'Run one meeting from hello to action points.', ar: 'إدارة اجتماع من التحية إلى المهام.' },
     canSay: 'Everything from days 25–35.',
     chunks: [ { en: 'No new phrases. One meeting, she leads it.', ar: 'لا عبارات جديدة. اجتماع واحد تقوده هي.' } ],
@@ -1249,6 +1387,9 @@ export const LESSONS: Lesson[] = [
   /* ═══ WEEK 7 ═══ */
   { no: 37, phase: 4, tag: 'Numbers', tagAr: 'الأرقام',
     title: 'Numbers and results out loud', titleAr: 'الأرقام والنتائج بصوت عالٍ',
+    warm: { open: { en: "How big is your biggest project area?", ar: "\u0645\u0627 \u0645\u0633\u0627\u062d\u0629 \u0623\u0643\u0628\u0631 \u0645\u0634\u0627\u0631\u064a\u0639\u0643\u061f" } },
+    exit: { task: "Answer twelve questions about numbers. One you cannot answer.", taskAr: "\u0623\u062c\u064a\u0628\u064a \u0639\u0644\u0649 \u0627\u062b\u0646\u064a \u0639\u0634\u0631 \u0633\u0624\u0627\u0644\u0627\u064b \u0639\u0646 \u0627\u0644\u0623\u0631\u0642\u0627\u0645. \u0648\u0627\u062d\u062f \u0644\u0627 \u062a\u0633\u062a\u0637\u064a\u0639\u064a\u0646\u0647.",
+      pass: "She refused to guess the one she did not know.", passAr: "\u0631\u0641\u0636\u062a \u062a\u062e\u0645\u064a\u0646 \u0645\u0627 \u0644\u0627 \u062a\u0639\u0631\u0641\u0647." },
     goal: { en: 'Say figures at speed without slowing down.', ar: 'نطق الأرقام بسرعة دون تباطؤ.' },
     canSay: 'We covered about two hundred and fifty thousand square kilometres.',
     chunks: [
@@ -1282,6 +1423,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 38, phase: 4, tag: 'Visuals', tagAr: 'الصور والرسوم',
     title: 'Describing a map, a chart, an image', titleAr: 'وصف خريطة ورسم بياني وصورة',
+    warm: { open: { en: "Describe this map to me. Twenty seconds.", ar: "\u0635\u0641\u064a \u0644\u064a \u0647\u0630\u0647 \u0627\u0644\u062e\u0631\u064a\u0637\u0629. \u0639\u0634\u0631\u0648\u0646 \u062b\u0627\u0646\u064a\u0629." } },
+    exit: { task: "Talk over one map and one chart that have no text on them.", taskAr: "\u062a\u062d\u062f\u062b\u064a \u0641\u0648\u0642 \u062e\u0631\u064a\u0637\u0629 \u0648\u0631\u0633\u0645 \u0628\u064a\u0627\u0646\u064a \u0628\u0644\u0627 \u0646\u0635 \u0639\u0644\u064a\u0647\u0645\u0627.",
+      pass: "Orient, colours, where to look, what it means \u2014 in that order.", passAr: "\u062a\u0648\u062c\u064a\u0647 \u0648\u0623\u0644\u0648\u0627\u0646 \u0648\u0623\u064a\u0646 \u062a\u0646\u0638\u0631 \u0648\u0645\u0627 \u0627\u0644\u0645\u0639\u0646\u0649 \u2014 \u0628\u0647\u0630\u0627 \u0627\u0644\u062a\u0631\u062a\u064a\u0628." },
     goal: { en: 'Talk over your own slides.', ar: 'التعليق على شرائحك.' },
     canSay: 'As you can see here, the red areas are where the forest disappeared.',
     chunks: [
@@ -1314,6 +1458,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 39, phase: 4, tag: 'Structure', tagAr: 'الهيكل',
     title: 'The shape of a presentation', titleAr: 'شكل العرض التقديمي',
+    warm: { open: { en: "Give me your opening sentence. Just the first one.", ar: "\u0623\u0639\u0637\u064a\u0646\u064a \u062c\u0645\u0644\u062a\u0643 \u0627\u0644\u0627\u0641\u062a\u062a\u0627\u062d\u064a\u0629. \u0627\u0644\u0623\u0648\u0644\u0649 \u0641\u0642\u0637." } },
+    exit: { task: "Deliver the shape while I arrive late and challenge your first slide.", taskAr: "\u0642\u062f\u0651\u0645\u064a \u0627\u0644\u0642\u0627\u0644\u0628 \u0628\u064a\u0646\u0645\u0627 \u0623\u062a\u0623\u062e\u0631 \u0648\u0623\u0634\u0643\u0651\u0643 \u0641\u064a \u0634\u0631\u064a\u062d\u062a\u0643 \u0627\u0644\u0623\u0648\u0644\u0649.",
+      pass: "Opening, signposts and close all survived the interference.", passAr: "\u0646\u062c\u062a \u0627\u0644\u0627\u0641\u062a\u062a\u0627\u062d\u064a\u0629 \u0648\u0627\u0644\u0639\u0644\u0627\u0645\u0627\u062a \u0648\u0627\u0644\u062e\u062a\u0627\u0645 \u0645\u0646 \u0627\u0644\u062a\u0634\u0648\u064a\u0634." },
     goal: { en: 'Open, signpost and close so people can follow.', ar: 'الافتتاح والتنقّل والختام بحيث يتابعك الجمهور.' },
     canSay: "Today I'll cover three things: the problem, our method, and the results.",
     chunks: [
@@ -1351,6 +1498,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 40, phase: 4, tag: 'Project 1', tagAr: 'المشروع ١',
     title: 'Presenting a project — the shape', titleAr: 'تقديم مشروع — القالب',
+    warm: { open: { en: "Name one project that went well.", ar: "\u0633\u0645\u0651\u064a \u0645\u0634\u0631\u0648\u0639\u0627\u064b \u0648\u0627\u062d\u062f\u0627\u064b \u0633\u0627\u0631 \u062c\u064a\u062f\u0627\u064b." } },
+    exit: { task: "Present one project end to end in three minutes.", taskAr: "\u0642\u062f\u0651\u0645\u064a \u0645\u0634\u0631\u0648\u0639\u0627\u064b \u0643\u0627\u0645\u0644\u0627\u064b \u0641\u064a \u062b\u0644\u0627\u062b \u062f\u0642\u0627\u0626\u0642.",
+      pass: "Client, problem, what we did, result \u2014 and no claim she cannot prove.", passAr: "\u0639\u0645\u064a\u0644 \u0648\u0645\u0634\u0643\u0644\u0629 \u0648\u0645\u0627 \u0641\u0639\u0644\u0646\u0627\u0647 \u0648\u0646\u062a\u064a\u062c\u0629 \u2014 \u0648\u0628\u0644\u0627 \u0627\u062f\u0639\u0627\u0621 \u0644\u0627 \u062a\u062b\u0628\u062a\u0647." },
     goal: { en: 'Present a real project end to end.', ar: 'تقديم مشروع حقيقي كاملاً.' },
     canSay: 'The problem was X, we did Y, and the result was Z.',
     chunks: [
@@ -1383,6 +1533,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 41, phase: 4, tag: 'Project 2', tagAr: 'المشروع ٢',
     title: 'Your three projects, one breath each', titleAr: 'مشاريعك الثلاثة، نفَس واحد لكل مشروع',
+    warm: { open: { en: "GERNAC. Go.", ar: "\u062c\u064a\u0631\u0646\u0627\u0643. \u0627\u0628\u062f\u0626\u064a." } },
+    exit: { task: "Three projects in three lines, then the sentence that connects them.", taskAr: "\u062b\u0644\u0627\u062b\u0629 \u0645\u0634\u0627\u0631\u064a\u0639 \u0641\u064a \u062b\u0644\u0627\u062b\u0629 \u0623\u0633\u0637\u0631 \u062b\u0645 \u0627\u0644\u062c\u0645\u0644\u0629 \u0627\u0644\u0631\u0627\u0628\u0637\u0629.",
+      pass: "The connecting sentence existed, and it was hers, not mine.", passAr: "\u0627\u0644\u062c\u0645\u0644\u0629 \u0627\u0644\u0631\u0627\u0628\u0637\u0629 \u0648\u064f\u062c\u062f\u062a \u0648\u0643\u0627\u0646\u062a \u062c\u0645\u0644\u062a\u0647\u0627 \u0644\u0627 \u062c\u0645\u0644\u062a\u064a." },
     goal: { en: 'GERNAC, CAFWS and MISBAR, each without notes.', ar: 'GERNAC وCAFWS وMISBAR كل واحد بلا ورقة.' },
     canSay: 'All three of her real projects, five sentences each, no hesitation.',
     chunks: [
@@ -1407,6 +1560,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 42, phase: 4, tag: 'Review', tagAr: 'مراجعة',
     title: 'Week 7 review — the full talk', titleAr: 'مراجعة الأسبوع السابع — العرض الكامل',
+    warm: { open: { en: "Stand up. Say your opening.", ar: "\u0642\u0641\u064a. \u0642\u0648\u0644\u064a \u0627\u0641\u062a\u062a\u0627\u062d\u064a\u062a\u0643." } },
+    exit: { task: "Five minutes standing \u2014 interrupted, timed and questioned.", taskAr: "\u062e\u0645\u0633 \u062f\u0642\u0627\u0626\u0642 \u0648\u0627\u0642\u0641\u0629 \u2014 \u0645\u0642\u0627\u0637\u064e\u0639\u0629 \u0648\u0645\u0624\u0642\u064e\u0651\u062a\u0629 \u0648\u0645\u0633\u0624\u0648\u0644\u0629.",
+      pass: "Five minutes, the shape held, and she closed on the ask.", passAr: "\u062e\u0645\u0633 \u062f\u0642\u0627\u0626\u0642\u060c \u0635\u0645\u062f \u0627\u0644\u0642\u0627\u0644\u0628\u060c \u0648\u062e\u062a\u0645\u062a \u0628\u0627\u0644\u0637\u0644\u0628." },
     goal: { en: 'Deliver a five-minute talk, standing up.', ar: 'تقديم عرض من خمس دقائق واقفة.' },
     canSay: 'Opening, three sections, close — five minutes, standing.',
     chunks: [ { en: 'No new phrases. She stands up and delivers.', ar: 'لا عبارات جديدة. تقف وتقدّم.' } ],
@@ -1431,6 +1587,9 @@ export const LESSONS: Lesson[] = [
   /* ═══ WEEK 8 ═══ */
   { no: 43, phase: 4, tag: 'Questions', tagAr: 'الأسئلة',
     title: 'Surviving the questions', titleAr: 'النجاة من الأسئلة',
+    warm: { open: { en: "Ask me a question I cannot answer.", ar: "\u0627\u0633\u0623\u0644\u064a\u0646\u064a \u0633\u0624\u0627\u0644\u0627\u064b \u0644\u0627 \u0623\u0633\u062a\u0637\u064a\u0639 \u0625\u062c\u0627\u0628\u062a\u0647." } },
+    exit: { task: "Take six questions. One hostile, one impossible.", taskAr: "\u0627\u0633\u062a\u0642\u0628\u0644\u064a \u0633\u062a\u0629 \u0623\u0633\u0626\u0644\u0629. \u0648\u0627\u062d\u062f \u0639\u062f\u0627\u0626\u064a \u0648\u0648\u0627\u062d\u062f \u0645\u0633\u062a\u062d\u064a\u0644.",
+      pass: "She invented nothing, and she closed the exchange herself.", passAr: "\u0644\u0645 \u062a\u062e\u062a\u0644\u0642 \u0634\u064a\u0626\u0627\u064b \u0648\u0623\u063a\u0644\u0642\u062a \u0627\u0644\u062a\u0628\u0627\u062f\u0644 \u0628\u0646\u0641\u0633\u0647\u0627." },
     goal: { en: 'Handle hard questions, including ones you cannot answer.', ar: 'التعامل مع الأسئلة الصعبة، حتى ما لا تعرفينه.' },
     canSay: "That's a good question — I don't have the figure with me, but I'll send it after.",
     chunks: [
@@ -1463,6 +1622,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 44, phase: 4, tag: 'Networking', tagAr: 'التواصل',
     title: 'The coffee break — where the work happens', titleAr: 'استراحة القهوة — حيث تُصنع الفرص',
+    warm: { open: { en: "Introduce yourself to me in one line.", ar: "\u0639\u0631\u0651\u0641\u064a \u0628\u0646\u0641\u0633\u0643 \u0641\u064a \u0633\u0637\u0631 \u0648\u0627\u062d\u062f." } },
+    exit: { task: "Ninety seconds at a coffee break that ends in a next step.", taskAr: "\u062a\u0633\u0639\u0648\u0646 \u062b\u0627\u0646\u064a\u0629 \u0641\u064a \u0627\u0633\u062a\u0631\u0627\u062d\u0629 \u0642\u0647\u0648\u0629 \u062a\u0646\u062a\u0647\u064a \u0628\u062e\u0637\u0648\u0629 \u062a\u0627\u0644\u064a\u0629.",
+      pass: "Specific compliment, shared problem, and the smallest possible ask.", passAr: "\u0645\u062f\u064a\u062d \u0645\u062d\u062f\u062f \u0648\u0645\u0634\u0643\u0644\u0629 \u0645\u0634\u062a\u0631\u0643\u0629 \u0648\u0623\u0635\u063a\u0631 \u0637\u0644\u0628 \u0645\u0645\u0643\u0646." },
     goal: { en: 'Start, hold and leave a conversation at a conference.', ar: 'بدء محادثة في مؤتمر والاستمرار فيها وإنهاؤها.' },
     canSay: "I really enjoyed your talk. I'm working on something similar in Morocco.",
     chunks: [
@@ -1495,6 +1657,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 45, phase: 4, tag: 'Chairing', tagAr: 'إدارة الجلسة',
     title: 'Chairing a session or a workshop', titleAr: 'إدارة جلسة أو ورشة',
+    warm: { open: { en: "Welcome the room. One sentence.", ar: "\u0631\u062d\u0651\u0628\u064a \u0628\u0627\u0644\u0642\u0627\u0639\u0629. \u062c\u0645\u0644\u0629 \u0648\u0627\u062d\u062f\u0629." } },
+    exit: { task: "Chair a session where a speaker overruns and a questioner makes a speech.", taskAr: "\u062a\u0631\u0623\u0651\u0633\u064a \u062c\u0644\u0633\u0629 \u0641\u064a\u0647\u0627 \u0645\u062a\u062d\u062f\u062b \u064a\u062a\u062c\u0627\u0648\u0632 \u0648\u0633\u0627\u0626\u0644 \u064a\u062e\u0637\u0628.",
+      pass: "Time announced, speaker cut with a reason, question extracted in five words.", passAr: "\u0648\u0642\u062a \u0645\u0639\u0644\u0646 \u0648\u0645\u062a\u062d\u062f\u062b \u0642\u064f\u0637\u0639 \u0628\u0633\u0628\u0628 \u0648\u0633\u0624\u0627\u0644 \u0627\u0633\u062a\u064f\u062e\u0631\u062c \u0641\u064a \u062e\u0645\u0633 \u0643\u0644\u0645\u0627\u062a." },
     goal: { en: 'Run a room, not just speak in it.', ar: 'إدارة القاعة لا الكلام فيها فقط.' },
     canSay: 'Welcome, everyone. We have three speakers today, and we finish at four.',
     chunks: [
@@ -1519,6 +1684,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 46, phase: 4, tag: 'Teaching', tagAr: 'التدريب',
     title: 'Training and explaining to a class', titleAr: 'التدريب والشرح لمجموعة',
+    warm: { open: { en: "Teach me one thing. Thirty seconds.", ar: "\u0639\u0644\u0651\u0645\u064a\u0646\u064a \u0634\u064a\u0626\u0627\u064b \u0648\u0627\u062d\u062f\u0627\u064b. \u062b\u0644\u0627\u062b\u0648\u0646 \u062b\u0627\u0646\u064a\u0629." } },
+    exit: { task: "Train a room where four laptops fail and two people are lost.", taskAr: "\u062f\u0631\u0651\u0628\u064a \u0642\u0627\u0639\u0629 \u0641\u064a\u0647\u0627 \u0623\u0631\u0628\u0639\u0629 \u062d\u0648\u0627\u0633\u064a\u0628 \u0645\u0639\u0637\u0644\u0629 \u0648\u0634\u062e\u0635\u0627\u0646 \u062a\u0627\u0626\u0647\u0627\u0646.",
+      pass: "Destination first, one instruction at a time, hands up \u2014 never 'OK?'", passAr: "\u0627\u0644\u0648\u062c\u0647\u0629 \u0623\u0648\u0644\u0627\u064b \u0648\u062a\u0639\u0644\u064a\u0645\u0629 \u0648\u0627\u062d\u062f\u0629 \u0643\u0644 \u0645\u0631\u0629 \u0648\u0623\u064a\u062f\u064d \u0645\u0631\u0641\u0648\u0639\u0629 \u2014 \u0644\u0627 \u00ab\u062a\u0645\u0627\u0645\u061f\u00bb" },
     goal: { en: 'Deliver training in English — a real part of her job.', ar: 'تقديم تدريب بالإنجليزية — جزء حقيقي من عملها.' },
     canSay: 'Today we are going to learn how to open the data in QGIS.',
     chunks: [
@@ -1544,6 +1712,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 47, phase: 4, tag: 'Your pitch', tagAr: 'عرضك',
     title: 'Your three-minute pitch', titleAr: 'عرضك في ثلاث دقائق',
+    warm: { open: { en: "Three minutes. Go.", ar: "\u062b\u0644\u0627\u062b \u062f\u0642\u0627\u0626\u0642. \u0627\u0628\u062f\u0626\u064a." } },
+    exit: { task: "Pitch to someone who interrupts you three times.", taskAr: "\u0627\u0639\u0631\u0636\u064a \u0639\u0644\u0649 \u0634\u062e\u0635 \u064a\u0642\u0627\u0637\u0639\u0643 \u062b\u0644\u0627\u062b \u0645\u0631\u0627\u062a.",
+      pass: "The shape returned every time, and she named exactly what she wants.", passAr: "\u0639\u0627\u062f \u0627\u0644\u0642\u0627\u0644\u0628 \u0641\u064a \u0643\u0644 \u0645\u0631\u0629 \u0648\u0633\u0645\u0651\u062a \u0645\u0627 \u062a\u0631\u064a\u062f\u0647 \u0628\u062f\u0642\u0629." },
     goal: { en: 'The talk you will actually give.', ar: 'العرض الذي ستقدّمينه فعلاً.' },
     canSay: 'Who you are, what you do, one project, and what you want — in three minutes.',
     chunks: [
@@ -1571,6 +1742,9 @@ export const LESSONS: Lesson[] = [
 
   { no: 48, phase: 4, tag: 'Day 48', tagAr: 'اليوم ٤٨',
     title: 'Listen to day 24. Then talk.', titleAr: 'استمعي إلى اليوم ٢٤. ثم تكلّمي.',
+    warm: { open: { en: "Say nothing yet. Listen to the day-24 recording first.", ar: "\u0644\u0627 \u062a\u0642\u0648\u0644\u064a \u0634\u064a\u0626\u0627\u064b \u0628\u0639\u062f. \u0627\u0633\u062a\u0645\u0639\u064a \u0644\u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u064a\u0648\u0645 24 \u0623\u0648\u0644\u0627\u064b." } },
+    exit: { task: "Record the same ten minutes as day 24, then play them back to back.", taskAr: "\u0633\u062c\u0651\u0644\u064a \u0627\u0644\u0639\u0634\u0631 \u062f\u0642\u0627\u0626\u0642 \u0646\u0641\u0633\u0647\u0627 \u062b\u0645 \u0634\u063a\u0651\u0644\u064a \u0627\u0644\u062a\u0633\u062c\u064a\u0644\u064a\u0646 \u0645\u062a\u062a\u0627\u0644\u064a\u064a\u0646.",
+      pass: "She heard the difference herself, without the teacher pointing at it.", passAr: "\u0633\u0645\u0639\u062a \u0627\u0644\u0641\u0631\u0642 \u0628\u0646\u0641\u0633\u0647\u0627 \u062f\u0648\u0646 \u0623\u0646 \u064a\u0634\u064a\u0631 \u0627\u0644\u0645\u0639\u0644\u0651\u0645 \u0625\u0644\u064a\u0647." },
     goal: { en: 'Hear the difference, and know what to do next.', ar: 'سماع الفرق ومعرفة الخطوة التالية.' },
     canSay: 'Everything. Unprompted, for fifteen minutes.',
     chunks: [
@@ -1596,3 +1770,51 @@ export const LESSONS: Lesson[] = [
 
 /** Sorted teaching order. */
 export const ORDERED = [...LESSONS].sort((a, b) => a.no - b.no)
+
+
+/** THE SIXTY-MINUTE CLOCK.
+ *
+ *  Order matters more than content here. Recall comes before teaching, input
+ *  before output, and the two biggest blocks — the conversation and the hot
+ *  seat — sit at 20 of the 60 minutes because they are the only stages where
+ *  she is producing language under pressure. The exit check is deliberately
+ *  the last thing before homework, so it cannot be skipped when time is short.
+ *
+ *  `mins` is a budget, not a rule. But a teacher who runs 12 minutes over on
+ *  the phrases will cut the hot seat, and cutting the hot seat is how a
+ *  speaking course quietly turns into a vocabulary course. */
+export const STAGE_PLAN: { key: string; label: string; ar: string; mins: number; why: string }[] = [
+  { key: 'warmup',   label: 'Warm-up',      ar: 'إحماء',        mins: 5,  why: 'She speaks before anything is taught. Correct nothing here.' },
+  { key: 'goal',     label: 'Mission',      ar: 'المهمة',       mins: 2,  why: 'Tell her the exit check now, so she knows what she is aiming at.' },
+  { key: 'model',    label: 'Model',        ar: 'النموذج',      mins: 4,  why: 'Hear it done well before trying it. Input before output.' },
+  { key: 'chunks',   label: 'Phrases',      ar: 'العبارات',     mins: 8,  why: 'Say the phrase, do not explain it.' },
+  { key: 'vocab',    label: 'Her words',    ar: 'كلماتها',      mins: 4,  why: 'Vocabulary from her own field, not from a textbook.' },
+  { key: 'depth',    label: 'Nuance',       ar: 'الدقائق',      mins: 3,  why: 'The small difference that makes her sound senior.' },
+  { key: 'drill',    label: 'Drill',        ar: 'التمرين',      mins: 7,  why: 'Fast, accurate, teacher-led. Speed is the target.' },
+  { key: 'dialogue', label: 'Conversation', ar: 'الحوار',       mins: 12, why: 'Run it twice — once to read, once against the watch note.' },
+  { key: 'hotseat',  label: 'Hot seat',     ar: 'الأسئلة',      mins: 8,  why: 'No notes, no warning. This is the part that transfers.' },
+  { key: 'speech',   label: 'Say it all',   ar: 'قوليها كاملة', mins: 4,  why: 'Record it. It is tomorrow\'s evidence.' },
+  { key: 'exit',     label: 'Exit check',   ar: 'اختبار الخروج', mins: 2, why: 'Pass or repeat tomorrow. Never skip this when time is short.' },
+  { key: 'homework', label: 'Homework',     ar: 'الواجب',       mins: 1,  why: 'It becomes the first five minutes of the next lesson.' },
+]
+
+/** Recall for the warm-up, derived from the course rather than stored, so it
+ *  can never fall out of step with the lessons it points at. `back` is
+ *  yesterday; `far` is one week ago, which is roughly where a phrase starts to
+ *  disappear if it is never touched again. */
+export function warmUpFor(no: number): { back: { en: string; ar: string; from: number }[]; far?: { en: string; ar: string; from: number } } {
+  const pick = (n: number, count: number) => {
+    const l = LESSONS.find(x => x.no === n)
+    if (!l) return []
+    // Review days carry instructions rather than phrases ("No new phrases
+    // today", "Greet → small talk → …"). They are not sayable, so they must
+    // never surface as something she has to use.
+    return l.chunks
+      .filter(c => c.en.length < 60 && !c.en.startsWith('No new') && !c.en.includes('→') && !c.en.startsWith('Play her'))
+      .slice(0, count)
+      .map(c => ({ en: c.en, ar: c.ar, from: n }))
+  }
+  const back = pick(no - 1, 3)
+  const far  = pick(no - 6, 1)[0]
+  return { back, far }
+}
