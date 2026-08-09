@@ -482,6 +482,43 @@ function LessonSlide({ lesson, step, colour }: { lesson: Lesson; step: Step; col
             Say each word three times and move on. No sentences yet, no explanations, no grammar. This
             step is only for getting the sounds into her mouth.
           </p>
+
+          {/* The bank — the whole family around each core word, so she has room to speak. */}
+          {lesson.bank && lesson.bank.length > 0 && (
+            <div className="pt-2">
+              <div className="flex items-baseline gap-2 mb-1">
+                <h3 className="text-[19px] font-black">More ways to say it</h3>
+                <span dir="rtl" className="text-stone-400 font-bold text-[14px]" style={{ fontFamily: "'Tajawal', sans-serif" }}>
+                  طرق أخرى للقول
+                </span>
+              </div>
+              <p className="text-[12.5px] text-stone-500 mb-3">
+                Not tested, and not to be learned by heart. Read them together, let her point at the ones
+                that are hers, and use those in step 4. The eight words above are the lesson; these are so
+                she has something to choose from.
+              </p>
+              <div className="space-y-3">
+                {lesson.bank.map(g => (
+                  <div key={g.title} className="rounded-xl border p-4" style={{ borderColor: LINE, background: CARD }}>
+                    <div className="flex items-baseline gap-2 mb-2.5">
+                      <span className="text-[13px] font-black uppercase tracking-wide" style={{ color: colour }}>{g.title}</span>
+                      <span dir="rtl" className="text-stone-400 font-bold text-[12px]" style={{ fontFamily: "'Tajawal', sans-serif" }}>{g.titleAr}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {g.items.map(it => (
+                        <span key={it.en}
+                              className="inline-flex items-baseline gap-1.5 rounded-lg bg-white border px-2.5 py-1.5"
+                              style={{ borderColor: LINE }}>
+                          <span className="text-[15px] font-black leading-none">{it.en}</span>
+                          <span dir="rtl" className="text-[12.5px] text-stone-500 leading-none" style={{ fontFamily: "'Tajawal', sans-serif" }}>{it.ar}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

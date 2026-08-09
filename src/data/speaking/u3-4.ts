@@ -27,6 +27,13 @@ export const U3_4: Lesson[] = [
     { en: "and you?", ar: "وأنت؟", say: "and YOO" },
     { en: "here", ar: "هنا", say: "HEER" },
   ],
+  bank: [
+    { title: "Where you are from", titleAr: "\u0645\u0646 \u0623\u064a\u0646 \u0623\u0646\u062a",
+      items: [{ en: "Moroccan", ar: "\u0645\u063a\u0631\u0628\u064a\u0629" }, { en: "French", ar: "\u0641\u0631\u0646\u0633\u064a" }, { en: "English", ar: "\u0625\u0646\u062c\u0644\u064a\u0632\u064a" }, { en: "Spanish", ar: "\u0625\u0633\u0628\u0627\u0646\u064a" }, { en: "Italian", ar: "\u0625\u064a\u0637\u0627\u0644\u064a" }, { en: "German", ar: "\u0623\u0644\u0645\u0627\u0646\u064a" }, { en: "American", ar: "\u0623\u0645\u0631\u064a\u0643\u064a" }, { en: "Egyptian", ar: "\u0645\u0635\u0631\u064a" }, { en: "Senegalese", ar: "\u0633\u0646\u063a\u0627\u0644\u064a" }, { en: "Ivorian", ar: "\u0625\u064a\u0641\u0648\u0627\u0631\u064a" }, { en: "my family is from", ar: "\u0639\u0627\u0626\u0644\u062a\u064a \u0645\u0646" }, { en: "I grew up in", ar: "\u0646\u0634\u0623\u062a \u0641\u064a" }] },
+    { title: "Jobs", titleAr: "\u0627\u0644\u0645\u0647\u0646",
+      items: [{ en: "an engineer", ar: "\u0645\u0647\u0646\u062f\u0633" }, { en: "a doctor", ar: "\u0637\u0628\u064a\u0628" }, { en: "a teacher", ar: "\u0645\u0639\u0644\u0651\u0645" }, { en: "a nurse", ar: "\u0645\u0645\u0631\u0636\u0629" }, { en: "a lawyer", ar: "\u0645\u062d\u0627\u0645\u064d" }, { en: "an accountant", ar: "\u0645\u062d\u0627\u0633\u0628" }, { en: "a manager", ar: "\u0645\u062f\u064a\u0631" }, { en: "a student", ar: "\u0637\u0627\u0644\u0628" }, { en: "a farmer", ar: "\u0645\u0632\u0627\u0631\u0639" }, { en: "a driver", ar: "\u0633\u0627\u0626\u0642" }, { en: "a journalist", ar: "\u0635\u062d\u0641\u064a" }, { en: "a researcher", ar: "\u0628\u0627\u062d\u062b" }] },
+    { title: "Opening lines", titleAr: "\u062c\u0645\u0644 \u0627\u0644\u0628\u062f\u0627\u064a\u0629",
+      items: [{ en: "nice to meet you", ar: "\u0633\u064f\u0631\u0631\u062a \u0628\u0644\u0642\u0627\u0626\u0643" }, { en: "how do you do", ar: "\u062a\u0634\u0631\u0641\u0646\u0627" }, { en: "I am here for a few days", ar: "\u0623\u0646\u0627 \u0647\u0646\u0627 \u0644\u0623\u064a\u0627\u0645" }, { en: "is this your first time here", ar: "\u0623\u0647\u0630\u0647 \u0623\u0648\u0644 \u0645\u0631\u0629 \u0644\u0643" }, { en: "what brings you here", ar: "\u0645\u0627 \u0627\u0644\u0630\u064a \u0623\u062a\u0649 \u0628\u0643" }, { en: "and what about you", ar: "\u0648\u0645\u0627\u0630\u0627 \u0639\u0646\u0643" }] } ],
   sentences: [
     { en: "Hello. My name is Salma.", ar: "مرحباً. اسمي سلمى.", use: "the first three seconds" },
     { en: "I am from Morocco.", ar: "أنا من المغرب.", use: "country, not city" },
@@ -94,6 +101,11 @@ export const U3_4: Lesson[] = [
     { en: "a teacher", ar: "معلّم", say: "uh TEE-cher" },
     { en: "at university", ar: "في الجامعة", say: "yoo-ni-VUR-si-tee" },
   ],
+  bank: [
+    { title: "Your family", titleAr: "\u0639\u0627\u0626\u0644\u062a\u0643",
+      items: [{ en: "my husband", ar: "\u0632\u0648\u062c\u064a" }, { en: "my wife", ar: "\u0632\u0648\u062c\u062a\u064a" }, { en: "my son", ar: "\u0627\u0628\u0646\u064a" }, { en: "my daughter", ar: "\u0627\u0628\u0646\u062a\u064a" }, { en: "my brother", ar: "\u0623\u062e\u064a" }, { en: "my sister", ar: "\u0623\u062e\u062a\u064a" }, { en: "my mother", ar: "\u0623\u0645\u064a" }, { en: "my father", ar: "\u0623\u0628\u064a" }, { en: "my parents", ar: "\u0648\u0627\u0644\u062f\u0627\u064a" }, { en: "my grandmother", ar: "\u062c\u062f\u062a\u064a" }, { en: "my aunt", ar: "\u062e\u0627\u0644\u062a\u064a" }, { en: "my uncle", ar: "\u062e\u0627\u0644\u064a" }, { en: "my cousin", ar: "\u0627\u0628\u0646 \u0639\u0645\u064a" }, { en: "my nephew", ar: "\u0627\u0628\u0646 \u0623\u062e\u064a" }] },
+    { title: "Saying more about them", titleAr: "\u0627\u0644\u0645\u0632\u064a\u062f \u0639\u0646\u0647\u0645",
+      items: [{ en: "single", ar: "\u0623\u0639\u0632\u0628" }, { en: "married", ar: "\u0645\u062a\u0632\u0648\u062c" }, { en: "divorced", ar: "\u0645\u0637\u0644\u0651\u0642" }, { en: "retired", ar: "\u0645\u062a\u0642\u0627\u0639\u062f" }, { en: "at school", ar: "\u0641\u064a \u0627\u0644\u0645\u062f\u0631\u0633\u0629" }, { en: "at university", ar: "\u0641\u064a \u0627\u0644\u062c\u0627\u0645\u0639\u0629" }, { en: "a baby", ar: "\u0631\u0636\u064a\u0639" }, { en: "a teenager", ar: "\u0645\u0631\u0627\u0647\u0642" }, { en: "older than me", ar: "\u0623\u0643\u0628\u0631 \u0645\u0646\u064a" }, { en: "younger than me", ar: "\u0623\u0635\u063a\u0631 \u0645\u0646\u064a" }, { en: "we are very close", ar: "\u0646\u062d\u0646 \u0645\u0642\u0631\u0651\u0628\u0627\u0646" }, { en: "I see her every week", ar: "\u0623\u0631\u0627\u0647\u0627 \u0643\u0644 \u0623\u0633\u0628\u0648\u0639" }] } ],
   sentences: [
     { en: "I have two children.", ar: "لديّ طفلان.", use: "number first" },
     { en: "My daughter is eight.", ar: "ابنتي في الثامنة.", use: "ages, without \"years old\"" },
@@ -163,6 +175,11 @@ export const U3_4: Lesson[] = [
     { en: "a garden", ar: "حديقة", say: "uh GAR-dun" },
     { en: "famous for", ar: "مشهور بـ", say: "FAY-mus fer" },
   ],
+  bank: [
+    { title: "Your home", titleAr: "\u0628\u064a\u062a\u0643",
+      items: [{ en: "a flat", ar: "\u0634\u0642\u0629" }, { en: "a house", ar: "\u0628\u064a\u062a" }, { en: "a room", ar: "\u063a\u0631\u0641\u0629" }, { en: "the kitchen", ar: "\u0627\u0644\u0645\u0637\u0628\u062e" }, { en: "the bathroom", ar: "\u0627\u0644\u062d\u0645\u0627\u0645" }, { en: "the bedroom", ar: "\u063a\u0631\u0641\u0629 \u0627\u0644\u0646\u0648\u0645" }, { en: "the living room", ar: "\u063a\u0631\u0641\u0629 \u0627\u0644\u062c\u0644\u0648\u0633" }, { en: "a balcony", ar: "\u0634\u0631\u0641\u0629" }, { en: "a garden", ar: "\u062d\u062f\u064a\u0642\u0629" }, { en: "a garage", ar: "\u0645\u0631\u0622\u0628" }, { en: "upstairs", ar: "\u0627\u0644\u0637\u0627\u0628\u0642 \u0627\u0644\u0639\u0644\u0648\u064a" }, { en: "downstairs", ar: "\u0627\u0644\u0637\u0627\u0628\u0642 \u0627\u0644\u0633\u0641\u0644\u064a" }] },
+    { title: "Your city", titleAr: "\u0645\u062f\u064a\u0646\u062a\u0643",
+      items: [{ en: "the old town", ar: "\u0627\u0644\u0645\u062f\u064a\u0646\u0629 \u0627\u0644\u0642\u062f\u064a\u0645\u0629" }, { en: "the beach", ar: "\u0627\u0644\u0634\u0627\u0637\u0626" }, { en: "the port", ar: "\u0627\u0644\u0645\u064a\u0646\u0627\u0621" }, { en: "the centre", ar: "\u0627\u0644\u0648\u0633\u0637" }, { en: "the suburbs", ar: "\u0627\u0644\u0636\u0648\u0627\u062d\u064a" }, { en: "a museum", ar: "\u0645\u062a\u062d\u0641" }, { en: "a market", ar: "\u0633\u0648\u0642" }, { en: "quiet", ar: "\u0647\u0627\u062f\u0626\u0629" }, { en: "crowded", ar: "\u0645\u0632\u062f\u062d\u0645\u0629" }, { en: "modern", ar: "\u062d\u062f\u064a\u062b\u0629" }, { en: "historic", ar: "\u062a\u0627\u0631\u064a\u062e\u064a\u0629" }, { en: "green", ar: "\u062e\u0636\u0631\u0627\u0621" }] } ],
   sentences: [
     { en: "I live in a small flat.", ar: "أعيش في شقة صغيرة.", use: "adjective in FRONT" },
     { en: "It is near the sea.", ar: "إنها قرب البحر.", use: "one picture" },
@@ -226,6 +243,11 @@ export const U3_4: Lesson[] = [
     { en: "I go to bed", ar: "أنام", say: "go to BED" },
     { en: "usually", ar: "عادةً", say: "YOO-zhoo-lee" },
   ],
+  bank: [
+    { title: "Your day, verb by verb", titleAr: "\u064a\u0648\u0645\u0643 \u0641\u0639\u0644\u0627\u064b \u0628\u0641\u0639\u0644",
+      items: [{ en: "I get up", ar: "\u0623\u0633\u062a\u064a\u0642\u0638" }, { en: "I have a shower", ar: "\u0623\u0633\u062a\u062d\u0645" }, { en: "I have breakfast", ar: "\u0623\u0641\u0637\u0631" }, { en: "I leave the house", ar: "\u0623\u063a\u0627\u062f\u0631 \u0627\u0644\u0628\u064a\u062a" }, { en: "I take the car", ar: "\u0622\u062e\u0630 \u0627\u0644\u0633\u064a\u0627\u0631\u0629" }, { en: "I start work", ar: "\u0623\u0628\u062f\u0623 \u0627\u0644\u0639\u0645\u0644" }, { en: "I have lunch", ar: "\u0623\u062a\u063a\u062f\u0651\u0649" }, { en: "I finish work", ar: "\u0623\u0646\u0647\u064a \u0627\u0644\u0639\u0645\u0644" }, { en: "I get home", ar: "\u0623\u0635\u0644 \u0627\u0644\u0628\u064a\u062a" }, { en: "I cook dinner", ar: "\u0623\u0637\u0628\u062e \u0627\u0644\u0639\u0634\u0627\u0621" }, { en: "I watch television", ar: "\u0623\u0634\u0627\u0647\u062f \u0627\u0644\u062a\u0644\u0641\u0627\u0632" }, { en: "I go to bed", ar: "\u0623\u0646\u0627\u0645" }] },
+    { title: "When", titleAr: "\u0645\u062a\u0649",
+      items: [{ en: "early", ar: "\u0645\u0628\u0643\u0631\u0627\u064b" }, { en: "late", ar: "\u0645\u062a\u0623\u062e\u0631\u0627\u064b" }, { en: "in the morning", ar: "\u0635\u0628\u0627\u062d\u0627\u064b" }, { en: "at midday", ar: "\u0638\u0647\u0631\u0627\u064b" }, { en: "in the afternoon", ar: "\u0628\u0639\u062f \u0627\u0644\u0638\u0647\u0631" }, { en: "in the evening", ar: "\u0645\u0633\u0627\u0621\u064b" }, { en: "at night", ar: "\u0644\u064a\u0644\u0627\u064b" }, { en: "at the weekend", ar: "\u0641\u064a \u0627\u0644\u0639\u0637\u0644\u0629" }, { en: "every day", ar: "\u0643\u0644 \u064a\u0648\u0645" }, { en: "twice a week", ar: "\u0645\u0631\u062a\u064a\u0646 \u0623\u0633\u0628\u0648\u0639\u064a\u0627\u064b" }, { en: "hardly ever", ar: "\u0646\u0627\u062f\u0631\u0627\u064b \u062c\u062f\u0627\u064b" }, { en: "all the time", ar: "\u0637\u0648\u0627\u0644 \u0627\u0644\u0648\u0642\u062a" }] } ],
   sentences: [
     { en: "I get up at six.", ar: "أستيقظ في السادسة.", use: "time first" },
     { en: "I usually have breakfast alone.", ar: "أفطر وحدي عادةً.", use: "usually = your normal" },
@@ -292,6 +314,11 @@ export const U3_4: Lesson[] = [
     { en: "cooking", ar: "الطبخ", say: "KOOK-ing" },
     { en: "because", ar: "لأن", say: "bi-KOZ" },
   ],
+  bank: [
+    { title: "Free time", titleAr: "\u0648\u0642\u062a \u0627\u0644\u0641\u0631\u0627\u063a",
+      items: [{ en: "swimming", ar: "\u0627\u0644\u0633\u0628\u0627\u062d\u0629" }, { en: "reading", ar: "\u0627\u0644\u0642\u0631\u0627\u0621\u0629" }, { en: "cooking", ar: "\u0627\u0644\u0637\u0628\u062e" }, { en: "walking", ar: "\u0627\u0644\u0645\u0634\u064a" }, { en: "travelling", ar: "\u0627\u0644\u0633\u0641\u0631" }, { en: "gardening", ar: "\u0627\u0644\u0628\u0633\u062a\u0646\u0629" }, { en: "shopping", ar: "\u0627\u0644\u062a\u0633\u0648\u0642" }, { en: "watching films", ar: "\u0645\u0634\u0627\u0647\u062f\u0629 \u0627\u0644\u0623\u0641\u0644\u0627\u0645" }, { en: "listening to music", ar: "\u0633\u0645\u0627\u0639 \u0627\u0644\u0645\u0648\u0633\u064a\u0642\u0649" }, { en: "seeing friends", ar: "\u0644\u0642\u0627\u0621 \u0627\u0644\u0623\u0635\u062f\u0642\u0627\u0621" }, { en: "running", ar: "\u0627\u0644\u062c\u0631\u064a" }, { en: "doing nothing", ar: "\u0644\u0627 \u0634\u064a\u0621" }] },
+    { title: "How much you like it", titleAr: "\u0645\u0642\u062f\u0627\u0631 \u062d\u0628\u0643 \u0644\u0647",
+      items: [{ en: "I love", ar: "\u0623\u062d\u0628 \u0643\u062b\u064a\u0631\u0627\u064b" }, { en: "I really like", ar: "\u0623\u062d\u0628 \u0641\u0639\u0644\u0627\u064b" }, { en: "I quite like", ar: "\u0623\u062d\u0628 \u0646\u0648\u0639\u0627\u064b \u0645\u0627" }, { en: "I do not mind", ar: "\u0644\u0627 \u064a\u0647\u0645\u0646\u064a" }, { en: "I am not keen on", ar: "\u0644\u0627 \u0623\u0645\u064a\u0644 \u0625\u0644\u0649" }, { en: "I do not like", ar: "\u0644\u0627 \u0623\u062d\u0628" }, { en: "I hate", ar: "\u0623\u0643\u0631\u0647" }, { en: "it is relaxing", ar: "\u0645\u0631\u064a\u062d" }, { en: "it is boring", ar: "\u0645\u0645\u0644" }, { en: "it is interesting", ar: "\u0645\u062b\u064a\u0631" }, { en: "it is tiring", ar: "\u0645\u064f\u062a\u0639\u0650\u0628" }, { en: "it is fun", ar: "\u0645\u0645\u062a\u0639" }] } ],
   sentences: [
     { en: "I love swimming.", ar: "أحب السباحة.", use: "verb + -ing after like" },
     { en: "I do not like cooking.", ar: "لا أحب الطبخ.", use: "the negative" },
@@ -349,6 +376,9 @@ export const U3_4: Lesson[] = [
   warm: { en: "Nothing new. Tell me who you are, and do not stop until I say.",
           ar: "لا جديد. أخبريني من أنت ولا تتوقفي حتى أقول." },
   words: [{ en: "No new words today.", ar: "لا كلمات جديدة اليوم." }],
+  bank: [
+    { title: "Everything from unit 3", titleAr: "\u0643\u0644 \u0645\u0627 \u0641\u064a \u0627\u0644\u0648\u062d\u062f\u0629 \u0627\u0644\u062b\u0627\u0644\u062b\u0629",
+      items: [{ en: "my name is", ar: "\u0627\u0633\u0645\u064a" }, { en: "I am from", ar: "\u0623\u0646\u0627 \u0645\u0646" }, { en: "I am an engineer", ar: "\u0623\u0646\u0627 \u0645\u0647\u0646\u062f\u0633\u0629" }, { en: "I have two children", ar: "\u0644\u062f\u064a\u0651 \u0637\u0641\u0644\u0627\u0646" }, { en: "my husband works in", ar: "\u0632\u0648\u062c\u064a \u064a\u0639\u0645\u0644 \u0641\u064a" }, { en: "I live in a small flat", ar: "\u0623\u0639\u064a\u0634 \u0641\u064a \u0634\u0642\u0629 \u0635\u063a\u064a\u0631\u0629" }, { en: "I usually get up at six", ar: "\u0623\u0633\u062a\u064a\u0642\u0638 \u0639\u0627\u062f\u0629\u064b \u0641\u064a \u0627\u0644\u0633\u0627\u062f\u0633\u0629" }, { en: "I love swimming", ar: "\u0623\u062d\u0628 \u0627\u0644\u0633\u0628\u0627\u062d\u0629" }, { en: "and what about you", ar: "\u0648\u0645\u0627\u0630\u0627 \u0639\u0646\u0643" }] } ],
   sentences: [
     { en: "My name is Salma and I am from Rabat.", ar: "اسمي سلمى وأنا من الرباط.", use: "day 13" },
     { en: "I am married and I have two children.", ar: "أنا متزوجة ولديّ طفلان.", use: "day 14" },
@@ -412,6 +442,11 @@ export const U3_4: Lesson[] = [
     { en: "we stayed", ar: "بقينا", say: "wee STAYD" },
     { en: "nothing special", ar: "لا شيء مميز", say: "NUTH-ing SPESH-ul" },
   ],
+  bank: [
+    { title: "The past of the verbs you know", titleAr: "\u0645\u0627\u0636\u064a \u0627\u0644\u0623\u0641\u0639\u0627\u0644 \u0627\u0644\u062a\u064a \u062a\u0639\u0631\u0641\u064a\u0646\u0647\u0627",
+      items: [{ en: "go \u2192 went", ar: "\u0630\u0647\u0628" }, { en: "see \u2192 saw", ar: "\u0631\u0623\u0649" }, { en: "have \u2192 had", ar: "\u062a\u0646\u0627\u0648\u0644/\u0627\u0645\u062a\u0644\u0643" }, { en: "be \u2192 was, were", ar: "\u0643\u0627\u0646" }, { en: "do \u2192 did", ar: "\u0641\u0639\u0644" }, { en: "eat \u2192 ate", ar: "\u0623\u0643\u0644" }, { en: "take \u2192 took", ar: "\u0623\u062e\u0630" }, { en: "buy \u2192 bought", ar: "\u0627\u0634\u062a\u0631\u0649" }, { en: "come \u2192 came", ar: "\u062c\u0627\u0621" }, { en: "make \u2192 made", ar: "\u0635\u0646\u0639" }, { en: "meet \u2192 met", ar: "\u0642\u0627\u0628\u0644" }, { en: "get \u2192 got", ar: "\u062d\u0635\u0644" }, { en: "give \u2192 gave", ar: "\u0623\u0639\u0637\u0649" }, { en: "say \u2192 said", ar: "\u0642\u0627\u0644" }] },
+    { title: "Weekend words", titleAr: "\u0643\u0644\u0645\u0627\u062a \u0627\u0644\u0639\u0637\u0644\u0629",
+      items: [{ en: "at home", ar: "\u0641\u064a \u0627\u0644\u0628\u064a\u062a" }, { en: "away", ar: "\u062e\u0627\u0631\u062c \u0627\u0644\u0645\u062f\u064a\u0646\u0629" }, { en: "a trip", ar: "\u0631\u062d\u0644\u0629" }, { en: "a visit", ar: "\u0632\u064a\u0627\u0631\u0629" }, { en: "with friends", ar: "\u0645\u0639 \u0623\u0635\u062f\u0642\u0627\u0621" }, { en: "with family", ar: "\u0645\u0639 \u0627\u0644\u0639\u0627\u0626\u0644\u0629" }, { en: "nothing special", ar: "\u0644\u0627 \u0634\u064a\u0621 \u0645\u0645\u064a\u0632" }, { en: "quiet", ar: "\u0647\u0627\u062f\u0626\u0629" }, { en: "busy", ar: "\u0645\u0632\u062f\u062d\u0645\u0629" }, { en: "relaxing", ar: "\u0645\u0631\u064a\u062d\u0629" }, { en: "we stayed in", ar: "\u0628\u0642\u064a\u0646\u0627 \u0641\u064a \u0627\u0644\u0628\u064a\u062a" }, { en: "we went out", ar: "\u062e\u0631\u062c\u0646\u0627" }] } ],
   sentences: [
     { en: "I went to my sister's house.", ar: "ذهبت إلى بيت أختي.", use: "the main past sentence" },
     { en: "We stayed at home.", ar: "بقينا في البيت.", use: "an honest answer" },
@@ -480,6 +515,11 @@ export const U3_4: Lesson[] = [
     { en: "in the end", ar: "في النهاية", say: "in the END" },
     { en: "you will not believe", ar: "لن تصدّق", say: "yoo wohnt bi-LEEV" },
   ],
+  bank: [
+    { title: "Story words", titleAr: "\u0643\u0644\u0645\u0627\u062a \u0627\u0644\u0642\u0635\u0629",
+      items: [{ en: "suddenly", ar: "\u0641\u062c\u0623\u0629" }, { en: "luckily", ar: "\u0644\u062d\u0633\u0646 \u0627\u0644\u062d\u0638" }, { en: "unfortunately", ar: "\u0644\u0633\u0648\u0621 \u0627\u0644\u062d\u0638" }, { en: "at first", ar: "\u0641\u064a \u0627\u0644\u0628\u062f\u0627\u064a\u0629" }, { en: "in the end", ar: "\u0641\u064a \u0627\u0644\u0646\u0647\u0627\u064a\u0629" }, { en: "after that", ar: "\u0628\u0639\u062f \u0630\u0644\u0643" }, { en: "a few minutes later", ar: "\u0628\u0639\u062f \u062f\u0642\u0627\u0626\u0642" }, { en: "the next day", ar: "\u0641\u064a \u0627\u0644\u064a\u0648\u0645 \u0627\u0644\u062a\u0627\u0644\u064a" }, { en: "meanwhile", ar: "\u0641\u064a \u0627\u0644\u0623\u062b\u0646\u0627\u0621" }, { en: "you will not believe", ar: "\u0644\u0646 \u062a\u0635\u062f\u0651\u0642" }] },
+    { title: "Things that go wrong", titleAr: "\u0645\u0627 \u064a\u0633\u0648\u0621",
+      items: [{ en: "I lost", ar: "\u0623\u0636\u0639\u062a" }, { en: "I forgot", ar: "\u0646\u0633\u064a\u062a" }, { en: "I missed", ar: "\u0641\u0627\u062a\u0646\u064a" }, { en: "it broke", ar: "\u0627\u0646\u0643\u0633\u0631" }, { en: "it was closed", ar: "\u0643\u0627\u0646 \u0645\u063a\u0644\u0642\u0627\u064b" }, { en: "it was late", ar: "\u0643\u0627\u0646 \u0645\u062a\u0623\u062e\u0631\u0627\u064b" }, { en: "I could not find", ar: "\u0644\u0645 \u0623\u062c\u062f" }, { en: "nobody answered", ar: "\u0644\u0645 \u064a\u062c\u0628 \u0623\u062d\u062f" }, { en: "it did not work", ar: "\u0644\u0645 \u064a\u0639\u0645\u0644" }, { en: "I was stuck", ar: "\u0639\u0644\u0642\u062a" }] } ],
   sentences: [
     { en: "You will not believe what happened.", ar: "لن تصدّق ما حدث.", use: "announcing a story" },
     { en: "It started at five in the morning.", ar: "بدأ في الخامسة صباحاً.", use: "a time opens it" },
@@ -549,6 +589,11 @@ export const U3_4: Lesson[] = [
     { en: "free", ar: "متفرغ", say: "FREE" },
     { en: "busy", ar: "مشغول", say: "BIZ-ee" },
   ],
+  bank: [
+    { title: "When", titleAr: "\u0645\u062a\u0649",
+      items: [{ en: "tomorrow", ar: "\u063a\u062f\u0627\u064b" }, { en: "the day after tomorrow", ar: "\u0628\u0639\u062f \u063a\u062f" }, { en: "next week", ar: "\u0627\u0644\u0623\u0633\u0628\u0648\u0639 \u0627\u0644\u0642\u0627\u062f\u0645" }, { en: "next month", ar: "\u0627\u0644\u0634\u0647\u0631 \u0627\u0644\u0642\u0627\u062f\u0645" }, { en: "in two days", ar: "\u0628\u0639\u062f \u064a\u0648\u0645\u064a\u0646" }, { en: "at the weekend", ar: "\u0641\u064a \u0627\u0644\u0639\u0637\u0644\u0629" }, { en: "this evening", ar: "\u0647\u0630\u0627 \u0627\u0644\u0645\u0633\u0627\u0621" }, { en: "soon", ar: "\u0642\u0631\u064a\u0628\u0627\u064b" }, { en: "later", ar: "\u0644\u0627\u062d\u0642\u0627\u064b" }, { en: "in the summer", ar: "\u0641\u064a \u0627\u0644\u0635\u064a\u0641" }, { en: "in a few weeks", ar: "\u0628\u0639\u062f \u0623\u0633\u0627\u0628\u064a\u0639" }, { en: "at the end of the month", ar: "\u0646\u0647\u0627\u064a\u0629 \u0627\u0644\u0634\u0647\u0631" }] },
+    { title: "How sure you are", titleAr: "\u0645\u062f\u0649 \u062a\u0623\u0643\u062f\u0643",
+      items: [{ en: "definitely", ar: "\u0628\u0627\u0644\u062a\u0623\u0643\u064a\u062f" }, { en: "it is booked", ar: "\u0645\u062d\u062c\u0648\u0632" }, { en: "probably", ar: "\u0639\u0644\u0649 \u0627\u0644\u0623\u0631\u062c\u062d" }, { en: "I think so", ar: "\u0623\u0638\u0646 \u0630\u0644\u0643" }, { en: "maybe", ar: "\u0631\u0628\u0645\u0627" }, { en: "possibly", ar: "\u0645\u0646 \u0627\u0644\u0645\u0645\u0643\u0646" }, { en: "it depends", ar: "\u064a\u0639\u062a\u0645\u062f" }, { en: "I am not sure yet", ar: "\u0644\u0633\u062a \u0645\u062a\u0623\u0643\u062f\u0629 \u0628\u0639\u062f" }, { en: "nothing is fixed", ar: "\u0644\u0627 \u0634\u064a\u0621 \u0645\u062d\u062f\u062f" }, { en: "I hope so", ar: "\u0622\u0645\u0644 \u0630\u0644\u0643" }, { en: "I would like to", ar: "\u0623\u0648\u062f \u0630\u0644\u0643" }, { en: "probably not", ar: "\u0639\u0644\u0649 \u0627\u0644\u0623\u0631\u062c\u062d \u0644\u0627" }] } ],
   sentences: [
     { en: "I am going to Casablanca on Friday.", ar: "سأذهب إلى الدار البيضاء الجمعة.", use: "arranged — a ticket exists" },
     { en: "We are going to stay with my sister.", ar: "سنبقى عند أختي.", use: "a plan, decided" },
@@ -615,6 +660,11 @@ export const U3_4: Lesson[] = [
     { en: "an appointment", ar: "موعد", say: "uh-POYNT-munt" },
     { en: "to change it", ar: "تغييره", say: "CHAYNJ it" },
   ],
+  bank: [
+    { title: "Days and months", titleAr: "\u0627\u0644\u0623\u064a\u0627\u0645 \u0648\u0627\u0644\u0623\u0634\u0647\u0631",
+      items: [{ en: "Monday", ar: "\u0627\u0644\u0627\u062b\u0646\u064a\u0646" }, { en: "Tuesday", ar: "\u0627\u0644\u062b\u0644\u0627\u062b\u0627\u0621" }, { en: "Wednesday", ar: "\u0627\u0644\u0623\u0631\u0628\u0639\u0627\u0621" }, { en: "Thursday", ar: "\u0627\u0644\u062e\u0645\u064a\u0633" }, { en: "Friday", ar: "\u0627\u0644\u062c\u0645\u0639\u0629" }, { en: "Saturday", ar: "\u0627\u0644\u0633\u0628\u062a" }, { en: "Sunday", ar: "\u0627\u0644\u0623\u062d\u062f" }, { en: "January", ar: "\u064a\u0646\u0627\u064a\u0631" }, { en: "March", ar: "\u0645\u0627\u0631\u0633" }, { en: "June", ar: "\u064a\u0648\u0646\u064a\u0648" }, { en: "September", ar: "\u0633\u0628\u062a\u0645\u0628\u0631" }, { en: "December", ar: "\u062f\u064a\u0633\u0645\u0628\u0631" }] },
+    { title: "Telling the time", titleAr: "\u0642\u0648\u0644 \u0627\u0644\u0648\u0642\u062a",
+      items: [{ en: "six o'clock", ar: "\u0627\u0644\u0633\u0627\u062f\u0633\u0629" }, { en: "half past six", ar: "\u0627\u0644\u0633\u0627\u062f\u0633\u0629 \u0648\u0627\u0644\u0646\u0635\u0641" }, { en: "quarter past six", ar: "\u0627\u0644\u0633\u0627\u062f\u0633\u0629 \u0648\u0627\u0644\u0631\u0628\u0639" }, { en: "quarter to seven", ar: "\u0627\u0644\u0633\u0627\u0628\u0639\u0629 \u0625\u0644\u0627 \u0631\u0628\u0639\u0627\u064b" }, { en: "ten past six", ar: "\u0627\u0644\u0633\u0627\u062f\u0633\u0629 \u0648\u0639\u0634\u0631 \u062f\u0642\u0627\u0626\u0642" }, { en: "twenty to seven", ar: "\u0627\u0644\u0633\u0627\u0628\u0639\u0629 \u0625\u0644\u0627 \u062b\u0644\u062b\u0627\u064b" }, { en: "midday", ar: "\u0627\u0644\u0638\u0647\u0631" }, { en: "midnight", ar: "\u0645\u0646\u062a\u0635\u0641 \u0627\u0644\u0644\u064a\u0644" }, { en: "in the morning", ar: "\u0635\u0628\u0627\u062d\u0627\u064b" }, { en: "in the afternoon", ar: "\u0628\u0639\u062f \u0627\u0644\u0638\u0647\u0631" }, { en: "first thing", ar: "\u0623\u0648\u0644 \u0634\u064a\u0621" }, { en: "last thing", ar: "\u0622\u062e\u0631 \u0634\u064a\u0621" }] } ],
   sentences: [
     { en: "Can I make an appointment for Thursday?", ar: "هل يمكنني حجز موعد الخميس؟", use: "asking" },
     { en: "On Monday, at half past ten.", ar: "الاثنين في العاشرة والنصف.", use: "the two prepositions together" },
@@ -686,6 +736,11 @@ export const U3_4: Lesson[] = [
     { en: "hold on", ar: "انتظر", say: "HOHLD on" },
     { en: "speak up", ar: "ارفع صوتك", say: "speek UP" },
   ],
+  bank: [
+    { title: "Phone words", titleAr: "\u0643\u0644\u0645\u0627\u062a \u0627\u0644\u0647\u0627\u062a\u0641",
+      items: [{ en: "to ring", ar: "\u064a\u0631\u0646" }, { en: "to answer", ar: "\u064a\u062c\u064a\u0628" }, { en: "to hang up", ar: "\u064a\u063a\u0644\u0642" }, { en: "a missed call", ar: "\u0645\u0643\u0627\u0644\u0645\u0629 \u0641\u0627\u0626\u062a\u0629" }, { en: "voicemail", ar: "\u0628\u0631\u064a\u062f \u0635\u0648\u062a\u064a" }, { en: "a text", ar: "\u0631\u0633\u0627\u0644\u0629 \u0646\u0635\u064a\u0629" }, { en: "the signal", ar: "\u0627\u0644\u0625\u0634\u0627\u0631\u0629" }, { en: "the battery", ar: "\u0627\u0644\u0628\u0637\u0627\u0631\u064a\u0629" }, { en: "on speaker", ar: "\u0645\u0643\u0628\u0631 \u0627\u0644\u0635\u0648\u062a" }, { en: "to call back", ar: "\u064a\u0639\u0627\u0648\u062f \u0627\u0644\u0627\u062a\u0635\u0627\u0644" }, { en: "to put on hold", ar: "\u064a\u0636\u0639 \u0641\u064a \u0627\u0644\u0627\u0646\u062a\u0638\u0627\u0631" }, { en: "to hang on", ar: "\u064a\u0646\u062a\u0638\u0631" }] },
+    { title: "When the call is bad", titleAr: "\u062d\u064a\u0646 \u062a\u0633\u0648\u0621 \u0627\u0644\u0645\u0643\u0627\u0644\u0645\u0629",
+      items: [{ en: "a bad line", ar: "\u062e\u0637 \u0633\u064a\u0626" }, { en: "you are breaking up", ar: "\u0635\u0648\u062a\u0643 \u064a\u062a\u0642\u0637\u0651\u0639" }, { en: "I cannot hear you", ar: "\u0644\u0627 \u0623\u0633\u0645\u0639\u0643" }, { en: "can you speak up", ar: "\u0627\u0631\u0641\u0639 \u0635\u0648\u062a\u0643" }, { en: "the wrong number", ar: "\u0631\u0642\u0645 \u062e\u0627\u0637\u0626" }, { en: "engaged", ar: "\u0645\u0634\u063a\u0648\u0644" }, { en: "no answer", ar: "\u0644\u0627 \u0631\u062f" }, { en: "we were cut off", ar: "\u0627\u0646\u0642\u0637\u0639\u062a \u0627\u0644\u0645\u0643\u0627\u0644\u0645\u0629" }, { en: "can I call you back", ar: "\u0647\u0644 \u0623\u0639\u0627\u0648\u062f \u0627\u0644\u0627\u062a\u0635\u0627\u0644" }, { en: "I will send a message", ar: "\u0633\u0623\u0631\u0633\u0644 \u0631\u0633\u0627\u0644\u0629" }] } ],
   sentences: [
     { en: "Hello, this is Salma.", ar: "مرحباً، معك سلمى.", use: "on the phone — never \"I am\"" },
     { en: "Is that Claire?", ar: "أهذه كلير؟", use: "checking who answered" },
@@ -747,6 +802,9 @@ export const U3_4: Lesson[] = [
   warm: { en: "Nothing new. Talk. I will ask four questions in the whole ten minutes.",
           ar: "لا جديد. تحدثي. سأسأل أربعة أسئلة في العشر دقائق كلها." },
   words: [{ en: "No new words today. Record everything.", ar: "لا كلمات جديدة اليوم. سجّل كل شيء." }],
+  bank: [
+    { title: "Everything so far", titleAr: "\u0643\u0644 \u0645\u0627 \u0633\u0628\u0642",
+      items: [{ en: "I am an engineer", ar: "\u0623\u0646\u0627 \u0645\u0647\u0646\u062f\u0633\u0629" }, { en: "my husband works in a bank", ar: "\u0632\u0648\u062c\u064a \u064a\u0639\u0645\u0644 \u0641\u064a \u0628\u0646\u0643" }, { en: "last weekend I went to", ar: "\u0627\u0644\u0639\u0637\u0644\u0629 \u0627\u0644\u0645\u0627\u0636\u064a\u0629 \u0630\u0647\u0628\u062a \u0625\u0644\u0649" }, { en: "next month we are going to", ar: "\u0627\u0644\u0634\u0647\u0631 \u0627\u0644\u0642\u0627\u062f\u0645 \u0633\u0646\u0630\u0647\u0628 \u0625\u0644\u0649" }, { en: "hello, this is Salma", ar: "\u0645\u0631\u062d\u0628\u0627\u064b\u060c \u0645\u0639\u0643 \u0633\u0644\u0645\u0649" }, { en: "sorry, I missed that", ar: "\u0639\u0630\u0631\u0627\u064b \u0641\u0627\u062a\u0646\u064a \u0630\u0644\u0643" }, { en: "and what about you", ar: "\u0648\u0645\u0627\u0630\u0627 \u0639\u0646\u0643" }] } ],
   sentences: [
     { en: "I am an engineer and I live in Rabat.", ar: "أنا مهندسة وأعيش في الرباط.", use: "unit 3" },
     { en: "My husband works in a bank.", ar: "زوجي يعمل في بنك.", use: "unit 3" },

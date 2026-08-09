@@ -74,6 +74,22 @@ export type Level = 'A0' | 'A1' | 'A2' | 'B1'
  *  far more English than she has ever said. */
 export type Word = { en: string; ar: string; say?: string }
 
+/** STEP 1, second half — THE WORD BANK.
+ *
+ *  `words` above is the short list she must own by the end of the hour. It is
+ *  deliberately small, because a beginner given forty words learns none of
+ *  them. But a short list also leaves her with exactly one way to say each
+ *  thing, and a person with one word per idea cannot hold a conversation — she
+ *  can only complete a transaction.
+ *
+ *  So every lesson also carries a bank: the whole family around each core word,
+ *  grouped the way the mind actually stores them. Not "pizza" alone but the box
+ *  it lives in — margherita, four seasons, with chicken, with meat, extra
+ *  cheese, a thin base, a slice — and beside it the box of tastes: sweet,
+ *  salty, spicy, sour, bitter. She reads the bank, takes what is hers, and uses
+ *  it in step 4. It is never tested. It is there so she has room to speak. */
+export type WordGroup = { title: string; titleAr: string; items: { en: string; ar: string }[] }
+
 /** STEP 2 — a sentence she can say today, built only from words she has and
  *  grammar she has been taught. `use` says when to reach for it. */
 export type Sentence = { en: string; ar: string; use?: string }
@@ -110,8 +126,12 @@ export type Sound = {
   gift?: string
 }
 
-/** STEP 3 — short and simple in the early units. A0 conversations are eight
- *  lines of four words, not fifteen lines of fifteen. */
+/** STEP 3 — the language stays simple in the early units, but the exchange does
+ *  not stay short. A café conversation that stops after eight lines teaches the
+ *  transaction and nothing else; the extra turns are where she asks what they
+ *  have, whether it is spicy, how long it takes, whether it is far — the
+ *  questions that turn an errand into a conversation. Short SENTENCES, long
+ *  EXCHANGE. That is the shape at A0. */
 export type Dialogue = {
   title: string; titleAr: string
   setting: string; settingAr: string
@@ -141,6 +161,8 @@ export type Lesson = {
   /** Sixty seconds of talking before anything is taught. Correct nothing. */
   warm: Ex
   words: Word[]
+  /** The families around the core words. Read from, chosen from, never tested. */
+  bank?: WordGroup[]
   sentences: Sentence[]
   grammar: Grammar
   trap: Trap

@@ -25,6 +25,11 @@ export const U5_6: Lesson[] = [
     { en: "water", ar: "المياه", say: "WAW-ter" },
     { en: "to change", ar: "يتغيّر", say: "to CHAYNJ" },
   ],
+  bank: [
+    { title: "Your world, in easy words", titleAr: "\u0639\u0627\u0644\u0645\u0643 \u0628\u0643\u0644\u0645\u0627\u062a \u0633\u0647\u0644\u0629",
+      items: [{ en: "a satellite", ar: "\u0642\u0645\u0631 \u0627\u0635\u0637\u0646\u0627\u0639\u064a" }, { en: "an image", ar: "\u0635\u0648\u0631\u0629" }, { en: "a picture", ar: "\u0635\u0648\u0631\u0629" }, { en: "a map", ar: "\u062e\u0631\u064a\u0637\u0629" }, { en: "data", ar: "\u0628\u064a\u0627\u0646\u0627\u062a" }, { en: "space", ar: "\u0627\u0644\u0641\u0636\u0627\u0621" }, { en: "the Earth", ar: "\u0627\u0644\u0623\u0631\u0636" }, { en: "a camera", ar: "\u0643\u0627\u0645\u064a\u0631\u0627" }, { en: "a forest", ar: "\u063a\u0627\u0628\u0629" }, { en: "water", ar: "\u0645\u064a\u0627\u0647" }, { en: "a farm", ar: "\u0645\u0632\u0631\u0639\u0629" }, { en: "the sea", ar: "\u0627\u0644\u0628\u062d\u0631" }, { en: "the coast", ar: "\u0627\u0644\u0633\u0627\u062d\u0644" }, { en: "a river", ar: "\u0646\u0647\u0631" }] },
+    { title: "Easy work verbs", titleAr: "\u0623\u0641\u0639\u0627\u0644 \u0639\u0645\u0644 \u0633\u0647\u0644\u0629",
+      items: [{ en: "to look at", ar: "\u064a\u0646\u0638\u0631 \u0625\u0644\u0649" }, { en: "to see", ar: "\u064a\u0631\u0649" }, { en: "to find", ar: "\u064a\u062c\u062f" }, { en: "to check", ar: "\u064a\u062a\u062d\u0642\u0642" }, { en: "to make", ar: "\u064a\u0635\u0646\u0639" }, { en: "to show", ar: "\u064a\u064f\u0638\u0647\u0631" }, { en: "to send", ar: "\u064a\u0631\u0633\u0644" }, { en: "to help", ar: "\u064a\u0633\u0627\u0639\u062f" }, { en: "to change", ar: "\u064a\u062a\u063a\u064a\u0651\u0631" }, { en: "to measure", ar: "\u064a\u0642\u064a\u0633" }, { en: "to count", ar: "\u064a\u0639\u062f\u0651" }, { en: "to compare", ar: "\u064a\u0642\u0627\u0631\u0646" }] } ],
   sentences: [
     { en: "I am an engineer.", ar: "أنا مهندسة.", use: "the shortest true answer" },
     { en: "I work with satellites.", ar: "أعمل مع الأقمار الاصطناعية.", use: "one step more" },
@@ -96,6 +101,11 @@ export const U5_6: Lesson[] = [
     { en: "a client", ar: "عميل", say: "uh KLY-unt" },
     { en: "to travel", ar: "يسافر", say: "TRAV-ul" },
   ],
+  bank: [
+    { title: "Your company", titleAr: "\u0634\u0631\u0643\u062a\u0643",
+      items: [{ en: "a company", ar: "\u0634\u0631\u0643\u0629" }, { en: "an office", ar: "\u0645\u0643\u062a\u0628" }, { en: "a team", ar: "\u0641\u0631\u064a\u0642" }, { en: "a colleague", ar: "\u0632\u0645\u064a\u0644" }, { en: "a manager", ar: "\u0645\u062f\u064a\u0631" }, { en: "a client", ar: "\u0639\u0645\u064a\u0644" }, { en: "a partner", ar: "\u0634\u0631\u064a\u0643" }, { en: "a contract", ar: "\u0639\u0642\u062f" }, { en: "a project", ar: "\u0645\u0634\u0631\u0648\u0639" }, { en: "a meeting room", ar: "\u063a\u0631\u0641\u0629 \u0627\u062c\u062a\u0645\u0627\u0639\u0627\u062a" }, { en: "a laptop", ar: "\u062d\u0627\u0633\u0648\u0628 \u0645\u062d\u0645\u0648\u0644" }, { en: "head office", ar: "\u0627\u0644\u0645\u0642\u0631 \u0627\u0644\u0631\u0626\u064a\u0633\u064a" }] },
+    { title: "People you work with", titleAr: "\u0645\u0646 \u062a\u0639\u0645\u0644\u064a\u0646 \u0645\u0639\u0647\u0645",
+      items: [{ en: "a director", ar: "\u0645\u062f\u064a\u0631 \u0639\u0627\u0645" }, { en: "an assistant", ar: "\u0645\u0633\u0627\u0639\u062f" }, { en: "an intern", ar: "\u0645\u062a\u062f\u0631\u0628" }, { en: "an engineer", ar: "\u0645\u0647\u0646\u062f\u0633" }, { en: "a technician", ar: "\u0641\u0646\u064a" }, { en: "a consultant", ar: "\u0627\u0633\u062a\u0634\u0627\u0631\u064a" }, { en: "a supplier", ar: "\u0645\u0648\u0631\u0651\u062f" }, { en: "a subcontractor", ar: "\u0645\u0642\u0627\u0648\u0644 \u0641\u0631\u0639\u064a" }, { en: "a ministry", ar: "\u0648\u0632\u0627\u0631\u0629" }, { en: "an agency", ar: "\u0648\u0643\u0627\u0644\u0629" }, { en: "a university", ar: "\u062c\u0627\u0645\u0639\u0629" }, { en: "a donor", ar: "\u062c\u0647\u0629 \u0645\u0627\u0646\u062d\u0629" }] } ],
   sentences: [
     { en: "I have my own company.", ar: "لديّ شركتي الخاصة.", use: "say it plainly" },
     { en: "It is a small team — seven people.", ar: "فريق صغير — سبعة أشخاص.", use: "the number, without apology" },
@@ -160,6 +170,11 @@ export const U5_6: Lesson[] = [
     { en: "to finish", ar: "ينهي", say: "FIN-ish" },
     { en: "to start", ar: "يبدأ", say: "START" },
   ],
+  bank: [
+    { title: "What you do at work", titleAr: "\u0645\u0627\u0630\u0627 \u062a\u0641\u0639\u0644\u064a\u0646 \u0641\u064a \u0627\u0644\u0639\u0645\u0644",
+      items: [{ en: "to answer emails", ar: "\u064a\u062c\u064a\u0628 \u0627\u0644\u0631\u0633\u0627\u0626\u0644" }, { en: "to have a meeting", ar: "\u064a\u0639\u0642\u062f \u0627\u062c\u062a\u0645\u0627\u0639\u0627\u064b" }, { en: "to write a report", ar: "\u064a\u0643\u062a\u0628 \u062a\u0642\u0631\u064a\u0631\u0627\u064b" }, { en: "to make a call", ar: "\u064a\u062c\u0631\u064a \u0645\u0643\u0627\u0644\u0645\u0629" }, { en: "to travel", ar: "\u064a\u0633\u0627\u0641\u0631" }, { en: "to check the data", ar: "\u064a\u0631\u0627\u062c\u0639 \u0627\u0644\u0628\u064a\u0627\u0646\u0627\u062a" }, { en: "to meet a client", ar: "\u064a\u0642\u0627\u0628\u0644 \u0639\u0645\u064a\u0644\u0627\u064b" }, { en: "to work late", ar: "\u064a\u0639\u0645\u0644 \u0645\u062a\u0623\u062e\u0631\u0627\u064b" }, { en: "to prepare a slide", ar: "\u064a\u0639\u062f\u0651 \u0634\u0631\u064a\u062d\u0629" }, { en: "to sign a contract", ar: "\u064a\u0648\u0642\u0651\u0639 \u0639\u0642\u062f\u0627\u064b" }, { en: "to train the team", ar: "\u064a\u062f\u0631\u0651\u0628 \u0627\u0644\u0641\u0631\u064a\u0642" }, { en: "to visit the field", ar: "\u064a\u0632\u0648\u0631 \u0627\u0644\u0645\u064a\u062f\u0627\u0646" }] },
+    { title: "How the week is", titleAr: "\u0643\u064a\u0641 \u0627\u0644\u0623\u0633\u0628\u0648\u0639",
+      items: [{ en: "busy", ar: "\u0645\u0634\u063a\u0648\u0644" }, { en: "quiet", ar: "\u0647\u0627\u062f\u0626" }, { en: "urgent", ar: "\u0639\u0627\u062c\u0644" }, { en: "late", ar: "\u0645\u062a\u0623\u062e\u0631" }, { en: "early", ar: "\u0645\u0628\u0643\u0631" }, { en: "difficult", ar: "\u0635\u0639\u0628" }, { en: "easy", ar: "\u0633\u0647\u0644" }, { en: "interesting", ar: "\u0645\u062b\u064a\u0631" }, { en: "under pressure", ar: "\u062a\u062d\u062a \u0636\u063a\u0637" }, { en: "behind schedule", ar: "\u0645\u062a\u0623\u062e\u0631 \u0639\u0646 \u0627\u0644\u062c\u062f\u0648\u0644" }, { en: "on time", ar: "\u0641\u064a \u0627\u0644\u0648\u0642\u062a" }, { en: "almost finished", ar: "\u0634\u0628\u0647 \u0645\u0646\u062a\u0647\u064d" }] } ],
   sentences: [
     { en: "I usually start at eight.", ar: "أبدأ عادةً في الثامنة.", use: "every day — present simple" },
     { en: "At the moment I am working on a map.", ar: "حالياً أعمل على خريطة.", use: "right now — the new form" },
@@ -226,6 +241,11 @@ export const U5_6: Lesson[] = [
     { en: "every five days", ar: "كل خمسة أيام", say: "EV-ree five dayz" },
     { en: "because of", ar: "بسبب", say: "bi-KOZ uv" },
   ],
+  bank: [
+    { title: "Explaining without jargon", titleAr: "\u0627\u0644\u0634\u0631\u062d \u0628\u0644\u0627 \u0645\u0635\u0637\u0644\u062d\u0627\u062a",
+      items: [{ en: "a problem", ar: "\u0645\u0634\u0643\u0644\u0629" }, { en: "a solution", ar: "\u062d\u0644" }, { en: "a picture", ar: "\u0635\u0648\u0631\u0629" }, { en: "a difference", ar: "\u0641\u0631\u0642" }, { en: "before", ar: "\u0642\u0628\u0644" }, { en: "after", ar: "\u0628\u0639\u062f" }, { en: "faster", ar: "\u0623\u0633\u0631\u0639" }, { en: "slower", ar: "\u0623\u0628\u0637\u0623" }, { en: "earlier", ar: "\u0623\u0628\u0643\u0631" }, { en: "later", ar: "\u0644\u0627\u062d\u0642\u0627\u064b" }, { en: "easy to see", ar: "\u0633\u0647\u0644 \u0627\u0644\u0631\u0624\u064a\u0629" }, { en: "hard to see", ar: "\u0635\u0639\u0628 \u0627\u0644\u0631\u0624\u064a\u0629" }] },
+    { title: "Who it helps", titleAr: "\u0645\u0646 \u064a\u0633\u062a\u0641\u064a\u062f",
+      items: [{ en: "a farmer", ar: "\u0645\u0632\u0627\u0631\u0639" }, { en: "a government", ar: "\u062d\u0643\u0648\u0645\u0629" }, { en: "a ministry", ar: "\u0648\u0632\u0627\u0631\u0629" }, { en: "a city", ar: "\u0645\u062f\u064a\u0646\u0629" }, { en: "a village", ar: "\u0642\u0631\u064a\u0629" }, { en: "people who live there", ar: "\u0633\u0643\u0627\u0646 \u0627\u0644\u0645\u0646\u0637\u0642\u0629" }, { en: "someone who decides", ar: "\u0635\u0627\u062d\u0628 \u0627\u0644\u0642\u0631\u0627\u0631" }, { en: "to make a decision", ar: "\u064a\u062a\u062e\u0630 \u0642\u0631\u0627\u0631\u0627\u064b" }, { en: "to save money", ar: "\u064a\u0648\u0641\u0651\u0631 \u0627\u0644\u0645\u0627\u0644" }, { en: "to save time", ar: "\u064a\u0648\u0641\u0651\u0631 \u0627\u0644\u0648\u0642\u062a" }, { en: "to stop a problem", ar: "\u064a\u0645\u0646\u0639 \u0645\u0634\u0643\u0644\u0629" }, { en: "to plan", ar: "\u064a\u062e\u0637\u0637" }] } ],
   sentences: [
     { en: "We help governments with water and forests.", ar: "نساعد الحكومات في المياه والغابات.", use: "who and what" },
     { en: "We can see where the forest is disappearing.", ar: "نرى أين تختفي الغابة.", use: "the sentence that sells it" },
@@ -292,6 +312,11 @@ export const U5_6: Lesson[] = [
     { en: "the result", ar: "النتيجة", say: "the ri-ZULT" },
     { en: "three years ago", ar: "قبل ثلاث سنوات", say: "three yeerz uh-GOH" },
   ],
+  bank: [
+    { title: "Project words", titleAr: "\u0643\u0644\u0645\u0627\u062a \u0627\u0644\u0645\u0634\u0631\u0648\u0639",
+      items: [{ en: "a project", ar: "\u0645\u0634\u0631\u0648\u0639" }, { en: "a client", ar: "\u0639\u0645\u064a\u0644" }, { en: "a budget", ar: "\u0645\u064a\u0632\u0627\u0646\u064a\u0629" }, { en: "a deadline", ar: "\u0645\u0648\u0639\u062f \u0646\u0647\u0627\u0626\u064a" }, { en: "a report", ar: "\u062a\u0642\u0631\u064a\u0631" }, { en: "a result", ar: "\u0646\u062a\u064a\u062c\u0629" }, { en: "a phase", ar: "\u0645\u0631\u062d\u0644\u0629" }, { en: "a delay", ar: "\u062a\u0623\u062e\u064a\u0631" }, { en: "a success", ar: "\u0646\u062c\u0627\u062d" }, { en: "a difficulty", ar: "\u0635\u0639\u0648\u0628\u0629" }, { en: "a team", ar: "\u0641\u0631\u064a\u0642" }, { en: "a partner", ar: "\u0634\u0631\u064a\u0643" }] },
+    { title: "What happened to it", titleAr: "\u0645\u0627 \u062d\u062f\u062b \u0644\u0647",
+      items: [{ en: "we started", ar: "\u0628\u062f\u0623\u0646\u0627" }, { en: "we built", ar: "\u0628\u0646\u064a\u0646\u0627" }, { en: "we finished", ar: "\u0623\u0646\u0647\u064a\u0646\u0627" }, { en: "we delivered", ar: "\u0633\u0644\u0651\u0645\u0646\u0627" }, { en: "it took", ar: "\u0627\u0633\u062a\u063a\u0631\u0642" }, { en: "it worked", ar: "\u0646\u062c\u062d" }, { en: "it was difficult", ar: "\u0643\u0627\u0646 \u0635\u0639\u0628\u0627\u064b" }, { en: "we were late", ar: "\u062a\u0623\u062e\u0631\u0646\u0627" }, { en: "we learned a lot", ar: "\u062a\u0639\u0644\u0651\u0645\u0646\u0627 \u0643\u062b\u064a\u0631\u0627\u064b" }, { en: "they were happy", ar: "\u0643\u0627\u0646\u0648\u0627 \u0633\u0639\u062f\u0627\u0621" }, { en: "we did it again", ar: "\u0643\u0631\u0631\u0646\u0627\u0647" }, { en: "it is still running", ar: "\u0645\u0627 \u0632\u0627\u0644 \u062c\u0627\u0631\u064a\u0627\u064b" }] } ],
   sentences: [
     { en: "We did a project in Gabon.", ar: "نفّذنا مشروعاً في الغابون.", use: "where and what" },
     { en: "The client was the forest ministry.", ar: "العميل كان وزارة الغابات.", use: "who paid" },
@@ -349,6 +374,9 @@ export const U5_6: Lesson[] = [
   warm: { en: "Nothing new. What do you do? Four words.",
           ar: "لا جديد. ماذا تعملين؟ أربع كلمات." },
   words: [{ en: "No new words today.", ar: "لا كلمات جديدة اليوم." }],
+  bank: [
+    { title: "Your job, three ways", titleAr: "\u0639\u0645\u0644\u0643 \u0628\u062b\u0644\u0627\u062b \u0637\u0631\u0642",
+      items: [{ en: "I take pictures of the Earth", ar: "\u0623\u0644\u062a\u0642\u0637 \u0635\u0648\u0631\u0627\u064b \u0644\u0644\u0623\u0631\u0636" }, { en: "we help governments", ar: "\u0646\u0633\u0627\u0639\u062f \u0627\u0644\u062d\u0643\u0648\u0645\u0627\u062a" }, { en: "we use satellite images", ar: "\u0646\u0633\u062a\u062e\u062f\u0645 \u0635\u0648\u0631 \u0627\u0644\u0623\u0642\u0645\u0627\u0631" }, { en: "think of it as a camera", ar: "\u062a\u062e\u064a\u0651\u0644\u0647\u0627 \u0643\u0627\u0645\u064a\u0631\u0627" }, { en: "it is not better, it is newer", ar: "\u0644\u064a\u0633\u062a \u0623\u0641\u0636\u0644 \u0628\u0644 \u0623\u062d\u062f\u062b" }, { en: "does that make sense", ar: "\u0647\u0644 \u0647\u0630\u0627 \u0648\u0627\u0636\u062d" }] } ],
   sentences: [
     { en: "I am an engineer. I work with satellites.", ar: "أنا مهندسة. أعمل مع الأقمار.", use: "day 25" },
     { en: "I have my own company. We are seven people.", ar: "لديّ شركتي. نحن سبعة أشخاص.", use: "day 26" },
@@ -412,6 +440,11 @@ export const U5_6: Lesson[] = [
     { en: "we met", ar: "التقينا", say: "wee MET" },
     { en: "nice to meet you", ar: "سُررت بلقائك", say: "nice to MEET yoo" },
   ],
+  bank: [
+    { title: "Who people are", titleAr: "\u0645\u0646 \u0647\u0645",
+      items: [{ en: "a data lead", ar: "\u0645\u0633\u0624\u0648\u0644 \u0628\u064a\u0627\u0646\u0627\u062a" }, { en: "a project manager", ar: "\u0645\u062f\u064a\u0631 \u0645\u0634\u0631\u0648\u0639" }, { en: "a field engineer", ar: "\u0645\u0647\u0646\u062f\u0633 \u0645\u064a\u062f\u0627\u0646\u064a" }, { en: "a director", ar: "\u0645\u062f\u064a\u0631 \u0639\u0627\u0645" }, { en: "a head of department", ar: "\u0631\u0626\u064a\u0633 \u0642\u0633\u0645" }, { en: "a counterpart", ar: "\u0646\u0638\u064a\u0631" }, { en: "a focal point", ar: "\u0646\u0642\u0637\u0629 \u0627\u062a\u0635\u0627\u0644" }, { en: "a colleague", ar: "\u0632\u0645\u064a\u0644" }, { en: "my boss", ar: "\u0645\u062f\u064a\u0631\u064a" }, { en: "my team", ar: "\u0641\u0631\u064a\u0642\u064a" }] },
+    { title: "Introducing", titleAr: "\u0627\u0644\u062a\u0639\u0631\u064a\u0641",
+      items: [{ en: "this is", ar: "\u0647\u0630\u0627/\u0647\u0630\u0647" }, { en: "may I introduce", ar: "\u0623\u0642\u062f\u0651\u0645 \u0644\u0643" }, { en: "she leads", ar: "\u062a\u0642\u0648\u062f" }, { en: "he manages", ar: "\u064a\u062f\u064a\u0631" }, { en: "she is in charge of", ar: "\u0647\u064a \u0645\u0633\u0624\u0648\u0644\u0629 \u0639\u0646" }, { en: "we have met before", ar: "\u0627\u0644\u062a\u0642\u064a\u0646\u0627 \u0633\u0627\u0628\u0642\u0627\u064b" }, { en: "do you two know each other", ar: "\u0647\u0644 \u062a\u0639\u0631\u0641\u0627\u0646 \u0628\u0639\u0636\u0643\u0645\u0627" }, { en: "here is my card", ar: "\u062a\u0641\u0636\u0651\u0644 \u0628\u0637\u0627\u0642\u062a\u064a" }, { en: "pleased to meet you", ar: "\u0633\u064f\u0631\u0631\u062a \u0628\u0644\u0642\u0627\u0626\u0643" }, { en: "I have heard a lot about you", ar: "\u0633\u0645\u0639\u062a \u0639\u0646\u0643 \u0643\u062b\u064a\u0631\u0627\u064b" }] } ],
   sentences: [
     { en: "I am Salma Bennani.", ar: "أنا سلمى بناني.", use: "full name at work" },
     { en: "I work for Africa EO Services.", ar: "أعمل لدى أفريقيا للرصد الأرضي.", use: "FOR a company" },
@@ -479,6 +512,11 @@ export const U5_6: Lesson[] = [
     { en: "to cut out", ar: "ينقطع", say: "kut OWT" },
     { en: "an extension", ar: "تحويلة", say: "ik-STEN-shun" },
   ],
+  bank: [
+    { title: "The office phone", titleAr: "\u0647\u0627\u062a\u0641 \u0627\u0644\u0645\u0643\u062a\u0628",
+      items: [{ en: "an extension", ar: "\u062a\u062d\u0648\u064a\u0644\u0629" }, { en: "to put through", ar: "\u064a\u062d\u0648\u0651\u0644" }, { en: "to hold", ar: "\u064a\u0646\u062a\u0638\u0631" }, { en: "a message", ar: "\u0631\u0633\u0627\u0644\u0629" }, { en: "to confirm", ar: "\u064a\u0624\u0643\u0651\u062f" }, { en: "available", ar: "\u0645\u062a\u0627\u062d" }, { en: "in a meeting", ar: "\u0641\u064a \u0627\u062c\u062a\u0645\u0627\u0639" }, { en: "out of the office", ar: "\u062e\u0627\u0631\u062c \u0627\u0644\u0645\u0643\u062a\u0628" }, { en: "on leave", ar: "\u0641\u064a \u0625\u062c\u0627\u0632\u0629" }, { en: "to reach someone", ar: "\u064a\u0635\u0644 \u0625\u0644\u0649 \u0634\u062e\u0635" }, { en: "to get back to you", ar: "\u064a\u0639\u0627\u0648\u062f \u0627\u0644\u062a\u0648\u0627\u0635\u0644" }, { en: "in writing", ar: "\u0643\u062a\u0627\u0628\u0629\u064b" }] },
+    { title: "Leaving a message", titleAr: "\u062a\u0631\u0643 \u0631\u0633\u0627\u0644\u0629",
+      items: [{ en: "could you ask him to call me", ar: "\u0627\u0637\u0644\u0628 \u0645\u0646\u0647 \u0627\u0644\u0627\u062a\u0635\u0627\u0644 \u0628\u064a" }, { en: "could you tell her that", ar: "\u0623\u062e\u0628\u0631\u0647\u0627 \u0628\u0623\u0646" }, { en: "it is about", ar: "\u0628\u062e\u0635\u0648\u0635" }, { en: "it is urgent", ar: "\u0639\u0627\u062c\u0644" }, { en: "it can wait", ar: "\u064a\u0645\u0643\u0646 \u0623\u0646 \u064a\u0646\u062a\u0638\u0631" }, { en: "my number is", ar: "\u0631\u0642\u0645\u064a \u0647\u0648" }, { en: "I will try again later", ar: "\u0633\u0623\u062d\u0627\u0648\u0644 \u0644\u0627\u062d\u0642\u0627\u064b" }, { en: "I will send an email", ar: "\u0633\u0623\u0631\u0633\u0644 \u0628\u0631\u064a\u062f\u0627\u064b" }] } ],
   sentences: [
     { en: "Hello, this is Salma Bennani.", ar: "مرحباً، معك سلمى بناني.", use: "day 23, at work" },
     { en: "I am calling about the workshop in March.", ar: "أتصل بخصوص ورشة مارس.", use: "why, in the first ten seconds" },
@@ -547,6 +585,11 @@ export const U5_6: Lesson[] = [
     { en: "by when", ar: "بحلول متى", say: "by WEN" },
     { en: "to summarise", ar: "يلخّص", say: "SUM-uh-ryze" },
   ],
+  bank: [
+    { title: "Meeting words", titleAr: "\u0643\u0644\u0645\u0627\u062a \u0627\u0644\u0627\u062c\u062a\u0645\u0627\u0639",
+      items: [{ en: "the agenda", ar: "\u062c\u062f\u0648\u0644 \u0627\u0644\u0623\u0639\u0645\u0627\u0644" }, { en: "the minutes", ar: "\u0627\u0644\u0645\u062d\u0636\u0631" }, { en: "an action", ar: "\u0645\u0647\u0645\u0629" }, { en: "a deadline", ar: "\u0645\u0648\u0639\u062f" }, { en: "an update", ar: "\u062a\u062d\u062f\u064a\u062b" }, { en: "a decision", ar: "\u0642\u0631\u0627\u0631" }, { en: "a point", ar: "\u0646\u0642\u0637\u0629" }, { en: "a slide", ar: "\u0634\u0631\u064a\u062d\u0629" }, { en: "to postpone", ar: "\u064a\u0624\u062c\u0651\u0644" }, { en: "to cover", ar: "\u064a\u063a\u0637\u064a" }, { en: "to follow up", ar: "\u064a\u062a\u0627\u0628\u0639" }, { en: "any other business", ar: "\u0623\u064a \u0623\u0645\u0648\u0631 \u0623\u062e\u0631\u0649" }] },
+    { title: "When you did not follow", titleAr: "\u062d\u064a\u0646 \u0644\u0645 \u062a\u0641\u0647\u0645\u064a",
+      items: [{ en: "sorry, I missed that", ar: "\u0639\u0630\u0631\u0627\u064b \u0641\u0627\u062a\u0646\u064a \u0630\u0644\u0643" }, { en: "could you repeat that", ar: "\u0647\u0644 \u062a\u0639\u064a\u062f\u0647" }, { en: "what do you mean by", ar: "\u0645\u0627\u0630\u0627 \u062a\u0642\u0635\u062f \u0628\u0640" }, { en: "so you are saying that", ar: "\u0625\u0630\u0646 \u062a\u0642\u0648\u0644 \u0625\u0646" }, { en: "can I just check", ar: "\u0647\u0644 \u0623\u062a\u062d\u0642\u0642" }, { en: "and by when", ar: "\u0648\u0628\u062d\u0644\u0648\u0644 \u0645\u062a\u0649" }, { en: "who is doing that", ar: "\u0645\u0646 \u0633\u064a\u0641\u0639\u0644 \u0630\u0644\u0643" }, { en: "can we come back to that", ar: "\u0647\u0644 \u0646\u0639\u0648\u062f \u0644\u0630\u0644\u0643" }] } ],
   sentences: [
     { en: "Can I ask something?", ar: "هل لي أن أسأل؟", use: "the safest way in" },
     { en: "Sorry — can I just check something?", ar: "عذراً — هل أتحقق من شيء؟", use: "when you missed a fact" },
@@ -614,6 +657,11 @@ export const U5_6: Lesson[] = [
     { en: "I see your point", ar: "أفهم وجهة نظرك", say: "I see yer POYNT" },
     { en: "would that work?", ar: "هل يناسبك ذلك؟", say: "wood that WURK" },
   ],
+  bank: [
+    { title: "Saying no, softly", titleAr: "\u0627\u0644\u0631\u0641\u0636 \u0628\u0644\u0637\u0641",
+      items: [{ en: "it is difficult", ar: "\u0635\u0639\u0628" }, { en: "it is not easy", ar: "\u0644\u064a\u0633 \u0633\u0647\u0644\u0627\u064b" }, { en: "in practice", ar: "\u0639\u0645\u0644\u064a\u0627\u064b" }, { en: "the problem is", ar: "\u0627\u0644\u0645\u0634\u0643\u0644\u0629 \u0647\u064a" }, { en: "I see your point", ar: "\u0623\u0641\u0647\u0645 \u0648\u062c\u0647\u0629 \u0646\u0638\u0631\u0643" }, { en: "that is true, but", ar: "\u0635\u062d\u064a\u062d\u060c \u0644\u0643\u0646" }, { en: "I would suggest", ar: "\u0623\u0642\u062a\u0631\u062d" }, { en: "instead", ar: "\u0628\u062f\u0644\u0627\u064b \u0645\u0646 \u0630\u0644\u0643" }, { en: "would that work", ar: "\u0647\u0644 \u064a\u0646\u0627\u0633\u0628\u0643" }, { en: "can I let you know", ar: "\u0647\u0644 \u0623\u062e\u0628\u0631\u0643 \u0644\u0627\u062d\u0642\u0627\u064b" }, { en: "let me think about it", ar: "\u062f\u0639\u0646\u064a \u0623\u0641\u0643\u0631" }, { en: "I am afraid not", ar: "\u0644\u0644\u0623\u0633\u0641 \u0644\u0627" }] },
+    { title: "Negotiating", titleAr: "\u0627\u0644\u062a\u0641\u0627\u0648\u0636",
+      items: [{ en: "a constraint", ar: "\u0642\u064a\u062f" }, { en: "an alternative", ar: "\u0628\u062f\u064a\u0644" }, { en: "a compromise", ar: "\u062d\u0644 \u0648\u0633\u0637" }, { en: "a condition", ar: "\u0634\u0631\u0637" }, { en: "feasible", ar: "\u0642\u0627\u0628\u0644 \u0644\u0644\u062a\u0646\u0641\u064a\u0630" }, { en: "realistic", ar: "\u0648\u0627\u0642\u0639\u064a" }, { en: "to postpone", ar: "\u064a\u0624\u062c\u0651\u0644" }, { en: "to reduce", ar: "\u064a\u0642\u0644\u0651\u0635" }, { en: "to extend", ar: "\u064a\u0645\u062f\u0651\u062f" }, { en: "to phase it", ar: "\u064a\u0642\u0633\u0651\u0645\u0647 \u0644\u0645\u0631\u0627\u062d\u0644" }, { en: "a first phase", ar: "\u0645\u0631\u062d\u0644\u0629 \u0623\u0648\u0644\u0649" }, { en: "on one condition", ar: "\u0628\u0634\u0631\u0637 \u0648\u0627\u062d\u062f" }] } ],
   sentences: [
     { en: "I agree with you.", ar: "أتفق معك.", use: "never \"I am agree\"" },
     { en: "I see your point, but it is difficult.", ar: "أفهم وجهة نظرك لكنه صعب.", use: "agree with the person first" },
@@ -681,6 +729,9 @@ export const U5_6: Lesson[] = [
     { en: "at last", ar: "أخيراً", say: "at LAST" },
     { en: "see you", ar: "أراك لاحقاً", say: "SEE yoo" },
   ],
+  bank: [
+    { title: "Small talk at work", titleAr: "\u062d\u062f\u064a\u062b \u062e\u0641\u064a\u0641 \u0641\u064a \u0627\u0644\u0639\u0645\u0644",
+      items: [{ en: "how was your trip", ar: "\u0643\u064a\u0641 \u0643\u0627\u0646\u062a \u0631\u062d\u0644\u062a\u0643" }, { en: "how is the project going", ar: "\u0643\u064a\u0641 \u064a\u0633\u064a\u0631 \u0627\u0644\u0645\u0634\u0631\u0648\u0639" }, { en: "how was your weekend", ar: "\u0643\u064a\u0641 \u0643\u0627\u0646\u062a \u0639\u0637\u0644\u062a\u0643" }, { en: "busy week", ar: "\u0623\u0633\u0628\u0648\u0639 \u0645\u0632\u062f\u062d\u0645" }, { en: "jet lag", ar: "\u0625\u0631\u0647\u0627\u0642 \u0627\u0644\u0633\u0641\u0631" }, { en: "a conference", ar: "\u0645\u0624\u062a\u0645\u0631" }, { en: "a holiday", ar: "\u0639\u0637\u0644\u0629" }, { en: "the traffic", ar: "\u062d\u0631\u0643\u0629 \u0627\u0644\u0633\u064a\u0631" }, { en: "good to see you", ar: "\u0633\u064f\u0631\u0631\u062a \u0628\u0631\u0624\u064a\u062a\u0643" }, { en: "see you next week", ar: "\u0623\u0631\u0627\u0643 \u0627\u0644\u0623\u0633\u0628\u0648\u0639 \u0627\u0644\u0642\u0627\u062f\u0645" }, { en: "shall we get a coffee", ar: "\u0647\u0644 \u0646\u0623\u062e\u0630 \u0642\u0647\u0648\u0629" }, { en: "I am very tired", ar: "\u0623\u0646\u0627 \u0645\u062a\u0639\u0628 \u062c\u062f\u0627\u064b" }] } ],
   sentences: [
     { en: "How was your trip?", ar: "كيف كانت رحلتك؟", use: "the safest question at work" },
     { en: "Long. But it was worth it.", ar: "طويلة. لكنها استحقت.", use: "answer plus one thing" },
@@ -714,7 +765,7 @@ export const U5_6: Lesson[] = [
         note: "Answer, detail, question back. Three parts, five seconds." },
       { who: "A", en: "The same. Always the same.", ar: "المثل. دائماً المثل." },
       { who: "B", en: "[laughs] Shall we get a coffee before we start?", ar: "[تضحك] هل نأخذ قهوة قبل أن نبدأ؟" },
-      { who: "A", en: "Please. I have not slept.", ar: "أرجوك. لم أنم." },
+      { who: "A", en: "Please. I am very tired.", ar: "أرجوك. أنا متعب جداً." },
       { who: "B", en: "Then two coffees.", ar: "إذن قهوتان." }],
     watch: { en: "Every answer in three parts. One bare \"good\" or \"busy\" and the small talk was a failure, however correct it was.",
              ar: "كل جواب من ثلاثة أجزاء. «good» أو «busy» مجردة تعني فشل الحديث مهما كان صحيحاً." } },
@@ -738,6 +789,9 @@ export const U5_6: Lesson[] = [
   warm: { en: "Nothing new. Say hello to me as a colleague you have not seen for a month.",
           ar: "لا جديد. حيّيني كزميل لم تريه منذ شهر." },
   words: [{ en: "No new words today.", ar: "لا كلمات جديدة اليوم." }],
+  bank: [
+    { title: "Everything from unit 6", titleAr: "\u0643\u0644 \u0645\u0627 \u0641\u064a \u0627\u0644\u0648\u062d\u062f\u0629 \u0627\u0644\u0633\u0627\u062f\u0633\u0629",
+      items: [{ en: "this is Amina, our data lead", ar: "\u0647\u0630\u0647 \u0623\u0645\u064a\u0646\u0629 \u0645\u0633\u0624\u0648\u0644\u0629 \u0627\u0644\u0628\u064a\u0627\u0646\u0627\u062a" }, { en: "could you ask him to call me", ar: "\u0627\u0637\u0644\u0628 \u0645\u0646\u0647 \u0627\u0644\u0627\u062a\u0635\u0627\u0644 \u0628\u064a" }, { en: "so you are saying that", ar: "\u0625\u0630\u0646 \u062a\u0642\u0648\u0644 \u0625\u0646" }, { en: "I see your point, but", ar: "\u0623\u0641\u0647\u0645 \u0648\u062c\u0647\u0629 \u0646\u0638\u0631\u0643 \u0644\u0643\u0646" }, { en: "I agree", ar: "\u0623\u062a\u0641\u0642" }, { en: "how is the project going", ar: "\u0643\u064a\u0641 \u064a\u0633\u064a\u0631 \u0627\u0644\u0645\u0634\u0631\u0648\u0639" }] } ],
   sentences: [
     { en: "This is Amina, our data lead. She leads the mapping team.", ar: "هذه أمينة، مسؤولة البيانات. تقود فريق الخرائط.", use: "day 31" },
     { en: "Could you ask him to call me back?", ar: "هل تطلب منه معاودة الاتصال؟", use: "day 32" },
