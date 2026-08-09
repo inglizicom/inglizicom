@@ -4,82 +4,92 @@
  * WHO IT IS FOR
  * One senior Earth Observation engineer. French-Moroccan, twenty-one years in
  * the field, founder of an EO company working across fifteen African countries.
- * A1 in PRODUCTION, far beyond the teacher in subject knowledge. She has to
- * speak English in meetings, at conferences, and in front of clients — in two
- * months.
+ * Her subject knowledge is far beyond the teacher's. Her English PRODUCTION is
+ * near zero — she has almost never spoken it out loud.
  *
- * WHY THE PREVIOUS PLAN FAILED
- * It ran four weeks of everyday English and then simply started talking about
- * satellites, as if the second thing followed from the first. It does not. A
- * learner who can chat about the weather cannot chair a meeting, because
- * nobody ever showed her that chairing a meeting IS asking questions and
- * interrupting — the two things she already learned in week two. The bridge
- * was never built; it was assumed. And each lesson carried a vague aim
- * ("talk about your day") instead of one thing she could either do or not do
- * at the end of the hour.
+ * WHAT WAS WRONG BEFORE, TWICE
  *
- * THE FIX — TWO WEEKS OF GROUND, THEN THE LADDER
+ * First version: four weeks of everyday English, then it simply started talking
+ * about satellites, as if the second thing followed from the first.
  *
- * WEEKS 1 AND 2 CONTAIN NO WORK ENGLISH AT ALL. Not one meeting, not one
- * conference, not one client. Twelve days of neighbours, weddings, taxis,
- * school gates, telephones and dinner tables. This is deliberate: she is a
- * founder who negotiates in French every day, and the thing actually stopping
- * her in English is not vocabulary, it is the fear of opening her mouth at
- * all. Nobody who cannot chat to a neighbour on a staircase is going to
- * interrupt a minister. The ground has to exist before anything is built on
- * it.
+ * Second version: the everyday weeks were built out of open social
+ * conversation — meet a neighbour on the staircase and keep it alive for thirty
+ * seconds. That is not a beginner task. It is one of the hardest things in a
+ * language, because nothing in it is predictable: she has to invent content,
+ * choose a register and improvise, all at once. And the lessons quietly used
+ * grammar she had never been taught — tag questions on day 4, "would you mind
+ * + -ing" on day 5. Every lesson climbed from simple to advanced inside itself,
+ * so there was no level she could stand on.
  *
- * FROM WEEK 3 THE LADDER RUNS. Each week teaches ONE communicative function
- * and teaches it three times at rising altitude:
+ * THIS VERSION — PLACES FIRST, THEN PEOPLE, THEN WORK
  *
- *     Days 1–2   LIFE     the function with friends, in a taxi, at dinner
- *     Day  3     BRIDGE   the SAME function, first professional use — and the
- *                         slide says out loud which day it comes from
- *     Days 4–5   WORK     the function in a meeting, on a call, on a stage
- *     Day  6     MEASURE  she performs it, and it is scored
+ * A beginner starts where the language is PREDICTABLE. In a café there are
+ * about nine things anyone ever says, and she can learn all nine. That is why
+ * units 1 and 2 are places and errands: café, supermarket, pharmacy, market,
+ * taxi, restaurant, bank, doctor, directions, hotel. Short exchanges, fixed
+ * scripts, an outcome she can see. Only once she can survive a day out loud do
+ * the lessons ask her to talk about herself, and only after that do they touch
+ * her work.
  *
+ *     Unit 1  Every day, outside      café, shop, pharmacy, market, taxi
+ *     Unit 2  Places you must talk in restaurant, bank, doctor, street, hotel
+ *     Unit 3  You and your people     your name, family, home, day, likes
+ *     Unit 4  Yesterday and tomorrow  the past, plans, dates, the telephone
+ *     Unit 5  Your work, in easy words   ← the bridge starts here, day 25
+ *     Unit 6  Talking with colleagues
+ *     Unit 7  Numbers and explaining
+ *     Unit 8  Business English
  *
- * ONE OBJECTIVE PER LESSON
- * `canDo` is a single sentence in her voice, and `exit` tests exactly that
- * sentence and nothing else. If a lesson cannot be reduced to one can-do
- * statement, the lesson is badly designed and must be split.
+ * ONE GRAMMAR STEP PER LESSON, AND NEVER A JUMP
+ *
+ * `grammar.step` is the single new structure. `GRAMMAR_LADDER` lists what has
+ * been taught by the end of each unit, and NOTHING in a lesson may use a
+ * structure from a later unit. No past tense before unit 4. No present perfect
+ * before unit 7. If a phrase is genuinely useful earlier, it is taught as a
+ * fixed sound-shape she repeats — "I'd like", "how much is it" — never opened
+ * up as grammar. Opening the grammar is how a speaking lesson turns into a
+ * lecture and she stops talking.
  *
  * ESL FOR ARABIC SPEAKERS
- * Every lesson names ONE `trap` — a mistake that comes from Arabic, not from
- * carelessness — with the wrong sentence, the right sentence, and the Arabic
- * structure underneath it. An Arabic speaker says "I am engineer" because
- * «أنا مهندسة» has nothing before the job; telling her to "add an article" is
- * useless, and showing her why her ear refuses it is not. `sound` does the
- * same for pronunciation. Where her French helps or hurts, the slide says so:
- * her French hands her /p/ and /v/ free, and her Arabic hands her /θ/ and /ð/
- * free, which is the opposite of what most learners get.
+ *
+ * Every lesson names ONE `trap` — a mistake that comes from Arabic, with the
+ * wrong sentence, the right sentence, and the Arabic structure underneath it.
+ * "I am engineer" because «أنا مهندسة» has nothing before the job. Telling her
+ * to add an article does nothing; showing her why her ear refuses it turns a
+ * careless mistake into a predictable one she can catch herself. Where her
+ * French is the real culprit, the slide says so.
+ *
+ * FIVE STEPS, NOT THIRTEEN
+ *
+ * Every lesson is five numbered steps: WORDS, SENTENCES, CONVERSATION, YOUR
+ * TURN, HOMEWORK. Grammar, pronunciation and the Arabic trap live inside step
+ * 2, where they belong, instead of each taking a slide of their own.
  */
 
 export type Ex = { en: string; ar: string }
 
-export type Level = 'A1' | 'A2' | 'B1'
+export type Level = 'A0' | 'A1' | 'A2' | 'B1'
 
-/** Where a lesson sits on the ladder. `bridge` days are the hinge of the whole
- *  course: they take a function she can already perform socially and move it,
- *  in the same hour, into her working life. */
-export type Track = 'life' | 'bridge' | 'work' | 'measure'
+/** STEP 1 — a word. `say` is a pronunciation respelling, because she has read
+ *  far more English than she has ever said. */
+export type Word = { en: string; ar: string; say?: string }
 
-/** The one thing she can do at the end. Written in her voice, in the first
- *  person, and small enough to test in two minutes. */
-export type CanDo = Ex
+/** STEP 2 — a sentence she can say today, built only from words she has and
+ *  grammar she has been taught. `use` says when to reach for it. */
+export type Sentence = { en: string; ar: string; use?: string }
 
-/** A ready-to-say phrase. `use` says WHEN to reach for it — a phrase without a
- *  trigger is a phrase she will never retrieve under pressure. */
-export type Chunk = { en: string; ar: string; use?: string }
+/** The ONE new structure, given as a frame to fill. Never a rule to analyse. */
+export type Grammar = {
+  step: string
+  stepAr: string
+  frame: string
+  examples: string[]
+  /** Set when the structure is taught as a fixed chunk rather than opened up. */
+  chunk?: boolean
+}
 
-/** ONE structure per lesson, given as a frame to fill, never as a rule to
- *  understand. She is A1 in production: the moment the lesson explains the
- *  present perfect it stops being a speaking lesson. */
-export type Pattern = { frame: string; ar: string; examples: string[] }
-
-/** The Arabic-L1 trap. `why` is the point — the Arabic structure that makes
- *  the English feel wrong to her ear. Naming it turns a "careless mistake"
- *  into a predictable one she can catch herself. */
+/** The Arabic-L1 trap. `why` is the point — the Arabic structure that makes the
+ *  English feel wrong to her ear. */
 export type Trap = {
   wrong: string
   right: string
@@ -89,10 +99,8 @@ export type Trap = {
   french?: string
 }
 
-/** Pronunciation, chosen for an Arabic speaker specifically. `pairs` are
- *  minimal pairs to drill; `gift` marks the sounds her Arabic or French gives
- *  her for nothing, which is worth saying out loud — a learner who knows what
- *  she already owns stops being afraid of the rest. */
+/** Pronunciation, chosen for an Arabic speaker specifically. `gift` marks the
+ *  sounds her Arabic or French already gives her for nothing. */
 export type Sound = {
   focus: string
   focusAr: string
@@ -102,105 +110,117 @@ export type Sound = {
   gift?: string
 }
 
-/** Her own field's words. `say` is a pronunciation respelling. */
-export type Word = { en: string; ar: string; say?: string }
-
-export type Drill = { instruction: string; instructionAr: string; prompts: string[] }
-
+/** STEP 3 — short and simple in the early units. A0 conversations are eight
+ *  lines of four words, not fifteen lines of fifteen. */
 export type Dialogue = {
   title: string; titleAr: string
   setting: string; settingAr: string
-  turns: { who: 'A' | 'B'; en: string; ar?: string; note?: string }[]
-  watch?: { en: string; ar: string }
+  turns: { who: 'A' | 'B'; en: string; ar: string; note?: string }[]
+  watch?: Ex
 }
 
-export type Speech = {
-  title: string; titleAr: string
-  lines: string[]
-  note?: string; noteAr?: string
+/** STEP 4 — she does it. `roleplay` is what the teacher plays; `rounds` are the
+ *  variations, each one a little harder than the last. */
+export type Practice = {
+  roleplay: string; roleplayAr: string
+  rounds: string[]
 }
 
-/** Measured, not felt. `pass` is written so that a different teacher, on a
- *  different day, would reach the same verdict. */
+/** Measured, not felt. `pass` is written so a different teacher would reach the
+ *  same verdict. */
 export type ExitCheck = { task: string; taskAr: string; pass: string; passAr: string }
 
 export type Lesson = {
   no: number
-  week: number
-  track: Track
+  unit: number
   level: Level
+  /** The place or situation. It is the title people remember: "The café". */
+  where: string; whereAr: string
   title: string; titleAr: string
-  /** The single objective. Everything else in the lesson serves this. */
-  canDo: CanDo
-  /** For `bridge` and `work` days: the LIFE day whose skill is being moved up.
-   *  Shown on the slide, so she sees the transfer instead of being told about it. */
-  from?: { day: number; what: string; whatAr: string }
-  warm: { open: Ex }
-  target: Chunk[]
-  pattern: Pattern
+  canDo: Ex
+  /** Sixty seconds of talking before anything is taught. Correct nothing. */
+  warm: Ex
+  words: Word[]
+  sentences: Sentence[]
+  grammar: Grammar
   trap: Trap
-  sound: Sound
-  vocab?: Word[]
-  drill: Drill
-  dialogue?: Dialogue
-  speech?: Speech
-  hotSeat: string[]
+  sound?: Sound
+  dialogue: Dialogue
+  practice: Practice
   exit: ExitCheck
   homework: Ex
 }
 
-/** The eight weeks. One function each, and the same climb inside every one. */
-export const WEEKS: {
-  no: number; fn: string; fnAr: string
-  life: string; work: string
+/** The eight units. `bridge` marks where her working life first appears. */
+export const UNITS: {
+  no: number; title: string; titleAr: string
+  what: string; whatAr: string
+  grammar: string
+  level: Level
   colour: string
+  bridge?: boolean
 }[] = [
-  { no: 1, fn: 'Meeting people',      fnAr: 'لقاء الناس',
-    life: 'hello, who you are, your family, small talk, being polite', work: '—', colour: '#0e7490' },
-  { no: 2, fn: 'Everyday life',       fnAr: 'الحياة اليومية',
-    life: 'questions, answers, feelings, the phone, being a guest', work: '—', colour: '#0e7490' },
-  { no: 3, fn: 'Time',                fnAr: 'الزمن',
-    life: 'your day, your past, your plans', work: 'project history and what happens next', colour: '#15803d' },
-  { no: 4, fn: 'Explaining',          fnAr: 'الشرح',
-    life: 'describing things and places', work: 'explaining your work and your method', colour: '#15803d' },
-  { no: 5, fn: 'Numbers & evidence',  fnAr: 'الأرقام والأدلة',
-    life: 'prices, dates, quantities', work: 'results, figures, maps and charts', colour: '#6d28d9' },
-  { no: 6, fn: 'Opinions & friction', fnAr: 'الرأي والاختلاف',
-    life: 'saying what you think, saying no', work: 'disagreeing and negotiating at work', colour: '#6d28d9' },
-  { no: 7, fn: 'Presenting',          fnAr: 'العرض',
-    life: 'telling a story people follow', work: 'the talk, the shape, the slides', colour: '#a16207' },
-  { no: 8, fn: 'Leading',             fnAr: 'القيادة',
-    life: '—', work: 'chairing, questions, networking, the pitch', colour: '#a16207' },
+  { no: 1, title: 'Every day, outside', titleAr: 'كل يوم، في الخارج',
+    what: 'Café · supermarket · pharmacy · market · taxi',
+    whatAr: 'مقهى · سوق · صيدلية · سوق شعبي · سيارة أجرة',
+    grammar: 'a / an · please · how much · numbers · I would like', level: 'A0', colour: '#0e7490' },
+  { no: 2, title: 'Places you have to talk in', titleAr: 'أماكن عليك الكلام فيها',
+    what: 'Restaurant · bank · doctor · directions · hotel',
+    whatAr: 'مطعم · بنك · طبيب · اتجاهات · فندق',
+    grammar: 'do / does questions · can and could · where is · there is', level: 'A1', colour: '#0e7490' },
+  { no: 3, title: 'You and your people', titleAr: 'أنتِ ومن حولك',
+    what: 'Your name · family · home · your day · what you like',
+    whatAr: 'اسمك · عائلتك · بيتك · يومك · ما تحبين',
+    grammar: 'to be · my and your · he works / she lives · usually', level: 'A1', colour: '#15803d' },
+  { no: 4, title: 'Yesterday and tomorrow', titleAr: 'أمس وغداً',
+    what: 'Last weekend · what happened · plans · dates · the phone',
+    whatAr: 'العطلة الماضية · ما حدث · الخطط · التواريخ · الهاتف',
+    grammar: 'past simple · going to · on / in / at', level: 'A1', colour: '#15803d' },
+  { no: 5, title: 'Your work, in easy words', titleAr: 'عملك بكلمات سهلة',
+    what: 'What you do · where you work · your working day · your projects',
+    whatAr: 'ماذا تعملين · أين · يوم عملك · مشاريعك',
+    grammar: 'present continuous · because and so', level: 'A2', colour: '#6d28d9', bridge: true },
+  { no: 6, title: 'Talking with colleagues', titleAr: 'الحديث مع الزملاء',
+    what: 'Meeting people at work · the phone · asking in a meeting · saying no',
+    whatAr: 'لقاء الناس في العمل · الهاتف · السؤال في اجتماع · قول لا',
+    grammar: 'would · could · should · polite requests', level: 'A2', colour: '#6d28d9' },
+  { no: 7, title: 'Numbers and explaining', titleAr: 'الأرقام والشرح',
+    what: 'Results · how long · step by step · maps and charts · questions',
+    whatAr: 'النتائج · منذ متى · خطوة بخطوة · الخرائط · الأسئلة',
+    grammar: 'present perfect · for and since · comparatives', level: 'B1', colour: '#a16207' },
+  { no: 8, title: 'Business English', titleAr: 'إنجليزية الأعمال',
+    what: 'Meetings · agreeing · presenting · hard questions · your pitch',
+    whatAr: 'الاجتماعات · الاتفاق · العرض · الأسئلة الصعبة · عرضك',
+    grammar: 'everything, plus if-sentences', level: 'B1', colour: '#a16207' },
 ]
 
-export const TRACK_META: Record<Track, { label: string; ar: string; hint: string }> = {
-  life:    { label: 'Real life', ar: 'الحياة',    hint: 'Friends, taxis, dinner. No work vocabulary at all.' },
-  bridge:  { label: 'Bridge',    ar: 'الجسر',     hint: 'The same skill as the life day — moved into her working life, in one hour.' },
-  work:    { label: 'At work',   ar: 'في العمل',  hint: 'Meetings, calls, stages, clients.' },
-  measure: { label: 'Measure',   ar: 'قياس',      hint: 'She performs. Nothing new is taught.' },
-}
-
-/** THE SIXTY-MINUTE CLOCK.
- *
- *  Recall before teaching, input before output, measurement before homework.
- *  Thirty-seven of the sixty minutes are her producing language — if that was
- *  not true, the lesson went wrong however good the material was. */
-export const STAGE_PLAN: { key: string; label: string; ar: string; mins: number; why: string }[] = [
-  { key: 'warmup',   label: 'Warm-up',      ar: 'إحماء',        mins: 5,  why: 'She speaks before anything is taught. Correct nothing here.' },
-  { key: 'goal',     label: 'Objective',    ar: 'الهدف',        mins: 2,  why: 'One can-do sentence, and the exit test that proves it. Tell her both now.' },
-  { key: 'target',   label: 'Phrases',      ar: 'العبارات',     mins: 8,  why: 'Six or seven, each with a trigger. Say them, do not explain them.' },
-  { key: 'pattern',  label: 'Pattern',      ar: 'القالب',       mins: 4,  why: 'One frame to fill. Never a grammar rule.' },
-  { key: 'trap',     label: 'Arabic trap',  ar: 'فخ العربية',   mins: 4,  why: 'The mistake her first language makes for her — named, so she can catch it.' },
-  { key: 'sound',    label: 'Sound',        ar: 'النطق',        mins: 4,  why: 'Minimal pairs chosen for an Arabic speaker, not from a textbook.' },
-  { key: 'vocab',    label: 'Her words',    ar: 'كلماتها',      mins: 3,  why: 'Vocabulary from her own field. Skipped on pure life days.' },
-  { key: 'drill',    label: 'Drill',        ar: 'التمرين',      mins: 6,  why: 'Fast and teacher-led. Speed is the target, not beauty.' },
-  { key: 'dialogue', label: 'Conversation', ar: 'الحوار',       mins: 10, why: 'Run it twice — once to read, once against the watch note.' },
-  { key: 'hotseat',  label: 'Hot seat',     ar: 'الأسئلة',      mins: 8,  why: 'No notes, no warning. This is the part that transfers.' },
-  { key: 'speech',   label: 'Say it all',   ar: 'قوليها كاملة', mins: 3,  why: 'Record it. It is tomorrow\'s evidence.' },
-  { key: 'exit',     label: 'Exit check',   ar: 'اختبار الخروج', mins: 2, why: 'Pass, or it runs again at the top of tomorrow. Never skip it.' },
-  { key: 'homework', label: 'Homework',     ar: 'الواجب',       mins: 1,  why: 'It becomes the first five minutes of the next lesson.' },
+/** What she is allowed to have been taught, by the end of each unit. A lesson
+ *  that uses a structure from a later row is a bug, not a stretch. */
+export const GRAMMAR_LADDER: { unit: number; taught: string[] }[] = [
+  { unit: 1, taught: ['a / an', 'please and thank you', 'numbers and prices', 'how much is it', 'I would like (as a chunk)', 'yes / no / sorry'] },
+  { unit: 2, taught: ['do you have …?', 'can I / could I', 'where is / where are', 'there is / there are', 'prepositions of place'] },
+  { unit: 3, taught: ['I am / you are / she is', 'my, your, his, her', 'he works / she lives (-s)', 'always, usually, never', 'I like / I do not like'] },
+  { unit: 4, taught: ['past simple (went, saw, was)', 'going to for plans', 'on Monday / in March / at six', 'last, next, ago'] },
+  { unit: 5, taught: ['present continuous (I am working)', 'because and so', 'question words in full'] },
+  { unit: 6, taught: ['would, could, should', 'would you mind', 'I think / I do not think'] },
+  { unit: 7, taught: ['present perfect (I have worked)', 'for and since', 'comparatives and superlatives', 'first, then, after that'] },
+  { unit: 8, taught: ['if-sentences', 'everything above, under pressure'] },
 ]
 
-export const PER_WEEK = 6
-export const weekOf = (no: number) => Math.ceil(no / PER_WEEK)
-export const dayOf  = (no: number) => ((no - 1) % PER_WEEK) + 1
+/** THE FIVE STEPS. One lesson, five slides, in this order, always. */
+export const STEPS: { key: string; n: number; label: string; ar: string; mins: number; why: string }[] = [
+  { key: 'words',    n: 1, label: 'Words',        ar: 'الكلمات',  mins: 10,
+    why: 'Six to eight words. Say each one, do not explain it. Nothing else happens in this step.' },
+  { key: 'sentences', n: 2, label: 'Sentences',   ar: 'الجمل',    mins: 15,
+    why: 'The same words, now in whole sentences — plus today’s one grammar step and the Arabic trap.' },
+  { key: 'talk',     n: 3, label: 'Conversation', ar: 'الحوار',   mins: 12,
+    why: 'Read it twice. Once to understand, once with her playing B and the book closed.' },
+  { key: 'yourturn', n: 4, label: 'Your turn',    ar: 'دورك',     mins: 20,
+    why: 'She does it, with no notes. This is the part that transfers, and it is the biggest block for a reason.' },
+  { key: 'homework', n: 5, label: 'Homework',     ar: 'الواجب',   mins: 3,
+    why: 'One small thing. It becomes the first minutes of tomorrow.' },
+]
+
+export const PER_UNIT = 6
+export const unitOf = (no: number) => Math.ceil(no / PER_UNIT)
+export const dayInUnit = (no: number) => ((no - 1) % PER_UNIT) + 1

@@ -3,36 +3,35 @@
 /**
  * /admin/present/speaking — "Speak Your Work" teaching deck.
  *
- * A private course for one senior Earth Observation professional. The syllabus,
- * the ladder from everyday English to business English, the Arabic-L1 traps and
- * the sixty-minute clock are all documented in src/data/speaking/types.ts —
- * this file only renders them.
+ * FIVE STEPS PER LESSON, NOT THIRTEEN.
+ *   1 WORDS · 2 SENTENCES · 3 CONVERSATION · 4 YOUR TURN · 5 HOMEWORK
+ * Grammar, the Arabic trap and pronunciation live inside step 2, where they
+ * belong, instead of each taking a slide of its own. One big number in the
+ * corner tells both of them where they are.
  *
- * Every lesson runs the same shape, defined once in STAGE_PLAN:
- *   Warm-up → Objective → Phrases → Pattern → Arabic trap → Sound →
- *   Her words → Drill → Conversation → Hot seat → Say it all → Exit → Homework
+ * The syllabus, the places-first progression, the grammar ladder and the
+ * Arabic-L1 traps are documented in src/data/speaking/types.ts — this file
+ * only renders them.
  *
- * Navigate: ← → / Space / side-click. Full screen: F. Jump to a lesson from the
- * cover. No entrance animation anywhere — two earlier attempts made the slide
- * body depend on JavaScript to be visible, and a teaching slide must never need
- * a script to be seen.
+ * Navigate: ← → / Space / side-click. Full screen: F. Jump to a lesson from
+ * the cover. No entrance animation anywhere: two earlier attempts made the
+ * slide body depend on JavaScript to be visible, and a teaching slide must
+ * never need a script to be seen.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
-  ChevronLeft, ChevronRight, ArrowLeft, Maximize2, Minimize2, Mic, Target,
-  MessagesSquare, BookOpen, Repeat, Flame, Home, Volume2, Route, Zap, ListChecks,
-  AlertTriangle, Layers, ArrowUpRight, CheckCircle2,
+  ChevronLeft, ChevronRight, ArrowLeft, Maximize2, Minimize2, Home,
+  BookOpen, MessagesSquare, Users, Flame, ListChecks, Route, AlertTriangle,
+  Volume2, Layers, CheckCircle2, MapPin,
 } from 'lucide-react'
 import {
-  ORDERED, WEEKS, STAGE_PLAN, TRACK_META, warmUpFor, weekOf, dayOf,
-  type Lesson, type Track,
+  ORDERED, UNITS, STEPS, GRAMMAR_LADDER, recallFor, unitOf, dayInUnit,
+  type Lesson,
 } from '@/data/speaking'
 
-/* Same visual language as "English from Zero" (/admin/present/writing):
-   white paper, ink brown, real gold. One palette across the decks means the
-   teacher never re-learns a UI. */
+/* Same visual language as "English from Zero" (/admin/present/writing). */
 const INK   = '#2a1d12'
 const GOLD  = '#d4a017'
 const AMBER = '#92400e'
@@ -40,56 +39,23 @@ const PAPER = '#ffffff'
 const CARD  = '#fdf6e3'
 const CARD2 = '#fcefc7'
 const LINE  = '#e7e5e4'
-const TEXT  = '#2a1d12'
 const MUTED = '#57534e'
 const DIM   = '#a8a29e'
 const ACCENT = '#b45309'
 const RED   = '#b91c1c'
 const GREEN = '#15803d'
 
-/* Where a lesson sits on the ladder, at a glance. */
-const TRACK_COLOR: Record<Track, string> = {
-  life: '#0e7490', bridge: '#b45309', work: '#6d28d9', measure: '#15803d',
+type Step = 'words' | 'sentences' | 'talk' | 'yourturn' | 'homework'
+const STEP_ICON: Record<Step, typeof BookOpen> = {
+  words: BookOpen, sentences: Layers, talk: MessagesSquare, yourturn: Flame, homework: ListChecks,
 }
-
-type Phase =
-  | 'warmup' | 'goal' | 'target' | 'pattern' | 'trap' | 'sound'
-  | 'vocab' | 'drill' | 'dialogue' | 'hotseat' | 'speech' | 'exit' | 'homework'
-
-const PHASE_META: Record<Phase, { label: string; ar: string; icon: typeof Target }> = {
-  warmup:   { label: 'Warm-up',      ar: 'إحماء',        icon: Repeat },
-  goal:     { label: 'Objective',    ar: 'الهدف',        icon: Target },
-  target:   { label: 'Phrases',      ar: 'العبارات',     icon: MessagesSquare },
-  pattern:  { label: 'Pattern',      ar: 'القالب',       icon: Layers },
-  trap:     { label: 'Arabic trap',  ar: 'فخ العربية',   icon: AlertTriangle },
-  sound:    { label: 'Sound',        ar: 'النطق',        icon: Volume2 },
-  vocab:    { label: 'Her words',    ar: 'كلماتها',      icon: BookOpen },
-  drill:    { label: 'Drill',        ar: 'التمرين',      icon: Zap },
-  dialogue: { label: 'Conversation', ar: 'الحوار',       icon: MessagesSquare },
-  hotseat:  { label: 'Hot seat',     ar: 'الأسئلة',      icon: Flame },
-  speech:   { label: 'Say it all',   ar: 'قوليها كاملة', icon: Mic },
-  exit:     { label: 'Exit check',   ar: 'اختبار الخروج', icon: CheckCircle2 },
-  homework: { label: 'Homework',     ar: 'الواجب',       icon: ListChecks },
-}
-
-const MINS = Object.fromEntries(STAGE_PLAN.map(s => [s.key, s.mins])) as Record<string, number>
-
-/** The stages this lesson actually has, in teaching order. */
-function stagesOf(l: Lesson): Phase[] {
-  const has: Record<string, boolean> = {
-    warmup: true, goal: true, target: true, pattern: true, trap: true, sound: true,
-    drill: true, hotseat: true, exit: true, homework: true,
-    vocab: !!l.vocab?.length, dialogue: !!l.dialogue, speech: !!l.speech,
-  }
-  return STAGE_PLAN.map(s => s.key as Phase).filter(k => has[k])
-}
+const STEP_KEYS = STEPS.map(s => s.key as Step)
 
 type Slide =
-  | { k: 'cover' } | { k: 'ladder' } | { k: 'plan' }
-  | { k: 'week'; week: number }
-  | { k: 'lesson'; lesson: Lesson; phase: Phase }
+  | { k: 'cover' } | { k: 'ladder' } | { k: 'shape' }
+  | { k: 'unit'; unit: number }
+  | { k: 'lesson'; lesson: Lesson; step: Step }
 
-/* Spotlight *asterisked* fragments. */
 function Hi({ text, color = GOLD }: { text: string; color?: string }) {
   return <>{text.split('*').map((p, i) =>
     i % 2 === 1 ? <span key={i} style={{ color, fontWeight: 900 }}>{p}</span> : <span key={i}>{p}</span>
@@ -101,11 +67,11 @@ function Ar({ children, className = '', style }: { children: React.ReactNode; cl
 }
 
 function buildSlides(): Slide[] {
-  const out: Slide[] = [{ k: 'cover' }, { k: 'ladder' }, { k: 'plan' }]
-  WEEKS.forEach(w => {
-    out.push({ k: 'week', week: w.no })
-    ORDERED.filter(l => l.week === w.no).forEach(lesson =>
-      stagesOf(lesson).forEach(phase => out.push({ k: 'lesson', lesson, phase })))
+  const out: Slide[] = [{ k: 'cover' }, { k: 'ladder' }, { k: 'shape' }]
+  UNITS.forEach(u => {
+    out.push({ k: 'unit', unit: u.no })
+    ORDERED.filter(l => l.unit === u.no).forEach(lesson =>
+      STEP_KEYS.forEach(step => out.push({ k: 'lesson', lesson, step })))
   })
   return out
 }
@@ -144,18 +110,16 @@ export default function SpeakingDeck() {
 
   const s = slides[idx]
   const lesson = s.k === 'lesson' ? s.lesson : null
-  const colour = lesson ? TRACK_COLOR[lesson.track]
-    : s.k === 'week' ? WEEKS[s.week - 1].colour : ACCENT
-
-  const railStages = useMemo(() => (lesson ? stagesOf(lesson) : []), [lesson])
+  const colour = lesson ? UNITS[lesson.unit - 1].colour
+    : s.k === 'unit' ? UNITS[s.unit - 1].colour : ACCENT
 
   const jumpTo = (no: number) => {
-    const at = slides.findIndex(x => x.k === 'lesson' && x.lesson.no === no && x.phase === 'warmup')
+    const at = slides.findIndex(x => x.k === 'lesson' && x.lesson.no === no && x.step === 'words')
     if (at >= 0) setIdx(at)
   }
-  const jumpStage = (p: Phase) => {
+  const jumpStep = (st: Step) => {
     if (!lesson) return
-    const at = slides.findIndex(x => x.k === 'lesson' && x.lesson.no === lesson.no && x.phase === p)
+    const at = slides.findIndex(x => x.k === 'lesson' && x.lesson.no === lesson.no && x.step === st)
     if (at >= 0) setIdx(at)
   }
 
@@ -164,21 +128,28 @@ export default function SpeakingDeck() {
          style={{ fontFamily: "'Outfit', 'DM Sans', sans-serif", background: PAPER, color: INK }}
          className="fixed inset-0 z-[100] flex flex-col select-none overflow-hidden">
       <div className="pointer-events-none absolute -top-[22vw] -right-[16vw] w-[46vw] h-[46vw] rounded-full bg-yellow-100/40 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-[22vw] -left-[16vw] w-[42vw] h-[42vw] rounded-full bg-amber-50/60 blur-3xl" />
 
       {/* ── header ── */}
-      <div className="relative z-30 flex items-center justify-between px-5 py-3 border-b bg-white/80 backdrop-blur" style={{ borderColor: LINE }}>
+      <div className="relative z-30 flex items-center justify-between px-5 py-3 border-b bg-white/85 backdrop-blur" style={{ borderColor: LINE }}>
         <div className="flex items-center gap-3 min-w-0">
           <Link href="/admin/present" className="flex items-center gap-1.5 text-[12px] font-bold text-stone-400 hover:text-stone-700 shrink-0">
             <ArrowLeft size={14} /> Decks
           </Link>
           <span className="text-stone-300">·</span>
-          <span className="font-black text-[14px] truncate">Speak Your Work</span>
-          {lesson && (
-            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0"
-                  style={{ background: colour, color: '#fff' }}>
-              {TRACK_META[lesson.track].label}
+          {lesson ? (
+            <span className="flex items-center gap-2 min-w-0">
+              <span className="text-[12px] font-black shrink-0" style={{ color: colour }}>
+                DAY {lesson.no}
+              </span>
+              <span className="flex items-center gap-1 text-[13px] font-black truncate">
+                <MapPin size={13} style={{ color: colour }} /> {lesson.where}
+              </span>
+              <span className="text-[10px] font-black px-1.5 py-0.5 rounded shrink-0" style={{ background: CARD2, color: AMBER }}>
+                {lesson.level}
+              </span>
             </span>
+          ) : (
+            <span className="font-black text-[14px] truncate">Speak Your Work</span>
           )}
         </div>
         <div className="flex items-center gap-3 shrink-0">
@@ -190,50 +161,48 @@ export default function SpeakingDeck() {
         </div>
       </div>
 
-      {/* ── stage rail with the minute budget ── */}
+      {/* ── five steps ── */}
       {lesson && (
-        <div className="relative z-30 flex items-center gap-1.5 px-5 py-2 overflow-x-auto border-b bg-white/80" style={{ borderColor: LINE }}>
-          <span className="text-[10px] font-black tracking-widest uppercase shrink-0 mr-1" style={{ color: colour }}>
-            W{weekOf(lesson.no)} · D{dayOf(lesson.no)} · {lesson.level}
-          </span>
-          {railStages.map(p => {
-            const M = PHASE_META[p]
-            const active = s.k === 'lesson' && s.phase === p
-            const done = railStages.indexOf(p) < railStages.indexOf((s as { phase: Phase }).phase)
+        <div className="relative z-30 flex items-stretch border-b bg-white/85" style={{ borderColor: LINE }}>
+          {STEPS.map(st => {
+            const active = s.k === 'lesson' && s.step === st.key
+            const done = STEP_KEYS.indexOf(st.key as Step) < STEP_KEYS.indexOf((s as { step: Step }).step)
+            const I = STEP_ICON[st.key as Step]
             return (
-              <button key={p} onClick={() => jumpStage(p)}
-                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold shrink-0 transition-all border"
+              <button key={st.key} onClick={() => jumpStep(st.key as Step)}
+                      className="flex-1 flex items-center justify-center gap-2 py-2.5 border-r transition-all"
                       style={{
-                        borderColor: active ? colour : LINE,
-                        background: active ? colour : 'transparent',
+                        borderColor: LINE,
+                        background: active ? colour : done ? CARD : 'transparent',
                         color: active ? '#fff' : done ? MUTED : DIM,
                       }}>
-                <M.icon size={11} /> {M.label}
-                <span className="font-mono opacity-60">{MINS[p]}′</span>
+                <span className="text-[17px] font-black leading-none">{st.n}</span>
+                <span className="hidden sm:flex items-center gap-1.5">
+                  <I size={13} />
+                  <span className="text-[12px] font-black">{st.label}</span>
+                  <span className="text-[10px] font-mono opacity-70">{st.mins}′</span>
+                </span>
               </button>
             )
           })}
-          <span className="ml-auto shrink-0 text-[10px] font-mono font-bold pl-3" style={{ color: DIM }}>
-            {railStages.reduce((t, p) => t + (MINS[p] ?? 0), 0)} min
-          </span>
         </div>
       )}
 
       {/* ── stage ── */}
       <div className="flex-1 relative overflow-hidden z-20">
-        <button className="absolute left-0 top-0 bottom-0 w-[10%] z-20 cursor-w-resize" onClick={() => go(-1)} aria-label="previous" />
-        <button className="absolute right-0 top-0 bottom-0 w-[10%] z-20 cursor-e-resize" onClick={() => go(1)} aria-label="next" />
+        <button className="absolute left-0 top-0 bottom-0 w-[9%] z-20 cursor-w-resize" onClick={() => go(-1)} aria-label="previous" />
+        <button className="absolute right-0 top-0 bottom-0 w-[9%] z-20 cursor-e-resize" onClick={() => go(1)} aria-label="next" />
         <div key={idx} className="absolute inset-0 overflow-y-auto px-6 sm:px-12 py-8 flex flex-col">
           {s.k === 'cover'  && <Cover onJump={jumpTo} onFull={toggleFs} />}
           {s.k === 'ladder' && <LadderSlide />}
-          {s.k === 'plan'   && <PlanSlide />}
-          {s.k === 'week'   && <WeekSlide no={s.week} />}
-          {s.k === 'lesson' && <LessonSlide lesson={s.lesson} phase={s.phase} colour={colour} />}
+          {s.k === 'shape'  && <ShapeSlide />}
+          {s.k === 'unit'   && <UnitSlide no={s.unit} />}
+          {s.k === 'lesson' && <LessonSlide lesson={s.lesson} step={s.step} colour={colour} />}
         </div>
       </div>
 
       {/* ── footer ── */}
-      <div className="relative z-30 flex items-center justify-between px-5 py-2.5 border-t bg-white/80 backdrop-blur" style={{ borderColor: LINE }}>
+      <div className="relative z-30 flex items-center justify-between px-5 py-2.5 border-t bg-white/85 backdrop-blur" style={{ borderColor: LINE }}>
         <button onClick={() => go(-1)} className="flex items-center gap-1 text-[12px] font-bold text-stone-400 hover:text-stone-700">
           <ChevronLeft size={16} /> Back
         </button>
@@ -253,42 +222,35 @@ export default function SpeakingDeck() {
 function Cover({ onJump, onFull }: { onJump: (n: number) => void; onFull: () => void }) {
   return (
     <div className="max-w-5xl mx-auto w-full">
-      <div className="flex items-center gap-2 text-[11px] font-black tracking-[0.3em] uppercase mb-3" style={{ color: ACCENT }}>
-        <Mic size={14} /> Private 1:1 · 8 weeks · 48 daily lessons
+      <div className="text-[11px] font-black tracking-[0.3em] uppercase mb-3" style={{ color: ACCENT }}>
+        Private 1:1 · 8 units · 48 daily lessons · A0 → B1
       </div>
-      <h1 className="text-4xl sm:text-6xl font-black leading-[1.05] mb-2" style={{ color: TEXT }}>
-        Speak Your Work
-      </h1>
-      <p className="text-xl text-stone-600 mb-1">English for Earth Observation — from the coffee break to the conference stage.</p>
-      <Ar className="text-stone-500 mb-8 text-lg">الإنجليزية لرصد الأرض — من استراحة القهوة إلى منصة المؤتمر</Ar>
+      <h1 className="text-4xl sm:text-6xl font-black leading-[1.05] mb-2">Speak Your Work</h1>
+      <p className="text-xl text-stone-600 mb-1">From the café to the conference — one small step at a time.</p>
+      <Ar className="text-stone-500 mb-8 text-lg">من المقهى إلى المؤتمر — خطوة صغيرة في كل مرة</Ar>
 
       <div className="grid sm:grid-cols-4 gap-2 mb-8">
-        {WEEKS.map(w => (
-          <div key={w.no} className="rounded-xl border p-3" style={{ borderColor: LINE, background: CARD }}>
-            <div className="text-[10px] font-black tracking-widest uppercase mb-1" style={{ color: w.colour }}>Week {w.no}</div>
-            <p className="font-black text-[15px] leading-tight">{w.fn}</p>
-            <Ar className="text-stone-400 text-[12px]">{w.fnAr}</Ar>
+        {UNITS.map(u => (
+          <div key={u.no} className="rounded-xl border p-3"
+               style={{ borderColor: u.bridge ? GOLD : LINE, background: u.bridge ? '#fffbeb' : CARD }}>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] font-black tracking-widest uppercase" style={{ color: u.colour }}>Unit {u.no}</span>
+              <span className="text-[10px] font-black px-1.5 rounded" style={{ background: CARD2, color: AMBER }}>{u.level}</span>
+            </div>
+            <p className="font-black text-[14px] leading-tight">{u.title}</p>
+            <p className="text-[11.5px] text-stone-600 leading-snug mt-1">{u.what}</p>
+            {u.bridge && <p className="text-[10px] font-black mt-1.5" style={{ color: AMBER }}>← her work starts here</p>}
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-6 sm:grid-cols-12 gap-1.5 mb-6">
+      <div className="grid grid-cols-8 sm:grid-cols-12 gap-1.5 mb-6">
         {ORDERED.map(l => (
-          <button key={l.no} onClick={() => onJump(l.no)}
-                  title={`${l.title} — ${TRACK_META[l.track].label}`}
+          <button key={l.no} onClick={() => onJump(l.no)} title={`${l.where} — ${l.title}`}
                   className="aspect-square rounded-lg text-[12px] font-black transition-all hover:scale-110 border"
-                  style={{ borderColor: TRACK_COLOR[l.track], color: TRACK_COLOR[l.track], background: CARD }}>
+                  style={{ borderColor: UNITS[l.unit - 1].colour, color: UNITS[l.unit - 1].colour, background: CARD }}>
             {l.no}
           </button>
-        ))}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold mb-6">
-        {(Object.keys(TRACK_META) as Track[]).map(t => (
-          <span key={t} className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded" style={{ background: TRACK_COLOR[t] }} />
-            {TRACK_META[t].label}
-          </span>
         ))}
       </div>
 
@@ -299,187 +261,150 @@ function Cover({ onJump, onFull }: { onJump: (n: number) => void; onFull: () => 
   )
 }
 
-/** THE slide. It answers the only structural question that matters: how does a
- *  woman who cannot order a coffee in English end up chairing a session? */
+/** Why the course starts in a café and not in a meeting. */
 function LadderSlide() {
-  const rows = [
-    { d: 'Days 1–2', t: 'life' as Track, what: 'The function with friends, in a taxi, at dinner. No work vocabulary at all.' },
-    { d: 'Day 3', t: 'bridge' as Track, what: 'The SAME function, first professional use — and the slide names the day it came from.' },
-    { d: 'Days 4–5', t: 'work' as Track, what: 'The function in a meeting, on a call, on a stage.' },
-    { d: 'Day 6', t: 'measure' as Track, what: 'She performs it. It is scored. Fail means it reruns tomorrow.' },
-  ]
   return (
     <div className="max-w-4xl mx-auto w-full">
       <div className="flex items-center gap-2 text-[11px] font-black tracking-[0.3em] uppercase mb-3" style={{ color: ACCENT }}>
-        <ArrowUpRight size={14} /> The shape of the course
+        <Route size={14} /> Why it starts in a café
       </div>
-      <h2 className="text-3xl sm:text-4xl font-black mb-1" style={{ color: TEXT }}>
-        Two weeks of ground, then the climb — six times
-      </h2>
-      <Ar className="text-stone-500 mb-6">أسبوعان من الأرض، ثم التسلّق — ست مرات</Ar>
+      <h2 className="text-3xl sm:text-4xl font-black mb-1">Places first, then people, then work</h2>
+      <Ar className="text-stone-500 mb-6">الأماكن أولاً، ثم الناس، ثم العمل</Ar>
 
-      <div className="rounded-xl border-2 p-5 mb-4" style={{ borderColor: TRACK_COLOR.life, background: '#ecfeff' }}>
-        <div className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: TRACK_COLOR.life }}>
-          Weeks 1 and 2 — no work English at all
-        </div>
-        <p className="text-[14.5px] leading-relaxed">
-          Not one meeting, not one conference, not one client. Twelve days of neighbours, weddings,
-          taxis, school gates, telephones and dinner tables. She is a founder who negotiates in French
-          every day — <b>what is actually stopping her in English is not vocabulary, it is opening her
-          mouth at all.</b> Nobody who cannot chat to a neighbour on a staircase is going to interrupt
-          a minister.
+      <div className="rounded-xl border-2 p-5 mb-5" style={{ borderColor: UNITS[0].colour, background: '#ecfeff' }}>
+        <p className="text-[15px] leading-relaxed">
+          A beginner starts where the language is <b>predictable</b>. In a café there are about nine
+          things anyone ever says, and she can learn all nine. An open conversation with a stranger is
+          the opposite — nothing in it is predictable, and she has to invent content, choose a register
+          and improvise all at once. <b>That is one of the hardest things in a language, not one of the
+          easiest.</b> So units 1 and 2 are errands: café, supermarket, pharmacy, market, taxi,
+          restaurant, bank, doctor, the street, the hotel. Short exchanges, fixed scripts, an outcome
+          she can see.
         </p>
-        <Ar className="text-stone-600 text-[13.5px] mt-2">
-          لا اجتماع ولا مؤتمر ولا عميل. اثنا عشر يوماً من الجيران والأعراس وسيارات الأجرة وأبواب
-          المدارس والهواتف وموائد العشاء. ما يوقفها ليس المفردات بل فتح فمها أصلاً.
+        <Ar className="text-stone-600 text-[14px] mt-3">
+          يبدأ المبتدئ حيث تكون اللغة متوقَّعة. في المقهى نحو تسع جمل يقولها الناس، وتستطيع تعلّمها كلها.
+          الحديث المفتوح مع غريب هو العكس — لا شيء فيه متوقَّع.
         </Ar>
       </div>
 
-      <div className="rounded-xl border p-4 mb-6 text-[13.5px] leading-relaxed" style={{ borderColor: LINE, background: CARD }}>
-        <b>From week 3 the ladder runs.</b> The old plan ran four weeks of everyday English and then
-        simply started talking about satellites, as if the second thing followed from the first. It
-        does not — somebody showed her that chairing a meeting <b>is</b> asking questions and
-        interrupting, the two things she learned in week two, or nobody did. Here that transfer is
-        built six times, inside every week from week 3 on, and she can watch it happening.
-      </div>
-
-      <div className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: MUTED }}>
-        Every week from week 3
-      </div>
-      <div className="space-y-2 mb-7">
-        {rows.map(r => (
-          <div key={r.d} className="rounded-xl border p-4 flex items-start gap-4"
-               style={{ borderColor: TRACK_COLOR[r.t], background: r.t === 'bridge' ? '#fffbeb' : CARD }}>
-            <div className="shrink-0 w-[86px]">
-              <p className="font-black text-[14px]" style={{ color: TRACK_COLOR[r.t] }}>{r.d}</p>
-              <p className="text-[11px] font-bold" style={{ color: DIM }}>{TRACK_META[r.t].label}</p>
+      <div className="space-y-2 mb-6">
+        {UNITS.map(u => (
+          <div key={u.no} className="rounded-xl border p-3.5 flex items-start gap-3"
+               style={{ borderColor: u.bridge ? GOLD : LINE, background: u.bridge ? '#fffbeb' : CARD }}>
+            <span className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center font-black text-[14px] text-white"
+                  style={{ background: u.colour }}>{u.no}</span>
+            <div className="min-w-0 flex-1">
+              <p className="font-black text-[14.5px] leading-tight">
+                {u.title}
+                <span className="text-[11px] font-bold ml-2" style={{ color: DIM }}>days {(u.no - 1) * 6 + 1}–{u.no * 6}</span>
+              </p>
+              <p className="text-[12.5px] text-stone-600 leading-snug">{u.what}</p>
             </div>
-            <p className="text-[14.5px] leading-snug flex-1 min-w-0">{r.what}</p>
+            <span className="shrink-0 text-[10px] font-black px-2 py-1 rounded" style={{ background: CARD2, color: AMBER }}>{u.level}</span>
           </div>
         ))}
       </div>
 
-      <div className="grid sm:grid-cols-2 gap-2 mb-6">
-        {WEEKS.map(w => {
-          const social = w.work === '—'
+      <div className="rounded-xl border p-4" style={{ borderColor: LINE, background: CARD }}>
+        <div className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: MUTED }}>
+          The grammar ladder — nothing may jump ahead of it
+        </div>
+        <div className="space-y-1.5">
+          {GRAMMAR_LADDER.map(g => (
+            <p key={g.unit} className="text-[12.5px] leading-snug">
+              <span className="font-black" style={{ color: UNITS[g.unit - 1].colour }}>Unit {g.unit}</span>
+              <span className="text-stone-600"> — {g.taught.join(' · ')}</span>
+            </p>
+          ))}
+        </div>
+        <p className="text-[12px] text-stone-500 mt-3 border-t pt-3" style={{ borderColor: LINE }}>
+          No past tense before unit 4. No present perfect before unit 7. If a phrase is genuinely useful
+          earlier it is taught as a fixed sound-shape she repeats — never opened up as grammar.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function ShapeSlide() {
+  const total = STEPS.reduce((t, s) => t + s.mins, 0)
+  return (
+    <div className="max-w-4xl mx-auto w-full">
+      <div className="flex items-center gap-2 text-[11px] font-black tracking-[0.3em] uppercase mb-3" style={{ color: ACCENT }}>
+        <Layers size={14} /> Every lesson
+      </div>
+      <h2 className="text-3xl sm:text-4xl font-black mb-1">Five steps, {total} minutes</h2>
+      <Ar className="text-stone-500 mb-6">خمس خطوات، {total} دقيقة</Ar>
+
+      <div className="space-y-2.5 mb-6">
+        {STEPS.map(st => {
+          const I = STEP_ICON[st.key as Step]
           return (
-            <div key={w.no} className="rounded-xl border p-3.5"
-                 style={{ borderColor: social ? TRACK_COLOR.life : LINE, background: social ? '#ecfeff' : CARD }}>
-              <div className="text-[10px] font-black tracking-widest uppercase mb-1" style={{ color: w.colour }}>
-                Week {w.no} · {w.fn}{social && ' · real life only'}
+            <div key={st.key} className="rounded-xl border-2 p-4 flex items-start gap-4"
+                 style={{ borderColor: st.key === 'yourturn' ? GOLD : LINE, background: st.key === 'yourturn' ? '#fffbeb' : CARD }}>
+              <span className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center font-black text-[20px]"
+                    style={{ background: CARD2, color: AMBER }}>{st.n}</span>
+              <div className="min-w-0 flex-1">
+                <p className="font-black text-[17px] leading-tight flex items-center gap-2">
+                  <I size={15} style={{ color: AMBER }} /> {st.label}
+                  <span dir="rtl" className="text-stone-400 font-bold text-[13px]" style={{ fontFamily: "'Tajawal', sans-serif" }}>{st.ar}</span>
+                </p>
+                <p className="text-[13px] text-stone-600 leading-snug mt-0.5">{st.why}</p>
               </div>
-              <p className="text-[13px] leading-snug">
-                <span style={{ color: TRACK_COLOR.life }} className="font-bold">{w.life}</span>
-                {!social && <>
-                  <span className="mx-1.5 font-black" style={{ color: GOLD }}>→</span>
-                  <span style={{ color: TRACK_COLOR.work }} className="font-bold">{w.work}</span>
-                </>}
-              </p>
+              <span className="shrink-0 font-mono font-black text-[14px]" style={{ color: DIM }}>{st.mins}′</span>
             </div>
           )
         })}
       </div>
 
       <p className="text-[13px] text-stone-600 border-t pt-4" style={{ borderColor: LINE }}>
-        By week seven there are no life days left — not because everyday English stops mattering, but
-        because by then the transfer <b>is</b> the skill. Day 43 is the coffee break, and it is
-        explicitly built on day 1: the same thirty seconds of small talk, seven weeks later, with a
-        consortium at the end of it.
+        <b>Step 4 is the biggest block on purpose.</b> Twenty of the {total} minutes are her speaking
+        with no notes. Grammar, pronunciation and the Arabic trap all sit inside step 2 — they are how
+        the sentences work, not separate subjects.
       </p>
     </div>
   )
 }
 
-function PlanSlide() {
-  const total = STAGE_PLAN.reduce((t, s) => t + s.mins, 0)
-  const speaking = ['warmup', 'drill', 'dialogue', 'hotseat', 'speech', 'exit']
-  const spoken = STAGE_PLAN.filter(s => speaking.includes(s.key)).reduce((t, s) => t + s.mins, 0)
+function UnitSlide({ no }: { no: number }) {
+  const u = UNITS[no - 1]
+  const days = ORDERED.filter(l => l.unit === no)
   return (
     <div className="max-w-4xl mx-auto w-full">
-      <div className="flex items-center gap-2 text-[11px] font-black tracking-[0.3em] uppercase mb-3" style={{ color: ACCENT }}>
-        <Route size={14} /> The shape of every lesson
+      <div className="text-[11px] font-black tracking-[0.3em] uppercase mb-3" style={{ color: u.colour }}>
+        Unit {no} of 8 · {u.level} · days {(no - 1) * 6 + 1}–{no * 6}
       </div>
-      <h2 className="text-3xl sm:text-4xl font-black mb-1" style={{ color: TEXT }}>
-        Sixty minutes, and she talks in the first one
-      </h2>
-      <Ar className="text-stone-500 mb-6">ستون دقيقة، وتتكلّم هي في الدقيقة الأولى</Ar>
+      <h2 className="text-4xl sm:text-5xl font-black mb-1">{u.title}</h2>
+      <Ar className="text-stone-500 text-xl mb-5">{u.titleAr}</Ar>
 
-      <div className="rounded-xl border p-4 mb-5 text-[13.5px] leading-relaxed" style={{ borderColor: LINE, background: CARD }}>
-        <b>Recall before teaching</b> — the first five minutes are yesterday and last week, not new
-        material. <b>Input before output</b> — she hears the model before she is asked to produce.
-        <b> Measurement before homework</b> — the exit check is the last thing, so it survives a
-        lesson that runs late.
-      </div>
+      {u.bridge && (
+        <div className="rounded-xl border-2 p-4 mb-5" style={{ borderColor: GOLD, background: '#fffbeb' }}>
+          <p className="font-black text-[15px]" style={{ color: AMBER }}>
+            This is the bridge. Day 25 is the first time in the whole course that her job is mentioned at all.
+          </p>
+          <Ar className="text-stone-600 text-[13.5px] mt-1">
+            هذا هو الجسر. اليوم 25 أول مرة يُذكر فيها عملها في الدورة كلها.
+          </Ar>
+        </div>
+      )}
 
-      <div className="flex w-full h-3 rounded-full overflow-hidden mb-5" style={{ background: LINE }}>
-        {STAGE_PLAN.map((s, i) => (
-          <div key={s.key} title={`${s.label} — ${s.mins} min`}
-               style={{ width: `${(s.mins / total) * 100}%`,
-                        background: speaking.includes(s.key) ? GOLD : i % 2 ? '#e7d9b8' : '#f0e4c8' }} />
-        ))}
-      </div>
-
-      <div className="grid sm:grid-cols-2 gap-2">
-        {STAGE_PLAN.map(s => {
-          const sp = speaking.includes(s.key)
-          return (
-            <div key={s.key} className="rounded-xl border p-3.5 flex items-start gap-3"
-                 style={{ borderColor: sp ? GOLD : LINE, background: sp ? '#fffbeb' : CARD }}>
-              <span className="text-[13px] font-mono font-black shrink-0 w-9 text-right" style={{ color: sp ? AMBER : DIM }}>{s.mins}′</span>
-              <div className="min-w-0">
-                <p className="font-black text-[15px] leading-tight">
-                  {s.label}
-                  <span dir="rtl" className="text-stone-400 font-bold text-[13px] mr-2" style={{ fontFamily: "'Tajawal', sans-serif" }}>{s.ar}</span>
-                </p>
-                <p className="text-[12.5px] text-stone-600 leading-snug mt-0.5">{s.why}</p>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-
-      <p className="text-[13px] text-stone-600 mt-5 border-t pt-4" style={{ borderColor: LINE }}>
-        <b>{spoken} of the {total} minutes are her producing language.</b> If a lesson ends and that was
-        not true, the lesson went wrong, however good the material was.
-      </p>
-    </div>
-  )
-}
-
-function WeekSlide({ no }: { no: number }) {
-  const w = WEEKS[no - 1]
-  const days = ORDERED.filter(l => l.week === no)
-  return (
-    <div className="max-w-4xl mx-auto w-full">
-      <div className="text-[11px] font-black tracking-[0.3em] uppercase mb-3" style={{ color: w.colour }}>Week {no} of 8</div>
-      <h2 className="text-4xl sm:text-5xl font-black mb-1" style={{ color: TEXT }}>{w.fn}</h2>
-      <Ar className="text-stone-500 text-xl mb-6">{w.fnAr}</Ar>
-
-      <div className="rounded-xl border-2 p-5 mb-6 flex flex-wrap items-center gap-3"
-           style={{ borderColor: w.colour, background: w.work === '—' ? '#ecfeff' : CARD }}>
-        <span className="font-black text-[16px]" style={{ color: TRACK_COLOR.life }}>{w.life}</span>
-        {w.work !== '—' ? (
-          <>
-            <span className="font-black text-2xl" style={{ color: GOLD }}>→</span>
-            <span className="font-black text-[16px]" style={{ color: TRACK_COLOR.work }}>{w.work}</span>
-          </>
-        ) : (
-          <span className="text-[13px] font-bold px-2 py-1 rounded" style={{ background: '#cffafe', color: TRACK_COLOR.life }}>
-            no work English this week
-          </span>
-        )}
+      <div className="rounded-xl border p-4 mb-5" style={{ borderColor: LINE, background: CARD }}>
+        <div className="text-[11px] font-black tracking-widest uppercase mb-1.5" style={{ color: MUTED }}>New grammar in this unit</div>
+        <p className="text-[16px] font-black">{u.grammar}</p>
       </div>
 
       <div className="space-y-2">
         {days.map(l => (
           <div key={l.no} className="rounded-xl border p-3.5 flex items-start gap-3" style={{ borderColor: LINE, background: CARD }}>
             <span className="shrink-0 w-11 h-11 rounded-lg flex items-center justify-center font-black text-[15px] text-white"
-                  style={{ background: TRACK_COLOR[l.track] }}>{l.no}</span>
+                  style={{ background: u.colour }}>{l.no}</span>
             <div className="min-w-0 flex-1">
-              <p className="font-black text-[15px] leading-tight">{l.title}</p>
-              <p className="text-[13px] text-stone-600 leading-snug mt-0.5">“{l.canDo.en}”</p>
+              <p className="font-black text-[15px] leading-tight flex items-center gap-1.5">
+                <MapPin size={13} style={{ color: u.colour }} /> {l.where}
+                <span className="text-stone-400 font-bold">— {l.title}</span>
+              </p>
+              <p className="text-[12.5px] text-stone-600 leading-snug mt-0.5">“{l.canDo.en}”</p>
             </div>
-            <span className="shrink-0 text-[10px] font-black px-2 py-1 rounded" style={{ background: CARD2, color: MUTED }}>{l.level}</span>
           </div>
         ))}
       </div>
@@ -489,252 +414,168 @@ function WeekSlide({ no }: { no: number }) {
 
 /* ══════════════════════════════════════════════════════════════════════ */
 
-function LessonSlide({ lesson, phase, colour }: { lesson: Lesson; phase: Phase; colour: string }) {
-  const M = PHASE_META[phase]
+function LessonSlide({ lesson, step, colour }: { lesson: Lesson; step: Step; colour: string }) {
+  const meta = STEPS.find(s => s.key === step)!
   return (
     <div className="max-w-4xl mx-auto w-full">
-      <div className="flex items-center gap-2 text-[11px] font-black tracking-[0.3em] uppercase mb-3" style={{ color: colour }}>
-        <M.icon size={14} /> Day {lesson.no} · {TRACK_META[lesson.track].label} · {M.label}
+      {/* Big step number — where they are, at a glance, from the back of a room. */}
+      <div className="flex items-start gap-4 mb-6">
+        <span className="shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center font-black text-[30px] text-white"
+              style={{ background: colour }}>{meta.n}</span>
+        <div className="min-w-0">
+          <h2 className="text-2xl sm:text-3xl font-black leading-tight">
+            {meta.label}
+            <span dir="rtl" className="text-stone-400 text-xl ml-3" style={{ fontFamily: "'Tajawal', sans-serif" }}>{meta.ar}</span>
+          </h2>
+          <p className="text-[13px] text-stone-500 leading-snug mt-0.5">{meta.why}</p>
+        </div>
       </div>
-      <h2 className="text-2xl sm:text-3xl font-black leading-tight mb-1" style={{ color: TEXT }}>{lesson.title}</h2>
-      <Ar className="text-stone-500 mb-6">{lesson.titleAr}</Ar>
 
-      {/* ── WARM-UP ── */}
-      {phase === 'warmup' && (() => {
-        const w = warmUpFor(lesson.no)
-        return (
-          <div className="space-y-5">
-            <div className="rounded-xl border-2 p-5" style={{ borderColor: colour, background: CARD2 }}>
-              <div className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: colour }}>
-                Sixty seconds · she talks · correct nothing
-              </div>
-              <p className="text-2xl sm:text-3xl font-black leading-snug">{lesson.warm.open.en}</p>
-              <Ar className="text-stone-500 mt-1.5 text-lg">{lesson.warm.open.ar}</Ar>
+      {/* ── 1 WORDS ── */}
+      {step === 'words' && (
+        <div className="space-y-5">
+          <div className="rounded-xl border-2 p-4" style={{ borderColor: colour, background: CARD2 }}>
+            <div className="text-[11px] font-black tracking-widest uppercase mb-1.5" style={{ color: colour }}>
+              First — sixty seconds, she talks, correct nothing
             </div>
-            {w.back.length > 0 && (
-              <div>
+            <p className="text-[19px] font-black leading-snug">{lesson.warm.en}</p>
+            <Ar className="text-stone-500 mt-1">{lesson.warm.ar}</Ar>
+          </div>
+
+          {(() => {
+            const r = recallFor(lesson.no)
+            if (!r.back.length && !r.far) return null
+            return (
+              <div className="rounded-xl border p-4" style={{ borderColor: LINE, background: CARD }}>
                 <div className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: MUTED }}>
-                  From yesterday — she must use all of these
+                  Then — say these again before anything new
                 </div>
-                <div className="space-y-2">
-                  {w.back.map(b => (
-                    <div key={b.en} className="rounded-lg border px-4 py-2.5 flex items-baseline gap-3" style={{ borderColor: LINE, background: CARD }}>
-                      <span className="text-[10px] font-mono font-bold shrink-0" style={{ color: DIM }}>D{b.from}</span>
-                      <div className="min-w-0">
-                        <p className="text-[17px] font-black leading-snug">{b.en}</p>
-                        <Ar className="text-stone-500 text-sm">{b.ar}</Ar>
-                      </div>
-                    </div>
+                <div className="space-y-1.5">
+                  {r.back.map(b => (
+                    <p key={b.en} className="text-[15px] font-bold leading-snug">
+                      <span className="font-mono text-[10px] mr-2" style={{ color: DIM }}>D{b.from}</span>{b.en}
+                    </p>
                   ))}
+                  {r.far && (
+                    <p className="text-[15px] font-bold leading-snug pt-1.5 border-t mt-1.5" style={{ borderColor: LINE }}>
+                      <span className="font-mono text-[10px] mr-2" style={{ color: AMBER }}>D{r.far.from}</span>{r.far.en}
+                      <span className="text-[11px] font-bold ml-2" style={{ color: AMBER }}>(a week ago — this is the one that disappears)</span>
+                    </p>
+                  )}
                 </div>
               </div>
-            )}
-            {w.far && (
-              <div className="rounded-xl border p-4" style={{ borderColor: GOLD, background: '#fffbeb' }}>
-                <div className="text-[11px] font-black tracking-widest uppercase mb-1" style={{ color: AMBER }}>
-                  From a week ago — day {w.far.from}
-                </div>
-                <p className="text-[17px] font-black leading-snug">{w.far.en}</p>
-                <Ar className="text-stone-500 text-sm">{w.far.ar}</Ar>
-                <p className="text-[12px] text-stone-500 mt-2 border-t pt-2" style={{ borderColor: LINE }}>
-                  A phrase starts to disappear about a week after it is taught. This one line is what stops that.
-                </p>
-              </div>
-            )}
-          </div>
-        )
-      })()}
-
-      {/* ── OBJECTIVE ── */}
-      {phase === 'goal' && (
-        <div className="space-y-5">
-          <div className="rounded-xl border-2 p-5" style={{ borderColor: colour, background: CARD }}>
-            <div className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: colour }}>
-              The one thing she can do at the end
-            </div>
-            <p className="text-xl sm:text-2xl font-black leading-snug">“{lesson.canDo.en}”</p>
-            <Ar className="text-stone-500 mt-1.5 text-lg">{lesson.canDo.ar}</Ar>
-          </div>
-
-          {lesson.from && (
-            <div className="rounded-xl border-2 p-4" style={{ borderColor: TRACK_COLOR.bridge, background: '#fffbeb' }}>
-              <div className="flex items-center gap-1.5 text-[11px] font-black tracking-widest uppercase mb-1.5" style={{ color: AMBER }}>
-                <ArrowUpRight size={13} /> This comes up from day {lesson.from.day}
-              </div>
-              <p className="text-[15px] leading-snug">{lesson.from.what}</p>
-              <Ar className="text-stone-500 text-[13px] mt-1.5">{lesson.from.whatAr}</Ar>
-            </div>
-          )}
-
-          <div className="rounded-xl border-2 border-dashed p-4" style={{ borderColor: GOLD, background: CARD }}>
-            <div className="text-[11px] font-black tracking-widest uppercase mb-1.5" style={{ color: AMBER }}>
-              Tell her now — this is the test at the end
-            </div>
-            <p className="text-[18px] font-black leading-snug">{lesson.exit.task}</p>
-            <Ar className="text-stone-500 text-sm mt-1">{lesson.exit.taskAr}</Ar>
-          </div>
-        </div>
-      )}
-
-      {/* ── PHRASES ── */}
-      {phase === 'target' && (
-        <div className="space-y-2.5">
-          {lesson.target.map(c => (
-            <div key={c.en} className="rounded-xl border p-4" style={{ borderColor: LINE, background: CARD }}>
-              <div className="flex items-start justify-between gap-4 flex-wrap">
-                <p className="text-[18px] sm:text-[22px] font-black leading-snug flex-1 min-w-0"><Hi text={c.en} color={colour} /></p>
-                {c.use && (
-                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded shrink-0"
-                        style={{ background: CARD2, color: AMBER }}>{c.use}</span>
-                )}
-              </div>
-              <Ar className="text-stone-500 mt-1">{c.ar}</Ar>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* ── PATTERN ── */}
-      {phase === 'pattern' && (
-        <div className="space-y-5">
-          <div className="rounded-xl border-2 p-6" style={{ borderColor: colour, background: CARD2 }}>
-            <div className="text-[11px] font-black tracking-widest uppercase mb-3" style={{ color: colour }}>
-              One frame to fill — never a grammar rule
-            </div>
-            <p className="text-2xl sm:text-3xl font-black leading-snug font-mono">{lesson.pattern.frame}</p>
-            <Ar className="text-stone-500 mt-2 text-lg">{lesson.pattern.ar}</Ar>
-          </div>
-          <div className="space-y-2">
-            {lesson.pattern.examples.map(e => (
-              <div key={e} className="rounded-lg border px-4 py-3" style={{ borderColor: LINE, background: CARD }}>
-                <p className="text-[18px] font-black leading-snug">{e}</p>
-              </div>
-            ))}
-          </div>
-          <p className="text-[12.5px] text-stone-500 border-t pt-4" style={{ borderColor: LINE }}>
-            If you find yourself explaining <i>why</i> the frame works, stop. She is A1 in production —
-            the moment this becomes a grammar lecture, she stops talking and the hour is lost.
-          </p>
-        </div>
-      )}
-
-      {/* ── ARABIC TRAP ── */}
-      {phase === 'trap' && (
-        <div className="space-y-4">
-          <div className="grid sm:grid-cols-2 gap-3">
-            <div className="rounded-xl border-2 p-5" style={{ borderColor: RED, background: '#fef2f2' }}>
-              <div className="flex items-center gap-1.5 text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: RED }}>
-                <AlertTriangle size={13} /> What Arabic makes her say
-              </div>
-              <p className="text-[19px] sm:text-[22px] font-black leading-snug" style={{ color: RED }}>{lesson.trap.wrong}</p>
-            </div>
-            <div className="rounded-xl border-2 p-5" style={{ borderColor: GREEN, background: '#f0fdf4' }}>
-              <div className="flex items-center gap-1.5 text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: GREEN }}>
-                <CheckCircle2 size={13} /> What English needs
-              </div>
-              <p className="text-[19px] sm:text-[22px] font-black leading-snug" style={{ color: GREEN }}>{lesson.trap.right}</p>
-            </div>
-          </div>
-
-          <div className="rounded-xl border p-5" style={{ borderColor: LINE, background: CARD }}>
-            <div className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: MUTED }}>
-              Why her ear refuses the English
-            </div>
-            <p className="text-[15px] leading-relaxed">{lesson.trap.why}</p>
-            <Ar className="text-stone-600 text-[14px] leading-relaxed mt-3 border-t pt-3" style={{ borderColor: LINE }}>{lesson.trap.whyAr}</Ar>
-          </div>
-
-          {lesson.trap.french && (
-            <div className="rounded-xl border p-4" style={{ borderColor: GOLD, background: '#fffbeb' }}>
-              <div className="text-[11px] font-black tracking-widest uppercase mb-1.5" style={{ color: AMBER }}>
-                And her French
-              </div>
-              <p className="text-[14.5px] leading-snug">{lesson.trap.french}</p>
-            </div>
-          )}
-
-          <p className="text-[12.5px] text-stone-500 border-t pt-4" style={{ borderColor: LINE }}>
-            Telling her to “remember the article” does nothing. Showing her the Arabic structure that
-            makes the English feel wrong turns a careless mistake into a predictable one — and a
-            predictable mistake is one she can catch herself.
-          </p>
-        </div>
-      )}
-
-      {/* ── SOUND ── */}
-      {phase === 'sound' && (
-        <div className="space-y-4">
-          <div className="rounded-xl border-2 p-5" style={{ borderColor: colour, background: CARD2 }}>
-            <p className="text-2xl sm:text-3xl font-black leading-snug">{lesson.sound.focus}</p>
-            <Ar className="text-stone-500 mt-1 text-lg">{lesson.sound.focusAr}</Ar>
-          </div>
+            )
+          })()}
 
           <div className="grid sm:grid-cols-2 gap-2.5">
-            {lesson.sound.pairs.map(([a, b]) => (
-              <div key={a + b} className="rounded-xl border p-4 flex items-center justify-between gap-3" style={{ borderColor: LINE, background: CARD }}>
-                <span className="text-[19px] font-black leading-snug">{a}</span>
-                <span className="text-stone-300 font-black">/</span>
-                <span className="text-[15px] font-bold text-right" style={{ color: MUTED }}>{b}</span>
+            {lesson.words.map(w => (
+              <div key={w.en} className="rounded-xl border p-4" style={{ borderColor: LINE, background: CARD }}>
+                <p className="text-[22px] font-black leading-snug">{w.en}</p>
+                <div className="flex items-baseline justify-between gap-3 mt-1">
+                  <Ar className="text-stone-500 text-[15px]">{w.ar}</Ar>
+                  {w.say && <span className="font-mono text-[12px] font-bold shrink-0" style={{ color: AMBER }}>{w.say}</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-[12.5px] text-stone-500 border-t pt-4" style={{ borderColor: LINE }}>
+            Say each word three times and move on. No sentences yet, no explanations, no grammar. This
+            step is only for getting the sounds into her mouth.
+          </p>
+        </div>
+      )}
+
+      {/* ── 2 SENTENCES (+ grammar, trap, sound) ── */}
+      {step === 'sentences' && (
+        <div className="space-y-5">
+          <div className="space-y-2">
+            {lesson.sentences.map(sn => (
+              <div key={sn.en} className="rounded-xl border p-4" style={{ borderColor: LINE, background: CARD }}>
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <p className="text-[20px] sm:text-[24px] font-black leading-snug flex-1 min-w-0"><Hi text={sn.en} color={colour} /></p>
+                  {sn.use && (
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded shrink-0"
+                          style={{ background: CARD2, color: AMBER }}>{sn.use}</span>
+                  )}
+                </div>
+                <Ar className="text-stone-500 mt-1 text-[15px]">{sn.ar}</Ar>
               </div>
             ))}
           </div>
 
-          <div className="rounded-xl border p-5" style={{ borderColor: LINE, background: CARD }}>
-            <p className="text-[15px] leading-relaxed">{lesson.sound.tip}</p>
-            <Ar className="text-stone-600 text-[14px] leading-relaxed mt-2 border-t pt-2" style={{ borderColor: LINE }}>{lesson.sound.tipAr}</Ar>
+          {/* the one grammar step */}
+          <div className="rounded-xl border-2 p-5" style={{ borderColor: colour, background: CARD2 }}>
+            <div className="flex items-center gap-1.5 text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: colour }}>
+              <Layers size={13} /> Today&apos;s one grammar step {lesson.grammar.chunk && '· say it, do not explain it'}
+            </div>
+            <p className="text-[18px] font-black leading-snug mb-1">{lesson.grammar.step}</p>
+            <Ar className="text-stone-500 text-[14px] mb-3">{lesson.grammar.stepAr}</Ar>
+            <p className="font-mono text-[16px] sm:text-[19px] font-black leading-relaxed">{lesson.grammar.frame}</p>
+            <div className="flex flex-wrap gap-2 mt-3">
+              {lesson.grammar.examples.map(e => (
+                <span key={e} className="text-[14px] font-bold px-2.5 py-1.5 rounded-lg bg-white border" style={{ borderColor: LINE }}>{e}</span>
+              ))}
+            </div>
           </div>
 
-          {lesson.sound.gift && (
-            <div className="rounded-xl border-2 p-4" style={{ borderColor: GREEN, background: '#f0fdf4' }}>
-              <div className="text-[11px] font-black tracking-widest uppercase mb-1.5" style={{ color: GREEN }}>
-                She already owns this one
+          {/* the Arabic trap */}
+          <div className="rounded-xl border-2 overflow-hidden" style={{ borderColor: RED }}>
+            <div className="flex items-center gap-1.5 px-4 py-2 text-[11px] font-black tracking-widest uppercase text-white" style={{ background: RED }}>
+              <AlertTriangle size={13} /> What Arabic makes her say
+            </div>
+            <div className="grid sm:grid-cols-2">
+              <div className="p-4 border-b sm:border-b-0 sm:border-r" style={{ borderColor: LINE, background: '#fef2f2' }}>
+                <p className="text-[18px] font-black leading-snug" style={{ color: RED }}>✗ {lesson.trap.wrong}</p>
               </div>
-              <p className="text-[15px] leading-snug font-bold">{lesson.sound.gift}</p>
+              <div className="p-4" style={{ background: '#f0fdf4' }}>
+                <p className="text-[18px] font-black leading-snug" style={{ color: GREEN }}>✓ {lesson.trap.right}</p>
+              </div>
+            </div>
+            <div className="p-4 bg-white border-t" style={{ borderColor: LINE }}>
+              <p className="text-[14px] leading-relaxed">{lesson.trap.why}</p>
+              <Ar className="text-stone-600 text-[13.5px] leading-relaxed mt-2 pt-2 border-t" style={{ borderColor: LINE }}>{lesson.trap.whyAr}</Ar>
+              {lesson.trap.french && (
+                <p className="text-[13.5px] leading-snug mt-2.5 pt-2.5 border-t font-bold" style={{ borderColor: LINE, color: AMBER }}>
+                  And her French: {lesson.trap.french}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* pronunciation */}
+          {lesson.sound && (
+            <div className="rounded-xl border p-4" style={{ borderColor: LINE, background: CARD }}>
+              <div className="flex items-center gap-1.5 text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: MUTED }}>
+                <Volume2 size={13} /> {lesson.sound.focus}
+                <span dir="rtl" className="font-bold" style={{ fontFamily: "'Tajawal', sans-serif" }}>{lesson.sound.focusAr}</span>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-2 mb-3">
+                {lesson.sound.pairs.map(([a, b]) => (
+                  <div key={a + b} className="rounded-lg border px-3 py-2 bg-white flex items-center justify-between gap-2" style={{ borderColor: LINE }}>
+                    <span className="text-[16px] font-black">{a}</span>
+                    <span className="text-[12px] font-bold text-right" style={{ color: MUTED }}>{b}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[13.5px] leading-snug">{lesson.sound.tip}</p>
+              <Ar className="text-stone-500 text-[13px] mt-1">{lesson.sound.tipAr}</Ar>
+              {lesson.sound.gift && (
+                <p className="text-[13.5px] font-bold mt-2.5 pt-2.5 border-t" style={{ borderColor: LINE, color: GREEN }}>
+                  She already owns this: {lesson.sound.gift}
+                </p>
+              )}
             </div>
           )}
         </div>
       )}
 
-      {/* ── HER WORDS ── */}
-      {phase === 'vocab' && lesson.vocab && (
-        <div className="space-y-2.5">
-          {lesson.vocab.map(v => (
-            <div key={v.en} className="rounded-xl border p-4 flex items-baseline justify-between gap-4 flex-wrap" style={{ borderColor: LINE, background: CARD }}>
-              <div className="min-w-0">
-                <p className="text-[20px] font-black leading-snug">{v.en}</p>
-                <Ar className="text-stone-500">{v.ar}</Ar>
-              </div>
-              {v.say && <span className="font-mono text-[13px] font-bold shrink-0" style={{ color: AMBER }}>{v.say}</span>}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* ── DRILL ── */}
-      {phase === 'drill' && (
-        <div className="space-y-4">
-          <div className="rounded-xl border-2 p-5" style={{ borderColor: colour, background: CARD2 }}>
-            <p className="text-xl sm:text-2xl font-black leading-snug">{lesson.drill.instruction}</p>
-            <Ar className="text-stone-500 mt-1.5">{lesson.drill.instructionAr}</Ar>
-          </div>
-          <div className="space-y-2">
-            {lesson.drill.prompts.map((p, i) => (
-              <div key={p} className="rounded-lg border px-4 py-3 flex items-baseline gap-3" style={{ borderColor: LINE, background: CARD }}>
-                <span className="text-[12px] font-mono font-black shrink-0" style={{ color: DIM }}>{i + 1}</span>
-                <p className="text-[17px] font-bold leading-snug">{p}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── CONVERSATION ── */}
-      {phase === 'dialogue' && lesson.dialogue && (
+      {/* ── 3 CONVERSATION ── */}
+      {step === 'talk' && (
         <div className="space-y-4">
           <div className="rounded-xl border p-4" style={{ borderColor: LINE, background: CARD2 }}>
             <p className="text-xl font-black">{lesson.dialogue.title}</p>
             <Ar className="text-stone-500 text-sm">{lesson.dialogue.titleAr}</Ar>
-            <p className="text-[13px] text-stone-600 mt-2 border-t pt-2" style={{ borderColor: LINE }}>{lesson.dialogue.setting}</p>
+            <p className="text-[13px] text-stone-600 mt-2 pt-2 border-t" style={{ borderColor: LINE }}>{lesson.dialogue.setting}</p>
             <Ar className="text-stone-500 text-[13px]">{lesson.dialogue.settingAr}</Ar>
           </div>
           <div className="space-y-2">
@@ -745,8 +586,8 @@ function LessonSlide({ lesson, phase, colour }: { lesson: Lesson; phase: Phase; 
                   <span className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black text-white"
                         style={{ background: t.who === 'B' ? colour : DIM }}>{t.who}</span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[17px] font-bold leading-snug"><Hi text={t.en} color={AMBER} /></p>
-                    {t.ar && <Ar className="text-stone-500 text-[14px] mt-0.5">{t.ar}</Ar>}
+                    <p className="text-[18px] font-bold leading-snug"><Hi text={t.en} color={AMBER} /></p>
+                    <Ar className="text-stone-500 text-[14px] mt-0.5">{t.ar}</Ar>
                     {t.note && (
                       <p className="text-[12.5px] italic text-stone-500 mt-1.5 pt-1.5 border-t" style={{ borderColor: LINE }}>{t.note}</p>
                     )}
@@ -758,7 +599,7 @@ function LessonSlide({ lesson, phase, colour }: { lesson: Lesson; phase: Phase; 
           {lesson.dialogue.watch && (
             <div className="rounded-xl border-2 p-4" style={{ borderColor: GOLD, background: '#fffbeb' }}>
               <div className="text-[11px] font-black tracking-widest uppercase mb-1.5" style={{ color: AMBER }}>
-                Listen for this on the second run
+                Second run — she plays B, book closed. Listen for this.
               </div>
               <p className="text-[15px] leading-snug font-bold">{lesson.dialogue.watch.en}</p>
               <Ar className="text-stone-500 text-[13.5px] mt-1">{lesson.dialogue.watch.ar}</Ar>
@@ -767,78 +608,57 @@ function LessonSlide({ lesson, phase, colour }: { lesson: Lesson; phase: Phase; 
         </div>
       )}
 
-      {/* ── HOT SEAT ── */}
-      {phase === 'hotseat' && (
-        <div className="space-y-3">
-          <p className="text-[13px] text-stone-600 mb-1">No notes. No warning. Fire them in any order and do not wait.</p>
-          {lesson.hotSeat.map((q, i) => (
-            <div key={q} className="rounded-xl border-2 p-4 flex items-baseline gap-3" style={{ borderColor: LINE, background: CARD }}>
-              <span className="text-[13px] font-mono font-black shrink-0" style={{ color: colour }}>{i + 1}</span>
-              <p className="text-[20px] sm:text-[24px] font-black leading-snug">{q}</p>
+      {/* ── 4 YOUR TURN ── */}
+      {step === 'yourturn' && (
+        <div className="space-y-5">
+          <div className="rounded-xl border-2 p-5" style={{ borderColor: colour, background: CARD2 }}>
+            <div className="flex items-center gap-1.5 text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: colour }}>
+              <Users size={13} /> Role play — you are the other person
             </div>
-          ))}
-        </div>
-      )}
-
-      {/* ── SAY IT ALL ── */}
-      {phase === 'speech' && lesson.speech && (
-        <div className="space-y-4">
-          <div className="rounded-xl border p-4" style={{ borderColor: LINE, background: CARD2 }}>
-            <p className="text-xl font-black">{lesson.speech.title}</p>
-            <Ar className="text-stone-500 text-sm">{lesson.speech.titleAr}</Ar>
+            <p className="text-xl sm:text-2xl font-black leading-snug">{lesson.practice.roleplay}</p>
+            <Ar className="text-stone-500 mt-1.5">{lesson.practice.roleplayAr}</Ar>
           </div>
-          <div className="space-y-2">
-            {lesson.speech.lines.map((l, i) => (
-              <div key={l} className="rounded-xl border p-4 flex items-baseline gap-3" style={{ borderColor: LINE, background: CARD }}>
+
+          <div className="grid sm:grid-cols-2 gap-2">
+            {lesson.practice.rounds.map((r, i) => (
+              <div key={r} className="rounded-lg border px-4 py-3 flex items-baseline gap-3" style={{ borderColor: LINE, background: CARD }}>
                 <span className="text-[12px] font-mono font-black shrink-0" style={{ color: DIM }}>{i + 1}</span>
-                <p className="text-[19px] sm:text-[22px] font-black leading-snug">{l}</p>
+                <p className="text-[16px] font-bold leading-snug">{r}</p>
               </div>
             ))}
           </div>
-          {lesson.speech.note && (
-            <div className="rounded-xl border p-4" style={{ borderColor: GOLD, background: '#fffbeb' }}>
-              <p className="text-[14.5px] leading-snug font-bold">{lesson.speech.note}</p>
-              {lesson.speech.noteAr && <Ar className="text-stone-500 text-[13px] mt-1">{lesson.speech.noteAr}</Ar>}
-            </div>
-          )}
-        </div>
-      )}
 
-      {/* ── EXIT CHECK ── */}
-      {phase === 'exit' && (
-        <div className="space-y-4">
-          <div className="rounded-xl border-2 p-5" style={{ borderColor: colour, background: CARD2 }}>
-            <div className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: colour }}>She does this now</div>
-            <p className="text-2xl sm:text-3xl font-black leading-snug">{lesson.exit.task}</p>
-            <Ar className="text-stone-500 mt-1.5 text-lg">{lesson.exit.taskAr}</Ar>
-          </div>
           <div className="rounded-xl border-2 p-5" style={{ borderColor: GOLD, background: '#fffbeb' }}>
-            <div className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: AMBER }}>
-              What you are actually judging
+            <div className="flex items-center gap-1.5 text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: AMBER }}>
+              <CheckCircle2 size={13} /> Exit check — she can do it, or the lesson runs again tomorrow
             </div>
-            <p className="text-[19px] font-black leading-snug">{lesson.exit.pass}</p>
-            <Ar className="text-stone-500 mt-1">{lesson.exit.passAr}</Ar>
-          </div>
-          <div className="rounded-xl border p-4 text-[13px] leading-relaxed" style={{ borderColor: LINE, background: CARD }}>
-            <b>If she cannot do it, the lesson is not finished.</b> Do not move on and hope. Put it at
-            the top of tomorrow&apos;s warm-up and run it again before the new material. In an everyday
-            course, one unlearned day quietly poisons the next six.
-            <Ar className="text-stone-500 mt-2">إن لم تستطع، فالدرس لم ينتهِ. أعِده في إحماء الغد قبل المادة الجديدة.</Ar>
+            <p className="text-[19px] font-black leading-snug">{lesson.exit.task}</p>
+            <Ar className="text-stone-500 mt-1">{lesson.exit.taskAr}</Ar>
+            <div className="mt-3 pt-3 border-t" style={{ borderColor: LINE }}>
+              <div className="text-[11px] font-black tracking-widest uppercase mb-1" style={{ color: MUTED }}>What you are judging</div>
+              <p className="text-[16px] font-black leading-snug">{lesson.exit.pass}</p>
+              <Ar className="text-stone-500 text-[14px] mt-0.5">{lesson.exit.passAr}</Ar>
+            </div>
           </div>
         </div>
       )}
 
-      {/* ── HOMEWORK ── */}
-      {phase === 'homework' && (
+      {/* ── 5 HOMEWORK ── */}
+      {step === 'homework' && (
         <div className="space-y-4">
           <div className="rounded-xl border-2 p-6" style={{ borderColor: colour, background: CARD2 }}>
             <div className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: colour }}>Before tomorrow</div>
             <p className="text-2xl sm:text-3xl font-black leading-snug">{lesson.homework.en}</p>
             <Ar className="text-stone-500 mt-2 text-lg">{lesson.homework.ar}</Ar>
           </div>
+          <div className="rounded-xl border p-4" style={{ borderColor: LINE, background: CARD }}>
+            <div className="text-[11px] font-black tracking-widest uppercase mb-1.5" style={{ color: MUTED }}>Today she could</div>
+            <p className="text-[17px] font-black leading-snug">“{lesson.canDo.en}”</p>
+            <Ar className="text-stone-500 mt-1">{lesson.canDo.ar}</Ar>
+          </div>
           <p className="text-[13px] text-stone-600 border-t pt-4" style={{ borderColor: LINE }}>
-            This is not extra work — it becomes the first five minutes of tomorrow. If she does not do
-            it, tomorrow&apos;s warm-up has nothing to recall and the spacing breaks.
+            This is not extra work — it becomes the first minutes of tomorrow. If she does not do it,
+            tomorrow&apos;s step 1 has nothing to recall and the spacing breaks.
           </p>
         </div>
       )}
