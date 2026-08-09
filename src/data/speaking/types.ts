@@ -18,9 +18,19 @@
  * ("talk about your day") instead of one thing she could either do or not do
  * at the end of the hour.
  *
- * THE FIX — THE LADDER
- * Every week teaches ONE communicative function, and teaches it three times at
- * rising altitude:
+ * THE FIX — TWO WEEKS OF GROUND, THEN THE LADDER
+ *
+ * WEEKS 1 AND 2 CONTAIN NO WORK ENGLISH AT ALL. Not one meeting, not one
+ * conference, not one client. Twelve days of neighbours, weddings, taxis,
+ * school gates, telephones and dinner tables. This is deliberate: she is a
+ * founder who negotiates in French every day, and the thing actually stopping
+ * her in English is not vocabulary, it is the fear of opening her mouth at
+ * all. Nobody who cannot chat to a neighbour on a staircase is going to
+ * interrupt a minister. The ground has to exist before anything is built on
+ * it.
+ *
+ * FROM WEEK 3 THE LADDER RUNS. Each week teaches ONE communicative function
+ * and teaches it three times at rising altitude:
  *
  *     Days 1–2   LIFE     the function with friends, in a taxi, at dinner
  *     Day  3     BRIDGE   the SAME function, first professional use — and the
@@ -28,10 +38,6 @@
  *     Days 4–5   WORK     the function in a meeting, on a call, on a stage
  *     Day  6     MEASURE  she performs it, and it is scored
  *
- * So the movement from real life to business is not a phase of the course. It
- * happens eight times, inside every week, and she can see it happening. By
- * week six the "life" days are gone entirely, because by then the transfer is
- * the thing she has been practising all along.
  *
  * ONE OBJECTIVE PER LESSON
  * `canDo` is a single sentence in her voice, and `exit` tests exactly that
@@ -149,10 +155,10 @@ export const WEEKS: {
   life: string; work: string
   colour: string
 }[] = [
-  { no: 1, fn: 'Identity',            fnAr: 'من أنا',
-    life: 'saying hello and who you are', work: 'introducing yourself and your company', colour: '#b45309' },
-  { no: 2, fn: 'Questions & answers', fnAr: 'السؤال والجواب',
-    life: 'keeping a conversation alive', work: 'asking and checking in a meeting', colour: '#b45309' },
+  { no: 1, fn: 'Meeting people',      fnAr: 'لقاء الناس',
+    life: 'hello, who you are, your family, small talk, being polite', work: '—', colour: '#0e7490' },
+  { no: 2, fn: 'Everyday life',       fnAr: 'الحياة اليومية',
+    life: 'questions, answers, feelings, the phone, being a guest', work: '—', colour: '#0e7490' },
   { no: 3, fn: 'Time',                fnAr: 'الزمن',
     life: 'your day, your past, your plans', work: 'project history and what happens next', colour: '#15803d' },
   { no: 4, fn: 'Explaining',          fnAr: 'الشرح',

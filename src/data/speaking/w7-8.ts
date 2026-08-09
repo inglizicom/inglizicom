@@ -336,6 +336,7 @@ export const W7_8: Lesson[] = [
     { en: 'Perhaps there is something we could do together.', ar: 'ربما هناك ما يمكننا فعله معاً.', use: 'the opening, kept vague on purpose' },
     { en: 'Can I send you an email about it?', ar: 'هل أرسل لك بريداً بهذا الشأن؟', use: 'the smallest possible ask' },
     { en: 'It was very nice to meet you.', ar: 'سُررت بلقائك.', use: 'day 1, closing a business conversation' },
+    { en: 'This is Amina, our data lead — she built the alert system.', ar: 'هذه أمينة، مسؤولة البيانات — هي من بنت نظام الإنذار.', use: 'introducing someone else' },
   ],
   pattern: { frame: 'Specific compliment → shared problem → your gap → smallest possible ask.',
              ar: 'مديح محدد ← مشكلة مشتركة ← ثغرتك ← أصغر طلب ممكن.',

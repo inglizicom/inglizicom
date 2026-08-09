@@ -311,22 +311,41 @@ function LadderSlide() {
   return (
     <div className="max-w-4xl mx-auto w-full">
       <div className="flex items-center gap-2 text-[11px] font-black tracking-[0.3em] uppercase mb-3" style={{ color: ACCENT }}>
-        <ArrowUpRight size={14} /> The ladder
+        <ArrowUpRight size={14} /> The shape of the course
       </div>
       <h2 className="text-3xl sm:text-4xl font-black mb-1" style={{ color: TEXT }}>
-        Real life to business, eight times over
+        Two weeks of ground, then the climb — six times
       </h2>
-      <Ar className="text-stone-500 mb-6">من الحياة اليومية إلى العمل، ثماني مرات</Ar>
+      <Ar className="text-stone-500 mb-6">أسبوعان من الأرض، ثم التسلّق — ست مرات</Ar>
 
-      <div className="rounded-xl border p-4 mb-6 text-[13.5px] leading-relaxed" style={{ borderColor: LINE, background: CARD }}>
-        The old plan ran four weeks of everyday English and then simply started talking about
-        satellites, as if the second thing followed from the first. It does not. A learner who can
-        chat about the weather cannot chair a meeting, because nobody showed her that chairing a
-        meeting <b>is</b> asking questions and interrupting — the two things she already learned in
-        week two. <b>Here the bridge is built eight times, inside every week, and she can see it
-        happening.</b>
+      <div className="rounded-xl border-2 p-5 mb-4" style={{ borderColor: TRACK_COLOR.life, background: '#ecfeff' }}>
+        <div className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: TRACK_COLOR.life }}>
+          Weeks 1 and 2 — no work English at all
+        </div>
+        <p className="text-[14.5px] leading-relaxed">
+          Not one meeting, not one conference, not one client. Twelve days of neighbours, weddings,
+          taxis, school gates, telephones and dinner tables. She is a founder who negotiates in French
+          every day — <b>what is actually stopping her in English is not vocabulary, it is opening her
+          mouth at all.</b> Nobody who cannot chat to a neighbour on a staircase is going to interrupt
+          a minister.
+        </p>
+        <Ar className="text-stone-600 text-[13.5px] mt-2">
+          لا اجتماع ولا مؤتمر ولا عميل. اثنا عشر يوماً من الجيران والأعراس وسيارات الأجرة وأبواب
+          المدارس والهواتف وموائد العشاء. ما يوقفها ليس المفردات بل فتح فمها أصلاً.
+        </Ar>
       </div>
 
+      <div className="rounded-xl border p-4 mb-6 text-[13.5px] leading-relaxed" style={{ borderColor: LINE, background: CARD }}>
+        <b>From week 3 the ladder runs.</b> The old plan ran four weeks of everyday English and then
+        simply started talking about satellites, as if the second thing followed from the first. It
+        does not — somebody showed her that chairing a meeting <b>is</b> asking questions and
+        interrupting, the two things she learned in week two, or nobody did. Here that transfer is
+        built six times, inside every week from week 3 on, and she can watch it happening.
+      </div>
+
+      <div className="text-[11px] font-black tracking-widest uppercase mb-2" style={{ color: MUTED }}>
+        Every week from week 3
+      </div>
       <div className="space-y-2 mb-7">
         {rows.map(r => (
           <div key={r.d} className="rounded-xl border p-4 flex items-start gap-4"
@@ -341,18 +360,24 @@ function LadderSlide() {
       </div>
 
       <div className="grid sm:grid-cols-2 gap-2 mb-6">
-        {WEEKS.map(w => (
-          <div key={w.no} className="rounded-xl border p-3.5" style={{ borderColor: LINE, background: CARD }}>
-            <div className="text-[10px] font-black tracking-widest uppercase mb-1" style={{ color: w.colour }}>
-              Week {w.no} · {w.fn}
+        {WEEKS.map(w => {
+          const social = w.work === '—'
+          return (
+            <div key={w.no} className="rounded-xl border p-3.5"
+                 style={{ borderColor: social ? TRACK_COLOR.life : LINE, background: social ? '#ecfeff' : CARD }}>
+              <div className="text-[10px] font-black tracking-widest uppercase mb-1" style={{ color: w.colour }}>
+                Week {w.no} · {w.fn}{social && ' · real life only'}
+              </div>
+              <p className="text-[13px] leading-snug">
+                <span style={{ color: TRACK_COLOR.life }} className="font-bold">{w.life}</span>
+                {!social && <>
+                  <span className="mx-1.5 font-black" style={{ color: GOLD }}>→</span>
+                  <span style={{ color: TRACK_COLOR.work }} className="font-bold">{w.work}</span>
+                </>}
+              </p>
             </div>
-            <p className="text-[13px] leading-snug">
-              <span style={{ color: TRACK_COLOR.life }} className="font-bold">{w.life}</span>
-              <span className="mx-1.5 font-black" style={{ color: GOLD }}>→</span>
-              <span style={{ color: TRACK_COLOR.work }} className="font-bold">{w.work}</span>
-            </p>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       <p className="text-[13px] text-stone-600 border-t pt-4" style={{ borderColor: LINE }}>
@@ -430,10 +455,19 @@ function WeekSlide({ no }: { no: number }) {
       <h2 className="text-4xl sm:text-5xl font-black mb-1" style={{ color: TEXT }}>{w.fn}</h2>
       <Ar className="text-stone-500 text-xl mb-6">{w.fnAr}</Ar>
 
-      <div className="rounded-xl border-2 p-5 mb-6 flex flex-wrap items-center gap-3" style={{ borderColor: w.colour, background: CARD }}>
+      <div className="rounded-xl border-2 p-5 mb-6 flex flex-wrap items-center gap-3"
+           style={{ borderColor: w.colour, background: w.work === '—' ? '#ecfeff' : CARD }}>
         <span className="font-black text-[16px]" style={{ color: TRACK_COLOR.life }}>{w.life}</span>
-        <span className="font-black text-2xl" style={{ color: GOLD }}>→</span>
-        <span className="font-black text-[16px]" style={{ color: TRACK_COLOR.work }}>{w.work}</span>
+        {w.work !== '—' ? (
+          <>
+            <span className="font-black text-2xl" style={{ color: GOLD }}>→</span>
+            <span className="font-black text-[16px]" style={{ color: TRACK_COLOR.work }}>{w.work}</span>
+          </>
+        ) : (
+          <span className="text-[13px] font-bold px-2 py-1 rounded" style={{ background: '#cffafe', color: TRACK_COLOR.life }}>
+            no work English this week
+          </span>
+        )}
       </div>
 
       <div className="space-y-2">

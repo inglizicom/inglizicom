@@ -223,6 +223,8 @@ export const W3_4: Lesson[] = [
     { en: 'Gabon, Côte d\'Ivoire, Congo — and others.', ar: 'الغابون وكوت ديفوار والكونغو — وغيرها.', use: 'three, then "and others"' },
     { en: 'That was the hardest project I did.', ar: 'كان أصعب مشروع نفّذته.', use: 'one story beats a list' },
     { en: 'Right now I am working on ______ .', ar: 'حالياً أعمل على ______ .', use: 'always end in the present' },
+    { en: "I'm Salma Bennani, a remote sensing engineer.", ar: 'أنا سلمى بناني، مهندسة استشعار عن بُعد.', use: 'the professional version of day 2' },
+    { en: 'I work for Africa EO Services, and I am here for the coastal component.', ar: 'أعمل لدى أفريقيا للرصد الأرضي، وأنا هنا من أجل المكوّن الساحلي.', use: 'a round-table introduction' },
   ],
   pattern: { frame: 'Year → before that → since → three countries → one story → right now.',
              ar: 'سنة ← قبلها ← منذ ← ثلاث دول ← قصة ← الآن.',

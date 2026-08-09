@@ -414,8 +414,8 @@ export const W5_6: Lesson[] = [
   titleAr: 'أخذ الكلمة',
   canDo: { en: 'I can interrupt and take the floor without apologising for it.',
            ar: 'أستطيع المقاطعة وأخذ الكلمة دون الاعتذار عن ذلك.' },
-  from: { day: 9, what: 'Day 9 got you into a conversation with a question. Today you get in with an OPINION — much harder, because now you are taking the room somewhere.',
-          whatAr: 'اليوم التاسع أدخلك بسؤال. اليوم تدخلين برأي — أصعب بكثير لأنك تأخذين القاعة إلى مكان.' },
+  from: { day: 5, what: 'Day 5 taught you "excuse me" at a crowded dinner table. Today it is the same interruption in a meeting — except that here you drop the apology, because in English a long apology before speaking tells the room that what follows is not worth hearing.',
+          whatAr: 'اليوم الخامس علّمك «عذراً» على مائدة مزدحمة. اليوم المقاطعة نفسها في اجتماع — لكن هنا تُسقطين الاعتذار، لأن الاعتذار الطويل قبل الكلام يخبر القاعة بالإنجليزية أن ما سيأتي لا يستحق السماع.' },
   warm: { open: { en: 'Interrupt me. Right now, before I finish this sentence.',
                   ar: 'قاطعيني. الآن قبل أن أُنهي هذه الجملة.' } },
   target: [
