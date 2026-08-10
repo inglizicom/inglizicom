@@ -71,6 +71,67 @@ function Ar({ children, className = '', style }: { children: React.ReactNode; cl
   )
 }
 
+/** TAP TO HEAR.
+ *
+ *  The whole course is about producing sound, and until now there was none in
+ *  it. She had a phonetic respelling — "uh KOF-ee" — and nothing to check it
+ *  against, which asks her to trust a spelling system she has never used to
+ *  reproduce a sound she has never heard. And the teacher is Moroccan: a good
+ *  teacher, but not the model for /p/ or /θ/ or the -teen/-ty stress pair that
+ *  three of these lessons turn on.
+ *
+ *  Every English phrase in the deck is now clickable. It uses the browser's own
+ *  voices, so nothing leaves the machine and it works in a classroom with no
+ *  network. British English on purpose — the course says "the bill", "quarter
+ *  to eleven", "chemist", "petrol station" throughout, and a US voice reading
+ *  those is a different course.
+ *
+ *  Slow mode drops the rate to 0.62 for the minimal pairs, where the whole
+ *  point is hearing a difference she cannot yet hear at speed. */
+function useSpeech() {
+  const [slow, setSlow] = useState(false)
+  const [supported, setSupported] = useState(false)
+  const voice = useRef<SpeechSynthesisVoice | null>(null)
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
+    setSupported(true)
+    const pick = () => {
+      const vs = window.speechSynthesis.getVoices()
+      voice.current =
+        vs.find(v => v.lang === 'en-GB' && /Daniel|Serena|Kate|Google UK/i.test(v.name)) ??
+        vs.find(v => v.lang === 'en-GB') ??
+        vs.find(v => v.lang.startsWith('en')) ?? null
+    }
+    pick()
+    window.speechSynthesis.addEventListener('voiceschanged', pick)
+    return () => window.speechSynthesis.removeEventListener('voiceschanged', pick)
+  }, [])
+
+  /* Strips the *spotlight* markers, the [stage directions] and the phonetic
+     respellings, none of which should be read aloud. */
+  const speak = useCallback((text: string) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return
+    const clean = text
+      .replace(/\*/g, '')
+      .replace(/\[[^\]]*\]/g, ' ')
+      .replace(/[—–]/g, ', ')
+      .replace(/\s+/g, ' ')
+      .trim()
+    if (!clean) return
+    window.speechSynthesis.cancel()
+    const u = new SpeechSynthesisUtterance(clean)
+    u.lang = 'en-GB'
+    if (voice.current) u.voice = voice.current
+    u.rate = slow ? 0.62 : 0.92
+    window.speechSynthesis.speak(u)
+  }, [slow])
+
+  return { speak, slow, setSlow, supported }
+}
+
+type Speak = (t: string) => void
+
 function buildSlides(): Slide[] {
   const out: Slide[] = [{ k: 'cover' }, { k: 'ladder' }, { k: 'shape' }]
   UNITS.forEach(u => {
@@ -86,6 +147,7 @@ export default function SpeakingDeck() {
   const [idx, setIdx] = useState(0)
   const [fs, setFs] = useState(false)
   const stageRef = useRef<HTMLDivElement>(null)
+  const { speak, slow, setSlow, supported } = useSpeech()
 
   const go = useCallback((d: number) => {
     setIdx(i => Math.min(slides.length - 1, Math.max(0, i + d)))
@@ -101,11 +163,12 @@ export default function SpeakingDeck() {
       if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); go(1) }
       if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1) }
       if (e.key === 'f' || e.key === 'F') toggleFs()
+      if (e.key === 's' || e.key === 'S') setSlow(v => !v)
       if (e.key === 'Home') setIdx(0)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [go, toggleFs])
+  }, [go, toggleFs, setSlow])
 
   useEffect(() => {
     const onFs = () => setFs(!!document.fullscreenElement)
@@ -163,6 +226,13 @@ export default function SpeakingDeck() {
           )}
         </div>
         <div className="flex items-center gap-3 shrink-0">
+          {supported && (
+            <button onClick={() => setSlow(v => !v)} title="Slow speech (S)"
+                    className="flex items-center gap-1.5 text-[11px] font-bold px-2 py-1 rounded-full border transition-colors"
+                    style={{ borderColor: slow ? AMBER : LINE, background: slow ? '#fffbeb' : 'transparent', color: slow ? AMBER : DIM }}>
+              <Volume2 size={12} /> {slow ? 'Slow' : 'Normal'}
+            </button>
+          )}
           <span className="text-[11px] font-mono text-stone-500">{idx + 1}/{slides.length}</span>
           <button onClick={() => setIdx(0)} className="text-stone-400 hover:text-stone-700" title="Cover"><Home size={16} /></button>
           <button onClick={toggleFs} className="text-stone-400 hover:text-stone-700" title="Full screen (F)">
@@ -207,7 +277,7 @@ export default function SpeakingDeck() {
           {s.k === 'ladder' && <LadderSlide />}
           {s.k === 'shape'  && <ShapeSlide />}
           {s.k === 'unit'   && <UnitSlide no={s.unit} />}
-          {s.k === 'lesson' && <LessonSlide lesson={s.lesson} step={s.step} colour={colour} />}
+          {s.k === 'lesson' && <LessonSlide lesson={s.lesson} step={s.step} colour={colour} speak={speak} />}
         </div>
       </div>
 
@@ -424,7 +494,7 @@ function UnitSlide({ no }: { no: number }) {
 
 /* ══════════════════════════════════════════════════════════════════════ */
 
-function LessonSlide({ lesson, step, colour }: { lesson: Lesson; step: Step; colour: string }) {
+function LessonSlide({ lesson, step, colour, speak }: { lesson: Lesson; step: Step; colour: string; speak: Speak }) {
   const meta = STEPS.find(s => s.key === step)!
   return (
     <div className="max-w-4xl mx-auto w-full">
@@ -477,9 +547,10 @@ function LessonSlide({ lesson, step, colour }: { lesson: Lesson; step: Step; col
             )
           })()}
 
-          <div className="grid sm:grid-cols-2 gap-2.5">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
             {lesson.words.map(w => (
-              <div key={w.en} className="rounded-xl border p-4" style={{ borderColor: LINE, background: CARD }}>
+              <div key={w.en} onClick={() => speak(w.en)} title="Click to hear it"
+                   className="rounded-xl border p-4 cursor-pointer transition-colors hover:border-stone-400" style={{ borderColor: LINE, background: CARD }}>
                 <p className="text-[23px] font-bold leading-relaxed">{w.en}</p>
                 <div className="flex items-baseline justify-between gap-3 mt-1">
                   <Ar className="text-stone-600 text-[15px]">{w.ar}</Ar>
@@ -516,8 +587,8 @@ function LessonSlide({ lesson, step, colour }: { lesson: Lesson; step: Step; col
                     </div>
                     <div className="flex flex-wrap gap-1.5">
                       {g.items.map(it => (
-                        <span key={it.en}
-                              className="inline-flex items-baseline gap-1.5 rounded-lg bg-white border px-2.5 py-1.5"
+                        <span key={it.en} onClick={() => speak(it.en)} title="Click to hear it"
+                              className="inline-flex items-baseline gap-1.5 rounded-lg bg-white border px-2.5 py-1.5 cursor-pointer transition-colors hover:border-stone-400"
                               style={{ borderColor: LINE }}>
                           <span className="text-[15px] font-bold leading-none">{it.en}</span>
                           <span dir="rtl" className="text-[12.5px] text-stone-500 leading-none" style={{ fontFamily: "'Tajawal', sans-serif" }}>{it.ar}</span>
@@ -537,7 +608,8 @@ function LessonSlide({ lesson, step, colour }: { lesson: Lesson; step: Step; col
         <div className="space-y-5">
           <div className="space-y-2">
             {lesson.sentences.map(sn => (
-              <div key={sn.en} className="rounded-xl border p-4" style={{ borderColor: LINE, background: CARD }}>
+              <div key={sn.en} onClick={() => speak(sn.en)} title="Click to hear it"
+                   className="rounded-xl border p-4 cursor-pointer transition-colors hover:border-stone-400" style={{ borderColor: LINE, background: CARD }}>
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                   <p className="text-[21px] sm:text-[26px] font-bold leading-relaxed flex-1 min-w-0"><Hi text={sn.en} color={colour} /></p>
                   {sn.use && (
@@ -560,7 +632,8 @@ function LessonSlide({ lesson, step, colour }: { lesson: Lesson; step: Step; col
             <p className="font-mono text-[16px] sm:text-[19px] font-bold leading-relaxed">{lesson.grammar.frame}</p>
             <div className="flex flex-wrap gap-2 mt-3">
               {lesson.grammar.examples.map(e => (
-                <span key={e} className="text-[14px] font-bold px-2.5 py-1.5 rounded-lg bg-white border" style={{ borderColor: LINE }}>{e}</span>
+                <span key={e} onClick={() => speak(e)} title="Click to hear it"
+                      className="text-[14px] font-bold px-2.5 py-1.5 rounded-lg bg-white border cursor-pointer transition-colors hover:border-stone-400" style={{ borderColor: LINE }}>{e}</span>
               ))}
             </div>
           </div>
@@ -575,7 +648,8 @@ function LessonSlide({ lesson, step, colour }: { lesson: Lesson; step: Step; col
                 <p className="text-[18px] font-bold leading-snug" style={{ color: RED }}>✗ {lesson.trap.wrong}</p>
               </div>
               <div className="p-4" style={{ background: '#f0fdf4' }}>
-                <p className="text-[18px] font-bold leading-snug" style={{ color: GREEN }}>✓ {lesson.trap.right}</p>
+                <p onClick={() => speak(lesson.trap.right)} title="Click to hear it"
+                   className="text-[18px] font-bold leading-snug cursor-pointer" style={{ color: GREEN }}>✓ {lesson.trap.right}</p>
               </div>
             </div>
             <div className="p-4 bg-white border-t" style={{ borderColor: LINE }}>
@@ -598,7 +672,8 @@ function LessonSlide({ lesson, step, colour }: { lesson: Lesson; step: Step; col
               </div>
               <div className="grid sm:grid-cols-2 gap-2 mb-3">
                 {lesson.sound.pairs.map(([a, b]) => (
-                  <div key={a + b} className="rounded-lg border px-3 py-2 bg-white flex items-center justify-between gap-2" style={{ borderColor: LINE }}>
+                  <div key={a + b} onClick={() => speak(a)} title="Click to hear it — try Slow (S)"
+                       className="rounded-lg border px-3 py-2 bg-white flex items-center justify-between gap-2 cursor-pointer transition-colors hover:border-stone-400" style={{ borderColor: LINE }}>
                     <span className="text-[16px] font-bold">{a}</span>
                     <span className="text-[12px] font-bold text-right" style={{ color: MUTED }}>{b}</span>
                   </div>
@@ -627,7 +702,8 @@ function LessonSlide({ lesson, step, colour }: { lesson: Lesson; step: Step; col
           </div>
           <div className="space-y-2">
             {lesson.dialogue.turns.map((t, i) => (
-              <div key={i} className={`rounded-xl border p-3.5 ${t.who === 'B' ? 'ml-6' : 'mr-6'}`}
+              <div key={i} onClick={() => speak(t.en)} title="Click to hear it"
+                   className={`rounded-xl border p-3.5 cursor-pointer transition-colors hover:border-stone-400 ${t.who === 'B' ? 'ml-6' : 'mr-6'}`}
                    style={{ borderColor: t.who === 'B' ? colour : LINE, background: t.who === 'B' ? CARD2 : CARD }}>
                 <div className="flex items-start gap-3">
                   <span className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold text-white"
