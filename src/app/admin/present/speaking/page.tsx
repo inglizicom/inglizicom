@@ -58,7 +58,7 @@ type Slide =
 
 function Hi({ text, color = GOLD }: { text: string; color?: string }) {
   return <>{text.split('*').map((p, i) =>
-    i % 2 === 1 ? <span key={i} style={{ color, fontWeight: 800 }}>{p}</span> : <span key={i}>{p}</span>
+    i % 2 === 1 ? <span key={i} style={{ color, fontWeight: 700 }}>{p}</span> : <span key={i}>{p}</span>
   )}</>
 }
 
@@ -131,7 +131,7 @@ export default function SpeakingDeck() {
   return (
     <div dir="ltr" ref={stageRef}
          style={{
-           fontFamily: "'Inter', 'DM Sans', system-ui, sans-serif",
+           fontFamily: "'Google Sans', 'Inter', system-ui, sans-serif",
            background: PAPER, color: INK,
            WebkitFontSmoothing: 'antialiased', textRendering: 'optimizeLegibility',
            letterSpacing: '-0.006em',
@@ -235,7 +235,7 @@ function Cover({ onJump, onFull }: { onJump: (n: number) => void; onFull: () => 
       <div className="text-[11px] font-bold tracking-[0.3em] uppercase mb-3" style={{ color: ACCENT }}>
         Private 1:1 · 8 units · 48 daily lessons · A0 → B1
       </div>
-      <h1 className="text-4xl sm:text-6xl font-extrabold leading-[1.05] mb-2">Speak Your Work</h1>
+      <h1 className="text-4xl sm:text-6xl font-bold leading-[1.05] mb-2">Speak Your Work</h1>
       <p className="text-xl text-stone-600 mb-1">From the café to the conference — one small step at a time.</p>
       <Ar className="text-stone-500 mb-8 text-lg">من المقهى إلى المؤتمر — خطوة صغيرة في كل مرة</Ar>
 
@@ -278,7 +278,7 @@ function LadderSlide() {
       <div className="flex items-center gap-2 text-[11px] font-bold tracking-[0.3em] uppercase mb-3" style={{ color: ACCENT }}>
         <Route size={14} /> Why it starts in a café
       </div>
-      <h2 className="text-3xl sm:text-4xl font-extrabold mb-1">Places first, then people, then work</h2>
+      <h2 className="text-3xl sm:text-4xl font-bold mb-1">Places first, then people, then work</h2>
       <Ar className="text-stone-500 mb-6">الأماكن أولاً، ثم الناس، ثم العمل</Ar>
 
       <div className="rounded-xl border-2 p-5 mb-5" style={{ borderColor: UNITS[0].colour, background: '#ecfeff' }}>
@@ -343,7 +343,7 @@ function ShapeSlide() {
       <div className="flex items-center gap-2 text-[11px] font-bold tracking-[0.3em] uppercase mb-3" style={{ color: ACCENT }}>
         <Layers size={14} /> Every lesson
       </div>
-      <h2 className="text-3xl sm:text-4xl font-extrabold mb-1">Five steps, {total} minutes</h2>
+      <h2 className="text-3xl sm:text-4xl font-bold mb-1">Five steps, {total} minutes</h2>
       <Ar className="text-stone-500 mb-6">خمس خطوات، {total} دقيقة</Ar>
 
       <div className="space-y-2.5 mb-6">
@@ -384,7 +384,7 @@ function UnitSlide({ no }: { no: number }) {
       <div className="text-[11px] font-bold tracking-[0.3em] uppercase mb-3" style={{ color: u.colour }}>
         Unit {no} of 8 · {u.level} · days {(no - 1) * 6 + 1}–{no * 6}
       </div>
-      <h2 className="text-4xl sm:text-5xl font-extrabold mb-1">{u.title}</h2>
+      <h2 className="text-4xl sm:text-5xl font-bold mb-1">{u.title}</h2>
       <Ar className="text-stone-500 text-xl mb-5">{u.titleAr}</Ar>
 
       {u.bridge && (
@@ -430,10 +430,10 @@ function LessonSlide({ lesson, step, colour }: { lesson: Lesson; step: Step; col
     <div className="max-w-4xl mx-auto w-full">
       {/* Big step number — where they are, at a glance, from the back of a room. */}
       <div className="flex items-start gap-4 mb-6">
-        <span className="shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center font-extrabold text-[30px] text-white"
+        <span className="shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-[30px] text-white"
               style={{ background: colour }}>{meta.n}</span>
         <div className="min-w-0">
-          <h2 className="text-2xl sm:text-3xl font-extrabold leading-tight">
+          <h2 className="text-2xl sm:text-3xl font-bold leading-tight">
             {meta.label}
             <span dir="rtl" className="text-stone-400 text-xl ml-3" style={{ fontFamily: "'Tajawal', sans-serif" }}>{meta.ar}</span>
           </h2>
@@ -482,7 +482,7 @@ function LessonSlide({ lesson, step, colour }: { lesson: Lesson; step: Step; col
               <div key={w.en} className="rounded-xl border p-4" style={{ borderColor: LINE, background: CARD }}>
                 <p className="text-[23px] font-bold leading-relaxed">{w.en}</p>
                 <div className="flex items-baseline justify-between gap-3 mt-1">
-                  <Ar className="text-stone-500 text-[15px]">{w.ar}</Ar>
+                  <Ar className="text-stone-600 text-[15px]">{w.ar}</Ar>
                   {w.say && <span className="font-mono text-[12px] font-bold shrink-0" style={{ color: AMBER }}>{w.say}</span>}
                 </div>
               </div>
@@ -545,7 +545,7 @@ function LessonSlide({ lesson, step, colour }: { lesson: Lesson; step: Step; col
                           style={{ background: CARD2, color: AMBER }}>{sn.use}</span>
                   )}
                 </div>
-                <Ar className="text-stone-500 mt-1 text-[15px]">{sn.ar}</Ar>
+                <Ar className="text-stone-600 mt-1 text-[15px]">{sn.ar}</Ar>
               </div>
             ))}
           </div>
@@ -634,7 +634,7 @@ function LessonSlide({ lesson, step, colour }: { lesson: Lesson; step: Step; col
                         style={{ background: t.who === 'B' ? colour : DIM }}>{t.who}</span>
                   <div className="min-w-0 flex-1">
                     <p className="text-[18px] font-medium leading-relaxed"><Hi text={t.en} color={AMBER} /></p>
-                    <Ar className="text-stone-500 text-[14px] mt-0.5">{t.ar}</Ar>
+                    <Ar className="text-stone-600 text-[14px] mt-0.5">{t.ar}</Ar>
                     {t.note && (
                       <p className="text-[12.5px] italic text-stone-500 mt-1.5 pt-1.5 border-t" style={{ borderColor: LINE }}>{t.note}</p>
                     )}
@@ -684,7 +684,7 @@ function LessonSlide({ lesson, step, colour }: { lesson: Lesson; step: Step; col
             <div className="mt-3 pt-3 border-t" style={{ borderColor: LINE }}>
               <div className="text-[11px] font-bold tracking-widest uppercase mb-1" style={{ color: MUTED }}>What you are judging</div>
               <p className="text-[16px] font-bold leading-snug">{lesson.exit.pass}</p>
-              <Ar className="text-stone-500 text-[14px] mt-0.5">{lesson.exit.passAr}</Ar>
+              <Ar className="text-stone-600 text-[14px] mt-0.5">{lesson.exit.passAr}</Ar>
             </div>
           </div>
         </div>
