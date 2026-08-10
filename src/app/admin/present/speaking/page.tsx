@@ -748,9 +748,14 @@ function LessonSlide({ lesson, step, colour, speak }: { lesson: Lesson; step: St
             <Ar className="text-stone-500 mt-1.5">{lesson.practice.roleplayAr}</Ar>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-2">
+          {/* Three across on a wide screen, to match step 2. Most of these rounds are a
+              phrase she has to produce — "A tea with sugar", "Two kilos of tomatoes" — so
+              they are clickable like everything else English in the deck. */}
+          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-2">
             {lesson.practice.rounds.map((r, i) => (
-              <div key={r} className="rounded-lg border px-4 py-3 flex items-baseline gap-3" style={{ borderColor: LINE, background: CARD }}>
+              <div key={r} onClick={() => speak(r)} title="Click to hear it"
+                   className="rounded-lg border px-4 py-3 flex items-baseline gap-3 cursor-pointer transition-colors hover:border-stone-400"
+                   style={{ borderColor: LINE, background: CARD }}>
                 <span className="text-[12px] font-mono font-bold shrink-0" style={{ color: DIM }}>{i + 1}</span>
                 <p className="text-[16px] font-bold leading-snug">{r}</p>
               </div>
