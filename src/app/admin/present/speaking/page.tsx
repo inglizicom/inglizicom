@@ -606,18 +606,24 @@ function LessonSlide({ lesson, step, colour, speak }: { lesson: Lesson; step: St
       {/* ── 2 SENTENCES (+ grammar, trap, sound) ── */}
       {step === 'sentences' && (
         <div className="space-y-5">
-          <div className="space-y-2">
+          {/* Fourteen sentences one per row is four screens of scrolling, and she cannot
+              choose between things she cannot see at the same time. Two across, three on a
+              wide screen. The trigger moves above the sentence, because in a narrow card a
+              badge beside the text just pushes the English into another line. */}
+          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-2.5">
             {lesson.sentences.map(sn => (
               <div key={sn.en} onClick={() => speak(sn.en)} title="Click to hear it"
-                   className="rounded-xl border p-4 cursor-pointer transition-colors hover:border-stone-400" style={{ borderColor: LINE, background: CARD }}>
-                <div className="flex items-start justify-between gap-4 flex-wrap">
-                  <p className="text-[21px] sm:text-[26px] font-bold leading-relaxed flex-1 min-w-0"><Hi text={sn.en} color={colour} /></p>
-                  {sn.use && (
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded shrink-0"
-                          style={{ background: CARD2, color: AMBER }}>{sn.use}</span>
-                  )}
-                </div>
-                <Ar className="text-stone-600 mt-1 text-[15px]">{sn.ar}</Ar>
+                   className="rounded-xl border p-4 flex flex-col cursor-pointer transition-colors hover:border-stone-400"
+                   style={{ borderColor: LINE, background: CARD }}>
+                {sn.use && (
+                  <span className="text-[9.5px] font-bold uppercase tracking-[0.09em] mb-1.5" style={{ color: AMBER }}>
+                    {sn.use}
+                  </span>
+                )}
+                <p className="text-[19px] xl:text-[20px] font-bold leading-snug flex-1">
+                  <Hi text={sn.en} color={colour} />
+                </p>
+                <Ar className="text-stone-600 mt-2 text-[14.5px]">{sn.ar}</Ar>
               </div>
             ))}
           </div>
