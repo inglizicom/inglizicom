@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import {
   Award, BookOpen, Camera, CalendarClock, Flame, GraduationCap, Image as ImageIcon,
   Loader2, MessageSquareQuote, Pencil, Printer, ShieldCheck, Star, Trophy,
@@ -94,6 +95,9 @@ export default function TeacherProfilePage() {
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white ring-1 ring-stone-900/10 text-stone-600 text-[12.5px] font-bold hover:bg-stone-50 transition">
           <Printer size={13} /> طباعة / PDF
         </button>
+        <Link href={`/teachers/${teacher.id}`} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 text-white text-[12.5px] font-black hover:bg-slate-800 transition">
+          <Users size={13} /> العرض العام
+        </Link>
         <button onClick={() => !demo && setEditing(true)} disabled={demo}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-stone-900 text-white text-[12.5px] font-black hover:bg-stone-700 transition disabled:opacity-50">
           <Pencil size={13} /> تعديل الملف
