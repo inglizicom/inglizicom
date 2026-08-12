@@ -8,6 +8,7 @@ import type { LucideIcon } from 'lucide-react'
 import {
   LayoutGrid, CalendarDays, Users, ClipboardList, FolderOpen, UserRound,
   LogOut, Menu, X, Star, Search, Bell, Command, ChevronLeft,
+  Wallet, CalendarClock,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useTeacher } from '@/lib/teacher-context'
@@ -31,6 +32,10 @@ const NAV: NavItem[] = [
   { segment: 'students',  label: 'طلابي',        icon: Users,         grad: 'emerald' },
   { segment: 'reports',   label: 'التقارير',      icon: ClipboardList, grad: 'amber' },
   { segment: 'materials', label: 'الملفات',      icon: FolderOpen,    grad: 'rose' },
+  // Money is emerald, time is sky, praise is amber — the domain colours hold.
+  { segment: 'earnings',  label: 'أرباحي',       icon: Wallet,        grad: 'emerald' },
+  { segment: 'schedule',  label: 'أوقات توفري',  icon: CalendarClock, grad: 'sky' },
+  { segment: 'reviews',   label: 'التقييمات',    icon: Star,          grad: 'amber' },
   { segment: 'profile',   label: 'ملفي',         icon: UserRound,     grad: 'violet' },
 ]
 
