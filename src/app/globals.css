@@ -594,3 +594,8 @@ p {
 #pwa-splash.hide { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
 @keyframes pwa-fill { 0% { width: 0; } 70% { width: 72%; } 100% { width: 90%; } }
 @keyframes pwa-pop  { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+
+/* Teaching space: a nav row that scrolls sideways on narrow screens without
+   a scrollbar cutting through the type. */
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
