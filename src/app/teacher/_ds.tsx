@@ -5,21 +5,19 @@ import { useEffect, useRef, useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 
 /**
- * The teaching space design system — warm paper.
+ * The teaching space design system.
  *
- * The space is a workbook, not a control panel. That single idea sets
- * everything else:
- *   1. Depth comes from the edge, not from light. A card is a white sheet on
- *      an off-white desk, separated by a warm hairline and a shadow soft
- *      enough to read as paper lift. No glows, no inner highlights.
- *   2. Colour is structural and scarce. Each domain owns a hue (violet
- *      identity, sky schedule, emerald money, amber achievement) and appears
- *      only where it identifies — an icon tile, a bar, a chip. Never a
- *      background wash behind text.
- *   3. Ink is brown-black, not blue-black. #1C1917 on #F6F4EF is the contrast
- *      of print, and it stops the surface reading as a dimmed screen.
- *   4. Motion is a response, not decoration. Things move because they
- *      arrived, or because you touched them.
+ * These are the primitives the section pages still lean on, brought into the
+ * editorial language that _paper.tsx sets. The names and signatures did not
+ * change, so no page had to be rewritten to follow — but what they render did:
+ *   1. Flat. A surface is a white sheet with a warm hairline. No shadow, no
+ *      lift, no glow — depth was the old vocabulary.
+ *   2. A heading is a small-caps label, not a coloured tile with a title
+ *      beside it. It names the band and gets out of the way.
+ *   3. A stat is a figure said at size, not a card. The number is the point;
+ *      the box around it never was.
+ *   4. Ink is brown-black. #1C1917 on warm off-white is the contrast of print.
+ *   5. Colour identifies and nothing else — an edge tab, a bar, a chip.
  */
 
 export const T = {
@@ -45,11 +43,6 @@ export const GRAD = {
   rose:    'from-[#F43F5E] to-[#BE123C]',
 } as const
 export type Grad = keyof typeof GRAD
-
-/** The same five, flattened — for bars, rings and anything not a tile. */
-const SOLID: Record<Grad, string> = {
-  violet: '#6D28D9', sky: '#0369A1', emerald: '#047857', amber: '#B45309', rose: '#BE123C',
-}
 
 /** Tinted washes for chips and soft accents. */
 const TINT: Record<Grad, string> = {
@@ -127,17 +120,15 @@ export function Panel({
   return (
     <div
       className={[
-        'relative overflow-hidden rounded-[20px] bg-white',
-        'ring-1 ring-[#E7E2D8] shadow-[0_1px_2px_rgba(28,25,23,.04),0_12px_28px_-18px_rgba(28,25,23,.28)]',
-        hover
-          ? 'transition-all duration-300 hover:-translate-y-1 hover:ring-[#D9D2C4] hover:shadow-[0_2px_4px_rgba(28,25,23,.05),0_22px_44px_-20px_rgba(28,25,23,.34)]'
-          : '',
+        // Flat. Depth was the old language; paper sits on the desk.
+        'relative overflow-hidden rounded-2xl bg-white ring-1 ring-[#E4DFD5]',
+        hover ? 'transition-colors duration-200 hover:ring-[#C9C2B2]' : '',
         className,
       ].join(' ')}
     >
       {glow && (
         <span
-          className={`pointer-events-none absolute inset-x-0 top-0 h-[3px] bg-gradient-to-l ${GRAD[glow]}`}
+          className={`pointer-events-none absolute inset-y-0 right-0 w-[3px] bg-gradient-to-b ${GRAD[glow]}`}
           aria-hidden
         />
       )}
@@ -153,15 +144,10 @@ export function Head({
   icon: LucideIcon; title: string; note?: string; action?: React.ReactNode; grad?: Grad
 }) {
   return (
-    <div className="flex items-center gap-3 mb-5">
-      <span className={`w-9 h-9 rounded-xl bg-gradient-to-br ${GRAD[grad]} flex items-center justify-center shrink-0
-                        shadow-[0_4px_10px_-4px_rgba(28,25,23,.35)]`}>
-        <Icon size={17} className="text-white" />
-      </span>
-      <div className="min-w-0">
-        <h2 className="text-[15px] font-bold tracking-tight text-[#1C1917] leading-tight">{title}</h2>
-        {note && <p className="text-[11.5px] text-[#78716C] font-medium truncate">{note}</p>}
-      </div>
+    <div className="flex items-baseline gap-3 mb-6">
+      <Icon size={14} className="text-[#A8A29E] shrink-0 self-center" />
+      <h2 className="text-[13px] font-bold tracking-[.14em] uppercase text-[#A8A29E] leading-none">{title}</h2>
+      {note && <span className="text-[12px] text-[#C4BEB2] truncate">{note}</span>}
       {action && <div className="mr-auto shrink-0">{action}</div>}
     </div>
   )
@@ -199,27 +185,21 @@ export function Stat({
 }) {
   return (
     <Rise i={i}>
-      <Panel hover glow={grad} className="p-5 h-full">
-        <div className="flex items-start justify-between gap-3">
-          <span className={`w-10 h-10 rounded-xl bg-gradient-to-br ${GRAD[grad]} flex items-center justify-center
-                            shadow-[0_4px_12px_-4px_rgba(28,25,23,.4)]`}>
-            <Icon size={18} className="text-white" />
-          </span>
+      <div className="h-full py-1">
+        <div className="flex items-center gap-2 mb-3">
+          <Icon size={14} className="text-[#A8A29E]" />
+          <span className="text-[11.5px] font-bold tracking-[.1em] uppercase text-[#A8A29E]">{label}</span>
           {delta !== undefined && (
-            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ring-1 ${
-              delta >= 0 ? 'text-emerald-700 bg-emerald-50 ring-emerald-200'
-                         : 'text-rose-700 bg-rose-50 ring-rose-200'}`}>
+            <span className={`text-[11px] font-bold tabular-nums ${
+              delta >= 0 ? 'text-[#047857]' : 'text-[#B91C1C]'}`}>
               {delta >= 0 ? '+' : ''}{delta}%
             </span>
           )}
         </div>
-        <div className="mt-4">
-          <Count value={value} decimals={decimals} prefix={prefix} suffix={suffix}
-                 className="block text-[30px] font-bold tracking-tight text-[#1C1917] leading-none" />
-          <div className="text-[12px] font-medium text-[#78716C] mt-1.5">{label}</div>
-        </div>
-        {foot && <div className="mt-3.5 pt-3.5 border-t border-[#EFEBE2]">{foot}</div>}
-      </Panel>
+        <Count value={value} decimals={decimals} prefix={prefix} suffix={suffix}
+               className="block text-[34px] sm:text-[40px] font-extrabold tracking-tight text-[#1C1917] leading-none" />
+        {foot && <div className="mt-3">{foot}</div>}
+      </div>
     </Rise>
   )
 }
@@ -230,7 +210,7 @@ export function Bar({ pct, grad = 'violet', height = 6 }: { pct: number; grad?: 
   const ref = useRef<HTMLDivElement | null>(null)
   const seen = useSeen(ref)
   return (
-    <div ref={ref} className="w-full rounded-full bg-[#EFEBE2] overflow-hidden" style={{ height }}>
+    <div ref={ref} className="w-full rounded-full bg-[#EAE5DA] overflow-hidden" style={{ height }}>
       <motion.div
         className={`h-full rounded-full bg-gradient-to-l ${GRAD[grad]}`}
         initial={{ width: 0 }}
@@ -263,7 +243,7 @@ export function Dial({
             <stop offset="100%" stopColor={stops[grad][1]} />
           </linearGradient>
         </defs>
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#EFEBE2" strokeWidth="8" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#EAE5DA" strokeWidth="8" />
         <motion.circle
           cx={size / 2} cy={size / 2} r={r} fill="none" stroke={`url(#${gid})`} strokeWidth="8"
           strokeLinecap="round" strokeDasharray={c}
@@ -286,7 +266,7 @@ export function Chip({
   children, tone = 'muted',
 }: { children: React.ReactNode; tone?: 'muted' | 'violet' | 'sky' | 'ok' | 'warn' | 'bad' }) {
   const tones: Record<string, string> = {
-    muted:  'bg-[#F6F4EF] text-[#57534E] ring-[#E7E2D8]',
+    muted:  'bg-white text-[#57534E] ring-[#E4DFD5]',
     violet: TINT.violet,
     sky:    TINT.sky,
     ok:     TINT.emerald,
@@ -313,11 +293,8 @@ export function Action({
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.97 }}
       transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-      style={{ backgroundColor: SOLID[grad] }}
-      className={`${full ? 'w-full' : ''} inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl
-                  text-white text-[13px] font-semibold
-                  shadow-[0_6px_18px_-8px_rgba(28,25,23,.55)] hover:shadow-[0_10px_26px_-8px_rgba(28,25,23,.7)]
-                  transition-shadow`}
+      className={`${full ? 'w-full' : ''} inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full
+                  bg-[#1C1917] text-white text-[13px] font-bold hover:bg-[#292524] transition-colors`}
     >
       {Icon && <Icon size={15} />}
       {children}
@@ -336,9 +313,9 @@ export function Ghost({
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.97 }}
       transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-      className={`${full ? 'w-full' : ''} inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl
-                  bg-white ring-1 ring-[#E7E2D8] text-[#44403C] text-[13px] font-semibold
-                  hover:bg-[#FBFAF7] hover:text-[#1C1917] hover:ring-[#D9D2C4] transition-colors`}
+      className={`${full ? 'w-full' : ''} inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full
+                  bg-white ring-1 ring-[#E4DFD5] text-[#44403C] text-[13px] font-bold
+                  hover:ring-[#1C1917] hover:text-[#1C1917] transition-colors`}
     >
       {Icon && <Icon size={15} />}
       {children}

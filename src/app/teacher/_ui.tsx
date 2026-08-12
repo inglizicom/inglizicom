@@ -7,14 +7,12 @@ import { Counter, Reveal } from './_motion'
 /* Shared surfaces for the teaching space. White sheets on a warm desk; colour is
    structural, never decorative. Shared by every page in the space. */
 
-/** The surface everything sits on: a warm hairline ring rather than a grey
- *  border, and a two-part shadow — a tight contact shadow plus a wide soft one
- *  — so a card reads as paper lifted off the desk, not drawn onto it. */
+/** The surface everything sits on: a white sheet with a warm hairline, flat
+ *  against the desk. The shadow is gone — lift was the old vocabulary, and a
+ *  page of lifted cards reads as a tray of boxes rather than a document. */
 export function Card({ className = '', children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className={`bg-white rounded-[20px] ring-1 ring-[#E7E2D8]
-                     shadow-[0_1px_2px_rgba(28,25,23,.04),0_12px_28px_-18px_rgba(28,25,23,.28)]
-                     ${className}`}>
+    <div className={`bg-white rounded-2xl ring-1 ring-[#E4DFD5] ${className}`}>
       {children}
     </div>
   )
@@ -22,12 +20,13 @@ export function Card({ className = '', children }: { className?: string; childre
 
 /* ── Page hero ─────────────────────────────────────────── */
 
+/* Each section says what kind of page it is, in one word, above the title. */
 const TONE = {
-  amber:   { chip: 'bg-gradient-to-br from-[#F59E0B] to-[#B45309] text-white', bar: 'from-[#F59E0B] to-[#B45309]' },
-  blue:    { chip: 'bg-gradient-to-br from-[#0EA5E9] to-[#0369A1] text-white', bar: 'from-[#0EA5E9] to-[#0369A1]' },
-  violet:  { chip: 'bg-gradient-to-br from-[#7C3AED] to-[#6D28D9] text-white', bar: 'from-[#7C3AED] to-[#6D28D9]' },
-  emerald: { chip: 'bg-gradient-to-br from-[#10B981] to-[#047857] text-white', bar: 'from-[#10B981] to-[#047857]' },
-  rose:    { chip: 'bg-gradient-to-br from-[#F43F5E] to-[#BE123C] text-white', bar: 'from-[#F43F5E] to-[#BE123C]' },
+  amber:   { kicker: 'إنجاز' },
+  blue:    { kicker: 'الجدول' },
+  violet:  { kicker: 'فضاء الأساتذة' },
+  emerald: { kicker: 'الطلاب' },
+  rose:    { kicker: 'الملفات' },
 }
 export type Tone = keyof typeof TONE
 
@@ -44,34 +43,32 @@ export function PageHero({
   stats?: { label: string; value: number; suffix?: string }[]
   action?: React.ReactNode
 }) {
-  const t = TONE[tone]
   return (
-    <div className="space-y-3.5">
-      <div className="flex flex-wrap items-center gap-3.5">
-        <span className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${t.chip}`}>
-          <Icon size={21} />
-        </span>
-        <div className="flex-1 min-w-[11rem]">
-          <h1 className="text-[24px] sm:text-[27px] font-bold tracking-tight leading-none text-[#1C1917]">{title}</h1>
-          {subtitle && <p className="text-[#78716C] text-[13px] font-medium mt-1">{subtitle}</p>}
+    <div className="pb-8 mb-2 border-b border-[#E4DFD5]">
+      <div className="flex flex-wrap items-start gap-4">
+        <div className="flex-1 min-w-[12rem]">
+          <div className="flex items-center gap-2 mb-3">
+            <Icon size={14} className="text-[#A8A29E]" />
+            <span className="text-[12px] font-bold tracking-[.14em] uppercase text-[#A8A29E]">{TONE[tone].kicker}</span>
+          </div>
+          <h1 className="text-[30px] sm:text-[38px] font-extrabold tracking-tight leading-[1.15] text-[#1C1917]">
+            {title}
+          </h1>
+          {subtitle && (
+            <p className="text-[#78716C] text-[14.5px] font-medium mt-2.5 max-w-[38rem] leading-snug">{subtitle}</p>
+          )}
         </div>
-        {action}
+        {action && <div className="shrink-0 pt-1">{action}</div>}
       </div>
 
       {stats && stats.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <div className="flex flex-wrap gap-y-6 gap-x-8 mt-8">
           {stats.map((s, i) => (
             <Reveal key={s.label} delay={i * 60}>
-              <div className="group relative overflow-hidden bg-white rounded-[18px]
-                              ring-1 ring-[#E7E2D8] px-4 py-3
-                              shadow-[0_1px_2px_rgba(28,25,23,.04),0_12px_28px_-18px_rgba(28,25,23,.28)]
-                              hover:ring-[#D9D2C4] hover:-translate-y-1 transition-all duration-300">
-                <span className={`absolute inset-x-0 top-0 h-[3px] bg-gradient-to-l ${t.bar}`} aria-hidden />
-                {/* the colour breathes on hover instead of the card changing shape */}
-                <span className={`absolute -top-10 -left-6 w-24 h-24 rounded-full bg-gradient-to-l ${t.bar}
-                                  opacity-0 group-hover:opacity-10 blur-2xl transition-opacity duration-500`} aria-hidden />
-                <div className="relative text-[10.5px] font-medium text-[#78716C] truncate">{s.label}</div>
-                <Counter value={s.value} suffix={s.suffix} className="relative text-[23px] font-bold leading-tight text-[#1C1917]" />
+              <div className="min-w-[7rem]">
+                <Counter value={s.value} suffix={s.suffix}
+                         className="block text-[30px] sm:text-[34px] font-extrabold tracking-tight leading-none text-[#1C1917]" />
+                <div className="text-[12px] font-semibold text-[#8A8377] mt-2">{s.label}</div>
               </div>
             </Reveal>
           ))}
