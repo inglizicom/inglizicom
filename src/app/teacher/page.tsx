@@ -100,7 +100,7 @@ export default function TeacherDashboard() {
 
   if (loading) {
     return (
-      <div className="py-40 flex items-center justify-center gap-3 text-slate-500">
+      <div className="py-40 flex items-center justify-center gap-3 text-[#A8A29E]">
         <Loader2 size={18} className="animate-spin" />
         <span className="text-sm font-medium">جاري التحميل…</span>
       </div>
@@ -112,10 +112,10 @@ export default function TeacherDashboard() {
 
       {demo && (
         <Rise>
-          <div className="flex items-center gap-2.5 rounded-2xl bg-fuchsia-500/[.08] ring-1 ring-fuchsia-500/20 px-4 py-2.5">
-            <FlaskConical size={15} className="text-fuchsia-400 shrink-0" />
-            <span className="text-[12.5px] font-medium text-fuchsia-200">معاينة ببيانات وهمية — لا شيء هنا حقيقي.</span>
-            <a href="?demo=0" className="mr-auto text-[12px] font-bold text-fuchsia-300 hover:text-white transition-colors">إيقاف</a>
+          <div className="flex items-center gap-2.5 rounded-2xl bg-fuchsia-50 ring-1 ring-fuchsia-200 px-4 py-2.5">
+            <FlaskConical size={15} className="text-fuchsia-600 shrink-0" />
+            <span className="text-[12.5px] font-medium text-fuchsia-800">معاينة ببيانات وهمية — لا شيء هنا حقيقي.</span>
+            <a href="?demo=0" className="mr-auto text-[12px] font-bold text-fuchsia-700 hover:text-[#1C1917] transition-colors">إيقاف</a>
           </div>
         </Rise>
       )}
@@ -135,17 +135,17 @@ export default function TeacherDashboard() {
               </div>
 
               <h1 className="text-[30px] sm:text-[38px] font-bold tracking-tight leading-[1.1]">
-                {firstName ? <>أهلاً <span className="bg-gradient-to-l from-[#8B5CF6] to-[#38BDF8] bg-clip-text text-transparent">{firstName}</span></> : 'أهلاً بك'}
+                {firstName ? <>أهلاً <span className="bg-gradient-to-l from-[#7C3AED] to-[#0369A1] bg-clip-text text-transparent">{firstName}</span></> : 'أهلاً بك'}
               </h1>
 
               {next ? (
-                <p className="text-slate-400 text-[14px] font-medium mt-2.5 leading-relaxed">
-                  حصتك القادمة <span className="text-white font-semibold">{next.title}</span>
-                  {' '}— <span className="text-[#38BDF8] font-semibold">{fromNow(next.starts_at)}</span>
-                  <span className="text-slate-500"> · {fmtTime(next.starts_at)} · {next.duration_min} دقيقة</span>
+                <p className="text-[#78716C] text-[14px] font-medium mt-2.5 leading-relaxed">
+                  حصتك القادمة <span className="text-[#1C1917] font-semibold">{next.title}</span>
+                  {' '}— <span className="text-[#0369A1] font-semibold">{fromNow(next.starts_at)}</span>
+                  <span className="text-[#A8A29E]"> · {fmtTime(next.starts_at)} · {next.duration_min} دقيقة</span>
                 </p>
               ) : (
-                <p className="text-slate-400 text-[14px] font-medium mt-2.5">
+                <p className="text-[#78716C] text-[14px] font-medium mt-2.5">
                   لا حصص مبرمجة. أضف حصة ليبدأ العدّ.
                 </p>
               )}
@@ -168,17 +168,17 @@ export default function TeacherDashboard() {
             <Dial pct={ov?.attendance_rate ?? 0} grad="emerald" label="حضور" size={124} />
             <div className="mt-4 w-full grid grid-cols-3 gap-2">
               {[
-                { k: 'حاضر', v: att.present, c: 'text-emerald-300' },
-                { k: 'متأخر', v: att.late,   c: 'text-sky-300' },
-                { k: 'غائب', v: att.absent,  c: 'text-rose-300' },
+                { k: 'حاضر', v: att.present, c: 'text-emerald-700' },
+                { k: 'متأخر', v: att.late,   c: 'text-sky-700' },
+                { k: 'غائب', v: att.absent,  c: 'text-rose-700' },
               ].map(x => (
-                <div key={x.k} className="rounded-xl bg-white/[.04] py-2">
+                <div key={x.k} className="rounded-xl bg-[#F6F4EF] py-2">
                   <div className={`text-[15px] font-bold tabular-nums ${x.c}`}>{x.v}</div>
-                  <div className="text-[10px] text-slate-500 font-medium">{x.k}</div>
+                  <div className="text-[10px] text-[#A8A29E] font-medium">{x.k}</div>
                 </div>
               ))}
             </div>
-            {attTotal === 0 && <p className="text-[11px] text-slate-500 mt-3">سجّل الحضور لتظهر النسبة.</p>}
+            {attTotal === 0 && <p className="text-[11px] text-[#A8A29E] mt-3">سجّل الحضور لتظهر النسبة.</p>}
           </Panel>
         </Rise>
       </div>
@@ -188,18 +188,18 @@ export default function TeacherDashboard() {
         <Rise>
           <Link href="/teacher/reports" className="block">
             <motion.div whileHover={{ y: -2 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                        className="relative overflow-hidden rounded-[22px] bg-gradient-to-l from-rose-500/[.12] to-amber-500/[.08]
-                                   ring-1 ring-rose-500/25 px-5 py-4 flex items-center gap-4">
-              <span className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#EF4444] to-[#F59E0B] flex items-center justify-center shrink-0 shadow-lg">
+                        className="relative overflow-hidden rounded-[22px] bg-gradient-to-l from-rose-50 to-amber-50
+                                   ring-1 ring-rose-200 px-5 py-4 flex items-center gap-4">
+              <span className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#F43F5E] to-[#B45309] text-white flex items-center justify-center shrink-0 shadow-[0_4px_12px_-4px_rgba(28,25,23,.4)]">
                 <AlertTriangle size={20} />
               </span>
               <div className="flex-1 min-w-0">
-                <div className="font-bold text-[15px] text-white">
+                <div className="font-bold text-[15px] text-[#1C1917]">
                   {owed.length} {owed.length === 1 ? 'حصة بدون تقرير' : 'حصص بدون تقارير'}
                 </div>
-                <div className="text-[12.5px] text-rose-200/70 font-medium">اكتب التقرير قبل أن تنسى التفاصيل.</div>
+                <div className="text-[12.5px] text-rose-800/70 font-medium">اكتب التقرير قبل أن تنسى التفاصيل.</div>
               </div>
-              <ArrowLeft size={18} className="text-rose-300/60 shrink-0" />
+              <ArrowLeft size={18} className="text-rose-700/60 shrink-0" />
             </motion.div>
           </Link>
         </Rise>
@@ -224,7 +224,7 @@ export default function TeacherDashboard() {
               value={ov?.rating_count ? Number(ov.rating_avg ?? 0) : 0} decimals={1}
               foot={<MiniFoot label="تقييم" value={`${ov?.rating_count ?? 0}`} />} />
         <Stat i={7} icon={Wallet}       grad="rose"    label="ساعات محتسبة"   value={ov?.hours_month ?? 0} decimals={1}
-              foot={<span className="text-[10.5px] text-slate-500 font-medium">الأجر يُحتسب لاحقاً</span>} />
+              foot={<span className="text-[10.5px] text-[#A8A29E] font-medium">الأجر يُحتسب لاحقاً</span>} />
       </div>
 
       {/* ═══ Row 3 — rhythm + schedule ═══ */}
@@ -240,12 +240,12 @@ export default function TeacherDashboard() {
         <Rise i={1}>
           <Panel className="p-5 sm:p-6">
             <Head icon={CalendarDays} grad="violet" title="الحصص القادمة"
-                  action={<Link href="/teacher/classes" className="text-[12px] font-semibold text-slate-400 hover:text-white transition-colors">الكل</Link>} />
+                  action={<Link href="/teacher/classes" className="text-[12px] font-semibold text-[#78716C] hover:text-[#1C1917] transition-colors">الكل</Link>} />
             {upcoming.length === 0 ? (
               <div className="py-10 text-center">
-                <CalendarPlus size={26} className="mx-auto text-slate-600 mb-2.5" />
-                <p className="text-[13px] font-semibold text-slate-400">لا حصص قادمة</p>
-                <p className="text-[11.5px] text-slate-600 mt-1">برمج حصة ليبدأ الجدول.</p>
+                <CalendarPlus size={26} className="mx-auto text-[#C7C2BA] mb-2.5" />
+                <p className="text-[13px] font-semibold text-[#78716C]">لا حصص قادمة</p>
+                <p className="text-[11.5px] text-[#C7C2BA] mt-1">برمج حصة ليبدأ الجدول.</p>
               </div>
             ) : (
               // y, not x: under dir=rtl a positive x offset pushes each row out
@@ -257,11 +257,11 @@ export default function TeacherDashboard() {
                               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: i * 0.06, duration: 0.4 }}>
                     <Link href={`/teacher/classes/${s.id}`}
-                          className="group flex items-center gap-3.5 p-3 rounded-2xl bg-white/[.03] ring-1 ring-white/[.05]
-                                     hover:bg-white/[.06] hover:ring-white/[.1] transition-all">
-                      <div className={`w-1 h-11 rounded-full shrink-0 ${i === 0 ? 'bg-gradient-to-b from-[#5B5FEF] to-[#38BDF8]' : 'bg-white/10'}`} />
+                          className="group flex items-center gap-3.5 p-3 rounded-2xl bg-[#FBFAF7] ring-1 ring-[#E7E2D8]
+                                     hover:bg-[#F1EDE4] hover:ring-[#D9D2C4] transition-all">
+                      <div className={`w-1 h-11 rounded-full shrink-0 ${i === 0 ? 'bg-gradient-to-b from-[#7C3AED] to-[#0369A1]' : 'bg-[#E7E2D8]'}`} />
                       <div className="w-12 text-center shrink-0">
-                        <div className="text-[10px] font-medium text-slate-500">
+                        <div className="text-[10px] font-medium text-[#A8A29E]">
                           {new Date(s.starts_at).toLocaleDateString('ar-MA', { weekday: 'short' })}
                         </div>
                         <div className="text-[15px] font-bold tabular-nums leading-tight">{fmtTime(s.starts_at)}</div>
@@ -271,10 +271,10 @@ export default function TeacherDashboard() {
                         <div className="flex flex-wrap items-center gap-1.5 mt-1">
                           <Chip tone={s.status === 'live' ? 'ok' : 'muted'}>{STATUS_AR[s.status]}</Chip>
                           {s.level && <Chip>{s.level}</Chip>}
-                          <span className="text-[10.5px] text-slate-500 font-medium">{s.duration_min}د</span>
+                          <span className="text-[10.5px] text-[#A8A29E] font-medium">{s.duration_min}د</span>
                         </div>
                       </div>
-                      <ChevronLeft size={16} className="text-slate-600 group-hover:text-white transition-colors shrink-0" />
+                      <ChevronLeft size={16} className="text-[#C7C2BA] group-hover:text-[#1C1917] transition-colors shrink-0" />
                     </Link>
                   </motion.div>
                 ))}
@@ -300,8 +300,8 @@ export default function TeacherDashboard() {
                     <l.icon size={19} />
                   </span>
                   <div className="font-bold text-[14.5px]">{l.t}</div>
-                  <div className="text-[11.5px] text-slate-500 font-medium mt-0.5">{l.s}</div>
-                  <ArrowLeft size={15} className="mt-3 text-slate-600 group-hover:text-white group-hover:-translate-x-1 transition-all" />
+                  <div className="text-[11.5px] text-[#A8A29E] font-medium mt-0.5">{l.s}</div>
+                  <ArrowLeft size={15} className="mt-3 text-[#C7C2BA] group-hover:text-[#1C1917] group-hover:-translate-x-1 transition-all" />
                 </Panel>
               </Link>
             </motion.div>
@@ -316,10 +316,10 @@ export default function TeacherDashboard() {
 
 function MiniFoot({ label, value, icon: Icon }: { label: string; value: string; icon?: typeof Users }) {
   return (
-    <div className="flex items-center gap-1.5 text-[10.5px] font-medium text-slate-500">
+    <div className="flex items-center gap-1.5 text-[10.5px] font-medium text-[#A8A29E]">
       {Icon && <Icon size={11} />}
       <span>{label}</span>
-      <span className="text-slate-300 font-semibold mr-auto">{value}</span>
+      <span className="text-[#57534E] font-semibold mr-auto">{value}</span>
     </div>
   )
 }
@@ -343,7 +343,7 @@ function WeeklyBars({ data }: { data: { label: string; classes: number; hours: n
             <div className="w-full flex-1 flex items-end">
               <div
                 className={`w-full rounded-lg transition-[height] duration-700 ease-[cubic-bezier(.22,1,.36,1)]
-                            ${d.classes ? 'bg-gradient-to-t from-[#5B5FEF] to-[#38BDF8]' : 'bg-white/[.06]'}`}
+                            ${d.classes ? 'bg-gradient-to-t from-[#0369A1] to-[#7C3AED]' : 'bg-[#F1EDE4]'}`}
                 style={{
                   height: seen ? `${Math.max(4, (d.classes / max) * 100)}%` : '0%',
                   transitionDelay: `${i * 55}ms`,
@@ -351,14 +351,14 @@ function WeeklyBars({ data }: { data: { label: string; classes: number; hours: n
                 }}
               />
             </div>
-            <span className="text-[9.5px] font-medium text-slate-600 tabular-nums">{d.label}</span>
+            <span className="text-[9.5px] font-medium text-[#C7C2BA] tabular-nums">{d.label}</span>
           </div>
         ))}
       </div>
       {hover !== null && (
-        <div className="mt-3 text-center text-[12px] font-semibold text-slate-300">
-          {data[hover].label} — <span className="text-white">{data[hover].classes} حصة</span>
-          <span className="text-slate-500"> · {data[hover].hours} ساعة</span>
+        <div className="mt-3 text-center text-[12px] font-semibold text-[#57534E]">
+          {data[hover].label} — <span className="text-[#1C1917]">{data[hover].classes} حصة</span>
+          <span className="text-[#A8A29E]"> · {data[hover].hours} ساعة</span>
         </div>
       )}
     </div>

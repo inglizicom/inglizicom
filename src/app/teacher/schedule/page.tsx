@@ -130,10 +130,10 @@ export default function TeacherSchedulePage() {
 
       {demo && (
         <Rise>
-          <div className="flex items-center gap-2.5 rounded-2xl bg-fuchsia-500/[.08] ring-1 ring-fuchsia-500/20 px-4 py-2.5">
-            <Info size={15} className="text-fuchsia-400 shrink-0" />
-            <span className="text-[12.5px] font-medium text-fuchsia-200">معاينة — الحفظ معطّل في وضع العرض.</span>
-            <a href="?demo=0" className="mr-auto text-[12px] font-bold text-fuchsia-300 hover:text-white transition-colors">إيقاف</a>
+          <div className="flex items-center gap-2.5 rounded-2xl bg-fuchsia-50 ring-1 ring-fuchsia-200 px-4 py-2.5">
+            <Info size={15} className="text-fuchsia-600 shrink-0" />
+            <span className="text-[12.5px] font-medium text-fuchsia-800">معاينة — الحفظ معطّل في وضع العرض.</span>
+            <a href="?demo=0" className="mr-auto text-[12px] font-bold text-fuchsia-700 hover:text-[#1C1917] transition-colors">إيقاف</a>
           </div>
         </Rise>
       )}
@@ -148,12 +148,12 @@ export default function TeacherSchedulePage() {
                 {activeDays > 0 && <Chip tone="muted">{activeDays} من 7 أيام</Chip>}
               </div>
               <h1 className="text-[30px] sm:text-[38px] font-bold tracking-tight leading-[1.1]">
-                <span className="bg-gradient-to-l from-[#38BDF8] to-[#5B5FEF] bg-clip-text text-transparent tabular-nums">
+                <span className="bg-gradient-to-l from-[#0EA5E9] to-[#0369A1] bg-clip-text text-transparent tabular-nums">
                   {weeklyHours}
                 </span>
-                <span className="text-[20px] text-slate-400 font-semibold"> ساعة</span>
+                <span className="text-[20px] text-[#78716C] font-semibold"> ساعة</span>
               </h1>
-              <p className="text-slate-400 text-[14px] font-medium mt-2.5">
+              <p className="text-[#78716C] text-[14px] font-medium mt-2.5">
                 {weeklyMinutes > 0
                   ? 'هذا ما تعلنه للمكتب كوقت متاح للتدريس.'
                   : 'لم تحدد أي وقت بعد — أضف نافذة ليعرف المكتب متى يبرمج لك.'}
@@ -175,9 +175,9 @@ export default function TeacherSchedulePage() {
           </div>
 
           {invalid && (
-            <div className="mt-5 flex items-start gap-2.5 rounded-2xl bg-rose-500/[.08] ring-1 ring-rose-500/20 px-4 py-3">
-              <Info size={15} className="text-rose-300 shrink-0 mt-0.5" />
-              <p className="text-[12.5px] text-rose-200 font-medium">
+            <div className="mt-5 flex items-start gap-2.5 rounded-2xl bg-rose-50 ring-1 ring-rose-200 px-4 py-3">
+              <Info size={15} className="text-rose-700 shrink-0 mt-0.5" />
+              <p className="text-[12.5px] text-rose-800 font-medium">
                 هناك نافذة تنتهي قبل أن تبدأ — صحّحها قبل الحفظ.
               </p>
             </div>
@@ -202,8 +202,8 @@ export default function TeacherSchedulePage() {
                     <button
                       onClick={() => addWindow(d.n)}
                       disabled={demo}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/[.05] ring-1 ring-white/[.08]
-                                 text-[11.5px] font-semibold text-slate-300 hover:bg-white/[.09] hover:text-white
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#F6F4EF] ring-1 ring-[#E7E2D8]
+                                 text-[11.5px] font-semibold text-[#57534E] hover:bg-[#EAE5DA] hover:text-[#1C1917]
                                  transition-colors disabled:opacity-40"
                     >
                       <Plus size={13} /> نافذة
@@ -212,7 +212,7 @@ export default function TeacherSchedulePage() {
                 />
 
                 {list.length === 0 ? (
-                  <p className="text-[12px] text-slate-600 font-medium py-2">
+                  <p className="text-[12px] text-[#C7C2BA] font-medium py-2">
                     لا وقت متاح في هذا اليوم.
                   </p>
                 ) : (
@@ -221,27 +221,27 @@ export default function TeacherSchedulePage() {
                       const bad = windowMinutes(w) === 0
                       return (
                         <div key={idx}
-                             className={`flex items-center gap-2 p-2.5 rounded-xl bg-white/[.03] ring-1 ${
-                               bad ? 'ring-rose-500/30' : 'ring-white/[.05]'}`}>
+                             className={`flex items-center gap-2 p-2.5 rounded-xl bg-[#FBFAF7] ring-1 ${
+                               bad ? 'ring-rose-300' : 'ring-[#E7E2D8]'}`}>
                           <input
                             type="time"
                             value={w.from}
                             disabled={demo}
                             onChange={e => patchWindow(d.n, idx, { from: e.target.value })}
-                            className="bg-white/[.05] ring-1 ring-white/[.08] rounded-lg px-2.5 py-1.5
-                                       text-[12.5px] font-semibold text-white tabular-nums
-                                       focus:outline-none focus:ring-[#38BDF8]/50 disabled:opacity-50"
+                            className="bg-[#F6F4EF] ring-1 ring-[#E7E2D8] rounded-lg px-2.5 py-1.5
+                                       text-[12.5px] font-semibold text-[#1C1917] tabular-nums
+                                       focus:outline-none focus:ring-[#0369A1]/40 disabled:opacity-50"
                             dir="ltr"
                           />
-                          <span className="text-slate-500 text-[12px] font-medium">→</span>
+                          <span className="text-[#A8A29E] text-[12px] font-medium">→</span>
                           <input
                             type="time"
                             value={w.to}
                             disabled={demo}
                             onChange={e => patchWindow(d.n, idx, { to: e.target.value })}
-                            className="bg-white/[.05] ring-1 ring-white/[.08] rounded-lg px-2.5 py-1.5
-                                       text-[12.5px] font-semibold text-white tabular-nums
-                                       focus:outline-none focus:ring-[#38BDF8]/50 disabled:opacity-50"
+                            className="bg-[#F6F4EF] ring-1 ring-[#E7E2D8] rounded-lg px-2.5 py-1.5
+                                       text-[12.5px] font-semibold text-[#1C1917] tabular-nums
+                                       focus:outline-none focus:ring-[#0369A1]/40 disabled:opacity-50"
                             dir="ltr"
                           />
                           <button
@@ -249,7 +249,7 @@ export default function TeacherSchedulePage() {
                             disabled={demo}
                             aria-label="حذف النافذة"
                             className="mr-auto w-7 h-7 rounded-lg flex items-center justify-center shrink-0
-                                       text-slate-500 hover:text-rose-300 hover:bg-rose-500/10
+                                       text-[#A8A29E] hover:text-rose-700 hover:bg-rose-50
                                        transition-colors disabled:opacity-40"
                           >
                             <Trash2 size={14} />
@@ -266,9 +266,9 @@ export default function TeacherSchedulePage() {
       </div>
 
       <Rise>
-        <div className="flex items-start gap-2.5 rounded-2xl bg-white/[.03] ring-1 ring-white/[.06] px-4 py-3">
-          <Info size={15} className="text-slate-400 shrink-0 mt-0.5" />
-          <p className="text-[12.5px] text-slate-400 font-medium leading-relaxed">
+        <div className="flex items-start gap-2.5 rounded-2xl bg-[#FBFAF7] ring-1 ring-[#E7E2D8] px-4 py-3">
+          <Info size={15} className="text-[#78716C] shrink-0 mt-0.5" />
+          <p className="text-[12.5px] text-[#78716C] font-medium leading-relaxed">
             هذه نوافذ إعلانية، لا حجز. المكتب يبرمج الحصص داخلها — ولن يمنعك أحد من قبول حصة خارجها عند الحاجة.
           </p>
         </div>

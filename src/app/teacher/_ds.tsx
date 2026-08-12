@@ -5,40 +5,60 @@ import { useEffect, useRef, useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
 
 /**
- * The teaching space design system — dark first.
+ * The teaching space design system — warm paper.
  *
- * Three rules hold the whole surface together:
- *   1. Depth comes from light, not from borders. A card is a dark plane with a
- *      1px top highlight where light would catch it, and a wide soft shadow
- *      beneath. No grey outlines.
- *   2. Colour is structural. Each domain owns a hue (violet identity, sky
- *      schedule, emerald money, amber achievement) and never borrows another's.
- *   3. Motion is a response, not decoration. Things move because they arrived,
- *      or because you touched them.
+ * The space is a workbook, not a control panel. That single idea sets
+ * everything else:
+ *   1. Depth comes from the edge, not from light. A card is a white sheet on
+ *      an off-white desk, separated by a warm hairline and a shadow soft
+ *      enough to read as paper lift. No glows, no inner highlights.
+ *   2. Colour is structural and scarce. Each domain owns a hue (violet
+ *      identity, sky schedule, emerald money, amber achievement) and appears
+ *      only where it identifies — an icon tile, a bar, a chip. Never a
+ *      background wash behind text.
+ *   3. Ink is brown-black, not blue-black. #1C1917 on #F6F4EF is the contrast
+ *      of print, and it stops the surface reading as a dimmed screen.
+ *   4. Motion is a response, not decoration. Things move because they
+ *      arrived, or because you touched them.
  */
 
 export const T = {
-  bg:    '#0B1020',
-  card:  '#151C32',
-  line:  'rgba(255,255,255,.07)',
-  text:  '#FFFFFF',
-  muted: '#94A3B8',
-  prim:  '#5B5FEF',
-  sec:   '#8B5CF6',
-  acc:   '#38BDF8',
-  ok:    '#22C55E',
-  warn:  '#F59E0B',
-  bad:   '#EF4444',
+  bg:    '#F6F4EF',
+  card:  '#FFFFFF',
+  line:  '#E7E2D8',
+  text:  '#1C1917',
+  muted: '#78716C',
+  prim:  '#6D28D9',
+  sec:   '#7C3AED',
+  acc:   '#0369A1',
+  ok:    '#047857',
+  warn:  '#B45309',
+  bad:   '#BE123C',
 } as const
 
+/** Icon-tile gradients. Deep enough that white glyphs hold on them. */
 export const GRAD = {
-  violet:  'from-[#5B5FEF] to-[#8B5CF6]',
-  sky:     'from-[#38BDF8] to-[#5B5FEF]',
-  emerald: 'from-[#22C55E] to-[#38BDF8]',
-  amber:   'from-[#F59E0B] to-[#EF4444]',
-  rose:    'from-[#EF4444] to-[#8B5CF6]',
+  violet:  'from-[#7C3AED] to-[#6D28D9]',
+  sky:     'from-[#0EA5E9] to-[#0369A1]',
+  emerald: 'from-[#10B981] to-[#047857]',
+  amber:   'from-[#F59E0B] to-[#B45309]',
+  rose:    'from-[#F43F5E] to-[#BE123C]',
 } as const
 export type Grad = keyof typeof GRAD
+
+/** The same five, flattened — for bars, rings and anything not a tile. */
+const SOLID: Record<Grad, string> = {
+  violet: '#6D28D9', sky: '#0369A1', emerald: '#047857', amber: '#B45309', rose: '#BE123C',
+}
+
+/** Tinted washes for chips and soft accents. */
+const TINT: Record<Grad, string> = {
+  violet:  'bg-violet-50 text-violet-700 ring-violet-200',
+  sky:     'bg-sky-50 text-sky-700 ring-sky-200',
+  emerald: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+  amber:   'bg-amber-50 text-amber-700 ring-amber-200',
+  rose:    'bg-rose-50 text-rose-700 ring-rose-200',
+}
 
 /* ── Motion presets ────────────────────────────────────── */
 
@@ -94,7 +114,8 @@ export function useSeen(ref: React.RefObject<Element | null>) {
 
 /* ── Surfaces ──────────────────────────────────────────── */
 
-/** The base plane. `glow` paints a soft coloured bloom in one corner. */
+/** The sheet. `glow` tints the top edge in a domain colour — a tab on a file,
+ *  not a bloom. */
 export function Panel({
   children, className = '', glow, hover = false,
 }: {
@@ -106,16 +127,17 @@ export function Panel({
   return (
     <div
       className={[
-        'relative overflow-hidden rounded-[22px] bg-[#151C32]',
-        // the 1px inner highlight is what makes it read as a lit plane
-        'ring-1 ring-white/[.06] shadow-[0_1px_0_0_rgba(255,255,255,.06)_inset,0_24px_48px_-24px_rgba(0,0,0,.8)]',
-        hover ? 'transition-all duration-300 hover:ring-white/[.12] hover:-translate-y-1 hover:shadow-[0_1px_0_0_rgba(255,255,255,.1)_inset,0_32px_64px_-24px_rgba(0,0,0,.9)]' : '',
+        'relative overflow-hidden rounded-[20px] bg-white',
+        'ring-1 ring-[#E7E2D8] shadow-[0_1px_2px_rgba(28,25,23,.04),0_12px_28px_-18px_rgba(28,25,23,.28)]',
+        hover
+          ? 'transition-all duration-300 hover:-translate-y-1 hover:ring-[#D9D2C4] hover:shadow-[0_2px_4px_rgba(28,25,23,.05),0_22px_44px_-20px_rgba(28,25,23,.34)]'
+          : '',
         className,
       ].join(' ')}
     >
       {glow && (
         <span
-          className={`pointer-events-none absolute -top-24 -left-16 w-56 h-56 rounded-full bg-gradient-to-br ${GRAD[glow]} opacity-[.18] blur-[64px]`}
+          className={`pointer-events-none absolute inset-x-0 top-0 h-[3px] bg-gradient-to-l ${GRAD[glow]}`}
           aria-hidden
         />
       )}
@@ -132,12 +154,13 @@ export function Head({
 }) {
   return (
     <div className="flex items-center gap-3 mb-5">
-      <span className={`w-9 h-9 rounded-xl bg-gradient-to-br ${GRAD[grad]} flex items-center justify-center shrink-0 shadow-lg`}>
+      <span className={`w-9 h-9 rounded-xl bg-gradient-to-br ${GRAD[grad]} flex items-center justify-center shrink-0
+                        shadow-[0_4px_10px_-4px_rgba(28,25,23,.35)]`}>
         <Icon size={17} className="text-white" />
       </span>
       <div className="min-w-0">
-        <h2 className="text-[15px] font-bold tracking-tight text-white leading-tight">{title}</h2>
-        {note && <p className="text-[11.5px] text-slate-400 font-medium truncate">{note}</p>}
+        <h2 className="text-[15px] font-bold tracking-tight text-[#1C1917] leading-tight">{title}</h2>
+        {note && <p className="text-[11.5px] text-[#78716C] font-medium truncate">{note}</p>}
       </div>
       {action && <div className="mr-auto shrink-0">{action}</div>}
     </div>
@@ -178,22 +201,24 @@ export function Stat({
     <Rise i={i}>
       <Panel hover glow={grad} className="p-5 h-full">
         <div className="flex items-start justify-between gap-3">
-          <span className={`w-10 h-10 rounded-xl bg-gradient-to-br ${GRAD[grad]} flex items-center justify-center shadow-lg`}>
+          <span className={`w-10 h-10 rounded-xl bg-gradient-to-br ${GRAD[grad]} flex items-center justify-center
+                            shadow-[0_4px_12px_-4px_rgba(28,25,23,.4)]`}>
             <Icon size={18} className="text-white" />
           </span>
           {delta !== undefined && (
-            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-              delta >= 0 ? 'text-emerald-300 bg-emerald-500/10' : 'text-rose-300 bg-rose-500/10'}`}>
+            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ring-1 ${
+              delta >= 0 ? 'text-emerald-700 bg-emerald-50 ring-emerald-200'
+                         : 'text-rose-700 bg-rose-50 ring-rose-200'}`}>
               {delta >= 0 ? '+' : ''}{delta}%
             </span>
           )}
         </div>
         <div className="mt-4">
           <Count value={value} decimals={decimals} prefix={prefix} suffix={suffix}
-                 className="block text-[30px] font-bold tracking-tight text-white leading-none" />
-          <div className="text-[12px] font-medium text-slate-400 mt-1.5">{label}</div>
+                 className="block text-[30px] font-bold tracking-tight text-[#1C1917] leading-none" />
+          <div className="text-[12px] font-medium text-[#78716C] mt-1.5">{label}</div>
         </div>
-        {foot && <div className="mt-3.5 pt-3.5 border-t border-white/[.06]">{foot}</div>}
+        {foot && <div className="mt-3.5 pt-3.5 border-t border-[#EFEBE2]">{foot}</div>}
       </Panel>
     </Rise>
   )
@@ -205,7 +230,7 @@ export function Bar({ pct, grad = 'violet', height = 6 }: { pct: number; grad?: 
   const ref = useRef<HTMLDivElement | null>(null)
   const seen = useSeen(ref)
   return (
-    <div ref={ref} className="w-full rounded-full bg-white/[.06] overflow-hidden" style={{ height }}>
+    <div ref={ref} className="w-full rounded-full bg-[#EFEBE2] overflow-hidden" style={{ height }}>
       <motion.div
         className={`h-full rounded-full bg-gradient-to-l ${GRAD[grad]}`}
         initial={{ width: 0 }}
@@ -226,8 +251,8 @@ export function Dial({
   const c = 2 * Math.PI * r
   const gid = `dial-${grad}`
   const stops: Record<Grad, [string, string]> = {
-    violet: ['#5B5FEF', '#8B5CF6'], sky: ['#38BDF8', '#5B5FEF'],
-    emerald: ['#22C55E', '#38BDF8'], amber: ['#F59E0B', '#EF4444'], rose: ['#EF4444', '#8B5CF6'],
+    violet: ['#7C3AED', '#6D28D9'], sky: ['#0EA5E9', '#0369A1'],
+    emerald: ['#10B981', '#047857'], amber: ['#F59E0B', '#B45309'], rose: ['#F43F5E', '#BE123C'],
   }
   return (
     <div ref={ref} className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
@@ -238,7 +263,7 @@ export function Dial({
             <stop offset="100%" stopColor={stops[grad][1]} />
           </linearGradient>
         </defs>
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,.07)" strokeWidth="8" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#EFEBE2" strokeWidth="8" />
         <motion.circle
           cx={size / 2} cy={size / 2} r={r} fill="none" stroke={`url(#${gid})`} strokeWidth="8"
           strokeLinecap="round" strokeDasharray={c}
@@ -248,8 +273,8 @@ export function Dial({
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <Count value={pct} suffix="%" className="text-[22px] font-bold text-white leading-none" />
-        {label && <span className="text-[10px] font-medium text-slate-400 mt-1">{label}</span>}
+        <Count value={pct} suffix="%" className="text-[22px] font-bold text-[#1C1917] leading-none" />
+        {label && <span className="text-[10px] font-medium text-[#78716C] mt-1">{label}</span>}
       </div>
     </div>
   )
@@ -260,13 +285,13 @@ export function Dial({
 export function Chip({
   children, tone = 'muted',
 }: { children: React.ReactNode; tone?: 'muted' | 'violet' | 'sky' | 'ok' | 'warn' | 'bad' }) {
-  const tones = {
-    muted:  'bg-white/[.06] text-slate-300 ring-white/[.08]',
-    violet: 'bg-[#5B5FEF]/15 text-indigo-300 ring-[#5B5FEF]/25',
-    sky:    'bg-[#38BDF8]/15 text-sky-300 ring-[#38BDF8]/25',
-    ok:     'bg-emerald-500/15 text-emerald-300 ring-emerald-500/25',
-    warn:   'bg-amber-500/15 text-amber-300 ring-amber-500/25',
-    bad:    'bg-rose-500/15 text-rose-300 ring-rose-500/25',
+  const tones: Record<string, string> = {
+    muted:  'bg-[#F6F4EF] text-[#57534E] ring-[#E7E2D8]',
+    violet: TINT.violet,
+    sky:    TINT.sky,
+    ok:     TINT.emerald,
+    warn:   TINT.amber,
+    bad:    TINT.rose,
   }
   return (
     <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold ring-1 ${tones[tone]}`}>
@@ -275,7 +300,8 @@ export function Chip({
   )
 }
 
-/** Primary action — gradient fill, lifts and brightens on press. */
+/** Primary action — solid ink, lifts on press. Colour is reserved for
+ *  identification, so the main move is simply the darkest thing on the page. */
 export function Action({
   icon: Icon, children, onClick, grad = 'violet', full = false,
 }: {
@@ -287,9 +313,10 @@ export function Action({
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.97 }}
       transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+      style={{ backgroundColor: SOLID[grad] }}
       className={`${full ? 'w-full' : ''} inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl
-                  bg-gradient-to-l ${GRAD[grad]} text-white text-[13px] font-semibold
-                  shadow-[0_8px_24px_-8px_rgba(91,95,239,.6)] hover:shadow-[0_12px_32px_-8px_rgba(91,95,239,.8)]
+                  text-white text-[13px] font-semibold
+                  shadow-[0_6px_18px_-8px_rgba(28,25,23,.55)] hover:shadow-[0_10px_26px_-8px_rgba(28,25,23,.7)]
                   transition-shadow`}
     >
       {Icon && <Icon size={15} />}
@@ -298,7 +325,8 @@ export function Action({
   )
 }
 
-/** Secondary action — glass, for anything that isn't the main move. */
+/** Secondary action — a white sheet with a hairline, for anything that isn't
+ *  the main move. */
 export function Ghost({
   icon: Icon, children, onClick, full = false,
 }: { icon?: LucideIcon; children: React.ReactNode; onClick?: () => void; full?: boolean }) {
@@ -309,8 +337,8 @@ export function Ghost({
       whileTap={{ scale: 0.97 }}
       transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       className={`${full ? 'w-full' : ''} inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl
-                  bg-white/[.05] ring-1 ring-white/[.08] backdrop-blur text-slate-200 text-[13px] font-semibold
-                  hover:bg-white/[.09] hover:text-white transition-colors`}
+                  bg-white ring-1 ring-[#E7E2D8] text-[#44403C] text-[13px] font-semibold
+                  hover:bg-[#FBFAF7] hover:text-[#1C1917] hover:ring-[#D9D2C4] transition-colors`}
     >
       {Icon && <Icon size={15} />}
       {children}

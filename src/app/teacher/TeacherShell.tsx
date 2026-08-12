@@ -77,14 +77,16 @@ export default function TeacherShell({ children }: { children: React.ReactNode }
             {active && (
               <motion.span
                 layoutId="nav-active"
-                className="absolute inset-0 rounded-2xl bg-white/[.07] ring-1 ring-white/[.09]"
+                className="absolute inset-0 rounded-2xl bg-[#F6F4EF] ring-1 ring-[#E7E2D8]"
                 transition={{ type: 'spring', stiffness: 380, damping: 32 }}
               />
             )}
             <span className={`relative flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-colors
-                              ${active ? 'text-white' : 'text-slate-400 hover:text-white'}`}>
+                              ${active ? 'text-[#1C1917]' : 'text-[#78716C] hover:text-[#1C1917]'}`}>
               <span className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all
-                                ${active ? `bg-gradient-to-br ${GRAD[item.grad]} shadow-lg` : 'bg-white/[.05]'}`}>
+                                ${active
+                                  ? `bg-gradient-to-br ${GRAD[item.grad]} text-white shadow-[0_4px_10px_-4px_rgba(28,25,23,.4)]`
+                                  : 'bg-[#F1EDE4] text-[#78716C]'}`}>
                 <item.icon size={17} />
               </span>
               <span className={`text-[13.5px] font-semibold whitespace-nowrap transition-all duration-200
@@ -99,30 +101,30 @@ export default function TeacherShell({ children }: { children: React.ReactNode }
   )
 
   return (
-    <div dir="rtl" className="relative min-h-screen bg-[#0B1020] font-plex text-white antialiased">
-      {/* Ambient field — the only thing in the app that isn't flat.
-          Pinned to the viewport with explicit w/h rather than inset-0: under
-          dir=rtl a fixed inset-0 layer resolves against the scrollable width,
-          so it stretched past the left edge and fed its own overflow. */}
+    <div dir="rtl" className="relative min-h-screen bg-[#F6F4EF] font-paper text-[#1C1917] antialiased">
+      {/* The desk. Paper is warm rather than lit, so this is a barely-there
+          tint at the top rather than the coloured blooms of the dark era.
+          Pinned with explicit w/h rather than inset-0: under dir=rtl a fixed
+          inset-0 layer resolves against the scrollable width, so it stretched
+          past the left edge and fed its own overflow. */}
       <div className="pointer-events-none fixed top-0 left-0 w-screen h-screen -z-10" aria-hidden
            style={{
              backgroundImage:
-               'radial-gradient(48rem 30rem at 88% -6%, rgba(91,95,239,.20), transparent 62%),' +
-               'radial-gradient(40rem 26rem at 4% 8%, rgba(56,189,248,.12), transparent 60%),' +
-               'radial-gradient(36rem 24rem at 55% 108%, rgba(139,92,246,.14), transparent 62%)',
+               'radial-gradient(60rem 32rem at 85% -10%, rgba(180,83,9,.045), transparent 60%),' +
+               'radial-gradient(52rem 30rem at 8% 4%, rgba(109,40,217,.035), transparent 58%)',
            }} />
 
       {/* ── Rail (lg and up) ────────────────────────────── */}
       <aside className="hidden lg:flex fixed top-0 right-0 h-screen z-40 flex-col
                         w-[76px] hover:w-[228px] transition-[width] duration-300 ease-out group
-                        bg-[#0E1428]/80 backdrop-blur-2xl border-l border-white/[.06] px-3 py-4">
+                        bg-white/90 backdrop-blur-2xl border-l border-[#E7E2D8] px-3 py-4">
         <Link href="/teacher" className="flex items-center gap-3 px-2 mb-6 shrink-0">
-          <span className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#5B5FEF] to-[#8B5CF6] flex items-center justify-center font-black text-lg shadow-lg shrink-0">
+          <span className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#7C3AED] to-[#6D28D9] text-white flex items-center justify-center font-black text-lg shadow-[0_4px_12px_-4px_rgba(28,25,23,.45)] shrink-0">
             إ
           </span>
           <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
             <span className="block text-[14px] font-bold leading-tight">فضاء الأساتذة</span>
-            <span className="block text-[10px] text-slate-500 tracking-[.14em] uppercase">Inglizi</span>
+            <span className="block text-[10px] text-[#A8A29E] tracking-[.14em] uppercase">Inglizi</span>
           </span>
         </Link>
 
@@ -132,53 +134,53 @@ export default function TeacherShell({ children }: { children: React.ReactNode }
         </nav>
 
         <button onClick={signOut}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-2xl text-slate-400 hover:text-rose-300 hover:bg-rose-500/[.08] transition-colors">
-          <span className="w-9 h-9 rounded-xl bg-white/[.05] flex items-center justify-center shrink-0"><LogOut size={16} /></span>
+                className="flex items-center gap-3 px-3 py-2.5 rounded-2xl text-[#78716C] hover:text-rose-700 hover:bg-rose-50 transition-colors">
+          <span className="w-9 h-9 rounded-xl bg-[#F1EDE4] flex items-center justify-center shrink-0"><LogOut size={16} /></span>
           <span className="text-[13.5px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">خروج</span>
         </button>
       </aside>
 
       {/* ── Top bar ─────────────────────────────────────── */}
       <header className="sticky top-0 z-30 lg:pr-[76px]">
-        <div className="bg-[#0B1020]/70 backdrop-blur-2xl border-b border-white/[.06]">
+        <div className="bg-[#F6F4EF]/85 backdrop-blur-2xl border-b border-[#E7E2D8]">
           <div className="max-w-[1400px] mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
             <button onClick={() => setSheet(true)} aria-label="القائمة"
-                    className="lg:hidden w-10 h-10 rounded-xl bg-white/[.06] ring-1 ring-white/[.08] flex items-center justify-center">
+                    className="lg:hidden w-10 h-10 rounded-xl bg-white ring-1 ring-[#E7E2D8] flex items-center justify-center text-[#44403C]">
               <Menu size={18} />
             </button>
 
-            <Link href="/teacher" className="lg:hidden w-9 h-9 rounded-xl bg-gradient-to-br from-[#5B5FEF] to-[#8B5CF6] flex items-center justify-center font-black">
+            <Link href="/teacher" className="lg:hidden w-9 h-9 rounded-xl bg-gradient-to-br from-[#7C3AED] to-[#6D28D9] text-white flex items-center justify-center font-black">
               إ
             </Link>
 
             {current && (
               <div className="hidden sm:flex items-center gap-1.5 text-[13px] font-semibold">
-                <span className="text-slate-500">فضاء الأساتذة</span>
-                <ChevronLeft size={13} className="text-slate-600" />
-                <span className="text-white">{current.label}</span>
+                <span className="text-[#A8A29E]">فضاء الأساتذة</span>
+                <ChevronLeft size={13} className="text-[#D6D3D1]" />
+                <span className="text-[#1C1917]">{current.label}</span>
               </div>
             )}
 
             <div className="flex-1" />
 
-            <button className="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl bg-white/[.05] ring-1 ring-white/[.07]
-                               text-slate-400 hover:text-white hover:bg-white/[.08] transition-colors text-[12.5px] font-medium">
+            <button className="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl bg-white ring-1 ring-[#E7E2D8]
+                               text-[#78716C] hover:text-[#1C1917] hover:ring-[#D9D2C4] transition-colors text-[12.5px] font-medium">
               <Search size={14} /> بحث
-              <span className="flex items-center gap-0.5 text-[10px] text-slate-500 bg-white/[.06] px-1.5 py-0.5 rounded">
+              <span className="flex items-center gap-0.5 text-[10px] text-[#A8A29E] bg-[#F6F4EF] px-1.5 py-0.5 rounded">
                 <Command size={9} /> K
               </span>
             </button>
 
             <button aria-label="التنبيهات"
-                    className="relative w-10 h-10 rounded-xl bg-white/[.05] ring-1 ring-white/[.07] flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                    className="relative w-10 h-10 rounded-xl bg-white ring-1 ring-[#E7E2D8] flex items-center justify-center text-[#78716C] hover:text-[#1C1917] transition-colors">
               <Bell size={17} />
-              <span className="absolute top-2.5 left-2.5 w-1.5 h-1.5 rounded-full bg-[#38BDF8] ring-2 ring-[#0B1020]" />
+              <span className="absolute top-2.5 left-2.5 w-1.5 h-1.5 rounded-full bg-[#0369A1] ring-2 ring-white" />
             </button>
 
             {reviews > 0 && (
-              <Link href="/teacher/profile#reviews"
-                    className="hidden sm:flex items-center gap-1.5 px-3 h-10 rounded-xl bg-amber-500/10 ring-1 ring-amber-500/20 text-amber-300 text-[12.5px] font-bold">
-                <Star size={13} className="fill-amber-400 text-amber-400" />
+              <Link href="/teacher/reviews"
+                    className="hidden sm:flex items-center gap-1.5 px-3 h-10 rounded-xl bg-amber-50 ring-1 ring-amber-200 text-amber-700 text-[12.5px] font-bold">
+                <Star size={13} className="fill-amber-500 text-amber-500" />
                 {Number(rating).toFixed(1)}
               </Link>
             )}
@@ -186,8 +188,8 @@ export default function TeacherShell({ children }: { children: React.ReactNode }
             <Link href="/teacher/profile" aria-label="ملفي">
               {teacher.profile?.avatar_url
                 ? /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={teacher.profile.avatar_url} alt="" className="w-10 h-10 rounded-xl object-cover ring-2 ring-white/10" />
-                : <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#38BDF8] to-[#5B5FEF] flex items-center justify-center font-bold">{initial}</span>}
+                  <img src={teacher.profile.avatar_url} alt="" className="w-10 h-10 rounded-xl object-cover ring-2 ring-[#E7E2D8]" />
+                : <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0EA5E9] to-[#0369A1] text-white flex items-center justify-center font-bold">{initial}</span>}
             </Link>
           </div>
         </div>
@@ -200,34 +202,34 @@ export default function TeacherShell({ children }: { children: React.ReactNode }
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setSheet(false)}
-              className="absolute inset-0 bg-[#05070F]/70 backdrop-blur-md"
+              className="absolute inset-0 bg-[#1C1917]/40 backdrop-blur-md"
             />
             <motion.aside
               initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
               transition={{ type: 'spring', stiffness: 320, damping: 34 }}
-              className="absolute top-0 right-0 h-full w-[19rem] max-w-[86vw] bg-[#0E1428] border-l border-white/[.07] flex flex-col"
+              className="absolute top-0 right-0 h-full w-[19rem] max-w-[86vw] bg-white border-l border-[#E7E2D8] flex flex-col"
             >
-              <div className="relative p-5 border-b border-white/[.06]">
+              <div className="relative p-5 border-b border-[#E7E2D8]">
                 <button onClick={() => setSheet(false)} aria-label="إغلاق"
-                        className="absolute top-4 left-4 w-8 h-8 rounded-lg bg-white/[.06] flex items-center justify-center text-slate-400">
+                        className="absolute top-4 left-4 w-8 h-8 rounded-lg bg-[#F6F4EF] flex items-center justify-center text-[#78716C]">
                   <X size={16} />
                 </button>
                 <div className="flex items-center gap-3">
                   {teacher.profile?.avatar_url
                     ? /* eslint-disable-next-line @next/next/no-img-element */
-                      <img src={teacher.profile.avatar_url} alt="" className="w-12 h-12 rounded-2xl object-cover ring-2 ring-white/10" />
-                    : <span className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#38BDF8] to-[#5B5FEF] flex items-center justify-center text-xl font-bold">{initial}</span>}
+                      <img src={teacher.profile.avatar_url} alt="" className="w-12 h-12 rounded-2xl object-cover ring-2 ring-[#E7E2D8]" />
+                    : <span className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#0EA5E9] to-[#0369A1] text-white flex items-center justify-center text-xl font-bold">{initial}</span>}
                   <div className="min-w-0">
                     <div className="font-bold text-[14px] truncate">{name}</div>
-                    <div className="text-[11px] text-slate-500 truncate">{teacher.email}</div>
+                    <div className="text-[11px] text-[#A8A29E] truncate">{teacher.email}</div>
                   </div>
                 </div>
               </div>
               <nav className="flex-1 overflow-y-auto p-3 space-y-1.5"><Links expanded /></nav>
-              <div className="p-3 border-t border-white/[.06]">
+              <div className="p-3 border-t border-[#E7E2D8]">
                 <button onClick={signOut}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-rose-300 hover:bg-rose-500/[.08] transition-colors">
-                  <span className="w-9 h-9 rounded-xl bg-rose-500/10 flex items-center justify-center"><LogOut size={16} /></span>
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-rose-700 hover:bg-rose-50 transition-colors">
+                  <span className="w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center"><LogOut size={16} /></span>
                   <span className="text-[13.5px] font-semibold">تسجيل الخروج</span>
                 </button>
               </div>

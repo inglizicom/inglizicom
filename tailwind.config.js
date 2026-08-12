@@ -17,9 +17,31 @@ module.exports = {
         plex: ['Inter', '"IBM Plex Sans Arabic"', 'Tajawal', 'sans-serif'],
         serif: ['Lora', 'Georgia', 'serif'],
         ui: ['"DM Sans"', 'system-ui', 'sans-serif'],
+        // Teacher space, warm-paper era. Outfit is geometric and carries the
+        // headings and every numeral; Tajawal — a humanist Arabic face that
+        // suits paper better than Plex's screen geometry — takes the Arabic.
+        paper: ['Outfit', 'Tajawal', 'sans-serif'],
       },
       colors: {
-        // Teacher space palette — dark first.
+        // Teacher space palette — warm paper. The space is a workbook, not a
+        // control panel: an off-white ground, white sheets, ink-brown text,
+        // and one accent per domain stated at a weight that reads on white.
+        paper: {
+          bg:    '#F6F4EF',   // the desk
+          card:  '#FFFFFF',   // the sheet
+          line:  '#E7E2D8',   // a ruled hairline, never a grey box
+          text:  '#1C1917',   // ink
+          muted: '#78716C',   // pencil
+        },
+        // Domain colours, restated for light. Same meanings as the dark era:
+        // violet identity, sky schedule, emerald money, amber achievement.
+        domain: {
+          violet:  '#6D28D9',
+          sky:     '#0369A1',
+          emerald: '#047857',
+          amber:   '#B45309',
+          rose:    '#BE123C',
+        },
         ink: {
           bg:    '#0B1020',
           card:  '#151C32',

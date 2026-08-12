@@ -113,7 +113,7 @@ export default function TeacherEarningsPage() {
 
   if (loading) {
     return (
-      <div className="py-40 flex items-center justify-center gap-3 text-slate-500">
+      <div className="py-40 flex items-center justify-center gap-3 text-[#A8A29E]">
         <Loader2 size={18} className="animate-spin" />
         <span className="text-[13px] font-medium">جاري تحميل أرباحك…</span>
       </div>
@@ -125,10 +125,10 @@ export default function TeacherEarningsPage() {
 
       {demo && (
         <Rise>
-          <div className="flex items-center gap-2.5 rounded-2xl bg-fuchsia-500/[.08] ring-1 ring-fuchsia-500/20 px-4 py-2.5">
-            <Coins size={15} className="text-fuchsia-400 shrink-0" />
-            <span className="text-[12.5px] font-medium text-fuchsia-200">معاينة ببيانات وهمية — لا شيء هنا حقيقي.</span>
-            <a href="?demo=0" className="mr-auto text-[12px] font-bold text-fuchsia-300 hover:text-white transition-colors">إيقاف</a>
+          <div className="flex items-center gap-2.5 rounded-2xl bg-fuchsia-50 ring-1 ring-fuchsia-200 px-4 py-2.5">
+            <Coins size={15} className="text-fuchsia-600 shrink-0" />
+            <span className="text-[12.5px] font-medium text-fuchsia-800">معاينة ببيانات وهمية — لا شيء هنا حقيقي.</span>
+            <a href="?demo=0" className="mr-auto text-[12px] font-bold text-fuchsia-700 hover:text-[#1C1917] transition-colors">إيقاف</a>
           </div>
         </Rise>
       )}
@@ -145,23 +145,23 @@ export default function TeacherEarningsPage() {
               <h1 className="text-[30px] sm:text-[38px] font-bold tracking-tight leading-[1.1]">
                 {canDerive ? (
                   <>
-                    <Count value={monthAmount ?? 0} className="bg-gradient-to-l from-[#22C55E] to-[#38BDF8] bg-clip-text text-transparent" />
-                    <span className="text-[20px] text-slate-400 font-semibold"> درهم</span>
+                    <Count value={monthAmount ?? 0} className="bg-gradient-to-l from-[#10B981] to-[#047857] bg-clip-text text-transparent" />
+                    <span className="text-[20px] text-[#78716C] font-semibold"> درهم</span>
                   </>
                 ) : (
-                  <><Count value={monthHours} decimals={1} /><span className="text-[20px] text-slate-400 font-semibold"> ساعة</span></>
+                  <><Count value={monthHours} decimals={1} /><span className="text-[20px] text-[#78716C] font-semibold"> ساعة</span></>
                 )}
               </h1>
-              <p className="text-slate-400 text-[14px] font-medium mt-2.5">
+              <p className="text-[#78716C] text-[14px] font-medium mt-2.5">
                 {canDerive ? 'تقدير هذا الشهر' : 'ساعات هذا الشهر'}
-                <span className="text-slate-500"> · {thisMonth?.classes ?? 0} حصة منتهية</span>
+                <span className="text-[#A8A29E]"> · {thisMonth?.classes ?? 0} حصة منتهية</span>
               </p>
             </div>
 
             {canDerive && (
               <div className="text-right shrink-0">
-                <div className="text-[11px] font-medium text-slate-500 mb-1">الحساب</div>
-                <div className="text-[13px] font-semibold text-slate-300 tabular-nums" dir="ltr">
+                <div className="text-[11px] font-medium text-[#A8A29E] mb-1">الحساب</div>
+                <div className="text-[13px] font-semibold text-[#57534E] tabular-nums" dir="ltr">
                   {monthHours} h × {rate!.toLocaleString('en-US')} MAD
                 </div>
               </div>
@@ -169,14 +169,14 @@ export default function TeacherEarningsPage() {
           </div>
 
           {!canDerive && (
-            <div className="mt-5 flex items-start gap-2.5 rounded-2xl bg-white/[.03] ring-1 ring-white/[.06] px-4 py-3">
-              <Info size={15} className="text-slate-400 shrink-0 mt-0.5" />
-              <p className="text-[12.5px] text-slate-400 font-medium leading-relaxed">
+            <div className="mt-5 flex items-start gap-2.5 rounded-2xl bg-[#FBFAF7] ring-1 ring-[#E7E2D8] px-4 py-3">
+              <Info size={15} className="text-[#78716C] shrink-0 mt-0.5" />
+              <p className="text-[12.5px] text-[#78716C] font-medium leading-relaxed">
                 {payModel === 'none'
                   ? 'لم تُحدَّد طريقة دفع بعد. ساعاتك محفوظة كاملة، وستُحتسب فور تحديدها.'
                   : `طريقة دفعك «${PAY_LABEL[payModel]}» تُحتسب خارج هذه اللوحة. ما نعرضه هنا هو ساعاتك وحصصك المؤكدة.`}
                 <br />
-                <span className="text-slate-500">الأجر يحدده المكتب — لا يمكن تعديله من هنا.</span>
+                <span className="text-[#A8A29E]">الأجر يحدده المكتب — لا يمكن تعديله من هنا.</span>
               </p>
             </div>
           )}
@@ -187,14 +187,14 @@ export default function TeacherEarningsPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 [&>*]:min-w-0">
         <Stat i={0} icon={Clock} grad="emerald" label="ساعات هذا الشهر" value={monthHours} decimals={1}
               delta={delta}
-              foot={<span className="text-[10.5px] text-slate-500 font-medium">{thisMonth?.classes ?? 0} حصة</span>} />
+              foot={<span className="text-[10.5px] text-[#A8A29E] font-medium">{thisMonth?.classes ?? 0} حصة</span>} />
         <Stat i={1} icon={CalendarDays} grad="sky" label="حصص منتهية" value={done.length}
-              foot={<span className="text-[10.5px] text-slate-500 font-medium">منذ البداية</span>} />
+              foot={<span className="text-[10.5px] text-[#A8A29E] font-medium">منذ البداية</span>} />
         <Stat i={2} icon={TrendingUp} grad="violet" label="مجموع الساعات" value={totalHours} decimals={1}
-              foot={<span className="text-[10.5px] text-slate-500 font-medium">منذ البداية</span>} />
+              foot={<span className="text-[10.5px] text-[#A8A29E] font-medium">منذ البداية</span>} />
         <Stat i={3} icon={Wallet} grad="amber" label={canDerive ? 'مجموع الأرباح' : 'في انتظار التسعير'}
               value={totalAmount ?? 0} suffix={canDerive ? ' د' : ''}
-              foot={<span className="text-[10.5px] text-slate-500 font-medium">
+              foot={<span className="text-[10.5px] text-[#A8A29E] font-medium">
                 {canDerive ? 'تقدير تراكمي' : 'حدّد المكتب الأجر لاحقاً'}
               </span>} />
       </div>
@@ -207,9 +207,9 @@ export default function TeacherEarningsPage() {
 
           {done.length === 0 ? (
             <div className="py-12 text-center">
-              <Wallet size={26} className="mx-auto text-slate-600 mb-2.5" />
-              <p className="text-[13px] font-semibold text-slate-400">لا حصص منتهية بعد</p>
-              <p className="text-[11.5px] text-slate-600 mt-1">تُحتسب الساعة بمجرد أن تُنهي الحصة.</p>
+              <Wallet size={26} className="mx-auto text-[#C7C2BA] mb-2.5" />
+              <p className="text-[13px] font-semibold text-[#78716C]">لا حصص منتهية بعد</p>
+              <p className="text-[11.5px] text-[#C7C2BA] mt-1">تُحتسب الساعة بمجرد أن تُنهي الحصة.</p>
             </div>
           ) : (
             <div className="space-y-2.5">
@@ -219,17 +219,17 @@ export default function TeacherEarningsPage() {
                 return (
                   <div key={m.key} className="flex items-center gap-3.5">
                     <div className={`w-[74px] shrink-0 text-[11.5px] font-semibold tabular-nums ${
-                      isNow ? 'text-white' : 'text-slate-500'}`}>
+                      isNow ? 'text-[#1C1917]' : 'text-[#A8A29E]'}`}>
                       {m.label}
                     </div>
                     <div className="flex-1 min-w-0">
                       <Bar pct={(m.minutes / peak) * 100} grad={isNow ? 'emerald' : 'sky'} height={8} />
                     </div>
-                    <div className="w-[52px] shrink-0 text-left text-[11.5px] font-bold tabular-nums text-slate-300">
+                    <div className="w-[52px] shrink-0 text-left text-[11.5px] font-bold tabular-nums text-[#57534E]">
                       {hours ? `${hours}س` : '—'}
                     </div>
                     {canDerive && (
-                      <div className="w-[72px] shrink-0 text-left text-[11.5px] font-bold tabular-nums text-emerald-300">
+                      <div className="w-[72px] shrink-0 text-left text-[11.5px] font-bold tabular-nums text-emerald-700">
                         {m.amount ? m.amount.toLocaleString('en-US') : '—'}
                       </div>
                     )}
@@ -257,19 +257,19 @@ export default function TeacherEarningsPage() {
                 .sort((a, b) => +new Date(b.starts_at) - +new Date(a.starts_at))
                 .map(s => (
                   <div key={s.id}
-                       className="flex items-center gap-3.5 p-3 rounded-2xl bg-white/[.03] ring-1 ring-white/[.05]">
+                       className="flex items-center gap-3.5 p-3 rounded-2xl bg-[#FBFAF7] ring-1 ring-[#E7E2D8]">
                     <div className={`w-1 h-9 rounded-full shrink-0 bg-gradient-to-b ${GRAD.emerald}`} />
                     <div className="w-14 text-center shrink-0">
-                      <div className="text-[10px] font-medium text-slate-500">
+                      <div className="text-[10px] font-medium text-[#A8A29E]">
                         {new Date(s.starts_at).toLocaleDateString('ar-MA', { day: 'numeric', month: 'short' })}
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-[13.5px] truncate">{s.title}</div>
-                      <div className="text-[10.5px] text-slate-500 font-medium mt-0.5">{s.duration_min} دقيقة</div>
+                      <div className="text-[10.5px] text-[#A8A29E] font-medium mt-0.5">{s.duration_min} دقيقة</div>
                     </div>
                     {canDerive && (
-                      <div className="text-[12.5px] font-bold tabular-nums text-emerald-300 shrink-0">
+                      <div className="text-[12.5px] font-bold tabular-nums text-emerald-700 shrink-0">
                         {Math.round((s.duration_min / 60) * (rate as number)).toLocaleString('en-US')} د
                       </div>
                     )}
