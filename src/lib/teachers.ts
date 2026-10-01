@@ -87,14 +87,18 @@ export interface TeacherProfileFull {
 }
 
 export interface TeacherOverview {
-  students_total:  number
-  classes_month:   number
-  hours_month:     number
-  upcoming:        number
-  reports_owed:    number
-  attendance_rate: number | null
-  rating_avg:      number | null
-  rating_count:    number | null
+  /** assigned ∪ active class seats, each student once */
+  students_total:    number
+  assigned_students?: number
+  class_students?:   number
+  classes_active?:   number
+  classes_month:     number
+  hours_month:       number
+  upcoming:          number
+  reports_owed:      number
+  attendance_rate:   number | null
+  rating_avg:        number | null
+  rating_count:      number | null
 }
 
 export interface MyStudent {
@@ -107,7 +111,40 @@ export interface MyStudent {
   avatar_url:      string | null
   /** e.g. "+2126••••11" — the raw number never reaches the browser. */
   phone_masked:    string | null
-  assigned_at:     string
+  /** Assigned to this teacher by the admin (teacher_students). */
+  assigned?:       boolean
+  assigned_at:     string | null
+  /** Active seats in this teacher's online classes. */
+  classes?:        { class_id: string; title: string; mode: 'group' | 'private' }[]
+}
+
+/** One of my online classes (owner, or substitute who taught a session). */
+export interface MyClass {
+  id: string; title: string; mode: 'group' | 'private'; level: string | null
+  status: 'active' | 'completed' | 'cancelled'
+  course_id: string | null; course_title: string | null
+  starts_on: string | null; ends_on: string | null; capacity: number | null
+  meeting_url: string | null; schedule_note: string | null
+  is_owner: boolean; archived: boolean
+  active_count: number; waitlisted_count: number
+  sessions_done: number; reports_owed: number; next_session_at: string | null
+}
+
+export interface ClassRosterRow {
+  enrollment_id: string; student_id: string; full_name: string; avatar_url: string | null
+  phone_masked: string | null
+  status: 'active' | 'waitlisted' | 'completed' | 'cancelled'
+  enrolled_at: string; start_date: string | null; end_date: string | null; ended_at: string | null
+  attendance: { marked: number; present: number; absent: number }
+}
+
+/** A row of a session's attendance sheet. */
+export interface SessionRosterRow {
+  student_id: string; full_name: string; avatar_url: string | null
+  /** On the roster for this session (may be marked). false = an old mark kept for history. */
+  eligible: boolean
+  attendance: AttendanceStatus | null
+  note: string | null
 }
 
 export type SessionStatus = 'scheduled' | 'live' | 'done' | 'cancelled'
@@ -115,6 +152,8 @@ export type SessionStatus = 'scheduled' | 'live' | 'done' | 'cancelled'
 export interface ClassSession {
   id:            string
   teacher_id:    string
+  /** The online class this session belongs to (null = legacy / ad-hoc). */
+  class_id?:     string | null
   course_id:     string | null
   title:         string
   mode:          'group' | 'private'
@@ -186,6 +225,7 @@ export interface TeacherReview {
   created_at:   string
 }
 
+/** teachers_scoreboard(p_from, p_to) — see 048_enrollment_analytics.sql. */
 export interface ScoreboardRow {
   id:              string
   display_name:    string | null
@@ -196,11 +236,24 @@ export interface ScoreboardRow {
   hired_at:        string | null
   rating_avg:      number
   rating_count:    number
-  students:        number
-  classes_month:   number
-  hours_month:     number
-  reports_owed:    number
-  attendance_rate: number | null
+  period:          { from: string | null; to: string | null; timezone: string }
+  // ── current roster (not affected by the period) ──
+  assigned_students:   number
+  class_students:      number
+  unique_students:     number
+  course_students:     number
+  group_enrollments:   number
+  private_enrollments: number
+  classes_active:      number
+  // ── within the period ──
+  sessions_delivered:    number
+  hours_delivered:       number
+  sessions_cancelled:    number
+  reports_owed:          number
+  reports_owed_all_time: number
+  attendance_marks:      number
+  attendance_rate:       number | null
+  new_class_enrollments: number
 }
 
 /* ── Profile ───────────────────────────────────────────── */
@@ -273,6 +326,28 @@ export async function fetchMyStudents(): Promise<MyStudent[]> {
   return (data ?? []) as MyStudent[]
 }
 
+/* ── Online classes (read-only for teachers; staffed from the CRM) ── */
+
+export async function fetchMyClasses(): Promise<MyClass[]> {
+  const { data, error } = await supabase.rpc('teacher_my_classes')
+  if (error) { console.error('fetchMyClasses', error.message); return [] }
+  return (data ?? []) as MyClass[]
+}
+
+/** Throws when the class is not the caller's — the database decides, not the URL. */
+export async function fetchClassRoster(classId: string): Promise<ClassRosterRow[]> {
+  const { data, error } = await supabase.rpc('teacher_class_roster', { p_class_id: classId })
+  if (error) throw new Error(error.message)
+  return (data ?? []) as ClassRosterRow[]
+}
+
+/** The attendance sheet for one session: its roster plus any earlier marks. */
+export async function fetchSessionRoster(sessionId: string): Promise<SessionRosterRow[]> {
+  const { data, error } = await supabase.rpc('session_roster', { p_session_id: sessionId })
+  if (error) { console.error('fetchSessionRoster', error.message); return [] }
+  return (data ?? []) as SessionRosterRow[]
+}
+
 /* ── Classes ───────────────────────────────────────────── */
 
 export async function fetchSessions(
@@ -328,10 +403,22 @@ export async function updateSession(id: string, patch: Partial<ClassSession>): P
   return true
 }
 
-export async function deleteSession(id: string): Promise<boolean> {
-  const { error } = await supabase.from('class_sessions').delete().eq('id', id)
-  if (error) { console.error('deleteSession', error.message); return false }
-  return true
+/** Only an untouched scheduled session can go; one with attendance or a report
+ *  must be cancelled instead (enforced in the database). */
+export async function deleteSession(id: string): Promise<{ ok: boolean; error?: string }> {
+  const { data, error } = await supabase.from('class_sessions').delete().eq('id', id).select('id')
+  if (error) {
+    console.error('deleteSession', error.message)
+    return { ok: false, error: /cancel it instead/.test(error.message)
+      ? 'لهذه الحصة حضور أو تقرير — ألغِها بدل حذفها.' : 'تعذّر حذف الحصة.' }
+  }
+  if (!data || data.length === 0) return { ok: false, error: 'لا يمكن حذف حصة منتهية أو ملغاة — يمكنك إلغاؤها فقط.' }
+  return { ok: true }
+}
+
+/** A session with records can still be called off; the reason is kept. */
+export function canDeleteSession(s: ClassSession, hasRecords: boolean): boolean {
+  return s.status === 'scheduled' && !hasRecords
 }
 
 /* ── Attendance ────────────────────────────────────────── */
@@ -534,8 +621,9 @@ export async function fetchAbsenceSummary(days = 30): Promise<AbsenceRow[]> {
   return (data ?? []) as AbsenceRow[]
 }
 
-export async function fetchTeachersScoreboard(): Promise<ScoreboardRow[]> {
-  const { data, error } = await supabase.rpc('teachers_scoreboard')
+/** Period = Morocco calendar days, inclusive. Both null = all time. */
+export async function fetchTeachersScoreboard(from: string | null, to: string | null): Promise<ScoreboardRow[]> {
+  const { data, error } = await supabase.rpc('teachers_scoreboard', { p_from: from, p_to: to })
   if (error) { console.error('fetchTeachersScoreboard', error.message); return [] }
   return (data ?? []) as ScoreboardRow[]
 }

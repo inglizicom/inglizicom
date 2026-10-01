@@ -49,12 +49,12 @@ export default function TeacherStudentsPage() {
 
       <PageHero
         icon={Users} tone="violet" title="طلابي"
-        subtitle="الطلاب المسنَدون إليك — أرقام الهاتف محجوبة"
+        subtitle="المسنَدون إليك والمسجّلون في أقسامك — كل طالب مرة واحدة، أرقام الهاتف محجوبة"
         stats={[
-          { label: 'إجمالي',   value: students.length },
-          { label: 'نشط',      value: students.filter(s => s.is_active).length },
-          { label: 'دورات',    value: students.filter(s => s.student_type !== 'private_student').length },
-          { label: 'فردي',     value: students.filter(s => s.student_type === 'private_student').length },
+          { label: 'إجمالي',          value: students.length },
+          { label: 'مسنَدون',          value: students.filter(s => s.assigned).length },
+          { label: 'في أقسامي',        value: students.filter(s => (s.classes ?? []).length > 0).length },
+          { label: 'في قسم فردي',      value: students.filter(s => (s.classes ?? []).some(c => c.mode === 'private')).length },
         ]}
       />
 
@@ -81,7 +81,7 @@ export default function TeacherStudentsPage() {
           <Empty
             icon={Users}
             title={q ? 'لا نتائج' : 'لا طلاب بعد'}
-            hint={q ? 'جرّب اسماً آخر.' : 'تُسنِد الإدارة الطلاب إليك من لوحة التحكم، وسيظهرون هنا مباشرة.'}
+            hint={q ? 'جرّب اسماً آخر.' : 'تُسنِد الإدارة الطلاب إليك أو تسجّلهم في أقسامك من لوحة التحكم، وسيظهرون هنا مباشرة.'}
           />
         </Card>
       ) : (
@@ -104,10 +104,13 @@ export default function TeacherStudentsPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-1.5 mt-3">
+                {s.assigned && <Pill tone="live">مسنَد إليك</Pill>}
+                {(s.classes ?? []).map(c => (
+                  <Pill key={c.class_id} tone={c.mode === 'private' ? 'scheduled' : 'muted'}>
+                    {c.mode === 'private' ? 'فردي · ' : ''}{c.title}
+                  </Pill>
+                ))}
                 {s.course && <Pill tone="muted">{s.course}</Pill>}
-                <Pill tone={s.student_type === 'private_student' ? 'scheduled' : 'muted'}>
-                  {s.student_type === 'private_student' ? 'فردي' : 'دورة'}
-                </Pill>
                 {!s.is_active && <Pill tone="cancelled">غير نشط</Pill>}
               </div>
 

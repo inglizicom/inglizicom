@@ -12,8 +12,8 @@ const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
  *
  * The teacher UI only ever sees a masked phone (teacher_my_students masks it in
  * SQL). To actually message someone, the browser hits this route with the
- * student id; we verify server-side that the caller is a teacher who holds that
- * student, then 302 straight to wa.me. The raw number is never rendered in the
+ * student id; we verify server-side that the caller is a teacher who teaches that
+ * student (assignment or active class seat), then 302 straight to wa.me. The raw number is never rendered in the
  * teacher's UI and can't be scraped out of a list.
  *
  * GET /api/teacher/wa/<studentId>?text=...
@@ -50,15 +50,15 @@ export async function GET(
     return NextResponse.json({ error: 'Not allowed.' }, { status: 403 })
   }
 
-  // A teacher may only message a student assigned to them. Staff may message anyone.
+  // A teacher may only message a student they currently teach — assigned to
+  // them, or holding an active seat in one of their classes. The rule lives in
+  // the database (teacher_can_reach_student, 047) so it matches the roster RLS.
+  // Staff may message anyone.
   if (isTeacher) {
-    const { data: link } = await admin
-      .from('teacher_students').select('id')
-      .eq('teacher_id', caller.user.id)
-      .eq('student_id', params.studentId)
-      .eq('is_active', true)
-      .maybeSingle()
-    if (!link) {
+    const { data: allowed, error: checkErr } = await admin.rpc('teacher_can_reach_student', {
+      p_teacher: caller.user.id, p_student: params.studentId,
+    })
+    if (checkErr || allowed !== true) {
       return NextResponse.json({ error: 'This student is not in your list.' }, { status: 403 })
     }
   }

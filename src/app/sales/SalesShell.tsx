@@ -108,9 +108,18 @@ function HeaderForRoute({ userEmail, roleLabel, notifCount, base, onSignOut }: {
   } else if (pathname.includes('/verify')) {
     title = 'التحقق من طالب'
     crumb = ['لوحة التحكم', 'التحقق من طالب']
+  } else if (pathname.includes('/courses/audit')) {
+    title = 'تدقيق التمارين'
+    crumb = ['الدورات', 'تدقيق التمارين']
   } else if (pathname.includes('/courses')) {
     title = 'الدورات'
     crumb = ['لوحة التحكم', 'الدورات']
+  } else if (pathname.match(/\/classes\/[^/]+$/)) {
+    title = 'قسم مباشر'
+    crumb = ['الأقسام المباشرة', 'تفاصيل القسم']
+  } else if (pathname.includes('/classes')) {
+    title = 'الأقسام المباشرة'
+    crumb = ['لوحة التحكم', 'الأقسام المباشرة']
   } else if (pathname.includes('/templates')) {
     title = 'مسارات التعلّم'
     crumb = ['لوحة التحكم', 'مسارات التعلّم']

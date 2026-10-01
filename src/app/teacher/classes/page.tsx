@@ -5,9 +5,10 @@ import Link from 'next/link'
 import { CalendarDays, CalendarPlus, ChevronLeft, Loader2, Video, X } from 'lucide-react'
 import { useTeacher } from '@/lib/teacher-context'
 import {
-  createSession, fetchSessions,
-  type ClassSession, type SessionStatus,
+  createSession, fetchMyClasses, fetchSessions,
+  type ClassSession, type MyClass, type SessionStatus,
 } from '@/lib/teachers'
+import { businessToday, casablancaWallTimeToIso } from '@/lib/enrollment-metrics'
 import { Card, DemoBanner, Empty, PageHero, Pill, SectionTitle, fmtDate, fmtTime, STATUS_AR } from '../_ui'
 import { DEMO_SESSIONS, isTeacherDemo } from '../_demo'
 
@@ -149,27 +150,35 @@ function NewSessionModal({
   const [title, setTitle]       = useState('')
   const [mode, setMode]         = useState<'group' | 'private'>('group')
   const [level, setLevel]       = useState('')
-  const [date, setDate]         = useState(() => new Date().toISOString().slice(0, 10))
+  const [date, setDate]         = useState(() => businessToday())
   const [time, setTime]         = useState('18:00')
   const [duration, setDuration] = useState(60)
   const [meetingUrl, setUrl]    = useState('')
   const [busy, setBusy]         = useState(false)
   const [error, setError]       = useState<string | null>(null)
+  const [classes, setClasses]   = useState<MyClass[]>([])
+  const [classId, setClassId]   = useState('')
+  const klass = classes.find(c => c.id === classId) ?? null
+
+  useEffect(() => {
+    fetchMyClasses().then(cs => setClasses(cs.filter(c => c.is_owner && c.status === 'active' && !c.archived)))
+  }, [])
 
   async function save() {
     if (!title.trim()) { setError('اكتب عنوان الحصة.'); return }
-    const startsAt = new Date(`${date}T${time}`)
-    if (isNaN(startsAt.getTime())) { setError('التاريخ أو الوقت غير صحيح.'); return }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{2}:\d{2}$/.test(time)) { setError('التاريخ أو الوقت غير صحيح.'); return }
 
     setBusy(true); setError(null)
     const created = await createSession({
       teacher_id:   teacherId,
+      class_id:     classId || null,
       title:        title.trim(),
-      mode,
-      level:        level || null,
-      starts_at:    startsAt.toISOString(),
+      mode:         klass ? klass.mode : mode,
+      level:        (klass ? klass.level : level) || null,
+      // Morocco wall-clock time, whatever the browser's time zone.
+      starts_at:    casablancaWallTimeToIso(date, time),
       duration_min: duration,
-      meeting_url:  meetingUrl.trim() || null,
+      meeting_url:  meetingUrl.trim() || klass?.meeting_url || null,
       status:       'scheduled' as SessionStatus,
     })
     setBusy(false)
@@ -192,17 +201,28 @@ function NewSessionModal({
             <input value={title} onChange={e => setTitle(e.target.value)} className={inputCls} placeholder="مثلاً: الوحدة 3 — الماضي البسيط" />
           </label>
 
+          {classes.length > 0 && (
+            <label className="block">
+              <span className="block text-[12px] font-black text-stone-500 mb-1.5">القسم</span>
+              <select value={classId} onChange={e => setClassId(e.target.value)} className={inputCls}>
+                <option value="">بدون قسم (حصة مستقلة)</option>
+                {classes.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
+              </select>
+              {klass && <span className="block text-[11.5px] text-stone-400 font-semibold mt-1">الحضور سيكون لطلاب هذا القسم، والنوع والمستوى من القسم.</span>}
+            </label>
+          )}
+
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
               <span className="block text-[12px] font-black text-stone-500 mb-1.5">النوع</span>
-              <select value={mode} onChange={e => setMode(e.target.value as 'group' | 'private')} className={inputCls}>
+              <select value={klass ? klass.mode : mode} disabled={!!klass} onChange={e => setMode(e.target.value as 'group' | 'private')} className={inputCls}>
                 <option value="group">جماعية</option>
                 <option value="private">فردية</option>
               </select>
             </label>
             <label className="block">
               <span className="block text-[12px] font-black text-stone-500 mb-1.5">المستوى</span>
-              <select value={level} onChange={e => setLevel(e.target.value)} className={inputCls}>
+              <select value={klass ? (klass.level ?? '') : level} disabled={!!klass} onChange={e => setLevel(e.target.value)} className={inputCls}>
                 <option value="">—</option>
                 {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
               </select>
@@ -215,7 +235,7 @@ function NewSessionModal({
               <input type="date" value={date} onChange={e => setDate(e.target.value)} className={inputCls} />
             </label>
             <label className="block">
-              <span className="block text-[12px] font-black text-stone-500 mb-1.5">الوقت</span>
+              <span className="block text-[12px] font-black text-stone-500 mb-1.5">الوقت (توقيت المغرب)</span>
               <input type="time" value={time} onChange={e => setTime(e.target.value)} className={inputCls} />
             </label>
           </div>

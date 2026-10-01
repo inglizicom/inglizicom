@@ -6,22 +6,30 @@ import {
   Mail, Plus, Search, Settings2, Star, Trash2, User as UserIcon, Users, X, ExternalLink,
 } from 'lucide-react'
 import {
-  assignStudent, createTeacher, deleteTeacherAccount, fetchAbsenceSummary,
+  createTeacher, deleteTeacherAccount, fetchAbsenceSummary,
   fetchAssignedIds, fetchDeleteImpact, fetchTeachersScoreboard, setTeacherActive,
-  unassignStudent, updateTeacherAccount, TeacherEmailTakenError,
+  updateTeacherAccount, TeacherEmailTakenError,
   type AbsenceRow, type DeleteImpact, type ScoreboardRow,
 } from '@/lib/teachers'
 import { fetchStudents } from '@/lib/crm-db'
 import type { CrmStudent } from '@/lib/crm-types'
 import { logActivity } from '@/lib/activity-log-db'
 import { useStaff } from '@/lib/staff-context'
+import { assignTeacher } from '@/lib/online-classes'
+import { businessToday, describeRange, presetRange, type DateRange } from '@/lib/enrollment-metrics'
+import RangeControls from '@/components/analytics/RangeControls'
+import { ConfirmDialog, StudentMultiPicker } from '@/components/crm/kit'
 
 /**
  * الأساتذة — founder view of the teaching team.
  *
- * One row per teacher with the numbers that matter: how many students they
- * hold, classes and hours this month, attendance rate, rating, and reports
- * owed. Creating an account here provisions a login for teacher.inglizi.com.
+ * One row per teacher. Two kinds of numbers, labelled as such:
+ *   current — who the teacher holds today: assigned students, students seated
+ *             in their online classes, how many of those also follow a course,
+ *             group vs private seats (never double-counted: "unique");
+ *   period  — what happened in the chosen dates (Morocco time): sessions
+ *             delivered, hours, cancellations, attendance rate, reports owed.
+ * Creating an account here provisions a login for teacher.inglizi.com.
  */
 export default function AdminTeachersPage() {
   const me = useStaff()
@@ -30,20 +38,22 @@ export default function AdminTeachersPage() {
   const [adding, setAdding]   = useState(false)
   const [assignFor, setAssignFor] = useState<ScoreboardRow | null>(null)
   const [manageFor, setManageFor] = useState<ScoreboardRow | null>(null)
+  const [range, setRange]     = useState<DateRange>(() => presetRange('month', businessToday()))
 
   const load = useCallback(async () => {
     setLoading(true)
-    setRows(await fetchTeachersScoreboard())
+    setRows(await fetchTeachersScoreboard(range.from, range.to))
     setLoading(false)
-  }, [])
+  }, [range.from, range.to])
 
   useEffect(() => { load() }, [load])
 
   const totals = useMemo(() => ({
     teachers: rows.length,
-    students: rows.reduce((a, r) => a + (r.students ?? 0), 0),
-    hours:    rows.reduce((a, r) => a + Number(r.hours_month ?? 0), 0),
+    students: rows.reduce((a, r) => a + (r.unique_students ?? 0), 0),
+    hours:    rows.reduce((a, r) => a + Number(r.hours_delivered ?? 0), 0),
     owed:     rows.reduce((a, r) => a + (r.reports_owed ?? 0), 0),
+    owedAll:  rows.reduce((a, r) => a + (r.reports_owed_all_time ?? 0), 0),
   }), [rows])
 
   return (
@@ -53,7 +63,7 @@ export default function AdminTeachersPage() {
         <div>
           <h1 className="text-2xl font-black tracking-tight text-gray-900">الأساتذة</h1>
           <p className="text-gray-500 text-sm font-semibold mt-0.5">
-            {totals.teachers} أستاذ · {totals.students} طالب مسنَد · {totals.hours} ساعة هذا الشهر
+            {totals.teachers} أستاذ · {totals.students} طالب حاليًا · {totals.hours} ساعة في الفترة ({describeRange(range)})
           </p>
         </div>
         <div className="flex gap-2">
@@ -72,11 +82,13 @@ export default function AdminTeachersPage() {
         </div>
       </div>
 
-      {totals.owed > 0 && (
+      <RangeControls value={range} onChange={setRange} />
+
+      {totals.owedAll > 0 && (
         <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
           <AlertTriangle size={17} className="text-red-500 shrink-0" />
           <span className="text-[13.5px] font-bold text-red-800">
-            {totals.owed} حصة منتهية بدون تقرير عبر الفريق.
+            {totals.owed} حصة منتهية بدون تقرير في هذه الفترة · {totals.owedAll} منذ البداية عبر الفريق.
           </span>
         </div>
       )}
@@ -95,17 +107,29 @@ export default function AdminTeachersPage() {
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-200 overflow-x-auto">
-          <table className="w-full text-sm min-w-[52rem]">
+          <table className="w-full text-sm min-w-[72rem]">
             <thead>
+              <tr className="bg-gray-50 text-[10.5px] font-black text-gray-400">
+                <th className="px-5 pt-2.5"></th>
+                <th colSpan={5} className="text-center px-3 pt-2.5 border-l border-gray-200">الحالي — لا يتأثر بالفترة</th>
+                <th colSpan={5} className="text-center px-3 pt-2.5 border-l border-gray-200">في الفترة: {describeRange(range)}</th>
+                <th></th>
+                <th className="sticky left-0 bg-gray-50"></th>
+              </tr>
               <tr className="bg-gray-50 border-b border-gray-200 text-[11px] font-black text-gray-500">
                 <th className="text-right px-5 py-3">الأستاذ</th>
-                <th className="text-center px-3 py-3">الطلاب</th>
-                <th className="text-center px-3 py-3">حصص الشهر</th>
-                <th className="text-center px-3 py-3">الساعات</th>
-                <th className="text-center px-3 py-3">الحضور</th>
-                <th className="text-center px-3 py-3">التقييم</th>
-                <th className="text-center px-3 py-3">تقارير ناقصة</th>
-                <th className="px-3 py-3"></th>
+                <th className="text-center px-2 py-3" title="teacher_students — إسناد من الإدارة">مسنَدون</th>
+                <th className="text-center px-2 py-3" title="مقعد نشط في أحد أقسامه">طلاب الأقسام</th>
+                <th className="text-center px-2 py-3" title="من طلابه، المسجّلون في دورة">في دورة</th>
+                <th className="text-center px-2 py-3" title="مقاعد نشطة: جماعي / فردي">جماعي / فردي</th>
+                <th className="text-center px-2 py-3 border-l border-gray-200" title="كل طالب مرة واحدة">فريدون</th>
+                <th className="text-center px-2 py-3">حصص منجزة</th>
+                <th className="text-center px-2 py-3">الساعات</th>
+                <th className="text-center px-2 py-3">ملغاة</th>
+                <th className="text-center px-2 py-3">الحضور</th>
+                <th className="text-center px-2 py-3 border-l border-gray-200">تقارير ناقصة</th>
+                <th className="text-center px-2 py-3">التقييم</th>
+                <th className="px-3 py-3 sticky left-0 bg-gray-50"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -125,13 +149,26 @@ export default function AdminTeachersPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="text-center px-3 font-black tabular-nums">{t.students}</td>
-                  <td className="text-center px-3 font-black tabular-nums">{t.classes_month}</td>
-                  <td className="text-center px-3 font-black tabular-nums">{t.hours_month}</td>
-                  <td className="text-center px-3 font-black tabular-nums">
+                  <td className="text-center px-2 font-black tabular-nums">{t.assigned_students}</td>
+                  <td className="text-center px-2 font-black tabular-nums">{t.class_students}</td>
+                  <td className="text-center px-2 font-black tabular-nums">{t.course_students}</td>
+                  <td className="text-center px-2 font-bold tabular-nums text-gray-600">{t.group_enrollments} / {t.private_enrollments}</td>
+                  <td className="text-center px-2 font-black tabular-nums border-l border-gray-100">{t.unique_students}</td>
+                  <td className="text-center px-2 font-black tabular-nums">{t.sessions_delivered}</td>
+                  <td className="text-center px-2 font-black tabular-nums">{t.hours_delivered}</td>
+                  <td className="text-center px-2 font-bold tabular-nums text-gray-500">{t.sessions_cancelled}</td>
+                  <td className="text-center px-2 font-black tabular-nums" title={`${t.attendance_marks} علامة حضور`}>
                     {t.attendance_rate != null ? `${t.attendance_rate}%` : '—'}
                   </td>
-                  <td className="text-center px-3">
+                  <td className="text-center px-2 border-l border-gray-100">
+                    {t.reports_owed > 0
+                      ? <span className="px-2.5 py-1 rounded-full bg-red-50 border border-red-200 text-red-700 text-[11.5px] font-black">{t.reports_owed}</span>
+                      : <span className="text-emerald-600 font-black">✓</span>}
+                    {t.reports_owed_all_time > t.reports_owed && (
+                      <div className="text-[10.5px] text-gray-400 font-bold mt-0.5">{t.reports_owed_all_time} منذ البداية</div>
+                    )}
+                  </td>
+                  <td className="text-center px-2">
                     {t.rating_count > 0 ? (
                       <span className="inline-flex items-center gap-1 font-black tabular-nums">
                         <Star size={13} className="fill-yellow-400 text-yellow-400" />
@@ -140,12 +177,7 @@ export default function AdminTeachersPage() {
                       </span>
                     ) : <span className="text-gray-300 font-bold">—</span>}
                   </td>
-                  <td className="text-center px-3">
-                    {t.reports_owed > 0
-                      ? <span className="px-2.5 py-1 rounded-full bg-red-50 border border-red-200 text-red-700 text-[11.5px] font-black">{t.reports_owed}</span>
-                      : <span className="text-emerald-600 font-black">✓</span>}
-                  </td>
-                  <td className="px-3 text-left">
+                  <td className="px-3 text-left sticky left-0 bg-white shadow-[4px_0_8px_-6px_rgba(0,0,0,0.15)]">
                     <div className="flex items-center gap-1.5 justify-end">
                       <button
                         onClick={() => setAssignFor(t)}
@@ -561,93 +593,119 @@ function ManageTeacherModal({
 
 /* ── Assign students ─────────────────────────────────── */
 
+/**
+ * Teacher assignment (teacher_students) — distinct from class seats. Removing an
+ * assignment never touches the student's classes, attendance, reports or payments.
+ */
 function AssignModal({
-  teacher, actorId, onClose,
+  teacher, onClose,
 }: { teacher: ScoreboardRow; actorId: string; onClose: () => void }) {
   const [students, setStudents] = useState<CrmStudent[]>([])
   const [assigned, setAssigned] = useState<Set<string>>(new Set())
   const [loading, setLoading]   = useState(true)
+  const [tab, setTab]           = useState<'assigned' | 'add'>('assigned')
   const [q, setQ]               = useState('')
-  const [savingId, setSaving]   = useState<string | null>(null)
+  const [toAdd, setToAdd]       = useState<Set<string>>(new Set())
+  const [toRemove, setToRemove] = useState<Set<string>>(new Set())
+  const [confirmRemove, setConfirmRemove] = useState(false)
+  const [busy, setBusy]         = useState(false)
+  const [msg, setMsg]           = useState<string | null>(null)
+  const [error, setError]       = useState<string | null>(null)
 
-  useEffect(() => {
-    let alive = true
-    ;(async () => {
-      const [all, ids] = await Promise.all([
-        fetchStudents({ active: true }), fetchAssignedIds(teacher.id),
-      ])
-      if (!alive) return
-      setStudents(all); setAssigned(new Set(ids)); setLoading(false)
-    })()
-    return () => { alive = false }
+  const reload = useCallback(async () => {
+    const [all, ids] = await Promise.all([fetchStudents({ active: true }), fetchAssignedIds(teacher.id)])
+    setStudents(all); setAssigned(new Set(ids)); setLoading(false)
   }, [teacher.id])
+  useEffect(() => { reload() }, [reload])
 
-  const filtered = useMemo(() => {
+  const assignedList = useMemo(() => {
     const needle = q.trim().toLowerCase()
-    if (!needle) return students
-    return students.filter(s => s.full_name.toLowerCase().includes(needle))
-  }, [students, q])
+    return students.filter(s => assigned.has(s.id) && (!needle || s.full_name.toLowerCase().includes(needle)))
+  }, [students, assigned, q])
 
-  async function toggle(s: CrmStudent) {
-    setSaving(s.id)
-    const on = assigned.has(s.id)
-    const ok = on
-      ? await unassignStudent(teacher.id, s.id)
-      : await assignStudent(teacher.id, s.id, actorId)
-    if (ok) {
-      setAssigned(prev => {
-        const next = new Set(prev)
-        on ? next.delete(s.id) : next.add(s.id)
-        return next
-      })
-    }
-    setSaving(null)
+  async function add() {
+    setBusy(true); setError(null); setMsg(null)
+    try {
+      const n = await assignTeacher(teacher.id, [...toAdd], true)
+      setMsg(`تم إسناد ${n} طالب.`); setToAdd(new Set()); await reload(); setTab('assigned')
+    } catch (e: any) { setError(e?.message ?? 'تعذّر الإسناد.') }
+    finally { setBusy(false) }
   }
 
   return (
     <Modal title={`طلاب ${teacher.display_name ?? ''}`} onClose={onClose}>
       <div className="space-y-3">
-        <div className="relative">
-          <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input value={q} onChange={e => setQ(e.target.value)} className={`${inp} pr-10`} placeholder="ابحث عن طالب…" />
+        <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+          {([['assigned', `المسنَدون (${assigned.size})`], ['add', 'إسناد طلاب']] as const).map(([k, l]) => (
+            <button key={k} onClick={() => setTab(k)}
+              className={`flex-1 py-1.5 rounded-lg text-[12.5px] font-bold ${tab === k ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'}`}>{l}</button>
+          ))}
         </div>
-
-        <div className="flex items-center gap-2 text-[12.5px] font-bold text-gray-500">
-          <Users size={14} /> {assigned.size} مسنَد
-        </div>
+        <p className="text-[11.5px] text-gray-400 font-semibold leading-relaxed">
+          الإسناد يحدّد من يتابعه الأستاذ. التسجيل في الأقسام يُدار من «الأقسام المباشرة» ولا يتأثر بالإسناد.
+        </p>
 
         {loading ? (
           <div className="py-14 flex justify-center text-gray-400"><Loader2 size={18} className="animate-spin" /></div>
+        ) : tab === 'add' ? (
+          <>
+            <StudentMultiPicker selected={toAdd} onChange={setToAdd} exclude={assigned} excludeLabel="مسنَد" />
+            <button onClick={add} disabled={busy || toAdd.size === 0}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-gray-900 text-white text-[13px] font-black disabled:opacity-40">
+              {busy && <Loader2 size={14} className="animate-spin" />} إسناد {toAdd.size || ''} طالب
+            </button>
+          </>
         ) : (
-          <div className="max-h-80 overflow-y-auto rounded-xl border border-gray-200 divide-y divide-gray-100">
-            {filtered.map(s => {
-              const on = assigned.has(s.id)
-              return (
-                <button
-                  key={s.id}
-                  onClick={() => toggle(s)}
-                  disabled={savingId === s.id}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition text-right disabled:opacity-50"
-                >
-                  <span className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 ${
-                    on ? 'bg-gray-900 border-gray-900 text-white' : 'border-gray-300'}`}>
-                    {savingId === s.id ? <Loader2 size={11} className="animate-spin" /> : on ? <Check size={13} /> : null}
-                  </span>
-                  <span className="flex-1 min-w-0">
-                    <span className="block font-bold text-[13.5px] text-gray-900 truncate">{s.full_name}</span>
-                    <span className="block text-[11px] text-gray-400 font-semibold truncate">
-                      {s.course ?? '—'} · {s.student_type === 'private_student' ? 'فردي' : 'دورة'}
+          <>
+            <div className="relative">
+              <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input value={q} onChange={e => setQ(e.target.value)} className={`${inp} pr-10`} placeholder="ابحث في المسنَدين…" />
+            </div>
+            <div className="max-h-72 overflow-y-auto rounded-xl border border-gray-200 divide-y divide-gray-100">
+              {assignedList.map(s => {
+                const on = toRemove.has(s.id)
+                return (
+                  <button key={s.id} type="button"
+                    onClick={() => setToRemove(p => { const n = new Set(p); n.has(s.id) ? n.delete(s.id) : n.add(s.id); return n })}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition text-right">
+                    <span className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 ${on ? 'bg-red-600 border-red-600 text-white' : 'border-gray-300'}`}>
+                      {on && <Check size={13} />}
                     </span>
-                  </span>
-                </button>
-              )
-            })}
-            {filtered.length === 0 && (
-              <div className="py-10 text-center text-[13px] font-semibold text-gray-400">لا نتائج</div>
-            )}
-          </div>
+                    <span className="flex-1 min-w-0">
+                      <span className="block font-bold text-[13.5px] text-gray-900 truncate">{s.full_name}</span>
+                      <span className="block text-[11px] text-gray-400 font-semibold truncate">{s.course ?? '—'}</span>
+                    </span>
+                  </button>
+                )
+              })}
+              {assignedList.length === 0 && (
+                <div className="py-10 text-center text-[13px] font-semibold text-gray-400">
+                  <Users size={18} className="mx-auto mb-1 text-gray-300" />لا طلاب مسنَدون
+                </div>
+              )}
+            </div>
+            <button onClick={() => setConfirmRemove(true)} disabled={toRemove.size === 0}
+              className="w-full py-2.5 rounded-xl border border-red-200 text-red-700 text-[13px] font-black hover:bg-red-50 disabled:opacity-40">
+              إلغاء إسناد {toRemove.size || ''} طالب
+            </button>
+          </>
         )}
+        {msg && <div className="rounded-xl bg-emerald-50 border border-emerald-200 px-3.5 py-2.5 text-[13px] font-bold text-emerald-700">{msg}</div>}
+        {error && <div className="rounded-xl bg-red-50 border border-red-200 px-3.5 py-2.5 text-[13px] font-bold text-red-700">{error}</div>}
       </div>
+
+      {confirmRemove && (
+        <ConfirmDialog
+          title="إلغاء الإسناد"
+          body={<>سيتوقف <b>{teacher.display_name}</b> عن متابعة {toRemove.size} طالب (إلا من له مقعد في أحد أقسامه).</>}
+          keeps={['مقاعد الطلاب في الأقسام', 'الحضور والتقارير السابقة', 'المدفوعات ونشاط الطلاب']}
+          confirmLabel="إلغاء الإسناد"
+          onConfirm={async () => {
+            const n = await assignTeacher(teacher.id, [...toRemove], false)
+            setMsg(`تم إلغاء إسناد ${n} طالب.`); setToRemove(new Set()); await reload()
+          }}
+          onClose={() => setConfirmRemove(false)} />
+      )}
     </Modal>
   )
 }

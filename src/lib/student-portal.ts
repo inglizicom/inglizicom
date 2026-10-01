@@ -1,6 +1,8 @@
 import { supabase } from './supabase'
 
 /* ── Types ─────────────────────────────────────────────── */
+/** A free-form task assigned by staff — NOT a curriculum exercise. It may point
+ *  at a lesson; its course then follows that lesson (set in the database). */
 export interface StudentAssignment {
   id:           string
   student_id?:  string
@@ -14,6 +16,83 @@ export interface StudentAssignment {
   completed_at: string | null
   is_done?:     boolean
   created_at:   string
+  course_id?:   string | null
+  lesson_id?:   string | null
+}
+
+/* ── Curriculum exercises (049_curriculum_exercises.sql) ── */
+
+export type ExerciseKind =
+  | 'lesson_quiz' | 'writing_prompt' | 'external_exercise'
+  | 'unit_reading_quiz' | 'unit_exam' | 'unit_conversation'
+
+export type ExerciseStatus =
+  | 'not_started' | 'locked' | 'in_progress' | 'attempted' | 'completed'
+  | 'passed' | 'failed' | 'pending_review' | 'reviewed'
+
+export interface ExerciseItem {
+  kind:   ExerciseKind
+  status: ExerciseStatus
+  detail: Record<string, any> | null
+}
+export interface BoardLesson {
+  lesson_id: string; title: string; order: number; type: string
+  lesson_status: 'not_started' | 'opened' | 'completed'; unlocked: boolean
+  items: ExerciseItem[]
+}
+export interface BoardUnit {
+  module_id: string; course_id: string; title: string; order: number
+  lessons: BoardLesson[]
+  unit_items: ExerciseItem[]
+}
+export interface BoardTask {
+  id: string; title: string; description: string | null; link_url: string | null
+  status: 'pending' | 'in_progress' | 'done'; category: string; due_date: string | null
+  completed_at: string | null; created_at: string
+  lesson_id: string | null; lesson_title: string | null
+  module_id: string | null; module_title: string | null
+  course_id: string | null; course_title: string | null
+}
+export interface ExerciseBoard {
+  found:   boolean
+  courses?: { course_id: string; title: string }[]
+  units?:   BoardUnit[]
+  tasks?:   BoardTask[]
+  summary?: { curriculum_total: number; curriculum_done: number; tasks_total: number; tasks_done: number }
+}
+
+export const EXERCISE_KIND_AR: Record<ExerciseKind, string> = {
+  lesson_quiz:       'اختبار الدرس',
+  writing_prompt:    'تمرين كتابي (تصحيح ذاتي)',
+  external_exercise: 'تمرين تطبيقي',
+  unit_reading_quiz: 'اختبار القراءة',
+  unit_exam:         'اختبار الوحدة',
+  unit_conversation: 'محادثة الوحدة (تصحيح الفريق)',
+}
+
+export const EXERCISE_STATUS_AR: Record<ExerciseStatus, string> = {
+  not_started:    'لم يبدأ',
+  locked:         'مقفل',
+  in_progress:    'قيد الإنجاز',
+  attempted:      'حاولت — لم تنجح بعد',
+  completed:      'مكتمل',
+  passed:         'ناجح',
+  failed:         'لم تنجح بعد',
+  pending_review: 'بانتظار التصحيح',
+  reviewed:       'مُصحَّح',
+}
+
+/** Done = counts toward progress. "Opened" or "attempted" never does. */
+export function isExerciseDone(s: ExerciseStatus): boolean {
+  return s === 'completed' || s === 'passed' || s === 'reviewed'
+}
+
+export async function fetchExerciseBoard(token: string, courseId?: string | null): Promise<ExerciseBoard> {
+  const { data, error } = await supabase.rpc('student_exercise_board', {
+    p_token: token.trim().toUpperCase(), p_course_id: courseId ?? null,
+  })
+  if (error) { console.error('fetchExerciseBoard', error.message); return { found: false } }
+  return (data ?? { found: false }) as ExerciseBoard
 }
 export interface StudentFile {
   id:         string
@@ -61,7 +140,10 @@ export interface StudentSpace {
     today_lesson_url: string | null; today_lesson_title: string | null
   }
   courses?:         PortalCourse[]
-  exercises?:       StudentAssignment[]   // manual extras
+  /** Staff-assigned tasks. The RPC returns them as `assignments`. */
+  assignments?:     StudentAssignment[]
+  /** @deprecated never sent by student_space — kept so older demo data still types. */
+  exercises?:       StudentAssignment[]
   files?:           StudentFile[]
   exams?:           StudentExam[]
   recent_activity?: StudentActivity[]
@@ -175,13 +257,44 @@ export async function fetchAssignments(studentId: string): Promise<StudentAssign
   const { data } = await supabase.from('student_assignments').select('*').eq('student_id', studentId).order('created_at', { ascending: false })
   return (data ?? []) as StudentAssignment[]
 }
-export async function addAssignment(input: { studentId: string; title: string; description?: string; linkUrl?: string; category?: string; dueDate?: string; course?: string; assignedBy?: string }): Promise<void> {
+export async function addAssignment(input: { studentId: string; title: string; description?: string; linkUrl?: string; category?: string; dueDate?: string; course?: string; assignedBy?: string; lessonId?: string | null }): Promise<void> {
   await supabase.from('student_assignments').insert({
     student_id: input.studentId, title: input.title,
     description: input.description || null, link_url: input.linkUrl || null,
     category: input.category || 'exercise', due_date: input.dueDate || null, course: input.course || null,
     assigned_by: input.assignedBy || null,
+    lesson_id: input.lessonId || null,          // course_id is derived from the lesson in the database
   })
+}
+
+export interface LessonOption {
+  lesson_id: string; lesson_title: string; lesson_order: number
+  module_id: string; module_title: string; module_order: number
+}
+/** Lessons of one course, in path order — for linking a staff task to a lesson. */
+export async function fetchLessonOptions(courseId: string): Promise<LessonOption[]> {
+  const { data, error } = await supabase.rpc('staff_lesson_options', { p_course_id: courseId })
+  if (error) { console.error('fetchLessonOptions', error.message); return [] }
+  return (data ?? []) as LessonOption[]
+}
+
+/* Curriculum audit (staff): lessons without exercises, orphans, mismatches. */
+export interface AuditIssue {
+  severity: 'error' | 'warning' | 'info'
+  kind: string; detail: string; ref_id: string | null
+  course_id: string | null; course_title: string | null
+  module_id: string | null; module_title: string | null; module_order: number | null
+  lesson_id: string | null; lesson_title: string | null; lesson_order: number | null
+}
+export interface CurriculumAudit {
+  generated_at: string
+  summary: { error: number; warning: number; info: number; lessons: number; lessons_with_exercise: number }
+  issues: AuditIssue[]
+}
+export async function fetchCurriculumAudit(): Promise<CurriculumAudit | null> {
+  const { data, error } = await supabase.rpc('curriculum_exercise_audit')
+  if (error) { console.error('fetchCurriculumAudit', error.message); return null }
+  return data as CurriculumAudit
 }
 export async function deleteAssignment(id: string): Promise<void> {
   await supabase.from('student_assignments').delete().eq('id', id)

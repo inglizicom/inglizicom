@@ -8,11 +8,12 @@ import {
 } from 'lucide-react'
 import { useTeacher } from '@/lib/teacher-context'
 import {
-  deleteSession, fetchAttendance, fetchMyStudents, fetchReport, fetchSessions,
+  canDeleteSession, deleteSession, fetchReport, fetchSessionRoster, fetchSessions,
   markAttendance, saveReport, updateSession,
-  type AttendanceStatus, type ClassSession, type LessonReport, type MyStudent, type StudentNote,
+  type AttendanceStatus, type ClassSession, type LessonReport, type SessionRosterRow, type StudentNote,
 } from '@/lib/teachers'
-import { Card, Pill, SectionTitle, fmtDateTime, STATUS_AR } from '../../_ui'
+import { Card, DemoBanner, Pill, SectionTitle, fmtDateTime, STATUS_AR } from '../../_ui'
+import { DEMO_SESSIONS, DEMO_SESSION_ROSTER, isTeacherDemo } from '../../_demo'
 
 const ATT: { key: AttendanceStatus; label: string; on: string }[] = [
   { key: 'present', label: 'حاضر',  on: 'bg-emerald-600 text-white border-emerald-600' },
@@ -29,12 +30,17 @@ export default function ClassDetailPage() {
   const teacher = useTeacher()
 
   const [session,  setSession]  = useState<ClassSession | null>(null)
-  const [students, setStudents] = useState<MyStudent[]>([])
+  const [sheet,    setSheet]    = useState<SessionRosterRow[]>([])
   const [marks,    setMarks]    = useState<Record<string, AttendanceStatus>>({})
   const [report,   setReport]   = useState<LessonReport | null>(null)
   const [loading,  setLoading]  = useState(true)
   const [savingAtt, setSavingAtt] = useState(false)
   const [savedAtt,  setSavedAtt]  = useState(false)
+  const [attError,  setAttError]  = useState<string | null>(null)
+  const [demo,     setDemo]     = useState(false)
+  // Students who belong in this session. Earlier marks for anyone else stay visible, read-only.
+  const students = sheet.filter(s => s.eligible).map(s => ({ id: s.student_id, full_name: s.full_name }))
+  const legacyMarks = sheet.filter(s => !s.eligible && s.attendance)
 
   // Report form
   const [covered,   setCovered]   = useState('')
@@ -46,16 +52,22 @@ export default function ClassDetailPage() {
   const [savedRep,  setSavedRep]  = useState(false)
 
   const load = useCallback(async () => {
-    const [all, roster, att, rep] = await Promise.all([
+    if (isTeacherDemo()) {
+      setDemo(true)
+      setSession(DEMO_SESSIONS.find(x => x.id === id) ?? DEMO_SESSIONS[0])
+      setSheet(DEMO_SESSION_ROSTER)
+      setMarks(Object.fromEntries(DEMO_SESSION_ROSTER.filter(r => r.attendance).map(r => [r.student_id, r.attendance!])))
+      setLoading(false); return
+    }
+    const [all, roster, rep] = await Promise.all([
       fetchSessions(teacher.id),
-      fetchMyStudents(),
-      fetchAttendance(id),
+      fetchSessionRoster(id),
       fetchReport(id),
     ])
     const s = all.find(x => x.id === id) ?? null
     setSession(s)
-    setStudents(roster)
-    setMarks(Object.fromEntries(att.map(a => [a.student_id, a.status])))
+    setSheet(roster)
+    setMarks(Object.fromEntries(roster.filter(r => r.attendance).map(r => [r.student_id, r.attendance!])))
     setReport(rep)
     if (rep) {
       setCovered(rep.covered ?? '')
@@ -69,22 +81,33 @@ export default function ClassDetailPage() {
 
   useEffect(() => { load() }, [load])
 
-  async function setStatus(status: ClassSession['status']) {
-    if (!session) return
-    await updateSession(session.id, { status })
-    setSession({ ...session, status })
+  async function setStatus(status: ClassSession['status'], cancel_reason?: string | null) {
+    if (!session || demo) return
+    const patch: Partial<ClassSession> = cancel_reason !== undefined ? { status, cancel_reason } : { status }
+    await updateSession(session.id, patch)
+    setSession({ ...session, ...patch })
+  }
+
+  async function cancelSessionWithReason() {
+    const reason = window.prompt('سبب الإلغاء (يظهر للإدارة):', '')
+    if (reason === null) return
+    await setStatus('cancelled', reason.trim() || null)
   }
 
   async function saveAttendance() {
-    const rows = Object.entries(marks).map(([student_id, status]) => ({ student_id, status }))
-    setSavingAtt(true)
+    if (demo) return
+    // Only roster students can be marked — the database refuses anyone else.
+    const eligible = new Set(students.map(s => s.id))
+    const rows = Object.entries(marks).filter(([sid]) => eligible.has(sid)).map(([student_id, status]) => ({ student_id, status }))
+    setSavingAtt(true); setAttError(null)
     const ok = await markAttendance(id, rows, teacher.id)
     setSavingAtt(false)
     if (ok) { setSavedAtt(true); setTimeout(() => setSavedAtt(false), 2200) }
+    else setAttError('تعذّر حفظ الحضور. تحقّق أن الطلاب ما زالوا مسجّلين في القسم.')
   }
 
   async function submitReport() {
-    if (!covered.trim() || !session) return
+    if (!covered.trim() || !session || demo) return
     setSavingRep(true)
     const ok = await saveReport({
       session_id:     session.id,
@@ -104,10 +127,13 @@ export default function ClassDetailPage() {
     }
   }
 
+  // A session with attendance or a report is history: it can be cancelled, never deleted.
+  const hasRecords = Object.keys(marks).length > 0 || !!report || sheet.some(s => s.attendance)
   async function removeSession() {
-    if (!session) return
-    if (!window.confirm('حذف هذه الحصة نهائياً؟ سيُحذف معها الحضور والتقرير.')) return
-    await deleteSession(session.id)
+    if (!session || demo) return
+    if (!window.confirm('حذف هذه الحصة المبرمجة؟ لا حضور ولا تقرير مرتبط بها.')) return
+    const res = await deleteSession(session.id)
+    if (!res.ok) { window.alert(res.error); return }
     router.replace('/teacher/classes')
   }
 
@@ -133,9 +159,17 @@ export default function ClassDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Link href="/teacher/classes" className="inline-flex items-center gap-1.5 text-[13px] font-bold text-stone-500 hover:text-stone-800">
-        <ArrowRight size={15} /> حصصي
-      </Link>
+      {demo && <DemoBanner />}
+      <div className="flex flex-wrap gap-4">
+        <Link href="/teacher/classes" className="inline-flex items-center gap-1.5 text-[13px] font-bold text-stone-500 hover:text-stone-800">
+          <ArrowRight size={15} /> حصصي
+        </Link>
+        {session.class_id && (
+          <Link href={`/teacher/groups/${session.class_id}`} className="inline-flex items-center gap-1.5 text-[13px] font-bold text-amber-700 hover:text-amber-900">
+            القسم ←
+          </Link>
+        )}
+      </div>
 
       {/* ── Header ───────────────────────────────────── */}
       <Card className="p-5 sm:p-6">
@@ -152,6 +186,9 @@ export default function ClassDetailPage() {
             <p className="text-stone-500 text-[13.5px] font-semibold mt-1">
               {fmtDateTime(session.starts_at)} · {session.duration_min} دقيقة
             </p>
+            {session.status === 'cancelled' && session.cancel_reason && (
+              <p className="text-rose-700 text-[12.5px] font-semibold mt-1">سبب الإلغاء: {session.cancel_reason}</p>
+            )}
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -161,22 +198,24 @@ export default function ClassDetailPage() {
                 <Video size={15} /> ادخل للحصة
               </a>
             )}
-            {session.status !== 'done' && (
+            {session.status !== 'done' && session.status !== 'cancelled' && (
               <button onClick={() => setStatus('done')}
                       className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-[13px] font-bold hover:bg-emerald-100 transition">
                 <Check size={15} /> إنهاء الحصة
               </button>
             )}
-            {session.status === 'scheduled' && (
-              <button onClick={() => setStatus('cancelled')}
+            {(session.status === 'scheduled' || session.status === 'live') && (
+              <button onClick={cancelSessionWithReason}
                       className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-stone-300 text-stone-600 text-[13px] font-bold hover:bg-stone-50 transition">
-                <XCircle size={15} /> إلغاء
+                <XCircle size={15} /> إلغاء الحصة
               </button>
             )}
-            <button onClick={removeSession} aria-label="حذف"
-                    className="px-3 py-2.5 rounded-xl border border-stone-300 text-stone-400 hover:text-red-600 hover:border-red-200 transition">
-              <Trash2 size={15} />
-            </button>
+            {canDeleteSession(session, hasRecords) && (
+              <button onClick={removeSession} aria-label="حذف الحصة"
+                      className="px-3 py-2.5 rounded-xl border border-stone-300 text-stone-400 hover:text-red-600 hover:border-red-200 transition">
+                <Trash2 size={15} />
+              </button>
+            )}
           </div>
         </div>
       </Card>
@@ -193,10 +232,14 @@ export default function ClassDetailPage() {
           الحضور
         </SectionTitle>
 
+        <p className="text-[12px] text-stone-400 font-semibold -mt-1 mb-2">
+          {session.class_id ? 'طلاب القسم المسجّلون وقت هذه الحصة.' : 'حصة غير مرتبطة بقسم: طلابك المسنَدون.'}
+        </p>
+        {attError && <div className="mb-2 rounded-xl bg-red-50 border border-red-200 px-3.5 py-2.5 text-[13px] font-bold text-red-700">{attError}</div>}
         <Card className="divide-y divide-stone-100">
           {students.length === 0 ? (
             <div className="p-6 text-center text-[13.5px] font-semibold text-stone-400">
-              لا طلاب مسنَدين إليك بعد — تُسنِدهم الإدارة من لوحة التحكم.
+              {session.class_id ? 'لا طلاب مسجّلون في هذا القسم — تسجّلهم الإدارة من لوحة التحكم.' : 'لا طلاب مسنَدين إليك بعد — تُسنِدهم الإدارة من لوحة التحكم.'}
             </div>
           ) : students.map(s => (
             <div key={s.id} className="flex flex-wrap items-center gap-3 px-5 py-3.5">
@@ -222,6 +265,12 @@ export default function ClassDetailPage() {
             </div>
           ))}
         </Card>
+        {legacyMarks.length > 0 && (
+          <div className="mt-2 text-[12px] text-stone-400 font-semibold">
+            علامات سابقة لطلاب لم يعودوا في القائمة (محفوظة):{' '}
+            {legacyMarks.map(m => `${m.full_name} — ${STATUS_AR[m.attendance!]}`).join('، ')}
+          </div>
+        )}
       </div>
 
       {/* ── Lesson report ────────────────────────────── */}

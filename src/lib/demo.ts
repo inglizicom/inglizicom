@@ -2,7 +2,7 @@
    token and WITHOUT any backend. Activated by `?demo=1` (persisted in session).
    All data below is in-memory mock; nothing touches Supabase. */
 
-import type { StudentSpace } from './student-portal'
+import type { ExerciseBoard, StudentSpace } from './student-portal'
 import type { CoinSummary, RewardStatus, ChallengeItem, SubmitResult, LeaderboardData } from './gamification'
 
 export function isDemo(): boolean {
@@ -105,6 +105,46 @@ export const DEMO_SPACE: StudentSpace = {
       ] },
     ],
   }],
-  exercises: [], files: [], exams: [], recent_activity: [],
-  stats: { lessons_total: 3, lessons_done: 1, ex_total: 0, ex_done: 0, exam_total: 0, exam_done: 0, files_total: 0, files_opened: 0, overall: 33, streak: 3, last_activity: new Date().toISOString() },
+  assignments: [
+    { id: 'a1', title: 'استمع لحوار التعارف وسجّل ردّك', description: 'تمرين إضافي من فريقك', link_url: null,
+      status: 'pending', category: 'speaking', due_date: null, course: null, completed_at: null,
+      created_at: new Date().toISOString(), lesson_id: 'l2' },
+  ],
+  files: [], exams: [], recent_activity: [],
+  stats: { lessons_total: 3, lessons_done: 1, ex_total: 1, ex_done: 0, exam_total: 0, exam_done: 0, files_total: 0, files_opened: 0, overall: 33, streak: 3, last_activity: new Date().toISOString() },
+}
+
+/** Demo exercise board — same shape as student_exercise_board(). */
+export const DEMO_BOARD: ExerciseBoard = {
+  found: true,
+  courses: [{ course_id: 'c1', title: 'الدورة التأسيسية A0 - A1' }],
+  units: [
+    { module_id: 'm1', course_id: 'c1', title: 'الوحدة 1 — التحيات', order: 1,
+      lessons: [
+        { lesson_id: 'l1', title: 'التحيات', order: 1, type: 'video', lesson_status: 'completed', unlocked: true,
+          items: [{ kind: 'lesson_quiz', status: 'passed', detail: { questions: 5, best_score: 5, attempts: 2 } }] },
+        { lesson_id: 'l2', title: 'الأرقام والعمر', order: 2, type: 'video', lesson_status: 'opened', unlocked: true,
+          items: [
+            { kind: 'lesson_quiz', status: 'attempted', detail: { questions: 6, best_score: 4, attempts: 1 } },
+            { kind: 'external_exercise', status: 'in_progress', detail: { url: 'https://inglizi.com' } },
+          ] },
+      ],
+      unit_items: [
+        { kind: 'unit_exam', status: 'not_started', detail: { questions: 10, attempts: 0 } },
+        { kind: 'unit_conversation', status: 'not_started', detail: null },
+      ] },
+    { module_id: 'm2', course_id: 'c1', title: 'الوحدة 2 — العائلة', order: 2,
+      lessons: [
+        { lesson_id: 'l3', title: 'مفردات العائلة', order: 1, type: 'video', lesson_status: 'not_started', unlocked: false,
+          items: [{ kind: 'lesson_quiz', status: 'locked', detail: { questions: 5 } }] },
+      ],
+      unit_items: [{ kind: 'unit_conversation', status: 'not_started', detail: null }] },
+  ],
+  tasks: [
+    { id: 'a1', title: 'استمع لحوار التعارف وسجّل ردّك', description: 'تمرين إضافي من فريقك', link_url: null,
+      status: 'pending', category: 'speaking', due_date: null, completed_at: null, created_at: new Date().toISOString(),
+      lesson_id: 'l2', lesson_title: 'الأرقام والعمر', module_id: 'm1', module_title: 'الوحدة 1 — التحيات',
+      course_id: 'c1', course_title: 'الدورة التأسيسية A0 - A1' },
+  ],
+  summary: { curriculum_total: 7, curriculum_done: 1, tasks_total: 1, tasks_done: 0 },
 }

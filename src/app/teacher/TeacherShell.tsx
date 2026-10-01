@@ -26,6 +26,7 @@ interface NavItem { segment: string; label: string }
 
 const NAV: NavItem[] = [
   { segment: '',          label: 'اليوم' },
+  { segment: 'groups',    label: 'الأقسام' },
   { segment: 'classes',   label: 'الحصص' },
   { segment: 'students',  label: 'الطلاب' },
   { segment: 'reports',   label: 'التقارير' },

@@ -13,6 +13,8 @@ import {
   fetchStudentSpace, completeExercise, logActivity, fileUrl, studentLogin, getDeviceId, deviceValid, fetchUnitSteps,
   fetchCourseCatalog, sendHeartbeat, fetchStudentAvatar, type CatalogCourse,
   type StudentSpace, type StudentAssignment, type PortalLesson, type PortalModule, type PortalCourse, type UnitSteps,
+  fetchExerciseBoard, isExerciseDone, EXERCISE_KIND_AR, EXERCISE_STATUS_AR,
+  type ExerciseBoard, type ExerciseItem, type BoardTask,
 } from '@/lib/student-portal'
 import { checkCertificates, CERT_KIND_AR, type StudentCert } from '@/lib/certificates'
 import { openLesson, completeLesson, fetchStudentResources, resourceUrl, fetchProgressMeta, fetchReadingUnits, fetchMySubmissions, fetchUnitExams, fetchNotifications, markNotificationsRead, EXAMS_URL, CORRECTOR_WHATSAPP, type CourseResource, type ProgressMeta, type UnitSubmission, type StudentNotification } from '@/lib/lms'
@@ -34,7 +36,7 @@ import { fetchCertificate, type Certificate } from '@/lib/lms'
 import { earnCoins, streakBonus, fetchCoins, type EarnAction, type CoinSummary } from '@/lib/gamification'
 import { courseTheme, themeForKey } from '@/lib/course-theme'
 import { PROMO_CATALOG, MAX_DISCOUNT_PCT, seatsLeftThisMonth, type PromoCourse } from '@/data/course-catalog'
-import { isDemo, DEMO_SPACE } from '@/lib/demo'
+import { isDemo, DEMO_SPACE, DEMO_BOARD } from '@/lib/demo'
 import { fetchStudentAnnouncements, type StudentAnnouncement } from '@/lib/announcements'
 
 const isVideoUrl = (u?: string | null) => !!u && /(youtube\.com|youtu\.be)/i.test(u)
@@ -154,6 +156,7 @@ function Portal() {
   const [practice, setPractice] = useState<'sentence' | 'translation' | null>(null)
   const [vocabOpen, setVocabOpen] = useState(false)
   const [pictureOpen, setPictureOpen] = useState(false)
+  const [board, setBoard] = useState<ExerciseBoard | null>(null)   // curriculum exercises + staff tasks, per course
 
   async function enter(rawToken: string, isAuto = false): Promise<boolean> {
     const t = rawToken.trim().toUpperCase(); if (!t) return false
@@ -231,6 +234,11 @@ function Portal() {
   }, [token, tab, selectedCourseId])
   // coins are PER COURSE — refetch when the chosen course changes
   useEffect(() => { if (token && !demo) fetchCoins(token, selectedCourseId).then(setCoins) }, [token, space, selectedCourseId])
+  // exercises mapped to their real unit + lesson (and staff tasks, kept separate) — per chosen course
+  useEffect(() => {
+    if (demo) { setBoard(DEMO_BOARD); return }
+    if (token && selectedCourseId) fetchExerciseBoard(token, selectedCourseId).then(setBoard)
+  }, [token, space, selectedCourseId, submissions, unitExams])
   // full catalog (for the picker's locked courses) — loaded once
   useEffect(() => { fetchCourseCatalog().then(setCatalog) }, [])
   // pick the course to show: keep a valid prior choice, else the saved one, else
@@ -449,7 +457,17 @@ function Portal() {
   const exams = space.exams ?? []
   const files = space.files ?? []
   const recent = space.recent_activity ?? []
-  const manualEx = space.exercises ?? []
+  // Staff-assigned tasks. student_space returns them as `assignments` (the old
+  // `exercises` key was never sent, so these never showed before).
+  const manualEx = space.assignments ?? space.exercises ?? []
+  const boardTasks: BoardTask[] = board?.tasks ?? []
+  // exercise items per lesson, from the board (true source: lesson/unit fields)
+  const itemsByLesson = new Map<string, ExerciseItem[]>()
+  for (const u of board?.units ?? []) for (const l of u.lessons) itemsByLesson.set(l.lesson_id, l.items)
+  const curriculumItems = (board?.units ?? []).flatMap(u => [
+    ...u.lessons.flatMap(l => l.items.map(i => ({ ...i, key: `${l.lesson_id}:${i.kind}`, where: `${u.title} · ${l.title}` }))),
+    ...u.unit_items.map(i => ({ ...i, key: `${u.module_id}:${i.kind}`, where: u.title })),
+  ])
 
   const firstName = (s.full_name || '').split(' ')[0]
 
@@ -487,7 +505,6 @@ function Portal() {
   const modProg = (m: PortalModule) => { const t = m.lessons.length; const d = m.lessons.filter(l => l.status === 'completed').length; return { t, d, pct: t ? Math.round((d / t) * 100) : 0 } }
   // current unit = first unit not fully done, or done-but-awaiting team review
   const currentModule = (course?.modules ?? []).find(m => modProg(m).pct < 100 || !examOk(m.id) || !reviewedModules.has(m.id)) ?? (course?.modules ?? [])[0]
-  const exerciseLessons = flat.filter(x => x.lesson.type === 'exercise' || x.lesson.type === 'quiz').slice(0, 4)
   const nextExam = exams.find(e => e.score == null)
 
   /* ════ DEADLINES (auto-split of the plan's subscription window across units) ════ */
@@ -551,6 +568,7 @@ function Portal() {
   const TABS: { id: Tab; label: string; icon: any; badge?: number }[] = [
     { id: 'home', label: 'الرئيسية', icon: Home },
     { id: 'path', label: 'مساري', icon: Route },
+    { id: 'tasks', label: 'تماريني', icon: ListChecks, badge: boardTasks.filter(t => t.status !== 'done').length },
     { id: 'rewards', label: 'المكافآت', icon: Coins },
     { id: 'files', label: 'الملفات', icon: FileText },
     { id: 'progress', label: 'تقدّمي', icon: TrendingUp },
@@ -564,10 +582,9 @@ function Portal() {
       ['--ic-grad-from' as string]: theme.grad[0], ['--ic-grad-to' as string]: theme.grad[1],
     } as React.CSSProperties}>
       {!demo && token && !overlayOpen && <EnableNotifications token={token} />}
-      {/* ─── Anti-sharing watermark: two faint labels gently floating, traceable ─── */}
+      {/* ─── Static, non-sensitive watermark ─── */}
       <div className="pointer-events-none fixed inset-0 z-[5] overflow-hidden select-none" aria-hidden>
-        <span className="absolute top-0 right-0 text-[12px] font-bold text-black/[0.07] whitespace-nowrap wm-drift-a">{s.full_name} · {s.verification_token}</span>
-        <span className="absolute top-0 right-0 text-[12px] font-bold text-black/[0.06] whitespace-nowrap wm-drift-b">{s.full_name} · {s.verification_token}</span>
+        <span className="absolute top-3 right-3 max-w-[40vw] truncate text-[10px] font-bold text-black/[0.035]">Inglizi · student space</span>
       </div>
 
       {/* ─── Header ─── */}
@@ -590,7 +607,7 @@ function Portal() {
             </span>
           </div>
           {/* mobile/tablet: compact course switcher so every student can reach the full catalogue */}
-          {course && <button onClick={() => setPickerOpen(true)} className="lg:hidden text-[11px] font-bold rounded-full px-2.5 py-1 flex items-center gap-1 max-w-[40vw] active:scale-95 transition" style={{ background: theme.gold, color: theme.dark }} title="تبديل الدورة"><span className="truncate">{course.title}</span> <ChevronDown size={12} className="shrink-0" /></button>}
+          {course && <button onClick={() => setPickerOpen(true)} className="lg:hidden text-[11px] font-bold rounded-full px-2.5 py-1 flex items-center gap-1 max-w-[32vw] active:scale-95 transition" style={{ background: theme.gold, color: theme.dark }} title="تبديل الدورة"><span className="truncate">{course.title}</span> <ChevronDown size={12} className="shrink-0" /></button>}
           <div className="flex-1" />
           {(() => {
             const TYPE_ICON: Record<string, any> = { correction: CheckCircle2, reminder: Bell, deadline: Clock, lesson: PlayCircle, message: MessageSquareText, info: Bell }
@@ -890,7 +907,7 @@ function Portal() {
                       <div className="border border-zinc-100 rounded-2xl overflow-hidden">
                         <div className="px-3 py-2 bg-zinc-50 text-[12px] font-bold text-zinc-600 border-b border-zinc-100">دروس الوحدة ({currentModule.lessons.length})</div>
                         <div className="divide-y divide-zinc-50 max-h-[260px] overflow-y-auto">
-                          {currentModule.lessons.map(l => <LessonRow key={l.id} l={l} unlocked={isUnlocked(l)} onOpen={onOpenLesson} onComplete={onCompleteLesson} onQuiz={setQuizLesson} />)}
+                          {currentModule.lessons.map(l => <LessonRow key={l.id} l={l} unlocked={isUnlocked(l)} onOpen={onOpenLesson} onComplete={onCompleteLesson} onQuiz={setQuizLesson} items={itemsByLesson.get(l.id)} />)}
                         </div>
                       </div>
                     </div>
@@ -925,13 +942,23 @@ function Portal() {
                 </Card>
                 {/* Recent exercises */}
                 <Card title="التمارين الأخيرة" icon={PenLine} iconColor="text-amber-500" action={<button onClick={() => goTab('tasks')} className="text-[11px] text-blue-600 font-semibold">الكل</button>} compact>
-                  {exerciseLessons.length === 0 && manualEx.length === 0 ? <Empty mini text="لا تمارين بعد" /> :
-                    [...exerciseLessons.map(x => ({ id: x.lesson.id, title: x.lesson.title, done: x.lesson.status === 'completed', prog: x.lesson.status === 'opened' })),
-                     ...manualEx.slice(0, 2).map(a => ({ id: a.id, title: a.title, done: a.status === 'done', prog: a.status === 'in_progress' }))].slice(0, 4).map(e => (
+                  {curriculumItems.length === 0 && boardTasks.length === 0 ? <Empty mini text="لا تمارين بعد" /> :
+                    [
+                      // next curriculum exercises that are not done yet, in path order
+                      ...curriculumItems.filter(i => !isExerciseDone(i.status) && i.status !== 'locked').slice(0, 3)
+                        .map(i => ({ id: i.key, title: EXERCISE_KIND_AR[i.kind], where: i.where, status: i.status, extra: false })),
+                      ...boardTasks.filter(t => t.status !== 'done').slice(0, 2)
+                        .map(t => ({ id: t.id, title: t.title, where: t.lesson_title ? `مهمة إضافية · ${t.lesson_title}` : 'مهمة إضافية من الفريق', status: 'not_started' as const, extra: true })),
+                    ].slice(0, 4).map(e => (
                       <div key={e.id} className="flex items-center gap-2.5 py-2">
-                        {e.done ? <CheckCircle2 size={16} className="text-emerald-500 flex-shrink-0" /> : <Circle size={16} className="text-zinc-300 flex-shrink-0" />}
-                        <div className="flex-1 min-w-0 text-[12px] font-semibold text-zinc-800 truncate">{e.title}</div>
-                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${e.done ? 'bg-emerald-50 text-emerald-600' : e.prog ? 'bg-amber-50 text-amber-600' : 'bg-zinc-100 text-zinc-400'}`}>{e.done ? 'مكتمل' : e.prog ? 'قيد التقدم' : 'معلّق'}</span>
+                        <Circle size={16} className="text-zinc-300 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[12px] font-semibold text-zinc-800 truncate">{e.title}</div>
+                          <div className="text-[10px] text-zinc-400 truncate">{e.where}</div>
+                        </div>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${e.extra ? 'bg-blue-50 text-blue-600' : 'bg-zinc-100 text-zinc-500'}`}>
+                          {e.extra ? 'إضافية' : EXERCISE_STATUS_AR[e.status]}
+                        </span>
                       </div>
                     ))}
                 </Card>
@@ -1108,7 +1135,7 @@ function Portal() {
                     <div className="px-4 py-7 text-center text-[12px] text-zinc-400 flex flex-col items-center gap-2"><Lock size={22} className="text-zinc-300" /> هذه الوحدة مقفلة — {lockReason}.</div>
                   ) : (
                   <>
-                  <div className="divide-y divide-zinc-50">{m.lessons.map(l => <LessonRow key={l.id} l={l} unlocked={isUnlocked(l)} onOpen={onOpenLesson} onComplete={onCompleteLesson} onQuiz={setQuizLesson} />)}</div>
+                  <div className="divide-y divide-zinc-50">{m.lessons.map(l => <LessonRow key={l.id} l={l} unlocked={isUnlocked(l)} onOpen={onOpenLesson} onComplete={onCompleteLesson} onQuiz={setQuizLesson} items={itemsByLesson.get(l.id)} />)}</div>
                   {/* Sequential steps — each lights up once the student reaches it */}
                   {(() => {
                     const lessonsDone = p.pct === 100
@@ -1166,14 +1193,56 @@ function Portal() {
 
         {/* ═══════════ TASKS ═══════════ */}
         {tab === 'tasks' && (
-          <div className="max-w-2xl mx-auto space-y-3">
-            <SectionTitle icon={ListChecks} color="text-blue-500">تمارين إضافية</SectionTitle>
-            {manualEx.length === 0 && <Empty emoji="🎯" text="لا توجد تمارين إضافية" sub="تمارينك الأساسية موجودة داخل «مساري»" />}
-            {manualEx.map(a => (
+          <div className="max-w-2xl mx-auto space-y-4">
+            {/* Curriculum exercises — each under its real unit and lesson */}
+            <SectionTitle icon={ListChecks} color="text-amber-700">تمارين المنهج</SectionTitle>
+            {board?.summary && board.summary.curriculum_total > 0 && (
+              <div className="bg-white rounded-2xl border border-zinc-100 p-3.5">
+                <MiniBar label={`أنجزت ${board.summary.curriculum_done} من ${board.summary.curriculum_total}`}
+                  pct={pct(board.summary.curriculum_done, board.summary.curriculum_total)} color="bg-[var(--ic-gold)]" />
+                <p className="text-[11px] text-zinc-400 mt-1.5">يُحتسب التمرين مكتملًا عند النجاح في الاختبار أو إكمال الدرس أو تصحيح المحادثة — فتح الرابط وحده لا يكفي.</p>
+              </div>
+            )}
+            {!board ? <div className="py-8 flex justify-center"><Loader2 size={20} className="animate-spin text-zinc-300" /></div>
+              : (board.units ?? []).length === 0 ? <Empty emoji="📘" text="لا تمارين منهج بعد" sub="تظهر تمارين دورتك هنا تحت كل درس" />
+              : (board.units ?? []).map(u => (
+                <div key={u.module_id} className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
+                  <div className="px-4 py-2.5 bg-[#f5ecdc] border-b border-amber-100/70 flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full text-[11px] font-black flex items-center justify-center bg-[var(--ic-dark-2)] text-[var(--ic-gold)] flex-shrink-0">{u.order}</span>
+                    <span className="font-bold text-[13.5px] text-zinc-800 flex-1 truncate">{u.title}</span>
+                  </div>
+                  <div className="divide-y divide-zinc-50">
+                    {u.lessons.filter(l => l.items.length > 0).map(l => (
+                      <div key={l.lesson_id} className="px-4 py-2.5">
+                        <div className="text-[12.5px] font-semibold text-zinc-700 mb-1.5">{l.order}. {l.title}</div>
+                        <div className="flex flex-wrap gap-1.5">{l.items.map(i => <ExerciseChip key={i.kind} item={i} />)}</div>
+                      </div>
+                    ))}
+                    {u.unit_items.length > 0 && (
+                      <div className="px-4 py-2.5 bg-zinc-50/60">
+                        <div className="text-[11.5px] font-bold text-zinc-500 mb-1.5">نهاية الوحدة</div>
+                        <div className="flex flex-wrap gap-1.5">{u.unit_items.map(i => <ExerciseChip key={i.kind} item={i} />)}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+            {/* Staff-assigned tasks — labelled as such, never mixed into the curriculum */}
+            <SectionTitle icon={ListChecks} color="text-blue-500">مهام إضافية من الفريق</SectionTitle>
+            {manualEx.length === 0 && <Empty emoji="🎯" text="لا توجد مهام إضافية" sub="يضيفها فريقك عند الحاجة" />}
+            {manualEx.map(a => {
+              const linked = boardTasks.find(t => t.id === a.id)
+              return (
               <div key={a.id} className="bg-white rounded-2xl border border-zinc-100 p-4 flex items-start gap-3">
                 {a.status === 'done' ? <CheckCircle2 size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" /> : <Circle size={20} className="text-zinc-300 flex-shrink-0 mt-0.5" />}
                 <div className="flex-1 min-w-0">
                   <div className="font-bold text-[14px] text-zinc-800">{a.title}</div>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    <span className="text-[10.5px] font-bold px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700">مهمة إضافية</span>
+                    {linked?.lesson_title && <span className="text-[10.5px] font-bold px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700">الدرس: {linked.module_title} · {linked.lesson_title}</span>}
+                    {a.due_date && <span className="text-[10.5px] font-bold px-1.5 py-0.5 rounded-full bg-zinc-100 text-zinc-500">قبل {fmtShort(a.due_date)}</span>}
+                  </div>
                   {a.description && <div className="text-[12px] text-zinc-500 mt-1">{a.description}</div>}
                   <div className="flex gap-2 mt-2.5">
                     {a.link_url && <a href={a.link_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[12px] font-bold text-white bg-blue-500 px-3 py-1.5 rounded-lg">ابدأ <ExternalLink size={12} /></a>}
@@ -1181,7 +1250,7 @@ function Portal() {
                   </div>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         )}
 
@@ -1640,7 +1709,26 @@ function PromoCard({ p }: { p: PromoCourse }) {
   )
 }
 
-function LessonRow({ l, unlocked, onOpen, onComplete, onQuiz }: { l: PortalLesson; unlocked: boolean; onOpen: (l: PortalLesson, url?: string | null) => void; onComplete: (l: PortalLesson) => void; onQuiz?: (l: PortalLesson) => void }) {
+const CHIP_TONE: Record<string, string> = {
+  passed: 'bg-emerald-50 text-emerald-700 border-emerald-100', completed: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+  reviewed: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+  in_progress: 'bg-amber-50 text-amber-700 border-amber-100', attempted: 'bg-amber-50 text-amber-700 border-amber-100',
+  pending_review: 'bg-indigo-50 text-indigo-700 border-indigo-100', failed: 'bg-rose-50 text-rose-700 border-rose-100',
+  locked: 'bg-zinc-50 text-zinc-400 border-zinc-100', not_started: 'bg-white text-zinc-500 border-zinc-200',
+}
+/** One curriculum exercise: what kind it is and where the student stands. */
+function ExerciseChip({ item }: { item: ExerciseItem }) {
+  const done = isExerciseDone(item.status)
+  const score = item.kind === 'unit_conversation' && item.detail?.score != null ? ` · ${item.detail.score}/100` : ''
+  return (
+    <span className={`inline-flex items-center gap-1 text-[10.5px] font-bold px-2 py-0.5 rounded-full border ${CHIP_TONE[item.status] ?? CHIP_TONE.not_started}`}>
+      {done ? <CheckCircle2 size={11} /> : item.status === 'locked' ? <Lock size={10} /> : <Circle size={10} />}
+      {EXERCISE_KIND_AR[item.kind]} · {EXERCISE_STATUS_AR[item.status]}{score}
+    </span>
+  )
+}
+
+function LessonRow({ l, unlocked, onOpen, onComplete, onQuiz, items }: { l: PortalLesson; unlocked: boolean; onOpen: (l: PortalLesson, url?: string | null) => void; onComplete: (l: PortalLesson) => void; onQuiz?: (l: PortalLesson) => void; items?: ExerciseItem[] }) {
   const Icon = LTYPE_ICON[l.type] ?? Video
   const url = l.video_url || l.exercise_url || l.file_url
   if (!unlocked) return (
@@ -1655,7 +1743,11 @@ function LessonRow({ l, unlocked, onOpen, onComplete, onQuiz }: { l: PortalLesso
         className="w-8 h-8 rounded-full bg-[var(--ic-gold)] text-black flex items-center justify-center flex-shrink-0 shadow-sm hover:bg-[var(--ic-gold)] active:scale-95 transition">
         <Play size={15} fill="currentColor" style={{ marginInlineStart: 2 }} />
       </button>
-      <div className="flex-1 min-w-0"><div className="text-[13px] font-semibold text-zinc-800 truncate">{l.title}</div><div className="text-[11px] text-zinc-400">{LTYPE_AR[l.type] ?? l.type}{l.status === 'completed' ? ' · مكتمل' : l.status === 'opened' ? ' · قيد التقدم' : ''}</div></div>
+      <div className="flex-1 min-w-0">
+        <div className="text-[13px] font-semibold text-zinc-800 truncate">{l.title}</div>
+        <div className="text-[11px] text-zinc-400">{LTYPE_AR[l.type] ?? l.type}{l.status === 'completed' ? ' · مكتمل' : l.status === 'opened' ? ' · قيد التقدم' : ''}</div>
+        {items && items.length > 0 && <div className="flex flex-wrap gap-1 mt-1">{items.map(i => <ExerciseChip key={i.kind} item={i} />)}</div>}
+      </div>
       {/* the quiz launches automatically after the lesson — no 'اختبار' label that intimidates */}
       {l.has_quiz
         ? (l.status === 'completed' ? <span className="text-[11px] font-bold text-emerald-600 flex-shrink-0">✓</span> : null)

@@ -1,5 +1,5 @@
 import type {
-  ClassSession, LessonReport, MyStudent, TeacherMaterial, TeacherOverview,
+  ClassRosterRow, ClassSession, LessonReport, MyClass, MyStudent, SessionRosterRow, TeacherMaterial, TeacherOverview,
 } from '@/lib/teachers'
 
 /**
@@ -33,7 +33,8 @@ const ago = (d: number) => { const t = new Date(); t.setDate(t.getDate() - d); r
 /* ── Overview ──────────────────────────────────────────── */
 
 export const DEMO_OVERVIEW: TeacherOverview = {
-  students_total: 41, classes_month: 34, hours_month: 38.5,
+  students_total: 41, assigned_students: 12, class_students: 33, classes_active: 4,
+  classes_month: 34, hours_month: 38.5,
   upcoming: 6, reports_owed: 2, attendance_rate: 92,
   rating_avg: 4.8, rating_count: 47,
 }
@@ -58,7 +59,52 @@ export const DEMO_STUDENTS: MyStudent[] = NAMES.map((n, i) => ({
   is_active: i !== 11,
   avatar_url: null,
   phone_masked: `+2126••••${(11 + i * 7).toString().padStart(2, '0')}`,
-  assigned_at: ago(28 + i * 8),
+  assigned: i % 3 !== 1,
+  assigned_at: i % 3 !== 1 ? ago(28 + i * 8) : null,
+  classes: i % 4 === 0
+    ? [{ class_id: 'demo-c3', title: 'إعداد مقابلات العمل — فردي', mode: 'private' as const }]
+    : i % 3 === 1 || i % 2 === 0
+      ? [{ class_id: 'demo-c1', title: 'المحادثة A2 — مساءً', mode: 'group' as const }]
+      : [],
+}))
+
+/* ── Online classes ────────────────────────────────────── */
+
+export const DEMO_CLASSES: MyClass[] = [
+  { id: 'demo-c1', title: 'المحادثة A2 — مساءً', mode: 'group', level: 'A2', status: 'active',
+    course_id: null, course_title: 'المحادثة A2', starts_on: ago(40).slice(0, 10), ends_on: null, capacity: 12,
+    meeting_url: 'https://meet.google.com/demo', schedule_note: 'الإثنين والأربعاء 18:00',
+    is_owner: true, archived: false, active_count: 9, waitlisted_count: 2, sessions_done: 14, reports_owed: 1,
+    next_session_at: at(0, 18) },
+  { id: 'demo-c2', title: 'IELTS B2 — مجموعة السبت', mode: 'group', level: 'B2', status: 'active',
+    course_id: null, course_title: 'IELTS B2', starts_on: ago(20).slice(0, 10), ends_on: null, capacity: 8,
+    meeting_url: null, schedule_note: 'السبت 10:00',
+    is_owner: true, archived: false, active_count: 8, waitlisted_count: 0, sessions_done: 3, reports_owed: 0,
+    next_session_at: at(4, 10) },
+  { id: 'demo-c3', title: 'إعداد مقابلات العمل — فردي', mode: 'private', level: 'B1', status: 'active',
+    course_id: null, course_title: null, starts_on: ago(10).slice(0, 10), ends_on: null, capacity: 1,
+    meeting_url: null, schedule_note: 'حسب الاتفاق',
+    is_owner: true, archived: false, active_count: 1, waitlisted_count: 0, sessions_done: 2, reports_owed: 1,
+    next_session_at: at(1, 20) },
+  { id: 'demo-c4', title: 'النطق B1 — تعويض', mode: 'group', level: 'B1', status: 'completed',
+    course_id: null, course_title: null, starts_on: ago(90).slice(0, 10), ends_on: ago(30).slice(0, 10), capacity: null,
+    meeting_url: null, schedule_note: null,
+    is_owner: false, archived: false, active_count: 0, waitlisted_count: 0, sessions_done: 2, reports_owed: 0,
+    next_session_at: null },
+]
+
+export const DEMO_CLASS_ROSTER: ClassRosterRow[] = NAMES.slice(0, 11).map((n, i) => ({
+  enrollment_id: `demo-e${i}`, student_id: `demo-s${i}`, full_name: n, avatar_url: null,
+  phone_masked: `+2126••••${(11 + i * 7).toString().padStart(2, '0')}`,
+  status: i < 9 ? 'active' : i === 9 ? 'waitlisted' : 'cancelled',
+  enrolled_at: ago(40 - i * 2), start_date: ago(38 - i * 2).slice(0, 10), end_date: null,
+  ended_at: i === 10 ? ago(6) : null,
+  attendance: { marked: 14 - (i % 5), present: 12 - (i % 6), absent: i % 3 },
+}))
+
+export const DEMO_SESSION_ROSTER: SessionRosterRow[] = NAMES.slice(0, 9).map((n, i) => ({
+  student_id: `demo-s${i}`, full_name: n, avatar_url: null, eligible: true,
+  attendance: i === 2 ? 'absent' : i === 5 ? 'late' : null, note: null,
 }))
 
 /* ── Sessions ──────────────────────────────────────────── */
@@ -94,7 +140,10 @@ export const DEMO_SESSIONS: ClassSession[] = [
   S('d16', 'النطق — النبر داخل الكلمة',                   -19, 17, 'private', 'B1', 'done', 45),
   S('d17', 'الكتابة — رسالة رسمية',                      -23, 18, 'group',   'B2', 'done'),
   S('d18', 'محادثة — تقديم النفس',                       -27, 18, 'group',   'A0', 'done'),
-]
+].map(s => ({
+  ...s,
+  class_id: ['d1', 'd6', 'd7', 'd11'].includes(s.id) ? 'demo-c1' : ['d2', 'd9'].includes(s.id) ? 'demo-c3' : null,
+}))
 
 /* ── Reports ───────────────────────────────────────────── */
 

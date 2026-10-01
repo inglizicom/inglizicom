@@ -228,8 +228,13 @@ export async function fetchEnrollments(studentId: string): Promise<{ id: string;
 export async function enrollStudent(studentId: string, courseId: string, by?: string): Promise<void> {
   await supabase.from('lms_enrollments').insert({ student_id: studentId, course_id: courseId, created_by: by || null })
 }
-export async function unenrollStudent(studentId: string, courseId: string): Promise<void> {
-  await supabase.from('lms_enrollments').delete().eq('student_id', studentId).eq('course_id', courseId)
+/** Revokes course access. The enrollment is archived (lms_enrollment_history)
+ *  with the reason; lesson progress, quiz results and payments are untouched. */
+export async function unenrollStudent(studentId: string, courseId: string, reason?: string | null): Promise<void> {
+  const { error } = await supabase.rpc('staff_end_course_enrollment', {
+    p_student_id: studentId, p_course_id: courseId, p_reason: reason ?? null,
+  })
+  if (error) console.error('unenrollStudent', error.message)
 }
 export async function fetchCourseProgress(studentId: string): Promise<CourseProgress[]> {
   const { data } = await supabase.rpc('student_course_progress', { p_student: studentId })

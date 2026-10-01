@@ -7,7 +7,9 @@ import {
   Video, FileText, PenLine, HelpCircle, Mic, Layers, GripVertical, ChevronUp,
   Pencil, Check, Sparkles, Wand2, CheckCircle2, Upload, Download, Paperclip, Clock,
 } from 'lucide-react'
+import Link from 'next/link'
 import { useStaff } from '@/lib/staff-context'
+import { useCrmBasePath } from '@/lib/use-crm-path'
 import {
   fetchCourses, createCourse, deleteCourse, setCourseDaysPerUnit,
   fetchModules, addModule, updateModule, deleteModule, reorderModules,
@@ -25,6 +27,7 @@ const TYPE_ICON: Record<string, any> = { video: Video, reading: FileText, exerci
 
 export default function CoursesPage() {
   const staff = useStaff()
+  const base = useCrmBasePath()
   const [courses, setCourses] = useState<LmsCourse[]>([])
   const [loading, setLoading] = useState(true)
   const [openCourse, setOpenCourse] = useState<string | null>(null)
@@ -58,7 +61,10 @@ export default function CoursesPage() {
             <p className="text-[12px] text-zinc-400">صمّم المحتوى مرّة واحدة — كل طالب مسجَّل يراه تلقائيًا</p>
           </div>
         </div>
-        <button onClick={() => setShowNew(v => !v)} className="flex items-center gap-1.5 text-[13px] font-bold px-4 py-2 bg-yellow-400 text-black rounded-xl hover:bg-yellow-300"><Plus size={14} /> دورة جديدة</button>
+        <div className="flex gap-2">
+          <Link href={`${base}/courses/audit`} className="flex items-center gap-1.5 text-[13px] font-bold px-3 py-2 border border-zinc-200 bg-white text-zinc-700 rounded-xl hover:border-zinc-300"><CheckCircle2 size={14} /> تدقيق التمارين</Link>
+          <button onClick={() => setShowNew(v => !v)} className="flex items-center gap-1.5 text-[13px] font-bold px-4 py-2 bg-yellow-400 text-black rounded-xl hover:bg-yellow-300"><Plus size={14} /> دورة جديدة</button>
+        </div>
       </div>
 
       {showNew && (

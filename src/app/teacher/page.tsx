@@ -223,7 +223,7 @@ export default function TeacherDashboard() {
           {[
             { v: ov?.classes_month ?? 0,   u: '',  l: 'حصة هذا الشهر' },
             { v: ov?.hours_month ?? 0,     u: 'س', l: 'ساعة تدريس' },
-            { v: ov?.students_total ?? 0,  u: '',  l: 'طالباً' },
+            { v: ov?.students_total ?? 0,  u: '',  l: ov?.classes_active ? `طالباً · ${ov.classes_active} أقسام` : 'طالباً' },
             { v: ov?.attendance_rate ?? 0, u: '%', l: 'نسبة الحضور' },
             { v: owed.length,              u: '',  l: 'تقرير معلّق', alert: owed.length > 0 },
           ].map(f => (
