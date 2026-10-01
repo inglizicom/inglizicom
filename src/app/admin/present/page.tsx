@@ -10,16 +10,39 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Loader2, Play, Presentation, Download, MessageSquareQuote, Pencil, PenLine, Waves, Mic } from 'lucide-react'
 import { fetchModules, type LmsModule } from '@/lib/lms'
+import { supabase } from '@/lib/supabase'
 
 const COURSE_ID = '53f91433-429b-473e-87e6-20739206a3e3' // RealLife English — الإنجليزية للمواقف اليومية
 
 export default function PresentIndexPage() {
   const [units, setUnits] = useState<LmsModule[]>([])
   const [loading, setLoading] = useState(true)
+  const [exportError, setExportError] = useState('')
 
   useEffect(() => {
     fetchModules(COURSE_ID).then(m => { setUnits(m); setLoading(false) })
   }, [])
+
+  async function downloadUnit(moduleId: string) {
+    setExportError('')
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) throw new Error('No active session')
+      const response = await fetch(`/api/export/${moduleId}`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+      if (!response.ok) throw new Error('Export request failed')
+      const blobUrl = URL.createObjectURL(await response.blob())
+      const filename = response.headers.get('content-disposition')?.match(/filename="([^"]+)"/)?.[1] ?? 'teaching-deck.html'
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = filename
+      link.click()
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 1000)
+    } catch {
+      setExportError('Could not download the deck. Please sign in again and retry.')
+    }
+  }
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
@@ -34,6 +57,7 @@ export default function PresentIndexPage() {
         <b>Use your own pictures?</b> Two ways — both override the auto photo. By unit folder & order: drop into <code className="bg-white px-1 rounded">public/deck-images/unit-1/</code> as <code className="bg-white px-1 rounded">a1.jpg</code>, <code className="bg-white px-1 rounded">a2.jpg</code>… (unit 1 = <code className="bg-white px-1 rounded">a</code>, unit 2 = <code className="bg-white px-1 rounded">b</code>, number = phrase order). Or by phrase name in <code className="bg-white px-1 rounded">public/deck-images/</code> (e.g. <code className="bg-white px-1 rounded">i-take-a-shower.jpg</code>).{' '}
         <a href="/api/deck-images-guide" className="font-bold underline">Download the filename guide</a>.
       </div>
+      {exportError && <p role="alert" className="mb-3 text-sm font-semibold text-red-700">{exportError}</p>}
 
       {/* Language Functions deck (opinions · agreeing · suggestions · preferences) */}
       <div className="flex items-center justify-between rounded-xl border-2 border-amber-300 bg-amber-50 px-4 py-3 mb-4">
@@ -79,13 +103,14 @@ export default function PresentIndexPage() {
             >
               <span className="font-semibold text-[14px] text-zinc-800">{u.title}</span>
               <div className="flex items-center gap-3">
-                <a
-                  href={`/api/export/${u.id}`}
+                <button
+                  type="button"
+                  onClick={() => downloadUnit(u.id)}
                   className="flex items-center gap-1.5 text-[12px] font-bold text-zinc-500 hover:text-zinc-800"
                   title="Download an offline .html file (works without internet)"
                 >
                   <Download size={14} /> Offline file
-                </a>
+                </button>
                 <Link
                   href={`/admin/present/${u.id}`}
                   className="flex items-center gap-1.5 text-[12px] font-bold text-yellow-600 hover:text-yellow-700"

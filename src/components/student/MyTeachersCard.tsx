@@ -23,9 +23,9 @@ export default function MyTeachersCard({ token }: { token: string }) {
   if (loading || teachers.length === 0) return null
 
   return (
-    <div className="lg:col-span-3 bg-white border border-zinc-200 rounded-2xl p-4">
+    <div className="lg:col-span-3 min-w-0 w-full bg-white border border-zinc-200 rounded-2xl p-4">
       <div className="text-[13px] font-black text-zinc-800 mb-3">أساتذتي 👩‍🏫</div>
-      <div className="grid sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-0">
         {teachers.map(t => <TeacherRow key={t.id} teacher={t} token={token} />)}
       </div>
     </div>
@@ -59,7 +59,7 @@ function TeacherRow({ teacher, token }: { teacher: StudentTeacherCard; token: st
   }
 
   return (
-    <div className="border border-zinc-200 rounded-xl p-3.5">
+    <div className="min-w-0 w-full border border-zinc-200 rounded-xl p-3.5">
       <div className="flex items-center gap-3">
         {teacher.avatar_url
           ? /* eslint-disable-next-line @next/next/no-img-element */

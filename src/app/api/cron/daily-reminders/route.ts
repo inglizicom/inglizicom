@@ -11,11 +11,13 @@ export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
 export async function GET(req: Request) {
-  // Vercel Cron sends Authorization: Bearer <CRON_SECRET>; allow ?key= too.
+  // Vercel Cron sends Authorization: Bearer <CRON_SECRET>.
   const secret = process.env.CRON_SECRET
   const auth = req.headers.get('authorization') || ''
-  const key = new URL(req.url).searchParams.get('key') || ''
-  if (secret && auth !== `Bearer ${secret}` && key !== secret) {
+  if (!secret) {
+    return NextResponse.json({ error: 'cron secret not configured' }, { status: 500 })
+  }
+  if (auth !== `Bearer ${secret}`) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
   }
 

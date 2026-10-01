@@ -506,8 +506,8 @@ export default function WorkspaceClient() {
           </div>
 
           {/* Action bar */}
-          <div className="flex items-center justify-between mb-4 gap-2">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-between mb-4 gap-2 sm:flex-nowrap">
+            <div className="flex flex-wrap items-center gap-2">
               <button onClick={() => { setShowBin(b => { const n = !b; if (n) loadBin(); return n }) }}
                 className={`flex items-center gap-1.5 text-[13px] font-semibold px-3 py-2 rounded-xl border ${showBin ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white text-zinc-600 border-zinc-200 hover:border-zinc-400'}`}>
                 <Trash2 size={14} /> سلة المحذوفين

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { createHash } from 'crypto'
+import { createHash, randomInt } from 'crypto'
 import { sendOtp, waConfigured } from '@/lib/whatsapp'
 
 /* Sends a 6-digit code to the student's registered WhatsApp to approve a new device. */
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ sent: false, reason: 'rate' })
   }
 
-  const code = String(Math.floor(100000 + Math.random() * 900000))
+  const code = String(randomInt(100000, 1000000))
   await db.from('student_otps').upsert({
     student_id: st.id, code_hash: hashCode(code, st.id),
     expires_at: new Date(Date.now() + 10 * 60_000).toISOString(), attempts: 0, last_sent_at: new Date().toISOString(),

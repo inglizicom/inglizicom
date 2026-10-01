@@ -91,6 +91,19 @@ export async function GET(_req: NextRequest, { params }: { params: { moduleId: s
   const svc = process.env.SUPABASE_SERVICE_ROLE_KEY!
   const db = createClient(url, svc, { auth: { persistSession: false } })
 
+  const token = (_req.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '').trim()
+  if (!token) return NextResponse.json({ error: 'Not authenticated.' }, { status: 401 })
+
+  const { data: caller, error: callerErr } = await db.auth.getUser(token)
+  if (callerErr || !caller?.user) {
+    return NextResponse.json({ error: 'Your session is invalid — sign in again.' }, { status: 401 })
+  }
+  const { data: profile } = await db.from('profiles')
+    .select('role, is_admin').eq('id', caller.user.id).maybeSingle()
+  if (!(profile?.role === 'founder' || profile?.is_admin === true)) {
+    return NextResponse.json({ error: 'Only founders can export teaching decks.' }, { status: 403 })
+  }
+
   const { data: mod } = await db.from('lms_modules').select('title, reading_text').eq('id', params.moduleId).single()
   const { data: ls } = await db.from('lms_lessons').select('title, content, lesson_order').eq('module_id', params.moduleId).order('lesson_order')
   if (!mod) return NextResponse.json({ error: 'not found' }, { status: 404 })

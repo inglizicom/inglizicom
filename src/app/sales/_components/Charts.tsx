@@ -90,7 +90,7 @@ export function DonutBreakdown({
 }) {
   const total = data.reduce((s, d) => s + d.value, 0)
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex flex-col sm:flex-row items-center gap-4 min-w-0">
       <div style={{ width: height, height }} className="flex-shrink-0 relative">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>

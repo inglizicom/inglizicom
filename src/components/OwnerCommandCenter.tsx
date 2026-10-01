@@ -177,7 +177,7 @@ export default function OwnerCommandCenter({ embedded = false }: { embedded?: bo
               <BigKpi {...rise()} label="دروس مكتملة اليوم" value={pulse.lessons_today} plainIcon={BookOpen} compact />
               <BigKpi {...rise()} label="معدل النقاط · 7 أيام" value={pulse.avg_score_7d} plainIcon={Target} compact tone={pulse.avg_score_7d >= 70 ? 'good' : pulse.avg_score_7d > 0 && pulse.avg_score_7d < 55 ? 'warn' : undefined} />
             </div>
-            <div className="grid lg:grid-cols-3 gap-3 mb-3">
+            <div className="grid grid-cols-1 lg:grid-cols-3 min-w-0 gap-3 mb-3">
               <Panel {...rise()}>
                 <PanelHead icon={Radio} title={`متصلون الآن (${pulse.online_count})`} hint="آخر 5 دقائق" />
                 {pulse.online_now.length === 0 ? <Empty>لا أحد متصل الآن</Empty> :
@@ -282,7 +282,7 @@ export default function OwnerCommandCenter({ embedded = false }: { embedded?: bo
             </div>
 
             {/* ── REVENUE CHART + CONVERSION DONUT ── */}
-            <div className="grid lg:grid-cols-3 gap-3 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 min-w-0 gap-3 mb-6">
               <Panel {...rise()} className="lg:col-span-2">
                 <PanelHead icon={TrendingUp} title="اتجاه الإيراد · آخر 6 أشهر" href="/admin/analytics" />
                 <div className="flex items-end justify-between gap-2 lg:gap-4 h-48 px-1 pt-4">
@@ -350,7 +350,7 @@ export default function OwnerCommandCenter({ embedded = false }: { embedded?: bo
 
         {/* ── TEAM PERFORMANCE ── */}
         <SectionLabel icon={Trophy}>أداء الفريق</SectionLabel>
-        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 min-w-0 gap-3 mb-6">
           {team.length === 0 ? <Panel><Empty>لا يوجد مساعدون بعد.</Empty></Panel> :
             team.map((m, i) => {
               const conv = m.leads_handled > 0 ? Math.round((m.paid_students / m.leads_handled) * 100) : 0
@@ -397,7 +397,7 @@ export default function OwnerCommandCenter({ embedded = false }: { embedded?: bo
               <BigKpi {...rise()} href="/sales/students" label="خامل 14–30 يوم" value={intel.inactive_14} compact tone={intel.inactive_14 > 0 ? 'bad' : undefined} />
               <BigKpi {...rise()} href="/sales/students" label="خامل 30 يوم +"  value={intel.inactive_30} compact tone={intel.inactive_30 > 0 ? 'bad' : undefined} />
             </div>
-            <div className="grid lg:grid-cols-3 gap-3 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 min-w-0 gap-3 mb-6">
               <Panel {...rise()}>
                 <PanelHead icon={AlertTriangle} title="طلاب في خطر" />
                 {intel.at_risk_list.length === 0 ? <Empty>لا أحد في خطر 🎉</Empty> :
@@ -448,7 +448,7 @@ export default function OwnerCommandCenter({ embedded = false }: { embedded?: bo
 
         {/* ── COURSE ANALYTICS ── */}
         <SectionLabel icon={BookOpen}>تحليلات الدورات</SectionLabel>
-        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 min-w-0 gap-3 mb-6">
           {courses.length === 0 ? <Panel><Empty>لا توجد دورات بعد.</Empty></Panel> :
             courses.map(c => {
               const eng = c.students > 0 ? Math.round((c.active_14d / c.students) * 100) : 0
@@ -523,7 +523,7 @@ function BigKpi({ label, value, money, hero, compact, tone, plainIcon: Icon, hre
 }
 
 function Panel({ children, className, style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
-  return <div className={`bg-white rounded-2xl border border-zinc-200 p-4 lg:p-5 shadow-sm ${className ?? ''}`} style={style}>{children}</div>
+  return <div className={`min-w-0 bg-white rounded-2xl border border-zinc-200 p-4 lg:p-5 shadow-sm ${className ?? ''}`} style={style}>{children}</div>
 }
 function PanelHead({ icon: Icon, title, hint, href }: { icon: any; title: string; hint?: string; href?: string }) {
   return (
