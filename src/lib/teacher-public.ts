@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { businessToday, casablancaWallTimeToIso } from './enrollment-metrics'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -240,4 +241,61 @@ async function getTeacherStudentIds(teacherId: string): Promise<string[]> {
   if (assigned.error) console.error('teacher public assigned roster', assigned.error.message)
   if (seated.error) console.error('teacher public class roster', seated.error.message)
   return [...new Set([...(assigned.data ?? []), ...(seated.data ?? [])].map(row => row.student_id))]
+}
+
+/* ── Public leaderboard ─────────────────────────────────────────────────── */
+
+export interface PublicLeaderboardRow {
+  id: string; name: string; avatar_url: string | null; headline: string | null
+  rating_avg: number; rating_count: number; is_top_rated: boolean
+  students: number; live: number; sessions_month: number; score: number; rank: number
+}
+
+/**
+ * The public face of the teachers' leaderboard (teacher_leaderboard, 053):
+ * same roster rule, same score — 10 per session delivered this month + 5 per
+ * current student + 20 × rating once a teacher has 3 reviews — and the same
+ * top-rated rule as the profile page. Built here with the service role because
+ * visitors are anonymous; it returns counts and ratings only, never money,
+ * names of students, or anything from crm_* beyond a head count.
+ */
+export async function fetchPublicLeaderboard(teachers: PublicTeacherCard[]): Promise<PublicLeaderboardRow[]> {
+  if (teachers.length === 0) return []
+  const today = businessToday()
+  const monthStart = casablancaWallTimeToIso(`${today.slice(0, 8)}01`, '00:00')
+  const ids = teachers.map(t => t.id)
+
+  const [{ data: sessions, error: sErr }, rosters] = await Promise.all([
+    supabaseAdmin.from('class_sessions').select('teacher_id')
+      .in('teacher_id', ids).eq('status', 'done').gte('starts_at', monthStart),
+    Promise.all(ids.map(id => getTeacherStudentIds(id))),
+  ])
+  if (sErr) console.error('public leaderboard sessions', sErr.message)
+
+  const allStudents = [...new Set(rosters.flat())]
+  const { data: online } = allStudents.length
+    ? await supabaseAdmin.from('student_presence').select('student_id')
+        .in('student_id', allStudents).gte('last_seen_at', new Date(Date.now() - 15 * 60_000).toISOString())
+    : { data: [] as { student_id: string }[] }
+  const onlineSet = new Set((online ?? []).map(r => r.student_id))
+
+  const rows = teachers.map((t, i) => {
+    const roster = rosters[i]
+    const sessions_month = (sessions ?? []).filter(s => s.teacher_id === t.id).length
+    const score = sessions_month * 10 + roster.length * 5 + (t.rating_count >= 3 ? Math.round(t.rating_avg * 20) : 0)
+    return {
+      id: t.id, name: t.name, avatar_url: t.avatar_url, headline: t.tagline || t.headline,
+      rating_avg: t.rating_avg, rating_count: t.rating_count,
+      is_top_rated: t.rating_avg >= 4.5 && t.rating_count >= 5,
+      students: roster.length, live: roster.filter(id => onlineSet.has(id)).length,
+      sessions_month, score, rank: 0,
+    }
+  }).sort((a, b) => b.score - a.score || b.rating_avg - a.rating_avg || b.students - a.students)
+
+  // Standard competition ranking: ties share a rank, the next rank skips.
+  rows.forEach((r, i) => {
+    const prev = rows[i - 1]
+    r.rank = prev && prev.score === r.score && prev.rating_avg === r.rating_avg && prev.students === r.students ? prev.rank : i + 1
+  })
+  return rows
 }

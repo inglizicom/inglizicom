@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import TeacherDirectory from '@/components/teachers/TeacherDirectory'
-import { fetchPublicTeachers } from '@/lib/teacher-public'
+import { fetchPublicLeaderboard, fetchPublicTeachers } from '@/lib/teacher-public'
 
 export const revalidate = 60
 
@@ -20,5 +20,6 @@ export const metadata: Metadata = {
 
 export default async function TeacherShowcasePage() {
   const teachers = await fetchPublicTeachers()
-  return <TeacherDirectory teachers={teachers} />
+  const leaderboard = await fetchPublicLeaderboard(teachers)
+  return <TeacherDirectory teachers={teachers} leaderboard={leaderboard} />
 }

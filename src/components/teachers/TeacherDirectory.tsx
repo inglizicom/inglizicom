@@ -2,10 +2,114 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Search, Star, Users } from 'lucide-react'
-import type { PublicTeacherCard } from '@/lib/teacher-public'
+import { ArrowLeft, CalendarCheck, Crown, Medal, Radio, Search, Star, Trophy, Users } from 'lucide-react'
+import type { PublicLeaderboardRow, PublicTeacherCard } from '@/lib/teacher-public'
 
-export default function TeacherDirectory({ teachers }: { teachers: PublicTeacherCard[] }) {
+const MEDAL = [
+  { ring: 'from-amber-300 to-yellow-500', chip: 'bg-amber-50 text-amber-800 ring-amber-200', label: 'المركز الأول' },
+  { ring: 'from-slate-200 to-slate-400', chip: 'bg-slate-50 text-slate-700 ring-slate-200', label: 'المركز الثاني' },
+  { ring: 'from-orange-300 to-amber-700', chip: 'bg-orange-50 text-orange-800 ring-orange-200', label: 'المركز الثالث' },
+]
+
+function Face({ name, url, size }: { name: string; url: string | null; size: number }) {
+  return url
+    ? /* eslint-disable-next-line @next/next/no-img-element */
+      <img src={url} alt={name} style={{ width: size, height: size }} className="rounded-full object-cover" />
+    : <span style={{ width: size, height: size, fontSize: size * 0.38 }}
+            className="rounded-full bg-gradient-to-br from-blue-50 to-blue-100 text-blue-700 font-black flex items-center justify-center">
+        {name.slice(0, 1)}
+      </span>
+}
+
+/** The public leaderboard at the foot of the directory — who leads this month, and a way into every profile. */
+function PublicLeaderboard({ rows }: { rows: PublicLeaderboardRow[] }) {
+  const live = rows.reduce((a, r) => a + r.live, 0)
+  return (
+    <section id="leaderboard" aria-label="لوحة الشرف" className="mt-14 scroll-mt-6">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700"><Trophy size={14} /> لوحة الشرف</p>
+          <h2 className="text-inherit mt-1 text-2xl font-black sm:text-3xl">أفضل الأساتذة هذا الشهر</h2>
+          <p className="mt-1 text-sm text-[#64748B]">ترتيب شفاف حسب الحصص المنجزة، عدد الطلاب وتقييماتهم.</p>
+        </div>
+        {live > 0 && (
+          <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 ring-1 ring-emerald-200">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" /> {live} طالب يدرس الآن
+          </span>
+        )}
+      </div>
+
+      {/* podium */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        {rows.slice(0, 3).map((r, i) => (
+          <Link key={r.id} href={`/teacher-showcase/${r.id}`}
+                className="group rounded-[24px] bg-white p-5 text-center ring-1 ring-[#D6DFEC] shadow-[0_1px_3px_rgba(30,58,138,.10),0_12px_32px_-10px_rgba(30,58,138,.26)] transition hover:-translate-y-0.5 hover:ring-blue-300">
+            <div className={`mx-auto w-fit rounded-full bg-gradient-to-br ${MEDAL[i].ring} p-1 shadow-md`}>
+              <span className="block rounded-full ring-4 ring-white"><Face name={r.name} url={r.avatar_url} size={76} /></span>
+            </div>
+            <span className={`mt-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11.5px] font-extrabold ring-1 ${MEDAL[i].chip}`}>
+              {i === 0 ? <Trophy size={12} /> : <Medal size={12} />} {MEDAL[i].label}
+            </span>
+            <h3 className="text-inherit mt-2 truncate text-lg font-black">{r.name}</h3>
+            <p className="truncate text-xs text-[#64748B]">{r.headline ?? 'أستاذ في إنجليزي.كوم'}</p>
+            <div className="mt-3 flex items-center justify-center gap-3 text-xs font-bold text-[#475569]">
+              <span className="inline-flex items-center gap-1"><Star size={13} className="text-amber-400" fill="currentColor" />{r.rating_count ? r.rating_avg.toFixed(1) : '—'}</span>
+              <span className="inline-flex items-center gap-1"><Users size={13} className="text-blue-600" />{r.students} طالب</span>
+              {r.live > 0 && <span className="inline-flex items-center gap-1 text-emerald-700"><Radio size={13} />{r.live}</span>}
+            </div>
+            {r.is_top_rated && (
+              <div className="mt-3 inline-flex items-center gap-1 rounded-full bg-gradient-to-l from-amber-400 to-yellow-500 px-2.5 py-1 text-[11px] font-extrabold text-blue-900">
+                <Crown size={12} /> من الأفضل تقييماً
+              </div>
+            )}
+            <div className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-blue-700 group-hover:text-blue-900">
+              عرض الملف <ArrowLeft size={15} />
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      {/* full ranking */}
+      <ol className="mt-5 overflow-hidden rounded-[24px] bg-white ring-1 ring-[#D6DFEC] shadow-[0_1px_3px_rgba(30,58,138,.10),0_12px_32px_-10px_rgba(30,58,138,.26)]">
+        {rows.map(r => (
+          <li key={r.id} className="border-b border-[#EEF2F7] last:border-0">
+            <Link href={`/teacher-showcase/${r.id}`} className="group flex items-center gap-3 px-4 py-3.5 transition hover:bg-[#F8FAFC] sm:gap-4 sm:px-5">
+              <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-black
+                                ${r.rank === 1 ? 'bg-gradient-to-br from-amber-400 to-yellow-500 text-blue-900'
+                                  : r.rank <= 3 ? 'bg-blue-100 text-blue-700' : 'bg-[#F1F5F9] text-[#64748B]'}`}>{r.rank}</span>
+              <Face name={r.name} url={r.avatar_url} size={42} />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="truncate font-black">{r.name}</span>
+                  {r.is_top_rated && <Crown size={14} className="shrink-0 text-amber-500" aria-label="من الأفضل تقييماً" />}
+                </div>
+                <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-[#64748B]">
+                  <span className="inline-flex items-center gap-1"><Star size={12} className="text-amber-400" fill="currentColor" />
+                    {r.rating_count ? <>{r.rating_avg.toFixed(1)} <span>({r.rating_count})</span></> : 'بدون تقييم بعد'}</span>
+                  <span className="inline-flex items-center gap-1"><Users size={12} className="text-blue-600" /> {r.students} طالب حالي</span>
+                  {r.live > 0 && <span className="inline-flex items-center gap-1 font-bold text-emerald-700"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> {r.live} يدرس الآن</span>}
+                  <span className="hidden sm:inline-flex items-center gap-1"><CalendarCheck size={12} className="text-indigo-600" /> {r.sessions_month} حصة هذا الشهر</span>
+                </div>
+              </div>
+              <div className="hidden text-center sm:block">
+                <div className="text-lg font-black tabular-nums">{r.score}</div>
+                <div className="text-[11px] font-semibold text-[#94A3B8]">نقطة</div>
+              </div>
+              <span className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 group-hover:bg-blue-100">
+                الملف <ArrowLeft size={13} />
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ol>
+      <p className="mt-3 text-center text-xs text-[#94A3B8]">
+        النقاط: 10 لكل حصة منجزة هذا الشهر · 5 لكل طالب حالي · التقييم × 20 بعد 3 تقييمات · «الأفضل تقييماً»: 4.5 فأكثر من 5 تقييمات.
+      </p>
+    </section>
+  )
+}
+
+export default function TeacherDirectory({ teachers, leaderboard = [] }: { teachers: PublicTeacherCard[]; leaderboard?: PublicLeaderboardRow[] }) {
   const [query, setQuery] = useState('')
   const [level, setLevel] = useState('')
   const [specialty, setSpecialty] = useState('')
@@ -103,6 +207,8 @@ export default function TeacherDirectory({ teachers }: { teachers: PublicTeacher
             <p className="mt-1 text-xs text-[#64748B]">غيّر البحث أو امسح التصفية لعرض الجميع.</p>
           </div>
         )}
+
+        {leaderboard.length > 0 && <PublicLeaderboard rows={leaderboard} />}
       </div>
     </main>
   )
