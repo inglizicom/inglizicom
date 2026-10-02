@@ -38,26 +38,26 @@ export default function TeacherGroupsPage() {
       />
 
       {loading ? (
-        <div className="py-24 flex justify-center text-stone-400"><Loader2 size={20} className="animate-spin" /></div>
+        <div className="py-24 flex justify-center text-slate-400"><Loader2 size={20} className="animate-spin" /></div>
       ) : classes.length === 0 ? (
         <Card><Empty icon={Presentation} title="لا أقسام بعد" hint="تنشئ الإدارة الأقسام وتسندها إليك، وستظهر هنا مباشرة." /></Card>
       ) : (
         <div className="space-y-6">
           {[['الجارية', current], ['السابقة', past]].map(([label, list]) => (list as MyClass[]).length > 0 && (
             <div key={label as string}>
-              <div className="text-[13px] font-bold text-[#8A8377] mb-2">{label as string}</div>
+              <div className="text-[13px] font-bold text-[#64748B] mb-2">{label as string}</div>
               <div className="grid sm:grid-cols-2 gap-3">
                 {(list as MyClass[]).map(c => (
                   <Link key={c.id} href={`/teacher/groups/${c.id}`}>
-                    <Card className="p-4 hover:ring-[#C9C2B4] transition h-full">
+                    <Card className="p-4 hover:ring-[#CBD5E1] transition h-full">
                       <div className="flex items-start gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="font-black text-[15.5px] truncate">{c.title}</div>
-                          <div className="text-[12px] text-stone-500 font-semibold mt-0.5 truncate">
+                          <div className="text-[12px] text-slate-500 font-semibold mt-0.5 truncate">
                             {c.course_title ?? 'بدون دورة مرتبطة'}{c.schedule_note && <> · {c.schedule_note}</>}
                           </div>
                         </div>
-                        <ChevronLeft size={18} className="text-stone-300 shrink-0" />
+                        <ChevronLeft size={18} className="text-slate-300 shrink-0" />
                       </div>
                       <div className="flex flex-wrap gap-1.5 mt-3">
                         <Pill tone={c.mode === 'private' ? 'scheduled' : 'muted'}>{c.mode === 'private' ? 'فردي' : 'جماعي'}</Pill>
@@ -70,7 +70,7 @@ export default function TeacherGroupsPage() {
                         <Num label="حصص منجزة" value={String(c.sessions_done)} />
                         <Num label="تقارير ناقصة" value={String(c.reports_owed)} alert={c.reports_owed > 0} />
                       </div>
-                      <div className="text-[11.5px] text-stone-400 font-semibold mt-3">
+                      <div className="text-[11.5px] text-slate-400 font-semibold mt-3">
                         {c.next_session_at ? <>الحصة القادمة: {fmtDateTime(c.next_session_at)}</> : 'لا حصة قادمة'}
                       </div>
                     </Card>
@@ -87,9 +87,9 @@ export default function TeacherGroupsPage() {
 
 function Num({ label, value, alert }: { label: string; value: string; alert?: boolean }) {
   return (
-    <div className="rounded-xl bg-[#F6F4EF] py-2">
+    <div className="rounded-xl bg-[#F4F7FC] py-2">
       <div className={`text-[16px] font-black tabular-nums ${alert ? 'text-rose-600' : ''}`} dir="ltr">{value}</div>
-      <div className="text-[10.5px] text-stone-500 font-semibold">{label}</div>
+      <div className="text-[10.5px] text-slate-500 font-semibold">{label}</div>
     </div>
   )
 }

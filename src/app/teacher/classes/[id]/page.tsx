@@ -19,7 +19,7 @@ const ATT: { key: AttendanceStatus; label: string; on: string }[] = [
   { key: 'present', label: 'حاضر',  on: 'bg-emerald-600 text-white border-emerald-600' },
   { key: 'late',    label: 'متأخر', on: 'bg-amber-500 text-white border-amber-500' },
   { key: 'absent',  label: 'غائب',  on: 'bg-red-600 text-white border-red-600' },
-  { key: 'excused', label: 'بعذر',  on: 'bg-stone-600 text-white border-stone-600' },
+  { key: 'excused', label: 'بعذر',  on: 'bg-slate-600 text-white border-slate-600' },
 ]
 
 /** One class: mark who came, then write what happened. The two halves of the
@@ -145,13 +145,13 @@ export default function ClassDetailPage() {
   }
 
   if (loading) {
-    return <div className="py-32 flex justify-center text-stone-400"><Loader2 size={20} className="animate-spin" /></div>
+    return <div className="py-32 flex justify-center text-slate-400"><Loader2 size={20} className="animate-spin" /></div>
   }
 
   if (!session) {
     return (
       <Card className="p-10 text-center">
-        <div className="font-black text-stone-700 mb-1">لم نجد هذه الحصة</div>
+        <div className="font-black text-slate-700 mb-1">لم نجد هذه الحصة</div>
         <Link href="/teacher/classes" className="text-[13px] font-bold text-amber-700">العودة إلى حصصي</Link>
       </Card>
     )
@@ -161,7 +161,7 @@ export default function ClassDetailPage() {
     <div className="space-y-6">
       {demo && <DemoBanner />}
       <div className="flex flex-wrap gap-4">
-        <Link href="/teacher/classes" className="inline-flex items-center gap-1.5 text-[13px] font-bold text-stone-500 hover:text-stone-800">
+        <Link href="/teacher/classes" className="inline-flex items-center gap-1.5 text-[13px] font-bold text-slate-500 hover:text-slate-800">
           <ArrowRight size={15} /> حصصي
         </Link>
         {session.class_id && (
@@ -182,8 +182,8 @@ export default function ClassDetailPage() {
               <Pill tone="muted">{STATUS_AR[session.mode]}</Pill>
               {session.level && <Pill tone="muted">{session.level}</Pill>}
             </div>
-            <h1 className="text-[23px] font-black tracking-tight">{session.title}</h1>
-            <p className="text-stone-500 text-[13.5px] font-semibold mt-1">
+            <h1 className="text-inherit text-[23px] font-black tracking-tight">{session.title}</h1>
+            <p className="text-slate-500 text-[13.5px] font-semibold mt-1">
               {fmtDateTime(session.starts_at)} · {session.duration_min} دقيقة
             </p>
             {session.status === 'cancelled' && session.cancel_reason && (
@@ -194,7 +194,7 @@ export default function ClassDetailPage() {
           <div className="flex flex-wrap gap-2">
             {session.meeting_url && (
               <a href={session.meeting_url} target="_blank" rel="noopener noreferrer"
-                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-900 text-white text-[13px] font-bold hover:bg-stone-800 transition">
+                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 text-white text-[13px] font-bold hover:bg-slate-800 transition">
                 <Video size={15} /> ادخل للحصة
               </a>
             )}
@@ -206,13 +206,13 @@ export default function ClassDetailPage() {
             )}
             {(session.status === 'scheduled' || session.status === 'live') && (
               <button onClick={cancelSessionWithReason}
-                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-stone-300 text-stone-600 text-[13px] font-bold hover:bg-stone-50 transition">
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-300 text-slate-600 text-[13px] font-bold hover:bg-slate-50 transition">
                 <XCircle size={15} /> إلغاء الحصة
               </button>
             )}
             {canDeleteSession(session, hasRecords) && (
               <button onClick={removeSession} aria-label="حذف الحصة"
-                      className="px-3 py-2.5 rounded-xl border border-stone-300 text-stone-400 hover:text-red-600 hover:border-red-200 transition">
+                      className="px-3 py-2.5 rounded-xl border border-slate-300 text-slate-400 hover:text-red-600 hover:border-red-200 transition">
                 <Trash2 size={15} />
               </button>
             )}
@@ -224,7 +224,7 @@ export default function ClassDetailPage() {
       <div>
         <SectionTitle action={
           <button onClick={saveAttendance} disabled={savingAtt || Object.keys(marks).length === 0}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-stone-900 text-white text-[12.5px] font-bold hover:bg-stone-800 transition disabled:opacity-40">
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 text-white text-[12.5px] font-bold hover:bg-slate-800 transition disabled:opacity-40">
             {savingAtt ? <Loader2 size={14} className="animate-spin" /> : savedAtt ? <Check size={14} /> : null}
             {savedAtt ? 'تم الحفظ' : 'حفظ الحضور'}
           </button>
@@ -232,18 +232,18 @@ export default function ClassDetailPage() {
           الحضور
         </SectionTitle>
 
-        <p className="text-[12px] text-stone-400 font-semibold -mt-1 mb-2">
+        <p className="text-[12px] text-slate-400 font-semibold -mt-1 mb-2">
           {session.class_id ? 'طلاب القسم المسجّلون وقت هذه الحصة.' : 'حصة غير مرتبطة بقسم: طلابك المسنَدون.'}
         </p>
         {attError && <div className="mb-2 rounded-xl bg-red-50 border border-red-200 px-3.5 py-2.5 text-[13px] font-bold text-red-700">{attError}</div>}
-        <Card className="divide-y divide-stone-100">
+        <Card className="divide-y divide-slate-100">
           {students.length === 0 ? (
-            <div className="p-6 text-center text-[13.5px] font-semibold text-stone-400">
+            <div className="p-6 text-center text-[13.5px] font-semibold text-slate-400">
               {session.class_id ? 'لا طلاب مسجّلون في هذا القسم — تسجّلهم الإدارة من لوحة التحكم.' : 'لا طلاب مسنَدين إليك بعد — تُسنِدهم الإدارة من لوحة التحكم.'}
             </div>
           ) : students.map(s => (
             <div key={s.id} className="flex flex-wrap items-center gap-3 px-5 py-3.5">
-              <div className="w-9 h-9 rounded-full bg-stone-100 text-stone-500 flex items-center justify-center font-black text-[13px] shrink-0">
+              <div className="w-9 h-9 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center font-black text-[13px] shrink-0">
                 {s.full_name.trim().charAt(0)}
               </div>
               <div className="flex-1 min-w-[8rem] font-bold text-[14px] truncate">{s.full_name}</div>
@@ -255,7 +255,7 @@ export default function ClassDetailPage() {
                       key={a.key}
                       onClick={() => setMarks(m => ({ ...m, [s.id]: a.key }))}
                       className={`px-3 py-1.5 rounded-lg text-[12px] font-bold border transition ${
-                        on ? a.on : 'bg-white border-stone-200 text-stone-500 hover:border-stone-400'}`}
+                        on ? a.on : 'bg-white border-slate-200 text-slate-500 hover:border-slate-400'}`}
                     >
                       {a.label}
                     </button>
@@ -266,7 +266,7 @@ export default function ClassDetailPage() {
           ))}
         </Card>
         {legacyMarks.length > 0 && (
-          <div className="mt-2 text-[12px] text-stone-400 font-semibold">
+          <div className="mt-2 text-[12px] text-slate-400 font-semibold">
             علامات سابقة لطلاب لم يعودوا في القائمة (محفوظة):{' '}
             {legacyMarks.map(m => `${m.full_name} — ${STATUS_AR[m.attendance!]}`).join('، ')}
           </div>
@@ -299,8 +299,8 @@ export default function ClassDetailPage() {
           {/* Per-student assessment */}
           {students.length > 0 && (
             <div>
-              <span className="block text-[12px] font-black text-stone-500 mb-2">تقييم كل طالب</span>
-              <div className="rounded-xl border border-stone-200 divide-y divide-stone-100">
+              <span className="block text-[12px] font-black text-slate-500 mb-2">تقييم كل طالب</span>
+              <div className="rounded-xl border border-slate-200 divide-y divide-slate-100">
                 {students.map(s => {
                   const n = noteFor(s.id)
                   return (
@@ -308,21 +308,21 @@ export default function ClassDetailPage() {
                       <div className="flex flex-wrap items-center gap-3">
                         <span className="font-bold text-[13.5px] flex-1 min-w-[7rem] truncate">{s.full_name}</span>
                         <div className="flex items-center gap-1">
-                          <span className="text-[11px] font-bold text-stone-400 ml-1">المشاركة</span>
+                          <span className="text-[11px] font-bold text-slate-400 ml-1">المشاركة</span>
                           {[1, 2, 3, 4, 5].map(v => (
                             <button
                               key={v}
                               onClick={() => patchNote(s.id, { participation: v })}
                               className={`w-7 h-7 rounded-lg text-[12px] font-black border transition ${
                                 n.participation === v
-                                  ? 'bg-stone-900 text-white border-stone-900'
-                                  : 'bg-white border-stone-200 text-stone-500 hover:border-stone-400'}`}
+                                  ? 'bg-slate-900 text-white border-slate-900'
+                                  : 'bg-white border-slate-200 text-slate-500 hover:border-slate-400'}`}
                             >
                               {v}
                             </button>
                           ))}
                         </div>
-                        <label className="flex items-center gap-1.5 text-[12px] font-bold text-stone-600 cursor-pointer">
+                        <label className="flex items-center gap-1.5 text-[12px] font-bold text-slate-600 cursor-pointer">
                           <input type="checkbox" checked={n.needs_help}
                                  onChange={e => patchNote(s.id, { needs_help: e.target.checked })}
                                  className="w-4 h-4 rounded accent-red-600" />
@@ -331,8 +331,8 @@ export default function ClassDetailPage() {
                       </div>
                       <input
                         value={n.note ?? ''} onChange={e => patchNote(s.id, { note: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg border border-stone-200 text-[13px] font-semibold
-                                   focus:outline-none focus:border-stone-900 transition"
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-[13px] font-semibold
+                                   focus:outline-none focus:border-slate-900 transition"
                         placeholder="ملاحظة قصيرة (اختياري)"
                       />
                     </div>
@@ -349,7 +349,7 @@ export default function ClassDetailPage() {
 
           <button
             onClick={submitReport} disabled={savingRep || !covered.trim()}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-stone-900 text-white text-sm font-black hover:bg-stone-800 transition disabled:opacity-40"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-slate-900 text-white text-sm font-black hover:bg-slate-800 transition disabled:opacity-40"
           >
             {savingRep ? <Loader2 size={16} className="animate-spin" />
               : savedRep ? <Check size={16} /> : <ClipboardList size={16} />}
@@ -362,13 +362,13 @@ export default function ClassDetailPage() {
 }
 
 const inputCls =
-  'w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-[14px] font-semibold ' +
-  'focus:outline-none focus:border-stone-900 focus:ring-2 focus:ring-stone-900/10 transition'
+  'w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-[14px] font-semibold ' +
+  'focus:outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 transition'
 
 function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="block text-[12px] font-black text-stone-500 mb-1.5">
+      <span className="block text-[12px] font-black text-slate-500 mb-1.5">
         {label}{required && <span className="text-red-500"> *</span>}
       </span>
       {children}

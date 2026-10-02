@@ -37,7 +37,7 @@ function Stars({ value, size = 14 }: { value: number; size?: number }) {
         <Star
           key={n}
           size={size}
-          className={n <= Math.round(value) ? 'text-amber-500' : 'text-[#D6D3D1]'}
+          className={n <= Math.round(value) ? 'text-amber-500' : 'text-[#CBD5E1]'}
           fill={n <= Math.round(value) ? 'currentColor' : 'none'}
         />
       ))}
@@ -93,7 +93,7 @@ export default function TeacherReviewsPage() {
 
   if (loading) {
     return (
-      <div className="py-40 flex items-center justify-center gap-3 text-[#A8A29E]">
+      <div className="py-40 flex items-center justify-center gap-3 text-[#94A3B8]">
         <Loader2 size={18} className="animate-spin" />
         <span className="text-[13px] font-medium">جاري تحميل تقييماتك…</span>
       </div>
@@ -108,7 +108,7 @@ export default function TeacherReviewsPage() {
           <div className="flex items-center gap-2.5 rounded-2xl bg-fuchsia-50 ring-1 ring-fuchsia-200 px-4 py-2.5">
             <Info size={15} className="text-fuchsia-600 shrink-0" />
             <span className="text-[12.5px] font-medium text-fuchsia-800">معاينة ببيانات وهمية — لا شيء هنا حقيقي.</span>
-            <a href="?demo=0" className="mr-auto text-[12px] font-bold text-fuchsia-700 hover:text-[#1C1917] transition-colors">إيقاف</a>
+            <a href="?demo=0" className="mr-auto text-[12px] font-bold text-fuchsia-700 hover:text-[#1E3A8A] transition-colors">إيقاف</a>
           </div>
         </Rise>
       )}
@@ -130,9 +130,9 @@ export default function TeacherReviewsPage() {
             <div className="mt-3 flex justify-center">
               <Stars value={avg} size={18} />
             </div>
-            <p className="text-[#78716C] text-[13px] font-medium mt-3">
+            <p className="text-[#64748B] text-[13px] font-medium mt-3">
               {total > 0
-                ? <>من <span className="text-[#1C1917] font-semibold">{total}</span> {total === 1 ? 'تقييم' : 'تقييماً'}</>
+                ? <>من <span className="text-[#1E3A8A] font-semibold">{total}</span> {total === 1 ? 'تقييم' : 'تقييماً'}</>
                 : 'لا تقييمات بعد'}
             </p>
           </Panel>
@@ -148,13 +148,13 @@ export default function TeacherReviewsPage() {
                 const pct = total > 0 ? (count / total) * 100 : 0
                 return (
                   <div key={n} className="flex items-center gap-3">
-                    <div className="w-9 shrink-0 flex items-center gap-1 text-[12px] font-bold text-[#57534E] tabular-nums">
+                    <div className="w-9 shrink-0 flex items-center gap-1 text-[12px] font-bold text-[#475569] tabular-nums">
                       {n} <Star size={11} className="text-amber-500" fill="currentColor" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <Bar pct={pct} grad="amber" height={8} />
                     </div>
-                    <div className="w-8 shrink-0 text-left text-[12px] font-bold tabular-nums text-[#78716C]">
+                    <div className="w-8 shrink-0 text-left text-[12px] font-bold tabular-nums text-[#64748B]">
                       {count || '—'}
                     </div>
                   </div>
@@ -173,11 +173,11 @@ export default function TeacherReviewsPage() {
 
           {testimonials.length === 0 ? (
             <div className="py-14 text-center">
-              <span className="inline-flex w-14 h-14 rounded-2xl bg-[#F6F4EF] items-center justify-center mb-4">
-                <Users size={24} className="text-[#C7C2BA]" />
+              <span className="inline-flex w-14 h-14 rounded-2xl bg-[#F4F7FC] items-center justify-center mb-4">
+                <Users size={24} className="text-[#CBD5E1]" />
               </span>
-              <p className="text-[14px] font-semibold text-[#57534E]">لا تقييمات بعد</p>
-              <p className="text-[12px] text-[#A8A29E] mt-1.5 max-w-sm mx-auto leading-relaxed">
+              <p className="text-[14px] font-semibold text-[#475569]">لا تقييمات بعد</p>
+              <p className="text-[12px] text-[#94A3B8] mt-1.5 max-w-sm mx-auto leading-relaxed">
                 يظهر هنا رأي كل طالب بمجرد أن يقيّمك من فضائه. التقييم اختياري، ولا يمكنك طلبه أو تعديله —
                 وهذا ما يجعله ذا قيمة.
               </p>
@@ -186,30 +186,30 @@ export default function TeacherReviewsPage() {
             <div className="space-y-3">
               {testimonials.map((t, i) => (
                 <Rise key={t.id} i={Math.min(i, 4)}>
-                  <div className="flex gap-3.5 p-4 rounded-2xl bg-[#FBFAF7] ring-1 ring-[#E7E2D8]">
-                    <div className="w-10 h-10 rounded-xl overflow-hidden bg-[#F1EDE4] shrink-0 flex items-center justify-center">
+                  <div className="flex gap-3.5 p-4 rounded-2xl bg-[#F8FAFC] ring-1 ring-[#E2E8F0]">
+                    <div className="w-10 h-10 rounded-xl overflow-hidden bg-[#EEF2F7] shrink-0 flex items-center justify-center">
                       {t.student_avatar
                         ? <img src={t.student_avatar} alt="" className="w-full h-full object-cover" />
-                        : <span className="text-[14px] font-bold text-[#78716C]">
+                        : <span className="text-[14px] font-bold text-[#64748B]">
                             {(t.student_name ?? '؟').slice(0, 1)}
                           </span>}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-semibold text-[13.5px] text-[#1C1917] truncate">
+                        <span className="font-semibold text-[13.5px] text-[#1E3A8A] truncate">
                           {t.student_name ?? 'طالب'}
                         </span>
                         <Stars value={t.rating} size={12} />
-                        <span className="text-[11px] text-[#A8A29E] font-medium mr-auto shrink-0">
+                        <span className="text-[11px] text-[#94A3B8] font-medium mr-auto shrink-0">
                           {fromNow(t.created_at)}
                         </span>
                       </div>
                       {t.comment && t.comment.trim() ? (
-                        <p className="text-[13px] text-[#57534E] leading-relaxed mt-2 whitespace-pre-wrap">
+                        <p className="text-[13px] text-[#475569] leading-relaxed mt-2 whitespace-pre-wrap">
                           {t.comment}
                         </p>
                       ) : (
-                        <p className="text-[12px] text-[#C7C2BA] font-medium mt-2">قيّم دون تعليق.</p>
+                        <p className="text-[12px] text-[#CBD5E1] font-medium mt-2">قيّم دون تعليق.</p>
                       )}
                     </div>
                   </div>
@@ -221,9 +221,9 @@ export default function TeacherReviewsPage() {
       </Rise>
 
       <Rise>
-        <div className="flex items-start gap-2.5 rounded-2xl bg-[#FBFAF7] ring-1 ring-[#E7E2D8] px-4 py-3">
-          <Info size={15} className="text-[#78716C] shrink-0 mt-0.5" />
-          <p className="text-[12.5px] text-[#78716C] font-medium leading-relaxed">
+        <div className="flex items-start gap-2.5 rounded-2xl bg-[#F8FAFC] ring-1 ring-[#E2E8F0] px-4 py-3">
+          <Info size={15} className="text-[#64748B] shrink-0 mt-0.5" />
+          <p className="text-[12.5px] text-[#64748B] font-medium leading-relaxed">
             التقييمات تُحتسب تلقائياً ولا يمكن لأي أستاذ تعديل نتيجته. إن رأيت تقييماً مخالفاً، تواصل مع المكتب.
           </p>
         </div>

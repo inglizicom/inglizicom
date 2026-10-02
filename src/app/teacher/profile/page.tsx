@@ -3,59 +3,51 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
-  Camera, Image as ImageIcon, Loader2, Pencil, ExternalLink, Quote,
-  Star, Trophy, FlaskConical, Sparkles,
+  Camera, Loader2, Pencil, ExternalLink, Quote, Trophy, Sparkles,
+  Users, Clock, CalendarCheck, Star, GraduationCap, Award, Briefcase, PieChart, ListChecks,
+  CheckCircle2, Circle, Languages, BadgeCheck, Heart,
 } from 'lucide-react'
 import { useTeacher } from '@/lib/teacher-context'
 import {
-  fetchTeacherProfileFull, uploadTeacherAvatar, uploadTeacherCover,
+  fetchTeacherProfileFull, uploadTeacherAvatar,
   type TeacherProfileFull,
 } from '@/lib/teachers'
 import { Donut, HBars } from '../_charts'
-import { Reveal } from '../_motion'
+import { Rise } from '../_ds'
+import { isTeacherDemo } from '../_demo'
+import { DemoBanner, Stars } from '../_ui'
+import {
+  Btn, CardHead, CopyBtn, Face, Kpi, ShareBtn, Surface, profileChecklist, publicProfileUrl,
+} from '../_kit'
 import ProfileEditor from './ProfileEditor'
 import { DEMO_PROFILE } from './demoData'
 
 /**
- * صفحتي — a teacher's page, not their CV.
+ * ملفي العام — the teacher's personal brand, managed.
  *
- * The previous version was built as a résumé: a `cv-sheet` article with a
- * masthead, a figures band and print styles. A CV compresses a person into
- * columns to be judged once; this is a page a teacher lives on.
- *
- * It is also laid out across the full measure. The first pass kept everything
- * in a 46rem reading column, which under RTL pinned every chip and paragraph
- * to the right edge and left two thirds of the screen empty. Long-form prose
- * wants a column; a profile of lists, tags and charts wants both sides.
+ * Not a CV. The top of the page is the identity a visitor meets (face,
+ * promise, rating) with the actions that put it in front of people: share,
+ * preview, edit. Below it, what a student actually decides on — what I teach,
+ * the numbers behind me, what others said — as short cards rather than
+ * paragraphs. Credentials are badges, not a career timeline. The side column
+ * tracks how complete the page is, because an incomplete page converts worse.
  */
 
-function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <div className={`bg-white rounded-2xl ring-1 ring-[#E4DFD5] ${className}`}>{children}</div>
-}
-
-function Label({ children, note }: { children: React.ReactNode; note?: string }) {
-  return (
-    <div className="flex items-baseline gap-2.5 mb-4">
-      <h2 className="text-[12px] font-bold tracking-[.14em] uppercase text-[#A8A29E]">{children}</h2>
-      {note && <span className="text-[11.5px] text-[#C4BEB2]">{note}</span>}
-    </div>
-  )
-}
-
-function Tags({ label, items, muted = false }: { label: string; items: string[]; muted?: boolean }) {
+function ChipRow({ label, items, tone = 'plain' }: {
+  label: string; items: string[] | undefined; tone?: 'plain' | 'gold' | 'muted'
+}) {
   if (!items?.length) return null
+  const cls = {
+    plain: 'bg-white ring-1 ring-[#E2E8F0] text-[#334155]',
+    gold:  'bg-[#FEF3C7] text-[#B45309]',
+    muted: 'bg-[#EEF2F7] text-[#94A3B8] line-through decoration-[#CBD5E1]',
+  }[tone]
   return (
-    <div className="py-3.5 border-b border-[#EFEBE2] last:border-0">
-      <div className="text-[11px] font-bold tracking-[.1em] uppercase text-[#B5AFA3] mb-2.5">{label}</div>
+    <div>
+      <div className="text-[11px] font-bold tracking-[.1em] text-[#94A3B8] mb-2">{label}</div>
       <div className="flex flex-wrap gap-2">
         {items.map(t => (
-          <span key={t}
-                className={`text-[13.5px] font-semibold leading-none px-3 py-2 rounded-full
-                            ${muted
-                              ? 'text-[#8A8377] bg-[#F2EFE8] line-through decoration-[#D6CFC0]'
-                              : 'text-[#292524] bg-[#FAF9F6] ring-1 ring-[#E4DFD5]'}`}>
-            {t}
-          </span>
+          <span key={t} className={`rounded-full px-3 py-1.5 text-[12.5px] font-bold ${cls}`}>{t}</span>
         ))}
       </div>
     </div>
@@ -64,38 +56,43 @@ function Tags({ label, items, muted = false }: { label: string; items: string[];
 
 export default function TeacherProfilePage() {
   const teacher = useTeacher()
-  const [full, setFull]       = useState<TeacherProfileFull | null>(null)
+  const [full, setFull] = useState<TeacherProfileFull | null>(null)
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(false)
-  const [demo, setDemo]       = useState(false)
-  const [busyCover, setBusyCover]   = useState(false)
+  const [demo, setDemo] = useState(false)
   const [busyAvatar, setBusyAvatar] = useState(false)
 
   async function load() {
-    const isDemo = typeof window !== 'undefined'
-      && new URLSearchParams(window.location.search).get('demo') === '1'
+    const isDemo = isTeacherDemo()
     setDemo(isDemo)
     if (isDemo) { setFull(DEMO_PROFILE); setLoading(false); return }
-    setFull(await fetchTeacherProfileFull(teacher.id))
+    const result = await fetchTeacherProfileFull(teacher.id)
+    setFull(result)
     setLoading(false)
   }
+
   useEffect(() => { load() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [teacher.id])
 
+  // The dashboard's checklist links here with ?edit=1 — open the editor directly.
+  useEffect(() => {
+    if (!loading && full && !demo && new URLSearchParams(window.location.search).get('edit') === '1') setEditing(true)
+  }, [loading, full, demo])
+
   if (loading) {
-    return <div className="py-32 flex justify-center text-[#C4BEB2]"><Loader2 size={20} className="animate-spin" /></div>
+    return <div className="py-32 flex justify-center text-[#CBD5E1]"><Loader2 size={20} className="animate-spin" /></div>
   }
+
   if (!full) {
-    return <div className="p-10 text-center font-bold text-[#78716C]">تعذّر تحميل صفحتك.</div>
+    return <div className="p-10 text-center font-bold text-[#64748B]">تعذّر تحميل صفحتك.</div>
   }
 
   const p = full.profile
   const s = full.stats
   const name = p.display_name || full.identity.full_name || 'أستاذ'
+  const publicHref = demo ? '/teacher-showcase/demo' : `/teacher-showcase/${teacher.id}`
+  const publicUrl = typeof window !== 'undefined' ? `${window.location.origin}${publicHref}` : ''
+  const check = profileChecklist(p)
 
-  async function onCover(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0]; if (!f || demo) return
-    setBusyCover(true); await uploadTeacherCover(teacher.id, f); await load(); await teacher.refresh(); setBusyCover(false)
-  }
   async function onAvatar(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]; if (!f || demo) return
     setBusyAvatar(true); await uploadTeacherAvatar(teacher.id, f); await load(); await teacher.refresh(); setBusyAvatar(false)
@@ -106,268 +103,301 @@ export default function TeacherProfilePage() {
     { label: 'ذكور', value: full.gender_split.male },
     { label: 'غير محدد', value: full.gender_split.unknown },
   ].filter(d => d.value > 0)
-
   const ageData   = (full.age_bands ?? []).map(b => ({ label: b.band, value: b.count }))
   const levelData = (full.level_split ?? []).map(l => ({ label: l.level, value: l.count }))
 
-  const meta = [
-    p.english_level && `إنجليزية ${p.english_level}`,
-    p.years_experience != null && `${p.years_experience} سنوات خبرة`,
-    (p.age_min || p.age_max) && `يدرّس ${p.age_min ?? '—'}–${p.age_max ?? '—'} سنة`,
-    p.languages?.length > 0 && p.languages.join('، '),
-  ].filter(Boolean) as string[]
+  const facts = [
+    p.english_level && { icon: BadgeCheck, text: `إنجليزية ${p.english_level}` },
+    p.years_experience != null && { icon: Briefcase, text: `${p.years_experience} سنوات خبرة` },
+    (p.age_min || p.age_max) && { icon: Users, text: `أعمار ${p.age_min ?? '—'}–${p.age_max ?? '—'}` },
+    p.languages?.length > 0 && { icon: Languages, text: p.languages.join(' · ') },
+  ].filter(Boolean) as { icon: typeof Users; text: string }[]
 
-  const figures = [
-    { v: s.students_active, u: '', l: 'طالباً نشطاً' },
-    { v: s.hours_total, u: 'س', l: 'ساعة تدريس' },
-    { v: s.classes_done, u: '', l: 'حصة منتهية' },
-    { v: s.rating_count > 0 ? Number(s.rating_avg).toFixed(1) : '—', u: '',
-      l: s.rating_count > 0 ? `من ${s.rating_count} تقييماً` : 'لا تقييمات' },
-  ]
+  const nothingTaught = [p.levels, p.specialties, p.teaches, p.competences].every(a => !a?.length)
 
   return (
     <div className="space-y-6">
-      {demo && (
-        <div className="flex items-center gap-2.5 rounded-xl bg-fuchsia-50 ring-1 ring-fuchsia-200 px-4 py-2.5">
-          <FlaskConical size={15} className="text-fuchsia-600 shrink-0" />
-          <span className="text-[12.5px] font-semibold text-fuchsia-800">معاينة ببيانات وهمية — لا شيء هنا حقيقي.</span>
-        </div>
-      )}
+      {demo && <DemoBanner />}
 
-      {/* ══ Identity ══════════════════════════════════════ */}
-      <Card className="overflow-hidden">
-        <div className="relative h-[132px] sm:h-[168px] bg-[#EFEBE2]">
-          {p.cover_url
-            ? /* eslint-disable-next-line @next/next/no-img-element */
-              <img src={p.cover_url} alt="" className="w-full h-full object-cover" />
-            : <div className="w-full h-full bg-[linear-gradient(115deg,#E9E2D4_0%,#F4F0E8_48%,#E2DAC8_100%)]" />}
-          <label className="absolute top-3.5 left-3.5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full
-                            bg-white/90 backdrop-blur ring-1 ring-black/5 text-[11.5px] font-bold text-[#44403C]
-                            cursor-pointer hover:bg-white transition">
-            {busyCover ? <Loader2 size={12} className="animate-spin" /> : <ImageIcon size={12} />}
-            الغلاف
-            <input type="file" accept="image/*" hidden onChange={onCover} disabled={demo} />
-          </label>
-        </div>
+      {/* ══ Identity — what a visitor meets, and the moves that spread it ══ */}
+      <Rise>
+        <Surface className="overflow-hidden">
+          <div className="bg-gradient-to-br from-blue-50 via-white to-amber-50/60 px-5 sm:px-7 py-6">
+            <div className="flex flex-wrap items-center gap-4 sm:gap-5">
+              <div className="relative shrink-0">
+                {p.avatar_url
+                  ? /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={p.avatar_url} alt={name}
+                         className="h-[104px] w-[104px] sm:h-[120px] sm:w-[120px] rounded-[28px] object-cover ring-4 ring-white shadow-lg" />
+                  : <div className="h-[104px] w-[104px] sm:h-[120px] sm:w-[120px] rounded-[28px] ring-4 ring-white shadow-lg
+                                    bg-gradient-to-br from-[#1E40AF] to-[#1E3A8A] text-[#FCD34D] flex items-center justify-center text-[40px] font-black">
+                      {name.trim().charAt(0)}
+                    </div>}
+                <label className="absolute -bottom-1.5 -left-1.5 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full
+                                  bg-white ring-1 ring-[#E2E8F0] shadow-sm transition hover:bg-[#F8FAFC]" aria-label="تغيير الصورة">
+                  {busyAvatar ? <Loader2 size={14} className="animate-spin text-[#64748B]" /> : <Camera size={14} className="text-[#475569]" />}
+                  <input type="file" accept="image/*" hidden onChange={onAvatar} disabled={demo} />
+                </label>
+              </div>
 
-        <div className="px-6 pb-6">
-          {/* Only the avatar laps onto the cover. Pulling the whole row up
-              drags the name and the badge onto the image with it. */}
-          <div className="flex flex-wrap items-end gap-4 pt-4">
-            <div className="relative shrink-0 -mt-[76px]">
-              {p.avatar_url
-                ? /* eslint-disable-next-line @next/next/no-img-element */
-                  <img src={p.avatar_url} alt={name}
-                       className="w-[92px] h-[92px] rounded-2xl object-cover ring-4 ring-white shadow-sm" />
-                : <div className="w-[92px] h-[92px] rounded-2xl bg-[#1C1917] text-white flex items-center
-                                  justify-center text-[34px] font-extrabold ring-4 ring-white shadow-sm">
-                    {name.trim().charAt(0)}
-                  </div>}
-              <label className="absolute -bottom-1 -left-1 w-8 h-8 rounded-full bg-white ring-1 ring-[#E4DFD5]
-                                shadow-sm flex items-center justify-center cursor-pointer hover:bg-[#FAF9F6] transition">
-                {busyAvatar ? <Loader2 size={13} className="animate-spin text-[#78716C]" />
-                            : <Camera size={13} className="text-[#57534E]" />}
-                <input type="file" accept="image/*" hidden onChange={onAvatar} disabled={demo} />
-              </label>
-            </div>
-
-            <div className="flex-1 min-w-[14rem] pb-1">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <h1 className="text-[27px] sm:text-[32px] font-extrabold tracking-tight leading-none">{name}</h1>
-                {s.is_top_rated && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#1C1917] text-white text-[10.5px] font-bold">
-                    <Trophy size={10} /> من الأفضل تقييماً
-                  </span>
+              <div className="min-w-[14rem] flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="text-inherit text-[26px] sm:text-[32px] font-extrabold leading-tight tracking-tight">{name}</h1>
+                  {s.is_top_rated && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-l from-amber-400 to-yellow-500 text-blue-900 px-2.5 py-1 text-[11px] font-bold">
+                      <Trophy size={11} /> من الأفضل تقييماً
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1.5 text-[14.5px] font-medium leading-snug text-[#475569]">
+                  {p.tagline || p.headline || 'أضف جملة تقول فيها ما الذي سيحققه الطالب معك.'}
+                </p>
+                {s.rating_count > 0 && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <Stars value={Number(s.rating_avg)} size={13} />
+                    <span className="text-[12.5px] font-bold tabular-nums">{Number(s.rating_avg).toFixed(1)}</span>
+                    <span className="text-[12px] font-semibold text-[#94A3B8]">({s.rating_count} تقييماً)</span>
+                  </div>
                 )}
               </div>
-              {(p.tagline || p.headline) && (
-                <p className="text-[14.5px] text-[#57534E] font-medium mt-2 leading-snug">{p.tagline || p.headline}</p>
-              )}
-            </div>
 
-            <div className="flex items-center gap-2 shrink-0 pb-1">
-              <Link href={`/teachers/${teacher.id}`}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-full bg-white ring-1 ring-[#E4DFD5]
-                               text-[12.5px] font-bold text-[#44403C] hover:ring-[#1C1917] transition">
-                <ExternalLink size={13} /> العرض العام
-              </Link>
-              <button onClick={() => !demo && setEditing(true)} disabled={demo}
-                      className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-[#1C1917] text-white
-                                 text-[12.5px] font-bold hover:bg-[#292524] transition disabled:opacity-40">
-                <Pencil size={13} /> تعديل
-              </button>
-            </div>
-          </div>
-
-          {meta.length > 0 && (
-            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 mt-5 text-[12.5px] text-[#8A8377] font-semibold">
-              {meta.map((m, i) => (
-                <span key={m} className="flex items-center gap-2.5">
-                  {i > 0 && <span className="w-1 h-1 rounded-full bg-[#D6CFC0]" />}
-                  {m}
-                </span>
-              ))}
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-4 mt-6 pt-5 border-t border-[#EFEBE2]
-                          divide-x divide-x-reverse divide-[#EFEBE2]">
-            {figures.map(f => (
-              <div key={f.l} className="px-4 first:pr-0">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-[26px] font-extrabold tracking-tight tabular-nums leading-none">{f.v}</span>
-                  {f.u && <span className="text-[12.5px] font-bold text-[#A8A29E]">{f.u}</span>}
-                </div>
-                <div className="text-[11.5px] font-semibold text-[#8A8377] mt-1.5">{f.l}</div>
+              <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                <Btn icon={Pencil} onClick={() => !demo && setEditing(true)} disabled={demo}>تعديل الملف</Btn>
+                <Btn href={publicHref} icon={ExternalLink} kind="ghost">عرض الملف العام</Btn>
+                <ShareBtn url={publicUrl} title={name} kind="gold" />
               </div>
-            ))}
+            </div>
+
+            {facts.length > 0 && (
+              <div className="mt-5 flex flex-wrap gap-2">
+                {facts.map(f => (
+                  <span key={f.text} className="inline-flex items-center gap-1.5 rounded-full bg-[#F4F7FC] px-3 py-1.5 text-[12px] font-bold text-[#475569]">
+                    <f.icon size={13} className="text-[#94A3B8]" /> {f.text}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
-        </div>
-      </Card>
+        </Surface>
+      </Rise>
 
-      {/* ══ Two columns ═══════════════════════════════════ */}
-      <div className="grid lg:grid-cols-[1.1fr_.9fr] gap-6 items-start">
+      {/* ══ The numbers behind the page ══ */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <Rise i={0}><Kpi icon={Users} tone="violet" label="طلاب نشطون" value={s.students_active} sub={`${s.students_total} منذ البداية`} /></Rise>
+        <Rise i={1}><Kpi icon={Clock} tone="emerald" label="ساعات تدريس" value={Number(s.hours_total)} decimals={Number.isInteger(Number(s.hours_total)) ? 0 : 1} unit="س" /></Rise>
+        <Rise i={2}><Kpi icon={CalendarCheck} tone="sky" label="حصص منجزة" value={s.classes_done}
+                         sub={s.attendance_rate != null ? `حضور ${Math.round(Number(s.attendance_rate))}%` : undefined} /></Rise>
+        <Rise i={3}><Kpi icon={Star} tone="gold" label="متوسط التقييم" value={s.rating_count > 0 ? Number(s.rating_avg) : null}
+                         decimals={1} unit="/ 5" sub={s.rating_count > 0 ? `من ${s.rating_count} تقييماً` : 'لا تقييمات بعد'} /></Rise>
+      </div>
 
-        <div className="space-y-6">
+      <div className="grid lg:grid-cols-12 gap-6 items-start">
+
+        {/* ══ Main ══ */}
+        <div className="lg:col-span-8 space-y-6 min-w-0">
+
+          <Rise>
+            <Surface className="p-5 sm:p-6">
+              <CardHead icon={GraduationCap} tone="violet" title="ما أُدرّسه" note="أول ما يقرؤه الطالب قبل أن يتواصل"
+                        action={!demo && <button onClick={() => setEditing(true)} className="text-[12px] font-bold text-[#64748B] hover:text-[#1E3A8A] px-2.5 py-1.5 rounded-full hover:bg-[#EEF2F7]">تعديل</button>} />
+              {nothingTaught ? (
+                <p className="text-[13.5px] leading-relaxed text-[#94A3B8]">
+                  لم تُحدَّد بعد. اضغط «تعديل الملف» لتقول ما تُدرّسه — وما لا تُدرّسه.
+                </p>
+              ) : (
+                <div className="space-y-5">
+                  {p.levels?.length > 0 && (
+                    <div>
+                      <div className="text-[11px] font-bold tracking-[.1em] text-[#94A3B8] mb-2">المستويات</div>
+                      <div className="flex flex-wrap gap-2" dir="ltr">
+                        {p.levels.map(l => (
+                          <span key={l} className="rounded-xl bg-gradient-to-l from-blue-600 to-blue-800 text-white px-3.5 py-1.5 text-[13px] font-extrabold">{l}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <ChipRow label="التخصصات" items={p.specialties} />
+                  <ChipRow label="أُدرّس" items={p.teaches} />
+                  <ChipRow label="نقاط قوتي" items={p.competences} tone="gold" />
+                  <ChipRow label="لا أُدرّس" items={p.not_teaches} tone="muted" />
+                </div>
+              )}
+            </Surface>
+          </Rise>
+
           {p.bio && (
-            <Card className="p-6">
-              <Label>نبذة</Label>
-              <p className="text-[15.5px] leading-[1.85] text-[#292524] whitespace-pre-wrap">{p.bio}</p>
-            </Card>
+            <Rise>
+              <Surface className="p-5 sm:p-6">
+                <CardHead icon={Sparkles} tone="gold" title="نبذة" />
+                <p className="text-[15px] leading-[1.9] text-[#334155] whitespace-pre-wrap">{p.bio}</p>
+              </Surface>
+            </Rise>
           )}
 
-          {p.experiences?.length > 0 && (
-            <Card className="p-6">
-              <Label>مسيرتي</Label>
-              <ol className="relative pr-5 border-r-2 border-[#EFEBE2] space-y-6">
-                {p.experiences.map((x, i) => (
-                  <Reveal key={i} delay={i * 60}>
-                    <li className="relative">
-                      <span className="absolute -right-[27px] top-1.5 w-2.5 h-2.5 rounded-full bg-[#1C1917] ring-4 ring-white" />
-                      <div className="text-[15.5px] font-bold leading-tight">{x.role}</div>
-                      <div className="text-[12.5px] text-[#8A8377] font-semibold mt-1">
-                        {[x.org, [x.from, x.to].filter(Boolean).join(' — ')].filter(Boolean).join(' · ')}
+          {(p.certificates?.length > 0 || p.experiences?.length > 0) && (
+            <Rise>
+              <Surface className="p-5 sm:p-6">
+                <CardHead icon={Award} tone="emerald" title="المؤهلات والخبرة" />
+                {p.certificates?.length > 0 && (
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {p.certificates.map((c, i) => (
+                      <div key={i} className="flex items-start gap-3 rounded-2xl bg-[#F8FAFC] ring-1 ring-[#E2E8F0] p-3.5">
+                        <span className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+                          <BadgeCheck size={17} />
+                        </span>
+                        <div className="min-w-0">
+                          <div className="text-[13.5px] font-bold leading-snug">{c.title}</div>
+                          {(c.issuer || c.year) && (
+                            <div className="mt-0.5 text-[11.5px] font-semibold text-[#94A3B8]">{[c.issuer, c.year].filter(Boolean).join(' · ')}</div>
+                          )}
+                        </div>
                       </div>
-                      {x.description && (
-                        <p className="text-[13.5px] leading-relaxed text-[#57534E] mt-2">{x.description}</p>
-                      )}
-                    </li>
-                  </Reveal>
-                ))}
-              </ol>
-            </Card>
+                    ))}
+                  </div>
+                )}
+                {p.experiences?.length > 0 && (
+                  <div className={`flex flex-wrap gap-2 ${p.certificates?.length ? 'mt-4' : ''}`}>
+                    {p.experiences.map((x, i) => (
+                      <span key={i} className="inline-flex items-center gap-2 rounded-full bg-white ring-1 ring-[#E2E8F0] px-3 py-1.5 text-[12px] font-semibold text-[#475569]">
+                        <Briefcase size={12} className="text-[#94A3B8]" />
+                        <span className="font-bold text-[#334155]">{x.role}</span>
+                        {x.org && <span>· {x.org}</span>}
+                        {(x.from || x.to) && <span className="text-[#94A3B8] tabular-nums">{[x.from, x.to].filter(Boolean).join('–')}</span>}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </Surface>
+            </Rise>
           )}
 
           {full.testimonials?.length > 0 && (
-            <Card className="p-6">
-              <Label note={`${full.testimonials.length} تقييماً`}>ما قالوه</Label>
-              <div className="space-y-5">
-                {full.testimonials.slice(0, 5).map(t => (
-                  <figure key={t.id} className="pb-5 border-b border-[#EFEBE2] last:border-0 last:pb-0">
-                    <Quote size={16} className="text-[#DDD6C8] mb-2" />
-                    {t.comment
-                      ? <blockquote className="text-[14.5px] leading-relaxed text-[#292524]">{t.comment}</blockquote>
-                      : <blockquote className="text-[14px] text-[#A8A29E] italic">قيّم دون تعليق.</blockquote>}
-                    <figcaption className="flex items-center gap-2 mt-2.5">
-                      <span className="text-[12.5px] font-bold">{t.student_name ?? 'طالب'}</span>
-                      <span className="inline-flex items-center gap-0.5">
-                        {[1, 2, 3, 4, 5].map(n => (
-                          <Star key={n} size={10}
-                                className={n <= t.rating ? 'text-[#B45309]' : 'text-[#DDD6C8]'}
-                                fill={n <= t.rating ? 'currentColor' : 'none'} />
-                        ))}
-                      </span>
-                    </figcaption>
-                  </figure>
-                ))}
-              </div>
-            </Card>
+            <Rise>
+              <Surface className="p-5 sm:p-6">
+                <CardHead icon={Quote} tone="gold" title="ما قاله طلابي" note={`${full.testimonials.length} تقييماً منشوراً`}
+                          action={<Link href="/teacher/reviews" className="text-[12px] font-bold text-[#64748B] hover:text-[#1E3A8A] px-2.5 py-1.5 rounded-full hover:bg-[#EEF2F7]">الكل</Link>} />
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {full.testimonials.slice(0, 4).map(t => (
+                    <figure key={t.id} className="rounded-2xl bg-[#F8FAFC] ring-1 ring-[#E2E8F0] p-4 flex flex-col">
+                      <Stars value={t.rating} size={12} />
+                      <blockquote className={`mt-2 text-[13.5px] leading-relaxed flex-1 ${t.comment ? 'text-[#334155]' : 'text-[#94A3B8] italic'}`}>
+                        {t.comment || 'قيّم دون تعليق.'}
+                      </blockquote>
+                      <figcaption className="mt-3 flex items-center gap-2">
+                        <Face name={t.student_name ?? 'طالب'} url={t.student_avatar} size={26} />
+                        <span className="text-[12px] font-bold">{t.student_name ?? 'طالب'}</span>
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
+              </Surface>
+            </Rise>
           )}
-        </div>
-
-        <div className="space-y-6">
-          <Card className="p-6">
-            <Label>ما أُدرّسه</Label>
-            {[p.levels, p.specialties, p.teaches, p.competences].every(a => !a?.length) ? (
-              <p className="text-[13.5px] text-[#A8A29E] leading-relaxed">
-                لم تُحدَّد بعد. اضغط «تعديل» لتقول ما تُدرّسه — وما لا تُدرّسه.
-              </p>
-            ) : (
-              <>
-                <Tags label="المستويات" items={p.levels} />
-                <Tags label="التخصصات"  items={p.specialties} />
-                <Tags label="أُدرّس"     items={p.teaches} />
-                <Tags label="الكفاءات"  items={p.competences} />
-                <Tags label="لا أُدرّس"  items={p.not_teaches} muted />
-              </>
-            )}
-          </Card>
 
           {(genderData.length > 0 || ageData.length > 0 || levelData.length > 0) && (
-            <Card className="p-6">
-              <Label note="يُحتسب تلقائياً">من أُدرّسهم</Label>
-              <div className="space-y-6">
-                {genderData.length > 0 && (
-                  <div className="flex justify-center"><Donut data={genderData} size={132} /></div>
-                )}
-                {ageData.length > 0 && (
-                  <div>
-                    <div className="text-[11px] font-bold tracking-[.1em] uppercase text-[#B5AFA3] mb-2.5">الفئات العمرية</div>
-                    <HBars data={ageData} unit="طالب" />
+            <Rise>
+              <Surface className="p-5 sm:p-6">
+                <CardHead icon={PieChart} tone="sky" title="من أُدرّسهم" note="يُحتسب تلقائياً من طلابك" />
+                <div className="grid md:grid-cols-2 gap-6">
+                  {genderData.length > 0 && (
+                    <div className="flex items-center justify-center md:justify-start"><Donut data={genderData} size={128} /></div>
+                  )}
+                  <div className="space-y-5">
+                    {levelData.length > 0 && (
+                      <div>
+                        <div className="mb-2.5 text-[11px] font-bold tracking-[.1em] text-[#94A3B8]">المستويات</div>
+                        <HBars data={levelData} unit="" color="#1D4ED8" />
+                      </div>
+                    )}
+                    {ageData.length > 0 && (
+                      <div>
+                        <div className="mb-2.5 text-[11px] font-bold tracking-[.1em] text-[#94A3B8]">الفئات العمرية</div>
+                        <HBars data={ageData} unit="" color="#F59E0B" />
+                      </div>
+                    )}
+                    {full.avg_age != null && (
+                      <p className="text-[12.5px] font-semibold text-[#64748B]">
+                        متوسط العمر <span className="font-extrabold text-[#1E3A8A]">{full.avg_age}</span> سنة.
+                      </p>
+                    )}
                   </div>
-                )}
-                {levelData.length > 0 && (
-                  <div>
-                    <div className="text-[11px] font-bold tracking-[.1em] uppercase text-[#B5AFA3] mb-2.5">المستويات</div>
-                    <HBars data={levelData} unit="طالب" />
-                  </div>
-                )}
-                {full.avg_age != null && (
-                  <p className="text-[12.5px] text-[#8A8377] font-semibold">
-                    متوسط العمر <span className="text-[#1C1917] font-bold">{full.avg_age}</span> سنة.
-                  </p>
-                )}
-              </div>
-            </Card>
-          )}
-
-          {p.certificates?.length > 0 && (
-            <Card className="p-6">
-              <Label>شهاداتي</Label>
-              <div className="space-y-0">
-                {p.certificates.map((c, i) => (
-                  <div key={i} className="flex items-baseline gap-3 py-3 border-b border-[#EFEBE2] last:border-0">
-                    <span className="text-[11px] font-bold text-[#C4BEB2] tabular-nums shrink-0">
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                    <div className="min-w-0">
-                      <div className="text-[14px] font-bold leading-snug">{c.title}</div>
-                      {(c.issuer || c.year) && (
-                        <div className="text-[12px] text-[#8A8377] font-semibold mt-0.5">
-                          {[c.issuer, c.year].filter(Boolean).join(' · ')}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
-
-          {p.liked_qualities?.length > 0 && (
-            <Card className="p-6">
-              <Label>ما يحبه طلابي فيّ</Label>
-              <div className="flex flex-wrap gap-2">
-                {p.liked_qualities.map(q => (
-                  <span key={q} className="inline-flex items-center gap-1.5 text-[13.5px] font-semibold px-3 py-2
-                                            rounded-full bg-[#FDF6EC] text-[#92400E] ring-1 ring-[#F3E3CB]">
-                    <Sparkles size={11} /> {q}
-                  </span>
-                ))}
-              </div>
-            </Card>
+                </div>
+              </Surface>
+            </Rise>
           )}
         </div>
+
+        {/* ══ Aside — completeness and the share card, sticky on desktop ══ */}
+        <aside className="lg:col-span-4 space-y-6 min-w-0 lg:sticky lg:top-[88px]">
+          <Rise>
+            <Surface className="p-5">
+              <CardHead icon={ListChecks} tone="emerald" title="اكتمال الملف"
+                        note={check.pct === 100 ? 'ملفك جاهز للعرض' : `${check.items.length - check.done} عناصر متبقية`} />
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex-1 h-2 rounded-full bg-[#EEF2F7] overflow-hidden">
+                  <div className="h-full rounded-full bg-gradient-to-l from-emerald-500 to-emerald-700 transition-all duration-700"
+                       style={{ width: `${check.pct}%` }} />
+                </div>
+                <span className="text-[13px] font-extrabold tabular-nums">{check.pct}%</span>
+              </div>
+              <ul className="space-y-1.5">
+                {check.items.map(c => (
+                  <li key={c.label}>
+                    <button onClick={() => !demo && !c.done && setEditing(true)}
+                            className={`w-full text-right flex items-center gap-2.5 rounded-lg px-1 py-1 text-[12.5px] font-semibold transition-colors
+                                        ${c.done ? 'text-[#94A3B8] cursor-default' : 'text-[#334155] hover:text-[#B45309]'}`}>
+                      {c.done
+                        ? <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+                        : <Circle size={16} className="text-[#CBD5E1] shrink-0" />}
+                      <span className={c.done ? 'line-through decoration-[#CBD5E1]' : ''}>{c.label}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </Surface>
+          </Rise>
+
+          <Rise>
+            <section className="relative overflow-hidden rounded-[24px] bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 p-5 text-white shadow-[0_24px_50px_-28px_rgba(30,58,138,.7)]">
+              <div aria-hidden className="pointer-events-none absolute -top-16 -left-16 w-56 h-56 rounded-full bg-[radial-gradient(circle,rgba(251,191,36,.3),transparent_65%)]" />
+              <div className="relative">
+                <div className="text-[11px] font-bold tracking-[.14em] text-[#FCD34D]">شارك ملفك</div>
+                <div className="mt-1.5 text-[17px] font-extrabold leading-snug">كل مشاركة قد تعني طالباً جديداً.</div>
+                <p className="mt-1.5 text-[12.5px] leading-relaxed text-white/85">
+                  ضع الرابط في واتساب، إنستغرام أو توقيع بريدك. يرى الزائر تقييماتك ويتواصل مع الفريق مباشرة.
+                </p>
+                {publicUrl && (
+                  <div className="mt-4 rounded-xl bg-white/[.07] ring-1 ring-white/10 px-3 py-2 text-[11.5px] font-semibold text-white/90 truncate" dir="ltr">
+                    {publicUrl.replace(/^https?:\/\//, '')}
+                  </div>
+                )}
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <ShareBtn url={publicUrl} title={name} kind="gold" label="مشاركة" />
+                  <Btn href={publicHref} icon={ExternalLink} kind="glass">معاينة</Btn>
+                </div>
+              </div>
+            </section>
+          </Rise>
+
+          {p.liked_qualities?.length > 0 && (
+            <Rise>
+              <Surface className="p-5">
+                <CardHead icon={Heart} tone="rose" title="ما يحبه طلابي فيّ" />
+                <div className="flex flex-wrap gap-2">
+                  {p.liked_qualities.map(q => (
+                    <span key={q} className="inline-flex items-center gap-1.5 rounded-full bg-[#FEF3C7] px-3 py-1.5 text-[12.5px] font-bold text-[#B45309]">
+                      <Sparkles size={11} /> {q}
+                    </span>
+                  ))}
+                </div>
+              </Surface>
+            </Rise>
+          )}
+
+          {!demo && publicUrl && (
+            <div className="flex justify-center"><CopyBtn text={publicUrl} label="نسخ رابط الملف" /></div>
+          )}
+        </aside>
       </div>
 
       {editing && (

@@ -75,8 +75,8 @@ export default function TeacherGuard({ children }: { children: React.ReactNode }
 
   if (state === 'checking' || state === 'unauthenticated') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F7F5F0]">
-        <div className="flex items-center gap-3 text-stone-500">
+      <div className="min-h-screen flex items-center justify-center bg-[#F4F7FC]">
+        <div className="flex items-center gap-3 text-slate-500">
           <Loader2 size={18} className="animate-spin" />
           <span className="text-sm font-semibold">Opening your space…</span>
         </div>
@@ -86,19 +86,19 @@ export default function TeacherGuard({ children }: { children: React.ReactNode }
 
   if (state === 'denied') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F7F5F0] px-4">
-        <div className="max-w-sm w-full bg-white rounded-2xl border border-stone-200 p-8 text-center shadow-sm">
+      <div className="min-h-screen flex items-center justify-center bg-[#F4F7FC] px-4">
+        <div className="max-w-sm w-full bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm">
           <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-red-50 flex items-center justify-center">
             <ShieldAlert size={26} className="text-red-500" />
           </div>
-          <h1 className="text-stone-900 font-black text-lg mb-1">This space is for teachers</h1>
-          <p className="text-stone-500 text-sm mb-6">
-            Your account is signed in as <span className="font-semibold text-stone-700">{role}</span>.
+          <h1 className="text-slate-900 font-black text-lg mb-1">This space is for teachers</h1>
+          <p className="text-slate-500 text-sm mb-6">
+            Your account is signed in as <span className="font-semibold text-slate-700">{role}</span>.
             Ask the founder to give you a teaching account.
           </p>
           <button
             onClick={async () => { await supabase.auth.signOut(); router.replace('/teacher/login') }}
-            className="w-full px-5 py-2.5 rounded-xl bg-stone-900 text-white text-sm font-semibold hover:bg-stone-800 transition"
+            className="w-full px-5 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition"
           >
             Sign in with another account
           </button>

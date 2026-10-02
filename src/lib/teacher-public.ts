@@ -31,6 +31,9 @@ export interface TeacherPublicProfile {
     age_min: number | null
     age_max: number | null
     years_experience: number | null
+    /** Weekly windows the teacher set on /teacher/schedule. 0 = Sunday … 6 = Saturday. */
+    availability: { day: number; from: string; to: string }[]
+    hired_at: string | null
   }
   stats: {
     students_total: number
@@ -43,6 +46,24 @@ export interface TeacherPublicProfile {
     upcoming: number
   }
   rating_breakdown: Record<string, number>
+  /** Published reviews that carry a comment, newest first. No student identity
+   *  leaves the server — a public page quotes the words, not the person. */
+  reviews?: { rating: number; comment: string; created_at: string }[]
+}
+
+export interface PublicTeacherCard {
+  id: string
+  name: string
+  headline: string | null
+  tagline: string | null
+  avatar_url: string | null
+  cover_url: string | null
+  years_experience: number | null
+  levels: string[]
+  specialties: string[]
+  languages: string[]
+  rating_avg: number
+  rating_count: number
 }
 
 /**
@@ -58,11 +79,49 @@ function oneOf(embed: unknown): TeacherProfileRow | null {
   return row ? (row as TeacherProfileRow) : null
 }
 
+/** Directory fields only; never return private rates, WhatsApp, or student rows. */
+export async function fetchPublicTeachers(): Promise<PublicTeacherCard[]> {
+  const { data, error } = await supabaseAdmin
+    .from('profiles')
+    .select(`id, full_name, teacher_profiles(
+      is_active, display_name, headline, tagline, avatar_url, cover_url,
+      years_experience, levels, specialties, languages, rating_avg, rating_count)`)
+    .eq('role', 'teacher')
+
+  if (error) {
+    console.error('fetchPublicTeachers', error.message)
+    return []
+  }
+
+  return (data ?? [])
+    .map(row => {
+      const profile = oneOf(row.teacher_profiles)
+      if (!profile || profile.is_active === false) return null
+      const name = profile.display_name || row.full_name
+      if (!name) return null
+      return {
+        id: row.id,
+        name,
+        headline: profile.headline ?? null,
+        tagline: profile.tagline ?? null,
+        avatar_url: profile.avatar_url ?? null,
+        cover_url: profile.cover_url ?? null,
+        years_experience: profile.years_experience == null ? null : Number(profile.years_experience),
+        levels: profile.levels ?? [],
+        specialties: profile.specialties ?? [],
+        languages: profile.languages ?? [],
+        rating_avg: Number(profile.rating_avg ?? 0),
+        rating_count: Number(profile.rating_count ?? 0),
+      } satisfies PublicTeacherCard
+    })
+    .filter((row): row is PublicTeacherCard => row !== null)
+    .sort((a, b) => b.rating_count - a.rating_count || b.rating_avg - a.rating_avg || a.name.localeCompare(b.name, 'ar'))
+}
+
 export async function fetchTeacherPublicProfile(teacherId: string): Promise<TeacherPublicProfile | null> {
   const studentIds = await getTeacherStudentIds(teacherId)
 
   const [{ data: profileData, error: profileError },
-         { count: activeStudentCount },
          { data: classRows },
          { count: upcomingCount },
          { count: examsCount },
@@ -75,15 +134,9 @@ export async function fetchTeacherPublicProfile(teacherId: string): Promise<Teac
         is_active, display_name, headline, bio, avatar_url, cover_url, tagline,
         english_level, levels, specialties, languages, competences, liked_qualities,
         certificates, experiences, teaches, not_teaches, age_min, age_max,
-        years_experience, rating_avg, rating_count)`)
+        years_experience, rating_avg, rating_count, availability, hired_at)`)
       .eq('id', teacherId)
       .single(),
-
-    supabaseAdmin
-      .from('teacher_students')
-      .select('id', { count: 'exact', head: true })
-      .eq('teacher_id', teacherId)
-      .eq('is_active', true),
 
     supabaseAdmin
       .from('class_sessions')
@@ -105,9 +158,10 @@ export async function fetchTeacherPublicProfile(teacherId: string): Promise<Teac
 
     supabaseAdmin
       .from('teacher_reviews')
-      .select('rating')
+      .select('rating, comment, created_at')
       .eq('teacher_id', teacherId)
-      .eq('is_published', true),
+      .eq('is_published', true)
+      .order('created_at', { ascending: false }),
   ])
 
   const profile = oneOf(profileData?.teacher_profiles)
@@ -115,7 +169,7 @@ export async function fetchTeacherPublicProfile(teacherId: string): Promise<Teac
   if (profileError || !profile || profile.is_active === false) {
     return null
   }
-  const ratings: Array<{ rating: number | null }> = ratingsData ?? []
+  const ratings: Array<{ rating: number | null; comment: string | null; created_at: string }> = ratingsData ?? []
   const breakdown: Record<string, number> = {}
   ratings.forEach(({ rating }) => {
     const key = String(rating ?? 0)
@@ -147,9 +201,11 @@ export async function fetchTeacherPublicProfile(teacherId: string): Promise<Teac
       age_min: profile.age_min,
       age_max: profile.age_max,
       years_experience: profile.years_experience,
+      availability: Array.isArray(profile.availability) ? profile.availability : [],
+      hired_at: profile.hired_at ?? null,
     },
     stats: {
-      students_total: Number(activeStudentCount ?? 0),
+      students_total: studentIds.length,
       classes_done: classRows?.length ?? 0,
       hours_total: Math.round((hoursTotal / 60) * 10) / 10,
       exams_corrected: Number(examsCount ?? 0),
@@ -159,16 +215,29 @@ export async function fetchTeacherPublicProfile(teacherId: string): Promise<Teac
       upcoming: Number(upcomingCount ?? 0),
     },
     rating_breakdown: breakdown,
+    reviews: ratings
+      .filter(r => r.rating != null && r.comment && r.comment.trim())
+      .slice(0, 6)
+      .map(r => ({ rating: Number(r.rating), comment: (r.comment as string).trim(), created_at: r.created_at })),
   }
 }
 
 async function getTeacherStudentIds(teacherId: string): Promise<string[]> {
-  const { data, error } = await supabaseAdmin
-    .from('teacher_students')
-    .select('student_id')
-    .eq('teacher_id', teacherId)
-    .eq('is_active', true)
+  const [assigned, seated] = await Promise.all([
+    supabaseAdmin.from('teacher_students')
+      .select('student_id, crm_students!inner(deleted_at)')
+      .eq('teacher_id', teacherId)
+      .eq('is_active', true)
+      .is('crm_students.deleted_at', null),
+    supabaseAdmin.from('online_class_enrollments')
+      .select('student_id, online_classes!inner(teacher_id, archived_at), crm_students!inner(deleted_at)')
+      .eq('online_classes.teacher_id', teacherId)
+      .is('online_classes.archived_at', null)
+      .eq('status', 'active')
+      .is('crm_students.deleted_at', null),
+  ])
 
-  if (error || !data) return []
-  return data.map(row => row.student_id)
+  if (assigned.error) console.error('teacher public assigned roster', assigned.error.message)
+  if (seated.error) console.error('teacher public class roster', seated.error.message)
+  return [...new Set([...(assigned.data ?? []), ...(seated.data ?? [])].map(row => row.student_id))]
 }

@@ -84,7 +84,7 @@ export default function TeacherMaterialsPage() {
       {/* Upload */}
       <Card className="p-5">
         <div className="flex flex-wrap items-center gap-2 mb-4">
-          <span className="text-[12px] font-black text-stone-500 ml-1">من يرى الملف؟</span>
+          <span className="text-[12px] font-black text-slate-500 ml-1">من يرى الملف؟</span>
           {VISIBILITY.map(v => (
             <button
               key={v.key}
@@ -92,8 +92,8 @@ export default function TeacherMaterialsPage() {
               title={v.hint}
               className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold border transition ${
                 visibility === v.key
-                  ? 'bg-stone-900 text-white border-stone-900'
-                  : 'bg-white text-stone-600 border-stone-300 hover:border-stone-400'}`}
+                  ? 'bg-slate-900 text-white border-slate-900'
+                  : 'bg-white text-slate-600 border-slate-300 hover:border-slate-400'}`}
             >
               <v.icon size={13} /> {v.label}
             </button>
@@ -103,18 +103,18 @@ export default function TeacherMaterialsPage() {
         <label
           onDragOver={e => e.preventDefault()}
           onDrop={e => { e.preventDefault(); onFiles(e.dataTransfer.files) }}
-          className="flex flex-col items-center justify-center gap-2 py-10 rounded-xl border-2 border-dashed border-stone-300 hover:border-amber-400 hover:bg-amber-50/40 transition cursor-pointer"
+          className="flex flex-col items-center justify-center gap-2 py-10 rounded-xl border-2 border-dashed border-slate-300 hover:border-amber-400 hover:bg-amber-50/40 transition cursor-pointer"
         >
           {busy ? (
             <>
-              <Loader2 size={22} className="animate-spin text-stone-400" />
-              <span className="text-[13.5px] font-bold text-stone-500">جاري الرفع…</span>
+              <Loader2 size={22} className="animate-spin text-slate-400" />
+              <span className="text-[13.5px] font-bold text-slate-500">جاري الرفع…</span>
             </>
           ) : (
             <>
-              <Upload size={22} className="text-stone-400" />
-              <span className="text-[13.5px] font-bold text-stone-600">اسحب الملفات هنا أو اضغط للاختيار</span>
-              <span className="text-[11.5px] font-semibold text-stone-400">PDF · Word · PowerPoint · صور · صوت · فيديو</span>
+              <Upload size={22} className="text-slate-400" />
+              <span className="text-[13.5px] font-bold text-slate-600">اسحب الملفات هنا أو اضغط للاختيار</span>
+              <span className="text-[11.5px] font-semibold text-slate-400">PDF · Word · PowerPoint · صور · صوت · فيديو</span>
             </>
           )}
           <input ref={fileRef} type="file" multiple hidden onChange={e => onFiles(e.target.files)} />
@@ -127,24 +127,24 @@ export default function TeacherMaterialsPage() {
 
       {/* Library */}
       {loading ? (
-        <div className="py-20 flex justify-center text-stone-400"><Loader2 size={20} className="animate-spin" /></div>
+        <div className="py-20 flex justify-center text-slate-400"><Loader2 size={20} className="animate-spin" /></div>
       ) : items.length === 0 ? (
         <Card>
           <Empty icon={FolderOpen} title="لا ملفات بعد" hint="ارفع أول درس، وسيصبح متاحاً لطلابك فوراً." />
         </Card>
       ) : (
-        <Card className="divide-y divide-stone-100">
+        <Card className="divide-y divide-slate-100">
           {items.map(m => {
             const Icon = ICONS[m.file_type ?? ''] ?? FileText
             const vis  = VISIBILITY.find(v => v.key === m.visibility)
             return (
               <div key={m.id} className="flex items-center gap-3.5 px-5 py-3.5">
-                <div className="w-10 h-10 rounded-xl bg-stone-100 text-stone-500 flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
                   <Icon size={18} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-bold text-[14.5px] truncate">{m.title}</div>
-                  <div className="text-[11.5px] text-stone-400 font-semibold flex items-center gap-2">
+                  <div className="text-[11.5px] text-slate-400 font-semibold flex items-center gap-2">
                     <span>{formatSize(m.size_bytes)}</span>
                     <span>·</span>
                     <span className="flex items-center gap-1">
@@ -155,14 +155,14 @@ export default function TeacherMaterialsPage() {
                 </div>
                 <a
                   href={materialUrl(m.file_path)} target="_blank" rel="noopener noreferrer"
-                  className="p-2 rounded-lg text-stone-400 hover:text-stone-800 hover:bg-stone-100 transition"
+                  className="p-2 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition"
                   aria-label="تحميل"
                 >
                   <Download size={16} />
                 </a>
                 <button
                   onClick={() => remove(m)}
-                  className="p-2 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition"
+                  className="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition"
                   aria-label="حذف"
                 >
                   <Trash2 size={16} />

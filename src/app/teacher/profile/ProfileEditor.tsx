@@ -71,12 +71,12 @@ export default function ProfileEditor({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="absolute inset-0 bg-stone-900/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full sm:max-w-2xl bg-white rounded-t-3xl sm:rounded-2xl border border-stone-200 shadow-xl max-h-[92vh] overflow-y-auto">
+      <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full sm:max-w-2xl bg-white rounded-t-3xl sm:rounded-2xl border border-slate-200 shadow-xl max-h-[92vh] overflow-y-auto">
 
-        <div className="sticky top-0 bg-white z-10 flex items-center justify-between px-5 py-4 border-b border-stone-100">
-          <h2 className="font-black text-[17px]">تعديل الملف الشخصي</h2>
-          <button onClick={onClose} aria-label="إغلاق" className="text-stone-400 hover:text-stone-600"><X size={20} /></button>
+        <div className="sticky top-0 bg-white z-10 flex items-center justify-between px-5 py-4 border-b border-slate-100">
+          <h2 className="text-inherit font-black text-[17px]">تعديل الملف الشخصي</h2>
+          <button onClick={onClose} aria-label="إغلاق" className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
         </div>
 
         <div className="p-5 space-y-6">
@@ -175,12 +175,12 @@ export default function ProfileEditor({
           {error && <div className="rounded-xl bg-red-50 border border-red-200 px-3.5 py-2.5 text-[13px] font-bold text-red-700">{error}</div>}
         </div>
 
-        <div className="sticky bottom-0 bg-white border-t border-stone-100 p-4 flex gap-2">
+        <div className="sticky bottom-0 bg-white border-t border-slate-100 p-4 flex gap-2">
           <button onClick={save} disabled={busy}
-                  className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-stone-900 text-white text-sm font-black hover:bg-stone-800 transition disabled:opacity-50">
+                  className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-900 text-white text-sm font-black hover:bg-slate-800 transition disabled:opacity-50">
             {busy && <Loader2 size={16} className="animate-spin" />} حفظ الملف
           </button>
-          <button onClick={onClose} className="px-5 py-3 rounded-xl border border-stone-300 text-stone-600 text-sm font-bold hover:bg-stone-50">
+          <button onClick={onClose} className="px-5 py-3 rounded-xl border border-slate-300 text-slate-600 text-sm font-bold hover:bg-slate-50">
             إلغاء
           </button>
         </div>
@@ -192,8 +192,8 @@ export default function ProfileEditor({
 /* ── Form primitives ─────────────────────────────────── */
 
 const inp =
-  'w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-[14px] font-semibold ' +
-  'focus:outline-none focus:border-stone-900 focus:ring-2 focus:ring-stone-900/10 transition'
+  'w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-[14px] font-semibold ' +
+  'focus:outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 transition'
 
 function upd<T>(arr: T[], i: number, patch: Partial<T>): T[] {
   return arr.map((x, j) => (j === i ? { ...x, ...patch } : x))
@@ -202,7 +202,7 @@ function upd<T>(arr: T[], i: number, patch: Partial<T>): T[] {
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
-      <h3 className="text-[12px] font-black text-stone-400 uppercase tracking-wider">{title}</h3>
+      <h3 className="text-[12px] font-black text-slate-400 uppercase tracking-wider">{title}</h3>
       {children}
     </section>
   )
@@ -211,8 +211,8 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="block text-[12px] font-black text-stone-600 mb-1.5">
-        {label}{hint && <span className="text-stone-400 font-semibold"> — {hint}</span>}
+      <span className="block text-[12px] font-black text-slate-600 mb-1.5">
+        {label}{hint && <span className="text-slate-400 font-semibold"> — {hint}</span>}
       </span>
       {children}
     </label>
@@ -223,7 +223,7 @@ function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; c
   return (
     <button onClick={onClick}
       className={`px-3.5 py-1.5 rounded-full text-[12.5px] font-bold border transition ${
-        on ? 'bg-stone-900 text-white border-stone-900' : 'bg-white text-stone-600 border-stone-300 hover:border-stone-400'}`}>
+        on ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-slate-300 hover:border-slate-400'}`}>
       {children}
     </button>
   )
@@ -231,9 +231,9 @@ function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; c
 
 function Row({ children, onRemove }: { children: React.ReactNode; onRemove: () => void }) {
   return (
-    <div className="relative rounded-xl border border-stone-200 p-3 pt-3">
+    <div className="relative rounded-xl border border-slate-200 p-3 pt-3">
       <button onClick={onRemove} aria-label="حذف"
-              className="absolute top-2 left-2 text-stone-300 hover:text-red-500 transition">
+              className="absolute top-2 left-2 text-slate-300 hover:text-red-500 transition">
         <Trash2 size={14} />
       </button>
       {children}
@@ -244,7 +244,7 @@ function Row({ children, onRemove }: { children: React.ReactNode; onRemove: () =
 function AddBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
   return (
     <button onClick={onClick}
-      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-dashed border-stone-300 text-stone-500 text-[13px] font-bold hover:border-stone-500 hover:text-stone-700 transition">
+      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-dashed border-slate-300 text-slate-500 text-[13px] font-bold hover:border-slate-500 hover:text-slate-700 transition">
       <Plus size={14} /> {children}
     </button>
   )
@@ -264,10 +264,10 @@ function Tags({
       {items.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-2">
           {items.map(i => (
-            <span key={i} className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 text-stone-700 text-[12.5px] font-bold">
+            <span key={i} className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-[12.5px] font-bold">
               {i}
               <button onClick={() => setItems(items.filter(x => x !== i))} aria-label={`حذف ${i}`}
-                      className="text-stone-400 hover:text-red-500"><X size={12} /></button>
+                      className="text-slate-400 hover:text-red-500"><X size={12} /></button>
             </span>
           ))}
         </div>
@@ -276,7 +276,7 @@ function Tags({
         <input value={input} onChange={e => setInput(e.target.value)}
                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add() } }}
                className={inp} placeholder={placeholder} />
-        <button onClick={add} className="px-3.5 rounded-xl border border-stone-300 text-stone-600 hover:bg-stone-50 transition" aria-label="إضافة">
+        <button onClick={add} className="px-3.5 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-50 transition" aria-label="إضافة">
           <Plus size={16} />
         </button>
       </div>

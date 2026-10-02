@@ -25,9 +25,9 @@ export const VIZ = {
   present: '#0ca30c',
   late:    '#2a78d6',
   absent:  '#d03b3b',
-  grid:    '#e7e5e4',
-  ink:     '#1c1917',
-  muted:   '#a8a29e',
+  grid:    '#E2E8F0',
+  ink:     '#1E3A8A',
+  muted:   '#94A3B8',
 } as const
 
 /* ── Bar chart: counts over a short window ─────────────── */
@@ -79,14 +79,14 @@ export function BarChart({
       {/* labels live in HTML so they never distort with preserveAspectRatio */}
       <div className="flex mt-1">
         {data.map((d, i) => (
-          <div key={i} className="text-center text-[10px] font-bold text-stone-400 truncate" style={{ width: `${barW}%` }}>
+          <div key={i} className="text-center text-[10px] font-bold text-slate-400 truncate" style={{ width: `${barW}%` }}>
             {d.label}
           </div>
         ))}
       </div>
 
       {hover !== null && (
-        <div className="absolute -top-1 right-0 bg-stone-900 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg pointer-events-none">
+        <div className="absolute -top-1 right-0 bg-slate-900 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg pointer-events-none">
           {data[hover].label}: {data[hover].value}{unit}
         </div>
       )}
@@ -107,7 +107,7 @@ export function AreaTrend({
   const gid = useId().replace(/:/g, '')
   const [hover, setHover] = useState<number | null>(null)
   const { ref, seen } = useInView<HTMLDivElement>()
-  if (data.length < 2) return <div className="h-[120px] flex items-center justify-center text-[12px] font-bold text-stone-300">لا بيانات كافية بعد</div>
+  if (data.length < 2) return <div className="h-[120px] flex items-center justify-center text-[12px] font-bold text-slate-300">لا بيانات كافية بعد</div>
 
   const max  = Math.max(1, ...data.map(d => d.value))
   const pad  = 10
@@ -150,13 +150,13 @@ export function AreaTrend({
         )}
       </svg>
 
-      <div className="flex mt-1 justify-between text-[10px] font-bold text-stone-400">
+      <div className="flex mt-1 justify-between text-[10px] font-bold text-slate-400">
         <span>{data[0].label}</span>
         <span>{data[data.length - 1].label}</span>
       </div>
 
       {hover !== null && (
-        <div className="absolute -top-1 right-0 bg-stone-900 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg pointer-events-none">
+        <div className="absolute -top-1 right-0 bg-slate-900 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg pointer-events-none">
           {data[hover].label}: {data[hover].value}{unit}
         </div>
       )}
@@ -178,7 +178,7 @@ export function AttendanceBar({
   ].filter(r => r.value > 0)
 
   if (total === 0) {
-    return <div className="py-8 text-center text-[12.5px] font-bold text-stone-300">لم يُسجَّل حضور بعد</div>
+    return <div className="py-8 text-center text-[12.5px] font-bold text-slate-300">لم يُسجَّل حضور بعد</div>
   }
 
   return (
@@ -203,8 +203,8 @@ export function AttendanceBar({
         {rows.map(r => (
           <div key={r.key} className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-sm" style={{ background: r.color }} />
-            <span className="text-[12px] font-bold text-stone-600">{r.label}</span>
-            <span className="text-[12px] font-black text-stone-900 tabular-nums">
+            <span className="text-[12px] font-bold text-slate-600">{r.label}</span>
+            <span className="text-[12px] font-black text-slate-900 tabular-nums">
               {Math.round((r.value / total) * 100)}%
             </span>
           </div>
@@ -236,7 +236,7 @@ export function Ring({
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <Counter value={Math.round(clamped)} suffix="%" className="text-[19px] font-black leading-none" />
-        {label && <span className="text-[9.5px] font-bold text-stone-400 mt-0.5">{label}</span>}
+        {label && <span className="text-[9.5px] font-bold text-slate-400 mt-0.5">{label}</span>}
       </div>
     </div>
   )
@@ -256,7 +256,7 @@ export function Donut({
   const total = rows.reduce((a, d) => a + d.value, 0)
 
   if (total === 0) {
-    return <div className="py-10 text-center text-[12.5px] font-bold text-stone-300">لا بيانات بعد</div>
+    return <div className="py-10 text-center text-[12.5px] font-bold text-slate-300">لا بيانات بعد</div>
   }
 
   const r = (size - 22) / 2
@@ -292,8 +292,8 @@ export function Donut({
         {rows.map((d, i) => (
           <div key={i} className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ background: SLICE[i] }} />
-            <span className="text-[12.5px] font-bold text-stone-600">{d.label}</span>
-            <span className="text-[12.5px] font-black text-stone-900 tabular-nums mr-auto">
+            <span className="text-[12.5px] font-bold text-slate-600">{d.label}</span>
+            <span className="text-[12.5px] font-black text-slate-900 tabular-nums mr-auto">
               {d.value} · {Math.round((d.value / total) * 100)}%
             </span>
           </div>
@@ -311,14 +311,14 @@ export function HBars({
   const { ref, seen } = useInView<HTMLDivElement>()
   const max = Math.max(1, ...data.map(d => d.value))
   if (data.length === 0) {
-    return <div className="py-8 text-center text-[12.5px] font-bold text-stone-300">لا بيانات بعد</div>
+    return <div className="py-8 text-center text-[12.5px] font-bold text-slate-300">لا بيانات بعد</div>
   }
   return (
     <div className="space-y-2.5" ref={ref}>
       {data.map((d, i) => (
         <div key={d.label} className="flex items-center gap-2.5">
-          <span className="w-16 sm:w-20 text-[11.5px] font-bold text-stone-500 shrink-0 truncate">{d.label}</span>
-          <div className="flex-1 min-w-0 h-6 bg-stone-100 rounded-lg overflow-hidden">
+          <span className="w-16 sm:w-20 text-[11.5px] font-bold text-slate-500 shrink-0 truncate">{d.label}</span>
+          <div className="flex-1 min-w-0 h-6 bg-slate-100 rounded-lg overflow-hidden">
             <div className="h-full rounded-lg"
                  style={{
                    width: seen ? `${Math.max(4, (d.value / max) * 100)}%` : '0%',
@@ -327,7 +327,7 @@ export function HBars({
                  }} />
           </div>
           {/* the value sits outside the bar — inside, a short bar clipped it */}
-          <span className="w-9 text-[11.5px] font-black text-stone-700 tabular-nums shrink-0 text-left">
+          <span className="w-9 text-[11.5px] font-black text-slate-700 tabular-nums shrink-0 text-left">
             {d.value}{unit}
           </span>
         </div>

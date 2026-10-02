@@ -7,12 +7,12 @@ import { Counter, Reveal } from './_motion'
 /* Shared surfaces for the teaching space. White sheets on a warm desk; colour is
    structural, never decorative. Shared by every page in the space. */
 
-/** The surface everything sits on: a white sheet with a warm hairline, flat
- *  against the desk. The shadow is gone — lift was the old vocabulary, and a
- *  page of lifted cards reads as a tray of boxes rather than a document. */
+/** The surface everything sits on: a white card on the ivory ground with a
+ *  warm hairline and a soft, low shadow — the same card as the dashboard kit. */
 export function Card({ className = '', children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className={`bg-white rounded-2xl ring-1 ring-[#E4DFD5] ${className}`}>
+    <div className={`bg-white rounded-[22px] ring-1 ring-[#D6DFEC]
+                     shadow-[0_1px_3px_rgba(30,58,138,.10),0_12px_32px_-10px_rgba(30,58,138,.26)] ${className}`}>
       {children}
     </div>
   )
@@ -44,18 +44,18 @@ export function PageHero({
   action?: React.ReactNode
 }) {
   return (
-    <div className="pb-8 mb-2 border-b border-[#E4DFD5]">
+    <div className="pb-8 mb-2 border-b border-[#E2E8F0]">
       <div className="flex flex-wrap items-start gap-4">
         <div className="flex-1 min-w-[12rem]">
           <div className="flex items-center gap-2 mb-3">
-            <Icon size={14} className="text-[#A8A29E]" />
-            <span className="text-[12px] font-bold tracking-[.14em] uppercase text-[#A8A29E]">{TONE[tone].kicker}</span>
+            <Icon size={14} className="text-[#94A3B8]" />
+            <span className="text-[12px] font-bold tracking-[.14em] uppercase text-[#94A3B8]">{TONE[tone].kicker}</span>
           </div>
-          <h1 className="text-[30px] sm:text-[38px] font-extrabold tracking-tight leading-[1.15] text-[#1C1917]">
+          <h1 className="text-[30px] sm:text-[38px] font-extrabold tracking-tight leading-[1.15] text-[#1E3A8A]">
             {title}
           </h1>
           {subtitle && (
-            <p className="text-[#78716C] text-[14.5px] font-medium mt-2.5 max-w-[38rem] leading-snug">{subtitle}</p>
+            <p className="text-[#64748B] text-[14.5px] font-medium mt-2.5 max-w-[38rem] leading-snug">{subtitle}</p>
           )}
         </div>
         {action && <div className="shrink-0 pt-1">{action}</div>}
@@ -67,8 +67,8 @@ export function PageHero({
             <Reveal key={s.label} delay={i * 60}>
               <div className="min-w-[7rem]">
                 <Counter value={s.value} suffix={s.suffix}
-                         className="block text-[30px] sm:text-[34px] font-extrabold tracking-tight leading-none text-[#1C1917]" />
-                <div className="text-[12px] font-semibold text-[#8A8377] mt-2">{s.label}</div>
+                         className="block text-[30px] sm:text-[34px] font-extrabold tracking-tight leading-none text-[#1E3A8A]" />
+                <div className="text-[12px] font-semibold text-[#64748B] mt-2">{s.label}</div>
               </div>
             </Reveal>
           ))}
@@ -96,7 +96,7 @@ export function DemoBanner() {
 export function SectionTitle({ children, action }: { children: React.ReactNode; action?: React.ReactNode }) {
   return (
     <div className="flex items-end justify-between gap-3 mb-3">
-      <h2 className="text-[16px] font-bold tracking-tight text-[#1C1917]">{children}</h2>
+      <h2 className="text-[16px] font-bold tracking-tight text-[#1E3A8A]">{children}</h2>
       {action}
     </div>
   )
@@ -109,7 +109,7 @@ export function StatTile({
   tone?: 'neutral' | 'amber' | 'good' | 'alert'
 }) {
   const tones = {
-    neutral: 'bg-[#F6F4EF] text-[#57534E]',
+    neutral: 'bg-[#F4F7FC] text-[#475569]',
     amber:   'bg-amber-50 text-amber-700',
     good:    'bg-emerald-50 text-emerald-700',
     alert:   'bg-rose-50 text-rose-700',
@@ -120,9 +120,9 @@ export function StatTile({
         <Icon size={19} />
       </div>
       <div className="min-w-0">
-        <div className="text-[11.5px] font-medium text-[#78716C] truncate">{label}</div>
-        <div className="text-[22px] font-bold leading-tight tabular-nums text-[#1C1917]">{value}</div>
-        {sub && <div className="text-[11px] text-[#A8A29E] font-medium truncate">{sub}</div>}
+        <div className="text-[11.5px] font-medium text-[#64748B] truncate">{label}</div>
+        <div className="text-[22px] font-bold leading-tight tabular-nums text-[#1E3A8A]">{value}</div>
+        {sub && <div className="text-[11px] text-[#94A3B8] font-medium truncate">{sub}</div>}
       </div>
     </Card>
   )
@@ -135,7 +135,7 @@ export function Stars({ value, size = 14 }: { value: number; size?: number }) {
         <Star
           key={i}
           size={size}
-          className={i <= Math.round(value) ? 'fill-amber-500 text-amber-500' : 'text-[#D6D3D1]'}
+          className={i <= Math.round(value) ? 'fill-amber-500 text-amber-500' : 'text-[#CBD5E1]'}
         />
       ))}
     </span>
@@ -145,11 +145,11 @@ export function Stars({ value, size = 14 }: { value: number; size?: number }) {
 export function Empty({ icon: Icon, title, hint }: { icon: LucideIcon; title: string; hint?: string }) {
   return (
     <div className="py-14 text-center">
-      <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-[#F1EDE4] flex items-center justify-center text-[#A8A29E]">
+      <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-[#EEF2F7] flex items-center justify-center text-[#94A3B8]">
         <Icon size={24} />
       </div>
-      <div className="font-bold text-[#1C1917]">{title}</div>
-      {hint && <div className="text-[13px] text-[#78716C] mt-1 max-w-sm mx-auto">{hint}</div>}
+      <div className="font-bold text-[#1E3A8A]">{title}</div>
+      {hint && <div className="text-[13px] text-[#64748B] mt-1 max-w-sm mx-auto">{hint}</div>}
     </div>
   )
 }
@@ -158,9 +158,9 @@ export function Pill({ tone, children }: { tone: 'scheduled' | 'live' | 'done' |
   const tones = {
     scheduled: 'bg-sky-50 text-sky-700 border-sky-200',
     live:      'bg-emerald-50 text-emerald-700 border-emerald-200',
-    done:      'bg-[#F6F4EF] text-[#78716C] border-[#E7E2D8]',
+    done:      'bg-[#F4F7FC] text-[#64748B] border-[#E2E8F0]',
     cancelled: 'bg-rose-50 text-rose-700 border-rose-200',
-    muted:     'bg-[#F6F4EF] text-[#78716C] border-[#E7E2D8]',
+    muted:     'bg-[#F4F7FC] text-[#64748B] border-[#E2E8F0]',
   }
   return (
     <span className={`inline-block px-2.5 py-1 rounded-full border text-[11px] font-bold ${tones[tone]}`}>

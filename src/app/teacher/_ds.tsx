@@ -10,22 +10,22 @@ import type { LucideIcon } from 'lucide-react'
  * These are the primitives the section pages still lean on, brought into the
  * editorial language that _paper.tsx sets. The names and signatures did not
  * change, so no page had to be rewritten to follow — but what they render did:
- *   1. Flat. A surface is a white sheet with a warm hairline. No shadow, no
- *      lift, no glow — depth was the old vocabulary.
+ *   1. A surface is a white card on the ivory ground: a warm hairline and one
+ *      soft, low shadow — the same card as the dashboard kit (_kit.tsx).
  *   2. A heading is a small-caps label, not a coloured tile with a title
  *      beside it. It names the band and gets out of the way.
  *   3. A stat is a figure said at size, not a card. The number is the point;
  *      the box around it never was.
- *   4. Ink is brown-black. #1C1917 on warm off-white is the contrast of print.
+ *   4. Ink is brown-black. #1E3A8A on warm off-white is the contrast of print.
  *   5. Colour identifies and nothing else — an edge tab, a bar, a chip.
  */
 
 export const T = {
-  bg:    '#F6F4EF',
+  bg:    '#F4F7FC',
   card:  '#FFFFFF',
-  line:  '#E7E2D8',
-  text:  '#1C1917',
-  muted: '#78716C',
+  line:  '#E2E8F0',
+  text:  '#1E3A8A',
+  muted: '#64748B',
   prim:  '#6D28D9',
   sec:   '#7C3AED',
   acc:   '#0369A1',
@@ -120,9 +120,10 @@ export function Panel({
   return (
     <div
       className={[
-        // Flat. Depth was the old language; paper sits on the desk.
-        'relative overflow-hidden rounded-2xl bg-white ring-1 ring-[#E4DFD5]',
-        hover ? 'transition-colors duration-200 hover:ring-[#C9C2B2]' : '',
+        // The dashboard card: white on ivory, a warm hairline, a soft low shadow.
+        'relative overflow-hidden rounded-[22px] bg-white ring-1 ring-[#D6DFEC]',
+        'shadow-[0_1px_3px_rgba(30,58,138,.10),0_12px_32px_-10px_rgba(30,58,138,.26)]',
+        hover ? 'transition-colors duration-200 hover:ring-[#CBD5E1]' : '',
         className,
       ].join(' ')}
     >
@@ -145,9 +146,9 @@ export function Head({
 }) {
   return (
     <div className="flex items-baseline gap-3 mb-6">
-      <Icon size={14} className="text-[#A8A29E] shrink-0 self-center" />
-      <h2 className="text-[13px] font-bold tracking-[.14em] uppercase text-[#A8A29E] leading-none">{title}</h2>
-      {note && <span className="text-[12px] text-[#C4BEB2] truncate">{note}</span>}
+      <Icon size={14} className="text-[#94A3B8] shrink-0 self-center" />
+      <h2 className="text-[13px] font-bold tracking-[.14em] uppercase text-[#94A3B8] leading-none">{title}</h2>
+      {note && <span className="text-[12px] text-[#CBD5E1] truncate">{note}</span>}
       {action && <div className="mr-auto shrink-0">{action}</div>}
     </div>
   )
@@ -187,8 +188,8 @@ export function Stat({
     <Rise i={i}>
       <div className="h-full py-1">
         <div className="flex items-center gap-2 mb-3">
-          <Icon size={14} className="text-[#A8A29E]" />
-          <span className="text-[11.5px] font-bold tracking-[.1em] uppercase text-[#A8A29E]">{label}</span>
+          <Icon size={14} className="text-[#94A3B8]" />
+          <span className="text-[11.5px] font-bold tracking-[.1em] uppercase text-[#94A3B8]">{label}</span>
           {delta !== undefined && (
             <span className={`text-[11px] font-bold tabular-nums ${
               delta >= 0 ? 'text-[#047857]' : 'text-[#B91C1C]'}`}>
@@ -197,7 +198,7 @@ export function Stat({
           )}
         </div>
         <Count value={value} decimals={decimals} prefix={prefix} suffix={suffix}
-               className="block text-[34px] sm:text-[40px] font-extrabold tracking-tight text-[#1C1917] leading-none" />
+               className="block text-[34px] sm:text-[40px] font-extrabold tracking-tight text-[#1E3A8A] leading-none" />
         {foot && <div className="mt-3">{foot}</div>}
       </div>
     </Rise>
@@ -210,7 +211,7 @@ export function Bar({ pct, grad = 'violet', height = 6 }: { pct: number; grad?: 
   const ref = useRef<HTMLDivElement | null>(null)
   const seen = useSeen(ref)
   return (
-    <div ref={ref} className="w-full rounded-full bg-[#EAE5DA] overflow-hidden" style={{ height }}>
+    <div ref={ref} className="w-full rounded-full bg-[#EEF2F7] overflow-hidden" style={{ height }}>
       <motion.div
         className={`h-full rounded-full bg-gradient-to-l ${GRAD[grad]}`}
         initial={{ width: 0 }}
@@ -243,7 +244,7 @@ export function Dial({
             <stop offset="100%" stopColor={stops[grad][1]} />
           </linearGradient>
         </defs>
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#EAE5DA" strokeWidth="8" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#EEF2F7" strokeWidth="8" />
         <motion.circle
           cx={size / 2} cy={size / 2} r={r} fill="none" stroke={`url(#${gid})`} strokeWidth="8"
           strokeLinecap="round" strokeDasharray={c}
@@ -253,8 +254,8 @@ export function Dial({
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <Count value={pct} suffix="%" className="text-[22px] font-bold text-[#1C1917] leading-none" />
-        {label && <span className="text-[10px] font-medium text-[#78716C] mt-1">{label}</span>}
+        <Count value={pct} suffix="%" className="text-[22px] font-bold text-[#1E3A8A] leading-none" />
+        {label && <span className="text-[10px] font-medium text-[#64748B] mt-1">{label}</span>}
       </div>
     </div>
   )
@@ -266,7 +267,7 @@ export function Chip({
   children, tone = 'muted',
 }: { children: React.ReactNode; tone?: 'muted' | 'violet' | 'sky' | 'ok' | 'warn' | 'bad' }) {
   const tones: Record<string, string> = {
-    muted:  'bg-white text-[#57534E] ring-[#E4DFD5]',
+    muted:  'bg-white text-[#475569] ring-[#E2E8F0]',
     violet: TINT.violet,
     sky:    TINT.sky,
     ok:     TINT.emerald,
@@ -294,7 +295,7 @@ export function Action({
       whileTap={{ scale: 0.97 }}
       transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       className={`${full ? 'w-full' : ''} inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full
-                  bg-[#1C1917] text-white text-[13px] font-bold hover:bg-[#292524] transition-colors`}
+                  bg-gradient-to-l from-blue-600 to-blue-800 text-white text-[13px] font-bold hover:from-blue-500 hover:to-blue-700 transition-colors`}
     >
       {Icon && <Icon size={15} />}
       {children}
@@ -314,8 +315,8 @@ export function Ghost({
       whileTap={{ scale: 0.97 }}
       transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       className={`${full ? 'w-full' : ''} inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full
-                  bg-white ring-1 ring-[#E4DFD5] text-[#44403C] text-[13px] font-bold
-                  hover:ring-[#1C1917] hover:text-[#1C1917] transition-colors`}
+                  bg-white ring-1 ring-[#E2E8F0] text-[#334155] text-[13px] font-bold
+                  hover:ring-[#1E3A8A] hover:text-[#1E3A8A] transition-colors`}
     >
       {Icon && <Icon size={15} />}
       {children}

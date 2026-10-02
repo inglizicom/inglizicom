@@ -39,7 +39,7 @@ export default function TeacherReportsPage() {
   useEffect(() => { load() }, [load])
 
   if (loading) {
-    return <div className="py-32 flex justify-center text-stone-400"><Loader2 size={20} className="animate-spin" /></div>
+    return <div className="py-32 flex justify-center text-slate-400"><Loader2 size={20} className="animate-spin" /></div>
   }
 
   return (
@@ -70,7 +70,7 @@ export default function TeacherReportsPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-black text-[14.5px] truncate">{s.title}</div>
-                  <div className="text-[11.5px] text-stone-400 font-semibold">{fmtDateTime(s.starts_at)}</div>
+                  <div className="text-[11.5px] text-slate-400 font-semibold">{fmtDateTime(s.starts_at)}</div>
                 </div>
                 <span className="text-[12.5px] font-bold text-red-600 shrink-0">اكتب التقرير</span>
                 <ChevronLeft size={17} className="text-red-300 shrink-0" />
@@ -101,7 +101,7 @@ export default function TeacherReportsPage() {
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div className="min-w-0">
                         <div className="font-black text-[15px] truncate">{s?.title ?? 'حصة'}</div>
-                        <div className="text-[11.5px] text-stone-400 font-semibold">
+                        <div className="text-[11.5px] text-slate-400 font-semibold">
                           {s ? fmtDateTime(s.starts_at) : new Date(r.submitted_at).toLocaleDateString('ar-MA')}
                         </div>
                       </div>
@@ -111,9 +111,9 @@ export default function TeacherReportsPage() {
                         </span>
                       )}
                     </div>
-                    <p className="text-[13.5px] text-stone-600 leading-relaxed line-clamp-2">{r.covered}</p>
+                    <p className="text-[13.5px] text-slate-600 leading-relaxed line-clamp-2">{r.covered}</p>
                     {r.homework && (
-                      <p className="text-[12.5px] text-stone-400 font-semibold mt-2 truncate">
+                      <p className="text-[12.5px] text-slate-400 font-semibold mt-2 truncate">
                         الواجب: {r.homework}
                       </p>
                     )}

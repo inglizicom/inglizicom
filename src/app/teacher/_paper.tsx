@@ -23,11 +23,11 @@ export function Band({
   children: React.ReactNode; id?: string
 }) {
   return (
-    <section id={id} className="py-10 sm:py-12 border-t border-[#E4DFD5] first:border-t-0 first:pt-0">
+    <section id={id} className="py-10 sm:py-12 border-t border-[#E2E8F0] first:border-t-0 first:pt-0">
       {(title || action) && (
         <div className="flex items-baseline gap-3 mb-7">
-          {title && <h2 className="text-[13px] font-bold tracking-[.14em] uppercase text-[#A8A29E]">{title}</h2>}
-          {note && <span className="text-[12px] text-[#C4BEB2]">{note}</span>}
+          {title && <h2 className="text-[13px] font-bold tracking-[.14em] uppercase text-[#94A3B8]">{title}</h2>}
+          {note && <span className="text-[12px] text-[#CBD5E1]">{note}</span>}
           {action && <div className="mr-auto shrink-0">{action}</div>}
         </div>
       )}
@@ -47,12 +47,12 @@ export function Figure({
     <div className="flex-1 min-w-[8rem]">
       <div className="flex items-baseline gap-1">
         <span className={`text-[36px] sm:text-[44px] font-extrabold tracking-tight leading-none tabular-nums
-                          ${tone === 'alert' ? 'text-[#B91C1C]' : 'text-[#1C1917]'}`}>
+                          ${tone === 'alert' ? 'text-[#B91C1C]' : 'text-[#1E3A8A]'}`}>
           {value}
         </span>
-        {unit && <span className="text-[15px] font-bold text-[#A8A29E]">{unit}</span>}
+        {unit && <span className="text-[15px] font-bold text-[#94A3B8]">{unit}</span>}
       </div>
-      <div className="text-[12.5px] font-semibold text-[#8A8377] mt-2">{label}</div>
+      <div className="text-[12.5px] font-semibold text-[#64748B] mt-2">{label}</div>
     </div>
   )
 }
@@ -63,15 +63,15 @@ export function TagRow({
 }: { label: string; items: string[]; muted?: boolean }) {
   if (!items || items.length === 0) return null
   return (
-    <div className="py-4 border-b border-[#EFEBE2] last:border-b-0">
-      <div className="text-[11.5px] font-bold tracking-[.1em] uppercase text-[#B5AFA3] mb-2.5">{label}</div>
+    <div className="py-4 border-b border-[#EEF2F7] last:border-b-0">
+      <div className="text-[11.5px] font-bold tracking-[.1em] uppercase text-[#94A3B8] mb-2.5">{label}</div>
       <div className="flex flex-wrap gap-x-2.5 gap-y-2">
         {items.map(t => (
           <span key={t}
                 className={`text-[14.5px] font-semibold leading-none px-3 py-2 rounded-full
                             ${muted
-                              ? 'text-[#8A8377] bg-[#F2EFE8] line-through decoration-[#D6CFC0]'
-                              : 'text-[#292524] bg-white ring-1 ring-[#E4DFD5]'}`}>
+                              ? 'text-[#64748B] bg-[#EEF2F7] line-through decoration-[#CBD5E1]'
+                              : 'text-[#334155] bg-white ring-1 ring-[#E2E8F0]'}`}>
             {t}
           </span>
         ))}
@@ -83,7 +83,7 @@ export function TagRow({
 /** The opening sentence of a page — the one thing worth saying at full size. */
 export function Lede({ children }: { children: React.ReactNode }) {
   return (
-    <h1 className="text-[30px] sm:text-[42px] font-extrabold tracking-tight leading-[1.15] max-w-[38rem]">
+    <h1 className="text-inherit text-[30px] sm:text-[42px] font-extrabold tracking-tight leading-[1.15] max-w-[38rem]">
       {children}
     </h1>
   )
@@ -98,9 +98,9 @@ export function Notice({
   const alert = tone === 'alert'
   return (
     <div className={`flex items-center gap-3 py-3.5 px-4 rounded-xl
-                     ${alert ? 'bg-[#FEF2F2] ring-1 ring-[#FECACA]' : 'bg-white ring-1 ring-[#E4DFD5]'}`}>
-      {Icon && <Icon size={16} className={alert ? 'text-[#B91C1C] shrink-0' : 'text-[#8A8377] shrink-0'} />}
-      <div className={`text-[13.5px] font-semibold leading-snug ${alert ? 'text-[#991B1B]' : 'text-[#44403C]'}`}>
+                     ${alert ? 'bg-[#FEF2F2] ring-1 ring-[#FECACA]' : 'bg-white ring-1 ring-[#E2E8F0]'}`}>
+      {Icon && <Icon size={16} className={alert ? 'text-[#B91C1C] shrink-0' : 'text-[#64748B] shrink-0'} />}
+      <div className={`text-[13.5px] font-semibold leading-snug ${alert ? 'text-[#991B1B]' : 'text-[#334155]'}`}>
         {children}
       </div>
       {action && <div className="mr-auto shrink-0">{action}</div>}
@@ -111,8 +111,8 @@ export function Notice({
 /** Text link that reads as a link without a button pretending to be one. */
 export function TextLink({ children }: { children: React.ReactNode }) {
   return (
-    <span className="text-[12.5px] font-bold text-[#44403C] border-b-2 border-[#D6CFC0] pb-0.5
-                     hover:border-[#1C1917] hover:text-[#1C1917] transition-colors">
+    <span className="text-[12.5px] font-bold text-[#334155] border-b-2 border-[#CBD5E1] pb-0.5
+                     hover:border-[#1E3A8A] hover:text-[#1E3A8A] transition-colors">
       {children}
     </span>
   )

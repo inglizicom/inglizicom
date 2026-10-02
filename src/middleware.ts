@@ -81,8 +81,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.rewrite(url)
   }
 
-  // ── Teacher space subdomain ───────────────────────────────
-  // teacher.inglizi.com → /teacher/*  (its own dashboard, not the CRM)
+  // ── Teacher public directory + private workspace ──────────
+  // teacher.inglizi.com/ is the public directory. /teacher/* stays guarded.
   const isTeacherHost =
     host === 'teacher.inglizi.com' ||
     host === 'teachers.inglizi.com' ||          // plural kept as an alias only
@@ -99,6 +99,11 @@ export function middleware(request: NextRequest) {
       pathname.startsWith('/teacher')
     ) {
       return NextResponse.next()
+    }
+    if (pathname === '/') {
+      const url = request.nextUrl.clone()
+      url.pathname = '/teacher-showcase'
+      return NextResponse.rewrite(url)
     }
     // Everything else maps under /teacher, so the browser URL stays clean:
     // teacher.inglizi.com/classes → /teacher/classes

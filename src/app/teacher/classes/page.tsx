@@ -35,6 +35,11 @@ export default function TeacherClassesPage() {
 
   useEffect(() => { load() }, [load])
 
+  // "إضافة درس" on the dashboard lands here with ?new=1 — open the form straight away.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('new') === '1') setAdding(true)
+  }, [])
+
   const now      = Date.now()
   const upcoming = sessions.filter(s => new Date(s.starts_at).getTime() >= now - 3600_000 && s.status !== 'cancelled')
   const past     = sessions.filter(s => new Date(s.starts_at).getTime() <  now - 3600_000 || s.status === 'cancelled')
@@ -64,7 +69,7 @@ export default function TeacherClassesPage() {
         action={
           <button
             onClick={() => !demo && setAdding(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-stone-900 text-[13px] font-black hover:bg-stone-100 transition shadow disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-slate-900 text-[13px] font-black hover:bg-slate-100 transition shadow disabled:opacity-50"
             disabled={demo}
           >
             <CalendarPlus size={16} /> برمج حصة
@@ -78,7 +83,7 @@ export default function TeacherClassesPage() {
             key={key}
             onClick={() => setTab(key)}
             className={`px-4 py-2 rounded-xl text-[13px] font-bold transition ${
-              tab === key ? 'bg-stone-900 text-white' : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-50'}`}
+              tab === key ? 'bg-slate-900 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}
           >
             {label}
           </button>
@@ -86,7 +91,7 @@ export default function TeacherClassesPage() {
       </div>
 
       {loading ? (
-        <div className="py-24 flex justify-center text-stone-400"><Loader2 size={20} className="animate-spin" /></div>
+        <div className="py-24 flex justify-center text-slate-400"><Loader2 size={20} className="animate-spin" /></div>
       ) : shown.length === 0 ? (
         <Card>
           <Empty
@@ -100,12 +105,12 @@ export default function TeacherClassesPage() {
           {Object.entries(byDay).map(([day, rows]) => (
             <div key={day}>
               <SectionTitle>{fmtDate(rows[0].starts_at)}</SectionTitle>
-              <Card className="divide-y divide-stone-100">
+              <Card className="divide-y divide-slate-100">
                 {rows.map(s => (
-                  <Link key={s.id} href={`/teacher/classes/${s.id}`} className="flex items-center gap-4 px-5 py-4 hover:bg-stone-50 transition">
+                  <Link key={s.id} href={`/teacher/classes/${s.id}`} className="flex items-center gap-4 px-5 py-4 hover:bg-slate-50 transition">
                     <div className="w-14 shrink-0">
                       <div className="text-[15px] font-black tabular-nums">{fmtTime(s.starts_at)}</div>
-                      <div className="text-[11px] text-stone-400 font-bold">{s.duration_min} د</div>
+                      <div className="text-[11px] text-slate-400 font-bold">{s.duration_min} د</div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-black text-[15px] truncate">{s.title}</div>
@@ -122,7 +127,7 @@ export default function TeacherClassesPage() {
                         <Video size={14} /> رابط جاهز
                       </span>
                     )}
-                    <ChevronLeft size={18} className="text-stone-300 shrink-0" />
+                    <ChevronLeft size={18} className="text-slate-300 shrink-0" />
                   </Link>
                 ))}
               </Card>
@@ -188,40 +193,40 @@ function NewSessionModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="absolute inset-0 bg-stone-900/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl border border-stone-200 shadow-xl max-h-[92vh] overflow-y-auto">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-stone-100 sticky top-0 bg-white">
-          <h2 className="font-black text-[16px]">حصة جديدة</h2>
-          <button onClick={onClose} aria-label="إغلاق" className="text-stone-400 hover:text-stone-600"><X size={19} /></button>
+      <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl border border-slate-200 shadow-xl max-h-[92vh] overflow-y-auto">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 sticky top-0 bg-white">
+          <h2 className="text-inherit font-black text-[16px]">حصة جديدة</h2>
+          <button onClick={onClose} aria-label="إغلاق" className="text-slate-400 hover:text-slate-600"><X size={19} /></button>
         </div>
 
         <div className="p-5 space-y-4">
           <label className="block">
-            <span className="block text-[12px] font-black text-stone-500 mb-1.5">عنوان الحصة</span>
+            <span className="block text-[12px] font-black text-slate-500 mb-1.5">عنوان الحصة</span>
             <input value={title} onChange={e => setTitle(e.target.value)} className={inputCls} placeholder="مثلاً: الوحدة 3 — الماضي البسيط" />
           </label>
 
           {classes.length > 0 && (
             <label className="block">
-              <span className="block text-[12px] font-black text-stone-500 mb-1.5">القسم</span>
+              <span className="block text-[12px] font-black text-slate-500 mb-1.5">القسم</span>
               <select value={classId} onChange={e => setClassId(e.target.value)} className={inputCls}>
                 <option value="">بدون قسم (حصة مستقلة)</option>
                 {classes.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}
               </select>
-              {klass && <span className="block text-[11.5px] text-stone-400 font-semibold mt-1">الحضور سيكون لطلاب هذا القسم، والنوع والمستوى من القسم.</span>}
+              {klass && <span className="block text-[11.5px] text-slate-400 font-semibold mt-1">الحضور سيكون لطلاب هذا القسم، والنوع والمستوى من القسم.</span>}
             </label>
           )}
 
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="block text-[12px] font-black text-stone-500 mb-1.5">النوع</span>
+              <span className="block text-[12px] font-black text-slate-500 mb-1.5">النوع</span>
               <select value={klass ? klass.mode : mode} disabled={!!klass} onChange={e => setMode(e.target.value as 'group' | 'private')} className={inputCls}>
                 <option value="group">جماعية</option>
                 <option value="private">فردية</option>
               </select>
             </label>
             <label className="block">
-              <span className="block text-[12px] font-black text-stone-500 mb-1.5">المستوى</span>
+              <span className="block text-[12px] font-black text-slate-500 mb-1.5">المستوى</span>
               <select value={klass ? (klass.level ?? '') : level} disabled={!!klass} onChange={e => setLevel(e.target.value)} className={inputCls}>
                 <option value="">—</option>
                 {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
@@ -231,23 +236,23 @@ function NewSessionModal({
 
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="block text-[12px] font-black text-stone-500 mb-1.5">التاريخ</span>
+              <span className="block text-[12px] font-black text-slate-500 mb-1.5">التاريخ</span>
               <input type="date" value={date} onChange={e => setDate(e.target.value)} className={inputCls} />
             </label>
             <label className="block">
-              <span className="block text-[12px] font-black text-stone-500 mb-1.5">الوقت (توقيت المغرب)</span>
+              <span className="block text-[12px] font-black text-slate-500 mb-1.5">الوقت (توقيت المغرب)</span>
               <input type="time" value={time} onChange={e => setTime(e.target.value)} className={inputCls} />
             </label>
           </div>
 
           <label className="block">
-            <span className="block text-[12px] font-black text-stone-500 mb-1.5">المدة (دقيقة)</span>
+            <span className="block text-[12px] font-black text-slate-500 mb-1.5">المدة (دقيقة)</span>
             <input type="number" min={15} step={15} value={duration}
                    onChange={e => setDuration(parseInt(e.target.value) || 60)} className={inputCls} />
           </label>
 
           <label className="block">
-            <span className="block text-[12px] font-black text-stone-500 mb-1.5">رابط الحصة</span>
+            <span className="block text-[12px] font-black text-slate-500 mb-1.5">رابط الحصة</span>
             <input value={meetingUrl} onChange={e => setUrl(e.target.value)} dir="ltr"
                    className={`${inputCls} text-left`} placeholder="Google Meet · Zoom · WhatsApp" />
           </label>
@@ -258,7 +263,7 @@ function NewSessionModal({
 
           <button
             onClick={save} disabled={busy}
-            className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-stone-900 text-white text-sm font-black hover:bg-stone-800 transition disabled:opacity-60"
+            className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-900 text-white text-sm font-black hover:bg-slate-800 transition disabled:opacity-60"
           >
             {busy && <Loader2 size={16} className="animate-spin" />} حفظ الحصة
           </button>
@@ -269,5 +274,5 @@ function NewSessionModal({
 }
 
 const inputCls =
-  'w-full px-3.5 py-2.5 rounded-xl border border-stone-300 bg-white text-[14px] font-semibold ' +
-  'focus:outline-none focus:border-stone-900 focus:ring-2 focus:ring-stone-900/10 transition'
+  'w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-[14px] font-semibold ' +
+  'focus:outline-none focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 transition'

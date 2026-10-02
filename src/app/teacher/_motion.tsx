@@ -110,7 +110,7 @@ export function GrowBar({
 }: { pct: number; color: string; height?: number; className?: string }) {
   const { ref, seen } = useInView<HTMLDivElement>()
   return (
-    <div ref={ref} className={`w-full rounded-full bg-stone-100 overflow-hidden ${className}`} style={{ height }}>
+    <div ref={ref} className={`w-full rounded-full bg-slate-100 overflow-hidden ${className}`} style={{ height }}>
       <div
         className="h-full rounded-full"
         style={{
