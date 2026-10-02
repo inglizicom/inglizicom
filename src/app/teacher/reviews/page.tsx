@@ -114,7 +114,7 @@ export default function TeacherReviewsPage() {
       )}
 
       {/* ═══ The score, and how it was reached ═══ */}
-      <div className="grid lg:grid-cols-[1fr_1.2fr] gap-4 items-stretch [&>*]:min-w-0">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-4 items-stretch [&>*]:min-w-0">
 
         <Rise>
           <Panel glow="amber" className="p-6 sm:p-7 h-full flex flex-col justify-center text-center">

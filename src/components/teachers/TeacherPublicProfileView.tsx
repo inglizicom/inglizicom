@@ -150,7 +150,7 @@ export default function TeacherPublicProfileView({ teacher, demo = false }: {
   const outline = 'inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-[14px] font-bold text-blue-800 ring-1 ring-[#CBD5E1] transition hover:ring-blue-400 hover:bg-blue-50'
 
   return (
-    <main dir="rtl" className="min-h-screen bg-[#EEF3FA] font-paper text-[#334155] antialiased">
+    <main dir="rtl" className="min-h-screen overflow-x-clip bg-[#EEF3FA] font-paper text-[#334155] antialiased">
 
       {/* ══ Top bar — the site's blue header ══ */}
       <header className="sticky top-0 z-30 border-b border-amber-400/30 bg-gradient-to-l from-blue-700 to-blue-800 text-white">
@@ -180,7 +180,7 @@ export default function TeacherPublicProfileView({ teacher, demo = false }: {
 
         {/* ══ Hero card ══ */}
         <section className="mt-4 overflow-hidden rounded-[28px] bg-white ring-1 ring-[#D6DFEC] shadow-[0_2px_6px_rgba(30,58,138,.10),0_24px_50px_-16px_rgba(30,58,138,.32)]">
-          <div className="grid gap-6 bg-gradient-to-br from-blue-50 via-white to-amber-50/60 p-4 sm:p-6 lg:grid-cols-[300px_1fr] lg:gap-8">
+          <div className="grid grid-cols-1 gap-6 bg-gradient-to-br from-blue-50 via-white to-amber-50/60 p-4 sm:p-6 lg:grid-cols-[300px_1fr] lg:gap-8">
             {/* portrait */}
             <div className="relative mx-auto w-full max-w-[300px]">
               <div className="aspect-[4/5] overflow-hidden rounded-[22px] bg-gradient-to-br from-blue-100 to-blue-200 shadow-lg">
@@ -276,13 +276,13 @@ export default function TeacherPublicProfileView({ teacher, demo = false }: {
         </section>
 
         {/* ══ Tabs + content + sticky booking card ══ */}
-        <div className="mt-8 grid gap-6 lg:grid-cols-12">
+        <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-12">
           <div className="min-w-0 space-y-6 lg:col-span-8">
             <ProfileTabs tabs={tabs} />
 
             {/* about */}
             <section id="about" className="scroll-mt-32">
-              <div className="grid gap-6 md:grid-cols-[1fr_260px]">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_260px]">
                 <div>
                   <h2 className="text-[20px] font-extrabold tracking-tight text-[#1E3A8A]">تعرّف على {first}</h2>
                   <p className="mt-3 whitespace-pre-wrap text-[14.5px] leading-[1.95] text-[#475569]">

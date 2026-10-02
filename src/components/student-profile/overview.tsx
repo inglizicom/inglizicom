@@ -177,7 +177,7 @@ export function LearningState({ p }: { p: StudentProfile }) {
             </div>
           </div>
           <div className="mt-4"><Bar pct={l.progressPct} h="h-2.5" /></div>
-          <div className="mt-5 grid sm:grid-cols-3 gap-3">
+          <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="rounded-2xl bg-[#F8FAFC] ring-1 ring-[#E2E8F0] p-3.5">
               <div className="flex items-center gap-1.5 text-[11.5px] font-bold text-[#64748B]"><Target size={13} className="text-amber-500" /> المحطة القادمة</div>
               <div className="mt-1.5 text-[13px] font-bold text-[#1E3A8A] leading-snug">{l.nextMilestone ?? '—'}</div>

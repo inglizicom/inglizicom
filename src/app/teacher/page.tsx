@@ -238,34 +238,58 @@ export default function TeacherDashboard() {
       {myRank && (
         <Rise>
           <Link href="/teacher/leaderboard"
-                className="group flex flex-wrap items-center gap-4 rounded-[20px] bg-gradient-to-l from-blue-600 via-blue-700 to-blue-800 px-5 py-4 text-white
+                className="group block rounded-[20px] bg-gradient-to-l from-blue-600 via-blue-700 to-blue-800 p-4 text-white sm:px-5
                            shadow-[0_14px_34px_-14px_rgba(30,58,138,.55)] hover:shadow-[0_20px_44px_-14px_rgba(30,58,138,.65)] transition">
-            <span className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 text-blue-900 flex flex-col items-center justify-center shadow-lg shadow-amber-500/30 shrink-0">
-              <Trophy size={15} /><span className="text-[18px] font-black leading-none tabular-nums">#{myRank.rank}</span>
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="text-[15.5px] font-extrabold">ترتيبك في المنافسة: #{myRank.rank} من {board!.rows.length} · {myRank.score} نقطة</div>
-              <div className="mt-0.5 text-[12.5px] text-blue-100">
-                {myRank.is_top_rated
-                  ? <span className="inline-flex items-center gap-1 font-bold text-amber-200"><Crown size={13} /> من الأفضل تقييماً</span>
-                  : 'اجمع تقييمات أكثر لتصبح من «الأفضل تقييماً»'}
-                {leader && !leader.is_me && <> · المتصدر: {leader.name} ({leader.score} نقطة)</>}
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-5">
+              {/* rank + points */}
+              <div className="flex min-w-0 flex-1 items-center gap-3">
+                <span className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 text-blue-900 shadow-lg shadow-amber-500/30">
+                  <Trophy size={13} /><span className="text-[16px] font-black leading-none tabular-nums">#{myRank.rank}</span>
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[12px] font-bold text-blue-100">ترتيبك في المنافسة</div>
+                  <div className="text-[17px] font-extrabold leading-tight">
+                    <bdi className="text-amber-300">#{myRank.rank}</bdi>
+                    <span className="text-[13px] font-bold text-blue-100"> من <bdi>{board!.rows.length}</bdi></span>
+                    <span className="mx-1.5 text-blue-200">·</span>
+                    <bdi>{myRank.score}</bdi> <span className="text-[13px] font-bold text-blue-100">نقطة</span>
+                  </div>
+                  <div className="mt-0.5 truncate text-[11.5px] text-blue-100">
+                    {myRank.is_top_rated
+                      ? <span className="inline-flex items-center gap-1 font-bold text-amber-200"><Crown size={12} /> من الأفضل تقييماً</span>
+                      : 'اجمع تقييمات أكثر لتصبح من «الأفضل تقييماً»'}
+                    {leader && !leader.is_me && <> · المتصدر: {leader.name}</>}
+                  </div>
+                </div>
+                <ArrowLeft size={18} className="shrink-0 text-blue-100 lg:hidden" />
               </div>
+
+              {/* three figures, equal tiles */}
+              <div className="grid grid-cols-3 gap-2 lg:w-[360px]">
+                <div className="rounded-xl bg-white/10 px-2 py-2 text-center ring-1 ring-white/10">
+                  <div className="flex items-center justify-center gap-1 text-[16px] font-extrabold tabular-nums"><Radio size={13} className="text-emerald-300" />{myRank.live}</div>
+                  <div className="text-[10.5px] text-blue-100">متصلون الآن</div>
+                </div>
+                <div className="rounded-xl bg-white/10 px-2 py-2 text-center ring-1 ring-white/10">
+                  <div className="text-[16px] font-extrabold tabular-nums">{myRank.students}</div>
+                  <div className="text-[10.5px] text-blue-100">طلاب حاليون</div>
+                </div>
+                <div className="rounded-xl bg-white/10 px-2 py-2 text-center ring-1 ring-white/10">
+                  <div className="text-[16px] font-extrabold tabular-nums">{board?.me ? Number(board.me.roster_revenue).toLocaleString('en-US') : '—'}</div>
+                  <div className="text-[10.5px] text-blue-100">مدفوعات طلابك (د)</div>
+                </div>
+              </div>
+
+              <span className="hidden shrink-0 items-center gap-1 rounded-xl bg-white/15 px-3 py-2 text-[12.5px] font-bold transition group-hover:bg-white/25 lg:inline-flex">
+                عرض المنافسة <ArrowLeft size={14} />
+              </span>
             </div>
-            <div className="flex items-center gap-5 text-center">
-              <div><div className="flex items-center justify-center gap-1 text-[18px] font-extrabold tabular-nums"><Radio size={14} className="text-emerald-300" />{myRank.live}</div><div className="text-[11px] text-blue-100">متصلون الآن</div></div>
-              <div><div className="text-[18px] font-extrabold tabular-nums">{myRank.students}</div><div className="text-[11px] text-blue-100">طلاب حاليون</div></div>
-              {board?.me && <div><div className="text-[18px] font-extrabold tabular-nums">{Number(board.me.roster_revenue).toLocaleString('en-US')}</div><div className="text-[11px] text-blue-100">مدفوعات طلابك (د)</div></div>}
-            </div>
-            <span className="inline-flex items-center gap-1 rounded-xl bg-white/15 px-3 py-2 text-[12.5px] font-bold group-hover:bg-white/25 transition">
-              عرض المنافسة <ArrowLeft size={14} />
-            </span>
           </Link>
         </Rise>
       )}
 
       {/* ══ My groups + what needs me ══ */}
-      <div className="grid lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <Rise className="lg:col-span-8">
           <Surface className="p-5 sm:p-6 h-full">
             <SectionHead title="نظرة على أقسامي" href="/teacher/groups" link="كل الأقسام" />
@@ -276,7 +300,7 @@ export default function TeacherDashboard() {
                 <p className="text-[12px] text-[#94A3B8] mt-1">تُسنَد الأقسام إليك من الإدارة، وتظهر هنا مع طلابها.</p>
               </div>
             ) : (
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {myClasses.slice(0, 2).map(c => {
                   const fill = c.capacity ? Math.min(100, Math.round((c.active_count / c.capacity) * 100)) : null
                   return (
@@ -356,7 +380,7 @@ export default function TeacherDashboard() {
       </div>
 
       {/* ══ Upcoming · activity · attendance ══ */}
-      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         <Rise>
           <Surface className="p-5 sm:p-6 h-full flex flex-col">
             <SectionHead title="الحصص القادمة" href="/teacher/classes" link="الجدول الكامل" />
@@ -457,7 +481,34 @@ export default function TeacherDashboard() {
           {active.length === 0 ? (
             <p className="py-8 text-center text-[13px] text-[#94A3B8]">لم يُسنَد إليك طلاب بعد.</p>
           ) : (
-            <div className="overflow-x-auto -mx-5 sm:-mx-6">
+            <>
+            {/* phone: a list — a 6-column table does not fit 390px */}
+            <ul className="sm:hidden divide-y divide-[#EEF2F7] -mx-1">
+              {active.slice(0, 6).map(st => {
+                const pay = money.get(st.id)
+                return (
+                  <li key={st.id}>
+                    <Link href={`/teacher/students/${st.id}`} className="flex items-center gap-3 px-1 py-3">
+                      <Face name={st.full_name} url={st.avatar_url} size={40} />
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-[14px] font-bold text-[#1E3A8A]">{st.full_name}</div>
+                        <div className="truncate text-[12px] text-[#64748B]">
+                          {[st.courses?.find(c => c.status === 'active')?.title ?? st.course, st.classes?.[0]?.title].filter(Boolean).join(' · ') || '—'}
+                        </div>
+                      </div>
+                      {pay && (
+                        <div className="shrink-0 text-left">
+                          <div className="text-[13px] font-extrabold tabular-nums text-[#1E3A8A]">{pay.total_paid.toLocaleString('en-US')} د</div>
+                          {pay.overdue && <StatusPill tone="bad">متأخر</StatusPill>}
+                        </div>
+                      )}
+                      <ArrowLeft size={15} className="shrink-0 text-[#CBD5E1]" />
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+            <div className="hidden sm:block overflow-x-auto -mx-5 sm:-mx-6">
               <table className="w-full min-w-[720px] text-[13px]">
                 <thead>
                   <tr className="bg-[#F8FAFC] text-right text-[12px] font-bold text-[#64748B]">
@@ -504,12 +555,13 @@ export default function TeacherDashboard() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </Surface>
       </Rise>
 
       {/* ══ Performance · public page · quick links ══ */}
-      <div className="grid lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <Rise className="lg:col-span-5">
           <Surface className="p-5 sm:p-6 h-full">
             <SectionHead title="الأداء الأسبوعي" href="/teacher/earnings" link="الأرباح" />

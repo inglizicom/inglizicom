@@ -186,7 +186,7 @@ export default function TeacherSchedulePage() {
       </Rise>
 
       {/* ═══ Seven days ═══ */}
-      <div className="grid md:grid-cols-2 gap-4 [&>*]:min-w-0">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 [&>*]:min-w-0">
         {DAYS.map((d, i) => {
           const list = byDay.get(d.n) ?? []
           const mins = list.reduce((a, w) => a + windowMinutes(w), 0)

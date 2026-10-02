@@ -105,51 +105,51 @@ export default function LeaderboardPage() {
         <Rise>
           <section className="relative overflow-hidden rounded-[24px] bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 text-white shadow-[0_30px_60px_-30px_rgba(30,58,138,.6)]">
             <div aria-hidden className="pointer-events-none absolute -top-24 -left-24 w-[360px] h-[360px] rounded-full bg-[radial-gradient(circle,rgba(251,191,36,.25),transparent_65%)]" />
-            <div className="relative grid lg:grid-cols-[auto_1fr_auto] gap-6 items-center p-5 sm:p-7">
-              <div className="flex items-center gap-4">
-                <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-amber-400 to-yellow-500 text-blue-900 flex flex-col items-center justify-center shadow-lg shadow-amber-500/30">
-                  <span className="text-[12px] font-extrabold">ترتيبك</span>
-                  <span className="text-[38px] font-black leading-none tabular-nums">#{me.rank}</span>
+            <div className="relative grid grid-cols-1 lg:grid-cols-[auto_1fr_auto] gap-4 sm:gap-6 items-center p-4 sm:p-7">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-400 to-yellow-500 text-blue-900 flex flex-col items-center justify-center shadow-lg shadow-amber-500/30">
+                  <span className="text-[10px] sm:text-[12px] font-extrabold">ترتيبك</span>
+                  <span className="text-[26px] sm:text-[38px] font-black leading-none tabular-nums">#{me.rank}</span>
                 </div>
                 <div>
-                  <div className="text-[13px] font-semibold text-blue-100">من {rows.length} أستاذ</div>
-                  <div className="text-[30px] font-extrabold leading-tight tabular-nums">{me.score} <span className="text-[15px] text-blue-100">نقطة</span></div>
+                  <div className="text-[12px] sm:text-[13px] font-semibold text-blue-100">من <bdi>{rows.length}</bdi> أستاذ</div>
+                  <div className="text-[24px] sm:text-[30px] font-extrabold leading-tight tabular-nums"><bdi>{me.score}</bdi> <span className="text-[13px] sm:text-[15px] text-blue-100">نقطة</span></div>
                   {me.is_top_rated
                     ? <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[11.5px] font-bold text-amber-200"><Crown size={12} /> من الأفضل تقييماً</span>
                     : <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11.5px] font-bold text-blue-100"><Star size={12} /> لتصبح «الأفضل تقييماً»: {toTop}</span>}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
                 {[
                   { icon: Users, label: 'طلاب حاليون', v: me.students },
                   { icon: Radio, label: 'متصلون الآن', v: me.live },
                   { icon: CalendarCheck, label: 'حصص منجزة', v: me.sessions },
                   { icon: Star, label: me.rating_count ? `${me.rating_count} تقييماً` : 'التقييم', v: me.rating_count ? Number(me.rating_avg).toFixed(1) : '—' },
                 ].map(x => (
-                  <div key={x.label} className="rounded-2xl bg-white/10 ring-1 ring-white/15 p-3 text-center">
-                    <x.icon size={16} className="mx-auto text-amber-300" />
-                    <div className="mt-1.5 text-[20px] font-extrabold tabular-nums">{x.v}</div>
-                    <div className="text-[11px] font-bold text-blue-100">{x.label}</div>
+                  <div key={x.label} className="rounded-xl sm:rounded-2xl bg-white/10 ring-1 ring-white/15 px-1 py-2 sm:p-3 text-center">
+                    <x.icon size={14} className="mx-auto text-amber-300" />
+                    <div className="mt-1 text-[16px] sm:text-[20px] font-extrabold tabular-nums">{x.v}</div>
+                    <div className="text-[9.5px] sm:text-[11px] font-bold leading-tight text-blue-100">{x.label}</div>
                   </div>
                 ))}
               </div>
 
-              <div className="lg:w-[220px] space-y-2.5">
+              <div className="grid grid-cols-2 gap-2 lg:grid-cols-1 lg:w-[220px] lg:gap-2.5">
                 {ahead ? (
-                  <div className="rounded-2xl bg-white/10 ring-1 ring-white/15 p-3.5">
-                    <div className="flex items-center gap-1.5 text-[11.5px] font-bold text-blue-100"><TrendingUp size={13} className="text-emerald-300" /> للتقدّم مركزاً</div>
+                  <div className="rounded-2xl bg-white/10 ring-1 ring-white/15 p-3">
+                    <div className="flex items-center gap-1.5 text-[11px] font-bold text-blue-100"><TrendingUp size={13} className="text-emerald-300" /> للتقدّم مركزاً</div>
                     <div className="mt-1 text-[14px] font-extrabold">{ahead.score - me.score + 1} نقطة</div>
                     <div className="text-[11.5px] text-blue-100">≈ {Math.ceil((ahead.score - me.score + 1) / 10)} حصص منجزة</div>
                   </div>
                 ) : (
-                  <div className="rounded-2xl bg-white/10 ring-1 ring-white/15 p-3.5 text-[13px] font-extrabold text-amber-200">أنت في الصدارة — حافظ عليها! 👑</div>
+                  <div className="flex items-center rounded-2xl bg-white/10 ring-1 ring-white/15 p-3 text-[12px] sm:text-[13px] font-extrabold text-amber-200">أنت في الصدارة — حافظ عليها! 👑</div>
                 )}
                 {board.me && (
-                  <div className="rounded-2xl bg-white text-[#1E3A8A] p-3.5">
-                    <div className="flex items-center gap-1.5 text-[11.5px] font-bold text-[#64748B]"><Wallet size={13} className="text-emerald-600" /> مدفوعات طلابك في الفترة</div>
-                    <div className="mt-1 text-[18px] font-extrabold tabular-nums">{Number(board.me.roster_revenue).toLocaleString('en-US')} <span className="text-[12px] text-[#94A3B8]">درهم</span></div>
-                    <div className="flex items-center gap-1 text-[11px] text-[#94A3B8]"><Lock size={11} /> {board.me.roster_paying_students} طالب دفع · خاص بك وحدك</div>
+                  <div className="rounded-2xl bg-white text-[#1E3A8A] p-3">
+                    <div className="flex items-center gap-1 text-[11px] font-bold text-[#64748B]"><Wallet size={12} className="text-emerald-600" /> مدفوعات طلابك</div>
+                    <div className="mt-1 text-[16px] sm:text-[18px] font-extrabold tabular-nums">{Number(board.me.roster_revenue).toLocaleString('en-US')} <span className="text-[12px] text-[#94A3B8]">درهم</span></div>
+                    <div className="flex items-center gap-1 text-[10.5px] text-[#94A3B8]"><Lock size={10} /> {board.me.roster_paying_students} طالب · خاص بك</div>
                   </div>
                 )}
               </div>
@@ -160,25 +160,25 @@ export default function LeaderboardPage() {
 
       {/* ══ Podium ══ */}
       {rows.length > 0 && (
-        <div className="grid sm:grid-cols-3 gap-4">
+        <div className={`grid items-end gap-2 sm:gap-4 ${rows.length >= 3 ? 'grid-cols-3' : 'grid-cols-1 sm:grid-cols-3'}`}>
           {rows.slice(0, 3).map((r, i) => (
-            <Rise key={r.id} i={i}>
-              <Surface className={`p-5 text-center h-full ${r.is_me ? '!ring-2 !ring-blue-500' : ''}`}>
-                <div className={`mx-auto w-fit rounded-full bg-gradient-to-br ${MEDAL[i].ring} p-1 shadow-md`}>
-                  <Face name={r.name ?? 'أستاذ'} url={r.avatar_url} size={72} className="ring-4 ring-white" />
+            <Rise key={r.id} i={i} className={rows.length >= 3 ? (i === 0 ? 'order-2' : i === 1 ? 'order-1' : 'order-3') : ''}>
+              <Surface className={`px-2 pb-3 text-center h-full sm:px-5 sm:pb-5 ${i === 0 ? 'pt-5 sm:pt-8' : 'pt-3 sm:pt-5'} ${r.is_me ? '!ring-2 !ring-blue-500' : ''}`}>
+                <div className={`mx-auto w-fit rounded-full bg-gradient-to-br ${MEDAL[i].ring} p-0.5 sm:p-1 shadow-md [&>*]:!h-11 [&>*]:!w-11 sm:[&>*]:!h-[72px] sm:[&>*]:!w-[72px]`}>
+                  <Face name={r.name ?? 'أستاذ'} url={r.avatar_url} size={72} className="ring-2 sm:ring-4 ring-white" />
                 </div>
-                <div className={`mt-3 inline-flex items-center gap-1 rounded-full ${MEDAL[i].bg} px-2.5 py-1 text-[11.5px] font-extrabold ${MEDAL[i].text}`}>
-                  {i === 0 ? <Trophy size={12} /> : <Medal size={12} />} {MEDAL[i].label}
+                <div className={`mt-2 sm:mt-3 inline-flex items-center gap-1 rounded-full ${MEDAL[i].bg} px-1.5 sm:px-2.5 py-0.5 sm:py-1 text-[10px] sm:text-[11.5px] font-extrabold ${MEDAL[i].text}`}>
+                  {i === 0 ? <Trophy size={11} /> : <Medal size={11} />} {MEDAL[i].label}
                 </div>
-                <div className="mt-2 text-[15px] font-extrabold text-[#1E3A8A] truncate">{r.name ?? 'أستاذ'}{r.is_me && ' (أنت)'}</div>
-                <div className="text-[12px] text-[#64748B] truncate">{r.headline ?? '—'}</div>
-                <div className="mt-3 text-[26px] font-black text-[#1E3A8A] tabular-nums">{r.score} <span className="text-[12px] font-bold text-[#94A3B8]">نقطة</span></div>
-                <div className="mt-2 flex items-center justify-center gap-3 text-[12px] font-bold text-[#475569]">
+                <div className="mt-1.5 sm:mt-2 text-[12.5px] sm:text-[15px] font-extrabold text-[#1E3A8A] truncate">{r.name ?? 'أستاذ'}{r.is_me && ' (أنت)'}</div>
+                <div className="hidden sm:block text-[12px] text-[#64748B] truncate">{r.headline ?? '—'}</div>
+                <div className="mt-1 sm:mt-3 text-[17px] sm:text-[26px] font-black text-[#1E3A8A] tabular-nums">{r.score} <span className="text-[10px] sm:text-[12px] font-bold text-[#94A3B8]">نقطة</span></div>
+                <div className="mt-1 sm:mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 sm:gap-3 text-[10.5px] sm:text-[12px] font-bold text-[#475569]">
                   <span className="inline-flex items-center gap-1"><Users size={13} className="text-blue-600" /> {r.students}</span>
                   <span className="inline-flex items-center gap-1"><CalendarCheck size={13} className="text-emerald-600" /> {r.sessions}</span>
                   <span className="inline-flex items-center gap-1"><Star size={13} className="text-amber-400" fill="currentColor" /> {r.rating_count ? Number(r.rating_avg).toFixed(1) : '—'}</span>
                 </div>
-                {r.is_top_rated && <div className="mt-3"><StatusPill tone="warn">⭐ من الأفضل تقييماً</StatusPill></div>}
+                {r.is_top_rated && <div className="mt-2 sm:mt-3"><span className="sm:hidden text-[14px]" aria-label="من الأفضل تقييماً">👑</span><span className="hidden sm:inline"><StatusPill tone="warn">⭐ من الأفضل تقييماً</StatusPill></span></div>}
               </Surface>
             </Rise>
           ))}
@@ -192,7 +192,34 @@ export default function LeaderboardPage() {
             <span className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3 py-1.5 text-[12px] font-bold text-emerald-700 ring-1 ring-emerald-200">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> {totalLive} طالب متصل الآن
             </span>} />
-          <div className="overflow-x-auto -mx-5 sm:-mx-6">
+          <ol className="sm:hidden -mx-1 divide-y divide-[#EEF2F7]">
+            {rows.map(r => (
+              <li key={r.id} className={`flex items-center gap-2.5 px-1 py-2.5 ${r.is_me ? 'rounded-xl bg-blue-50/70' : ''}`}>
+                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[12px] font-black
+                                  ${r.rank === 1 ? 'bg-gradient-to-br from-amber-400 to-yellow-500 text-blue-900'
+                                    : r.rank <= 3 ? 'bg-blue-100 text-blue-700' : 'bg-[#F1F5F9] text-[#64748B]'}`}>{r.rank}</span>
+                <Face name={r.name ?? 'أستاذ'} url={r.avatar_url} size={34} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1">
+                    <span className="truncate text-[13.5px] font-bold text-[#1E3A8A]">{r.name ?? 'أستاذ'}</span>
+                    {r.is_me && <StatusPill tone="info">أنت</StatusPill>}
+                    {r.is_top_rated && <Crown size={13} className="shrink-0 text-amber-500" />}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-2 text-[11px] text-[#64748B]">
+                    <span>⭐ {r.rating_count ? Number(r.rating_avg).toFixed(1) : '—'}</span>
+                    <span>👥 {r.students}</span>
+                    {r.live > 0 && <span className="font-bold text-emerald-700">🟢 {r.live}</span>}
+                    <span>📅 {r.sessions}</span>
+                  </div>
+                </div>
+                <div className="shrink-0 text-center">
+                  <div className="text-[15px] font-black tabular-nums text-[#1E3A8A]">{r.score}</div>
+                  <div className="text-[10px] font-semibold text-[#94A3B8]">نقطة</div>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <div className="hidden sm:block overflow-x-auto -mx-5 sm:-mx-6">
             <table className="w-full min-w-[820px] text-[13px]">
               <thead>
                 <tr className="bg-[#F8FAFC] text-right text-[12px] text-[#64748B]">
@@ -254,7 +281,7 @@ export default function LeaderboardPage() {
       </Rise>
 
       {/* ══ How it works ══ */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Rise>
           <Surface className="p-5 sm:p-6 h-full">
             <SectionHead title="كيف تُحتسب النقاط؟" />

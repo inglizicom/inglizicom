@@ -187,7 +187,7 @@ export default function TeacherProfilePage() {
       </div>
 
       {/* ══ Upcoming + who I teach ══ */}
-      <div className="grid lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <Rise className="lg:col-span-7">
           <Surface className="p-5 sm:p-6 h-full">
             <SectionHead title="حصصي القادمة" href="/teacher/classes" link="كل الحصص" />
@@ -250,7 +250,7 @@ export default function TeacherProfilePage() {
       </div>
 
       {/* ══ Credentials + what I teach ══ */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Rise>
           <Surface className="p-5 sm:p-6 h-full">
             <SectionHead title="شهاداتي" action={!demo && <button onClick={edit} className="text-[12.5px] font-bold text-blue-700 hover:text-blue-900">إضافة / تعديل</button>} />
@@ -308,7 +308,7 @@ export default function TeacherProfilePage() {
       </div>
 
       {/* ══ Ratings + what students said ══ */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Rise>
           <Surface className="p-5 sm:p-6 h-full">
             <SectionHead title="تقييمات الطلاب" href="/teacher/reviews" link="التفاصيل" />
@@ -370,7 +370,7 @@ export default function TeacherProfilePage() {
       </div>
 
       {/* ══ My story + completeness ══ */}
-      <div className="grid lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <Rise className="lg:col-span-7">
           <Surface className="p-5 sm:p-6 h-full">
             <SectionHead title="نبذة عني" action={!demo && <button onClick={edit} className="text-[12.5px] font-bold text-blue-700 hover:text-blue-900">تعديل</button>} />

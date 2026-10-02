@@ -85,7 +85,7 @@ export default function TeacherShell({ children }: { children: React.ReactNode }
   const active    = teacher.profile?.is_active !== false
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#F1F5FB] font-paper text-[#1E3A8A] antialiased lg:flex">
+    <div dir="rtl" className="min-h-screen overflow-x-clip bg-[#F1F5FB] font-paper text-[#1E3A8A] antialiased lg:flex">
 
       {/* ══ Sidebar (lg+) — white, grouped, one clear active state ══ */}
       <aside className="hidden lg:flex w-[260px] shrink-0 flex-col sticky top-0 h-screen bg-white border-l border-[#E2E8F0]">

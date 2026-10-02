@@ -46,7 +46,7 @@ export default function TeacherGroupsPage() {
           {[['الجارية', current], ['السابقة', past]].map(([label, list]) => (list as MyClass[]).length > 0 && (
             <div key={label as string}>
               <div className="text-[13px] font-bold text-[#64748B] mb-2">{label as string}</div>
-              <div className="grid sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {(list as MyClass[]).map(c => (
                   <Link key={c.id} href={`/teacher/groups/${c.id}`}>
                     <Card className="p-4 hover:ring-[#CBD5E1] transition h-full">

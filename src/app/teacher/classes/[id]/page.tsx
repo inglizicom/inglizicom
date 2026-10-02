@@ -285,7 +285,7 @@ export default function ClassDetailPage() {
                       placeholder="الدروس، التمارين، النقاط التي وقف عندها الطلاب…" />
           </Field>
 
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="الواجب المنزلي">
               <textarea value={homework} onChange={e => setHomework(e.target.value)} rows={2} className={inputCls}
                         placeholder="ما طلبته منهم قبل الحصة القادمة" />

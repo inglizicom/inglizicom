@@ -237,7 +237,7 @@ export function Certificates({ p }: { p: StudentProfile }) {
       {p.certificates === null && p.achievements.length === 0 ? (
         <Unavailable text="الشهادات والشارات تُمنح من المنصة وتظهر هنا عند ربطها بفضاء الأستاذ." />
       ) : (
-        <div className="grid md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="space-y-2.5">
             {(p.certificates ?? []).map(c => (
               <div key={c.id} className="flex items-center gap-3 rounded-2xl ring-1 ring-[#E2E8F0] p-3">
@@ -356,7 +356,7 @@ export function ParentView({ p }: { p: StudentProfile }) {
           {p.summary.motivation === 'low' && ' يحتاج إلى تشجيع إضافي هذا الشهر.'}
         </p>
       </div>
-      <div className="mt-4 grid sm:grid-cols-2 gap-3">
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <div className="mb-2 text-[12px] font-bold text-[#64748B] flex items-center gap-1.5"><CalendarCheck size={13} className="text-blue-600" /> الحصص القادمة</div>
           {next.length === 0 ? <p className="text-[12px] text-[#94A3B8]">لا حصص قادمة.</p> : next.map(s => (

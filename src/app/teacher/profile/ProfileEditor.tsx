@@ -98,7 +98,7 @@ export default function ProfileEditor({
           </Group>
 
           <Group title="اللغة والخبرة">
-            <div className="grid sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <Field label="مستواك في الإنجليزية">
                 <input value={f.english_level} onChange={e => set('english_level', e.target.value)} className={inp} placeholder="C2 · IELTS 8.0" />
               </Field>
@@ -117,7 +117,7 @@ export default function ProfileEditor({
                 ))}
               </div>
             </Field>
-            <div className="grid sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Field label="أصغر سن تُدرّسه">
                 <input type="number" min={3} value={f.age_min} onChange={e => set('age_min', e.target.value)} className={inp} />
               </Field>

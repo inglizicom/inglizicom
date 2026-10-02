@@ -146,7 +146,7 @@ export default function TeacherEarningsPage() {
       </div>
 
       {/* ══ Year overview + session status ══ */}
-      <div className="grid lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <Rise className="lg:col-span-7">
           <Surface className="p-5 sm:p-6 h-full">
             <SectionHead title="نظرة على السنة" action={
@@ -270,7 +270,7 @@ export default function TeacherEarningsPage() {
           <Surface className="p-5 sm:p-6">
             <SectionHead title="ما دفعه طلابي" action={
               <span className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-[#94A3B8]"><Lock size={12} /> طلابك فقط</span>} />
-            <div className="grid sm:grid-cols-3 gap-3 mb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
               <div className="rounded-2xl bg-emerald-50 ring-1 ring-emerald-200 p-4">
                 <div className="text-[12px] font-bold text-emerald-800">مدفوعات طلابك هذا الشهر</div>
                 <div className="mt-1 text-[24px] font-extrabold text-emerald-800 tabular-nums">{rosterMonth ? money(rosterMonth.revenue) : '—'}</div>
@@ -329,7 +329,7 @@ export default function TeacherEarningsPage() {
       )}
 
       {/* ══ Pay terms · recent · month summary ══ */}
-      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         <Rise>
           <Surface className="p-5 sm:p-6 h-full">
             <SectionHead title="شروط الأجر" />

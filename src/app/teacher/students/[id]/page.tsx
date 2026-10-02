@@ -104,7 +104,7 @@ export default function StudentProfilePage() {
       <Rise><IdentityBar p={profile} actions={identityActions} /></Rise>
       <Rise><KpiGrid p={profile} /></Rise>
 
-      <div className="grid lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <Rise className="lg:col-span-8"><div id="learning" className="h-full scroll-mt-24"><LearningState p={profile} /></div></Rise>
         <div className="lg:col-span-4 space-y-6">
           <Rise><SmartActions actions={smartActions} /></Rise>
@@ -112,29 +112,29 @@ export default function StudentProfilePage() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Rise><ActiveClasses p={profile} /></Rise>
         <Rise i={1}><UpcomingSchedule p={profile} /></Rise>
       </div>
 
       <Rise><Timetable p={profile} /></Rise>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Rise><AttendancePanel p={profile} /></Rise>
         <Rise i={1}><StudyActivity p={profile} /></Rise>
       </div>
 
-      <div className="grid lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <Rise className="lg:col-span-5"><LevelProgress p={profile} /></Rise>
         <Rise className="lg:col-span-7"><div id="payment" className="h-full scroll-mt-24"><PaymentSummary p={profile} /></div></Rise>
       </div>
 
-      <div className="grid lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <Rise className="lg:col-span-4"><TeachersAssigned p={profile} /></Rise>
         <Rise className="lg:col-span-8"><div id="certificates" className="h-full scroll-mt-24"><Certificates p={profile} /></div></Rise>
       </div>
 
-      <div className="grid lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <Rise className="lg:col-span-7"><ParentView p={profile} /></Rise>
         <Rise className="lg:col-span-5"><ActivityFeed p={profile} /></Rise>
       </div>

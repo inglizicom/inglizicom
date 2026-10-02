@@ -187,7 +187,7 @@ export default function TeacherDirectory({ teachers, leaderboard = [] }: { teach
   }, [teachers, query, level, specialty])
 
   return (
-    <main dir="rtl" className="min-h-screen bg-[#F4F7FC] text-[#1E3A8A]">
+    <main dir="rtl" className="min-h-screen overflow-x-clip bg-[#F4F7FC] text-[#1E3A8A]">
       <header className="border-b border-[#E2E8F0] bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <Link href="/" className="text-lg font-black">إنجليزي<span className="text-[#B45309]">.</span>كوم</Link>
@@ -196,7 +196,7 @@ export default function TeacherDirectory({ teachers, leaderboard = [] }: { teach
       </header>
 
       <div className="mx-auto max-w-6xl px-4 pb-16 sm:px-6">
-        <section className="grid gap-5 border-b border-[#E2E8F0] py-10 sm:py-14 lg:grid-cols-[1fr_auto] lg:items-end">
+        <section className="grid grid-cols-1 gap-5 border-b border-[#E2E8F0] py-10 sm:py-14 lg:grid-cols-[1fr_auto] lg:items-end">
           <div>
             <p className="text-sm font-bold text-[#B45309]">مدرّسون معتمدون من إنجليزي.كوم</p>
             <h1 className="text-inherit mt-2 text-4xl font-black leading-tight sm:text-5xl">اختر أستاذك</h1>
@@ -207,7 +207,7 @@ export default function TeacherDirectory({ teachers, leaderboard = [] }: { teach
           </Link>
         </section>
 
-        <section aria-label="البحث والتصفية" className="mt-6 grid gap-3 rounded-[20px] bg-white p-3 ring-1 ring-[#D6DFEC] shadow-[0_1px_3px_rgba(30,58,138,.10),0_12px_32px_-12px_rgba(30,58,138,.22)] sm:grid-cols-[minmax(260px,1fr)_200px_240px] sm:p-4">
+        <section aria-label="البحث والتصفية" className="mt-6 grid grid-cols-1 gap-3 rounded-[20px] bg-white p-3 ring-1 ring-[#D6DFEC] shadow-[0_1px_3px_rgba(30,58,138,.10),0_12px_32px_-12px_rgba(30,58,138,.22)] sm:grid-cols-[minmax(260px,1fr)_200px_240px] sm:p-4">
           <label className="relative block">
             <Search size={20} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#64748B]" />
             <input value={query} onChange={e => setQuery(e.target.value)} placeholder="ابحث بالاسم أو التخصص"
@@ -235,7 +235,7 @@ export default function TeacherDirectory({ teachers, leaderboard = [] }: { teach
         {visible.length ? (
           <div className="divide-y divide-[#E2E8F0] border-y border-[#E2E8F0]">
             {visible.map(t => (
-              <article key={t.id} className="grid gap-5 py-7 sm:grid-cols-[120px_minmax(0,1fr)_auto] sm:items-center">
+              <article key={t.id} className="grid grid-cols-1 gap-5 py-7 sm:grid-cols-[120px_minmax(0,1fr)_auto] sm:items-center">
                 <div className="h-[120px] w-[120px] overflow-hidden rounded-2xl bg-[#E2E8F0] shadow-md">
                   {t.avatar_url ? (
                     // eslint-disable-next-line @next/next/no-img-element

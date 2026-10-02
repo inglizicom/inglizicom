@@ -76,8 +76,10 @@ export function BarChart({
         })}
       </svg>
 
-      {/* labels live in HTML so they never distort with preserveAspectRatio */}
-      <div className="flex mt-1">
+      {/* labels live in HTML so they never distort with preserveAspectRatio. The SVG draws
+          left-to-right, so the label row must too — in an RTL page it would otherwise
+          reverse and put every label under the wrong bar. */}
+      <div className="flex mt-1" dir="ltr">
         {data.map((d, i) => (
           <div key={i} className="text-center text-[10px] font-bold text-slate-400 truncate" style={{ width: `${barW}%` }}>
             {d.label}
@@ -150,7 +152,7 @@ export function AreaTrend({
         )}
       </svg>
 
-      <div className="flex mt-1 justify-between text-[10px] font-bold text-slate-400">
+      <div className="flex mt-1 justify-between text-[10px] font-bold text-slate-400" dir="ltr">
         <span>{data[0].label}</span>
         <span>{data[data.length - 1].label}</span>
       </div>
