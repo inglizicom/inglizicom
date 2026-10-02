@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { Check, Copy, Share2 } from 'lucide-react'
+import { ArrowLeft, Check, Copy, Headphones, Share2 } from 'lucide-react'
 import type { TeacherDeclared, TeacherProfile } from '@/lib/teachers'
 import { Count } from './_ds'
 
@@ -143,7 +143,7 @@ export function Btn({
   href?: string; onClick?: () => void; icon?: LucideIcon; children: React.ReactNode
   kind?: BtnKind; external?: boolean; className?: string; disabled?: boolean
 }) {
-  const cls = `inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-[13px] font-bold
+  const cls = `inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-bold
                whitespace-nowrap transition disabled:opacity-40 ${BTN[kind]} ${className}`
   const inner = <>{Icon && <Icon size={15} />}{children}</>
   if (href && external) return <a href={href} target="_blank" rel="noopener noreferrer" className={cls}>{inner}</a>
@@ -239,4 +239,80 @@ export function profileChecklist(p: Partial<TeacherProfile & TeacherDeclared> | 
 export function publicProfileUrl(teacherId: string): string {
   if (typeof window === 'undefined') return ''
   return `${window.location.origin}/teacher-showcase/${teacherId}`
+}
+
+/* ── Reference-style blocks: stat card, section head, pills, help ── */
+
+/** The academy's WhatsApp — where "contact support" goes. */
+export const SUPPORT_WA = 'https://wa.me/212764189311'
+
+/** A stat card: tinted icon, label, the figure, one line of context, and where to go next. */
+export function StatCard({
+  icon: Icon, tone = 'stone', label, value, sub, href, link,
+}: {
+  icon: LucideIcon; tone?: Tone; label: string; value: React.ReactNode; sub?: string
+  href?: string; link?: string
+}) {
+  return (
+    <div className={`h-full rounded-[20px] bg-white ring-1 ring-[#D6DFEC] ${SHADOW} ${LIFT} p-4 sm:p-5 flex flex-col`}>
+      <div className="flex items-center gap-3">
+        <span className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 ${TONE[tone]}`}>
+          <Icon size={19} />
+        </span>
+        <span className="text-[13px] font-bold text-[#334155] leading-tight">{label}</span>
+      </div>
+      <div className="mt-4 text-[26px] sm:text-[28px] font-extrabold tracking-tight leading-none text-[#1E3A8A] tabular-nums">{value}</div>
+      {sub && <div className="mt-1.5 text-[12px] font-medium text-[#64748B]">{sub}</div>}
+      {href && link && (
+        <Link href={href} className="mt-auto pt-4 inline-flex items-center gap-1.5 text-[12.5px] font-bold text-blue-700 hover:text-blue-900">
+          {link} <ArrowLeft size={14} />
+        </Link>
+      )}
+    </div>
+  )
+}
+
+/** Section title with an optional "view all →" link, as in every reference card. */
+export function SectionHead({
+  title, href, link, action,
+}: { title: string; href?: string; link?: string; action?: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-3 mb-4">
+      <h2 className="text-[16px] font-extrabold tracking-tight text-[#1E3A8A] truncate">{title}</h2>
+      {action ?? (href && link && (
+        <Link href={href} className="shrink-0 inline-flex items-center gap-1 text-[12.5px] font-bold text-blue-700 hover:text-blue-900">
+          {link} <ArrowLeft size={14} />
+        </Link>
+      ))}
+    </div>
+  )
+}
+
+export type PillTone = 'ok' | 'warn' | 'bad' | 'info' | 'muted'
+const PILL: Record<PillTone, string> = {
+  ok:    'bg-emerald-50 text-emerald-700 ring-emerald-200',
+  warn:  'bg-amber-50 text-amber-700 ring-amber-200',
+  bad:   'bg-rose-50 text-rose-700 ring-rose-200',
+  info:  'bg-blue-50 text-blue-700 ring-blue-200',
+  muted: 'bg-slate-50 text-slate-600 ring-slate-200',
+}
+export function StatusPill({ tone, children }: { tone: PillTone; children: React.ReactNode }) {
+  return <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11.5px] font-bold ring-1 ${PILL[tone]}`}>{children}</span>
+}
+
+/** The closing "need help?" band. */
+export function HelpBanner({ title = 'تحتاج مساعدة؟', text = 'فريق إنجليزي.كوم هنا لمساعدتك في الحصص، الطلاب أو الأرباح.' }:
+  { title?: string; text?: string }) {
+  return (
+    <div className="flex flex-col sm:flex-row items-center gap-4 rounded-[20px] bg-gradient-to-l from-blue-50 to-white ring-1 ring-[#D6DFEC] px-5 py-5 sm:px-7 text-center sm:text-right">
+      <span className="w-14 h-14 rounded-full bg-white ring-1 ring-blue-100 shadow-sm text-blue-700 flex items-center justify-center shrink-0">
+        <Headphones size={24} />
+      </span>
+      <div className="flex-1 min-w-0">
+        <div className="text-[16px] font-extrabold text-[#1E3A8A]">{title}</div>
+        <div className="text-[13px] text-[#64748B] mt-0.5">{text}</div>
+      </div>
+      <Btn href={SUPPORT_WA} external kind="ghost" className="!ring-blue-300 !text-blue-700">تواصل مع الدعم</Btn>
+    </div>
+  )
 }

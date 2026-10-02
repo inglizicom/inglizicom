@@ -84,40 +84,31 @@ export default function TeacherShell({ children }: { children: React.ReactNode }
   const active    = teacher.profile?.is_active !== false
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#EAF0F8] font-paper text-[#1E3A8A] antialiased lg:flex">
+    <div dir="rtl" className="min-h-screen bg-[#F1F5FB] font-paper text-[#1E3A8A] antialiased lg:flex">
 
-      {/* ══ Sidebar (lg+) — navy, like the site's footer ═══ */}
-      <aside className="hidden lg:flex w-[264px] shrink-0 flex-col sticky top-0 h-screen text-white
-                        bg-gradient-to-b from-blue-700 via-blue-800 to-blue-900 overflow-hidden">
-        <div aria-hidden className="pointer-events-none absolute -top-24 -right-24 w-72 h-72 rounded-full
-                                    bg-[radial-gradient(circle,rgba(251,191,36,.16),transparent_65%)]" />
-        <Link href="/teacher" className="relative flex items-center gap-2.5 px-6 h-[72px] shrink-0">
-          <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-500 text-blue-900 flex items-center justify-center font-black text-[17px] shadow-lg shadow-amber-500/30">إ</span>
+      {/* ══ Sidebar (lg+) — white, grouped, one clear active state ══ */}
+      <aside className="hidden lg:flex w-[260px] shrink-0 flex-col sticky top-0 h-screen bg-white border-l border-[#E2E8F0]">
+        <Link href="/teacher" className="flex items-center gap-2.5 px-6 h-[72px] shrink-0 border-b border-[#EEF2F7]">
+          <span className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-800 text-white flex items-center justify-center font-black text-[18px] shadow-md shadow-blue-700/30">إ</span>
           <span className="leading-tight">
-            <span className="block text-[16px] font-extrabold tracking-tight">إنجليزي<span className="text-amber-400">.</span>كوم</span>
-            <span className="block text-[10.5px] font-bold text-blue-100/75 tracking-[.16em] uppercase">Teacher Studio</span>
+            <span className="block text-[17px] font-extrabold tracking-tight text-[#1E3A8A]">إنجليزي<span className="text-amber-500">.</span>كوم</span>
+            <span className="block text-[11.5px] font-semibold text-[#64748B]">فضاء الأستاذ</span>
           </span>
         </Link>
 
-        <nav className="relative flex-1 overflow-y-auto px-3 pb-4 no-scrollbar">
-          {GROUPS.map(g => (
-            <div key={g.title} className="mt-4 first:mt-1">
-              <div className="px-3 mb-1.5 text-[10.5px] font-bold tracking-[.14em] text-blue-100/75">{g.title}</div>
+        <nav className="flex-1 overflow-y-auto px-3 py-4 no-scrollbar">
+          {GROUPS.map((g, gi) => (
+            <div key={g.title} className={gi ? 'mt-4 pt-4 border-t border-[#EEF2F7]' : ''}>
+              <div className="px-3 mb-1.5 text-[11px] font-bold tracking-wide text-[#94A3B8]">{g.title}</div>
               {g.items.map(item => {
                 const on = isActive(item.segment)
                 const Icon = item.icon
                 return (
                   <Link key={item.segment || 'home'} href={href(item.segment)}
-                        className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-semibold transition-colors
-                                    ${on ? 'text-white' : 'text-blue-50/85 hover:text-white hover:bg-white/5'}`}>
-                    {on && (
-                      <motion.span layoutId="side-active"
-                                   className="absolute inset-0 rounded-xl bg-white/10 ring-1 ring-white/10"
-                                   transition={{ type: 'spring', stiffness: 420, damping: 36 }} />
-                    )}
-                    {on && <span className="absolute right-0 top-2 bottom-2 w-[3px] rounded-full bg-amber-400" />}
-                    <Icon size={17} className={`relative ${on ? 'text-amber-400' : ''}`} />
-                    <span className="relative">{item.label}</span>
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] transition-colors
+                                    ${on ? 'bg-blue-50 text-blue-700 font-bold' : 'text-[#475569] font-semibold hover:bg-slate-50 hover:text-[#1E3A8A]'}`}>
+                    <Icon size={18} className={on ? 'text-blue-600' : 'text-[#64748B]'} />
+                    {item.label}
                   </Link>
                 )
               })}
@@ -125,26 +116,26 @@ export default function TeacherShell({ children }: { children: React.ReactNode }
           ))}
         </nav>
 
-        {/* who is signed in, and the shop window */}
-        <div className="relative p-3 border-t border-white/10">
-          <div className="rounded-2xl bg-white/[.06] ring-1 ring-white/10 p-3.5">
+        {/* the teacher, and the shop window */}
+        <div className="p-3 border-t border-[#EEF2F7]">
+          <div className="rounded-2xl bg-[#F8FAFC] ring-1 ring-[#E2E8F0] p-3.5">
             <div className="flex items-center gap-2.5">
-              <Face name={name} url={teacher.profile?.avatar_url} size={36} className="ring-2 ring-white/10" />
+              <Face name={name} url={teacher.profile?.avatar_url} size={40} className="ring-2 ring-white shadow-sm" />
               <div className="min-w-0 flex-1">
-                <div className="text-[13px] font-bold truncate">{name}</div>
-                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-blue-100/85">
-                  <span className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-emerald-400' : 'bg-slate-500'}`} />
-                  {active ? 'ملف ظاهر للعموم' : 'ملف موقوف'}
+                <div className="text-[13px] font-bold text-[#1E3A8A] truncate">{name}</div>
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[#64748B]">
+                  <span className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                  {active ? 'ملفك ظاهر للعموم' : 'ملف موقوف'}
                 </div>
               </div>
             </div>
             <Link href={publicUrl} target="_blank"
-                  className="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-l from-amber-400 to-yellow-500 text-blue-900 py-2 text-[12px] font-extrabold hover:brightness-105 transition">
+                  className="mt-3 flex items-center justify-center gap-1.5 rounded-xl bg-white ring-1 ring-blue-200 py-2 text-[12px] font-bold text-blue-700 hover:bg-blue-50 transition-colors">
               <ExternalLink size={13} /> عرض الملف العام
             </Link>
           </div>
           <button onClick={signOut}
-                  className="mt-2 w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[12.5px] font-semibold text-blue-100/80 hover:text-red-300 hover:bg-white/5 transition-colors">
+                  className="mt-2 w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[12.5px] font-semibold text-[#64748B] hover:text-[#B91C1C] hover:bg-red-50 transition-colors">
             <LogOut size={15} /> تسجيل الخروج
           </button>
         </div>
@@ -152,38 +143,38 @@ export default function TeacherShell({ children }: { children: React.ReactNode }
 
       {/* ══ Content column ═════════════════════════════════ */}
       <div className="flex-1 min-w-0">
-        <header className="sticky top-0 z-40 bg-[#EAF0F8]/85 backdrop-blur-xl border-b border-[#E2E8F0]/80">
+        <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-[#E2E8F0]">
           <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 h-[64px] flex items-center gap-3">
             <button onClick={() => setSheet(true)} aria-label="القائمة"
-                    className="lg:hidden -mr-1 w-9 h-9 rounded-full flex items-center justify-center text-[#475569] hover:bg-white">
+                    className="lg:hidden -mr-1 w-9 h-9 rounded-full flex items-center justify-center text-[#475569] hover:bg-slate-100">
               <Menu size={20} />
             </button>
 
             <div className="min-w-0">
-              <div className="lg:hidden text-[15px] font-extrabold tracking-tight">إنجليزي<span className="text-[#F59E0B]">.</span>كوم</div>
-              {isActive('') ? (
-                <div className="hidden lg:block">
-                  <div className="text-[17px] font-extrabold tracking-tight truncate">
-                    {new Date().getHours() < 12 ? 'صباح الخير' : 'مساء الخير'}، {name.split(' ')[0]} 👋
-                  </div>
-                  <div className="text-[12px] font-semibold text-[#64748B]">واصل العمل الرائع — هذا ما ينتظرك اليوم.</div>
-                </div>
-              ) : (
-                <div className="hidden lg:block text-[17px] font-extrabold tracking-tight truncate">{current?.label ?? 'فضاء الأستاذ'}</div>
-              )}
+              <div className="lg:hidden text-[15px] font-extrabold tracking-tight text-[#1E3A8A]">إنجليزي<span className="text-amber-500">.</span>كوم</div>
+              <div className="hidden lg:flex items-center gap-2 text-[13px] font-semibold text-[#64748B]">
+                <span>فضاء الأستاذ</span>
+                <span className="text-[#CBD5E1]">/</span>
+                <span className="font-bold text-[#1E3A8A]">{current?.label ?? 'لوحة القيادة'}</span>
+              </div>
             </div>
 
             <div className="flex-1" />
 
             <Link href={publicUrl} target="_blank"
-                  className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white ring-1 ring-[#E2E8F0] text-[12.5px] font-bold text-[#334155] hover:ring-[#1E3A8A] transition">
+                  className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white ring-1 ring-[#E2E8F0] text-[12.5px] font-bold text-[#334155] hover:ring-blue-300 hover:text-blue-700 transition">
               <ExternalLink size={14} /> الملف العام
             </Link>
+            <span className="hidden sm:block w-px h-8 bg-[#E2E8F0]" />
 
             <div className="relative" ref={menuRef}>
               <button onClick={() => setMenu(v => !v)} aria-label="الحساب"
-                      className="flex items-center gap-2 pr-1 pl-2 py-1 rounded-full hover:bg-white transition-colors">
-                <Face name={name} url={teacher.profile?.avatar_url} size={34} />
+                      className="flex items-center gap-2.5 pr-1 pl-2 py-1 rounded-xl hover:bg-slate-50 transition-colors">
+                <Face name={name} url={teacher.profile?.avatar_url} size={36} />
+                <span className="hidden sm:block text-right leading-tight">
+                  <span className="block text-[13px] font-bold text-[#1E3A8A] max-w-[140px] truncate">{name}</span>
+                  <span className="block text-[11px] font-semibold text-[#64748B]">أستاذ</span>
+                </span>
                 <ChevronDown size={14} className={`text-[#94A3B8] transition-transform ${menu ? 'rotate-180' : ''}`} />
               </button>
 

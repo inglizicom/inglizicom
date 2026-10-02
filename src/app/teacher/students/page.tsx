@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { BookOpen, Loader2, MessageCircle, Search, Users, ShieldCheck, Video } from 'lucide-react'
+import Link from 'next/link'
+import { BookOpen, Loader2, MessageCircle, Search, Users, ShieldCheck, UserRound, Video } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import {
   fetchMyStudents, fetchTeacherOverview,
@@ -179,12 +180,18 @@ export default function TeacherStudentsPage() {
                   ))}
                 </Section>
 
-                <div className="mt-auto pt-3.5">
+                <div className="mt-auto pt-3.5 grid grid-cols-2 gap-2">
+                  <Link
+                    href={`/teacher/students/${s.id}`}
+                    className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-gradient-to-l from-blue-600 to-blue-800 text-white text-[13px] font-bold hover:from-blue-500 hover:to-blue-700 transition"
+                  >
+                    <UserRound size={15} /> ملف الطالب
+                  </Link>
                   <button
                     onClick={() => message(s)}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-[13px] font-bold hover:bg-emerald-100 transition"
+                    className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-[13px] font-bold hover:bg-emerald-100 transition"
                   >
-                    <MessageCircle size={15} /> مراسلة على واتساب
+                    <MessageCircle size={15} /> واتساب
                   </button>
                 </div>
               </Card>
