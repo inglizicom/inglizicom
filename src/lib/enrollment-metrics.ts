@@ -195,7 +195,11 @@ export interface AnalyticsFilters {
   status?:     EnrollmentStatusFilter
 }
 
-export interface AnalyticsQuery { range: DateRange; filters: AnalyticsFilters }
+/** The analytics page's tabs. One range + filter state drives all of them. */
+export type AnalyticsView = 'overview' | 'enrollments' | 'revenue' | 'teachers'
+export const ANALYTICS_VIEWS: AnalyticsView[] = ['overview', 'enrollments', 'revenue', 'teachers']
+
+export interface AnalyticsQuery { range: DateRange; filters: AnalyticsFilters; view?: AnalyticsView }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const STATUSES: EnrollmentStatusFilter[] = ['active', 'waitlisted', 'completed', 'cancelled']
@@ -221,7 +225,8 @@ export function parseQuery(params: URLSearchParams | Record<string, string | und
   const mode = get('mode'); if (mode === 'group' || mode === 'private') filters.mode = mode
   const status = get('status') as EnrollmentStatusFilter | undefined
   if (status && STATUSES.includes(status)) filters.status = status
-  return { range, filters: stripEmpty(filters) }
+  const view = get('view') as AnalyticsView | undefined
+  return { range, filters: stripEmpty(filters), view: view && ANALYTICS_VIEWS.includes(view) ? view : 'overview' }
 }
 
 /** The inverse of parseQuery — only non-default values are written. */
@@ -234,6 +239,7 @@ export function toQueryString(q: AnalyticsQuery): string {
   if (q.filters.teacher_id) p.set('teacher', q.filters.teacher_id)
   if (q.filters.mode)       p.set('mode', q.filters.mode)
   if (q.filters.status)     p.set('status', q.filters.status)
+  if (q.view && q.view !== 'overview') p.set('view', q.view)
   return p.toString()
 }
 
@@ -308,7 +314,13 @@ export const COUNTING_RULES: CountingRule[] = [
   { term: 'الحضور',
     rule: 'يُؤرَّخ بتاريخ الحصة. نسبة الحضور = (حاضر + متأخر) ÷ كل العلامات المسجّلة.' },
   { term: 'الإيرادات',
-    rule: 'الدفعات المؤكَّدة فقط (paid، مبلغ > 0، غير مستبعدة)، حسب تاريخ الدفع. لا تتأثر بفلاتر الدورة/القسم/الأستاذ لأن الدفعة غير مرتبطة بتسجيل بعينه.' },
+    rule: 'الدفعات المؤكَّدة فقط (paid، مبلغ > 0، غير مستبعدة)، حسب تاريخ الدفع؛ الدفعات القديمة بلا تاريخ دفع تُؤرَّخ بيوم تسجيلها بتوقيت المغرب. لا تتأثر بفلاتر الدورة/القسم/الأستاذ لأن الدفعة غير مرتبطة بتسجيل بعينه.' },
+  { term: 'نسبة التحويل',
+    rule: 'العملاء الذين دفعوا ÷ كل العملاء، من نفس المجموعة في البسط والمقام: عملاء الفترة حسب تاريخ إنشائهم (أو كل الأوقات في لوحة المالك)، دون المؤرشفين وطلبات الاختبار والاستفسار.' },
+  { term: 'طلاب الأستاذ',
+    rule: 'المسنَدون إليه من الإدارة ∪ أصحاب مقعد نشط في أحد أقسامه غير المؤرشفة، كل طالب مرة واحدة. قائمة الانتظار والمقاعد المنتهية لا تُحسب.' },
+  { term: 'أشخاص أم علاقات',
+    rule: '«طلاب» أشخاص يُحسبون مرة واحدة. «مقاعد» و«تسجيلات دورات» علاقات: طالب في قسمين = مقعدان. أرقام الأساتذة لا تُجمع فيما بينهم لأن الطالب قد يكون عند أستاذين.' },
   { term: 'الفلاتر',
     rule: 'الدورة: تسجيلاتها والأقسام والحصص المرتبطة بها. القسم/الأستاذ/النوع: تسجيلات الأقسام والحصص المطابقة، وتسجيلات الدورات لطلاب هذه المجموعة. الحالة: الحالة الحالية للتسجيل.' },
   { term: 'المقارنة',

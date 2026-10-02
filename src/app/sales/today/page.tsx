@@ -12,14 +12,14 @@ import {
 import {
   fetchOverdueFollowUps, fetchTodaysFollowUps,
   fetchPendingPaymentsForToday, fetchRenewalCandidates,
-  fetchOwnerMetrics, fetchTeamOverview,
+  fetchTeamOverview,
   type OverdueLead, type PendingPaymentRow, type RenewalRow,
-  type OwnerMetrics, type TeamMemberStat,
+  type TeamMemberStat,
 } from '@/lib/crm-stats'
 import { whatsappLink } from '@/lib/leads-db'
 import { fetchStaff, type StaffRow } from '@/lib/staff-db'
 import { useStaff } from '@/lib/staff-context'
-import { Users, Award, Globe, BarChart3 } from 'lucide-react'
+import { Users, BarChart3 } from 'lucide-react'
 
 export default function TodayPage() {
   const me = useStaff()
@@ -29,7 +29,6 @@ export default function TodayPage() {
   const [todayQ,        setTodayQ]        = useState<OverdueLead[]>([])
   const [pending,       setPending]       = useState<PendingPaymentRow[]>([])
   const [renewals,      setRenewals]      = useState<RenewalRow[]>([])
-  const [ownerMetrics,  setOwnerMetrics]  = useState<OwnerMetrics | null>(null)
   const [teamStats,     setTeamStats]     = useState<TeamMemberStat[]>([])
   const [staffMap,      setStaffMap]      = useState<Map<string, StaffRow>>(new Map())
   const [loading,       setLoading]       = useState(true)
@@ -43,14 +42,12 @@ export default function TodayPage() {
       fetchRenewalCandidates(),
     ] as const
     if (isFounder) {
-      const [o, t, p, r, metrics, team, staffRows] = await Promise.all([
+      const [o, t, p, r, team, staffRows] = await Promise.all([
         ...base,
-        fetchOwnerMetrics(),
         fetchTeamOverview(), fetchStaff(),
       ])
       setOverdue(o); setTodayQ(t); setPending(p)
       setRenewals((r as RenewalRow[]).filter(x => x.bucket === 'due7' || x.bucket === 'expired'))
-      setOwnerMetrics(metrics as OwnerMetrics)
       setTeamStats(team as TeamMemberStat[])
       setStaffMap(new Map((staffRows as StaffRow[]).map(s => [s.id, s])))
     } else {
@@ -168,67 +165,30 @@ export default function TodayPage() {
             </div>
           )}
 
-          {/* ── Founder business metrics ──────────────── */}
-          {isFounder && ownerMetrics && (
+          {/* ── Founder: team work queue. Revenue, conversion and students live in
+               one place — the Command Center (dashboard) and Analytics — so they are
+               not repeated here with a second set of rules. ── */}
+          {isFounder && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-3">
-                  <span className="text-[11px] uppercase font-bold tracking-[0.18em] text-gray-400">Business overview</span>
+                  <span className="text-[11px] uppercase font-bold tracking-[0.18em] text-gray-400">Team</span>
                   <div className="w-24 h-px bg-gray-100" />
                 </div>
-                <Link href="/analytics" className="text-[11px] font-bold text-gray-400 hover:text-gray-900 flex items-center gap-1">
-                  <BarChart3 size={11} /> Full analytics →
-                </Link>
-              </div>
-
-              {/* Revenue — real money only */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <BizKpi label="Total revenue"    value={mad(ownerMetrics.revenueTotal)}     accent="yellow" />
-                <BizKpi label="This month"       value={mad(ownerMetrics.revenueThisMonth)} accent="emerald" />
-                <BizKpi label="Avg per student"  value={mad(ownerMetrics.avgRevenuePerStudent)} accent="blue" />
-                <BizKpi label="Avg per lead"     value={mad(ownerMetrics.avgRevenuePerLead)}    accent="indigo" />
-              </div>
-
-              {/* Conversion funnel — the 3 rates */}
-              <div className="bg-gray-900 rounded-2xl p-5">
-                <h2 className="font-black text-white text-[13px] mb-4 uppercase tracking-[0.12em]">Conversion funnel</h2>
-                <div className="grid grid-cols-3 gap-3">
-                  {ownerMetrics.funnel.slice(1).map((step, i) => {
-                    const labels  = ['Lead → Contacted', 'Contacted → Confirmed', 'Confirmed → Paid']
-                    const bars    = ['bg-indigo-400', 'bg-emerald-400', 'bg-yellow-400']
-                    const good    = [60, 40, 50]
-                    const isGood  = step.pct >= good[i]
-                    return (
-                      <div key={step.label} className={`rounded-xl p-3.5 ${isGood ? 'bg-zinc-800' : 'bg-rose-900/60'}`}>
-                        <div className={`text-[30px] font-black tabular-nums leading-none ${isGood ? 'text-white' : 'text-rose-300'}`}>
-                          {step.pct}%
-                        </div>
-                        <div className="text-[11px] font-bold text-zinc-400 mt-1">{labels[i]}</div>
-                        <div className="mt-2.5 h-1.5 bg-zinc-700 rounded-full overflow-hidden">
-                          <div className={`h-full ${bars[i]} rounded-full`} style={{ width: `${step.pct}%` }} />
-                        </div>
-                        <div className="text-[10px] text-zinc-500 mt-1.5">{step.count} leads</div>
-                      </div>
-                    )
-                  })}
+                <div className="flex items-center gap-4">
+                  <Link href="/sales/dashboard" className="text-[11px] font-bold text-gray-400 hover:text-gray-900 flex items-center gap-1">
+                    <Crown size={11} /> Revenue & KPIs →
+                  </Link>
+                  <Link href="/admin/analytics" className="text-[11px] font-bold text-gray-400 hover:text-gray-900 flex items-center gap-1">
+                    <BarChart3 size={11} /> Full analytics →
+                  </Link>
                 </div>
-              </div>
-
-              {/* Top performers */}
-              <div className="grid grid-cols-3 gap-3">
-                <TopPerformer icon={Award} label="Top course"    value={ownerMetrics.topCourse}    />
-                <TopPerformer icon={Globe} label="Top source"    value={ownerMetrics.topSource}    />
-                <TopPerformer icon={Users} label="Top assistant" value={ownerMetrics.topAssistant} />
-              </div>
-
-              {/* Revenue breakdowns — compact */}
-              <div className="grid sm:grid-cols-3 gap-3">
-                <BreakdownCard title="Revenue by course"    rows={ownerMetrics.revenueByCourse}    />
-                <BreakdownCard title="Revenue by source"    rows={ownerMetrics.revenueBySource}    />
-                <BreakdownCard title="Revenue by assistant" rows={ownerMetrics.revenueByAssistant} />
               </div>
 
               {/* Team overview */}
+              {teamStats.length === 0 && (
+                <p className="text-[13px] text-gray-400 py-4">No open leads assigned to the team.</p>
+              )}
               {teamStats.length > 0 && (
                 <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
                   <div className="px-5 py-3.5 border-b border-gray-100 flex items-center gap-2">
@@ -363,78 +323,6 @@ function LeadRow({ lead, variant }: { lead: OverdueLead; variant: 'overdue' | 't
             <Phone size={12} />
           </a>
         )}
-      </div>
-    </div>
-  )
-}
-
-const mad = (n: number) => new Intl.NumberFormat('en-US').format(Math.round(n)) + ' MAD'
-
-/* ─── BizKpi ─────────────────────────────────────────────────── */
-function BizKpi({ label, value, accent }: {
-  label: string; value: string; accent: 'yellow' | 'emerald' | 'blue' | 'indigo'
-}) {
-  const styles: Record<typeof accent, string> = {
-    yellow:  'bg-yellow-400 text-black',
-    emerald: 'bg-emerald-500 text-white',
-    blue:    'bg-blue-600 text-white',
-    indigo:  'bg-indigo-600 text-white',
-  }
-  const sub: Record<typeof accent, string> = {
-    yellow:  'text-yellow-900',
-    emerald: 'text-emerald-100',
-    blue:    'text-blue-200',
-    indigo:  'text-indigo-200',
-  }
-  return (
-    <div className={`rounded-2xl p-4 ${styles[accent]}`}>
-      <div className={`text-[10px] font-bold uppercase tracking-[0.14em] mb-1 ${sub[accent]}`}>{label}</div>
-      <div className="font-black tabular-nums leading-tight text-[18px]">{value}</div>
-    </div>
-  )
-}
-
-/* ─── TopPerformer ───────────────────────────────────────────── */
-function TopPerformer({ icon: Icon, label, value }: {
-  icon: LucideIcon; label: string; value: string | null
-}) {
-  return (
-    <div className="bg-gray-900 rounded-2xl p-4 flex items-center gap-3">
-      <div className="w-9 h-9 rounded-xl bg-yellow-400 flex items-center justify-center flex-shrink-0">
-        <Icon size={16} className="text-black" />
-      </div>
-      <div className="min-w-0">
-        <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-500">{label}</div>
-        <div className="font-black text-white text-[15px] truncate">{value ?? '—'}</div>
-      </div>
-    </div>
-  )
-}
-
-/* ─── BreakdownCard ──────────────────────────────────────────── */
-function BreakdownCard({ title, rows }: {
-  title: string; rows: { label: string; mad: number; count: number }[]
-}) {
-  if (!rows.length) return null
-  const max = Math.max(1, ...rows.map(r => r.mad))
-  return (
-    <div className="bg-white border-2 border-gray-100 rounded-2xl p-4">
-      <h3 className="text-[11px] font-black uppercase tracking-[0.12em] text-gray-400 mb-3">{title}</h3>
-      <div className="space-y-3">
-        {rows.slice(0, 5).map((r, i) => (
-          <div key={r.label}>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-[13px] font-bold text-gray-900 truncate max-w-[55%]">{r.label}</span>
-              <span className="text-[12px] font-black text-gray-900 tabular-nums">
-                {new Intl.NumberFormat('en-US').format(Math.round(r.mad))} <span className="text-gray-400 font-semibold text-[10px]">MAD</span>
-              </span>
-            </div>
-            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-              <div className={`h-full rounded-full ${i === 0 ? 'bg-yellow-400' : 'bg-gray-300'}`}
-                style={{ width: `${(r.mad / max) * 100}%` }} />
-            </div>
-          </div>
-        ))}
       </div>
     </div>
   )

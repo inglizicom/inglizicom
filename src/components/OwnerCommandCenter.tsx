@@ -304,11 +304,16 @@ export default function OwnerCommandCenter({ embedded = false }: { embedded?: bo
               </Panel>
 
               <Panel {...rise()}>
-                <PanelHead icon={Target} title="نسبة التحويل" />
+                <PanelHead icon={Target} title="نسبة التحويل" hint="عملاء الخطط · كل الأوقات" />
                 <div className="flex flex-col items-center justify-center py-2">
                   <Donut value={ov.conversion_rate} />
+                  {ov.conversion && (
+                    <div className="text-[11.5px] text-zinc-500 font-semibold mt-2 text-center">
+                      {ov.conversion.paid} دفعوا من {ov.conversion.leads} عميل (دون المؤرشفين والاختبارات)
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 gap-2 w-full mt-4">
-                    <MiniStat label="طلاب يدفعون" value={<Num value={ov.paying_students} />} />
+                    <MiniStat label="طلاب دفعوا (كل الأوقات)" value={<Num value={ov.paying_students} />} />
                     <MiniStat label="متوسط/طالب" value={<Num value={ov.arpu} money />} />
                   </div>
                 </div>

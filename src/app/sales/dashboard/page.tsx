@@ -13,11 +13,12 @@ import OwnerCommandCenter from '@/components/OwnerCommandCenter'
 import { ChartCard, DonutBreakdown } from '../_components/Charts'
 import { useStaff } from '@/lib/staff-context'
 import {
-  fetchDashboardKpis, fetchOwnerMetrics, fetchLeadsBySource,
+  fetchDashboardKpis, fetchLeadsBySource,
   fetchOverdueFollowUps, fetchTodaysFollowUps,
-  type DashboardKpis, type OwnerMetrics, type OverdueLead,
+  type DashboardKpis, type OverdueLead,
 } from '@/lib/crm-stats'
 import { fetchAllLeads, whatsappLink, normalizeStatus, type SubscriptionLead } from '@/lib/leads-db'
+import { addDays, businessToday, startOfWeek } from '@/lib/enrollment-metrics'
 
 const STATUS_AR: Record<string, string> = {
   new: 'جديد', contacted: 'تم التواصل', interested: 'مهتم',
@@ -29,7 +30,6 @@ export default function DashboardPage() {
   const isFounder = staff.role === 'founder'
 
   const [kpis,    setKpis]    = useState<DashboardKpis | null>(null)
-  const [owner,   setOwner]   = useState<OwnerMetrics | null>(null)
   const [sources, setSources] = useState<{ source: string; count: number }[]>([])
   const [overdue, setOverdue] = useState<OverdueLead[]>([])
   const [today,   setToday]   = useState<OverdueLead[]>([])
@@ -39,38 +39,27 @@ export default function DashboardPage() {
 
   useEffect(() => {
     (async () => {
-      const [k, src, od, td, leads, om] = await Promise.all([
-        fetchDashboardKpis(),
-        fetchLeadsBySource(90),
-        fetchOverdueFollowUps(isFounder ? undefined : staff.id),
-        fetchTodaysFollowUps(isFounder ? undefined : staff.id),
-        fetchAllLeads(),
-        isFounder ? fetchOwnerMetrics() : Promise.resolve(null),
+      const [k, src, od, td, leads] = await Promise.all([
+        isFounder ? Promise.resolve(null) : fetchDashboardKpis(),
+        isFounder ? Promise.resolve([]) : fetchLeadsBySource(90),
+        isFounder ? Promise.resolve([]) : fetchOverdueFollowUps(staff.id),
+        isFounder ? Promise.resolve([]) : fetchTodaysFollowUps(staff.id),
+        isFounder ? Promise.resolve([]) : fetchAllLeads(),
       ])
       setKpis(k); setSources(src); setOverdue(od); setToday(td)
-      setAllLeads(leads); setOwner(om)
+      setAllLeads(leads)
       setLoading(false)
     })()
   }, [staff.id, isFounder])
 
-  /* Revenue delta from last two months */
-  const revSeries = owner?.revenueByMonth ?? []
-  const revDelta = (() => {
-    if (revSeries.length < 2) return undefined
-    const last = revSeries[revSeries.length - 1].mad
-    const prev = revSeries[revSeries.length - 2].mad
-    if (!prev) return undefined
-    return Math.round(((last - prev) / prev) * 100)
-  })()
-
   /* ── Leads by period ─────────────────────────────────── */
   function inPeriod(iso: string, p: typeof period): boolean {
-    const d = new Date(iso); const now = new Date()
-    const startToday = new Date(now); startToday.setHours(0, 0, 0, 0)
-    if (p === 'today')     return d >= startToday
-    if (p === 'yesterday') { const y = new Date(startToday); y.setDate(y.getDate() - 1); return d >= y && d < startToday }
-    if (p === 'week')      { const w = new Date(startToday); w.setDate(w.getDate() - 7); return d >= w }
-    if (p === 'month')     { const m = new Date(now.getFullYear(), now.getMonth(), 1); return d >= m }
+      const today = businessToday()
+      const day = businessToday(new Date(iso))
+      if (p === 'today')     return day === today
+      if (p === 'yesterday') return day === addDays(today, -1)
+      if (p === 'week')      return day >= startOfWeek(today) && day <= today
+      if (p === 'month')     return day.slice(0, 7) === today.slice(0, 7)
     return true
   }
   const periodCounts = {
@@ -112,20 +101,20 @@ export default function DashboardPage() {
         </Link>
       </div>
 
+      {!isFounder && <>
       {/* ── KPI cards ──────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
         <KpiCard label="إيرادات الشهر" value={kpis?.monthlyRevenueMad ?? 0} unit="د.م"
-          icon={Wallet} tone="green" deltaPct={revDelta} deltaNote={revDelta !== undefined ? 'مقارنة بالشهر السابق' : undefined}
-          spark={revSeries.length ? revSeries.map(r => r.mad) : undefined} />
+          icon={Wallet} tone="green" />
         <KpiCard label="عملاء جدد هذا الشهر" value={periodCounts.month}
           icon={UserPlus} tone="purple" />
-        <KpiCard label="الطلاب المدفوعون" value={kpis?.paidStudents ?? 0}
+        <KpiCard label="طلبات اشتراك مدفوعة" value={kpis?.paidStudents ?? 0}
           icon={GraduationCap} tone="blue" />
         <KpiCard label="متابعات اليوم" value={today.length}
           icon={CalendarCheck} tone="orange" />
         <KpiCard label="مدفوعات معلقة" value={kpis?.pendingPayments ?? 0}
           icon={CreditCard} tone="yellow" />
-        <KpiCard label="نسبة التحويل" value={kpis?.conversionRatePct ?? 0} unit="%"
+        <KpiCard label="نسبة التحويل · عملاء آخر 90 يومًا" value={kpis?.conversionRatePct ?? 0} unit="%"
           icon={TrendingUp} tone="green" />
       </div>
 
@@ -192,6 +181,7 @@ export default function DashboardPage() {
           </div>
         </ChartCard>
       </div>
+      </>}
     </div>
   )
 }

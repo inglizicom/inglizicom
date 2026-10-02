@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import { normalizeStatus, type LeadStatus } from './leads-db'
+import { addDays, businessToday, casablancaWallTimeToIso, startOfMonth } from './enrollment-metrics'
 
 /** All the headline numbers shown at the top of the main CRM dashboard. */
 export interface DashboardKpis {
@@ -10,8 +11,8 @@ export interface DashboardKpis {
   pendingPayments:     number
   delayedStudents:     number   // status = delayed
   renewalDueSoon:      number   // plan_expires_at within 30 days
-  monthlyRevenueMad:   number   // sum of approved payments this month
-  conversionRatePct:   number   // paid / total leads in the last 90 days
+  monthlyRevenueMad:   number   // paid crm_payments this Morocco month (revenue_analytics)
+  conversionRatePct:   number   // paid ÷ all plan leads created in the last 90 days — one cohort
 }
 
 /** Fetch all dashboard KPIs in a single round-trip-ish batch.
@@ -23,14 +24,15 @@ export interface DashboardKpis {
  *  numbers. This is what the founder asked for on 2026-05-29. */
 export async function fetchDashboardKpis(): Promise<DashboardKpis> {
   const now        = new Date()
-  const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0)
-  const monthStart = new Date(now); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0)
-  const ninetyAgo  = new Date(now); ninetyAgo.setDate(ninetyAgo.getDate() - 90)
-  const in30days   = new Date(now); in30days.setDate(in30days.getDate() + 30)
+  const today      = businessToday(now)
+  const todayStart = new Date(casablancaWallTimeToIso(today, '00:00'))
+  const monthStart = new Date(casablancaWallTimeToIso(startOfMonth(today), '00:00'))
+  const ninetyAgo  = new Date(casablancaWallTimeToIso(addDays(today, -89), '00:00'))
+  const in30days   = new Date(casablancaWallTimeToIso(addDays(today, 30), '00:00'))
 
   const [
     newToday, newMonth,
-    confirmed, paid, paidLegacy,
+    confirmed, paid, paidLegacy, paid90d, paidLegacy90d,
     pendingPayments, delayed,
     renewals, leads90d,
     revenue,
@@ -40,16 +42,19 @@ export async function fetchDashboardKpis(): Promise<DashboardKpis> {
     countPlanLeadsWithStatus('confirmed'),
     countPlanLeadsWithStatus('paid'),
     countPlanLeadsWithStatus('converted'),
+    countPlanLeadsWithStatusSince('paid', ninetyAgo),
+    countPlanLeadsWithStatusSince('converted', ninetyAgo),
     countPaymentsWithStatus('pending'),
     countPlanLeadsWithStatus('delayed'),
     countRenewalsBefore(in30days),
     countPlanLeadsSince(ninetyAgo),
-    sumApprovedPaymentsBetween(monthStart, now),
+    sumApprovedPaymentsBetween(startOfMonth(today), today),
   ])
 
   const paidStudents = paid + paidLegacy
+  const paidLeads90d = paid90d + paidLegacy90d
   const conversionRatePct = leads90d > 0
-    ? Math.round((paidStudents / leads90d) * 100)
+    ? Math.round((paidLeads90d / leads90d) * 100)
     : 0
 
   return {
@@ -83,6 +88,16 @@ async function countPlanLeadsWithStatus(status: string): Promise<number> {
   return count ?? 0
 }
 
+async function countPlanLeadsWithStatusSince(status: string, when: Date): Promise<number> {
+  const { count } = await supabase
+    .from('subscription_leads')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', status)
+    .gt('amount_mad', 0)
+    .gte('created_at', when.toISOString())
+  return count ?? 0
+}
+
 async function countPaymentsWithStatus(status: string): Promise<number> {
   const { count } = await supabase
     .from('payments')
@@ -101,19 +116,14 @@ async function countRenewalsBefore(when: Date): Promise<number> {
   return count ?? 0
 }
 
-async function sumApprovedPaymentsBetween(from: Date, to: Date): Promise<number> {
-  // Real CRM revenue = paid crm_payments not excluded (archived/removed students).
-  const { data } = await supabase
-    .from('crm_payments')
-    .select('amount_mad')
-    .eq('payment_status', 'paid')
-    .eq('excluded_from_revenue', false)
-    .gt('amount_mad', 0)
-    .gte('created_at', from.toISOString())
-    .lte('created_at', to.toISOString())
-  let total = 0
-  for (const row of data ?? []) total += Number(row.amount_mad ?? 0)
-  return total
+/** Paid revenue over Morocco days [fromDay, toDay] — the same revenue_analytics RPC
+ *  (payment_date, legacy rows by their recorded Morocco day) as the analytics page. */
+async function sumApprovedPaymentsBetween(fromDay: string, toDay: string): Promise<number> {
+  const { data, error } = await supabase.rpc('revenue_analytics', {
+    p_from: fromDay, p_to: toDay, p_bucket: 'month', p_detail: false,
+  })
+  if (error) { console.error('sumApprovedPaymentsBetween', error.message); return 0 }
+  return Number(data?.kpis?.revenue ?? 0)
 }
 
 /** Renewal sub-buckets: 0-7 days, 8-15, 16-30, expired. */
@@ -403,33 +413,6 @@ export async function fetchAssistantStats(daysBack = 90): Promise<AssistantStat[
   })).sort((a, b) => b.paid - a.paid)
 }
 
-/** Approved revenue per month for the last 12 months. */
-export async function fetchRevenuePerMonth(monthsBack = 12): Promise<{ month: string; mad: number }[]> {
-  const cutoff = new Date()
-  cutoff.setMonth(cutoff.getMonth() - monthsBack + 1)
-  cutoff.setDate(1); cutoff.setHours(0, 0, 0, 0)
-  const { data } = await supabase
-    .from('payments')
-    .select('amount_mad, created_at')
-    .eq('status', 'approved')
-    .gte('created_at', cutoff.toISOString())
-
-  const buckets = new Map<string, number>()
-  // Seed all months in range with 0 so the chart has a continuous x-axis.
-  for (let i = 0; i < monthsBack; i++) {
-    const d = new Date(cutoff); d.setMonth(d.getMonth() + i)
-    buckets.set(monthKey(d), 0)
-  }
-  for (const row of data ?? []) {
-    const k = monthKey(new Date(row.created_at as string))
-    buckets.set(k, (buckets.get(k) ?? 0) + Number(row.amount_mad ?? 0))
-  }
-  return [...buckets.entries()].map(([month, mad]) => ({ month, mad }))
-}
-function monthKey(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-}
-
 /** Per-assistant live pipeline stats — used on the founder Today page.
  *  Single query; aggregation is done client-side. */
 export interface TeamMemberStat {
@@ -476,202 +459,4 @@ export async function fetchTeamOverview(): Promise<TeamMemberStat[]> {
   }
 
   return [...map.values()].sort((a, b) => b.total - a.total)
-}
-
-/* ═══════════════════════════════════════════════════════════════
- * OWNER BUSINESS METRICS
- * ═══════════════════════════════════════════════════════════════
- *
- * Revenue source of truth = crm_payments WHERE payment_status = 'paid'.
- * Pending / confirmed / interested leads are NEVER counted as revenue.
- * Refunded payments must have payment_status changed to anything other
- * than 'paid' — they are then automatically excluded from all totals.
- *
- * Every revenue entry is traceable to: payment, lead, student, assistant,
- * course, and payment date.
- * ─────────────────────────────────────────────────────────────── */
-
-export interface RevenueBreakdown {
-  label: string
-  mad:   number
-  count: number  // number of payments
-}
-
-export interface FunnelStep {
-  label:   string
-  count:   number
-  pct:     number   // percentage of the previous step (first step = 100%)
-  cumPct:  number   // percentage of total leads
-}
-
-export interface OwnerMetrics {
-  /* ── Revenue totals ───────────────────────────────────────── */
-  revenueTotal:     number
-  revenueToday:     number
-  revenueThisWeek:  number
-  revenueThisMonth: number
-  revenueThisYear:  number
-
-  /* ── Revenue breakdowns ───────────────────────────────────── */
-  revenueByMonth:     { month: string; mad: number }[]  // last 12 months
-  revenueByCourse:    RevenueBreakdown[]
-  revenueBySource:    RevenueBreakdown[]
-  revenueByAssistant: RevenueBreakdown[]
-
-  /* ── Conversion funnel ────────────────────────────────────── */
-  funnel: FunnelStep[]   // [Total → Contacted → Confirmed → Paid]
-
-  /* ── Per-unit averages ────────────────────────────────────── */
-  avgRevenuePerStudent: number
-  avgRevenuePerLead:    number
-
-  /* ── Top performers ───────────────────────────────────────── */
-  topCourse:    string | null
-  topSource:    string | null
-  topAssistant: string | null
-}
-
-export async function fetchOwnerMetrics(): Promise<OwnerMetrics> {
-  const now       = new Date()
-  const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0)
-  const weekStart  = new Date(now); weekStart.setDate(now.getDate() - now.getDay()); weekStart.setHours(0,0,0,0)
-  const monthStart = new Date(now); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0)
-  const yearStart  = new Date(now.getFullYear(), 0, 1)
-  const year12Ago  = new Date(now); year12Ago.setMonth(now.getMonth() - 11); year12Ago.setDate(1); year12Ago.setHours(0,0,0,0)
-
-  // ── Parallel queries ────────────────────────────────────────
-  const [paymentsRes, leadsRes] = await Promise.all([
-    // All paid CRM payments with lead + assistant joins
-    supabase
-      .from('crm_payments')
-      .select(`
-        amount_mad, payment_date, created_at, course_or_service, student_id,
-        subscription_leads!crm_payments_lead_id_fkey ( source, lead_source ),
-        profiles!crm_payments_added_by_id_fkey ( email, full_name )
-      `)
-      .eq('payment_status', 'paid')
-      .eq('excluded_from_revenue', false),
-
-    // All real plan leads for funnel
-    supabase
-      .from('subscription_leads')
-      .select('status')
-      .eq('is_archived', false)
-      .not('plan_id', 'in', '("test_completed","inquiry")'),
-  ])
-
-  type PaymentRow = {
-    amount_mad:   number | null
-    payment_date: string | null
-    created_at:   string
-    course_or_service: string | null
-    student_id:   string | null
-    subscription_leads: { source: string | null; lead_source: string | null } | { source: string | null; lead_source: string | null }[] | null
-    profiles: { email: string | null; full_name: string | null } | { email: string | null; full_name: string | null }[] | null
-  }
-  const payments = (paymentsRes.data ?? []) as unknown as PaymentRow[]
-
-  const getLeadData = (row: PaymentRow) =>
-    Array.isArray(row.subscription_leads) ? row.subscription_leads[0] ?? null : row.subscription_leads
-  const getProfile  = (row: PaymentRow) =>
-    Array.isArray(row.profiles) ? row.profiles[0] ?? null : row.profiles
-
-  const leads = (leadsRes.data ?? []) as Array<{ status: string }>
-
-  // ── Revenue totals ──────────────────────────────────────────
-  let revenueTotal = 0, revenueToday = 0, revenueThisWeek = 0, revenueThisMonth = 0, revenueThisYear = 0
-
-  // ── Revenue breakdowns ──────────────────────────────────────
-  const byCourse    = new Map<string, { mad: number; count: number }>()
-  const bySource    = new Map<string, { mad: number; count: number }>()
-  const byAssistant = new Map<string, { mad: number; count: number }>()
-  const byMonth     = new Map<string, number>()
-
-  // Seed last 12 months
-  for (let i = 0; i < 12; i++) {
-    const d = new Date(year12Ago); d.setMonth(d.getMonth() + i)
-    byMonth.set(monthKey(d), 0)
-  }
-
-  for (const p of payments) {
-    const mad    = Number(p.amount_mad ?? 0)
-    const date   = p.payment_date ? new Date(p.payment_date) : new Date(p.created_at)
-    const mKey   = monthKey(date)
-
-    revenueTotal += mad
-    if (date >= todayStart)  revenueToday     += mad
-    if (date >= weekStart)   revenueThisWeek  += mad
-    if (date >= monthStart)  revenueThisMonth += mad
-    if (date >= yearStart)   revenueThisYear  += mad
-
-    // By month (last 12)
-    if (byMonth.has(mKey)) byMonth.set(mKey, (byMonth.get(mKey) ?? 0) + mad)
-
-    // By course
-    const course = p.course_or_service ?? 'Unknown'
-    const bc = byCourse.get(course) ?? { mad: 0, count: 0 }
-    byCourse.set(course, { mad: bc.mad + mad, count: bc.count + 1 })
-
-    // By source
-    const lead = getLeadData(p)
-    const src = lead?.lead_source ?? lead?.source ?? 'Direct'
-    const bs = bySource.get(src) ?? { mad: 0, count: 0 }
-    bySource.set(src, { mad: bs.mad + mad, count: bs.count + 1 })
-
-    // By assistant
-    const prof = getProfile(p)
-    const asst = prof?.full_name?.split(' ')[0] ?? prof?.email?.split('@')[0] ?? 'Unknown'
-    const ba = byAssistant.get(asst) ?? { mad: 0, count: 0 }
-    byAssistant.set(asst, { mad: ba.mad + mad, count: ba.count + 1 })
-  }
-
-  const toBreakdown = (m: Map<string, { mad: number; count: number }>): RevenueBreakdown[] =>
-    [...m.entries()]
-      .map(([label, v]) => ({ label, ...v }))
-      .sort((a, b) => b.mad - a.mad)
-
-  // ── Funnel ──────────────────────────────────────────────────
-  const CONTACTED_STATUSES = new Set(['contacted','interested','follow_up','confirmed','paid','converted','delayed'])
-  const CONFIRMED_STATUSES = new Set(['confirmed','paid','converted','delayed'])
-  const PAID_STATUSES      = new Set(['paid','converted'])
-
-  let fTotal = 0, fContacted = 0, fConfirmed = 0, fPaid = 0
-  for (const l of leads) {
-    const s = l.status
-    fTotal++
-    if (CONTACTED_STATUSES.has(s)) fContacted++
-    if (CONFIRMED_STATUSES.has(s)) fConfirmed++
-    if (PAID_STATUSES.has(s))      fPaid++
-  }
-
-  const pct  = (n: number, d: number) => (d > 0 ? Math.round((n / d) * 100) : 0)
-  const cpct = (n: number) => pct(n, fTotal)
-  const funnel: FunnelStep[] = [
-    { label: 'Total leads',  count: fTotal,     pct: 100,                      cumPct: 100 },
-    { label: 'Contacted',    count: fContacted, pct: pct(fContacted, fTotal),  cumPct: cpct(fContacted) },
-    { label: 'Confirmed',    count: fConfirmed, pct: pct(fConfirmed, fContacted), cumPct: cpct(fConfirmed) },
-    { label: 'Paid',         count: fPaid,      pct: pct(fPaid, fConfirmed),   cumPct: cpct(fPaid) },
-  ]
-
-  // ── Averages ────────────────────────────────────────────────
-  // Distinct students = unique non-null student_ids across paid payments.
-  const distinctStudents     = new Set(payments.map(p => p.student_id).filter(Boolean)).size || payments.length
-  const avgRevenuePerStudent = distinctStudents > 0 ? Math.round(revenueTotal / distinctStudents) : 0
-  const avgRevenuePerLead    = fTotal > 0           ? Math.round(revenueTotal / fTotal)           : 0
-
-  // ── Top performers ──────────────────────────────────────────
-  const revenueByCourse    = toBreakdown(byCourse)
-  const revenueBySource    = toBreakdown(bySource)
-  const revenueByAssistant = toBreakdown(byAssistant)
-
-  return {
-    revenueTotal, revenueToday, revenueThisWeek, revenueThisMonth, revenueThisYear,
-    revenueByMonth: [...byMonth.entries()].map(([month, mad]) => ({ month, mad })),
-    revenueByCourse, revenueBySource, revenueByAssistant,
-    funnel,
-    avgRevenuePerStudent, avgRevenuePerLead,
-    topCourse:    revenueByCourse[0]?.label    ?? null,
-    topSource:    revenueBySource[0]?.label    ?? null,
-    topAssistant: revenueByAssistant[0]?.label ?? null,
-  }
 }

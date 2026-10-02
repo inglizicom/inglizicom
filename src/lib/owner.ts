@@ -12,7 +12,9 @@ export interface OwnerOverview {
   new_leads_today: number; new_students_today: number
   total_leads: number; total_students: number
   active_students: number; inactive_students: number; at_risk: number
+  /** paid leads ÷ leads, one cohort: plan leads, not archived, all time (migration 051) */
   conversion_rate: number
+  conversion?: { leads: number; paid: number; cohort: string }
   enroll: Record<string, number>
   rewards: { coins_distributed: number; coins_spent: number; claims_total: number; claims_pending: number }
   top_course: { title: string; students: number } | null

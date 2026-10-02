@@ -102,15 +102,25 @@ describe('query parameters', () => {
 
   it('round-trips range and filters', () => {
     const q = { range: customRange('2026-09-01', '2026-09-30'),
-                filters: { course_id: uuid, mode: 'private', status: 'active' } }
+                filters: { course_id: uuid, mode: 'private', status: 'active' }, view: 'overview' }
     const s = toQueryString(q)
     assert.equal(s, `range=custom&from=2026-09-01&to=2026-09-30&course=${uuid}&mode=private&status=active`)
     assert.deepEqual(parseQuery(new URLSearchParams(s), today), q)
   })
 
+  it('keeps the tab in the same state as the range and filters', () => {
+    const q = { range: presetRange('year', today), filters: { teacher_id: uuid }, view: 'teachers' }
+    const s = toQueryString(q)
+    assert.equal(s, `range=year&teacher=${uuid}&view=teachers`)
+    assert.deepEqual(parseQuery(new URLSearchParams(s), today), q)
+    for (const view of ['overview', 'enrollments', 'revenue', 'teachers']) {
+      assert.equal(parseQuery({ view }, today).view, view)
+    }
+  })
+
   it('defaults to this month and drops anything invalid', () => {
-    const q = parseQuery(new URLSearchParams('range=decade&course=not-a-uuid&mode=vip&status=deleted&from=x'), today)
-    assert.deepEqual(q, { range: presetRange('month', today), filters: {} })
+    const q = parseQuery(new URLSearchParams('range=decade&course=not-a-uuid&mode=vip&status=deleted&from=x&view=secrets'), today)
+    assert.deepEqual(q, { range: presetRange('month', today), filters: {}, view: 'overview' })
     assert.equal(toQueryString(q), '')
     assert.equal(hasEntityFilters(q.filters), false)
   })

@@ -43,11 +43,28 @@ Constraints added with `NOT VALID` + `VALIDATE` (live data checked on 2026-10-01
 3. Open each class: the yellow panel lists students who were marked present without a seat. Tick only those who belong; they are enrolled from their first attended session. (Existing private sessions have 8 attendance rows each — the old sheet listed every assigned student — so review those carefully.)
 4. **الدورات → تدقيق التمارين**: on 2026-10-01 production had 38 lessons whose quiz is a bare array; the lesson gate does not enforce those. Re-save them in the `{ questions }` shape if the quiz should gate the lesson.
 
+## 050 / 051 — statistics cleanup (functions only, no table or data changes)
+
+- `050_enrollment_analytics_fixes.sql`: the status filter also scopes the class cohort used for linked course
+  counts; legacy `completed` course rows with no `completed_at` are never counted as active at a period end.
+- `051_teacher_counts_and_conversion.sql`:
+  - `teacher_roster(teacher)` / `teacher_counts(teacher, from, to)` (internal, no API access) define a teacher's
+    students once. `teacher_overview(p_from, p_to)`, `teacher_my_students()` and `teachers_scoreboard()` all use
+    them, so the teacher home, the roster and the staff scoreboard always agree (tested).
+  - People vs relationships: unique / assigned / course / class students are people; course enrollments and
+    class seats are relationships. Per-teacher figures are never summed across teachers.
+  - `teacher_overview()` without arguments still works (defaults = all time) and keeps every old key.
+  - Scoreboard `roster_revenue` = paid payments in the period by students on that roster; non-exclusive.
+  - `owner_overview.conversion_rate` = paid ÷ all leads in one cohort (plan leads, not archived, all time).
+  - `revenue_between` dates payments by Morocco day independent of the session time zone (same totals today).
+- Deploy order: apply 050 → 051, then deploy the app. The app also works against 049 (teacher home falls back
+  to the old call; new columns show "—").
+
 ## Tests
 
 ```
 npm run test:unit   # date ranges, previous period, URL state, CSV, Morocco wall-clock scheduling (Node ≥ 22.18)
-npm run test:db     # fresh DB: production schema @046 + 047–049, then 47 behavioural tests
+npm run test:db     # fresh DB: production schema @046 + 047–051, then 59 behavioural tests
 ```
 
 `supabase/tests/000_legacy_baseline.sql` is a structure-only snapshot of production at 046 (history 001–046 is not replayable: production was partly built outside this folder). `baseline-fidelity.json` pins md5 of every production function so drift is caught.

@@ -8,13 +8,17 @@ import {
 } from 'lucide-react'
 import { useTeacher } from '@/lib/teacher-context'
 import {
-  fetchAttendanceTotals, fetchMyStudents, fetchReportsOwed, fetchSessions,
+  fetchMyStudents, fetchReportsOwed, fetchSessions,
   fetchTeacherOverview,
   type ClassSession, type MyStudent, type TeacherOverview,
 } from '@/lib/teachers'
+import { businessToday, presetRange } from '@/lib/enrollment-metrics'
 import { AttendanceBar, Ring } from './_charts'
-import { DEMO_ATTENDANCE, DEMO_OVERVIEW, DEMO_REPORTS_OWED, DEMO_SESSIONS, DEMO_STUDENTS, isTeacherDemo } from './_demo'
+import { DEMO_OVERVIEW, DEMO_REPORTS_OWED, DEMO_SESSIONS, DEMO_STUDENTS, isTeacherDemo } from './_demo'
 import { fmtTime, fromNow, STATUS_AR } from './_ui'
+
+type Period = 'week' | 'month' | 'year' | 'all'
+const PERIODS: [Period, string][] = [['week', 'هذا الأسبوع'], ['month', 'هذا الشهر'], ['year', 'هذا العام'], ['all', 'منذ البداية']]
 
 /**
  * اليوم — what today needs from me.
@@ -47,6 +51,29 @@ function Label({ children, action }: { children: React.ReactNode; action?: React
   )
 }
 
+/** A row of figures. `undefined` shows a dash (e.g. before migration 051 is applied). */
+function Figures({ items }: {
+  items: { v: number | undefined | null; l: string; u?: string; sub?: string; strong?: boolean; alert?: boolean }[]
+}) {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-y-5 gap-x-4">
+      {items.map(f => (
+        <div key={f.l} className="min-w-0">
+          <div className="flex items-baseline gap-1">
+            <span className={`text-[28px] font-extrabold tracking-tight tabular-nums leading-none
+                              ${f.alert ? 'text-[#B91C1C]' : f.strong ? 'text-[#B45309]' : 'text-[#1C1917]'}`}>
+              {f.v ?? '—'}
+            </span>
+            {f.u && f.v != null && <span className="text-[13px] font-bold text-[#A8A29E]">{f.u}</span>}
+          </div>
+          <div className="text-[12px] font-bold text-[#57534E] mt-1.5">{f.l}</div>
+          {f.sub && <div className="text-[11px] font-semibold text-[#A8A29E] mt-0.5 leading-snug">{f.sub}</div>}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function Quick({ href, icon: Icon, label }: { href: string; icon: typeof Users; label: string }) {
   return (
     <Link href={href}
@@ -63,28 +90,36 @@ export default function TeacherDashboard() {
   const [ov, setOv]             = useState<TeacherOverview | null>(null)
   const [sessions, setSessions] = useState<ClassSession[]>([])
   const [owed, setOwed]         = useState<ClassSession[]>([])
-  const [att, setAtt]           = useState({ present: 0, late: 0, absent: 0, excused: 0 })
   const [students, setStudents] = useState<MyStudent[]>([])
   const [loading, setLoading]   = useState(true)
   const [demo, setDemo]         = useState(false)
+  const [period, setPeriod]     = useState<Period>('month')
 
   useEffect(() => {
     let alive = true
     if (isTeacherDemo()) {
-      setDemo(true); setOv(DEMO_OVERVIEW); setSessions(DEMO_SESSIONS)
-      setOwed(DEMO_REPORTS_OWED); setAtt(DEMO_ATTENDANCE); setStudents(DEMO_STUDENTS)
+      setDemo(true); setSessions(DEMO_SESSIONS)
+      setOwed(DEMO_REPORTS_OWED); setStudents(DEMO_STUDENTS)
       setLoading(false); return
     }
     ;(async () => {
-      const [o, s, r, a, st] = await Promise.all([
-        fetchTeacherOverview(), fetchSessions(teacher.id), fetchReportsOwed(teacher.id),
-        fetchAttendanceTotals(teacher.id), fetchMyStudents(),
+      const [s, r, st] = await Promise.all([
+        fetchSessions(teacher.id), fetchReportsOwed(teacher.id), fetchMyStudents(),
       ])
       if (!alive) return
-      setOv(o); setSessions(s); setOwed(r); setAtt(a); setStudents(st); setLoading(false)
+      setSessions(s); setOwed(r); setStudents(st); setLoading(false)
     })()
     return () => { alive = false }
   }, [teacher.id])
+
+  // Every figure comes from one server call: roster counts are current, `period` follows the chips.
+  useEffect(() => {
+    let alive = true
+    if (isTeacherDemo()) { setOv(DEMO_OVERVIEW); return }
+    const r = presetRange(period, businessToday())
+    fetchTeacherOverview(r.from, r.to).then(o => { if (alive) setOv(o) })
+    return () => { alive = false }
+  }, [teacher.id, period])
 
   const now = Date.now()
 
@@ -101,8 +136,9 @@ export default function TeacherDashboard() {
 
   const later = useMemo(() => upcoming.filter(s => !todays.includes(s)).slice(0, 7), [upcoming, todays])
 
-  const attTotal  = att.present + att.late + att.absent
-  const completed = sessions.filter(s => s.status === 'done').length
+  const roster    = ov?.roster
+  const pd        = ov?.period
+  const att       = pd?.attendance
   const next      = upcoming[0]
   const firstName = (teacher.profile?.display_name || teacher.fullName || '').split(' ')[0]
   const active    = students.filter(s => s.is_active)
@@ -128,7 +164,7 @@ export default function TeacherDashboard() {
 
       {/* ══ Opening: sentence on the right, the class itself on the left ══ */}
       <div className="grid lg:grid-cols-[1.15fr_.85fr] gap-6 items-stretch">
-        <div className="flex flex-col justify-center">
+        <div className="flex flex-col justify-center min-w-0">
           <div className="text-[12px] font-bold tracking-[.14em] uppercase text-[#A8A29E] mb-3">{DAY_AR()}</div>
 
           <h1 className="text-[30px] sm:text-[38px] font-extrabold tracking-tight leading-[1.18]">
@@ -217,32 +253,57 @@ export default function TeacherDashboard() {
         )}
       </div>
 
-      {/* ══ Figures — a full-width strip ══════════════════ */}
+      {/* ══ Figures — who I teach now, then what happened in the period ══ */}
       <Card className="px-6 py-5">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-y-5 gap-x-4 divide-x divide-x-reverse divide-[#EFEBE2]">
-          {[
-            { v: ov?.classes_month ?? 0,   u: '',  l: 'حصة هذا الشهر' },
-            { v: ov?.hours_month ?? 0,     u: 'س', l: 'ساعة تدريس' },
-            { v: ov?.students_total ?? 0,  u: '',  l: ov?.classes_active ? `طالباً · ${ov.classes_active} أقسام` : 'طالباً' },
-            { v: ov?.attendance_rate ?? 0, u: '%', l: 'نسبة الحضور' },
-            { v: owed.length,              u: '',  l: 'تقرير معلّق', alert: owed.length > 0 },
-          ].map(f => (
-            <div key={f.l} className="px-4 first:pr-0">
-              <div className="flex items-baseline gap-1">
-                <span className={`text-[30px] font-extrabold tracking-tight tabular-nums leading-none
-                                  ${f.alert ? 'text-[#B91C1C]' : 'text-[#1C1917]'}`}>{f.v}</span>
-                {f.u && <span className="text-[13px] font-bold text-[#A8A29E]">{f.u}</span>}
+        <Label action={<Link href="/teacher/students"
+                             className="text-[12px] font-bold text-[#44403C] border-b-2 border-[#D6CFC0] pb-0.5 hover:border-[#1C1917]">القائمة</Link>}>
+          طلابي الآن
+        </Label>
+        <Figures items={[
+          { v: roster?.unique_students ?? ov?.students_total, l: 'طالب', sub: 'كل طالب مرة واحدة', strong: true },
+          { v: roster?.assigned_students ?? ov?.assigned_students, l: 'مسنَدون من الإدارة',
+            sub: roster ? `${roster.assigned_only} بلا قسم عندي` : undefined },
+          { v: roster?.course_students, l: 'في دورة نشطة',
+            sub: roster ? `${roster.course_enrollments} تسجيل في دورات` : undefined },
+          { v: roster?.class_students ?? ov?.class_students, l: 'في أقسامي المباشرة',
+            sub: roster ? `${roster.class_seats} مقعد · ${roster.group_seats} جماعي · ${roster.private_seats} فردي` : undefined },
+          { v: roster ? roster.group_classes + roster.private_classes : ov?.classes_active, l: 'أقسام نشطة',
+            sub: roster ? `${roster.group_classes} جماعي · ${roster.private_classes} فردي` : undefined },
+        ]} />
+        <p className="text-[11.5px] text-[#A8A29E] font-semibold mt-3">
+          الطالب المسنَد إليك والمسجّل في أحد أقسامك يُحسب مرة واحدة. المقاعد وتسجيلات الدورات علاقات، لا أشخاص.
+        </p>
+
+        <div className="border-t border-[#EFEBE2] mt-5 pt-5">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-4">
+            <h2 className="text-[12px] font-bold tracking-[.14em] uppercase text-[#A8A29E]">في الفترة</h2>
+            <div className="max-w-full overflow-x-auto">
+              <div className="inline-flex gap-1 bg-[#F5F3EE] rounded-full p-1" role="tablist" aria-label="الفترة">
+                {PERIODS.map(([id, label]) => (
+                  <button key={id} role="tab" aria-selected={period === id} onClick={() => setPeriod(id)}
+                          className={`px-3 py-1 rounded-full text-[11.5px] font-bold transition-colors whitespace-nowrap
+                                      ${period === id ? 'bg-white text-[#1C1917] shadow-sm' : 'text-[#8A8377] hover:text-[#1C1917]'}`}>
+                    {label}
+                  </button>
+                ))}
               </div>
-              <div className="text-[12px] font-semibold text-[#8A8377] mt-1.5">{f.l}</div>
             </div>
-          ))}
+          </div>
+          <Figures items={[
+            { v: pd?.sessions_delivered ?? (period === 'month' ? ov?.classes_month : undefined), l: 'حصة منجزة',
+              sub: pd ? `${pd.hours_delivered} ساعة` : undefined },
+            { v: pd?.sessions_cancelled, l: 'حصة ملغاة' },
+            { v: att?.rate ?? undefined, u: '%', l: 'نسبة الحضور', sub: att ? `${att.marks} علامة حضور` : undefined },
+            { v: ov?.upcoming_sessions ?? ov?.upcoming, l: 'حصة قادمة', sub: 'من اليوم فصاعدًا' },
+            { v: owed.length, l: 'تقرير معلّق', alert: owed.length > 0, sub: 'كل الحصص المنتهية' },
+          ]} />
         </div>
       </Card>
 
       {/* ══ Two columns: the schedule, and everything else ══ */}
       <div className="grid lg:grid-cols-[1.15fr_.85fr] gap-6 items-start">
 
-        <div className="space-y-6">
+        <div className="space-y-6 min-w-0">
           <Card className="p-6">
             <Label action={<Link href="/teacher/classes"
                                  className="text-[12px] font-bold text-[#44403C] border-b-2 border-[#D6CFC0] pb-0.5
@@ -300,18 +361,18 @@ export default function TeacherDashboard() {
           )}
         </div>
 
-        <div className="space-y-6">
-          {attTotal > 0 && (
+        <div className="space-y-6 min-w-0">
+          {att && att.marks > 0 && (
             <Card className="p-6">
-              <Label>الحضور</Label>
+              <Label>الحضور · {PERIODS.find(p => p[0] === period)?.[1]}</Label>
               <div className="flex items-center gap-6">
-                <Ring pct={ov?.attendance_rate ?? 0} size={104} label="حضور" />
+                <Ring pct={Math.round(att.rate ?? 0)} size={104} label="حضور" />
                 <div className="flex-1 min-w-0">
                   <AttendanceBar present={att.present} late={att.late} absent={att.absent} />
                 </div>
               </div>
               <p className="text-[12px] text-[#A8A29E] font-semibold mt-4">
-                {attTotal} تسجيلاً · {completed} حصة منتهية
+                {att.marks} علامة · {pd?.sessions_delivered ?? 0} حصة منجزة في الفترة
               </p>
             </Card>
           )}

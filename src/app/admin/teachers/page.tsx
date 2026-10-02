@@ -50,7 +50,6 @@ export default function AdminTeachersPage() {
 
   const totals = useMemo(() => ({
     teachers: rows.length,
-    students: rows.reduce((a, r) => a + (r.unique_students ?? 0), 0),
     hours:    rows.reduce((a, r) => a + Number(r.hours_delivered ?? 0), 0),
     owed:     rows.reduce((a, r) => a + (r.reports_owed ?? 0), 0),
     owedAll:  rows.reduce((a, r) => a + (r.reports_owed_all_time ?? 0), 0),
@@ -63,7 +62,7 @@ export default function AdminTeachersPage() {
         <div>
           <h1 className="text-2xl font-black tracking-tight text-gray-900">الأساتذة</h1>
           <p className="text-gray-500 text-sm font-semibold mt-0.5">
-            {totals.teachers} أستاذ · {totals.students} طالب حاليًا · {totals.hours} ساعة في الفترة ({describeRange(range)})
+            {totals.teachers} أستاذ · {totals.hours} ساعة منجزة في الفترة ({describeRange(range)}) · {totals.owed} تقرير ناقص
           </p>
         </div>
         <div className="flex gap-2">
@@ -107,27 +106,46 @@ export default function AdminTeachersPage() {
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-200 overflow-x-auto">
-          <table className="w-full text-sm min-w-[72rem]">
+          <table className="w-full text-sm min-w-[84rem]">
             <thead>
               <tr className="bg-gray-50 text-[10.5px] font-black text-gray-400">
                 <th className="px-5 pt-2.5"></th>
-                <th colSpan={5} className="text-center px-3 pt-2.5 border-l border-gray-200">الحالي — لا يتأثر بالفترة</th>
+                <th colSpan={7} className="text-center px-3 pt-2.5 border-l border-gray-200">الحالي — لا يتأثر بالفترة</th>
                 <th colSpan={5} className="text-center px-3 pt-2.5 border-l border-gray-200">في الفترة: {describeRange(range)}</th>
+                <th className="text-center px-3 pt-2.5 border-l border-gray-200">الإيراد · الفترة</th>
+                <th></th>
+                <th className="sticky left-0 bg-gray-50"></th>
+              </tr>
+              <tr className="bg-gray-50 text-[10px] font-black text-gray-400">
+                <th></th>
+                <th className="text-center px-2 pt-1 border-l border-gray-200">الإسناد</th>
+                <th colSpan={2} className="text-center px-2 pt-1 border-l border-gray-200">الدورات</th>
+                <th colSpan={3} className="text-center px-2 pt-1 border-l border-gray-200">الأقسام المباشرة</th>
+                <th className="text-center px-2 pt-1 border-l border-gray-200">أشخاص</th>
+                <th colSpan={4} className="text-center px-2 pt-1">الحصص والحضور</th>
+                <th className="border-l border-gray-200"></th>
+                <th className="border-l border-gray-200"></th>
                 <th></th>
                 <th className="sticky left-0 bg-gray-50"></th>
               </tr>
               <tr className="bg-gray-50 border-b border-gray-200 text-[11px] font-black text-gray-500">
                 <th className="text-right px-5 py-3">الأستاذ</th>
-                <th className="text-center px-2 py-3" title="teacher_students — إسناد من الإدارة">مسنَدون</th>
-                <th className="text-center px-2 py-3" title="مقعد نشط في أحد أقسامه">طلاب الأقسام</th>
-                <th className="text-center px-2 py-3" title="من طلابه، المسجّلون في دورة">في دورة</th>
-                <th className="text-center px-2 py-3" title="مقاعد نشطة: جماعي / فردي">جماعي / فردي</th>
-                <th className="text-center px-2 py-3 border-l border-gray-200" title="كل طالب مرة واحدة">فريدون</th>
+                <th className="text-center px-2 py-3 border-l border-gray-200" title="teacher_students — إسناد من الإدارة (أشخاص)">مسنَدون</th>
+                <th className="text-center px-2 py-3" title="طلابه (مسنَدون أو في أقسامه) الذين لديهم تسجيل نشط واحد على الأقل في دورة — أشخاص">طلاب في دورة</th>
+                <th className="text-center px-2 py-3 border-l border-gray-200" title="عدد تسجيلات الدورات النشطة لهؤلاء الطلاب — علاقات، لا أشخاص">تسجيلات دورات</th>
+                <th className="text-center px-2 py-3" title="طلاب لديهم مقعد نشط في أحد أقسامه — أشخاص">طلاب الأقسام</th>
+                <th className="text-center px-2 py-3" title="مقاعد نشطة: جماعي / فردي — علاقات، الطالب في قسمين = مقعدان">مقاعد ج / ف</th>
+                <th className="text-center px-2 py-3 border-l border-gray-200" title="أقسام نشطة غير مؤرشفة: جماعي / فردي">أقسام ج / ف</th>
+                <th className="text-center px-2 py-3 border-l border-gray-200" title="مسنَدون ∪ طلاب الأقسام — كل طالب مرة واحدة">طلاب فريدون</th>
                 <th className="text-center px-2 py-3">حصص منجزة</th>
                 <th className="text-center px-2 py-3">الساعات</th>
                 <th className="text-center px-2 py-3">ملغاة</th>
-                <th className="text-center px-2 py-3">الحضور</th>
+                <th className="text-center px-2 py-3" title="علامات الحضور في حصص الفترة">الحضور</th>
                 <th className="text-center px-2 py-3 border-l border-gray-200">تقارير ناقصة</th>
+                <th className="text-center px-2 py-3 border-l border-gray-200"
+                    title="دفعات مؤكَّدة في الفترة (حسب تاريخ الدفع) من طلابه الحاليين. غير حصرية: الطالب الذي له أستاذان يُحسب لكليهما — لا تُجمع بين الأساتذة.">
+                  مدفوعات طلابه*
+                </th>
                 <th className="text-center px-2 py-3">التقييم</th>
                 <th className="px-3 py-3 sticky left-0 bg-gray-50"></th>
               </tr>
@@ -149,10 +167,14 @@ export default function AdminTeachersPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="text-center px-2 font-black tabular-nums">{t.assigned_students}</td>
-                  <td className="text-center px-2 font-black tabular-nums">{t.class_students}</td>
+                  <td className="text-center px-2 font-black tabular-nums border-l border-gray-100">{t.assigned_students}</td>
                   <td className="text-center px-2 font-black tabular-nums">{t.course_students}</td>
+                  <td className="text-center px-2 font-bold tabular-nums text-gray-600 border-l border-gray-100">{t.course_enrollments ?? '—'}</td>
+                  <td className="text-center px-2 font-black tabular-nums">{t.class_students}</td>
                   <td className="text-center px-2 font-bold tabular-nums text-gray-600">{t.group_enrollments} / {t.private_enrollments}</td>
+                  <td className="text-center px-2 font-bold tabular-nums text-gray-600 border-l border-gray-100">
+                    {t.group_classes ?? '—'} / {t.private_classes ?? '—'}
+                  </td>
                   <td className="text-center px-2 font-black tabular-nums border-l border-gray-100">{t.unique_students}</td>
                   <td className="text-center px-2 font-black tabular-nums">{t.sessions_delivered}</td>
                   <td className="text-center px-2 font-black tabular-nums">{t.hours_delivered}</td>
@@ -166,6 +188,14 @@ export default function AdminTeachersPage() {
                       : <span className="text-emerald-600 font-black">✓</span>}
                     {t.reports_owed_all_time > t.reports_owed && (
                       <div className="text-[10.5px] text-gray-400 font-bold mt-0.5">{t.reports_owed_all_time} منذ البداية</div>
+                    )}
+                  </td>
+                  <td className="text-center px-2 border-l border-gray-100 tabular-nums">
+                    {t.roster_revenue == null ? <span className="text-gray-300 font-bold">—</span> : (
+                      <>
+                        <div className="font-black">{new Intl.NumberFormat('en-US').format(Math.round(Number(t.roster_revenue)))} <span className="text-[10.5px] text-gray-400">د.م</span></div>
+                        <div className="text-[10.5px] text-gray-400 font-bold">{t.roster_paying_students ?? 0} طالب دفع</div>
+                      </>
                     )}
                   </td>
                   <td className="text-center px-2">
@@ -199,6 +229,14 @@ export default function AdminTeachersPage() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {rows.length > 0 && (
+        <p className="text-[11.5px] text-gray-400 font-semibold leading-relaxed">
+          «مسنَدون» و«طلاب في دورة» و«طلاب الأقسام» و«طلاب فريدون» أشخاص؛ «تسجيلات دورات» و«مقاعد» علاقات (طالب في قسمين = مقعدان).
+          الأعمدة لا تُجمع بين الأساتذة: الطالب نفسه قد يكون عند أستاذين.
+          * مدفوعات طلابه: دفعات مؤكَّدة في الفترة من طلابه الحاليين — ليست إيرادًا منسوبًا للأستاذ، والمجموع الصحيح في «الإحصائيات › الإيرادات».
+        </p>
       )}
 
       <AbsencePanel />

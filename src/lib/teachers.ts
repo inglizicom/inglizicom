@@ -86,8 +86,42 @@ export interface TeacherProfileFull {
   rating_breakdown: Record<string, number>
 }
 
+/** A teacher's current roster — teacher_counts() in 051_teacher_counts_and_conversion.sql.
+ *  Students are people (each counted once); seats and course enrollments are relationships. */
+export interface TeacherRosterCounts {
+  unique_students:    number   // assigned ∪ seated, each student once
+  assigned_students:  number   // assigned by administration
+  assigned_only:      number
+  class_only:         number
+  assigned_and_class: number
+  course_students:    number   // roster students with ≥ 1 active course enrollment
+  course_enrollments: number   // their active course enrollments (relationships)
+  no_course_students: number
+  class_students:     number   // students holding ≥ 1 active seat in my classes
+  class_seats:        number   // active seats (relationships)
+  group_seats:        number
+  private_seats:      number
+  group_students:     number
+  private_students:   number
+  group_classes:      number   // my active, non-archived classes
+  private_classes:    number
+}
+
+export interface TeacherPeriodCounts {
+  from: string | null; to: string | null; timezone: string
+  sessions_delivered: number
+  hours_delivered:    number
+  sessions_cancelled: number
+  sessions_scheduled: number
+  reports_owed:       number
+  attendance: {
+    marks: number; present: number; late: number; absent: number; excused: number
+    rate: number | null
+  }
+}
+
 export interface TeacherOverview {
-  /** assigned ∪ active class seats, each student once */
+  /** assigned ∪ active class seats, each student once (same as roster.unique_students) */
   students_total:    number
   assigned_students?: number
   class_students?:   number
@@ -99,6 +133,26 @@ export interface TeacherOverview {
   attendance_rate:   number | null
   rating_avg:        number | null
   rating_count:      number | null
+  /** Present once migration 051 is applied. */
+  roster?:            TeacherRosterCounts
+  period?:            TeacherPeriodCounts
+  upcoming_sessions?: number
+  reports_owed_all_time?: number
+}
+
+export type EnrollmentStatus = 'active' | 'waitlisted' | 'completed' | 'cancelled'
+
+export interface MyStudentCourse {
+  course_id: string; title: string; level: string | null
+  status: 'active' | 'completed'
+  enrolled_at: string; completed_at: string | null
+}
+
+export interface MyStudentClass {
+  enrollment_id: string; class_id: string; title: string; mode: 'group' | 'private'
+  status: EnrollmentStatus
+  class_status: 'active' | 'completed' | 'cancelled'; archived: boolean
+  enrolled_at: string; ended_at: string | null
 }
 
 export interface MyStudent {
@@ -116,6 +170,12 @@ export interface MyStudent {
   assigned_at:     string | null
   /** Active seats in this teacher's online classes. */
   classes?:        { class_id: string; title: string; mode: 'group' | 'private' }[]
+  /** Why the student is on my roster. Present once migration 051 is applied. */
+  relationship?:   'assigned' | 'class' | 'both'
+  /** The student's course enrollments (course access) — not classes, not payments. */
+  courses?:        MyStudentCourse[]
+  /** Seats in my classes: active, waitlisted or completed. */
+  class_memberships?: MyStudentClass[]
 }
 
 /** One of my online classes (owner, or substitute who taught a session). */
@@ -225,7 +285,7 @@ export interface TeacherReview {
   created_at:   string
 }
 
-/** teachers_scoreboard(p_from, p_to) — see 048_enrollment_analytics.sql. */
+/** teachers_scoreboard(p_from, p_to) — see 051_teacher_counts_and_conversion.sql. */
 export interface ScoreboardRow {
   id:              string
   display_name:    string | null
@@ -254,6 +314,16 @@ export interface ScoreboardRow {
   attendance_marks:      number
   attendance_rate:       number | null
   new_class_enrollments: number
+  // ── present once migration 051 is applied ──
+  roster?:                 TeacherRosterCounts
+  course_enrollments?:     number
+  class_seats?:            number
+  group_classes?:          number
+  private_classes?:        number
+  /** Paid payments in the period by students on this roster today. Non-exclusive:
+   *  a student with two teachers counts for both — never sum across teachers. */
+  roster_revenue?:         number
+  roster_paying_students?: number
 }
 
 /* ── Profile ───────────────────────────────────────────── */
@@ -313,8 +383,11 @@ export async function uploadTeacherAvatar(id: string, file: File): Promise<strin
 
 /* ── Overview + roster ─────────────────────────────────── */
 
-export async function fetchTeacherOverview(): Promise<TeacherOverview | null> {
-  const { data, error } = await supabase.rpc('teacher_overview')
+/** My own figures. Roster counts are current; `period` follows [from, to] (Morocco days, both null = all time). */
+export async function fetchTeacherOverview(from: string | null = null, to: string | null = null): Promise<TeacherOverview | null> {
+  let { data, error } = await supabase.rpc('teacher_overview', { p_from: from, p_to: to })
+  // Before migration 051 the function takes no arguments; fall back to it.
+  if (error) ({ data, error } = await supabase.rpc('teacher_overview'))
   if (error) { console.error('fetchTeacherOverview', error.message); return null }
   if (!data || Object.keys(data).length === 0) return null
   return data as TeacherOverview

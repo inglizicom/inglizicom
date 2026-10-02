@@ -30,17 +30,6 @@ const at = (dayOffset: number, h: number, m = 0) => {
 }
 const ago = (d: number) => { const t = new Date(); t.setDate(t.getDate() - d); return t.toISOString() }
 
-/* ── Overview ──────────────────────────────────────────── */
-
-export const DEMO_OVERVIEW: TeacherOverview = {
-  students_total: 41, assigned_students: 12, class_students: 33, classes_active: 4,
-  classes_month: 34, hours_month: 38.5,
-  upcoming: 6, reports_owed: 2, attendance_rate: 92,
-  rating_avg: 4.8, rating_count: 47,
-}
-
-export const DEMO_ATTENDANCE = { present: 286, late: 31, absent: 24, excused: 9 }
-
 /* ── Students ──────────────────────────────────────────── */
 
 const NAMES = [
@@ -50,23 +39,79 @@ const NAMES = [
 ]
 const COURSES = ['المحادثة A2', 'IELTS B2', 'إنجليزية الأعمال C1', 'من الصفر A0', 'النطق B1']
 
-export const DEMO_STUDENTS: MyStudent[] = NAMES.map((n, i) => ({
-  id: `demo-s${i}`,
-  full_name: n,
-  course: COURSES[i % COURSES.length],
-  student_type: i % 4 === 0 ? 'private_student' : 'course_student',
-  enrollment_date: ago(30 + i * 9).slice(0, 10),
-  is_active: i !== 11,
-  avatar_url: null,
-  phone_masked: `+2126••••${(11 + i * 7).toString().padStart(2, '0')}`,
-  assigned: i % 3 !== 1,
-  assigned_at: i % 3 !== 1 ? ago(28 + i * 8) : null,
-  classes: i % 4 === 0
+export const DEMO_STUDENTS: MyStudent[] = NAMES.map((n, i) => {
+  const classes = i % 4 === 0
     ? [{ class_id: 'demo-c3', title: 'إعداد مقابلات العمل — فردي', mode: 'private' as const }]
     : i % 3 === 1 || i % 2 === 0
       ? [{ class_id: 'demo-c1', title: 'المحادثة A2 — مساءً', mode: 'group' as const }]
-      : [],
-}))
+      : []
+  const assigned = i % 3 !== 1
+  return {
+    id: `demo-s${i}`,
+    full_name: n,
+    course: COURSES[i % COURSES.length],
+    student_type: i % 4 === 0 ? 'private_student' : 'course_student',
+    enrollment_date: ago(30 + i * 9).slice(0, 10),
+    is_active: i !== 11,
+    avatar_url: null,
+    phone_masked: `+2126••••${(11 + i * 7).toString().padStart(2, '0')}`,
+    assigned,
+    assigned_at: assigned ? ago(28 + i * 8) : null,
+    classes,
+    relationship: assigned && classes.length ? 'both' : assigned ? 'assigned' : 'class',
+    courses: i % 5 === 3 ? [] : [
+      { course_id: `demo-k${i % 5}`, title: COURSES[i % 5], level: null,
+        status: i === 7 ? 'completed' as const : 'active' as const, enrolled_at: ago(40 + i), completed_at: i === 7 ? ago(3) : null },
+      ...(i === 2 ? [{ course_id: 'demo-k9', title: 'IELTS B2', level: null, status: 'active' as const,
+                      enrolled_at: ago(12), completed_at: null }] : []),
+    ],
+    class_memberships: [
+      ...classes.map(c => ({ enrollment_id: `demo-e${i}-${c.class_id}`, ...c, status: 'active' as const,
+        class_status: 'active' as const, archived: false, enrolled_at: ago(35 - i), ended_at: null })),
+      ...(i === 5 ? [{ enrollment_id: 'demo-e5w', class_id: 'demo-c2', title: 'IELTS B2 — مجموعة السبت', mode: 'group' as const,
+        status: 'waitlisted' as const, class_status: 'active' as const, archived: false, enrolled_at: ago(4), ended_at: null }] : []),
+    ],
+  }
+})
+
+/* ── Overview (derived from the demo roster so the two always agree) ── */
+
+const demoSeats = DEMO_STUDENTS.flatMap(s => (s.class_memberships ?? []).filter(m => m.status === 'active'))
+const demoCourse = DEMO_STUDENTS.filter(s => (s.courses ?? []).some(c => c.status === 'active'))
+
+export const DEMO_OVERVIEW: TeacherOverview = {
+  students_total: DEMO_STUDENTS.length,
+  assigned_students: DEMO_STUDENTS.filter(s => s.assigned).length,
+  class_students: DEMO_STUDENTS.filter(s => (s.classes ?? []).length > 0).length,
+  classes_active: 3,
+  classes_month: 34, hours_month: 38.5,
+  upcoming: 6, reports_owed: 2, attendance_rate: 92,
+  rating_avg: 4.8, rating_count: 47,
+  roster: {
+    unique_students:    DEMO_STUDENTS.length,
+    assigned_students:  DEMO_STUDENTS.filter(s => s.assigned).length,
+    assigned_only:      DEMO_STUDENTS.filter(s => s.relationship === 'assigned').length,
+    class_only:         DEMO_STUDENTS.filter(s => s.relationship === 'class').length,
+    assigned_and_class: DEMO_STUDENTS.filter(s => s.relationship === 'both').length,
+    course_students:    demoCourse.length,
+    course_enrollments: DEMO_STUDENTS.flatMap(s => (s.courses ?? []).filter(c => c.status === 'active')).length,
+    no_course_students: DEMO_STUDENTS.length - demoCourse.length,
+    class_students:     DEMO_STUDENTS.filter(s => (s.class_memberships ?? []).some(m => m.status === 'active')).length,
+    class_seats:        demoSeats.length,
+    group_seats:        demoSeats.filter(m => m.mode === 'group').length,
+    private_seats:      demoSeats.filter(m => m.mode === 'private').length,
+    group_students:     DEMO_STUDENTS.filter(s => (s.classes ?? []).some(c => c.mode === 'group')).length,
+    private_students:   DEMO_STUDENTS.filter(s => (s.classes ?? []).some(c => c.mode === 'private')).length,
+    group_classes: 2, private_classes: 1,
+  },
+  period: {
+    from: null, to: null, timezone: 'Africa/Casablanca',
+    sessions_delivered: 12, hours_delivered: 13.5, sessions_cancelled: 1, sessions_scheduled: 6, reports_owed: 2,
+    attendance: { marks: 350, present: 286, late: 31, absent: 24, excused: 9, rate: 90.6 },
+  },
+  upcoming_sessions: 6,
+  reports_owed_all_time: 2,
+}
 
 /* ── Online classes ────────────────────────────────────── */
 

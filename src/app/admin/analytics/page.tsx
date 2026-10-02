@@ -1,6 +1,7 @@
 'use client'
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import {
   CalendarCheck, Download, Info, Loader2, RotateCcw, Users, Wallet, X,
@@ -12,7 +13,7 @@ import { DataTable, EnrollmentTrend, RevenueTrend } from '@/components/analytics
 import {
   COUNTING_RULES, bucketFor, businessToday, deltaPct, describeRange, hasEntityFilters, parseQuery,
   previousRange, toCsv, toQueryString,
-  type AnalyticsFilters, type AnalyticsQuery, type CsvCell, type DateRange,
+  type AnalyticsFilters, type AnalyticsQuery, type AnalyticsView, type CsvCell, type DateRange,
 } from '@/lib/enrollment-metrics'
 import {
   fetchEnrollmentAnalytics, fetchEnrollmentRows, fetchRevenueAnalytics,
@@ -40,7 +41,10 @@ export default function AnalyticsPage() {
 function Analytics() {
   const params = useSearchParams()
   const [query, setQuery] = useState<AnalyticsQuery>(() => parseQuery(params, businessToday()))
+  // The tab is part of the same URL state as the range and filters; switching tabs never refetches.
   const { range, filters } = query
+  const view: AnalyticsView = query.view ?? 'overview'
+  const setView = (v: AnalyticsView) => setQuery(q => ({ ...q, view: v }))
   const prev = useMemo(() => previousRange(range), [range])
   const bucket = bucketFor(range)
 
@@ -111,9 +115,17 @@ function Analytics() {
         ['تسجيلات جماعية', k.group_enrollments, pk?.group_enrollments],
         ['تسجيلات فردية', k.private_enrollments, pk?.private_enrollments],
         ['طلاب فريدون (الكل)', k.unique_students, pk?.unique_students],
+        ['طلاب في دورة وقسم معًا', k.both_students, pk?.both_students],
+        ['نشطون في نهاية الفترة: تسجيلات دورات', k.active_at_end.course_enrollments, pk?.active_at_end.course_enrollments],
+        ['نشطون في نهاية الفترة: مقاعد أقسام', k.active_at_end.class_enrollments, pk?.active_at_end.class_enrollments],
+        ['نشطون في نهاية الفترة: طلاب فريدون', k.active_at_end.unique_students, pk?.active_at_end.unique_students],
         ['حصص منجزة', k.sessions_done, pk?.sessions_done],
+        ['حصص ملغاة', k.sessions_cancelled, pk?.sessions_cancelled],
+        ['علامات الحضور', k.attendance.marks, pk?.attendance.marks],
         ['نسبة الحضور %', k.attendance.rate, pk?.attendance.rate],
-        ['الإيرادات المدفوعة (د.م، غير مفلترة)', rev.kpis.revenue, revBefore?.kpis.revenue],
+        ['الإيرادات المدفوعة (د.م، حسب تاريخ الدفع، غير مفلترة)', rev.kpis.revenue, revBefore?.kpis.revenue],
+        ['عدد الدفعات', rev.kpis.payments, revBefore?.kpis.payments],
+        ['طلاب دفعوا', rev.kpis.paying_students, revBefore?.kpis.paying_students],
         [],
         ['النوع', 'الطالب', 'الدورة / القسم', 'جماعي/فردي', 'الأستاذ', 'الحالة', 'تاريخ التسجيل', 'تاريخ الانتهاء'],
         ...rows.map(r => [r.kind === 'course' ? 'دورة' : 'قسم', r.student, r.item,
@@ -171,6 +183,18 @@ function Analytics() {
         )}
       </div>
 
+      <div className="flex gap-1 overflow-x-auto border-b border-zinc-200" role="tablist" aria-label="أقسام الإحصائيات">
+        {([
+          ['overview', 'نظرة عامة'], ['enrollments', 'التسجيلات'],
+          ['revenue', 'الإيرادات'], ['teachers', 'الأساتذة'],
+        ] as const).map(([id, label]) => (
+          <button key={id} role="tab" aria-selected={view === id} onClick={() => setView(id)}
+            className={`shrink-0 px-4 py-2.5 text-[13px] font-bold border-b-2 transition-colors ${view === id ? 'border-yellow-400 text-zinc-900' : 'border-transparent text-zinc-500 hover:text-zinc-800'}`}>
+            {label}
+          </button>
+        ))}
+      </div>
+
       {showRules && (
         <div className="bg-white border border-zinc-200 rounded-2xl p-4">
           <h3 className="font-black text-[14px] text-zinc-900 mb-2">طريقة العدّ</h3>
@@ -185,12 +209,48 @@ function Analytics() {
         </div>
       )}
 
-      {error && <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-[13px] font-bold text-red-700">{error}</div>}
+      {error && (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-[13px] font-bold text-red-700">
+          <span className="flex-1 min-w-0">{error}</span>
+          <button onClick={load} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-red-200 text-[12px] hover:bg-red-100">
+            <RotateCcw size={13} /> إعادة المحاولة
+          </button>
+        </div>
+      )}
 
       {loading && !cur ? (
         <div className="py-32 flex justify-center text-zinc-300"><Loader2 size={28} className="animate-spin" /></div>
       ) : cur && k && rev ? (
         <div className={`space-y-5 transition-opacity ${loading ? 'opacity-60' : ''}`}>
+          {view === 'overview' && (
+            <>
+              <Section icon={Users} title="ملخص التسجيلات والإيرادات" note={`${describeRange(range)} · ${compareLabel}`}>
+                <div className="grid grid-cols-2 xl:grid-cols-4 gap-2.5">
+                  <Kpi label="تسجيلات الدورات" value={k.course_enrollments} prev={pk?.course_enrollments} dot="#2a78d6" />
+                  <Kpi label="تسجيلات الأقسام المباشرة" value={k.class_enrollments} prev={pk?.class_enrollments} dot="#eb6834" />
+                  <Kpi label="طلاب فريدون (دورات + أقسام)" value={k.unique_students} prev={pk?.unique_students} strong />
+                  <Kpi label={filtered ? 'الإيرادات المدفوعة (غير مفلترة)' : 'الإيرادات المدفوعة'} value={Number(rev.kpis.revenue)} prev={revBefore ? Number(revBefore.kpis.revenue) : undefined} money />
+                </div>
+                <p className="text-[11.5px] text-zinc-400 mt-2">تسجيلات الدورات، مقاعد الأقسام، والإيراد مقاييس منفصلة؛ الطالب المسجّل في النوعين يُحسب مرة واحدة ضمن الطلاب الفريدين.</p>
+              </Section>
+              {cur.lifetime && rev.lifetime && (
+                <div className="bg-zinc-50 border border-dashed border-zinc-300 rounded-2xl p-4">
+                  <div className="text-[13px] font-black text-zinc-800">كل الأوقات</div>
+                  <div className="text-[11px] text-zinc-400 mb-3">لا يتأثر بالفترة {filtered ? '— الفلاتر مطبَّقة على أرقام التسجيل فقط' : ''}</div>
+                  <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-x-6">
+                    <MiniRow label="كل تسجيلات الدورات" value={cur.lifetime.course_enrollments} />
+                    <MiniRow label="كل تسجيلات الأقسام" value={cur.lifetime.class_enrollments} />
+                    <MiniRow label="طلاب سُجّلوا يومًا (فريدون)" value={cur.lifetime.unique_students} />
+                    <MiniRow label="تسجيلات دورات نشطة الآن" value={cur.lifetime.active_now_course} />
+                    <MiniRow label="مقاعد أقسام نشطة الآن" value={cur.lifetime.active_now_class} />
+                    <MiniRow label="كل الإيرادات المدفوعة" value={`${MAD(rev.lifetime.revenue)} د.م`} />
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {view === 'enrollments' && <>
           {/* Enrollments in the period */}
           <Section icon={Users} title="التسجيلات في الفترة" note={`${describeRange(range)} · ${compareLabel}`}>
             <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-2.5">
@@ -218,17 +278,30 @@ function Analytics() {
               </div>
             </div>
           </Section>
+          </>}
 
-          {/* Trends */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <ChartCard title={`التسجيلات حسب ${bucket === 'day' ? 'اليوم' : bucket === 'week' ? 'الأسبوع' : 'الشهر'} — حسب تاريخ التسجيل`} className="lg:col-span-2">
+          {view === 'overview' && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <ChartCard title="التسجيلات: الدورات مقابل الأقسام">
+                <EnrollmentTrend data={cur.trend ?? []} bucket={bucket} />
+              </ChartCard>
+              <ChartCard title="الإيرادات المدفوعة — حسب تاريخ الدفع">
+                <RevenueTrend data={rev.trend ?? []} bucket={bucket} />
+              </ChartCard>
+            </div>
+          )}
+          {view === 'enrollments' && (
+            <ChartCard title={`التسجيلات حسب ${bucket === 'day' ? 'اليوم' : bucket === 'week' ? 'الأسبوع' : 'الشهر'} — حسب تاريخ التسجيل`}>
               <EnrollmentTrend data={cur.trend ?? []} bucket={bucket} />
             </ChartCard>
+          )}
+          {view === 'revenue' && (
             <ChartCard title="الإيرادات المدفوعة — حسب تاريخ الدفع">
               <RevenueTrend data={rev.trend ?? []} bucket={bucket} />
             </ChartCard>
-          </div>
+          )}
 
+          {view === 'revenue' && <>
           {/* Revenue — separate from enrollment counts */}
           <Section icon={Wallet} title="الإيرادات المدفوعة في الفترة"
             note={filtered ? 'لا تتأثر بفلاتر الدورة/القسم/الأستاذ/النوع/الحالة — الدفعة غير مرتبطة بتسجيل' : 'دفعات مؤكَّدة فقط، حسب تاريخ الدفع'}>
@@ -238,7 +311,9 @@ function Analytics() {
               <Kpi label="طلاب دفعوا" value={rev.kpis.paying_students} prev={revBefore?.kpis.paying_students} />
             </div>
           </Section>
+          </>}
 
+          {view === 'teachers' && <>
           {/* Sessions + attendance */}
           <Section icon={CalendarCheck} title="الحصص والحضور في الفترة" note="حسب تاريخ الحصة — الحضور لا يغيّر أرقام التسجيل">
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5">
@@ -250,8 +325,9 @@ function Analytics() {
               <Kpi label="تقارير ناقصة" value={k.reports_owed} prev={pk?.reports_owed} invert />
             </div>
           </Section>
+          </>}
 
-          {/* Breakdowns */}
+          {view === 'enrollments' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <ChartCard title="حسب الدورة">
               {(cur.by_course ?? []).length === 0 ? <Empty /> : (
@@ -265,12 +341,27 @@ function Analytics() {
                   rows={(cur.by_class ?? []).map(r => [r.title, r.mode === 'group' ? 'جماعي' : 'فردي', r.teacher_name ?? '—', r.enrollments, r.active, r.waitlisted, r.cancelled])} />
               )}
             </ChartCard>
-            <ChartCard title="حسب الأستاذ">
+          </div>
+          )}
+
+          {view === 'teachers' && (
+            <ChartCard title="الأساتذة في الفترة"
+              action={<Link href="/admin/teachers" className="text-[12px] text-blue-600 font-semibold">لوحة الأساتذة (الإسناد، الدورات، المقاعد) ←</Link>}>
               {(cur.by_teacher ?? []).length === 0 ? <Empty /> : (
-                <DataTable head={['الأستاذ', 'تسجيلات أقسامه', 'طلاب', 'حصص منجزة', 'ملغاة', 'الحضور %']}
-                  rows={(cur.by_teacher ?? []).map(r => [r.name, r.class_enrollments, r.class_students, r.sessions_done, r.sessions_cancelled, r.attendance_rate ?? '—'])} />
+                <>
+                  <DataTable head={['الأستاذ', 'تسجيلات في أقسامه (مقاعد)', 'طلاب أقسامه (فريدون)', 'حصص منجزة', 'ملغاة', 'الحضور %']}
+                    rows={(cur.by_teacher ?? []).map(r => [r.name, r.class_enrollments, r.class_students, r.sessions_done, r.sessions_cancelled, r.attendance_rate ?? '—'])} />
+                  <p className="text-[11.5px] text-zinc-400 mt-2">
+                    تسجيلات الأقسام التي بدأت في الفترة، لا الإسناد ولا تسجيلات الدورات — تلك في لوحة الأساتذة. لا تُجمع أعمدة «فريدون» بين الأساتذة.
+                  </p>
+                </>
               )}
             </ChartCard>
+          )}
+
+          {view === 'revenue' && (
+            <>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <ChartCard title="الإيرادات حسب الدورة / الخدمة">
               <Breakdown rows={rev.by_course ?? []} />
             </ChartCard>
@@ -280,40 +371,28 @@ function Analytics() {
             <ChartCard title="الإيرادات حسب المسؤول">
               <Breakdown rows={rev.by_staff ?? []} />
             </ChartCard>
-            {rev.funnel && (
-              <ChartCard title="العملاء المحتملون المسجَّلون في الفترة — التحويل">
-                <Funnel steps={[
-                  { label: 'كل العملاء', count: rev.funnel.total, pct: 100 },
-                  { label: 'تم التواصل', count: rev.funnel.contacted, pct: pct(rev.funnel.contacted, rev.funnel.total) },
-                  { label: 'مؤكَّد', count: rev.funnel.confirmed, pct: pct(rev.funnel.confirmed, rev.funnel.total) },
-                  { label: 'دفع', count: rev.funnel.paid, pct: pct(rev.funnel.paid, rev.funnel.total) },
-                ]} />
-              </ChartCard>
-            )}
           </div>
-
-          {/* Deliberately not date-ranged */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {cur.lifetime && rev.lifetime && (
-              <div className="bg-zinc-50 border border-dashed border-zinc-300 rounded-2xl p-4">
-                <div className="text-[13px] font-black text-zinc-800">كل الأوقات</div>
-                <div className="text-[11px] text-zinc-400 mb-3">لا يتأثر بالفترة {filtered ? '(الفلاتر مطبَّقة على أرقام التسجيل)' : ''}</div>
-                <MiniRow label="كل تسجيلات الدورات" value={cur.lifetime.course_enrollments} />
-                <MiniRow label="كل تسجيلات الأقسام" value={cur.lifetime.class_enrollments} />
-                <MiniRow label="طلاب سُجّلوا يومًا (فريدون)" value={cur.lifetime.unique_students} />
-                <MiniRow label="نشطون الآن: دورات / أقسام" value={`${cur.lifetime.active_now_course} / ${cur.lifetime.active_now_class}`} />
-                <MiniRow label="كل الإيرادات المدفوعة" value={`${MAD(rev.lifetime.revenue)} د.م`} />
-              </div>
-            )}
-            <div className="lg:col-span-2">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center"><Wallet size={14} /></span>
-                <h2 className="text-[14px] font-black text-zinc-800">المستحقات</h2>
-                <span className="text-[11px] text-zinc-400 font-semibold">الوضع الحالي — لا يتأثر بالفترة</span>
-              </div>
-              <DuesBoard onChanged={load} />
+          <div>
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <span className="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center"><Wallet size={14} /></span>
+              <h2 className="text-[14px] font-black text-zinc-800">المستحقات</h2>
+              <span className="text-[11px] text-zinc-400 font-semibold">الوضع الحالي — لا يتأثر بالفترة</span>
             </div>
+            <DuesBoard onChanged={load} />
           </div>
+            </>
+          )}
+
+          {view === 'overview' && rev.funnel && (
+            <ChartCard title="تحويل العملاء المحتملين في الفترة — عملاء الفترة حسب تاريخ إنشائهم">
+              {rev.funnel.total === 0 ? <Empty /> : <Funnel steps={[
+                { label: 'كل العملاء', count: rev.funnel.total, pct: 100 },
+                { label: 'تم التواصل', count: rev.funnel.contacted, pct: pct(rev.funnel.contacted, rev.funnel.total) },
+                { label: 'مؤكَّد', count: rev.funnel.confirmed, pct: pct(rev.funnel.confirmed, rev.funnel.total) },
+                { label: 'دفع', count: rev.funnel.paid, pct: pct(rev.funnel.paid, rev.funnel.total) },
+              ]} />}
+            </ChartCard>
+          )}
         </div>
       ) : null}
     </div>

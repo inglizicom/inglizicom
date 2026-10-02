@@ -177,6 +177,45 @@ describe('enrollment counting', () => {
     assert.equal(byTeacherA.sessions_done, 1)
   })
 
+  it('status filters scope both class enrollments and linked course cohorts', async () => {
+    const filteredCourse = await makeCourse(ctx.db, 'Status cohort course')
+    const filteredClass = await makeClass(ctx.db, { title: 'Status cohort class', teacher: ctx.teacherA, course: filteredCourse.id })
+    const activeStudent = await makeStudent(ctx.db, 'Active cohort')
+    const cancelledStudent = await makeStudent(ctx.db, 'Cancelled cohort')
+    await enrollCourse(ctx.db, filteredCourse.id, activeStudent.id, '2026-09-10T10:00:00Z')
+    await enrollCourse(ctx.db, filteredCourse.id, cancelledStudent.id, '2026-09-11T10:00:00Z')
+    await enrollClass(ctx.db, filteredClass, activeStudent.id, '2026-09-10T10:00:00Z')
+    const cancelled = await enrollClass(ctx.db, filteredClass, cancelledStudent.id, '2026-09-11T10:00:00Z')
+    await as(ctx.db, ctx.assistant, () => rpc(ctx.db, 'staff_set_class_enrollment', [cancelled.id, 'cancelled', 'test', null, null]))
+
+    // makeClass returns the class id itself
+    const active = (await analytics(ctx, FROM, TO, { class_id: filteredClass, status: 'active' })).kpis
+    assert.equal(active.class_enrollments, 1)
+    assert.equal(active.course_enrollments, 1, 'only the active class student contributes course enrollments')
+    assert.equal(active.unique_students, 1)
+
+    const ended = (await analytics(ctx, FROM, TO, { class_id: filteredClass, status: 'cancelled' })).kpis
+    assert.equal(ended.class_enrollments, 1)
+    assert.equal(ended.course_enrollments, 0, 'an active course enrollment is not a cancelled course enrollment')
+  })
+
+  it('does not count completed legacy enrollments without a completion date as active', async () => {
+    const legacyCourse = await makeCourse(ctx.db, 'Legacy completion')
+    const legacyStudent = await makeStudent(ctx.db, 'Legacy completion student')
+    await enrollCourse(ctx.db, legacyCourse.id, legacyStudent.id, '2026-09-10T10:00:00Z')
+    await ctx.db.query(`update lms_enrollments set status = 'completed', completed_at = null where course_id = $1 and student_id = $2`,
+      [legacyCourse.id, legacyStudent.id])
+    // The touch trigger fills completed_at on the status transition; null it
+    // in a second update to model pre-migration completed rows.
+    await ctx.db.query(`update lms_enrollments set completed_at = null where course_id = $1 and student_id = $2`,
+      [legacyCourse.id, legacyStudent.id])
+
+    const result = await analytics(ctx, FROM, TO, { course_id: legacyCourse.id })
+    assert.equal(result.kpis.course_status.completed, 1)
+    assert.equal(result.kpis.active_at_end.course_enrollments, 0)
+    assert.equal(result.lifetime.active_now_course, 0)
+  })
+
   it('date boundaries follow Morocco local days, not UTC', async () => {
     const c = await makeCourse(ctx.db, 'Boundary')
     const a = await makeStudent(ctx.db, 'Late night'); const b = await makeStudent(ctx.db, 'Just after midnight')
@@ -626,5 +665,325 @@ describe('student exercises and progression gates', () => {
 
   it('an unknown token gets nothing', async () => {
     assert.deepEqual(await rpc(ctx.db, 'student_exercise_board', ['ING-NOPE', null]), { found: false })
+  })
+})
+
+// ════════════════════════════════════════════════════════════
+describe('status filters and period-end snapshots (mixed course and class records)', () => {
+  // Every record below is modelled in JS, then the RPC is checked against the
+  // model under each status filter × entity filter × range.
+  let ctx, C, K
+  const recs = []           // { kind, student, status, enrolled, ended, completed, activated }
+  const T = (s) => Date.parse(s)
+  const dayEnd = (day) => T(`${day}T00:00:00+01:00`) + 86_400_000   // Morocco is UTC+1 in Sept/Oct 2026
+
+  before(async () => {
+    ctx = await setup()
+    C = (await makeCourse(ctx.db, 'Matrix course')).id
+    K = await makeClass(ctx.db, { title: 'Matrix class', teacher: ctx.teacherA, course: C, waitlist: true })
+    const asst = (fn) => as(ctx.db, ctx.assistant, fn)
+    const st = {}
+    for (const n of ['P', 'Q', 'R', 'W', 'L', 'X']) st[n] = (await makeStudent(ctx.db, n)).id
+
+    // P — active course + active seat
+    await enrollCourse(ctx.db, C, st.P, '2026-09-10T10:00:00Z')
+    await enrollClass(ctx.db, K, st.P, '2026-09-10T10:00:00Z')
+    recs.push({ kind: 'course', student: 'P', status: 'active', enrolled: '2026-09-10T10:00:00Z' },
+              { kind: 'class', student: 'P', status: 'active', enrolled: '2026-09-10T10:00:00Z', activated: '2026-09-10T10:00:00Z' })
+    // Q — course removed on 09-20 (history → cancelled), seat cancelled on 09-20
+    await enrollCourse(ctx.db, C, st.Q, '2026-09-11T10:00:00Z')
+    await asst(() => rpc(ctx.db, 'staff_end_course_enrollment', [st.Q, C, 'refund']))
+    await ctx.db.query(`update lms_enrollment_history set ended_at = '2026-09-20T10:00:00Z' where student_id = $1`, [st.Q])
+    const q = await enrollClass(ctx.db, K, st.Q, '2026-09-11T10:00:00Z')
+    await asst(() => rpc(ctx.db, 'staff_set_class_enrollment', [q.id, 'cancelled', 'left', null, null]))
+    await ctx.db.query(`update online_class_enrollments set ended_at = '2026-09-20T10:00:00Z' where id = $1`, [q.id])
+    recs.push({ kind: 'course', student: 'Q', status: 'cancelled', enrolled: '2026-09-11T10:00:00Z', ended: '2026-09-20T10:00:00Z' },
+              { kind: 'class', student: 'Q', status: 'cancelled', enrolled: '2026-09-11T10:00:00Z', activated: '2026-09-11T10:00:00Z', ended: '2026-09-20T10:00:00Z' })
+    // R — course completed 09-25, seat completed 09-25
+    await enrollCourse(ctx.db, C, st.R, '2026-09-12T10:00:00Z')
+    await ctx.db.query(`update lms_enrollments set status = 'completed', completed_at = '2026-09-25T10:00:00Z' where student_id = $1`, [st.R])
+    const r = await enrollClass(ctx.db, K, st.R, '2026-09-12T10:00:00Z')
+    await asst(() => rpc(ctx.db, 'staff_set_class_enrollment', [r.id, 'completed', null, null, null]))
+    await ctx.db.query(`update online_class_enrollments set ended_at = '2026-09-25T10:00:00Z' where id = $1`, [r.id])
+    recs.push({ kind: 'course', student: 'R', status: 'completed', enrolled: '2026-09-12T10:00:00Z', completed: '2026-09-25T10:00:00Z' },
+              { kind: 'class', student: 'R', status: 'completed', enrolled: '2026-09-12T10:00:00Z', activated: '2026-09-12T10:00:00Z', ended: '2026-09-25T10:00:00Z' })
+    // W — active course, waitlisted seat (never activated)
+    await enrollCourse(ctx.db, C, st.W, '2026-09-13T10:00:00Z')
+    await enrollClass(ctx.db, K, st.W, '2026-09-13T10:00:00Z', 'waitlisted')
+    recs.push({ kind: 'course', student: 'W', status: 'active', enrolled: '2026-09-13T10:00:00Z' },
+              { kind: 'class', student: 'W', status: 'waitlisted', enrolled: '2026-09-13T10:00:00Z' })
+    // L — legacy completed course with no completed_at, no class
+    await enrollCourse(ctx.db, C, st.L, '2026-09-14T10:00:00Z')
+    await ctx.db.query(`update lms_enrollments set status = 'completed' where student_id = $1`, [st.L])
+    await ctx.db.query(`update lms_enrollments set completed_at = null where student_id = $1`, [st.L])
+    recs.push({ kind: 'course', student: 'L', status: 'completed', enrolled: '2026-09-14T10:00:00Z' })
+    // X — active seat, no course
+    await enrollClass(ctx.db, K, st.X, '2026-09-15T10:00:00Z')
+    recs.push({ kind: 'class', student: 'X', status: 'active', enrolled: '2026-09-15T10:00:00Z', activated: '2026-09-15T10:00:00Z' })
+  })
+
+  /** What the counting rules say the KPIs must be. */
+  function model(filters, toDay) {
+    const s = filters.status
+    const okStatus = (x) => !s || x.status === s
+    const cohort = filters.class_id
+      ? new Set(recs.filter(x => x.kind === 'class' && okStatus(x)).map(x => x.student)) : null
+    const ce = recs.filter(x => x.kind === 'course' && okStatus(x) && (!cohort || cohort.has(x.student)))
+    const ke = recs.filter(x => x.kind === 'class' && okStatus(x))
+    const t = dayEnd(toDay)
+    const ceSnap = ce.filter(x => T(x.enrolled) < t && (!x.ended || T(x.ended) > t)
+      && (x.completed ? T(x.completed) > t : x.status !== 'completed'))
+    const keSnap = ke.filter(x => x.activated && T(x.activated) < t && (!x.ended || T(x.ended) > t))
+    const count = (arr, st) => arr.filter(x => x.status === st).length
+    return {
+      course_enrollments: ce.length, class_enrollments: ke.length,
+      unique_students: new Set([...ce, ...ke].map(x => x.student)).size,
+      course_status: { active: count(ce, 'active'), completed: count(ce, 'completed'), cancelled: count(ce, 'cancelled') },
+      class_status: { active: count(ke, 'active'), waitlisted: count(ke, 'waitlisted'),
+                      completed: count(ke, 'completed'), cancelled: count(ke, 'cancelled') },
+      snap: { course: ceSnap.length, class: keSnap.length,
+              unique: new Set([...ceSnap, ...keSnap].map(x => x.student)).size },
+    }
+  }
+
+  it('every status filter × entity filter × range matches the counting rules, and the CSV rows match the KPIs', async () => {
+    for (const status of [undefined, 'active', 'waitlisted', 'completed', 'cancelled']) {
+      for (const entity of [{}, { course_id: C }, { class_id: K }]) {
+        for (const [from, to] of [['2026-09-01', '2026-09-30'], ['2026-09-01', '2026-09-22']]) {
+          const filters = { ...entity, ...(status ? { status } : {}) }
+          const label = `${JSON.stringify(filters)} ${from}..${to}`
+          const k = (await analytics(ctx, from, to, filters)).kpis
+          const m = model(filters, to)
+          assert.equal(k.course_enrollments, m.course_enrollments, `course_enrollments ${label}`)
+          assert.equal(k.class_enrollments, m.class_enrollments, `class_enrollments ${label}`)
+          assert.equal(k.unique_students, m.unique_students, `unique_students ${label}`)
+          assert.deepEqual(k.course_status, m.course_status, `course_status ${label}`)
+          assert.deepEqual(k.class_status, m.class_status, `class_status ${label}`)
+          assert.equal(k.active_at_end.course_enrollments, m.snap.course, `active_at_end.course ${label}`)
+          assert.equal(k.active_at_end.class_enrollments, m.snap.class, `active_at_end.class ${label}`)
+          assert.equal(k.active_at_end.unique_students, m.snap.unique, `active_at_end.unique ${label}`)
+          const rows = await as(ctx.db, ctx.founder, () => rpc(ctx.db, 'enrollment_analytics_rows', [from, to, JSON.stringify(filters)]))
+          assert.equal(rows.filter(x => x.kind === 'course').length, k.course_enrollments, `csv course rows ${label}`)
+          assert.equal(rows.filter(x => x.kind === 'class').length, k.class_enrollments, `csv class rows ${label}`)
+        }
+      }
+    }
+  })
+
+  it('period-end counts: a legacy completed row with no completed_at is never active', async () => {
+    const sept = (await analytics(ctx, '2026-09-01', '2026-09-30')).kpis.active_at_end
+    assert.equal(sept.course_enrollments, 2, 'P and W; Q ended 09-20, R completed 09-25, L legacy-completed')
+    const mid = (await analytics(ctx, '2026-09-01', '2026-09-22')).kpis.active_at_end
+    assert.equal(mid.course_enrollments, 3, 'R was still active on 09-22; L is not')
+    assert.equal(mid.class_enrollments, 3, 'P, R and X held seats on 09-22; W was only waitlisted')
+    const life = (await analytics(ctx, null, '2026-09-30')).lifetime
+    assert.equal(life.active_now_course, 2)
+    assert.equal(life.active_now_class, 2)
+  })
+})
+
+// ════════════════════════════════════════════════════════════
+describe('teacher home, roster and scoreboard counts', () => {
+  let ctx, teacherC, st, cls
+  const SEPT = ['2026-09-01', '2026-09-30']
+  const asA = (fn) => as(ctx.db, ctx.teacherA, fn)
+
+  before(async () => {
+    ctx = await setup()
+    teacherC = await makeUser(ctx.db, 'teacher', 'Teacher Empty')
+    const C1 = (await makeCourse(ctx.db, 'Course One')).id
+    const C2 = (await makeCourse(ctx.db, 'Course Two')).id
+    cls = {
+      GA1: await makeClass(ctx.db, { title: 'A group 1', teacher: ctx.teacherA, course: C1 }),
+      GA2: await makeClass(ctx.db, { title: 'A group 2', teacher: ctx.teacherA, waitlist: true }),
+      PA:  await makeClass(ctx.db, { title: 'A private', mode: 'private', teacher: ctx.teacherA }),
+      ARC: await makeClass(ctx.db, { title: 'A archived', teacher: ctx.teacherA }),
+      GB:  await makeClass(ctx.db, { title: 'B group', teacher: ctx.teacherB }),
+    }
+    st = {}
+    for (const n of ['assignedOnly', 'courseNotClass', 'both', 'classOnly', 'waitlisted', 'archived', 'deleted']) {
+      st[n] = (await makeStudent(ctx.db, n)).id
+    }
+    const assign = (t, s) => ctx.db.query(`insert into teacher_students (teacher_id, student_id) values ($1, $2)`, [t, s])
+    // assigned, no course, no class
+    await assign(ctx.teacherA, st.assignedOnly)
+    // assigned to A, active in a course, seated in B's class only
+    await assign(ctx.teacherA, st.courseNotClass)
+    await enrollCourse(ctx.db, C1, st.courseNotClass)
+    await enrollClass(ctx.db, cls.GB, st.courseNotClass)
+    // assigned, two active courses, two of A's classes (group + private)
+    await assign(ctx.teacherA, st.both)
+    await enrollCourse(ctx.db, C1, st.both); await enrollCourse(ctx.db, C2, st.both)
+    await enrollClass(ctx.db, cls.GA1, st.both); await enrollClass(ctx.db, cls.PA, st.both)
+    // two of A's group classes, not assigned, course completed (not active)
+    await enrollClass(ctx.db, cls.GA1, st.classOnly); await enrollClass(ctx.db, cls.GA2, st.classOnly)
+    await enrollCourse(ctx.db, C1, st.classOnly)
+    await ctx.db.query(`update lms_enrollments set status = 'completed' where student_id = $1`, [st.classOnly])
+    // only waitlisted, only in an archived class, soft-deleted: none of them are A's students
+    await enrollClass(ctx.db, cls.GA2, st.waitlisted, null, 'waitlisted')
+    await enrollClass(ctx.db, cls.ARC, st.archived)
+    await ctx.db.query(`update online_classes set archived_at = now() where id = $1`, [cls.ARC])
+    await assign(ctx.teacherA, st.deleted)
+    await ctx.db.query(`update crm_students set deleted_at = now() where id = $1`, [st.deleted])
+    // sessions: one done in September with two marks, one done in August, one cancelled, one ahead
+    const sept = await makeSession(ctx.db, { teacher: ctx.teacherA, classId: cls.GA1, startsAt: '2026-09-10T17:00:00Z' })
+    await ctx.db.query(`insert into class_attendance (session_id, student_id, status) values ($1, $2, 'present'), ($1, $3, 'absent')`,
+      [sept, st.both, st.classOnly])
+    await makeSession(ctx.db, { teacher: ctx.teacherA, classId: cls.GA1, startsAt: '2026-08-10T17:00:00Z' })
+    await makeSession(ctx.db, { teacher: ctx.teacherA, classId: cls.GA1, startsAt: '2026-09-12T17:00:00Z', status: 'cancelled' })
+    await makeSession(ctx.db, { teacher: ctx.teacherA, classId: cls.GA1, startsAt: '2099-01-05T17:00:00Z', status: 'scheduled' })
+    // payments: two in September, one in August
+    await pay(ctx.db, st.both, 300, '2026-09-12')
+    await pay(ctx.db, st.courseNotClass, 200, '2026-09-13')
+    await pay(ctx.db, st.assignedOnly, 100, '2026-08-01')
+  })
+
+  it('separates assigned, course and live-class figures and de-duplicates unique students', async () => {
+    const ov = await asA(() => rpc(ctx.db, 'teacher_overview', SEPT))
+    assert.deepEqual(ov.roster, {
+      unique_students: 4,        // assignedOnly, courseNotClass, both, classOnly — each once
+      assigned_students: 3, assigned_only: 2, class_only: 1, assigned_and_class: 1,
+      course_students: 2,        // courseNotClass, both (classOnly's course is completed)
+      course_enrollments: 3,     // both holds two active courses: relationships, not people
+      no_course_students: 2,
+      class_students: 2,         // both, classOnly
+      class_seats: 4,            // both: GA1 + PA, classOnly: GA1 + GA2
+      group_seats: 3, private_seats: 1, group_students: 2, private_students: 1,
+      group_classes: 2, private_classes: 1,   // the archived class is not active
+    })
+    assert.ok(ov.roster.unique_students < ov.roster.assigned_students + ov.roster.class_students,
+      'a student both assigned and seated is counted once')
+  })
+
+  it('period figures follow the chosen dates; upcoming does not', async () => {
+    const sept = await asA(() => rpc(ctx.db, 'teacher_overview', SEPT))
+    assert.equal(sept.period.sessions_delivered, 1)
+    assert.equal(sept.period.sessions_cancelled, 1)
+    assert.deepEqual(sept.period.attendance, { marks: 2, present: 1, late: 0, absent: 1, excused: 0, rate: 50 })
+    assert.equal(sept.upcoming_sessions, 1)
+    const aug = await asA(() => rpc(ctx.db, 'teacher_overview', ['2026-08-01', '2026-08-31']))
+    assert.equal(aug.period.sessions_delivered, 1)
+    assert.equal(aug.period.attendance.marks, 0)
+    assert.equal(aug.period.attendance.rate, null)
+    assert.deepEqual(aug.roster, sept.roster, 'roster figures are current, not period figures')
+    await rejects(asA(() => rpc(ctx.db, 'teacher_overview', ['2026-09-30', '2026-09-01'])), /before its start/)
+  })
+
+  it('the no-argument call (current app) still returns its keys', async () => {
+    const ov = await asA(() => rpc(ctx.db, 'teacher_overview'))
+    assert.equal(ov.students_total, 4)
+    assert.equal(ov.assigned_students, 3)
+    assert.equal(ov.class_students, 2)
+    assert.equal(ov.classes_active, 3)
+    assert.equal(ov.period.sessions_delivered, 2, 'no dates = all time')
+    for (const k of ['classes_month', 'hours_month', 'upcoming', 'reports_owed', 'attendance_rate', 'rating_avg', 'rating_count']) {
+      assert.ok(k in ov, k)
+    }
+  })
+
+  it('the roster lists courses and class memberships separately, with the relationship', async () => {
+    const list = await asA(() => rpc(ctx.db, 'teacher_my_students'))
+    const by = Object.fromEntries(list.map(s => [s.full_name, s]))
+    assert.deepEqual(Object.keys(by).sort(), ['assignedOnly', 'both', 'classOnly', 'courseNotClass'])
+
+    assert.equal(by.assignedOnly.relationship, 'assigned')
+    assert.deepEqual(by.assignedOnly.courses, []); assert.deepEqual(by.assignedOnly.class_memberships, [])
+
+    assert.equal(by.courseNotClass.relationship, 'assigned')
+    assert.deepEqual(by.courseNotClass.courses.map(c => [c.title, c.status]), [['Course One', 'active']])
+    assert.deepEqual(by.courseNotClass.class_memberships, [], "another teacher's class is not shown")
+
+    assert.equal(by.both.relationship, 'both')
+    assert.deepEqual(by.both.courses.map(c => c.title), ['Course One', 'Course Two'])
+    assert.deepEqual(by.both.class_memberships.map(m => [m.title, m.mode, m.status]).sort(),
+      [['A group 1', 'group', 'active'], ['A private', 'private', 'active']])
+
+    assert.equal(by.classOnly.relationship, 'class')
+    assert.deepEqual(by.classOnly.courses.map(c => c.status), ['completed'])
+    assert.equal(by.classOnly.class_memberships.length, 2)
+
+    const keys = JSON.stringify(list)
+    assert.doesNotMatch(keys, /phone_number|amount|payment|paid/i, 'no raw phones and no payments reach a teacher')
+  })
+
+  it('another teacher, and a teacher with an empty roster, see only their own (or nothing)', async () => {
+    const b = await as(ctx.db, ctx.teacherB, () => rpc(ctx.db, 'teacher_overview', SEPT))
+    assert.equal(b.roster.unique_students, 1)
+    assert.equal(b.roster.class_only, 1)
+    assert.equal(b.roster.course_students, 1)
+    const bList = await as(ctx.db, ctx.teacherB, () => rpc(ctx.db, 'teacher_my_students'))
+    assert.deepEqual(bList.map(s => s.full_name), ['courseNotClass'])
+    assert.deepEqual(bList[0].class_memberships.map(m => m.title), ['B group'])
+    assert.equal(bList[0].assigned, false, "B does not see A's assignment as theirs")
+
+    const empty = await as(ctx.db, teacherC, () => rpc(ctx.db, 'teacher_overview', SEPT))
+    assert.ok(Object.values(empty.roster).every(v => v === 0), 'all zero')
+    assert.equal(empty.period.sessions_delivered, 0)
+    assert.equal(empty.period.attendance.rate, null)
+    assert.deepEqual(await as(ctx.db, teacherC, () => rpc(ctx.db, 'teacher_my_students')), [])
+
+    assert.deepEqual(await as(ctx.db, ctx.assistant, () => rpc(ctx.db, 'teacher_overview', SEPT)), {}, 'staff are not teachers')
+    await rejects(asA(() => rpc(ctx.db, 'teacher_counts', [ctx.teacherB, null, null])), /permission denied/)
+    await rejects(asA(() => q(ctx.db, `select * from teacher_roster($1)`, [ctx.teacherB])), /permission denied/)
+  })
+
+  it('the scoreboard shows the same figures as each teacher sees, with revenue labelled non-exclusive', async () => {
+    const rows = await as(ctx.db, ctx.founder, () => rpc(ctx.db, 'teachers_scoreboard', SEPT))
+    for (const [id, who] of [[ctx.teacherA, ctx.teacherA], [ctx.teacherB, ctx.teacherB], [teacherC, teacherC]]) {
+      const own = await as(ctx.db, who, () => rpc(ctx.db, 'teacher_overview', SEPT))
+      const row = rows.find(r => r.id === id)
+      assert.deepEqual(row.roster, own.roster)
+      assert.equal(row.sessions_delivered, own.period.sessions_delivered)
+      assert.equal(row.attendance_marks, own.period.attendance.marks)
+    }
+    const a = rows.find(r => r.id === ctx.teacherA)
+    assert.equal(a.unique_students, 4); assert.equal(a.course_enrollments, 3); assert.equal(a.class_seats, 4)
+    assert.equal(Number(a.roster_revenue), 500, 'September payments by A\'s students; August excluded')
+    assert.equal(a.roster_paying_students, 2)
+    const b = rows.find(r => r.id === ctx.teacherB)
+    assert.equal(Number(b.roster_revenue), 200, 'the same payment also appears under B: never sum this column')
+    const total = await as(ctx.db, ctx.founder, () => rpc(ctx.db, 'revenue_analytics', [...SEPT, 'month', false]))
+    assert.equal(Number(total.kpis.revenue), 500)
+  })
+})
+
+// ════════════════════════════════════════════════════════════
+describe('founder revenue and conversion', () => {
+  let ctx, s1
+  before(async () => {
+    ctx = await setup()
+    s1 = (await makeStudent(ctx.db, 'Payer')).id
+    const lead = (plan, status, archived = false) => ctx.db.query(
+      `insert into subscription_leads (plan_id, full_name, status, is_archived, amount_mad) values ($1, 'Lead', $2, $3, 300)`,
+      [plan, status, archived])
+    await lead('monthly', 'paid'); await lead('monthly', 'converted')
+    await lead('monthly', 'new');  await lead('monthly', 'contacted')
+    await lead('monthly', 'paid', true)                          // archived
+    await lead('test_completed', 'new'); await lead('test_completed', 'new'); await lead('inquiry', 'paid')
+    await pay(ctx.db, s1, 100, '2026-10-31')
+    await pay(ctx.db, s1, 40, '2026-11-01')
+    // legacy row: no payment_date, recorded 2026-11-01 00:30 Morocco time
+    await ctx.db.query(`insert into crm_payments (student_id, payment_type, amount_mad, payment_status, payment_date, created_at)
+                        values ($1, 'course_one_time', 7, 'paid', null, '2026-10-31T23:30:00Z')`, [s1])
+  })
+
+  it('conversion is paid leads over leads from one cohort', async () => {
+    const ov = await as(ctx.db, ctx.founder, () => rpc(ctx.db, 'owner_overview'))
+    assert.deepEqual({ leads: ov.conversion.leads, paid: ov.conversion.paid }, { leads: 4, paid: 2 })
+    assert.equal(Number(ov.conversion_rate), 50, 'archived, test and inquiry leads are in neither side')
+    assert.equal(await as(ctx.db, ctx.assistant, () => rpc(ctx.db, 'owner_overview')), null, 'founder only')
+  })
+
+  it('revenue is dated by payment_date, legacy rows by their Morocco day, in every session time zone', async () => {
+    const between = (a, b) => one(ctx.db, `select revenue_between(casa_day_start($1::date), casa_day_start($2::date)) as v`, [a, b])
+    const rev = (a, b) => as(ctx.db, ctx.founder, () => rpc(ctx.db, 'revenue_analytics', [a, b, 'month', false]))
+    for (const tz of ['UTC', 'Asia/Tokyo', 'America/Los_Angeles']) {
+      await ctx.db.exec(`set timezone = '${tz}'`)
+      assert.equal(Number((await between('2026-10-01', '2026-11-01')).v), 100, `October owner revenue in ${tz}`)
+      assert.equal(Number((await between('2026-11-01', '2026-12-01')).v), 47, `November owner revenue in ${tz}`)
+    }
+    await ctx.db.exec(`set timezone = 'UTC'`)
+    assert.equal(Number((await rev('2026-10-01', '2026-10-31')).kpis.revenue), 100, 'analytics agrees with the owner view')
+    assert.equal(Number((await rev('2026-11-01', '2026-11-30')).kpis.revenue), 47)
   })
 })
