@@ -57,9 +57,11 @@ export interface StudentProfile {
   sessions: SPSession[]
   attendance: SPAttendance[]
 
+  /** Study figures. A null figure is one this source does not record — sections hide it. */
   study: {
-    lessonsCompleted: number; exercises: number; quizzesPassed: number; vocabulary: number
-    videosWatched: number; hoursWatched: number; practiceMinutes: number; avgScore: number | null
+    lessonsCompleted: number; exercises: number | null; quizzesPassed: number | null; vocabulary: number | null
+    videosWatched: number | null; hoursWatched: number | null; practiceMinutes: number | null; avgScore: number | null
+    examsPassed?: number | null; practiceCorrect?: number | null; activeDays7?: number | null
     lastExerciseAt: string | null; targetPct: number | null
     skills: { key: SkillKey; label: string; pct: number }[]
     weekly: { label: string; value: number }[]
@@ -134,15 +136,38 @@ export function upcomingSessions(p: StudentProfile) {
 
 const modeOf = (m: 'group' | 'private'): ClassMode => m
 
+/** teacher_student_learning() — 052. Learning only, never payments. */
+export interface TeacherStudentLearning {
+  course: {
+    id: string; title: string; level: string | null; lessons_total: number; lessons_done: number
+    progress_pct: number; unit: string | null; lesson: string | null; next_milestone: string | null
+  } | null
+  lessons_completed: number; last_lesson_at: string | null
+  quizzes_passed: number; quiz_avg: number | null; exams_passed: number; exam_avg: number | null
+  tasks_done: number; practice_correct: number
+  active_days_7: number; minutes_7: number; last_active_at: string | null
+  weekly: { week: string; lessons: number }[] | null
+  streak: { current: number; longest: number } | null
+  certificates: { id: string; title: string; issued_at: string; serial: string | null }[]
+}
+
+/** Null when the caller may not see the student — or when 052 is not applied yet. */
+export async function fetchStudentLearning(studentId: string): Promise<TeacherStudentLearning | null> {
+  const { data, error } = await supabase.rpc('teacher_student_learning', { p_student: studentId })
+  if (error) { console.warn('fetchStudentLearning', error.message); return null }
+  return (data ?? null) as TeacherStudentLearning | null
+}
+
 export async function loadStudentProfileForTeacher(
   teacher: { id: string; name: string; avatarUrl: string | null; headline: string | null; rating: number | null },
   studentId: string,
 ): Promise<StudentProfile | null> {
-  const [students, classes, sessions, reports, marks] = await Promise.all([
+  const [students, classes, sessions, reports, marks, learn] = await Promise.all([
     fetchMyStudents(), fetchMyClasses(), fetchSessions(teacher.id), fetchReports(teacher.id, 200),
     supabase.from('class_attendance')
       .select('status, note, session:class_sessions!inner(id, title, starts_at, teacher_id)')
       .eq('student_id', studentId),
+    fetchStudentLearning(studentId),
   ])
   const s: MyStudent | undefined = students.find(x => x.id === studentId)
   if (!s) return null   // not on my roster — the database would refuse the rest anyway
@@ -167,6 +192,8 @@ export async function loadStudentProfileForTeacher(
   const participation = notes.filter(n => n.participation).map(n => n.participation)
 
   const activeCourse = (s.courses ?? []).find(c => c.status === 'active')
+  const course = learn?.course ?? null
+  const weekLabel = (iso: string) => { const d = new Date(iso); return `${d.getDate()}/${d.getMonth() + 1}` }
 
   return {
     id: s.id,
@@ -175,10 +202,14 @@ export async function loadStudentProfileForTeacher(
     phoneMasked: s.phone_masked,
     enrolledAt: s.enrollment_date ?? s.assigned_at,
     statuses: [s.is_active ? 'active' : 'paused'],
-    level: activeCourse?.level ?? memberships.map(m => classById.get(m.class_id)?.level).find(Boolean) ?? null,
+    level: course?.level ?? activeCourse?.level ?? memberships.map(m => classById.get(m.class_id)?.level).find(Boolean) ?? null,
     goalLevel: null,
     courses: (s.courses ?? []).map(c => ({ title: c.title, status: c.status })),
-    learning: null,
+    learning: course ? {
+      course: course.title, unit: course.unit, lesson: course.lesson, teacher: null,
+      progressPct: course.progress_pct, nextMilestone: course.next_milestone,
+      weekMinutes: learn!.minutes_7, trend: (learn!.weekly ?? []).map(w => w.lessons),
+    } : null,
     classes: memberships.map(m => {
       const c = classById.get(m.class_id)
       return {
@@ -193,15 +224,29 @@ export async function loadStudentProfileForTeacher(
       attendance: markBySession.get(x.id) ?? null, reminder: false,
     })),
     attendance: markRows.map(m => ({ at: m.at, title: m.title, status: m.status, note: m.note })),
-    study: null,
+    study: learn ? {
+      lessonsCompleted: learn.lessons_completed, exercises: learn.tasks_done, quizzesPassed: learn.quizzes_passed,
+      vocabulary: null, videosWatched: null, hoursWatched: null,
+      practiceMinutes: learn.minutes_7 || null, avgScore: learn.quiz_avg,
+      examsPassed: learn.exams_passed, practiceCorrect: learn.practice_correct, activeDays7: learn.active_days_7,
+      lastExerciseAt: learn.last_lesson_at, targetPct: course ? course.progress_pct : null,
+      skills: [],
+      weekly: (learn.weekly ?? []).map(w => ({ label: weekLabel(w.week), value: w.lessons })),
+    } : null,
     levelInfo: null,
     payment: null,
     teachers: [{ id: teacher.id, name: teacher.name, avatarUrl: teacher.avatarUrl, specialty: teacher.headline,
                  rating: teacher.rating, role: s.relationship === 'class' ? 'أستاذ القسم' : 'الأستاذ المسؤول', isMe: true }],
-    certificates: null,
-    nextCertificate: null,
-    achievements: [],
+    certificates: learn ? learn.certificates.map(c => ({
+      id: c.id, title: c.title, issuedAt: c.issued_at, url: c.serial ? `/certificate/${c.serial}` : null,
+    })) : null,
+    nextCertificate: course ? { title: `شهادة إتمام ${course.title}`, pct: course.progress_pct } : null,
+    achievements: learn?.streak && learn.streak.current >= 3
+      ? [{ title: `${learn.streak.current} أيام متتالية من الدراسة`, at: learn.last_active_at ?? new Date().toISOString(), kind: 'streak' as const }]
+      : [],
     activity: [
+      ...(learn?.last_lesson_at ? [{ kind: 'lesson' as const, title: 'أكمل درساً', sub: course?.title ?? 'المنصة', at: learn.last_lesson_at }] : []),
+      ...(learn?.certificates ?? []).map(c => ({ kind: 'certificate' as const, title: 'حصل على شهادة', sub: c.title, at: c.issued_at })),
       ...markRows.map(m => ({ kind: 'attendance' as const, title: m.status === 'absent' ? 'غياب عن حصة' : m.status === 'late' ? 'حضر متأخراً' : 'حضر حصة', sub: m.title, at: m.at })),
       ...notes.filter(n => n.note).map(n => ({ kind: 'note' as const, title: 'ملاحظة أستاذ', sub: n.note as string, at: n.at })),
     ].sort((a, b) => +new Date(b.at) - +new Date(a.at)).slice(0, 10),
@@ -212,7 +257,7 @@ export async function loadStudentProfileForTeacher(
       needsHelp: notes.slice(0, 3).some(n => n.needs_help),
       notes: notes.filter(n => n.note).slice(0, 5).map(n => ({ at: n.at, text: n.note as string, by: teacher.name })),
     },
-    access: { payments: false, learning: false, certificates: false },
+    access: { payments: false, learning: !!learn, certificates: !!learn },
   }
 }
 

@@ -123,8 +123,13 @@ export function KpiGrid({ p }: { p: StudentProfile }) {
       <Tile icon={CalendarCheck} tone="emerald" label="حصص حضرها" value={a.attended} sub={`${a.late} متأخراً`} />
       <Tile icon={CalendarX} tone="rose" label="حصص فاتته" value={a.absent} sub={a.excused ? `${a.excused} بعذر` : 'بدون عذر'} />
       <Tile icon={BookOpen} tone="stone" label="دروس مكتملة" value={st?.lessonsCompleted} sub={st ? undefined : 'غير متاح'} />
-      <Tile icon={PenLine} tone="violet" label="تمارين منجزة" value={st?.exercises} sub={st ? `${st.quizzesPassed} اختباراً ناجحاً` : 'غير متاح'} />
-      <Tile icon={PlayCircle} tone="sky" label="ساعات مشاهدة" value={st ? <>{st.hoursWatched}<span className="text-[13px] text-[#94A3B8]"> س</span></> : null} sub={st ? `${st.videosWatched} فيديو` : 'غير متاح'} />
+      <Tile icon={PenLine} tone="violet" label="تمارين منجزة" value={st?.exercises}
+            sub={st?.quizzesPassed != null ? `${st.quizzesPassed} اختباراً ناجحاً` : 'غير متاح'} />
+      {st?.hoursWatched != null
+        ? <Tile icon={PlayCircle} tone="sky" label="ساعات مشاهدة" value={<>{st.hoursWatched}<span className="text-[13px] text-[#94A3B8]"> س</span></>}
+                sub={st.videosWatched != null ? `${st.videosWatched} فيديو` : undefined} />
+        : <Tile icon={PlayCircle} tone="sky" label="أيام نشاط هذا الأسبوع" value={st?.activeDays7 ?? null}
+                sub={st?.practiceMinutes ? `${st.practiceMinutes} دقيقة` : st ? 'على المنصة' : 'غير متاح'} />}
       <Tile icon={TrendingUp} tone="stone" label="تقدّم الدورة" value={p.learning ? `${p.learning.progressPct}%` : null} sub={p.learning?.course ?? 'غير متاح'} />
       <Tile icon={Wallet} tone="emerald" label="المبلغ المدفوع" value={p.payment ? mad(p.payment.totalPaid) : null} sub={p.payment ? undefined : 'تديره الإدارة'} />
       <Tile icon={CreditCard} tone="gold" label="الدفعة القادمة" value={p.payment?.nextDueAt ? fmtShort(p.payment.nextDueAt) : null}

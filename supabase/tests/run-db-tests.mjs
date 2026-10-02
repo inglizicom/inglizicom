@@ -1044,3 +1044,71 @@ describe('student ratings: who may rate a teacher', () => {
     assert.equal(n.n, 0)
   })
 })
+
+// ════════════════════════════════════════════════════════════
+describe('teacher view of a student\'s learning (052)', () => {
+  let ctx, course, s1, s2
+  const learning = (who, student) => as(ctx.db, who, () => rpc(ctx.db, 'teacher_student_learning', [student]))
+
+  before(async () => {
+    ctx = await setup()
+    course = await makeCourse(ctx.db, 'English A1', { units: [
+      { title: 'Unit 1', exam: QUIZ2, lessons: [{ title: 'L1' }, { title: 'L2' }] },
+      { title: 'Unit 2', lessons: [{ title: 'L3' }, { title: 'L4' }] },
+    ] })
+    s1 = await makeStudent(ctx.db, 'Learner')
+    s2 = await makeStudent(ctx.db, 'No course')
+    await enrollCourse(ctx.db, course.id, s1.id)
+    await ctx.db.query(`insert into teacher_students (teacher_id, student_id) values ($1, $2), ($1, $3)`, [ctx.teacherA, s1.id, s2.id])
+    await ctx.db.query(`insert into lms_lesson_progress (student_id, lesson_id, status, completed_at) values ($1, $2, 'completed', now())`,
+      [s1.id, course.modules[0].lessons[0]])
+    await ctx.db.query(`insert into lms_quiz_results (student_id, lesson_id, score, total, passed) values ($1, $2, 4, 5, true)`,
+      [s1.id, course.modules[0].lessons[0]])
+    await ctx.db.query(`insert into student_certificates (student_id, course_id, kind, title, serial) values ($1, $2, 'course', 'A0 certificate', 'SER-1')`,
+      [s1.id, course.id])
+  })
+
+  it('the student\'s own teacher sees progress, position and certificates', async () => {
+    const r = await learning(ctx.teacherA, s1.id)
+    assert.equal(r.course.title, 'English A1')
+    assert.equal(r.course.lessons_total, 4)
+    assert.equal(r.course.lessons_done, 1)
+    assert.equal(r.course.progress_pct, 25)
+    assert.equal(r.course.unit, 'Unit 1')
+    assert.equal(r.course.lesson, 'L2')
+    assert.match(r.course.next_milestone, /Unit 1/)
+    assert.equal(r.lessons_completed, 1)
+    assert.equal(r.quizzes_passed, 1)
+    assert.equal(r.quiz_avg, 80)
+    assert.equal(r.weekly.length, 8)
+    assert.equal(r.weekly[7].lessons, 1, 'this week counts the completed lesson')
+    assert.deepEqual(r.certificates.map(c => c.serial), ['SER-1'])
+  })
+
+  it('never returns payment or contact fields', async () => {
+    const r = await learning(ctx.teacherA, s1.id)
+    const keys = JSON.stringify(r)
+    for (const k of ['payment', 'amount', 'paid', 'phone', 'balance']) assert.ok(!keys.includes(`"${k}`), k)
+  })
+
+  it('a student with no active course returns an empty course, not an error', async () => {
+    const r = await learning(ctx.teacherA, s2.id)
+    assert.equal(r.course, null)
+    assert.equal(r.lessons_completed, 0)
+    assert.deepEqual(r.certificates, [])
+  })
+
+  it('another teacher, staff and strangers get nothing', async () => {
+    assert.equal(await learning(ctx.teacherB, s1.id), null, 'not on B\'s roster')
+    assert.equal(await learning(ctx.founder, s1.id), null, 'not a teacher')
+    assert.equal(await learning(ctx.assistant, s1.id), null, 'not a teacher')
+    await rejects(learning('anon', s1.id), /permission denied/)
+  })
+
+  it('a class seat is enough to see the student', async () => {
+    const k = await makeClass(ctx.db, { title: 'B group', teacher: ctx.teacherB })
+    await enrollClass(ctx.db, k, s1.id)
+    const r = await learning(ctx.teacherB, s1.id)
+    assert.equal(r.course.progress_pct, 25)
+  })
+})

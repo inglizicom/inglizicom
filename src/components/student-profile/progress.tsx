@@ -27,11 +27,15 @@ export function StudyActivity({ p }: { p: StudentProfile }) {
       {!s ? <Unavailable text="نشاط المنصة (التمارين، الفيديوهات، المفردات) يظهر هنا عند ربطه بفضاء الأستاذ." /> : (
         <>
           <div className="grid grid-cols-3 gap-2.5">
+            {/* Only figures this source records — a missing one is hidden, never shown as 0. */}
             {([
-              [PenLine, 'تمارين', s.exercises, 'violet'], [Check, 'اختبارات ناجحة', s.quizzesPassed, 'emerald'],
-              [Brain, 'مفردات', s.vocabulary, 'sky'], [PlayCircle, 'فيديوهات', s.videosWatched, 'stone'],
-              [Timer, 'دقائق تدريب', s.practiceMinutes, 'gold'], [Target, 'متوسط النتيجة', s.avgScore != null ? `${s.avgScore}%` : '—', 'rose'],
-            ] as [LucideIcon, string, number | string, Tone][]).map(([Icon, l, v, t]) => (
+              [BookOpen, 'دروس مكتملة', s.lessonsCompleted, 'stone'],
+              [PenLine, 'تمارين وواجبات', s.exercises, 'violet'], [Check, 'اختبارات ناجحة', s.quizzesPassed, 'emerald'],
+              [Award, 'امتحانات وحدات', s.examsPassed ?? null, 'gold'], [Brain, 'مفردات', s.vocabulary, 'sky'],
+              [Target, 'إجابات تدريب صحيحة', s.practiceCorrect ?? null, 'sky'], [PlayCircle, 'فيديوهات', s.videosWatched, 'stone'],
+              [Timer, 'دقائق هذا الأسبوع', s.practiceMinutes, 'gold'], [CalendarCheck, 'أيام نشاط (7 أيام)', s.activeDays7 ?? null, 'emerald'],
+              [Target, 'متوسط النتيجة', s.avgScore != null ? `${s.avgScore}%` : null, 'rose'],
+            ] as [LucideIcon, string, number | string | null, Tone][]).filter(([, , v]) => v != null).slice(0, 6).map(([Icon, l, v, t]) => (
               <div key={l} className="rounded-xl bg-[#F8FAFC] ring-1 ring-[#E2E8F0] p-3">
                 <span className={`w-7 h-7 rounded-lg flex items-center justify-center ${TONE[t]}`}><Icon size={14} /></span>
                 <div className="mt-2 text-[18px] font-extrabold text-[#1E3A8A] tabular-nums leading-none">{typeof v === 'number' ? v.toLocaleString('en-US') : v}</div>
@@ -39,21 +43,25 @@ export function StudyActivity({ p }: { p: StudentProfile }) {
               </div>
             ))}
           </div>
-          {s.lastExerciseAt && <div className="mt-3 text-[11.5px] font-semibold text-[#94A3B8]">آخر تمرين: {fmtShort(s.lastExerciseAt)} · {fmtHour(s.lastExerciseAt)}</div>}
-          <div className="mt-5">
-            <div className="mb-2 text-[12px] font-bold text-[#64748B]">التمارين أسبوعياً</div>
-            <BarChart data={s.weekly} height={110} color="#6366F1" unit=" تمرين" />
-          </div>
-          <div className="mt-5 space-y-2.5">
-            <div className="text-[12px] font-bold text-[#64748B]">الإنجاز حسب المهارة</div>
-            {s.skills.map(k => (
-              <div key={k.key} className="flex items-center gap-3 text-[12.5px]">
-                <span className="w-16 font-bold text-[#334155]">{k.label}</span>
-                <Bar pct={k.pct} cls={SKILL_BAR[k.key]} />
-                <span className="w-10 text-left font-extrabold text-[#1E3A8A] tabular-nums">{k.pct}%</span>
-              </div>
-            ))}
-          </div>
+          {s.lastExerciseAt && <div className="mt-3 text-[11.5px] font-semibold text-[#94A3B8]">آخر نشاط: {fmtShort(s.lastExerciseAt)} · {fmtHour(s.lastExerciseAt)}</div>}
+          {s.weekly.length > 0 && (
+            <div className="mt-5">
+              <div className="mb-2 text-[12px] font-bold text-[#64748B]">النشاط الأسبوعي · آخر 8 أسابيع</div>
+              <BarChart data={s.weekly} height={110} color="#6366F1" />
+            </div>
+          )}
+          {s.skills.length > 0 && (
+            <div className="mt-5 space-y-2.5">
+              <div className="text-[12px] font-bold text-[#64748B]">الإنجاز حسب المهارة</div>
+              {s.skills.map(k => (
+                <div key={k.key} className="flex items-center gap-3 text-[12.5px]">
+                  <span className="w-16 font-bold text-[#334155]">{k.label}</span>
+                  <Bar pct={k.pct} cls={SKILL_BAR[k.key]} />
+                  <span className="w-10 text-left font-extrabold text-[#1E3A8A] tabular-nums">{k.pct}%</span>
+                </div>
+              ))}
+            </div>
+          )}
         </>
       )}
     </Surface>
