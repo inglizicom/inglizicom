@@ -126,7 +126,8 @@ export function LevelProgress({ p }: { p: StudentProfile }) {
 
 const PAY: Record<string, { label: string; tone: PillTone }> = {
   paid: { label: 'مدفوع', tone: 'ok' }, due: { label: 'مستحق قريباً', tone: 'warn' },
-  overdue: { label: 'متأخر', tone: 'bad' }, pending: { label: 'قيد المراجعة', tone: 'info' },
+  overdue: { label: 'متأخر', tone: 'bad' }, pending: { label: 'مستحق', tone: 'info' },
+  declined: { label: 'مرفوض', tone: 'muted' }, none: { label: 'لا دفعات بعد', tone: 'muted' },
 }
 
 export function PaymentSummary({ p }: { p: StudentProfile }) {
@@ -135,7 +136,9 @@ export function PaymentSummary({ p }: { p: StudentProfile }) {
   return (
     <Surface className="p-5 sm:p-6 h-full">
       <SectionHead title="ملخص الدفع" action={pay && <StatusPill tone={PAY[pay.status].tone}>{PAY[pay.status].label}</StatusPill>} />
-      {!pay ? <Unavailable text="المدفوعات والفواتير تديرها الإدارة — لا تظهر في فضاء الأستاذ حمايةً لخصوصية الطالب." /> : (
+      {!pay ? <Unavailable text="معلومات الدفع غير متاحة حالياً." /> : pay.history.length === 0 && !pay.monthlyFee ? (
+        <p className="py-6 text-center text-[13px] text-[#94A3B8]">لا دفعات مسجّلة لهذا الطالب بعد.</p>
+      ) : (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             {([
@@ -151,10 +154,13 @@ export function PaymentSummary({ p }: { p: StudentProfile }) {
               </div>
             ))}
           </div>
-          {daysLeft != null && pay.balance > 0 && (
+          {pay.monthlyFee != null && (
+            <div className="mt-3 text-[12px] font-semibold text-[#64748B]">اشتراك شهري: <b className="text-[#1E3A8A]">{mad(pay.monthlyFee)}</b></div>
+          )}
+          {daysLeft != null && (pay.balance > 0 || pay.monthlyFee != null) && (
             <div className={`mt-3 rounded-xl px-3.5 py-2.5 text-[12.5px] font-bold ring-1
                              ${daysLeft < 0 ? 'bg-rose-50 text-rose-700 ring-rose-200' : 'bg-amber-50 text-amber-800 ring-amber-200'}`}>
-              {daysLeft < 0 ? `القسط متأخر ${-daysLeft} يوماً` : `تذكير: القسط القادم (${mad(pay.balance)}) بعد ${daysLeft} أيام`}
+              {daysLeft < 0 ? `الدفعة متأخرة ${-daysLeft} يوماً` : `تذكير: الدفعة القادمة${pay.balance ? ` (${mad(pay.balance)})` : ''} بعد ${daysLeft} أيام`}
             </div>
           )}
           <ul className="mt-4 divide-y divide-[#EEF2F7]">
@@ -163,7 +169,7 @@ export function PaymentSummary({ p }: { p: StudentProfile }) {
                 <span className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0"><FileText size={14} /></span>
                 <div className="min-w-0 flex-1">
                   <div className="text-[12.5px] font-bold text-[#1E3A8A] truncate">{h.label}</div>
-                  <div className="text-[11px] text-[#94A3B8]">{fmtDay(h.at)}</div>
+                  <div className="text-[11px] text-[#94A3B8]">{fmtDay(h.at)}{h.installment ? ` · القسط ${h.installment}` : ''}</div>
                 </div>
                 <span className="text-[12.5px] font-extrabold text-[#1E3A8A] tabular-nums">{mad(h.amount)}</span>
                 <StatusPill tone={PAY[h.status].tone}>{PAY[h.status].label}</StatusPill>

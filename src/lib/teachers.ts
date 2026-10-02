@@ -834,3 +834,51 @@ export function formatSize(bytes: number | null): string {
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
+
+/* ── Transparency (053) ────────────────────────────────── */
+
+/** teacher_roster_payments(): one money line per student on my roster. */
+export interface RosterPayment {
+  student_id: string; total_paid: number; outstanding: number; overdue: boolean; last_paid_at: string | null
+}
+
+export async function fetchRosterPayments(): Promise<RosterPayment[]> {
+  const { data, error } = await supabase.rpc('teacher_roster_payments')
+  if (error) { console.warn('fetchRosterPayments', error.message); return [] }
+  return ((data ?? []) as RosterPayment[]).map(r => ({ ...r, total_paid: Number(r.total_paid), outstanding: Number(r.outstanding) }))
+}
+
+/** teacher_student_payments(student): what one of my students paid, owes and when. */
+export interface StudentPayments {
+  total_paid: number; paid_count: number; last_paid_at: string | null
+  outstanding: number; overdue: number; next_due_at: string | null
+  monthly_fee: number | null; billing_type: string | null
+  status: 'paid' | 'due' | 'overdue' | 'none'
+  history: { id: string; at: string; amount: number; label: string; status: 'paid' | 'pending' | 'overdue' | 'declined'; due_date: string | null; installment: string | null }[]
+}
+
+export async function fetchStudentPayments(studentId: string): Promise<StudentPayments | null> {
+  const { data, error } = await supabase.rpc('teacher_student_payments', { p_student: studentId })
+  if (error) { console.warn('fetchStudentPayments', error.message); return null }
+  return (data ?? null) as StudentPayments | null
+}
+
+/** teacher_leaderboard(from, to): every active teacher, ranked. Never another teacher's money. */
+export interface LeaderboardRow {
+  id: string; name: string | null; avatar_url: string | null; headline: string | null
+  rating_avg: number; rating_count: number; is_top_rated: boolean
+  students: number; live: number; active_7d: number
+  sessions: number; hours: number; attendance_rate: number | null
+  score: number; rank: number; is_me: boolean
+}
+export interface Leaderboard {
+  period: { from: string; to: string; timezone: string }
+  rows: LeaderboardRow[]
+  me: { roster_revenue: number; roster_paying_students: number } | null
+}
+
+export async function fetchLeaderboard(from: string | null = null, to: string | null = null): Promise<Leaderboard | null> {
+  const { data, error } = await supabase.rpc('teacher_leaderboard', { p_from: from, p_to: to })
+  if (error) { console.warn('fetchLeaderboard', error.message); return null }
+  return (data ?? null) as Leaderboard | null
+}

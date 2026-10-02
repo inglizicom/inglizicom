@@ -5,11 +5,11 @@ import Link from 'next/link'
 import { BookOpen, Loader2, MessageCircle, Search, Users, ShieldCheck, UserRound, Video } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import {
-  fetchMyStudents, fetchTeacherOverview,
-  type MyStudent, type MyStudentClass, type TeacherRosterCounts,
+  fetchMyStudents, fetchRosterPayments, fetchTeacherOverview,
+  type MyStudent, type MyStudentClass, type RosterPayment, type TeacherRosterCounts,
 } from '@/lib/teachers'
 import { Card, DemoBanner, Empty, PageHero, Pill } from '../_ui'
-import { DEMO_OVERVIEW, DEMO_STUDENTS, isTeacherDemo } from '../_demo'
+import { DEMO_OVERVIEW, DEMO_ROSTER_PAYMENTS, DEMO_STUDENTS, isTeacherDemo } from '../_demo'
 
 type Rel = 'assigned' | 'class' | 'both'
 const REL_AR: Record<Rel, string> = { assigned: 'مسنَد إليك', class: 'في أحد أقسامك', both: 'مسنَد + في أقسامك' }
@@ -36,15 +36,17 @@ export default function TeacherStudentsPage() {
   const [q,        setQ]        = useState('')
   const [rel,      setRel]      = useState<'all' | Rel>('all')
   const [demo, setDemo] = useState(false)
+  const [money, setMoney] = useState<Map<string, RosterPayment>>(new Map())
 
   useEffect(() => {
     let alive = true
     if (isTeacherDemo()) {
-      setDemo(true); setStudents(DEMO_STUDENTS); setCounts(DEMO_OVERVIEW.roster ?? null); setLoading(false); return
+      setDemo(true); setStudents(DEMO_STUDENTS); setCounts(DEMO_OVERVIEW.roster ?? null)
+      setMoney(new Map(DEMO_ROSTER_PAYMENTS.map(p => [p.student_id, p]))); setLoading(false); return
     }
-    Promise.all([fetchMyStudents(), fetchTeacherOverview()]).then(([s, ov]) => {
+    Promise.all([fetchMyStudents(), fetchTeacherOverview(), fetchRosterPayments()]).then(([s, ov, pay]) => {
       if (!alive) return
-      setStudents(s); setCounts(ov?.roster ?? null); setLoading(false)
+      setStudents(s); setCounts(ov?.roster ?? null); setMoney(new Map(pay.map(p => [p.student_id, p]))); setLoading(false)
     })
     return () => { alive = false }
   }, [])
@@ -160,6 +162,21 @@ export default function TeacherStudentsPage() {
                   <Pill tone={r === 'class' ? 'scheduled' : 'live'}>{REL_AR[r]}</Pill>
                   {!s.is_active && <Pill tone="cancelled">غير نشط</Pill>}
                 </div>
+
+                {money.get(s.id) && (() => {
+                  const m = money.get(s.id)!
+                  return (
+                    <div className="mt-3 flex items-center gap-2 rounded-xl bg-[#F8FAFC] ring-1 ring-[#E2E8F0] px-3 py-2">
+                      <span className="text-[11.5px] font-bold text-[#64748B]">دفع</span>
+                      <span className="text-[14px] font-extrabold text-[#1E3A8A] tabular-nums">{m.total_paid.toLocaleString('en-US')} <span className="text-[11px] text-[#94A3B8]">درهم</span></span>
+                      {m.overdue
+                        ? <span className="mr-auto rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-bold text-rose-700 ring-1 ring-rose-200">متأخر</span>
+                        : m.outstanding > 0
+                          ? <span className="mr-auto rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-800 ring-1 ring-amber-200">مستحق {m.outstanding.toLocaleString('en-US')}</span>
+                          : m.total_paid > 0 && <span className="mr-auto rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700 ring-1 ring-emerald-200">مُسدَّد</span>}
+                    </div>
+                  )
+                })()}
 
                 <Section icon={BookOpen} title="الدورات">
                   {s.courses === undefined ? (

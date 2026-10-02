@@ -4,15 +4,18 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
   Wallet, CalendarDays, Loader2, Info, TrendingUp, CalendarCheck, CalendarClock,
-  BadgeDollarSign, ArrowDown, ChevronLeft, ChevronRight, ShieldCheck,
+  BadgeDollarSign, ArrowDown, ChevronLeft, ChevronRight, ShieldCheck, Users, Lock,
 } from 'lucide-react'
 import { useTeacher } from '@/lib/teacher-context'
-import { fetchSessions, type ClassSession } from '@/lib/teachers'
+import {
+  fetchLeaderboard, fetchMyStudents, fetchRosterPayments, fetchSessions,
+  type ClassSession, type MyStudent, type RosterPayment,
+} from '@/lib/teachers'
 import { BarChart, Donut } from '../_charts'
 import { Rise } from '../_ds'
-import { DEMO_SESSIONS, isTeacherDemo } from '../_demo'
+import { DEMO_LEADERBOARD, DEMO_ROSTER_PAYMENTS, DEMO_SESSIONS, DEMO_STUDENTS, isTeacherDemo } from '../_demo'
 import { DemoBanner, STATUS_AR } from '../_ui'
-import { Btn, HelpBanner, SectionHead, StatCard, StatusPill, Surface, SUPPORT_WA, type PillTone } from '../_kit'
+import { Btn, Face, HelpBanner, SectionHead, StatCard, StatusPill, Surface, SUPPORT_WA, type PillTone } from '../_kit'
 
 /**
  * الأرباح — what the hours are worth, laid out like a billing page.
@@ -42,14 +45,23 @@ export default function TeacherEarningsPage() {
   const [demo, setDemo]         = useState(false)
   const [tab, setTab]           = useState<Tab>('all')
   const [page, setPage]         = useState(0)
+  const [students, setStudents] = useState<MyStudent[]>([])
+  const [payments, setPayments] = useState<RosterPayment[]>([])
+  const [rosterMonth, setRosterMonth] = useState<{ revenue: number; payers: number } | null>(null)
 
   useEffect(() => {
     let alive = true
-    if (isTeacherDemo()) { setDemo(true); setSessions(DEMO_SESSIONS); setLoading(false); return }
+    if (isTeacherDemo()) {
+      setDemo(true); setSessions(DEMO_SESSIONS); setStudents(DEMO_STUDENTS); setPayments(DEMO_ROSTER_PAYMENTS)
+      setRosterMonth(DEMO_LEADERBOARD.me && { revenue: DEMO_LEADERBOARD.me.roster_revenue, payers: DEMO_LEADERBOARD.me.roster_paying_students })
+      setLoading(false); return
+    }
     ;(async () => {
-      const s = await fetchSessions(teacher.id)
+      const [s, st, pay, lb] = await Promise.all([fetchSessions(teacher.id), fetchMyStudents(), fetchRosterPayments(), fetchLeaderboard()])
       if (!alive) return
-      setSessions(s); setLoading(false)
+      setSessions(s); setStudents(st); setPayments(pay)
+      setRosterMonth(lb?.me ? { revenue: Number(lb.me.roster_revenue), payers: lb.me.roster_paying_students } : null)
+      setLoading(false)
     })()
     return () => { alive = false }
   }, [teacher.id])
@@ -251,6 +263,70 @@ export default function TeacherEarningsPage() {
           )}
         </Surface>
       </Rise>
+
+      {/* ══ What my students paid — transparency, my own roster only ══ */}
+      {payments.length > 0 && (
+        <Rise>
+          <Surface className="p-5 sm:p-6">
+            <SectionHead title="ما دفعه طلابي" action={
+              <span className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-[#94A3B8]"><Lock size={12} /> طلابك فقط</span>} />
+            <div className="grid sm:grid-cols-3 gap-3 mb-5">
+              <div className="rounded-2xl bg-emerald-50 ring-1 ring-emerald-200 p-4">
+                <div className="text-[12px] font-bold text-emerald-800">مدفوعات طلابك هذا الشهر</div>
+                <div className="mt-1 text-[24px] font-extrabold text-emerald-800 tabular-nums">{rosterMonth ? money(rosterMonth.revenue) : '—'}</div>
+                <div className="text-[11.5px] text-emerald-700">{rosterMonth ? `${rosterMonth.payers} طالب دفع` : ''}</div>
+              </div>
+              <div className="rounded-2xl bg-[#F8FAFC] ring-1 ring-[#E2E8F0] p-4">
+                <div className="text-[12px] font-bold text-[#64748B]">مجموع ما دفعه طلابك</div>
+                <div className="mt-1 text-[24px] font-extrabold text-[#1E3A8A] tabular-nums">{money(payments.reduce((a, p) => a + p.total_paid, 0))}</div>
+                <div className="text-[11.5px] text-[#94A3B8]">منذ التسجيل</div>
+              </div>
+              <div className="rounded-2xl bg-amber-50 ring-1 ring-amber-200 p-4">
+                <div className="text-[12px] font-bold text-amber-800">مستحقات لم تُدفع بعد</div>
+                <div className="mt-1 text-[24px] font-extrabold text-amber-800 tabular-nums">{money(payments.reduce((a, p) => a + p.outstanding, 0))}</div>
+                <div className="text-[11.5px] text-amber-700">{payments.filter(p => p.overdue).length} طالب متأخر</div>
+              </div>
+            </div>
+            <div className="overflow-x-auto -mx-5 sm:-mx-6">
+              <table className="w-full min-w-[600px] text-[13px]">
+                <thead>
+                  <tr className="bg-[#F8FAFC] text-right text-[12px] text-[#64748B]">
+                    <th className="px-5 sm:px-6 py-3 font-bold">الطالب</th>
+                    <th className="px-3 py-3 font-bold">المدفوع</th>
+                    <th className="px-3 py-3 font-bold">المتبقي</th>
+                    <th className="px-3 py-3 font-bold">آخر دفعة</th>
+                    <th className="px-5 sm:px-6 py-3 font-bold">الحالة</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#EEF2F7]">
+                  {[...payments].sort((a, b) => b.total_paid - a.total_paid).map(p => {
+                    const st = students.find(x => x.id === p.student_id)
+                    return (
+                      <tr key={p.student_id} className="hover:bg-[#F8FAFC]">
+                        <td className="px-5 sm:px-6 py-3">
+                          <Link href={`/teacher/students/${p.student_id}`} className="flex items-center gap-2.5 font-bold text-[#1E3A8A] hover:text-blue-700">
+                            <Face name={st?.full_name ?? 'طالب'} url={st?.avatar_url} size={30} />
+                            <span className="truncate max-w-[200px]">{st?.full_name ?? 'طالب'}</span>
+                          </Link>
+                        </td>
+                        <td className="px-3 py-3 font-extrabold text-[#1E3A8A] tabular-nums">{money(p.total_paid)}</td>
+                        <td className="px-3 py-3 tabular-nums text-[#475569]">{p.outstanding ? money(p.outstanding) : '—'}</td>
+                        <td className="px-3 py-3 tabular-nums text-[#475569]">{p.last_paid_at ? new Date(p.last_paid_at).toLocaleDateString('ar-MA', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</td>
+                        <td className="px-5 sm:px-6 py-3">
+                          {p.overdue ? <StatusPill tone="bad">متأخر</StatusPill>
+                            : p.outstanding > 0 ? <StatusPill tone="warn">مستحق</StatusPill>
+                            : p.total_paid > 0 ? <StatusPill tone="ok">مُسدَّد</StatusPill>
+                            : <StatusPill tone="muted">لا دفعات</StatusPill>}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </Surface>
+        </Rise>
+      )}
 
       {/* ══ Pay terms · recent · month summary ══ */}
       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">

@@ -1112,3 +1112,88 @@ describe('teacher view of a student\'s learning (052)', () => {
     assert.equal(r.course.progress_pct, 25)
   })
 })
+
+// ════════════════════════════════════════════════════════════
+describe('teacher transparency: student payments and the leaderboard (053)', () => {
+  let ctx, s1, s2, classB
+  const TODAY = new Date().toISOString().slice(0, 10)
+  const YESTERDAY = new Date(Date.now() - 864e5).toISOString().slice(0, 10)
+  const call = (who, fn, args = []) => as(ctx.db, who, () => rpc(ctx.db, fn, args))
+
+  before(async () => {
+    ctx = await setup()
+    s1 = await makeStudent(ctx.db, 'Payer A')
+    s2 = await makeStudent(ctx.db, 'Seat B')
+    await ctx.db.query(`insert into teacher_students (teacher_id, student_id) values ($1, $2)`, [ctx.teacherA, s1.id])
+    classB = await makeClass(ctx.db, { title: 'B group', teacher: ctx.teacherB })
+    await enrollClass(ctx.db, classB, s2.id)
+    await pay(ctx.db, s1.id, 500, TODAY)
+    await ctx.db.query(`insert into crm_payments (student_id, payment_type, amount_mad, payment_status, due_date, description)
+                        values ($1, 'course_one_time', 300, 'pending', $2, 'Part 2')`, [s1.id, YESTERDAY])
+    await ctx.db.query(`insert into crm_payments (student_id, payment_type, amount_mad, payment_status, payment_date, excluded_from_revenue)
+                        values ($1, 'course_one_time', 100, 'paid', $2, true)`, [s1.id, TODAY])
+    // B: one delivered session this month and a top-rated rating
+    await makeSession(ctx.db, { teacher: ctx.teacherB, classId: classB, startsAt: new Date().toISOString(), status: 'done' })
+    await ctx.db.query(`select set_config('app.rating_refresh', 'on', false)`)
+    await ctx.db.query(`update teacher_profiles set rating_avg = 4.8, rating_count = 6 where id = $1`, [ctx.teacherB])
+    await ctx.db.query(`select set_config('app.rating_refresh', '', false)`)
+    await ctx.db.query(`insert into student_presence (student_id, last_seen_at) values ($1, now())`, [s1.id])
+  })
+
+  it('a teacher sees what their own student paid, owes and when', async () => {
+    const r = await call(ctx.teacherA, 'teacher_student_payments', [s1.id])
+    assert.equal(Number(r.total_paid), 500, 'excluded payments do not count')
+    assert.equal(Number(r.outstanding), 300)
+    assert.equal(Number(r.overdue), 300)
+    assert.equal(r.status, 'overdue')
+    assert.equal(r.history.length, 2)
+    assert.ok(r.history.some(h => h.status === 'overdue' && h.label === 'Part 2'))
+    const raw = JSON.stringify(r)
+    for (const k of ['receipt', 'method', 'phone']) assert.ok(!raw.includes(k), k)
+  })
+
+  it('no one else sees that student\'s payments', async () => {
+    assert.equal(await call(ctx.teacherB, 'teacher_student_payments', [s1.id]), null)
+    assert.equal(await call(ctx.founder, 'teacher_student_payments', [s1.id]), null, 'staff use the CRM, not this')
+    await rejects(call('anon', 'teacher_student_payments', [s1.id]), /permission denied/)
+  })
+
+  it('roster payments: one line per student, mine only', async () => {
+    const a = await call(ctx.teacherA, 'teacher_roster_payments')
+    assert.deepEqual(a.map(x => x.student_id), [s1.id])
+    assert.equal(Number(a[0].total_paid), 500)
+    assert.equal(a[0].overdue, true)
+    const b = await call(ctx.teacherB, 'teacher_roster_payments')
+    assert.deepEqual(b.map(x => x.student_id), [s2.id])
+  })
+
+  it('the leaderboard ranks every active teacher by the published score', async () => {
+    const lb = await call(ctx.teacherA, 'teacher_leaderboard', [null, null])
+    const a = lb.rows.find(r => r.id === ctx.teacherA)
+    const b = lb.rows.find(r => r.id === ctx.teacherB)
+    assert.equal(b.score, 10 + 5 + 96, 'B: 1 session, 1 student, 4.8 × 20')
+    assert.equal(a.score, 5, 'A: 1 student, no sessions, too few reviews to count')
+    assert.equal(b.rank, 1); assert.equal(a.rank, 2)
+    assert.equal(b.is_top_rated, true); assert.equal(a.is_top_rated, false)
+    assert.equal(a.is_me, true); assert.equal(b.is_me, false)
+    assert.equal(a.live, 1, 'student seen in the last 15 minutes')
+    assert.equal(a.students, 1); assert.equal(b.students, 1); assert.equal(b.sessions, 1)
+  })
+
+  it('the leaderboard never shows another teacher\'s money; my own roster revenue is mine', async () => {
+    const lb = await call(ctx.teacherA, 'teacher_leaderboard', [null, null])
+    const rows = JSON.stringify(lb.rows)
+    for (const k of ['revenue', 'paid', 'amount']) assert.ok(!rows.includes(k), k)
+    assert.equal(Number(lb.me.roster_revenue), 500)
+    assert.equal(lb.me.roster_paying_students, 1)
+    const asB = await call(ctx.teacherB, 'teacher_leaderboard', [null, null])
+    assert.equal(Number(asB.me.roster_revenue), 0, 'B does not see A\'s student payments')
+  })
+
+  it('staff can read the board without a personal block; anon cannot', async () => {
+    const lb = await call(ctx.founder, 'teacher_leaderboard', [null, null])
+    assert.equal(lb.rows.length >= 2, true)
+    assert.equal(lb.me, null)
+    await rejects(call('anon', 'teacher_leaderboard', [null, null]), /permission denied/)
+  })
+})

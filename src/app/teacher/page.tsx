@@ -5,17 +5,22 @@ import Link from 'next/link'
 import {
   AlertTriangle, Video, Loader2, ArrowLeft, CalendarPlus, CalendarDays, Users, Star, Wallet,
   Clock, ExternalLink, CheckCircle2, Sparkles, ListChecks, Layers, ClipboardList, FolderOpen,
-  UserRound, CalendarClock, Hourglass, BookOpen,
+  UserRound, CalendarClock, Hourglass, BookOpen, Trophy, Radio, Crown,
 } from 'lucide-react'
 import { useTeacher } from '@/lib/teacher-context'
 import {
-  fetchMyClasses, fetchMyStudents, fetchReportsOwed, fetchSessions, fetchTeacherOverview, fetchTeacherProfileFull,
-  type ClassSession, type MyClass, type MyStudent, type TeacherOverview, type TeacherProfileFull,
+  fetchLeaderboard, fetchMyClasses, fetchMyStudents, fetchReportsOwed, fetchRosterPayments, fetchSessions,
+  fetchTeacherOverview, fetchTeacherProfileFull,
+  type ClassSession, type Leaderboard, type MyClass, type MyStudent, type RosterPayment, type TeacherOverview,
+  type TeacherProfileFull,
 } from '@/lib/teachers'
 import { businessToday, presetRange } from '@/lib/enrollment-metrics'
 import { BarChart, Ring } from './_charts'
 import { Rise } from './_ds'
-import { DEMO_CLASSES, DEMO_OVERVIEW, DEMO_REPORTS_OWED, DEMO_SESSIONS, DEMO_STUDENTS, isTeacherDemo } from './_demo'
+import {
+  DEMO_CLASSES, DEMO_LEADERBOARD, DEMO_OVERVIEW, DEMO_REPORTS_OWED, DEMO_ROSTER_PAYMENTS, DEMO_SESSIONS, DEMO_STUDENTS,
+  isTeacherDemo,
+} from './_demo'
 import { DEMO_PROFILE } from './profile/demoData'
 import { DemoBanner, Stars, fmtTime, fromNow, STATUS_AR } from './_ui'
 import {
@@ -59,6 +64,8 @@ export default function TeacherDashboard() {
   const [owed, setOwed]         = useState<ClassSession[]>([])
   const [students, setStudents] = useState<MyStudent[]>([])
   const [classes, setClasses]   = useState<MyClass[]>([])
+  const [board, setBoard]       = useState<Leaderboard | null>(null)
+  const [money, setMoney]       = useState<Map<string, RosterPayment>>(new Map())
   const [loading, setLoading]   = useState(true)
   const [demo, setDemo]         = useState(false)
 
@@ -67,16 +74,19 @@ export default function TeacherDashboard() {
     if (isTeacherDemo()) {
       setDemo(true); setSessions(DEMO_SESSIONS); setOwed(DEMO_REPORTS_OWED)
       setStudents(DEMO_STUDENTS); setOv(DEMO_OVERVIEW); setFull(DEMO_PROFILE); setClasses(DEMO_CLASSES)
+      setBoard(DEMO_LEADERBOARD); setMoney(new Map(DEMO_ROSTER_PAYMENTS.map(p => [p.student_id, p])))
       setLoading(false); return
     }
     ;(async () => {
       const r = presetRange('month', businessToday())
-      const [s, o, st, v, f, c] = await Promise.all([
+      const [s, o, st, v, f, c, lb, pay] = await Promise.all([
         fetchSessions(teacher.id), fetchReportsOwed(teacher.id), fetchMyStudents(),
         fetchTeacherOverview(r.from, r.to), fetchTeacherProfileFull(teacher.id), fetchMyClasses(),
+        fetchLeaderboard(), fetchRosterPayments(),
       ])
       if (!alive) return
-      setSessions(s); setOwed(o); setStudents(st); setOv(v); setFull(f); setClasses(c); setLoading(false)
+      setSessions(s); setOwed(o); setStudents(st); setOv(v); setFull(f); setClasses(c)
+      setBoard(lb); setMoney(new Map(pay.map(p => [p.student_id, p]))); setLoading(false)
     })()
     return () => { alive = false }
   }, [teacher.id])
@@ -136,6 +146,9 @@ export default function TeacherDashboard() {
     : publicProfileUrl(teacher.id)
   const check      = profileChecklist(prof ?? teacher.profile)
   const teachChips = [...new Set([...(prof?.specialties ?? []), ...(prof?.teaches ?? [])])].slice(0, 6)
+
+  const myRank = board?.rows.find(r => r.is_me)
+  const leader = board?.rows[0]
 
   const myClasses = classes
     .filter(c => c.status === 'active' && !c.archived)
@@ -220,6 +233,36 @@ export default function TeacherDashboard() {
           sub={ratingN > 0 ? `من ${ratingN} تقييماً` : 'لا تقييمات بعد'}
           href="/teacher/reviews" link="عرض التقييمات" /></Rise>
       </div>
+
+      {/* ══ My place in the competition ══ */}
+      {myRank && (
+        <Rise>
+          <Link href="/teacher/leaderboard"
+                className="group flex flex-wrap items-center gap-4 rounded-[20px] bg-gradient-to-l from-blue-600 via-blue-700 to-blue-800 px-5 py-4 text-white
+                           shadow-[0_14px_34px_-14px_rgba(30,58,138,.55)] hover:shadow-[0_20px_44px_-14px_rgba(30,58,138,.65)] transition">
+            <span className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 text-blue-900 flex flex-col items-center justify-center shadow-lg shadow-amber-500/30 shrink-0">
+              <Trophy size={15} /><span className="text-[18px] font-black leading-none tabular-nums">#{myRank.rank}</span>
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="text-[15.5px] font-extrabold">ترتيبك في المنافسة: #{myRank.rank} من {board!.rows.length} · {myRank.score} نقطة</div>
+              <div className="mt-0.5 text-[12.5px] text-blue-100">
+                {myRank.is_top_rated
+                  ? <span className="inline-flex items-center gap-1 font-bold text-amber-200"><Crown size={13} /> من الأفضل تقييماً</span>
+                  : 'اجمع تقييمات أكثر لتصبح من «الأفضل تقييماً»'}
+                {leader && !leader.is_me && <> · المتصدر: {leader.name} ({leader.score} نقطة)</>}
+              </div>
+            </div>
+            <div className="flex items-center gap-5 text-center">
+              <div><div className="flex items-center justify-center gap-1 text-[18px] font-extrabold tabular-nums"><Radio size={14} className="text-emerald-300" />{myRank.live}</div><div className="text-[11px] text-blue-100">متصلون الآن</div></div>
+              <div><div className="text-[18px] font-extrabold tabular-nums">{myRank.students}</div><div className="text-[11px] text-blue-100">طلاب حاليون</div></div>
+              {board?.me && <div><div className="text-[18px] font-extrabold tabular-nums">{Number(board.me.roster_revenue).toLocaleString('en-US')}</div><div className="text-[11px] text-blue-100">مدفوعات طلابك (د)</div></div>}
+            </div>
+            <span className="inline-flex items-center gap-1 rounded-xl bg-white/15 px-3 py-2 text-[12.5px] font-bold group-hover:bg-white/25 transition">
+              عرض المنافسة <ArrowLeft size={14} />
+            </span>
+          </Link>
+        </Rise>
+      )}
 
       {/* ══ My groups + what needs me ══ */}
       <div className="grid lg:grid-cols-12 gap-6">
@@ -415,13 +458,14 @@ export default function TeacherDashboard() {
             <p className="py-8 text-center text-[13px] text-[#94A3B8]">لم يُسنَد إليك طلاب بعد.</p>
           ) : (
             <div className="overflow-x-auto -mx-5 sm:-mx-6">
-              <table className="w-full min-w-[640px] text-[13px]">
+              <table className="w-full min-w-[720px] text-[13px]">
                 <thead>
                   <tr className="bg-[#F8FAFC] text-right text-[12px] font-bold text-[#64748B]">
                     <th className="px-5 sm:px-6 py-3 font-bold">الطالب</th>
                     <th className="px-3 py-3 font-bold">الدورة</th>
                     <th className="px-3 py-3 font-bold">القسم</th>
                     <th className="px-3 py-3 font-bold">العلاقة</th>
+                    <th className="px-3 py-3 font-bold">المدفوع</th>
                     <th className="px-3 py-3 font-bold">منذ</th>
                     <th className="px-5 sm:px-6 py-3" />
                   </tr>
@@ -440,6 +484,14 @@ export default function TeacherDashboard() {
                         <td className="px-3 py-3 text-[#475569]">{st.courses?.find(c => c.status === 'active')?.title ?? st.course ?? '—'}</td>
                         <td className="px-3 py-3 text-[#475569] truncate max-w-[180px]">{st.classes?.[0]?.title ?? '—'}</td>
                         <td className="px-3 py-3">{rel ? <StatusPill tone={rel.tone}>{rel.label}</StatusPill> : '—'}</td>
+                        <td className="px-3 py-3">
+                          {money.get(st.id) ? (
+                            <span className="inline-flex items-center gap-1.5">
+                              <b className="text-[#1E3A8A] tabular-nums">{money.get(st.id)!.total_paid.toLocaleString('en-US')} د</b>
+                              {money.get(st.id)!.overdue && <StatusPill tone="bad">متأخر</StatusPill>}
+                            </span>
+                          ) : '—'}
+                        </td>
                         <td className="px-3 py-3 text-[#64748B] tabular-nums">{shortDate(st.assigned_at ?? st.enrollment_date)}</td>
                         <td className="px-5 sm:px-6 py-3 text-left">
                           <Link href={`/teacher/students/${st.id}`} className="inline-flex items-center gap-1 text-[12px] font-bold text-blue-700 hover:text-blue-900">

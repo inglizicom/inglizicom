@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 import {
-  fetchMyClasses, fetchMyStudents, fetchReports, fetchSessions,
+  fetchMyClasses, fetchMyStudents, fetchReports, fetchSessions, fetchStudentPayments,
   type AttendanceStatus, type ClassSession, type MyClass, type MyStudent, type SessionStatus,
 } from './teachers'
 
@@ -8,12 +8,13 @@ import {
  * One student, as a learning profile — the shape every section of the student
  * profile page reads.
  *
- * Every block that a given viewer may not see is nullable. A teacher reads the
- * roster RPC, their own sessions, their own attendance marks and their own
- * lesson reports — never crm_* tables — so `loadStudentProfileForTeacher`
- * leaves payment, LMS progress, exercises and certificates null and the page
- * says so. A later staff/student loader, or a security-definer RPC, fills the
- * same fields and the page lights up without a rewrite.
+ * Every block that a given viewer may not see is nullable. A teacher never
+ * reads crm_* tables directly: `loadStudentProfileForTeacher` uses the roster
+ * RPC, their own sessions, attendance marks and lesson reports, plus two
+ * roster-checked RPCs — teacher_student_learning (052: progress, exercises,
+ * certificates) and teacher_student_payments (053: what the student paid and
+ * owes; the founder chose payment transparency for a student's own teachers).
+ * A block stays null — and its section says so — when an RPC is unavailable.
  */
 
 export type StudentStatus = 'active' | 'paused' | 'vip' | 'trial' | 'awaiting_payment'
@@ -74,8 +75,9 @@ export interface StudentProfile {
 
   payment: {
     totalPaid: number; balance: number; nextDueAt: string | null; lastPaidAt: string | null
-    status: 'paid' | 'due' | 'overdue' | 'pending'
-    history: { id: string; at: string; amount: number; label: string; status: 'paid' | 'pending' | 'overdue'; receiptUrl: string | null }[]
+    status: 'paid' | 'due' | 'overdue' | 'pending' | 'none'
+    monthlyFee?: number | null
+    history: { id: string; at: string; amount: number; label: string; status: 'paid' | 'pending' | 'overdue' | 'declined'; receiptUrl: string | null; installment?: string | null }[]
   } | null
 
   teachers: { id: string; name: string; avatarUrl: string | null; specialty: string | null; rating: number | null; role: string; isMe: boolean }[]
@@ -162,12 +164,13 @@ export async function loadStudentProfileForTeacher(
   teacher: { id: string; name: string; avatarUrl: string | null; headline: string | null; rating: number | null },
   studentId: string,
 ): Promise<StudentProfile | null> {
-  const [students, classes, sessions, reports, marks, learn] = await Promise.all([
+  const [students, classes, sessions, reports, marks, learn, money] = await Promise.all([
     fetchMyStudents(), fetchMyClasses(), fetchSessions(teacher.id), fetchReports(teacher.id, 200),
     supabase.from('class_attendance')
       .select('status, note, session:class_sessions!inner(id, title, starts_at, teacher_id)')
       .eq('student_id', studentId),
     fetchStudentLearning(studentId),
+    fetchStudentPayments(studentId),
   ])
   const s: MyStudent | undefined = students.find(x => x.id === studentId)
   if (!s) return null   // not on my roster — the database would refuse the rest anyway
@@ -201,7 +204,7 @@ export async function loadStudentProfileForTeacher(
     avatarUrl: s.avatar_url,
     phoneMasked: s.phone_masked,
     enrolledAt: s.enrollment_date ?? s.assigned_at,
-    statuses: [s.is_active ? 'active' : 'paused'],
+    statuses: [s.is_active ? 'active' : 'paused', ...(money?.status === 'overdue' ? ['awaiting_payment' as const] : [])],
     level: course?.level ?? activeCourse?.level ?? memberships.map(m => classById.get(m.class_id)?.level).find(Boolean) ?? null,
     goalLevel: null,
     courses: (s.courses ?? []).map(c => ({ title: c.title, status: c.status })),
@@ -234,7 +237,12 @@ export async function loadStudentProfileForTeacher(
       weekly: (learn.weekly ?? []).map(w => ({ label: weekLabel(w.week), value: w.lessons })),
     } : null,
     levelInfo: null,
-    payment: null,
+    payment: money ? {
+      totalPaid: Number(money.total_paid), balance: Number(money.outstanding), nextDueAt: money.next_due_at,
+      lastPaidAt: money.last_paid_at, status: money.status, monthlyFee: money.monthly_fee != null ? Number(money.monthly_fee) : null,
+      history: money.history.map(h => ({ id: h.id, at: h.at, amount: Number(h.amount), label: h.label, status: h.status,
+                                         receiptUrl: null, installment: h.installment })),
+    } : null,
     teachers: [{ id: teacher.id, name: teacher.name, avatarUrl: teacher.avatarUrl, specialty: teacher.headline,
                  rating: teacher.rating, role: s.relationship === 'class' ? 'أستاذ القسم' : 'الأستاذ المسؤول', isMe: true }],
     certificates: learn ? learn.certificates.map(c => ({
@@ -257,7 +265,7 @@ export async function loadStudentProfileForTeacher(
       needsHelp: notes.slice(0, 3).some(n => n.needs_help),
       notes: notes.filter(n => n.note).slice(0, 5).map(n => ({ at: n.at, text: n.note as string, by: teacher.name })),
     },
-    access: { payments: false, learning: !!learn, certificates: !!learn },
+    access: { payments: !!money, learning: !!learn, certificates: !!learn },
   }
 }
 

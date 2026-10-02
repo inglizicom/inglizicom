@@ -1,5 +1,6 @@
 import type {
-  ClassRosterRow, ClassSession, LessonReport, MyClass, MyStudent, SessionRosterRow, TeacherMaterial, TeacherOverview,
+  ClassRosterRow, ClassSession, Leaderboard, LessonReport, MyClass, MyStudent, RosterPayment, SessionRosterRow,
+  TeacherMaterial, TeacherOverview,
 } from '@/lib/teachers'
 
 /**
@@ -269,3 +270,37 @@ export const DEMO_MATERIALS: TeacherMaterial[] = [
   M('m10', 'بطاقات المفردات — العمل والمكتب.pdf',            'pdf',     540, 30, 'course',   'C1', 29),
   M('m11', 'ملاحظاتي الخاصة — تتبع الأخطاء الشائعة.docx',    'doc',     180, 34, 'private',  null, 0),
 ]
+
+/* ── Leaderboard + roster payments (053) ───────────────── */
+
+const LB = (id: string, name: string, headline: string, rating: number, reviews: number, students: number,
+            live: number, active: number, sessions: number, hours: number, att: number, me = false) => ({
+  id, name, avatar_url: null, headline, rating_avg: rating, rating_count: reviews,
+  is_top_rated: rating >= 4.5 && reviews >= 5, students, live, active_7d: active, sessions, hours, attendance_rate: att,
+  score: sessions * 10 + students * 5 + (reviews >= 3 ? Math.round(rating * 20) : 0), rank: 0, is_me: me,
+})
+
+export const DEMO_LEADERBOARD: Leaderboard = (() => {
+  const rows = [
+    LB('t1', 'سارة بن يوسف', 'IELTS والمحادثة', 4.8, 47, 41, 6, 33, 34, 38.5, 92, true),
+    LB('t2', 'أنس بلحاج', 'الكتابة الأكاديمية', 4.6, 22, 28, 3, 21, 29, 31, 88),
+    LB('t3', 'مريم الشرقاوي', 'إنجليزية الأعمال', 4.9, 31, 19, 2, 16, 26, 30, 95),
+    LB('t4', 'كريم الزهراوي', 'المبتدئون A0–A1', 4.3, 12, 35, 4, 24, 18, 18, 81),
+    LB('t5', 'هند الفاسي', 'النطق', 4.7, 4, 12, 1, 9, 14, 14, 90),
+    LB('t6', 'عمر الحسني', 'المحادثة للأطفال', 0, 0, 8, 0, 5, 9, 9, 76),
+  ].sort((a, b) => b.score - a.score)
+  rows.forEach((r, i) => { r.rank = i + 1 })
+  const from = new Date(); from.setDate(1)
+  return {
+    period: { from: from.toISOString().slice(0, 10), to: new Date().toISOString().slice(0, 10), timezone: 'Africa/Casablanca' },
+    rows, me: { roster_revenue: 18400, roster_paying_students: 23 },
+  }
+})()
+
+export const DEMO_ROSTER_PAYMENTS: RosterPayment[] = DEMO_STUDENTS.map((s, i) => ({
+  student_id: s.id,
+  total_paid: [2400, 1800, 3600, 900, 1200, 2700, 600, 4200, 1500, 2100, 300, 0][i] ?? 0,
+  outstanding: i % 4 === 1 ? 600 : 0,
+  overdue: i === 5,
+  last_paid_at: i === 11 ? null : ago(5 + i * 3).slice(0, 10),
+}))

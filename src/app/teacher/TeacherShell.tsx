@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   LogOut, Menu, X, ChevronDown, LayoutDashboard, Layers, CalendarDays, Users,
-  ClipboardList, FolderOpen, Wallet, Clock, Star, UserRound, ExternalLink, MoreHorizontal,
+  ClipboardList, FolderOpen, Wallet, Clock, Star, UserRound, ExternalLink, MoreHorizontal, Trophy,
   type LucideIcon,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -37,6 +37,7 @@ const GROUPS: { title: string; items: NavItem[] }[] = [
     { segment: 'schedule',  label: 'التوفر',       icon: Clock },
   ]},
   { title: 'النمو', items: [
+    { segment: 'leaderboard', label: 'المنافسة',   icon: Trophy },
     { segment: 'earnings',  label: 'الأرباح',      icon: Wallet },
     { segment: 'reviews',   label: 'التقييمات',    icon: Star },
     { segment: 'profile',   label: 'ملفي العام',   icon: UserRound },
