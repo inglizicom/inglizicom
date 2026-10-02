@@ -987,3 +987,60 @@ describe('founder revenue and conversion', () => {
     assert.equal(Number((await rev('2026-11-01', '2026-11-30')).kpis.revenue), 47)
   })
 })
+
+// ════════════════════════════════════════════════════════════
+describe('student ratings: who may rate a teacher', () => {
+  let ctx, groupA, groupB
+  const myTeachers = (token) => as(ctx.db, 'anon', () => rpc(ctx.db, 'student_my_teachers', [token]))
+  const review = (token, teacher, stars, comment = null) =>
+    as(ctx.db, 'anon', () => rpc(ctx.db, 'submit_teacher_review', [token, teacher, stars, comment]))
+  const asst = fn => as(ctx.db, ctx.assistant, fn)
+
+  before(async () => {
+    ctx = await setup()
+    groupA = await makeClass(ctx.db, { title: 'Group A', teacher: ctx.teacherA, waitlist: true })
+    groupB = await makeClass(ctx.db, { title: 'Group B', teacher: ctx.teacherB })
+  })
+
+  it('a student with only a class seat sees the class teacher and can rate them', async () => {
+    const s = await makeStudent(ctx.db, 'Seated')
+    await enrollClass(ctx.db, groupA, s.id)
+    const list = await myTeachers(s.token)
+    assert.deepEqual(list.map(t => t.id), [ctx.teacherA])
+    assert.equal((await review(s.token, ctx.teacherA, 5, 'Great class')).ok, true)
+    const row = await one(ctx.db, `select rating, comment from teacher_reviews where teacher_id = $1 and student_id = $2`, [ctx.teacherA, s.id])
+    assert.equal(row.rating, 5); assert.equal(row.comment, 'Great class')
+  })
+
+  it('a finished (completed) seat can still rate; a waitlisted one cannot', async () => {
+    const done = await makeStudent(ctx.db, 'Finished')
+    const e = await enrollClass(ctx.db, groupA, done.id)
+    await asst(() => rpc(ctx.db, 'staff_set_class_enrollment', [e.id, 'completed', null, null, null]))
+    assert.equal((await review(done.token, ctx.teacherA, 4)).ok, true)
+
+    const waiting = await makeStudent(ctx.db, 'Waiting')
+    await enrollClass(ctx.db, groupA, waiting.id, null, 'waitlisted')
+    assert.deepEqual(await myTeachers(waiting.token), [])
+    assert.equal((await review(waiting.token, ctx.teacherA, 5)).ok, false)
+  })
+
+  it('assignment by the admin still works, and rating again replaces the old rating', async () => {
+    const s = await makeStudent(ctx.db, 'Assigned')
+    await ctx.db.query(`insert into teacher_students (teacher_id, student_id) values ($1, $2)`, [ctx.teacherB, s.id])
+    assert.equal((await review(s.token, ctx.teacherB, 3, 'ok')).ok, true)
+    assert.equal((await review(s.token, ctx.teacherB, 5, 'much better')).ok, true)
+    const rows = await q(ctx.db, `select rating, comment from teacher_reviews where teacher_id = $1 and student_id = $2`, [ctx.teacherB, s.id])
+    assert.equal(rows.length, 1); assert.equal(rows[0].rating, 5); assert.equal(rows[0].comment, 'much better')
+  })
+
+  it('nobody can rate a teacher who does not teach them', async () => {
+    const stranger = await makeStudent(ctx.db, 'Stranger')
+    assert.equal((await review(stranger.token, ctx.teacherA, 1)).ok, false)
+    const other = await makeStudent(ctx.db, 'Other group')
+    await enrollClass(ctx.db, groupB, other.id)
+    assert.equal((await review(other.token, ctx.teacherA, 1)).ok, false, 'a seat in B does not reach teacher A')
+    assert.equal((await review('ING-NOPE', ctx.teacherA, 5)).ok, false, 'unknown token')
+    const n = await one(ctx.db, `select count(*)::int n from teacher_reviews where rating = 1`)
+    assert.equal(n.n, 0)
+  })
+})
