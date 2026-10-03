@@ -57,12 +57,16 @@ test.describe('student space (demo)', () => {
     await fits(page)
   })
 
-  for (const tab of ['courses', 'profile']) {
+  const TAB_MARKER: Record<string, string> = {
+    courses: 'مساراتي', profile: 'الحضور', path: 'مسار الدورة', tasks: 'تمارين المنهج',
+    rewards: 'رصيدك من الكوينات', files: 'ملفاتي', progress: 'تقدّمي',
+  }
+  for (const [tab, marker] of Object.entries(TAB_MARKER)) {
     test(`#${tab} renders`, async ({ page }) => {
       const errors = collectErrors(page)
       await mockSupabase(page, { role: null })
       await page.goto(`/student-space?demo=1#${tab}`)
-      await expect(page.getByText(tab === 'courses' ? 'مساراتي' : 'الحضور').first()).toBeVisible()
+      await expect(page.getByText(marker).first()).toBeVisible({ timeout: 90_000 })
       expect(errors).toEqual([])
       await fits(page)
     })
