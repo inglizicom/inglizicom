@@ -1,3 +1,52 @@
+const twColors = require('tailwindcss/colors')
+const plugin = require('tailwindcss/plugin')
+
+/*
+ * Themable neutrals. The CRM (/sales, /admin) was written against zinc / gray /
+ * stone / neutral, black and yellow — forty-odd screens of them. Instead of
+ * rewriting every class, those palettes read from CSS variables: on :root they
+ * hold Tailwind's own values, so the public site and the other spaces render
+ * exactly as before; inside `.crm-theme` they are restated as the brand — slate
+ * greys, navy where the CRM used black, amber gold where it used lemon yellow.
+ * Hover, opacity (`/80`), ring, divide and gradient variants all follow.
+ * `.crm-raw` puts the original values back for a subtree (the lesson presenter).
+ */
+const THEMED = ['zinc', 'gray', 'stone', 'neutral', 'yellow']
+const SHADES = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950']
+const rgb = hex => {
+  const h = hex.replace('#', '')
+  const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16)
+  return `${(n >> 16) & 255} ${(n >> 8) & 255} ${n & 255}`
+}
+const varColor = name => `rgb(var(--c-${name}) / <alpha-value>)`
+const themedScale = p => Object.fromEntries(SHADES.map(s => [s, varColor(`${p}-${s}`)]))
+
+/** The CRM's neutral scale: slate greys that turn navy at the dark end. */
+const CRM_NEUTRAL = {
+  50: '#F8FAFC', 100: '#F1F5F9', 200: '#E2E8F0', 300: '#CBD5E1', 400: '#94A3B8',
+  500: '#64748B', 600: '#475569', 700: '#334155', 800: '#1E40AF', 900: '#1E3A8A', 950: '#172554',
+}
+/** Lemon yellow → the site's amber gold. */
+const CRM_YELLOW = {
+  50: '#FFFBEB', 100: '#FEF3C7', 200: '#FDE68A', 300: '#FCD34D', 400: '#FBBF24',
+  500: '#F59E0B', 600: '#D97706', 700: '#B45309', 800: '#92400E', 900: '#78350F', 950: '#451A03',
+}
+
+const vars = map => Object.fromEntries(Object.entries(map).map(([k, v]) => [`--c-${k}`, rgb(v)]))
+const defaults = {}
+for (const p of THEMED) for (const s of SHADES) defaults[`${p}-${s}`] = twColors[p][s]
+defaults.black = '#000000'
+const crm = {}
+for (const p of THEMED) for (const s of SHADES) crm[`${p}-${s}`] = (p === 'yellow' ? CRM_YELLOW : CRM_NEUTRAL)[s]
+crm.black = '#1E3A8A'
+
+const themePlugin = plugin(({ addBase }) => {
+  addBase({
+    ':root, .crm-raw': vars(defaults),
+    '.crm-theme': vars(crm),
+  })
+})
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -23,6 +72,8 @@ module.exports = {
         paper: ['Outfit', 'Tajawal', 'sans-serif'],
       },
       colors: {
+        ...Object.fromEntries(THEMED.map(p => [p, themedScale(p)])),
+        black: varColor('black'),
         // Teacher space palette — warm paper. The space is a workbook, not a
         // control panel: an off-white ground, white sheets, ink-brown text,
         // and one accent per domain stated at a weight that reads on white.
@@ -82,5 +133,5 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [themePlugin],
 }

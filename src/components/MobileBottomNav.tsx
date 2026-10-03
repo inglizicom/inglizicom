@@ -3,19 +3,26 @@
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import type { LucideIcon } from 'lucide-react'
-import { LayoutDashboard, Users, GraduationCap, CalendarCheck, CreditCard } from 'lucide-react'
+import { LayoutDashboard, Users, GraduationCap, CalendarCheck, MoreHorizontal } from 'lucide-react'
 
-interface Item { label: string; icon: LucideIcon; path: string; tab?: string; badgeKey?: 'followups' }
+/**
+ * The phone tab bar: the four places staff go all day, and "المزيد" for the
+ * rest (it opens the same drawer as the header's menu button).
+ */
+interface Item { label: string; icon: LucideIcon; path: string; tab?: string; badgeKey?: 'leads' | 'followups' }
 
 const ITEMS: Item[] = [
   { label: 'الرئيسية',  icon: LayoutDashboard, path: '/dashboard' },
-  { label: 'العملاء',   icon: Users,           path: '/workspace' },
-  { label: 'الطلاب',    icon: GraduationCap,   path: '/workspace', tab: 'students' },
+  { label: 'العملاء',   icon: Users,           path: '/workspace', badgeKey: 'leads' },
   { label: 'المتابعات', icon: CalendarCheck,   path: '/workspace', tab: 'followups', badgeKey: 'followups' },
-  { label: 'المدفوعات', icon: CreditCard,      path: '/workspace', tab: 'payments' },
+  { label: 'الطلاب',    icon: GraduationCap,   path: '/workspace', tab: 'students' },
 ]
 
-export default function MobileBottomNav({ base, badges }: { base: string; badges?: { followups?: number } }) {
+export default function MobileBottomNav({ base, badges, onMore }: {
+  base: string
+  badges?: { leads?: number; followups?: number }
+  onMore: () => void
+}) {
   const pathname = usePathname() ?? ''
   const tab      = useSearchParams().get('tab')
 
@@ -29,25 +36,33 @@ export default function MobileBottomNav({ base, badges }: { base: string; badges
   }
 
   return (
-    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-zinc-200 flex items-stretch h-16 pb-[env(safe-area-inset-bottom)]">
-      {ITEMS.map(it => {
-        const on = active(it)
-        const href = `${base}${it.path}${it.tab ? `?tab=${it.tab}` : ''}`
-        const badge = it.badgeKey ? badges?.[it.badgeKey] : undefined
-        return (
-          <Link key={it.label} href={href}
-            className={`relative flex-1 flex flex-col items-center justify-center gap-0.5 ${on ? 'text-zinc-900' : 'text-zinc-400'}`}>
-            <div className="relative">
-              <it.icon size={21} strokeWidth={on ? 2.4 : 2} className={on ? 'text-yellow-500' : ''} />
-              {badge !== undefined && badge > 0 && (
-                <span className="absolute -top-1.5 -left-2 bg-rose-500 text-white text-[9px] font-bold min-w-[15px] h-[15px] px-0.5 rounded-full flex items-center justify-center">{badge}</span>
-              )}
-            </div>
-            <span className="text-[10px] font-semibold">{it.label}</span>
-            {on && <span className="absolute top-0 inset-x-4 h-0.5 bg-yellow-400 rounded-full" />}
-          </Link>
-        )
-      })}
+    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-xl border-t border-[#E2E8F0] pb-[env(safe-area-inset-bottom)]">
+      <div className="grid grid-cols-5">
+        {ITEMS.map(it => {
+          const on    = active(it)
+          const href  = `${base}${it.path}${it.tab ? `?tab=${it.tab}` : ''}`
+          const badge = it.badgeKey ? badges?.[it.badgeKey] : undefined
+          return (
+            <Link key={it.label} href={href}
+                  className={`relative flex flex-col items-center gap-1 py-2.5 text-[10.5px] font-bold transition-colors ${on ? 'text-[#1E3A8A]' : 'text-[#94A3B8]'}`}>
+              {on && <span className="absolute top-0 inset-x-5 h-[3px] rounded-b-full bg-amber-400" />}
+              <span className="relative">
+                <it.icon size={20} strokeWidth={on ? 2.4 : 2} className={on ? 'text-blue-600' : ''} />
+                {badge !== undefined && badge > 0 && (
+                  <span className="absolute -top-1.5 -left-2.5 min-w-[17px] h-[17px] px-1 rounded-full bg-rose-500 text-white text-[9.5px] font-bold flex items-center justify-center ring-2 ring-white">
+                    {badge > 99 ? '99+' : badge}
+                  </span>
+                )}
+              </span>
+              {it.label}
+            </Link>
+          )
+        })}
+        <button onClick={onMore}
+                className="flex flex-col items-center gap-1 py-2.5 text-[10.5px] font-bold text-[#94A3B8]">
+          <MoreHorizontal size={20} /> المزيد
+        </button>
+      </div>
     </nav>
   )
 }

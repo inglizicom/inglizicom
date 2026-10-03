@@ -98,12 +98,12 @@ export default function OwnerCommandCenter({ embedded = false }: { embedded?: bo
   const rise = () => ({ className: 'cc-rise', style: { animationDelay: `${(delay += 60)}ms` } })
 
   return (
-    <div dir="rtl" className={embedded ? 'bg-[#faf6ef] rounded-3xl border border-[#e7dcc8]' : 'min-h-screen bg-[#faf6ef]'}>
-      <div className={embedded ? 'w-full px-3 lg:px-5 py-5' : 'w-full max-w-[1700px] mx-auto px-4 lg:px-8 py-6'}>
+    <div dir="rtl" className={embedded ? '' : 'min-h-screen bg-[#F1F5FB]'}>
+      <div className={embedded ? 'w-full' : 'w-full max-w-[1700px] mx-auto px-4 lg:px-8 py-6'}>
 
         {/* ── HERO ── */}
         <div className="relative overflow-hidden rounded-3xl text-white p-5 lg:p-7 mb-5 shadow-lg"
-          style={{ background: 'linear-gradient(120deg, #3a2817 0%, #2a1d12 55%, #5a3d1f 100%)' }}>
+          style={{ background: 'linear-gradient(120deg, #1E3A8A 0%, #1E40AF 55%, #2563EB 100%)' }}>
           <div className="absolute inset-0 cc-sheen pointer-events-none" />
           <div className="absolute -left-10 -top-10 w-48 h-48 rounded-full bg-white/10 blur-3xl cc-float" />
           <div className="absolute -right-8 -bottom-12 w-56 h-56 rounded-full bg-amber-400/15 blur-3xl" />
@@ -294,7 +294,7 @@ export default function OwnerCommandCenter({ embedded = false }: { embedded?: bo
                         <div className="text-[11px] font-black text-zinc-700 opacity-0 group-hover:opacity-100 transition">{fmt(p.mad)}</div>
                         <div className="w-full flex items-end justify-center" style={{ height: 150 }}>
                           <div className="cc-bar w-full max-w-[46px] rounded-t-xl transition-all group-hover:brightness-105"
-                            style={{ height: h, background: top ? 'linear-gradient(to top,#a16207,#facc15)' : 'linear-gradient(to top,#8a6d4f,#cbb89c)', animationDelay: `${i * 80}ms` }} />
+                            style={{ height: h, background: top ? 'linear-gradient(to top,#D97706,#FBBF24)' : 'linear-gradient(to top,#1E40AF,#60A5FA)', animationDelay: `${i * 80}ms` }} />
                         </div>
                         <span className={`text-[11px] font-bold ${top ? 'text-amber-600' : 'text-zinc-400'}`}>{monthLabel(p.month)}</span>
                       </div>
@@ -342,7 +342,7 @@ export default function OwnerCommandCenter({ embedded = false }: { embedded?: bo
                         <span>{t.emoji}</span> {t.label}
                       </div>
                       <div className="flex-1 h-7 rounded-lg bg-zinc-100 overflow-hidden relative">
-                        <div className="cc-bar h-full rounded-lg" style={{ width: `${Math.max(pct, c > 0 ? 6 : 0)}%`, transformOrigin: 'right', background: t.id === 'paid' ? 'linear-gradient(to left,#3a2817,#facc15)' : 'linear-gradient(to left,#8a6d4f,#cbb89c)' }} />
+                        <div className="cc-bar h-full rounded-lg" style={{ width: `${Math.max(pct, c > 0 ? 6 : 0)}%`, transformOrigin: 'right', background: t.id === 'paid' ? 'linear-gradient(to left,#D97706,#FBBF24)' : 'linear-gradient(to left,#1E40AF,#60A5FA)' }} />
                       </div>
                       <div className="w-16 text-left text-[13px] font-black text-zinc-900 flex-shrink-0">{c} <span className="text-[11px] text-zinc-400">({pct}%)</span></div>
                     </div>
@@ -384,7 +384,7 @@ export default function OwnerCommandCenter({ embedded = false }: { embedded?: bo
                   <div>
                     <div className="flex justify-between text-[11px] font-bold text-zinc-400 mb-1"><span>نسبة التحويل</span><span className="text-zinc-700">{conv}%</span></div>
                     <div className="h-2 rounded-full bg-zinc-100 overflow-hidden">
-                      <div className="cc-bar h-full rounded-full bg-gradient-to-l from-[#3a2817] to-[#facc15]" style={{ width: `${conv}%`, transformOrigin: 'right' }} />
+                      <div className="cc-bar h-full rounded-full bg-gradient-to-l from-blue-700 to-amber-400" style={{ width: `${conv}%`, transformOrigin: 'right' }} />
                     </div>
                   </div>
                 </Link>
@@ -494,7 +494,7 @@ export default function OwnerCommandCenter({ embedded = false }: { embedded?: bo
 function SectionLabel({ icon: Icon, children }: { icon: any; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 mb-3 mt-1">
-      <span className="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center"><Icon size={14} /></span>
+      <span className="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center"><Icon size={14} /></span>
       <h2 className="text-[14px] font-black text-zinc-800">{children}</h2>
       <div className="flex-1 h-px bg-gradient-to-l from-zinc-200 to-transparent" />
     </div>
@@ -510,7 +510,7 @@ function BigKpi({ label, value, money, hero, compact, tone, plainIcon: Icon, hre
     : tone === 'warn' ? 'bg-amber-50 border-amber-200'
     : tone === 'good' ? 'bg-emerald-50 border-emerald-200'
     : 'bg-white border-zinc-200'
-  const heroBg = hero ? { background: 'linear-gradient(135deg,#3a2817,#2a1d12)' } : undefined
+  const heroBg = hero ? { background: 'linear-gradient(135deg,#1E3A8A,#2563EB)' } : undefined
   const inner = (
     <>
       <div className={`flex items-center gap-1.5 text-[12px] font-bold ${hero ? 'text-white/85' : 'text-zinc-400'}`}>
@@ -522,13 +522,13 @@ function BigKpi({ label, value, money, hero, compact, tone, plainIcon: Icon, hre
       </div>
     </>
   )
-  const cls = `group block rounded-2xl border p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all ${toneCls} ${className ?? ''}`
+  const cls = `group block rounded-[20px] border p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all ${toneCls} ${className ?? ''}`
   if (href) return <Link href={href} className={cls} style={{ ...heroBg, ...style }}>{inner}</Link>
   return <div className={cls} style={{ ...heroBg, ...style }}>{inner}</div>
 }
 
 function Panel({ children, className, style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
-  return <div className={`min-w-0 bg-white rounded-2xl border border-zinc-200 p-4 lg:p-5 shadow-sm ${className ?? ''}`} style={style}>{children}</div>
+  return <div className={`min-w-0 bg-white rounded-[22px] border border-zinc-200 p-4 lg:p-5 shadow-sm ${className ?? ''}`} style={style}>{children}</div>
 }
 function PanelHead({ icon: Icon, title, hint, href }: { icon: any; title: string; hint?: string; href?: string }) {
   return (
@@ -536,7 +536,7 @@ function PanelHead({ icon: Icon, title, hint, href }: { icon: any; title: string
       <Icon size={15} className="text-zinc-400" />
       <span className="text-[13.5px] font-black text-zinc-800">{title}</span>
       {hint && <span className="text-[11px] text-zinc-400 font-semibold">{hint}</span>}
-      {href && <Link href={href} className="mr-auto inline-flex items-center gap-0.5 text-[11px] font-bold text-amber-700 hover:text-amber-900">التفاصيل <ChevronLeft size={13} /></Link>}
+      {href && <Link href={href} className="mr-auto inline-flex items-center gap-0.5 text-[11px] font-bold text-blue-700 hover:text-blue-900">التفاصيل <ChevronLeft size={13} /></Link>}
     </div>
   )
 }
@@ -560,7 +560,7 @@ function Donut({ value }: { value: number }) {
   return (
     <div className="relative w-[140px] h-[140px]">
       <svg className="w-full h-full -rotate-90" viewBox="0 0 130 130">
-        <circle cx="65" cy="65" r={r} fill="none" stroke="#f4f4f5" strokeWidth="13" />
+        <circle cx="65" cy="65" r={r} fill="none" stroke="#EEF2F7" strokeWidth="13" />
         <circle cx="65" cy="65" r={r} fill="none" stroke="url(#cc-grad)" strokeWidth="13" strokeLinecap="round"
           strokeDasharray={c} strokeDashoffset={off} />
         <defs>
@@ -584,7 +584,7 @@ function Ring({ value }: { value: number }) {
   return (
     <div className="relative w-12 h-12 flex-shrink-0">
       <svg className="w-full h-full -rotate-90" viewBox="0 0 44 44">
-        <circle cx="22" cy="22" r={r} fill="none" stroke="#f4f4f5" strokeWidth="5" />
+        <circle cx="22" cy="22" r={r} fill="none" stroke="#EEF2F7" strokeWidth="5" />
         <circle cx="22" cy="22" r={r} fill="none" stroke={col} strokeWidth="5" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={off} />
       </svg>
       <span className="absolute inset-0 flex items-center justify-center text-[11px] font-black text-zinc-700">{value}%</span>

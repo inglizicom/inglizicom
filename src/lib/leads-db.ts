@@ -52,6 +52,13 @@ export const LEAD_STATUS_META: Record<LeadStatus, {
   rejected:    { label: 'Cancelled',  short: 'Cancelled', color: 'bg-gray-100 text-gray-600 border-gray-200',        ring: 'ring-gray-200' },
 }
 
+/** Arabic status names for the staff UI (the English labels above feed exports). */
+export const LEAD_STATUS_AR: Record<LeadStatus, string> = {
+  new: 'جديد', contacted: 'تم التواصل', interested: 'مهتم', follow_up: 'متابعة',
+  confirmed: 'مؤكد', paid: 'دفع', delayed: 'متأخر', cancelled: 'ملغي', vip: 'VIP',
+  converted: 'دفع', rejected: 'ملغي',
+}
+
 /** Normalize legacy DB values so the UI only deals with the new enum. */
 export function normalizeStatus(s: LeadStatus | string | null): LeadStatus {
   if (s === 'converted') return 'paid'

@@ -10,11 +10,11 @@ export const CHART_COLORS = [
   '#f43f5e', // rose (instagram)
   '#10b981', // emerald (whatsapp)
   '#3b82f6', // blue (website)
-  '#18181b', // black (tiktok)
+  '#1E3A8A', // navy (tiktok)
   '#a855f7', // purple (facebook)
   '#f59e0b', // amber
   '#06b6d4', // cyan
-  '#71717a', // zinc
+  '#64748B', // slate
 ]
 
 /* ── Card wrapper ──────────────────────────────────────────── */
@@ -27,7 +27,7 @@ export function ChartCard({
   className?: string
 }) {
   return (
-    <div className={`bg-white rounded-2xl border border-zinc-200/80 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] ${className}`}>
+    <div className={`min-w-0 bg-white rounded-[22px] border border-zinc-200/80 p-5 shadow-sm ${className}`}>
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-bold text-[15px] text-zinc-900">{title}</h3>
         {action}
@@ -55,20 +55,20 @@ export function AreaTrend({
             <stop offset="100%" stopColor={color} stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f1f1f1" vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#EEF2F7" vertical={false} />
         <XAxis
-          dataKey="label" tick={{ fontSize: 11, fill: '#a1a1aa' }}
+          dataKey="label" tick={{ fontSize: 11, fill: '#94A3B8' }}
           axisLine={false} tickLine={false} reversed
         />
         <YAxis
-          tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false}
+          tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false}
           width={40} orientation="right"
           tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`}
         />
         <Tooltip
-          contentStyle={{ borderRadius: 12, border: '1px solid #eee', fontSize: 12, direction: 'rtl' }}
+          contentStyle={{ borderRadius: 12, border: '1px solid #E2E8F0', boxShadow: '0 12px 28px -12px rgba(30,58,138,.3)', fontSize: 12, direction: 'rtl' }}
           formatter={(v: number) => [`${v.toLocaleString('en-US')} ${valueLabel}`, '']}
-          labelStyle={{ color: '#71717a' }}
+          labelStyle={{ color: '#64748B' }}
         />
         <Area
           type="monotone" dataKey="value" stroke={color} strokeWidth={2.5}
@@ -102,7 +102,7 @@ export function DonutBreakdown({
               {data.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
             </Pie>
             <Tooltip
-              contentStyle={{ borderRadius: 12, border: '1px solid #eee', fontSize: 12, direction: 'rtl' }}
+              contentStyle={{ borderRadius: 12, border: '1px solid #E2E8F0', boxShadow: '0 12px 28px -12px rgba(30,58,138,.3)', fontSize: 12, direction: 'rtl' }}
               formatter={(v: number) => [`${v.toLocaleString('en-US')} ${unit}`, '']}
             />
           </PieChart>
@@ -141,12 +141,12 @@ export function BarStatus({
   return (
     <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data} margin={{ top: 16, right: 8, left: 8, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f1f1f1" vertical={false} />
-        <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} reversed />
-        <YAxis tick={{ fontSize: 11, fill: '#a1a1aa' }} axisLine={false} tickLine={false} width={28} orientation="right" />
+        <CartesianGrid strokeDasharray="3 3" stroke="#EEF2F7" vertical={false} />
+        <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} reversed />
+        <YAxis tick={{ fontSize: 11, fill: '#94A3B8' }} axisLine={false} tickLine={false} width={28} orientation="right" />
         <Tooltip
-          cursor={{ fill: '#fafafa' }}
-          contentStyle={{ borderRadius: 12, border: '1px solid #eee', fontSize: 12, direction: 'rtl' }}
+          cursor={{ fill: '#F1F5FB' }}
+          contentStyle={{ borderRadius: 12, border: '1px solid #E2E8F0', boxShadow: '0 12px 28px -12px rgba(30,58,138,.3)', fontSize: 12, direction: 'rtl' }}
         />
         <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={42}>
           {data.map((d, i) => <Cell key={i} fill={d.color ?? CHART_COLORS[i % CHART_COLORS.length]} />)}

@@ -1,24 +1,21 @@
 'use client'
 
 import { Suspense, useEffect, useState } from 'react'
-import { useRouter, usePathname, useSearchParams } from 'next/navigation'
-import CrmSidebar from '@/components/CrmSidebar'
-import CrmTopHeader from '@/components/CrmTopHeader'
-import MobileBottomNav from '@/components/MobileBottomNav'
-import CrmErrorBoundary from '@/components/CrmErrorBoundary'
+import { usePathname, useSearchParams } from 'next/navigation'
+import CrmFrame from '@/components/crm/CrmFrame'
 import { useStaff } from '@/lib/staff-context'
-import { useCrmBasePath, useIsAdminDomain } from '@/lib/use-crm-path'
-import { supabase } from '@/lib/supabase'
 import { fetchOverdueFollowUps, fetchTodaysFollowUps } from '@/lib/crm-stats'
 import { countPendingSubmissions } from '@/lib/lms'
 import { countLeadsSince } from '@/lib/leads-db'
 import { getLeadsSeenAt, LEADS_SEEN_EVENT } from '@/lib/leads-seen'
 
 export default function SalesShell({ children }: { children: React.ReactNode }) {
-  const staff         = useStaff()
-  const router        = useRouter()
-  const base          = useCrmBasePath()
-  const isAdminDomain = useIsAdminDomain()
+  // The title reads ?tab=, and useSearchParams needs a Suspense boundary.
+  return <Suspense fallback={null}><Shell>{children}</Shell></Suspense>
+}
+
+function Shell({ children }: { children: React.ReactNode }) {
+  const staff = useStaff()
   const [badges, setBadges] = useState<{ leads?: number; followups?: number; submissions?: number }>({})
 
   useEffect(() => {
@@ -39,94 +36,51 @@ export default function SalesShell({ children }: { children: React.ReactNode }) 
     return () => { alive = false; clearInterval(t); window.removeEventListener(LEADS_SEEN_EVENT, recompute) }
   }, [staff.id, staff.role])
 
-  async function handleSignOut() {
-    await supabase.auth.signOut()
-    router.replace('/')
-  }
+  const { title, crumb } = useRouteTitle()
 
-  const roleLabel = staff.role === 'founder' ? 'المؤسس' : 'مسؤول العملاء'
-
-  return (
-    <div className="min-h-screen flex bg-[#f6f6f5]" dir="rtl">
-      <Suspense fallback={<div className="hidden lg:block w-64 bg-[#14161c] flex-shrink-0" />}>
-        <CrmSidebar
-          userEmail={staff.email}
-          userRole={staff.role}
-          onSignOut={handleSignOut}
-          base={base}
-          isAdminDomain={isAdminDomain}
-          badges={badges}
-        />
-      </Suspense>
-
-      <div className="flex-1 min-w-0 flex flex-col">
-        <Suspense fallback={<div className="h-16 bg-white border-b border-zinc-200/80" />}>
-          <HeaderForRoute userEmail={staff.email} roleLabel={roleLabel} notifCount={badges.followups} base={base} onSignOut={handleSignOut} />
-        </Suspense>
-        <main className="flex-1 min-w-0 pb-16 lg:pb-0"><CrmErrorBoundary>{children}</CrmErrorBoundary></main>
-      </div>
-
-      <Suspense fallback={null}>
-        <MobileBottomNav base={base} badges={badges} />
-      </Suspense>
-    </div>
-  )
+  return <CrmFrame title={title} breadcrumb={crumb} badges={badges}>{children}</CrmFrame>
 }
 
 /* Derives the page title + breadcrumb from the current route. */
-function HeaderForRoute({ userEmail, roleLabel, notifCount, base, onSignOut }: {
-  userEmail?: string | null
-  roleLabel:  string
-  notifCount?: number
-  base?:      string
-  onSignOut?: () => void
-}) {
+function useRouteTitle(): { title: string; crumb: string[] } {
   const pathname = usePathname() ?? ''
   const tab      = useSearchParams().get('tab')
-
-  let title = 'لوحة التحكم'
-  let crumb: string[] = []
+  const home     = 'لوحة التحكم'
 
   if (pathname.includes('/dashboard')) {
-    const name = userEmail?.split('@')[0] ?? ''
-    title = `مرحباً ${name} 👋`
-    crumb = [new Date().toLocaleDateString('ar-MA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })]
-  } else if (pathname.includes('/leads/new')) {
-    title = 'إضافة عميل جديد'
-    crumb = ['العملاء المحتملون', 'إضافة عميل جديد']
-  } else if (pathname.match(/\/students\/[^/]+$/) && !pathname.endsWith('/students')) {
-    title = 'ملف الطالب'
-    crumb = ['الطلاب', 'ملف الطالب']
-  } else if (pathname.includes('/workspace')) {
-    title =
-      tab === 'students'  ? 'الطلاب'
+    return { title: home, crumb: [new Date().toLocaleDateString('ar-MA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })] }
+  }
+  if (pathname.includes('/leads/new'))  return { title: 'إضافة عميل جديد', crumb: ['العملاء المحتملون', 'إضافة عميل جديد'] }
+  if (/\/leads\/[^/]+$/.test(pathname)) return { title: 'ملف العميل', crumb: ['العملاء المحتملون', 'ملف العميل'] }
+  if (/\/students\/[^/]+$/.test(pathname)) return { title: 'ملف الطالب', crumb: ['الطلاب', 'ملف الطالب'] }
+  if (pathname.includes('/workspace')) {
+    const title =
+      tab === 'students'    ? 'الطلاب'
       : tab === 'payments'  ? 'المدفوعات'
       : tab === 'followups' ? 'المتابعات'
       : tab === 'archive'   ? 'الأرشيف'
       : 'العملاء المحتملون'
-    crumb = ['لوحة التحكم', title]
-  } else if (pathname.includes('/verify')) {
-    title = 'التحقق من طالب'
-    crumb = ['لوحة التحكم', 'التحقق من طالب']
-  } else if (pathname.includes('/courses/audit')) {
-    title = 'تدقيق التمارين'
-    crumb = ['الدورات', 'تدقيق التمارين']
-  } else if (pathname.includes('/courses')) {
-    title = 'الدورات'
-    crumb = ['لوحة التحكم', 'الدورات']
-  } else if (pathname.match(/\/classes\/[^/]+$/)) {
-    title = 'قسم مباشر'
-    crumb = ['الأقسام المباشرة', 'تفاصيل القسم']
-  } else if (pathname.includes('/classes')) {
-    title = 'الأقسام المباشرة'
-    crumb = ['لوحة التحكم', 'الأقسام المباشرة']
-  } else if (pathname.includes('/templates')) {
-    title = 'مسارات التعلّم'
-    crumb = ['لوحة التحكم', 'مسارات التعلّم']
-  } else if (pathname.includes('/support')) {
-    title = 'الدعم'
-    crumb = ['لوحة التحكم', 'الدعم']
+    return { title, crumb: [home, title] }
   }
-
-  return <CrmTopHeader title={title} breadcrumb={crumb} userEmail={userEmail} roleLabel={roleLabel} notifCount={notifCount} base={base} onSignOut={onSignOut} />
+  const SIMPLE: [string, string, string?][] = [
+    ['/verify', 'التحقق من طالب'],
+    ['/courses/audit', 'تدقيق التمارين', 'الدورات'],
+    ['/courses', 'الدورات'],
+    ['/templates', 'مسارات التعلّم'],
+    ['/support', 'الدعم'],
+    ['/submissions', 'تصحيح المحادثات'],
+    ['/announcements', 'الإعلانات'],
+    ['/gamification', 'المكافآت والتحديات'],
+    ['/payments', 'المدفوعات'],
+    ['/revenue', 'الإيرادات'],
+    ['/renewals', 'التجديدات'],
+    ['/broadcast', 'الرسائل الجماعية'],
+    ['/today', 'مهام اليوم'],
+  ]
+  if (/\/classes\/[^/]+$/.test(pathname)) return { title: 'قسم مباشر', crumb: ['الأقسام المباشرة', 'تفاصيل القسم'] }
+  if (pathname.includes('/classes')) return { title: 'الأقسام المباشرة', crumb: [home, 'الأقسام المباشرة'] }
+  for (const [seg, title, parent] of SIMPLE) {
+    if (pathname.includes(seg)) return { title, crumb: [parent ?? home, title] }
+  }
+  return { title: home, crumb: [] }
 }

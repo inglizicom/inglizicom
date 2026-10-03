@@ -7,13 +7,13 @@ import { Area, AreaChart, ResponsiveContainer } from 'recharts'
 export type Tone = 'green' | 'yellow' | 'blue' | 'purple' | 'red' | 'orange' | 'zinc'
 
 const TONE: Record<Tone, { iconBg: string; iconFg: string; spark: string }> = {
-  green:  { iconBg: 'bg-emerald-50', iconFg: 'text-emerald-600', spark: '#10b981' },
-  yellow: { iconBg: 'bg-amber-50',   iconFg: 'text-amber-600',   spark: '#f59e0b' },
-  blue:   { iconBg: 'bg-blue-50',    iconFg: 'text-blue-600',    spark: '#3b82f6' },
-  purple: { iconBg: 'bg-violet-50',  iconFg: 'text-violet-600',  spark: '#8b5cf6' },
-  red:    { iconBg: 'bg-rose-50',    iconFg: 'text-rose-600',    spark: '#f43f5e' },
-  orange: { iconBg: 'bg-orange-50',  iconFg: 'text-orange-600',  spark: '#f97316' },
-  zinc:   { iconBg: 'bg-zinc-100',   iconFg: 'text-zinc-600',    spark: '#71717a' },
+  green:  { iconBg: 'bg-emerald-100', iconFg: 'text-emerald-700', spark: '#10b981' },
+  yellow: { iconBg: 'bg-amber-100',   iconFg: 'text-amber-700',   spark: '#f59e0b' },
+  blue:   { iconBg: 'bg-blue-100',    iconFg: 'text-blue-700',    spark: '#2563eb' },
+  purple: { iconBg: 'bg-indigo-100',  iconFg: 'text-indigo-700',  spark: '#6366f1' },
+  red:    { iconBg: 'bg-rose-100',    iconFg: 'text-rose-700',    spark: '#f43f5e' },
+  orange: { iconBg: 'bg-orange-100',  iconFg: 'text-orange-700',  spark: '#f97316' },
+  zinc:   { iconBg: 'bg-slate-100',   iconFg: 'text-slate-600',   spark: '#64748b' },
 }
 
 interface Props {
@@ -42,15 +42,14 @@ export default function KpiCard({
     <div
       onClick={onClick}
       className={[
-        'bg-white rounded-2xl border border-zinc-200/80 p-4 lg:p-5 flex flex-col gap-3',
-        'shadow-[0_1px_2px_rgba(0,0,0,0.04)]',
-        onClick ? 'cursor-pointer hover:shadow-md hover:border-zinc-300 transition-all' : '',
+        'min-w-0 bg-white rounded-[20px] border border-zinc-200/80 p-4 lg:p-5 flex flex-col gap-3 shadow-sm',
+        onClick ? 'cursor-pointer hover:shadow-md hover:-translate-y-0.5 hover:border-blue-300 transition-all' : '',
       ].join(' ')}
     >
       {/* Top: label + icon */}
       <div className="flex items-start justify-between gap-2">
         <span className="text-[13px] font-medium text-zinc-500 leading-tight">{label}</span>
-        <div className={`w-9 h-9 rounded-xl ${t.iconBg} flex items-center justify-center flex-shrink-0`}>
+        <div className={`w-10 h-10 rounded-full ${t.iconBg} flex items-center justify-center flex-shrink-0`}>
           <Icon size={17} className={t.iconFg} strokeWidth={2.2} />
         </div>
       </div>
