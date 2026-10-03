@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // The e2e suite runs its own server with its own build folder, so it never
+  // fights a running `npm run dev` over .next (see playwright.config.ts).
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   images: {
     remotePatterns: [
       {

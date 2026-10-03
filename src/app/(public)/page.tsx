@@ -100,16 +100,19 @@ function useCountUp(end: number, duration = 2000, startWhen = true) {
 ═══════════════════════════════════════════════════ */
 
 function Particles({ count = 20, className = "" }: { count?: number; className?: string }) {
-  const [particles] = useState(() =>
-    Array.from({ length: count }, (_, i) => ({
+  // Random positions are made after mount: computed during render, the server
+  // and the browser drew different dots and React threw the server HTML away.
+  const [particles, setParticles] = useState<{ id: number; x: number; y: number; size: number; duration: number; delay: number }[]>([])
+  useEffect(() => {
+    setParticles(Array.from({ length: count }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
       size: Math.random() * 4 + 2,
       duration: Math.random() * 10 + 10,
       delay: Math.random() * 5,
-    }))
-  )
+    })))
+  }, [count])
   return (
     <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}>
       {particles.map(p => (
@@ -449,7 +452,7 @@ function ProgramsSection() {
       price: minPack,
       priceLabel: "ابتداءً من",
       priceSuffix: "درهم",
-      points: [`وفّر حتى ${maxPackSaving.toLocaleString()} درهم`, "رحلة متصلة من الصفر للطلاقة", "كوتشينغ ومتابعة شخصية"],
+      points: [`وفّر حتى ${maxPackSaving.toLocaleString('en-US')} درهم`, "رحلة متصلة من الصفر للطلاقة", "كوتشينغ ومتابعة شخصية"],
       href: "/pricing#packs",
       cta: "شوف الباكات",
       gradient: "from-blue-700 to-blue-900",
@@ -537,7 +540,7 @@ function ProgramsSection() {
 
                 <div className="mb-4">
                   <span className="text-gray-400 text-[11px] font-bold block">{p.priceLabel}</span>
-                  <span className="text-2xl font-black text-gray-900">{p.price.toLocaleString()}</span>
+                  <span className="text-2xl font-black text-gray-900">{p.price.toLocaleString('en-US')}</span>
                   <span className={`text-sm font-bold mr-1 ${p.accent}`}>{p.priceSuffix}</span>
                   <ApproxPrice mad={p.price} className="block text-blue-700/70 text-[11px] font-bold mt-0.5" />
                 </div>

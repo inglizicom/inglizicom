@@ -22,7 +22,7 @@ interface Row {
 }
 
 const ROWS: Row[] = [
-  { label: 'السعر',            value: p => `${p.amount_mad.toLocaleString()} درهم`, highlight: true },
+  { label: 'السعر',            value: p => `${p.amount_mad.toLocaleString('en-US')} درهم`, highlight: true },
   { label: 'المستوى',          value: p => (p.levelFrom && p.levelTo ? `${p.levelFrom} → ${p.levelTo}` : '—') },
   { label: 'مدة البرنامج',      value: p => `${p.duration_months} ${p.duration_months === 1 ? 'شهر' : 'أشهر'}` },
   { label: 'نوع المتابعة',      value: p => p.followUpLabel_ar },

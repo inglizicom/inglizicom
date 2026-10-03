@@ -27,7 +27,11 @@ npm test             # test:unit + test:db
 npm run test:unit    # node --test tests/unit/   (needs Node ≥ 22.18: imports .ts directly through type stripping)
 npm run test:db      # node supabase/tests/run-db-tests.mjs  (in-process Postgres via PGlite, touches no real project)
 node --test --test-name-pattern="teacher isolation" supabase/tests/run-db-tests.mjs   # run a single describe/it
+npm run test:e2e     # Playwright smoke tests (e2e/), desktop + phone, installed Chrome
+npx playwright test --project=desktop e2e/crm.spec.ts   # one file, one viewport
 ```
+
+The e2e suite starts its own `next dev` on port 3123 with a separate build folder (`.next-e2e`, via `NEXT_DIST_DIR`) and a fake Supabase URL. [e2e/mock.ts](e2e/mock.ts) answers every Supabase request with fixed data and records calls, so it never touches the real project and needs no secrets. Add a page to the route lists in `e2e/crm.spec.ts` / `e2e/spaces.spec.ts` when you add one.
 
 The one-off AI content generators in `scripts/gen-*.mjs` write straight to the production Supabase. Run them as `node --env-file=.env.local scripts/<name>.mjs`, and only when asked to.
 
@@ -39,7 +43,7 @@ The one-off AI content generators in `scripts/gen-*.mjs` write straight to the p
 - [src/lib/supabase.ts](src/lib/supabase.ts) holds the browser client (anon key). Most pages are `'use client'` and query Supabase directly through the helper modules in `src/lib/*-db.ts`, `teachers.ts`, `lms.ts` and `student-portal.ts`. Keep Supabase calls in those `src/lib` modules, not in components.
 - Security is enforced in Postgres through RLS and `security definer` RPCs, not in the UI. Teachers get zero rows from the `crm_*` tables. They only reach data through RPCs such as `teacher_overview`, `teacher_my_students` and `teacher_class_roster`, which return masked phone numbers. Staff RPCs call `require_staff()`.
 - Server-only work uses the service-role key in API routes (`src/app/api/**/route.ts`, `runtime = 'nodejs'`) and in [src/lib/teacher-public.ts](src/lib/teacher-public.ts). These routes authenticate the caller from a `Authorization: Bearer <access token>` header and then check `profiles.role`. Never import a service-role module into client code.
-- The root-level `lib/supabase.ts`, which has a hardcoded URL and key, is a stale duplicate and nothing uses it. The `@/*` alias resolves to `src/*`.
+- The `@/*` alias resolves to `src/*`.
 
 ### Auth and roles
 - `AuthProvider` ([src/lib/auth-context.tsx](src/lib/auth-context.tsx)) wraps the whole app in the root layout, together with `ProfileProvider` and `FeatureAccessProvider`.

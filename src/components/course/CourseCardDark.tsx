@@ -107,10 +107,10 @@ export default function CourseCardDark({
         {/* price */}
         <div className="mb-5">
           <div className="flex items-baseline gap-2 flex-wrap">
-            <span className="text-white font-black text-3xl">{price.toLocaleString()}</span>
+            <span className="text-white font-black text-3xl">{price.toLocaleString('en-US')}</span>
             <span className="text-gray-400 text-sm font-bold">{course.currency}</span>
             {original > price && (
-              <span className="text-gray-600 text-sm line-through">{original.toLocaleString()}</span>
+              <span className="text-gray-600 text-sm line-through">{original.toLocaleString('en-US')}</span>
             )}
             {discount && (
               <span className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-400 text-[11px] font-black px-2 py-0.5 rounded-md">

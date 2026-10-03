@@ -18,7 +18,7 @@ export function generateMetadata({ params }: { params: { plan: string } }): Meta
 
   const page  = getPlanPage(plan)
   const level = plan.levelFrom && plan.levelTo ? ` (${plan.levelFrom} → ${plan.levelTo})` : ''
-  const title = `${plan.title_ar}${level} — ${plan.amount_mad.toLocaleString()} درهم`
+  const title = `${plan.title_ar}${level} — ${plan.amount_mad.toLocaleString('en-US')} درهم`
   const url   = `https://inglizi.com/pricing/${plan.id}`
 
   return {

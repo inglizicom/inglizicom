@@ -206,10 +206,10 @@ export default function SubscribeModal({
             <h3 className="font-black text-lg leading-tight truncate">{heading}</h3>
             {plan && (
               <div className="text-sm font-bold opacity-90 mt-0.5">
-                {plan.amount_mad.toLocaleString()} درهم
+                {plan.amount_mad.toLocaleString('en-US')} درهم
                 {plan.originalAmount && plan.originalAmount > plan.amount_mad && (
                   <span className="opacity-75 line-through mr-2 text-xs">
-                    {plan.originalAmount.toLocaleString()}
+                    {plan.originalAmount.toLocaleString('en-US')}
                   </span>
                 )}
               </div>

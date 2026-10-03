@@ -262,10 +262,10 @@ export default function CoursesClient() {
                   وهناك بالضبط ينقطع أغلب الناس.
                 </p>
                 <div className="flex items-baseline justify-center sm:justify-start gap-2">
-                  <span className="text-white font-black text-3xl">{bestPack.amount_mad.toLocaleString()}</span>
+                  <span className="text-white font-black text-3xl">{bestPack.amount_mad.toLocaleString('en-US')}</span>
                   <span className="text-gray-400 text-sm font-bold">درهم</span>
                   {bestPack.originalAmount && (
-                    <span className="text-gray-600 text-sm line-through">{bestPack.originalAmount.toLocaleString()}</span>
+                    <span className="text-gray-600 text-sm line-through">{bestPack.originalAmount.toLocaleString('en-US')}</span>
                   )}
                 </div>
               </div>

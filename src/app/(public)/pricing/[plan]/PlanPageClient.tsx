@@ -240,7 +240,7 @@ export default function PlanPageClient({ plan, page }: { plan: Plan; page: PlanP
                 <ApproxPrice mad={shownAmount} className={`${c.accent} text-sm font-bold`} />
                 {!split && plan.originalAmount && (
                   <span className="text-gray-600 text-sm line-through">
-                    {plan.originalAmount.toLocaleString()} درهم
+                    {plan.originalAmount.toLocaleString('en-US')} درهم
                   </span>
                 )}
               </div>
@@ -251,7 +251,7 @@ export default function PlanPageClient({ plan, page }: { plan: Plan; page: PlanP
                   transition={{ delay: 0.5 }}
                   className="mt-3 inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-400 text-sm font-black px-3 py-1.5 rounded-lg"
                 >
-                  <Flame className="w-4 h-4" /> وفّر {savings.toLocaleString()} درهم
+                  <Flame className="w-4 h-4" /> وفّر {savings.toLocaleString('en-US')} درهم
                 </motion.div>
               )}
 
@@ -262,7 +262,7 @@ export default function PlanPageClient({ plan, page }: { plan: Plan; page: PlanP
                 >
                   <Info className="w-3.5 h-3.5 inline-block ml-1 text-gray-500" />
                   الدفعة الأولى تفتح لك البرنامج مباشرة، والثانية تُجدول معك على واتساب.
-                  المجموع {plan.amount_mad.toLocaleString()} درهم — بدون أي زيادة.
+                  المجموع {plan.amount_mad.toLocaleString('en-US')} درهم — بدون أي زيادة.
                 </motion.p>
               )}
 
@@ -467,7 +467,7 @@ export default function PlanPageClient({ plan, page }: { plan: Plan; page: PlanP
               <div className={`text-[10px] font-black uppercase tracking-widest ${c.accent} mb-2`}>أنت هنا</div>
               <h3 className="text-white font-black text-lg">{plan.title_ar}</h3>
               <div className="mt-2 text-white font-black text-2xl">
-                {plan.amount_mad.toLocaleString()} <span className="text-sm text-gray-400 font-bold">درهم</span>
+                {plan.amount_mad.toLocaleString('en-US')} <span className="text-sm text-gray-400 font-bold">درهم</span>
               </div>
               <p className="text-gray-400 text-xs mt-2 leading-relaxed">{plan.subtitle_ar}</p>
             </motion.div>
@@ -487,11 +487,11 @@ export default function PlanPageClient({ plan, page }: { plan: Plan; page: PlanP
                     className="group block h-full bg-[#0a1628] border border-[#1a2d4a] hover:border-[#1e3455] rounded-2xl p-5 no-underline transition-colors"
                   >
                     <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">
-                      {diff > 0 ? `+${diff.toLocaleString()} درهم` : diff < 0 ? `${Math.abs(diff).toLocaleString()} درهم أقل` : 'نفس السعر'}
+                      {diff > 0 ? `+${diff.toLocaleString('en-US')} درهم` : diff < 0 ? `${Math.abs(diff).toLocaleString('en-US')} درهم أقل` : 'نفس السعر'}
                     </div>
                     <h3 className="text-white font-black text-lg group-hover:text-white">{n.title_ar}</h3>
                     <div className="mt-2 text-white font-black text-2xl">
-                      {n.amount_mad.toLocaleString()} <span className="text-sm text-gray-400 font-bold">درهم</span>
+                      {n.amount_mad.toLocaleString('en-US')} <span className="text-sm text-gray-400 font-bold">درهم</span>
                     </div>
                     <p className="text-gray-400 text-xs mt-2 leading-relaxed">{n.subtitle_ar}</p>
                     <span className={`mt-3 inline-flex items-center gap-1.5 text-xs font-black ${nc.accent}`}>
@@ -567,10 +567,10 @@ export default function PlanPageClient({ plan, page }: { plan: Plan; page: PlanP
             <h2 className="text-white font-black text-2xl sm:text-3xl mb-3">{plan.title_ar}</h2>
             <p className="text-gray-400 leading-relaxed mb-6 max-w-md mx-auto">{page.promise_ar}</p>
             <div className="flex items-baseline justify-center gap-2 mb-6">
-              <span className="text-white font-black text-4xl">{plan.amount_mad.toLocaleString()}</span>
+              <span className="text-white font-black text-4xl">{plan.amount_mad.toLocaleString('en-US')}</span>
               <span className="text-gray-400 font-bold">درهم</span>
               {plan.originalAmount && (
-                <span className="text-gray-600 line-through text-sm">{plan.originalAmount.toLocaleString()}</span>
+                <span className="text-gray-600 line-through text-sm">{plan.originalAmount.toLocaleString('en-US')}</span>
               )}
             </div>
             <motion.button

@@ -207,10 +207,10 @@ export default function CourseDetailPage({ params }: PageProps) {
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div>
                     <div className="flex items-baseline gap-2 flex-wrap">
-                      <span className="text-4xl font-black text-white">{price.toLocaleString()}</span>
+                      <span className="text-4xl font-black text-white">{price.toLocaleString('en-US')}</span>
                       <span className="text-gray-400 font-bold">{course.currency}</span>
                       {original > price && (
-                        <span className="text-gray-600 text-sm line-through">{original.toLocaleString()}</span>
+                        <span className="text-gray-600 text-sm line-through">{original.toLocaleString('en-US')}</span>
                       )}
                     </div>
                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
@@ -509,7 +509,7 @@ export default function CourseDetailPage({ params }: PageProps) {
         <div className="flex items-center justify-between gap-4 max-w-lg mx-auto">
           <div className="min-w-0">
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-black text-white">{price.toLocaleString()}</span>
+              <span className="text-2xl font-black text-white">{price.toLocaleString('en-US')}</span>
               <span className="text-xs font-bold text-gray-500">{course.currency}</span>
             </div>
             <p className="text-[11px] text-rose-400 font-bold">{course.spotsLeft} مقاعد فقط</p>

@@ -68,7 +68,7 @@ export function currencyFor(country: string | null): GeoCurrency | null {
 export function approxFromMad(amountMad: number, cur: GeoCurrency): string {
   const v = amountMad * cur.perMad
   const rounded = cur.digits === 0 ? Math.round(v) : Number(v.toFixed(cur.digits))
-  return `≈ ${rounded.toLocaleString()} ${cur.symbol}`
+  return `≈ ${rounded.toLocaleString('en-US')} ${cur.symbol}`
 }
 
 /** React hook: the visitor's secondary display currency (null = MAD only). */

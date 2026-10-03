@@ -125,14 +125,14 @@ export function PackCard({ plan, source = 'pricing_pack_' }: { plan: Plan; sourc
       <p className="text-gray-400 text-sm mt-0.5">{plan.subtitle_ar}</p>
 
       <div className="mt-4 flex items-baseline gap-2">
-        <span className="text-white font-black text-4xl">{plan.amount_mad.toLocaleString()}</span>
+        <span className="text-white font-black text-4xl">{plan.amount_mad.toLocaleString('en-US')}</span>
         <span className="text-gray-400 text-sm font-bold">درهم</span>
-        {plan.originalAmount && <span className="text-gray-600 text-sm line-through">{plan.originalAmount.toLocaleString()}</span>}
+        {plan.originalAmount && <span className="text-gray-600 text-sm line-through">{plan.originalAmount.toLocaleString('en-US')}</span>}
       </div>
       <ApproxPrice mad={plan.amount_mad} className="mt-1 text-amber-300/90 text-sm font-bold" />
       {savings && (
         <div className="mt-2 inline-flex self-start items-center gap-1 bg-emerald-500/10 text-emerald-400 text-xs font-black px-2 py-1 rounded-md">
-          <Flame className="w-3 h-3" /> وفّر {savings.toLocaleString()} درهم
+          <Flame className="w-3 h-3" /> وفّر {savings.toLocaleString('en-US')} درهم
         </div>
       )}
 
@@ -188,14 +188,14 @@ export function IndividualCard({ plan, source = 'pricing_card_' }: { plan: Plan;
       <p className="text-gray-400 text-xs mt-0.5">{plan.subtitle_ar}</p>
 
       <div className="mt-3 flex items-baseline gap-1.5">
-        <span className="text-white font-black text-3xl">{plan.amount_mad.toLocaleString()}</span>
+        <span className="text-white font-black text-3xl">{plan.amount_mad.toLocaleString('en-US')}</span>
         <span className="text-gray-400 text-xs font-bold">درهم</span>
-        {plan.originalAmount && <span className="text-gray-600 text-xs line-through">{plan.originalAmount.toLocaleString()}</span>}
+        {plan.originalAmount && <span className="text-gray-600 text-xs line-through">{plan.originalAmount.toLocaleString('en-US')}</span>}
       </div>
       <ApproxPrice mad={plan.amount_mad} className="mt-1 text-amber-300/90 text-xs font-bold" />
       {savings && (
         <div className="mt-1.5 inline-flex self-start items-center gap-1 bg-emerald-500/10 text-emerald-400 text-[11px] font-black px-2 py-0.5 rounded-md">
-          <Flame className="w-2.5 h-2.5" /> وفّر {savings.toLocaleString()}
+          <Flame className="w-2.5 h-2.5" /> وفّر {savings.toLocaleString('en-US')}
         </div>
       )}
 
@@ -258,9 +258,9 @@ export function ClassCard({ plan, source = 'classes_card_' }: { plan: Plan; sour
       <p className="text-gray-400 text-xs mt-0.5">{plan.subtitle_ar}</p>
 
       <div className="mt-3 flex items-baseline gap-1.5">
-        <span className="text-white font-black text-3xl">{plan.amount_mad.toLocaleString()}</span>
+        <span className="text-white font-black text-3xl">{plan.amount_mad.toLocaleString('en-US')}</span>
         <span className="text-gray-400 text-xs font-bold">درهم</span>
-        {plan.originalAmount && <span className="text-gray-600 text-xs line-through">{plan.originalAmount.toLocaleString()}</span>}
+        {plan.originalAmount && <span className="text-gray-600 text-xs line-through">{plan.originalAmount.toLocaleString('en-US')}</span>}
       </div>
       <ApproxPrice mad={plan.amount_mad} className="mt-1 text-amber-300/90 text-xs font-bold" />
 
@@ -272,7 +272,7 @@ export function ClassCard({ plan, source = 'classes_card_' }: { plan: Plan; sour
 
       {savings && (
         <div className="mt-1.5 inline-flex self-start items-center gap-1 bg-emerald-500/10 text-emerald-400 text-[11px] font-black px-2 py-0.5 rounded-md">
-          <Flame className="w-2.5 h-2.5" /> وفّر {savings.toLocaleString()} درهم
+          <Flame className="w-2.5 h-2.5" /> وفّر {savings.toLocaleString('en-US')} درهم
         </div>
       )}
 
@@ -316,14 +316,14 @@ export function BusinessCard({ plan, source = 'business_page' }: { plan: Plan; s
           <p className="text-gray-400 text-sm mb-5">{plan.subtitle_ar}</p>
 
           <div className="flex items-baseline gap-2 mb-1">
-            <span className="text-white font-black text-5xl">{plan.amount_mad.toLocaleString()}</span>
+            <span className="text-white font-black text-5xl">{plan.amount_mad.toLocaleString('en-US')}</span>
             <span className="text-gray-400 text-base">درهم</span>
-            {plan.originalAmount && <span className="text-gray-600 text-base line-through">{plan.originalAmount.toLocaleString()}</span>}
+            {plan.originalAmount && <span className="text-gray-600 text-base line-through">{plan.originalAmount.toLocaleString('en-US')}</span>}
           </div>
           <ApproxPrice mad={plan.amount_mad} className="text-amber-300/90 text-sm font-bold" />
           {savings && (
             <div className="mt-2 inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-400 text-sm font-black px-3 py-1 rounded-md mb-5">
-              <Flame className="w-3.5 h-3.5" /> وفّر {savings.toLocaleString()} درهم
+              <Flame className="w-3.5 h-3.5" /> وفّر {savings.toLocaleString('en-US')} درهم
             </div>
           )}
 

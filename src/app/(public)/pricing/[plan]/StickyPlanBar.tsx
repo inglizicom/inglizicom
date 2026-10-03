@@ -39,10 +39,10 @@ export default function StickyPlanBar({ plan, onSubscribe }: { plan: Plan; onSub
             <div className="min-w-0">
               <div className="text-white font-black text-sm truncate">{plan.title_ar}</div>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-white font-black">{plan.amount_mad.toLocaleString()}</span>
+                <span className="text-white font-black">{plan.amount_mad.toLocaleString('en-US')}</span>
                 <span className="text-gray-500 text-xs font-bold">درهم</span>
                 {plan.originalAmount && (
-                  <span className="text-gray-600 text-xs line-through">{plan.originalAmount.toLocaleString()}</span>
+                  <span className="text-gray-600 text-xs line-through">{plan.originalAmount.toLocaleString('en-US')}</span>
                 )}
               </div>
             </div>

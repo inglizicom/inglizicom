@@ -212,7 +212,7 @@ export default function PricingPage() {
               <h3 className="font-black text-xl text-white mb-2">الحصص الخاصة</h3>
               <p className="text-gray-400 text-sm leading-relaxed">
                 حصة مباشرة 1h30 مع الأستاذ — برنامج مخصص لهدفك، وتصحيح فوري.
-                ابتداءً من <span className="text-white font-black">{minClassPrice.toLocaleString()} درهم</span> للحصة.
+                ابتداءً من <span className="text-white font-black">{minClassPrice.toLocaleString('en-US')} درهم</span> للحصة.
               </p>
             </div>
             <span className="inline-flex items-center gap-2 text-amber-400 group-hover:text-amber-300 font-black text-sm transition-colors">
@@ -234,7 +234,7 @@ export default function PricingPage() {
               <h3 className="font-black text-xl text-white mb-2">الإنجليزية المهنية</h3>
               <p className="text-gray-400 text-sm leading-relaxed">
                 اجتماعات، عروض، ومكالمات بثقة — برنامج المحترفين الكامل
-                بـ<span className="text-white font-black">{business ? business.amount_mad.toLocaleString() : '3,500'} درهم</span>.
+                بـ<span className="text-white font-black">{business ? business.amount_mad.toLocaleString('en-US') : '3,500'} درهم</span>.
               </p>
             </div>
             <span className="inline-flex items-center gap-2 text-cyan-400 group-hover:text-cyan-300 font-black text-sm transition-colors">

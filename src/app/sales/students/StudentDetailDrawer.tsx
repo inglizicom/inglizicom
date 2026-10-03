@@ -243,7 +243,7 @@ export default function StudentDetailDrawer({
           {view === 'payment' && (
             <>
               <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-700 font-medium">
-                Total paid so far: <b>{(student.total_paid_mad ?? 0).toLocaleString()} MAD</b>
+                Total paid so far: <b>{(student.total_paid_mad ?? 0).toLocaleString('en-US')} MAD</b>
               </div>
 
               <label className="flex items-center gap-2.5 cursor-pointer">
@@ -294,7 +294,7 @@ export default function StudentDetailDrawer({
 
               <div className="p-3 bg-gray-50 border border-gray-100 rounded-xl text-xs text-gray-500">
                 New total after this payment: <b className="text-gray-900">
-                  {((student.total_paid_mad ?? 0) + payAmount).toLocaleString()} MAD
+                  {((student.total_paid_mad ?? 0) + payAmount).toLocaleString('en-US')} MAD
                 </b>
               </div>
             </>

@@ -352,7 +352,7 @@ export default function LeadDetailDrawer({
                           {ev.body && <p className="text-xs text-gray-500 mt-0.5 whitespace-pre-wrap">{ev.body}</p>}
                           <p className="text-[10px] text-gray-400 mt-1">
                             {ev.actor_email && <span className="font-medium">{ev.actor_email} · </span>}
-                            {new Date(ev.created_at).toLocaleString()}
+                            {new Date(ev.created_at).toLocaleString('ar-MA')}
                           </p>
                         </div>
                       </li>
