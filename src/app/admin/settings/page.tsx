@@ -44,15 +44,7 @@ export default function SettingsPage() {
     }
     setSaving(row.id)
     try {
-      await setProfileRole(row.id, role)
-      await logActivity({
-        action:     'profile_role_changed',
-        entityType: 'profile',
-        entityId:   row.id,
-        before:     { role: row.role },
-        after:      { role },
-        metadata:   { email: row.email },
-      })
+      await setProfileRole(row.id, role)   // logged by the database (audit_staff_change)
       await load()
     } catch (err: any) {
       alert('Could not update: ' + (err?.message ?? 'unknown'))
@@ -450,15 +442,7 @@ function PromotePanel({ onDone }: { onDone: () => Promise<void> }) {
   async function promote(row: StaffRow) {
     setSaving(row.id)
     try {
-      await setProfileRole(row.id, 'assistant')
-      await logActivity({
-        action:     'profile_role_changed',
-        entityType: 'profile',
-        entityId:   row.id,
-        before:     { role: row.role },
-        after:      { role: 'assistant' },
-        metadata:   { email: row.email },
-      })
+      await setProfileRole(row.id, 'assistant')   // logged by the database (audit_staff_change)
       await onDone()
     } catch (err: any) {
       alert('Could not promote: ' + (err?.message ?? 'unknown'))

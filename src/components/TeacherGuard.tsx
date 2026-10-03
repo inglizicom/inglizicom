@@ -35,7 +35,7 @@ export default function TeacherGuard({ children }: { children: React.ReactNode }
 
     ;(async () => {
       const { data } = await supabase
-        .from('profiles').select('id, email, full_name, role, is_admin')
+        .from('profiles').select('id, email, full_name, role, is_admin, blocked')
         .eq('id', user.id).maybeSingle()
       if (cancelled) return
 
@@ -44,6 +44,8 @@ export default function TeacherGuard({ children }: { children: React.ReactNode }
       const isTeacher = resolved === 'teacher'
       setRole(resolved)
 
+      // A blocked teacher: the database already treats them as no teacher at all.
+      if ((data as { blocked?: boolean } | null)?.blocked) { setRole('blocked'); setState('denied'); return }
       if (!isTeacher && !isFounder) { setState('denied'); return }
 
       // A teacher opening the space for the first time gets a profile row created.
@@ -91,11 +93,15 @@ export default function TeacherGuard({ children }: { children: React.ReactNode }
           <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-red-50 flex items-center justify-center">
             <ShieldAlert size={26} className="text-red-500" />
           </div>
-          <h1 className="text-slate-900 font-black text-lg mb-1">This space is for teachers</h1>
-          <p className="text-slate-500 text-sm mb-6">
-            Your account is signed in as <span className="font-semibold text-slate-700">{role}</span>.
-            Ask the founder to give you a teaching account.
-          </p>
+          <h1 className="text-slate-900 font-black text-lg mb-1">{role === 'blocked' ? 'تم إيقاف هذا الحساب' : 'This space is for teachers'}</h1>
+          {role === 'blocked' ? (
+            <p className="text-slate-500 text-sm mb-6" dir="rtl">تواصل مع إدارة إنجليزي.كوم إذا كنت تعتقد أن هذا خطأ.</p>
+          ) : (
+            <p className="text-slate-500 text-sm mb-6">
+              Your account is signed in as <span className="font-semibold text-slate-700">{role}</span>.
+              Ask the founder to give you a teaching account.
+            </p>
+          )}
           <button
             onClick={async () => { await supabase.auth.signOut(); router.replace('/teacher/login') }}
             className="w-full px-5 py-2.5 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition"

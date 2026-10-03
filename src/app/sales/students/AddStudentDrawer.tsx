@@ -7,7 +7,6 @@ import {
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { LEAD_SOURCES, LEAD_COURSES, LEAD_TYPES, PLAN_PRESETS } from '@/lib/crm-types'
-import { logActivity } from '@/lib/activity-log-db'
 import { useStaff } from '@/lib/staff-context'
 
 /**
@@ -86,13 +85,6 @@ export default function AddStudentDrawer({
       })
 
       // 3. Activity log
-      await logActivity({
-        action:     'student_created_direct',
-        entityType: 'profile',
-        entityId:   studentId,
-        after:      { source, course, amount_mad: amount, student_type: type },
-        metadata:   { added_by: staff.email, direct_entry: true },
-      })
 
       onCreated()
       onClose()

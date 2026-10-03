@@ -532,10 +532,10 @@ function Panel({ children, className, style }: { children: React.ReactNode; clas
 }
 function PanelHead({ icon: Icon, title, hint, href }: { icon: any; title: string; hint?: string; href?: string }) {
   return (
-    <div className="flex items-center gap-2 mb-2">
-      <Icon size={15} className="text-zinc-400" />
-      <span className="text-[13.5px] font-black text-zinc-800">{title}</span>
-      {hint && <span className="text-[11px] text-zinc-400 font-semibold">{hint}</span>}
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mb-2">
+      <Icon size={15} className="text-zinc-400 shrink-0" />
+      <span className="text-[13.5px] font-black text-zinc-800 whitespace-nowrap">{title}</span>
+      {hint && <span className="order-last basis-full sm:order-none sm:basis-auto text-[11px] text-zinc-400 font-semibold">{hint}</span>}
       {href && <Link href={href} className="mr-auto inline-flex items-center gap-0.5 text-[11px] font-bold text-blue-700 hover:text-blue-900">التفاصيل <ChevronLeft size={13} /></Link>}
     </div>
   )

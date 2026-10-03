@@ -12,6 +12,7 @@ import {
   type ClassSession, type MyStudent, type RosterPayment,
 } from '@/lib/teachers'
 import { BarChart, Donut } from '../_charts'
+import MyPayouts from '@/components/MyPayouts'
 import { Rise } from '../_ds'
 import { DEMO_LEADERBOARD, DEMO_ROSTER_PAYMENTS, DEMO_SESSIONS, DEMO_STUDENTS, isTeacherDemo } from '../_demo'
 import { DemoBanner, STATUS_AR } from '../_ui'
@@ -144,6 +145,14 @@ export default function TeacherEarningsPage() {
           value={<span className="text-[22px]">{PAY_LABEL[payModel]}</span>}
           sub={canEarn ? `${rate!.toLocaleString('en-US')} درهم / ساعة` : 'يحددها المكتب'} /></Rise>
       </div>
+
+      {/* ══ What the office actually paid — recorded by the founder, month by month ══ */}
+      <Rise>
+        <Surface className="p-5 sm:p-6">
+          <SectionHead title="دفعاتي" />
+          <MyPayouts demo={demo} />
+        </Surface>
+      </Rise>
 
       {/* ══ Year overview + session status ══ */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

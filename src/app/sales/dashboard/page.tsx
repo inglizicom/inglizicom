@@ -78,11 +78,8 @@ export default function DashboardPage() {
   return (
     <div className="p-4 lg:p-6 space-y-5">
 
-      {/* ── Owner Command Center (founder only) ────────── */}
-      {isFounder && <OwnerCommandCenter embedded />}
-
-      {/* ── Quick actions ──────────────────────────────── */}
-      <div className="flex flex-wrap gap-2.5">
+      {/* ── Quick actions — first, one swipeable row on the phone ── */}
+      <div className="flex gap-2.5 overflow-x-auto no-scrollbar -mx-4 px-4 lg:mx-0 lg:px-0 lg:flex-wrap [&>*]:shrink-0 [&>*]:whitespace-nowrap">
         <Link href="/sales/leads/new"
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-yellow-400 text-black font-bold text-[13px] hover:bg-yellow-300 transition-colors shadow-sm">
           <Plus size={15} /> إضافة عميل جديد
@@ -99,7 +96,16 @@ export default function DashboardPage() {
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-zinc-200 text-zinc-700 font-semibold text-[13px] hover:border-zinc-300 transition-colors">
           <GraduationCap size={15} className="text-blue-500" /> الطلاب
         </Link>
+        {isFounder && (
+          <Link href="/admin/team"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-zinc-200 text-zinc-700 font-semibold text-[13px] hover:border-zinc-300 transition-colors">
+            <Wallet size={15} className="text-amber-500" /> الفريق والرواتب
+          </Link>
+        )}
       </div>
+
+      {/* ── Owner Command Center (founder only) ────────── */}
+      {isFounder && <OwnerCommandCenter embedded />}
 
       {!isFounder && <>
       {/* ── KPI cards ──────────────────────────────────── */}

@@ -9,7 +9,6 @@ import { supabase } from '@/lib/supabase'
 import { whatsappLink } from '@/lib/leads-db'
 import { patchStudent, type CrmStudent } from '@/lib/crm-db'
 import { LEAD_COURSES, PLAN_PRESETS, getCourseMeta } from '@/lib/crm-types'
-import { logActivity } from '@/lib/activity-log-db'
 import { useStaff } from '@/lib/staff-context'
 
 type View = 'info' | 'payment'
@@ -59,8 +58,6 @@ export default function StudentDetailDrawer({
         notes:             notes.trim() || null,
         is_active:         isActive,
       })
-      await logActivity({ action: 'student_updated', entityType: 'profile', entityId: student.id,
-        metadata: { by: staff.email } })
       onChange(); onClose()
     } catch (err: any) { setError(err?.message ?? 'Could not save') }
     finally { setSaving(false) }
@@ -71,8 +68,6 @@ export default function StudentDetailDrawer({
     setSaving(true)
     try {
       await patchStudent(student.id, { is_active: false })
-      await logActivity({ action: 'student_deactivated', entityType: 'profile', entityId: student.id,
-        metadata: { by: staff.email } })
       onChange(); onClose()
     } catch { setSaving(false) }
   }
@@ -120,9 +115,6 @@ export default function StudentDetailDrawer({
         after_val:   { total_paid: newTotal, course: isUpgrade ? payPlan : student.course },
       })
 
-      await logActivity({ action: isUpgrade ? 'student_plan_changed' : 'payment_added',
-        entityType: 'profile', entityId: student.id,
-        after: { amount: payAmount, new_total: newTotal }, metadata: { by: staff.email } })
 
       onChange(); onClose()
     } catch (err: any) { setError(err?.message ?? 'Failed'); setAddingPay(false) }

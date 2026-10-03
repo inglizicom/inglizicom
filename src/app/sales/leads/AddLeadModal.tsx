@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { X, Loader2 } from 'lucide-react'
 import { createManualLead, LEAD_STATUSES, LEAD_STATUS_META, patchLead, type LeadStatus } from '@/lib/leads-db'
 import { LEAD_SOURCES, LEAD_COURSES, PLAN_PRESETS } from '@/lib/crm-types'
-import { logActivity } from '@/lib/activity-log-db'
 import { logLeadEvent } from '@/lib/crm-db'
 import { useStaff } from '@/lib/staff-context'
 
@@ -46,8 +45,6 @@ export default function AddLeadModal({ onClose, onCreated }: Props) {
       })
       await patchLead(id, { course, lead_type: 'course', lead_source: source } as any)
       await logLeadEvent({ leadId: id, eventType: 'created', title: `Created by ${staff.email}` })
-      await logActivity({ action: 'lead_created', entityType: 'lead', entityId: id,
-        after: { status, source, amount_mad: amount }, metadata: { by: staff.email } })
       onCreated(); onClose()
     } catch (err: any) { setError(err?.message ?? 'Failed to save') }
     finally { setSaving(false) }

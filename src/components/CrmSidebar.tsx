@@ -8,7 +8,7 @@ import type { LucideIcon } from 'lucide-react'
 import {
   LayoutDashboard, Users, GraduationCap, CalendarCheck, CreditCard,
   BarChart3, Settings, LogOut, X, ShieldCheck, BookOpen, Inbox, Megaphone, Trophy,
-  UserCog, Presentation, Plus, Shield, ExternalLink,
+  UserCog, Presentation, Plus, Shield, ExternalLink, Wallet,
 } from 'lucide-react'
 
 /**
@@ -49,6 +49,7 @@ const GROUPS: { title: string; founder?: boolean; items: NavDef[] }[] = [
     { id: 'gamification',  labelAr: 'المكافآت والتحديات', icon: Trophy,    path: '/gamification' },
   ]},
   { title: 'الإدارة', founder: true, items: [
+    { id: 'team',     labelAr: 'الفريق والرواتب',      icon: Wallet,    path: '/team',      founder: true },
     { id: 'teachers', labelAr: 'الأساتذة',            icon: UserCog,   path: '/teachers',  founder: true },
     { id: 'revenue',  labelAr: 'الإيرادات والتقارير', icon: BarChart3, path: '/analytics', founder: true },
     { id: 'admin',    labelAr: 'أدوات المؤسس',        icon: Shield,    path: '',           founder: true },

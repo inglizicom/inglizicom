@@ -12,7 +12,6 @@ import { useStaff } from '@/lib/staff-context'
 import { createManualLead, patchLead, LEAD_STATUS_META, type LeadStatus } from '@/lib/leads-db'
 import { LEAD_SOURCES, LEAD_COURSES, PLAN_PRESETS } from '@/lib/crm-types'
 import { logLeadEvent } from '@/lib/crm-db'
-import { logActivity } from '@/lib/activity-log-db'
 import { fetchStaff, type StaffRow } from '@/lib/staff-db'
 
 const STEPS = [
@@ -81,8 +80,6 @@ export default function NewLeadPage() {
       })
       await patchLead(id, { course, lead_type: 'course', lead_source: source, level: level || null } as any)
       await logLeadEvent({ leadId: id, eventType: 'created', title: `أُنشئ بواسطة ${staff.email}` })
-      await logActivity({ action: 'lead_created', entityType: 'lead', entityId: id,
-        after: { status, source, amount_mad: amount }, metadata: { by: staff.email } })
       return id
     } catch (err: any) { setError(err?.message ?? 'تعذّر الحفظ'); return null }
     finally { setSaving(false) }

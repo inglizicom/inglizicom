@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { X, Loader2, Save, Mail, Shield, Clock, CalendarDays, LogOut, Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import MyPayouts from './MyPayouts'
 
 interface Props {
   open:      boolean
@@ -49,12 +51,16 @@ export default function ProfileModal({ open, onClose, email, roleLabel, onSignOu
     setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 1500)
   }
 
-  if (!open) return null
+  if (!open || typeof document === 'undefined') return null
 
-  return (
-    <div className="fixed inset-0 z-[60] flex items-start sm:items-center justify-center p-0 sm:p-4" dir="rtl">
+  // Portalled to <body>: the CRM header has a backdrop blur, and a blurred
+  // ancestor becomes the containing block for `fixed` children — the sheet and
+  // its scrim used to be trapped inside the 64px header on phones. `crm-theme`
+  // travels with it so the CRM palette still applies outside the frame.
+  return createPortal(
+    <div className="crm-theme fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4" dir="rtl">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+      <div className="relative bg-white w-full sm:max-w-md sm:rounded-2xl rounded-t-3xl shadow-2xl overflow-hidden max-h-[90dvh] flex flex-col pb-[env(safe-area-inset-bottom)]">
 
         {/* Header */}
         <div className="bg-zinc-900 px-5 py-5 flex items-center gap-3">
@@ -99,6 +105,14 @@ export default function ProfileModal({ open, onClose, email, roleLabel, onSignOu
               </button>
             </div>
 
+            {/* An assistant's own pay, as the founder recorded it. Founders are not on the payroll. */}
+            {roleLabel !== 'المؤسس' && (
+              <div className="space-y-2 pt-2 border-t border-zinc-100">
+                <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest">رواتبي</div>
+                <MyPayouts compact />
+              </div>
+            )}
+
             {onSignOut && (
               <button onClick={onSignOut}
                 className="w-full py-2.5 rounded-xl border border-red-200 text-red-500 font-semibold text-[13px] flex items-center justify-center gap-2 hover:bg-red-50">
@@ -108,7 +122,8 @@ export default function ProfileModal({ open, onClose, email, roleLabel, onSignOu
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 

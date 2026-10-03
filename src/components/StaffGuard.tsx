@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 import { StaffContext, type StaffProfile } from '@/lib/staff-context'
 
-type State = 'checking' | 'allowed' | 'denied' | 'unauthenticated'
+type State = 'checking' | 'allowed' | 'denied' | 'blocked' | 'unauthenticated'
 
 /** Shared auth gate.
  *
@@ -39,11 +39,14 @@ export default function StaffGuard({
     let cancelled = false
     supabase
       .from('profiles')
-      .select('id, email, is_admin, role')
+      .select('id, email, is_admin, role, blocked')
       .eq('id', user.id)
       .maybeSingle()
       .then(({ data, error }) => {
         if (cancelled) return
+        // A founder can block a staff account (the database already refuses it
+        // every CRM row); say so plainly instead of showing empty screens.
+        if ((data as { blocked?: boolean } | null)?.blocked) { setState('blocked'); return }
         const role: StaffProfile['role'] = (data?.role as any) ?? 'student'
         const isAdmin = !!data?.is_admin
         // is_admin=true users without an explicit role count as founders.
@@ -96,6 +99,26 @@ export default function StaffGuard({
         <div className="flex items-center gap-3 text-gray-500">
           <Loader2 size={18} className="animate-spin" />
           <span className="text-sm font-semibold">Checking access…</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (state === 'blocked') {
+    return (
+      <div dir="rtl" className="min-h-screen flex items-center justify-center bg-[#F1F5FB] px-4">
+        <div className="max-w-md w-full bg-white rounded-[24px] border border-slate-200 p-8 text-center shadow-[0_10px_28px_-12px_rgba(30,58,138,.24)]">
+          <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-rose-50 flex items-center justify-center">
+            <ShieldAlert size={26} className="text-rose-500" />
+          </div>
+          <h1 className="text-[#1E3A8A] font-extrabold text-lg mb-1">تم إيقاف هذا الحساب</h1>
+          <p className="text-slate-500 text-sm mb-6">تواصل مع إدارة إنجليزي.كوم إذا كنت تعتقد أن هذا خطأ.</p>
+          <button
+            onClick={async () => { await supabase.auth.signOut(); router.replace('/') }}
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-l from-blue-600 to-blue-800 text-white text-sm font-bold"
+          >
+            تسجيل الخروج
+          </button>
         </div>
       </div>
     )

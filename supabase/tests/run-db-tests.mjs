@@ -1468,3 +1468,160 @@ describe('profile privileged fields (056)', () => {
     assert.equal((await prof(u)).plan, 'paid')
   })
 })
+describe('founder control: blocking, audit trail, payroll (057)', () => {
+  let ctx, stu, month
+  const asF = fn => as(ctx.db, ctx.founder, fn)
+  const asA = fn => as(ctx.db, ctx.assistant, fn)
+  const logRows = (where = 'true', params = []) =>
+    q(ctx.db, `select actor_id, action, entity_type, entity_id, before_value, after_value from crm_activity_log where ${where} order by created_at`, params)
+
+  before(async () => {
+    ctx = await setup()
+    stu = await makeStudent(ctx.db, 'Audit Student')
+    month = new Date().toISOString().slice(0, 7) + '-01'
+    // Pay fields only move for staff callers (guard_teacher_profile_fields), as in the CRM.
+    await asF(() => ctx.db.query(`update teacher_profiles set pay_model = 'hourly', hourly_rate_mad = 100 where id = $1`, [ctx.teacherA]))
+    // two delivered hours this month (90 + 30 minutes), one cancelled session that must not count
+    const noon = new Date(); noon.setUTCDate(Math.min(noon.getUTCDate(), 27)); noon.setUTCHours(12, 0, 0, 0)
+    for (const [mins, status] of [[90, 'done'], [30, 'done'], [60, 'cancelled']]) {
+      await ctx.db.query(`insert into class_sessions (teacher_id, title, mode, starts_at, duration_min, status) values ($1, 'S', 'group', $2, $3, $4)`,
+        [ctx.teacherA, noon.toISOString(), mins, status])
+    }
+  })
+
+  it('records an assistant edit with only the changed fields, and nothing for public writes', async () => {
+    await asA(() => ctx.db.query(`update crm_students set notes = 'called twice', phone_number = phone_number where id = $1`, [stu.id]))
+    const rows = await logRows(`entity_id = $1`, [stu.id])
+    assert.equal(rows.length, 1)
+    assert.equal(rows[0].actor_id, ctx.assistant)
+    assert.equal(rows[0].action, 'student_updated')
+    assert.deepEqual(Object.keys(rows[0].after_value), ['notes'])
+    assert.equal(rows[0].after_value.notes, 'called twice')
+
+    await asA(() => ctx.db.query(`update crm_students set payment_status = 'overdue' where id = $1`, [stu.id]))
+    const st = await logRows(`entity_id = $1 and action = 'student_status_changed'`, [stu.id])
+    assert.equal(st.length, 1)
+    assert.equal(st[0].after_value.payment_status, 'overdue')
+
+    const before = (await logRows()).length
+    await as(ctx.db, 'anon', () => ctx.db.query(
+      `insert into subscription_leads (plan_id, full_name, status, is_archived) values ('monthly', 'Visitor', 'new', false)`)).catch(() => {})
+    await ctx.db.query(`update crm_students set notes = 'server job' where id = $1`, [stu.id])
+    assert.equal((await logRows()).length, before, 'no staff JWT, no staff move')
+  })
+
+  it('never copies a student access token into the log', async () => {
+    await asA(() => ctx.db.query(`update crm_students set verification_token = 'ING-NEW001' where id = $1`, [stu.id]))
+    const rows = await logRows(`entity_id = $1 and after_value ? 'verification_token'`, [stu.id])
+    assert.equal(rows.length, 1)
+    assert.equal(rows[0].after_value.verification_token, '••••')
+  })
+
+  it('the log is private and append-only: assistants read their own rows, nobody writes directly', async () => {
+    await asF(() => ctx.db.query(`update crm_students set notes = 'founder note' where id = $1`, [stu.id]))
+    const mine = await asA(() => q(ctx.db, `select distinct actor_id from crm_activity_log`))
+    assert.deepEqual(mine.map(r => r.actor_id), [ctx.assistant])
+    const all = await asF(() => q(ctx.db, `select distinct actor_id from crm_activity_log`))
+    assert.ok(all.some(r => r.actor_id === ctx.founder) && all.some(r => r.actor_id === ctx.assistant))
+    await rejects(asA(() => ctx.db.query(`insert into crm_activity_log (actor_id, action, entity_type) values ($1, 'x', 'y')`, [ctx.founder])), /permission denied/)
+    await rejects(asA(() => ctx.db.query(`delete from crm_activity_log`)), /permission denied/)
+  })
+
+  it('a session is logged once, then only last-seen moves', async () => {
+    await asA(() => rpc(ctx.db, 'staff_ping', ['/sales/dashboard']))
+    await asA(() => rpc(ctx.db, 'staff_ping', ['/sales/workspace']))
+    const s = await logRows(`actor_id = $1 and action = 'session_started'`, [ctx.assistant])
+    assert.equal(s.length, 1)
+    const p = await one(ctx.db, `select last_path from staff_presence where profile_id = $1`, [ctx.assistant])
+    assert.equal(p.last_path, '/sales/workspace')
+  })
+
+  it('founder_team shows each person with what they did; others are refused', async () => {
+    const t = await asF(() => rpc(ctx.db, 'founder_team', [null, null]))
+    const a = t.people.find(p => p.id === ctx.assistant)
+    assert.equal(a.role, 'assistant')
+    assert.ok(a.actions >= 3)
+    assert.equal(a.sessions_opened, 1)
+    const teacher = t.people.find(p => p.id === ctx.teacherA)
+    assert.equal(teacher.sessions_done, 2)
+    assert.equal(Number(teacher.hours_done), 2)
+    await rejects(asA(() => rpc(ctx.db, 'founder_team', [null, null])), /Founder only/)
+    await rejects(as(ctx.db, 'anon', () => rpc(ctx.db, 'founder_team', [null, null])), /permission denied/)
+  })
+
+  it('founder_activity names the record and filters by person', async () => {
+    const rows = await asF(() => rpc(ctx.db, 'founder_activity', [ctx.assistant, null, null, 'student', 50]))
+    assert.ok(rows.length >= 2)
+    assert.ok(rows.every(r => r.actor_id === ctx.assistant && r.entity_type === 'student'))
+    assert.equal(rows[0].entity_label, 'Audit Student')
+  })
+
+  it('payroll suggests teacher pay from delivered hours × rate and assistant pay from salary', async () => {
+    await asF(() => rpc(ctx.db, 'founder_set_pay_settings', [ctx.assistant, 3000, null]))
+    const p = await asF(() => rpc(ctx.db, 'founder_payroll', [month]))
+    const t = p.rows.find(r => r.id === ctx.teacherA)
+    assert.equal(Number(t.hours), 2)
+    assert.equal(t.sessions, 2)
+    assert.equal(Number(t.suggested_base), 200)
+    const a = p.rows.find(r => r.id === ctx.assistant)
+    assert.equal(Number(a.suggested_base), 3000)
+    assert.ok(!p.rows.some(r => r.id === ctx.founder), 'founders are not on the payroll')
+  })
+
+  it('saves a payout, marks it paid once, and is logged', async () => {
+    const r1 = await asF(() => rpc(ctx.db, 'founder_save_payout', [ctx.teacherA, month, 200, 50, 20, 'pending', null, null, 'first']))
+    assert.equal(Number(r1.amount_mad), 230)
+    assert.equal(r1.paid_at, null)
+    const r2 = await asF(() => rpc(ctx.db, 'founder_save_payout', [ctx.teacherA, month, 200, 50, 20, 'paid', 'bank_transfer', 'TX-1', 'first']))
+    assert.equal(r2.id, r1.id, 'one payout per person per month')
+    assert.ok(r2.paid_at)
+    const r3 = await asF(() => rpc(ctx.db, 'founder_save_payout', [ctx.teacherA, month, 200, 60, 20, 'paid', 'bank_transfer', 'TX-1', 'bonus fixed']))
+    assert.equal(new Date(r3.paid_at).getTime(), new Date(r2.paid_at).getTime(), 'paid_at keeps the first payment time')
+    await rejects(asF(() => rpc(ctx.db, 'founder_save_payout', [ctx.teacherA, month, 10, 0, 50, 'pending', null, null, null])), /larger than the pay/)
+    await rejects(asF(() => rpc(ctx.db, 'founder_save_payout', [ctx.founder, month, 10, 0, 0, 'pending', null, null, null])), /assistants and teachers/)
+    await rejects(asA(() => rpc(ctx.db, 'founder_save_payout', [ctx.assistant, month, 9999, 0, 0, 'paid', null, null, null])), /Founder only/)
+    const log = await logRows(`entity_type = 'payout'`)
+    assert.ok(log.some(l => l.action === 'payout_created'))
+    assert.ok(log.some(l => l.action === 'payout_status_changed' && l.after_value.status === 'paid'))
+    const totals = (await asF(() => rpc(ctx.db, 'founder_payroll', [month]))).totals
+    assert.equal(Number(totals.paid), 240)
+  })
+
+  it('payees see only their own payouts, and cannot write them', async () => {
+    const mine = await as(ctx.db, ctx.teacherA, () => rpc(ctx.db, 'my_payouts'))
+    assert.equal(mine.payouts.length, 1)
+    assert.equal(Number(mine.payouts[0].amount_mad), 240)
+    const other = await as(ctx.db, ctx.teacherB, () => rpc(ctx.db, 'my_payouts'))
+    assert.equal(other.payouts.length, 0)
+    const direct = await as(ctx.db, ctx.teacherB, () => q(ctx.db, `select * from staff_payouts`))
+    assert.equal(direct.length, 0)
+    await rejects(as(ctx.db, ctx.teacherA, () => ctx.db.query(`update staff_payouts set bonus_mad = 9999`)), /permission denied/)
+    const asst = await asA(() => rpc(ctx.db, 'my_payouts'))
+    assert.equal(Number(asst.salary), 3000)
+  })
+
+  it('blocking an assistant shuts their CRM access at the database; founders cannot be blocked', async () => {
+    const seen = await asA(() => q(ctx.db, `select id from crm_students where id = $1`, [stu.id]))
+    assert.equal(seen.length, 1)
+    await asF(() => rpc(ctx.db, 'founder_set_staff_blocked', [ctx.assistant, true]))
+    const after = await asA(() => q(ctx.db, `select id from crm_students where id = $1`, [stu.id]))
+    assert.equal(after.length, 0, 'a blocked assistant sees no CRM rows')
+    await rejects(asA(() => one(ctx.db, `select public.convert_lead_to_student(gen_random_uuid()) as r`)), /Only staff/)
+    const log = await logRows(`entity_id = $1 and action = 'profile_blocked'`, [ctx.assistant])
+    assert.equal(log.length, 1)
+    await asF(() => rpc(ctx.db, 'founder_set_staff_blocked', [ctx.assistant, false]))
+    assert.equal((await asA(() => q(ctx.db, `select id from crm_students where id = $1`, [stu.id]))).length, 1)
+    await rejects(asF(() => rpc(ctx.db, 'founder_set_staff_blocked', [ctx.founder, true])), /yourself/)
+    const f2 = await makeUser(ctx.db, 'founder', 'Co-founder')
+    await rejects(asF(() => rpc(ctx.db, 'founder_set_staff_blocked', [f2, true])), /founder cannot be blocked/)
+  })
+
+  it('blocking a teacher takes them out of the teacher space and the public directory', async () => {
+    await asF(() => rpc(ctx.db, 'founder_set_staff_blocked', [ctx.teacherB, true]))
+    const r = await one(ctx.db, `select public.is_teacher($1) as t, (select is_active from teacher_profiles where id = $1) as a`, [ctx.teacherB])
+    assert.equal(r.t, false)
+    assert.equal(r.a, false)
+    await asF(() => rpc(ctx.db, 'founder_set_staff_blocked', [ctx.teacherB, false]))
+    assert.equal((await one(ctx.db, `select public.is_teacher($1) as t`, [ctx.teacherB])).t, true)
+  })
+})

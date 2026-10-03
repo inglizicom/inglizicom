@@ -1,7 +1,8 @@
 'use client'
 
-import { Suspense, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useEffect, useRef, useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import { staffPing } from '@/lib/founder'
 import CrmSidebar, { type CrmBadges } from '@/components/CrmSidebar'
 import CrmTopHeader from '@/components/CrmTopHeader'
 import MobileBottomNav from '@/components/MobileBottomNav'
@@ -17,6 +18,9 @@ import { supabase } from '@/lib/supabase'
  * screens were written in as the brand (see tailwind.config.js), so pages pick
  * up the navy-and-gold look without being rewritten. `raw` opts a page out —
  * the lesson presenter keeps its own stage colours.
+ *
+ * It also reports last-seen (staff_ping) so the founder sees who is working,
+ * and the database opens a 'session_started' row after 30 minutes away.
  */
 export default function CrmFrame({ title, breadcrumb, badges, raw, children }: {
   title: string
@@ -30,6 +34,17 @@ export default function CrmFrame({ title, breadcrumb, badges, raw, children }: {
   const base          = useCrmBasePath()
   const isAdminDomain = useIsAdminDomain()
   const [drawer, setDrawer] = useState(false)
+  const pathname = usePathname() ?? ''
+
+  // Last-seen for the founder's team page: on each new page, at most once a
+  // minute, and every five minutes while the CRM stays open.
+  const lastPing = useRef(0)
+  useEffect(() => {
+    const ping = () => { lastPing.current = Date.now(); staffPing(window.location.pathname) }
+    if (Date.now() - lastPing.current > 60_000) ping()
+    const t = setInterval(ping, 5 * 60_000)
+    return () => clearInterval(t)
+  }, [pathname])
 
   async function signOut() {
     await supabase.auth.signOut()

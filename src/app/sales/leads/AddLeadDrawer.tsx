@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { X, Save, Loader2, User as UserIcon, Phone, MapPin, Crown, FileText } from 'lucide-react'
 import { createManualLead, LEAD_STATUSES, LEAD_STATUS_META, type LeadStatus } from '@/lib/leads-db'
 import { LEAD_SOURCES, LEAD_COURSES, LEAD_TYPES, PLAN_PRESETS } from '@/lib/crm-types'
-import { logActivity } from '@/lib/activity-log-db'
 import { logLeadEvent } from '@/lib/crm-db'
 import { useStaff } from '@/lib/staff-context'
 
@@ -47,9 +46,6 @@ export default function AddLeadDrawer({ onClose, onCreated }: { onClose: () => v
       const { patchLead } = await import('@/lib/leads-db')
       await patchLead(id, { course: leadCourse, lead_type: leadType, lead_source: source } as any)
       await logLeadEvent({ leadId: id, eventType: 'created', title: `Lead created manually by ${staff.email}` })
-      await logActivity({ action: 'lead_created', entityType: 'lead', entityId: id,
-        after: { status, source, plan_id: planId, amount_mad: amount },
-        metadata: { entered_manually: true, by: staff.email } })
       onCreated(); onClose()
     } catch (err: any) { setError(err?.message ?? 'Failed to save') }
     finally { setSaving(false) }

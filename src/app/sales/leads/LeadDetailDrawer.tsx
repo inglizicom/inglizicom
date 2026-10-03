@@ -12,7 +12,6 @@ import {
 } from '@/lib/leads-db'
 import { LEAD_SOURCES, LEAD_COURSES, LEAD_TYPES, LOST_REASONS, EVENT_ICONS } from '@/lib/crm-types'
 import { fetchLeadTimeline, logLeadEvent, fetchStudentByLeadId, convertLeadToStudent } from '@/lib/crm-db'
-import { logActivity } from '@/lib/activity-log-db'
 import { useStaff } from '@/lib/staff-context'
 import { supabase } from '@/lib/supabase'
 import type { LeadEvent } from '@/lib/crm-types'
@@ -77,8 +76,6 @@ export default function LeadDetailDrawer({
         await logLeadEvent({ leadId: lead.id, eventType: 'status_changed',
           title: `${LEAD_STATUS_META[prevStatus]?.label} → ${LEAD_STATUS_META[status]?.label}`,
           before: { status: prevStatus }, after: { status } })
-        await logActivity({ action: 'lead_status_changed', entityType: 'lead', entityId: lead.id,
-          before: { status: prevStatus }, after: { status } })
         if (status === 'paid' && !student) {
           await convertLeadToStudent(lead.id)
           fetchStudentByLeadId(lead.id).then(setStudent)
@@ -108,8 +105,6 @@ export default function LeadDetailDrawer({
       await supabase.from('subscription_leads').update({
         is_archived: true, archived_at: new Date().toISOString(), archived_by: staff.id,
       }).eq('id', lead.id)
-      await logActivity({ action: 'lead_archived', entityType: 'lead', entityId: lead.id,
-        metadata: { by: staff.email } })
       await onChange()
       onClose()
     } catch { setDeleting(false) }
