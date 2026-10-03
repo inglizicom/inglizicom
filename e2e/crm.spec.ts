@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
-import { mockSupabase, collectErrors, IDS, LEADS, STUDENTS } from './mock'
+import { mockSupabase, collectErrors, IDS, LEADS, STUDENTS, CLASS_ID, SESSION_ID } from './mock'
 
 /*
  * The CRM (/sales, /admin) against the fake Supabase in ./mock.ts.
@@ -19,6 +19,8 @@ const FOUNDER_PAGES = [
   `/sales/leads/${LEADS[1].id}`,
   `/sales/students/${STUDENTS[0].id}`,
   '/sales/classes',
+  `/sales/classes/${CLASS_ID}`,
+  '/sales/teachers',
   '/sales/courses',
   '/sales/submissions',
   '/sales/announcements',
@@ -127,5 +129,60 @@ test.describe('who may go where', () => {
     await mockSupabase(page, { role: null })
     await page.goto('/sales/dashboard')
     await expect(page).toHaveURL(/\/login/)
+  })
+})
+
+test.describe('assistants: teachers and live classes', () => {
+  test('an assistant opens Teachers, sees pay, but cannot change it or delete', async ({ page }) => {
+    await mockSupabase(page, { role: 'assistant' })
+    await page.goto('/sales/dashboard')
+    await expect(page.locator('header h1').first()).toBeVisible({ timeout: 90_000 })
+    await page.goto('/sales/teachers')
+    await expect(page.getByText('سارة بن يوسف').first()).toBeVisible()
+    await expect(page.getByText('100 د.م / ساعة').first()).toBeVisible()      // rate
+    await expect(page.getByText(/1,500/).first()).toBeVisible()             // 15 h × 100
+    await page.getByRole('button', { name: 'إدارة الحساب' }).first().click()
+    await expect(page.getByText('تعديل الأجر من صلاحيات المؤسس.')).toBeVisible()
+    await expect(page.getByRole('button', { name: /حذف الحساب نهائياً/ })).toHaveCount(0)
+  })
+
+  test('the founder can set the rate and still has delete', async ({ page }) => {
+    const calls = await mockSupabase(page, { role: 'founder' })
+    await page.goto('/sales/teachers')
+    await page.getByRole('button', { name: 'إدارة الحساب' }).first().click({ timeout: 90_000 })
+    await expect(page.getByRole('button', { name: /حذف الحساب نهائياً/ })).toBeVisible()
+    const rate = page.getByPlaceholder('100')
+    await expect(rate).toHaveValue('100')
+    await rate.fill('130')
+    await page.getByRole('button', { name: 'حفظ', exact: true }).click()   // saving closes the window
+    await expect.poll(() => calls.find(c => c.method === 'PATCH' && c.path.endsWith('/teacher_profiles'))?.body)
+      .toMatchObject({ hourly_rate_mad: 130, pay_model: 'hourly' })
+  })
+
+  test('an assistant marks attendance for a session', async ({ page }) => {
+    const calls = await mockSupabase(page, { role: 'assistant' })
+    await page.goto(`/sales/classes/${CLASS_ID}`)
+    await page.getByRole('button', { name: 'الحضور' }).click({ timeout: 90_000 })
+    const dialog = page.getByRole('dialog')
+    await dialog.getByRole('button', { name: 'الكل حاضر' }).click()
+    await dialog.getByRole('button', { name: 'غائب' }).first().click()
+    await dialog.getByRole('button', { name: 'حفظ الحضور' }).click()
+    await expect.poll(() => calls.find(c => c.method === 'POST' && c.path.endsWith('/class_attendance'))?.body).toBeTruthy()
+    const body = calls.find(c => c.method === 'POST' && c.path.endsWith('/class_attendance'))!.body as any[]
+    expect(body).toHaveLength(3)
+    expect(body.every(r => r.session_id === SESSION_ID && r.marked_by === IDS.assistant)).toBe(true)
+    expect(body.filter(r => r.status === 'absent')).toHaveLength(1)
+    expect(body.filter(r => r.status === 'present')).toHaveLength(2)
+  })
+
+  test('phone: live classes and teachers are in the tab bar', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'phone only')
+    await mockSupabase(page, { role: 'assistant' })
+    await page.goto('/sales/dashboard')
+    const bar = page.locator('nav.fixed')
+    await bar.getByRole('link', { name: 'الأساتذة' }).click({ timeout: 90_000 })
+    await expect(page).toHaveURL(/\/teachers/)
+    await bar.getByRole('link', { name: 'الأقسام' }).click()
+    await expect(page).toHaveURL(/\/classes/)
   })
 })

@@ -62,7 +62,8 @@ The one-off AI content generators in `scripts/gen-*.mjs` write straight to the p
 - Demo mode works without any backend. Add `?demo=1` (it is remembered in sessionStorage). The teacher mock data is in `src/app/teacher/_demo.ts` and `teacher/profile/demoData.ts`. The student portal uses `src/lib/demo.ts`. `/teacher-showcase/demo` renders `DEMO_PUBLIC_TEACHER`.
 
 ### CRM (`src/app/sales`, `src/app/admin`)
-- Leads, students, payments, classes, broadcasts, gamification and support. Founders also get analytics, teacher management (`admin/teachers`) and course and lesson builders (`admin/present/*`, which are very large files).
+- Leads, students, payments, live classes (with attendance), teachers, broadcasts, gamification and support, for all staff. The teachers page is one component served at `/sales/teachers` (staff) and `/admin/teachers`; inside it only a founder can change a teacher's pay (also enforced by `guard_teacher_profile_fields`, migration 058) or delete an account. Founders also get analytics, Team & payroll (`admin/team`: staff, salaries, payouts, the audit trail) and course and lesson builders (`admin/present/*`, which are very large files).
+- Every write a founder or assistant makes to the main CRM tables is recorded in `crm_activity_log` by a database trigger (`audit_staff_change`, migration 057). Don't add browser-side `logActivity` calls for those; only server-route actions (account creation) need one.
 - Shared pieces live in `src/app/sales/_components` (KpiCard, Charts, Avatar), `src/components/crm/kit.tsx` and `src/components/analytics/*`.
 - The metric definitions in `src/lib/enrollment-metrics.ts` and `crm-stats.ts` are tested. Business dates use the Morocco clock (Africa/Casablanca).
 
@@ -96,4 +97,4 @@ Vercel runs one cron, `/api/cron/daily-reminders`, daily at 08:00 ([vercel.json]
 - Match the comment style in the surrounding code. Files open with a doc comment that explains why the code is shaped the way it is.
 - Use Tailwind for styling, with arbitrary values where the design calls for them. Icons come from `lucide-react`, animation from `framer-motion` and charts from `recharts`.
 - The `/teacher` tree and staff pages are `noindex`. Keep it that way for anything behind a login.
-- Do not break admin or CRM flows when changing shared `src/lib` modules. `teachers.ts` and the guards are used by both the teacher space and `admin/teachers`.
+- Do not break admin or CRM flows when changing shared `src/lib` modules. `teachers.ts` and the guards are used by both the teacher space and the CRM teachers page.

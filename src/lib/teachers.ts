@@ -803,6 +803,24 @@ export async function deleteTeacherAccount(teacherId: string): Promise<void> {
   if (!res.ok) throw new Error(json?.error ?? 'Could not delete the account.')
 }
 
+export interface TeacherRate { pay_model: string | null; hourly_rate_mad: number | null }
+
+/** Every teacher's pay terms — for the staff teachers page (RLS: staff read). */
+export async function fetchTeacherRates(): Promise<Map<string, TeacherRate>> {
+  const { data, error } = await supabase.from('teacher_profiles').select('id, pay_model, hourly_rate_mad')
+  if (error) { console.error('fetchTeacherRates', error.message); return new Map() }
+  return new Map((data ?? []).map((r: any) => [r.id, {
+    pay_model: r.pay_model, hourly_rate_mad: r.hourly_rate_mad == null ? null : Number(r.hourly_rate_mad),
+  }]))
+}
+
+/** Founder only (enforced by guard_teacher_profile_fields, 058): the hourly rate. */
+export async function setTeacherRate(teacherId: string, hourlyRateMad: number | null): Promise<void> {
+  const { error } = await supabase.from('teacher_profiles')
+    .update({ pay_model: 'hourly', hourly_rate_mad: hourlyRateMad }).eq('id', teacherId)
+  if (error) throw new Error(/Only a founder/i.test(error.message) ? 'تعديل الأجر من صلاحيات المؤسس فقط.' : error.message)
+}
+
 /** Suspend without destroying anything — the safe alternative to delete. */
 export async function setTeacherActive(teacherId: string, active: boolean): Promise<boolean> {
   const { error } = await supabase

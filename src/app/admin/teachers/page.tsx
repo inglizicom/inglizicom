@@ -6,7 +6,7 @@ import {
   Mail, Plus, Search, Settings2, Star, Trash2, User as UserIcon, Users, X, ExternalLink,
 } from 'lucide-react'
 import {
-  createTeacher, deleteTeacherAccount, fetchAbsenceSummary,
+  createTeacher, deleteTeacherAccount, fetchAbsenceSummary, fetchTeacherRates, setTeacherRate, type TeacherRate,
   fetchAssignedIds, fetchDeleteImpact, fetchTeachersScoreboard, setTeacherActive,
   updateTeacherAccount, TeacherEmailTakenError,
   type AbsenceRow, type DeleteImpact, type ScoreboardRow,
@@ -21,7 +21,11 @@ import RangeControls from '@/components/analytics/RangeControls'
 import { ConfirmDialog, StudentMultiPicker } from '@/components/crm/kit'
 
 /**
- * الأساتذة — founder view of the teaching team.
+ * الأساتذة — the teaching team, for founders and assistants (058).
+ *
+ * Both see every number, pay included, assign students and create or edit
+ * teaching accounts. Only a founder changes a teacher's hourly rate (the
+ * database refuses anyone else) or deletes an account.
  *
  * One row per teacher. Two kinds of numbers, labelled as such:
  *   current — who the teacher holds today: assigned students, students seated
@@ -33,7 +37,9 @@ import { ConfirmDialog, StudentMultiPicker } from '@/components/crm/kit'
  */
 export default function AdminTeachersPage() {
   const me = useStaff()
+  const isFounder = me.role === 'founder'
   const [rows, setRows]       = useState<ScoreboardRow[]>([])
+  const [rates, setRates]     = useState<Map<string, TeacherRate>>(new Map())
   const [loading, setLoading] = useState(true)
   const [adding, setAdding]   = useState(false)
   const [assignFor, setAssignFor] = useState<ScoreboardRow | null>(null)
@@ -42,7 +48,8 @@ export default function AdminTeachersPage() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    setRows(await fetchTeachersScoreboard(range.from, range.to))
+    const [r, pay] = await Promise.all([fetchTeachersScoreboard(range.from, range.to), fetchTeacherRates()])
+    setRows(r); setRates(pay)
     setLoading(false)
   }, [range.from, range.to])
 
@@ -113,6 +120,7 @@ export default function AdminTeachersPage() {
                 <th colSpan={7} className="text-center px-3 pt-2.5 border-l border-gray-200">الحالي — لا يتأثر بالفترة</th>
                 <th colSpan={5} className="text-center px-3 pt-2.5 border-l border-gray-200">في الفترة: {describeRange(range)}</th>
                 <th className="text-center px-3 pt-2.5 border-l border-gray-200">الإيراد · الفترة</th>
+                <th className="text-center px-3 pt-2.5 border-l border-gray-200">الأجر · الفترة</th>
                 <th></th>
                 <th className="sticky left-0 bg-gray-50"></th>
               </tr>
@@ -123,6 +131,7 @@ export default function AdminTeachersPage() {
                 <th colSpan={3} className="text-center px-2 pt-1 border-l border-gray-200">الأقسام المباشرة</th>
                 <th className="text-center px-2 pt-1 border-l border-gray-200">أشخاص</th>
                 <th colSpan={4} className="text-center px-2 pt-1">الحصص والحضور</th>
+                <th className="border-l border-gray-200"></th>
                 <th className="border-l border-gray-200"></th>
                 <th className="border-l border-gray-200"></th>
                 <th></th>
@@ -146,6 +155,7 @@ export default function AdminTeachersPage() {
                     title="دفعات مؤكَّدة في الفترة (حسب تاريخ الدفع) من طلابه الحاليين. غير حصرية: الطالب الذي له أستاذان يُحسب لكليهما — لا تُجمع بين الأساتذة.">
                   مدفوعات طلابه*
                 </th>
+                <th className="text-center px-2 py-3 border-l border-gray-200" title="سعر الساعة × الساعات المنجزة في الفترة — تقدير قبل المكافآت والخصم">سعر الساعة · المستحق</th>
                 <th className="text-center px-2 py-3">التقييم</th>
                 <th className="px-3 py-3 sticky left-0 bg-gray-50"></th>
               </tr>
@@ -197,6 +207,14 @@ export default function AdminTeachersPage() {
                         <div className="text-[10.5px] text-gray-400 font-bold">{t.roster_paying_students ?? 0} طالب دفع</div>
                       </>
                     )}
+                  </td>
+                  <td className="text-center px-2 border-l border-gray-100 tabular-nums">
+                    {rates.get(t.id)?.hourly_rate_mad != null ? (
+                      <>
+                        <div className="font-black text-emerald-700">{new Intl.NumberFormat('en-US').format(Math.round(Number(t.hours_delivered ?? 0) * (rates.get(t.id)!.hourly_rate_mad as number)))} <span className="text-[10.5px] text-gray-400">د.م</span></div>
+                        <div className="text-[10.5px] text-gray-400 font-bold">{rates.get(t.id)!.hourly_rate_mad} د.م / ساعة</div>
+                      </>
+                    ) : <span className="text-[11px] text-amber-600 font-bold">سعر غير محدد</span>}
                   </td>
                   <td className="text-center px-2">
                     {t.rating_count > 0 ? (
@@ -262,6 +280,8 @@ export default function AdminTeachersPage() {
       {manageFor && (
         <ManageTeacherModal
           teacher={manageFor}
+          isFounder={isFounder}
+          rate={rates.get(manageFor.id)?.hourly_rate_mad ?? null}
           onClose={() => setManageFor(null)}
           onChanged={() => { setManageFor(null); load() }}
         />
@@ -456,8 +476,9 @@ function NewTeacherModal({
 /* ── Manage an existing account ──────────────────────── */
 
 function ManageTeacherModal({
-  teacher, onClose, onChanged,
-}: { teacher: ScoreboardRow; onClose: () => void; onChanged: () => void }) {
+  teacher, isFounder, rate: currentRate, onClose, onChanged,
+}: { teacher: ScoreboardRow; isFounder: boolean; rate: number | null; onClose: () => void; onChanged: () => void }) {
+  const [rate, setRate]       = useState(currentRate == null ? '' : String(currentRate))
   const [name, setName]       = useState(teacher.display_name ?? '')
   const [email, setEmail]     = useState(teacher.email ?? '')
   const [password, setPass]   = useState('')
@@ -481,6 +502,11 @@ function ManageTeacherModal({
 
       if (Object.keys(patch).length > 0) await updateTeacherAccount(teacher.id, patch)
       if (active !== teacher.is_active)  await setTeacherActive(teacher.id, active)
+      const nextRate = rate.trim() === '' ? null : Number(rate)
+      if (isFounder && nextRate !== currentRate) {
+        if (nextRate != null && (!Number.isFinite(nextRate) || nextRate < 0)) throw new Error('أدخل سعر ساعة صحيحًا.')
+        await setTeacherRate(teacher.id, nextRate)
+      }
 
       setMsg(password ? 'تم الحفظ — انسخ كلمة المرور الجديدة الآن.' : 'تم الحفظ.')
       if (!password) onChanged()
@@ -545,6 +571,18 @@ function ManageTeacherModal({
           </p>
         </FieldRow>
 
+        <FieldRow icon={KeyRound} label="سعر الساعة (د.م)">
+          {isFounder ? (
+            <input value={rate} onChange={e => setRate(e.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" dir="ltr"
+                   className={`${inp} text-left`} placeholder="100" />
+          ) : (
+            <div className="rounded-xl bg-gray-50 border border-gray-200 px-3.5 py-2.5 text-[13px] font-bold text-gray-700">
+              {currentRate != null ? `${currentRate} د.م / ساعة` : 'غير محدد'}
+              <span className="block text-[11px] font-semibold text-gray-400 mt-0.5">تعديل الأجر من صلاحيات المؤسس.</span>
+            </div>
+          )}
+        </FieldRow>
+
         <label className="flex items-center gap-2.5 cursor-pointer">
           <input type="checkbox" checked={active} onChange={e => setActive(e.target.checked)}
                  className="w-4 h-4 rounded accent-gray-900" />
@@ -569,8 +607,8 @@ function ManageTeacherModal({
           )}
         </div>
 
-        {/* ── Danger zone ─────────────────────────────── */}
-        <div className="pt-4 mt-1 border-t border-gray-200">
+        {/* ── Danger zone (founder only; the API refuses anyone else) ── */}
+        {isFounder && <div className="pt-4 mt-1 border-t border-gray-200">
           {!danger ? (
             <button onClick={openDanger} className="flex items-center gap-2 text-[13px] font-bold text-red-600 hover:text-red-700">
               <Trash2 size={15} /> حذف الحساب نهائياً
@@ -623,7 +661,7 @@ function ManageTeacherModal({
               )}
             </div>
           )}
-        </div>
+        </div>}
       </div>
     </Modal>
   )

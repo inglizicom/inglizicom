@@ -76,6 +76,7 @@ function useRouteTitle(): { title: string; crumb: string[] } {
     ['/renewals', 'التجديدات'],
     ['/broadcast', 'الرسائل الجماعية'],
     ['/today', 'مهام اليوم'],
+    ['/teachers', 'الأساتذة'],
   ]
   if (/\/classes\/[^/]+$/.test(pathname)) return { title: 'قسم مباشر', crumb: ['الأقسام المباشرة', 'تفاصيل القسم'] }
   if (pathname.includes('/classes')) return { title: 'الأقسام المباشرة', crumb: [home, 'الأقسام المباشرة'] }

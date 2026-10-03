@@ -118,7 +118,35 @@ export const RPC: Record<string, unknown> = {
   founder_save_payout: { id: 'po1', payee_id: IDS.assistant, period: month, base_mad: 3500, bonus_mad: 0, deduction_mad: 0, amount_mad: 3500, hours: null, sessions: null, status: 'paid', method: 'bank_transfer', reference: null, note: null, paid_at: iso(0) },
   my_payouts: { salary: null, payouts: [] },
   staff_ping: null,
+  teachers_scoreboard: [{
+    id: IDS.teacher, display_name: 'سارة بن يوسف', email: 'teacher@e2e.test', headline: 'IELTS', avatar_url: null,
+    is_active: true, hired_at: '2025-01-10', rating_avg: 4.8, rating_count: 12, period: { from: day(30), to: day(0), timezone: 'Africa/Casablanca' },
+    assigned_students: 6, class_students: 4, unique_students: 8, course_students: 5, group_enrollments: 3, private_enrollments: 1,
+    classes_active: 2, sessions_delivered: 10, hours_delivered: 15, sessions_cancelled: 1, reports_owed: 0, reports_owed_all_time: 0,
+    attendance_marks: 30, attendance_rate: 90, new_class_enrollments: 2, course_enrollments: 5, class_seats: 4,
+    group_classes: 1, private_classes: 1, roster_revenue: 2700, roster_paying_students: 4,
+  }],
 }
+
+export const CLASS_ID = '00000000-0000-4000-8000-00000000c100'
+export const SESSION_ID = '00000000-0000-4000-8000-00000000c200'
+RPC.staff_online_class_detail = {
+  class: {
+    id: CLASS_ID, title: 'مجموعة المساء A1', mode: 'group', level: 'A1', status: 'active', teacher_id: IDS.teacher,
+    teacher_name: 'سارة بن يوسف', course_id: null, course_title: null, starts_on: day(30), ends_on: day(-60), capacity: 8,
+    waitlist_enabled: true, meeting_url: 'https://meet.example/a1', schedule_note: null, notes: null, archived_at: null, created_at: iso(40),
+  },
+  roster: STUDENTS.slice(0, 3).map((s, i) => ({
+    enrollment_id: `00000000-0000-4000-8000-00000000c30${i}`, student_id: s.id, full_name: s.full_name, phone_number: s.phone_number,
+    avatar_url: null, status: 'active', enrolled_at: iso(30), activated_at: iso(30), start_date: day(30), end_date: null,
+    ended_at: null, end_reason: null, attendance: { marked: 4, present: 3, absent: 1 },
+  })),
+  sessions: [{
+    id: SESSION_ID, title: 'مجموعة المساء A1', starts_at: iso(0.05), duration_min: 60, status: 'done', cancel_reason: null,
+    teacher_id: IDS.teacher, teacher_name: 'سارة بن يوسف', marks: 0, present: 0, has_report: false,
+  }],
+}
+RPC.staff_class_attendance_without_enrollment = []
 
 export interface MockOptions {
   role?: Role | null

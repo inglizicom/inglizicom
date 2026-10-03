@@ -9,11 +9,13 @@ const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 const EMAIL_RE   = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
 /**
- * Manage one teaching account. Founder-only.
+ * Manage one teaching account.
  *
- *   GET    → what a delete would destroy (classes, reports, …)
- *   PATCH  → change email, reset password, rename
- *   DELETE → remove the auth user; everything cascades from profiles
+ *   GET    → what a delete would destroy (classes, reports, …)   staff
+ *   PATCH  → change email, reset password, rename                 staff
+ *   DELETE → remove the auth user; everything cascades from profiles   founder only
+ *
+ * Staff = a founder or an assistant whose account is not blocked (058).
  *
  * Email and password live in auth.users, which the anon client cannot touch at
  * all — hence a service-role route rather than a direct update from the CRM.
@@ -24,8 +26,8 @@ function adminClient(key: string) {
 }
 type Admin = ReturnType<typeof adminClient>
 
-/** Returns the admin client once the caller is confirmed to be a founder. */
-async function requireFounder(req: NextRequest): Promise<{ admin: Admin } | { error: NextResponse }> {
+/** Returns the admin client once the caller is confirmed staff (or a founder, when founderOnly). */
+async function requireStaff(req: NextRequest, founderOnly = false): Promise<{ admin: Admin } | { error: NextResponse }> {
   if (!serviceKey) {
     return { error: NextResponse.json({ error: 'Server not configured: SUPABASE_SERVICE_ROLE_KEY is missing.' }, { status: 500 }) }
   }
@@ -39,9 +41,11 @@ async function requireFounder(req: NextRequest): Promise<{ admin: Admin } | { er
     return { error: NextResponse.json({ error: 'Your session is invalid — sign in again.' }, { status: 401 }) }
   }
   const { data: profile } = await admin
-    .from('profiles').select('role, is_admin').eq('id', caller.user.id).maybeSingle()
-  if (!(profile?.role === 'founder' || profile?.is_admin === true)) {
-    return { error: NextResponse.json({ error: 'Only founders can manage teaching accounts.' }, { status: 403 }) }
+    .from('profiles').select('role, is_admin, blocked').eq('id', caller.user.id).maybeSingle()
+  const isFounder = profile?.role === 'founder' || profile?.is_admin === true
+  const isStaff = (isFounder || profile?.role === 'assistant') && !profile?.blocked
+  if (founderOnly ? !(isFounder && !profile?.blocked) : !isStaff) {
+    return { error: NextResponse.json({ error: founderOnly ? 'Only founders can delete teaching accounts.' : 'Only staff can manage teaching accounts.' }, { status: 403 }) }
   }
   return { admin }
 }
@@ -62,7 +66,7 @@ async function assertTeacher(admin: Admin, id: string): Promise<NextResponse | n
 /* ── What would a delete cost? ─────────────────────────── */
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const gate = await requireFounder(req)
+  const gate = await requireStaff(req)
   if ('error' in gate) return gate.error
   const { admin } = gate
 
@@ -84,7 +88,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 /* ── Change email / reset password / rename ────────────── */
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const gate = await requireFounder(req)
+  const gate = await requireStaff(req)
   if ('error' in gate) return gate.error
   const { admin } = gate
 
@@ -138,7 +142,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 /* ── Delete ────────────────────────────────────────────── */
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const gate = await requireFounder(req)
+  const gate = await requireStaff(req, true)
   if ('error' in gate) return gate.error
   const { admin } = gate
 

@@ -41,6 +41,7 @@ const GROUPS: { title: string; founder?: boolean; items: NavDef[] }[] = [
   { title: 'التعليم', items: [
     { id: 'courses',     labelAr: 'الدورات',            icon: BookOpen,     path: '/courses' },
     { id: 'classes',     labelAr: 'الأقسام المباشرة',    icon: Presentation, path: '/classes' },
+    { id: 'teachers',    labelAr: 'الأساتذة',            icon: UserCog,      path: '/teachers' },
     { id: 'submissions', labelAr: 'تصحيح المحادثات',    icon: Inbox,        path: '/submissions', badgeKey: 'submissions' },
     { id: 'verify',      labelAr: 'التحقق من طالب',     icon: ShieldCheck,  path: '/verify' },
   ]},
@@ -50,7 +51,6 @@ const GROUPS: { title: string; founder?: boolean; items: NavDef[] }[] = [
   ]},
   { title: 'الإدارة', founder: true, items: [
     { id: 'team',     labelAr: 'الفريق والرواتب',      icon: Wallet,    path: '/team',      founder: true },
-    { id: 'teachers', labelAr: 'الأساتذة',            icon: UserCog,   path: '/teachers',  founder: true },
     { id: 'revenue',  labelAr: 'الإيرادات والتقارير', icon: BarChart3, path: '/analytics', founder: true },
     { id: 'admin',    labelAr: 'أدوات المؤسس',        icon: Shield,    path: '',           founder: true },
     { id: 'settings', labelAr: 'الإعدادات',          icon: Settings,  path: '/settings',  founder: true },

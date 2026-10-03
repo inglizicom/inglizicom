@@ -6,16 +6,19 @@ import { useParams } from 'next/navigation'
 import {
   Archive, ArchiveRestore, ArrowRight, CalendarPlus, CheckCircle2, ClipboardList, Loader2, Pencil,
   UserPlus, Users, AlertTriangle, CalendarX,
+  UserCheck,
 } from 'lucide-react'
 import { useCrmBasePath } from '@/lib/use-crm-path'
 import {
   CLASS_STATUS_AR, MODE_AR, SEAT_STATUS_AR, cancelSession, enrollInClass, fetchAttendanceWithoutSeat,
   fetchOnlineClassDetail, fmtDay, scheduleClassSessions, setClassArchived, setSeatStatus,
-  type AttendanceOnlyStudent, type EnrollResult, type OnlineClassDetail, type RosterSeat, type SeatStatus,
+  type AttendanceOnlyStudent, type ClassSessionRow, type EnrollResult, type OnlineClassDetail, type RosterSeat, type SeatStatus,
 } from '@/lib/online-classes'
 import { businessToday, casablancaWallTimeToIso, datesOnWeekdays } from '@/lib/enrollment-metrics'
 import { Badge, ConfirmDialog, ErrorNote, Field, INP, Modal, StudentMultiPicker } from '@/components/crm/kit'
 import ClassForm from '../ClassForm'
+import { useStaff } from '@/lib/staff-context'
+import { fetchAttendance, markAttendance, type AttendanceStatus } from '@/lib/teachers'
 
 const SESSION_STATUS_AR: Record<string, string> = { scheduled: 'مبرمجة', live: 'جارية', done: 'منتهية', cancelled: 'ملغاة' }
 
@@ -24,6 +27,7 @@ type Pending =
   | { kind: 'archive' }
   | { kind: 'cancelSession'; id: string; title: string }
   | { kind: 'enrollFromAttendance'; students: AttendanceOnlyStudent[] }
+  | { kind: 'attendance'; session: ClassSessionRow }
 
 export default function OnlineClassDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -242,6 +246,12 @@ export default function OnlineClassDetailPage() {
                                     : <span className="text-[11.5px] font-bold text-red-600">تقرير ناقص</span>)
                     : null}
                 </span>
+                {s.status !== 'cancelled' && new Date(s.starts_at).getTime() <= Date.now() + 15 * 60_000 && (
+                  <button onClick={() => setPending({ kind: 'attendance', session: s })}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-zinc-200 text-[11.5px] font-bold text-zinc-600 hover:border-blue-300 hover:text-blue-700">
+                    <UserCheck size={13} /> الحضور
+                  </button>
+                )}
                 {(s.status === 'scheduled' || s.status === 'live') && (
                   <button onClick={() => setPending({ kind: 'cancelSession', id: s.id, title: s.title })}
                     className="text-zinc-400 hover:text-red-600" aria-label="إلغاء الحصة"><CalendarX size={16} /></button>
@@ -298,6 +308,10 @@ export default function OnlineClassDetailPage() {
           confirmLabel="إلغاء الحصة"
           onConfirm={async (reason) => { await cancelSession(pending.id, reason || null); await load() }}
           onClose={() => setPending(null)} />
+      )}
+      {pending?.kind === 'attendance' && (
+        <AttendanceModal session={pending.session} roster={roster}
+          onClose={() => setPending(null)} onDone={() => { setPending(null); load() }} />
       )}
       {pending?.kind === 'enrollFromAttendance' && (
         <EnrollFromAttendance classId={c.id} students={pending.students}
@@ -496,6 +510,94 @@ function EnrollFromAttendance({ classId, students, onClose, onDone }: {
             {busy && <Loader2 size={14} className="animate-spin" />} تسجيل {picked.size || ''} طالب
           </button>
           <button onClick={onClose} className="px-4 py-2.5 border border-zinc-200 rounded-xl text-[13px] text-zinc-500">إلغاء</button>
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
+/* ── Attendance for one session (staff) ──────────────────
+   Assistants and founders mark it when the teacher has not (058). Lists the
+   students seated in the class — active, plus anyone already marked — and
+   saves everyone in one upsert, so re-opening and correcting is safe. */
+const ATT_STATUS: { id: AttendanceStatus; label: string; cls: string }[] = [
+  { id: 'present', label: 'حاضر',  cls: 'bg-emerald-600 text-white border-emerald-600' },
+  { id: 'late',    label: 'متأخر', cls: 'bg-amber-500 text-white border-amber-500' },
+  { id: 'absent',  label: 'غائب',  cls: 'bg-red-600 text-white border-red-600' },
+  { id: 'excused', label: 'معذور', cls: 'bg-zinc-600 text-white border-zinc-600' },
+]
+
+function AttendanceModal({ session, roster, onClose, onDone }: {
+  session: ClassSessionRow; roster: RosterSeat[]; onClose: () => void; onDone: () => void
+}) {
+  const me = useStaff()
+  const [marks, setMarks] = useState<Record<string, AttendanceStatus>>({})
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    fetchAttendance(session.id).then(rows => {
+      setMarks(Object.fromEntries(rows.map(r => [r.student_id, r.status as AttendanceStatus])))
+      setLoading(false)
+    })
+  }, [session.id])
+
+  const people = useMemo(() => {
+    const seen = new Set<string>()
+    return roster.filter(s => (s.status === 'active' || marks[s.student_id]) && !seen.has(s.student_id) && seen.add(s.student_id))
+  }, [roster, marks])
+
+  async function save() {
+    const rows = Object.entries(marks).map(([student_id, status]) => ({ student_id, status }))
+    if (rows.length === 0) { setError('اختر حالة لطالب واحد على الأقل.'); return }
+    setBusy(true); setError(null)
+    const ok = await markAttendance(session.id, rows, me.id)
+    setBusy(false)
+    if (ok) onDone(); else setError('تعذّر حفظ الحضور.')
+  }
+
+  return (
+    <Modal title={`الحضور — ${session.title}`} onClose={onClose} wide>
+      <div className="space-y-3">
+        <div className="text-[12.5px] text-zinc-500">
+          {fmtDay(session.starts_at)} · {new Date(session.starts_at).toLocaleTimeString('ar-MA', { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Casablanca' })}
+          {session.teacher_name && <> · {session.teacher_name}</>}
+        </div>
+        {loading ? (
+          <div className="py-10 flex justify-center"><Loader2 className="animate-spin text-zinc-300" /></div>
+        ) : people.length === 0 ? (
+          <div className="py-8 text-center text-[13px] text-zinc-400">لا طلاب مسجّلون في هذا القسم.</div>
+        ) : (
+          <>
+            <div className="flex justify-end">
+              <button onClick={() => setMarks(Object.fromEntries(people.map(s => [s.student_id, 'present' as AttendanceStatus])))}
+                className="text-[12px] font-bold text-blue-600 hover:text-blue-800">الكل حاضر</button>
+            </div>
+            <div className="rounded-xl border border-zinc-200 divide-y divide-zinc-100">
+              {people.map(s => (
+                <div key={s.student_id} className="flex flex-wrap items-center gap-2 px-3.5 py-2.5">
+                  <span className="flex-1 min-w-[8rem] text-[13px] font-bold text-zinc-800 truncate">{s.full_name}</span>
+                  <div className="flex gap-1">
+                    {ATT_STATUS.map(a => (
+                      <button key={a.id} onClick={() => setMarks(m => ({ ...m, [s.student_id]: a.id }))}
+                        className={`px-2.5 py-1 rounded-lg border text-[11.5px] font-bold transition-colors ${marks[s.student_id] === a.id ? a.cls : 'border-zinc-200 text-zinc-500 hover:border-zinc-300'}`}>
+                        {a.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+        <ErrorNote>{error}</ErrorNote>
+        <div className="flex gap-2">
+          <button onClick={save} disabled={busy || loading || people.length === 0}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-zinc-900 text-white text-[13px] font-black disabled:opacity-50">
+            {busy && <Loader2 size={14} className="animate-spin" />} حفظ الحضور
+          </button>
+          <button onClick={onClose} className="px-4 py-2.5 rounded-xl border border-zinc-200 text-[13px] font-bold text-zinc-500">إغلاق</button>
         </div>
       </div>
     </Modal>

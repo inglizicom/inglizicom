@@ -1625,3 +1625,60 @@ describe('founder control: blocking, audit trail, payroll (057)', () => {
     assert.equal((await one(ctx.db, `select public.is_teacher($1) as t`, [ctx.teacherB])).t, true)
   })
 })
+describe('assistants: teachers and live classes (058)', () => {
+  let ctx, cls, stu, session
+  const asF = fn => as(ctx.db, ctx.founder, fn)
+  const asA = fn => as(ctx.db, ctx.assistant, fn)
+  const rate = async () => Number((await one(ctx.db, `select hourly_rate_mad as r from teacher_profiles where id = $1`, [ctx.teacherA])).r)
+
+  before(async () => {
+    ctx = await setup()
+    cls = await makeClass(ctx.db, { title: 'Evening group', teacher: ctx.teacherA })
+    stu = await makeStudent(ctx.db, 'Seated Student')
+    await enrollClass(ctx.db, cls, stu.id)
+    session = await makeSession(ctx.db, { teacher: ctx.teacherA, classId: cls, startsAt: new Date().toISOString(), status: 'done' })
+    await asF(() => ctx.db.query(`update teacher_profiles set pay_model = 'hourly', hourly_rate_mad = 100 where id = $1`, [ctx.teacherA]))
+  })
+
+  it('an assistant cannot change a teacher\'s pay; the founder can', async () => {
+    await rejects(asA(() => ctx.db.query(`update teacher_profiles set hourly_rate_mad = 500 where id = $1`, [ctx.teacherA])), /Only a founder/)
+    await rejects(asA(() => ctx.db.query(`update teacher_profiles set pay_model = 'monthly' where id = $1`, [ctx.teacherA])), /Only a founder/)
+    assert.equal(await rate(), 100)
+    await asF(() => ctx.db.query(`update teacher_profiles set hourly_rate_mad = 120 where id = $1`, [ctx.teacherA]))
+    assert.equal(await rate(), 120)
+  })
+
+  it('an assistant still edits everything else and can read pay', async () => {
+    await asA(() => ctx.db.query(`update teacher_profiles set is_active = false, headline = 'IELTS' where id = $1`, [ctx.teacherA]))
+    const r = await one(ctx.db, `select is_active, headline from teacher_profiles where id = $1`, [ctx.teacherA])
+    assert.equal(r.is_active, false)
+    assert.equal(r.headline, 'IELTS')
+    const seen = await asA(() => one(ctx.db, `select hourly_rate_mad from teacher_profiles where id = $1`, [ctx.teacherA]))
+    assert.equal(Number(seen.hourly_rate_mad), 120)
+    await asA(() => ctx.db.query(`update teacher_profiles set is_active = true where id = $1`, [ctx.teacherA]))
+  })
+
+  it('the teacher still cannot touch their own pay', async () => {
+    await as(ctx.db, ctx.teacherA, () => ctx.db.query(`update teacher_profiles set hourly_rate_mad = 999 where id = $1`, [ctx.teacherA]))
+    assert.equal(await rate(), 120)
+  })
+
+  it('an assistant marks attendance for a class session', async () => {
+    await asA(() => ctx.db.query(
+      `insert into class_attendance (session_id, student_id, status, marked_by) values ($1, $2, 'late', $3)
+       on conflict (session_id, student_id) do update set status = excluded.status, marked_by = excluded.marked_by`,
+      [session, stu.id, ctx.assistant]))
+    const a = await one(ctx.db, `select status, marked_by from class_attendance where session_id = $1 and student_id = $2`, [session, stu.id])
+    assert.equal(a.status, 'late')
+    const seen = await asA(() => q(ctx.db, `select status from class_attendance where session_id = $1`, [session]))
+    assert.equal(seen.length, 1)
+  })
+
+  it('a blocked assistant can do neither', async () => {
+    await asF(() => rpc(ctx.db, 'founder_set_staff_blocked', [ctx.assistant, true]))
+    const seen = await asA(() => q(ctx.db, `select id from class_attendance where session_id = $1`, [session]))
+    assert.equal(seen.length, 0)
+    await rejects(asA(() => ctx.db.query(`insert into class_attendance (session_id, student_id, status) values ($1, $2, 'present')`, [session, stu.id])), /row-level security|violates/)
+    await asF(() => rpc(ctx.db, 'founder_set_staff_blocked', [ctx.assistant, false]))
+  })
+})

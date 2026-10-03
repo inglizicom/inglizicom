@@ -13,7 +13,7 @@ const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 /**
  * Create a teaching account (email + password) for teacher.inglizi.com.
  *
- * Founder-only. Mirrors create-assistant, but lands on role = 'teacher' and
+ * Staff (founders and assistants that are not blocked, 058). Mirrors create-assistant, but lands on role = 'teacher' and
  * seeds the teacher_profiles row so the new teacher opens onto a real profile
  * instead of an empty screen.
  */
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 
   const admin = adminClient(serviceKey)
 
-  // 1) Authenticate the caller and confirm founder.
+  // 1) Authenticate the caller and confirm staff.
   const token = (req.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '').trim()
   if (!token) return NextResponse.json({ error: 'Not authenticated.' }, { status: 401 })
 
@@ -37,11 +37,12 @@ export async function POST(req: NextRequest) {
   }
 
   const { data: callerProfile } = await admin
-    .from('profiles').select('role, is_admin').eq('id', caller.user.id).maybeSingle()
+    .from('profiles').select('role, is_admin, blocked').eq('id', caller.user.id).maybeSingle()
 
-  const isFounder = callerProfile?.role === 'founder' || callerProfile?.is_admin === true
-  if (!isFounder) {
-    return NextResponse.json({ error: 'Only founders can create teaching accounts.' }, { status: 403 })
+  const isStaff = (callerProfile?.role === 'founder' || callerProfile?.is_admin === true || callerProfile?.role === 'assistant')
+    && !callerProfile?.blocked
+  if (!isStaff) {
+    return NextResponse.json({ error: 'Only staff can create teaching accounts.' }, { status: 403 })
   }
 
   // 2) Validate input.
