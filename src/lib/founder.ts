@@ -118,6 +118,39 @@ export async function fetchTeam(from?: string | null, to?: string | null): Promi
   })) as TeamMember[]
 }
 
+/** True when the error means 057 is not on this database yet. */
+export const isMissingFunction = (e: unknown) =>
+  /Could not find the function|function .* does not exist|schema cache/i.test(String((e as Error)?.message ?? e))
+
+/**
+ * The team straight from profiles — used when founder_team() is not deployed
+ * yet, so nobody vanishes from the page: names, roles and rates, no activity.
+ */
+export async function fetchTeamBasic(): Promise<TeamMember[]> {
+  const [{ data: profs, error }, { data: tps }] = await Promise.all([
+    supabase.from('profiles').select('id, email, full_name, phone, avatar_url, role, blocked, created_at')
+      .in('role', ['founder', 'assistant', 'teacher']),
+    supabase.from('teacher_profiles').select('id, display_name, hourly_rate_mad, pay_model, is_active, rating_avg, rating_count'),
+  ])
+  if (error) throw new Error(error.message)
+  const tpById = new Map((tps ?? []).map((t: any) => [t.id, t]))
+  const order: Record<string, number> = { founder: 0, assistant: 1, teacher: 2 }
+  return (profs ?? []).map((p: any) => {
+    const tp: any = tpById.get(p.id)
+    return {
+      id: p.id, email: p.email, phone: p.phone, avatar_url: p.avatar_url, role: p.role, blocked: !!p.blocked,
+      name: tp?.display_name || p.full_name || (p.email ?? '').split('@')[0] || '—',
+      created_at: p.created_at, last_sign_in_at: null, last_seen_at: null, last_path: null,
+      monthly_salary_mad: 0, hourly_rate_mad: tp?.hourly_rate_mad == null ? null : Number(tp.hourly_rate_mad),
+      pay_model: tp?.pay_model ?? null, teacher_active: tp?.is_active ?? null,
+      rating_avg: tp?.rating_avg == null ? null : Number(tp.rating_avg), rating_count: tp?.rating_count ?? null,
+      actions: 0, sessions_opened: 0, lead_actions: 0, leads_created: 0, payment_actions: 0, last_action_at: null,
+      students_added: 0, payments_recorded: 0, revenue_recorded: 0, leads_assigned: 0, followups_overdue: 0,
+      sessions_done: 0, hours_done: 0, students_assigned: 0,
+    } as TeamMember
+  }).sort((a, b) => order[a.role] - order[b.role] || a.name.localeCompare(b.name, 'ar'))
+}
+
 export async function fetchActivity(opts: {
   actor?: string | null; from?: string | null; to?: string | null; entity?: string | null; limit?: number
 } = {}): Promise<ActivityRow[]> {

@@ -2,9 +2,9 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { Activity, Users, Wallet, Radio, ShieldAlert } from 'lucide-react'
+import { Activity, Users, Wallet, Radio, ShieldAlert, DatabaseZap } from 'lucide-react'
 import { ErrorNote } from '@/components/crm/kit'
-import { fetchTeam, type TeamMember } from '@/lib/founder'
+import { fetchTeam, fetchTeamBasic, isMissingFunction, type TeamMember } from '@/lib/founder'
 import { businessToday, addDays } from '@/lib/enrollment-metrics'
 import { useStaff } from '@/lib/staff-context'
 import TeamTab from './TeamTab'
@@ -49,6 +49,8 @@ function Team() {
   const [people, setPeople] = useState<TeamMember[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // 057 not on this database yet: list the team from profiles, hide what needs it.
+  const [limited, setLimited] = useState(false)
 
   const today = businessToday()
   const range = useMemo(() => {
@@ -60,8 +62,13 @@ function Team() {
 
   const load = useCallback(async () => {
     setLoading(true); setError(null)
-    try { setPeople(await fetchTeam(range.from, range.to)) }
-    catch (e: any) { setError(e?.message ?? 'تعذّر تحميل الفريق') }
+    try { setPeople(await fetchTeam(range.from, range.to)); setLimited(false) }
+    catch (e: any) {
+      if (isMissingFunction(e)) {
+        setLimited(true)
+        try { setPeople(await fetchTeamBasic()) } catch (e2: any) { setError(e2?.message ?? 'تعذّر تحميل الفريق') }
+      } else setError(e?.message ?? 'تعذّر تحميل الفريق')
+    }
     finally { setLoading(false) }
   }, [range.from, range.to])
   useEffect(() => { load() }, [load])
@@ -128,10 +135,19 @@ function Team() {
         )}
       </div>
 
+      {limited && (
+        <div className="flex items-start gap-3 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3.5">
+          <DatabaseZap size={18} className="text-amber-600 shrink-0 mt-0.5" />
+          <div className="text-[12.5px] text-amber-900 leading-relaxed">
+            <b>قاعدة البيانات لم تُحدَّث بعد.</b> الفريق ظاهر وتستطيع الإضافة والإزالة، لكن تتبّع النشاط والرواتب والإيقاف
+            تعمل بعد تشغيل <bdi dir="ltr">057_founder_control.sql</bdi> في Supabase.
+          </div>
+        </div>
+      )}
       <ErrorNote>{error}</ErrorNote>
 
       {tab === 'team' && (
-        <TeamTab people={people} loading={loading} onChanged={load}
+        <TeamTab people={people} loading={loading} limited={limited} onChanged={load}
                  onShowActivity={id => go('activity', { actor: id })} />
       )}
       {tab === 'payroll' && <PayrollTab initialMonth={today.slice(0, 8) + '01'} />}

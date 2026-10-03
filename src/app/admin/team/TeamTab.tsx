@@ -3,10 +3,13 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
-  Activity, Ban, CheckCircle2, Loader2, MessageCircle, Pencil, Save, Star, X, ShieldCheck, Clock,
+  Activity, Ban, CheckCircle2, Loader2, MessageCircle, Pencil, Save, Star, X, ShieldCheck, Clock, Trash2, UserPlus,
 } from 'lucide-react'
 import { ConfirmDialog, INP } from '@/components/crm/kit'
 import { ROLE_AR, setPaySettings, setStaffBlocked, type TeamMember } from '@/lib/founder'
+import { setProfileRole } from '@/lib/staff-db'
+import { deleteTeacherAccount, fetchDeleteImpact, type DeleteImpact } from '@/lib/teachers'
+import AddMember from './AddMember'
 import { CARD, Initial, Stat, ago, isOnline, mad, waLink } from './_shared'
 
 /**
@@ -15,13 +18,17 @@ import { CARD, Initial, Stat, ago, isOnline, mad, waLink } from './_shared'
  * salary; teachers show sessions, hours and rating. The founder can block
  * or unblock anyone but a founder, and jump to that person's trail.
  */
-export default function TeamTab({ people, loading, onChanged, onShowActivity }: {
+export default function TeamTab({ people, loading, limited, onChanged, onShowActivity }: {
   people: TeamMember[] | null
   loading: boolean
+  /** 057 not deployed: list only, no activity / block / salary. */
+  limited: boolean
   onChanged: () => void
   onShowActivity: (id: string) => void
 }) {
   const [confirm, setConfirm] = useState<TeamMember | null>(null)
+  const [removing, setRemoving] = useState<TeamMember | null>(null)
+  const [adding, setAdding] = useState(false)
 
   if (loading && !people) {
     return <div className="py-16 flex justify-center text-zinc-400"><Loader2 className="animate-spin" /></div>
@@ -35,6 +42,14 @@ export default function TeamTab({ people, loading, onChanged, onShowActivity }: 
 
   return (
     <div className="space-y-7">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-[12.5px] text-zinc-500">أضف مساعدًا أو أستاذًا ببريد وكلمة مرور تعطيها له — لا يحتاج إلى التسجيل بنفسه.</p>
+        <button onClick={() => setAdding(true)}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-l from-amber-400 to-yellow-500 text-[#1E3A8A] text-[13px] font-bold ring-1 ring-amber-300 shadow-sm">
+          <UserPlus size={16} /> إضافة عضو
+        </button>
+      </div>
+
       {groups.map(g => g.rows.length > 0 && (
         <section key={g.title}>
           <div className="flex items-baseline gap-2 mb-3">
@@ -43,7 +58,8 @@ export default function TeamTab({ people, loading, onChanged, onShowActivity }: 
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4">
             {g.rows.map(p => (
-              <PersonCard key={p.id} p={p} onBlock={() => setConfirm(p)} onShowActivity={() => onShowActivity(p.id)} onChanged={onChanged} />
+              <PersonCard key={p.id} p={p} limited={limited} onBlock={() => setConfirm(p)} onRemove={() => setRemoving(p)}
+                          onShowActivity={() => onShowActivity(p.id)} onChanged={onChanged} />
             ))}
           </div>
         </section>
@@ -64,12 +80,15 @@ export default function TeamTab({ people, loading, onChanged, onShowActivity }: 
           onClose={() => setConfirm(null)}
         />
       )}
+
+      {removing && <RemoveDialog p={removing} onClose={() => setRemoving(null)} onRemoved={onChanged} />}
+      {adding && <AddMember onClose={() => setAdding(false)} onAdded={onChanged} />}
     </div>
   )
 }
 
-function PersonCard({ p, onBlock, onShowActivity, onChanged }: {
-  p: TeamMember; onBlock: () => void; onShowActivity: () => void; onChanged: () => void
+function PersonCard({ p, limited, onBlock, onRemove, onShowActivity, onChanged }: {
+  p: TeamMember; limited: boolean; onBlock: () => void; onRemove: () => void; onShowActivity: () => void; onChanged: () => void
 }) {
   const online = isOnline(p.last_seen_at)
   const wa = waLink(p.phone, `مرحبًا ${p.name}`)
@@ -124,12 +143,12 @@ function PersonCard({ p, onBlock, onShowActivity, onChanged }: {
         </div>
       )}
 
-      {p.role === 'assistant' && <SalaryEditor p={p} onSaved={onChanged} />}
+      {p.role === 'assistant' && !limited && <SalaryEditor p={p} onSaved={onChanged} />}
 
       {/* actions */}
       <div className="flex flex-wrap gap-2 mt-auto">
-        <button onClick={onShowActivity}
-                className="flex-1 min-w-[110px] flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-blue-50 text-blue-700 text-[12.5px] font-bold hover:bg-blue-100 transition-colors">
+        <button onClick={onShowActivity} disabled={limited}
+                className="disabled:opacity-40 flex-1 min-w-[110px] flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-blue-50 text-blue-700 text-[12.5px] font-bold hover:bg-blue-100 transition-colors">
           <Activity size={14} /> النشاط
         </button>
         {p.role === 'teacher' && (
@@ -144,11 +163,17 @@ function PersonCard({ p, onBlock, onShowActivity, onChanged }: {
             <MessageCircle size={16} />
           </a>
         )}
-        {p.role !== 'founder' && (
+        {p.role !== 'founder' && !limited && (
           <button onClick={onBlock}
                   className={`flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-[12.5px] font-bold transition-colors
                               ${p.blocked ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'bg-rose-50 text-rose-700 hover:bg-rose-100'}`}>
             {p.blocked ? <><CheckCircle2 size={14} /> تفعيل</> : <><Ban size={14} /> إيقاف</>}
+          </button>
+        )}
+        {p.role !== 'founder' && (
+          <button onClick={onRemove} aria-label="إزالة من الفريق" title="إزالة من الفريق"
+                  className="w-10 flex items-center justify-center rounded-xl border border-rose-200 text-rose-500 hover:bg-rose-50">
+            <Trash2 size={15} />
           </button>
         )}
         {p.role === 'founder' && (
@@ -203,5 +228,59 @@ function SalaryEditor({ p, onSaved }: { p: TeamMember; onSaved: () => void }) {
       )}
       {err && <div className="text-[11.5px] font-bold text-rose-600 mt-1">{err}</div>}
     </div>
+  )
+}
+
+/**
+ * Remove someone from the team.
+ *   assistant → back to a plain account: CRM access ends at once; everything
+ *               they did, added and were paid stays.
+ *   teacher   → the existing irreversible delete (classes, reports, materials
+ *               go with the account), shown with its real impact first, and
+ *               suspend offered as the safer path.
+ */
+function RemoveDialog({ p, onClose, onRemoved }: { p: TeamMember; onClose: () => void; onRemoved: () => void }) {
+  const [impact, setImpact] = useState<DeleteImpact | null>(null)
+  const [impactErr, setImpactErr] = useState<string | null>(null)
+  useEffect(() => {
+    if (p.role !== 'teacher') return
+    fetchDeleteImpact(p.id).then(setImpact).catch(e => setImpactErr(e?.message ?? 'تعذّر حساب الأثر'))
+  }, [p.id, p.role])
+
+  if (p.role === 'assistant') {
+    return (
+      <ConfirmDialog
+        title={`إزالة ${p.name} من الفريق`}
+        body="سيفقد هذا الحساب الوصول إلى الـCRM فورًا ويصبح حسابًا عاديًا. يمكنك إعادته لاحقًا من «إضافة عضو» بنفس البريد."
+        keeps={['سجل نشاطه كاملًا', 'العملاء والطلاب والدفعات التي سجّلها', 'رواتبه السابقة']}
+        confirmLabel="إزالة من الفريق"
+        onConfirm={async () => { await setProfileRole(p.id, 'student'); onRemoved() }}
+        onClose={onClose}
+      />
+    )
+  }
+
+  return (
+    <ConfirmDialog
+      title={`حذف حساب ${p.name} نهائيًا`}
+      body={
+        <div className="space-y-2">
+          <p>لا يمكن التراجع عن الحذف. إذا كنت تريد فقط إبعاده مؤقتًا فاستعمل «إيقاف» بدلًا من الحذف.</p>
+          {impactErr && <p className="text-rose-600 font-bold">{impactErr}</p>}
+          {!impact && !impactErr && <p className="flex items-center gap-2 text-zinc-400"><Loader2 size={13} className="animate-spin" /> حساب ما سيُحذف…</p>}
+          {impact && (
+            <ul className="rounded-xl bg-rose-50 border border-rose-100 px-3.5 py-2.5 text-[12.5px] text-rose-800 space-y-0.5">
+              <li>· {impact.classes} حصة وسجلّات حضورها</li>
+              <li>· {impact.reports} تقرير · {impact.materials} ملف</li>
+              <li>· إسناد {impact.students} طالب (الطلاب أنفسهم يبقون)</li>
+              <li>· {impact.reviews} تقييم</li>
+            </ul>
+          )}
+        </div>
+      }
+      confirmLabel="حذف الحساب نهائيًا"
+      onConfirm={async () => { await deleteTeacherAccount(p.id); onRemoved() }}
+      onClose={onClose}
+    />
   )
 }
