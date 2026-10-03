@@ -1197,3 +1197,131 @@ describe('teacher transparency: student payments and the leaderboard (053)', () 
     await rejects(call('anon', 'teacher_leaderboard', [null, null]), /permission denied/)
   })
 })
+
+// ════════════════════════════════════════════════════════════
+describe('student dashboard: tracks, sessions, attendance, payments, watch time (054)', () => {
+  let ctx, course, groupA, privB, otherK, courseOnly, classOnly, both, stranger
+  const dash = token => as(ctx.db, 'anon', () => rpc(ctx.db, 'student_dashboard', [token]))
+  const watch = (token, lesson, secs) => as(ctx.db, 'anon', () => rpc(ctx.db, 'student_log_watch', [token, lesson, secs]))
+  const asst = fn => as(ctx.db, ctx.assistant, fn)
+  const TODAY = new Date().toISOString().slice(0, 10)
+  const YESTERDAY = new Date(Date.now() - 864e5).toISOString().slice(0, 10)
+  const inDays = d => new Date(Date.now() + d * 864e5).toISOString()
+
+  before(async () => {
+    ctx = await setup()
+    course = await makeCourse(ctx.db, 'English A1', { units: [{ title: 'Unit 1', lessons: [{ title: 'L1', type: 'video' }, { title: 'L2' }] }] })
+    groupA = await makeClass(ctx.db, { title: 'Group A', teacher: ctx.teacherA })
+    privB  = await makeClass(ctx.db, { title: 'Private B', mode: 'private', teacher: ctx.teacherB })
+    otherK = await makeClass(ctx.db, { title: 'Not mine', teacher: ctx.teacherB })
+    await ctx.db.query(`update online_classes set meeting_url = 'https://meet.example/' || title where id in ($1, $2, $3)`, [groupA, privB, otherK])
+
+    courseOnly = await makeStudent(ctx.db, 'Course only')
+    classOnly  = await makeStudent(ctx.db, 'Class only')
+    both       = await makeStudent(ctx.db, 'Both tracks')
+    stranger   = await makeStudent(ctx.db, 'Stranger')
+
+    await enrollCourse(ctx.db, course.id, courseOnly.id)
+    await enrollCourse(ctx.db, course.id, both.id)
+    await ctx.db.query(`insert into lms_lesson_progress (student_id, lesson_id, status, completed_at) values ($1, $2, 'completed', now())`,
+      [courseOnly.id, course.modules[0].lessons[0]])
+
+    await enrollClass(ctx.db, groupA, classOnly.id)
+    const e = await enrollClass(ctx.db, privB, classOnly.id)
+    await asst(() => rpc(ctx.db, 'staff_set_class_enrollment', [e.id, 'completed', null, null, null]))
+    await enrollClass(ctx.db, groupA, both.id)
+    await enrollClass(ctx.db, otherK, stranger.id)
+    await ctx.db.query(`insert into teacher_students (teacher_id, student_id) values ($1, $2)`, [ctx.teacherA, both.id])
+
+    // sessions: two past (marked) and one upcoming in Group A; one upcoming in a class classOnly is not in
+    const past1 = await makeSession(ctx.db, { teacher: ctx.teacherA, classId: groupA, startsAt: inDays(-3), status: 'done' })
+    const past2 = await makeSession(ctx.db, { teacher: ctx.teacherA, classId: groupA, startsAt: inDays(-1), status: 'done' })
+    const next  = await makeSession(ctx.db, { teacher: ctx.teacherA, classId: groupA, startsAt: inDays(2), status: 'scheduled' })
+    await makeSession(ctx.db, { teacher: ctx.teacherB, classId: otherK, startsAt: inDays(2), status: 'scheduled' })
+    await ctx.db.query(`update class_sessions set meeting_url = 'https://meet.example/session' where id = $1`, [next])
+    await ctx.db.query(`insert into class_attendance (session_id, student_id, status) values ($1, $3, 'present'), ($2, $3, 'absent')`,
+      [past1, past2, classOnly.id])
+
+    // payments for the class student
+    await pay(ctx.db, classOnly.id, 800, TODAY)
+    await ctx.db.query(`insert into crm_payments (student_id, payment_type, amount_mad, payment_status, due_date, installment_no, installment_count)
+                        values ($1, 'course_one_time', 400, 'pending', $2, 2, 2)`, [classOnly.id, YESTERDAY])
+    await ctx.db.query(`insert into crm_payments (student_id, payment_type, amount_mad, payment_status, payment_date, excluded_from_revenue)
+                        values ($1, 'course_one_time', 999, 'paid', $2, true)`, [classOnly.id, TODAY])
+  })
+
+  it('a wrong or inactive token finds nothing', async () => {
+    assert.deepEqual(await dash('ING-NOPE'), { found: false })
+    await ctx.db.query(`update crm_students set is_active = false where id = $1`, [stranger.id])
+    assert.equal((await dash(stranger.token)).found, false)
+  })
+
+  it('a course-only student has a course track and no class track', async () => {
+    const d = await dash(courseOnly.token)
+    assert.equal(d.found, true)
+    assert.equal(d.courses.length, 1)
+    assert.equal(d.courses[0].lessons_total, 2)
+    assert.equal(d.courses[0].lessons_done, 1)
+    assert.deepEqual(d.classes, [])
+    assert.deepEqual(d.sessions, [])
+    assert.equal(d.study.videos_completed, 1)
+  })
+
+  it('a class-only student sees their seats, only their sessions, and the link only while seated', async () => {
+    const d = await dash(classOnly.token)
+    assert.deepEqual(d.courses, [])
+    const byTitle = Object.fromEntries(d.classes.map(c => [c.title, c]))
+    assert.equal(byTitle['Group A'].status, 'active')
+    assert.equal(byTitle['Group A'].meeting_url, 'https://meet.example/Group A')
+    assert.equal(byTitle['Private B'].status, 'completed')
+    assert.equal(byTitle['Private B'].mode, 'private')
+    assert.equal(byTitle['Private B'].meeting_url, null, 'no link once the seat has ended')
+    assert.ok(!d.classes.some(c => c.title === 'Not mine'))
+    assert.equal(d.sessions.length, 3, 'Group A only — two past, one upcoming')
+    assert.ok(d.sessions.every(s => s.class_title === 'Group A'))
+    const upcoming = d.sessions.find(s => s.status === 'scheduled')
+    assert.equal(upcoming.meeting_url, 'https://meet.example/session')
+    assert.equal(byTitle['Group A'].attended, 1)
+  })
+
+  it('attendance counts present + late over marked sessions', async () => {
+    const d = await dash(classOnly.token)
+    assert.equal(d.attendance.marks, 2)
+    assert.equal(d.attendance.present, 1)
+    assert.equal(d.attendance.absent, 1)
+    assert.equal(d.attendance.rate, 50)
+    assert.equal(d.attendance.recent.length, 2)
+  })
+
+  it('teachers: one row per teacher, tagged assigned and/or by class', async () => {
+    const d = await dash(both.token)
+    assert.equal(d.teachers.length, 1)
+    assert.equal(d.teachers[0].assigned, true)
+    assert.deepEqual(d.teachers[0].classes, ['Group A'])
+    const c = await dash(classOnly.token)
+    const b = c.teachers.find(t => t.id === ctx.teacherB)
+    assert.equal(b.assigned, false)
+    assert.deepEqual(b.classes, ['Private B'], 'a completed seat still names its teacher')
+  })
+
+  it('payments: paid and outstanding, excluded payments ignored, overdue status, no receipts', async () => {
+    const d = await dash(classOnly.token)
+    assert.equal(Number(d.payments.total_paid), 800)
+    assert.equal(Number(d.payments.outstanding), 400)
+    assert.equal(d.payments.status, 'overdue')
+    assert.equal(d.payments.history.length, 2)
+    assert.ok(d.payments.history.some(h => h.installment === '2/2' && h.status === 'overdue'))
+    assert.ok(!JSON.stringify(d.payments).includes('receipt'))
+  })
+
+  it('watch time: short or unknown is refused, long is capped, and it shows up as minutes', async () => {
+    const lesson = course.modules[0].lessons[0]
+    assert.equal(await watch(courseOnly.token, lesson, 3), false)
+    assert.equal(await watch('ING-NOPE', lesson, 600), false)
+    assert.equal(await watch(courseOnly.token, lesson, 600), true)
+    assert.equal(await watch(courseOnly.token, lesson, 99999), true)
+    const d = await dash(courseOnly.token)
+    assert.equal(d.study.watch_minutes, 10 + 240, '600s + capped 4h')
+    assert.equal(d.study.weekly.length, 8)
+  })
+})

@@ -30,14 +30,20 @@ function loadYT(): Promise<void> {
 
 const fmt = (s: number) => { const m = Math.floor(s / 60), sec = Math.floor(s % 60); return `${m}:${String(sec).padStart(2, '0')}` }
 
-interface Props { url: string; title?: string; onClose: () => void; onWatched?: () => void }
+interface Props {
+  url: string; title?: string; onClose: () => void; onWatched?: () => void
+  /** Seconds actually played, reported once when the player closes (powers "hours watched"). */
+  onWatchTime?: (seconds: number) => void
+}
 
-export default function VideoPlayer({ url, title, onClose, onWatched }: Props) {
+export default function VideoPlayer({ url, title, onClose, onWatched, onWatchTime }: Props) {
   const id = ytId(url)
   const holderRef = useRef<HTMLDivElement>(null)
   const wrapRef   = useRef<HTMLDivElement>(null)
   const playerRef = useRef<any>(null)
   const watched   = useRef(false)
+  const played    = useRef(0)                      // seconds spent PLAYING (not paused, not buffering)
+  const watchCb   = useRef(onWatchTime); watchCb.current = onWatchTime
   const hideTimer = useRef<any>(null)
   const [ready, setReady]     = useState(false)
   const [started, setStarted] = useState(false)   // has played at least once
@@ -90,10 +96,16 @@ export default function VideoPlayer({ url, title, onClose, onWatched }: Props) {
           const c = p.getCurrentTime() || 0, d = p.getDuration() || 0
           setCur(c); if (d) setDur(d)
           if (d > 0 && c / d >= 0.92) fireWatched()
+          try { if (p.getPlayerState?.() === 1) played.current += 0.5 } catch {}
         }
       }, 500)
     })
-    return () => { cancelled = true; clearInterval(interval); clearTimeout(hideTimer.current); try { playerRef.current?.destroy() } catch {} }
+    return () => {
+      cancelled = true; clearInterval(interval); clearTimeout(hideTimer.current)
+      const secs = Math.round(played.current); played.current = 0
+      if (secs >= 5) watchCb.current?.(secs)
+      try { playerRef.current?.destroy() } catch {}
+    }
   }, [id])
 
   // Auto-hide controls while playing; keep them up while paused.

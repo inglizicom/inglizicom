@@ -7,7 +7,7 @@ import {
   ExternalLink, Sparkles, LogOut, TrendingUp, Home, Route, Award, PlayCircle, ArrowLeft,
   Flame, Lock, AlertCircle, MessageSquareText, Video, PenLine, HelpCircle, Mic,
   ChevronLeft, ChevronRight, ChevronDown, ListChecks, Bell, MessageSquare, Star, Trophy, Medal,
-  CalendarDays, Clock, BarChart3, Send, Play, Coins,
+  CalendarDays, Clock, BarChart3, Send, Play, Coins, UserRound,
 } from 'lucide-react'
 import {
   fetchStudentSpace, completeExercise, logActivity, fileUrl, studentLogin, getDeviceId, deviceValid, fetchUnitSteps,
@@ -38,6 +38,10 @@ import { courseTheme, themeForKey } from '@/lib/course-theme'
 import { PROMO_CATALOG, MAX_DISCOUNT_PCT, seatsLeftThisMonth, type PromoCourse } from '@/data/course-catalog'
 import { isDemo, DEMO_SPACE, DEMO_BOARD } from '@/lib/demo'
 import { fetchStudentAnnouncements, type StudentAnnouncement } from '@/lib/announcements'
+import { fetchStudentDashboard, logWatchTime, classifyTracks, DEMO_STUDENT_DASHBOARD, type StudentDashboard } from '@/lib/student-dashboard'
+import MyCourses from '@/components/student-dashboard/MyCourses'
+import MyProfile from '@/components/student-dashboard/MyProfile'
+import { EntryCards } from '@/components/student-dashboard/ui'
 
 const isVideoUrl = (u?: string | null) => !!u && /(youtube\.com|youtu\.be)/i.test(u)
 const ytId = (u?: string | null) => {
@@ -76,12 +80,12 @@ function InitAva({ name, className }: { name: string; className?: string }) {
 }
 const DAY_AR = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']
 
-type Tab = 'home' | 'path' | 'tasks' | 'rewards' | 'files' | 'progress'
-const TABS: Tab[] = ['home', 'path', 'tasks', 'rewards', 'files', 'progress']
+type Tab = 'home' | 'courses' | 'profile' | 'path' | 'tasks' | 'rewards' | 'files' | 'progress'
+const TABS: Tab[] = ['home', 'courses', 'profile', 'path', 'tasks', 'rewards', 'files', 'progress']
 const tabFromHash = (): Tab | null => { const b = (typeof window !== 'undefined' ? (location.hash || '').replace('#', '').split('/')[0] : '') as Tab; return TABS.includes(b) ? b : null }
 const TOKEN_KEY = 'inglizi.student_token'
 const HEARTBEAT_AR: Record<Tab, string> = {
-  home: 'الرئيسية', path: 'مسار التعلّم', tasks: 'المهام',
+  home: 'الرئيسية', courses: 'دوراتي', profile: 'ملفي', path: 'مسار التعلّم', tasks: 'المهام',
   rewards: 'المكافآت', files: 'الملفات', progress: 'صفحة التقدّم',
 }
 const COURSE_KEY = 'inglizi.student_course.'   // + token → last chosen course id
@@ -157,6 +161,9 @@ function Portal() {
   const [vocabOpen, setVocabOpen] = useState(false)
   const [pictureOpen, setPictureOpen] = useState(false)
   const [board, setBoard] = useState<ExerciseBoard | null>(null)   // curriculum exercises + staff tasks, per course
+  // "My courses" / "My profile": course + class tracks, attendance, payments (054).
+  // undefined = loading, null = unavailable.
+  const [dash, setDash] = useState<StudentDashboard | null | undefined>(undefined)
 
   async function enter(rawToken: string, isAuto = false): Promise<boolean> {
     const t = rawToken.trim().toUpperCase(); if (!t) return false
@@ -183,7 +190,7 @@ function Portal() {
     return true
   }
   useEffect(() => {
-    if (demo) { setSpace(DEMO_SPACE); setToken('DEMO'); fetchCoins('DEMO').then(setCoins); setBooting(false); return }   // token-free local preview
+    if (demo) { setSpace(DEMO_SPACE); setToken('DEMO'); fetchCoins('DEMO').then(setCoins); const r = tabFromHash(); if (r) setTab(r); setBooting(false); return }   // token-free local preview (keeps #tab, like a real refresh)
     (async () => {
       const t = sp.get('token') || (() => { try { return localStorage.getItem(TOKEN_KEY) } catch { return null } })()
       if (t) await enter(t, true)
@@ -239,6 +246,10 @@ function Portal() {
     if (demo) { setBoard(DEMO_BOARD); return }
     if (token && selectedCourseId) fetchExerciseBoard(token, selectedCourseId).then(setBoard)
   }, [token, space, selectedCourseId, submissions, unitExams])
+  useEffect(() => {
+    if (demo) { setDash(DEMO_STUDENT_DASHBOARD); return }
+    if (token) fetchStudentDashboard(token).then(d => setDash(d.found ? d : null))
+  }, [token, space])
   // full catalog (for the picker's locked courses) — loaded once
   useEffect(() => { fetchCourseCatalog().then(setCatalog) }, [])
   // pick the course to show: keep a valid prior choice, else the saved one, else
@@ -567,12 +578,14 @@ function Portal() {
 
   const TABS: { id: Tab; label: string; icon: any; badge?: number }[] = [
     { id: 'home', label: 'الرئيسية', icon: Home },
+    { id: 'courses', label: 'دوراتي', icon: BookOpen },
     { id: 'path', label: 'مساري', icon: Route },
     { id: 'tasks', label: 'تماريني', icon: ListChecks, badge: boardTasks.filter(t => t.status !== 'done').length },
     { id: 'rewards', label: 'المكافآت', icon: Coins },
-    { id: 'files', label: 'الملفات', icon: FileText },
-    { id: 'progress', label: 'تقدّمي', icon: TrendingUp },
+    { id: 'profile', label: 'ملفي', icon: UserRound },
   ]
+  const tracks = dash ? classifyTracks(dash) : null
+  const coursePct = pct(flat.filter(x => x.lesson.status === 'completed').length, flat.length)
 
   return (
     <div dir="rtl" className="min-h-screen pb-20" style={{
@@ -749,6 +762,13 @@ function Portal() {
         })()}
 
         {/* ═══════════ HOME ═══════════ */}
+        {tab === 'home' && (
+          <div className="mb-5">
+            <EntryCards onCourses={() => goTab('courses')} onProfile={() => goTab('profile')}
+              coursesSub={tracks ? `${tracks.label} · ${coursePct}% من الدورة` : 'دروسك، حصصك وجدولك'}
+              profileSub={dash?.attendance?.rate != null ? `الحضور ${dash.attendance.rate}% · الشهادات والمدفوعات` : 'الحضور، المدفوعات، الشهادات والأسرة'} />
+          </div>
+        )}
         {tab === 'home' && (
           <div className="lg:grid lg:grid-cols-3 lg:gap-5 space-y-5 lg:space-y-0">
             {/* MAIN COLUMN */}
@@ -1308,6 +1328,33 @@ function Portal() {
             {exams.map(e => <div key={e.id} className="bg-white rounded-2xl border border-zinc-100 p-4"><ExamRow e={e} /></div>)}
           </div>
         )}
+        {/* ═══════════ MY COURSES / MY PROFILE ═══════════ */}
+        {(tab === 'courses' || tab === 'profile') && dash === undefined && (
+          <div className="py-24 flex justify-center"><Loader2 className="animate-spin text-[var(--ic-gold)]" size={26} /></div>
+        )}
+        {(tab === 'courses' || tab === 'profile') && dash === null && (
+          <div className="max-w-md mx-auto my-12 rounded-3xl bg-white border border-zinc-100 p-6 text-center">
+            <AlertCircle className="mx-auto text-amber-500 mb-2" size={26} />
+            <p className="font-bold text-zinc-800">تعذّر تحميل لوحتك الآن</p>
+            <p className="text-[12.5px] text-zinc-500 mt-1">أعد المحاولة بعد قليل — دروسك متاحة دائمًا في «مساري».</p>
+            <button onClick={() => goTab('path')} className="mt-4 rounded-2xl bg-[var(--ic-dark)] px-5 py-2.5 text-[13px] font-bold text-white">افتح مساري</button>
+          </div>
+        )}
+        {tab === 'courses' && dash && (
+          <MyCourses dash={dash} name={s.full_name} avatarUrl={avatarUrl ?? dash.student?.avatar_url ?? null}
+            level={{ current: s.current_level, next: s.next_level, stage: s.learning_stage }} overallPct={stats.overall}
+            resume={today ? { lesson: today.lesson.title, unit: today.m.title, course: course?.title ?? null, type: today.lesson.type, courseProgress: coursePct } : null}
+            onResume={() => { if (today) onOpenLesson(today.lesson, today.lesson.video_url || today.lesson.exercise_url || today.lesson.file_url) }}
+            goTab={t => goTab(t)} />
+        )}
+        {tab === 'profile' && dash && (
+          <MyProfile dash={dash} name={s.full_name} avatarUrl={avatarUrl ?? dash.student?.avatar_url ?? null}
+            level={{ current: s.current_level, next: s.next_level, stage: s.learning_stage }}
+            certs={myCerts} finalCert={cert} recent={recent}
+            notes={{ adminMessage: s.admin_message, nextTask: s.next_task,
+                     examNotes: exams.filter(e => e.teacher_note).map(e => ({ title: e.title, note: e.teacher_note as string })) }}
+            onCourses={() => goTab('courses')} />
+        )}
       </main>
 
       {/* In-page video player (hides YouTube branding, tracks watch progress) */}
@@ -1315,6 +1362,7 @@ function Portal() {
         <VideoPlayer
           url={videoLesson.video_url || ''}
           title={videoLesson.title}
+          onWatchTime={secs => logWatchTime(token, videoLesson.id, secs)}
           onClose={() => {
             const vl = videoLesson; setVideoLesson(null); refresh()
             if (vl.has_quiz) setQuizLesson(vl)   // must pass the quiz to complete the lesson
