@@ -1421,3 +1421,50 @@ describe('security hardening (055)', () => {
     assert.deepEqual(rows, [])
   })
 })
+describe('profile privileged fields (056)', () => {
+  let ctx, student
+  const upd = (who, id, set) =>
+    as(ctx.db, who, () => ctx.db.query(`update public.profiles set ${set} where id = $1`, [id]))
+  const prof = id => one(ctx.db, `select role::text as role, is_admin, blocked, plan, full_name, phone from profiles where id = $1`, [id])
+
+  before(async () => {
+    ctx = await setup()
+    student = await makeUser(ctx.db, 'student', 'Signup User')
+    // Production founders carry the legacy is_admin flag; profiles_admin_update reads it.
+    await ctx.db.query(`update profiles set is_admin = true where id = $1`, [ctx.founder])
+  })
+
+  it('a signed-up user cannot make themselves founder or admin', async () => {
+    await rejects(upd(student, student, `role = 'founder'`), /Only a founder/)
+    await rejects(upd(student, student, `is_admin = true`), /Only a founder/)
+    const p = await prof(student)
+    assert.equal(p.role, 'student')
+    assert.equal(p.is_admin, false)
+  })
+
+  it('nor give themselves a plan, lift a block or change their email', async () => {
+    await rejects(upd(student, student, `plan = 'paid', plan_expires_at = now() + interval '1 year'`), /Only a founder/)
+    await rejects(upd(student, student, `blocked = false, role = 'assistant'`), /Only a founder/)
+    await rejects(upd(student, student, `email = 'founder@inglizi.com'`), /Only a founder/)
+  })
+
+  it('assistants and teachers cannot promote themselves either', async () => {
+    await rejects(upd(ctx.assistant, ctx.assistant, `role = 'founder'`), /Only a founder/)
+    await rejects(upd(ctx.teacherA, ctx.teacherA, `is_admin = true`), /Only a founder/)
+  })
+
+  it('users still edit their own name and phone', async () => {
+    await upd(student, student, `full_name = 'New Name', phone = '+212600000000'`)
+    const p = await prof(student)
+    assert.equal(p.full_name, 'New Name')
+    assert.equal(p.phone, '+212600000000')
+  })
+
+  it('a founder can change roles, and server-side writes are unaffected', async () => {
+    const u = await makeUser(ctx.db, 'student', 'Future Assistant')
+    await upd(ctx.founder, u, `role = 'assistant'`)
+    assert.equal((await prof(u)).role, 'assistant')
+    await ctx.db.query(`update profiles set plan = 'paid' where id = $1`, [u])   // no JWT: service / migration
+    assert.equal((await prof(u)).plan, 'paid')
+  })
+})
