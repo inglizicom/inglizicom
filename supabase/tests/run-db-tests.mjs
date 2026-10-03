@@ -1325,3 +1325,99 @@ describe('student dashboard: tracks, sessions, attendance, payments, watch time 
     assert.equal(d.study.weekly.length, 8)
   })
 })
+
+describe('security hardening (055)', () => {
+  let ctx, leadA, leadB, stu
+  const newLead = async name => (await one(ctx.db,
+    `insert into subscription_leads (plan_id, full_name, status, is_archived, amount_mad) values ('monthly', $1, 'paid', false, 300) returning id`, [name])).id
+  const convert = (who, lead, actor = null) =>
+    as(ctx.db, who, () => one(ctx.db, `select public.convert_lead_to_student($1, $2) as r`, [lead, actor]))
+  const logEvent = (who, lead) =>
+    as(ctx.db, who, () => one(ctx.db, `select public.log_lead_event($1, 'note_added', 'Note') as r`, [lead]))
+
+  before(async () => {
+    ctx = await setup()
+    leadA = await newLead('Lead A')
+    leadB = await newLead('Lead B')
+    stu = await makeStudent(ctx.db, 'Coin Student')
+    await ctx.db.query(`insert into coin_transactions (student_id, action_type, coins_amount) values ($1, 'challenge_done', 40)`, [stu.id])
+  })
+
+  it('a logged-out caller cannot convert a lead or write to its timeline', async () => {
+    await rejects(convert('anon', leadA), /permission denied/)
+    await rejects(logEvent('anon', leadA), /permission denied/)
+    const n = await one(ctx.db, `select count(*)::int as n from crm_students where lead_id = $1`, [leadA])
+    assert.equal(n.n, 0)
+  })
+
+  it('a logged-in non-staff account is refused by the function itself', async () => {
+    await rejects(convert(ctx.teacherA, leadA), /Only staff/)
+    await rejects(logEvent(ctx.teacherA, leadA), /Only staff/)
+  })
+
+  it('staff convert, and the recorded actor is always the caller', async () => {
+    const r = await convert(ctx.assistant, leadA, ctx.founder)
+    const s = await one(ctx.db, `select added_by_id, payment_status from crm_students where id = $1`, [r.r])
+    assert.equal(s.added_by_id, ctx.assistant, 'a passed actor id is not trusted')
+    assert.equal(s.payment_status, 'paid')
+    const again = await convert(ctx.assistant, leadA)
+    assert.equal(again.r, r.r, 'converting twice returns the same student')
+    const ev = await one(ctx.db, `select actor_id from crm_lead_events where lead_id = $1 and event_type = 'converted_to_student'`, [leadA])
+    assert.equal(ev.actor_id, ctx.assistant)
+  })
+
+  it('staff write timeline events under their own name', async () => {
+    const r = await logEvent(ctx.founder, leadB)
+    const ev = await one(ctx.db, `select actor_id, title from crm_lead_events where id = $1`, [r.r])
+    assert.equal(ev.actor_id, ctx.founder)
+    assert.equal(ev.title, 'Note')
+  })
+
+  it('the weekly leaderboard view runs with the caller rights: staff see it, other accounts do not', async () => {
+    const teacher = await as(ctx.db, ctx.teacherA, () => q(ctx.db, `select * from leaderboard_weekly`))
+    assert.equal(teacher.length, 0)
+    const staff = await as(ctx.db, ctx.assistant, () => q(ctx.db, `select * from leaderboard_weekly`))
+    assert.equal(staff.length, 1)
+    assert.equal(Number(staff[0].week_points), 40)
+  })
+
+  it('students still get their leaderboard through the token RPC', async () => {
+    const r = await as(ctx.db, 'anon', () => rpc(ctx.db, 'student_leaderboard_weekly', [stu.token, null]))
+    assert.equal(r.top.length, 1)
+    assert.equal(r.me.rank, 1)
+  })
+
+  it('owner and staff functions are closed to anon, open to logged-in callers that they then check', async () => {
+    const rows = await q(ctx.db, `
+      select p.proname, has_function_privilege('anon', p.oid, 'execute') as anon,
+             has_function_privilege('authenticated', p.oid, 'execute') as auth
+      from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+      where n.nspname = 'public' and p.proname in ('owner_overview', 'convert_lead_to_student', 'log_lead_event', 'handle_new_user', 'is_crm_staff')`)
+    const by = Object.fromEntries(rows.map(r => [r.proname, r]))
+    for (const f of ['owner_overview', 'convert_lead_to_student', 'log_lead_event']) {
+      assert.equal(by[f].anon, false, `${f} anon`)
+      assert.equal(by[f].auth, true, `${f} authenticated`)
+    }
+    assert.equal(by.handle_new_user.anon, false)
+    assert.equal(by.is_crm_staff.anon, true, 'RLS helpers stay callable')
+    assert.equal(await as(ctx.db, ctx.teacherA, () => rpc(ctx.db, 'owner_overview')), null, 'a teacher gets nothing')
+  })
+
+  it('triggers whose functions anon cannot execute still fire', async () => {
+    const s = await makeStudent(ctx.db, 'Trigger Student')
+    await ctx.db.query(`insert into crm_payments (student_id, amount_mad, payment_status, payment_type) values ($1, 100, 'pending', 'full_course')`, [s.id])
+    // auto_create_receipt fires on the move to paid, as an API caller would make it.
+    await as(ctx.db, ctx.assistant, () => ctx.db.query(`update crm_payments set payment_status = 'paid' where student_id = $1`, [s.id]))
+    const p = await one(ctx.db, `select payment_status from crm_payments where student_id = $1`, [s.id])
+    assert.equal(p.payment_status, 'paid')
+  })
+
+  it('pins search_path on the flagged functions', async () => {
+    const rows = await q(ctx.db, `
+      select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+      where n.nspname = 'public'
+        and p.proname in ('set_updated_at', 'casa_date', 'mask_phone', '_norm', 'log_crm_activity', 'convert_lead_to_student')
+        and not coalesce(p.proconfig, '{}') && array['search_path=public', 'search_path="public"']`)
+    assert.deepEqual(rows, [])
+  })
+})
