@@ -1953,3 +1953,145 @@ describe('the academy brings students; payments follow the lessons (061)', () =>
     assert.equal(a.students, 3, 'Hiba (assigned on add), Seated, Both')
   })
 })
+describe('notifications (062)', () => {
+  let ctx, cls, s1, s2, other
+  const asA = fn => as(ctx.db, ctx.assistant, fn)
+  const today = new Date().toISOString().slice(0, 10)
+  const inbox = who => q(ctx.db, `select kind, title, body, url, read_at from notifications where recipient = $1 order by created_at`, [who])
+  const studentInbox = sid => q(ctx.db, `select type, title, body, sender_profile from student_notifications where student_id = $1 order by created_at`, [sid])
+  const assign = (teacher, student, by = null) => ctx.db.query(`insert into teacher_students (teacher_id, student_id, is_active, assigned_by) values ($1, $2, true, $3)`, [teacher, student, by])
+
+  before(async () => {
+    ctx = await setup()
+    cls = await makeClass(ctx.db, { title: 'Evening A1', teacher: ctx.teacherA })
+    s1 = await makeStudent(ctx.db, 'Salma', { phone: '+212600000201' })
+    s2 = await makeStudent(ctx.db, 'Omar', { phone: '+212600000202' })
+    other = await makeStudent(ctx.db, 'Not Mine', { phone: '+212600000203' })
+    await enrollClass(ctx.db, cls, s1.id)
+    await asA(() => assign(ctx.teacherA, s2.id, ctx.assistant))
+  })
+
+  it('students: a teacher hears about a student assigned or seated; the student hears who their teacher is', async () => {
+    const t = await inbox(ctx.teacherA)
+    assert.ok(t.some(n => n.kind === 'student_assigned' && n.body === 'Omar'))
+    assert.ok(t.some(n => n.kind === 'student_assigned' && n.body.includes('Salma') && n.body.includes('Evening A1')))
+    assert.ok((await studentInbox(s2.id)).some(n => n.body.includes('Teacher A')))
+  })
+
+  it('money: a paid payment reaches its teacher and the student, once', async () => {
+    await pay(ctx.db, s1.id, 450, today)
+    const t = (await inbox(ctx.teacherA)).filter(n => n.kind === 'payment')
+    assert.equal(t.length, 1)
+    assert.match(t[0].body, /Salma · 450 د.م/)
+    assert.ok((await studentInbox(s1.id)).some(n => n.type === 'payment' && n.body.includes('450')))
+    await ctx.db.query(`update crm_payments set payment_status = 'paid', notes = 'x' where student_id = $1`, [s1.id])
+    assert.equal((await inbox(ctx.teacherA)).filter(n => n.kind === 'payment').length, 1, 'no second notification')
+  })
+
+  it('money: unlinked payment of a student with two teachers → staff; a teacher-declared one → staff', async () => {
+    await assign(ctx.teacherB, s1.id)
+    await pay(ctx.db, s1.id, 300, today)
+    const f = await inbox(ctx.founder)
+    assert.ok(f.some(n => n.kind === 'payment_unlinked' && n.url === `/sales/students/${s1.id}`))
+    assert.ok((await inbox(ctx.assistant)).some(n => n.kind === 'payment_unlinked'))
+    await as(ctx.db, ctx.founder, () => ctx.db.query(`update teacher_profiles set can_add_students = true where id = $1`, [ctx.teacherA]))
+    await as(ctx.db, ctx.teacherA, () => rpc(ctx.db, 'teacher_declare_payment', [s2.id, 200, 'cash', today, 'monthly', null, null, null]))
+    assert.ok((await inbox(ctx.founder)).some(n => n.kind === 'payment_pending' && n.body.includes('Omar')))
+  })
+
+  it('pay marked paid → the payee', async () => {
+    const month = today.slice(0, 7) + '-01'
+    await ctx.db.query(`insert into staff_payouts (payee_id, period, base_mad, status) values ($1, $2, 1000, 'pending')`, [ctx.teacherA, month])
+    await ctx.db.query(`update staff_payouts set status = 'paid' where payee_id = $1`, [ctx.teacherA])
+    assert.ok((await inbox(ctx.teacherA)).some(n => n.kind === 'payout' && n.body.includes('1,000')))
+  })
+
+  it('classes: a cancelled or moved session reaches its students; a teacher cancelling also tells staff', async () => {
+    const start = new Date(Date.now() + 3 * 86400e3).toISOString()
+    const sess = await makeSession(ctx.db, { teacher: ctx.teacherA, classId: cls, startsAt: start, status: 'scheduled', title: 'Unit 3' })
+    await ctx.db.query(`update class_sessions set starts_at = starts_at + interval '1 hour' where id = $1`, [sess])
+    assert.ok((await studentInbox(s1.id)).some(n => n.title.includes('تغيّر موعد')))
+    await as(ctx.db, ctx.teacherA, () => ctx.db.query(`update class_sessions set status = 'cancelled', cancel_reason = 'Sick' where id = $1`, [sess]))
+    assert.ok((await studentInbox(s1.id)).some(n => n.title.includes('أُلغيت') && n.body.includes('Sick')))
+    assert.ok((await inbox(ctx.founder)).some(n => n.kind === 'session_cancelled' && n.body.includes('Teacher A')))
+  })
+
+  it('students: absent twice in a row → the teacher and staff', async () => {
+    const d = Date.now() - 5 * 86400e3
+    for (const k of [0, 1]) {
+      const sess = await makeSession(ctx.db, { teacher: ctx.teacherA, classId: cls, startsAt: new Date(d + k * 86400e3).toISOString(), status: 'done' })
+      await ctx.db.query(`insert into class_attendance (session_id, student_id, status) values ($1, $2, 'absent')`, [sess, s1.id])
+    }
+    assert.equal((await inbox(ctx.teacherA)).filter(n => n.kind === 'absence').length, 1)
+    assert.ok((await inbox(ctx.assistant)).some(n => n.kind === 'absence' && n.body.includes('Salma')))
+  })
+
+  it('reports: the academy note and the daily job (missing reports, month ready)', async () => {
+    const month = today.slice(0, 7) + '-01'
+    await asA(() => rpc(ctx.db, 'staff_set_teacher_month_note', [ctx.teacherA, month, 'Write every report.']))
+    assert.ok((await inbox(ctx.teacherA)).some(n => n.kind === 'month_note' && n.url.startsWith('/teacher/monthly?month=')))
+    const r = await rpc(ctx.db, 'notify_scheduled')
+    assert.ok(r.missing_reports >= 2, 'the two done sessions above have no report')
+    const again = await rpc(ctx.db, 'notify_scheduled')
+    const missing = (await inbox(ctx.teacherA)).filter(n => n.kind === 'report_missing')
+    assert.equal(missing.length, r.missing_reports, 'running twice does not repeat')
+    assert.ok(again)
+  })
+
+  it('staff send to chosen people only; it is logged with its recipients', async () => {
+    await rejects(asA(() => rpc(ctx.db, 'staff_send_notification', ['Hi', 'x', [], [], null, null])), /at least one recipient/)
+    const r = await asA(() => rpc(ctx.db, 'staff_send_notification', ['Meeting', 'Friday 6pm', [ctx.teacherB], [], null, cls]))
+    assert.equal(r.teachers, 1)
+    assert.equal(r.students, 1, 'the class has one active student')
+    assert.ok((await inbox(ctx.teacherB)).some(n => n.kind === 'message' && n.title === 'Meeting'))
+    assert.ok((await studentInbox(s1.id)).some(n => n.type === 'message' && n.title === 'Meeting'))
+    assert.equal((await studentInbox(other.id)).filter(n => n.type === 'message').length, 0, 'nobody else')
+    const log = await asA(() => q(ctx.db, `select sender_role, recipient_count from notification_messages where id = $1`, [r.message_id]))
+    assert.deepEqual(log[0], { sender_role: 'assistant', recipient_count: 2 })
+    await rejects(as(ctx.db, ctx.teacherA, () => rpc(ctx.db, 'staff_send_notification', ['x', 'y', [ctx.teacherB], [], null, null])), /Staff only/)
+  })
+
+  it('a teacher writes to their own students only; staff see the message', async () => {
+    await rejects(as(ctx.db, ctx.teacherA, () => rpc(ctx.db, 'teacher_send_notification', ['Hello', 'x', [other.id], null])), /not one of yours/)
+    const r = await as(ctx.db, ctx.teacherA, () => rpc(ctx.db, 'teacher_send_notification', ['Homework', 'Page 12', [s2.id], null]))
+    assert.equal(r.students, 1)
+    const n = (await studentInbox(s2.id)).find(x => x.type === 'message')
+    assert.equal(n.title, 'Teacher A · Homework')
+    assert.equal(n.sender_profile, ctx.teacherA)
+    const seen = await asA(() => q(ctx.db, `select sender_role from notification_messages where id = $1`, [r.message_id]))
+    assert.equal(seen[0].sender_role, 'teacher', 'staff read it')
+    const notMine = await as(ctx.db, ctx.teacherB, () => q(ctx.db, `select id from notification_messages where id = $1`, [r.message_id]))
+    assert.equal(notMine.length, 0, 'another teacher does not')
+  })
+
+  it('a student writes to their teacher or the academy; staff see it; a stranger teacher is refused', async () => {
+    const mine = await as(ctx.db, 'anon', () => rpc(ctx.db, 'student_my_teachers', [s2.token]))
+    assert.deepEqual(mine.map(t => t.id), [ctx.teacherA])
+    await as(ctx.db, 'anon', () => rpc(ctx.db, 'student_send_notification', [s2.token, 'I will be late', ctx.teacherA]))
+    assert.ok((await inbox(ctx.teacherA)).some(n => n.kind === 'message' && n.body === 'I will be late'))
+    await as(ctx.db, 'anon', () => rpc(ctx.db, 'student_send_notification', [s2.token, 'Invoice please', null]))
+    assert.ok((await inbox(ctx.founder)).some(n => n.kind === 'message' && n.body === 'Invoice please'))
+    await rejects(as(ctx.db, 'anon', () => rpc(ctx.db, 'student_send_notification', [s2.token, 'x', ctx.teacherB])), /Not your teacher/)
+    await rejects(as(ctx.db, 'anon', () => rpc(ctx.db, 'student_send_notification', ['ING-NOPE', 'x', null])), /Not signed in/)
+    const log = await asA(() => q(ctx.db, `select count(*)::int n from notification_messages where sender_role = 'student'`))
+    assert.equal(log[0].n, 2)
+  })
+
+  it('each person reads and clears only their own; nobody writes notifications directly', async () => {
+    const mineB = await as(ctx.db, ctx.teacherB, () => q(ctx.db, `select recipient from notifications`))
+    assert.ok(mineB.length > 0 && mineB.every(n => n.recipient === ctx.teacherB))
+    const n = await as(ctx.db, ctx.teacherB, () => rpc(ctx.db, 'notifications_mark_read', [null]))
+    assert.ok(n >= 1)
+    assert.ok((await inbox(ctx.teacherA)).some(x => x.read_at === null), 'teacher A untouched')
+    await rejects(as(ctx.db, ctx.teacherA, () => ctx.db.query(`insert into notifications (recipient, title) values ($1, 'x')`, [ctx.teacherA])), /permission denied/)
+    await rejects(as(ctx.db, ctx.teacherA, () => rpc(ctx.db, 'notify_scheduled')), /permission denied/)
+    await rejects(as(ctx.db, ctx.teacherA, () => rpc(ctx.db, 'notifications_claim_push', [10])), /permission denied/)
+  })
+
+  it('the push queue: claimed once; old student notifications are never pushed', async () => {
+    const first = await rpc(ctx.db, 'notifications_claim_push', [1000])
+    assert.ok(first.profiles.length > 0 && first.students.length > 0)
+    const second = await rpc(ctx.db, 'notifications_claim_push', [1000])
+    assert.equal(second.profiles.length + second.students.length, 0)
+  })
+})

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { Bell, X, ChevronLeft } from 'lucide-react'
+import { UserPlus, X, ChevronLeft } from 'lucide-react'
 import { fetchRecentLeads, type SubscriptionLead } from '@/lib/leads-db'
 import { getLeadsSeenAt, markLeadsSeen, LEADS_SEEN_EVENT } from '@/lib/leads-seen'
 import Avatar from '@/app/sales/_components/Avatar'
@@ -56,7 +56,8 @@ export default function LeadsBell({ base }: { base: string }) {
       <button onClick={toggle}
         className="relative w-9 h-9 rounded-xl text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 flex items-center justify-center transition-colors"
         aria-label="إشعارات العملاء">
-        <Bell size={18} />
+        {/* New leads — a person icon, so it is not mistaken for the notifications bell (062). */}
+        <UserPlus size={18} />
         {newCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 bg-rose-500 text-white text-[9px] font-bold min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center">{newCount}</span>
         )}

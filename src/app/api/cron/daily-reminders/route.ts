@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { sendByKind, waConfigured } from '@/lib/whatsapp'
 import { pushConfigured, sendOne, type SubRow } from '@/lib/push-server'
+import { flushPushQueue } from '@/lib/notify-dispatch'
 
 /* Daily reminder job (Vercel Cron). For every active enrolled student who hasn't
    finished, drops an in-app notification (once/day) and sends a WhatsApp nudge.
@@ -69,6 +70,14 @@ export async function GET(req: Request) {
     return { days: Math.ceil((unitEnd - Date.now()) / DAY), unit: m.current_unit_title || '' }
   }
 
+  // These are pushed right here, so they are written as already pushed — the
+  // queue (062) must not send them again. A database before 062 has no
+  // pushed_at column: write without it.
+  async function insertNotification(row: Record<string, unknown>) {
+    const { error } = await db.from('student_notifications').insert({ ...row, pushed_at: new Date().toISOString() })
+    if (error && /pushed_at/.test(error.message)) await db.from('student_notifications').insert(row)
+  }
+
   for (const s of list) {
     // once per day: skip if any daily nudge (reminder or deadline) already exists today
     const { count } = await db.from('student_notifications')
@@ -82,7 +91,7 @@ export async function GET(req: Request) {
 
     if (soon) {
       const when = sch!.days <= 0 ? 'اليوم' : sch!.days === 1 ? 'غدًا' : `خلال ${sch!.days} يوم`
-      await db.from('student_notifications').insert({
+      await insertNotification({
         student_id: s.id, type: 'deadline',
         title: '⏰ موعد الوحدة يقترب',
         body: `${name ? name + '، ' : ''}موعد إنهاء وحدة «${sch!.unit}» ${when}. أكملها قبل فوات الأجل لتبقى ضمن جدول الدورة.`,
@@ -92,7 +101,7 @@ export async function GET(req: Request) {
       if (waConfigured() && s.phone_number && await sendByKind(s.phone_number, 'deadline', { name, unit: sch!.unit, days: String(Math.max(0, sch!.days)) })) sent++
       await pushStudent(db, s.id, '⏰ موعد الوحدة يقترب', `${name ? name + '، ' : ''}أكمل وحدتك قبل فوات الأجل.`)
     } else {
-      await db.from('student_notifications').insert({
+      await insertNotification({
         student_id: s.id, type: 'reminder',
         title: 'تذكير يومي 📚',
         body: `${name ? name + '، ' : ''}واصل التعلّم اليوم — افتح درسك القادم وحافظ على جدولك.`,
@@ -104,5 +113,11 @@ export async function GET(req: Request) {
     }
   }
 
-  return NextResponse.json({ ok: true, students: list.length, created, sent, deadlines, pushed, wa: waConfigured(), push: pushConfigured() })
+  // 062: the daily events (missing lesson reports, last month's report ready),
+  // then deliver whatever is still waiting in the push queue.
+  let scheduled: unknown = null, queue: unknown = null
+  try { scheduled = (await db.rpc('notify_scheduled')).data } catch { /* before 062 */ }
+  try { queue = await flushPushQueue(db) } catch { /* before 062 */ }
+
+  return NextResponse.json({ ok: true, students: list.length, created, sent, deadlines, pushed, wa: waConfigured(), push: pushConfigured(), scheduled, queue })
 }

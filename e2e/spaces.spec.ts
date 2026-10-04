@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
-import { mockSupabase, collectErrors } from './mock'
+import { mockSupabase, collectErrors, IDS, STUDENTS } from './mock'
 
 /*
  * The other three surfaces, opened the way people open them:
@@ -20,6 +20,7 @@ const TEACHER_PAGES: [string, RegExp][] = [
   ['/teacher/earnings', /الأرباح والساعات/],
   ['/teacher/leaderboard', /المنافسة|الترتيب/],
   ['/teacher/profile', /ملف/],
+  ['/teacher/notifications', /الإشعارات/],
 ]
 
 test.describe('teacher space (demo)', () => {
@@ -86,6 +87,39 @@ test.describe('public pages', () => {
       await fits(page)
     })
   }
+})
+
+test.describe('notifications (062)', () => {
+  test('a teacher sees the bell and writes to one of their students', async ({ page }) => {
+    const calls = await mockSupabase(page, {
+      role: 'teacher',
+      rpc: { teacher_my_students: [{ id: STUDENTS[0].id, full_name: STUDENTS[0].full_name }], teacher_my_classes: [] },
+    })
+    await page.goto('/teacher/notifications')
+    await expect(page.getByRole('button', { name: 'الإشعارات (2 جديد)' })).toBeVisible({ timeout: 90_000 })
+    await page.getByRole('tab', { name: 'إرسال لطلابي' }).click()
+    await page.getByRole('button', { name: STUDENTS[0].full_name }).click()
+    await page.getByLabel('العنوان').fill('واجب الغد')
+    await page.getByRole('button', { name: 'إرسال', exact: true }).click()
+    await expect.poll(() => calls.find(c => c.path.endsWith('/rpc/teacher_send_notification'))?.body)
+      .toMatchObject({ p_title: 'واجب الغد', p_students: [STUDENTS[0].id] })
+    await fits(page)
+  })
+
+  test('a student writes to their teacher from the bell', async ({ page }) => {
+    const calls = await mockSupabase(page, { role: null })
+    await page.goto('/student-space?demo=1')
+    await expect(page.getByText('دوراتي').first()).toBeVisible({ timeout: 90_000 })
+    await page.getByRole('button', { name: 'الإشعارات' }).click()
+    await page.getByRole('button', { name: /راسل أستاذك/ }).click()
+    const dlg = page.getByRole('dialog', { name: 'رسالة' })
+    await expect(dlg.getByRole('combobox', { name: 'إلى' })).toHaveValue(IDS.teacher)
+    await dlg.getByLabel('رسالتك').fill('متى الحصة القادمة؟')
+    await dlg.getByRole('button', { name: 'إرسال' }).click()
+    await expect.poll(() => calls.find(c => c.path.endsWith('/rpc/student_send_notification'))?.body)
+      .toMatchObject({ p_body: 'متى الحصة القادمة؟', p_teacher: IDS.teacher })
+    await expect(dlg.getByText('أُرسلت رسالتك ✓')).toBeVisible()
+  })
 })
 
 test.describe('monthly report', () => {

@@ -26,6 +26,9 @@ const FOUNDER_PAGES = [
   '/sales/announcements',
   '/sales/gamification',
   '/sales/verify',
+  '/sales/notifications',
+  '/sales/notifications?tab=log',
+  '/sales/notifications?tab=inbox',
   '/admin',
   '/admin/team',
   '/admin/team?tab=payroll',
@@ -225,6 +228,37 @@ test.describe('teacher adds a student', () => {
     await page.goto('/teacher/students')
     await expect(page.locator('main').getByRole('heading', { name: 'طلابي' })).toBeVisible({ timeout: 90_000 })
     await expect(page.getByRole('button', { name: 'إضافة طالب' })).toHaveCount(0)
+  })
+})
+
+test.describe('notifications (062)', () => {
+  test('the bell shows the unread count, lists them, and marks all read', async ({ page }) => {
+    const calls = await mockSupabase(page, { role: 'assistant' })
+    await page.goto('/sales/dashboard')
+    const bell = page.getByRole('button', { name: 'الإشعارات (2 جديد)' })
+    await expect(bell).toBeVisible({ timeout: 90_000 })
+    await bell.click()
+    const panel = page.getByRole('dialog', { name: 'الإشعارات' })
+    await expect(panel.getByText('✉️ رسالة من سلمى بنعلي')).toBeVisible()
+    await noSidewaysScroll(page)
+    await panel.getByRole('button', { name: /تحديد الكل كمقروء/ }).click()
+    await expect.poll(() => calls.some(c => c.path.endsWith('/rpc/notifications_mark_read'))).toBe(true)
+    await expect(page.getByRole('button', { name: 'الإشعارات', exact: true })).toBeVisible()
+  })
+
+  test('staff send to a chosen teacher, and read teacher↔student messages in the log', async ({ page }) => {
+    const calls = await mockSupabase(page, { role: 'assistant' })
+    await page.goto('/sales/notifications')
+    await page.getByRole('button', { name: 'سارة بن يوسف' }).click({ timeout: 90_000 })
+    await page.getByLabel('العنوان').fill('اجتماع الجمعة')
+    await page.getByRole('button', { name: 'إرسال', exact: true }).click()
+    await expect.poll(() => calls.find(c => c.path.endsWith('/rpc/staff_send_notification'))?.body)
+      .toMatchObject({ p_title: 'اجتماع الجمعة', p_teachers: [IDS.teacher], p_students: [] })
+    await expect(page.getByText(/أُرسل إلى 1 أستاذ/)).toBeVisible()
+    await page.getByRole('tab', { name: /سجل الرسائل/ }).click()
+    await expect(page.getByText('واجب الغد')).toBeVisible()
+    await expect(page.getByText('متى الحصة القادمة؟')).toBeVisible()
+    await noSidewaysScroll(page)
   })
 })
 

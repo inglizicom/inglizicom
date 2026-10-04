@@ -22,6 +22,7 @@ import {
 import VideoPlayer from '@/components/VideoPlayer'
 import InstallAppBanner from '@/components/InstallAppBanner'
 import EnableNotifications from '@/components/EnableNotifications'
+import StudentMessageButton from '@/components/notifications/StudentMessage'
 import QuizRunner from '@/components/QuizRunner'
 import UnitExamRunner from '@/components/UnitExamRunner'
 import ReadingViewer from '@/components/ReadingViewer'
@@ -587,7 +588,7 @@ function Portal() {
             }
             return (
               <div className="relative">
-                <button onClick={openBell} className="relative w-9 h-9 rounded-xl hover:bg-white/10 flex items-center justify-center text-zinc-300">
+                <button onClick={openBell} aria-label="الإشعارات" className="relative w-9 h-9 rounded-xl hover:bg-white/10 flex items-center justify-center text-zinc-300">
                   <Bell size={18} className={unread > 0 ? 'animate-[vp-pulse_2s_ease-in-out_infinite]' : ''} />
                   {unread > 0 && <span className="absolute -top-0.5 -right-0.5 bg-rose-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center vp-pop">{unread}</span>}
                 </button>
@@ -609,6 +610,7 @@ function Portal() {
                             </button>
                           )})}
                       </div>
+                      <StudentMessageButton token={token} />
                     </div>
                   </>
                 )}

@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 /* Save (or refresh) a browser's push subscription, linked to the student who is
- * logged into the portal (by their verification_token). Written with the
- * service-role key. Public endpoint — the token is the student's own. */
+ * logged into the portal (by their verification_token), or — since 062 — to a
+ * signed-in staff member or teacher (Authorization: Bearer <access token>).
+ * Written with the service-role key. Public endpoint — the token is the caller's own. */
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -34,8 +35,14 @@ export async function POST(req: Request) {
     user_agent: req.headers.get('user-agent')?.slice(0, 300) ?? null,
     last_seen_at: new Date().toISOString(),
   }
-  // On a first subscribe (token present) set the student; on rotation keep it.
-  if (studentId) row.student_id = studentId
+  // A signed-in account (staff / teacher): the device belongs to that profile.
+  let profileId: string | null = null
+  const bearer = (req.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '').trim()
+  if (bearer) profileId = (await db.auth.getUser(bearer)).data?.user?.id ?? null
+
+  // On a first subscribe (token present) set the owner; on rotation keep it.
+  if (profileId) { row.profile_id = profileId; row.student_id = null }
+  else if (studentId) row.student_id = studentId
 
   const { error } = await db.from('push_subscriptions').upsert(row, { onConflict: 'endpoint' })
   if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 })

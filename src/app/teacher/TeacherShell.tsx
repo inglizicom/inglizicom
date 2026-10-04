@@ -6,11 +6,12 @@ import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   LogOut, Menu, X, ChevronDown, LayoutDashboard, Layers, CalendarDays, Users,
-  ClipboardList, FolderOpen, Wallet, Clock, Star, UserRound, ExternalLink, MoreHorizontal, Trophy, FileText,
+  ClipboardList, FolderOpen, Wallet, Clock, Star, UserRound, ExternalLink, MoreHorizontal, Trophy, FileText, Bell,
   type LucideIcon,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useTeacher } from '@/lib/teacher-context'
+import NotificationBell from '@/components/notifications/NotificationBell'
 import { Face } from './_kit'
 
 /**
@@ -32,6 +33,7 @@ const GROUPS: { title: string; items: NavItem[] }[] = [
     { segment: 'students',  label: 'الطلاب',       icon: Users },
   ]},
   { title: 'المتابعة', items: [
+    { segment: 'notifications', label: 'الإشعارات', icon: Bell },
     { segment: 'reports',   label: 'التقارير',     icon: ClipboardList },
     { segment: 'materials', label: 'الملفات',      icon: FolderOpen },
     { segment: 'schedule',  label: 'التوفر',       icon: Clock },
@@ -162,6 +164,8 @@ export default function TeacherShell({ children }: { children: React.ReactNode }
             </div>
 
             <div className="flex-1" />
+
+            {!teacher.isPreview && <NotificationBell userId={teacher.id} allHref="/teacher/notifications" />}
 
             <Link href={publicUrl} target="_blank"
                   className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white ring-1 ring-[#E2E8F0] text-[12.5px] font-bold text-[#334155] hover:ring-blue-300 hover:text-blue-700 transition">

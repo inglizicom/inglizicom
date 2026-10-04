@@ -70,7 +70,7 @@ export default function CrmFrame({ title, breadcrumb, badges, raw, children }: {
 
       <div className="flex-1 min-w-0 flex flex-col">
         <CrmTopHeader title={title} breadcrumb={breadcrumb} userEmail={staff.email} roleLabel={roleLabel}
-                      base={base} onSignOut={signOut} onMenu={() => setDrawer(true)} />
+                      base={base} userId={staff.id} onSignOut={signOut} onMenu={() => setDrawer(true)} />
         <main className={`flex-1 min-w-0 pb-24 lg:pb-0 ${raw ? 'crm-raw' : ''}`}>
           <CrmErrorBoundary>{children}</CrmErrorBoundary>
         </main>

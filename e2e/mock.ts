@@ -192,6 +192,24 @@ RPC.staff_payment_teacher_options = [
 ]
 RPC.staff_set_payment_teacher = { id: PAYMENTS[0].id, teacher_id: IDS.teacher }
 
+// 062 — notifications
+export const NOTIFS = [
+  { id: '00000000-0000-4000-8000-00000000a001', kind: 'payment', title: '💰 دفعة جديدة لحصصك', body: 'سلمى بنعلي · 450 د.م', url: '/teacher/earnings', read_at: null, created_at: iso(0.01), message_id: null },
+  { id: '00000000-0000-4000-8000-00000000a002', kind: 'message', title: '✉️ رسالة من سلمى بنعلي', body: 'سأتأخر قليلًا.', url: '/sales/notifications', read_at: null, created_at: iso(0.2), message_id: null },
+  { id: '00000000-0000-4000-8000-00000000a003', kind: 'student_assigned', title: '👤 طالب جديد مسنَد إليك', body: 'ياسين العلوي', url: '/teacher/students', read_at: iso(1), created_at: iso(1), message_id: null },
+]
+export const MESSAGES = [
+  { id: '00000000-0000-4000-8000-00000000b001', created_at: iso(0.1), sender_role: 'teacher', sender_name: 'سارة بن يوسف', title: 'واجب الغد', body: 'الصفحة 12',
+    recipients: [{ kind: 'student', id: STUDENTS[0].id, name: STUDENTS[0].full_name }], recipient_count: 1 },
+  { id: '00000000-0000-4000-8000-00000000b002', created_at: iso(0.3), sender_role: 'student', sender_name: STUDENTS[1].full_name, title: `✉️ رسالة من ${STUDENTS[1].full_name}`, body: 'متى الحصة القادمة؟',
+    recipients: [{ kind: 'teacher', id: IDS.teacher, name: 'سارة بن يوسف' }], recipient_count: 1 },
+]
+RPC.notifications_mark_read = 2
+RPC.staff_send_notification = { message_id: MESSAGES[0].id, teachers: 1, students: 0 }
+RPC.teacher_send_notification = { message_id: MESSAGES[0].id, students: 1 }
+RPC.student_my_teachers = [{ id: IDS.teacher, name: 'سارة بن يوسف' }]
+RPC.student_send_notification = { message_id: MESSAGES[1].id }
+
 export interface MockOptions {
   role?: Role | null
   /** Profile fields to override for the signed-in user (e.g. { blocked: true }). */
@@ -252,6 +270,8 @@ export async function mockSupabase(page: Page, opts: MockOptions = {}): Promise<
       else if (table === 'subscription_leads') rows = LEADS
       else if (table === 'crm_students') rows = STUDENTS
       else if (table === 'crm_payments') rows = PAYMENTS
+      else if (table === 'notifications') rows = url.searchParams.get('read_at') === 'is.null' ? NOTIFS.filter(n => !n.read_at) : NOTIFS
+      else if (table === 'notification_messages') rows = MESSAGES
       if (write) {
         const created = { id: '00000000-0000-4000-8000-00000000ffff', created_at: new Date().toISOString(), ...(Array.isArray(body) ? body[0] : (body as object)) }
         return json(single ? created : [created], 201)

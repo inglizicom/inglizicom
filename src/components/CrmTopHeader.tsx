@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronDown, Menu, Search, X } from 'lucide-react'
 import ProfileModal from './ProfileModal'
 import LeadsBell from './LeadsBell'
 import CrmSearch from './crm/CrmSearch'
+import NotificationBell from './notifications/NotificationBell'
 
 /**
  * The CRM header: where you are (title + breadcrumb), the search that finds
@@ -18,11 +19,13 @@ interface Props {
   roleLabel?:   string
   notifCount?:  number
   base?:        string
+  /** The signed-in staff member — for the notifications bell (062). */
+  userId?:      string
   onSignOut?:   () => void
   onMenu?:      () => void
 }
 
-export default function CrmTopHeader({ title, breadcrumb, userEmail, roleLabel, base = '/sales', onSignOut, onMenu }: Props) {
+export default function CrmTopHeader({ title, breadcrumb, userEmail, roleLabel, base = '/sales', userId, onSignOut, onMenu }: Props) {
   const name = userEmail?.split('@')[0] ?? '—'
   const [profileOpen, setProfileOpen] = useState(false)
   const [searchOpen, setSearchOpen]   = useState(false)
@@ -63,6 +66,10 @@ export default function CrmTopHeader({ title, breadcrumb, userEmail, roleLabel, 
                   className="md:hidden w-9 h-9 rounded-xl flex items-center justify-center text-[#475569] hover:bg-slate-100">
             {searchOpen ? <X size={18} /> : <Search size={18} />}
           </button>
+          {userId && (
+            <NotificationBell userId={userId} allHref={`${base}/notifications`}
+              mapUrl={u => (u.startsWith('/sales') ? base + u.slice('/sales'.length) : u) || '/'} />
+          )}
           <LeadsBell base={base} />
           <span className="hidden sm:block w-px h-8 bg-[#E2E8F0] mx-1" />
           <button onClick={() => setProfileOpen(true)} title="الملف الشخصي"
