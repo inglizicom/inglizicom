@@ -89,6 +89,9 @@ export interface PayrollRow {
   sessions: number
   hourly_rate_mad: number | null
   pay_model: string | null
+  /** 060: revenue-share teachers — their % and the confirmed money from the students they brought. */
+  revenue_share_pct?: number | null
+  revenue_brought?: number | null
   monthly_salary_mad: number
   suggested_base: number
   payout: Payout | null
@@ -175,6 +178,8 @@ export async function fetchPayroll(month: string): Promise<Payroll> {
     rows: (data.rows as any[]).map(r => ({
       ...r, hours: num(r.hours), suggested_base: num(r.suggested_base), monthly_salary_mad: num(r.monthly_salary_mad),
       hourly_rate_mad: r.hourly_rate_mad == null ? null : Number(r.hourly_rate_mad), payout: toPayout(r.payout),
+      revenue_share_pct: r.revenue_share_pct == null ? null : Number(r.revenue_share_pct),
+      revenue_brought: r.revenue_brought == null ? null : Number(r.revenue_brought),
     })),
     totals: {
       paid: num(data.totals?.paid), pending: num(data.totals?.pending),

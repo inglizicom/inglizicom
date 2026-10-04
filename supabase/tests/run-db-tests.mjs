@@ -1783,3 +1783,94 @@ describe('teachers add their own students (059)', () => {
     await rejects(as(ctx.db, 'anon', () => rpc(ctx.db, 'teacher_add_student', ['X', '0677889900', null, 'group', null, null, null])), /permission denied/)
   })
 })
+describe('teacher monthly report (060)', () => {
+  let ctx, month, cls, brought, assigned, s1, s2, s3
+  const asF = fn => as(ctx.db, ctx.founder, fn)
+  const asA = fn => as(ctx.db, ctx.assistant, fn)
+  const report = (who, teacher) => as(ctx.db, who, () => rpc(ctx.db, 'teacher_month_report', [teacher, month]))
+  const midMonth = () => { const d = new Date(); d.setUTCDate(Math.min(d.getUTCDate(), 25)); d.setUTCHours(12, 0, 0, 0); return d }
+  const today = () => new Date().toISOString().slice(0, 10)
+
+  before(async () => {
+    ctx = await setup()
+    month = new Date().toISOString().slice(0, 7) + '-01'
+    await asF(() => ctx.db.query(`update teacher_profiles set pay_model = 'revenue_share', revenue_share_pct = 60 where id = $1`, [ctx.teacherA]))
+    cls = await makeClass(ctx.db, { title: 'Report group', teacher: ctx.teacherA })
+    // one student the teacher brought (via 059), one the academy assigned
+    brought = (await as(ctx.db, ctx.teacherA, () => rpc(ctx.db, 'teacher_add_student', ['Brought One', '0611000001', 'A1', 'group', cls, null, null]))).student_id
+    const a = await makeStudent(ctx.db, 'Academy One', { phone: '+212622000002' })
+    assigned = a.id
+    await enrollClass(ctx.db, cls, assigned)
+    // sessions: two delivered (one with a report), one cancelled
+    const t = midMonth()
+    s1 = await makeSession(ctx.db, { teacher: ctx.teacherA, classId: cls, startsAt: t.toISOString(), status: 'done' })
+    s2 = await makeSession(ctx.db, { teacher: ctx.teacherA, classId: cls, startsAt: new Date(t.getTime() + 3600e3).toISOString(), status: 'done' })
+    s3 = await makeSession(ctx.db, { teacher: ctx.teacherA, classId: cls, startsAt: new Date(t.getTime() + 7200e3).toISOString(), status: 'cancelled' })
+    await ctx.db.query(`update class_sessions set duration_min = 60 where id in ($1, $2)`, [s1, s2])
+    await ctx.db.query(`update class_sessions set cancel_reason = 'Teacher sick' where id = $1`, [s3])
+    await ctx.db.query(`insert into lesson_reports (session_id, teacher_id, covered) values ($1, $2, 'Unit 1')`, [s1, ctx.teacherA])
+    for (const [sess, st, status] of [[s1, brought, 'present'], [s1, assigned, 'absent'], [s2, brought, 'late'], [s2, assigned, 'present']]) {
+      await ctx.db.query(`insert into class_attendance (session_id, student_id, status) values ($1, $2, $3)`, [sess, st, status])
+    }
+    // money: 1,000 confirmed from the brought student, 400 from the academy student
+    await pay(ctx.db, brought, 1000, today())
+    await pay(ctx.db, assigned, 400, today())
+    await ctx.db.query(`insert into teacher_reviews (teacher_id, student_id, rating, comment) values ($1, $2, 5, 'Great')`, [ctx.teacherA, brought])
+  })
+
+  it('counts the month: students, sessions, attendance, reviews', async () => {
+    const r = await report(ctx.teacherA, ctx.teacherA)
+    assert.equal(r.students.total, 2)
+    assert.equal(r.students.brought, 1)
+    assert.equal(r.students.academy_assigned, 1)
+    assert.equal(r.students.new, 2, 'both joined this month (added / seated)')
+    assert.equal(r.sessions.done, 2)
+    assert.equal(r.sessions.cancelled, 1)
+    assert.equal(r.sessions.cancel_reasons[0].reason, 'Teacher sick')
+    assert.equal(Number(r.sessions.hours), 2)
+    assert.equal(r.sessions.missing_reports, 1)
+    assert.equal(r.attendance.marked, 4)
+    assert.equal(r.attendance.absent, 1)
+    assert.equal(r.reviews.length, 1)
+    assert.equal(r.reviews[0].rating, 5)
+    assert.ok(!('student_id' in r.reviews[0]), 'reviews come without who wrote them')
+    const b = r.students.list.find(s => s.id === brought)
+    assert.equal(b.present, 1); assert.equal(b.late, 1); assert.equal(Number(b.paid), 1000); assert.equal(b.brought, true)
+  })
+
+  it('money: only the students the teacher brought count toward their share', async () => {
+    const r = await report(ctx.teacherA, ctx.teacherA)
+    assert.equal(Number(r.money.revenue_brought), 1000)
+    assert.equal(Number(r.money.paid_by_academy_students), 400)
+    assert.equal(r.teacher.pay_model, 'revenue_share')
+    assert.equal(Number(r.teacher.revenue_share_pct), 60)
+    const p = await asF(() => rpc(ctx.db, 'founder_payroll', [month]))
+    const row = p.rows.find(x => x.id === ctx.teacherA)
+    assert.equal(Number(row.suggested_base), 600, '60% of 1,000')
+    assert.equal(Number(row.revenue_brought), 1000)
+  })
+
+  it('an assistant cannot change the share; the founder can', async () => {
+    await rejects(asA(() => ctx.db.query(`update teacher_profiles set revenue_share_pct = 90 where id = $1`, [ctx.teacherA])), /Only a founder/)
+    await as(ctx.db, ctx.teacherA, () => ctx.db.query(`update teacher_profiles set revenue_share_pct = 95 where id = $1`, [ctx.teacherA]))
+    assert.equal(Number((await one(ctx.db, `select revenue_share_pct from teacher_profiles where id = $1`, [ctx.teacherA])).revenue_share_pct), 60)
+    await rejects(asF(() => ctx.db.query(`update teacher_profiles set revenue_share_pct = 120 where id = $1`, [ctx.teacherA])), /check/)
+  })
+
+  it('a teacher reads only their own report; staff read anyone\'s', async () => {
+    await rejects(report(ctx.teacherB, ctx.teacherA), /Not allowed/)
+    const r = await report(ctx.assistant, ctx.teacherA)
+    assert.equal(r.students.total, 2)
+    await rejects(report('anon', ctx.teacherA), /permission denied/)
+  })
+
+  it('the academy note: staff write it, the teacher sees it, nobody else writes', async () => {
+    await asA(() => rpc(ctx.db, 'staff_set_teacher_month_note', [ctx.teacherA, month, 'Good month — write every report.']))
+    const r = await report(ctx.teacherA, ctx.teacherA)
+    assert.equal(r.academy_note.note, 'Good month — write every report.')
+    await rejects(as(ctx.db, ctx.teacherA, () => rpc(ctx.db, 'staff_set_teacher_month_note', [ctx.teacherA, month, 'All great'])), /Staff only/)
+    await rejects(as(ctx.db, ctx.teacherA, () => ctx.db.query(`insert into teacher_month_notes (teacher_id, period, note) values ($1, $2, 'x')`, [ctx.teacherA, month])), /permission denied/)
+    await asA(() => rpc(ctx.db, 'staff_set_teacher_month_note', [ctx.teacherA, month, '  ']))
+    assert.equal((await report(ctx.teacherA, ctx.teacherA)).academy_note, null, 'an empty note removes it')
+  })
+})

@@ -169,6 +169,23 @@ RPC.teacher_added_students = []
 RPC.teacher_my_students = []
 RPC.teacher_my_classes = []
 
+// 060 — the monthly report
+RPC.teacher_month_report = {
+  month, generated_at: iso(0),
+  teacher: { id: IDS.teacher, name: 'سارة بن يوسف', email: 'teacher@e2e.test', pay_model: 'revenue_share', hourly_rate_mad: null, revenue_share_pct: 60, rating_avg: 4.8, rating_count: 12 },
+  students: { total: 2, brought: 1, academy_assigned: 1, group: 2, private: 0, new: 1, left: 0, pending_review: 0, list: [
+    { id: STUDENTS[0].id, name: STUDENTS[0].full_name, kind: 'group', brought: true, is_new: true, left: false, review_status: 'approved', present: 6, late: 1, absent: 2, excused: 0, paid: 1000, pending: 0 },
+    { id: STUDENTS[1].id, name: STUDENTS[1].full_name, kind: 'group', brought: false, is_new: false, left: false, review_status: 'approved', present: 8, late: 0, absent: 0, excused: 0, paid: 450, pending: 0 },
+  ] },
+  sessions: { scheduled: 9, done: 8, cancelled: 1, upcoming: 0, hours: 8, missing_reports: 1, cancel_reasons: [{ date: iso(5), title: 'مجموعة المساء', reason: 'مرض' }] },
+  attendance: { marked: 17, present: 14, late: 1, absent: 2, excused: 0 },
+  money: { revenue_brought: 1000, pending_brought: 0, paid_by_academy_students: 450, payout: null },
+  reviews: [{ rating: 5, comment: 'ممتازة', date: iso(3) }],
+  academy_note: null,
+  previous: { sessions_done: 7, attendance: { marked: 15, came: 13 }, revenue_brought: 800 },
+}
+RPC.staff_set_teacher_month_note = { note: 'ok' }
+
 export interface MockOptions {
   role?: Role | null
   /** Profile fields to override for the signed-in user (e.g. { blocked: true }). */

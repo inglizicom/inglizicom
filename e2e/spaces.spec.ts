@@ -87,3 +87,18 @@ test.describe('public pages', () => {
     })
   }
 })
+
+test.describe('monthly report', () => {
+  test('a teacher opens the month and downloads it as a PDF in one click', async ({ page }) => {
+    await mockSupabase(page, { role: 'teacher' })
+    await page.goto('/teacher/monthly?demo=1')
+    await expect(page.getByText('التقرير الشهري للأستاذ')).toBeVisible({ timeout: 90_000 })
+    await expect(page.getByText('نقاط القوة')).toBeVisible()
+    await expect(page.getByText('الأجر الصافي')).toBeVisible()
+    const [download] = await Promise.all([
+      page.waitForEvent('download', { timeout: 60_000 }),
+      page.getByRole('button', { name: /تحميل PDF/ }).click(),
+    ])
+    expect(download.suggestedFilename()).toMatch(/\.pdf$/)
+  })
+})

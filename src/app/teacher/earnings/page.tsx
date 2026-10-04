@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import {
   Wallet, CalendarDays, Loader2, Info, TrendingUp, CalendarCheck, CalendarClock,
-  BadgeDollarSign, ArrowDown, ChevronLeft, ChevronRight, ShieldCheck, Users, Lock,
+  BadgeDollarSign, ArrowDown, ChevronLeft, ChevronRight, ShieldCheck, Users, Lock, FileText,
 } from 'lucide-react'
 import { useTeacher } from '@/lib/teacher-context'
 import {
@@ -149,7 +149,7 @@ export default function TeacherEarningsPage() {
       {/* ══ What the office actually paid — recorded by the founder, month by month ══ */}
       <Rise>
         <Surface className="p-5 sm:p-6">
-          <SectionHead title="دفعاتي" />
+          <SectionHead title="دفعاتي" action={<Btn href="/teacher/monthly" kind="gold" icon={FileText}>التقرير الشهري · PDF</Btn>} />
           <MyPayouts demo={demo} />
         </Surface>
       </Rise>

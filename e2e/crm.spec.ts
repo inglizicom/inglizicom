@@ -220,3 +220,16 @@ test.describe('teacher adds a student', () => {
     })
   })
 })
+test.describe('monthly report (staff)', () => {
+  test('staff open a teacher\'s month, see the money split and write the academy note', async ({ page }) => {
+    const calls = await mockSupabase(page, { role: 'assistant' })
+    await page.goto(`/sales/teachers/report?teacher=${IDS.teacher}`)
+    await expect(page.getByText('التقرير الشهري للأستاذ')).toBeVisible({ timeout: 90_000 })
+    await expect(page.getByText('نصيب الأكاديمية')).toBeVisible()
+    await expect(page.getByText('600 د.م').first()).toBeVisible()          // 60% of 1,000
+    await page.getByPlaceholder(/مثال: شهر جيد/).fill('ركّز على تقارير الحصص.')
+    await page.getByRole('button', { name: 'حفظ الملاحظة' }).click()
+    await expect.poll(() => calls.find(c => c.path.endsWith('/rpc/staff_set_teacher_month_note'))?.body)
+      .toMatchObject({ p_teacher: IDS.teacher, p_note: 'ركّز على تقارير الحصص.' })
+  })
+})

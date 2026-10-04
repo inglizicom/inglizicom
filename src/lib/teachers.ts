@@ -803,21 +803,26 @@ export async function deleteTeacherAccount(teacherId: string): Promise<void> {
   if (!res.ok) throw new Error(json?.error ?? 'Could not delete the account.')
 }
 
-export interface TeacherRate { pay_model: string | null; hourly_rate_mad: number | null }
+export type PayModel = 'hourly' | 'revenue_share'
+export interface TeacherRate { pay_model: PayModel | null; hourly_rate_mad: number | null; revenue_share_pct: number | null }
 
 /** Every teacher's pay terms — for the staff teachers page (RLS: staff read). */
 export async function fetchTeacherRates(): Promise<Map<string, TeacherRate>> {
-  const { data, error } = await supabase.from('teacher_profiles').select('id, pay_model, hourly_rate_mad')
+  const { data, error } = await supabase.from('teacher_profiles').select('id, pay_model, hourly_rate_mad, revenue_share_pct')
   if (error) { console.error('fetchTeacherRates', error.message); return new Map() }
   return new Map((data ?? []).map((r: any) => [r.id, {
     pay_model: r.pay_model, hourly_rate_mad: r.hourly_rate_mad == null ? null : Number(r.hourly_rate_mad),
+    revenue_share_pct: r.revenue_share_pct == null ? null : Number(r.revenue_share_pct),
   }]))
 }
 
-/** Founder only (enforced by guard_teacher_profile_fields, 058): the hourly rate. */
-export async function setTeacherRate(teacherId: string, hourlyRateMad: number | null): Promise<void> {
-  const { error } = await supabase.from('teacher_profiles')
-    .update({ pay_model: 'hourly', hourly_rate_mad: hourlyRateMad }).eq('id', teacherId)
+/** Founder only (guard_teacher_profile_fields, 058/060): how a teacher is paid —
+ *  an hourly rate, or a share (%) of what the students they brought paid. */
+export async function setTeacherPay(teacherId: string, pay: { model: PayModel; hourlyRateMad?: number | null; sharePct?: number | null }): Promise<void> {
+  const patch = pay.model === 'revenue_share'
+    ? { pay_model: 'revenue_share', revenue_share_pct: pay.sharePct ?? null }
+    : { pay_model: 'hourly', hourly_rate_mad: pay.hourlyRateMad ?? null }
+  const { error } = await supabase.from('teacher_profiles').update(patch).eq('id', teacherId)
   if (error) throw new Error(/Only a founder/i.test(error.message) ? 'تعديل الأجر من صلاحيات المؤسس فقط.' : error.message)
 }
 

@@ -6,7 +6,7 @@ import {
   Mail, Plus, Search, Settings2, Star, Trash2, User as UserIcon, Users, X, ExternalLink,
 } from 'lucide-react'
 import {
-  createTeacher, deleteTeacherAccount, fetchAbsenceSummary, fetchTeacherRates, setTeacherRate, type TeacherRate,
+  createTeacher, deleteTeacherAccount, fetchAbsenceSummary, fetchTeacherRates, setTeacherPay, type PayModel, type TeacherRate,
   fetchAssignedIds, fetchDeleteImpact, fetchTeachersScoreboard, setTeacherActive,
   updateTeacherAccount, TeacherEmailTakenError,
   type AbsenceRow, type DeleteImpact, type ScoreboardRow,
@@ -209,7 +209,12 @@ export default function AdminTeachersPage() {
                     )}
                   </td>
                   <td className="text-center px-2 border-l border-gray-100 tabular-nums">
-                    {rates.get(t.id)?.hourly_rate_mad != null ? (
+                    {rates.get(t.id)?.pay_model === 'revenue_share' ? (
+                      <>
+                        <div className="font-black text-emerald-700">{rates.get(t.id)!.revenue_share_pct ?? '—'}%</div>
+                        <div className="text-[10.5px] text-gray-400 font-bold">من مداخيل طلابه</div>
+                      </>
+                    ) : rates.get(t.id)?.hourly_rate_mad != null ? (
                       <>
                         <div className="font-black text-emerald-700">{new Intl.NumberFormat('en-US').format(Math.round(Number(t.hours_delivered ?? 0) * (rates.get(t.id)!.hourly_rate_mad as number)))} <span className="text-[10.5px] text-gray-400">د.م</span></div>
                         <div className="text-[10.5px] text-gray-400 font-bold">{rates.get(t.id)!.hourly_rate_mad} د.م / ساعة</div>
@@ -227,6 +232,10 @@ export default function AdminTeachersPage() {
                   </td>
                   <td className="px-3 text-left sticky left-0 bg-white shadow-[4px_0_8px_-6px_rgba(0,0,0,0.15)]">
                     <div className="flex items-center gap-1.5 justify-end">
+                      <a href={`/sales/teachers/report?teacher=${t.id}`}
+                        className="px-3 py-1.5 rounded-lg border border-blue-200 text-blue-700 text-[12px] font-bold hover:bg-blue-50 transition whitespace-nowrap">
+                        التقرير
+                      </a>
                       <button
                         onClick={() => setAssignFor(t)}
                         className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 text-[12px] font-bold hover:bg-gray-100 transition whitespace-nowrap"
@@ -281,7 +290,7 @@ export default function AdminTeachersPage() {
         <ManageTeacherModal
           teacher={manageFor}
           isFounder={isFounder}
-          rate={rates.get(manageFor.id)?.hourly_rate_mad ?? null}
+          pay={rates.get(manageFor.id) ?? null}
           onClose={() => setManageFor(null)}
           onChanged={() => { setManageFor(null); load() }}
         />
@@ -476,9 +485,14 @@ function NewTeacherModal({
 /* ── Manage an existing account ──────────────────────── */
 
 function ManageTeacherModal({
-  teacher, isFounder, rate: currentRate, onClose, onChanged,
-}: { teacher: ScoreboardRow; isFounder: boolean; rate: number | null; onClose: () => void; onChanged: () => void }) {
+  teacher, isFounder, pay, onClose, onChanged,
+}: { teacher: ScoreboardRow; isFounder: boolean; pay: TeacherRate | null; onClose: () => void; onChanged: () => void }) {
+  const currentRate  = pay?.hourly_rate_mad ?? null
+  const currentShare = pay?.revenue_share_pct ?? null
+  const currentModel: PayModel = pay?.pay_model === 'revenue_share' ? 'revenue_share' : 'hourly'
+  const [model, setModel]     = useState<PayModel>(currentModel)
   const [rate, setRate]       = useState(currentRate == null ? '' : String(currentRate))
+  const [share, setShare]     = useState(currentShare == null ? '' : String(currentShare))
   const [name, setName]       = useState(teacher.display_name ?? '')
   const [email, setEmail]     = useState(teacher.email ?? '')
   const [password, setPass]   = useState('')
@@ -503,9 +517,12 @@ function ManageTeacherModal({
       if (Object.keys(patch).length > 0) await updateTeacherAccount(teacher.id, patch)
       if (active !== teacher.is_active)  await setTeacherActive(teacher.id, active)
       const nextRate = rate.trim() === '' ? null : Number(rate)
-      if (isFounder && nextRate !== currentRate) {
-        if (nextRate != null && (!Number.isFinite(nextRate) || nextRate < 0)) throw new Error('أدخل سعر ساعة صحيحًا.')
-        await setTeacherRate(teacher.id, nextRate)
+      const nextShare = share.trim() === '' ? null : Number(share)
+      const payChanged = model !== currentModel || (model === 'hourly' ? nextRate !== currentRate : nextShare !== currentShare)
+      if (isFounder && payChanged) {
+        if (model === 'hourly' && nextRate != null && (!Number.isFinite(nextRate) || nextRate < 0)) throw new Error('أدخل سعر ساعة صحيحًا.')
+        if (model === 'revenue_share' && nextShare != null && (!Number.isFinite(nextShare) || nextShare < 0 || nextShare > 100)) throw new Error('النسبة بين 0 و100.')
+        await setTeacherPay(teacher.id, { model, hourlyRateMad: nextRate, sharePct: nextShare })
       }
 
       setMsg(password ? 'تم الحفظ — انسخ كلمة المرور الجديدة الآن.' : 'تم الحفظ.')
@@ -571,13 +588,29 @@ function ManageTeacherModal({
           </p>
         </FieldRow>
 
-        <FieldRow icon={KeyRound} label="سعر الساعة (د.م)">
+        <FieldRow icon={KeyRound} label="الأجر">
           {isFounder ? (
-            <input value={rate} onChange={e => setRate(e.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" dir="ltr"
-                   className={`${inp} text-left`} placeholder="100" />
+            <div className="space-y-2">
+              <select value={model} onChange={e => setModel(e.target.value as PayModel)} className={inp}>
+                <option value="revenue_share">نسبة من مداخيل الطلاب الذين جاء بهم</option>
+                <option value="hourly">بالساعة</option>
+              </select>
+              {model === 'revenue_share' ? (
+                <div className="flex items-center gap-2">
+                  <input value={share} onChange={e => setShare(e.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" dir="ltr"
+                         className={`${inp} text-left`} placeholder="60" />
+                  <span className="text-[12px] font-bold text-gray-500 shrink-0">% للأستاذ</span>
+                </div>
+              ) : (
+                <input value={rate} onChange={e => setRate(e.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" dir="ltr"
+                       className={`${inp} text-left`} placeholder="100" />
+              )}
+            </div>
           ) : (
             <div className="rounded-xl bg-gray-50 border border-gray-200 px-3.5 py-2.5 text-[13px] font-bold text-gray-700">
-              {currentRate != null ? `${currentRate} د.م / ساعة` : 'غير محدد'}
+              {currentModel === 'revenue_share'
+                ? (currentShare != null ? `${currentShare}% من مداخيل طلابه` : 'نسبة غير محددة')
+                : (currentRate != null ? `${currentRate} د.م / ساعة` : 'غير محدد')}
               <span className="block text-[11px] font-semibold text-gray-400 mt-0.5">تعديل الأجر من صلاحيات المؤسس.</span>
             </div>
           )}
