@@ -6,7 +6,7 @@ import {
   Mail, Plus, Search, Settings2, Star, Trash2, User as UserIcon, Users, X, ExternalLink,
 } from 'lucide-react'
 import {
-  createTeacher, deleteTeacherAccount, fetchAbsenceSummary, fetchTeacherRates, setTeacherPay, type PayModel, type TeacherRate,
+  createTeacher, deleteTeacherAccount, fetchAbsenceSummary, fetchTeacherRates, setTeacherCanAddStudents, setTeacherPay, type PayModel, type TeacherRate,
   fetchAssignedIds, fetchDeleteImpact, fetchTeachersScoreboard, setTeacherActive,
   updateTeacherAccount, TeacherEmailTakenError,
   type AbsenceRow, type DeleteImpact, type ScoreboardRow,
@@ -212,7 +212,7 @@ export default function AdminTeachersPage() {
                     {rates.get(t.id)?.pay_model === 'revenue_share' ? (
                       <>
                         <div className="font-black text-emerald-700">{rates.get(t.id)!.revenue_share_pct ?? '—'}%</div>
-                        <div className="text-[10.5px] text-gray-400 font-bold">من مداخيل طلابه</div>
+                        <div className="text-[10.5px] text-gray-400 font-bold">من دفعات حصصه</div>
                       </>
                     ) : rates.get(t.id)?.hourly_rate_mad != null ? (
                       <>
@@ -497,6 +497,7 @@ function ManageTeacherModal({
   const [email, setEmail]     = useState(teacher.email ?? '')
   const [password, setPass]   = useState('')
   const [active, setActive]   = useState(teacher.is_active)
+  const [canAdd, setCanAdd]   = useState(!!pay?.can_add_students)
   const [busy, setBusy]       = useState(false)
   const [msg, setMsg]         = useState<string | null>(null)
   const [error, setError]     = useState<string | null>(null)
@@ -524,6 +525,7 @@ function ManageTeacherModal({
         if (model === 'revenue_share' && nextShare != null && (!Number.isFinite(nextShare) || nextShare < 0 || nextShare > 100)) throw new Error('النسبة بين 0 و100.')
         await setTeacherPay(teacher.id, { model, hourlyRateMad: nextRate, sharePct: nextShare })
       }
+      if (isFounder && canAdd !== !!pay?.can_add_students) await setTeacherCanAddStudents(teacher.id, canAdd)
 
       setMsg(password ? 'تم الحفظ — انسخ كلمة المرور الجديدة الآن.' : 'تم الحفظ.')
       if (!password) onChanged()
@@ -592,7 +594,7 @@ function ManageTeacherModal({
           {isFounder ? (
             <div className="space-y-2">
               <select value={model} onChange={e => setModel(e.target.value as PayModel)} className={inp}>
-                <option value="revenue_share">نسبة من مداخيل الطلاب الذين جاء بهم</option>
+                <option value="revenue_share">نسبة من دفعات حصصه</option>
                 <option value="hourly">بالساعة</option>
               </select>
               {model === 'revenue_share' ? (
@@ -609,12 +611,24 @@ function ManageTeacherModal({
           ) : (
             <div className="rounded-xl bg-gray-50 border border-gray-200 px-3.5 py-2.5 text-[13px] font-bold text-gray-700">
               {currentModel === 'revenue_share'
-                ? (currentShare != null ? `${currentShare}% من مداخيل طلابه` : 'نسبة غير محددة')
+                ? (currentShare != null ? `${currentShare}% من دفعات حصصه` : 'نسبة غير محددة')
                 : (currentRate != null ? `${currentRate} د.م / ساعة` : 'غير محدد')}
               <span className="block text-[11px] font-semibold text-gray-400 mt-0.5">تعديل الأجر من صلاحيات المؤسس.</span>
             </div>
           )}
         </FieldRow>
+
+        {/* 061: the academy brings students; a founder may let a teacher add their own. */}
+        {isFounder ? (
+          <label className="flex items-center gap-2.5 cursor-pointer">
+            <input type="checkbox" checked={canAdd} onChange={e => setCanAdd(e.target.checked)}
+                   className="w-4 h-4 rounded accent-gray-900" />
+            <span className="text-[13px] font-bold text-gray-700">يمكنه إضافة طلاب بنفسه</span>
+            <span className="text-[11.5px] text-gray-400 font-semibold">— وإلا تُسند إليه الإدارة الطلاب</span>
+          </label>
+        ) : pay?.can_add_students && (
+          <div className="text-[12.5px] font-bold text-gray-500">يمكنه إضافة طلاب بنفسه (يغيّره المؤسس فقط)</div>
+        )}
 
         <label className="flex items-center gap-2.5 cursor-pointer">
           <input type="checkbox" checked={active} onChange={e => setActive(e.target.checked)}

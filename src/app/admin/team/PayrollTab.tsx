@@ -151,7 +151,7 @@ function PayCard({ row, month, onSaved }: { row: PayrollRow; month: string; onSa
           </div>
           <div className="text-[11.5px] text-zinc-500 mt-0.5">
             {row.role === 'teacher' && row.pay_model === 'revenue_share'
-              ? <>{row.revenue_share_pct != null ? `${row.revenue_share_pct}%` : 'نسبة غير محددة'} من {mad(row.revenue_brought ?? 0)} · مداخيل طلابه · {row.sessions} حصة</>
+              ? <>{row.revenue_share_pct != null ? `${row.revenue_share_pct}%` : 'نسبة غير محددة'} من {mad(row.revenue_brought ?? 0)} · دفعات حصصه ·{row.sessions} حصة</>
               : row.role === 'teacher'
               ? <>{row.sessions} حصة · {row.hours} ساعة × {row.hourly_rate_mad != null ? mad(row.hourly_rate_mad) : 'سعر غير محدد'}</>
               : <>الراتب الشهري: {row.monthly_salary_mad ? mad(row.monthly_salary_mad) : 'غير محدد'}</>}

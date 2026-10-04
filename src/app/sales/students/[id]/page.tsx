@@ -592,7 +592,7 @@ export default function StudentProfilePage() {
               {tab === 'overview' && <OverviewTab {...{ id, paid, pcBusy, pcLesT, pcLesU, pcLevel, pcMsg, pcNext, pcStage, pcTask, pending, savePortalControl, setAssignments, setPcLesT, setPcLesU, setPcLevel, setPcMsg, setPcNext, setPcStage, setPcTask, student }} />}
 
               {/* PAYMENTS */}
-              {tab === 'payments' && <PaymentsTab {...{ addPayment, approve, decline, downloadReceipt, payAmt, payBusy, payments, payNotes, payType, phone, receipts, remindPayment, savingPay, sendReceipt, setPayAmt, setPayNotes, setPayType, setShowPayForm, setSplitDate, setSplitFirst, setSplitOn, showPayForm, splitDate, splitFirst, splitOn }} />}
+              {tab === 'payments' && <PaymentsTab studentId={id} {...{ addPayment, approve, decline, downloadReceipt, payAmt, payBusy, payments, payNotes, payType, phone, receipts, remindPayment, savingPay, sendReceipt, setPayAmt, setPayNotes, setPayType, setShowPayForm, setSplitDate, setSplitFirst, setSplitOn, showPayForm, splitDate, splitFirst, splitOn }} />}
 
               {/* NOTES */}
               {tab === 'notes' && <NotesTab {...{ editNote, noteText, saveNote, savingNote, setEditNote, setNoteText }} />}

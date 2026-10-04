@@ -192,8 +192,8 @@ test.describe('students teachers add (059)', () => {
     await page.goto('/sales/dashboard')
     await expect(page.getByText('جديد من الأساتذة')).toBeVisible({ timeout: 90_000 })
     await expect(page.getByText('هبة العلوي')).toBeVisible()
-    await expect(page.getByText('الطلاب والمداخيل حسب الجهة')).toBeVisible()
-    await expect(page.getByText('الأكاديمية').first()).toBeVisible()
+    await expect(page.getByText('الطلاب والمداخيل حسب الأستاذ')).toBeVisible()
+    await expect(page.getByText('بدون أستاذ', { exact: true })).toBeVisible()
 
     await page.getByRole('button', { name: 'تأكيد' }).click()
     await expect.poll(() => calls.find(c => c.method === 'PATCH' && c.path.endsWith('/crm_payments'))?.body)
@@ -218,6 +218,26 @@ test.describe('teacher adds a student', () => {
     expect(calls.find(c => c.path.endsWith('/rpc/teacher_add_student'))?.body).toMatchObject({
       p_full_name: 'هبة العلوي', p_phone: '0611223344', p_kind: 'group', p_level: 'A1',
     })
+  })
+
+  test('a teacher the founder has not allowed sees no "add student" (061)', async ({ page }) => {
+    await mockSupabase(page, { role: 'teacher', teacherProfile: { can_add_students: false } })
+    await page.goto('/teacher/students')
+    await expect(page.locator('main').getByRole('heading', { name: 'طلابي' })).toBeVisible({ timeout: 90_000 })
+    await expect(page.getByRole('button', { name: 'إضافة طالب' })).toHaveCount(0)
+  })
+})
+
+test.describe('payments follow the lessons (061)', () => {
+  test('staff link a payment to the teacher whose lessons it pays for', async ({ page }) => {
+    const calls = await mockSupabase(page, { role: 'assistant' })
+    await page.goto(`/sales/students/${STUDENTS[0].id}`)
+    await page.getByRole('button', { name: 'المدفوعات والفواتير' }).click({ timeout: 90_000 })
+    const picker = page.getByRole('combobox', { name: 'أستاذ الحصص' }).first()
+    await expect(picker).toBeVisible()
+    await picker.selectOption(IDS.teacher)
+    await expect.poll(() => calls.find(c => c.path.endsWith('/rpc/staff_set_payment_teacher'))?.body)
+      .toMatchObject({ p_teacher: IDS.teacher })
   })
 })
 test.describe('monthly report (staff)', () => {

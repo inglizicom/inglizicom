@@ -28,6 +28,8 @@ export interface TeacherProfile {
   whatsapp:        string | null
   pay_model:       'hourly' | 'per_class' | 'monthly' | 'none'
   hourly_rate_mad: number | null
+  /** 061: may add students and declare payments — set by a founder, off by default. */
+  can_add_students?: boolean
   availability:    AvailabilityWindow[]
   hired_at:        string
   is_active:       boolean
@@ -804,20 +806,31 @@ export async function deleteTeacherAccount(teacherId: string): Promise<void> {
 }
 
 export type PayModel = 'hourly' | 'revenue_share'
-export interface TeacherRate { pay_model: PayModel | null; hourly_rate_mad: number | null; revenue_share_pct: number | null }
+export interface TeacherRate {
+  pay_model: PayModel | null; hourly_rate_mad: number | null; revenue_share_pct: number | null
+  can_add_students: boolean
+}
 
-/** Every teacher's pay terms — for the staff teachers page (RLS: staff read). */
+/** Every teacher's pay terms and permissions — for the staff teachers page (RLS: staff read).
+ *  `*` so the page still loads on a database a migration behind. */
 export async function fetchTeacherRates(): Promise<Map<string, TeacherRate>> {
-  const { data, error } = await supabase.from('teacher_profiles').select('id, pay_model, hourly_rate_mad, revenue_share_pct')
+  const { data, error } = await supabase.from('teacher_profiles').select('*')
   if (error) { console.error('fetchTeacherRates', error.message); return new Map() }
   return new Map((data ?? []).map((r: any) => [r.id, {
     pay_model: r.pay_model, hourly_rate_mad: r.hourly_rate_mad == null ? null : Number(r.hourly_rate_mad),
     revenue_share_pct: r.revenue_share_pct == null ? null : Number(r.revenue_share_pct),
+    can_add_students: !!r.can_add_students,
   }]))
 }
 
+/** Founder only (guard_teacher_profile_fields, 061): may this teacher add their own students? */
+export async function setTeacherCanAddStudents(teacherId: string, on: boolean): Promise<void> {
+  const { error } = await supabase.from('teacher_profiles').update({ can_add_students: on }).eq('id', teacherId)
+  if (error) throw new Error(/Only a founder/i.test(error.message) ? 'هذا الإذن من صلاحيات المؤسس فقط.' : error.message)
+}
+
 /** Founder only (guard_teacher_profile_fields, 058/060): how a teacher is paid —
- *  an hourly rate, or a share (%) of what the students they brought paid. */
+ *  an hourly rate, or a share (%) of the payments linked to their lessons (061). */
 export async function setTeacherPay(teacherId: string, pay: { model: PayModel; hourlyRateMad?: number | null; sharePct?: number | null }): Promise<void> {
   const patch = pay.model === 'revenue_share'
     ? { pay_model: 'revenue_share', revenue_share_pct: pay.sharePct ?? null }

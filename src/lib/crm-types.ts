@@ -150,6 +150,8 @@ export interface CrmPayment {
   reminder_sent_at?:   string | null
   installment_no?:     number | null
   installment_count?:  number | null
+  /** 061: the teacher whose lessons this payment pays for (null = not linked yet). */
+  teacher_id?:         string | null
 }
 
 // ─── Lead timeline event ─────────────────────────────────────

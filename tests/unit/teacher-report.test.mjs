@@ -12,20 +12,20 @@ function month(over = {}) {
   const base = {
     month: '2026-10-01', generated_at: '2026-10-31T20:00:00Z',
     teacher: { id: 't', name: 'Sara', email: null, pay_model: 'revenue_share', hourly_rate_mad: 100, revenue_share_pct: 60, rating_avg: 4.8, rating_count: 20 },
-    students: { total: 10, brought: 6, academy_assigned: 4, group: 8, private: 2, new: 2, left: 0, pending_review: 0, list: [] },
+    students: { total: 10, group: 8, private: 2, new: 2, left: 0, pending_review: 0, list: [] },
     sessions: { scheduled: 20, done: 20, cancelled: 0, upcoming: 0, hours: 20, missing_reports: 0, cancel_reasons: [] },
     attendance: { marked: 100, present: 92, late: 3, absent: 5, excused: 0 },
-    money: { revenue_brought: 10000, pending_brought: 0, paid_by_academy_students: 3000, payout: null },
+    money: { revenue: 10000, pending: 0, unlinked: 0, payout: null },
     reviews: [{ rating: 5, comment: null, date: '' }, { rating: 5, comment: null, date: '' }, { rating: 4, comment: null, date: '' }],
     academy_note: null,
-    previous: { sessions_done: 18, attendance: { marked: 90, came: 80 }, revenue_brought: 9000 },
+    previous: { sessions_done: 18, attendance: { marked: 90, came: 80 }, revenue: 9000 },
   }
   const deep = (a, b) => { for (const k of Object.keys(b)) a[k] = (b[k] && typeof b[k] === 'object' && !Array.isArray(b[k])) ? deep({ ...a[k] }, b[k]) : b[k]; return a }
   return deep(structuredClone(base), over)
 }
 
 describe('pay', () => {
-  it('revenue share: the teacher keeps their % of what the students they brought paid', () => {
+  it('revenue share: the teacher keeps their % of the payments linked to their lessons', () => {
     const p = computePay(month())
     assert.equal(p.model, 'revenue_share')
     assert.equal(p.teacherShare, 6000)
@@ -70,7 +70,7 @@ describe('evaluation', () => {
       attendance: { marked: 100, present: 60, late: 5, absent: 35, excused: 0 },
       sessions: { done: 12, cancelled: 6, hours: 12, missing_reports: 6 },
       students: { new: 0, left: 2 },
-      money: { revenue_brought: 5000 },
+      money: { revenue: 5000 },
     }))
     assert.equal(e.grade, 'D')
     assert.ok(e.weaknesses.some(w => w.includes('65%')), 'attendance')
@@ -89,8 +89,8 @@ describe('evaluation', () => {
 
   it('names the students who missed two sessions or more', () => {
     const e = evaluate(month({ students: { list: [
-      { id: '1', name: 'Hiba', kind: 'group', brought: true, is_new: false, left: false, review_status: 'approved', present: 2, late: 0, absent: 3, excused: 0, paid: 0, pending: 0 },
-      { id: '2', name: 'Omar', kind: 'group', brought: true, is_new: false, left: false, review_status: 'approved', present: 4, late: 0, absent: 1, excused: 0, paid: 0, pending: 0 },
+      { id: '1', name: 'Hiba', kind: 'group', is_new: false, left: false, review_status: 'approved', present: 2, late: 0, absent: 3, excused: 0, paid: 0, pending: 0 },
+      { id: '2', name: 'Omar', kind: 'group', is_new: false, left: false, review_status: 'approved', present: 4, late: 0, absent: 1, excused: 0, paid: 0, pending: 0 },
     ] } }))
     assert.ok(e.actions.some(a => a.includes('Hiba (3 غياب)') && !a.includes('Omar')))
   })
@@ -99,10 +99,24 @@ describe('evaluation', () => {
     const e = evaluate(month({
       sessions: { scheduled: 0, done: 0, cancelled: 0, hours: 0, missing_reports: 0 },
       attendance: { marked: 0, present: 0, late: 0, absent: 0, excused: 0 },
-      students: { new: 0 }, money: { revenue_brought: 0 }, reviews: [],
+      students: { new: 0 }, money: { revenue: 0 }, reviews: [],
     }))
     assert.equal(e.noActivity, true)
     assert.equal(e.grade, 'D')
+  })
+
+  it('new students earn no points — the academy brings them; keeping them does', () => {
+    const stu = m => evaluate(month(m)).criteria.find(c => c.key === 'students').score
+    assert.equal(stu({ students: { new: 5, left: 0 } }), stu({ students: { new: 0, left: 0 } }))
+    assert.equal(stu({ students: { left: 0 } }), 15)
+    assert.equal(stu({ students: { left: 1 } }), 10)
+    assert.equal(stu({ students: { left: 3 } }), 0)
+  })
+
+  it('money paid but linked to no teacher is named, and not counted in the share', () => {
+    const r = month({ money: { revenue: 1000, unlinked: 450 } })
+    assert.equal(computePay(r).teacherShare, 600)
+    assert.ok(evaluate(r).actions.some(a => a.includes('450') && a.includes('لم تُربط')))
   })
 
   it('same month, same verdict', () => {

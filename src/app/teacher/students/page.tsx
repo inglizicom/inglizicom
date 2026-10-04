@@ -102,8 +102,11 @@ export default function TeacherStudentsPage() {
         ]}
       />
 
-      {/* Students this teacher brought in (059): they reach the office at once. */}
-      <AddedStudentsPanel teacherId={teacher.id} demo={demo} refreshKey={added} onAdd={() => setAdding(true)} />
+      {/* Adding students (059) is a permission since 061: the academy brings
+          students and assigns them; only teachers a founder allowed add their own. */}
+      {(demo || teacher.profile?.can_add_students) && (
+        <AddedStudentsPanel teacherId={teacher.id} demo={demo} refreshKey={added} onAdd={() => setAdding(true)} />
+      )}
       {adding && (
         <AddStudentModal teacherId={teacher.id} demo={demo} onClose={() => setAdding(false)} onAdded={() => setAdded(n => n + 1)} />
       )}

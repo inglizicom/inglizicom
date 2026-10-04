@@ -1693,6 +1693,8 @@ describe('teachers add their own students (059)', () => {
 
   before(async () => {
     ctx = await setup()
+    // Since 061 adding students is a per-teacher permission.
+    await as(ctx.db, ctx.founder, () => ctx.db.query(`update teacher_profiles set can_add_students = true where id in ($1, $2)`, [ctx.teacherA, ctx.teacherB]))
     clsA = await makeClass(ctx.db, { title: 'A group', teacher: ctx.teacherA })
     clsB = await makeClass(ctx.db, { title: 'B group', teacher: ctx.teacherB })
     academyStudent = await makeStudent(ctx.db, 'Academy Student', { phone: '+212600000001' })
@@ -1772,10 +1774,15 @@ describe('teachers add their own students (059)', () => {
   })
 
   it('the sides add up to total revenue; others cannot call these functions', async () => {
+    // Since 061 a side is the teacher a payment is linked to: the academy
+    // student is now taught by teacher B only, so their payment is B's.
     await pay(ctx.db, academyStudent.id, 500, today)
+    const loose = await makeStudent(ctx.db, 'No Teacher', { phone: '+212600000077' })
+    await pay(ctx.db, loose.id, 70, today)
     const sides = (await asA(() => rpc(ctx.db, 'staff_sides_breakdown', [null, null]))).sides
-    const academy = sides.find(s => s.is_academy)
-    assert.equal(Number(academy.revenue_total), 500)
+    assert.equal(Number(sides.find(s => s.teacher_id === ctx.teacherB).revenue_total), 500)
+    const none = sides.find(s => s.is_academy)
+    assert.equal(Number(none.revenue_total), 70)
     const total = await one(ctx.db, `select coalesce(sum(amount_mad), 0) as t from crm_payments where payment_status = 'paid' and amount_mad > 0 and not coalesce(excluded_from_revenue, false)`)
     assert.equal(sides.reduce((s, x) => s + Number(x.revenue_total), 0), Number(total.t))
     await rejects(asA(() => rpc(ctx.db, 'teacher_add_student', ['X', '0677889900', null, 'group', null, null, null])), /Teachers only/)
@@ -1794,7 +1801,7 @@ describe('teacher monthly report (060)', () => {
   before(async () => {
     ctx = await setup()
     month = new Date().toISOString().slice(0, 7) + '-01'
-    await asF(() => ctx.db.query(`update teacher_profiles set pay_model = 'revenue_share', revenue_share_pct = 60 where id = $1`, [ctx.teacherA]))
+    await asF(() => ctx.db.query(`update teacher_profiles set pay_model = 'revenue_share', revenue_share_pct = 60, can_add_students = true where id = $1`, [ctx.teacherA]))
     cls = await makeClass(ctx.db, { title: 'Report group', teacher: ctx.teacherA })
     // one student the teacher brought (via 059), one the academy assigned
     brought = (await as(ctx.db, ctx.teacherA, () => rpc(ctx.db, 'teacher_add_student', ['Brought One', '0611000001', 'A1', 'group', cls, null, null]))).student_id
@@ -1821,8 +1828,6 @@ describe('teacher monthly report (060)', () => {
   it('counts the month: students, sessions, attendance, reviews', async () => {
     const r = await report(ctx.teacherA, ctx.teacherA)
     assert.equal(r.students.total, 2)
-    assert.equal(r.students.brought, 1)
-    assert.equal(r.students.academy_assigned, 1)
     assert.equal(r.students.new, 2, 'both joined this month (added / seated)')
     assert.equal(r.sessions.done, 2)
     assert.equal(r.sessions.cancelled, 1)
@@ -1835,19 +1840,19 @@ describe('teacher monthly report (060)', () => {
     assert.equal(r.reviews[0].rating, 5)
     assert.ok(!('student_id' in r.reviews[0]), 'reviews come without who wrote them')
     const b = r.students.list.find(s => s.id === brought)
-    assert.equal(b.present, 1); assert.equal(b.late, 1); assert.equal(Number(b.paid), 1000); assert.equal(b.brought, true)
+    assert.equal(b.present, 1); assert.equal(b.late, 1); assert.equal(Number(b.paid), 1000)
   })
 
-  it('money: only the students the teacher brought count toward their share', async () => {
+  it('money: every payment for the teacher\'s lessons counts toward their share (061)', async () => {
     const r = await report(ctx.teacherA, ctx.teacherA)
-    assert.equal(Number(r.money.revenue_brought), 1000)
-    assert.equal(Number(r.money.paid_by_academy_students), 400)
+    assert.equal(Number(r.money.revenue), 1400, 'both students have only this teacher')
+    assert.equal(Number(r.money.unlinked), 0)
     assert.equal(r.teacher.pay_model, 'revenue_share')
     assert.equal(Number(r.teacher.revenue_share_pct), 60)
     const p = await asF(() => rpc(ctx.db, 'founder_payroll', [month]))
     const row = p.rows.find(x => x.id === ctx.teacherA)
-    assert.equal(Number(row.suggested_base), 600, '60% of 1,000')
-    assert.equal(Number(row.revenue_brought), 1000)
+    assert.equal(Number(row.suggested_base), 840, '60% of 1,400')
+    assert.equal(Number(row.revenue_brought), 1400)
   })
 
   it('an assistant cannot change the share; the founder can', async () => {
@@ -1872,5 +1877,79 @@ describe('teacher monthly report (060)', () => {
     await rejects(as(ctx.db, ctx.teacherA, () => ctx.db.query(`insert into teacher_month_notes (teacher_id, period, note) values ($1, $2, 'x')`, [ctx.teacherA, month])), /permission denied/)
     await asA(() => rpc(ctx.db, 'staff_set_teacher_month_note', [ctx.teacherA, month, '  ']))
     assert.equal((await report(ctx.teacherA, ctx.teacherA)).academy_note, null, 'an empty note removes it')
+  })
+})
+describe('the academy brings students; payments follow the lessons (061)', () => {
+  let ctx, clsA
+  const asF = fn => as(ctx.db, ctx.founder, fn)
+  const asA = fn => as(ctx.db, ctx.assistant, fn)
+  const today = new Date().toISOString().slice(0, 10)
+  const month = today.slice(0, 7) + '-01'
+  const lastPayment = async student => one(ctx.db, `select id, teacher_id from crm_payments where student_id = $1 order by created_at desc limit 1`, [student])
+  const assign = (teacher, student) => ctx.db.query(`insert into teacher_students (teacher_id, student_id, is_active) values ($1, $2, true)`, [teacher, student])
+
+  before(async () => {
+    ctx = await setup()
+    clsA = await makeClass(ctx.db, { title: 'A group', teacher: ctx.teacherA })
+  })
+
+  it('only a teacher the founder allowed can add students or declare payments', async () => {
+    await rejects(as(ctx.db, ctx.teacherA, () => rpc(ctx.db, 'teacher_add_student', ['Hiba', '0611223344', 'A1', 'group', null, null, null])), /not enabled/)
+    await rejects(asA(() => ctx.db.query(`update teacher_profiles set can_add_students = true where id = $1`, [ctx.teacherA])), /Only a founder/)
+    await as(ctx.db, ctx.teacherA, () => ctx.db.query(`update teacher_profiles set can_add_students = true where id = $1`, [ctx.teacherA]))
+    assert.equal((await one(ctx.db, `select can_add_students from teacher_profiles where id = $1`, [ctx.teacherA])).can_add_students, false, 'a teacher cannot allow themselves')
+    await asF(() => ctx.db.query(`update teacher_profiles set can_add_students = true where id = $1`, [ctx.teacherA]))
+    const r = await as(ctx.db, ctx.teacherA, () => rpc(ctx.db, 'teacher_add_student', ['Hiba', '0611223344', 'A1', 'group', null, null, null]))
+    assert.equal(r.result, 'created')
+    const d = await as(ctx.db, ctx.teacherA, () => rpc(ctx.db, 'teacher_declare_payment', [r.student_id, 300, 'cash', today, 'monthly', null, null, null]))
+    assert.equal((await one(ctx.db, `select teacher_id from crm_payments where id = $1`, [d.id])).teacher_id, ctx.teacherA)
+    // teacher B was never allowed: even for a student assigned to them
+    await assign(ctx.teacherB, r.student_id)
+    await rejects(as(ctx.db, ctx.teacherB, () => rpc(ctx.db, 'teacher_declare_payment', [r.student_id, 100, 'cash', null, 'monthly', null, null, null])), /not enabled/)
+  })
+
+  it('a payment links itself to the student\'s only teacher — now, or when they are assigned later', async () => {
+    const seated = await makeStudent(ctx.db, 'Seated', { phone: '+212600000101' })
+    await enrollClass(ctx.db, clsA, seated.id)
+    await pay(ctx.db, seated.id, 450, today)
+    assert.equal((await lastPayment(seated.id)).teacher_id, ctx.teacherA)
+
+    const later = await makeStudent(ctx.db, 'Later', { phone: '+212600000102' })
+    await pay(ctx.db, later.id, 200, today)
+    assert.equal((await lastPayment(later.id)).teacher_id, null, 'no teacher yet')
+    await assign(ctx.teacherB, later.id)
+    assert.equal((await lastPayment(later.id)).teacher_id, ctx.teacherB, 'linked when assigned')
+  })
+
+  it('a student with two teachers: unlinked until staff link it, then it counts for that teacher', async () => {
+    const both = await makeStudent(ctx.db, 'Both', { phone: '+212600000103' })
+    await enrollClass(ctx.db, clsA, both.id)
+    await assign(ctx.teacherB, both.id)
+    await pay(ctx.db, both.id, 300, today)
+    const p = await lastPayment(both.id)
+    assert.equal(p.teacher_id, null)
+    let r = await as(ctx.db, ctx.teacherA, () => rpc(ctx.db, 'teacher_month_report', [ctx.teacherA, month]))
+    assert.equal(Number(r.money.unlinked), 300, 'the teacher sees money waiting to be linked')
+    assert.equal(Number(r.students.list.find(s => s.id === both.id).unlinked), 300)
+
+    const opts = await asA(() => rpc(ctx.db, 'staff_payment_teacher_options', [both.id]))
+    assert.match(opts.find(o => o.teacher_id === ctx.teacherA).via, /A group/)
+    assert.match(opts.find(o => o.teacher_id === ctx.teacherB).via, /مسنَد/)
+
+    await rejects(as(ctx.db, ctx.teacherA, () => rpc(ctx.db, 'staff_set_payment_teacher', [p.id, ctx.teacherA])), /Staff only/)
+    await rejects(asA(() => rpc(ctx.db, 'staff_set_payment_teacher', [p.id, ctx.assistant])), /only be linked to a teacher/)
+    await asA(() => rpc(ctx.db, 'staff_set_payment_teacher', [p.id, ctx.teacherB]))
+    r = await as(ctx.db, ctx.teacherB, () => rpc(ctx.db, 'teacher_month_report', [ctx.teacherB, month]))
+    assert.equal(Number(r.money.revenue), 500, '300 linked now + 200 from the student assigned later')
+    assert.equal(Number(r.money.unlinked), 0)
+  })
+
+  it('the sides add up to total revenue, with unlinked money on its own row', async () => {
+    const sides = (await asA(() => rpc(ctx.db, 'staff_sides_breakdown', [null, null]))).sides
+    const total = await one(ctx.db, `select coalesce(sum(amount_mad), 0) as t from crm_payments where payment_status = 'paid' and amount_mad > 0 and not coalesce(excluded_from_revenue, false)`)
+    assert.equal(sides.reduce((s, x) => s + Number(x.revenue_total), 0), Number(total.t))
+    assert.equal(Number(sides.find(s => s.teacher_id === ctx.teacherA).revenue_total), 450)
+    const a = sides.find(s => s.teacher_id === ctx.teacherA)
+    assert.equal(a.students, 3, 'Hiba (assigned on add), Seated, Both')
   })
 })

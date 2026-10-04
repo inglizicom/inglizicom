@@ -236,7 +236,7 @@ function Money({ report: r, pay }: { report: MonthReport; pay: ReturnType<typeof
       <H2>المداخيل والأجر</H2>
       <table className="avoid-break" style={{ width: '100%', borderCollapse: 'collapse', border: `1px solid ${C.line}`, borderRadius: 10 }}>
         <tbody>
-          <Row k="مداخيل مؤكَّدة من الطلاب الذين جئت بهم" v={mad(pay.revenue)} />
+          <Row k="مداخيل مؤكَّدة من دفعات حصصك (طلابك هذا الشهر)" v={mad(pay.revenue)} />
           {pay.model === 'revenue_share' ? (
             <>
               <Row k="نسبتك" v={pay.sharePct != null ? `${pay.sharePct}%` : 'غير محددة'} />
@@ -250,8 +250,8 @@ function Money({ report: r, pay }: { report: MonthReport; pay: ReturnType<typeof
           {pay.deduction > 0 && <Row k="خصم" v={`− ${mad(pay.deduction)}`} tone="#DC2626" />}
           <Row k="الأجر الصافي" v={mad(pay.net)} strong tone={C.navy} />
           <Row k="الحالة" v={status} tone={pay.status === 'paid' ? '#059669' : pay.status === 'pending' ? '#D97706' : C.mute} />
-          {r.money.pending_brought > 0 && <Row k="دفعات بانتظار تأكيد الإدارة (لا تُحتسب بعد)" v={mad(r.money.pending_brought)} tone="#D97706" />}
-          {r.money.paid_by_academy_students > 0 && <Row k="دفعات طلاب الأكاديمية الذين تُدرّسهم (لا تدخل في نسبتك)" v={mad(r.money.paid_by_academy_students)} tone={C.mute} />}
+          {r.money.pending > 0 && <Row k="دفعات بانتظار تأكيد الإدارة (لا تُحتسب بعد)" v={mad(r.money.pending)} tone="#D97706" />}
+          {r.money.unlinked > 0 && <Row k="دفعات طلابك غير المربوطة بأستاذ بعد (طالب عند أكثر من أستاذ — تُحتسب حين تربطها الإدارة)" v={mad(r.money.unlinked)} tone={C.mute} />}
         </tbody>
       </table>
       {r.money.payout?.note && <div style={{ fontSize: 11.5, color: C.mute, marginTop: 6 }}>ملاحظة الرواتب: {r.money.payout.note}</div>}
@@ -295,11 +295,11 @@ function Students({ report: r }: { report: MonthReport }) {
   const td: React.CSSProperties = { padding: '6px 8px', fontSize: 12, borderBottom: `1px solid ${C.line}` }
   return (
     <>
-      <H2>الطلاب ({r.students.total}) — {r.students.brought} جئت بهم · {r.students.academy_assigned} من الأكاديمية</H2>
+      <H2>الطلاب ({r.students.total}) — {r.students.group} جماعي · {r.students.private} فردي</H2>
       {r.students.list.length === 0 ? <div style={{ fontSize: 12.5, color: C.mute }}>لا طلاب هذا الشهر.</div> : (
         <table style={{ width: '100%', borderCollapse: 'collapse', border: `1px solid ${C.line}` }}>
           <thead><tr>
-            <th style={th}>الطالب</th><th style={th}>النوع</th><th style={th}>المصدر</th>
+            <th style={th}>الطالب</th><th style={th}>النوع</th>
             <th style={th}>حاضر</th><th style={th}>متأخر</th><th style={th}>غائب</th><th style={th}>معذور</th>
             <th style={th}>الحضور</th><th style={th}>دفع هذا الشهر</th>
           </tr></thead>
@@ -315,12 +315,11 @@ function Students({ report: r }: { report: MonthReport }) {
                     {s.review_status === 'pending' && <span style={{ color: '#D97706', fontSize: 10.5, fontWeight: 800 }}> · بانتظار المراجعة</span>}
                   </td>
                   <td style={td}>{s.kind === 'private' ? 'فردي' : 'جماعي'}</td>
-                  <td style={td}>{s.brought ? 'أنت' : 'الأكاديمية'}</td>
                   <td style={td}>{s.present}</td><td style={td}>{s.late}</td>
                   <td style={{ ...td, color: s.absent >= 2 ? '#DC2626' : C.ink, fontWeight: s.absent >= 2 ? 800 : 400 }}>{s.absent}</td>
                   <td style={td}>{s.excused}</td>
                   <td style={td}>{pct(s.present + s.late, marked)}</td>
-                  <td style={{ ...td, fontWeight: 700 }}>{s.paid > 0 ? mad(s.paid) : '—'}{s.pending > 0 ? <span style={{ color: '#D97706', fontSize: 10.5 }}> (+{mad(s.pending)} بانتظار)</span> : null}</td>
+                  <td style={{ ...td, fontWeight: 700 }}>{s.paid > 0 ? mad(s.paid) : '—'}{s.pending > 0 ? <span style={{ color: '#D97706', fontSize: 10.5 }}> (+{mad(s.pending)} بانتظار)</span> : null}{(s.unlinked ?? 0) > 0 ? <span style={{ color: C.mute, fontSize: 10.5 }}> ({mad(s.unlinked ?? 0)} غير مربوطة)</span> : null}</td>
                 </tr>
               )
             })}

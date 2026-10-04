@@ -10,18 +10,21 @@
  *   attendance      25   share of marked seats that came (present + late)
  *   delivery        20   sessions delivered vs cancelled
  *   lesson reports  15   delivered sessions with a report
- *   students        15   kept (nobody left) + grew (someone new)
+ *   students        15   kept: nobody left (the academy brings new ones, so
+ *                         growth is not the teacher's merit)
  *   satisfaction    15   reviews written this month (3+ needed to judge)
  *   punctuality      5   late among those who came
- *   money            5   money from the students they brought, vs last month
+ *   money            5   confirmed payments for their lessons, vs last month
  *                  ───
  *                  100   A ≥ 85 · B ≥ 70 · C ≥ 55 · D below
  */
 
 export interface ReportStudent {
-  id: string; name: string; kind: 'group' | 'private'; brought: boolean; is_new: boolean; left: boolean
+  id: string; name: string; kind: 'group' | 'private'; is_new: boolean; left: boolean
   review_status: 'pending' | 'approved' | 'rejected'
-  present: number; late: number; absent: number; excused: number; paid: number; pending: number
+  present: number; late: number; absent: number; excused: number
+  /** Payments linked to this teacher; unlinked: paid but linked to no teacher yet. */
+  paid: number; pending: number; unlinked?: number
 }
 
 export interface MonthReport {
@@ -32,7 +35,7 @@ export interface MonthReport {
     hourly_rate_mad: number | null; revenue_share_pct: number | null; rating_avg: number | null; rating_count: number | null
   }
   students: {
-    total: number; brought: number; academy_assigned: number; group: number; private: number
+    total: number; group: number; private: number
     new: number; left: number; pending_review: number; list: ReportStudent[]
   }
   sessions: {
@@ -41,19 +44,22 @@ export interface MonthReport {
   }
   attendance: { marked: number; present: number; late: number; absent: number; excused: number }
   money: {
-    revenue_brought: number; pending_brought: number; paid_by_academy_students: number
+    /** Confirmed payments linked to this teacher (061) — the base of their %. */
+    revenue: number; pending: number
+    /** Paid this month by their students but linked to no teacher yet. */
+    unlinked: number
     payout: null | { base_mad: number; bonus_mad: number; deduction_mad: number; amount_mad: number; status: string; method: string | null; paid_at: string | null; note: string | null }
   }
   reviews: { rating: number; comment: string | null; date: string }[]
   academy_note: null | { note: string; updated_at: string }
-  previous: { sessions_done: number; attendance: { marked: number; came: number }; revenue_brought: number }
+  previous: { sessions_done: number; attendance: { marked: number; came: number }; revenue: number }
 }
 
 /* ── Pay ─────────────────────────────────────────────────── */
 
 export interface PayBreakdown {
   model: 'revenue_share' | 'hourly'
-  revenue: number            // confirmed, from the students they brought
+  revenue: number            // confirmed payments linked to the teacher
   sharePct: number | null    // revenue share only
   teacherShare: number       // before bonus / deduction
   academyShare: number       // revenue − teacher share (revenue share only)
@@ -68,7 +74,7 @@ const n = (v: unknown) => (v == null ? 0 : Number(v))
 
 export function computePay(r: MonthReport): PayBreakdown {
   const model = r.teacher.pay_model === 'revenue_share' ? 'revenue_share' : 'hourly'
-  const revenue = n(r.money.revenue_brought)
+  const revenue = n(r.money.revenue)
   const pct = r.teacher.revenue_share_pct == null ? null : n(r.teacher.revenue_share_pct)
   const computed = model === 'revenue_share'
     ? Math.round(revenue * (pct ?? 0) / 100)
@@ -152,17 +158,16 @@ export function evaluate(r: MonthReport): Evaluation {
   }
   criteria.push({ key: 'reports', label: 'تقارير الحصص', score: rep, max: 15, detail: n(s.done) ? `${n(s.done) - n(s.missing_reports)}/${s.done}` : '—' })
 
-  // Students: kept + grew — 15
+  // Students kept — 15. The academy brings new students, so only keeping them
+  // is the teacher's doing.
   const left = n(r.students.left)
-  let stu = Math.max(0, 10 - 5 * left) + (n(r.students.new) > 0 ? 5 : 0)
-  stu = Math.min(15, stu)
+  const stu = r.students.total > 0 ? Math.max(0, 15 - 5 * left) : 0
   if (left === 0 && r.students.total > 0) strengths.push(`لم يغادر أي طالب (${r.students.total} طالب).`)
   if (left > 0) {
     weaknesses.push(`${left} طالب غادر أحد أقسامك هذا الشهر.`)
     actions.push('اتصل بكل طالب غادر لمعرفة السبب، وأخبر الإدارة بما قاله.')
   }
-  if (n(r.students.new) > 0) strengths.push(`${r.students.new} طالب جديد هذا الشهر.`)
-  criteria.push({ key: 'students', label: 'الطلاب', score: stu, max: 15, detail: `${r.students.new} جديد · ${left} غادر` })
+  criteria.push({ key: 'students', label: 'الحفاظ على الطلاب', score: stu, max: 15, detail: r.students.total ? `${r.students.total} طالب · ${left} غادر` : 'لا طلاب' })
 
   // Satisfaction — 15 (3+ reviews this month to judge)
   const reviews = r.reviews ?? []
@@ -192,11 +197,12 @@ export function evaluate(r: MonthReport): Evaluation {
   criteria.push({ key: 'punctuality', label: 'الانضباط', score: pun, max: 5, detail: came ? `${n(a.late)} تأخر من ${came}` : '—' })
 
   // Money — 5
-  const rev = n(r.money.revenue_brought), prev = n(r.previous?.revenue_brought)
+  const rev = n(r.money.revenue), prev = n(r.previous?.revenue)
   const mon = rev > 0 && rev >= prev ? 5 : rev > 0 ? 3 : 0
-  if (rev > 0 && prev > 0 && rev >= prev) strengths.push(`مداخيل طلابك ارتفعت: ${mad(rev)} مقابل ${mad(prev)} الشهر الماضي.`)
-  if (rev > 0 && prev > 0 && rev < prev) weaknesses.push(`مداخيل طلابك انخفضت: ${mad(rev)} مقابل ${mad(prev)} الشهر الماضي.`)
-  if (n(r.money.pending_brought) > 0) actions.push(`${mad(n(r.money.pending_brought))} بانتظار تأكيد الإدارة — أرسل صور الوصولات إن لم تفعل.`)
+  if (rev > 0 && prev > 0 && rev >= prev) strengths.push(`مداخيل حصصك ارتفعت: ${mad(rev)} مقابل ${mad(prev)} الشهر الماضي.`)
+  if (rev > 0 && prev > 0 && rev < prev) weaknesses.push(`مداخيل حصصك انخفضت: ${mad(rev)} مقابل ${mad(prev)} الشهر الماضي.`)
+  if (n(r.money.pending) > 0) actions.push(`${mad(n(r.money.pending))} بانتظار تأكيد الإدارة.`)
+  if (n(r.money.unlinked) > 0) actions.push(`${mad(n(r.money.unlinked))} دفعها طلابك ولم تُربط بعد بأستاذ (طالب عند أكثر من أستاذ) — الإدارة تربطها، ولا تُحتسب قبل ذلك.`)
   criteria.push({ key: 'money', label: 'المداخيل', score: mon, max: 5, detail: mad(rev) })
 
   // Students who need a call

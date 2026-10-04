@@ -193,8 +193,8 @@ export function SidesPanel({ refreshKey = 0 }: { refreshKey?: number }) {
     <section className={`${CARD} p-4 sm:p-5`}>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
         <div>
-          <h2 className="text-[16px] font-extrabold text-zinc-900">الطلاب والمداخيل حسب الجهة</h2>
-          <p className="text-[12px] text-zinc-500">كل طالب يُحسب لمن جاء به: الأستاذ الذي أضافه، أو الأكاديمية · المجموع <bdi>{mad(total)}</bdi></p>
+          <h2 className="text-[16px] font-extrabold text-zinc-900">الطلاب والمداخيل حسب الأستاذ</h2>
+          <p className="text-[12px] text-zinc-500">كل دفعة تُحسب لأستاذ الحصص التي دُفعت مقابلها · «بدون أستاذ»: دفعات لم تُربط بعد · المجموع <bdi>{mad(total)}</bdi></p>
         </div>
         <div className="flex gap-1.5">
           {PERIODS.map(p => (

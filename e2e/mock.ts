@@ -70,7 +70,7 @@ const PROFILES = [
 const TEACHER_PROFILE = {
   id: IDS.teacher, display_name: 'سارة بن يوسف', headline: 'IELTS', bio: null, avatar_url: null, levels: ['B1'],
   specialties: [], languages: [], whatsapp: null, pay_model: 'hourly', hourly_rate_mad: 100, availability: [],
-  hired_at: '2025-01-10', is_active: true, rating_avg: 4.8, rating_count: 12,
+  hired_at: '2025-01-10', is_active: true, rating_avg: 4.8, rating_count: 12, can_add_students: true,
 }
 
 const person = (id: string, name: string, role: string, extra: Record<string, unknown> = {}) => ({
@@ -160,7 +160,7 @@ RPC.staff_review_teacher_student = { id: INTAKE_STUDENT, review_status: 'approve
 RPC.staff_sides_breakdown = {
   from: day(2), to: day(0),
   sides: [
-    { teacher_id: null, is_academy: true, name: 'الأكاديمية', students: 40, active: 31, pending_review: 0, revenue_period: 12600, revenue_total: 98000, awaiting_confirmation: 0 },
+    { teacher_id: null, is_academy: true, name: 'بدون أستاذ', students: 40, active: 31, pending_review: 0, revenue_period: 12600, revenue_total: 98000, awaiting_confirmation: 0 },
     { teacher_id: IDS.teacher, is_academy: false, name: 'سارة بن يوسف', students: 9, active: 7, pending_review: 1, revenue_period: 3150, revenue_total: 8100, awaiting_confirmation: 450 },
   ],
 }
@@ -173,23 +173,31 @@ RPC.teacher_my_classes = []
 RPC.teacher_month_report = {
   month, generated_at: iso(0),
   teacher: { id: IDS.teacher, name: 'سارة بن يوسف', email: 'teacher@e2e.test', pay_model: 'revenue_share', hourly_rate_mad: null, revenue_share_pct: 60, rating_avg: 4.8, rating_count: 12 },
-  students: { total: 2, brought: 1, academy_assigned: 1, group: 2, private: 0, new: 1, left: 0, pending_review: 0, list: [
-    { id: STUDENTS[0].id, name: STUDENTS[0].full_name, kind: 'group', brought: true, is_new: true, left: false, review_status: 'approved', present: 6, late: 1, absent: 2, excused: 0, paid: 1000, pending: 0 },
-    { id: STUDENTS[1].id, name: STUDENTS[1].full_name, kind: 'group', brought: false, is_new: false, left: false, review_status: 'approved', present: 8, late: 0, absent: 0, excused: 0, paid: 450, pending: 0 },
+  students: { total: 2, group: 2, private: 0, new: 1, left: 0, pending_review: 0, list: [
+    { id: STUDENTS[0].id, name: STUDENTS[0].full_name, kind: 'group', is_new: true, left: false, review_status: 'approved', present: 6, late: 1, absent: 2, excused: 0, paid: 1000, pending: 0 },
+    { id: STUDENTS[1].id, name: STUDENTS[1].full_name, kind: 'group', is_new: false, left: false, review_status: 'approved', present: 8, late: 0, absent: 0, excused: 0, paid: 0, pending: 0, unlinked: 450 },
   ] },
   sessions: { scheduled: 9, done: 8, cancelled: 1, upcoming: 0, hours: 8, missing_reports: 1, cancel_reasons: [{ date: iso(5), title: 'مجموعة المساء', reason: 'مرض' }] },
   attendance: { marked: 17, present: 14, late: 1, absent: 2, excused: 0 },
-  money: { revenue_brought: 1000, pending_brought: 0, paid_by_academy_students: 450, payout: null },
+  money: { revenue: 1000, pending: 0, unlinked: 450, payout: null },
   reviews: [{ rating: 5, comment: 'ممتازة', date: iso(3) }],
   academy_note: null,
-  previous: { sessions_done: 7, attendance: { marked: 15, came: 13 }, revenue_brought: 800 },
+  previous: { sessions_done: 7, attendance: { marked: 15, came: 13 }, revenue: 800 },
 }
 RPC.staff_set_teacher_month_note = { note: 'ok' }
+
+// 061 — which teacher's lessons a payment pays for
+RPC.staff_payment_teacher_options = [
+  { teacher_id: IDS.teacher, name: 'سارة بن يوسف', via: 'مسنَد مباشرة' },
+]
+RPC.staff_set_payment_teacher = { id: PAYMENTS[0].id, teacher_id: IDS.teacher }
 
 export interface MockOptions {
   role?: Role | null
   /** Profile fields to override for the signed-in user (e.g. { blocked: true }). */
   profile?: Record<string, unknown>
+  /** teacher_profiles fields to override (e.g. { can_add_students: false }). */
+  teacherProfile?: Record<string, unknown>
   rpc?: Record<string, unknown>
 }
 
@@ -240,7 +248,7 @@ export async function mockSupabase(page: Page, opts: MockOptions = {}): Promise<
       const write = req.method() === 'POST' || req.method() === 'PATCH'
       let rows: any[] = []
       if (table === 'profiles') rows = url.search.includes('role=in') ? PROFILES : me ? [me] : []
-      else if (table === 'teacher_profiles') rows = [TEACHER_PROFILE]
+      else if (table === 'teacher_profiles') rows = [{ ...TEACHER_PROFILE, ...opts.teacherProfile }]
       else if (table === 'subscription_leads') rows = LEADS
       else if (table === 'crm_students') rows = STUDENTS
       else if (table === 'crm_payments') rows = PAYMENTS

@@ -1,9 +1,10 @@
 import { supabase } from './supabase'
 
 /**
- * Teachers add their own students; staff review them; money is counted per
- * side (each teacher, and "the academy" for students staff added).
- * See supabase/migrations/059_teacher_added_students.sql.
+ * Teachers a founder allowed add their own students; staff review them. Money
+ * is counted per teacher from the payments linked to their lessons, and
+ * payments linked to no teacher on their own row.
+ * See supabase/migrations/059_teacher_added_students.sql and 061.
  */
 
 export type ReviewStatus = 'pending' | 'approved' | 'rejected'
@@ -18,6 +19,8 @@ const arabic = (msg: string): string => {
   if (/valid amount/i.test(msg)) return 'أدخل مبلغًا صحيحًا.'
   if (/not one of yours/i.test(msg)) return 'هذا الطالب ليس من طلابك.'
   if (/already reviewed/i.test(msg)) return 'تمت مراجعة هذا الطالب من قبل.'
+  if (/not enabled/i.test(msg)) return 'إضافة الطلاب غير مفعّلة لحسابك — الأكاديمية تُسند إليك الطلاب.'
+  if (/only be linked to a teacher/i.test(msg)) return 'يمكن ربط الدفعة بأستاذ فقط.'
   return msg
 }
 async function call<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
@@ -124,6 +127,18 @@ export async function fetchSides(from?: string | null, to?: string | null): Prom
       awaiting_confirmation: Number(s.awaiting_confirmation),
     })),
   }
+}
+
+/* ── Which teacher a payment is for (061) ────────────────── */
+
+export interface PaymentTeacherOption { teacher_id: string; name: string; via: string | null }
+/** Every active teacher; those linked to this student first, with how (class / assignment). */
+export function fetchPaymentTeacherOptions(studentId: string): Promise<PaymentTeacherOption[]> {
+  return call<PaymentTeacherOption[]>('staff_payment_teacher_options', { p_student: studentId }).then(r => r ?? [])
+}
+/** Link a payment to the teacher whose lessons it pays for (null = unlink). */
+export function setPaymentTeacher(paymentId: string, teacherId: string | null): Promise<unknown> {
+  return call('staff_set_payment_teacher', { p_payment: paymentId, p_teacher: teacherId })
 }
 
 export const PAY_METHOD_AR: Record<string, string> = {

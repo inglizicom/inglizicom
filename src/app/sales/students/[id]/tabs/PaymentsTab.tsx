@@ -5,15 +5,18 @@
    The page owns all state and data; this file only draws the tab from
    the values it is handed (props generated from what the JSX uses). */
 
-import { MessageCircle, Loader2, Printer, CheckCircle, XCircle, Plus } from 'lucide-react'
+import { MessageCircle, Loader2, Printer, CheckCircle, XCircle, Plus, GraduationCap } from 'lucide-react'
 
 import { type CrmPayment } from '@/lib/crm-types'
 import { type CrmReceipt } from '@/lib/crm-receipts'
+import { fetchPaymentTeacherOptions, setPaymentTeacher, type PaymentTeacherOption } from '@/lib/teacher-intake'
 import { MAD, fmtDate, PAY_STATUS_AR, PAYMENT_TYPE_AR } from '../_parts'
 
-import type { Dispatch, SetStateAction } from 'react'
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react'
 
 export interface PaymentsTabProps {
+  /** For the "which teacher's lessons" picker (061). */
+  studentId?: string
   addPayment: () => Promise<void>
   approve: (pid: string) => Promise<void>
   decline: (pid: string) => Promise<void>
@@ -41,7 +44,43 @@ export interface PaymentsTabProps {
   splitOn: boolean
 }
 
-export default function PaymentsTab({ addPayment, approve, decline, downloadReceipt, payAmt, payBusy, payments, payNotes, payType, phone, receipts, remindPayment, savingPay, sendReceipt, setPayAmt, setPayNotes, setPayType, setShowPayForm, setSplitDate, setSplitFirst, setSplitOn, showPayForm, splitDate, splitFirst, splitOn }: PaymentsTabProps) {
+/** Which teacher's lessons a payment pays for (061). Filled in automatically
+ *  when the student has one teacher; staff choose when they have several. */
+function PaymentTeacher({ payment, options }: { payment: CrmPayment; options: PaymentTeacherOption[] }) {
+  const [value, setValue] = useState<string>(payment.teacher_id ?? '')
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState<string | null>(null)
+  useEffect(() => { setValue(payment.teacher_id ?? '') }, [payment.teacher_id])
+  async function change(next: string) {
+    const prev = value
+    setValue(next); setBusy(true); setErr(null)
+    try { await setPaymentTeacher(payment.id, next || null) }
+    catch (e: any) { setValue(prev); setErr(e?.message ?? 'تعذّر الحفظ.') }
+    finally { setBusy(false) }
+  }
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px]">
+      <GraduationCap size={13} className="text-zinc-400" />
+      <span className="font-semibold text-zinc-500">لحصص:</span>
+      <select value={value} onChange={e => change(e.target.value)} disabled={busy} aria-label="أستاذ الحصص"
+        className={`border rounded-lg px-2 py-1 text-[12px] font-bold bg-white max-w-[16rem] ${value ? 'border-zinc-200 text-zinc-800' : 'border-amber-300 text-amber-700'}`}>
+        <option value="">— غير مربوطة بأستاذ —</option>
+        {options.map(o => <option key={o.teacher_id} value={o.teacher_id}>{o.name}{o.via ? ` · ${o.via}` : ''}</option>)}
+      </select>
+      {busy && <Loader2 size={12} className="animate-spin text-zinc-400" />}
+      {!value && !busy && <span className="text-[11px] text-amber-600 font-semibold">لا تُحتسب لأي أستاذ</span>}
+      {err && <span className="text-[11px] text-red-600 font-bold">{err}</span>}
+    </div>
+  )
+}
+
+export default function PaymentsTab({ studentId, addPayment, approve, decline, downloadReceipt, payAmt, payBusy, payments, payNotes, payType, phone, receipts, remindPayment, savingPay, sendReceipt, setPayAmt, setPayNotes, setPayType, setShowPayForm, setSplitDate, setSplitFirst, setSplitOn, showPayForm, splitDate, splitFirst, splitOn }: PaymentsTabProps) {
+  // null = not loaded or not available (a database before 061): no picker.
+  const [teacherOptions, setTeacherOptions] = useState<PaymentTeacherOption[] | null>(null)
+  useEffect(() => {
+    if (!studentId) return
+    fetchPaymentTeacherOptions(studentId).then(setTeacherOptions).catch(() => setTeacherOptions(null))
+  }, [studentId, payments.length])
   return (
     <>
           <div className="space-y-3">
@@ -136,6 +175,9 @@ export default function PaymentsTab({ addPayment, approve, decline, downloadRece
                     </div>
                     <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${info.cls}`}>{info.text}</span>
                   </div>
+                  {teacherOptions && (p.payment_status === 'paid' || p.payment_status === 'pending') && (
+                    <PaymentTeacher payment={p} options={teacherOptions} />
+                  )}
                   <div className="flex gap-2 flex-wrap">
                     {p.payment_status === 'pending' && (
                       <>
