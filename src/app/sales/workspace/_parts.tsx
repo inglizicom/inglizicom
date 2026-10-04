@@ -497,6 +497,16 @@ export function StudentCardNew({ student, onClick }: { student: CrmStudent; onCl
         </div>
 
         <div className="flex flex-wrap gap-1.5 mt-2.5">
+          {/* Added by a teacher from their space (059) */}
+          {student.review_status === 'pending' && (
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-bold">بانتظار المراجعة</span>
+          )}
+          {student.review_status === 'rejected' && (
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200 font-bold">مرفوض</span>
+          )}
+          {student.origin_teacher_id && (
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 font-semibold">من أستاذ</span>
+          )}
           {student.course && (
             <span className="text-[11px] px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border border-zinc-200 font-semibold">
               {student.course.toUpperCase()}

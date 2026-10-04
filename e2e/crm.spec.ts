@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test'
-import { mockSupabase, collectErrors, IDS, LEADS, STUDENTS, CLASS_ID, SESSION_ID } from './mock'
+import { mockSupabase, collectErrors, IDS, LEADS, STUDENTS, CLASS_ID, SESSION_ID, INTAKE_STUDENT } from './mock'
 
 /*
  * The CRM (/sales, /admin) against the fake Supabase in ./mock.ts.
@@ -184,5 +184,39 @@ test.describe('assistants: teachers and live classes', () => {
     await expect(page).toHaveURL(/\/teachers/)
     await bar.getByRole('link', { name: 'الأقسام' }).click()
     await expect(page).toHaveURL(/\/classes/)
+  })
+})
+test.describe('students teachers add (059)', () => {
+  test('staff see the new student, approve it (access code) and confirm the declared payment', async ({ page }) => {
+    const calls = await mockSupabase(page, { role: 'assistant' })
+    await page.goto('/sales/dashboard')
+    await expect(page.getByText('جديد من الأساتذة')).toBeVisible({ timeout: 90_000 })
+    await expect(page.getByText('هبة العلوي')).toBeVisible()
+    await expect(page.getByText('الطلاب والمداخيل حسب الجهة')).toBeVisible()
+    await expect(page.getByText('الأكاديمية').first()).toBeVisible()
+
+    await page.getByRole('button', { name: 'تأكيد' }).click()
+    await expect.poll(() => calls.find(c => c.method === 'PATCH' && c.path.endsWith('/crm_payments'))?.body)
+      .toMatchObject({ payment_status: 'paid', approved_by_id: IDS.assistant })
+
+    await page.getByRole('button', { name: 'قبول' }).click()
+    await expect(page.getByRole('dialog', { name: 'تم القبول' }).getByText('ING-AB12CD34')).toBeVisible()
+    expect(calls.find(c => c.path.endsWith('/rpc/staff_review_teacher_student'))?.body).toMatchObject({ p_student: INTAKE_STUDENT, p_approve: true })
+  })
+})
+
+test.describe('teacher adds a student', () => {
+  test('the form sends the student and shows what happens next', async ({ page }) => {
+    const calls = await mockSupabase(page, { role: 'teacher' })
+    await page.goto('/teacher/students')
+    await page.getByRole('button', { name: 'إضافة طالب' }).first().click({ timeout: 90_000 })
+    const sheet = page.getByRole('dialog', { name: 'إضافة طالب' })
+    await sheet.getByPlaceholder('مثال: هبة العلوي').fill('هبة العلوي')
+    await sheet.getByPlaceholder('06 12 34 56 78').fill('0611223344')
+    await sheet.getByRole('button', { name: 'إضافة الطالب' }).click()
+    await expect(page.getByRole('dialog', { name: 'تمت الإضافة' })).toBeVisible()
+    expect(calls.find(c => c.path.endsWith('/rpc/teacher_add_student'))?.body).toMatchObject({
+      p_full_name: 'هبة العلوي', p_phone: '0611223344', p_kind: 'group', p_level: 'A1',
+    })
   })
 })

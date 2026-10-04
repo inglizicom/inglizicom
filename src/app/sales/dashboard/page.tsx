@@ -10,6 +10,7 @@ import {
 import KpiCard from '../_components/KpiCard'
 import Avatar from '../_components/Avatar'
 import OwnerCommandCenter from '@/components/OwnerCommandCenter'
+import { SidesPanel, TeacherIntakePanel } from '@/components/crm/TeacherIntake'
 import { ChartCard, DonutBreakdown } from '../_components/Charts'
 import { useStaff } from '@/lib/staff-context'
 import {
@@ -36,6 +37,7 @@ export default function DashboardPage() {
   const [allLeads, setAllLeads] = useState<SubscriptionLead[]>([])
   const [period,   setPeriod]   = useState<'today' | 'yesterday' | 'week' | 'month' | 'all'>('today')
   const [loading, setLoading] = useState(true)
+  const [sidesKey, setSidesKey] = useState(0)   // refresh the per-side money after a review
 
   useEffect(() => {
     (async () => {
@@ -103,6 +105,10 @@ export default function DashboardPage() {
           </Link>
         )}
       </div>
+
+      {/* ── Students teachers brought in, and money per side (059) ── */}
+      <TeacherIntakePanel onChanged={() => setSidesKey(k => k + 1)} />
+      <SidesPanel refreshKey={sidesKey} />
 
       {/* ── Owner Command Center (founder only) ────────── */}
       {isFounder && <OwnerCommandCenter embedded />}

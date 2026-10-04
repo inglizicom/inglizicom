@@ -148,6 +148,27 @@ RPC.staff_online_class_detail = {
 }
 RPC.staff_class_attendance_without_enrollment = []
 
+// 059 — students teachers add, per-side money
+export const INTAKE_STUDENT = '00000000-0000-4000-8000-00000000d500'
+export const INTAKE_PAYMENT = '00000000-0000-4000-8000-00000000d600'
+RPC.staff_teacher_intake = [{
+  id: INTAKE_STUDENT, full_name: 'هبة العلوي', phone: '+212611223344', level: 'A1', kind: 'group', note: 'حصتان في الأسبوع',
+  created_at: iso(0.2), review_status: 'pending', teacher_id: IDS.teacher, teacher_name: 'سارة بن يوسف',
+  payments: [{ id: INTAKE_PAYMENT, amount_mad: 450, payment_method: 'bank_transfer', payment_date: day(0), notes: 'صرّح به الأستاذ · TX-1', receipt_path: null, payment_status: 'pending' }],
+}]
+RPC.staff_review_teacher_student = { id: INTAKE_STUDENT, review_status: 'approved', verification_token: 'ING-AB12CD34' }
+RPC.staff_sides_breakdown = {
+  from: day(2), to: day(0),
+  sides: [
+    { teacher_id: null, is_academy: true, name: 'الأكاديمية', students: 40, active: 31, pending_review: 0, revenue_period: 12600, revenue_total: 98000, awaiting_confirmation: 0 },
+    { teacher_id: IDS.teacher, is_academy: false, name: 'سارة بن يوسف', students: 9, active: 7, pending_review: 1, revenue_period: 3150, revenue_total: 8100, awaiting_confirmation: 450 },
+  ],
+}
+RPC.teacher_add_student = { result: 'created', student_id: INTAKE_STUDENT, seat: null, review_status: 'pending' }
+RPC.teacher_added_students = []
+RPC.teacher_my_students = []
+RPC.teacher_my_classes = []
+
 export interface MockOptions {
   role?: Role | null
   /** Profile fields to override for the signed-in user (e.g. { blocked: true }). */

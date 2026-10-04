@@ -1682,3 +1682,104 @@ describe('assistants: teachers and live classes (058)', () => {
     await asF(() => rpc(ctx.db, 'founder_set_staff_blocked', [ctx.assistant, false]))
   })
 })
+describe('teachers add their own students (059)', () => {
+  let ctx, clsA, clsB, academyStudent
+  const asT = (who, fn) => as(ctx.db, who, fn)
+  const asA = fn => as(ctx.db, ctx.assistant, fn)
+  const add = (who, name, phone, extra = {}) => asT(who, () => rpc(ctx.db, 'teacher_add_student',
+    [name, phone, extra.level ?? 'A1', extra.kind ?? 'group', extra.classId ?? null, extra.note ?? null, null]))
+  const student = id => one(ctx.db, `select full_name, origin_teacher_id, review_status, verification_token, is_active, source from crm_students where id = $1`, [id])
+  const today = new Date().toISOString().slice(0, 10)
+
+  before(async () => {
+    ctx = await setup()
+    clsA = await makeClass(ctx.db, { title: 'A group', teacher: ctx.teacherA })
+    clsB = await makeClass(ctx.db, { title: 'B group', teacher: ctx.teacherB })
+    academyStudent = await makeStudent(ctx.db, 'Academy Student', { phone: '+212600000001' })
+  })
+
+  it('a teacher adds a student: pending, no access code, linked and seated in their class', async () => {
+    const r = await add(ctx.teacherA, 'Hiba', '0611223344', { classId: clsA })
+    assert.equal(r.result, 'created')
+    assert.equal(r.seat, 'seated')
+    const s = await student(r.student_id)
+    assert.equal(s.origin_teacher_id, ctx.teacherA)
+    assert.equal(s.review_status, 'pending')
+    assert.equal(s.verification_token, null, 'no code → no student-space access')
+    assert.equal(s.source, 'teacher')
+    const link = await one(ctx.db, `select is_active from teacher_students where teacher_id = $1 and student_id = $2`, [ctx.teacherA, r.student_id])
+    assert.equal(link.is_active, true)
+    const login = await as(ctx.db, 'anon', () => rpc(ctx.db, 'student_space', ['ING-NOPE0000']))
+    assert.ok(!login || login.found === false)
+  })
+
+  it('the same phone in another format links the existing student instead of duplicating', async () => {
+    const r = await add(ctx.teacherB, 'Hiba again', '+212 611-22-33-44')
+    assert.equal(r.result, 'linked')
+    const n = await one(ctx.db, `select count(*)::int as n from crm_students where public.phone_key(phone_number) = '611223344'`)
+    assert.equal(n.n, 1)
+    const s = await student(r.student_id)
+    assert.equal(s.origin_teacher_id, ctx.teacherA, 'the side does not move to the second teacher')
+    const r2 = await add(ctx.teacherB, 'Known', '0600000001')
+    assert.equal(r2.result, 'linked')
+    assert.equal((await student(r2.student_id)).origin_teacher_id, null, 'an academy student stays the academy\'s')
+  })
+
+  it('a teacher cannot seat a student in another teacher\'s class', async () => {
+    const r = await add(ctx.teacherA, 'Yassine', '0622334455', { classId: clsB })
+    assert.equal(r.seat, 'not_your_class')
+    const seats = await one(ctx.db, `select count(*)::int as n from online_class_enrollments where class_id = $1 and student_id = $2`, [clsB, r.student_id])
+    assert.equal(seats.n, 0)
+  })
+
+  it('a declared payment is pending and not revenue until staff confirm it', async () => {
+    const r = await add(ctx.teacherA, 'Salma', '0633445566')
+    const d = await asT(ctx.teacherA, () => rpc(ctx.db, 'teacher_declare_payment', [r.student_id, 900, 'bank_transfer', today, 'monthly', 'TX-1', null, null]))
+    assert.equal(d.payment_status, 'pending')
+    let sides = (await asA(() => rpc(ctx.db, 'staff_sides_breakdown', [null, null]))).sides
+    let a = sides.find(x => x.teacher_id === ctx.teacherA)
+    assert.equal(Number(a.revenue_total), 0)
+    assert.equal(Number(a.awaiting_confirmation), 900)
+    await asA(() => ctx.db.query(`update crm_payments set payment_status = 'paid', approved_by_id = $2 where id = $1`, [d.id, ctx.assistant]))
+    sides = (await asA(() => rpc(ctx.db, 'staff_sides_breakdown', [null, null]))).sides
+    a = sides.find(x => x.teacher_id === ctx.teacherA)
+    assert.equal(Number(a.revenue_total), 900)
+    assert.equal(Number(a.revenue_period), 900)
+  })
+
+  it('a teacher cannot declare for someone else\'s student or attach someone else\'s file', async () => {
+    const mine = await add(ctx.teacherA, 'Omar', '0644556677')
+    await rejects(asT(ctx.teacherB, () => rpc(ctx.db, 'teacher_declare_payment', [mine.student_id, 100, 'cash', null, 'monthly', null, null, null])), /not one of yours/)
+    await rejects(asT(ctx.teacherA, () => rpc(ctx.db, 'teacher_declare_payment', [mine.student_id, 100, 'cash', null, 'monthly', null, null, `${ctx.teacherB}/x.jpg`])), /your uploads/)
+    await rejects(asT(ctx.teacherA, () => rpc(ctx.db, 'teacher_declare_payment', [mine.student_id, -5, 'cash', null, 'monthly', null, null, null])), /valid amount/)
+  })
+
+  it('staff approve (access code created) or reject (kept, inactive)', async () => {
+    const ok = await add(ctx.teacherA, 'Nora', '0655667788')
+    const no = await add(ctx.teacherA, 'Fake', '0666778899')
+    const intake = await asA(() => rpc(ctx.db, 'staff_teacher_intake'))
+    assert.ok(intake.some(i => i.id === ok.student_id && i.teacher_id === ctx.teacherA))
+    const r1 = await asA(() => rpc(ctx.db, 'staff_review_teacher_student', [ok.student_id, true, null]))
+    assert.match(r1.verification_token, /^ING-[0-9A-F]{8}$/)
+    await asA(() => rpc(ctx.db, 'staff_review_teacher_student', [no.student_id, false, 'Duplicate']))
+    const s = await student(no.student_id)
+    assert.equal(s.review_status, 'rejected')
+    assert.equal(s.is_active, false)
+    await rejects(asA(() => rpc(ctx.db, 'staff_review_teacher_student', [ok.student_id, true, null])), /already reviewed/)
+    const mine = await asT(ctx.teacherA, () => rpc(ctx.db, 'teacher_added_students'))
+    assert.equal(mine.find(m => m.id === no.student_id).review_status, 'rejected')
+    assert.ok(mine.every(m => m.phone.includes('••••')), 'phones come back masked')
+  })
+
+  it('the sides add up to total revenue; others cannot call these functions', async () => {
+    await pay(ctx.db, academyStudent.id, 500, today)
+    const sides = (await asA(() => rpc(ctx.db, 'staff_sides_breakdown', [null, null]))).sides
+    const academy = sides.find(s => s.is_academy)
+    assert.equal(Number(academy.revenue_total), 500)
+    const total = await one(ctx.db, `select coalesce(sum(amount_mad), 0) as t from crm_payments where payment_status = 'paid' and amount_mad > 0 and not coalesce(excluded_from_revenue, false)`)
+    assert.equal(sides.reduce((s, x) => s + Number(x.revenue_total), 0), Number(total.t))
+    await rejects(asA(() => rpc(ctx.db, 'teacher_add_student', ['X', '0677889900', null, 'group', null, null, null])), /Teachers only/)
+    await rejects(asT(ctx.teacherA, () => rpc(ctx.db, 'staff_sides_breakdown', [null, null])), /Staff only/)
+    await rejects(as(ctx.db, 'anon', () => rpc(ctx.db, 'teacher_add_student', ['X', '0677889900', null, 'group', null, null, null])), /permission denied/)
+  })
+})

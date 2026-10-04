@@ -118,6 +118,10 @@ export interface CrmStudent {
   avatar_url?:         string | null
   // Migration 036 — GCC expansion: student country (ISO-3166 alpha-2, copied from lead)
   country?:            string | null
+  // Migration 059 — students a teacher added from their space
+  origin_teacher_id?:  string | null
+  review_status?:      'pending' | 'approved' | 'rejected'
+  review_note?:        string | null
 }
 
 // ─── CRM Payment ────────────────────────────────────────────

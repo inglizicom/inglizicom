@@ -10,6 +10,8 @@ import {
 } from '@/lib/teachers'
 import { Card, DemoBanner, Empty, PageHero, Pill } from '../_ui'
 import { DEMO_OVERVIEW, DEMO_ROSTER_PAYMENTS, DEMO_STUDENTS, isTeacherDemo } from '../_demo'
+import { useTeacher } from '@/lib/teacher-context'
+import { AddStudentModal, AddedStudentsPanel } from './AddStudent'
 
 type Rel = 'assigned' | 'class' | 'both'
 const REL_AR: Record<Rel, string> = { assigned: 'مسنَد إليك', class: 'في أحد أقسامك', both: 'مسنَد + في أقسامك' }
@@ -37,6 +39,9 @@ export default function TeacherStudentsPage() {
   const [rel,      setRel]      = useState<'all' | Rel>('all')
   const [demo, setDemo] = useState(false)
   const [money, setMoney] = useState<Map<string, RosterPayment>>(new Map())
+  const teacher = useTeacher()
+  const [adding, setAdding] = useState(false)
+  const [added, setAdded] = useState(0)   // bumps after an add → reload roster + panel
 
   useEffect(() => {
     let alive = true
@@ -49,7 +54,7 @@ export default function TeacherStudentsPage() {
       setStudents(s); setCounts(ov?.roster ?? null); setMoney(new Map(pay.map(p => [p.student_id, p]))); setLoading(false)
     })
     return () => { alive = false }
-  }, [])
+  }, [added])
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase()
@@ -96,6 +101,12 @@ export default function TeacherStudentsPage() {
           { label: 'في أقسامي', value: students.filter(s => (s.classes ?? []).length > 0).length },
         ]}
       />
+
+      {/* Students this teacher brought in (059): they reach the office at once. */}
+      <AddedStudentsPanel teacherId={teacher.id} demo={demo} refreshKey={added} onAdd={() => setAdding(true)} />
+      {adding && (
+        <AddStudentModal teacherId={teacher.id} demo={demo} onClose={() => setAdding(false)} onAdded={() => setAdded(n => n + 1)} />
+      )}
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative w-full sm:w-72">
