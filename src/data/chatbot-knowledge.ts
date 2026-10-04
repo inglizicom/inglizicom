@@ -1,7 +1,10 @@
 /**
  * Knowledge base + system prompt for the inglizi.com support chatbot.
- * Updated when courses, pricing, or contact info change.
+ * Prices and levels are generated from src/data/plans.ts, so the bot never
+ * quotes a price the site no longer shows. Contact info is kept here.
  */
+
+import { BUSINESS_PLANS, CLASS_PLANS, INDIVIDUAL_PLANS, PACK_PLANS, type Plan } from './plans'
 
 export const CONTACT = {
   teacher: 'Hamza El Qasraoui',
@@ -11,12 +14,25 @@ export const CONTACT = {
   site: 'inglizi.com',
 } as const
 
-export const PLANS = [
-  { id: 'basic',   name_ar: 'المستوى الأول',     level: 'A0 → A1',    price_mad: 750,  duration: '3 أشهر' },
-  { id: 'pro',     name_ar: 'المستوى الثاني',    level: 'A1 → A2',    price_mad: 1400, duration: '3 أشهر' },
-  { id: 'premium', name_ar: 'المستوى الثالث',    level: 'A2 → B1+',   price_mad: 3000, duration: '4 أشهر' },
-  { id: 'vip',     name_ar: 'باقة VIP',          level: 'A0 → B2',    price_mad: 5000, duration: '6 أشهر' },
-] as const
+const months = (n: number) => `${n} ${n >= 3 && n <= 10 ? 'أشهر' : n === 1 ? 'شهر' : 'شهراً'}`
+const span = (p: Plan) => (p.levelFrom && p.levelTo ? `${p.levelFrom} → ${p.levelTo}` : '')
+const mad = (n: number) => n.toLocaleString('en-US')
+
+/** The four levels + VIP, for the bot's price card. */
+export const PLANS = INDIVIDUAL_PLANS.map(p => ({
+  id: p.id, name_ar: p.title_ar, level: span(p), price_mad: p.amount_mad, duration: months(p.duration_months),
+}))
+
+const PRICE_TABLE = INDIVIDUAL_PLANS
+  .map(p => `| ${p.title_ar} | ${span(p)} · ${p.subtitle_ar} | ${months(p.duration_months)} | **${mad(p.amount_mad)} درهم** |`)
+  .join('\n')
+const PACK_LINES = PACK_PLANS
+  .map(p => `- ${p.title_ar} (${span(p)}): ${mad(p.amount_mad)} درهم — ${p.subtitle_ar}`)
+  .join('\n')
+const OTHER_LINES = [
+  ...BUSINESS_PLANS.map(p => `- ${p.title_ar}: ${mad(p.amount_mad)} درهم — ${p.subtitle_ar}`),
+  `- حصص خاصة 1:1 مع الأستاذ (1h30): ${CLASS_PLANS.map(p => `${p.title_ar} ${mad(p.amount_mad)} درهم`).join('، ')}`,
+].join('\n')
 
 export function waLink(prefilled: string): string {
   return `https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(prefilled)}`
@@ -71,14 +87,13 @@ Even for the WhatsApp escalation message and pricing tables, translate them to m
 ═══════════════════════════════════════════════════════════
 | المستوى | المحتوى | المدة | السعر |
 |---|---|---|---|
-| 🟢 المستوى الأول (Basic) | A0 → A1 · من الصمت إلى أول كلمة | 3 أشهر | **750 درهم** |
-| 🔵 المستوى الثاني (Pro) | A1 → A2 · من الكلمة إلى المحادثة | 3 أشهر | **1400 درهم** |
-| 🟣 المستوى الثالث (Premium) | A2 → B1+ · من المحادثة إلى الطلاقة | 4 أشهر | **3000 درهم** |
-| 🌟 باقة VIP | A0 → B2 · تحوّل كامل مع الأستاذ شخصياً | 6 أشهر | **5000 درهم** |
+${PRICE_TABLE}
+
+الباكات (مستويات متصلة بسعر أوفر):
+${PACK_LINES}
 
 أيضاً متاح:
-- باك المستويين (A0→A2): 1750 درهم — صفقة موفّرة لمستويين كاملين
-- باك المستويات الثلاثة (A0→B1+): متاح في صفحة الأسعار
+${OTHER_LINES}
 
 ⚠️ لا توجد خطة مجانية. هذه دورات احترافية مدفوعة.
 
@@ -134,7 +149,7 @@ If the user's message is in English and you reply in Arabic for the escalation, 
 - من هو الأستاذ حمزة القصراوي
 - ما الذي يحصل عليه الطالب في كل مستوى
 - كم تستغرق الدورة
-- هل توجد ضمانة (نعم: إذا لم تتحسّن في أول أسبوعين يمكنك الاسترداد)
+- هل توجد ضمانة (نعم: إذا لم تشعر بأي فرق خلال الأسبوع الأول نعيد لك المبلغ كاملاً)
 - هل الدورة تناسبني (اطرح أسئلة لتحدّد مستواه)
 - معلومات عامة عن تعلم الإنجليزية للناطقين بالعربية
 

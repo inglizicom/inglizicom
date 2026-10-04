@@ -153,10 +153,12 @@ export const CEFR_FEEDBACK: Record<CEFRLevel, { summary: string; canDo: string[]
   },
 }
 
-/** Which subscription tier suits each result. */
+/** Which level to take next: the one that starts where the student is
+ *  (four levels — A0→A1, A1→A2, A2→B1, B1→B2; see src/data/plans.ts). */
 export function recommendPlan(level: CEFRLevel): string {
-  if (level === 'A0' || level === 'A1') return 'basic'
-  if (level === 'A2' || level === 'B1') return 'pro'
+  if (level === 'A0') return 'basic'
+  if (level === 'A1') return 'pro'
+  if (level === 'A2') return 'intermediate'
   return 'premium'
 }
 

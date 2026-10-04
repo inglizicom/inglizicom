@@ -189,6 +189,7 @@ export const EVENT_ICONS: Record<string, string> = {
 export const PLAN_PRESETS = [
   { id: 'basic',   label: 'Basic',   amount: 750  },
   { id: 'pro',     label: 'Pro',     amount: 1400 },
+  { id: 'intermediate', label: 'Intermediate (A2→B1)', amount: 1800 },
   { id: 'premium', label: 'Premium', amount: 3000 },
   { id: 'vip',     label: 'VIP',     amount: 5000 },
 ] as const

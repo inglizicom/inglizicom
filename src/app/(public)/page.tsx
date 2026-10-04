@@ -5,8 +5,7 @@ import {
 } from 'lucide-react'
 import { TESTIMONIALS, STATS } from '@/data/testimonials'
 import { BUSINESS_PLANS, CLASS_PLANS, INDIVIDUAL_PLANS } from '@/data/plans'
-import SubscribeButton from '@/components/SubscribeButton'
-import { WhatsAppIcon } from '@/components/StickyCTA'
+import { CTA_GOLD as CTA, FaqList, FinalCall, SectionTitle } from '@/components/site/kit'
 
 /**
  * The home page — one story, one action.
@@ -24,8 +23,6 @@ import { WhatsAppIcon } from '@/components/StickyCTA'
 const minPrice = (xs: { amount_mad: number }[]) => Math.min(...xs.map(x => x.amount_mad))
 const fmt = (n: number) => n.toLocaleString('en-US')
 
-const CTA = 'inline-flex items-center justify-center gap-2 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-900 font-extrabold no-underline shadow-[0_6px_20px_rgba(245,158,11,0.35)] transition-colors'
-
 export default function HomePage() {
   return (
     <div dir="rtl" className="bg-white text-slate-900">
@@ -34,7 +31,7 @@ export default function HomePage() {
       <Offers />
       <Voices />
       <Answers />
-      <FinalCall />
+      <FinalCall source="home_final_whatsapp" />
     </div>
   )
 }
@@ -279,57 +276,8 @@ function Answers() {
     <section className="py-14 sm:py-20 px-5 sm:px-6">
       <div className="max-w-[760px] mx-auto">
         <SectionTitle kicker="أسئلة" title="قبل أن تبدأ" />
-        <div className="mt-8 space-y-2.5">
-          {QA.map(x => (
-            <details key={x.q} className="group rounded-2xl bg-white ring-1 ring-slate-200 open:ring-brand-200 open:shadow-sm">
-              <summary className="list-none cursor-pointer flex items-center justify-between gap-4 p-5 font-extrabold text-[15.5px]">
-                {x.q}
-                <ChevronDown size={18} className="shrink-0 text-slate-400 transition-transform group-open:rotate-180" />
-              </summary>
-              <p className="px-5 pb-5 -mt-1 text-[15px] leading-relaxed text-slate-600">{x.a}</p>
-            </details>
-          ))}
-        </div>
-        <div className="mt-5 text-center">
-          <Link href="/faq" className="text-[14.5px] font-bold text-brand-700 no-underline hover:underline">كل الأسئلة الشائعة</Link>
-        </div>
+        <div className="mt-8"><FaqList items={QA} /></div>
       </div>
     </section>
-  )
-}
-
-/* ── 6. The same single action, once more ────────────────── */
-
-function FinalCall() {
-  return (
-    <section className="px-5 sm:px-6 pb-14 sm:pb-20">
-      <div className="max-w-[1200px] mx-auto rounded-[28px] bg-brand-800 text-white text-center px-6 py-12 sm:py-16">
-        <h2 className="text-[28px] sm:text-[40px] font-black leading-tight">جاهز تبدأ تتكلّم؟</h2>
-        <p className="mt-3 text-[16px] sm:text-[18px] text-blue-100/85 max-w-[34rem] mx-auto">
-          ابدأ باختبار مستواك المجاني: 3 دقائق، وتعرف من أين تبدأ وما الطريقة الأنسب لك.
-        </p>
-        <div className="mt-7 flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Link href="/level-test" className={`${CTA} w-full sm:w-auto text-[17px] px-8 py-4`}>
-            اختبر مستواك مجانًا <ArrowLeft size={18} />
-          </Link>
-          <SubscribeButton source="home_final_whatsapp"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-2xl bg-white/10 hover:bg-white/15 ring-1 ring-white/25 px-6 py-4 text-[15.5px] font-bold text-white transition-colors">
-            <WhatsAppIcon size={19} /> أو اسألنا على واتساب
-          </SubscribeButton>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ── Shared ──────────────────────────────────────────────── */
-
-function SectionTitle({ kicker, title, sub }: { kicker: string; title: string; sub?: string }) {
-  return (
-    <div className="text-center">
-      <div className="text-[13px] font-extrabold text-amber-600">{kicker}</div>
-      <h2 className="mt-1.5 text-[26px] sm:text-[36px] font-black tracking-tight leading-tight">{title}</h2>
-      {sub && <p className="mt-2.5 text-[15.5px] sm:text-[17px] text-slate-600">{sub}</p>}
-    </div>
   )
 }

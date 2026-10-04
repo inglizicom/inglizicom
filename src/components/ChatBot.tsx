@@ -251,7 +251,7 @@ export default function ChatBot() {
               <div className="pricing-card">
                 <div className="pricing-title">💎 {t.pricing}</div>
                 {PLANS.map((p, i) => {
-                  const colors = ['#10b981', '#3b82f6', '#8b5cf6', '#d97706']
+                  const colors = ['#10b981', '#3b82f6', '#f97316', '#8b5cf6', '#d97706']
                   return (
                     <div key={p.id} className="plan-row" style={{ ['--c' as string]: colors[i] } as React.CSSProperties}>
                       <div style={{ flex: 1 }}>
