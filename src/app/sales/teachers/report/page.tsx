@@ -38,9 +38,10 @@ function Report() {
         <Link href={back} className="inline-flex items-center gap-1.5 text-[12.5px] font-bold text-zinc-500 hover:text-blue-700">
           <ArrowRight size={14} /> الأساتذة
         </Link>
-        <div className="flex-1" />
+        <div className="hidden sm:block flex-1" />
         <select value={teacherId} onChange={e => router.replace(`${pathname}?teacher=${e.target.value}&month=${month.slice(0, 7)}`)}
-          className="rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-[13px] font-bold">
+          aria-label="الأستاذ"
+          className="w-full sm:w-auto max-w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-[13px] font-bold">
           {!teacherId && <option value="">اختر أستاذًا</option>}
           {teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>

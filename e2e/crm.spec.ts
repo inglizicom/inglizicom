@@ -247,6 +247,10 @@ test.describe('monthly report (staff)', () => {
     await expect(page.getByText('التقرير الشهري للأستاذ')).toBeVisible({ timeout: 90_000 })
     await expect(page.getByText('نصيب الأكاديمية')).toBeVisible()
     await expect(page.getByText('600 د.م').first()).toBeVisible()          // 60% of 1,000
+    await noSidewaysScroll(page)
+    const frame = page.locator('[data-report-frame]')
+    const { sw, cw } = await frame.evaluate(el => ({ sw: el.scrollWidth, cw: el.clientWidth }))
+    expect(sw, 'report wider than its frame').toBeLessThanOrEqual(cw + 1)
     await page.getByPlaceholder(/مثال: شهر جيد/).fill('ركّز على تقارير الحصص.')
     await page.getByRole('button', { name: 'حفظ الملاحظة' }).click()
     await expect.poll(() => calls.find(c => c.path.endsWith('/rpc/staff_set_teacher_month_note'))?.body)

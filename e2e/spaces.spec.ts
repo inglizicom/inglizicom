@@ -95,10 +95,22 @@ test.describe('monthly report', () => {
     await expect(page.getByText('التقرير الشهري للأستاذ')).toBeVisible({ timeout: 90_000 })
     await expect(page.getByText('نقاط القوة')).toBeVisible()
     await expect(page.getByText('الأجر الصافي')).toBeVisible()
+    await reportFits(page)
     const [download] = await Promise.all([
       page.waitForEvent('download', { timeout: 60_000 }),
       page.getByRole('button', { name: /تحميل PDF/ }).click(),
     ])
     expect(download.suggestedFilename()).toMatch(/\.pdf$/)
+    await expect(page.getByRole('button', { name: /تحميل PDF/ })).toBeEnabled()
+    await reportFits(page)   // back to the screen layout after the PDF
   })
 })
+
+/** The report document fits the screen: no sideways scroll, inside the page or inside its frame. */
+export async function reportFits(page: Page) {
+  await fits(page)
+  const frame = page.locator('[data-report-frame]')
+  await expect(frame).toBeVisible()
+  const { sw, cw } = await frame.evaluate(el => ({ sw: el.scrollWidth, cw: el.clientWidth }))
+  expect(sw, 'report wider than its frame').toBeLessThanOrEqual(cw + 1)
+}
