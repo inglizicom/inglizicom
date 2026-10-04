@@ -200,40 +200,7 @@ function Offers() {
       <div className="max-w-[1200px] mx-auto">
         <SectionTitle kicker="طرق التعلّم" title="اختر طريقتك في التعلّم" sub="ثلاث طرق واضحة — والاختبار المجاني يقترح عليك الأنسب." />
         <div className="mt-12 grid gap-5 lg:grid-cols-3 lg:gap-6 items-stretch">
-          {DOORS.map(d => (
-            <article key={d.href}
-              className={`ig-reveal relative flex flex-col p-6 sm:p-7 ${d.recommended
-                ? 'rounded-3xl bg-white ring-2 ring-brand-600 shadow-[0_30px_60px_-24px_rgba(30,64,175,0.55)] lg:-translate-y-3 transition-transform duration-300 hover:-translate-y-4'
-                : CARD}`}>
-              {d.recommended && (
-                <span className="absolute -top-3.5 right-6 inline-flex items-center gap-1 rounded-full bg-gradient-to-l from-amber-300 to-amber-400 text-slate-950 text-[12px] font-extrabold px-3 py-1 shadow-[0_8px_18px_-6px_rgba(245,158,11,0.8)]">
-                  <Star size={12} className="fill-slate-950" /> الأكثر اختيارًا
-                </span>
-              )}
-              <div className="flex items-center gap-3">
-                <span className={`w-12 h-12 ${ICON_TILE}`}><d.icon size={22} /></span>
-                <h3 className="text-[21px] font-black text-slate-950">{d.title}</h3>
-              </div>
-              <p className="mt-4 text-[15px] leading-relaxed text-slate-700">{d.lead}</p>
-              <ul className="mt-5 space-y-2.5">
-                {d.points.map(p => (
-                  <li key={p} className="flex items-start gap-2.5 text-[14.5px] font-semibold text-slate-800">
-                    <span className="mt-0.5 w-5 h-5 shrink-0 rounded-full bg-brand-100 text-brand-800 flex items-center justify-center"><Check size={13} strokeWidth={3} /></span> {p}
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-auto pt-7">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-[30px] font-black text-slate-950">{d.price}</span>
-                  {d.priceNote && <span className="text-[13px] font-semibold text-slate-500">{d.priceNote}</span>}
-                </div>
-                <Link href={d.href}
-                  className={`mt-4 w-full ${d.recommended ? BTN_NAVY : 'inline-flex items-center justify-center gap-2 rounded-2xl bg-white ring-1 ring-slate-300 hover:ring-brand-400 hover:text-brand-800 text-slate-900 font-extrabold no-underline transition-all'} py-3.5 text-[15.5px]`}>
-                  {d.cta} <ArrowLeft size={17} />
-                </Link>
-              </div>
-            </article>
-          ))}
+          {DOORS.map(d => <DoorCard key={d.href} d={d} />)}
         </div>
         <p className="ig-reveal mt-8 text-center text-[15px] font-semibold text-slate-700">
           محتار؟{' '}
@@ -242,6 +209,59 @@ function Offers() {
         </p>
       </div>
     </section>
+  )
+}
+
+/** Same language as the pack cards (components/site/OfferOptions): the
+ *  recommended way is the navy card — white type, gold ticks, the gold
+ *  button — the others are white cards with a solid navy button. */
+function DoorCard({ d }: { d: Door }) {
+  const dark = !!d.recommended
+  const body = (
+    <div className="relative flex flex-col h-full p-6 sm:p-7">
+      {dark && (
+        <span className="absolute top-0 left-6 inline-flex items-center gap-1 rounded-b-xl bg-gradient-to-b from-amber-200 to-amber-400 px-3 py-1.5 text-[12px] font-extrabold text-[#0B1B4D] shadow-[0_8px_18px_-6px_rgba(245,158,11,0.8)]">
+          <Star size={12} className="fill-[#0B1B4D]" /> الأكثر اختيارًا
+        </span>
+      )}
+      <div className="flex items-center gap-3">
+        <span className={`w-12 h-12 ${dark
+          ? 'flex items-center justify-center rounded-2xl bg-gradient-to-br from-amber-200 to-amber-400 text-[#0B1B4D] shadow-[0_8px_18px_-6px_rgba(245,158,11,0.8)]'
+          : ICON_TILE}`}><d.icon size={22} /></span>
+        <h3 className={`text-[22px] font-black ${dark ? 'text-white' : 'text-slate-950'}`}>{d.title}</h3>
+      </div>
+      <p className={`mt-4 text-[15px] leading-relaxed ${dark ? 'text-blue-100/90' : 'text-slate-700'}`}>{d.lead}</p>
+
+      <div className={`my-5 h-px ${dark ? 'bg-white/15' : 'bg-slate-100'}`} />
+
+      <ul className="space-y-2.5">
+        {d.points.map(p => (
+          <li key={p} className={`flex items-start gap-2.5 text-[14.5px] font-semibold ${dark ? 'text-blue-50' : 'text-slate-800'}`}>
+            <span className={`mt-0.5 w-5 h-5 shrink-0 rounded-full flex items-center justify-center ${dark ? 'bg-amber-300 text-[#0B1B4D]' : 'bg-brand-100 text-brand-800'}`}>
+              <Check size={12} strokeWidth={3.2} />
+            </span>
+            {p}
+          </li>
+        ))}
+      </ul>
+
+      <div className="mt-auto pt-7">
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+          <span className={`text-[36px] leading-none font-black tracking-tight ${dark ? 'text-white' : 'text-brand-900'}`}>{d.price}</span>
+          {d.priceNote && <span className={`text-[13px] font-semibold ${dark ? 'text-blue-100/80' : 'text-slate-500'}`}>{d.priceNote}</span>}
+        </div>
+        <Link href={d.href} className={`mt-5 w-full py-4 text-[16px] ${dark ? CTA : BTN_NAVY}`}>
+          {d.cta} <ArrowLeft size={18} />
+        </Link>
+      </div>
+    </div>
+  )
+  return dark ? (
+    <article className="ig-reveal relative rounded-[28px] overflow-hidden ring-2 ring-amber-300/70 shadow-[0_34px_70px_-26px_rgba(11,27,77,0.85)] transition-transform duration-300 hover:-translate-y-1 lg:scale-[1.03]">
+      <NavyGround className="h-full">{body}</NavyGround>
+    </article>
+  ) : (
+    <article className={`ig-reveal relative ${CARD}`}>{body}</article>
   )
 }
 
