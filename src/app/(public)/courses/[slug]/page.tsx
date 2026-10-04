@@ -16,36 +16,36 @@ import { getPlanByCourseSlug, PAYMENT_WHATSAPP } from '@/data/plans'
 /* Dark palette per level — full class strings so Tailwind's scanner keeps them. */
 const COLOR_CONFIG = {
   emerald: {
-    aura: 'from-emerald-500/25 via-teal-500/10',
-    grad: 'from-emerald-700 to-teal-600',
-    accent: 'text-emerald-600', pill: 'bg-emerald-50 text-emerald-700',
-    border: 'border-emerald-500/60', ring: 'ring-emerald-500/20',
+    aura: 'from-brand-500/25 via-brand-500/10',
+    grad: 'from-brand-700 to-brand-600',
+    accent: 'text-brand-600', pill: 'bg-brand-50 text-brand-700',
+    border: 'border-brand-500/60', ring: 'ring-brand-500/20',
     cta: 'bg-brand-700 hover:bg-brand-800 text-white',
-    dot: 'bg-emerald-500 text-gray-900', bar: 'bg-emerald-500',
+    dot: 'bg-brand-500 text-gray-900', bar: 'bg-brand-500',
   },
   blue: {
-    aura: 'from-blue-500/25 via-cyan-500/10',
-    grad: 'from-blue-700 to-cyan-600',
-    accent: 'text-blue-600', pill: 'bg-blue-50 text-blue-700',
-    border: 'border-blue-500/60', ring: 'ring-blue-500/20',
+    aura: 'from-brand-500/25 via-brand-500/10',
+    grad: 'from-brand-700 to-brand-600',
+    accent: 'text-brand-600', pill: 'bg-brand-50 text-brand-700',
+    border: 'border-brand-500/60', ring: 'ring-brand-500/20',
     cta: 'bg-brand-700 hover:bg-brand-800 text-white',
-    dot: 'bg-blue-500 text-white', bar: 'bg-blue-500',
+    dot: 'bg-brand-500 text-white', bar: 'bg-brand-500',
   },
   violet: {
-    aura: 'from-violet-500/25 via-fuchsia-500/10',
-    grad: 'from-violet-700 to-fuchsia-600',
-    accent: 'text-violet-600', pill: 'bg-violet-50 text-violet-700',
-    border: 'border-violet-500/60', ring: 'ring-violet-500/20',
+    aura: 'from-brand-500/25 via-brand-500/10',
+    grad: 'from-brand-700 to-brand-600',
+    accent: 'text-brand-600', pill: 'bg-brand-50 text-brand-700',
+    border: 'border-brand-500/60', ring: 'ring-brand-500/20',
     cta: 'bg-brand-700 hover:bg-brand-800 text-white',
-    dot: 'bg-violet-500 text-white', bar: 'bg-violet-500',
+    dot: 'bg-brand-500 text-white', bar: 'bg-brand-500',
   },
   orange: {
-    aura: 'from-orange-500/25 via-amber-500/10',
-    grad: 'from-orange-700 to-amber-400',
-    accent: 'text-orange-600', pill: 'bg-orange-50 text-orange-700',
-    border: 'border-orange-500/60', ring: 'ring-orange-500/20',
+    aura: 'from-brand-500/25 via-amber-500/10',
+    grad: 'from-brand-700 to-amber-400',
+    accent: 'text-brand-600', pill: 'bg-brand-50 text-brand-700',
+    border: 'border-brand-500/60', ring: 'ring-brand-500/20',
     cta: 'bg-brand-700 hover:bg-brand-800 text-white',
-    dot: 'bg-orange-500 text-gray-900', bar: 'bg-orange-500',
+    dot: 'bg-brand-500 text-gray-900', bar: 'bg-brand-500',
   },
 }
 
@@ -131,7 +131,7 @@ export default function CourseDetailPage({ params }: PageProps) {
                   </span>
                 )}
                 {course.spotsLeft <= 5 && (
-                  <span className="inline-flex items-center gap-1 text-xs font-black px-3 py-1.5 rounded-full bg-rose-50 text-rose-700 border border-rose-500/25">
+                  <span className="inline-flex items-center gap-1 text-xs font-black px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-500/25">
                     <Flame className="w-3 h-3" /> {course.spotsLeft} مقاعد فقط
                   </span>
                 )}
@@ -216,7 +216,7 @@ export default function CourseDetailPage({ params }: PageProps) {
                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                       <ApproxPrice mad={price} className={`${c.accent} text-xs font-bold`} />
                       {discountPct && (
-                        <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 text-[11px] font-black px-2 py-0.5 rounded-md">
+                        <span className="inline-flex items-center gap-1 bg-brand-50 text-brand-600 text-[11px] font-black px-2 py-0.5 rounded-md">
                           <Flame className="w-3 h-3" /> خصم {discountPct}%
                         </span>
                       )}
@@ -232,7 +232,7 @@ export default function CourseDetailPage({ params }: PageProps) {
                 <div className="mb-5">
                   <div className="flex justify-between text-[11px] font-bold text-slate-500 mb-1.5">
                     <span>المقاعد المتبقية</span>
-                    <span className="text-rose-600">{course.spotsLeft} مقاعد فقط</span>
+                    <span className="text-amber-600">{course.spotsLeft} مقاعد فقط</span>
                   </div>
                   <div className="h-1.5 bg-white rounded-full overflow-hidden">
                     <div className={`h-full rounded-full ${c.bar}`} style={{ width: `${(spotsFilled / spotsTotal) * 100}%` }} />
@@ -367,8 +367,8 @@ export default function CourseDetailPage({ params }: PageProps) {
             <FadeIn direction="right">
               <div className="h-full bg-slate-50 rounded-3xl p-7 border border-slate-200">
                 <div className="flex items-center gap-3 mb-5">
-                  <span className="w-9 h-9 bg-rose-50 rounded-lg flex items-center justify-center shrink-0">
-                    <X className="w-4 h-4 text-rose-600" />
+                  <span className="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center shrink-0">
+                    <X className="w-4 h-4 text-amber-600" />
                   </span>
                   <h3 className="font-black text-slate-900">قبل الكورس</h3>
                 </div>
@@ -378,7 +378,7 @@ export default function CourseDetailPage({ params }: PageProps) {
                 <div className="mt-4 space-y-2.5">
                   {['التردد قبل كل جملة', 'الترجمة المستمرة في الذهن', 'الخوف من الأخطاء'].map((t) => (
                     <div key={t} className="flex items-center gap-2 text-sm text-slate-500">
-                      <X className="w-3.5 h-3.5 text-rose-600/70 shrink-0" />
+                      <X className="w-3.5 h-3.5 text-amber-600/70 shrink-0" />
                       {t}
                     </div>
                   ))}
@@ -415,9 +415,9 @@ export default function CourseDetailPage({ params }: PageProps) {
       <section className="py-16 px-4 border-t border-slate-100">
         <div className="max-w-3xl mx-auto">
           <FadeIn direction="up">
-            <div className="bg-slate-50 border border-emerald-500/30 rounded-3xl p-7 flex flex-col sm:flex-row items-center gap-6 text-center sm:text-right">
-              <div className="w-16 h-16 shrink-0 rounded-2xl bg-emerald-50 border border-emerald-500/30 flex items-center justify-center">
-                <Shield className="w-8 h-8 text-emerald-600" />
+            <div className="bg-slate-50 border border-brand-500/30 rounded-3xl p-7 flex flex-col sm:flex-row items-center gap-6 text-center sm:text-right">
+              <div className="w-16 h-16 shrink-0 rounded-2xl bg-brand-50 border border-brand-500/30 flex items-center justify-center">
+                <Shield className="w-8 h-8 text-brand-600" />
               </div>
               <div>
                 <h3 className="text-slate-900 font-black text-xl mb-2">ضمان الأسبوع الأول</h3>
@@ -436,9 +436,9 @@ export default function CourseDetailPage({ params }: PageProps) {
         <div className="max-w-3xl mx-auto">
           <FadeIn direction="up">
             <div className="relative overflow-hidden bg-slate-50 border-2 border-slate-200 rounded-3xl p-8 sm:p-10 text-center">
-              <div className="pointer-events-none absolute -top-24 right-1/2 translate-x-1/2 w-96 h-96 rounded-full blur-3xl bg-gradient-to-b from-emerald-500/20 to-transparent" />
+              <div className="pointer-events-none absolute -top-24 right-1/2 translate-x-1/2 w-96 h-96 rounded-full blur-3xl bg-gradient-to-b from-brand-500/20 to-transparent" />
               <div className="relative">
-                <MessageCircle className="w-9 h-9 text-emerald-600 mx-auto mb-4" />
+                <MessageCircle className="w-9 h-9 text-brand-600 mx-auto mb-4" />
                 <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-3">
                   لديك سؤال عن هذا الكورس؟
                 </h2>
@@ -512,7 +512,7 @@ export default function CourseDetailPage({ params }: PageProps) {
               <span className="text-2xl font-black text-slate-900">{price.toLocaleString('en-US')}</span>
               <span className="text-xs font-bold text-slate-500">{course.currency}</span>
             </div>
-            <p className="text-[11px] text-rose-600 font-bold">{course.spotsLeft} مقاعد فقط</p>
+            <p className="text-[11px] text-amber-600 font-bold">{course.spotsLeft} مقاعد فقط</p>
           </div>
           <SubscribeButton
             source={`course_detail_sticky_${course.slug}`}

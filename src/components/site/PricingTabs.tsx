@@ -79,15 +79,15 @@ export function PaidBanner() {
   const { status } = useProfile()
   if (!status.isPaid) return null
   return (
-    <div className="max-w-xl mx-auto mb-8 rounded-2xl bg-emerald-50 ring-1 ring-emerald-200 p-4 flex items-center gap-3">
+    <div className="max-w-xl mx-auto mb-8 rounded-2xl bg-brand-50 ring-1 ring-brand-200 p-4 flex items-center gap-3">
       <Crown className="w-6 h-6 text-amber-500 shrink-0" />
       <div className="flex-1">
         <div className="font-extrabold text-[14.5px] text-slate-900">أنت مشترك حاليًا</div>
         {status.expiresInDays !== null && (
-          <div className="text-emerald-700 text-[13px] font-semibold">يبقى {status.expiresInDays} يومًا على انتهاء اشتراكك</div>
+          <div className="text-brand-700 text-[13px] font-semibold">يبقى {status.expiresInDays} يومًا على انتهاء اشتراكك</div>
         )}
       </div>
-      <Link href="/billing" className="text-[13px] font-extrabold bg-white ring-1 ring-emerald-200 hover:bg-emerald-100 text-slate-900 px-3 py-2 rounded-lg no-underline whitespace-nowrap">
+      <Link href="/billing" className="text-[13px] font-extrabold bg-white ring-1 ring-brand-200 hover:bg-brand-100 text-brand-900 px-3 py-2 rounded-lg no-underline whitespace-nowrap">
         إدارة الاشتراك
       </Link>
     </div>

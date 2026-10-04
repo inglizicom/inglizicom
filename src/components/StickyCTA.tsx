@@ -57,7 +57,7 @@ export default function StickyCTA() {
       <div dir="rtl" className={`lg:hidden fixed bottom-0 inset-x-0 z-40 transition-transform duration-300 ${visible ? 'translate-y-0' : 'translate-y-full'}`}>
         <div className="bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 pt-2.5 pb-[max(10px,env(safe-area-inset-bottom))] flex gap-2">
           <Link href="/level-test" onClick={() => setLeadSource('action_bar_test')}
-            className="ig-shine flex-1 flex items-center justify-center rounded-xl bg-gradient-to-b from-amber-300 to-amber-400 text-slate-950 text-[15px] font-extrabold no-underline py-3.5 shadow-[0_8px_20px_-8px_rgba(245,158,11,0.8)]">
+            className="ig-shine flex-1 flex items-center justify-center rounded-xl bg-gradient-to-b from-amber-300 to-amber-400 text-[#0B1B4D] text-[15px] font-extrabold no-underline py-3.5 shadow-[0_8px_20px_-8px_rgba(245,158,11,0.8)]">
             اختبر مستواك مجانًا
           </Link>
           <button type="button" onClick={whatsapp} aria-label="تواصل معنا على واتساب"

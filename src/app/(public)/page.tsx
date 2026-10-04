@@ -75,8 +75,8 @@ function Hero() {
             </a>
           </div>
 
-          <div className="ig-pop mt-7 inline-flex items-center gap-2 rounded-xl bg-emerald-400/10 ring-1 ring-emerald-300/25 px-3.5 py-2 text-[14px] font-semibold text-emerald-50 [animation-delay:320ms]">
-            <ShieldCheck size={18} className="text-emerald-300 shrink-0" />
+          <div className="ig-pop mt-7 inline-flex items-center gap-2 rounded-xl bg-white/10 ring-1 ring-amber-300/30 px-3.5 py-2 text-[14px] font-semibold text-blue-50 [animation-delay:320ms]">
+            <ShieldCheck size={18} className="text-amber-300 shrink-0" />
             لم تحسّ بالفرق في الأسبوع الأول؟ نعيد لك المبلغ كاملًا.
           </div>
         </div>
@@ -94,7 +94,7 @@ function ProductPreview() {
       <div className="relative space-y-4">
         <div className="ig-float rounded-3xl bg-white p-4 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.55)] ring-1 ring-white/40">
           <div className="flex items-center justify-between text-[12.5px] font-bold text-slate-500">
-            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> درسك اليوم</span>
+            <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" /> درسك اليوم</span>
             <span className="rounded-full bg-brand-50 text-brand-700 px-2.5 py-0.5">المستوى A1</span>
           </div>
           <div className="mt-3 aspect-[16/8] rounded-2xl bg-gradient-to-br from-brand-600 via-brand-700 to-[#0B1B4D] flex items-center justify-center relative overflow-hidden">
@@ -111,19 +111,19 @@ function ProductPreview() {
           <div className="mt-1.5 text-[12px] font-semibold text-slate-500">الدرس 5 من 12</div>
         </div>
 
-        <div className="ig-float-late rounded-3xl bg-[#ECE5DD] p-3.5 space-y-2 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.55)] mr-6 sm:mr-10">
-          <div className="mr-auto w-[80%] rounded-2xl rounded-tl-md bg-[#DCF8C6] px-3 py-2.5 flex items-center gap-2.5">
-            <span className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0"><Mic size={15} /></span>
+        <div className="ig-float-late rounded-3xl bg-white p-3.5 space-y-2 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.55)] ring-1 ring-white/40 mr-6 sm:mr-10">
+          <div className="mr-auto w-[80%] rounded-2xl rounded-tl-md bg-brand-50 ring-1 ring-brand-100 px-3 py-2.5 flex items-center gap-2.5">
+            <span className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-brand-800 text-white flex items-center justify-center shrink-0"><Mic size={15} /></span>
             <span className="ig-wave flex-1 flex items-center gap-[3px] h-6" dir="ltr">
               {[8, 14, 20, 11, 17, 22, 9, 15, 19, 7, 13, 18, 10, 16, 12].map((h, i) => (
-                <span key={i} className="w-[3px] rounded-full bg-emerald-700/70" style={{ height: h }} />
+                <span key={i} className="w-[3px] rounded-full bg-brand-600/70" style={{ height: h }} />
               ))}
             </span>
             <span className="text-[11px] font-bold text-slate-500">0:24</span>
           </div>
-          <div className="ml-auto w-[88%] rounded-2xl rounded-tr-md bg-white px-3.5 py-2.5 shadow-sm">
-            <div className="text-[12px] font-extrabold text-brand-700 flex items-center gap-1"><Headphones size={12} /> الأستاذ حمزة</div>
-            <div className="text-[14px] leading-relaxed text-slate-800 mt-0.5">ممتاز! ركّز فقط على نطق <b dir="ltr">th</b> في <b dir="ltr">think</b> — اسمع التسجيل وأعِد 👌</div>
+          <div className="ml-auto w-[88%] rounded-2xl rounded-tr-md bg-gradient-to-br from-brand-700 to-[#0B1B4D] px-3.5 py-2.5 shadow-md">
+            <div className="text-[12px] font-extrabold text-amber-300 flex items-center gap-1"><Headphones size={12} /> الأستاذ حمزة</div>
+            <div className="text-[14px] leading-relaxed text-white mt-0.5">ممتاز! ركّز فقط على نطق <b dir="ltr">th</b> في <b dir="ltr">think</b> — اسمع التسجيل وأعِد 👌</div>
           </div>
         </div>
 
@@ -218,7 +218,7 @@ function Offers() {
               <ul className="mt-5 space-y-2.5">
                 {d.points.map(p => (
                   <li key={p} className="flex items-start gap-2.5 text-[14.5px] font-semibold text-slate-800">
-                    <span className="mt-0.5 w-5 h-5 shrink-0 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center"><Check size={13} strokeWidth={3} /></span> {p}
+                    <span className="mt-0.5 w-5 h-5 shrink-0 rounded-full bg-brand-100 text-brand-800 flex items-center justify-center"><Check size={13} strokeWidth={3} /></span> {p}
                   </li>
                 ))}
               </ul>
@@ -269,7 +269,7 @@ function Voices() {
                 <span className={`w-11 h-11 rounded-full font-black text-[17px] flex items-center justify-center ${ICON_TILE}`}>{t.name.trim().charAt(0)}</span>
                 <span>
                   <span className="block font-extrabold text-[15px] text-slate-950">{t.name}</span>
-                  <span className="block text-[13px] font-semibold text-emerald-700">وصل إلى مستوى {t.level}</span>
+                  <span className="block text-[13px] font-semibold text-brand-700">وصل إلى مستوى {t.level}</span>
                 </span>
               </figcaption>
             </figure>

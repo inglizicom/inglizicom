@@ -11,10 +11,10 @@ import type { Course } from '@/data/courses'
 
 /* Full class strings — Tailwind's scanner needs literals. */
 const C = {
-  emerald: { accent: 'text-emerald-600', pillBg: 'bg-emerald-50', pillText: 'text-emerald-700', border: 'border-emerald-500/60', ring: 'ring-emerald-500/20', cta: 'bg-brand-700 hover:bg-brand-800 text-white', aura: 'from-emerald-500/30' },
-  blue:    { accent: 'text-blue-600',    pillBg: 'bg-blue-50',    pillText: 'text-blue-700',    border: 'border-blue-500/60',    ring: 'ring-blue-500/20',    cta: 'bg-brand-700 hover:bg-brand-800 text-white',      aura: 'from-blue-500/30' },
-  violet:  { accent: 'text-violet-600',  pillBg: 'bg-violet-50',  pillText: 'text-violet-700',  border: 'border-violet-500/60',  ring: 'ring-violet-500/20',  cta: 'bg-brand-700 hover:bg-brand-800 text-white',  aura: 'from-violet-500/30' },
-  orange:  { accent: 'text-orange-600',  pillBg: 'bg-orange-50',  pillText: 'text-orange-700',  border: 'border-orange-500/60',  ring: 'ring-orange-500/20',  cta: 'bg-brand-700 hover:bg-brand-800 text-white', aura: 'from-orange-500/30' },
+  emerald: { accent: 'text-brand-600', pillBg: 'bg-brand-50', pillText: 'text-brand-700', border: 'border-brand-500/60', ring: 'ring-brand-500/20', cta: 'bg-brand-700 hover:bg-brand-800 text-white', aura: 'from-brand-500/30' },
+  blue:    { accent: 'text-brand-600',    pillBg: 'bg-brand-50',    pillText: 'text-brand-700',    border: 'border-brand-500/60',    ring: 'ring-brand-500/20',    cta: 'bg-brand-700 hover:bg-brand-800 text-white',      aura: 'from-brand-500/30' },
+  violet:  { accent: 'text-brand-600',  pillBg: 'bg-brand-50',  pillText: 'text-brand-700',  border: 'border-brand-500/60',  ring: 'ring-brand-500/20',  cta: 'bg-brand-700 hover:bg-brand-800 text-white',  aura: 'from-brand-500/30' },
+  orange:  { accent: 'text-brand-600',  pillBg: 'bg-brand-50',  pillText: 'text-brand-700',  border: 'border-brand-500/60',  ring: 'ring-brand-500/20',  cta: 'bg-brand-700 hover:bg-brand-800 text-white', aura: 'from-brand-500/30' },
 }
 
 export default function CourseCardDark({
@@ -113,7 +113,7 @@ export default function CourseCardDark({
               <span className="text-slate-400 text-sm line-through">{original.toLocaleString('en-US')}</span>
             )}
             {discount && (
-              <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 text-[11px] font-black px-2 py-0.5 rounded-md">
+              <span className="inline-flex items-center gap-1 bg-brand-50 text-brand-600 text-[11px] font-black px-2 py-0.5 rounded-md">
                 <Flame className="w-3 h-3" /> وفّر {discount}%
               </span>
             )}

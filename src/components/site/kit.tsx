@@ -17,7 +17,7 @@ import { WhatsAppIcon } from '@/components/StickyCTA'
 
 /** The one action: gold, deep shadow, a slow shine, lifts on hover. */
 export const CTA_GOLD =
-  'ig-shine inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-b from-amber-300 to-amber-400 text-slate-950 font-extrabold no-underline ' +
+  'ig-shine inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-b from-amber-300 to-amber-400 text-[#0B1B4D] font-extrabold no-underline ' +
   'shadow-[0_12px_30px_-8px_rgba(245,158,11,0.65),inset_0_1px_0_rgba(255,255,255,0.6)] hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-10px_rgba(245,158,11,0.75),inset_0_1px_0_rgba(255,255,255,0.6)] active:translate-y-0 transition-all duration-200'
 
 /** The secondary solid button: brand navy with depth. */
@@ -58,7 +58,7 @@ export function NavyGround({ children, className = '' }: { children: React.React
       <div aria-hidden className="ig-drift pointer-events-none absolute -top-24 -right-24 w-[420px] h-[420px] rounded-full bg-blue-500/30 blur-3xl" />
       <div aria-hidden className="ig-drift-late pointer-events-none absolute -bottom-32 -left-20 w-[380px] h-[380px] rounded-full bg-amber-400/20 blur-3xl" />
       <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.07] [background-image:linear-gradient(rgba(255,255,255,1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,1)_1px,transparent_1px)] [background-size:44px_44px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
-      <div className="relative">{children}</div>
+      <div className="relative h-full">{children}</div>
     </section>
   )
 }
@@ -86,7 +86,7 @@ export function PageHero({ kicker, title, accent, sub, children }: {
 export function Guarantee({ className = '', onDark = false }: { className?: string; onDark?: boolean }) {
   return (
     <div className={`flex items-center justify-center gap-2 text-[14px] font-semibold ${onDark ? 'text-blue-100/90' : 'text-slate-700'} ${className}`}>
-      <ShieldCheck size={18} className={`shrink-0 ${onDark ? 'text-emerald-300' : 'text-emerald-600'}`} />
+      <ShieldCheck size={18} className={`shrink-0 ${onDark ? 'text-amber-300' : 'text-brand-700'}`} />
       لم تحسّ بالفرق في الأسبوع الأول؟ نعيد لك المبلغ كاملًا.
     </div>
   )
@@ -97,7 +97,7 @@ export function Points({ items }: { items: string[] }) {
     <ul className="space-y-2.5">
       {items.map(p => (
         <li key={p} className="flex items-start gap-2.5 text-[14.5px] font-semibold text-slate-800">
-          <span className="mt-0.5 w-5 h-5 shrink-0 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center"><Check size={13} strokeWidth={3} /></span> {p}
+          <span className="mt-0.5 w-5 h-5 shrink-0 rounded-full bg-brand-100 text-brand-800 flex items-center justify-center"><Check size={13} strokeWidth={3} /></span> {p}
         </li>
       ))}
     </ul>
