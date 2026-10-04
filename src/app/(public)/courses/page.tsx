@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { ArrowLeft, ChevronDown, ListChecks, Mic, PlayCircle, Trophy, type LucideIcon } from 'lucide-react'
 import { COURSES } from '@/data/courses'
 import { getPlan, getPlanByCourseSlug } from '@/data/plans'
-import { CTA_GOLD, FaqList, FinalCall, Guarantee, PageHero, SectionTitle, fmtMad } from '@/components/site/kit'
+import { CARD, CTA_GOLD, FaqList, FinalCall, Guarantee, ICON_TILE, PageHero, SectionTitle, fmtMad } from '@/components/site/kit'
 import OfferOptions from '@/components/site/OfferOptions'
 
 /**
@@ -72,28 +72,28 @@ export default function CoursesPage() {
           <Link href="/level-test" className={`${CTA_GOLD} w-full sm:w-auto text-[17px] px-7 py-4`}>
             اختبر مستواك مجانًا <ArrowLeft size={18} />
           </Link>
-          <a href="#options" className="inline-flex items-center gap-1.5 px-4 py-3 text-[15px] font-bold text-brand-700 no-underline">
+          <a href="#options" className="inline-flex items-center gap-1.5 px-4 py-3 text-[15px] font-bold text-white/90 hover:text-white no-underline">
             شوف الأسعار <ChevronDown size={16} />
           </a>
         </div>
-        <Guarantee className="mt-6" />
+        <Guarantee className="mt-6" onDark />
       </PageHero>
 
       {/* What you get */}
-      <section className="px-5 sm:px-6 pb-14 sm:pb-20">
+      <section className="px-5 sm:px-6 py-14 sm:py-20">
         <div className="max-w-[1200px] mx-auto grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {INCLUDED.map(x => (
-            <div key={x.title} className="rounded-2xl bg-slate-50 ring-1 ring-slate-200/70 p-5">
-              <span className="w-10 h-10 rounded-xl bg-white ring-1 ring-slate-200 text-brand-700 flex items-center justify-center"><x.icon size={20} /></span>
-              <h3 className="mt-3 font-extrabold text-[16.5px]">{x.title}</h3>
-              <p className="mt-1 text-[14.5px] leading-relaxed text-slate-600">{x.text}</p>
+            <div key={x.title} className={`ig-reveal p-5 sm:p-6 ${CARD}`}>
+              <span className={`w-12 h-12 ${ICON_TILE}`}><x.icon size={21} /></span>
+              <h3 className="mt-4 font-extrabold text-[17px] text-slate-950">{x.title}</h3>
+              <p className="mt-1.5 text-[14.5px] leading-relaxed text-slate-700">{x.text}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* The choice */}
-      <section id="options" className="scroll-mt-20 bg-slate-50 py-14 sm:py-20 px-5 sm:px-6">
+      <section id="options" className="scroll-mt-20 bg-gradient-to-b from-brand-50 via-[#F3F7FF] to-white py-16 sm:py-24 px-5 sm:px-6">
         <div className="max-w-[1200px] mx-auto">
           <SectionTitle kicker="الأسعار" title="اختر خطتك" sub="مستوى واحد تبدأ به، أو مستويات متصلة بسعر أوفر وبلا انقطاع." />
           <div className="mt-10">
@@ -124,8 +124,8 @@ export default function CoursesPage() {
               return (
                 <li key={c.slug}>
                   <Link href={`/courses/${c.slug}`}
-                    className="flex items-center gap-4 rounded-2xl bg-white ring-1 ring-slate-200 hover:ring-brand-300 p-4 sm:p-5 no-underline transition-colors">
-                    <span className="w-11 h-11 shrink-0 rounded-full bg-brand-50 text-brand-700 font-black text-[17px] flex items-center justify-center">{i + 1}</span>
+                    className={`ig-reveal flex items-center gap-4 p-4 sm:p-5 no-underline ${CARD}`}>
+                    <span className="w-12 h-12 shrink-0 rounded-2xl bg-gradient-to-br from-amber-300 to-amber-500 text-slate-950 font-black text-[19px] flex items-center justify-center shadow-[0_10px_22px_-8px_rgba(245,158,11,0.8)]">{i + 1}</span>
                     <span className="flex-1 min-w-0">
                       <span className="flex flex-wrap items-baseline gap-x-2">
                         <span className="font-extrabold text-[16.5px] text-slate-900">{c.title}</span>

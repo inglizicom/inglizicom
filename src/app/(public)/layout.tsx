@@ -2,6 +2,7 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import StickyCTA from '@/components/StickyCTA'
 import SubscribeHost from '@/components/SubscribeHost'
+import RevealOnScroll from '@/components/site/RevealOnScroll'
 import { Analytics } from '@vercel/analytics/react'
 
 /* One action at a time: the header's gold button and, on the phone, one
@@ -19,6 +20,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       <Footer />
       <StickyCTA />
       <SubscribeHost />
+      <RevealOnScroll />
     </>
   )
 }

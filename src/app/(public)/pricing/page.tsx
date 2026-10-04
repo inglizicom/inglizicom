@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { ArrowLeft, Clock, RefreshCw, Shield, ShieldCheck, type LucideIcon } from 'lucide-react'
-import { CTA_GOLD, FaqList, FinalCall, PageHero, SectionTitle } from '@/components/site/kit'
+import { CARD, CTA_GOLD, FaqList, FinalCall, ICON_TILE, PageHero, SectionTitle } from '@/components/site/kit'
 import PricingTabs, { PaidBanner } from '@/components/site/PricingTabs'
 
 /**
@@ -34,7 +34,7 @@ export default function PricingPage() {
         </div>
       </PageHero>
 
-      <section className="bg-slate-50 py-12 sm:py-16 px-5 sm:px-6">
+      <section className="bg-gradient-to-b from-brand-50 via-[#F3F7FF] to-white py-14 sm:py-20 px-5 sm:px-6">
         <div className="max-w-[1200px] mx-auto">
           <PaidBanner />
           <PricingTabs />
@@ -44,8 +44,8 @@ export default function PricingPage() {
       <section className="py-12 sm:py-16 px-5 sm:px-6">
         <div className="max-w-[1000px] mx-auto grid grid-cols-2 lg:grid-cols-4 gap-3">
           {TRUST.map(t => (
-            <div key={t.title} className="rounded-2xl ring-1 ring-slate-200 p-4 text-center">
-              <t.icon size={20} className="mx-auto text-brand-700" />
+            <div key={t.title} className={`ig-reveal p-5 text-center ${CARD}`}>
+              <span className={`mx-auto w-11 h-11 ${ICON_TILE}`}><t.icon size={20} /></span>
               <div className="mt-2 font-extrabold text-[14.5px]">{t.title}</div>
               <div className="text-[13px] font-semibold text-slate-500">{t.text}</div>
             </div>

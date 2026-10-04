@@ -52,11 +52,11 @@ export default function PricingTabs() {
 
   return (
     <div>
-      <div role="tablist" aria-label="طريقة التعلّم" className="mx-auto w-full max-w-[560px] grid grid-cols-3 gap-1 rounded-2xl bg-white ring-1 ring-slate-200 p-1">
+      <div role="tablist" aria-label="طريقة التعلّم" className="ig-reveal mx-auto w-full max-w-[560px] grid grid-cols-3 gap-1 rounded-2xl bg-white ring-1 ring-slate-200 p-1.5 shadow-[0_14px_34px_-16px_rgba(15,23,42,0.3)]">
         {DOORS.map(x => (
           <button key={x.id} role="tab" aria-selected={door === x.id} onClick={() => setDoor(x.id)}
             className={`flex items-center justify-center gap-1.5 rounded-xl px-1.5 py-2.5 text-[13.5px] sm:text-[14.5px] font-extrabold whitespace-nowrap transition-colors ${
-              door === x.id ? 'bg-brand-700 text-white' : 'text-slate-600 hover:bg-slate-50'
+              door === x.id ? 'bg-gradient-to-b from-brand-600 to-brand-800 text-white shadow-[0_8px_18px_-8px_rgba(30,64,175,0.8)]' : 'text-slate-600 hover:bg-slate-50'
             }`}>
             <x.icon size={16} className="shrink-0 hidden sm:block" /> {x.label}
           </button>

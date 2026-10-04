@@ -6,7 +6,7 @@ import { ArrowLeft } from 'lucide-react'
 import { getPlan, type Plan } from '@/data/plans'
 import { openSubscribe } from '@/lib/lead-source'
 import ApproxPrice from '@/components/ApproxPrice'
-import { Points, fmtMad } from './kit'
+import { BTN_NAVY, CARD, Points, fmtMad } from './kit'
 
 /**
  * The options of one way to learn — at most three cards, one recommended.
@@ -50,18 +50,20 @@ function OptionCard({ option, source }: { option: Option; source: string }) {
   const points = plan.lifetimePerks.slice(0, 4)
 
   return (
-    <article className={`relative flex flex-col rounded-3xl bg-white p-6 ${recommended ? 'ring-2 ring-brand-700 shadow-xl shadow-brand-900/10' : 'ring-1 ring-slate-200'}`}>
+    <article className={`ig-reveal relative flex flex-col p-6 sm:p-7 ${recommended
+      ? 'rounded-3xl bg-white ring-2 ring-brand-600 shadow-[0_30px_60px_-24px_rgba(30,64,175,0.55)] transition-transform duration-300 hover:-translate-y-1'
+      : CARD}`}>
       {recommended && (
-        <span className="absolute -top-3 right-6 rounded-full bg-brand-700 text-white text-[12px] font-extrabold px-3 py-1">ننصح به</span>
+        <span className="absolute -top-3.5 right-6 rounded-full bg-gradient-to-l from-amber-300 to-amber-400 text-slate-950 text-[12px] font-extrabold px-3 py-1 shadow-[0_8px_18px_-6px_rgba(245,158,11,0.8)]">★ ننصح به</span>
       )}
-      <h3 className="text-[20px] font-black text-slate-900">{title}</h3>
+      <h3 className="text-[21px] font-black text-slate-950">{title}</h3>
       <p className="mt-1 text-[14.5px] font-semibold text-slate-500">{sub}</p>
 
       {option.kind === 'pick' && plans.length > 1 && (
         <div role="radiogroup" aria-label="اختر المستوى" className="mt-4 grid grid-cols-2 gap-1.5">
           {plans.map((p, i) => (
             <button key={p.id} type="button" role="radio" aria-checked={i === idx} onClick={() => setIdx(i)}
-              className={`rounded-xl px-2 py-2 text-[13px] font-bold transition-colors ${i === idx ? 'bg-brand-700 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
+              className={`rounded-xl px-2 py-2 text-[13px] font-bold transition-colors ${i === idx ? 'bg-gradient-to-b from-brand-600 to-brand-800 text-white shadow-[0_8px_16px_-8px_rgba(30,64,175,0.8)]' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
               <span dir="ltr">{p.levelFrom} → {p.levelTo}</span>
             </button>
           ))}
@@ -69,7 +71,7 @@ function OptionCard({ option, source }: { option: Option; source: string }) {
       )}
 
       <div className="mt-5 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <span className="text-[30px] font-black text-slate-900">{fmtMad(plan.amount_mad)}</span>
+        <span className="text-[34px] font-black text-slate-950">{fmtMad(plan.amount_mad)}</span>
         {plan.originalAmount && plan.originalAmount > plan.amount_mad && (
           <span className="text-[15px] font-semibold text-slate-400 line-through">{plan.originalAmount.toLocaleString('en-US')}</span>
         )}
@@ -84,9 +86,9 @@ function OptionCard({ option, source }: { option: Option; source: string }) {
 
       <div className="mt-auto pt-6">
         <button type="button" onClick={() => openSubscribe({ source: `${source}_${plan.id}`, planId: plan.id })}
-          className={`w-full flex items-center justify-center gap-2 rounded-2xl py-3.5 text-[15.5px] font-extrabold transition-colors ${
-            recommended ? 'bg-brand-700 hover:bg-brand-800 text-white' : 'bg-white ring-1 ring-slate-300 hover:ring-slate-400 hover:bg-slate-50 text-slate-900'
-          }`}>
+          className={`w-full py-3.5 text-[15.5px] ${recommended
+            ? BTN_NAVY
+            : 'flex items-center justify-center gap-2 rounded-2xl font-extrabold bg-white ring-1 ring-slate-300 hover:ring-brand-400 hover:text-brand-800 text-slate-900 transition-all'}`}>
           اشترك في {option.kind === 'pick' ? plan.title_ar : title} <ArrowLeft size={17} />
         </button>
         <Link href={`/pricing/${plan.id}`} className="mt-2.5 block text-center text-[13.5px] font-bold text-slate-500 hover:text-brand-700 no-underline">

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { ArrowLeft, CalendarCheck, ChevronDown, Mic, Video } from 'lucide-react'
 import { getPlan } from '@/data/plans'
 import SubscribeButton from '@/components/SubscribeButton'
-import { CTA_GOLD, FaqList, FinalCall, PageHero, SectionTitle, fmtMad } from '@/components/site/kit'
+import { CARD, CTA_GOLD, FaqList, FinalCall, PageHero, SectionTitle, fmtMad } from '@/components/site/kit'
 import OfferOptions from '@/components/site/OfferOptions'
 
 /**
@@ -34,17 +34,17 @@ export default function ClassesPage() {
           <a href="#options" className={`${CTA_GOLD} w-full sm:w-auto text-[17px] px-7 py-4`}>
             اختر باقتك <ChevronDown size={18} />
           </a>
-          <Link href="/level-test" className="inline-flex items-center gap-1.5 px-4 py-3 text-[15px] font-bold text-brand-700 no-underline">
+          <Link href="/level-test" className="inline-flex items-center gap-1.5 px-4 py-3 text-[15px] font-bold text-white/90 hover:text-white no-underline">
             أو اختبر مستواك أولًا <ArrowLeft size={16} />
           </Link>
         </div>
       </PageHero>
 
-      <section className="px-5 sm:px-6 pb-14 sm:pb-20">
+      <section className="px-5 sm:px-6 py-14 sm:py-20">
         <ol className="max-w-[1200px] mx-auto grid gap-3 md:grid-cols-3 md:gap-5">
           {STEPS.map((s, i) => (
-            <li key={s.title} className="flex md:flex-col gap-4 rounded-2xl bg-slate-50 ring-1 ring-slate-200/70 p-5">
-              <span className="w-10 h-10 shrink-0 rounded-full bg-brand-700 text-white font-black text-[17px] flex items-center justify-center">{i + 1}</span>
+            <li key={s.title} className={`ig-reveal flex md:flex-col gap-4 p-5 sm:p-6 ${CARD}`}>
+              <span className="w-12 h-12 shrink-0 rounded-2xl bg-gradient-to-br from-amber-300 to-amber-500 text-slate-950 font-black text-[19px] flex items-center justify-center shadow-[0_10px_22px_-8px_rgba(245,158,11,0.8)]">{i + 1}</span>
               <div>
                 <h3 className="font-extrabold text-[17px] flex items-center gap-2"><s.icon size={17} className="text-brand-700" /> {s.title}</h3>
                 <p className="mt-1 text-[15px] leading-relaxed text-slate-600">{s.text}</p>
@@ -54,7 +54,7 @@ export default function ClassesPage() {
         </ol>
       </section>
 
-      <section id="options" className="scroll-mt-20 bg-slate-50 py-14 sm:py-20 px-5 sm:px-6">
+      <section id="options" className="scroll-mt-20 bg-gradient-to-b from-brand-50 via-[#F3F7FF] to-white py-16 sm:py-24 px-5 sm:px-6">
         <div className="max-w-[1200px] mx-auto">
           <SectionTitle kicker="الأسعار" title="اختر عدد الحصص" sub="كلما زاد عدد الحصص انخفض سعر الحصة." />
           <div className="mt-10">
@@ -77,7 +77,7 @@ export default function ClassesPage() {
       </section>
 
       <section className="py-12 px-5 sm:px-6">
-        <div className="max-w-[860px] mx-auto rounded-3xl ring-1 ring-slate-200 p-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-right">
+        <div className={`ig-reveal max-w-[860px] mx-auto p-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-right ${CARD}`}>
           <div>
             <div className="font-extrabold text-[16.5px]">تفضّل دروسًا مسجّلة بسعر أقل؟</div>
             <div className="text-[14.5px] text-slate-600 mt-1">الدورة تعطيك منهجًا كاملًا بأربعة مستويات + متابعة وتصحيح صوتي.</div>

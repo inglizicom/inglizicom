@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { ArrowLeft, ChevronDown, Handshake, PhoneCall, Presentation, Users2, type LucideIcon } from 'lucide-react'
-import { CTA_GOLD, FaqList, FinalCall, PageHero, SectionTitle } from '@/components/site/kit'
+import { CARD, CTA_GOLD, FaqList, FinalCall, ICON_TILE, PageHero, SectionTitle } from '@/components/site/kit'
 import OfferOptions from '@/components/site/OfferOptions'
 
 /**
@@ -38,25 +38,25 @@ export default function BusinessPage() {
           <a href="#options" className={`${CTA_GOLD} w-full sm:w-auto text-[17px] px-7 py-4`}>
             شوف البرنامج والسعر <ChevronDown size={18} />
           </a>
-          <Link href="/level-test" className="inline-flex items-center gap-1.5 px-4 py-3 text-[15px] font-bold text-brand-700 no-underline">
+          <Link href="/level-test" className="inline-flex items-center gap-1.5 px-4 py-3 text-[15px] font-bold text-white/90 hover:text-white no-underline">
             اختبر مستواك أولًا <ArrowLeft size={16} />
           </Link>
         </div>
       </PageHero>
 
-      <section className="px-5 sm:px-6 pb-14 sm:pb-20">
+      <section className="px-5 sm:px-6 py-14 sm:py-20">
         <div className="max-w-[1200px] mx-auto grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {SCENARIOS.map(x => (
-            <div key={x.title} className="rounded-2xl bg-slate-50 ring-1 ring-slate-200/70 p-5">
-              <span className="w-10 h-10 rounded-xl bg-white ring-1 ring-slate-200 text-brand-700 flex items-center justify-center"><x.icon size={20} /></span>
-              <h3 className="mt-3 font-extrabold text-[16.5px]">{x.title}</h3>
-              <p className="mt-1 text-[14.5px] leading-relaxed text-slate-600">{x.text}</p>
+            <div key={x.title} className={`ig-reveal p-5 sm:p-6 ${CARD}`}>
+              <span className={`w-12 h-12 ${ICON_TILE}`}><x.icon size={21} /></span>
+              <h3 className="mt-4 font-extrabold text-[17px] text-slate-950">{x.title}</h3>
+              <p className="mt-1.5 text-[14.5px] leading-relaxed text-slate-700">{x.text}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section id="options" className="scroll-mt-20 bg-slate-50 py-14 sm:py-20 px-5 sm:px-6">
+      <section id="options" className="scroll-mt-20 bg-gradient-to-b from-brand-50 via-[#F3F7FF] to-white py-16 sm:py-24 px-5 sm:px-6">
         <div className="max-w-[1200px] mx-auto">
           <SectionTitle kicker="السعر" title="البرنامج المهني" sub="وحده، أو مع المستويات الأربعة في باك واحد." />
           <div className="mt-10">
