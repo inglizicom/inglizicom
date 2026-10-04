@@ -11,10 +11,10 @@ import type { Course } from '@/data/courses'
 
 /* Full class strings — Tailwind's scanner needs literals. */
 const C = {
-  emerald: { accent: 'text-emerald-400', pillBg: 'bg-emerald-500/10', pillText: 'text-emerald-300', border: 'border-emerald-500/60', ring: 'ring-emerald-500/20', cta: 'bg-emerald-500 hover:bg-emerald-400 text-gray-900', aura: 'from-emerald-500/30' },
-  blue:    { accent: 'text-blue-400',    pillBg: 'bg-blue-500/10',    pillText: 'text-blue-300',    border: 'border-blue-500/60',    ring: 'ring-blue-500/20',    cta: 'bg-blue-500 hover:bg-blue-400 text-white',      aura: 'from-blue-500/30' },
-  violet:  { accent: 'text-violet-400',  pillBg: 'bg-violet-500/10',  pillText: 'text-violet-300',  border: 'border-violet-500/60',  ring: 'ring-violet-500/20',  cta: 'bg-violet-500 hover:bg-violet-400 text-white',  aura: 'from-violet-500/30' },
-  orange:  { accent: 'text-orange-400',  pillBg: 'bg-orange-500/10',  pillText: 'text-orange-300',  border: 'border-orange-500/60',  ring: 'ring-orange-500/20',  cta: 'bg-orange-500 hover:bg-orange-400 text-gray-900', aura: 'from-orange-500/30' },
+  emerald: { accent: 'text-emerald-600', pillBg: 'bg-emerald-50', pillText: 'text-emerald-700', border: 'border-emerald-500/60', ring: 'ring-emerald-500/20', cta: 'bg-brand-700 hover:bg-brand-800 text-white', aura: 'from-emerald-500/30' },
+  blue:    { accent: 'text-blue-600',    pillBg: 'bg-blue-50',    pillText: 'text-blue-700',    border: 'border-blue-500/60',    ring: 'ring-blue-500/20',    cta: 'bg-brand-700 hover:bg-brand-800 text-white',      aura: 'from-blue-500/30' },
+  violet:  { accent: 'text-violet-600',  pillBg: 'bg-violet-50',  pillText: 'text-violet-700',  border: 'border-violet-500/60',  ring: 'ring-violet-500/20',  cta: 'bg-brand-700 hover:bg-brand-800 text-white',  aura: 'from-violet-500/30' },
+  orange:  { accent: 'text-orange-600',  pillBg: 'bg-orange-50',  pillText: 'text-orange-700',  border: 'border-orange-500/60',  ring: 'ring-orange-500/20',  cta: 'bg-brand-700 hover:bg-brand-800 text-white', aura: 'from-orange-500/30' },
 }
 
 export default function CourseCardDark({
@@ -44,12 +44,12 @@ export default function CourseCardDark({
       animate={{ opacity: dimmed ? 0.38 : 1, scale: dimmed ? 0.985 : 1 }}
       transition={{ duration: 0.35 }}
       whileHover={dimmed ? undefined : { y: -6 }}
-      className={`scroll-mt-28 group relative flex flex-col bg-[#0a1628] rounded-3xl overflow-hidden border-2 transition-colors ${
-        course.isBestValue ? `${c.border} ring-2 ${c.ring}` : 'border-[#1a2d4a] hover:border-[#1e3455]'
+      className={`scroll-mt-28 group relative flex flex-col bg-slate-50 rounded-3xl overflow-hidden border-2 transition-colors ${
+        course.isBestValue ? `${c.border} ring-2 ${c.ring}` : 'border-slate-200 hover:border-slate-300'
       }`}
     >
       {course.isBestValue && (
-        <div className={`absolute top-4 left-4 z-20 ${c.pillBg} ${c.pillText} backdrop-blur text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider border border-white/10`}>
+        <div className={`absolute top-4 left-4 z-20 ${c.pillBg} ${c.pillText} backdrop-blur text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider border border-slate-200`}>
           ⭐ الأفضل قيمة
         </div>
       )}
@@ -63,37 +63,37 @@ export default function CourseCardDark({
           sizes="(max-width: 768px) 100vw, 50vw"
           className="object-cover opacity-40 group-hover:opacity-55 group-hover:scale-105 transition-all duration-700 ease-out"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628] via-[#0a1628]/70 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/70 to-transparent" />
         <div className={`absolute -bottom-16 right-1/2 translate-x-1/2 w-72 h-32 rounded-full blur-3xl bg-gradient-to-t ${c.aura} to-transparent opacity-60`} />
 
         <div className="absolute bottom-4 right-5 left-5 flex items-end justify-between gap-3">
           <div>
-            <div className={`inline-flex items-center gap-1.5 ${c.pillBg} ${c.pillText} text-[11px] font-black px-2.5 py-1 rounded-full mb-2 border border-white/10`}>
+            <div className={`inline-flex items-center gap-1.5 ${c.pillBg} ${c.pillText} text-[11px] font-black px-2.5 py-1 rounded-full mb-2 border border-slate-200`}>
               {course.fromLevel} → {course.toLevel}
             </div>
-            <h3 className="text-white font-black text-xl leading-tight">{course.title}</h3>
+            <h3 className="text-slate-900 font-black text-xl leading-tight">{course.title}</h3>
           </div>
           <div className="flex items-center gap-1 shrink-0 pb-1">
-            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-            <span className="text-white text-xs font-black">{course.rating}</span>
+            <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-600" />
+            <span className="text-slate-900 text-xs font-black">{course.rating}</span>
           </div>
         </div>
       </div>
 
       {/* body */}
       <div className="flex flex-col flex-1 p-6 pt-5">
-        <p className="text-gray-400 text-sm leading-relaxed mb-4">{course.hook}</p>
+        <p className="text-slate-600 text-sm leading-relaxed mb-4">{course.hook}</p>
 
         <ul className="space-y-2 mb-5">
           {course.features.slice(0, 4).map(f => (
-            <li key={f} className="flex items-start gap-2 text-gray-300 text-[13px] leading-snug">
+            <li key={f} className="flex items-start gap-2 text-slate-700 text-[13px] leading-snug">
               <Check className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${c.accent}`} />
               <span>{f}</span>
             </li>
           ))}
         </ul>
 
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] font-bold text-gray-500 mb-5 pb-5 border-b border-[#1a2d4a]">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] font-bold text-slate-500 mb-5 pb-5 border-b border-slate-200">
           <span className="inline-flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" />{course.weeks} أسابيع</span>
           <span className="inline-flex items-center gap-1.5"><BookOpen className="w-3.5 h-3.5" />{course.lessons} درساً</span>
           <span className="inline-flex items-center gap-1.5"><Users className="w-3.5 h-3.5" />{course.studentsCount} طالب</span>
@@ -107,13 +107,13 @@ export default function CourseCardDark({
         {/* price */}
         <div className="mb-5">
           <div className="flex items-baseline gap-2 flex-wrap">
-            <span className="text-white font-black text-3xl">{price.toLocaleString('en-US')}</span>
-            <span className="text-gray-400 text-sm font-bold">{course.currency}</span>
+            <span className="text-slate-900 font-black text-3xl">{price.toLocaleString('en-US')}</span>
+            <span className="text-slate-600 text-sm font-bold">{course.currency}</span>
             {original > price && (
-              <span className="text-gray-600 text-sm line-through">{original.toLocaleString('en-US')}</span>
+              <span className="text-slate-400 text-sm line-through">{original.toLocaleString('en-US')}</span>
             )}
             {discount && (
-              <span className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-400 text-[11px] font-black px-2 py-0.5 rounded-md">
+              <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-600 text-[11px] font-black px-2 py-0.5 rounded-md">
                 <Flame className="w-3 h-3" /> وفّر {discount}%
               </span>
             )}
@@ -136,14 +136,14 @@ export default function CourseCardDark({
             {plan && (
               <Link
                 href={`/pricing/${plan.id}`}
-                className="text-center py-2.5 rounded-xl border border-[#1e3455] text-gray-300 hover:text-white hover:border-gray-500 font-bold text-xs transition-colors no-underline"
+                className="text-center py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:text-slate-900 hover:border-slate-400 font-bold text-xs transition-colors no-underline"
               >
                 تفاصيل الباقة
               </Link>
             )}
             <Link
               href={`/courses/${course.slug}`}
-              className={`${plan ? '' : 'col-span-2'} text-center py-2.5 rounded-xl border border-[#1e3455] text-gray-300 hover:text-white hover:border-gray-500 font-bold text-xs transition-colors no-underline`}
+              className={`${plan ? '' : 'col-span-2'} text-center py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:text-slate-900 hover:border-slate-400 font-bold text-xs transition-colors no-underline`}
             >
               محتوى الدروس
             </Link>

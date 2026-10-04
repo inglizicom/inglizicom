@@ -93,7 +93,7 @@ export function FinalCall({ title = 'جاهز تبدأ تتكلّم؟', sub, sou
       <div className="max-w-[1200px] mx-auto rounded-[28px] bg-brand-800 text-white text-center px-6 py-12 sm:py-16">
         <h2 className="text-[28px] sm:text-[40px] font-black leading-tight">{title}</h2>
         <p className="mt-3 text-[16px] sm:text-[18px] text-blue-100/85 max-w-[34rem] mx-auto">
-          {sub ?? 'ابدأ باختبار مستواك المجاني: 3 دقائق، وتعرف من أين تبدأ وما الطريقة الأنسب لك.'}
+          {sub ?? 'ابدأ باختبار مستواك المجاني: يتوقف عند مستواك الحقيقي، ويقترح عليك من أين تبدأ وما الطريقة الأنسب لك.'}
         </p>
         <div className="mt-7 flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link href="/level-test" className={`${CTA_GOLD} w-full sm:w-auto text-[17px] px-8 py-4`}>

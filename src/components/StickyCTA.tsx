@@ -58,7 +58,7 @@ export default function StickyCTA() {
         <div className="bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 pt-2.5 pb-[max(10px,env(safe-area-inset-bottom))] flex gap-2">
           <Link href="/level-test" onClick={() => setLeadSource('action_bar_test')}
             className="flex-1 flex items-center justify-center rounded-xl bg-amber-400 active:bg-amber-300 text-slate-900 text-[15px] font-extrabold no-underline py-3.5">
-            اختبر مستواك مجانًا — 3 دقائق
+            اختبر مستواك مجانًا
           </Link>
           <button type="button" onClick={whatsapp} aria-label="تواصل معنا على واتساب"
             className="w-[52px] shrink-0 flex items-center justify-center rounded-xl bg-[#25d366] active:bg-[#20bd5a] text-white">

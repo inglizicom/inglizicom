@@ -12,7 +12,10 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
     <>
       <Analytics />
       <Header />
-      <main>{children}</main>
+      {/* clip, not hidden: nothing may widen the page on a phone (an entrance
+          animation starting 40px to the side made browsers zoom the whole
+          page out), and sticky children keep working. */}
+      <main className="overflow-x-clip">{children}</main>
       <Footer />
       <StickyCTA />
       <SubscribeHost />

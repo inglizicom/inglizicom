@@ -114,7 +114,7 @@ export default function Header() {
             <div className="p-2 pt-3 space-y-2 border-t border-slate-100 mt-1">
               <Link href="/level-test"
                 className="flex items-center justify-center w-full py-3.5 rounded-xl text-[15.5px] font-extrabold no-underline bg-amber-400 text-slate-900">
-                اختبر مستواك مجانًا — 3 دقائق
+                اختبر مستواك مجانًا
               </Link>
               <HeaderAuthButton variant="mobile" />
             </div>

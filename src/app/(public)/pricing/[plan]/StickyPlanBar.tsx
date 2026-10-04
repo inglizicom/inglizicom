@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft } from 'lucide-react'
-import { COLOR_STYLES } from '@/components/pricing/PlanCards'
+import { COLOR_STYLES } from '@/components/pricing/colors'
 import type { Plan } from '@/data/plans'
 
 /**
@@ -32,17 +32,17 @@ export default function StickyPlanBar({ plan, onSubscribe }: { plan: Plan; onSub
           animate={{ y: 0 }}
           exit={{ y: 90 }}
           transition={{ type: 'spring', stiffness: 300, damping: 32 }}
-          className="fixed bottom-0 inset-x-0 z-40 bg-[#050d1a]/95 backdrop-blur border-t border-[#1a2d4a]"
+          className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200"
           dir="rtl"
         >
           <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <div className="text-white font-black text-sm truncate">{plan.title_ar}</div>
+              <div className="text-slate-900 font-black text-sm truncate">{plan.title_ar}</div>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-white font-black">{plan.amount_mad.toLocaleString('en-US')}</span>
-                <span className="text-gray-500 text-xs font-bold">درهم</span>
+                <span className="text-slate-900 font-black">{plan.amount_mad.toLocaleString('en-US')}</span>
+                <span className="text-slate-500 text-xs font-bold">درهم</span>
                 {plan.originalAmount && (
-                  <span className="text-gray-600 text-xs line-through">{plan.originalAmount.toLocaleString('en-US')}</span>
+                  <span className="text-slate-400 text-xs line-through">{plan.originalAmount.toLocaleString('en-US')}</span>
                 )}
               </div>
             </div>

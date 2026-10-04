@@ -280,8 +280,8 @@ export default function LevelTestPage() {
     return (
       <Overlay showQuit={false}>
         <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
-          <Loader2 size={40} className="text-yellow-400 animate-spin mb-5" />
-          <h2 className="text-xl font-black text-white mb-2">جاري تصحيح كتابتك…</h2>
+          <Loader2 size={40} className="text-amber-500 animate-spin mb-5" />
+          <h2 className="text-xl font-black text-slate-900 mb-2">جاري تصحيح كتابتك…</h2>
           <p className="text-slate-500 text-sm">نحلّل القواعد والمفردات والتراكيب.</p>
         </div>
       </Overlay>
@@ -301,16 +301,16 @@ export default function LevelTestPage() {
                  style={{ background: `linear-gradient(135deg, ${LEVEL_META[done].from}, ${LEVEL_META[done].to})` }}>
               <Trophy size={44} className="text-white" />
             </div>
-            <h2 className="text-3xl font-black text-white mb-2">أنهيت مستوى {done} 🎉</h2>
-            <p className="text-slate-400 font-semibold mb-1">{LEVEL_META[done].label}</p>
+            <h2 className="text-3xl font-black text-slate-900 mb-2">أنهيت مستوى {done} 🎉</h2>
+            <p className="text-slate-600 font-semibold mb-1">{LEVEL_META[done].label}</p>
             <p className="text-slate-500 text-sm mb-6">
-              احتفظت بـ <span className="text-rose-400 font-black">{hearts}</span> من {HEARTS_BY_LEVEL[done]} قلوب.
+              احتفظت بـ <span className="text-rose-600 font-black">{hearts}</span> من {HEARTS_BY_LEVEL[done]} قلوب.
             </p>
 
-            <div className="bg-white/5 ring-1 ring-white/10 rounded-2xl p-5">
-              <p className="text-white font-black mb-1">التالي: {nxt} — {LEVEL_META[nxt].label}</p>
+            <div className="bg-white ring-1 ring-slate-200 rounded-2xl p-5">
+              <p className="text-slate-900 font-black mb-1">التالي: {nxt} — {LEVEL_META[nxt].label}</p>
               {more > 0 ? (
-                <p className="text-emerald-300 text-[13px] font-bold flex items-center justify-center gap-1.5 mt-2">
+                <p className="text-emerald-700 text-[13px] font-bold flex items-center justify-center gap-1.5 mt-2">
                   <Plus size={13} /> {more === 1 ? 'قلب إضافي' : `${more} قلوب إضافية`} — الأسئلة تصبح أصعب
                 </p>
               ) : (
@@ -328,12 +328,12 @@ export default function LevelTestPage() {
 
         <Footer>
           <button onClick={nextLevel}
-                  className="w-full py-4 rounded-2xl bg-gradient-to-l from-yellow-400 to-amber-500 text-black font-black text-lg
+                  className="w-full py-4 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-900 font-black text-lg
                              hover:brightness-110 active:scale-[.99] transition shadow-xl">
             أكمل إلى {nxt} ←
           </button>
           <button onClick={stopHere}
-                  className="w-full py-2.5 rounded-2xl text-slate-400 font-bold hover:text-white transition text-sm">
+                  className="w-full py-2.5 rounded-2xl text-slate-600 font-bold hover:text-slate-900 transition text-sm">
             أتوقف هنا وأرى نتيجتي
           </button>
         </Footer>
@@ -355,18 +355,18 @@ export default function LevelTestPage() {
                 <PenLine size={20} className="text-white" />
               </span>
               <div className="min-w-0">
-                <h2 className="text-xl font-black text-white">اختبار الكتابة</h2>
+                <h2 className="text-xl font-black text-slate-900">اختبار الكتابة</h2>
                 <p className="text-slate-500 text-xs font-semibold">آخر خطوة — يُصحَّح تلقائياً</p>
               </div>
             </div>
 
-            <div className="bg-white/5 ring-1 ring-white/10 rounded-2xl p-5 mb-4">
-              <p className="text-slate-400 text-[13px] font-semibold mb-2">{wp.hint}</p>
-              <p className="text-white text-[16px] font-bold leading-relaxed mb-4 text-left" dir="ltr">{wp.prompt}</p>
+            <div className="bg-white ring-1 ring-slate-200 rounded-2xl p-5 mb-4">
+              <p className="text-slate-600 text-[13px] font-semibold mb-2">{wp.hint}</p>
+              <p className="text-slate-900 text-[16px] font-bold leading-relaxed mb-4 text-left" dir="ltr">{wp.prompt}</p>
               <ul className="space-y-1.5">
                 {wp.bullets.map((b, i) => (
-                  <li key={i} className="flex items-start gap-2 text-slate-400 text-[13px]">
-                    <span className="text-yellow-400 mt-0.5 shrink-0">•</span><span>{b}</span>
+                  <li key={i} className="flex items-start gap-2 text-slate-600 text-[13px]">
+                    <span className="text-amber-500 mt-0.5 shrink-0">•</span><span>{b}</span>
                   </li>
                 ))}
               </ul>
@@ -375,25 +375,25 @@ export default function LevelTestPage() {
             <textarea
               value={essay} onChange={e => setEssay(e.target.value)}
               dir="ltr" rows={8} placeholder="Write your answer here…"
-              className="w-full p-4 rounded-2xl bg-white/[.04] ring-1 ring-white/10 text-white text-[15px] leading-relaxed
-                         placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-yellow-400/60 transition text-left" />
+              className="w-full p-4 rounded-2xl bg-white ring-1 ring-slate-200 text-slate-900 text-[15px] leading-relaxed
+                         placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400 transition text-left" />
             <div className="flex items-center justify-between mt-2">
-              <span className={`text-xs font-bold ${enough ? 'text-emerald-400' : 'text-slate-500'}`}>
+              <span className={`text-xs font-bold ${enough ? 'text-emerald-600' : 'text-slate-500'}`}>
                 {words} كلمة · المقترح {wp.minWords}
               </span>
-              {!enough && <span className="text-slate-600 text-xs">10 كلمات على الأقل</span>}
+              {!enough && <span className="text-slate-400 text-xs">10 كلمات على الأقل</span>}
             </div>
           </div>
         </div>
 
         <Footer>
           <button onClick={submitWriting} disabled={!enough}
-                  className="w-full py-4 rounded-2xl bg-gradient-to-l from-yellow-400 to-amber-500 text-black font-black text-lg
+                  className="w-full py-4 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-900 font-black text-lg
                              hover:brightness-110 active:scale-[.99] transition shadow-xl disabled:opacity-40">
             صحّح كتابتي وأظهر النتيجة
           </button>
           <button onClick={skipWriting}
-                  className="w-full py-2.5 rounded-2xl text-slate-500 font-bold hover:text-slate-300 transition text-sm">
+                  className="w-full py-2.5 rounded-2xl text-slate-500 font-bold hover:text-slate-700 transition text-sm">
             تخطّي الكتابة
           </button>
         </Footer>
@@ -427,17 +427,17 @@ export default function LevelTestPage() {
             {Array.from({ length: HEARTS_BY_LEVEL[level] }).map((_, i) => (
               <Heart key={i} size={16}
                      className={`transition-all duration-300 ${
-                       i < hearts ? 'text-rose-500 fill-rose-500' : 'text-slate-700 scale-90'}`} />
+                       i < hearts ? 'text-rose-500 fill-rose-500' : 'text-slate-300 scale-90'}`} />
             ))}
           </div>
         </div>
-        <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+        <div className="h-1.5 rounded-full bg-slate-200 overflow-hidden">
           <div className="h-full rounded-full bg-gradient-to-l from-yellow-400 to-amber-500 transition-all duration-500"
                style={{ width: `${((qIdx + (answered ? 1 : 0)) / bank.length) * 100}%` }} />
         </div>
         <div className="flex justify-between mt-1">
-          <span className="text-slate-600 text-[10.5px] font-bold">سؤال {qIdx + 1} من {bank.length}</span>
-          <span className="text-slate-600 text-[10.5px] font-bold">{TYPE_LABELS[q.type]}</span>
+          <span className="text-slate-400 text-[10.5px] font-bold">سؤال {qIdx + 1} من {bank.length}</span>
+          <span className="text-slate-400 text-[10.5px] font-bold">{TYPE_LABELS[q.type]}</span>
         </div>
       </>
     }>
@@ -445,14 +445,14 @@ export default function LevelTestPage() {
         <div className="max-w-2xl mx-auto" key={q.id}>
           <div className="animate-fade-up">
             <div className="flex items-center gap-2 mb-3">
-              <span className="w-8 h-8 rounded-xl bg-white/[.06] ring-1 ring-white/10 flex items-center justify-center shrink-0">
-                <Icon size={15} className="text-yellow-400" />
+              <span className="w-8 h-8 rounded-xl bg-white ring-1 ring-slate-200 flex items-center justify-center shrink-0">
+                <Icon size={15} className="text-amber-500" />
               </span>
-              <span className="text-slate-400 text-[13px] font-bold">{q.hint}</span>
+              <span className="text-slate-600 text-[13px] font-bold">{q.hint}</span>
             </div>
 
             {q.passage && (
-              <pre className="bg-white/[.04] ring-1 ring-white/10 rounded-2xl p-4 mb-4 text-slate-200 text-[13.5px]
+              <pre className="bg-white ring-1 ring-slate-200 rounded-2xl p-4 mb-4 text-slate-800 text-[13.5px]
                               leading-relaxed whitespace-pre-wrap font-sans text-left" dir="ltr">{q.passage}</pre>
             )}
 
@@ -462,7 +462,7 @@ export default function LevelTestPage() {
             )}
 
             {q.type !== 'listenWrite' && (
-              <h2 className="text-white text-lg sm:text-2xl font-black mb-5 leading-snug break-words"
+              <h2 className="text-slate-900 text-lg sm:text-2xl font-black mb-5 leading-snug break-words"
                   dir={/[؀-ۿ]/.test(q.question) ? 'rtl' : 'ltr'}>
                 {q.question}
               </h2>
@@ -477,13 +477,13 @@ export default function LevelTestPage() {
 
             {answered && (
               <div className={`mt-5 rounded-2xl p-4 ring-1 animate-fade-up ${
-                verdict === 'correct' ? 'bg-emerald-500/10 ring-emerald-500/30' : 'bg-rose-500/10 ring-rose-500/30'}`}>
+                verdict === 'correct' ? 'bg-emerald-50 ring-emerald-200' : 'bg-rose-50 ring-rose-200'}`}>
                 <div className="flex items-center gap-2 mb-2">
                   {verdict === 'correct'
-                    ? <><CheckCircle2 size={18} className="text-emerald-400" /><span className="font-black text-emerald-300">إجابة صحيحة</span></>
-                    : <><XCircle size={18} className="text-rose-400" /><span className="font-black text-rose-300">إجابة خاطئة</span></>}
+                    ? <><CheckCircle2 size={18} className="text-emerald-600" /><span className="font-black text-emerald-700">إجابة صحيحة</span></>
+                    : <><XCircle size={18} className="text-rose-600" /><span className="font-black text-rose-700">إجابة خاطئة</span></>}
                 </div>
-                <p className="text-slate-300 text-[13.5px] leading-relaxed whitespace-pre-line">{q.explain}</p>
+                <p className="text-slate-700 text-[13.5px] leading-relaxed whitespace-pre-line">{q.explain}</p>
               </div>
             )}
           </div>
@@ -493,13 +493,13 @@ export default function LevelTestPage() {
       <Footer>
         {!answered ? (
           <button onClick={submit} disabled={!canSubmit || (needsAudio && !heard)}
-                  className="w-full py-4 rounded-2xl bg-gradient-to-l from-yellow-400 to-amber-500 text-black font-black text-lg
+                  className="w-full py-4 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-900 font-black text-lg
                              hover:brightness-110 active:scale-[.99] transition shadow-xl disabled:opacity-30">
             {needsAudio && !heard ? 'استمع أولاً' : 'تحقّق'}
           </button>
         ) : (
           <button onClick={next}
-                  className="w-full py-4 rounded-2xl bg-white text-black font-black text-lg hover:bg-slate-100 active:scale-[.99] transition shadow-xl">
+                  className="w-full py-4 rounded-2xl bg-slate-900 text-white font-black text-lg hover:bg-slate-800 active:scale-[.99] transition shadow-xl">
             {hearts <= 0 ? 'انتهت القلوب — أظهر النتيجة'
               : qIdx + 1 < bank.length ? 'السؤال التالي ←'
               : 'أنهيت المستوى ←'}
@@ -540,37 +540,37 @@ function Overlay({
     // opaque background covers them — the action button must not share the
     // bottom-left corner of a phone with anything.
     <div dir="rtl"
-         className="fixed inset-0 bg-[#0B1020] font-sans flex flex-col overflow-hidden"
+         className="fixed inset-0 bg-slate-50 font-sans flex flex-col overflow-hidden"
          style={{ height: '100dvh', zIndex: 10000 }}>
       <div className="pointer-events-none absolute inset-0"
            style={{ backgroundImage:
              'radial-gradient(46rem 30rem at 85% -8%, rgba(245,158,11,.14), transparent 62%),' +
              'radial-gradient(40rem 26rem at 6% 6%, rgba(59,130,246,.12), transparent 60%)' }} />
 
-      <header className="relative shrink-0 px-5 pt-[max(0.7rem,env(safe-area-inset-top))] pb-2.5 border-b border-white/[.06]">
+      <header className="relative shrink-0 px-5 pt-[max(0.7rem,env(safe-area-inset-top))] pb-2.5 border-b border-slate-200">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="text-[11px] font-black text-slate-600">اختبار المستوى</span>
+            <span className="text-[11px] font-black text-slate-400">اختبار المستوى</span>
             <div className="flex items-center gap-1.5">
               {sound && (
                 <>
                   <button onClick={sound.toggleMusic} aria-label="موسيقى الخلفية"
                           className={`w-8 h-8 rounded-lg flex items-center justify-center transition ring-1 ${
-                            sound.musicOn ? 'bg-yellow-400/15 ring-yellow-400/40 text-yellow-300'
-                                          : 'bg-white/[.04] ring-white/10 text-slate-500'}`}>
+                            sound.musicOn ? 'bg-amber-50 ring-amber-300 text-amber-600'
+                                          : 'bg-white ring-slate-200 text-slate-500'}`}>
                     {sound.musicOn ? <Music size={14} /> : <Music2 size={14} />}
                   </button>
                   <button onClick={sound.toggleSound} aria-label="الأصوات"
                           className={`w-8 h-8 rounded-lg flex items-center justify-center transition ring-1 ${
-                            sound.soundOn ? 'bg-white/[.06] ring-white/15 text-slate-300'
-                                          : 'bg-white/[.04] ring-white/10 text-slate-600'}`}>
+                            sound.soundOn ? 'bg-white ring-slate-300 text-slate-700'
+                                          : 'bg-white ring-slate-200 text-slate-400'}`}>
                     {sound.soundOn ? <Volume2 size={14} /> : <VolumeX size={14} />}
                   </button>
                 </>
               )}
               {showQuit && onQuit && (
                 <button onClick={onQuit} aria-label="إنهاء الاختبار"
-                        className="w-8 h-8 rounded-lg bg-white/[.04] ring-1 ring-white/10 text-slate-500 hover:text-rose-300 transition flex items-center justify-center">
+                        className="w-8 h-8 rounded-lg bg-white ring-1 ring-slate-200 text-slate-500 hover:text-rose-600 transition flex items-center justify-center">
                   <X size={15} />
                 </button>
               )}
@@ -588,7 +588,7 @@ function Overlay({
 /** Sticky action area, clear of the iPhone home indicator. */
 function Footer({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative shrink-0 border-t border-white/[.06] bg-[#0B1020]/95 backdrop-blur
+    <div className="relative shrink-0 border-t border-slate-200 bg-white/95 backdrop-blur
                     px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
       <div className="max-w-2xl mx-auto space-y-1.5">{children}</div>
     </div>
@@ -606,11 +606,11 @@ function AudioBox({
         {speaking ? <Loader2 size={20} className="animate-spin" /> : <Volume2 size={20} />}
         {speaking ? 'جاري التشغيل…' : heard ? 'استمع مرة أخرى' : 'اضغط للاستماع'}
       </button>
-      <p className="text-blue-200/60 text-[11px] font-semibold text-center mt-2">
+      <p className="text-blue-700/70 text-[11px] font-semibold text-center mt-2">
         {heard ? 'يمكنك الإعادة بقدر ما تحتاج' : 'يجب الاستماع قبل الإجابة'}
       </p>
       {revealed && (
-        <p className="mt-3 pt-3 border-t border-blue-400/20 text-blue-100 text-[13px] text-left leading-relaxed break-words" dir="ltr">
+        <p className="mt-3 pt-3 border-t border-blue-200 text-blue-900 text-[13px] text-left leading-relaxed break-words" dir="ltr">
           “{text}”
         </p>
       )}
@@ -640,14 +640,14 @@ function QuestionBody({
           return (
             <button key={i} onClick={() => !answered && setOption(i)} disabled={answered}
                     className={`w-full text-right p-3.5 rounded-2xl ring-1 font-bold text-[14.5px] transition-all active:scale-[.99]
-                      ${right ? 'bg-emerald-500/15 ring-emerald-400/50 text-emerald-200'
-                        : wrong ? 'bg-rose-500/15 ring-rose-400/50 text-rose-200'
-                        : chosen ? 'bg-yellow-400/15 ring-yellow-400/50 text-white'
-                        : 'bg-white/[.04] ring-white/10 text-slate-200 hover:bg-white/[.08]'}`}>
+                      ${right ? 'bg-emerald-50 ring-emerald-400 text-emerald-800'
+                        : wrong ? 'bg-rose-50 ring-rose-400 text-rose-800'
+                        : chosen ? 'bg-amber-50 ring-amber-400 text-slate-900'
+                        : 'bg-white ring-slate-200 text-slate-800 hover:bg-slate-50'}`}>
               <span className="flex items-center gap-3">
                 <span className={`w-7 h-7 rounded-lg shrink-0 flex items-center justify-center text-xs font-black
                   ${right ? 'bg-emerald-400 text-black' : wrong ? 'bg-rose-400 text-black'
-                    : chosen ? 'bg-yellow-400 text-black' : 'bg-white/10 text-slate-400'}`}>
+                    : chosen ? 'bg-yellow-400 text-black' : 'bg-slate-100 text-slate-600'}`}>
                   {right ? '✓' : wrong ? '✕' : String.fromCharCode(65 + i)}
                 </span>
                 <span className="flex-1 min-w-0 break-words" dir="ltr">{opt}</span>
@@ -674,15 +674,15 @@ function QuestionBody({
             return (
               <button key={i} onClick={() => !answered && toggle(i)} disabled={answered}
                       className={`w-full text-right p-3.5 rounded-2xl ring-1 font-bold text-[14.5px] transition-all active:scale-[.99]
-                        ${right ? 'bg-emerald-500/15 ring-emerald-400/50 text-emerald-200'
-                          : wrong ? 'bg-rose-500/15 ring-rose-400/50 text-rose-200'
-                          : chosen ? 'bg-yellow-400/15 ring-yellow-400/50 text-white'
-                          : 'bg-white/[.04] ring-white/10 text-slate-200 hover:bg-white/[.08]'}`}>
+                        ${right ? 'bg-emerald-50 ring-emerald-400 text-emerald-800'
+                          : wrong ? 'bg-rose-50 ring-rose-400 text-rose-800'
+                          : chosen ? 'bg-amber-50 ring-amber-400 text-slate-900'
+                          : 'bg-white ring-slate-200 text-slate-800 hover:bg-slate-50'}`}>
                 <span className="flex items-center gap-3">
                   <span className={`w-6 h-6 rounded-md shrink-0 flex items-center justify-center text-xs font-black ring-1
                     ${right ? 'bg-emerald-400 text-black ring-emerald-400'
                       : wrong ? 'bg-rose-400 text-black ring-rose-400'
-                      : chosen ? 'bg-yellow-400 text-black ring-yellow-400' : 'ring-white/25 text-transparent'}`}>✓</span>
+                      : chosen ? 'bg-yellow-400 text-black ring-yellow-400' : 'ring-slate-300 text-transparent'}`}>✓</span>
                   <span className="flex-1 min-w-0 break-words" dir="ltr">{opt}</span>
                 </span>
               </button>
@@ -697,8 +697,8 @@ function QuestionBody({
     const template = q.type === 'listenGap' ? (q.transcript ?? '') : q.question
     const parts = template.split('___')
     return (
-      <div className="bg-white/[.04] ring-1 ring-white/10 rounded-2xl p-4">
-        <p className="text-white text-[15.5px] leading-[2.6] text-left break-words" dir="ltr">
+      <div className="bg-white ring-1 ring-slate-200 rounded-2xl p-4">
+        <p className="text-slate-900 text-[15.5px] leading-[2.6] text-left break-words" dir="ltr">
           {parts.map((part, i) => (
             <span key={i}>
               {part}
@@ -709,16 +709,16 @@ function QuestionBody({
                   className={`inline-block mx-1 px-2 py-1 w-24 sm:w-28 rounded-lg text-center font-bold ring-1 transition
                     ${answered
                       ? verdict === 'correct'
-                        ? 'bg-emerald-500/15 ring-emerald-400/50 text-emerald-200'
-                        : 'bg-rose-500/15 ring-rose-400/50 text-rose-200'
-                      : 'bg-white/10 ring-white/20 text-white focus:outline-none focus:ring-2 focus:ring-yellow-400/60'}`}
+                        ? 'bg-emerald-50 ring-emerald-400 text-emerald-800'
+                        : 'bg-rose-50 ring-rose-400 text-rose-800'
+                      : 'bg-slate-50 ring-slate-300 text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400'}`}
                   placeholder="…" />
               )}
             </span>
           ))}
         </p>
         {answered && verdict === 'wrong' && (
-          <p className="mt-3 pt-3 border-t border-white/10 text-emerald-300 text-[13px] font-bold text-left break-words" dir="ltr">
+          <p className="mt-3 pt-3 border-t border-slate-200 text-emerald-700 text-[13px] font-bold text-left break-words" dir="ltr">
             ✓ {(q.accept ?? []).map(a => a[0]).join('  ·  ')}
           </p>
         )}
@@ -733,11 +733,11 @@ function QuestionBody({
           value={texts[0] ?? ''} disabled={answered}
           onChange={e => setTexts([e.target.value])}
           dir="ltr" rows={3} placeholder="Type what you hear…"
-          className={`w-full p-4 rounded-2xl ring-1 text-white text-[15px] leading-relaxed text-left transition
+          className={`w-full p-4 rounded-2xl ring-1 text-slate-900 text-[15px] leading-relaxed text-left transition
             ${answered
-              ? verdict === 'correct' ? 'bg-emerald-500/10 ring-emerald-400/40' : 'bg-rose-500/10 ring-rose-400/40'
-              : 'bg-white/[.04] ring-white/10 focus:outline-none focus:ring-2 focus:ring-yellow-400/60'}`} />
-        <p className="text-slate-600 text-[11px] font-semibold mt-2">
+              ? verdict === 'correct' ? 'bg-emerald-50 ring-emerald-300' : 'bg-rose-50 ring-rose-300'
+              : 'bg-white ring-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-400'}`} />
+        <p className="text-slate-400 text-[11px] font-semibold mt-2">
           لا تقلق بشأن علامات الترقيم — نحن نقيس ما سمعته.
         </p>
       </div>
@@ -751,10 +751,10 @@ function QuestionBody({
     return (
       <div>
         <div className={`min-h-[64px] rounded-2xl p-3 mb-4 ring-1 flex flex-wrap gap-2 items-center
-          ${answered ? verdict === 'correct' ? 'bg-emerald-500/10 ring-emerald-400/40' : 'bg-rose-500/10 ring-rose-400/40'
-            : 'bg-white/[.04] ring-white/10'}`} dir="ltr">
+          ${answered ? verdict === 'correct' ? 'bg-emerald-50 ring-emerald-300' : 'bg-rose-50 ring-rose-300'
+            : 'bg-white ring-slate-200'}`} dir="ltr">
           {order.length === 0
-            ? <span className="text-slate-600 text-[13px] px-2">اضغط الكلمات بالترتيب…</span>
+            ? <span className="text-slate-400 text-[13px] px-2">اضغط الكلمات بالترتيب…</span>
             : order.map((wi, k) => (
                 <span key={k} className="px-2.5 py-1.5 rounded-xl bg-yellow-400 text-black font-bold text-[14px]">
                   {words[wi]}
@@ -765,19 +765,19 @@ function QuestionBody({
           {words.map((w, i) => (
             <button key={i} onClick={() => pick(i)} disabled={answered || order.includes(i)}
                     className={`px-2.5 py-1.5 rounded-xl font-bold text-[14px] ring-1 transition active:scale-95
-                      ${order.includes(i) ? 'opacity-25 ring-white/10 text-slate-600'
-                        : 'bg-white/[.06] ring-white/15 text-white hover:bg-white/[.12]'}`}>
+                      ${order.includes(i) ? 'opacity-25 ring-slate-200 text-slate-400'
+                        : 'bg-white ring-slate-300 text-slate-900 hover:bg-slate-100'}`}>
               {w}
             </button>
           ))}
         </div>
         {!answered && order.length > 0 && (
-          <button onClick={undo} className="text-slate-500 text-xs font-bold hover:text-slate-300 transition">
+          <button onClick={undo} className="text-slate-500 text-xs font-bold hover:text-slate-700 transition">
             ↩ تراجع عن آخر كلمة
           </button>
         )}
         {answered && verdict === 'wrong' && (
-          <p className="text-emerald-300 text-[13.5px] font-bold text-left mt-2 break-words" dir="ltr">
+          <p className="text-emerald-700 text-[13.5px] font-bold text-left mt-2 break-words" dir="ltr">
             ✓ {(q.correctOrder ?? []).map(i => words[i]).join(' ')}
           </p>
         )}
@@ -801,9 +801,8 @@ function QuestionBody({
  * their own width empty and pushed the button off the screen.
  */
 function Intro({ onStart }: { onStart: () => void }) {
-  const total = LEVEL_ORDER.reduce((n, l) => n + (QUESTIONS[l]?.length ?? 0), 0)
   return (
-    <main dir="rtl" className="min-h-screen bg-[#0B1020] font-sans">
+    <main dir="rtl" className="min-h-screen bg-slate-50 font-sans">
       <div className="pointer-events-none fixed top-0 left-0 w-screen h-screen -z-10"
            style={{ backgroundImage:
              'radial-gradient(46rem 30rem at 85% -8%, rgba(245,158,11,.14), transparent 62%),' +
@@ -814,27 +813,27 @@ function Intro({ onStart }: { onStart: () => void }) {
       <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-[76px] sm:pt-24 pb-12 text-center animate-fade-up">
 
         {/* ── Above the fold: what it is, and the way in ── */}
-        <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-yellow-400 to-amber-500
-                        flex items-center justify-center shadow-2xl">
-          <Brain size={30} className="text-black sm:hidden" />
-          <Brain size={38} className="text-black hidden sm:block" />
+        <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 rounded-2xl sm:rounded-3xl bg-brand-700
+                        flex items-center justify-center shadow-lg shadow-brand-900/20">
+          <Brain size={30} className="text-white sm:hidden" />
+          <Brain size={38} className="text-white hidden sm:block" />
         </div>
 
-        <h1 className="text-[26px] sm:text-4xl font-black text-white mb-2.5 leading-[1.2]">
+        <h1 className="text-[26px] sm:text-4xl font-black text-slate-900 mb-2.5 leading-[1.2]">
           اختبر مستواك في الإنجليزية
         </h1>
-        <p className="text-slate-400 text-[14px] sm:text-base font-semibold mb-5 leading-relaxed">
-          اختبار حقيقي من <span className="text-white">A0</span> إلى <span className="text-white">C1</span> —
-          {' '}{total} سؤالاً، ثم كتابة تُصحَّح تلقائياً.
+        <p className="text-slate-600 text-[14px] sm:text-base font-semibold mb-5 leading-relaxed">
+          يتدرّج من <span className="text-slate-900">A0</span> إلى <span className="text-slate-900">C1</span> ويتوقف عند مستواك الحقيقي —
+          ثم فقرة كتابة تُصحَّح تلقائياً.
         </p>
 
         <button onClick={onStart}
-                className="w-full px-12 py-4 rounded-2xl bg-gradient-to-l from-yellow-400 to-amber-500 text-black
-                           font-black text-lg hover:brightness-110 active:scale-[.99] transition shadow-2xl">
+                className="w-full px-12 py-4 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-900
+                           font-black text-lg active:scale-[.99] transition shadow-[0_6px_20px_rgba(245,158,11,0.35)]">
           ابدأ الاختبار
         </button>
         <p className="text-slate-500 text-[12px] font-semibold mt-2.5 flex items-center justify-center gap-1.5">
-          <Sparkles size={12} className="text-yellow-400" />
+          <Sparkles size={12} className="text-amber-500" />
           مجاني · بملء الشاشة · ينتهي عند نفاد قلوبك
         </p>
 
@@ -846,19 +845,19 @@ function Intro({ onStart }: { onStart: () => void }) {
             { icon: ListChecks, t: '16 سؤالاً',     s: 'لكل مستوى' },
             { icon: PenLine,    t: 'كتابة مصحّحة',  s: 'تصحيح تلقائي' },
           ].map((f, i) => (
-            <div key={i} className="bg-white/[.04] ring-1 ring-white/10 rounded-2xl p-3.5">
-              <span className="w-9 h-9 rounded-xl bg-yellow-400/15 flex items-center justify-center mb-2">
-                <f.icon size={17} className="text-yellow-400" />
+            <div key={i} className="bg-white ring-1 ring-slate-200 rounded-2xl p-3.5">
+              <span className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center mb-2">
+                <f.icon size={17} className="text-amber-500" />
               </span>
-              <div className="text-white font-bold text-[13.5px] leading-tight">{f.t}</div>
+              <div className="text-slate-900 font-bold text-[13.5px] leading-tight">{f.t}</div>
               <div className="text-slate-500 text-[11.5px] leading-tight mt-1">{f.s}</div>
             </div>
           ))}
         </div>
 
-        <div className="mt-6 bg-white/[.03] ring-1 ring-white/[.07] rounded-2xl p-4 text-right">
-          <h2 className="text-white font-bold text-[14px] mb-2">كيف يعمل الاختبار؟</h2>
-          <ul className="space-y-1.5 text-slate-400 text-[12.5px] leading-relaxed">
+        <div className="mt-6 bg-white ring-1 ring-slate-200 rounded-2xl p-4 text-right">
+          <h2 className="text-slate-900 font-bold text-[14px] mb-2">كيف يعمل الاختبار؟</h2>
+          <ul className="space-y-1.5 text-slate-600 text-[12.5px] leading-relaxed">
             <li>• تبدأ من A0 وتصعد مستوى بعد مستوى حتى تنفد قلوبك.</li>
             <li>• كل خطأ يكلّفك قلباً — والقلوب المتبقية ترفع نتيجتك النهائية.</li>
             <li>• في النهاية تكتب فقرة، نصحّحها لك، ونقترح الدورة المناسبة.</li>
@@ -901,13 +900,13 @@ function Result({
             <Award size={44} className="text-white" />
           </div>
           <p className="text-slate-500 font-bold text-sm mb-1">مستواك في الإنجليزية</p>
-          <h1 className="text-6xl font-black text-white mb-2 tracking-tight">{level}</h1>
+          <h1 className="text-6xl font-black text-slate-900 mb-2 tracking-tight">{level}</h1>
           <p className={`text-lg font-black ${meta.text}`}>{meta.label}</p>
           <p className="text-slate-500 text-sm font-semibold">{meta.sub}</p>
 
           {placement.adjusted && (
-            <div className="mt-3 flex items-start gap-1.5 px-3 py-2.5 rounded-xl bg-white/[.06] ring-1 ring-white/10 text-[12.5px] font-bold text-slate-300 text-right">
-              <Sparkles size={13} className="text-yellow-400 mt-0.5 shrink-0" />
+            <div className="mt-3 flex items-start gap-1.5 px-3 py-2.5 rounded-xl bg-white ring-1 ring-slate-200 text-[12.5px] font-bold text-slate-700 text-right">
+              <Sparkles size={13} className="text-amber-500 mt-0.5 shrink-0" />
               <span>
                 {placement.reason === 'hearts'
                   ? placement.adjusted === 'up'
@@ -921,9 +920,14 @@ function Result({
           )}
         </div>
 
-        <p className="text-slate-300 text-[14.5px] leading-relaxed text-center bg-white/[.04] ring-1 ring-white/10 rounded-2xl p-5">
+        <p className="text-slate-700 text-[14.5px] leading-relaxed text-center bg-white ring-1 ring-slate-200 rounded-2xl p-5">
           {fb.summary}
         </p>
+
+        {/* The one next step comes first; the detail that explains it follows. */}
+        {plan && <SubscribeCard level={level} plan={plan} onExit={onExit} />}
+
+        <h2 className="pt-4 text-center text-[13px] font-extrabold text-slate-500">تفاصيل نتيجتك</h2>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {[
@@ -932,16 +936,16 @@ function Result({
             { v: `${placement.heartsLeft}/${placement.heartsAvailable}`, l: 'قلوب متبقية' },
             { v: report ? `${report.score}%` : '—', l: 'درجة الكتابة' },
           ].map((s, i) => (
-            <div key={i} className="bg-white/[.04] ring-1 ring-white/10 rounded-2xl p-3.5 text-center">
-              <div className="text-xl font-black text-white tabular-nums">{s.v}</div>
+            <div key={i} className="bg-white ring-1 ring-slate-200 rounded-2xl p-3.5 text-center">
+              <div className="text-xl font-black text-slate-900 tabular-nums">{s.v}</div>
               <div className="text-slate-500 text-[10.5px] font-bold mt-1">{s.l}</div>
             </div>
           ))}
         </div>
 
         {heartLog.length > 0 && (
-          <div className="bg-white/[.04] ring-1 ring-white/10 rounded-2xl p-5">
-            <h3 className="text-white font-black mb-3.5 text-[15px]">قلوبك في كل مستوى</h3>
+          <div className="bg-white ring-1 ring-slate-200 rounded-2xl p-5">
+            <h3 className="text-slate-900 font-black mb-3.5 text-[15px]">قلوبك في كل مستوى</h3>
             <div className="space-y-2.5">
               {heartLog.map((h, i) => (
                 <div key={i} className="flex items-center gap-2.5">
@@ -951,7 +955,7 @@ function Result({
                   </span>
                   <div className="flex items-center gap-0.5 flex-1 min-w-0">
                     {Array.from({ length: h.available }).map((_, k) => (
-                      <Heart key={k} size={13} className={k < h.left ? 'text-rose-500 fill-rose-500' : 'text-slate-700'} />
+                      <Heart key={k} size={13} className={k < h.left ? 'text-rose-500 fill-rose-500' : 'text-slate-300'} />
                     ))}
                   </div>
                   <span className="text-[10.5px] font-bold text-slate-500 shrink-0">
@@ -963,8 +967,8 @@ function Result({
           </div>
         )}
 
-        <div className="bg-white/[.04] ring-1 ring-white/10 rounded-2xl p-5">
-          <h3 className="text-white font-black mb-4 text-[15px]">أداؤك حسب المهارة</h3>
+        <div className="bg-white ring-1 ring-slate-200 rounded-2xl p-5">
+          <h3 className="text-slate-900 font-black mb-4 text-[15px]">أداؤك حسب المهارة</h3>
           <div className="space-y-3">
             {(Object.keys(skillStats) as SkillKey[]).map(k => {
               const s = skillStats[k]!
@@ -972,10 +976,10 @@ function Result({
               return (
                 <div key={k}>
                   <div className="flex justify-between text-[12.5px] font-bold mb-1.5">
-                    <span className="text-slate-300">{SKILL_LABELS[k]}</span>
+                    <span className="text-slate-700">{SKILL_LABELS[k]}</span>
                     <span className="text-slate-500 tabular-nums">{s.correct}/{s.total}</span>
                   </div>
-                  <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                  <div className="h-2 rounded-full bg-slate-200 overflow-hidden">
                     <div className="h-full rounded-full transition-all duration-700"
                          style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${meta.from}, ${meta.to})` }} />
                   </div>
@@ -988,38 +992,36 @@ function Result({
         {report && <WritingFeedback report={report} />}
 
         <div className="grid sm:grid-cols-2 gap-3">
-          <div className="bg-emerald-500/[.07] ring-1 ring-emerald-500/20 rounded-2xl p-5">
-            <h3 className="text-emerald-300 font-black mb-3 text-[14px]">تستطيع الآن</h3>
+          <div className="bg-emerald-50 ring-1 ring-emerald-200 rounded-2xl p-5">
+            <h3 className="text-emerald-700 font-black mb-3 text-[14px]">تستطيع الآن</h3>
             <ul className="space-y-2">
               {fb.canDo.map((c, i) => (
-                <li key={i} className="flex items-start gap-2 text-slate-300 text-[13px]">
-                  <CheckCircle2 size={14} className="text-emerald-400 mt-0.5 shrink-0" /><span>{c}</span>
+                <li key={i} className="flex items-start gap-2 text-slate-700 text-[13px]">
+                  <CheckCircle2 size={14} className="text-emerald-600 mt-0.5 shrink-0" /><span>{c}</span>
                 </li>
               ))}
             </ul>
           </div>
-          <div className="bg-amber-500/[.07] ring-1 ring-amber-500/20 rounded-2xl p-5">
-            <h3 className="text-amber-300 font-black mb-3 text-[14px]">ركّز على</h3>
+          <div className="bg-amber-50 ring-1 ring-amber-200 rounded-2xl p-5">
+            <h3 className="text-amber-700 font-black mb-3 text-[14px]">ركّز على</h3>
             <ul className="space-y-2">
               {fb.focus.map((c, i) => (
-                <li key={i} className="flex items-start gap-2 text-slate-300 text-[13px]">
-                  <span className="text-amber-400 mt-0.5 shrink-0">→</span><span>{c}</span>
+                <li key={i} className="flex items-start gap-2 text-slate-700 text-[13px]">
+                  <span className="text-amber-600 mt-0.5 shrink-0">→</span><span>{c}</span>
                 </li>
               ))}
             </ul>
           </div>
         </div>
 
-        {plan && <SubscribeCard level={level} plan={plan} onExit={onExit} />}
-
         <div className="flex flex-col sm:flex-row gap-2.5">
           <button onClick={onRestart}
-                  className="flex-1 py-3.5 rounded-2xl bg-white/[.06] ring-1 ring-white/10 text-slate-300 font-bold hover:bg-white/10 transition
+                  className="flex-1 py-3.5 rounded-2xl bg-white ring-1 ring-slate-200 text-slate-700 font-bold hover:bg-slate-100 transition
                              flex items-center justify-center gap-2">
             <RotateCcw size={16} /> أعد الاختبار
           </button>
           <Link href="/courses" onClick={onExit}
-                className="flex-1 py-3.5 rounded-2xl bg-white/[.06] ring-1 ring-white/10 text-slate-300 font-bold hover:bg-white/10 transition
+                className="flex-1 py-3.5 rounded-2xl bg-white ring-1 ring-slate-200 text-slate-700 font-bold hover:bg-slate-100 transition
                            flex items-center justify-center gap-2">
             <BookOpen size={16} /> تصفّح الدورات
           </Link>
@@ -1031,30 +1033,30 @@ function Result({
 
 function WritingFeedback({ report }: { report: WritingReport }) {
   return (
-    <div className="bg-violet-500/[.07] ring-1 ring-violet-500/20 rounded-2xl p-5">
+    <div className="bg-violet-50 ring-1 ring-violet-200 rounded-2xl p-5">
       <div className="flex items-center gap-2.5 mb-4">
         <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shrink-0">
           <PenLine size={16} className="text-white" />
         </span>
         <div className="flex-1 min-w-0">
-          <h3 className="text-white font-black text-[15px]">تصحيح كتابتك</h3>
+          <h3 className="text-slate-900 font-black text-[15px]">تصحيح كتابتك</h3>
           <p className="text-slate-500 text-[11.5px] font-semibold">
             {report.words} كلمة · {report.sentences} جملة{report.source === 'local' && ' · تحليل مبدئي'}
           </p>
         </div>
         <div className="text-center shrink-0">
-          <div className="text-2xl font-black text-white tabular-nums">{report.score}</div>
+          <div className="text-2xl font-black text-slate-900 tabular-nums">{report.score}</div>
           <div className="text-slate-500 text-[10px] font-bold">من 100</div>
         </div>
       </div>
 
       {report.strengths.length > 0 && (
         <div className="mb-4">
-          <h4 className="text-emerald-300 font-bold text-[12.5px] mb-2">نقاط القوة</h4>
+          <h4 className="text-emerald-700 font-bold text-[12.5px] mb-2">نقاط القوة</h4>
           <ul className="space-y-1.5">
             {report.strengths.map((s, i) => (
-              <li key={i} className="flex items-start gap-2 text-slate-300 text-[13px]">
-                <CheckCircle2 size={13} className="text-emerald-400 mt-0.5 shrink-0" /><span>{s}</span>
+              <li key={i} className="flex items-start gap-2 text-slate-700 text-[13px]">
+                <CheckCircle2 size={13} className="text-emerald-600 mt-0.5 shrink-0" /><span>{s}</span>
               </li>
             ))}
           </ul>
@@ -1063,24 +1065,24 @@ function WritingFeedback({ report }: { report: WritingReport }) {
 
       {report.issues.length > 0 && (
         <div>
-          <h4 className="text-amber-300 font-bold text-[12.5px] mb-2">ما يحتاج تصحيحاً</h4>
+          <h4 className="text-amber-700 font-bold text-[12.5px] mb-2">ما يحتاج تصحيحاً</h4>
           <div className="space-y-2">
             {report.issues.map((iss, i) => (
-              <div key={i} className="bg-black/20 rounded-xl p-3">
+              <div key={i} className="bg-slate-50 ring-1 ring-slate-200 rounded-xl p-3">
                 <div className="flex flex-wrap items-center gap-2 mb-1" dir="ltr">
-                  <code className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-200 text-[12px] font-mono line-through break-all">
+                  <code className="px-2 py-0.5 rounded bg-rose-100 text-rose-800 text-[12px] font-mono line-through break-all">
                     {iss.fragment}
                   </code>
                   {iss.fix && (
                     <>
-                      <span className="text-slate-600">→</span>
-                      <code className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-200 text-[12px] font-mono break-all">
+                      <span className="text-slate-400">→</span>
+                      <code className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[12px] font-mono break-all">
                         {iss.fix}
                       </code>
                     </>
                   )}
                 </div>
-                <p className="text-slate-400 text-[12.5px]">{iss.note}</p>
+                <p className="text-slate-600 text-[12.5px]">{iss.note}</p>
               </div>
             ))}
           </div>
@@ -1089,10 +1091,10 @@ function WritingFeedback({ report }: { report: WritingReport }) {
 
       {report.corrected && (
         <details className="mt-4">
-          <summary className="cursor-pointer text-violet-300 font-bold text-[13px] hover:text-violet-200 transition">
+          <summary className="cursor-pointer text-violet-700 font-bold text-[13px] hover:text-violet-900 transition">
             اعرض نصك بعد التصحيح
           </summary>
-          <p className="mt-2 p-3 rounded-xl bg-black/20 text-slate-200 text-[13.5px] leading-relaxed text-left break-words" dir="ltr">
+          <p className="mt-2 p-3 rounded-xl bg-slate-50 ring-1 ring-slate-200 text-slate-800 text-[13.5px] leading-relaxed text-left break-words" dir="ltr">
             {report.corrected}
           </p>
         </details>
@@ -1138,34 +1140,34 @@ function SubscribeCard({ level, plan, onExit }: {
   }
 
   return (
-    <div className="rounded-3xl bg-gradient-to-br from-yellow-400/[.12] to-amber-500/[.06] ring-1 ring-yellow-400/25 p-5 sm:p-6">
+    <div className="rounded-3xl bg-white ring-2 ring-brand-700 shadow-xl shadow-brand-900/10 p-5 sm:p-6">
       <div className="flex items-center gap-2 mb-1">
-        <Sparkles size={16} className="text-yellow-400" />
-        <span className="text-yellow-400 font-black text-[12px]">الدورة المناسبة لمستواك</span>
+        <Sparkles size={16} className="text-amber-500" />
+        <span className="text-amber-500 font-black text-[12px]">الدورة المناسبة لمستواك</span>
       </div>
-      <h3 className="text-white text-2xl font-black mb-1">{plan.title_ar}</h3>
-      <p className="text-slate-400 text-[14px] font-semibold mb-4">{plan.subtitle_ar}</p>
+      <h3 className="text-slate-900 text-2xl font-black mb-1">{plan.title_ar}</h3>
+      <p className="text-slate-600 text-[14px] font-semibold mb-4">{plan.subtitle_ar}</p>
 
       <div className="flex flex-wrap items-baseline gap-2 mb-4">
-        <span className="text-3xl font-black text-white tabular-nums">{plan.amount_mad}</span>
-        <span className="text-slate-400 font-bold">درهم</span>
+        <span className="text-3xl font-black text-slate-900 tabular-nums">{plan.amount_mad}</span>
+        <span className="text-slate-600 font-bold">درهم</span>
         {plan.originalAmount && (
-          <span className="text-slate-600 line-through text-sm tabular-nums">{plan.originalAmount}</span>
+          <span className="text-slate-400 line-through text-sm tabular-nums">{plan.originalAmount}</span>
         )}
         <span className="text-slate-500 text-[12px] font-semibold mr-auto">{plan.levelFrom} → {plan.levelTo}</span>
       </div>
 
       {plan.idealFor_ar && (
-        <p className="text-slate-300 text-[13.5px] leading-relaxed bg-black/20 rounded-xl p-3.5 mb-4">
+        <p className="text-slate-700 text-[13.5px] leading-relaxed bg-slate-50 ring-1 ring-slate-200 rounded-xl p-3.5 mb-4">
           {plan.idealFor_ar}
         </p>
       )}
 
       {sent ? (
         <div className="text-center py-3">
-          <CheckCircle2 size={32} className="mx-auto text-emerald-400 mb-2" />
-          <p className="text-white font-black mb-1">تم إرسال طلبك</p>
-          <p className="text-slate-400 text-[13px] mb-4">إن لم تُفتح المحادثة، اضغط:</p>
+          <CheckCircle2 size={32} className="mx-auto text-emerald-600 mb-2" />
+          <p className="text-slate-900 font-black mb-1">تم إرسال طلبك</p>
+          <p className="text-slate-600 text-[13px] mb-4">إن لم تُفتح المحادثة، اضغط:</p>
           <a href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(waText)}`}
              target="_blank" rel="noopener noreferrer"
              className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-emerald-500 text-white font-black hover:bg-emerald-400 transition">
@@ -1175,19 +1177,19 @@ function SubscribeCard({ level, plan, onExit }: {
       ) : (
         <form onSubmit={go} className="space-y-2.5">
           <input value={name} onChange={e => setName(e.target.value)} required placeholder="اسمك الكامل"
-                 className="w-full px-4 py-3.5 rounded-xl bg-white/[.06] ring-1 ring-white/15 text-white font-semibold
-                            placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-yellow-400/60 transition" />
+                 className="w-full px-4 py-3.5 rounded-xl bg-white ring-1 ring-slate-300 text-slate-900 font-semibold
+                            placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400 transition" />
           <input value={phone} onChange={e => setPhone(e.target.value)} dir="ltr" inputMode="tel"
                  placeholder="رقم الهاتف (اختياري)"
-                 className="w-full px-4 py-3.5 rounded-xl bg-white/[.06] ring-1 ring-white/15 text-white font-semibold text-right
-                            placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-yellow-400/60 transition" />
+                 className="w-full px-4 py-3.5 rounded-xl bg-white ring-1 ring-slate-300 text-slate-900 font-semibold text-right
+                            placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400 transition" />
           <button type="submit" disabled={busy || !name.trim()}
                   className="w-full py-4 rounded-2xl bg-emerald-500 text-white font-black text-lg hover:bg-emerald-400
                              active:scale-[.99] transition shadow-xl disabled:opacity-40 flex items-center justify-center gap-2">
             {busy ? <Loader2 size={20} className="animate-spin" /> : <MessageCircle size={20} />}
             سجّل الآن عبر واتساب
           </button>
-          <p className="text-slate-600 text-[11px] font-semibold text-center">نرسل لك التفاصيل مباشرة — بلا التزام.</p>
+          <p className="text-slate-400 text-[11px] font-semibold text-center">نرسل لك التفاصيل مباشرة — بلا التزام.</p>
         </form>
       )}
 
@@ -1195,8 +1197,8 @@ function SubscribeCard({ level, plan, onExit }: {
       <Link
         href={`/pricing/${plan.id}`}
         onClick={onExit}
-        className="mt-3 w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-white/[.06] ring-1 ring-white/10
-                   text-slate-300 font-bold text-[13.5px] hover:bg-white/10 transition"
+        className="mt-3 w-full flex items-center justify-center gap-2 py-3 rounded-2xl bg-white ring-1 ring-slate-200
+                   text-slate-700 font-bold text-[13.5px] hover:bg-slate-100 transition"
       >
         <BookOpen size={15} /> شوف تفاصيل «{plan.title_ar}» كاملة
       </Link>

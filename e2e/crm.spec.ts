@@ -39,8 +39,10 @@ const FOUNDER_PAGES = [
   '/admin/activity',
 ]
 
+/** Against the device width — a phone zooming a too-wide page out also widens innerWidth. */
 async function noSidewaysScroll(page: Page) {
-  const { sw, vw } = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, vw: window.innerWidth }))
+  const sw = await page.evaluate(() => document.documentElement.scrollWidth)
+  const vw = page.viewportSize()?.width ?? 0
   expect(sw, 'page wider than the screen').toBeLessThanOrEqual(vw + 1)
 }
 

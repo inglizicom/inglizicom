@@ -8,8 +8,11 @@ import { mockSupabase, collectErrors, IDS, STUDENTS } from './mock'
  *   main content, throws nothing, and fits a phone screen.
  */
 
+/** Compared with the device's width, not window.innerWidth: a phone that zooms
+ *  a too-wide page out widens innerWidth too, and the overflow hides. */
 async function fits(page: Page) {
-  const { sw, vw } = await page.evaluate(() => ({ sw: document.documentElement.scrollWidth, vw: window.innerWidth }))
+  const sw = await page.evaluate(() => document.documentElement.scrollWidth)
+  const vw = page.viewportSize()?.width ?? 0
   expect(sw, 'page wider than the screen').toBeLessThanOrEqual(vw + 1)
 }
 
@@ -75,7 +78,8 @@ test.describe('student space (demo)', () => {
 })
 
 test.describe('public pages', () => {
-  for (const path of ['/', '/pricing', '/teacher-showcase/demo']) {
+  for (const path of ['/', '/pricing', '/courses', '/classes', '/business', '/level-test', '/faq',
+                      '/pricing/pack-intensif', '/pricing/class-8', '/courses/a0-a1', '/courses/a2-b1', '/teacher-showcase/demo']) {
     test(path, async ({ page }) => {
       const errors = collectErrors(page)
       await mockSupabase(page, { role: null })

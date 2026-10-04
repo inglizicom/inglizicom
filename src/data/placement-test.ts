@@ -93,12 +93,12 @@ export const TOTAL_HEARTS = LEVEL_ORDER_VALUES.reduce((n, l) => n + HEARTS_BY_LE
 export const LEVEL_META: Record<CEFRLevel, {
   label: string; sub: string; from: string; to: string; ring: string; text: string
 }> = {
-  A0: { label: 'مبتدئ تماماً', sub: 'Beginner',       from: '#64748B', to: '#94A3B8', ring: 'ring-slate-400/40',   text: 'text-slate-300'   },
-  A1: { label: 'مبتدئ',        sub: 'Elementary',     from: '#F59E0B', to: '#FBBF24', ring: 'ring-amber-400/40',   text: 'text-amber-300'   },
-  A2: { label: 'أساسي',        sub: 'Pre-Intermediate', from: '#F97316', to: '#FB923C', ring: 'ring-orange-400/40', text: 'text-orange-300' },
-  B1: { label: 'متوسط',        sub: 'Intermediate',   from: '#3B82F6', to: '#60A5FA', ring: 'ring-blue-400/40',    text: 'text-blue-300'    },
-  B2: { label: 'فوق المتوسط',  sub: 'Upper-Intermediate', from: '#8B5CF6', to: '#A78BFA', ring: 'ring-violet-400/40', text: 'text-violet-300' },
-  C1: { label: 'متقدم',        sub: 'Advanced',       from: '#10B981', to: '#34D399', ring: 'ring-emerald-400/40', text: 'text-emerald-300' },
+  A0: { label: 'مبتدئ تماماً', sub: 'Beginner',       from: '#64748B', to: '#94A3B8', ring: 'ring-slate-400/40',   text: 'text-slate-700'   },
+  A1: { label: 'مبتدئ',        sub: 'Elementary',     from: '#F59E0B', to: '#FBBF24', ring: 'ring-amber-400/40',   text: 'text-amber-700'   },
+  A2: { label: 'أساسي',        sub: 'Pre-Intermediate', from: '#F97316', to: '#FB923C', ring: 'ring-orange-400/40', text: 'text-orange-700' },
+  B1: { label: 'متوسط',        sub: 'Intermediate',   from: '#3B82F6', to: '#60A5FA', ring: 'ring-blue-400/40',    text: 'text-blue-700'    },
+  B2: { label: 'فوق المتوسط',  sub: 'Upper-Intermediate', from: '#8B5CF6', to: '#A78BFA', ring: 'ring-violet-400/40', text: 'text-violet-700' },
+  C1: { label: 'متقدم',        sub: 'Advanced',       from: '#10B981', to: '#34D399', ring: 'ring-emerald-400/40', text: 'text-emerald-700' },
 }
 
 export const SKILL_LABELS: Record<SkillKey, string> = {

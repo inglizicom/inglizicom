@@ -60,7 +60,7 @@ function Hero() {
               <Link href="/level-test" className={`${CTA} text-[17px] px-7 py-4`}>
                 اختبر مستواك مجانًا <ArrowLeft size={18} />
               </Link>
-              <p className="mt-2 text-center sm:text-right text-[13px] font-semibold text-slate-500">3 دقائق · مجاني · تعرف مستواك والمسار المناسب لك</p>
+              <p className="mt-2 text-center sm:text-right text-[13px] font-semibold text-slate-500">مجاني · يتوقف عند مستواك الحقيقي · ويقترح عليك المسار</p>
             </div>
             <a href="#offers" className="inline-flex items-center justify-center gap-1.5 px-4 py-3 sm:py-4 text-[15px] font-bold text-brand-700 no-underline hover:text-brand-900">
               شوف طرق التعلّم <ChevronDown size={16} />
@@ -124,7 +124,7 @@ function ProductPreview() {
 
 function HowItWorks() {
   const STEPS = [
-    { n: 1, title: 'اختبر مستواك', text: '3 دقائق تحدد نقطة انطلاقك والمسار المناسب لك.' },
+    { n: 1, title: 'اختبر مستواك', text: 'اختبار مجاني يتوقف عند مستواك الحقيقي، ويقترح عليك المسار المناسب.' },
     { n: 2, title: 'تعلّم بدروس قصيرة', text: 'فيديوهات من 5 إلى 8 دقائق بشرح عربي، وتمارين بعد كل درس.' },
     { n: 3, title: 'تكلّم وصحّح نطقك', text: 'ترسل تسجيلاتك الصوتية، والأستاذ يصحّحها ويتابعك شخصيًا.' },
   ]
