@@ -23,7 +23,7 @@ export default function HeaderAuthButton({ variant = 'desktop' }: { variant?: 'd
   if (loading) {
     return (
       <div className={variant === 'desktop'
-        ? 'w-10 h-10 flex items-center justify-center text-white/50'
+        ? 'w-10 h-10 flex items-center justify-center text-slate-300'
         : 'w-full py-3 flex items-center justify-center text-gray-400'}>
         <Loader2 size={16} className="animate-spin" />
       </div>
@@ -45,7 +45,7 @@ export default function HeaderAuthButton({ variant = 'desktop' }: { variant?: 'd
     return (
       <Link
         href="/login"
-        className="flex items-center gap-2 px-4 py-2 rounded-xl text-[14px] font-bold no-underline border border-white/30 text-white hover:bg-white/10 transition-colors"
+        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[14px] font-bold no-underline text-slate-700 hover:bg-slate-100 transition-colors"
       >
         <LogIn size={14} />
         تسجيل الدخول
@@ -109,13 +109,13 @@ export default function HeaderAuthButton({ variant = 'desktop' }: { variant?: 'd
 
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-2 pr-2 pl-1 py-1 rounded-full bg-white/15 hover:bg-white/25 transition-colors"
+        className="flex items-center gap-2 pr-2 pl-1 py-1 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors"
         aria-label="القائمة"
       >
         {avatar ? (
           <img src={avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
         ) : (
-          <div className="w-8 h-8 rounded-full bg-white/30 text-white font-black text-sm flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full bg-brand-700 text-white font-black text-sm flex items-center justify-center">
             {initial}
           </div>
         )}

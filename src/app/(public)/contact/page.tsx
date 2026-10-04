@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Phone, Mail, MapPin, Send, CheckCircle, Instagram, Youtube } from 'lucide-react'
+import ChatBot from '@/components/ChatBot'
 
 function TikTokIcon({ size = 20 }: { size?: number }) {
   return (
@@ -335,6 +336,7 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
+      <ChatBot />
     </>
   )
 }

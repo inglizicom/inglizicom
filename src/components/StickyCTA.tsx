@@ -1,77 +1,77 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { MessageCircle, X } from 'lucide-react'
-import { openSubscribe } from '@/lib/lead-source'
+import { openSubscribe, setLeadSource } from '@/lib/lead-source'
 
 /**
- * Persistent floating "Subscribe on WhatsApp" CTA.
- * Visible on public pages once the visitor scrolls past the hero fold,
- * unless dismissed for this session. Click dispatches the global
- * SUBSCRIBE_EVENT handled by SubscribeHost.
+ * The one action bar of the public site.
+ *
+ * Phone: once the visitor scrolls past the first screen, a bar with the main
+ * action — the free level test — and a small WhatsApp button (it opens the
+ * subscribe form first, so the conversation arrives as a lead). Desktop: the
+ * header already carries the level test, so only a round WhatsApp button.
+ * It replaces the green "subscribe on WhatsApp" bar and the floating chatbot,
+ * which sat on top of each other and of the content.
  */
 
-const DISMISS_KEY = 'inglizi.sticky_dismissed'
+const HIDE_ON_PATHS = ['/level-test', '/login', '/signup', '/billing', '/onboarding', '/admin']
 
-const HIDE_ON_PATHS = [
-  '/level-test',
-  '/login',
-  '/signup',
-  '/billing',
-  '/admin',
-]
-
-/** Pages that ship their own, better-targeted sticky bar. */
+/** Pages that ship their own, better-targeted bar (they name the plan and price). */
 const HIDE_ON_PATTERNS = [
-  /^\/pricing\/.+/,        // per-plan pages → StickyPlanBar (names the plan + price)
-  /^\/courses\/[^/]+$/,    // course detail → its own price + seats bar
+  /^\/pricing\/.+/,
+  /^\/courses\/[^/]+$/,
 ]
+
+export function WhatsAppIcon({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+    </svg>
+  )
+}
 
 export default function StickyCTA() {
   const pathname = usePathname() ?? '/'
-  const [visible,   setVisible]   = useState(false)
-  const [dismissed, setDismissed] = useState(false)
+  const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
-    setDismissed(window.sessionStorage.getItem(DISMISS_KEY) === '1')
-    const onScroll = () => setVisible(window.scrollY > 240)
+    const onScroll = () => setVisible(window.scrollY > window.innerHeight * 0.6)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const blocked = HIDE_ON_PATHS.some(p => pathname.startsWith(p))
-    || HIDE_ON_PATTERNS.some(re => re.test(pathname))
-  if (blocked || dismissed || !visible) return null
+  const blocked = HIDE_ON_PATHS.some(p => pathname.startsWith(p)) || HIDE_ON_PATTERNS.some(re => re.test(pathname))
+  if (blocked) return null
+
+  const whatsapp = () => openSubscribe({ source: 'action_bar_whatsapp' })
 
   return (
-    <div className="fixed bottom-0 inset-x-0 z-40 pointer-events-none sm:bottom-5 sm:right-5 sm:left-auto sm:inset-x-auto">
-      <div className="max-w-md mx-auto sm:mx-0 px-3 pb-3 sm:p-0 pointer-events-auto">
-        <div className="flex items-stretch gap-0 shadow-2xl shadow-emerald-900/30 rounded-2xl overflow-hidden">
-          <button
-            type="button"
-            onClick={() => openSubscribe({ source: 'sticky_cta' })}
-            className="flex-1 flex items-center justify-center gap-2 bg-[#25d366] hover:bg-[#20c05c] text-white font-black text-sm sm:text-[15px] py-3.5 px-5 transition-colors"
-            dir="rtl"
-          >
-            <MessageCircle className="w-4 h-4" />
-            اشترك الآن — جاوبني فواتساب
-          </button>
-          <button
-            type="button"
-            aria-label="dismiss"
-            onClick={() => {
-              try { window.sessionStorage.setItem(DISMISS_KEY, '1') } catch {}
-              setDismissed(true)
-            }}
-            className="bg-[#1fa855] hover:bg-[#1a944a] text-white px-3 transition-colors"
-          >
-            <X className="w-4 h-4" />
+    <>
+      {/* Room at the end of the page so the bar never covers the footer. */}
+      <div aria-hidden="true" className="h-[76px] lg:hidden" />
+
+      {/* Phone */}
+      <div dir="rtl" className={`lg:hidden fixed bottom-0 inset-x-0 z-40 transition-transform duration-300 ${visible ? 'translate-y-0' : 'translate-y-full'}`}>
+        <div className="bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 pt-2.5 pb-[max(10px,env(safe-area-inset-bottom))] flex gap-2">
+          <Link href="/level-test" onClick={() => setLeadSource('action_bar_test')}
+            className="flex-1 flex items-center justify-center rounded-xl bg-amber-400 active:bg-amber-300 text-slate-900 text-[15px] font-extrabold no-underline py-3.5">
+            اختبر مستواك مجانًا — 3 دقائق
+          </Link>
+          <button type="button" onClick={whatsapp} aria-label="تواصل معنا على واتساب"
+            className="w-[52px] shrink-0 flex items-center justify-center rounded-xl bg-[#25d366] active:bg-[#20bd5a] text-white">
+            <WhatsAppIcon />
           </button>
         </div>
       </div>
-    </div>
+
+      {/* Desktop */}
+      <button type="button" onClick={whatsapp} aria-label="تواصل معنا على واتساب"
+        className={`hidden lg:flex fixed bottom-6 left-6 z-40 w-14 h-14 rounded-full bg-[#25d366] hover:bg-[#20bd5a] text-white items-center justify-center shadow-lg shadow-emerald-900/20 transition-all duration-300 ${visible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        <WhatsAppIcon size={26} />
+      </button>
+    </>
   )
 }

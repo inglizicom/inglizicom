@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { MessageCircle } from 'lucide-react'
 import { PAYMENT_WHATSAPP } from '@/data/plans'
+import ChatBot from '@/components/ChatBot'
 
 export const metadata: Metadata = {
   title: 'الأسئلة الشائعة',
@@ -191,6 +192,8 @@ export default function FaqPage() {
           </a>
         </div>
       </div>
+      {/* The chatbot answers the questions this page doesn't — it lives here, not site-wide. */}
+      <ChatBot />
     </main>
   )
 }
