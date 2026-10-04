@@ -232,4 +232,16 @@ test.describe('monthly report (staff)', () => {
     await expect.poll(() => calls.find(c => c.path.endsWith('/rpc/staff_set_teacher_month_note'))?.body)
       .toMatchObject({ p_teacher: IDS.teacher, p_note: 'ركّز على تقارير الحصص.' })
   })
+
+  test('the sample button swaps in a full example month, stamped as sample', async ({ page }) => {
+    await mockSupabase(page, { role: 'assistant' })
+    await page.goto(`/sales/teachers/report?teacher=${IDS.teacher}`)
+    await expect(page.getByText('التقرير الشهري للأستاذ')).toBeVisible({ timeout: 90_000 })
+    await page.getByRole('button', { name: 'تقرير تجريبي' }).click()
+    await expect(page.getByText(/بيانات وهمية للتوضيح فقط/)).toBeVisible()
+    await expect(page.getByText('1,530 د.م').first()).toBeVisible()          // the sample's net: 60% of 2,550
+    await expect(page.getByPlaceholder(/مثال: شهر جيد/)).toHaveCount(0)    // no note editor on a sample
+    await page.getByRole('button', { name: 'رجوع لتقريري الحقيقي' }).click()
+    await expect(page.getByText(/بيانات وهمية للتوضيح فقط/)).toHaveCount(0)
+  })
 })

@@ -1,9 +1,9 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ChevronLeft, ChevronRight, Download, Loader2, Save } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Download, FlaskConical, Loader2, Save } from 'lucide-react'
 import {
-  computePay, evaluate, fetchMonthReport, monthLabel, saveMonthNote, shiftMonth,
+  DEMO_MONTH_REPORT, computePay, evaluate, fetchMonthReport, monthLabel, saveMonthNote, shiftMonth,
   type MonthReport,
 } from '@/lib/teacher-report'
 
@@ -40,6 +40,7 @@ export default function MonthReportView({ teacherId, initialMonth, staff = false
   const [note, setNote] = useState('')
   const [noteBusy, setNoteBusy] = useState(false)
   const [noteSaved, setNoteSaved] = useState(false)
+  const [sampleOn, setSampleOn] = useState(false)
   const doc = useRef<HTMLDivElement>(null)
 
   const load = useCallback(async (m: string) => {
@@ -53,17 +54,21 @@ export default function MonthReportView({ teacherId, initialMonth, staff = false
 
   function go(by: number) { const m = shiftMonth(month, by); setMonth(m); onMonth?.(m) }
 
-  const evalr = useMemo(() => (report ? evaluate(report) : null), [report])
-  const pay = useMemo(() => (report ? computePay(report) : null), [report])
+  // "Sample": a full made-up month, so a teacher with no data yet sees what the
+  // report becomes. Stamped as sample on screen and in the PDF.
+  const sample = sampleOn && !demo
+  const shown = useMemo(() => (sample ? { ...DEMO_MONTH_REPORT, month } : report), [sample, report, month])
+  const evalr = useMemo(() => (shown ? evaluate(shown) : null), [shown])
+  const pay = useMemo(() => (shown ? computePay(shown) : null), [shown])
 
   async function downloadPdf() {
-    if (!doc.current || !report) return
+    if (!doc.current || !shown) return
     setPdfBusy(true)
     try {
       const html2pdf = (await import('html2pdf.js')).default
       await html2pdf().set({
         margin: [8, 8, 10, 8],
-        filename: `تقرير-${report.teacher.name}-${month.slice(0, 7)}.pdf`,
+        filename: `${sample ? 'مثال-' : ''}تقرير-${shown.teacher.name}-${month.slice(0, 7)}.pdf`,
         image: { type: 'jpeg', quality: 0.95 },
         html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
@@ -94,14 +99,27 @@ export default function MonthReportView({ teacherId, initialMonth, staff = false
         </div>
         <button onClick={() => go(1)} disabled={isCurrent} aria-label="الشهر التالي" className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:border-blue-300 disabled:opacity-30"><ChevronLeft size={18} /></button>
         <div className="flex-1" />
-        <button onClick={downloadPdf} disabled={!report || pdfBusy}
+        {!demo && (
+          <button onClick={() => setSampleOn(v => !v)} aria-pressed={sample}
+            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-[13px] font-bold border ${sample ? 'bg-violet-600 border-violet-600 text-white' : 'bg-white border-violet-200 text-violet-700 hover:bg-violet-50'}`}>
+            <FlaskConical size={15} /> {sample ? 'رجوع لتقريري الحقيقي' : 'تقرير تجريبي'}
+          </button>
+        )}
+        <button onClick={downloadPdf} disabled={!shown || pdfBusy}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13.5px] font-bold text-[#1E3A8A] ring-1 ring-amber-300 shadow-md disabled:opacity-50"
           style={{ background: 'linear-gradient(to left, #FBBF24, #EAB308)' }}>
           {pdfBusy ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />} تحميل PDF
         </button>
       </div>
 
-      {staff && report && (
+      {!sample && !demo && evalr?.noActivity && (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl bg-violet-50 border border-violet-200 px-4 py-3 text-[13px] font-bold text-violet-800">
+          لا توجد بيانات لهذا الشهر بعد — الحصص والحضور والأداءات تظهر هنا حين تُسجَّل في المنصة.
+          <button onClick={() => setSampleOn(true)} className="underline underline-offset-4">شاهد مثالًا لتقرير كامل</button>
+        </div>
+      )}
+
+      {staff && report && !sample && (
         <div className="rounded-2xl bg-white border border-slate-200 p-3.5 shadow-sm space-y-2">
           <div className="text-[13px] font-extrabold" style={{ color: C.navy }}>ملاحظة الأكاديمية لهذا الشهر <span className="font-semibold text-slate-400">(تظهر للأستاذ في التقرير)</span></div>
           <textarea value={note} onChange={e => { setNote(e.target.value); setNoteSaved(false) }} rows={3} maxLength={2000}
@@ -118,18 +136,23 @@ export default function MonthReportView({ teacherId, initialMonth, staff = false
       {loading && !report && <div className="py-24 flex justify-center text-slate-400"><Loader2 className="animate-spin" /></div>}
 
       {/* ── the document ── */}
-      {report && evalr && pay && (
+      {shown && evalr && pay && (
         <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-slate-100 p-2 sm:p-4">
           <div ref={doc} dir="rtl" className="mx-auto bg-white text-right" style={{ width: 760, color: C.ink, fontFamily: 'Tajawal, sans-serif', padding: 28 }}>
-            <Header report={report} score={evalr.score} grade={evalr.grade} gradeLabel={evalr.gradeLabel} isCurrent={isCurrent} />
-            <Kpis report={report} />
-            <Money report={report} pay={pay} />
+            {sample && (
+              <div className="avoid-break" style={{ marginBottom: 12, padding: '8px 12px', borderRadius: 10, background: '#F5F3FF', border: '1px dashed #7C3AED', color: '#5B21B6', fontSize: 12.5, fontWeight: 800, lineHeight: '20px', textAlign: 'center' }}>
+                تقرير تجريبي — بيانات وهمية للتوضيح فقط، لا تخصّ أي أستاذ حقيقي
+              </div>
+            )}
+            <Header report={shown} score={evalr.score} grade={evalr.grade} gradeLabel={evalr.gradeLabel} isCurrent={isCurrent} />
+            <Kpis report={shown} />
+            <Money report={shown} pay={pay} />
             <Evaluation e={evalr} />
-            <Students report={report} />
-            <Sessions report={report} />
-            <Feedback report={report} />
+            <Students report={shown} />
+            <Sessions report={shown} />
+            <Feedback report={shown} />
             <div style={{ marginTop: 18, paddingTop: 10, borderTop: `1px solid ${C.line}`, fontSize: 10.5, color: C.mute, display: 'flex', justifyContent: 'space-between' }}>
-              <span>مبني على بيانات الـCRM حتى {new Date(report.generated_at).toLocaleString('ar-MA', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+              <span>{sample ? 'مثال توضيحي' : <>مبني على بيانات الـCRM حتى {new Date(shown.generated_at).toLocaleString('ar-MA', { dateStyle: 'medium', timeStyle: 'short' })}</>}</span>
               <span>إنجليزي.كوم</span>
             </div>
           </div>
