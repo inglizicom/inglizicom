@@ -95,6 +95,20 @@ test.describe('flows', () => {
     await expect(page.locator('article').filter({ hasText: 'ياسين العلوي' })).toBeVisible()
   })
 
+  test('public form: a visitor in Algeria gets a polite message and no lead is saved', async ({ page }) => {
+    const calls = await mockSupabase(page)
+    await page.route('**/api/geo', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ country: 'DZ' }) }))
+    await page.goto('/free')
+    await page.getByPlaceholder('الاسم الكامل').fill('كريم')
+    await page.getByPlaceholder('رقم الواتساب (مع رمز الدولة)').fill('0551234567')
+    await page.locator('form button[type="submit"]').click()
+    await expect(page.getByText('دوراتنا غير متاحة حاليًا في بلدك')).toBeVisible()
+    const inserts = calls.filter(c => c.method === 'POST' && c.path.endsWith('/subscription_leads'))
+    expect(inserts).toHaveLength(1)
+    expect(inserts[0].body).toMatchObject({ plan_id: 'inquiry', notes: 'region_blocked:DZ' })
+    expect(JSON.stringify(inserts[0].body)).not.toContain('0551234567')
+  })
+
   test('payroll: recording a payment sends status paid with the method', async ({ page }) => {
     const calls = await mockSupabase(page, { role: 'founder' })
     await page.goto('/admin/team?tab=payroll')

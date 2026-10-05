@@ -1,6 +1,8 @@
 import { supabase } from './supabase'
 import { getCachedCountry, fetchVisitorCountry } from './geo-currency'
 import { externalReferrer, readTouch } from './first-touch'
+import { blockedRegion, LeadRegionBlockedError } from './lead-region'
+export { LeadRegionBlockedError } from './lead-region'
 
 /* CRM lead statuses — the full funnel from first contact through payment.
  * The legacy values 'converted' and 'rejected' map onto 'paid' and 'cancelled'
@@ -195,6 +197,19 @@ export async function createSubscriptionLead(input: CreateLeadInput): Promise<vo
   let country: string | null = getCachedCountry()
   if (!country) {
     try { country = await fetchVisitorCountry() } catch { country = null }
+  }
+  // No leads from DZ/TN/EG/LY/MR unless they live elsewhere (lib/lead-region).
+  // Keep an anonymous trace — no name, no phone — as an 'inquiry' row, which
+  // the CRM and the sources report already leave out, so we still know how
+  // many came; the form shows the polite message from the thrown error.
+  const blocked = blockedRegion(country, input.phone)
+  if (blocked) {
+    await supabase.from('subscription_leads').insert({
+      plan_id: 'inquiry', full_name: '—', country: country ?? blocked, source: input.source ?? null,
+      utm_source: input.utmSource ?? null, referrer: input.referrer ?? null, page_path: input.pagePath ?? null,
+      notes: `region_blocked:${blocked}`, is_archived: false,   // archived rows would show in the CRM archive
+    })
+    throw new LeadRegionBlockedError(blocked)
   }
   const row = {
     country,

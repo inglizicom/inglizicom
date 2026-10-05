@@ -22,7 +22,7 @@ import {
   sfxFinish, startMusic, stopMusic, duckMusic,
 } from '@/lib/test-audio'
 import { getPlan } from '@/data/plans'
-import { createSubscriptionLead, getAttribution } from '@/lib/leads-db'
+import { createSubscriptionLead, getAttribution, LeadRegionBlockedError } from '@/lib/leads-db'
 
 /* ══════════════════════════════════════════════════════════════════════════
    PLACEMENT TEST
@@ -1112,6 +1112,7 @@ function SubscribeCard({ level, plan, onExit }: {
   const [phone, setPhone] = useState('')
   const [busy, setBusy]   = useState(false)
   const [sent, setSent]   = useState(false)
+  const [blocked, setBlocked] = useState<string | null>(null)
 
   /* Keep the result for the session so the package page can pick it up if the
      visitor would rather read the details before giving us a number. */
@@ -1134,7 +1135,11 @@ function SubscribeCard({ level, plan, onExit }: {
         phone: phone.trim() || undefined, amountMad: plan.amount_mad,
         source: 'level-test', planInterest: plan.id, ...getAttribution(),
       })
-    } catch { /* the conversation matters more than the record */ }
+    } catch (err) {
+      // Not available in their country: say so, and don't open WhatsApp.
+      if (err instanceof LeadRegionBlockedError) { setBlocked(err.message); setBusy(false); return }
+      /* otherwise the conversation matters more than the record */
+    }
     setSent(true); setBusy(false)
     window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(waText)}`, '_blank', 'noopener')
   }
@@ -1163,7 +1168,9 @@ function SubscribeCard({ level, plan, onExit }: {
         </p>
       )}
 
-      {sent ? (
+      {blocked ? (
+        <p className="text-slate-700 text-[14px] font-semibold leading-relaxed bg-slate-50 ring-1 ring-slate-200 rounded-xl p-4 text-center">{blocked}</p>
+      ) : sent ? (
         <div className="text-center py-3">
           <CheckCircle2 size={32} className="mx-auto text-emerald-600 mb-2" />
           <p className="text-slate-900 font-black mb-1">تم إرسال طلبك</p>
