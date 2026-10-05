@@ -4,49 +4,31 @@ import Link from 'next/link'
 import Image from 'next/image'
 import {
   CheckCircle, Star, Users, Clock, BookOpen, ArrowRight, ArrowLeft,
-  X, MessageCircle, Play, Shield, Flame,
+  X, MessageCircle, Play, Shield, Flame, Video, Mic, ClipboardList, Trophy, Smartphone,
+  type LucideIcon,
 } from 'lucide-react'
 import FadeIn from '@/components/FadeIn'
 import SubscribeButton from '@/components/SubscribeButton'
+import { CARD, CTA_GOLD, ICON_TILE, NavyGround } from '@/components/site/kit'
 import ApproxPrice from '@/components/ApproxPrice'
 import CourseCardDark from '@/components/course/CourseCardDark'
 import { COURSES } from '@/data/courses'
 import { getPlanByCourseSlug, PAYMENT_WHATSAPP } from '@/data/plans'
 
-/* Dark palette per level — full class strings so Tailwind's scanner keeps them. */
-const COLOR_CONFIG = {
-  emerald: {
-    aura: 'from-brand-500/25 via-brand-500/10',
-    grad: 'from-brand-700 to-brand-600',
-    accent: 'text-brand-600', pill: 'bg-brand-50 text-brand-700',
-    border: 'border-brand-500/60', ring: 'ring-brand-500/20',
-    cta: 'bg-brand-700 hover:bg-brand-800 text-white',
-    dot: 'bg-brand-500 text-gray-900', bar: 'bg-brand-500',
-  },
-  blue: {
-    aura: 'from-brand-500/25 via-brand-500/10',
-    grad: 'from-brand-700 to-brand-600',
-    accent: 'text-brand-600', pill: 'bg-brand-50 text-brand-700',
-    border: 'border-brand-500/60', ring: 'ring-brand-500/20',
-    cta: 'bg-brand-700 hover:bg-brand-800 text-white',
-    dot: 'bg-brand-500 text-white', bar: 'bg-brand-500',
-  },
-  violet: {
-    aura: 'from-brand-500/25 via-brand-500/10',
-    grad: 'from-brand-700 to-brand-600',
-    accent: 'text-brand-600', pill: 'bg-brand-50 text-brand-700',
-    border: 'border-brand-500/60', ring: 'ring-brand-500/20',
-    cta: 'bg-brand-700 hover:bg-brand-800 text-white',
-    dot: 'bg-brand-500 text-white', bar: 'bg-brand-500',
-  },
-  orange: {
-    aura: 'from-brand-500/25 via-amber-500/10',
-    grad: 'from-brand-700 to-amber-400',
-    accent: 'text-brand-600', pill: 'bg-brand-50 text-brand-700',
-    border: 'border-brand-500/60', ring: 'ring-brand-500/20',
-    cta: 'bg-brand-700 hover:bg-brand-800 text-white',
-    dot: 'bg-brand-500 text-gray-900', bar: 'bg-brand-500',
-  },
+/* One navy-and-gold style for every level (the site uses no per-level colours);
+   full class strings so Tailwind's scanner keeps them. */
+const STYLE = {
+  grad: 'from-brand-700 to-amber-400',
+  accent: 'text-brand-700', pill: 'bg-brand-50 text-brand-800',
+  border: 'border-brand-200',
+  cta: 'bg-gradient-to-b from-brand-600 to-brand-800 text-white shadow-[0_12px_26px_-10px_rgba(30,64,175,0.7)] hover:-translate-y-0.5',
+  dot: 'bg-gradient-to-br from-brand-500 to-brand-800 text-white shadow-[0_8px_18px_-6px_rgba(30,64,175,0.6)]', bar: 'bg-amber-400',
+}
+
+/* The course data names its features with emoji; on the page they are navy
+   icon tiles like everywhere else. */
+const FEATURE_ICON: Record<string, LucideIcon> = {
+  '🎥': Video, '🎤': Mic, '💬': MessageCircle, '📋': ClipboardList, '🏆': Trophy, '📱': Smartphone,
 }
 
 const TIMELINE_STEPS = [
@@ -80,7 +62,7 @@ export default function CourseDetailPage({ params }: PageProps) {
   const course = COURSES.find((c) => c.slug === params.slug)
   if (!course) notFound()
 
-  const c = COLOR_CONFIG[course.colorKey]
+  const c = STYLE
 
   /* plans.ts is the single source of truth for money — courses.ts only fills in
      for a level that has no plan behind it yet. */
@@ -99,19 +81,15 @@ export default function CourseDetailPage({ params }: PageProps) {
   const spotsFilled = spotsTotal - course.spotsLeft
 
   return (
-    <main className="min-h-screen bg-white pt-[80px]" dir="rtl">
+    <main className="min-h-screen bg-white" dir="rtl">
 
       {/* ═══════ HERO ═══════ */}
-      <section className="relative overflow-hidden px-4 pt-8 pb-16">
-        <div
-          aria-hidden
-          className={`pointer-events-none absolute top-0 right-1/2 translate-x-1/2 -translate-y-1/3 w-[760px] h-[620px] rounded-full blur-3xl bg-gradient-to-b ${c.aura} to-transparent`}
-        />
+      <NavyGround className="px-4 pt-[88px] sm:pt-[112px] pb-16 sm:pb-20">
 
         <div className="relative max-w-6xl mx-auto">
           <Link
             href="/courses"
-            className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors text-sm font-bold mb-8 no-underline"
+            className="inline-flex items-center gap-2 text-blue-100 hover:text-white transition-colors text-sm font-bold mb-8 no-underline"
           >
             <ArrowRight className="w-4 h-4" />
             العودة للكورسات
@@ -122,30 +100,30 @@ export default function CourseDetailPage({ params }: PageProps) {
             {/* ── the pitch ── */}
             <div>
               <div className="flex flex-wrap items-center gap-2 mb-5">
-                <span className={`text-xs font-black px-3 py-1.5 rounded-full ${c.pill} border border-slate-200`}>
+                <span className="text-xs font-black px-3 py-1.5 rounded-full bg-white/10 ring-1 ring-white/20 text-white" dir="ltr">
                   {course.fromLevel} → {course.toLevel}
                 </span>
                 {course.badge && (
-                  <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-slate-50 text-slate-700 border border-slate-200">
+                  <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-white/10 ring-1 ring-white/20 text-blue-50">
                     {course.badge}
                   </span>
                 )}
                 {course.spotsLeft <= 5 && (
-                  <span className="inline-flex items-center gap-1 text-xs font-black px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 border border-amber-500/25">
+                  <span className="inline-flex items-center gap-1 text-xs font-black px-3 py-1.5 rounded-full bg-amber-300 text-[#0B1B4D]">
                     <Flame className="w-3 h-3" /> {course.spotsLeft} مقاعد فقط
                   </span>
                 )}
               </div>
 
-              <h1 className="text-4xl sm:text-5xl font-black text-slate-900 mb-4 leading-[1.15]">
+              <h1 className="text-4xl sm:text-5xl font-black text-white mb-4 leading-[1.15]">
                 {course.title}
               </h1>
 
-              <p className={`text-xl font-black bg-gradient-to-l ${c.grad} bg-clip-text text-transparent mb-5 leading-relaxed`}>
+              <p className="text-xl font-black bg-gradient-to-l from-amber-200 via-amber-300 to-amber-400 bg-clip-text text-transparent mb-5 leading-relaxed">
                 {course.hook}
               </p>
 
-              <p className="text-slate-600 leading-relaxed mb-8">{course.description}</p>
+              <p className="text-blue-100/90 leading-relaxed mb-8">{course.description}</p>
 
               <div className="grid grid-cols-4 gap-2.5 mb-8">
                 {[
@@ -154,10 +132,10 @@ export default function CourseDetailPage({ params }: PageProps) {
                   { icon: Clock,    val: `${course.weeks}`,       sub: 'أسابيع' },
                   { icon: BookOpen, val: `${course.lessons}`,     sub: 'درس' },
                 ].map((stat) => (
-                  <div key={stat.sub} className="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-center">
-                    <stat.icon className={`w-4 h-4 mx-auto mb-1.5 ${c.accent}`} />
-                    <div className="text-slate-900 font-black">{stat.val}</div>
-                    <div className="text-slate-500 text-[11px] font-bold">{stat.sub}</div>
+                  <div key={stat.sub} className="bg-white/10 ring-1 ring-white/15 backdrop-blur rounded-2xl p-3 text-center">
+                    <stat.icon className="w-4 h-4 mx-auto mb-1.5 text-amber-300" />
+                    <div className="text-white font-black">{stat.val}</div>
+                    <div className="text-blue-100/80 text-[11px] font-bold">{stat.sub}</div>
                   </div>
                 ))}
               </div>
@@ -166,13 +144,13 @@ export default function CourseDetailPage({ params }: PageProps) {
                 <SubscribeButton
                   source={`course_detail_hero_${course.slug}`}
                   planId={plan?.id}
-                  className={`flex-1 inline-flex items-center justify-center gap-2 font-black text-base px-8 py-4 rounded-2xl transition-colors ${c.cta}`}
+                  className={`${CTA_GOLD} flex-1 text-base px-8 py-4`}
                 >
                   سجّل الآن <ArrowLeft className="w-5 h-5" />
                 </SubscribeButton>
                 <Link
                   href={`/courses/${course.slug}/watch`}
-                  className="flex-1 inline-flex items-center justify-center gap-2 border-2 border-slate-300 hover:border-slate-400 text-slate-900 font-bold px-8 py-4 rounded-2xl transition-colors no-underline"
+                  className="flex-1 inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 ring-1 ring-white/25 text-white font-bold px-8 py-4 rounded-2xl transition-colors no-underline"
                 >
                   <Play className="w-5 h-5" />
                   شاهد الدروس المجانية
@@ -182,7 +160,7 @@ export default function CourseDetailPage({ params }: PageProps) {
 
             {/* ── cover + offer ── */}
             <div className="flex flex-col gap-5 lg:sticky lg:top-24">
-              <div className="relative rounded-3xl overflow-hidden aspect-video border border-slate-200">
+              <div className="relative rounded-3xl overflow-hidden aspect-video ring-1 ring-white/20 shadow-[0_30px_60px_-24px_rgba(0,0,0,0.6)]">
                 <Image
                   src={course.image}
                   alt=""
@@ -191,23 +169,23 @@ export default function CourseDetailPage({ params }: PageProps) {
                   className="object-cover opacity-45"
                   priority
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0B1B4D]/80 via-transparent to-transparent" />
                 <Link
                   href={`/courses/${course.slug}/watch`}
                   aria-label="شاهد الدروس المجانية"
                   className="absolute inset-0 flex items-center justify-center group"
                 >
-                  <span className="w-16 h-16 bg-brand-700/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                    <Play className="w-7 h-7 text-white fill-white" />
+                  <span className="w-16 h-16 bg-amber-300 rounded-full flex items-center justify-center shadow-[0_10px_30px_-6px_rgba(245,158,11,0.9)] group-hover:scale-110 transition-transform">
+                    <Play className="w-7 h-7 text-[#0B1B4D] fill-[#0B1B4D]" />
                   </span>
                 </Link>
               </div>
 
-              <div className={`bg-slate-50 rounded-3xl p-6 border-2 ${c.border} ring-2 ${c.ring}`}>
+              <div className="bg-white rounded-3xl p-6 ring-1 ring-white/50 shadow-[0_40px_80px_-30px_rgba(0,0,0,0.65)]">
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div>
                     <div className="flex items-baseline gap-2 flex-wrap">
-                      <span className="text-4xl font-black text-slate-900">{price.toLocaleString('en-US')}</span>
+                      <span className="text-4xl font-black text-brand-900">{price.toLocaleString('en-US')}</span>
                       <span className="text-slate-600 font-bold">{course.currency}</span>
                       {original > price && (
                         <span className="text-slate-400 text-sm line-through">{original.toLocaleString('en-US')}</span>
@@ -216,7 +194,7 @@ export default function CourseDetailPage({ params }: PageProps) {
                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                       <ApproxPrice mad={price} className={`${c.accent} text-xs font-bold`} />
                       {discountPct && (
-                        <span className="inline-flex items-center gap-1 bg-brand-50 text-brand-600 text-[11px] font-black px-2 py-0.5 rounded-md">
+                        <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 text-[11px] font-black px-2 py-0.5 rounded-md">
                           <Flame className="w-3 h-3" /> خصم {discountPct}%
                         </span>
                       )}
@@ -234,7 +212,7 @@ export default function CourseDetailPage({ params }: PageProps) {
                     <span>المقاعد المتبقية</span>
                     <span className="text-amber-600">{course.spotsLeft} مقاعد فقط</span>
                   </div>
-                  <div className="h-1.5 bg-white rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                     <div className={`h-full rounded-full ${c.bar}`} style={{ width: `${(spotsFilled / spotsTotal) * 100}%` }} />
                   </div>
                   <p className="text-[11px] text-slate-400 mt-1.5">
@@ -245,7 +223,7 @@ export default function CourseDetailPage({ params }: PageProps) {
                 <SubscribeButton
                   source={`course_detail_price_${course.slug}`}
                   planId={plan?.id}
-                  className={`block w-full text-center py-3.5 px-6 rounded-2xl font-black transition-colors ${c.cta}`}
+                  className={`${CTA_GOLD} w-full py-3.5 px-6`}
                 >
                   احجز مقعدك الآن ←
                 </SubscribeButton>
@@ -253,7 +231,7 @@ export default function CourseDetailPage({ params }: PageProps) {
                 {plan && (
                   <Link
                     href={`/pricing/${plan.id}`}
-                    className="mt-2 flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl border border-slate-300 hover:border-slate-400 text-slate-600 hover:text-slate-900 text-xs font-black transition-colors no-underline"
+                    className="mt-2 flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl ring-1 ring-brand-200 hover:ring-brand-400 text-brand-800 text-xs font-black transition-colors no-underline"
                   >
                     التفاصيل الكاملة والرحلة <ArrowLeft className="w-3.5 h-3.5" />
                   </Link>
@@ -266,7 +244,7 @@ export default function CourseDetailPage({ params }: PageProps) {
             </div>
           </div>
         </div>
-      </section>
+      </NavyGround>
 
       {/* ═══════ WHAT YOU WILL LEARN ═══════ */}
       <section className="py-20 px-4 border-t border-slate-100">
@@ -308,8 +286,8 @@ export default function CourseDetailPage({ params }: PageProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {course.detailFeatures.map((feat, i) => (
               <FadeIn key={feat.title} direction="up" delay={i * 70}>
-                <div className="h-full bg-slate-50 rounded-2xl p-6 border border-slate-200 hover:border-slate-300 transition-colors">
-                  <div className="text-3xl mb-4">{feat.icon}</div>
+                <div className={`h-full p-6 ${CARD}`}>
+                  {(() => { const Icon = FEATURE_ICON[feat.icon] ?? CheckCircle; return <span className={`w-12 h-12 mb-4 ${ICON_TILE}`}><Icon size={21} /></span> })()}
                   <h3 className="text-base font-black text-slate-900 mb-2">{feat.title}</h3>
                   <p className="text-slate-600 text-sm leading-relaxed">{feat.description}</p>
                 </div>

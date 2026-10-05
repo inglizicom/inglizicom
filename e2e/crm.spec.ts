@@ -29,6 +29,7 @@ const FOUNDER_PAGES = [
   '/sales/notifications',
   '/sales/notifications?tab=log',
   '/sales/notifications?tab=inbox',
+  '/sales/channels',
   '/admin',
   '/admin/team',
   '/admin/team?tab=payroll',

@@ -12,7 +12,7 @@ export default function AddLeadDrawer({ onClose, onCreated }: { onClose: () => v
   const [fullName, setFullName]   = useState('')
   const [phone, setPhone]         = useState('')
   const [city, setCity]           = useState('')
-  const [source, setSource]       = useState('tiktok')
+  const [source, setSource]       = useState('')   // chosen by staff: a default skews the channel report
   const [leadCourse, setCourse]   = useState('a1a2')
   const [leadType, setLeadType]   = useState('course')
   const [planId, setPlanId]       = useState<string>(PLAN_PRESETS[1].id)
@@ -33,6 +33,7 @@ export default function AddLeadDrawer({ onClose, onCreated }: { onClose: () => v
   async function handleSave() {
     setError(null)
     if (!fullName.trim()) { setError('Full name is required'); return }
+    if (!source) { setError('اختر مصدر العميل أولًا'); return }
     if (amount <= 0)      { setError('Pick a plan — amount must be > 0'); return }
     setSaving(true)
     try {

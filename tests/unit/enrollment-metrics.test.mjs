@@ -12,9 +12,12 @@ import {
 } from '../../src/lib/enrollment-metrics.ts'
 
 describe('scheduling in Morocco time', () => {
-  it('turns a Morocco wall time into the right instant (UTC+1 most of the year)', () => {
-    assert.equal(casablancaWallTimeToIso('2026-10-05', '18:00'), '2026-10-05T17:00:00.000Z')
-    assert.equal(casablancaWallTimeToIso('2026-10-31', '23:30'), '2026-10-31T22:30:00.000Z')
+  // Summer dates: Morocco is UTC+1 then under every tzdata release. The offset
+  // outside summer changed (tzdata 2026c puts Oct 2026 onwards at GMT+0), and
+  // the code follows whatever the runtime's tz database says.
+  it('turns a Morocco wall time into the right instant (UTC+1 in summer)', () => {
+    assert.equal(casablancaWallTimeToIso('2026-06-15', '18:00'), '2026-06-15T17:00:00.000Z')
+    assert.equal(casablancaWallTimeToIso('2026-06-30', '23:30'), '2026-06-30T22:30:00.000Z')
   })
   it('lists the chosen weekdays in a date span', () => {
     // 2026-10-05 is a Monday; Mon(1) + Wed(3) for two weeks
@@ -26,9 +29,9 @@ describe('scheduling in Morocco time', () => {
 
 describe('business clock (Africa/Casablanca)', () => {
   it('uses the Morocco date, not UTC, around midnight', () => {
-    // 2026-10-31 23:30 UTC is already 1 November in Morocco (UTC+1)
-    assert.equal(businessToday(new Date('2026-10-31T23:30:00Z')), '2026-11-01')
-    assert.equal(businessToday(new Date('2026-10-31T22:59:00Z')), '2026-10-31')
+    // 2026-06-30 23:30 UTC is already 1 July in Morocco (UTC+1 in summer)
+    assert.equal(businessToday(new Date('2026-06-30T23:30:00Z')), '2026-07-01')
+    assert.equal(businessToday(new Date('2026-06-30T22:59:00Z')), '2026-06-30')
   })
 
   it('validates calendar days', () => {

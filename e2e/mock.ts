@@ -210,6 +210,16 @@ RPC.teacher_send_notification = { message_id: MESSAGES[0].id, students: 1 }
 RPC.student_my_teachers = [{ id: IDS.teacher, name: 'سارة بن يوسف' }]
 RPC.student_send_notification = { message_id: MESSAGES[1].id }
 
+// 063: where students come from
+RPC.staff_channel_report = {
+  from: '2026-07-01', to: '2026-10-01',
+  channels: [
+    { channel: 'instagram', leads: 42, from_site: 30, students: 9, paying: 7, revenue: 12600 },
+    { channel: 'tiktok',    leads: 55, from_site: 51, students: 6, paying: 4, revenue: 6800 },
+    { channel: 'direct',    leads: 12, from_site: 12, students: 1, paying: 1, revenue: 1400 },
+  ],
+}
+
 export interface MockOptions {
   role?: Role | null
   /** Profile fields to override for the signed-in user (e.g. { blocked: true }). */

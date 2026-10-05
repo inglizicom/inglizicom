@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import { getCachedCountry, fetchVisitorCountry } from './geo-currency'
+import { externalReferrer, readTouch } from './first-touch'
 
 /* CRM lead statuses — the full funnel from first contact through payment.
  * The legacy values 'converted' and 'rejected' map onto 'paid' and 'cancelled'
@@ -141,6 +142,8 @@ export interface CreateLeadInput {
   referrer?:       string | null
   device?:         string | null
   pagePath?:       string | null
+  /** The first page the visitor opened (063). */
+  landingPath?:    string | null
 }
 
 /** Input for an assistant manually entering a lead from TikTok/Instagram/etc.
@@ -190,7 +193,7 @@ export async function createSubscriptionLead(input: CreateLeadInput): Promise<vo
   if (!country) {
     try { country = await fetchVisitorCountry() } catch { country = null }
   }
-  const { error } = await supabase.from('subscription_leads').insert({
+  const row = {
     country,
     plan_id:          input.planId,
     level:            input.level         ?? null,
@@ -214,7 +217,10 @@ export async function createSubscriptionLead(input: CreateLeadInput): Promise<vo
     page_path:        input.pagePath      ?? null,
     // All website form submissions are NOT archived
     is_archived:      false,
-  })
+  }
+  let { error } = await supabase.from('subscription_leads').insert({ ...row, landing_path: input.landingPath ?? null })
+  // A database before migration 063 has no landing_path: never lose the lead over it.
+  if (error && /landing_path/.test(error.message)) ({ error } = await supabase.from('subscription_leads').insert(row))
   if (error) throw new Error(error.message)
 }
 
@@ -405,17 +411,21 @@ export async function fetchLeadsForKanban(): Promise<Record<LeadStatus, Subscrip
 
 export function getAttribution(): Pick<
   CreateLeadInput,
-  'utmSource' | 'utmMedium' | 'utmCampaign' | 'referrer' | 'device' | 'pagePath'
+  'utmSource' | 'utmMedium' | 'utmCampaign' | 'referrer' | 'device' | 'pagePath' | 'landingPath'
 > {
   if (typeof window === 'undefined') return {}
   const params = new URLSearchParams(window.location.search)
+  // The source remembered when the visitor arrived (lib/first-touch.ts) fills
+  // in what this page no longer knows — UTM tags vanish after the first click.
+  const touch = readTouch()
   return {
-    utmSource:   params.get('utm_source')   || null,
-    utmMedium:   params.get('utm_medium')   || null,
-    utmCampaign: params.get('utm_campaign') || null,
-    referrer:    document.referrer || null,
+    utmSource:   params.get('utm_source')   || touch?.utm_source   || null,
+    utmMedium:   params.get('utm_medium')   || touch?.utm_medium   || null,
+    utmCampaign: params.get('utm_campaign') || touch?.utm_campaign || null,
+    referrer:    externalReferrer() || touch?.referrer || null,
     device:      /Mobi|Android/i.test(navigator.userAgent) ? 'mobile' : 'desktop',
     pagePath:    window.location.pathname,
+    landingPath: touch?.landing ?? null,
   }
 }
 

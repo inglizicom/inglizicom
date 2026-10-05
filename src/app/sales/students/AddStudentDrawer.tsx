@@ -20,7 +20,7 @@ export default function AddStudentDrawer({
 
   const [fullName,  setFullName]  = useState('')
   const [phone,     setPhone]     = useState('')
-  const [source,    setSource]    = useState('instagram')
+  const [source,    setSource]    = useState('')   // chosen by staff: a default skews the channel report
   const [course,    setCourse]    = useState('a1a2')
   const [type,      setType]      = useState<'course_student' | 'private_student'>('course_student')
   const [plan,      setPlan]      = useState<string>(PLAN_PRESETS[1].id)
@@ -43,6 +43,7 @@ export default function AddStudentDrawer({
   async function handleSave() {
     setError(null)
     if (!fullName.trim()) { setError('Full name is required'); return }
+    if (!source) { setError('اختر مصدر الطالب أولًا'); return }
     if (amount <= 0)      { setError('Amount must be greater than 0'); return }
 
     setSaving(true)

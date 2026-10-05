@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -158,9 +159,50 @@ function ShareButtons({ title }: { title: string }) {
 ──────────────────────────────────────────────── */
 export const dynamic = 'force-dynamic'
 
+/** A description Google can show: the excerpt, cut on a word near 155 characters. */
+function describe(text: string): string {
+  const t = (text ?? '').replace(/\s+/g, ' ').trim()
+  if (t.length <= 158) return t
+  return t.slice(0, 155).replace(/\s+\S*$/, '') + '…'
+}
+
+/* Each article gets its own title, description, canonical URL and sharing
+   card — without this every article showed the site's default in Google and
+   on WhatsApp / Facebook previews. */
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const article = await fetchArticleBySlug(params.slug)
+  if (!article || article.status !== 'published') return { title: 'المقال غير موجود', robots: { index: false } }
+  const url = `https://inglizi.com/blog/${article.slug}`
+  const description = describe(article.excerpt)
+  const images = article.img ? [{ url: article.img, alt: article.title }] : undefined
+  return {
+    // Long titles skip the " | إنجليزي.كوم" suffix so Google does not cut them off.
+    title: article.title.length > 50 ? { absolute: article.title } : article.title,
+    description,
+    keywords: article.tags?.length ? article.tags.join(', ') : undefined,
+    alternates: { canonical: url },
+    openGraph: { type: 'article', url, title: article.title, description, siteName: 'إنجليزي.كوم', locale: 'ar_MA', images, authors: article.author ? [article.author] : undefined, tags: article.tags },
+    twitter: { card: images ? 'summary_large_image' : 'summary', title: article.title, description, images: article.img ? [article.img] : undefined },
+  }
+}
+
 export default async function ArticlePage({ params }: { params: { slug: string } }) {
   const article  = await fetchArticleBySlug(params.slug)
   if (!article || article.status !== 'published') notFound()
+
+  /* Article structured data: headline, image, author and publisher for rich results. */
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: article.title,
+    description: describe(article.excerpt),
+    image: article.img || undefined,
+    inLanguage: 'ar',
+    mainEntityOfPage: `https://inglizi.com/blog/${article.slug}`,
+    author: { '@type': 'Person', name: article.author || 'حمزة القصراوي' },
+    publisher: { '@type': 'Organization', name: 'إنجليزي.كوم', logo: { '@type': 'ImageObject', url: 'https://inglizi.com/icons/icon-192.png' } },
+    keywords: article.tags?.join(', ') || undefined,
+  }
 
   const [related, recent] = await Promise.all([
     fetchRelatedArticles(article.slug, article.category, 3),
@@ -169,6 +211,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {/* Reading progress bar at very top */}
       <ReadingProgress />
 

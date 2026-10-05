@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { BookOpen } from 'lucide-react'
 import { categories } from '@/data/articles'
 import { fetchPublishedArticles } from '@/lib/articles-db'
@@ -5,6 +6,12 @@ import ArticleCard from '@/components/ArticleCard'
 import FadeIn from '@/components/FadeIn'
 
 export const dynamic = 'force-dynamic'
+
+export const metadata: Metadata = {
+  title: 'المدونة — نصائح لتعلّم الإنجليزية والتحدث بثقة',
+  description: 'مقالات عملية لتعلّم الإنجليزية للناطقين بالعربية: النطق، المحادثة، المفردات، وكيف تتخلّص من الخوف من الكلام — من الأستاذ حمزة القصراوي.',
+  alternates: { canonical: 'https://inglizi.com/blog' },
+}
 
 interface PageProps {
   searchParams: { category?: string }

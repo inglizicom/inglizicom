@@ -76,6 +76,7 @@ function useRouteTitle(): { title: string; crumb: string[] } {
     ['/renewals', 'التجديدات'],
     ['/broadcast', 'الرسائل الجماعية'],
     ['/notifications', 'الإشعارات'],
+    ['/channels', 'مصادر الطلاب'],
     ['/today', 'مهام اليوم'],
     ['/teachers/report', 'التقرير الشهري', 'الأساتذة'],
     ['/teachers', 'الأساتذة'],

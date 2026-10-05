@@ -8,7 +8,7 @@ import type { LucideIcon } from 'lucide-react'
 import {
   LayoutDashboard, Users, GraduationCap, CalendarCheck, CreditCard,
   BarChart3, Settings, LogOut, X, ShieldCheck, BookOpen, Inbox, Megaphone, Trophy,
-  UserCog, Presentation, Plus, Shield, ExternalLink, Wallet, Bell,
+  UserCog, Presentation, Plus, Shield, ExternalLink, Wallet, Bell, Compass,
 } from 'lucide-react'
 
 /**
@@ -37,6 +37,7 @@ const GROUPS: { title: string; founder?: boolean; items: NavDef[] }[] = [
     { id: 'followups', labelAr: 'المتابعات',           icon: CalendarCheck,   path: '/workspace', tab: 'followups', badgeKey: 'followups' },
     { id: 'students',  labelAr: 'الطلاب',             icon: GraduationCap,   path: '/workspace', tab: 'students' },
     { id: 'payments',  labelAr: 'المدفوعات',          icon: CreditCard,      path: '/workspace', tab: 'payments' },
+    { id: 'channels',  labelAr: 'مصادر الطلاب',        icon: Compass,         path: '/channels' },
   ]},
   { title: 'التعليم', items: [
     { id: 'courses',     labelAr: 'الدورات',            icon: BookOpen,     path: '/courses' },

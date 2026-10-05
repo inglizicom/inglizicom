@@ -16,7 +16,7 @@ export default function AddStudentModal({ onClose, onCreated }: { onClose: () =>
   const [name, setName]       = useState('')
   const [phone, setPhone]     = useState('')
   const [course, setCourse]   = useState('a1a2')
-  const [source, setSource]   = useState('instagram')
+  const [source, setSource]   = useState('')   // chosen by staff: a default skews the channel report
   const [billing, setBilling] = useState<'one_time' | 'monthly'>('one_time')
   const [total, setTotal]     = useState('')
   const [fee, setFee]         = useState('')
@@ -31,6 +31,7 @@ export default function AddStudentModal({ onClose, onCreated }: { onClose: () =>
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!name.trim()) { setError('الاسم مطلوب'); return }
+    if (!source) { setError('اختر مصدر الطالب أولًا'); return }
     setSaving(true); setError('')
     const id = await createStudent({
       fullName: name.trim(), phoneNumber: phone.trim() || undefined,
@@ -76,6 +77,7 @@ export default function AddStudentModal({ onClose, onCreated }: { onClose: () =>
             </Field>
             <Field label="المصدر">
               <select value={source} onChange={e => setSource(e.target.value)} className={INP}>
+                <option value="" disabled>— اختر المصدر —</option>
                 {LEAD_SOURCES.map(s => <option key={s.id} value={s.id}>{s.emoji} {s.label}</option>)}
               </select>
             </Field>

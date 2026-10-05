@@ -19,7 +19,7 @@ export default function AddLeadModal({ onClose, onCreated }: Props) {
   const [fullName, setFullName] = useState('')
   const [phone, setPhone]       = useState('')
   const [city, setCity]         = useState('')
-  const [source, setSource]     = useState('instagram')
+  const [source, setSource]     = useState('')   // chosen by staff: a default skews the channel report
   const [course, setCourse]     = useState('a1a2')
   const [planId, setPlanId]     = useState<string>(PLAN_PRESETS[1].id)
   const [amount, setAmount]     = useState<number>(PLAN_PRESETS[1].amount)
@@ -36,6 +36,7 @@ export default function AddLeadModal({ onClose, onCreated }: Props) {
     e.preventDefault()
     setError('')
     if (!fullName.trim()) { setError('Full name is required'); return }
+    if (!source) { setError('اختر مصدر العميل أولًا'); return }
     setSaving(true)
     try {
       const id = await createManualLead({

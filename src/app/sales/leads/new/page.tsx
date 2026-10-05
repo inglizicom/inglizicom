@@ -46,7 +46,7 @@ export default function NewLeadPage() {
   const [planId,   setPlanId]   = useState<string>(PLAN_PRESETS[1].id)
   const [amount,   setAmount]   = useState<number>(PLAN_PRESETS[1].amount)
   const [interests,setInterests]= useState('')
-  const [source,   setSource]   = useState('instagram')
+  const [source,   setSource]   = useState('')   // chosen by staff: a default skews the channel report
   const [status,   setStatus]   = useState<LeadStatus>('new')
   const [notes,    setNotes]    = useState('')
   const [isVip,    setIsVip]    = useState(false)
@@ -61,6 +61,7 @@ export default function NewLeadPage() {
 
   async function doSave(): Promise<string | null> {
     setError('')
+    if (!source) { setError('اختر مصدر العميل أولًا'); setStep(1); return null }
     if (!canSave) { setError('الاسم الكامل مطلوب'); setStep(1); return null }
     setSaving(true)
     try {

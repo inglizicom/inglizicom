@@ -4,6 +4,7 @@ import { AuthProvider } from '@/lib/auth-context'
 import { ProfileProvider } from '@/lib/profile-context'
 import { FeatureAccessProvider } from '@/lib/feature-access'
 import PwaRegister from '@/components/PwaRegister'
+import TouchTracker from '@/components/TouchTracker'
 
 const organizationSchema = {
   '@context': 'https://schema.org',
@@ -87,6 +88,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="pwa-track"><div className="pwa-bar" /></div>
         </div>
         <PwaRegister />
+        <TouchTracker />
         <AuthProvider>
           <ProfileProvider>
             <FeatureAccessProvider>

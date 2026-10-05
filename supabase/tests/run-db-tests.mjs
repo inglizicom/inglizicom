@@ -2095,3 +2095,57 @@ describe('notifications (062)', () => {
     assert.equal(second.profiles.length + second.students.length, 0)
   })
 })
+describe('lead channels (063)', () => {
+  let ctx
+  const today = new Date().toISOString().slice(0, 10)
+  const channel = (utm, ref, source, page) => rpc(ctx.db, 'lead_channel', [utm, ref, source, page])
+  const lead = async (name, phone, cols = {}) => (await one(ctx.db, `
+    insert into subscription_leads (plan_id, full_name, phone, utm_source, referrer, source, lead_source, page_path, landing_path)
+    values ('basic', $1, $2, $3, $4, $5, $5, $6, $7) returning id`,
+    [name, phone, cols.utm ?? null, cols.ref ?? null, cols.source ?? null, cols.page ?? null, cols.landing ?? null])).id
+
+  before(async () => { ctx = await setup() })
+
+  it('classifies a lead by its UTM tags, then its referrer, then the source staff chose', async () => {
+    assert.equal(await channel('instagram', null, 'level-test', '/level-test'), 'instagram')
+    assert.equal(await channel('ig', null, null, '/'), 'instagram')
+    assert.equal(await channel(null, 'https://l.instagram.com/?u=x', 'sticky_cta', '/'), 'instagram')
+    assert.equal(await channel(null, 'https://m.facebook.com/', 'hero', '/'), 'facebook')
+    assert.equal(await channel('tt', null, null, '/'), 'tiktok')
+    assert.equal(await channel(null, 'https://l.wl.co/l?u=x', null, '/'), 'whatsapp')
+    assert.equal(await channel(null, 'https://www.google.com/', null, '/'), 'search')
+    assert.equal(await channel('chatgpt.com', null, null, '/'), 'ai')
+    assert.equal(await channel(null, 'https://example.org/', null, '/'), 'other')
+    assert.equal(await channel(null, null, 'sticky_cta', '/pricing'), 'direct', 'site lead without a source')
+    assert.equal(await channel(null, null, 'tiktok', null), 'tiktok', 'typed in by staff')
+    assert.equal(await channel(null, null, 'manual', null), 'other')
+  })
+
+  it('reports leads, the students they became (by link or by phone), and their revenue — each student once', async () => {
+    const igA = await lead('From IG', '0611000001', { utm: 'instagram', page: '/level-test', landing: '/' })
+    await lead('From IG again', '+212 611-00-00-01', { ref: 'https://l.instagram.com/', page: '/pricing' })   // same person, second form
+    await lead('From FB', '0622000002', { ref: 'https://m.facebook.com/', page: '/' })
+    await lead('Typed in', '0633000003', { source: 'tiktok' })
+    const linked = await makeStudent(ctx.db, 'IG student', { phone: '+212611000001' })
+    await ctx.db.query(`update crm_students set lead_id = $1 where id = $2`, [igA, linked.id])
+    await pay(ctx.db, linked.id, 1400, today)
+    await makeStudent(ctx.db, 'TikTok student', { phone: '0633000003' })   // matched by phone only
+
+    const r = await as(ctx.db, ctx.assistant, () => rpc(ctx.db, 'staff_channel_report', [null, null]))
+    const by = Object.fromEntries(r.channels.map(c => [c.channel, c]))
+    assert.equal(by.instagram.leads, 2)
+    assert.equal(by.instagram.students, 1, 'two forms, one student')
+    assert.equal(Number(by.instagram.revenue), 1400)
+    assert.equal(by.instagram.paying, 1)
+    assert.equal(by.facebook.leads, 1)
+    assert.equal(by.facebook.students, 0)
+    assert.equal(by.tiktok.students, 1, 'matched by phone')
+    assert.equal(by.tiktok.from_site, 0)
+    assert.equal(r.channels[0].channel, 'instagram', 'sorted by revenue')
+  })
+
+  it('is for staff only', async () => {
+    await rejects(as(ctx.db, ctx.teacherA, () => rpc(ctx.db, 'staff_channel_report', [null, null])), /Staff only/)
+    await rejects(as(ctx.db, 'anon', () => rpc(ctx.db, 'staff_channel_report', [null, null])), /permission denied/)
+  })
+})
