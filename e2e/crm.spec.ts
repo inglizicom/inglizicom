@@ -74,6 +74,27 @@ test.describe('flows', () => {
     await expect(page.getByRole('heading', { name: 'سلمى بنعلي' })).toBeVisible()
   })
 
+  test('follow-up queue: one tap records the outcome and the lead leaves the queue', async ({ page }) => {
+    const calls = await mockSupabase(page, { role: 'founder' })
+    await page.goto('/sales/workspace')
+    const card = page.locator('article').filter({ hasText: 'ياسين العلوي' })
+    await expect(card).toContainText('جديد')
+    // the pre-written first message, to the right number
+    await expect(card.getByRole('link', { name: 'واتساب' })).toHaveAttribute('href', /^https:\/\/wa\.me\/212610000000\?text=.+/)
+    await card.getByRole('button', { name: 'سجّل النتيجة' }).click()
+    const sheet = page.getByRole('dialog')
+    await sheet.getByRole('button', { name: /لم يرد/ }).click()
+    await sheet.getByRole('button', { name: 'حفظ', exact: true }).click()
+    await expect(sheet).toBeHidden()
+    const patch = calls.find(c => c.method === 'PATCH' && c.path.endsWith('/subscription_leads'))
+    expect(patch?.body).toMatchObject({ status: 'contacted' })
+    expect((patch?.body as any).next_followup_at).toMatch(/T08:00:00\.000Z$|T09:00:00\.000Z$/)
+    expect(calls.some(c => c.path.endsWith('/rpc/log_lead_event'))).toBe(true)
+    await expect(page.locator('article').filter({ hasText: 'ياسين العلوي' })).toHaveCount(0)
+    await page.getByRole('tab', { name: /مجدولة/ }).click()
+    await expect(page.locator('article').filter({ hasText: 'ياسين العلوي' })).toBeVisible()
+  })
+
   test('payroll: recording a payment sends status paid with the method', async ({ page }) => {
     const calls = await mockSupabase(page, { role: 'founder' })
     await page.goto('/admin/team?tab=payroll')

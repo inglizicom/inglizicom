@@ -2144,6 +2144,16 @@ describe('lead channels (063)', () => {
     assert.equal(r.channels[0].channel, 'instagram', 'sorted by revenue')
   })
 
+  it('counts real leads only — a finished level test or an inquiry is not a lead (064)', async () => {
+    const before = await as(ctx.db, ctx.assistant, () => rpc(ctx.db, 'staff_channel_report', [null, null]))
+    const total = r => r.channels.reduce((n, c) => n + c.leads, 0)
+    await ctx.db.query(`insert into subscription_leads (plan_id, full_name, utm_source, page_path)
+                        values ('test_completed', 'Test only', 'instagram', '/level-test'),
+                               ('inquiry', 'Question', null, '/contact')`)
+    const after = await as(ctx.db, ctx.assistant, () => rpc(ctx.db, 'staff_channel_report', [null, null]))
+    assert.equal(total(after), total(before))
+  })
+
   it('is for staff only', async () => {
     await rejects(as(ctx.db, ctx.teacherA, () => rpc(ctx.db, 'staff_channel_report', [null, null])), /Staff only/)
     await rejects(as(ctx.db, 'anon', () => rpc(ctx.db, 'staff_channel_report', [null, null])), /permission denied/)

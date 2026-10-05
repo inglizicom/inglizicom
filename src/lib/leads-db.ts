@@ -114,10 +114,13 @@ export interface SubscriptionLead {
   country:           string | null
 }
 
-/** WhatsApp link from a phone number — used in lead cards. */
+/** WhatsApp link from a phone number — used in lead cards. wa.me needs the
+ *  international form: 00971… → 971…, and a local Moroccan 06… → 2126…
+ *  (about a third of leads type it that way). */
 export function whatsappLink(phone: string | null | undefined, message?: string): string | null {
   if (!phone) return null
-  const cleaned = phone.replace(/[^\d+]/g, '').replace(/^\+/, '')
+  const digits = phone.replace(/\D/g, '')
+  const cleaned = digits.startsWith('00') ? digits.slice(2) : digits.startsWith('0') ? '212' + digits.slice(1) : digits
   if (!cleaned) return null
   const text = message ? `?text=${encodeURIComponent(message)}` : ''
   return `https://wa.me/${cleaned}${text}`
@@ -334,6 +337,7 @@ export interface LeadPatch {
   lead_source?:       string | null
   course?:            string | null
   is_archived?:       boolean
+  lost_reason?:       string | null
 }
 export async function patchLead(id: string, patch: LeadPatch): Promise<void> {
   const { error } = await supabase
@@ -341,6 +345,24 @@ export async function patchLead(id: string, patch: LeadPatch): Promise<void> {
     .update(patch)
     .eq('id', id)
   if (error) throw new Error(error.message)
+}
+
+/** One outcome tap from the follow-up queue (lib/lead-queue.ts): writes the
+ *  patch, then records it on the lead's timeline. A paid outcome also turns
+ *  the lead into a student and returns the student id. */
+export async function recordLeadOutcome(
+  leadId: string, patch: LeadPatch, event: { title: string; body?: string },
+): Promise<string | null> {
+  await patchLead(leadId, patch)
+  const { error } = await supabase.rpc('log_lead_event', {
+    p_lead_id: leadId, p_event_type: 'contacted', p_title: event.title,
+    p_body: event.body ?? null, p_before: null, p_after: patch,
+  })
+  if (error) console.error('recordLeadOutcome', error.message)
+  if (patch.status !== 'paid') return null
+  const { data, error: convErr } = await supabase.rpc('convert_lead_to_student', { p_lead_id: leadId })
+  if (convErr) throw new Error(convErr.message)
+  return data as string
 }
 
 /** Apply the same patch to multiple leads at once. */

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import {
-  Search, SlidersHorizontal, RefreshCw, Plus, AlertTriangle, Clock, Loader2, MessageCircle, Printer,
+  Search, SlidersHorizontal, RefreshCw, Plus, AlertTriangle, Loader2, MessageCircle, Printer,
   Trash2, RotateCcw,
 } from 'lucide-react'
 
@@ -20,7 +20,6 @@ import AddStudentModal from './AddStudentModal'
 import { fetchEngagement, daysInactive, type Engagement } from '@/lib/student-portal'
 import { updateLeadStatus } from '@/lib/leads-db'
 import { type CrmStudent, type CrmPayment } from '@/lib/crm-types'
-import { fetchOverdueFollowUps, fetchTodaysFollowUps, type OverdueLead } from '@/lib/crm-stats'
 import { fetchStaff, type StaffRow } from '@/lib/staff-db'
 import { useStaff } from '@/lib/staff-context'
 import { markLeadsSeen } from '@/lib/leads-seen'
@@ -34,10 +33,10 @@ import FilterDrawer, { type FilterState } from './FilterDrawer'
 import BulkBar from './BulkBar'
 import AddLeadModal from '@/app/sales/leads/AddLeadModal'
 import {
-  STATUS_AR, STATUS_PILL_COLOR, STATUS_PILL_ORDER, isOverdueLead, isTodayLead, isFreshLead, LEAD_SORTS,
-  PAY_STATUS_AR, TABS, EMPTY_FILTERS, LeadList, LeadCardNew, StudentList, PAY_METHOD_AR,
-  resolvePayment, PayRow, Empty, type SmartPill, type LeadSort, type WorkspaceTab, emitReceipt,
+  LEAD_SORTS, PAY_STATUS_AR, TABS, EMPTY_FILTERS, LeadList, LeadCardNew, StudentList, PAY_METHOD_AR,
+  resolvePayment, PayRow, Empty, type LeadSort, type WorkspaceTab, emitReceipt,
 } from './_parts'
+import LeadQueue, { type LeadsView } from './LeadQueue'
 
 export default function WorkspaceClient() {
   /* ── useSearchParams drives tab — reactive to any navigation ── */
@@ -45,6 +44,8 @@ export default function WorkspaceClient() {
   const router = useRouter()
   const rawTab = sp.get('tab') as WorkspaceTab | null
   const tab: WorkspaceTab = rawTab && TABS.some(t => t.id === rawTab) ? rawTab : 'leads'
+  /* ?tab=followups (old links) opens the same follow-up queue */
+  const isLeadsTab = tab === 'leads' || tab === 'followups'
 
   function switchTab(t: WorkspaceTab) {
     router.replace(t === 'leads' ? '/sales/workspace' : `/sales/workspace?tab=${t}`, { scroll: false })
@@ -57,8 +58,6 @@ export default function WorkspaceClient() {
   const [leads,    setLeads]    = useState<SubscriptionLead[]>([])
   const [students, setStudents] = useState<CrmStudent[]>([])
   const [payments, setPayments] = useState<CrmPayment[]>([])
-  const [overdue,  setOverdue]  = useState<OverdueLead[]>([])
-  const [todayFU,  setTodayFU]  = useState<OverdueLead[]>([])
   const [archived, setArchived] = useState<SubscriptionLead[]>([])
   const [staffList,setStaffList]= useState<StaffRow[]>([])
   const [loading,  setLoading]  = useState(true)
@@ -72,9 +71,11 @@ export default function WorkspaceClient() {
   const [checkedIds,   setCheckedIds]   = useState<Set<string>>(new Set())
   const [bulkBusy,     setBulkBusy]     = useState(false)
   const [payBusy,      setPayBusy]      = useState<string | null>(null)
-  /* Quick status pill filter (Leads tab only) */
-  const [statusPill,   setStatusPill]   = useState<string>('all')
-  const [smartPill,    setSmartPill]    = useState<SmartPill>('')      // needs-action shortcuts
+  /* Leads tab: the follow-up queue's view (?view=…); "all" = the full table */
+  const [leadsView,    setLeadsView]    = useState<LeadsView>(() => {
+    const v = sp.get('view') as LeadsView | null
+    return v && ['now', 'scheduled', 'stale', 'closed', 'all'].includes(v) ? v : 'now'
+  })
   const [mineOnly,     setMineOnly]     = useState(false)              // only leads assigned to me
   const [leadSort,     setLeadSort]     = useState<LeadSort>('newest')
   /* Students: add modal + bin */
@@ -123,15 +124,13 @@ export default function WorkspaceClient() {
 
   async function loadAll() {
     setLoading(true)
-    const [l, s, p, od, td, ar, sf, eng] = await Promise.all([
+    const [l, s, p, ar, sf, eng] = await Promise.all([
       fetchAllLeads(), fetchStudents(), fetchCrmPayments({ limit: 200 }),
-      fetchOverdueFollowUps(isFounder ? undefined : staff.id),
-      fetchTodaysFollowUps(isFounder ? undefined : staff.id),
       fetchArchivedLeads(), fetchStaff(), fetchEngagement(),
     ])
     setEngagement(eng)
     setLeads(l); setStudents(s); setPayments(p)
-    setOverdue(od); setTodayFU(td); setArchived(ar); setStaffList(sf)
+    setArchived(ar); setStaffList(sf)
     setLoading(false)
   }
   function refresh() { setCheckedIds(new Set()); loadAll() }
@@ -151,15 +150,10 @@ export default function WorkspaceClient() {
     return true
   }), [leads, filters, q])
 
-  /* Apply quick pill + smart filters + sort on top of the base filters */
+  /* "All leads" table: "mine" + sort on top of the drawer filters */
   const visibleLeads = useMemo(() => {
     let list = baseLeads
     if (mineOnly) list = list.filter(l => l.assigned_to_id === staff.id)
-    if (statusPill === 'vip')  list = list.filter(l => l.is_vip)
-    else if (statusPill !== 'all') list = list.filter(l => normalizeStatus(l.status) === statusPill)
-    if (smartPill === 'overdue') list = list.filter(isOverdueLead)
-    else if (smartPill === 'today') list = list.filter(isTodayLead)
-    else if (smartPill === 'fresh') list = list.filter(isFreshLead)
     const arr = [...list]
     if (leadSort === 'newest')        arr.sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
     else if (leadSort === 'oldest')   arr.sort((a, b) => +new Date(a.created_at) - +new Date(b.created_at))
@@ -168,26 +162,7 @@ export default function WorkspaceClient() {
       (a.next_followup_at ? +new Date(a.next_followup_at) : Infinity) -
       (b.next_followup_at ? +new Date(b.next_followup_at) : Infinity))
     return arr
-  }, [baseLeads, statusPill, smartPill, mineOnly, leadSort, staff.id])
-
-  /* Needs-action counters for the leads KPI strip */
-  const leadKpi = useMemo(() => ({
-    total:   baseLeads.length,
-    overdue: baseLeads.filter(isOverdueLead).length,
-    today:   baseLeads.filter(isTodayLead).length,
-    fresh:   baseLeads.filter(isFreshLead).length,
-  }), [baseLeads])
-
-  /* Pill counts */
-  const pillCounts = useMemo(() => {
-    const counts: Record<string, number> = { all: baseLeads.length, vip: 0 }
-    for (const l of baseLeads) {
-      const s = normalizeStatus(l.status)
-      counts[s] = (counts[s] ?? 0) + 1
-      if (l.is_vip) counts.vip++
-    }
-    return counts
-  }, [baseLeads])
+  }, [baseLeads, mineOnly, leadSort, staff.id])
 
   const filteredStudents = useMemo(() =>
     students.filter(s => !q || `${s.full_name} ${s.phone_number ?? ''}`.toLowerCase().includes(q)),
@@ -206,8 +181,6 @@ export default function WorkspaceClient() {
     archived.filter(l => !q || `${l.full_name} ${l.phone ?? ''}`.toLowerCase().includes(q)),
   [archived, q])
 
-  const pendingPayCount  = payments.filter(p => p.payment_status === 'pending').length
-  const followupCount    = overdue.length + todayFU.length
   const activeFilterCount = Object.entries(filters).filter(([k, v]) => k !== 'search' && v).length
 
   /* ── Bulk ────────────────────────────────────────────── */
@@ -266,7 +239,8 @@ export default function WorkspaceClient() {
   return (
     <div className="min-h-screen flex flex-col bg-[#f6f6f5]" dir="rtl">
 
-      {/* ── Sticky header ──────────────────────────────── */}
+      {/* ── Sticky header (the queue has its own search) ── */}
+      {!(isLeadsTab && leadsView !== 'all') && (
       <header className="sticky top-16 z-10 bg-white border-b border-zinc-200">
 
         {/* Search + actions */}
@@ -298,6 +272,7 @@ export default function WorkspaceClient() {
           </button>
         </div>
       </header>
+      )}
 
       {/* ── Loading ────────────────────────────────────── */}
       {loading && (
@@ -306,65 +281,18 @@ export default function WorkspaceClient() {
         </div>
       )}
 
-      {/* ═══════════════ LEADS TAB ═══════════════════════ */}
-      {!loading && tab === 'leads' && (
-        <div className="flex-1 flex flex-col">
-
-          {/* Needs-action strip — one tap shows what to handle NOW */}
-          <div className="bg-white border-b border-zinc-100 px-4 pt-3 pb-1">
-            <div className="grid grid-cols-4 gap-2">
-              {([
-                { id: '' as SmartPill,        n: leadKpi.total,   label: 'إجمالي العملاء', on: 'bg-zinc-900 text-white border-zinc-900',   off: 'bg-white text-zinc-800 border-zinc-200', sub: 'text-zinc-400' },
-                { id: 'overdue' as SmartPill, n: leadKpi.overdue, label: '🔴 متابعة متأخرة', on: 'bg-red-600 text-white border-red-600',     off: leadKpi.overdue > 0 ? 'bg-red-50 text-red-700 border-red-200' : 'bg-white text-zinc-400 border-zinc-200', sub: 'opacity-70' },
-                { id: 'today' as SmartPill,   n: leadKpi.today,   label: '🟠 متابعة اليوم',  on: 'bg-orange-500 text-white border-orange-500', off: leadKpi.today > 0 ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-white text-zinc-400 border-zinc-200', sub: 'opacity-70' },
-                { id: 'fresh' as SmartPill,   n: leadKpi.fresh,   label: '🆕 جديد بلا مسؤول', on: 'bg-blue-600 text-white border-blue-600',   off: leadKpi.fresh > 0 ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-white text-zinc-400 border-zinc-200', sub: 'opacity-70' },
-              ]).map(k => {
-                const active = smartPill === k.id
-                return (
-                  <button key={k.id || 'all'} type="button"
-                    onClick={() => setSmartPill(active && k.id !== '' ? '' : k.id)}
-                    className={`rounded-xl border p-2.5 text-center transition-all ${active ? k.on : `${k.off} hover:border-zinc-300`}`}>
-                    <div className="text-[20px] font-black leading-none">{k.n}</div>
-                    <div className={`text-[10.5px] font-bold mt-1 leading-tight ${active ? 'opacity-90' : k.sub}`}>{k.label}</div>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Quick status pills */}
-          <div className="bg-white border-b border-zinc-100 px-4 py-3 overflow-x-auto">
-            <div className="flex gap-2 min-w-max">
-              {STATUS_PILL_ORDER.map(pid => {
-                const count = pillCounts[pid] ?? 0
-                if (pid !== 'all' && pid !== 'vip' && count === 0) return null
-                const isActive = statusPill === pid
-                const label =
-                  pid === 'all' ? 'الكل'
-                  : pid === 'vip' ? '⭐ VIP'
-                  : STATUS_AR[pid] ?? pid
-                return (
-                  <button
-                    key={pid}
-                    type="button"
-                    onClick={() => setStatusPill(pid)}
-                    className={[
-                      'px-3 py-1.5 rounded-full text-[12px] font-bold border transition-all whitespace-nowrap',
-                      isActive
-                        ? 'bg-black text-white border-black'
-                        : pid !== 'all' && pid !== 'vip'
-                          ? `${STATUS_PILL_COLOR[pid] ?? 'bg-zinc-100 text-zinc-600 border-zinc-200'} hover:opacity-80`
-                          : 'bg-zinc-100 text-zinc-600 border-zinc-200 hover:bg-zinc-200',
-                    ].join(' ')}
-                  >
-                    {label}
-                    {count > 0 && <span className="mr-1 opacity-70">({count})</span>}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
+      {/* ═══════════════ LEADS TAB: the follow-up queue ═══ */}
+      {!loading && isLeadsTab && (
+        <LeadQueue
+          leads={leads}
+          view={leadsView}
+          onView={setLeadsView}
+          staffId={staff.id}
+          isFounder={isFounder}
+          staffMap={staffMap}
+          onOpen={l => setDrawerLead(l)}
+          onLeadChanged={(id, patch) => setLeads(ls => ls.map(l => (l.id === id ? { ...l, ...patch } : l)))}
+          allView={
           <div className="px-4 py-4 flex-1">
             {/* Action bar */}
             <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
@@ -408,7 +336,8 @@ export default function WorkspaceClient() {
               staffMap={staffMap}
             />
           </div>
-        </div>
+          }
+        />
       )}
 
       {/* ═══════════════ STUDENTS TAB ════════════════════ */}
@@ -617,41 +546,6 @@ export default function WorkspaceClient() {
         )
       })()}
 
-      {/* ═══════════════ FOLLOW-UPS TAB ══════════════════ */}
-      {!loading && tab === 'followups' && (
-        <div className="flex-1 px-4 py-4 space-y-6">
-          {overdue.length > 0 && (
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <AlertTriangle size={15} className="text-red-500" />
-                <span className="font-bold text-[13px] text-red-600">متأخر عن الموعد ({overdue.length})</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                {overdue.map(l => {
-                  const lead = leads.find(x => x.id === l.id)
-                  return lead ? <LeadCardNew key={l.id} lead={lead} onClick={x => setDrawerLead(x)} /> : null
-                })}
-              </div>
-            </section>
-          )}
-          {todayFU.length > 0 && (
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <Clock size={15} className="text-orange-500" />
-                <span className="font-bold text-[13px] text-orange-600">متابعة اليوم ({todayFU.length})</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-                {todayFU.map(l => {
-                  const lead = leads.find(x => x.id === l.id)
-                  return lead ? <LeadCardNew key={l.id} lead={lead} onClick={x => setDrawerLead(x)} /> : null
-                })}
-              </div>
-            </section>
-          )}
-          {overdue.length === 0 && todayFU.length === 0 && <Empty text="🎉 لا توجد متابعات معلقة اليوم" />}
-        </div>
-      )}
-
       {/* ═══════════════ ARCHIVE TAB ═════════════════════ */}
       {!loading && tab === 'archive' && (
         <div className="flex-1 px-4 py-4">
@@ -673,7 +567,7 @@ export default function WorkspaceClient() {
       )}
 
       {/* ── Overlays & drawers ─────────────────────────── */}
-      {tab === 'leads' && (
+      {isLeadsTab && leadsView === 'all' && (
         <BulkBar count={checkedIds.size} onClear={() => setCheckedIds(new Set())}
           onStatus={bulkStatus} onAssign={bulkAssign} onArchive={bulkArchive}
           onDelete={bulkDelete} onMarkContacted={bulkMarkContacted}

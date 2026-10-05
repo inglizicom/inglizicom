@@ -33,8 +33,7 @@ interface NavDef {
 const GROUPS: { title: string; founder?: boolean; items: NavDef[] }[] = [
   { title: 'المبيعات', items: [
     { id: 'dashboard', labelAr: 'لوحة التحكم',        icon: LayoutDashboard, path: '/dashboard' },
-    { id: 'leads',     labelAr: 'العملاء المحتملون',   icon: Users,           path: '/workspace', badgeKey: 'leads' },
-    { id: 'followups', labelAr: 'المتابعات',           icon: CalendarCheck,   path: '/workspace', tab: 'followups', badgeKey: 'followups' },
+    { id: 'leads',     labelAr: 'العملاء والمتابعة',   icon: Users,           path: '/workspace', badgeKey: 'followups' },
     { id: 'students',  labelAr: 'الطلاب',             icon: GraduationCap,   path: '/workspace', tab: 'students' },
     { id: 'payments',  labelAr: 'المدفوعات',          icon: CreditCard,      path: '/workspace', tab: 'payments' },
     { id: 'channels',  labelAr: 'مصادر الطلاب',        icon: Compass,         path: '/channels' },
