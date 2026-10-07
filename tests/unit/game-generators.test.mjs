@@ -2,6 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import {
   generateWordSearch, solutionCells, scrambleSentence, generateScrambleSet, generateMatchingSet,
+  makeGapFill, missingLetters,
 } from '../../src/lib/game-generators.ts'
 import { EVERYDAY_ENGLISH } from '../../src/data/workbook/everyday-english.ts'
 
@@ -97,18 +98,57 @@ describe('matching', () => {
   })
 })
 
+describe('fill in the blanks', () => {
+  it('blanks a unit word when the sentence has one, rebuilds the sentence exactly, bank = answers', () => {
+    const s = ['Can you wash the vegetables?', 'It needs a little more salt.', "I'm making lunch."]
+    const { items, bank } = makeGapFill(s, ['vegetables', 'salt'], 3)
+    assert.equal(items[0].answer, 'vegetables')
+    assert.equal(items[1].answer, 'salt')
+    for (const it of items) assert.equal(`${it.before}${it.answer}${it.after}`, it.original)
+    assert.deepEqual([...bank].sort(), items.map(i => i.answer).sort())
+  })
+
+  it('never blanks a little word, a contraction, or the same word twice', () => {
+    for (let seed = 1; seed <= 20; seed++) {
+      const { items } = makeGapFill(['Can I pay by card?', 'Can I pay in cash?', "What's the first thing you do?"], [], seed)
+      for (const it of items) {
+        assert.ok(it.answer.length >= 3 && !it.answer.includes("'"))
+        assert.ok(!['can', 'the', 'you', 'what'].includes(it.answer.toLowerCase()))
+      }
+      assert.equal(new Set(items.map(i => i.answer.toLowerCase())).size, items.length)
+    }
+  })
+})
+
+describe('missing letters', () => {
+  it('hides ~40%, never the first letter, at least one', () => {
+    for (const word of ['tea', 'breakfast', 'toothpaste', 'bag']) {
+      const m = missingLetters(word, 5)
+      assert.equal(m.letters.map(l => l.ch).join(''), word)
+      assert.equal(m.letters[0].hidden, false)
+      const n = m.letters.filter(l => l.hidden).length
+      assert.ok(n >= 1 && n <= Math.ceil(word.length * 0.4))
+    }
+  })
+})
+
 describe('the book: all 19 units generate cleanly', () => {
-  it('19 units, each with 12 single words, 8 phrases, and a full grid', () => {
+  it('19 units, each with 12 single words, 8 phrases with Arabic, a full grid and a gap in every sentence', () => {
     assert.equal(EVERYDAY_ENGLISH.length, 19)
     for (const u of EVERYDAY_ENGLISH) {
       assert.equal(u.words.length, 12, `unit ${u.n} words`)
       assert.equal(u.phrases.length, 8, `unit ${u.n} phrases`)
       for (const x of u.words) assert.match(x.en, /^[a-z]+$/, `unit ${u.n}: "${x.en}" must be one word for the grid`)
       assert.equal(new Set(u.words.map(x => x.en)).size, 12, `unit ${u.n} has a duplicate word`)
+      for (const p of u.phrases) {
+        assert.match(p.ar, /[؀-ۿ]/, `unit ${u.n}: "${p.en}" needs its Arabic`)
+        assert.ok(scrambleSentence(p.en).words.length >= 3, `unit ${u.n}: "${p.en}" too short`)
+      }
       const r = generateWordSearch(u.words.map(x => x.en), { seed: u.n, difficulty: 'medium', size: 12 })
       assert.deepEqual(r.unplaced, [], `unit ${u.n}`)
       assert.ok(r.size <= 14, `unit ${u.n} grid ${r.size} too big for the page`)
-      for (const p of u.phrases) assert.ok(scrambleSentence(p).words.length >= 3, `unit ${u.n}: "${p}" too short`)
+      const g = makeGapFill(u.phrases.map(x => x.en), u.words.map(x => x.en), u.n)
+      for (const it of g.items) assert.ok(it.answer, `unit ${u.n}: no gap in "${it.original}"`)
     }
   })
 })

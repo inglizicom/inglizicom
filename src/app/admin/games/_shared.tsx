@@ -2,8 +2,13 @@
 
 import { useId, useState, type ReactNode } from 'react'
 import Link from 'next/link'
-import { ChevronRight, Download, Grid3x3, Link2, ListOrdered, Printer, type LucideIcon } from 'lucide-react'
-import { solutionCells, type MatchingSet, type ScrambleItem, type WordSearchResult } from '@/lib/game-generators'
+import {
+  ChevronRight, Download, Grid3x3, Languages, Link2, ListOrdered, PenLine, Printer, SpellCheck, TextCursorInput,
+  type LucideIcon,
+} from 'lucide-react'
+import {
+  solutionCells, type GapItem, type MatchingSet, type MissingWord, type ScrambleItem, type WordSearchResult,
+} from '@/lib/game-generators'
 
 /**
  * The printed workbook page, shared by the /admin/games tools.
@@ -70,36 +75,6 @@ export function Field({ label, children, hint }: { label: string; children: Reac
 export const INP = 'w-full border border-zinc-200 rounded-lg px-3 py-2 text-[13.5px] bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400'
 export const TEXTAREA = `${INP} resize-none font-mono leading-relaxed`
 
-/** Title fields + "load a unit from the book" for the single-exercise tools,
- *  which work for any course: type your own list or start from a book unit. */
-export interface SheetHead { unitNo: string; titleEn: string; titleAr: string }
-export function HeadFields({ head, onHead, onLoadUnit, units }: {
-  head: SheetHead; onHead: (h: SheetHead) => void
-  onLoadUnit: (n: number) => void
-  units: { n: number; titleAr: string }[]
-}) {
-  return (
-    <>
-      <Field label="ابدأ من وحدة في الكتاب (اختياري)">
-        <select defaultValue="" onChange={e => e.target.value && onLoadUnit(Number(e.target.value))} className={INP}>
-          <option value="">— قائمة خاصة بي —</option>
-          {units.map(u => <option key={u.n} value={u.n}>الوحدة {u.n} — {u.titleAr}</option>)}
-        </select>
-      </Field>
-      <div className="grid grid-cols-[72px_1fr] gap-2">
-        <Field label="رقم الوحدة"><input value={head.unitNo} onChange={e => onHead({ ...head, unitNo: e.target.value })} dir="ltr" className={INP} /></Field>
-        <Field label="العنوان بالإنجليزية"><input value={head.titleEn} onChange={e => onHead({ ...head, titleEn: e.target.value })} dir="ltr" className={INP} /></Field>
-      </div>
-      <Field label="العنوان بالعربية"><input value={head.titleAr} onChange={e => onHead({ ...head, titleAr: e.target.value })} className={INP} /></Field>
-    </>
-  )
-}
-export const headMeta = (h: SheetHead, theme: SheetTheme, filename: string): PageMeta => ({
-  theme, filename,
-  unitNo: h.unitNo.trim() && !Number.isNaN(Number(h.unitNo)) ? Number(h.unitNo) : null,
-  unitEn: h.titleEn, unitAr: h.titleAr,
-})
-
 export function PrintAllButton({ count }: { count: number }) {
   return (
     <button type="button" onClick={() => window.print()}
@@ -120,16 +95,21 @@ export interface PageMeta {
   filename: string
 }
 
-const SECTION: Record<'search' | 'order' | 'match', { en: string; ar: string; Icon: LucideIcon }> = {
-  search: { en: 'WORD SEARCH',     ar: 'البحث عن الكلمات', Icon: Grid3x3 },
-  order:  { en: 'WORDS IN ORDER',  ar: 'رتّب الكلمات',     Icon: ListOrdered },
-  match:  { en: 'MATCHING',        ar: 'صِل الكلمة بمعناها', Icon: Link2 },
+export type SectionKind = 'match' | 'letters' | 'search' | 'gaps' | 'order' | 'translate' | 'write'
+export const SECTION: Record<SectionKind, { en: string; ar: string; Icon: LucideIcon }> = {
+  match:     { en: 'MATCHING',          ar: 'صِل الكلمة بمعناها', Icon: Link2 },
+  letters:   { en: 'MISSING LETTERS',   ar: 'الحروف الناقصة',     Icon: SpellCheck },
+  search:    { en: 'WORD SEARCH',       ar: 'البحث عن الكلمات',   Icon: Grid3x3 },
+  gaps:      { en: 'FILL IN THE BLANKS', ar: 'أكمل الفراغ',       Icon: TextCursorInput },
+  order:     { en: 'WORDS IN ORDER',    ar: 'رتّب الكلمات',       Icon: ListOrdered },
+  translate: { en: 'TRANSLATE',         ar: 'ترجم إلى الإنجليزية', Icon: Languages },
+  write:     { en: 'MAKE IT YOURS',     ar: 'اكتب عن نفسك',       Icon: PenLine },
 }
 
 /** One printable A4 page with the book's frame, plus its own PNG button. */
 export function A4Page({ meta, section, sectionNo, answerKey, instructionAr, instructionEn, score, children }: {
   meta: PageMeta
-  section: keyof typeof SECTION
+  section: SectionKind
   sectionNo: number
   answerKey?: boolean
   instructionAr: string
@@ -346,6 +326,117 @@ export function MatchBody({ set, theme, answerKey }: { set: MatchingSet; theme: 
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  )
+}
+
+const Num = ({ n, theme }: { n: number; theme: SheetTheme }) => (
+  <span className="w-7 h-7 shrink-0 rounded-full flex items-center justify-center text-[13px] font-black text-white" style={{ background: theme.dark }}>{n}</span>
+)
+
+/** Each word as letter boxes with some left empty, its Arabic meaning as the clue. */
+export function LettersBody({ items, theme, answerKey }: { items: { m: MissingWord; ar: string }[]; theme: SheetTheme; answerKey?: boolean }) {
+  return (
+    <div className="grid grid-cols-2 gap-x-8 gap-y-5" dir="ltr">
+      {items.map((it, i) => (
+        <div key={i} className="flex items-center gap-3">
+          <Num n={i + 1} theme={theme} />
+          <div className="flex-1 min-w-0">
+            <div className="text-[14px] font-extrabold text-zinc-600 mb-1.5 text-right" dir="rtl">{it.ar}</div>
+            <div className="flex flex-wrap gap-1">
+              {it.m.letters.map((l, j) => (
+                <span key={j} className="w-[26px] h-[32px] rounded-md flex items-center justify-center text-[17px] font-black"
+                  style={l.hidden
+                    ? { border: `2px dashed ${theme.dark}`, background: answerKey ? theme.accent : '#fff', color: answerKey ? theme.onAccent : 'transparent' }
+                    : { background: theme.soft, border: '2px solid transparent' }}>
+                  {l.ch}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/** Sentences with one gap each, and the word bank to choose from. */
+export function GapsBody({ items, bank, theme, answerKey }: { items: GapItem[]; bank: string[]; theme: SheetTheme; answerKey?: boolean }) {
+  return (
+    <div dir="ltr">
+      {!answerKey && (
+        <div className="rounded-xl px-5 py-3 mb-6" style={{ background: theme.soft, border: `2px dashed ${theme.dark}` }}>
+          <div className="text-[12px] font-black mb-2" style={{ color: theme.dark }}>WORD BANK · بنك الكلمات</div>
+          <div className="flex flex-wrap gap-2">
+            {bank.map((w, i) => <span key={i} className="rounded-md bg-white px-3 py-1 text-[15px] font-extrabold" style={{ border: `2px solid ${theme.dark}` }}>{w}</span>)}
+          </div>
+        </div>
+      )}
+      <div className="space-y-6">
+        {items.map((it, i) => (
+          <div key={i} className="flex items-end gap-3 text-[17px] font-bold leading-relaxed">
+            <Num n={i + 1} theme={theme} />
+            <span>
+              {it.before}
+              {answerKey
+                ? <span className="rounded px-1.5 font-black" style={{ background: theme.accent, color: theme.onAccent }}>{it.answer}</span>
+                : <span className="inline-block align-bottom border-b-2 mx-1" style={{ width: Math.max(110, it.answer.length * 13), borderColor: '#9CA3AF' }} />}
+              {it.after}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/** Arabic sentence → the student writes it in English (the unit's expressions). */
+export function TranslateBody({ phrases, theme, answerKey }: { phrases: { en: string; ar: string }[]; theme: SheetTheme; answerKey?: boolean }) {
+  return (
+    <div className="space-y-[18px]">
+      {phrases.map((p, i) => (
+        <div key={i} className="flex gap-3" dir="ltr">
+          <Num n={i + 1} theme={theme} />
+          <div className="flex-1">
+            <div className="rounded-lg px-3 py-1.5 text-[16px] font-extrabold text-right" style={{ background: theme.soft }} dir="rtl">{p.ar}</div>
+            {answerKey
+              ? <div className="mt-1.5 text-[16px] font-bold">{p.en}</div>
+              : <div className="mt-2 border-b-2 border-zinc-300" style={{ height: 26 }} />}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/** Guided free writing: the unit's words and expressions to reuse, ruled
+ *  lines, and a self-check — the "Make it yours / Write" steps of the book. */
+export function WriteBody({ titleAr, words, phrases, theme }: {
+  titleAr: string; words: string[]; phrases: string[]; theme: SheetTheme
+}) {
+  return (
+    <div dir="ltr">
+      <div className="rounded-xl px-5 py-3" style={{ background: theme.soft }}>
+        <div className="text-[15px] font-extrabold text-right" dir="rtl">
+          اكتب 5 جمل عنك أنت في موقف «{titleAr}». استعمل 3 كلمات وعبارتين على الأقل من الوحدة.
+        </div>
+        <div className="mt-2 text-[12px] font-black" style={{ color: theme.dark }}>USE THESE WORDS · كلمات</div>
+        <div className="mt-1 flex flex-wrap gap-1.5">
+          {words.map(w => <span key={w} className="rounded-md bg-white px-2 py-0.5 text-[13.5px] font-bold" style={{ border: `1.5px solid ${theme.dark}` }}>{w}</span>)}
+        </div>
+        <div className="mt-2 text-[12px] font-black" style={{ color: theme.dark }}>AND THESE EXPRESSIONS · عبارات</div>
+        <ul className="mt-1 space-y-0.5 text-[14px] font-bold">
+          {phrases.map(p => <li key={p}>• {p}</li>)}
+        </ul>
+      </div>
+      <div className="mt-5">
+        {Array.from({ length: 11 }, (_, i) => <div key={i} className="border-b border-zinc-300" style={{ height: 36 }} />)}
+      </div>
+      <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-[13px] font-bold text-zinc-600">
+        {['I used 3 words from the unit.', 'I used 2 expressions.', 'Capital letters and full stops ✓'].map(c => (
+          <span key={c} className="flex items-center gap-2"><span className="w-4 h-4 rounded border-2" style={{ borderColor: theme.dark }} />{c}</span>
+        ))}
       </div>
     </div>
   )

@@ -1,43 +1,187 @@
-import Link from 'next/link'
-import { BookOpen, Grid3x3, Link2, ListOrdered } from 'lucide-react'
+'use client'
+
+import { useMemo, useState } from 'react'
+import { Shuffle } from 'lucide-react'
+import {
+  generateMatchingSet, generateScrambleSet, generateWordSearch, makeGapFill, missingLetters, type Difficulty,
+} from '@/lib/game-generators'
+import { EVERYDAY_ENGLISH, type WorkbookUnit } from '@/data/workbook/everyday-english'
+import {
+  A4Page, Field, GamesHeader, GapsBody, INP, LettersBody, MatchBody, OrderBody, PrintAllButton, SECTION, THEMES,
+  ThemePicker, TranslateBody, WordSearchBody, WriteBody, type PageMeta, type SectionKind, type SheetTheme,
+} from './_shared'
 
 /**
- * /admin/games — printable workbook exercises. The workbook generator builds
- * the book's pages unit by unit; the three single tools make one exercise
- * from any word list (other courses, or an edited book unit).
+ * /admin/games — the workbook of «الإنجليزية للمواقف اليومية», generated per
+ * unit (or all 19) from data/workbook/everyday-english.ts. Seven exercises in
+ * learning order — words first (match, missing letters, word search), then
+ * sentences (fill the gap, words in order, translate), then free writing —
+ * and every answer key gathered at the end like a real workbook.
+ * Same seed → same puzzles; "new mix" changes them all.
  */
 
-const TOOLS = [
-  { href: '/admin/games/word-search', icon: Grid3x3,    title: 'البحث عن الكلمات', body: 'شبكة حروف بمستوى صعوبة تختاره، بنك كلمات مع المعنى، ومفتاح حل ملوّن.' },
-  { href: '/admin/games/scramble',    icon: ListOrdered, title: 'رتّب الكلمات',     body: 'كلمات العبارة مبعثرة بلا علامات تكشف الجواب، مع سطر للكتابة ومفتاح حل.' },
-  { href: '/admin/games/matching',    icon: Link2,       title: 'صِل الكلمة بمعناها', body: 'عمود إنجليزي وعمود عربي مخلوط، خانات للأحرف، ومفتاح حل.' },
+const KINDS: SectionKind[] = ['match', 'letters', 'search', 'gaps', 'order', 'translate', 'write']
+const NO_KEY: SectionKind[] = ['write']
+const DIFFS: { id: Difficulty; label: string; hint: string }[] = [
+  { id: 'easy',   label: 'سهل',   hint: 'أفقي وعمودي فقط' },
+  { id: 'medium', label: 'متوسط', hint: '+ قطري' },
+  { id: 'hard',   label: 'صعب',   hint: 'كل الاتجاهات ومعكوسة' },
 ]
 
-export default function GamesIndexPage() {
-  return (
-    <div className="px-6 lg:px-10 py-8 max-w-[1100px] mx-auto space-y-6">
-      <Link href="/admin/games/workbook"
-        className="group flex items-center gap-5 rounded-2xl p-6 text-white bg-[#2B1B0F] hover:shadow-xl transition-shadow">
-        <span className="flex items-center justify-center w-14 h-14 rounded-2xl bg-[#FFD54A] text-[#2B1B0F] shrink-0"><BookOpen size={26} /></span>
-        <span className="flex-1">
-          <span className="block text-[18px] font-black">دفتر التمارين — الإنجليزية للمواقف اليومية</span>
-          <span className="block mt-1 text-[13px] text-white/70 leading-relaxed">
-            صفحات A4 جاهزة للطباعة لكل وحدة من الوحدات 19: البحث عن الكلمات، رتّب الكلمات، صِل الكلمة بمعناها — ومفاتيح الحل في آخر الدفتر.
-          </span>
-        </span>
-        <span className="hidden sm:inline rounded-xl bg-[#FFD54A] text-[#2B1B0F] font-black text-[13px] px-4 py-2.5">افتح</span>
-      </Link>
+function build(u: WorkbookUnit, diff: Difficulty, mix: number) {
+  const seed = u.n * 1009 + mix * 7919
+  const en = u.phrases.map(p => p.en)
+  return {
+    unit: u,
+    match: generateMatchingSet(u.words.slice(0, 10), seed),
+    letters: u.words.slice(0, 12).map((w, i) => ({ m: missingLetters(w.en, seed + i), ar: w.ar })),
+    search: generateWordSearch(u.words.map(w => w.en), { seed, difficulty: diff, size: 12 }),
+    gaps: makeGapFill(en, u.words.map(w => w.en), seed),
+    order: generateScrambleSet(en, seed),
+  }
+}
+type Built = ReturnType<typeof build>
 
-      <div>
-        <h2 className="text-[13px] font-extrabold text-zinc-500 mb-3">تمرين واحد من أي قائمة كلمات (لدورات أخرى)</h2>
-        <div className="grid sm:grid-cols-3 gap-4">
-          {TOOLS.map(t => (
-            <Link key={t.href} href={t.href} className="rounded-2xl bg-white border border-zinc-200 p-5 hover:border-zinc-300 hover:shadow-md transition-all">
-              <span className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-zinc-900 text-white mb-3"><t.icon size={20} /></span>
-              <h3 className="font-extrabold text-[15px] text-zinc-900">{t.title}</h3>
-              <p className="mt-1.5 text-[12.5px] text-zinc-500 leading-relaxed">{t.body}</p>
-            </Link>
-          ))}
+export default function WorkbookPage() {
+  const [unitSel, setUnitSel] = useState<number | 'all'>(1)
+  const [kinds, setKinds] = useState<Record<SectionKind, boolean>>(
+    { match: true, letters: true, search: true, gaps: true, order: true, translate: true, write: true })
+  const [keys, setKeys] = useState(true)
+  const [diff, setDiff] = useState<Difficulty>('medium')
+  const [theme, setTheme] = useState<SheetTheme>(THEMES[0])
+  const [numbered, setNumbered] = useState(false)
+  const [startNo, setStartNo] = useState(1)
+  const [mix, setMix] = useState(0)
+
+  const built: Built[] = useMemo(() => {
+    const units = unitSel === 'all' ? EVERYDAY_ENGLISH : EVERYDAY_ENGLISH.filter(u => u.n === unitSel)
+    return units.map(u => build(u, diff, mix))
+  }, [unitSel, diff, mix])
+
+  const pages: { kind: SectionKind; key: boolean; b: Built }[] = []
+  for (const b of built) for (const k of KINDS) if (kinds[k]) pages.push({ kind: k, key: false, b })
+  if (keys) for (const b of built) for (const k of KINDS) if (kinds[k] && !NO_KEY.includes(k)) pages.push({ kind: k, key: true, b })
+
+  const meta = (b: Built, i: number): PageMeta => ({
+    theme, unitNo: b.unit.n, unitEn: b.unit.titleEn, unitAr: b.unit.titleAr,
+    pageNo: numbered ? startNo + i : null, filename: `unit-${b.unit.n}-${String(i + 1).padStart(3, '0')}`,
+  })
+  const no = (k: SectionKind) => KINDS.indexOf(k) + 1
+
+  function page(p: { kind: SectionKind; key: boolean; b: Built }, i: number) {
+    const { b, key } = p
+    const common = { key: `${b.unit.n}-${p.kind}-${key}`, meta: meta(b, i), section: p.kind, sectionNo: no(p.kind), answerKey: key }
+    switch (p.kind) {
+      case 'match': return (
+        <A4Page {...common} score={10}
+          instructionAr="صِل كل كلمة إنجليزية بمعناها بالعربية بخط، ثم اكتب الحرف المناسب في الأسفل."
+          instructionEn="Draw a line from each word to its meaning, then write the letter.">
+          <MatchBody set={b.match} theme={theme} answerKey={key} />
+        </A4Page>)
+      case 'letters': return (
+        <A4Page {...common} score={b.letters.length}
+          instructionAr="أكمل الحروف الناقصة في كل كلمة. المعنى بالعربية فوقها يساعدك."
+          instructionEn="Complete the words. The Arabic meaning helps you.">
+          <LettersBody items={b.letters} theme={theme} answerKey={key} />
+        </A4Page>)
+      case 'search': return (
+        <A4Page {...common} score={12}
+          instructionAr="ابحث عن الكلمات الاثنتي عشرة في الشبكة، ثم ضع علامة ✓ أمام كل كلمة تجدها."
+          instructionEn={diff === 'easy' ? 'Find the 12 words. They go → and ↓.' : diff === 'medium' ? 'Find the 12 words. They go →, ↓ and ↘.' : 'Find the 12 words — in every direction, even backwards.'}>
+          <WordSearchBody result={b.search} words={b.unit.words} theme={theme} answerKey={key} />
+        </A4Page>)
+      case 'gaps': return (
+        <A4Page {...common} score={b.gaps.items.length}
+          instructionAr="أكمل كل جملة بكلمة من بنك الكلمات. استعمل كل كلمة مرة واحدة."
+          instructionEn="Complete each sentence with a word from the box.">
+          <GapsBody items={b.gaps.items} bank={b.gaps.bank} theme={theme} answerKey={key} />
+        </A4Page>)
+      case 'order': return (
+        <A4Page {...common} score={b.order.length}
+          instructionAr="رتّب الكلمات لتكوّن عبارة صحيحة من الوحدة، واكتبها على السطر."
+          instructionEn="Put the words in order and write the sentence.">
+          <OrderBody items={b.order} theme={theme} answerKey={key} />
+        </A4Page>)
+      case 'translate': return (
+        <A4Page {...common} score={b.unit.phrases.length}
+          instructionAr="ترجم كل جملة إلى الإنجليزية. كل الجمل من عبارات هذه الوحدة."
+          instructionEn="Write each sentence in English.">
+          <TranslateBody phrases={b.unit.phrases} theme={theme} answerKey={key} />
+        </A4Page>)
+      case 'write': return (
+        <A4Page {...common}
+          instructionAr="اكتب عن حياتك أنت — غيّر الأمثلة واجعلها خاصة بك."
+          instructionEn="Write about you. Make it yours.">
+          <WriteBody titleAr={b.unit.titleAr} words={b.unit.words.map(w => w.en)} phrases={b.unit.phrases.slice(0, 3).map(p => p.en)} theme={theme} />
+        </A4Page>)
+    }
+  }
+
+  return (
+    <div className="px-6 lg:px-10 py-8 max-w-[1300px] mx-auto">
+      <GamesHeader title="دفتر التمارين — الإنجليزية للمواقف اليومية" back="/admin" />
+      <div className="grid lg:grid-cols-[300px_1fr] gap-6">
+        <aside className="space-y-4 print:hidden lg:sticky lg:top-24 self-start">
+          <Field label="الوحدة">
+            <select value={unitSel} onChange={e => setUnitSel(e.target.value === 'all' ? 'all' : Number(e.target.value))} className={INP}>
+              {EVERYDAY_ENGLISH.map(u => <option key={u.n} value={u.n}>الوحدة {u.n} — {u.titleAr}</option>)}
+              <option value="all">كل الوحدات (19)</option>
+            </select>
+          </Field>
+
+          <Field label="التمارين (بترتيب التعلّم)">
+            <div className="space-y-1.5">
+              {KINDS.map(k => (
+                <label key={k} className="flex items-center gap-2 text-[13px] font-bold text-zinc-700">
+                  <input type="checkbox" checked={kinds[k]} onChange={e => setKinds(s => ({ ...s, [k]: e.target.checked }))} className="w-4 h-4 accent-zinc-900" />
+                  <span className="w-5 text-zinc-400 tabular-nums">{no(k)}.</span> {SECTION[k].ar}
+                </label>
+              ))}
+              <label className="flex items-center gap-2 text-[13px] font-bold text-zinc-700 pt-1.5 border-t border-zinc-100">
+                <input type="checkbox" checked={keys} onChange={e => setKeys(e.target.checked)} className="w-4 h-4 accent-zinc-900" />
+                مفاتيح الحل (في آخر الدفتر)
+              </label>
+            </div>
+          </Field>
+
+          <Field label="صعوبة البحث عن الكلمات">
+            <div className="grid grid-cols-3 gap-1">
+              {DIFFS.map(d => (
+                <button key={d.id} type="button" onClick={() => setDiff(d.id)} title={d.hint}
+                  className={`rounded-lg border py-1.5 text-[12.5px] font-bold ${diff === d.id ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white border-zinc-200 text-zinc-600'}`}>
+                  {d.label}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1 text-[11.5px] text-zinc-400">{DIFFS.find(d => d.id === diff)!.hint}</p>
+          </Field>
+
+          <ThemePicker value={theme} onChange={setTheme} />
+
+          <Field label="ترقيم الصفحات">
+            <label className="flex items-center gap-2 text-[13px] font-bold text-zinc-700">
+              <input type="checkbox" checked={numbered} onChange={e => setNumbered(e.target.checked)} className="w-4 h-4 accent-zinc-900" />
+              أضف رقم الصفحة في التذييل
+            </label>
+            {numbered && (
+              <div className="mt-2 flex items-center gap-2 text-[12.5px] font-bold text-zinc-600">
+                يبدأ من <input type="number" min={1} value={startNo} onChange={e => setStartNo(Math.max(1, Number(e.target.value) || 1))} className={`${INP} w-24`} />
+              </div>
+            )}
+          </Field>
+
+          <div className="flex flex-col gap-2 pt-1">
+            <PrintAllButton count={pages.length} />
+            <button type="button" onClick={() => setMix(m => m + 1)}
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-zinc-200 text-zinc-700 font-bold text-[13px] py-2.5 hover:bg-zinc-50">
+              <Shuffle size={15} /> خلط جديد لكل التمارين
+            </button>
+          </div>
+        </aside>
+
+        <div className="space-y-8 min-w-0">
+          {pages.length === 0 && <div className="text-center py-16 text-zinc-400 text-[13.5px]">اختر تمرينًا واحدًا على الأقل.</div>}
+          {pages.map(page)}
         </div>
       </div>
     </div>

@@ -151,6 +151,74 @@ export function generateScrambleSet(sentences: string[], seed = 1): ScrambleItem
   return sentences.map((s, i) => scrambleSentence(s, seed + i * 97))
 }
 
+/* ───────────────────────── Fill in the blanks ────────────────────────── */
+
+export interface GapItem { before: string; answer: string; after: string; original: string }
+
+/** Words never worth blanking: the student can't guess them from meaning. */
+const STOP = new Set(('a an the is are am was be been do does did can could would will should shall may i you he she it we they ' +
+  'my your his her its our their me him us them this that these those there here what where when how which who ' +
+  'and or but to of in on at for with from by about some any much many just very too also not no yes please'
+).split(' '))
+
+/** One gap per sentence, plus the shuffled word bank. The gap is a word from
+ *  the unit's vocabulary when the sentence has one, otherwise a meaningful
+ *  word (never "the", "is"…); no answer is used twice, so the bank is exact. */
+export function makeGapFill(sentences: string[], unitWords: string[], seed = 1): { items: GapItem[]; bank: string[] } {
+  const next = rng(seed)
+  const vocab = new Set(unitWords.map(x => x.toLowerCase()))
+  const used = new Set<string>()
+  const items = sentences.map(s => {
+    const tokens = s.trim().split(/\s+/)
+    const parts = tokens.map(t => /^([^A-Za-z']*)([A-Za-z][A-Za-z'-]*)([^A-Za-z']*)$/.exec(t))
+    const cands = parts.map((m, i) => ({ m, i })).filter(({ m }) => {
+      if (!m) return false
+      const k = m[2].toLowerCase()
+      return !STOP.has(k) && !k.includes("'") && k.length >= 3 && !used.has(k)
+    })
+    const fromVocab = cands.filter(({ m }) => vocab.has(m![2].toLowerCase()))
+    // Only little words ("How much is it?"): fall back to the longest one.
+    const fallback = parts.map((m, i) => ({ m, i }))
+      .filter(({ m }) => m && !m[2].includes("'") && m[2].length >= 3 && !used.has(m[2].toLowerCase()))
+      .sort((a, b) => b.m![2].length - a.m![2].length).slice(0, 1)
+    const pool = fromVocab.length ? fromVocab : cands.length ? cands : fallback
+    const pick = pool.length ? pool[Math.floor(next() * pool.length)] : null
+    if (!pick) return { before: s, answer: '', after: '', original: s }
+    const m = pick.m!
+    used.add(m[2].toLowerCase())
+    return {
+      before: tokens.slice(0, pick.i).join(' ') + (pick.i ? ' ' : '') + m[1],
+      answer: m[2],
+      after: m[3] + (pick.i < tokens.length - 1 ? ' ' + tokens.slice(pick.i + 1).join(' ') : ''),
+      original: s,
+    }
+  })
+  const bank = items.map(x => x.answer).filter(Boolean)
+  for (let i = bank.length - 1; i > 0; i--) {
+    const j = Math.floor(next() * (i + 1))
+    ;[bank[i], bank[j]] = [bank[j], bank[i]]
+  }
+  return { items, bank }
+}
+
+/* ───────────────────────── Missing letters ───────────────────────────── */
+
+export interface MissingWord { word: string; letters: { ch: string; hidden: boolean }[] }
+
+/** Hides about 40% of a word's letters (never the first), at least one. */
+export function missingLetters(word: string, seed = 1): MissingWord {
+  const next = rng(seed)
+  const w = word.toLowerCase()
+  const idx = [...w].map((_, i) => i).filter(i => i > 0)
+  const hide = Math.max(1, Math.min(idx.length, Math.round(w.length * 0.4)))
+  for (let i = idx.length - 1; i > 0; i--) {
+    const j = Math.floor(next() * (i + 1))
+    ;[idx[i], idx[j]] = [idx[j], idx[i]]
+  }
+  const hidden = new Set(idx.slice(0, hide))
+  return { word: w, letters: [...w].map((ch, i) => ({ ch, hidden: hidden.has(i) })) }
+}
+
 /* ───────────────────────── Matching ──────────────────────────────────── */
 
 export interface WordPair { en: string; ar: string }

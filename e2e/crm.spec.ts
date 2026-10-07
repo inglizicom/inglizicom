@@ -39,10 +39,6 @@ const FOUNDER_PAGES = [
   '/admin/settings',
   '/admin/activity',
   '/admin/games',
-  '/admin/games/workbook',
-  '/admin/games/word-search',
-  '/admin/games/matching',
-  '/admin/games/scramble',
 ]
 
 /** Against the device width — a phone zooming a too-wide page out also widens innerWidth. */
