@@ -36,7 +36,8 @@ import {
   LEAD_SORTS, PAY_STATUS_AR, TABS, EMPTY_FILTERS, LeadList, LeadCardNew, StudentList, PAY_METHOD_AR,
   resolvePayment, PayRow, Empty, type LeadSort, type WorkspaceTab, emitReceipt,
 } from './_parts'
-import LeadQueue, { type LeadsView } from './LeadQueue'
+import LeadQueue, { periodFor, type LeadsView, type Period } from './LeadQueue'
+import { businessToday } from '@/lib/enrollment-metrics'
 
 export default function WorkspaceClient() {
   /* ── useSearchParams drives tab — reactive to any navigation ── */
@@ -76,6 +77,8 @@ export default function WorkspaceClient() {
     const v = sp.get('view') as LeadsView | null
     return v && ['now', 'scheduled', 'stale', 'closed', 'all'].includes(v) ? v : 'now'
   })
+  /* Results period (stats panel) — also narrows the "all leads" table by arrival day */
+  const [period,       setPeriod]       = useState<Period>(() => periodFor('30'))
   const [mineOnly,     setMineOnly]     = useState(false)              // only leads assigned to me
   const [leadSort,     setLeadSort]     = useState<LeadSort>('newest')
   /* Students: add modal + bin */
@@ -154,6 +157,10 @@ export default function WorkspaceClient() {
   const visibleLeads = useMemo(() => {
     let list = baseLeads
     if (mineOnly) list = list.filter(l => l.assigned_to_id === staff.id)
+    if (period.from || period.to) list = list.filter(l => {
+      const d = businessToday(new Date(l.created_at))
+      return (!period.from || d >= period.from) && (!period.to || d <= period.to)
+    })
     const arr = [...list]
     if (leadSort === 'newest')        arr.sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
     else if (leadSort === 'oldest')   arr.sort((a, b) => +new Date(a.created_at) - +new Date(b.created_at))
@@ -162,7 +169,7 @@ export default function WorkspaceClient() {
       (a.next_followup_at ? +new Date(a.next_followup_at) : Infinity) -
       (b.next_followup_at ? +new Date(b.next_followup_at) : Infinity))
     return arr
-  }, [baseLeads, mineOnly, leadSort, staff.id])
+  }, [baseLeads, mineOnly, leadSort, staff.id, period])
 
   const filteredStudents = useMemo(() =>
     students.filter(s => !q || `${s.full_name} ${s.phone_number ?? ''}`.toLowerCase().includes(q)),
@@ -292,6 +299,8 @@ export default function WorkspaceClient() {
           staffMap={staffMap}
           onOpen={l => setDrawerLead(l)}
           onLeadChanged={(id, patch) => setLeads(ls => ls.map(l => (l.id === id ? { ...l, ...patch } : l)))}
+          period={period}
+          onPeriod={setPeriod}
           allView={
           <div className="px-4 py-4 flex-1">
             {/* Action bar */}

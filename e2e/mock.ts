@@ -210,6 +210,13 @@ RPC.teacher_send_notification = { message_id: MESSAGES[0].id, students: 1 }
 RPC.student_my_teachers = [{ id: IDS.teacher, name: 'سارة بن يوسف' }]
 RPC.student_send_notification = { message_id: MESSAGES[1].id }
 
+// 065: results of the follow-up work over a period
+RPC.staff_followup_report = {
+  from: '2026-09-26', to: '2026-10-07', new_leads: 26, new_waiting: 9, contacted_leads: 17, attempts: 31,
+  outcomes: { no_answer: 7, interested: 5, will_pay: 2, paid: 2, lost: 1 },
+  by_staff: [{ staff_id: IDS.assistant, name: 'سارة', attempts: 31, leads: 17 }],
+}
+
 // 063: where students come from
 RPC.staff_channel_report = {
   from: '2026-07-01', to: '2026-10-01',

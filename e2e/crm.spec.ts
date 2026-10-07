@@ -39,6 +39,7 @@ const FOUNDER_PAGES = [
   '/admin/settings',
   '/admin/activity',
   '/admin/games',
+  '/admin/games/workbook',
   '/admin/games/word-search',
   '/admin/games/matching',
   '/admin/games/scramble',
@@ -97,6 +98,20 @@ test.describe('flows', () => {
     await expect(page.locator('article').filter({ hasText: 'ياسين العلوي' })).toHaveCount(0)
     await page.getByRole('tab', { name: /مجدولة/ }).click()
     await expect(page.locator('article').filter({ hasText: 'ياسين العلوي' })).toBeVisible()
+    expect(patch?.body).toMatchObject({ last_outcome: 'no_answer', contact_attempts: 1 })
+  })
+
+  test('leads: the results panel shows the period, and outcome chips narrow the queue', async ({ page }) => {
+    const calls = await mockSupabase(page, { role: 'founder' })
+    await page.goto('/sales/workspace')
+    await expect(page.getByText('نتائج المتابعة')).toBeVisible()
+    await expect.poll(() => calls.find(c => c.path.endsWith('/rpc/staff_followup_report'))?.body).toBeTruthy()
+    await page.getByRole('button', { name: 'منذ البداية' }).click()
+    await expect.poll(() => calls.filter(c => c.path.endsWith('/rpc/staff_followup_report')).at(-1)?.body).toMatchObject({ p_from: null, p_to: null })
+    await expect(page.locator('article')).not.toHaveCount(0)
+    await page.getByRole('button', { name: /مهتم/ }).first().click()
+    await expect(page.locator('article')).toHaveCount(1)
+    await expect(page.locator('article')).toContainText('أمين الإدريسي')
   })
 
   test('public form: a visitor in Algeria gets a polite message and no lead is saved', async ({ page }) => {

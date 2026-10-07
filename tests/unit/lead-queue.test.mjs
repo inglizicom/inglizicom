@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  bucketOf, buildQueue, countViews, outcomePatch, leadWant, waMessage,
+  bucketOf, buildQueue, countViews, outcomePatch, leadWant, waMessage, matchesOutcome, countOutcomes,
 } from '../../src/lib/lead-queue.ts'
 
 /*
@@ -58,11 +58,13 @@ describe('lead queue buckets', () => {
 describe('outcome tap', () => {
   const base = { today: TODAY, nowIso: '2026-06-15T10:00:00.000Z', staffId: 'me' }
 
-  it('no answer → contacted, retry tomorrow 09:00 Morocco, lead claimed', () => {
+  it('no answer → contacted, retry tomorrow 09:00 Morocco, lead claimed, attempt counted', () => {
     assert.deepEqual(outcomePatch(lead(), { ...base, outcome: 'no_answer' }), {
       status: 'contacted', last_contact_at: base.nowIso,
       next_followup_at: '2026-06-16T08:00:00.000Z', assigned_to_id: 'me',
+      last_outcome: 'no_answer', contact_attempts: 1,
     })
+    assert.equal(outcomePatch(lead({ contact_attempts: 2 }), { ...base, outcome: 'no_answer' }).contact_attempts, 3)
   })
 
   it('keeps the owner, honours a chosen delay and prepends a dated note', () => {
@@ -80,6 +82,25 @@ describe('outcome tap', () => {
     assert.equal(lost.status, 'cancelled')
     assert.equal(lost.next_followup_at, null)
     assert.equal(lost.lost_reason, 'too_expensive')
+  })
+})
+
+describe('outcome chips', () => {
+  it('puts each lead under the right chip', () => {
+    const list = [
+      lead({ id: 'new' }),
+      lead({ id: 'rang', status: 'contacted', last_outcome: 'no_answer', last_contact_at: '2026-06-14T10:00:00Z', next_followup_at: '2026-06-16T08:00:00Z' }),
+      lead({ id: 'keen', status: 'interested', last_outcome: 'interested', last_contact_at: '2026-06-14T10:00:00Z' }),
+      lead({ id: 'pay', status: 'confirmed', last_contact_at: '2026-06-14T10:00:00Z', next_followup_at: '2026-06-15T08:00:00Z' }),
+      lead({ id: 'closed', status: 'cancelled', last_outcome: 'no_answer' }),
+    ]
+    const ids = f => list.filter(l => matchesOutcome(l, f, TODAY)).map(l => l.id)
+    assert.deepEqual(ids('uncontacted'), ['new'])
+    assert.deepEqual(ids('no_answer'), ['rang'], 'a closed lead is not "waiting for an answer"')
+    assert.deepEqual(ids('interested'), ['keen'])
+    assert.deepEqual(ids('will_pay'), ['pay'])
+    assert.deepEqual(ids('no_step'), ['keen'], 'talked to, no follow-up day')
+    assert.equal(countOutcomes(list, TODAY).all, 5)
   })
 })
 

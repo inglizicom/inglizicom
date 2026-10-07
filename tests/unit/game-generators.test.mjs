@@ -1,114 +1,114 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  generateWordSearch, scrambleSentence, generateScrambleSet,
-  generateMatchingSet, generateBingoCard, generateBingoCards,
+  generateWordSearch, solutionCells, scrambleSentence, generateScrambleSet, generateMatchingSet,
 } from '../../src/lib/game-generators.ts'
+import { EVERYDAY_ENGLISH } from '../../src/data/workbook/everyday-english.ts'
 
 /*
- * The three /admin/games puzzle algorithms (lib/game-generators.ts). Pure
- * functions — no DOM, no network — so every rule is checked directly:
- * every word lands in the grid without corrupting another word, a scramble
- * never hands back the original order, and matching/bingo never duplicate
- * or lose an entry.
+ * The /admin/games workbook algorithms (lib/game-generators.ts) and the book
+ * data they run on. Pure functions — every rule checked directly: every word
+ * lands in the grid without corrupting another, a scramble never hands back
+ * the original order or a give-away capital/question mark, matching never
+ * loses a pair — and all 19 units of the book generate cleanly.
  */
 
 function wordsOnGrid(grid, placed) {
   return placed.every(p => {
     for (let i = 0; i < p.word.length; i++) {
-      const r = p.row + p.dRow * i, c = p.col + p.dCol * i
-      if (grid[r]?.[c] !== p.word[i]) return false
+      if (grid[p.row + p.dRow * i]?.[p.col + p.dCol * i] !== p.word[i]) return false
     }
     return true
   })
 }
 
 describe('word search', () => {
-  it('places every word on the grid, readable from its recorded start/direction', () => {
+  it('places every word, readable from its recorded start and direction', () => {
     const words = ['APPLE', 'BREAD', 'MILK', 'EGG', 'RICE', 'WATER']
     const r = generateWordSearch(words, { seed: 7 })
     assert.deepEqual(r.unplaced, [])
     assert.equal(r.placed.length, words.length)
     assert.ok(wordsOnGrid(r.grid, r.placed))
-    assert.ok(r.grid.every(row => row.length === r.size))
-  })
-
-  it('every cell is a single A-Z letter (no gaps left unfilled)', () => {
-    const r = generateWordSearch(['CAT', 'DOG', 'FISH'], { seed: 3 })
     for (const row of r.grid) for (const cell of row) assert.match(cell, /^[A-Z]$/)
   })
 
-  it('grows the grid rather than fail when given many/long words', () => {
-    const words = ['PRESCRIPTION', 'BLOODPRESSURE', 'APPOINTMENT', 'MEDICATION', 'ALLERGY', 'CLINIC', 'NURSE', 'DOCTOR']
-    const r = generateWordSearch(words, { size: 6, seed: 2 })
-    assert.deepEqual(r.unplaced, [])
-    assert.ok(r.size >= 13, 'grid must be at least as wide as the longest word')
-  })
-
-  it('cleans punctuation/case and drops duplicates', () => {
-    const r = generateWordSearch(['cat', 'CAT', ' dog! ', 'Dog'], { seed: 1 })
-    assert.equal(r.placed.length, 2)
-  })
-
-  it('is deterministic for a given seed (reproducible for a preview)', () => {
-    const a = generateWordSearch(['APPLE', 'BREAD', 'MILK'], { seed: 42 })
-    const b = generateWordSearch(['APPLE', 'BREAD', 'MILK'], { seed: 42 })
-    assert.deepEqual(a.grid, b.grid)
-  })
-})
-
-describe('sentence scramble', () => {
-  it('shuffles the words but never returns the original order', () => {
-    for (let seed = 1; seed <= 30; seed++) {
-      const r = scrambleSentence('I put on my shoes every morning', seed)
-      assert.notDeepEqual(r.scrambled, r.words)
-      assert.deepEqual([...r.scrambled].sort(), [...r.words].sort(), 'same words, just reordered')
+  it('easy = only left-to-right and top-to-bottom; medium adds the ↘ diagonal; never backwards below hard', () => {
+    const words = ['BATHROOM', 'BREAKFAST', 'SHOWER', 'COFFEE', 'PHONE', 'ALARM', 'TEETH', 'SHOES']
+    for (let seed = 1; seed <= 10; seed++) {
+      const easy = generateWordSearch(words, { seed, difficulty: 'easy' })
+      assert.ok(easy.placed.every(p => (p.dRow === 0 && p.dCol === 1) || (p.dRow === 1 && p.dCol === 0)))
+      const med = generateWordSearch(words, { seed, difficulty: 'medium' })
+      assert.ok(med.placed.every(p => p.dRow >= 0 && p.dCol >= 0))
     }
   })
 
-  it('a one-word sentence has only one possible order', () => {
-    const r = scrambleSentence('Hello', 5)
-    assert.deepEqual(r.scrambled, ['Hello'])
+  it('grows the grid rather than fail', () => {
+    const r = generateWordSearch(['PRESCRIPTION', 'TEMPERATURE', 'APPOINTMENT', 'RECEPTION', 'ALLERGY', 'CLINIC'], { size: 6, seed: 2 })
+    assert.deepEqual(r.unplaced, [])
+    assert.ok(r.size >= 12)
   })
 
-  it('builds one scrambled item per sentence, in order', () => {
-    const set = generateScrambleSet(['She orders a coffee', 'He pays the bill'], 1)
-    assert.equal(set.length, 2)
-    assert.equal(set[0].original, 'She orders a coffee')
-    assert.equal(set[1].original, 'He pays the bill')
+  it('answer key marks exactly the letters of the placed words', () => {
+    const r = generateWordSearch(['CAT', 'DOG'], { seed: 4, difficulty: 'easy' })
+    const cells = solutionCells(r.placed)
+    assert.ok(cells.size <= 6 && cells.size >= 5)          // 6 letters, maybe one shared
+    for (const k of cells) { const [y, x] = k.split(':').map(Number); assert.match(r.grid[y][x], /[CATDOG]/) }
   })
-})
 
-describe('matching set', () => {
-  it('keeps English in order, shuffles Arabic, and every matchId still points to the right English word', () => {
-    const pairs = [{ en: 'bread', ar: 'خبز' }, { en: 'milk', ar: 'حليب' }, { en: 'egg', ar: 'بيضة' }, { en: 'rice', ar: 'أرز' }]
-    const m = generateMatchingSet(pairs, 9)
-    assert.deepEqual(m.left.map(l => l.text), pairs.map(p => p.en))
-    assert.deepEqual([...m.right].sort((a, b) => a.matchId - b.matchId).map(r => r.text), pairs.map(p => p.ar))
-    for (const r of m.right) assert.equal(r.text, pairs[r.matchId].ar)
+  it('is deterministic for a given seed', () => {
+    assert.deepEqual(generateWordSearch(['APPLE', 'MILK'], { seed: 42 }).grid, generateWordSearch(['APPLE', 'MILK'], { seed: 42 }).grid)
   })
 })
 
-describe('bingo', () => {
-  it('builds a size×size card using only words from the pool, each once', () => {
-    const words = Array.from({ length: 20 }, (_, i) => `W${i}`)
-    const card = generateBingoCard(words, 4, 3)
-    assert.equal(card.length, 4)
-    assert.ok(card.every(row => row.length === 4))
-    const flat = card.flat()
-    assert.equal(new Set(flat).size, 16, 'no repeats on one card')
-    assert.ok(flat.every(w => words.includes(w)))
+describe('phrases in order', () => {
+  it('shuffles the words but never returns the original order', () => {
+    for (let seed = 1; seed <= 30; seed++) {
+      const r = scrambleSentence('I put on my shoes every morning.', seed)
+      assert.notDeepEqual(r.scrambled, r.words)
+      assert.deepEqual([...r.scrambled].sort(), [...r.words].sort())
+    }
   })
 
-  it('refuses a card bigger than the word pool', () => {
-    assert.throws(() => generateBingoCard(['a', 'b', 'c'], 4, 1))
+  it('no give-aways: punctuation off the chips, first word in lower case — but keeps I and acronyms', () => {
+    const q = scrambleSentence('Can I pay by card?', 1)
+    assert.deepEqual(q.words, ['can', 'I', 'pay', 'by', 'card'])
+    assert.equal(q.end, '?')
+    assert.equal(q.original, 'Can I pay by card?')
+    assert.deepEqual(scrambleSentence("I'm running late.", 1).words, ["I'm", 'running', 'late'])
+    assert.deepEqual(scrambleSentence('Sorry, I missed your call.', 1).words, ['sorry', 'I', 'missed', 'your', 'call'])
+    assert.deepEqual(scrambleSentence('ATM kept my card.', 1).words[0], 'ATM')
   })
 
-  it('several cards from the same pool are not all identical', () => {
-    const words = Array.from({ length: 16 }, (_, i) => `W${i}`)
-    const cards = generateBingoCards(words, 5, 4, 1)
-    assert.equal(cards.length, 5)
-    const flatStrings = cards.map(c => c.flat().join(','))
-    assert.ok(new Set(flatStrings).size > 1, 'at least two cards should differ')
+  it('one item per sentence, in order', () => {
+    const set = generateScrambleSet(['She orders a coffee.', 'He pays the bill.'], 1)
+    assert.deepEqual(set.map(s => s.original), ['She orders a coffee.', 'He pays the bill.'])
+  })
+})
+
+describe('matching', () => {
+  it('keeps English in order, shuffles Arabic, every matchId points to its partner, few left facing each other', () => {
+    const pairs = Array.from({ length: 10 }, (_, i) => ({ en: `w${i}`, ar: `ع${i}` }))
+    for (let seed = 1; seed <= 20; seed++) {
+      const m = generateMatchingSet(pairs, seed)
+      assert.deepEqual(m.left.map(l => l.text), pairs.map(p => p.en))
+      for (const r of m.right) assert.equal(r.text, pairs[r.matchId].ar)
+      assert.ok(m.right.filter((r, i) => r.matchId === i).length <= 2)
+    }
+  })
+})
+
+describe('the book: all 19 units generate cleanly', () => {
+  it('19 units, each with 12 single words, 8 phrases, and a full grid', () => {
+    assert.equal(EVERYDAY_ENGLISH.length, 19)
+    for (const u of EVERYDAY_ENGLISH) {
+      assert.equal(u.words.length, 12, `unit ${u.n} words`)
+      assert.equal(u.phrases.length, 8, `unit ${u.n} phrases`)
+      for (const x of u.words) assert.match(x.en, /^[a-z]+$/, `unit ${u.n}: "${x.en}" must be one word for the grid`)
+      assert.equal(new Set(u.words.map(x => x.en)).size, 12, `unit ${u.n} has a duplicate word`)
+      const r = generateWordSearch(u.words.map(x => x.en), { seed: u.n, difficulty: 'medium', size: 12 })
+      assert.deepEqual(r.unplaced, [], `unit ${u.n}`)
+      assert.ok(r.size <= 14, `unit ${u.n} grid ${r.size} too big for the page`)
+      for (const p of u.phrases) assert.ok(scrambleSentence(p).words.length >= 3, `unit ${u.n}: "${p}" too short`)
+    }
   })
 })

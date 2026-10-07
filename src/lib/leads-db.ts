@@ -114,6 +114,9 @@ export interface SubscriptionLead {
   deleted_by_id:     string | null
   // Migration 036 — GCC expansion: visitor country (ISO-3166 alpha-2)
   country:           string | null
+  // Migration 065 — follow-up queue
+  last_outcome?:     string | null
+  contact_attempts?: number | null
 }
 
 /** WhatsApp link from a phone number — used in lead cards. wa.me needs the
@@ -353,6 +356,21 @@ export interface LeadPatch {
   course?:            string | null
   is_archived?:       boolean
   lost_reason?:       string | null
+  last_outcome?:      string | null
+  contact_attempts?:  number
+}
+
+/** 065: results of the follow-up work over a period (Morocco days). */
+export interface FollowupReport {
+  from: string; to: string
+  new_leads: number; new_waiting: number; contacted_leads: number; attempts: number
+  outcomes: { no_answer: number; interested: number; will_pay: number; paid: number; lost: number }
+  by_staff: { staff_id: string; name: string; attempts: number; leads: number }[]
+}
+export async function fetchFollowupReport(from: string | null, to: string | null): Promise<FollowupReport> {
+  const { data, error } = await supabase.rpc('staff_followup_report', { p_from: from, p_to: to })
+  if (error) throw new Error(/staff_followup_report/.test(error.message) ? 'الإحصائيات غير متاحة بعد — شغّل الملف 065 في Supabase.' : error.message)
+  return data as FollowupReport
 }
 export async function patchLead(id: string, patch: LeadPatch): Promise<void> {
   const { error } = await supabase
@@ -368,10 +386,16 @@ export async function patchLead(id: string, patch: LeadPatch): Promise<void> {
 export async function recordLeadOutcome(
   leadId: string, patch: LeadPatch, event: { title: string; body?: string },
 ): Promise<string | null> {
-  await patchLead(leadId, patch)
+  const { error: pErr } = await supabase.from('subscription_leads').update(patch).eq('id', leadId)
+  if (pErr) {
+    // A database before 065 has no last_outcome / contact_attempts: save the rest.
+    if (!/last_outcome|contact_attempts/.test(pErr.message)) throw new Error(pErr.message)
+    const { last_outcome: _o, contact_attempts: _a, ...rest } = patch
+    await patchLead(leadId, rest)
+  }
   const { error } = await supabase.rpc('log_lead_event', {
     p_lead_id: leadId, p_event_type: 'contacted', p_title: event.title,
-    p_body: event.body ?? null, p_before: null, p_after: patch,
+    p_body: event.body ?? null, p_before: null, p_after: { ...patch, outcome: patch.last_outcome ?? null },
   })
   if (error) console.error('recordLeadOutcome', error.message)
   if (patch.status !== 'paid') return null

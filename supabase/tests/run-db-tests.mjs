@@ -2095,6 +2095,57 @@ describe('notifications (062)', () => {
     assert.equal(second.profiles.length + second.students.length, 0)
   })
 })
+describe('follow-up outcomes (065)', () => {
+  let ctx
+  const newLead = async (name, plan = 'basic') => (await one(ctx.db,
+    `insert into subscription_leads (plan_id, full_name, phone) values ($1, $2, '0611223344') returning id`, [plan, name])).id
+  const logOutcome = (lead, outcome, title) => as(ctx.db, ctx.assistant, () =>
+    one(ctx.db, `select public.log_lead_event($1, 'contacted', $2, null, null, $3::jsonb) as r`,
+      [lead, title, outcome ? JSON.stringify({ outcome }) : null]))
+
+  before(async () => { ctx = await setup() })
+
+  it('reads the outcome from the event, or from the title of the older events', async () => {
+    const o = (after, title) => rpc(ctx.db, 'lead_event_outcome', [after, title])
+    assert.equal(await o(JSON.stringify({ outcome: 'will_pay' }), 'anything'), 'will_pay')
+    assert.equal(await o(null, 'لم يرد — متابعة الخميس'), 'no_answer')
+    assert.equal(await o(null, 'مهتم، يحتاج وقتًا'), 'interested')
+    assert.equal(await o(null, 'غير مهتم'), 'lost')
+    assert.equal(await o(null, 'دفع'), 'paid')
+    assert.equal(await o(null, 'تم إضافة ملاحظة'), null)
+  })
+
+  it('reports the period: new leads, leads contacted, attempts and each lead\'s latest outcome', async () => {
+    const a = await newLead('A'), b = await newLead('B'), c = await newLead('C')
+    await newLead('Level test only', 'test_completed')         // not a lead: never counted
+    await logOutcome(a, 'no_answer', 'لم يرد')
+    await logOutcome(a, 'interested', 'مهتم، يحتاج وقتًا')      // A's latest = interested
+    await logOutcome(b, null, 'لم يرد — متابعة غدًا')           // older event: outcome from the title
+    const r = await as(ctx.db, ctx.assistant, () => rpc(ctx.db, 'staff_followup_report', [null, null]))
+    assert.equal(r.new_leads, 3)
+    assert.equal(r.new_waiting, 1, 'C was never contacted')
+    assert.equal(r.contacted_leads, 2)
+    assert.equal(r.attempts, 3)
+    assert.deepEqual(r.outcomes, { no_answer: 1, interested: 1, will_pay: 0, paid: 0, lost: 0 })
+    assert.equal(r.by_staff.length, 1)
+    assert.equal(r.by_staff[0].attempts, 3)
+    void c
+  })
+
+  it('a period with no activity is all zeros', async () => {
+    const r = await as(ctx.db, ctx.assistant, () => rpc(ctx.db, 'staff_followup_report', ['2001-01-01', '2001-01-02']))
+    assert.equal(r.new_leads, 0)
+    assert.equal(r.attempts, 0)
+  })
+
+  it('only takes a known outcome, and is for staff only', async () => {
+    const a = await newLead('D')
+    await rejects(ctx.db.query(`update subscription_leads set last_outcome = 'maybe' where id = $1`, [a]), /check/)
+    await rejects(as(ctx.db, ctx.teacherA, () => rpc(ctx.db, 'staff_followup_report', [null, null])), /Staff only/)
+    await rejects(as(ctx.db, 'anon', () => rpc(ctx.db, 'staff_followup_report', [null, null])), /permission denied/)
+  })
+})
+
 describe('lead channels (063)', () => {
   let ctx
   const today = new Date().toISOString().slice(0, 10)

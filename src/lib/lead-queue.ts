@@ -33,6 +33,9 @@ export interface QueueLead {
   level?: string | null
   test_score?: number | null
   recommended_plan?: string | null
+  /** 065: what the last contact gave, and how many contacts so far. */
+  last_outcome?: string | null
+  contact_attempts?: number | null
 }
 
 export type Bucket = 'overdue' | 'today' | 'fresh' | 'no_step' | 'scheduled' | 'stale' | 'closed'
@@ -91,6 +94,30 @@ export function countViews(leads: QueueLead[], today: string): Record<QueueView,
   return c
 }
 
+/* ── Outcome filter: the chips over the list ─────────────────────────── */
+
+export type OutcomeFilter = 'all' | 'uncontacted' | 'no_answer' | 'interested' | 'will_pay' | 'no_step'
+
+/** Which chip a lead falls under. "No answer" is read from last_outcome (065)
+ *  because the status alone can't tell "rang, nobody picked up" from "talked". */
+export function matchesOutcome(l: QueueLead, f: OutcomeFilter, today: string): boolean {
+  const s = norm(l.status)
+  switch (f) {
+    case 'all':         return true
+    case 'uncontacted': return s === 'new' && !l.last_contact_at
+    case 'no_answer':   return l.last_outcome === 'no_answer' && s !== 'paid' && s !== 'cancelled'
+    case 'interested':  return s === 'interested'
+    case 'will_pay':    return s === 'confirmed'
+    case 'no_step':     return bucketOf(l, today) === 'no_step'
+  }
+}
+
+export function countOutcomes(leads: QueueLead[], today: string): Record<OutcomeFilter, number> {
+  const c: Record<OutcomeFilter, number> = { all: 0, uncontacted: 0, no_answer: 0, interested: 0, will_pay: 0, no_step: 0 }
+  for (const l of leads) for (const f of Object.keys(c) as OutcomeFilter[]) if (matchesOutcome(l, f, today)) c[f]++
+  return c
+}
+
 /* ── Outcomes: one tap after a call or a message ─────────────────────── */
 
 export type OutcomeId = 'no_answer' | 'interested' | 'will_pay' | 'paid' | 'lost'
@@ -140,11 +167,14 @@ export function outcomePatch(lead: QueueLead & { assigned_to_id?: string | null 
   const note = input.note?.trim()
   const patch: {
     status: Outcome['status']; last_contact_at: string; next_followup_at: string | null
+    last_outcome: OutcomeId; contact_attempts: number
     assigned_to_id?: string; admin_note?: string; lost_reason?: string | null
   } = {
     status: o.status,
     last_contact_at: input.nowIso,
     next_followup_at: days === null ? null : casablancaWallTimeToIso(addDays(input.today, days), '09:00'),
+    last_outcome: o.id,
+    contact_attempts: (lead.contact_attempts ?? 0) + 1,
   }
   if (!lead.assigned_to_id) patch.assigned_to_id = input.staffId
   if (note) patch.admin_note = [`${input.today}: ${note}`, lead.admin_note?.trim()].filter(Boolean).join('\n')
