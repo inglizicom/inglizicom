@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 import CrmFrame from '@/components/crm/CrmFrame'
 
 const TITLES: [string, string][] = [
+  ['/games',     'صانع ألعاب الدورات'],
   ['/team',      'الفريق والرواتب'],
   ['/analytics', 'الإيرادات والتقارير'],
   ['/teachers',  'الأساتذة'],
