@@ -137,6 +137,21 @@ test.describe('flows', () => {
     expect(row).toContain(n)
   })
 
+  test('workbook: the cover carries the contact details and takes no page number', async ({ page }) => {
+    await mockSupabase(page, { role: 'founder' })
+    await page.goto('/admin/games')
+    const sel = page.locator('select').first()
+    await sel.selectOption('cover')
+    const cover = page.locator('.print-sheet')
+    await expect(cover).toHaveCount(1)
+    for (const t of ['inglizi.com', '+212 764 189 311', 'الأستاذ حمزة القصراوي', 'Hamza El Qasraoui']) await expect(cover.getByText(t, { exact: true })).toBeVisible()
+    await page.getByLabel('الهاتف 2 (اختياري)').fill('+212 600 000 000')
+    await expect(cover.getByText('+212 600 000 000')).toBeVisible()
+    await sel.selectOption('book')
+    const welcomeFooter = await page.locator('.print-sheet').nth(1).evaluate(s => (s.lastElementChild as HTMLElement).innerText)
+    expect(welcomeFooter).toContain('01')
+  })
+
   test('payroll: recording a payment sends status paid with the method', async ({ page }) => {
     const calls = await mockSupabase(page, { role: 'founder' })
     await page.goto('/admin/team?tab=payroll')

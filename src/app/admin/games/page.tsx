@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Shuffle } from 'lucide-react'
 import {
   generateMatchingSet, generateScrambleSet, generateWordSearch, makeGapFill, missingLetters, type Difficulty,
@@ -11,6 +11,9 @@ import {
   ThemePicker, TranslateBody, WordSearchBody, WriteBody, type PageMeta, type SectionKind, type SheetTheme,
 } from './_shared'
 import { ContentsBody, HowToBody, ProgressBody, WelcomeBody, type ContentsRow } from './_front'
+import { CoverFields, CoverPage, DEFAULT_COVER, type CoverInfo } from './_cover'
+
+const COVER_KEY = 'workbook-cover-v1'
 
 /**
  * /admin/games — the workbook of «الإنجليزية للمواقف اليومية», generated per
@@ -46,14 +49,17 @@ type Front = 'welcome' | 'howto' | 'contents' | 'progress'
 const FRONT: Front[] = ['welcome', 'howto', 'contents', 'progress']
 type Entry = { front: Front } | { kind: SectionKind; key: boolean; b: Built }
 
-/** What's on screen: the whole workbook, only the front pages, or one unit
- *  (its exercises + its answer keys). Always a slice of the FULL layout, so
- *  every page keeps the number it has in the printed book and the contents
- *  page always lists all 19 units. */
-type View = 'book' | 'front' | number
+/** What's on screen: the whole workbook, the cover, only the front pages,
+ *  or one unit (its exercises + its answer keys). Always a slice of the FULL
+ *  layout, so every page keeps the number it has in the printed book and the
+ *  contents page always lists all 19 units. The cover sits outside that
+ *  layout: it carries no page number. */
+type View = 'book' | 'cover' | 'front' | number
 
 export default function WorkbookPage() {
   const [view, setView] = useState<View>(1)
+  const [cover, setCover] = useState<CoverInfo>(DEFAULT_COVER)
+  const [coverLoaded, setCoverLoaded] = useState(false)
   const [kinds, setKinds] = useState<Record<SectionKind, boolean>>(
     { match: true, letters: true, search: true, gaps: true, order: true, translate: true, write: true })
   const [keys, setKeys] = useState(true)
@@ -64,6 +70,19 @@ export default function WorkbookPage() {
   const [mix, setMix] = useState(0)
 
   const built: Built[] = useMemo(() => EVERYDAY_ENGLISH.map(u => build(u, diff, mix)), [diff, mix])
+
+  /* The cover's texts (and photo) are remembered in this browser. */
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(COVER_KEY)
+      if (saved) setCover({ ...DEFAULT_COVER, ...JSON.parse(saved) })
+    } catch { /* no storage: keep the defaults */ }
+    setCoverLoaded(true)
+  }, [])
+  useEffect(() => {
+    if (!coverLoaded) return
+    try { localStorage.setItem(COVER_KEY, JSON.stringify(cover)) } catch { /* quota (large photo) or no storage */ }
+  }, [cover, coverLoaded])
 
   /* The full layout: front matter → each unit's exercises → every answer key. */
   const chosen = KINDS.filter(k => kinds[k])
@@ -89,6 +108,7 @@ export default function WorkbookPage() {
   /* The slice on screen, each page with its index in the full layout. */
   const shown = full.map((e, i) => ({ e, i })).filter(({ e }) =>
     view === 'book' ? true : view === 'front' ? 'front' in e : 'b' in e && e.b.unit.n === view)
+  const withCover = view === 'book' || view === 'cover'
 
   const meta = (b: Built, i: number): PageMeta => ({
     theme, unitNo: b.unit.n, unitEn: b.unit.titleEn, unitAr: b.unit.titleAr,
@@ -159,13 +179,16 @@ export default function WorkbookPage() {
       <GamesHeader title="دفتر التمارين — الإنجليزية للمواقف اليومية" back="/admin" />
       <div className="grid lg:grid-cols-[300px_1fr] gap-6">
         <aside className="space-y-4 print:hidden lg:sticky lg:top-24 self-start">
-          <Field label="عرض" hint={`الدفتر الكامل ${full.length} صفحة — كل صفحة تحمل رقمها في الدفتر الكامل، والفهرس دائمًا كامل. الغلاف يُضاف لاحقًا من Canva.`}>
-            <select value={String(view)} onChange={e => setView(e.target.value === 'book' || e.target.value === 'front' ? e.target.value : Number(e.target.value))} className={INP}>
-              <option value="book">الدفتر كاملًا ({full.length} صفحة)</option>
+          <Field label="عرض" hint={`الدفتر الكامل ${full.length} صفحة + الغلاف — كل صفحة تحمل رقمها في الدفتر الكامل، والفهرس دائمًا كامل. الغلاف بدون رقم.`}>
+            <select value={String(view)} onChange={e => setView(['book', 'cover', 'front'].includes(e.target.value) ? e.target.value as View : Number(e.target.value))} className={INP}>
+              <option value="book">الدفتر كاملًا ({full.length} صفحة + الغلاف)</option>
+              <option value="cover">الغلاف</option>
               <option value="front">صفحات البداية (ترحيب، طريقة الاستعمال، الفهرس، تقدّمي)</option>
               {EVERYDAY_ENGLISH.map(u => <option key={u.n} value={u.n}>الوحدة {u.n} — {u.titleAr}</option>)}
             </select>
           </Field>
+
+          {withCover && <CoverFields value={cover} onChange={setCover} />}
 
           <Field label="التمارين (بترتيب التعلّم)">
             <div className="space-y-1.5">
@@ -209,7 +232,7 @@ export default function WorkbookPage() {
           </Field>
 
           <div className="flex flex-col gap-2 pt-1">
-            <PrintAllButton count={shown.length} />
+            <PrintAllButton count={view === 'cover' ? 1 : shown.length + (withCover ? 1 : 0)} />
             <button type="button" onClick={() => setMix(m => m + 1)}
               className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-zinc-200 text-zinc-700 font-bold text-[13px] py-2.5 hover:bg-zinc-50">
               <Shuffle size={15} /> خلط جديد لكل التمارين
@@ -218,8 +241,9 @@ export default function WorkbookPage() {
         </aside>
 
         <div className="space-y-8 min-w-0">
-          {chosen.length === 0 && <div className="text-center py-16 text-zinc-400 text-[13.5px]">اختر تمرينًا واحدًا على الأقل.</div>}
-          {shown.map(({ e, i }) => page(e, i))}
+          {withCover && <CoverPage info={cover} theme={theme} units={built.length} kinds={chosen.length} />}
+          {view !== 'cover' && chosen.length === 0 && <div className="text-center py-16 text-zinc-400 text-[13.5px]">اختر تمرينًا واحدًا على الأقل.</div>}
+          {view !== 'cover' && shown.map(({ e, i }) => page(e, i))}
         </div>
       </div>
     </div>

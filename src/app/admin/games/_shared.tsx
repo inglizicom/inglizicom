@@ -108,9 +108,10 @@ export const SECTION: Record<SectionKind, { en: string; ar: string; Icon: Lucide
 
 /** The bare A4 sheet every workbook page shares: toolbar (label + PNG),
  *  the white page, the footer, and the print rules. `header` is the band on
- *  top (unit frame or front-matter title); `children` is the page body. */
-function Sheet({ label, filename, theme: t, footerMid, header, children }: {
-  label: string; filename: string; theme: SheetTheme; footerMid: string; header: ReactNode; children: ReactNode
+ *  top (unit frame or front-matter title); `children` is the page body.
+ *  `bare` drops the padding and footer, for the full-bleed cover. */
+function Sheet({ label, filename, theme: t, footerMid, header, children, bare }: {
+  label: string; filename: string; theme: SheetTheme; footerMid: string; header: ReactNode; children: ReactNode; bare?: boolean
 }) {
   const id = `sheet-${useId().replace(/:/g, '')}`
   const [busy, setBusy] = useState(false)
@@ -118,12 +119,23 @@ function Sheet({ label, filename, theme: t, footerMid, header, children }: {
   async function png() {
     setBusy(true)
     try {
-      const html2canvas = (await import('html2canvas')).default
       const node = document.getElementById(id)
       if (!node) return
-      const canvas = await html2canvas(node, { scale: 3, useCORS: true, backgroundColor: '#FFFFFF', width: PAGE_W, height: PAGE_H })
+      let href: string
+      if (bare) {
+        // The cover (huge Arabic display type, rotated bubbles) is beyond
+        // html2canvas's own text layout; html-to-image lets the browser draw
+        // it (SVG foreignObject), with its web fonts inlined.
+        await document.fonts?.ready
+        const { toPng } = await import('html-to-image')
+        href = await toPng(node, { pixelRatio: 3, width: PAGE_W, height: PAGE_H, cacheBust: true, style: { margin: '0' } })
+      } else {
+        const html2canvas = (await import('html2canvas')).default
+        const canvas = await html2canvas(node, { scale: 3, useCORS: true, backgroundColor: '#FFFFFF', width: PAGE_W, height: PAGE_H })
+        href = canvas.toDataURL('image/png')
+      }
       const a = document.createElement('a')
-      a.href = canvas.toDataURL('image/png'); a.download = `${filename}.png`; a.click()
+      a.href = href; a.download = `${filename}.png`; a.click()
     } finally { setBusy(false) }
   }
 
@@ -140,12 +152,14 @@ function Sheet({ label, filename, theme: t, footerMid, header, children }: {
         <div id={id} className="print-sheet relative mx-auto bg-white text-[#1A1A1A] overflow-hidden"
           style={{ width: PAGE_W, height: PAGE_H, fontFamily: 'inherit' }}>
           {header}
-          <div className="px-10 pt-6">{children}</div>
-          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between px-6" style={{ height: 34, background: t.dark, color: '#fff' }} dir="ltr">
-            <span className="text-[13px] font-black">Inglizi<span style={{ color: hi(t) }}>.com</span></span>
-            <span className="text-[12px] font-extrabold">{footerMid}</span>
-            <span className="text-[11px] font-bold opacity-80" dir="rtl">أكاديمية إنجليزي الدولية</span>
-          </div>
+          {bare ? children : <>
+            <div className="px-10 pt-6">{children}</div>
+            <div className="absolute inset-x-0 bottom-0 flex items-center justify-between px-6" style={{ height: 34, background: t.dark, color: '#fff' }} dir="ltr">
+              <span className="text-[13px] font-black">Inglizi<span style={{ color: hi(t) }}>.com</span></span>
+              <span className="text-[12px] font-extrabold">{footerMid}</span>
+              <span className="text-[11px] font-bold opacity-80" dir="rtl">أكاديمية إنجليزي الدولية</span>
+            </div>
+          </>}
         </div>
       </div>
       <style jsx global>{`
@@ -161,6 +175,12 @@ function Sheet({ label, filename, theme: t, footerMid, header, children }: {
       `}</style>
     </div>
   )
+}
+
+/** A full-bleed A4 sheet (no frame, no footer) with the same PNG and print
+ *  behaviour as every other page — the cover is drawn entirely by `children`. */
+export function BareSheet({ theme, label, filename, children }: { theme: SheetTheme; label: string; filename: string; children: ReactNode }) {
+  return <Sheet bare theme={theme} label={label} filename={filename} footerMid="" header={null}>{children}</Sheet>
 }
 
 /** The accent colour where it must read on the dark band (the grey of the
