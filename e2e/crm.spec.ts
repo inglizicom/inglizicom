@@ -124,6 +124,19 @@ test.describe('flows', () => {
     expect(JSON.stringify(inserts[0].body)).not.toContain('0551234567')
   })
 
+  test('workbook: one unit shown alone keeps the page numbers the full contents gives it', async ({ page }) => {
+    await mockSupabase(page, { role: 'founder' })
+    await page.goto('/admin/games')
+    const sel = page.locator('select').first()
+    await sel.selectOption('front')
+    const row = await page.locator('.print-sheet').nth(2).locator('div.flex.items-center.gap-3', { hasText: 'UNIT 07' }).innerText()
+    await sel.selectOption('7')
+    const firstFooter = await page.locator('.print-sheet').first().evaluate(s => (s.lastElementChild as HTMLElement).innerText)
+    const n = firstFooter.match(/UNIT 7 \| (\d+)/)![1]
+    expect(Number(n)).toBeGreaterThan(4)            // after the 4 front pages, not restarted at 1
+    expect(row).toContain(n)
+  })
+
   test('payroll: recording a payment sends status paid with the method', async ({ page }) => {
     const calls = await mockSupabase(page, { role: 'founder' })
     await page.goto('/admin/team?tab=payroll')

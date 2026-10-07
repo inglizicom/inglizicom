@@ -46,37 +46,49 @@ type Front = 'welcome' | 'howto' | 'contents' | 'progress'
 const FRONT: Front[] = ['welcome', 'howto', 'contents', 'progress']
 type Entry = { front: Front } | { kind: SectionKind; key: boolean; b: Built }
 
+/** What's on screen: the whole workbook, only the front pages, or one unit
+ *  (its exercises + its answer keys). Always a slice of the FULL layout, so
+ *  every page keeps the number it has in the printed book and the contents
+ *  page always lists all 19 units. */
+type View = 'book' | 'front' | number
+
 export default function WorkbookPage() {
-  const [unitSel, setUnitSel] = useState<number | 'all'>(1)
+  const [view, setView] = useState<View>(1)
   const [kinds, setKinds] = useState<Record<SectionKind, boolean>>(
     { match: true, letters: true, search: true, gaps: true, order: true, translate: true, write: true })
   const [keys, setKeys] = useState(true)
   const [diff, setDiff] = useState<Difficulty>('medium')
   const [theme, setTheme] = useState<SheetTheme>(THEMES[0])
-  const [front, setFront] = useState(true)
   const [numbered, setNumbered] = useState(true)
   const [startNo, setStartNo] = useState(1)
   const [mix, setMix] = useState(0)
 
-  const built: Built[] = useMemo(() => {
-    const units = unitSel === 'all' ? EVERYDAY_ENGLISH : EVERYDAY_ENGLISH.filter(u => u.n === unitSel)
-    return units.map(u => build(u, diff, mix))
-  }, [unitSel, diff, mix])
+  const built: Built[] = useMemo(() => EVERYDAY_ENGLISH.map(u => build(u, diff, mix)), [diff, mix])
 
-  /* Layout: front matter → each unit's exercises → every answer key. */
+  /* The full layout: front matter → each unit's exercises → every answer key. */
   const chosen = KINDS.filter(k => kinds[k])
-  const pages: Entry[] = []
-  if (front) for (const f of FRONT) pages.push({ front: f })
-  for (const b of built) for (const k of chosen) pages.push({ kind: k, key: false, b })
-  if (keys) for (const b of built) for (const k of chosen) if (!NO_KEY.includes(k)) pages.push({ kind: k, key: true, b })
+  const full: Entry[] = []
+  for (const f of FRONT) full.push({ front: f })
+  for (const b of built) for (const k of chosen) full.push({ kind: k, key: false, b })
+  if (keys) for (const b of built) for (const k of chosen) if (!NO_KEY.includes(k)) full.push({ kind: k, key: true, b })
 
   const pageNoOf = (i: number) => (numbered ? startNo + i : null)
-  const contents: ContentsRow[] = built.map(b => ({
-    n: b.unit.n, titleEn: b.unit.titleEn, titleAr: b.unit.titleAr,
-    page: pageNoOf(pages.findIndex(p => 'b' in p && p.b === b)),
-  }))
-  const firstKey = pages.findIndex(p => 'key' in p && p.key)
+  const lastIndex = (pred: (e: Entry) => boolean) => full.reduce((at, e, i) => (pred(e) ? i : at), -1)
+  const contents: ContentsRow[] = built.map(b => {
+    const first = full.findIndex(e => 'b' in e && e.b === b && !e.key)
+    const last = lastIndex(e => 'b' in e && e.b === b && !e.key)
+    const key = full.findIndex(e => 'b' in e && e.b === b && e.key)
+    return {
+      n: b.unit.n, titleEn: b.unit.titleEn, titleAr: b.unit.titleAr,
+      page: pageNoOf(first), last: pageNoOf(last), key: key < 0 ? null : pageNoOf(key),
+    }
+  })
+  const firstKey = full.findIndex(e => 'key' in e && e.key)
   const keysPage = firstKey < 0 ? undefined : pageNoOf(firstKey)
+
+  /* The slice on screen, each page with its index in the full layout. */
+  const shown = full.map((e, i) => ({ e, i })).filter(({ e }) =>
+    view === 'book' ? true : view === 'front' ? 'front' in e : 'b' in e && e.b.unit.n === view)
 
   const meta = (b: Built, i: number): PageMeta => ({
     theme, unitNo: b.unit.n, unitEn: b.unit.titleEn, unitAr: b.unit.titleAr,
@@ -147,19 +159,12 @@ export default function WorkbookPage() {
       <GamesHeader title="دفتر التمارين — الإنجليزية للمواقف اليومية" back="/admin" />
       <div className="grid lg:grid-cols-[300px_1fr] gap-6">
         <aside className="space-y-4 print:hidden lg:sticky lg:top-24 self-start">
-          <Field label="الوحدة">
-            <select value={unitSel} onChange={e => setUnitSel(e.target.value === 'all' ? 'all' : Number(e.target.value))} className={INP}>
+          <Field label="عرض" hint={`الدفتر الكامل ${full.length} صفحة — كل صفحة تحمل رقمها في الدفتر الكامل، والفهرس دائمًا كامل. الغلاف يُضاف لاحقًا من Canva.`}>
+            <select value={String(view)} onChange={e => setView(e.target.value === 'book' || e.target.value === 'front' ? e.target.value : Number(e.target.value))} className={INP}>
+              <option value="book">الدفتر كاملًا ({full.length} صفحة)</option>
+              <option value="front">صفحات البداية (ترحيب، طريقة الاستعمال، الفهرس، تقدّمي)</option>
               {EVERYDAY_ENGLISH.map(u => <option key={u.n} value={u.n}>الوحدة {u.n} — {u.titleAr}</option>)}
-              <option value="all">كل الوحدات (19)</option>
             </select>
-          </Field>
-
-          <Field label="صفحات البداية">
-            <label className="flex items-center gap-2 text-[13px] font-bold text-zinc-700">
-              <input type="checkbox" checked={front} onChange={e => setFront(e.target.checked)} className="w-4 h-4 accent-zinc-900" />
-              ترحيب، طريقة الاستعمال، الفهرس، تقدّمي
-            </label>
-            <p className="mt-1 text-[11.5px] text-zinc-400">الغلاف يُضاف لاحقًا من Canva.</p>
           </Field>
 
           <Field label="التمارين (بترتيب التعلّم)">
@@ -204,7 +209,7 @@ export default function WorkbookPage() {
           </Field>
 
           <div className="flex flex-col gap-2 pt-1">
-            <PrintAllButton count={pages.length} />
+            <PrintAllButton count={shown.length} />
             <button type="button" onClick={() => setMix(m => m + 1)}
               className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-zinc-200 text-zinc-700 font-bold text-[13px] py-2.5 hover:bg-zinc-50">
               <Shuffle size={15} /> خلط جديد لكل التمارين
@@ -213,8 +218,8 @@ export default function WorkbookPage() {
         </aside>
 
         <div className="space-y-8 min-w-0">
-          {pages.length === 0 && <div className="text-center py-16 text-zinc-400 text-[13.5px]">اختر تمرينًا واحدًا على الأقل.</div>}
-          {pages.map(page)}
+          {chosen.length === 0 && <div className="text-center py-16 text-zinc-400 text-[13.5px]">اختر تمرينًا واحدًا على الأقل.</div>}
+          {shown.map(({ e, i }) => page(e, i))}
         </div>
       </div>
     </div>

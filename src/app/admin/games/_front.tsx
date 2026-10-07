@@ -118,35 +118,52 @@ export function HowToBody({ theme: t, kinds }: { theme: SheetTheme; kinds: Secti
   )
 }
 
-export interface ContentsRow { n: number; titleEn: string; titleAr: string; page: number | null }
+export interface ContentsRow {
+  n: number; titleEn: string; titleAr: string
+  /** First and last exercise page of the unit, and the page of its answer key. */
+  page: number | null; last: number | null; key: number | null
+}
 
+const pad = (n: number) => String(n).padStart(2, '0')
+
+/** The whole workbook's contents — always all units, with the page range of
+ *  each unit's exercises and where its answers are. */
 export function ContentsBody({ theme: t, rows, keysPage }: { theme: SheetTheme; rows: ContentsRow[]; keysPage: number | null | undefined }) {
-  const line = (left: React.ReactNode, right: React.ReactNode, page: number | null, strong = false) => (
-    <div className="flex items-center gap-3" dir="ltr">
-      {left}
-      <span className={`text-[15px] ${strong ? 'font-black' : 'font-extrabold'}`}>{right}</span>
-      <span className="flex-1 border-b-2 border-dotted border-zinc-300 translate-y-1" />
-      {page != null && <span className="w-9 text-right text-[15px] font-black tabular-nums" style={{ color: t.dark }}>{String(page).padStart(2, '0')}</span>}
-    </div>
-  )
+  const numbered = rows.some(r => r.page != null)
+  const hasKeys = rows.some(r => r.key != null)
   return (
-    <div className={rows.length > 12 ? 'space-y-[9px]' : 'space-y-3'}>
-      {rows.map(r => (
-        <div key={r.n}>
-          {line(
-            <span className="w-[74px] shrink-0 rounded-md px-2 py-0.5 text-center text-[12.5px] font-black text-white" style={{ background: t.dark }}>UNIT {String(r.n).padStart(2, '0')}</span>,
-            <>{r.titleEn} <span className="text-zinc-400 mx-1">|</span> <span dir="rtl">{r.titleAr}</span></>,
-            r.page,
-          )}
+    <div dir="ltr">
+      {numbered && (
+        <div className="flex items-center gap-3 pb-1.5 mb-2 border-b-2 text-[11px] font-black" style={{ borderColor: t.dark, color: t.dark }}>
+          <span className="flex-1">UNIT · الوحدة</span>
+          <span className="w-[96px] text-center whitespace-nowrap">PAGES · الصفحات</span>
+          {hasKeys && <span className="w-[64px] text-center whitespace-nowrap">KEY · الحل</span>}
         </div>
-      ))}
+      )}
+      <div className={rows.length > 12 ? 'space-y-[8px]' : 'space-y-3'}>
+        {rows.map(r => (
+          <div key={r.n} className="flex items-center gap-3">
+            <span className="w-[74px] shrink-0 rounded-md px-2 py-0.5 text-center text-[12.5px] font-black text-white" style={{ background: t.dark }}>UNIT {pad(r.n)}</span>
+            <span className="text-[14.5px] font-extrabold whitespace-nowrap">{r.titleEn} <span className="text-zinc-400 mx-1">|</span> <bdi dir="rtl">{r.titleAr}</bdi></span>
+            <span className="flex-1 border-b-2 border-dotted border-zinc-300 translate-y-1" />
+            {r.page != null && (
+              <span className="w-[96px] text-center text-[14.5px] font-black tabular-nums" style={{ color: t.dark }}>
+                {pad(r.page)}{r.last != null && r.last !== r.page ? `–${pad(r.last)}` : ''}
+              </span>
+            )}
+            {hasKeys && r.key != null && (
+              <span className="w-[64px] text-center rounded-md py-0.5 text-[13px] font-black tabular-nums" style={{ background: t.accent, color: t.onAccent }}>{pad(r.key)}</span>
+            )}
+          </div>
+        ))}
+      </div>
       {keysPage !== undefined && (
-        <div className="pt-3 mt-1 border-t-2" style={{ borderColor: t.dark }}>
-          {line(
-            <span className="w-[74px] shrink-0 rounded-md px-2 py-0.5 text-center text-[12.5px] font-black" style={{ background: t.accent, color: t.onAccent }}>KEYS</span>,
-            <>Answer keys <span className="text-zinc-400 mx-1">|</span> <span dir="rtl">مفاتيح الحل</span></>,
-            keysPage ?? null, true,
-          )}
+        <div className="flex items-center gap-3 pt-3 mt-3 border-t-2" style={{ borderColor: t.dark }}>
+          <span className="w-[74px] shrink-0 rounded-md px-2 py-0.5 text-center text-[12.5px] font-black" style={{ background: t.accent, color: t.onAccent }}>KEYS</span>
+          <span className="text-[14.5px] font-black">Answer keys <span className="text-zinc-400 mx-1">|</span> <bdi dir="rtl">مفاتيح الحل</bdi></span>
+          <span className="flex-1 border-b-2 border-dotted border-zinc-300 translate-y-1" />
+          {keysPage != null && <span className="w-[96px] text-center text-[14.5px] font-black tabular-nums" style={{ color: t.dark }}>{pad(keysPage)}</span>}
+          {hasKeys && <span className="w-[64px]" />}
         </div>
       )}
     </div>
