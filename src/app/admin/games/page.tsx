@@ -7,9 +7,10 @@ import {
 } from '@/lib/game-generators'
 import { EVERYDAY_ENGLISH, type WorkbookUnit } from '@/data/workbook/everyday-english'
 import {
-  A4Page, Field, GamesHeader, GapsBody, INP, LettersBody, MatchBody, OrderBody, PrintAllButton, SECTION, THEMES,
+  A4Page, Field, FrontPage, GamesHeader, GapsBody, INP, LettersBody, MatchBody, OrderBody, PrintAllButton, SECTION, THEMES,
   ThemePicker, TranslateBody, WordSearchBody, WriteBody, type PageMeta, type SectionKind, type SheetTheme,
 } from './_shared'
+import { ContentsBody, HowToBody, ProgressBody, WelcomeBody, type ContentsRow } from './_front'
 
 /**
  * /admin/games — the workbook of «الإنجليزية للمواقف اليومية», generated per
@@ -41,6 +42,9 @@ function build(u: WorkbookUnit, diff: Difficulty, mix: number) {
   }
 }
 type Built = ReturnType<typeof build>
+type Front = 'welcome' | 'howto' | 'contents' | 'progress'
+const FRONT: Front[] = ['welcome', 'howto', 'contents', 'progress']
+type Entry = { front: Front } | { kind: SectionKind; key: boolean; b: Built }
 
 export default function WorkbookPage() {
   const [unitSel, setUnitSel] = useState<number | 'all'>(1)
@@ -49,7 +53,8 @@ export default function WorkbookPage() {
   const [keys, setKeys] = useState(true)
   const [diff, setDiff] = useState<Difficulty>('medium')
   const [theme, setTheme] = useState<SheetTheme>(THEMES[0])
-  const [numbered, setNumbered] = useState(false)
+  const [front, setFront] = useState(true)
+  const [numbered, setNumbered] = useState(true)
   const [startNo, setStartNo] = useState(1)
   const [mix, setMix] = useState(0)
 
@@ -58,17 +63,37 @@ export default function WorkbookPage() {
     return units.map(u => build(u, diff, mix))
   }, [unitSel, diff, mix])
 
-  const pages: { kind: SectionKind; key: boolean; b: Built }[] = []
-  for (const b of built) for (const k of KINDS) if (kinds[k]) pages.push({ kind: k, key: false, b })
-  if (keys) for (const b of built) for (const k of KINDS) if (kinds[k] && !NO_KEY.includes(k)) pages.push({ kind: k, key: true, b })
+  /* Layout: front matter → each unit's exercises → every answer key. */
+  const chosen = KINDS.filter(k => kinds[k])
+  const pages: Entry[] = []
+  if (front) for (const f of FRONT) pages.push({ front: f })
+  for (const b of built) for (const k of chosen) pages.push({ kind: k, key: false, b })
+  if (keys) for (const b of built) for (const k of chosen) if (!NO_KEY.includes(k)) pages.push({ kind: k, key: true, b })
+
+  const pageNoOf = (i: number) => (numbered ? startNo + i : null)
+  const contents: ContentsRow[] = built.map(b => ({
+    n: b.unit.n, titleEn: b.unit.titleEn, titleAr: b.unit.titleAr,
+    page: pageNoOf(pages.findIndex(p => 'b' in p && p.b === b)),
+  }))
+  const firstKey = pages.findIndex(p => 'key' in p && p.key)
+  const keysPage = firstKey < 0 ? undefined : pageNoOf(firstKey)
 
   const meta = (b: Built, i: number): PageMeta => ({
     theme, unitNo: b.unit.n, unitEn: b.unit.titleEn, unitAr: b.unit.titleAr,
-    pageNo: numbered ? startNo + i : null, filename: `unit-${b.unit.n}-${String(i + 1).padStart(3, '0')}`,
+    pageNo: pageNoOf(i), filename: `unit-${b.unit.n}-${String(i + 1).padStart(3, '0')}`,
   })
-  const no = (k: SectionKind) => KINDS.indexOf(k) + 1
+  const no = (k: SectionKind) => chosen.indexOf(k) + 1
 
-  function page(p: { kind: SectionKind; key: boolean; b: Built }, i: number) {
+  function page(p: Entry, i: number) {
+    if ('front' in p) {
+      const common = { key: `front-${p.front}`, theme, pageNo: pageNoOf(i), filename: `00-${p.front}` }
+      switch (p.front) {
+        case 'welcome':  return <FrontPage {...common} titleEn="Welcome" titleAr="مرحبًا" label="الترحيب"><WelcomeBody theme={theme} /></FrontPage>
+        case 'howto':    return <FrontPage {...common} titleEn="How to use" titleAr="طريقة الاستعمال" label="طريقة الاستعمال"><HowToBody theme={theme} kinds={chosen} /></FrontPage>
+        case 'contents': return <FrontPage {...common} titleEn="Contents" titleAr="المحتويات" label="الفهرس"><ContentsBody theme={theme} rows={contents} keysPage={keysPage} /></FrontPage>
+        case 'progress': return <FrontPage {...common} titleEn="My progress" titleAr="تقدّمي" label="تتبّع التقدّم"><ProgressBody theme={theme} units={built.map(b => b.unit)} kinds={chosen} /></FrontPage>
+      }
+    }
     const { b, key } = p
     const common = { key: `${b.unit.n}-${p.kind}-${key}`, meta: meta(b, i), section: p.kind, sectionNo: no(p.kind), answerKey: key }
     switch (p.kind) {
@@ -127,6 +152,14 @@ export default function WorkbookPage() {
               {EVERYDAY_ENGLISH.map(u => <option key={u.n} value={u.n}>الوحدة {u.n} — {u.titleAr}</option>)}
               <option value="all">كل الوحدات (19)</option>
             </select>
+          </Field>
+
+          <Field label="صفحات البداية">
+            <label className="flex items-center gap-2 text-[13px] font-bold text-zinc-700">
+              <input type="checkbox" checked={front} onChange={e => setFront(e.target.checked)} className="w-4 h-4 accent-zinc-900" />
+              ترحيب، طريقة الاستعمال، الفهرس، تقدّمي
+            </label>
+            <p className="mt-1 text-[11.5px] text-zinc-400">الغلاف يُضاف لاحقًا من Canva.</p>
           </Field>
 
           <Field label="التمارين (بترتيب التعلّم)">

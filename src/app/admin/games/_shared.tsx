@@ -106,22 +106,14 @@ export const SECTION: Record<SectionKind, { en: string; ar: string; Icon: Lucide
   write:     { en: 'MAKE IT YOURS',     ar: 'اكتب عن نفسك',       Icon: PenLine },
 }
 
-/** One printable A4 page with the book's frame, plus its own PNG button. */
-export function A4Page({ meta, section, sectionNo, answerKey, instructionAr, instructionEn, score, children }: {
-  meta: PageMeta
-  section: SectionKind
-  sectionNo: number
-  answerKey?: boolean
-  instructionAr: string
-  instructionEn: string
-  /** "/ 12" — shown in the name/date/score line (not on answer keys). */
-  score?: number
-  children: ReactNode
+/** The bare A4 sheet every workbook page shares: toolbar (label + PNG),
+ *  the white page, the footer, and the print rules. `header` is the band on
+ *  top (unit frame or front-matter title); `children` is the page body. */
+function Sheet({ label, filename, theme: t, footerMid, header, children }: {
+  label: string; filename: string; theme: SheetTheme; footerMid: string; header: ReactNode; children: ReactNode
 }) {
   const id = `sheet-${useId().replace(/:/g, '')}`
   const [busy, setBusy] = useState(false)
-  const { theme: t } = meta
-  const s = SECTION[section]
 
   async function png() {
     setBusy(true)
@@ -131,16 +123,14 @@ export function A4Page({ meta, section, sectionNo, answerKey, instructionAr, ins
       if (!node) return
       const canvas = await html2canvas(node, { scale: 3, useCORS: true, backgroundColor: '#FFFFFF', width: PAGE_W, height: PAGE_H })
       const a = document.createElement('a')
-      a.href = canvas.toDataURL('image/png'); a.download = `${meta.filename}${answerKey ? '-answers' : ''}.png`; a.click()
+      a.href = canvas.toDataURL('image/png'); a.download = `${filename}.png`; a.click()
     } finally { setBusy(false) }
   }
 
   return (
     <div className="print-sheet-wrap">
       <div className="flex items-center justify-between gap-2 mb-2 print:hidden">
-        <span className="text-[12px] font-bold text-zinc-400">
-          {s.ar}{answerKey ? ' — مفتاح الحل' : ''}{meta.pageNo ? ` · صفحة ${meta.pageNo}` : ''}
-        </span>
+        <span className="text-[12px] font-bold text-zinc-400">{label}</span>
         <button type="button" onClick={png} disabled={busy}
           className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white text-zinc-700 font-bold text-[12px] px-3 py-1.5 hover:bg-zinc-50 disabled:opacity-50">
           <Download size={13} /> {busy ? '...' : 'PNG'}
@@ -149,58 +139,11 @@ export function A4Page({ meta, section, sectionNo, answerKey, instructionAr, ins
       <div className="overflow-auto rounded-xl shadow-[0_2px_18px_rgba(0,0,0,0.08)] ring-1 ring-zinc-200 print:shadow-none print:ring-0 print:rounded-none print:overflow-visible">
         <div id={id} className="print-sheet relative mx-auto bg-white text-[#1A1A1A] overflow-hidden"
           style={{ width: PAGE_W, height: PAGE_H, fontFamily: 'inherit' }}>
-          {/* Header — the book's frame: unit block + title band */}
-          <div className="flex items-stretch" style={{ height: 86 }} dir="ltr">
-            {meta.unitNo != null && (
-              <div className="flex items-center justify-center px-5" style={{ background: t.dark }}>
-                <span className="rounded-md bg-white px-3 py-1 text-[22px] font-black" style={{ color: t.dark }}>UNIT {meta.unitNo}</span>
-              </div>
-            )}
-            <div className="flex-1 flex items-center justify-between gap-3 px-6" style={{ background: t.accent, color: t.onAccent }}>
-              <span className="text-[21px] font-black uppercase leading-tight">{meta.unitEn ?? ''}</span>
-              <span className="text-[24px] font-black leading-tight" dir="rtl">{meta.unitAr ?? ''}</span>
-            </div>
-          </div>
-          <div className="flex items-center justify-between px-6 py-1.5 text-[11px] font-extrabold" style={{ background: t.dark, color: '#fff' }} dir="ltr">
-            <span>WORKBOOK · EXERCISES</span>
-            <span dir="rtl">دفتر التمارين</span>
-          </div>
-
-          <div className="px-10 pt-6">
-            {/* Section heading */}
-            <div className="flex items-center gap-2" dir="ltr">
-              <span className="flex items-center justify-center w-10 h-10 rounded-lg text-[20px] font-black text-white" style={{ background: t.dark }}>{sectionNo}</span>
-              <span className="flex items-center gap-2 rounded-lg px-4 h-10 text-[16px] font-black text-white" style={{ background: t.dark }}>
-                <s.Icon size={18} style={{ color: t.accent === '#D9D9D9' ? '#fff' : t.accent }} />
-                {s.en} <span className="opacity-50">|</span> <span dir="rtl">{s.ar}</span>
-              </span>
-              {answerKey && (
-                <span className="mr-auto rounded-full px-3 py-1 text-[12px] font-black" style={{ background: t.accent, color: t.onAccent }}>ANSWER KEY · مفتاح الحل</span>
-              )}
-            </div>
-
-            {/* Instruction */}
-            <div className="mt-4 rounded-lg px-4 py-2.5 flex items-center justify-between gap-4" style={{ background: t.soft, borderInlineStart: `4px solid ${t.accent === '#D9D9D9' ? '#111' : t.accent}` }}>
-              <span className="text-[12.5px] font-bold text-zinc-600" dir="ltr">{instructionEn}</span>
-              <span className="text-[14px] font-extrabold text-right" dir="rtl">{instructionAr}</span>
-            </div>
-
-            {/* Name / date / score */}
-            {!answerKey && (
-              <div className="mt-4 flex items-end gap-6 text-[13px] font-bold text-zinc-600" dir="ltr">
-                <span className="flex-1 flex items-end gap-2">Name<span className="flex-1 border-b border-dashed border-zinc-400" /></span>
-                <span className="w-44 flex items-end gap-2">Date<span className="flex-1 border-b border-dashed border-zinc-400" /></span>
-                {score != null && <span className="rounded-md border-2 px-3 py-0.5 font-black" style={{ borderColor: t.dark, color: t.dark }}>&nbsp;&nbsp;&nbsp;&nbsp; / {score}</span>}
-              </div>
-            )}
-
-            <div className="mt-6">{children}</div>
-          </div>
-
-          {/* Footer */}
+          {header}
+          <div className="px-10 pt-6">{children}</div>
           <div className="absolute inset-x-0 bottom-0 flex items-center justify-between px-6" style={{ height: 34, background: t.dark, color: '#fff' }} dir="ltr">
-            <span className="text-[13px] font-black">Inglizi<span style={{ color: t.accent === '#D9D9D9' ? '#fff' : t.accent }}>.com</span></span>
-            <span className="text-[12px] font-extrabold">{meta.unitNo != null ? `UNIT ${meta.unitNo}` : ''}{meta.pageNo ? ` | ${String(meta.pageNo).padStart(2, '0')}` : ''}</span>
+            <span className="text-[13px] font-black">Inglizi<span style={{ color: hi(t) }}>.com</span></span>
+            <span className="text-[12px] font-extrabold">{footerMid}</span>
             <span className="text-[11px] font-bold opacity-80" dir="rtl">أكاديمية إنجليزي الدولية</span>
           </div>
         </div>
@@ -217,6 +160,107 @@ export function A4Page({ meta, section, sectionNo, answerKey, instructionAr, ins
         }
       `}</style>
     </div>
+  )
+}
+
+/** The accent colour where it must read on the dark band (the grey of the
+ *  black-and-white theme would vanish there). */
+const hi = (t: SheetTheme) => (t.id === 'mono' ? '#fff' : t.accent)
+const pageNoText = (n?: number | null) => (n ? String(n).padStart(2, '0') : '')
+
+const WorkbookStrip = ({ t }: { t: SheetTheme }) => (
+  <div className="flex items-center justify-between px-6 py-1.5 text-[11px] font-extrabold" style={{ background: t.dark, color: '#fff' }} dir="ltr">
+    <span>WORKBOOK · EXERCISES</span>
+    <span dir="rtl">دفتر التمارين</span>
+  </div>
+)
+
+/** One exercise page: the book's unit frame, numbered section heading,
+ *  bilingual instruction and name / date / score line around the exercise. */
+export function A4Page({ meta, section, sectionNo, answerKey, instructionAr, instructionEn, score, children }: {
+  meta: PageMeta
+  section: SectionKind
+  sectionNo: number
+  answerKey?: boolean
+  instructionAr: string
+  instructionEn: string
+  /** "/ 12" — shown in the name/date/score line (not on answer keys). */
+  score?: number
+  children: ReactNode
+}) {
+  const { theme: t } = meta
+  const s = SECTION[section]
+  const header = (
+    <>
+      <div className="flex items-stretch" style={{ height: 86 }} dir="ltr">
+        {meta.unitNo != null && (
+          <div className="flex items-center justify-center px-5" style={{ background: t.dark }}>
+            <span className="rounded-md bg-white px-3 py-1 text-[22px] font-black" style={{ color: t.dark }}>UNIT {meta.unitNo}</span>
+          </div>
+        )}
+        <div className="flex-1 flex items-center justify-between gap-3 px-6" style={{ background: t.accent, color: t.onAccent }}>
+          <span className="text-[21px] font-black uppercase leading-tight">{meta.unitEn ?? ''}</span>
+          <span className="text-[24px] font-black leading-tight" dir="rtl">{meta.unitAr ?? ''}</span>
+        </div>
+      </div>
+      <WorkbookStrip t={t} />
+    </>
+  )
+
+  return (
+    <Sheet theme={t} header={header}
+      label={`${s.ar}${answerKey ? ' — مفتاح الحل' : ''}${meta.pageNo ? ` · صفحة ${meta.pageNo}` : ''}`}
+      filename={`${meta.filename}${answerKey ? '-answers' : ''}`}
+      footerMid={`${meta.unitNo != null ? `UNIT ${meta.unitNo}` : ''}${meta.pageNo ? ` | ${pageNoText(meta.pageNo)}` : ''}`}>
+      <div className="flex items-center gap-2" dir="ltr">
+        <span className="flex items-center justify-center w-10 h-10 rounded-lg text-[20px] font-black text-white" style={{ background: t.dark }}>{sectionNo}</span>
+        <span className="flex items-center gap-2 rounded-lg px-4 h-10 text-[16px] font-black text-white" style={{ background: t.dark }}>
+          <s.Icon size={18} style={{ color: hi(t) }} />
+          {s.en} <span className="opacity-50">|</span> <span dir="rtl">{s.ar}</span>
+        </span>
+        {answerKey && (
+          <span className="mr-auto rounded-full px-3 py-1 text-[12px] font-black" style={{ background: t.accent, color: t.onAccent }}>ANSWER KEY · مفتاح الحل</span>
+        )}
+      </div>
+
+      <div className="mt-4 rounded-lg px-4 py-2.5 flex items-center justify-between gap-4" style={{ background: t.soft, borderInlineStart: `4px solid ${t.id === 'mono' ? '#111' : t.accent}` }}>
+        <span className="text-[12.5px] font-bold text-zinc-600" dir="ltr">{instructionEn}</span>
+        <span className="text-[14px] font-extrabold text-right" dir="rtl">{instructionAr}</span>
+      </div>
+
+      {!answerKey && (
+        <div className="mt-4 flex items-end gap-6 text-[13px] font-bold text-zinc-600" dir="ltr">
+          <span className="flex-1 flex items-end gap-2">Name<span className="flex-1 border-b border-dashed border-zinc-400" /></span>
+          <span className="w-44 flex items-end gap-2">Date<span className="flex-1 border-b border-dashed border-zinc-400" /></span>
+          {score != null && <span className="rounded-md border-2 px-3 py-0.5 font-black" style={{ borderColor: t.dark, color: t.dark }}>&nbsp;&nbsp;&nbsp;&nbsp; / {score}</span>}
+        </div>
+      )}
+
+      <div className="mt-6">{children}</div>
+    </Sheet>
+  )
+}
+
+/** A front-matter page (welcome, how to use, contents, progress): the same
+ *  frame without the unit block — a title band in the accent colour. */
+export function FrontPage({ theme: t, titleEn, titleAr, pageNo, filename, label, children }: {
+  theme: SheetTheme; titleEn: string; titleAr: string; pageNo?: number | null; filename: string; label: string; children: ReactNode
+}) {
+  const header = (
+    <>
+      <div className="flex items-center justify-between gap-3 px-8" style={{ height: 96, background: t.accent, color: t.onAccent }} dir="ltr">
+        <span className="text-[28px] font-black uppercase tracking-wide">{titleEn}</span>
+        <span className="text-[30px] font-black" dir="rtl">{titleAr}</span>
+      </div>
+      <WorkbookStrip t={t} />
+    </>
+  )
+  return (
+    <Sheet theme={t} header={header} filename={filename}
+      label={`${label}${pageNo ? ` · صفحة ${pageNo}` : ''}`}
+      footerMid={pageNo ? pageNoText(pageNo) : ''}>
+      {children}
+    </Sheet>
   )
 }
 
