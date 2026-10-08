@@ -66,8 +66,10 @@ export type Block =
   | { t: 'art'; icon: string; size?: number }
   /** A yellow-paper sticky note. */
   | { t: 'sticky'; text: string }
-  /** A full-width black line of text. */
+  /** A tip / rule note (pale yellow, with a 💡). */
   | { t: 'callout'; text: string }
+  /** A small coloured heading inside a section ("Appearance", "التلميذ يقول"). */
+  | { t: 'sub'; text: string }
   /** Space. */
   | { t: 'gap'; h: number }
   /* ── one-off pictures ── */
@@ -247,8 +249,8 @@ export const LEVEL1_LESSONS: Lesson[] = [
     ] },
     { t: 'bar', title: 'Vocabulary for Describing People – المفردات لوصف الأشخاص' },
     { t: 'row', widths: '1fr 1fr 1.2fr', blocks: [
-      [{ t: 'callout', text: 'APPEARANCE - المظهر' }, { t: 'pairs', cols: 1, size: 12, items: [['Tall - Short', ''], ['Thin - Fat', ''], ['Strong - Weak', ''], ['Handsome - Ugly', ''], ['Beautiful - Ugly', ''], ['Old - Young', '']] }],
-      [{ t: 'callout', text: 'PERSONALITY - الشخصية' }, { t: 'pairs', cols: 1, size: 12, items: [['Friendly # Rude', ''], ['Funny # Serious', ''], ['Smart # Stupid', ''], ['Generous - Mean', ''], ['Shy - Outgoing', ''], ['Honest - Dishonest', '']] }],
+      [{ t: 'sub', text: 'APPEARANCE - المظهر' }, { t: 'pairs', cols: 1, size: 12, items: [['Tall - Short', ''], ['Thin - Fat', ''], ['Strong - Weak', ''], ['Handsome - Ugly', ''], ['Beautiful - Ugly', ''], ['Old - Young', '']] }],
+      [{ t: 'sub', text: 'PERSONALITY - الشخصية' }, { t: 'pairs', cols: 1, size: 12, items: [['Friendly # Rude', ''], ['Funny # Serious', ''], ['Smart # Stupid', ''], ['Generous - Mean', ''], ['Shy - Outgoing', ''], ['Honest - Dishonest', '']] }],
       [{ t: 'bullets', heading: 'examples', items: ['My brother is tall and smart.', 'My daughter is serious and strong.', 'My parents are generous.', 'My nephew is friendly.', 'My cousin is rude and fat.', 'My brother Zaid is outgoing.'] }],
     ] },
   ] },
@@ -311,12 +313,12 @@ export const LEVEL1_LESSONS: Lesson[] = [
     { t: 'row', widths: '150px 1fr', blocks: [
       [{ t: 'art', icon: '🧑‍🏫', size: 120 }],
       [
-        { t: 'callout', text: 'جمل خاصة فقط بالتلميذ' },
+        { t: 'sub', text: 'جمل خاصة فقط بالتلميذ' },
         { t: 'bullets', box: true, size: 12, items: [
           'Can you repeat, please? - هل يمكنك أن تعيد، من فضلك؟', "I don't understand. - لم أفهم - مفهمتش", 'Can I go to the bathroom? - هل يمكنني الذهاب إلى الحمام؟',
           'I finished. - أنهيت', 'What page, please? - أي صفحة، من فضلك؟', 'I forgot my book. - نسيت كتابي.', 'Excuse me, I have a question. - عذرًا، لدي سؤال.',
         ] },
-        { t: 'callout', text: 'جمل خاصة فقط بالمدرس' },
+        { t: 'sub', text: 'جمل خاصة فقط بالمدرس' },
         { t: 'bullets', box: true, size: 12, items: [
           'Listen / Read / Stop / Again. - استمع / اقرأ / توقف / مرة أخرى.', 'Repeat after me. - كرروا ورائي.', 'Open your book. - افتحوا كتابكم.',
           'Focus, everyone. - ركّزوا جميعًا.', "Time's up. - انتهى الوقت.", 'Raise your hand. - ارفعوا أيديكم.',
@@ -462,7 +464,7 @@ export const LEVEL1_LESSONS: Lesson[] = [
     { t: 'grid', boxed: true, rows: [
       { dark: true, cells: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] },
       { cells: ['الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد'] },
-      { plain: true, span: [5, 2], cells: ['◀─── The Week Days - من الإثنين إلى الجمعة تسمى أيام العمل ───▶', '◀─ WeekEnd - نهاية الأسبوع ─▶'], size: 10.5 },
+      { plain: true, span: [5, 2], cells: ['The Week Days - من الإثنين إلى الجمعة تسمى أيام العمل', 'The Weekend - نهاية الأسبوع'], size: 10.5 },
     ] },
     { t: 'bar', title: 'Adverbs of Frequency' },
     { t: 'grid', rows: [
@@ -609,7 +611,7 @@ export const LEVEL1_LESSONS: Lesson[] = [
     { t: 'row', widths: '1fr 1fr', blocks: [
       [{ t: 'cards', cols: 2, items: [['⬆️', 'Go straight', 'اذهب مباشرة'], ['🔄', 'At the roundabout', 'عند الدوار'], ['↪️', 'Turn right', 'انعطف لليمين'], ['🚦', 'At the traffic lights', 'عند إشارات المرور'], ['↩️', 'Turn left', 'انعطف لليسار'], ['🚸', 'Zebra crossing', 'ممر الراجلين']] }],
       [
-        { t: 'callout', text: 'Important questions - أسئلة مهمة' },
+        { t: 'sub', text: 'Important questions - أسئلة مهمة' },
         { t: 'grid', boxed: true, rows: [
           { dark: true, cells: ['Excuse me, can you tell me where the pharmacy is?'], size: 11 },
           { cells: ['Go straight at the traffic lights, then turn left.'], size: 11 },
@@ -657,7 +659,7 @@ export const LEVEL1_LESSONS: Lesson[] = [
         { t: 'grid', rows: [{ dark: true, cells: ['many = العديد = جمع', 'There is = شيء واحد = مفرد'], size: 11 }] },
       ],
       [
-        { t: 'callout', text: 'Important questions - أسئلة مهمة' },
+        { t: 'sub', text: 'Important questions - أسئلة مهمة' },
         { t: 'grid', boxed: true, rows: [
           { dark: true, cells: ['How many buses are there at the bus station?'], size: 11 },
           { cells: ['There are five buses at the bus station.'], size: 11 },
@@ -733,9 +735,9 @@ export const LEVEL1_LESSONS: Lesson[] = [
     ] },
     { t: 'bar', title: 'Verbs Conjugation', icon: '🗣️' },
     { t: 'row', widths: '1fr 1fr 1fr', blocks: [
-      [{ t: 'callout', text: 'Affirmative - إيجابي' }, { t: 'pairs', cols: 1, side: true, size: 11, items: [['I like', 'أنا أحب'], ['You like', 'أنت تحب'], ['He likes', 'هو يحب'], ['She likes', 'هي تحب'], ['It likes', 'هو يحب'], ['We like', 'نحن نحب'], ['You like', 'أنتم تحبون'], ['They like', 'هم يحبون']] }],
-      [{ t: 'callout', text: 'Negative - النفي' }, { t: 'pairs', cols: 1, side: true, size: 11, items: [["I don't like", 'أنا لا أحب'], ["You don't like", 'أنت لا تحب'], ["He doesn't like", 'هو لا يحب'], ["She doesn't like", 'هي لا تحب'], ["It doesn't like", 'هو لا يحب'], ["We don't like", 'نحن لا نحب'], ["You don't like", 'أنتم لا تحبون'], ["They don't like", 'هم لا يحبون']] }],
-      [{ t: 'callout', text: 'Question - سؤال' }, { t: 'pairs', cols: 1, side: true, size: 11, items: [['Do I like?', 'هل يعجبني؟'], ['Do you like?', 'هل يعجبك؟'], ['Does he like?', 'هل يعجبه؟'], ['Does she like?', 'هل يعجبها؟'], ['Does it like?', 'هل يعجبه؟'], ['Do we like?', 'هل يعجبنا؟'], ['Do you like?', 'هل يعجبكم؟'], ['Do they like?', 'هل يعجبهم؟']] }],
+      [{ t: 'sub', text: 'Affirmative - إيجابي' }, { t: 'pairs', cols: 1, side: true, size: 11, items: [['I like', 'أنا أحب'], ['You like', 'أنت تحب'], ['He likes', 'هو يحب'], ['She likes', 'هي تحب'], ['It likes', 'هو يحب'], ['We like', 'نحن نحب'], ['You like', 'أنتم تحبون'], ['They like', 'هم يحبون']] }],
+      [{ t: 'sub', text: 'Negative - النفي' }, { t: 'pairs', cols: 1, side: true, size: 11, items: [["I don't like", 'أنا لا أحب'], ["You don't like", 'أنت لا تحب'], ["He doesn't like", 'هو لا يحب'], ["She doesn't like", 'هي لا تحب'], ["It doesn't like", 'هو لا يحب'], ["We don't like", 'نحن لا نحب'], ["You don't like", 'أنتم لا تحبون'], ["They don't like", 'هم لا يحبون']] }],
+      [{ t: 'sub', text: 'Question - سؤال' }, { t: 'pairs', cols: 1, side: true, size: 11, items: [['Do I like?', 'هل يعجبني؟'], ['Do you like?', 'هل يعجبك؟'], ['Does he like?', 'هل يعجبه؟'], ['Does she like?', 'هل يعجبها؟'], ['Does it like?', 'هل يعجبه؟'], ['Do we like?', 'هل يعجبنا؟'], ['Do you like?', 'هل يعجبكم؟'], ['Do they like?', 'هل يعجبهم؟']] }],
     ] },
     { t: 'callout', text: 'في هذا الجدول يمكن تغيير الفعل "Like" بأي فعل تريد أن تعبر به أو تسأل به.' },
     { t: 'talk', title: 'What Do You Like to Do?', art: '🧑‍🤝‍🧑', size: 11, lines: lines(`

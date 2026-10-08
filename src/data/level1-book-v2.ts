@@ -41,7 +41,7 @@ const FAMILY: FamilyPeople = {
     'Grandfather + Grandmother = Grandparents',
     'Father + Mother = Parents · Son + Daughter = Children',
     'كلمة Cousin واحدة للذكر والأنثى',
-    'Uncle = العم والخال، و Aunt = العمة والخالة',
+    'كلمة Uncle تعني العم والخال، و Aunt تعني العمة والخالة',
     'أهل الزوج(ة): mother-in-law و father-in-law',
   ],
 }
@@ -215,8 +215,8 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
     ] },
     { t: 'bar', title: 'Describing people - وصف الأشخاص' },
     { t: 'row', widths: '1fr 1fr 1.15fr', blocks: [
-      [{ t: 'callout', text: 'Appearance - المظهر' }, { t: 'pairs', cols: 1, side: true, size: 11, items: [['tall – short', 'طويل – قصير'], ['young – old', 'شاب – كبير في السن'], ['slim – big', 'نحيف – ضخم'], ['long hair – short hair', 'شعر طويل – قصير'], ['curly – straight', 'مجعّد – أملس'], ['strong – weak', 'قوي – ضعيف']] }],
-      [{ t: 'callout', text: 'Personality - الشخصية' }, { t: 'pairs', cols: 1, side: true, size: 11, items: [['friendly – unfriendly', 'لطيف – غير ودود'], ['funny – serious', 'مضحك – جادّ'], ['hard-working – lazy', 'مجتهد – كسول'], ['shy – outgoing', 'خجول – اجتماعي'], ['generous – mean', 'كريم – بخيل'], ['calm – nervous', 'هادئ – عصبي']] }],
+      [{ t: 'sub', text: 'Appearance - المظهر' }, { t: 'pairs', cols: 1, side: true, size: 11, items: [['tall – short', 'طويل – قصير'], ['young – old', 'شاب – كبير في السن'], ['slim – big', 'نحيف – ضخم'], ['long hair – short hair', 'شعر طويل – قصير'], ['curly – straight', 'مجعّد – أملس'], ['strong – weak', 'قوي – ضعيف']] }],
+      [{ t: 'sub', text: 'Personality - الشخصية' }, { t: 'pairs', cols: 1, side: true, size: 11, items: [['friendly – unfriendly', 'لطيف – غير ودود'], ['funny – serious', 'مضحك – جادّ'], ['hard-working – lazy', 'مجتهد – كسول'], ['shy – outgoing', 'خجول – اجتماعي'], ['generous – mean', 'كريم – بخيل'], ['calm – nervous', 'هادئ – عصبي']] }],
       [
         { t: 'bullets', heading: 'examples', size: 12, items: ['My grandmother is old but very strong.', 'My sister has long curly hair.', 'My uncle is tall and funny.', 'My cousins are friendly and outgoing.'] },
         { t: 'callout', text: 'تجنّب الكلمات الجارحة مثل ugly / stupid / fat' },
@@ -285,7 +285,7 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
     { t: 'bar', title: 'Useful phrases - عبارات مفيدة' },
     { t: 'row', widths: '1fr 1fr', blocks: [
       [
-        { t: 'callout', text: 'التلميذ يقول' },
+        { t: 'sub', text: 'التلميذ يقول' },
         { t: 'bullets', box: true, size: 11.5, items: [
           'Can you repeat that, please? - هل يمكنك أن تعيد؟',
           'How do you spell "ruler"? - كيف تتهجّى ruler؟',
@@ -296,7 +296,7 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
         ] },
       ],
       [
-        { t: 'callout', text: 'الأستاذ يقول' },
+        { t: 'sub', text: 'الأستاذ يقول' },
         { t: 'bullets', box: true, size: 11.5, items: [
           'Open / Close your books. - افتحوا / أغلقوا كتبكم.',
           'Look at the board. - انظروا إلى السبورة.',
@@ -454,7 +454,7 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
     { t: 'grid', boxed: true, rows: [
       { dark: true, cells: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] },
       { cells: ['الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد'] },
-      { plain: true, span: [5, 2], cells: ['◀── weekdays - أيام العمل ──▶', '◀─ the weekend - نهاية الأسبوع ─▶'], size: 10.5 },
+      { plain: true, span: [5, 2], cells: ['weekdays - أيام العمل', 'the weekend - نهاية الأسبوع'], size: 10.5 },
     ] },
     { t: 'bar', title: 'Adverbs of frequency - ظروف التكرار' },
     { t: 'grid', rows: [
@@ -464,11 +464,11 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
     ] },
     { t: 'row', widths: '1fr 1fr', blocks: [
       [
-        { t: 'callout', text: 'الظرف يأتي قبل الفعل… ولكن بعد to be' },
+        { t: 'sub', text: 'الظرف يأتي قبل الفعل… ولكن بعد to be' },
         { t: 'grid', rows: [{ cells: ['I', 'always', 'drink tea.'], size: 11.5 }, { cells: ['She', 'never', 'works on Sunday.'], size: 11.5 }, { dark: true, cells: ['He is', 'often', 'late.'], size: 11.5 }] },
       ],
       [
-        { t: 'callout', text: 'How often…? - كم مرة؟' },
+        { t: 'sub', text: 'How often…? - كم مرة؟' },
         { t: 'bullets', box: true, size: 11.5, items: ['once a week - مرة في الأسبوع', 'twice a week - مرتين في الأسبوع', 'every day - كل يوم', 'on Mondays - أيام الإثنين', 'أيام الأسبوع تبدأ دائمًا بحرف كبير: Monday'] },
       ],
     ] },
@@ -606,7 +606,7 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
     { t: 'row', widths: '1.1fr 1fr', blocks: [
       [{ t: 'cards', cols: 2, items: [['⬆️', 'Go straight on', 'امشِ إلى الأمام (نيشان)'], ['⬅️', 'Turn left', 'انعطف يسارًا (ليسر)'], ['➡️', 'Turn right', 'انعطف يمينًا (ليمن)'], ['1️⃣', 'Take the first left', 'خذ أول شارع على اليسار'], ['🔄', 'At the roundabout', 'عند الدوّار (رومبوان)'], ['🚦', 'At the traffic lights', 'عند إشارات المرور (الضو)'], ['↔️', 'Opposite', 'مقابل (قبالة)'], ['📐', 'On the corner', 'في الزاوية (القنت)']] }],
       [
-        { t: 'callout', text: 'Important questions - أسئلة مهمة' },
+        { t: 'sub', text: 'Important questions - أسئلة مهمة' },
         { t: 'grid', boxed: true, rows: [
           { dark: true, cells: ['Excuse me, how do I get to the station?'], size: 11 },
           { cells: ['Go straight on and take the second right.'], size: 11 },
@@ -715,9 +715,9 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
     ] },
     { t: 'bar', title: 'like - أحب' },
     { t: 'row', widths: '1fr 1fr 1fr', blocks: [
-      [{ t: 'callout', text: '+ Positive - الإثبات' }, { t: 'pairs', cols: 1, side: true, size: 11, items: [['I like', 'أنا أحب'], ['You like', 'أنت تحب'], ['He likes', 'هو يحب'], ['She likes', 'هي تحب'], ['We like', 'نحن نحب'], ['They like', 'هم يحبون']] }],
-      [{ t: 'callout', text: '− Negative - النفي' }, { t: 'pairs', cols: 1, side: true, size: 11, items: [["I don't like", 'لا أحب'], ["You don't like", 'لا تحب'], ["He doesn't like", 'لا يحب'], ["She doesn't like", 'لا تحب'], ["We don't like", 'لا نحب'], ["They don't like", 'لا يحبون']] }],
-      [{ t: 'callout', text: '? Question - السؤال' }, { t: 'pairs', cols: 1, side: true, size: 11, items: [['Do I like…?', 'هل أحب…؟'], ['Do you like…?', 'هل تحب…؟'], ['Does he like…?', 'هل يحب…؟'], ['Does she like…?', 'هل تحب…؟'], ['Do we like…?', 'هل نحب…؟'], ['Do they like…?', 'هل يحبون…؟']] }],
+      [{ t: 'sub', text: '+ Positive - الإثبات' }, { t: 'pairs', cols: 1, side: true, size: 11, items: [['I like', 'أنا أحب'], ['You like', 'أنت تحب'], ['He likes', 'هو يحب'], ['She likes', 'هي تحب'], ['We like', 'نحن نحب'], ['They like', 'هم يحبون']] }],
+      [{ t: 'sub', text: '− Negative - النفي' }, { t: 'pairs', cols: 1, side: true, size: 11, items: [["I don't like", 'لا أحب'], ["You don't like", 'لا تحب'], ["He doesn't like", 'لا يحب'], ["She doesn't like", 'لا تحب'], ["We don't like", 'لا نحب'], ["They don't like", 'لا يحبون']] }],
+      [{ t: 'sub', text: '? Question - السؤال' }, { t: 'pairs', cols: 1, side: true, size: 11, items: [['Do I like…?', 'هل أحب…؟'], ['Do you like…?', 'هل تحب…؟'], ['Does he like…?', 'هل يحب…؟'], ['Does she like…?', 'هل تحب…؟'], ['Do we like…?', 'هل نحب…؟'], ['Do they like…?', 'هل يحبون…؟']] }],
     ] },
     { t: 'callout', text: 'بعد like نضيف ing للفعل: I like swimming. — She doesn\'t like cooking.' },
     { t: 'talk', title: 'Free time', art: '🎣', size: 12, lines: lines(`

@@ -95,6 +95,29 @@ export default function Level1BookPage() {
             </div>
           </Field>
 
+          <Field label="الكود (QR / Barcode)" hint="صورة واحدة تظهر في كل الصفحات. إلى أن تضيفها يبقى مكانها محجوزًا.">
+            <div className="space-y-2 rounded-xl border border-zinc-200 bg-white p-3">
+              <label className="flex items-center gap-2 text-[12.5px] font-bold text-zinc-700">
+                <input type="checkbox" checked={info.showCode} onChange={e => set('showCode')(e.target.checked)} className="w-4 h-4 accent-zinc-900" />
+                إظهار مكان الكود في كل صفحة
+              </label>
+              <div className="flex items-center gap-2">
+                <label className="flex-1 inline-flex items-center justify-center rounded-lg border border-dashed border-zinc-300 py-2 text-[12.5px] font-bold text-zinc-600 cursor-pointer hover:bg-zinc-50">
+                  {info.code ? 'تغيير صورة الكود' : 'رفع صورة الكود'}
+                  <input type="file" accept="image/*" className="hidden" onChange={e => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    const r = new FileReader()
+                    r.onload = () => set('code')(String(r.result))
+                    r.readAsDataURL(file)
+                    e.target.value = ''
+                  }} />
+                </label>
+                {info.code && <button type="button" onClick={() => set('code')(null)} className="rounded-lg border border-zinc-200 px-2.5 py-2 text-[12px] font-bold text-zinc-500 hover:bg-zinc-50">إزالة</button>}
+              </div>
+            </div>
+          </Field>
+
           <Field label="الطباعة" hint="الألوان: لون لكل درس ورموز ملوّنة. أبيض وأسود: للطباعة الاقتصادية.">
             <div className="grid grid-cols-2 gap-1.5">
               {[false, true].map(m => (
@@ -132,7 +155,7 @@ export default function Level1BookPage() {
               {text('اسم الأستاذ', 'teacherAr')}
               {text('الهاتف / واتساب', 'phone', true)}
               {text('الموقع', 'website', true)}
-              <button type="button" onClick={() => setInfo(s => ({ ...DEFAULT_INFO, buyer: s.buyer, buyerFemale: s.buyerFemale, stamp: s.stamp, mono: s.mono }))}
+              <button type="button" onClick={() => setInfo(s => ({ ...DEFAULT_INFO, buyer: s.buyer, buyerFemale: s.buyerFemale, stamp: s.stamp, mono: s.mono, code: s.code, showCode: s.showCode }))}
                 className="w-full text-[12px] font-bold text-zinc-400 hover:text-zinc-700">استرجاع البيانات الأصلية</button>
             </div>
           </Field>

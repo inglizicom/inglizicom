@@ -204,6 +204,7 @@ test.describe('flows', () => {
     await page.goto('/admin/level1-book')
     const sheets = page.locator('.print-sheet')
     await expect(sheets).toHaveCount(3 + 19)
+    await expect(page.getByText('QR / CODE')).toHaveCount(3 + 19)   // a code slot on every page
     await page.evaluate(() => document.fonts.ready)
     await page.waitForTimeout(500)
     const tooLong = await page.evaluate(() => [...document.querySelectorAll('.lb-body')].flatMap((b, i) => {
