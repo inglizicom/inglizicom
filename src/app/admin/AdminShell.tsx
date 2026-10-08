@@ -6,6 +6,7 @@ import CrmFrame from '@/components/crm/CrmFrame'
 const TITLES: [string, string][] = [
   ['/games',     'دفتر التمارين'],
   ['/vocab-book', 'كتاب المفردات'],
+  ['/level1-book', 'كتاب المستوى الأول'],
   ['/team',      'الفريق والرواتب'],
   ['/analytics', 'الإيرادات والتقارير'],
   ['/teachers',  'الأساتذة'],

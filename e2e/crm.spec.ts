@@ -40,6 +40,7 @@ const FOUNDER_PAGES = [
   '/admin/activity',
   '/admin/games',
   '/admin/vocab-book',
+  '/admin/level1-book',
 ]
 
 /** Against the device width — a phone zooming a too-wide page out also widens innerWidth. */
@@ -192,6 +193,27 @@ test.describe('flows', () => {
       return body.getBoundingClientRect().bottom > (s.lastElementChild as HTMLElement).getBoundingClientRect().top ? [i] : []
     }))
     expect(tooLong).toEqual([])
+    const pdf = (await page.pdf({ preferCSSPageSize: true, printBackground: true })).toString('latin1')
+    expect((pdf.match(/\/Type\s*\/Page[^s]/g) ?? []).length).toBe(await sheets.count())
+  })
+
+  test('level 1 book: every lesson fits its page, a copy carries its buyer, one PDF page per sheet', async ({ page }, info) => {
+    test.skip(info.project.name !== 'desktop', 'one PDF run is enough')
+    test.setTimeout(120_000)
+    await mockSupabase(page, { role: 'founder' })
+    await page.goto('/admin/level1-book')
+    const sheets = page.locator('.print-sheet')
+    await expect(sheets).toHaveCount(3 + 19)
+    await page.evaluate(() => document.fonts.ready)
+    await page.waitForTimeout(500)
+    const tooLong = await page.evaluate(() => [...document.querySelectorAll('.lb-body')].flatMap((b, i) => {
+      const inner = b.firstElementChild as HTMLElement
+      return inner.getBoundingClientRect().bottom > b.getBoundingClientRect().bottom + 1 ? [i + 1] : []
+    }))
+    expect(tooLong).toEqual([])
+    await page.getByPlaceholder('مثلًا: أنور').fill('أنور')
+    await expect(page.getByText('شكرًا من القلب يا أنور')).toBeVisible()
+    await expect(page.locator('.lb-foot').first()).toContainText('أنور')
     const pdf = (await page.pdf({ preferCSSPageSize: true, printBackground: true })).toString('latin1')
     expect((pdf.match(/\/Type\s*\/Page[^s]/g) ?? []).length).toBe(await sheets.count())
   })
