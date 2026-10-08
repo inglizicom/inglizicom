@@ -110,7 +110,7 @@ export const SECTION: Record<SectionKind, { en: string; ar: string; Icon: Lucide
  *  the white page, the footer, and the print rules. `header` is the band on
  *  top (unit frame or front-matter title); `children` is the page body.
  *  `bare` drops the padding and footer, for the full-bleed cover. */
-function Sheet({ label, filename, theme: t, footerMid, header, children, bare }: {
+export function Sheet({ label, filename, theme: t, footerMid, header, children, bare }: {
   label: string; filename: string; theme: SheetTheme; footerMid: string; header: ReactNode; children: ReactNode; bare?: boolean
 }) {
   const id = `sheet-${useId().replace(/:/g, '')}`
@@ -162,14 +162,26 @@ function Sheet({ label, filename, theme: t, footerMid, header, children, bare }:
           </>}
         </div>
       </div>
+      {/* Print: each sheet must start exactly at the top of a paper page.
+          Hiding the rest with `visibility` kept its space (the CRM header,
+          paddings, the gaps between sheets), so every sheet slid down and
+          its footer spilled onto a page of its own. Now everything that is
+          not a sheet leaves the layout (display: none), and every element
+          that contains sheets loses its margins, paddings and gaps. */}
       <style jsx global>{`
         @media print {
           @page { size: A4; margin: 0; }
-          body * { visibility: hidden; }
-          .print-sheet, .print-sheet * { visibility: visible; }
-          .print-sheet-wrap { break-after: page; }
+          html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
+          body *:not(:has(.print-sheet)):not(.print-sheet-wrap):not(.print-sheet-wrap *) { display: none !important; }
+          body *:has(.print-sheet) {
+            display: block !important; position: static !important; margin: 0 !important; padding: 0 !important;
+            border: 0 !important; gap: 0 !important; width: auto !important; max-width: none !important;
+            height: auto !important; min-height: 0 !important; overflow: visible !important;
+            box-shadow: none !important; border-radius: 0 !important; background: none !important; transform: none !important;
+          }
+          .print-sheet-wrap { break-after: page; break-inside: avoid; }
+          .print-sheet-wrap:last-of-type { break-after: auto; }
           .print-sheet { width: 210mm !important; height: 297mm !important; margin: 0 !important; }
-          html, body { background: #fff !important; }
           * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
       `}</style>
@@ -185,8 +197,8 @@ export function BareSheet({ theme, label, filename, children }: { theme: SheetTh
 
 /** The accent colour where it must read on the dark band (the grey of the
  *  black-and-white theme would vanish there). */
-const hi = (t: SheetTheme) => (t.id === 'mono' ? '#fff' : t.accent)
-const pageNoText = (n?: number | null) => (n ? String(n).padStart(2, '0') : '')
+export const hi = (t: SheetTheme) => (t.id === 'mono' ? '#fff' : t.accent)
+export const pageNoText = (n?: number | null) => (n ? String(n).padStart(2, '0') : '')
 
 const WorkbookStrip = ({ t }: { t: SheetTheme }) => (
   <div className="flex items-center justify-between px-6 py-1.5 text-[11px] font-extrabold" style={{ background: t.dark, color: '#fff' }} dir="ltr">

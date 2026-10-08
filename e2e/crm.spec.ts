@@ -39,6 +39,7 @@ const FOUNDER_PAGES = [
   '/admin/settings',
   '/admin/activity',
   '/admin/games',
+  '/admin/vocab-book',
 ]
 
 /** Against the device width — a phone zooming a too-wide page out also widens innerWidth. */
@@ -161,6 +162,38 @@ test.describe('flows', () => {
     await sel.selectOption('book')
     const welcomeFooter = await page.locator('.print-sheet').nth(1).evaluate(s => (s.lastElementChild as HTMLElement).innerText)
     expect(welcomeFooter).toContain('01')
+  })
+
+  test('workbook: printing gives exactly one A4 page per sheet (no footer spilling onto its own page)', async ({ page }, info) => {
+    test.skip(info.project.name !== 'desktop', 'one PDF run is enough')
+    await mockSupabase(page, { role: 'founder' })
+    await page.goto('/admin/games')
+    const sel = page.locator('select').first()
+    for (const v of ['7', 'front', 'cover']) {
+      await sel.selectOption(v)
+      const sheets = await page.locator('.print-sheet').count()
+      const pdf = (await page.pdf({ preferCSSPageSize: true, printBackground: true })).toString('latin1')
+      expect((pdf.match(/\/Type\s*\/Page[^s]/g) ?? []).length, `view ${v}`).toBe(sheets)
+    }
+  })
+
+  test('vocabulary book: every page fits above its footer, and it prints one A4 page per sheet', async ({ page }, info) => {
+    test.skip(info.project.name !== 'desktop', 'one PDF run is enough')
+    test.setTimeout(120_000)
+    await mockSupabase(page, { role: 'founder' })
+    await page.goto('/admin/vocab-book')
+    const sheets = page.locator('.print-sheet')
+    await expect(sheets.first()).toBeVisible()
+    // cover + contents + why + 19 units × 4 + index + answers + final + back cover
+    expect(await sheets.count()).toBeGreaterThan(2 + 2 + 19 * 4 + 3)
+    const tooLong = await page.evaluate(() => [...document.querySelectorAll('.print-sheet')].flatMap((s, i) => {
+      const body = s.querySelector(':scope > div.px-10')
+      if (!body) return []
+      return body.getBoundingClientRect().bottom > (s.lastElementChild as HTMLElement).getBoundingClientRect().top ? [i] : []
+    }))
+    expect(tooLong).toEqual([])
+    const pdf = (await page.pdf({ preferCSSPageSize: true, printBackground: true })).toString('latin1')
+    expect((pdf.match(/\/Type\s*\/Page[^s]/g) ?? []).length).toBe(await sheets.count())
   })
 
   test('payroll: recording a payment sends status paid with the method', async ({ page }) => {

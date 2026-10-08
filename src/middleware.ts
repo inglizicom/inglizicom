@@ -38,6 +38,7 @@ const ADMIN_ROUTES: Record<string, string> = {
   '/notifications': '/sales/notifications',   // 062
   '/channels':      '/sales/channels',        // 063
   '/games':       '/admin/games',
+  '/vocab-book':  '/admin/vocab-book',
   '/team':        '/admin/team',
   '/analytics':   '/admin/analytics',
   '/activity':    '/admin/activity',

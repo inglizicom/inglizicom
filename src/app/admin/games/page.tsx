@@ -11,7 +11,7 @@ import {
   ThemePicker, TranslateBody, WordSearchBody, WriteBody, type PageMeta, type SectionKind, type SheetTheme,
 } from './_shared'
 import { ContentsBody, HowToBody, ProgressBody, WelcomeBody, type ContentsRow } from './_front'
-import { CoverFields, CoverPage, DEFAULT_COVER, type CoverInfo } from './_cover'
+import { CoverFields, CoverPage, DEFAULT_COVER, workbookStats, type CoverInfo } from './_cover'
 
 const COVER_KEY = 'workbook-cover-v1'
 
@@ -241,7 +241,7 @@ export default function WorkbookPage() {
         </aside>
 
         <div className="space-y-8 min-w-0">
-          {withCover && <CoverPage info={cover} theme={theme} units={built.length} kinds={chosen.length} />}
+          {withCover && <CoverPage info={cover} theme={theme} stats={workbookStats(built.length, chosen.length)} />}
           {view !== 'cover' && chosen.length === 0 && <div className="text-center py-16 text-zinc-400 text-[13.5px]">اختر تمرينًا واحدًا على الأقل.</div>}
           {view !== 'cover' && shown.map(({ e, i }) => page(e, i))}
         </div>
