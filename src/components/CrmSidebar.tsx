@@ -8,7 +8,7 @@ import type { LucideIcon } from 'lucide-react'
 import {
   LayoutDashboard, Users, GraduationCap, CalendarCheck, CreditCard,
   BarChart3, Settings, LogOut, X, ShieldCheck, BookOpen, Inbox, Megaphone, Trophy,
-  UserCog, Presentation, Plus, Shield, ExternalLink, Wallet, Bell, Compass, Puzzle, Library,
+  UserCog, Presentation, Plus, Shield, ExternalLink, Wallet, Bell, Compass, Puzzle, Library, ClipboardCheck,
 } from 'lucide-react'
 
 /**
@@ -54,6 +54,7 @@ const GROUPS: { title: string; founder?: boolean; items: NavDef[] }[] = [
     { id: 'games',    labelAr: 'دفتر التمارين',       icon: Puzzle,    path: '/games',     founder: true },
     { id: 'vocabbook', labelAr: 'كتاب المفردات',      icon: Library,   path: '/vocab-book', founder: true },
     { id: 'level1book', labelAr: 'كتاب المستوى الأول', icon: BookOpen,  path: '/level1-book', founder: true },
+    { id: 'bacpack',    labelAr: 'حقيبة الباك',        icon: ClipboardCheck, path: '/bac-pack', founder: true },
     { id: 'team',     labelAr: 'الفريق والرواتب',      icon: Wallet,    path: '/team',      founder: true },
     { id: 'revenue',  labelAr: 'الإيرادات والتقارير', icon: BarChart3, path: '/analytics', founder: true },
     { id: 'admin',    labelAr: 'أدوات المؤسس',        icon: Shield,    path: '',           founder: true },

@@ -70,6 +70,12 @@ export type Block =
   | { t: 'callout'; text: string }
   /** A small coloured heading inside a section ("Appearance", "التلميذ يقول"). */
   | { t: 'sub'; text: string }
+  /** A numbered exercise (numbered across the book; answers go to the keys).
+   *  "___" in a question draws a blank; `options` are choices (a, b, c);
+   *  `lines` adds a writing line under each item. */
+  | { t: 'exercise'; title: string; instr?: string; items: ExerciseItem[]; cols?: 1 | 2; lines?: boolean; size?: number }
+  /** Answer keys: one line per exercise ("Ex. 12 · p. 14"), its answers numbered inline. */
+  | { t: 'key'; items: { label: string; answers: string[] }[] }
   /** Space. */
   | { t: 'gap'; h: number }
   /* ── one-off pictures ── */
@@ -78,7 +84,10 @@ export type Block =
   | { t: 'clocks'; times: string[] }
   | { t: 'pointing'; items: { far: boolean; many: boolean; caption: string; en: string; ar: string }[] }
 
-export interface Lesson { n: number; titleAr: string; blocks: Block[] }
+export interface ExerciseItem { q: string; a: string; options?: string[] }
+
+/** One page. `tag` replaces "Lesson NN" in the header ("Grammar 03"); `titleEn` names it in a contents list. */
+export interface Lesson { n: number; titleAr: string; blocks: Block[]; tag?: string; titleEn?: string }
 
 const lines = (s: string) => s.trim().split('\n').map(l => l.trim()).filter(Boolean)
 

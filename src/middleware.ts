@@ -40,6 +40,7 @@ const ADMIN_ROUTES: Record<string, string> = {
   '/games':       '/admin/games',
   '/vocab-book':  '/admin/vocab-book',
   '/level1-book': '/admin/level1-book',
+  '/bac-pack': '/admin/bac-pack',
   '/team':        '/admin/team',
   '/analytics':   '/admin/analytics',
   '/activity':    '/admin/activity',

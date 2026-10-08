@@ -41,6 +41,7 @@ const FOUNDER_PAGES = [
   '/admin/games',
   '/admin/vocab-book',
   '/admin/level1-book',
+  '/admin/bac-pack',
 ]
 
 /** Against the device width — a phone zooming a too-wide page out also widens innerWidth. */
@@ -223,6 +224,29 @@ test.describe('flows', () => {
     await expect(page.locator('.lb-foot').first()).toContainText('أنور')
     const pdf = (await page.pdf({ preferCSSPageSize: true, printBackground: true })).toString('latin1')
     expect((pdf.match(/\/Type\s*\/Page[^s]/g) ?? []).length).toBe(await sheets.count())
+  })
+
+  test('bac pack: every page fits, exams and keys are in, one PDF page per sheet', async ({ page }, info) => {
+    test.skip(info.project.name !== 'desktop', 'one PDF run is enough')
+    test.setTimeout(150_000)
+    await mockSupabase(page, { role: 'founder' })
+    await page.goto('/admin/bac-pack')
+    const sheets = page.locator('.print-sheet')
+    await expect(sheets.first()).toBeVisible()
+    const count = await sheets.count()
+    expect(count).toBeGreaterThanOrEqual(52)                            // cover + thanks + 50 numbered pages at least
+    await expect(page.getByText('QR / CODE')).toHaveCount(count - 1)   // every page but the cover
+    await page.evaluate(() => document.fonts.ready)
+    await page.waitForTimeout(800)
+    const tooLong = await page.evaluate(() => [...document.querySelectorAll('.lb-body')].flatMap(b => {
+      const inner = b.firstElementChild as HTMLElement
+      return inner.getBoundingClientRect().bottom > b.getBoundingClientRect().bottom + 1 ? [b.closest('[aria-label]')?.getAttribute('aria-label') ?? '?'] : []
+    }))
+    expect(tooLong).toEqual([])
+    await expect(page.locator('.print-sheet', { hasText: 'Text - Coming home' })).toContainText('Part I · Reading comprehension (15 pts)')
+    await expect(page.getByText('Ex. 1 · p. 4', { exact: true })).toBeVisible()
+    const pdf = (await page.pdf({ preferCSSPageSize: true, printBackground: true })).toString('latin1')
+    expect((pdf.match(/\/Type\s*\/Page[^s]/g) ?? []).length).toBe(count)
   })
 
   test('level 1 workbook: every page fits, conversations come from the book, one PDF page per sheet', async ({ page }, info) => {

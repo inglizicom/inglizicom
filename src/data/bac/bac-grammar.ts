@@ -1,0 +1,375 @@
+import { ex, mistakes, page, type BacPage } from './bac-helpers.ts'
+
+/** The grammar the Bac exam tests, one rule per page, then a mixed exam page. */
+
+const G = (n: number) => `Grammar ${String(n).padStart(2, '0')}`
+
+export const BAC_GRAMMAR: BacPage[] = [
+  page('grammar', G(1), 'Tenses review', 'مراجعة الأزمنة', [
+    { t: 'banner', title: 'Tenses review - مراجعة الأزمنة', icons: ['⏳', '📅'] },
+    { t: 'grid', rows: [
+      { dark: true, span: [3, 3, 5, 5], cells: ['Tense', 'Form', 'Use', 'Example'] },
+      { span: [3, 3, 5, 5], size: 11.5, cells: ['Present perfect', 'have / has + pp', 'past action with a result now; since, for, already, yet, ever', 'I have lived here since 2015.'] },
+      { span: [3, 3, 5, 5], size: 11.5, cells: ['Present perfect continuous', 'have / has been + -ing', 'action that started in the past and is still going on', 'She has been studying for two hours.'] },
+      { span: [3, 3, 5, 5], size: 11.5, cells: ['Past simple', 'verb + -ed / irregular', 'finished action at a known time: yesterday, ago, in 2010', 'We visited Fez last year.'] },
+      { span: [3, 3, 5, 5], size: 11.5, cells: ['Past continuous', 'was / were + -ing', 'action in progress in the past', 'I was reading when she called.'] },
+      { span: [3, 3, 5, 5], size: 11.5, cells: ['Past perfect', 'had + pp', 'the earlier of two past actions', 'When I arrived, the film had started.'] },
+    ] },
+    { t: 'callout', text: 'نستعمل since مع بداية زمنية: since 2015 — ونستعمل for مع مدة: for three years' },
+    mistakes([
+      ['I have seen him yesterday.', 'I saw him yesterday.'],
+      ['I live here since 2015.', 'I have lived here since 2015.'],
+      ['When I arrived, the film already started.', 'When I arrived, the film had already started.'],
+      ['She is waiting for two hours.', 'She has been waiting for two hours.'],
+    ]),
+    ex('Put the verbs in brackets in the correct tense.', '', [
+      ['I ___ (know) Sara since we were children.', 'have known'],
+      ['They ___ (travel) to Agadir last summer.', 'travelled'],
+      ['When we reached the station, the train ___ (already / leave).', 'had already left'],
+      ['She ___ (wait) for the bus for forty minutes, and it still hasn\'t come.', 'has been waiting'],
+      ['I ___ (watch) TV when the lights went out.', 'was watching'],
+      ['___ you ever ___ (be) to Chefchaouen?', 'Have … been'],
+      ['He ___ (finish) his homework two hours ago.', 'finished'],
+      ['By the time the teacher came, we ___ (write) the summary.', 'had written'],
+    ]),
+  ]),
+
+  page('grammar', G(2), 'Talking about the future', 'التعبير عن المستقبل', [
+    { t: 'banner', title: 'The future - المستقبل', icons: ['🔮', '🚀'] },
+    { t: 'grid', rows: [
+      { dark: true, span: [4, 5, 6], cells: ['Form', 'Use', 'Example'] },
+      { span: [4, 5, 6], size: 11.5, cells: ['will + verb', 'decisions now, predictions, promises', 'I think it will rain.'] },
+      { span: [4, 5, 6], size: 11.5, cells: ['be going to + verb', 'plans; something we can see coming', 'I\'m going to study medicine.'] },
+      { span: [4, 5, 6], size: 11.5, cells: ['present continuous', 'fixed arrangements', 'We are meeting the director tomorrow.'] },
+      { span: [4, 5, 6], size: 11.5, cells: ['will be + -ing (future continuous)', 'an action in progress at a future time', 'This time tomorrow, I will be taking the exam.'] },
+      { span: [4, 5, 6], size: 11.5, cells: ['will have + pp (future perfect)', 'finished before a time in the future', 'By 2030, scientists will have found new cures.'] },
+    ] },
+    { t: 'callout', text: 'مع by + وقت في المستقبل نستعمل غالبًا future perfect: by 2030, by next June' },
+    mistakes([
+      ['I will to travel tomorrow.', 'I will travel tomorrow.'],
+      ['By 2030, I will finish my studies.', 'By 2030, I will have finished my studies.'],
+      ['Look at that car! It will crash!', 'Look at that car! It\'s going to crash!'],
+    ]),
+    ex('Put the verbs in brackets in the correct future form.', '', [
+      ['Look at those dark clouds! It ___ (rain).', 'is going to rain'],
+      ['By next June, I ___ (pass) the Bac.', 'will have passed'],
+      ['This time next week, we ___ (lie) on the beach.', 'will be lying'],
+      ['"The phone is ringing." "I ___ (answer) it."', 'will answer'],
+      ['By 2035, Morocco ___ (build) more solar plants.', 'will have built'],
+      ['Don\'t call me at 8; I ___ (have) dinner then.', 'will be having'],
+      ['My brother has registered; he ___ (start) university in September.', 'is going to start / is starting'],
+    ]),
+    ex('Correct the mistake in each sentence.', '', [
+      ['This time tomorrow, I will sit in the exam room.', 'I will be sitting in the exam room.'],
+      ['She has decided: she will going to study law.', 'She is going to study law.'],
+      ['By June, we will finish all the lessons.', 'By June, we will have finished all the lessons.'],
+      ['"The phone is ringing." "I am going to answer it."', '"I\'ll answer it."'],
+    ], { lines: true }),
+  ]),
+
+  page('grammar', G(3), 'The passive voice', 'المبني للمجهول', [
+    { t: 'banner', title: 'The passive voice - المبني للمجهول', icons: ['🔄', '🏗️'] },
+    { t: 'grid', rows: [
+      { dark: true, span: [3, 5, 5], cells: ['Tense', 'Active', 'Passive'] },
+      { span: [3, 5, 5], size: 11.5, cells: ['Present simple', 'They clean the room.', 'The room is cleaned.'] },
+      { span: [3, 5, 5], size: 11.5, cells: ['Present continuous', 'They are cleaning the room.', 'The room is being cleaned.'] },
+      { span: [3, 5, 5], size: 11.5, cells: ['Past simple', 'They cleaned the room.', 'The room was cleaned.'] },
+      { span: [3, 5, 5], size: 11.5, cells: ['Present perfect', 'They have cleaned the room.', 'The room has been cleaned.'] },
+      { span: [3, 5, 5], size: 11.5, cells: ['Future', 'They will clean the room.', 'The room will be cleaned.'] },
+      { span: [3, 5, 5], size: 11.5, cells: ['Modal', 'They must clean the room.', 'The room must be cleaned.'] },
+    ] },
+    { t: 'bullets', cols: 3, size: 12, items: ['The object becomes the subject.', 'be (same tense) + past participle', 'by + agent only if it is important.'] },
+    mistakes([
+      ['The letter was wrote by Ali.', 'The letter was written by Ali.'],
+      ['English is speak all over the world.', 'English is spoken all over the world.'],
+      ['The road is repairing now.', 'The road is being repaired now.'],
+      ['The results will announced soon.', 'The results will be announced soon.'],
+    ]),
+    ex('Rewrite the sentences in the passive.', '', [
+      ['The government built a new hospital.', 'A new hospital was built (by the government).'],
+      ['People speak Tamazight in many regions.', 'Tamazight is spoken in many regions.'],
+      ['They will announce the results next week.', 'The results will be announced next week.'],
+      ['Someone has stolen my phone.', 'My phone has been stolen.'],
+      ['The workers are repairing the road.', 'The road is being repaired.'],
+      ['You must respect the rules.', 'The rules must be respected.'],
+      ['Alexander Fleming discovered penicillin.', 'Penicillin was discovered by Alexander Fleming.'],
+    ], { lines: true }),
+  ]),
+
+  page('grammar', G(4), 'Reported speech', 'الكلام المنقول', [
+    { t: 'banner', title: 'Reported speech - الكلام المنقول', icons: ['🗣️', '📝'] },
+    { t: 'row', widths: '1fr 1fr', blocks: [
+      [{ t: 'grid', title: 'Tenses go one step back', rows: [
+        { dark: true, cells: ['Direct', 'Reported'] },
+        { size: 11.5, cells: ['present simple', 'past simple'] },
+        { size: 11.5, cells: ['present continuous', 'past continuous'] },
+        { size: 11.5, cells: ['past simple / present perfect', 'past perfect'] },
+        { size: 11.5, cells: ['will / can / must', 'would / could / had to'] },
+      ] }],
+      [{ t: 'grid', title: 'Time and place words', rows: [
+        { dark: true, cells: ['Direct', 'Reported'] },
+        { size: 11.5, cells: ['now / today', 'then / that day'] },
+        { size: 11.5, cells: ['tomorrow', 'the next day'] },
+        { size: 11.5, cells: ['yesterday', 'the day before'] },
+        { size: 11.5, cells: ['here / this', 'there / that'] },
+      ] }],
+    ] },
+    { t: 'bullets', size: 12, items: [
+      'Questions: asked + if / wh- word + subject + verb (no question mark): "Where do you live?" → He asked me where I lived.',
+      'Orders: told + person + (not) to + verb: "Don\'t be late!" → She told us not to be late.',
+    ] },
+    mistakes([
+      ['He said me that he was tired.', 'He told me that he was tired.'],
+      ['She asked me where do I live.', 'She asked me where I lived.'],
+      ['He told us don\'t be late.', 'He told us not to be late.'],
+    ]),
+    ex('Put the sentences into reported speech.', '', [
+      ['"I am tired," she said.', 'She said (that) she was tired.'],
+      ['"We will travel tomorrow," they said.', 'They said they would travel the next day.'],
+      ['"Where do you live?" he asked me.', 'He asked me where I lived.'],
+      ['"Do you like English?" the teacher asked me.', 'The teacher asked me if / whether I liked English.'],
+      ['"Close the door," Mum told me.', 'Mum told me to close the door.'],
+      ['"I have finished my homework," Omar said.', 'Omar said (that) he had finished his homework.'],
+      ['"Don\'t be late," the coach told us.', 'The coach told us not to be late.'],
+    ], { lines: true }),
+  ]),
+
+  page('grammar', G(5), 'Conditionals', 'الجمل الشرطية', [
+    { t: 'banner', title: 'Conditionals - الجمل الشرطية', icons: ['🔀', '❓'] },
+    { t: 'grid', rows: [
+      { dark: true, span: [1, 3, 3, 6], cells: ['Type', 'If clause', 'Main clause', 'Use + example'] },
+      { span: [1, 3, 3, 6], size: 11.5, cells: ['0', 'present simple', 'present simple', 'general truths: If you heat ice, it melts.'] },
+      { span: [1, 3, 3, 6], size: 11.5, cells: ['1', 'present simple', 'will + verb', 'real future: If it rains, we will stay at home.'] },
+      { span: [1, 3, 3, 6], size: 11.5, cells: ['2', 'past simple', 'would + verb', 'unreal present: If I were rich, I would travel.'] },
+      { span: [1, 3, 3, 6], size: 11.5, cells: ['3', 'past perfect', 'would have + pp', 'unreal past: If he had studied, he would have passed.'] },
+    ] },
+    { t: 'callout', text: 'unless = if … not: Unless you study, you will fail. And "were" goes with every person: If I were you…' },
+    mistakes([
+      ['If I will see him, I will tell him.', 'If I see him, I will tell him.'],
+      ['If I was you, I would go.', 'If I were you, I would go.'],
+      ['If she had studied, she would pass.', 'If she had studied, she would have passed.'],
+    ]),
+    ex('Put the verbs in brackets in the correct form.', '', [
+      ['If you study hard, you ___ (pass) the Bac.', 'will pass'],
+      ['If I ___ (have) more time, I would learn Spanish.', 'had'],
+      ['If she had left earlier, she ___ (not / miss) the train.', 'wouldn\'t have missed'],
+      ['If you mix blue and yellow, you ___ (get) green.', 'get'],
+      ['We ___ (go) to the beach if the weather were nice.', 'would go'],
+      ['If they ___ (invite) me, I would have gone to the party.', 'had invited'],
+      ['___ you hurry, you will be late. (Unless / If)', 'Unless'],
+      ['If I were you, I ___ (talk) to the teacher.', 'would talk'],
+    ]),
+    ex('Rewrite using the word given.', '', [
+      ['I don\'t have a car, so I can\'t drive to school. (If)', 'If I had a car, I could drive to school.'],
+      ['He didn\'t wake up early, so he missed the bus. (If)', 'If he had woken up early, he wouldn\'t have missed the bus.'],
+      ['If you don\'t hurry, you will miss the train. (Unless)', 'Unless you hurry, you will miss the train.'],
+      ['Study hard or you won\'t pass. (If)', 'If you don\'t study hard, you won\'t pass.'],
+    ], { lines: true }),
+  ]),
+
+  page('grammar', G(6), 'Wish and regret', 'التمنّي والندم', [
+    { t: 'banner', title: 'Wish & regret - التمنّي والندم', icons: ['🌠', '😔'] },
+    { t: 'grid', rows: [
+      { dark: true, span: [4, 4, 6], cells: ['Form', 'Meaning', 'Example'] },
+      { span: [4, 4, 6], size: 11.5, cells: ['wish / if only + past simple', 'a wish about the present', 'I wish I had a car. (I don\'t have one.)'] },
+      { span: [4, 4, 6], size: 11.5, cells: ['wish / if only + past perfect', 'a regret about the past', 'I wish I had studied harder.'] },
+      { span: [4, 4, 6], size: 11.5, cells: ['wish + would + verb', 'we want someone to change', 'I wish you would stop shouting.'] },
+      { span: [4, 4, 6], size: 11.5, cells: ['should have + pp', 'regret or criticism (past)', 'You should have told me the truth.'] },
+    ] },
+    { t: 'callout', text: 'التمنّي يرجع خطوة إلى الماضي: الحاضر ← past simple ، الماضي ← past perfect' },
+    mistakes([
+      ['I wish I have a bigger room.', 'I wish I had a bigger room.'],
+      ['I wish I didn\'t eat so much yesterday.', 'I wish I hadn\'t eaten so much yesterday.'],
+      ['You should have tell me.', 'You should have told me.'],
+    ]),
+    ex('Rewrite the sentences using the word(s) given.', '', [
+      ['I don\'t speak German. (I wish)', 'I wish I spoke German.'],
+      ['I didn\'t revise for the test. (I wish)', 'I wish I had revised for the test.'],
+      ['He isn\'t tall enough to play basketball. (He wishes)', 'He wishes he were / was taller.'],
+      ['It\'s a pity I missed the bus. (If only)', 'If only I hadn\'t missed the bus.'],
+      ['You didn\'t call the doctor. (should)', 'You should have called the doctor.'],
+      ['My neighbours make noise every night. (I wish … would)', 'I wish my neighbours would stop making noise at night.'],
+      ['I lost my phone. (I wish)', 'I wish I hadn\'t lost my phone.'],
+    ], { lines: true }),
+  ]),
+
+  page('grammar', G(7), 'Relative clauses', 'الجمل الموصولة', [
+    { t: 'banner', title: 'Relative pronouns - أسماء الموصول', icons: ['🔗', '👥'] },
+    { t: 'grid', rows: [
+      { dark: true, cells: ['who', 'which', 'that', 'whose', 'where', 'when'] },
+      { size: 11.5, cells: ['people', 'things, animals', 'people or things (no commas)', 'possession', 'places', 'time'] },
+      { size: 11, cells: ['The man who called…', 'The book which I read…', 'The film that won…', 'The girl whose father…', 'The town where I live…', 'The day when we met…'] },
+    ] },
+    { t: 'row', widths: '1fr 1fr', blocks: [
+      [{ t: 'bullets', box: true, heading: 'Defining', size: 12, items: ['Necessary information, no commas.', 'The students who passed got a prize.'] }],
+      [{ t: 'bullets', box: true, heading: 'Non-defining', size: 12, items: ['Extra information, between commas, never "that".', 'Rabat, which is the capital, is on the coast.'] }],
+    ] },
+    mistakes([
+      ['The man which lives next door is a doctor.', 'The man who lives next door is a doctor.'],
+      ['Casablanca, that is the biggest city, is very busy.', 'Casablanca, which is the biggest city, is very busy.'],
+      ['The girl who her father is a pilot…', 'The girl whose father is a pilot…'],
+      ['This is the house where I was born in.', 'This is the house where I was born.'],
+    ]),
+    ex('Complete with a relative pronoun, or join the sentences.', '', [
+      ['The man ___ helped me is a doctor.', 'who'],
+      ['This is the book ___ I told you about.', 'which / that'],
+      ['Fez, ___ was founded in the 9th century, is a cultural capital.', 'which'],
+      ['The girl ___ father is a pilot sits next to me.', 'whose'],
+      ['I remember the day ___ we met.', 'when'],
+      ['This is the school ___ I studied.', 'where'],
+      ['I have a friend. She lives in Canada.', 'I have a friend who lives in Canada.'],
+      ['The phone is expensive. I bought it yesterday.', 'The phone (which / that) I bought yesterday is expensive.'],
+    ]),
+  ]),
+
+  page('grammar', G(8), 'Gerund or infinitive?', 'المصدر بـ -ing أم to؟', [
+    { t: 'banner', title: 'Gerund or infinitive? - -ing أم to', icons: ['🔤', '⚖️'] },
+    { t: 'grid', rows: [
+      { dark: true, cells: ['verb + -ing', 'verb + to + verb', 'both, different meaning'] },
+      { size: 11.5, cells: ['enjoy, avoid, finish, mind, keep, suggest', 'want, decide, hope, plan, refuse, agree', 'stop, remember, forget, try'] },
+      { size: 11.5, cells: ['can\'t stand, look forward to, be used to', 'promise, manage, afford, would like', 'I stopped smoking. ≠ I stopped to smoke.'] },
+      { size: 11.5, cells: ['after a preposition: good at, interested in', 'after adjectives: happy to, easy to', 'Remember to lock the door. ≠ I remember locking it.'] },
+    ] },
+    mistakes([
+      ['I enjoy to read.', 'I enjoy reading.'],
+      ['She decided studying abroad.', 'She decided to study abroad.'],
+      ['I look forward to meet you.', 'I look forward to meeting you.'],
+      ['He is interested in learn Chinese.', 'He is interested in learning Chinese.'],
+    ]),
+    ex('Put the verbs in brackets in the correct form.', '', [
+      ['I enjoy ___ (read) novels.', 'reading'],
+      ['She decided ___ (study) abroad.', 'to study'],
+      ['He is good at ___ (draw).', 'drawing'],
+      ['We look forward to ___ (meet) you.', 'meeting'],
+      ['They refused ___ (pay) the fine.', 'to pay'],
+      ['Would you mind ___ (open) the window?', 'opening'],
+      ['I stopped ___ (smoke) last year; it\'s healthier.', 'smoking'],
+      ['Don\'t forget ___ (lock) the door.', 'to lock'],
+    ], { cols: 2 }),
+    ex('Choose the correct form.', '', [
+      ['I remember ___ this film when I was a child.', 'b) watching', ['to watch', 'watching']],
+      ['Please remember ___ the lights before you leave.', 'a) to switch off', ['to switch off', 'switching off']],
+      ['On the way home, he stopped ___ some bread.', 'a) to buy', ['to buy', 'buying']],
+      ['I tried ___ the window, but it was stuck.', 'a) to open', ['to open', 'opening']],
+      ['We can\'t afford ___ a new car.', 'a) to buy', ['to buy', 'buying']],
+      ['She can\'t stand ___ in queues.', 'b) waiting', ['to wait', 'waiting']],
+    ], { cols: 2 }),
+  ]),
+
+  page('grammar', G(9), 'Modals', 'الأفعال الناقصة', [
+    { t: 'banner', title: 'Modals - الأفعال الناقصة', icons: ['🧭', '✅'] },
+    { t: 'grid', rows: [
+      { dark: true, span: [3, 4, 6], cells: ['Modal', 'Meaning', 'Example'] },
+      { span: [3, 4, 6], size: 11, cells: ['must / have to', 'obligation', 'You must wear a seatbelt.'] },
+      { span: [3, 4, 6], size: 11, cells: ['mustn\'t', 'prohibition', 'You mustn\'t smoke here.'] },
+      { span: [3, 4, 6], size: 11, cells: ['don\'t have to', 'no obligation', 'You don\'t have to come.'] },
+      { span: [3, 4, 6], size: 11, cells: ['should / ought to', 'advice', 'You should sleep early.'] },
+      { span: [3, 4, 6], size: 11, cells: ['must / can\'t', 'deduction: sure / impossible', 'He must be tired. / She can\'t be at home.'] },
+      { span: [3, 4, 6], size: 11, cells: ['may / might', 'possibility', 'It might rain later.'] },
+      { span: [3, 4, 6], size: 11, cells: ['must have / can\'t have + pp', 'deduction about the past', 'He must have missed the bus.'] },
+      { span: [3, 4, 6], size: 11, cells: ['should have + pp', 'past advice / regret', 'You should have studied.'] },
+    ] },
+    mistakes([
+      ['He must to study more.', 'He must study more.'],
+      ['You don\'t must smoke here.', 'You mustn\'t smoke here.'],
+      ['She can\'t has left; her bag is here.', 'She can\'t have left; her bag is here.'],
+      ['You should to see a doctor.', 'You should see a doctor.'],
+    ]),
+    ex('Choose the correct modal.', '', [
+      ['You ___ smoke in the hospital.', 'a) mustn\'t', ['mustn\'t', 'don\'t have to']],
+      ['It\'s Sunday; you ___ get up early.', 'b) don\'t have to', ['mustn\'t', 'don\'t have to']],
+      ['He has a fever. He ___ see a doctor.', 'a) should', ['should', 'can\'t']],
+      ['The lights are off. They ___ be at home.', 'b) can\'t', ['must', 'can\'t']],
+      ['She got 19 out of 20. She ___ studied a lot.', 'a) must have', ['must have', 'can\'t have']],
+      ['Take an umbrella; it ___ rain.', 'a) might', ['might', 'must']],
+      ['You failed the test. You ___ revised more.', 'a) should have', ['should have', 'must have']],
+    ], { cols: 2 }),
+  ]),
+
+  page('grammar', G(10), 'Linking words', 'أدوات الربط', [
+    { t: 'banner', title: 'Linking words - أدوات الربط', icons: ['🔗', '🧱'] },
+    { t: 'grid', rows: [
+      { dark: true, span: [2, 5, 5], cells: ['To show', '+ sentence', '+ noun / -ing'] },
+      { span: [2, 5, 5], size: 11.5, cells: ['Addition', 'and, moreover, furthermore, besides', 'in addition to'] },
+      { span: [2, 5, 5], size: 11.5, cells: ['Contrast', 'but, however, whereas, while, on the other hand', 'unlike'] },
+      { span: [2, 5, 5], size: 11.5, cells: ['Concession', 'although, though, even though', 'despite, in spite of'] },
+      { span: [2, 5, 5], size: 11.5, cells: ['Cause', 'because, as, since', 'because of, due to'] },
+      { span: [2, 5, 5], size: 11.5, cells: ['Result', 'so, therefore, as a result, consequently', 'because of this'] },
+      { span: [2, 5, 5], size: 11.5, cells: ['Purpose', 'so that + subject + can / could', 'to, in order to, so as to + verb'] },
+    ] },
+    { t: 'callout', text: 'Although he was tired, he finished. = Despite being tired, he finished. = Despite his tiredness, he finished.' },
+    mistakes([
+      ['Despite it was raining, we went out.', 'Although it was raining, … / Despite the rain, …'],
+      ['Although he is rich, but he is unhappy.', 'Although he is rich, he is unhappy.'],
+      ['I study hard for passing the Bac.', 'I study hard to pass the Bac.'],
+      ['Because of he was ill, he stayed at home.', 'Because he was ill, he stayed at home.'],
+    ]),
+    ex('Choose the correct linking word.', '', [
+      ['___ it was raining, they played the match.', 'a) Although', ['Although', 'Despite']],
+      ['___ the rain, they played the match.', 'b) Despite', ['Although', 'Despite']],
+      ['He stayed at home ___ he was sick.', 'a) because', ['because', 'because of']],
+      ['The flight was cancelled ___ the storm.', 'b) due to', ['because', 'due to']],
+      ['She works hard ___ succeed.', 'a) in order to', ['in order to', 'so that']],
+      ['I like tea, ___ my sister prefers coffee.', 'a) whereas', ['whereas', 'so']],
+      ['He didn\'t study; ___, he failed.', 'a) therefore', ['therefore', 'however']],
+      ['The city is beautiful. ___, it is very expensive.', 'a) However', ['However', 'Moreover']],
+    ], { cols: 2 }),
+  ]),
+
+  page('grammar', G(11), 'Causative and used to', 'have something done و used to', [
+    { t: 'banner', title: 'Causative & used to', icons: ['💇', '🕰️'] },
+    { t: 'grid', rows: [
+      { dark: true, span: [4, 4, 5], cells: ['Form', 'Meaning', 'Example'] },
+      { span: [4, 4, 5], size: 11.5, cells: ['have + object + pp', 'someone does it for you', 'I had my hair cut.'] },
+      { span: [4, 4, 5], size: 11.5, cells: ['get + object + pp', 'the same (more informal)', 'We got the car repaired.'] },
+      { span: [4, 4, 5], size: 11.5, cells: ['used to + verb', 'a past habit, not now', 'I used to play football.'] },
+      { span: [4, 4, 5], size: 11.5, cells: ['be used to + -ing / noun', 'be accustomed to', 'I am used to getting up early.'] },
+      { span: [4, 4, 5], size: 11.5, cells: ['get used to + -ing', 'become accustomed to', 'She got used to living alone.'] },
+    ] },
+    { t: 'callout', text: 'used to + verb = a finished past habit ≠ be used to + -ing = accustomed to something now' },
+    mistakes([
+      ['I cut my hair at the barber\'s.', 'I had my hair cut at the barber\'s.'],
+      ['I am used to wake up early.', 'I am used to waking up early.'],
+      ['I use to play football when I was young.', 'I used to play football when I was young.'],
+      ['Did you used to live here?', 'Did you use to live here?'],
+    ]),
+    ex('Complete the sentences.', '', [
+      ['I didn\'t repair my phone myself. I ___ (have / it / repair).', 'had it repaired'],
+      ['She ___ (have / her eyes / test) last week.', 'had her eyes tested'],
+      ['When I was a child, I ___ (play) in the street every evening.', 'used to play'],
+      ['He has lived in Ifrane for years; he is used to ___ (live) in the cold.', 'living'],
+      ['We ___ (get / the house / paint) next month.', 'are getting the house painted / will get the house painted'],
+      ['My grandfather ___ (not / use / have) a phone.', 'didn\'t use to have'],
+      ['It\'s hard at first, but you\'ll get used to ___ (wear) a uniform.', 'wearing'],
+    ]),
+    ex('Rewrite using the words given.', '', [
+      ['A mechanic repaired my father\'s car. (My father … had)', 'My father had his car repaired.'],
+      ['I played marbles as a child, but I don\'t now. (used to)', 'I used to play marbles as a child.'],
+      ['Living in a big city is new for him. (not used to)', 'He is not used to living in a big city.'],
+      ['Someone will paint our classroom next week. (We … get)', 'We will get our classroom painted next week.'],
+    ], { lines: true }),
+  ]),
+
+  page('grammar', G(12), 'Mixed exam practice', 'تمارين شاملة بصيغة الامتحان', [
+    { t: 'banner', title: 'Exam practice - تمارين بصيغة الامتحان', icons: ['🎯', '✍️'] },
+    { t: 'callout', text: 'في الامتحان: اقرأ الجملة كلها قبل أن تختار الزمن، وابحث عن الكلمات الدالة مثل since, ago, by, yesterday, if' },
+    ex('Put the words in brackets in the correct tense or form.', '', [
+      ['If I ___ (know) his number, I would call him.', 'knew'],
+      ['The museum ___ (visit) by thousands of tourists every year.', 'is visited'],
+      ['She asked me where I ___ (live).', 'lived'],
+      ['I wish I ___ (not / say) that yesterday.', 'hadn\'t said'],
+      ['By the end of the year, he ___ (save) enough money.', 'will have saved'],
+      ['They have been friends ___ 2010. (since / for)', 'since'],
+      ['He avoided ___ (answer) my question.', 'answering'],
+      ['The woman ___ son won the prize is my teacher. (who / whose)', 'whose'],
+    ], { cols: 2 }),
+    ex('Rewrite the sentences so that they mean the same.', '', [
+      ['"I can\'t come tomorrow," she said. → She said…', 'She said (that) she couldn\'t come the next day.'],
+      ['They are building a new stadium. → A new stadium…', 'A new stadium is being built.'],
+      ['I\'m sorry I didn\'t listen to your advice. → I wish…', 'I wish I had listened to your advice.'],
+      ['He was tired, but he went to work. → Despite…', 'Despite being tired, he went to work.'],
+      ['You didn\'t take your umbrella, so you got wet. → If…', 'If you had taken your umbrella, you wouldn\'t have got wet.'],
+      ['Someone cleans the classrooms every day. → The classrooms…', 'The classrooms are cleaned every day.'],
+    ], { lines: true }),
+  ]),
+]

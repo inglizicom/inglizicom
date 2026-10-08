@@ -107,6 +107,12 @@ function EnAr({ s, size }: { s: string; size: number }) {
   return <><span>{m[1]}</span><Gloss s={m[2]} size={size - 1} /></>
 }
 
+/** A question whose "___" become writing blanks. */
+function QuestionText({ text }: { text: string }) {
+  const parts = text.split('___')
+  return <>{parts.map((p, i) => <Fragment key={i}>{i > 0 && <span className="inline-block w-[74px] mx-1 border-b-[1.5px] border-[#64748B] translate-y-[2px]" />}<Mixed text={p} /></Fragment>)}</>
+}
+
 /** An Arabic gloss under an English word, aligned with it. */
 const Gloss = ({ s, size = 12.5, className = '' }: { s: string; size?: number; className?: string }) => (
   <div dir="rtl" className={`text-left font-bold leading-snug ${className}`} style={{ fontFamily: AR, fontSize: size, color: GREY_TEXT }}><RtlMixed text={s} /></div>
@@ -138,11 +144,11 @@ function CodeSlot({ info, size }: { info: BookInfo; size: number }) {
   )
 }
 
-function LessonHeader({ info, n }: { info: BookInfo; n: number }) {
+function LessonHeader({ info, n, tag }: { info: BookInfo; n: number; tag?: string }) {
   return (
     <div className="absolute inset-x-[22px] top-[10px] h-[62px] flex items-center gap-3" dir="ltr">
       <div className="w-[146px] shrink-0 text-center">
-        <div className="bg-[var(--m)] text-white rounded-lg text-[20px] font-extrabold leading-[34px]" style={{ fontFamily: HEAD }}>Lesson {pad(n)}</div>
+        <div className="bg-[var(--m)] text-white rounded-lg font-extrabold leading-[34px] whitespace-nowrap" style={{ fontFamily: HEAD, fontSize: (tag ?? '').length > 10 ? 16 : 20 }}>{tag ?? `Lesson ${pad(n)}`}</div>
         <div className="text-[11.5px] font-bold tracking-[0.14em] mt-0.5 whitespace-nowrap">{info.teacher}</div>
       </div>
       <div className="flex-1 h-[46px] bg-[var(--k)] text-white rounded-lg flex items-center justify-center gap-2 text-[19px] font-extrabold" style={{ fontFamily: AR }} dir="rtl">
@@ -212,8 +218,8 @@ function sectionsOf(blocks: Block[]): Block[][] {
   return out
 }
 
-export function LessonPage({ info, lesson, pageNo, talkNo, filename }: {
-  info: BookInfo; lesson: Lesson; pageNo: number; talkNo: Map<Block, number>; filename: string
+export function LessonPage({ info, lesson, pageNo, talkNo, exNo = new Map(), filename }: {
+  info: BookInfo; lesson: Lesson; pageNo: number; talkNo: Map<Block, number>; exNo?: Map<Block, number>; filename: string
 }) {
   const { bodyRef, innerRef } = useFillPage([lesson, info.title, info.level, info.showCode])
   const sections = sectionsOf(lesson.blocks)
@@ -222,13 +228,13 @@ export function LessonPage({ info, lesson, pageNo, talkNo, filename }: {
   sections.forEach(s => { if (s[0].t === 'bar') barNo.set(s[0], barNo.size + 1) })
   const base = pageNo - 1
   return (
-    <Frame info={info} colour={lessonColour(base)} label={`الدرس ${lesson.n} — ${lesson.titleAr} · صفحة ${pageNo}`} filename={filename}>
-      <LessonHeader info={info} n={lesson.n} />
+    <Frame info={info} colour={lessonColour(base)} label={`${lesson.tag ?? `الدرس ${lesson.n}`} — ${lesson.titleAr} · صفحة ${pageNo}`} filename={filename}>
+      <LessonHeader info={info} n={lesson.n} tag={lesson.tag} />
       <div ref={bodyRef} className="lb-body absolute inset-x-[24px] overflow-hidden" style={{ top: 84, bottom: 38 }} dir="ltr">
         <div ref={innerRef} className="flex flex-col gap-[13px]">
           {sections.map((sec, k) => (
             <section key={k} className="flex flex-col gap-[7px]" style={colourVars(info.mono, lessonColour(base + k))}>
-              {sec.map((b, i) => <BlockView key={i} b={b} ctx={{ talkNo, barNo }} />)}
+              {sec.map((b, i) => <BlockView key={i} b={b} ctx={{ talkNo, barNo, exNo }} />)}
             </section>
           ))}
         </div>
@@ -240,7 +246,7 @@ export function LessonPage({ info, lesson, pageNo, talkNo, filename }: {
 
 /* ── Blocks ──────────────────────────────────────────────────────────── */
 
-type Ctx = { talkNo: Map<Block, number>; barNo: Map<Block, number> }
+type Ctx = { talkNo: Map<Block, number>; barNo: Map<Block, number>; exNo: Map<Block, number> }
 
 function Blocks({ blocks, ctx }: { blocks: Block[]; ctx: Ctx }) {
   return <div className="flex flex-col gap-[7px]">{blocks.map((b, i) => <BlockView key={i} b={b} ctx={ctx} />)}</div>
@@ -303,7 +309,8 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
     )
     case 'sub': return (
       <div className="flex items-center gap-2 text-[15px] font-extrabold text-[var(--m)]" style={{ fontFamily: HEAD }} dir={isAr(b.text) ? 'rtl' : 'ltr'}>
-        <span className="w-[4px] h-[17px] rounded-full bg-[var(--m)] shrink-0" /><Txt s={b.text} />
+        {/* One span: bare mixed-script runs would each become a flex item and wrap apart. */}
+        <span className="w-[4px] h-[17px] rounded-full bg-[var(--m)] shrink-0" /><span className="min-w-0"><Txt s={b.text} /></span>
       </div>
     )
     case 'bullets': {
@@ -445,7 +452,19 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
     case 'text': return (
       <div>
         <div className="text-[14.5px] font-extrabold text-[var(--m)] mb-0.5" style={{ fontFamily: HEAD }}><Mixed text={b.label} /></div>
-        <p className="rounded-r-xl bg-[var(--s)] border-l-[4px] border-[var(--m)] px-3.5 py-2 font-bold leading-[1.6]" style={{ fontSize: b.size ?? 13 }}>{b.body}</p>
+        {b.body.includes('\n') ? (
+          // Several paragraphs: numbered in the margin, so questions can point at "§2".
+          <div className="rounded-r-xl bg-[var(--s)] border-l-[4px] border-[var(--m)] pl-2 pr-3.5 py-2 font-bold leading-[1.55] space-y-1" style={{ fontSize: b.size ?? 13 }}>
+            {b.body.split('\n').map((para, i) => (
+              <p key={i} className="flex gap-1.5">
+                <span className="shrink-0 w-4 text-right text-[10.5px] font-extrabold text-[var(--m)] pt-[2px]">{i + 1}</span>
+                <span>{para}</span>
+              </p>
+            ))}
+          </div>
+        ) : (
+          <p className="rounded-r-xl bg-[var(--s)] border-l-[4px] border-[var(--m)] px-3.5 py-2 font-bold leading-[1.6]" style={{ fontSize: b.size ?? 13 }}>{b.body}</p>
+        )}
       </div>
     )
     case 'grid': return (
@@ -478,6 +497,45 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
     case 'sticky': return (
       <div className="mx-auto w-[160px] bg-[var(--tip)] rounded-xl px-3 py-3 text-center text-[19px] font-bold leading-snug -rotate-3 shadow-[3px_4px_0_rgba(30,42,92,0.18)]" dir="rtl" style={{ fontFamily: AR }}>
         <span style={EMOJI}>📌</span> {b.text}
+      </div>
+    )
+    case 'exercise': return (
+      <div className="flex flex-col gap-1">
+        <div className="flex items-baseline gap-2 flex-wrap">
+          <span className="rounded-md bg-[var(--m)] text-white px-2 py-[1px] text-[12.5px] font-extrabold" style={{ fontFamily: HEAD }}>Exercise {ctx.exNo.get(b) ?? ''}</span>
+          <span className="text-[14.5px] font-extrabold text-[var(--m)] leading-tight" style={{ fontFamily: HEAD }}><Mixed text={b.title} /></span>
+        </div>
+        {b.instr && <div className="text-[12px] font-bold" style={{ color: GREY_TEXT }} dir={isAr(b.instr) ? 'rtl' : 'ltr'}><Txt s={b.instr} /></div>}
+        <div className="grid gap-x-6 gap-y-[5px]" style={{ gridTemplateColumns: `repeat(${b.cols ?? 1}, minmax(0, 1fr))` }}>
+          {b.items.map((it, i) => (
+            <div key={i} className="flex gap-1.5 font-bold leading-snug" style={{ fontSize: b.size ?? 13 }}>
+              <span className="shrink-0 min-w-[18px] text-right text-[var(--m)] font-extrabold">{i + 1}.</span>
+              <div className="flex-1 min-w-0">
+                <QuestionText text={it.q} />
+                {it.options && (
+                  <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-[12px] mt-0.5" style={{ color: GREY_TEXT }}>
+                    {it.options.map((o, k) => <span key={k}><b className="text-[var(--m)]">{'abcd'[k]})</b> {o}</span>)}
+                  </div>
+                )}
+                {b.lines && <div className="h-[19px] border-b border-dashed border-[#94A3B8]" />}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+    case 'key': return (
+      <div className="flex flex-col gap-[4px]">
+        {b.items.map((k, i) => (
+          <div key={i} className="flex gap-2 text-[11.5px] font-bold leading-snug">
+            <span className="shrink-0 w-[96px] text-[var(--m)] font-extrabold whitespace-nowrap" style={{ fontFamily: HEAD }}>{k.label}</span>
+            <span className="flex-1 min-w-0">
+              {k.answers.map((a, j) => (
+                <Fragment key={j}>{j > 0 && <span className="opacity-40"> · </span>}<b className="text-[var(--m)]">{j + 1}.</b> <Mixed text={a} /></Fragment>
+              ))}
+            </span>
+          </div>
+        ))}
       </div>
     )
     case 'family': return <FamilyTree vocab={b.vocab} people={b.people} />
