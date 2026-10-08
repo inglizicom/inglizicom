@@ -80,6 +80,17 @@ export default function Level1BookPage() {
             </select>
           </Field>
 
+          <Field label="الطباعة" hint="الألوان: لون لكل درس ورموز ملوّنة. أبيض وأسود: للطباعة الاقتصادية.">
+            <div className="grid grid-cols-2 gap-1.5">
+              {[false, true].map(m => (
+                <button key={String(m)} type="button" onClick={() => set('mono')(m)} aria-pressed={info.mono === m}
+                  className={`rounded-lg border py-1.5 text-[12.5px] font-bold ${info.mono === m ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white border-zinc-200 text-zinc-600'}`}>
+                  {m ? 'أبيض وأسود' : 'بالألوان 🎨'}
+                </button>
+              ))}
+            </div>
+          </Field>
+
           <Field label="نسخة لمشترٍ" hint="اسمه يظهر في صفحة الشكر، وفي تذييل كل صفحة إن شئت — ويُضاف إلى أسماء الملفات.">
             <div className="space-y-2 rounded-xl border border-zinc-200 bg-white p-3">
               {text('اسم المشتري', 'buyer', false, 'مثلًا: أنور')}
@@ -106,7 +117,7 @@ export default function Level1BookPage() {
               {text('اسم الأستاذ', 'teacherAr')}
               {text('الهاتف / واتساب', 'phone', true)}
               {text('الموقع', 'website', true)}
-              <button type="button" onClick={() => setInfo(s => ({ ...DEFAULT_INFO, buyer: s.buyer, buyerFemale: s.buyerFemale, stamp: s.stamp }))}
+              <button type="button" onClick={() => setInfo(s => ({ ...DEFAULT_INFO, buyer: s.buyer, buyerFemale: s.buyerFemale, stamp: s.stamp, mono: s.mono }))}
                 className="w-full text-[12px] font-bold text-zinc-400 hover:text-zinc-700">استرجاع البيانات الأصلية</button>
             </div>
           </Field>

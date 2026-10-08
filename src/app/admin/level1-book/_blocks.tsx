@@ -9,10 +9,11 @@ import { BareSheet, THEMES } from '../games/_shared'
 import type { Block, FlagId, Lesson } from '@/data/level1-book'
 
 /**
- * The look of «الإنجليزية من الصفر (الدارجة)»: black and white, bold
- * handwritten type (Mali for English, Baloo Bhaijaan 2 / Lalezar for
- * Arabic), black bars and labels, grey clip-art (emoji in grayscale), and a
- * header / footer on every lesson. Each lesson page is drawn from its blocks
+ * The look of «الإنجليزية من الصفر (الدارجة)»: bold handwritten type (Mali
+ * for English, Baloo Bhaijaan 2 / Lalezar for Arabic), coloured bars and
+ * labels (one colour per lesson, or all black for the cheap print), emoji
+ * pictures in colour (grey in black and white), and a header / footer on
+ * every lesson. Each lesson page is drawn from its blocks
  * (data/level1-book.ts); pages are full-bleed A4 sheets (BareSheet), so
  * print and PNG behave like the workbook's.
  */
@@ -21,7 +22,30 @@ const FONTS_HREF = 'https://fonts.googleapis.com/css2?family=Mali:wght@500;600;7
 export const EN = "'Mali', 'Baloo Bhaijaan 2', sans-serif"
 export const AR = "'Baloo Bhaijaan 2', 'Tajawal', sans-serif"
 export const AR_DISPLAY = "'Lalezar', 'Baloo Bhaijaan 2', sans-serif"
-const GREY: CSSProperties = { filter: 'grayscale(1) contrast(1.15)' }
+/** Emoji pictures: full colour, or grey in the black-and-white print (--e). */
+const EMOJI: CSSProperties = { filter: 'var(--e)' }
+
+/**
+ * Colours come from CSS variables set on each page: --m the lesson's colour
+ * (bars, labels, borders), --s its soft tint, --k the dark ink (header
+ * title, footer, notes, text), --e the emoji filter. Each lesson takes the
+ * next colour of PALETTE; `mono` prints everything black.
+ */
+export const PALETTE = [
+  { m: '#2563EB', s: '#EFF6FF' }, // blue
+  { m: '#E11D48', s: '#FFF1F2' }, // rose
+  { m: '#0D9488', s: '#F0FDFA' }, // teal
+  { m: '#7C3AED', s: '#F5F3FF' }, // violet
+  { m: '#EA580C', s: '#FFF7ED' }, // orange
+  { m: '#16A34A', s: '#F0FDF4' }, // green
+]
+const INK = '#1E2A5C', BRAND = '#2B3990'
+function vars(mono: boolean, colour: { m: string; s: string }): CSSProperties {
+  return (mono
+    ? { '--m': '#000', '--s': '#F4F4F5', '--k': '#000', '--e': 'grayscale(1) contrast(1.15)' }
+    : { '--m': colour.m, '--s': colour.s, '--k': INK, '--e': 'none' }) as CSSProperties
+}
+export const lessonColour = (i: number) => PALETTE[i % PALETTE.length]
 const MONO = THEMES.find(t => t.id === 'mono') ?? THEMES[0]
 const pad = (n: number) => String(n).padStart(2, '0')
 
@@ -38,11 +62,13 @@ export interface BookInfo {
   title: string; level: string; teacher: string; teacherAr: string; phone: string; website: string
   /** Who this copy is for — the thank-you page and, if `stamp`, every footer. */
   buyer: string; buyerFemale: boolean; stamp: boolean
+  /** Black-and-white print instead of colour. */
+  mono: boolean
 }
 
 export const DEFAULT_INFO: BookInfo = {
   title: 'الإنجليزية من الصفر (الدارجة)', level: 'Level 1 - (A0 - A1)', teacher: 'Hamza El Qasraoui', teacherAr: 'حمزة القصراوي',
-  phone: '0707902091', website: 'www.inglizi.com', buyer: '', buyerFemale: false, stamp: true,
+  phone: '0707902091', website: 'www.inglizi.com', buyer: '', buyerFemale: false, stamp: true, mono: false,
 }
 
 const intl = (phone: string) => (phone.startsWith('0') ? `+212${phone.slice(1)}` : phone)
@@ -57,12 +83,14 @@ const isAr = (s: string) => /^[^A-Za-z؀-ۿ]*[؀-ۿ]/.test(s)
 
 /* ── Page frame ──────────────────────────────────────────────────────── */
 
-function Frame({ info, label, filename, children }: { info: BookInfo; label: string; filename: string; children: ReactNode }) {
+function Frame({ info, label, filename, colour = { m: BRAND, s: '#EEF1FB' }, children }: {
+  info: BookInfo; label: string; filename: string; colour?: { m: string; s: string }; children: ReactNode
+}) {
   useBookFonts()
   return (
     <BareSheet theme={MONO} label={label} filename={filename}>
-      {/* crm-raw: the CRM repaints black as navy (tailwind.config.js); this book is printed black. */}
-      <div className="crm-raw absolute inset-0 bg-white text-black overflow-hidden" style={{ fontFamily: EN }}>{children}</div>
+      {/* crm-raw: the CRM repaints black as navy (tailwind.config.js); the book sets its own colours. */}
+      <div className="crm-raw absolute inset-0 bg-white text-[var(--k)] overflow-hidden" style={{ fontFamily: EN, ...vars(info.mono, colour) }}>{children}</div>
     </BareSheet>
   )
 }
@@ -71,14 +99,14 @@ function LessonHeader({ info, n }: { info: BookInfo; n: number }) {
   return (
     <div className="absolute inset-x-[22px] top-[10px] flex items-start justify-between" dir="ltr">
       <div className="w-[158px] text-center">
-        <div className="bg-black text-white rounded-[3px] text-[19px] font-bold leading-[30px]">Lesson {pad(n)}</div>
+        <div className="bg-[var(--m)] text-white rounded-[3px] text-[19px] font-bold leading-[30px]">Lesson {pad(n)}</div>
         <div className="text-[12px] font-bold underline tracking-[0.16em] mt-0.5 whitespace-nowrap">{info.teacher}</div>
       </div>
-      <div className="mt-[3px] bg-black text-white rounded-[3px] px-5 h-[42px] flex items-center gap-2 text-[19px] font-bold" style={{ fontFamily: AR }} dir="rtl">
+      <div className="mt-[3px] bg-[var(--k)] text-white rounded-[3px] px-5 h-[42px] flex items-center gap-2 text-[19px] font-bold" style={{ fontFamily: AR }} dir="rtl">
         <span>{info.title}</span><Lightbulb size={18} />
       </div>
       <div className="w-[172px] text-center">
-        <div className="bg-black text-white rounded-[3px] text-[17px] font-bold leading-[30px] whitespace-nowrap">{info.level}</div>
+        <div className="bg-[var(--m)] text-white rounded-[3px] text-[17px] font-bold leading-[30px] whitespace-nowrap">{info.level}</div>
         <div className="flex justify-between text-[11.5px] font-bold underline mt-0.5">
           <span>{info.phone}</span><span dir="rtl" style={{ fontFamily: AR }}>لطلب الكتاب</span>
         </div>
@@ -89,7 +117,7 @@ function LessonHeader({ info, n }: { info: BookInfo; n: number }) {
 
 function Footer({ info, page }: { info: BookInfo; page: string }) {
   return (
-    <div className="lb-foot absolute inset-x-[22px] bottom-[10px] h-[21px] bg-black text-white flex items-center justify-between px-3 text-[11px] font-bold" dir="ltr">
+    <div className="lb-foot absolute inset-x-[22px] bottom-[10px] h-[21px] bg-[var(--k)] text-white flex items-center justify-between px-3 text-[11px] font-bold" dir="ltr">
       <span>{info.website}</span>
       <span>{page}{info.stamp && info.buyer.trim() ? <span className="opacity-70" style={{ fontFamily: AR }}> · {info.buyer.trim()}</span> : null}</span>
       <span>{info.phone}</span>
@@ -135,7 +163,7 @@ export function LessonPage({ info, lesson, pageNo, talkNo, filename }: {
 }) {
   const { bodyRef, innerRef } = useFillPage([lesson, info.title, info.level])
   return (
-    <Frame info={info} label={`الدرس ${lesson.n} — ${lesson.titleAr} · صفحة ${pageNo}`} filename={filename}>
+    <Frame info={info} colour={lessonColour(pageNo - 1)} label={`الدرس ${lesson.n} — ${lesson.titleAr} · صفحة ${pageNo}`} filename={filename}>
       <LessonHeader info={info} n={lesson.n} />
       <div ref={bodyRef} className="lb-body absolute inset-x-[22px] overflow-hidden" style={{ top: 80, bottom: 36 }} dir="ltr">
         <div ref={innerRef}><Blocks blocks={lesson.blocks} talkNo={talkNo} /></div>
@@ -153,7 +181,7 @@ function Blocks({ blocks, talkNo }: { blocks: Block[] } & Ctx) {
   return <div className="flex flex-col gap-[7px]">{blocks.map((b, i) => <BlockView key={i} b={b} talkNo={talkNo} />)}</div>
 }
 
-const Dot = () => <span className="mt-[0.5em] w-[6px] h-[6px] rounded-full bg-black shrink-0" />
+const Dot = () => <span className="mt-[0.5em] w-[6px] h-[6px] rounded-full bg-[var(--m)] shrink-0" />
 
 function Bullet({ children, tick }: { children: ReactNode; tick?: boolean }) {
   return (
@@ -174,22 +202,28 @@ function Columns({ items, cols, render }: { items: string[]; cols: number; rende
   )
 }
 
+/** Arabic text quoting English ("مرافق + There is / are"): each English run isolated. */
+function RtlMixed({ text }: { text: string }) {
+  const parts = text.split(/([A-Za-z][A-Za-z\s/'’.?-]*[A-Za-z?.]|[A-Za-z])/).filter(Boolean)
+  return <>{parts.map((p, i) => (/[A-Za-z]/.test(p) ? <bdi key={i} dir="ltr">{p}</bdi> : <Fragment key={i}>{p}</Fragment>))}</>
+}
+
 /** All-Arabic text runs right to left; mixed text keeps each run in order. */
 const Txt = ({ s }: { s: string }) => (isAr(s) ? <span dir="rtl" style={{ fontFamily: AR }}>{s}</span> : <Mixed text={s} />)
 
 const BarTitle = ({ title, icon }: { title: string; icon?: string }) => (
-  <div className="bg-black text-white rounded-[3px] px-3 min-h-[30px] py-0.5 flex items-center gap-2 text-[17px] font-bold leading-tight">
+  <div className="bg-[var(--m)] text-white rounded-[3px] px-3 min-h-[30px] py-0.5 flex items-center gap-2 text-[17px] font-bold leading-tight">
     <span className="w-[7px] h-[7px] rounded-full bg-white shrink-0" />
-    {icon && <span style={GREY}>{icon}</span>}
+    {icon && <span style={EMOJI}>{icon}</span>}
     <span><Mixed text={title} /></span>
   </div>
 )
 
 const Label = ({ children, size = 11.5, className = '' }: { children: ReactNode; size?: number; className?: string }) => (
-  <div className={`bg-black text-white rounded-[2px] px-1.5 py-[2px] text-center font-bold leading-tight ${className}`} style={{ fontSize: size }}>{children}</div>
+  <div className={`bg-[var(--m)] text-white rounded-[2px] px-1.5 py-[2px] text-center font-bold leading-tight ${className}`} style={{ fontSize: size }}>{children}</div>
 )
 const WhiteBox = ({ children, size = 11.5, className = '' }: { children: ReactNode; size?: number; className?: string }) => (
-  <div className={`border-[1.5px] border-black rounded-[2px] px-1.5 py-[1px] text-center font-bold leading-tight ${className}`} style={{ fontSize: size }}>{children}</div>
+  <div className={`border-[1.5px] border-[var(--m)] bg-white rounded-[2px] px-1.5 py-[1px] text-center font-bold leading-tight ${className}`} style={{ fontSize: size }}>{children}</div>
 )
 
 function BlockView({ b, talkNo }: { b: Block } & Ctx) {
@@ -201,13 +235,13 @@ function BlockView({ b, talkNo }: { b: Block } & Ctx) {
     case 'bar': return <BarTitle title={b.title} icon={b.icon} />
     case 'banner': return (
       <div className="flex items-center justify-center gap-4">
-        {b.icons?.[0] ? <span className="text-[28px]" style={GREY}>{b.icons[0]}</span> : null}
-        <div className="bg-black text-white rounded-[3px] px-8 h-[34px] flex items-center text-[19px] font-bold"><Mixed text={b.title} /></div>
-        {b.icons?.[1] ? <span className="text-[28px]" style={GREY}>{b.icons[1]}</span> : null}
+        {b.icons?.[0] ? <span className="text-[28px]" style={EMOJI}>{b.icons[0]}</span> : null}
+        <div className="bg-[var(--m)] text-white rounded-[3px] px-8 h-[34px] flex items-center text-[19px] font-bold"><Mixed text={b.title} /></div>
+        {b.icons?.[1] ? <span className="text-[28px]" style={EMOJI}>{b.icons[1]}</span> : null}
       </div>
     )
     case 'callout': return (
-      <div className="bg-black text-white rounded-[3px] px-3 py-[3px] text-center text-[13px] font-bold leading-snug"><Txt s={b.text} /></div>
+      <div className="bg-[var(--k)] text-white rounded-[3px] px-3 py-[3px] text-center text-[13px] font-bold leading-snug"><Txt s={b.text} /></div>
     )
     case 'bullets': {
       const body = (
@@ -218,19 +252,22 @@ function BlockView({ b, talkNo }: { b: Block } & Ctx) {
             : <Bullet tick={b.tick}><Mixed text={s} /></Bullet>} />
         </div>
       )
-      return b.box ? <div className="border-[1.5px] border-black rounded-[3px] px-3 py-1.5">{body}</div> : body
+      return b.box ? <div className="border-[1.5px] border-[var(--m)] rounded-[3px] px-3 py-1.5">{body}</div> : body
     }
     case 'talk': {
       const n = talkNo.get(b)
       const title = b.full ?? `Practice - Conversation ${pad(n ?? 0)}:${b.title ? ` ${b.title}` : ''}`
       const list = (
         <div style={{ fontSize: b.size ?? 12.5 }} className="font-bold">
-          <Columns items={b.lines} cols={b.cols ?? 1} render={s => <Bullet><Mixed text={s} /></Bullet>} />
+          <Columns items={b.lines} cols={b.cols ?? 1} render={s => {
+            const m = s.match(/^([^:]{1,18}):\s(.*)$/)
+            return <Bullet>{m ? <><span className="text-[var(--m)] font-extrabold">{m[1]}:</span> <Mixed text={m[2]} /></> : <Mixed text={s} />}</Bullet>
+          }} />
         </div>
       )
       const side = b.aside
         ? <div className="w-[230px]"><Blocks blocks={b.aside} talkNo={talkNo} /></div>
-        : b.art ? <span className="leading-none px-2" style={{ ...GREY, fontSize: b.cols === 2 ? 96 : 150 }}>{b.art}</span> : null
+        : b.art ? <span className="leading-none px-2" style={{ ...EMOJI, fontSize: b.cols === 2 ? 96 : 150 }}>{b.art}</span> : null
       return (
         <div className="flex flex-col gap-[6px]">
           <BarTitle title={title} icon={b.full ? undefined : '🗣️'} />
@@ -239,13 +276,13 @@ function BlockView({ b, talkNo }: { b: Block } & Ctx) {
       )
     }
     case 'alphabet': return (
-      <div className="bg-black text-white rounded-[3px] h-[38px] flex items-center justify-between px-4 text-[20px] font-bold">
+      <div className="bg-[var(--m)] text-white rounded-[3px] h-[38px] flex items-center justify-between px-4 text-[20px] font-bold">
         {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(l => <span key={l}>{l}</span>)}
       </div>
     )
     case 'numbers': return <Numbers />
     case 'flags': return (
-      <div className="border-[1.5px] border-black rounded-[3px] px-3 py-2 grid grid-cols-3 gap-x-4 gap-y-2.5">
+      <div className="border-[1.5px] border-[var(--m)] rounded-[3px] px-3 py-2 grid grid-cols-3 gap-x-4 gap-y-2.5">
         {b.items.map(f => (
           <div key={f.flag} className="flex items-center gap-3 text-[12.5px] font-bold leading-snug">
             <Flag id={f.flag} />
@@ -273,10 +310,10 @@ function BlockView({ b, talkNo }: { b: Block } & Ctx) {
       </div>
     )
     case 'cards': return (
-      <div className="border-[1.5px] border-black rounded-[3px] px-2 py-2 grid gap-x-3 gap-y-2" style={{ gridTemplateColumns: `repeat(${b.cols ?? 4}, minmax(0, 1fr))` }}>
+      <div className="border-[1.5px] border-[var(--m)] bg-[var(--s)] rounded-[6px] px-2 py-2 grid gap-x-3 gap-y-2" style={{ gridTemplateColumns: `repeat(${b.cols ?? 4}, minmax(0, 1fr))` }}>
         {b.items.map(([icon, en, ar], i) => (
           <div key={i} className="flex items-center gap-2 min-w-0">
-            <span className="text-[34px] leading-none shrink-0 w-[42px] text-center" style={GREY}>{icon}</span>
+            <span className="text-[34px] leading-none shrink-0 w-[42px] text-center" style={EMOJI}>{icon}</span>
             <div className="flex-1 min-w-0 flex flex-col gap-[3px]">
               <Label size={en.length > 14 ? 10.5 : 11.5}>{en}</Label>
               <WhiteBox size={ar.length > 16 ? 10 : 11.5}><span dir="rtl" style={{ fontFamily: AR }}>{ar}</span></WhiteBox>
@@ -294,7 +331,7 @@ function BlockView({ b, talkNo }: { b: Block } & Ctx) {
           )
           if (b.arTop) return (
             <div key={i} className="flex flex-col gap-[2px]">
-              <div className="text-center font-bold leading-none text-[10.5px] border-b border-black pb-[2px]" dir="rtl" style={{ fontFamily: AR }}>{ar}</div>
+              <div className="text-center font-bold leading-none text-[10.5px] border-b border-[var(--m)] pb-[2px]" dir="rtl" style={{ fontFamily: AR }}>{ar}</div>
               <Label size={b.size}>{en}</Label>
             </div>
           )
@@ -319,8 +356,8 @@ function BlockView({ b, talkNo }: { b: Block } & Ctx) {
     case 'boxes': return (
       <div className="grid gap-x-3 gap-y-4 pt-2" style={{ gridTemplateColumns: `repeat(${b.cols}, minmax(0, 1fr))` }}>
         {b.items.map(x => (
-          <div key={x.title} className="relative border-[1.5px] border-black rounded-[3px] px-2.5 pt-4 pb-1.5 text-[12.5px] font-bold">
-            <span className="absolute -top-3 left-2 bg-black text-white rounded-[3px] px-3 py-[1px] text-[13px] font-bold">{x.title}</span>
+          <div key={x.title} className="relative border-[1.5px] border-[var(--m)] rounded-[3px] px-2.5 pt-4 pb-1.5 text-[12.5px] font-bold">
+            <span className="absolute -top-3 left-2 bg-[var(--m)] text-white rounded-[3px] px-3 py-[1px] text-[13px] font-bold">{x.title}</span>
             {x.lines.map(l => <Bullet key={l}>{l}</Bullet>)}
           </div>
         ))}
@@ -328,8 +365,8 @@ function BlockView({ b, talkNo }: { b: Block } & Ctx) {
     )
     case 'text': return (
       <div>
-        <span className="inline-block bg-black text-white rounded-t-[3px] px-2 py-[1px] text-[12.5px] font-bold"><Mixed text={b.label} /></span>
-        <div className="border-[1.5px] border-black rounded-[3px] rounded-tl-none px-3 py-1.5 font-bold leading-[1.55]" style={{ fontSize: b.size ?? 13 }}>{b.body}</div>
+        <span className="inline-block bg-[var(--m)] text-white rounded-t-[3px] px-2 py-[1px] text-[12.5px] font-bold"><Mixed text={b.label} /></span>
+        <div className="border-[1.5px] border-[var(--m)] rounded-[3px] rounded-tl-none px-3 py-1.5 font-bold leading-[1.55]" style={{ fontSize: b.size ?? 13 }}>{b.body}</div>
       </div>
     )
     case 'grid': {
@@ -346,11 +383,11 @@ function BlockView({ b, talkNo }: { b: Block } & Ctx) {
       ))
       const inner = (
         <div className="flex flex-col gap-1">
-          {b.title && <div className="bg-black text-white text-center rounded-[2px] text-[12px] font-bold py-[2px]"><Mixed text={b.title} /></div>}
+          {b.title && <div className="bg-[var(--m)] text-white text-center rounded-[2px] text-[12px] font-bold py-[2px]"><Mixed text={b.title} /></div>}
           {rows}
         </div>
       )
-      return b.boxed ? <div className="border-[1.5px] border-black rounded-[3px] p-1.5">{inner}</div> : inner
+      return b.boxed ? <div className="border-[1.5px] border-[var(--m)] rounded-[3px] p-1.5">{inner}</div> : inner
     }
     case 'chips': return (
       <div className="flex justify-between gap-2">
@@ -362,9 +399,9 @@ function BlockView({ b, talkNo }: { b: Block } & Ctx) {
         ))}
       </div>
     )
-    case 'art': return <div className="text-center leading-none" style={{ ...GREY, fontSize: b.size ?? 90 }}>{b.icon}</div>
+    case 'art': return <div className="text-center leading-none" style={{ ...EMOJI, fontSize: b.size ?? 90 }}>{b.icon}</div>
     case 'sticky': return (
-      <div className="mx-auto w-[150px] bg-[#FFF6B8] border-2 border-black rounded-[4px] px-3 py-3 text-center text-[19px] font-bold leading-snug -rotate-3 shadow-[3px_3px_0_#000]" dir="rtl" style={{ fontFamily: AR }}>
+      <div className="mx-auto w-[150px] bg-[#FFF6B8] border-2 border-[var(--m)] rounded-[4px] px-3 py-3 text-center text-[19px] font-bold leading-snug -rotate-3 shadow-[3px_3px_0_#000]" dir="rtl" style={{ fontFamily: AR }}>
         📎 {b.text}
       </div>
     )
@@ -383,14 +420,14 @@ function BlockView({ b, talkNo }: { b: Block } & Ctx) {
     case 'pointing': return (
       <div className="grid grid-cols-4 gap-2">
         {b.items.map(p => (
-          <div key={p.en} className="border-[1.5px] border-black rounded-[3px] overflow-hidden">
-            <div className="bg-black text-white text-center text-[9.5px] font-bold py-[2px] leading-tight" dir="rtl" style={{ fontFamily: AR }}><Mixed text={p.caption} /></div>
-            <div className="flex items-center h-[44px] px-2" style={GREY}>
+          <div key={p.en} className="border-[1.5px] border-[var(--m)] rounded-[3px] overflow-hidden">
+            <div className="bg-[var(--m)] text-white text-center text-[9.5px] font-bold py-[2px] leading-tight" dir="rtl" style={{ fontFamily: AR }}><Mixed text={p.caption} /></div>
+            <div className="flex items-center h-[44px] px-2" style={EMOJI}>
               <span className="text-[24px]">👉</span>
               <span className="flex-1" style={{ maxWidth: p.far ? 80 : 6 }} />
               <span className="text-[22px] whitespace-nowrap">{p.many ? '🚗🚗🚗' : '🚗'}</span>
             </div>
-            <div className="bg-black text-white text-center text-[10.5px] font-bold py-[2px]">{p.en} - <bdi dir="rtl" style={{ fontFamily: AR }}>{p.ar}</bdi></div>
+            <div className="bg-[var(--m)] text-white text-center text-[10.5px] font-bold py-[2px]">{p.en} - <bdi dir="rtl" style={{ fontFamily: AR }}>{p.ar}</bdi></div>
           </div>
         ))}
       </div>
@@ -420,12 +457,12 @@ function Numbers() {
       <div className="flex justify-between px-1">
         {ten.map((w, i) => (
           <div key={w} className="flex flex-col items-center gap-0.5">
-            <span className="w-[36px] h-[36px] rounded-full bg-black text-white flex items-center justify-center text-[17px] font-bold">{i + 1}</span>
+            <span className="w-[36px] h-[36px] rounded-full bg-[var(--m)] text-white flex items-center justify-center text-[17px] font-bold">{i + 1}</span>
             <span className="text-[11.5px] font-bold">{w}</span>
           </div>
         ))}
       </div>
-      <div className="border-[1.5px] border-black rounded-[3px] px-3 py-1.5 grid grid-cols-4 gap-x-3 text-[11.5px] font-bold">
+      <div className="border-[1.5px] border-[var(--m)] rounded-[3px] px-3 py-1.5 grid grid-cols-4 gap-x-3 text-[11.5px] font-bold">
         {NUM_COLS.map((col, i) => <div key={i} className="flex flex-col gap-[2px]">{col.map(s => <Bullet key={s}><NumberWord s={s} /></Bullet>)}</div>)}
       </div>
     </div>
@@ -442,7 +479,7 @@ function Clock({ time }: { time: string }) {
   }
   return (
     <svg viewBox="0 0 60 60" width="64" height="64" aria-label={time}>
-      <circle cx="30" cy="30" r="27" fill="#fff" stroke="#000" strokeWidth="2.5" />
+      <circle cx="30" cy="30" r="27" strokeWidth="3" style={{ fill: 'var(--s)', stroke: 'var(--m)' }} />
       {Array.from({ length: 12 }, (_, i) => {
         const r = (i * 30 - 90) * (Math.PI / 180)
         return <line key={i} x1={30 + 23 * Math.cos(r)} y1={30 + 23 * Math.sin(r)} x2={30 + 26 * Math.cos(r)} y2={30 + 26 * Math.sin(r)} stroke="#000" strokeWidth={i % 3 ? 1 : 2} />
@@ -459,8 +496,8 @@ function Clock({ time }: { time: string }) {
 }
 
 function Prepositions({ items }: { items: [kind: string, en: string, ar: string][] }) {
-  const box = (style: CSSProperties) => <span className="absolute bg-black rounded-[2px]" style={{ width: 34, height: 32, ...style }} />
-  const mouse = (style: CSSProperties, z = 1) => <span className="absolute text-[26px] leading-none" style={{ ...GREY, zIndex: z, ...style }}>🐭</span>
+  const box = (style: CSSProperties) => <span className="absolute bg-[var(--m)] rounded-[2px]" style={{ width: 34, height: 32, ...style }} />
+  const mouse = (style: CSSProperties, z = 1) => <span className="absolute text-[26px] leading-none" style={{ ...EMOJI, zIndex: z, ...style }}>🐭</span>
   const scene = (kind: string) => {
     switch (kind) {
       case 'behind':  return <>{mouse({ left: 30, top: 6 }, 0)}{box({ left: 16, top: 22, zIndex: 1 })}</>
@@ -489,8 +526,8 @@ function Prepositions({ items }: { items: [kind: string, en: string, ar: string]
 function Person({ face, role, name }: { face: string; role: string; name: string }) {
   return (
     <div className="flex flex-col items-center w-[64px]">
-      <span className="text-[26px] leading-none" style={GREY}>{face}</span>
-      <span className="mt-[2px] bg-black text-white rounded-[2px] px-1 text-[8.5px] font-bold leading-[13px] whitespace-nowrap">{role}</span>
+      <span className="text-[26px] leading-none" style={EMOJI}>{face}</span>
+      <span className="mt-[2px] bg-[var(--m)] text-white rounded-[2px] px-1 text-[8.5px] font-bold leading-[13px] whitespace-nowrap">{role}</span>
       <span className="text-[9px] font-bold leading-tight">{name}</span>
     </div>
   )
@@ -502,7 +539,7 @@ const Kids = ({ a, b }: { a: [string, string, string]; b: [string, string, strin
   <div className="flex items-center gap-1"><Person face={a[0]} role={a[1]} name={a[2]} /><Person face={b[0]} role={b[1]} name={b[2]} /></div>
 )
 const Note = ({ children, w = 96 }: { children: ReactNode; w?: number }) => (
-  <div className="bg-[#FFF6B8] border border-black rounded-[3px] px-1.5 py-1 text-[8.5px] font-bold leading-tight text-center shadow-[2px_2px_0_#000]" style={{ width: w }}>{children}</div>
+  <div className="bg-[#FFF6B8] border border-[var(--m)] rounded-[3px] px-1.5 py-1 text-[8.5px] font-bold leading-tight text-center shadow-[2px_2px_0_#000]" style={{ width: w }}>{children}</div>
 )
 
 function FamilyTree() {
@@ -513,7 +550,7 @@ function FamilyTree() {
   ]
   return (
     <div className="grid gap-[10px]" style={{ gridTemplateColumns: '190px 1fr' }}>
-      <div className="bg-black text-white rounded-[3px] px-2 pb-2">
+      <div className="bg-[var(--k)] text-white rounded-[3px] px-2 pb-2">
         <div className="text-center text-[17px] font-bold py-1 border-b border-white/40 mb-1">Vocabulary</div>
         {vocab.map(([en, ar]) => (
           <div key={en} className="flex items-center justify-between gap-1.5 py-[2.5px]">
@@ -523,13 +560,13 @@ function FamilyTree() {
         ))}
       </div>
       <div className="flex flex-col">
-        <div className="bg-black text-white rounded-[3px] text-center text-[16px] font-bold py-[3px]">The Family Tree - <bdi dir="rtl" style={{ fontFamily: AR }}>شجرة العائلة</bdi></div>
-        <div className="flex-1 border-[1.5px] border-black rounded-[3px] mt-1 px-2 py-2 flex flex-col items-center gap-1.5" dir="ltr">
+        <div className="bg-[var(--m)] text-white rounded-[3px] text-center text-[16px] font-bold py-[3px]">The Family Tree - <bdi dir="rtl" style={{ fontFamily: AR }}>شجرة العائلة</bdi></div>
+        <div className="flex-1 border-[1.5px] border-[var(--m)] rounded-[3px] mt-1 px-2 py-2 flex flex-col items-center gap-1.5" dir="ltr">
           <div className="flex items-center gap-3">
             <Note>Grandfather + Grandmother = Grandparents</Note>
             <Couple a={['👴', 'Grandfather', 'Abdurrahman']} b={['👵', 'Grandmother', 'Safiya']} />
           </div>
-          <div className="w-[78%] h-[10px] border-x-2 border-t-2 border-black" />
+          <div className="w-[78%] h-[10px] border-x-2 border-t-2 border-[var(--m)]" />
           <div className="w-full flex justify-between">
             <Couple a={['👩', 'Aunt', 'Salma']} b={['👨', 'Uncle', 'Samir']} />
             <Couple a={['👨‍🦱', 'Father', 'Ahmed']} b={['👩‍🦱', 'Mother', 'Khadija']} />
@@ -540,7 +577,7 @@ function FamilyTree() {
             <Note w={110}>Father + Mother = Parents<br />Husband + Wife = Spouses - أزواج</Note>
             <Kids a={['👧', 'Cousin', 'Abir']} b={['👦', 'Cousin', 'Iyad']} />
           </div>
-          <div className="w-[78%] h-[10px] border-x-2 border-t-2 border-black" />
+          <div className="w-[78%] h-[10px] border-x-2 border-t-2 border-[var(--m)]" />
           <div className="w-full flex justify-between">
             <Couple a={['👩', 'Sister-in-law', 'Iness']} b={['👨', 'Brother', 'Zaid']} />
             <Couple a={['🧑', 'Husband (me)', 'Adil']} b={['👩', 'Wife (me)', 'Maysoun']} />
@@ -646,7 +683,7 @@ export function CoverPage({ info, filename }: { info: BookInfo; filename: string
           <div className="text-[64px] font-extrabold leading-none tracking-tight" style={{ fontFamily: "'Baloo Bhaijaan 2', sans-serif" }} dir="ltr">Inglizi.com</div>
           <div className="mt-1 flex items-center gap-2">
             <span className="text-[13px] font-bold opacity-90">.كـــوم</span>
-            <span className="bg-black text-white px-3 py-[1px] text-[16px] font-bold">أكاديمية إنجليزي الدولية</span>
+            <span className="bg-[#111] text-white px-3 py-[1px] text-[16px] font-bold">أكاديمية إنجليزي الدولية</span>
           </div>
           <div className="mt-6 bg-white text-[#1E2A6E] rounded-full px-9 py-1.5 text-[26px] font-extrabold shadow-[0_4px_0_rgba(0,0,0,0.25)]">المستوى الأول في 30 يومًا</div>
           <div className="mt-4 text-[34px] font-extrabold">إنجليزية بالممارسة - لا بالقواعد</div>
@@ -687,7 +724,7 @@ function Doodles() {
   }))
   return (
     <div className="absolute inset-0" aria-hidden>
-      {items.map((d, i) => <d.Icon key={i} className="absolute" size={d.size} strokeWidth={1.4} color="#E2E4EA" style={{ left: d.x, top: d.y, transform: `rotate(${d.rot}deg)` }} />)}
+      {items.map((d, i) => <d.Icon key={i} className="absolute opacity-[0.16]" size={d.size} strokeWidth={1.4} style={{ left: d.x, top: d.y, transform: `rotate(${d.rot}deg)`, color: 'var(--m)' }} />)}
     </div>
   )
 }
@@ -697,7 +734,7 @@ function HangingSign({ text }: { text: string }) {
   return (
     <div className="relative mx-auto" style={{ width: 230, height: 120 }}>
       <svg className="absolute inset-0" width="230" height="40" aria-hidden><line x1="40" y1="0" x2="40" y2="40" stroke="#000" strokeWidth="1.5" strokeDasharray="2 3" /><line x1="190" y1="0" x2="190" y2="40" stroke="#000" strokeWidth="1.5" strokeDasharray="2 3" /></svg>
-      <div className="absolute inset-x-0 top-[30px] bottom-0 bg-black text-white rounded-[4px] flex items-center justify-center -rotate-2">
+      <div className="absolute inset-x-0 top-[30px] bottom-0 bg-[var(--m)] text-white rounded-[4px] flex items-center justify-center -rotate-2">
         <div className="absolute inset-[6px] border-2 border-dashed border-white/50 rounded-[3px]" />
         <span className="text-[46px] leading-none pt-2" style={{ fontFamily: AR_DISPLAY }}>{text}</span>
       </div>
@@ -727,7 +764,7 @@ export function ThanksPage({ info, filename }: { info: BookInfo; filename: strin
       </div>
       {name && (
         <div className="absolute inset-x-0 bottom-[60px] flex justify-center" dir="rtl" style={{ fontFamily: AR }}>
-          <span className="border-2 border-black rounded-[4px] px-5 py-1.5 text-[16px] font-bold bg-white">هذه النسخة خاصة بـ: {name}</span>
+          <span className="border-2 border-[var(--m)] rounded-[4px] px-5 py-1.5 text-[16px] font-bold bg-white">هذه النسخة خاصة بـ: {name}</span>
         </div>
       )}
     </Frame>
@@ -741,12 +778,12 @@ export function ContentsPage({ info, lessons, filename }: { info: BookInfo; less
       <div className="absolute inset-x-0 top-0"><HangingSign text="الفهرس" /></div>
       <div className="absolute inset-x-[34px] top-[150px] grid grid-cols-4 gap-x-4 gap-y-5" dir="rtl">
         {lessons.map((l, i) => (
-          <div key={l.n} className="flex flex-col items-center">
+          <div key={l.n} className="flex flex-col items-center" style={info.mono ? undefined : { '--m': lessonColour(i).m } as CSSProperties}>
             <svg width="44" height="20" aria-hidden><circle cx="22" cy="4" r="3.5" fill="#000" /><line x1="22" y1="4" x2="6" y2="20" stroke="#000" strokeWidth="2" /><line x1="22" y1="4" x2="38" y2="20" stroke="#000" strokeWidth="2" /></svg>
-            <span className="relative z-10 -mt-1 bg-white border-2 border-black rounded-full px-3 text-[15px] leading-[24px]" style={{ fontFamily: AR_DISPLAY }}>الدرس {l.n}</span>
-            <div className="-mt-2 w-full min-h-[64px] bg-black text-white rounded-[7px] px-2 pt-3.5 pb-2 flex items-center justify-center text-center leading-[1.25]"
+            <span className="relative z-10 -mt-1 bg-white border-2 border-[var(--m)] rounded-full px-3 text-[15px] leading-[24px]" style={{ fontFamily: AR_DISPLAY }}>الدرس {l.n}</span>
+            <div className="-mt-2 w-full min-h-[64px] bg-[var(--m)] text-white rounded-[7px] px-2 pt-3.5 pb-2 flex items-center justify-center text-center leading-[1.25]"
               style={{ fontFamily: AR_DISPLAY, fontSize: l.titleAr.length > 24 ? 15 : 18, transform: `rotate(${i % 2 ? 2 : -2}deg)` }}>
-              {l.titleAr}
+              <span><RtlMixed text={l.titleAr} /></span>
             </div>
             <span className="mt-1 text-[11px] font-bold text-zinc-500" dir="ltr">Page {pad(i + 1)}</span>
           </div>

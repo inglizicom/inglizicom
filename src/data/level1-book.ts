@@ -5,8 +5,11 @@
  * Every lesson is a list of blocks drawn top to bottom on one A4 page (see
  * app/admin/level1-book/_blocks.tsx). Edit a lesson here and the page, its
  * number and the contents follow; conversations are numbered across the
- * whole book automatically. Pictures are emoji drawn in grey, like the
- * book's black-and-white clip-art.
+ * whole book automatically. Pictures are emoji: in colour, or grey in the
+ * black-and-white print.
+ *
+ * The practice conversations are new for this colour edition; the Canva
+ * book's own conversations are left for the workbook that will go with it.
  */
 
 export type Pair = [en: string, ar: string]
@@ -79,32 +82,32 @@ export const LEVEL1_LESSONS: Lesson[] = [
     { t: 'bar', title: 'Leaving phrases.' },
     { t: 'bullets', cols: 2, items: ['Goodbye / Bye-bye', 'See you (tomorrow, later, soon)', 'Have a good (day, night).', 'Good night.'] },
     { t: 'talk', cols: 2, lines: lines(`
-      Hello
-      Hi, how are you?
-      I am fine, and you?
-      I'm good. What's your name?
-      My name is Hamza. And you? What's your name?
-      My name is Adil.
-      It's nice to meet you.
-      It's nice to meet you too.
-      See you tomorrow.
-      Goodbye.`) },
+      Yassine: Good morning!
+      Nora: Good morning! How are you?
+      Yassine: I'm fine, thank you. And you?
+      Nora: I'm very well. What's your name?
+      Yassine: My name is Yassine. What's your name?
+      Nora: My name is Nora.
+      Yassine: Nice to meet you, Nora.
+      Nora: Nice to meet you too.
+      Yassine: Have a good day!
+      Nora: You too. Bye!`) },
     { t: 'alphabet' },
     { t: 'row', widths: '1fr 1fr', blocks: [
       [{ t: 'bullets', items: ['How do you spell your name?'] }],
       [{ t: 'bullets', items: ["It's spelled (I spell it) H-A-M-Z-A"] }],
     ] },
     { t: 'talk', cols: 2, lines: lines(`
-      Person A: Good afternoon, how are you today?
-      Person B: I'm OK. And you? How are you?
-      Person A: I'm great. What's your name?
-      Person B: My name is Said.
-      Person A: How do you spell your name?
-      Person B: It's spelled S-A-I-D. And you?
-      Person A: My name is Khadija.
-      Person B: How do you spell your name?
-      Person A: I spell it K-H-A-D-I-J-A. Nice to meet you.
-      Person B: Nice to meet you too.`) },
+      Teacher: Good afternoon! What's your name?
+      Student: My name is Rim.
+      Teacher: How do you spell it?
+      Student: R-I-M.
+      Teacher: Thank you, Rim. And your family name?
+      Student: Alaoui. I spell it A-L-A-O-U-I.
+      Teacher: Great! How are you today?
+      Student: I'm OK, thank you.
+      Teacher: See you tomorrow, Rim.
+      Student: See you tomorrow!`) },
   ] },
 
   /* ── 02 ─────────────────────────────────────────────────────────── */
@@ -125,14 +128,16 @@ export const LEVEL1_LESSONS: Lesson[] = [
       'My phone number is 06100000667', 'His phone number is 00880088000', 'Her phone number is 890-99-0001',
     ] },
     { t: 'talk', art: '☎️', lines: lines(`
-      Hamza: Hello Ali, how old are you?
-      Ali: I am 27 years old. And you?
-      Hamza: I am 19 years old.
-      Ali: What's your phone number?
-      Hamza: My phone number is 0600000121. And you?
-      Ali: My phone number is 07654321324.
-      Hamza: Thank you. See you later.
-      Ali: Goodbye.`) },
+      Salma: Hi Karim! How old are you?
+      Karim: I'm 24 years old. And you?
+      Salma: I'm 21. How old is your brother?
+      Karim: He is 30 years old.
+      Salma: What's your phone number?
+      Karim: It's 0661 23 45 78.
+      Salma: Can you say it again, please?
+      Karim: Sure. 0661 23 45 78.
+      Salma: Thank you!
+      Karim: You're welcome. Bye!`) },
   ] },
 
   /* ── 03 ─────────────────────────────────────────────────────────── */
@@ -169,51 +174,50 @@ export const LEVEL1_LESSONS: Lesson[] = [
     { t: 'bullets', cols: 6, size: 11.5, items: ['Single', 'Engaged', 'Married', 'Divorced', 'Widowed', 'Separated'] },
     { t: 'bullets', box: true, cols: 3, size: 11.5, items: ['Are you single? → Yes, I am. / No, I am not.', 'Is he married? → Yes, he is. / No, he is not.', 'Is she divorced? → Yes, she is. / No, she is not.'] },
     { t: 'talk', cols: 2, size: 11.5, lines: lines(`
-      Hamza: Hello, my name is Hamza. And you?
-      Sara: My name is Sara. Where are you from?
-      Hamza: I am from Morocco. And you? Where are you from? What is your nationality?
-      Sara: I am from Spain. My nationality is Spanish.
-      Hamza: What is your job?
-      Sara: I am a nurse. And you?
-      Hamza: I am a barber.
-      Sara: Are you married?
-      Hamza: No, I'm not. I'm single. And you?
-      Sara: I'm married and I have two kids.
-      Hamza: Nice to meet you.
-      Sara: Nice to meet you too.`) },
+      Omar: Hello! I'm Omar. What's your name?
+      Lucia: Hi Omar, I'm Lucia.
+      Omar: Where are you from, Lucia?
+      Lucia: I'm from Italy. I'm Italian. And you?
+      Omar: I'm from Morocco. I'm Moroccan.
+      Lucia: What do you do?
+      Omar: I'm a taxi driver. What's your job?
+      Lucia: I'm a graphic designer.
+      Omar: Are you married?
+      Lucia: No, I'm not. I'm engaged!
+      Omar: Congratulations!
+      Lucia: Thank you!`) },
   ] },
 
   /* ── 04 ─────────────────────────────────────────────────────────── */
   { n: 4, titleAr: 'محادثة شاملة (الدروس 1–3)', blocks: [
     { t: 'gap', h: 6 },
     { t: 'talk', full: 'Full Conversation - Lessons 01, 02 & 03', art: '🗣️', size: 13.5, lines: lines(`
-      Hamza: Hello! My name is Hamza. What's your name?
-      Sara: Hi Hamza. My name is Sara. Nice to meet you.
-      Hamza: Nice to meet you too. How are you?
-      Sara: I'm fine, thank you. And you?
-      Hamza: I'm good. Where are you from?
-      Sara: I'm from Spain. And you? Where are you from?
-      Hamza: I'm from Morocco.
-      Sara: What is your nationality?
-      Hamza: I'm Moroccan. And you?
-      Sara: I'm Spanish.
-      Hamza: What's your job?
-      Sara: I'm a nurse. And you?
-      Hamza: I'm a barber.
-      Sara: How do you spell your name?
-      Hamza: I spell it H-A-M-Z-A. And you?
-      Sara: I spell it S-A-R-A.
-      Hamza: How old are you?
-      Sara: I am 27 years old. And you?
-      Hamza: I'm 31 years old.
-      Sara: Are you married?
-      Hamza: Yes, I am married and I have two kids. What about you?
-      Sara: No, I'm not. I'm single.
-      Hamza: What's your phone number?
-      Sara: My phone number is 0610000067. And yours?
-      Hamza: It's 07654321324.
-      Sara: Thank you. See you later.
-      Hamza: Goodbye! Have a good day!`) },
+      Youssef: Hi! My name is Youssef. What's your name?
+      Emma: Hello Youssef. I'm Emma. Nice to meet you.
+      Youssef: Nice to meet you too. How are you today?
+      Emma: I'm very well, thank you. And you?
+      Youssef: I'm fine. Where are you from, Emma?
+      Emma: I'm from France. And you?
+      Youssef: I'm from Morocco. I live in Fez.
+      Emma: So you are Moroccan. I'm French.
+      Youssef: How do you spell your name?
+      Emma: E-M-M-A. And you?
+      Youssef: Y-O-U-S-S-E-F.
+      Emma: What do you do, Youssef?
+      Youssef: I'm an engineer. What about you?
+      Emma: I'm a teacher.
+      Youssef: How old are you?
+      Emma: I'm 29 years old. And you?
+      Youssef: I'm 34.
+      Emma: Are you married?
+      Youssef: Yes, I am. I have a son and a daughter. And you?
+      Emma: No, I'm single.
+      Youssef: What's your phone number?
+      Emma: It's 0612 44 87 20. And yours?
+      Youssef: My number is 0700 15 63 91.
+      Emma: Great. See you tomorrow!
+      Youssef: See you! Have a good evening.
+      Emma: You too. Goodbye!`) },
   ] },
 
   /* ── 05 ─────────────────────────────────────────────────────────── */
@@ -253,25 +257,25 @@ export const LEVEL1_LESSONS: Lesson[] = [
       { title: 'WHAT', lines: ["What's your name?", 'What do you like to eat?', 'What does he love?'] },
     ] },
     { t: 'talk', cols: 2, art: '🎯', size: 11.5, lines: lines(`
-      Omar: What's your name?
-      Fatima: My name is Fatima.
-      Omar: Where are you from?
-      Fatima: I'm from Rabat.
-      Omar: How old are you?
-      Fatima: I'm 22 years old.
-      Omar: What do you do?
-      Fatima: I'm a teacher. What about you?
-      Omar: I'm a driver. Where do you work?
-      Fatima: I work at a school in Rabat.
-      Omar: What does your brother do?
-      Fatima: He is a mechanic. He works in Casablanca.
-      Omar: Is he married?
-      Fatima: No, he isn't. He's single.
-      Omar: What time do you wake up?
-      Fatima: I wake up at 6 o'clock.
-      Omar: How is your family?
-      Fatima: They're good, thank you! I have to go now, see you later.
-      Omar: Goodbye.`) },
+      Ilyas: Hi! Are you new here?
+      Hajar: Yes, I am. My name is Hajar.
+      Ilyas: Welcome, Hajar! I'm Ilyas. Where are you from?
+      Hajar: I'm from Tangier.
+      Ilyas: Where do you live now?
+      Hajar: I live in Rabat, near the train station.
+      Ilyas: How old are you?
+      Hajar: I'm 25.
+      Ilyas: What do you do here?
+      Hajar: I'm an accountant. And you?
+      Ilyas: I'm a manager. Who is your boss?
+      Hajar: Mr Bennani.
+      Ilyas: He is very nice. When do you start work?
+      Hajar: At 8:30 every day.
+      Ilyas: Why do you like this job?
+      Hajar: Because I love numbers!
+      Ilyas: How do you come to work?
+      Hajar: By tram. It's fast.
+      Ilyas: Great. See you at lunch!`) },
   ] },
 
   /* ── 07 ─────────────────────────────────────────────────────────── */
@@ -308,26 +312,26 @@ export const LEVEL1_LESSONS: Lesson[] = [
       ],
     ] },
     { t: 'talk', cols: 2, size: 11.5, lines: lines(`
-      Teacher: Good morning, everyone!
+      Teacher: Good morning, class!
       Students: Good morning, teacher!
-      Teacher: Open your books, please.
-      Student 1 (Ali): What page, teacher?
-      Teacher: Page 5.
-      Teacher: Now, listen and repeat after me.
-      Teacher: "Hello, my name is Anna."
-      Students: Hello, my name is Anna.
-      Student 2 (Sara): Teacher, I don't understand.
-      Teacher: No problem, Sara. I will repeat.
-      Teacher: "Hello, my name is Anna."
-      Sara: Hello, my name is Anna.
-      Teacher: Good job!
-      Student 1 (Ali): Can I go to the toilet?
-      Teacher: Yes, you can. Be quick.
-      Teacher: Now, read this sentence, please.
-      Student 3 (Omar): "I am from Morocco."
-      Teacher: Very good, Omar!
-      Student 2 (Sara): I finished.
-      Teacher: Excellent!`) },
+      Teacher: Sit down, please. Take out your notebooks.
+      Amine: Teacher, I forgot my pencil.
+      Teacher: No problem. Here's a pencil.
+      Amine: Thank you.
+      Teacher: Open your books to page 12.
+      Rania: Excuse me, I have a question.
+      Teacher: Yes, Rania?
+      Rania: What does "eraser" mean?
+      Teacher: Look, this is an eraser. It's ممحاة.
+      Rania: Oh, I understand now.
+      Teacher: Amine, read the first sentence, please.
+      Amine: "This is my school bag."
+      Teacher: Very good! Everyone, repeat after me.
+      Students: "This is my school bag."
+      Teacher: Excellent. Your homework is page 13.
+      Rania: Can you repeat, please?
+      Teacher: Page 13. Time's up! See you tomorrow.
+      Students: Goodbye, teacher!`) },
   ] },
 
   /* ── 09 ─────────────────────────────────────────────────────────── */
@@ -358,28 +362,28 @@ export const LEVEL1_LESSONS: Lesson[] = [
       ],
     ] },
     { t: 'talk', cols: 2, size: 11, lines: lines(`
-      Sara: Hello! What's your name?
-      Youssef: Hi! My name is Youssef. And you?
-      Sara: I'm Sara. Nice to meet you.
-      Youssef: Nice to meet you too. Where are you from?
-      Sara: I'm from Fez. What about you?
-      Youssef: I'm from Agadir, but I live in Casablanca now.
-      Sara: Oh, do you live with your family?
-      Youssef: Yes, I do. I live with my parents and my sister.
-      Sara: Me too! I live with my parents. Do you study or work?
-      Youssef: I study. I go to school every day. And you?
-      Sara: I study too. I have English class on Monday and Wednesday.
-      Youssef: That's great. I have English class on Saturday. Do you like it?
-      Sara: Yes, I do. It's fun. Do you have homework today?
-      Youssef: No, I don't. I finished it yesterday. What do you do after school?
-      Sara: I go home, eat lunch, and then study. Sometimes I watch TV.
-      Youssef: I play football with my friends after school.
-      Sara: Do you play every day?
-      Youssef: Not every day. I play on Tuesday and Thursday.
-      Sara: That's cool. Do you want to study together tomorrow?
-      Youssef: Sure! Let's meet at the café at 5.
-      Sara: Perfect. See you then!
-      Youssef: See you, Sara!`) },
+      Hiba: Hi Mehdi! How are you?
+      Mehdi: I'm good, thanks. And you?
+      Hiba: I'm fine. Do you have brothers or sisters?
+      Mehdi: Yes, I have one brother and two sisters.
+      Hiba: What does your brother do?
+      Mehdi: He is a nurse. He goes to the hospital every day.
+      Hiba: And your sisters?
+      Mehdi: They are students. They go to school by bus.
+      Hiba: Do you have a car?
+      Mehdi: No, I don't. I go to work on foot. And you?
+      Hiba: I have a small car, but I go to work by tram.
+      Mehdi: Why?
+      Hiba: Because the tram is fast and cheap.
+      Mehdi: Good idea. What do you do after work?
+      Hiba: I go to the gym with my friend. She is very sporty.
+      Mehdi: I go home and I do my homework. I have an English class!
+      Hiba: Really? Where is your class?
+      Mehdi: It's in the city centre, next to the bank.
+      Hiba: Is your teacher good?
+      Mehdi: Yes, he is great. We have fun in class.
+      Hiba: Good luck, Mehdi!
+      Mehdi: Thanks, Hiba. See you!`) },
   ] },
 
   /* ── 10 ─────────────────────────────────────────────────────────── */
@@ -420,24 +424,24 @@ export const LEVEL1_LESSONS: Lesson[] = [
       [{ t: 'grid', rows: [{ dark: true, cells: ['تقرأ بنفس الطريقة باللغة العربية: 7 و 30 ثلاثون دقيقة'], size: 11 }] }],
     ] },
     { t: 'talk', cols: 2, art: '🧑‍💼', size: 11.5, lines: lines(`
-      Sara: Hi Nabil. What time do you wake up?
-      Nabil: I wake up at 6:00.
-      Sara: Do you make your bed?
-      Nabil: Yes, I do. I make my bed, then I brush my teeth.
-      Sara: What do you do next?
-      Nabil: I wash my face and get dressed.
-      Sara: Nice! What time do you go to work?
-      Nabil: I go to work at 8:30.
-      Sara: Where is your work bag?
-      Nabil: It's on the chair, next to the sofa.
-      Sara: And what time do you go back home?
-      Nabil: At 5:00. I take a shower, have dinner, then watch TV.
-      Sara: Where is your TV?
-      Nabil: It's in the living room, in front of the sofa.
-      Sara: What time do you go to sleep?
-      Nabil: At 10:00. And you?
-      Sara: Me too! See you later, Nabil.
-      Nabil: Goodbye, Sara.`) },
+      Amal: Good morning, Said! What time is it?
+      Said: It's 7:15.
+      Amal: Oh no! I'm late!
+      Said: Late? What time do you go to work?
+      Amal: At 7:30. I always take the bus.
+      Said: Do you have breakfast?
+      Amal: No, I don't have time. I just drink a coffee.
+      Said: What time do you wake up?
+      Amal: At 6:45. Then I take a shower and get dressed.
+      Said: I wake up at 6:00. I make my bed and have breakfast.
+      Amal: What time do you leave work?
+      Said: At 4:30. Then I go back home and watch TV.
+      Amal: I leave work at 5:00. I do the shopping and cook dinner.
+      Said: What time do you go to sleep?
+      Amal: At 11:00. And you?
+      Said: At 10:00. Sleep is important!
+      Amal: You're right. Bye, Said!
+      Said: Bye, Amal! Have a good day.`) },
   ] },
 
   /* ── 12 ─────────────────────────────────────────────────────────── */
@@ -470,18 +474,18 @@ export const LEVEL1_LESSONS: Lesson[] = [
       ],
     ] },
     { t: 'talk', title: 'Talking About the Week', size: 12, aside: [{ t: 'art', icon: '🧑‍🤝‍🧑', size: 100 }, { t: 'sticky', text: 'نتائج سريعة = ممارسة وتدريب يومي' }], lines: lines(`
-        Hana: What do you do on Monday?
-        Yassine: I always go to school on Monday.
-        Hana: Do you study on Friday?
-        Yassine: No, I never study on Friday.
-        Hana: When do you visit your grandmother?
-        Yassine: I usually visit her on Saturday.
-        Hana: What do you do on Sunday?
-        Yassine: Sometimes I play football with my friends.
-        Hana: Do you have English class on Tuesday?
-        Yassine: Yes, I do. It's at 10:00.
-        Hana: Nice! I have English on Thursday.
-        Yassine: Great! See you next week!`) },
+        Zineb: What do you usually do on Saturday?
+        Adil: I usually go to the market with my mother.
+        Zineb: Do you work on Saturday?
+        Adil: No, I never work on the weekend.
+        Zineb: When do you go to the gym?
+        Adil: I go to the gym on Monday and Wednesday.
+        Zineb: Do you often watch films?
+        Adil: Yes, I often watch films on Friday evening.
+        Zineb: What about Sunday?
+        Adil: On Sunday, I always visit my grandparents.
+        Zineb: That's nice. I sometimes visit my aunt on Sunday.
+        Adil: Let's meet next Tuesday!`) },
   ] },
 
   /* ── 13 ─────────────────────────────────────────────────────────── */
@@ -496,20 +500,20 @@ export const LEVEL1_LESSONS: Lesson[] = [
     { t: 'bar', title: "What do you like? & What you don't like?" },
     { t: 'qa', rows: [['What food do you like?', 'I like roast chicken and salad.'], ['What do you like to eat?', 'I like to eat tacos.'], ['Do you like chicken pizza? 🙂', 'Yes, I do.'], ['Do you like chicken sandwiches? 🙁', "No, I don't."]] },
     { t: 'talk', title: 'What Food Do You Like?', art: '🍽️', size: 12.5, lines: lines(`
-      Lina: Hello Adam, how are you today?
-      Adam: I'm fine, thank you. And you?
-      Lina: I'm good. What food do you like?
-      Adam: I like couscous and grilled fish. And you?
-      Lina: I like roast chicken and rice.
-      Adam: Do you like salad?
-      Lina: Yes, I do. I eat it every day. Do you like soup?
-      Adam: No, I don't.
-      Lina: What do you like to eat for lunch?
-      Adam: I like to eat tacos or pasta.
-      Lina: Where do you eat lunch?
-      Adam: At home, with my family.
-      Lina: Great! See you later.
-      Adam: See you, Lina.`) },
+      Nadia: Hamid, let's have a picnic on Sunday!
+      Hamid: Great idea! What food do you like?
+      Nadia: I like sandwiches and salad. And you?
+      Hamid: I like roast chicken and bread.
+      Nadia: Do you like cheese?
+      Hamid: Yes, I do. I love cheese sandwiches.
+      Nadia: Do you like fish?
+      Hamid: No, I don't. I don't like fish.
+      Nadia: OK, no fish! What about dessert?
+      Hamid: I like cake. My mother makes a good chocolate cake.
+      Nadia: Yummy! And I like ice cream.
+      Hamid: Ice cream at a picnic? It's hot!
+      Nadia: Haha, you're right. Popcorn then!
+      Hamid: Perfect. See you on Sunday!`) },
   ] },
 
   /* ── 14 ─────────────────────────────────────────────────────────── */
@@ -524,24 +528,24 @@ export const LEVEL1_LESSONS: Lesson[] = [
     { t: 'bar', title: "What do you like? & What you don't like?" },
     { t: 'qa', rows: [['What drink do you like?', 'I like mint tea and orange juice.'], ['What is your favourite (favorite) drink?', 'My favourite drink is chocolate milk.'], ['When do you drink tea?', 'I drink tea every day in the (morning, afternoon, evening).'], ["What drink don't you like?", "I don't like ginger tea."]] },
     { t: 'talk', title: 'What Do You Like to Drink?', art: '🥤', size: 11.5, lines: lines(`
-      Adam: Hi, Rania!
-      Rania: Hello, Adam! How are you today?
-      Adam: I'm great, thanks. What about you?
-      Rania: I'm good. What do you like to eat for lunch?
-      Adam: I like roast chicken and rice. And you?
-      Rania: I like pasta and salad. Do you like pizza?
-      Adam: Yes, I do! I love chicken pizza. What drink do you like?
-      Rania: I like orange juice and cold water. What about you?
-      Adam: I usually drink tea in the morning and juice in the afternoon.
-      Rania: Nice! Do you like coffee?
-      Adam: No, I don't like coffee. It's too bitter for me.
-      Rania: I understand. I drink coffee sometimes, but I prefer milk or milkshake.
-      Adam: What food don't you like?
-      Rania: I don't like fish. And you?
-      Adam: I don't like spicy food. I eat without hot sauce.
-      Rania: Good to know! Let's eat together one day.
-      Adam: Sure! See you later.
-      Rania: Bye!`) },
+      Leila: Let's sit here. What drink do you like, Reda?
+      Reda: I like mint tea. It's my favourite drink.
+      Leila: Me too! But today I want an orange juice.
+      Reda: When do you drink coffee?
+      Leila: I drink coffee in the morning, before work.
+      Reda: I don't like coffee. It's too strong for me.
+      Leila: Do you like milkshakes?
+      Reda: Yes, I do! I love chocolate milkshakes.
+      Leila: What drink don't you like?
+      Reda: I don't like soda. It has a lot of sugar.
+      Leila: That's true. I drink water every day.
+      Reda: Me too. Two litres every day!
+      Leila: Very good! Do you like ginger tea?
+      Reda: No, I don't. Do you?
+      Leila: Yes, I do. It's good when I'm sick.
+      Reda: OK! Waiter, one mint tea and one orange juice, please.
+      Waiter: Sure. Anything else?
+      Reda: No, thank you.`) },
   ] },
 
   /* ── 15 ─────────────────────────────────────────────────────────── */
@@ -562,23 +566,22 @@ export const LEVEL1_LESSONS: Lesson[] = [
     ] },
     { t: 'qa', rows: [['What is this?', 'This is a house.', 'ما هذا؟', 'هذا منزل.'], ['What is that?', 'That is a ball.', 'ماذا تكون تلك؟', 'تلك كرة.'], ['What are these?', 'These are books.', 'ماذا تكون هاته؟', 'هاته كتب.'], ['What are those?', 'Those are chairs.', 'ما تلك؟', 'تلك كراسي.']] },
     { t: 'talk', title: 'What is that / this?', cols: 2, art: '🚕', size: 11.5, lines: lines(`
-      Salma: Hello Adam, how are you today?
-      Adam: I'm fine, thank you! And you?
-      Salma: I'm good. What is this?
-      Adam: This is my bike.
-      Salma: Is that your taxi?
-      Adam: No, that is my father's taxi.
-      Salma: Are these your keys?
-      Adam: Yes, these are mine.
-      Salma: And what are those?
-      Adam: Those are buses. They go to the city.
-      Salma: How do you go to school?
-      Adam: I go by tram. What about you?
-      Salma: I go by bus or I walk.
-      Adam: Do you like trains?
-      Salma: Yes, I do. But I don't like taxis.
-      Adam: Me too. Look! This is my friend's scooter.
-      Salma: Nice! I like scooters.`) },
+      Anas: Dad, what is that?
+      Dad: That is a train. It goes to Marrakech.
+      Anas: And what is this?
+      Dad: This is our ticket.
+      Anas: What are those?
+      Dad: Those are taxis. They wait for people.
+      Anas: Are these our bags?
+      Dad: Yes, these are our bags. Carry this small bag, please.
+      Anas: OK! Dad, is that a plane?
+      Dad: Yes, it is. It's very high!
+      Anas: How do you go to work, Dad?
+      Dad: I go by car. And Mum goes by tram.
+      Anas: I go to school by bus.
+      Dad: That's right. Look! This is our train.
+      Anas: Yay! I like trains.
+      Dad: Me too. Let's go!`) },
   ] },
 
   /* ── 16 ─────────────────────────────────────────────────────────── */
@@ -610,18 +613,18 @@ export const LEVEL1_LESSONS: Lesson[] = [
       ],
     ] },
     { t: 'talk', title: 'Giving directions', art: '🧭', size: 12.5, lines: lines(`
-      Ahmed: Excuse me!
-      Mona: Yes?
-      Ahmed: Can you help me, please?
-      Mona: Sure!
-      Ahmed: Where is the pharmacy?
-      Mona: Go straight.
-      Ahmed: Okay.
-      Mona: Then turn right at the roundabout.
-      Ahmed: Right at the roundabout. Got it.
-      Mona: You'll see the bakery. The pharmacy is next to the bakery.
-      Ahmed: Thank you!
-      Mona: You're welcome.`) },
+      Mark: Excuse me, where is the bank?
+      Fatima: Go straight and turn left at the traffic lights.
+      Mark: Left at the traffic lights?
+      Fatima: Yes. The bank is next to the post office.
+      Mark: Is it far?
+      Fatima: No, it's five minutes on foot.
+      Mark: Thank you. Is there a pharmacy near here?
+      Fatima: Yes. Turn right at the roundabout. It's in front of the park.
+      Mark: In front of the park. Got it!
+      Fatima: And there is a nice bakery next to it.
+      Mark: Great! Thank you very much.
+      Fatima: You're welcome. Have a nice day!`) },
   ] },
 
   /* ── 17 ─────────────────────────────────────────────────────────── */
@@ -658,16 +661,16 @@ export const LEVEL1_LESSONS: Lesson[] = [
       ],
     ] },
     { t: 'talk', title: 'Asking About Places Around Town', art: '🚏', size: 12, lines: lines(`
-      Omar: Hello. Can I ask you a question?
-      Fatima: Sure.
-      Omar: Is there a bus station near here?
-      Fatima: Yes, there is. The bus station is next to the hotel.
-      Omar: Great. How can I get there?
-      Fatima: Go straight, then turn right. The hotel is on the left, and the bus station is next to it.
-      Omar: Thank you! Are there many buses at the station?
-      Fatima: Yes, there are many buses every day.
-      Omar: That's perfect. Thanks for your help.
-      Fatima: You're welcome!`) },
+      Sara: Hello! Is there a hotel near here?
+      Man: Yes, there is. There is a hotel next to the library.
+      Sara: Are there any restaurants near the hotel?
+      Man: Yes, there are many restaurants.
+      Sara: Is there a pharmacy on this street?
+      Man: No, there isn't. But there is a pharmacy behind the school.
+      Sara: How many buses are there to the city centre?
+      Man: There are three buses every hour.
+      Sara: Thank you for your help!
+      Man: You're welcome.`) },
   ] },
 
   /* ── 18 ─────────────────────────────────────────────────────────── */
@@ -689,22 +692,22 @@ export const LEVEL1_LESSONS: Lesson[] = [
       ['A teacher can teach students.', 'المعلم يمكنه تعليم الطلاب.'], ["A cook can't help sick people.", 'الطباخ لا يمكنه مساعدة المرضى.'], ['Can you fly an airplane?', 'هل يمكنك قيادة طائرة؟'], ['Can he speak English?', 'هل يمكنه التحدث بالإنجليزية؟'],
       ['A driver can drive a bus or a taxi.', 'السائق يمكنه قيادة حافلة أو طاكسي.'], ["A cook can't work in a court.", 'الطباخ لا يمكنه العمل في المحكمة.'], ["No, I can't fly an airplane.", 'لا، لا يمكنني قيادة طائرة.'], ["No, he can't. He can speak Spanish.", 'لا، لا يمكنه. يمكنه التحدث بالإسبانية.'],
     ] },
-    { t: 'talk', title: 'What Can You Do?', cols: 2, art: '💬', size: 11, lines: lines(`
-      Lina: Hi Youssef! What do you do?
-      Youssef: I'm a driver. I can drive a taxi and a bus.
-      Lina: Nice! Can you ride a bike?
-      Youssef: Yes, I can. I ride my bike every weekend. Can you ride a bike?
-      Lina: No, I can't. But I can swim!
-      Youssef: Great! I can't swim. I'm afraid of water.
-      Lina: That's okay. My brother is a pilot. He can fly an airplane.
-      Youssef: Wow! That's amazing. My sister is a teacher. She can speak three languages.
-      Lina: Can she speak English?
-      Youssef: Yes, she can. She teaches English and French.
-      Lina: What about your mom?
-      Youssef: She's a cook. She can cook delicious food. Can you cook?
-      Lina: Yes, I can cook simple food. But I can't cook big meals like my mom.
-      Youssef: Same here. I can make tea, but that's it!
-      Lina: Haha, no problem. Everyone can do something!`) },
+    { t: 'talk', title: 'What Can You Do?', cols: 2, art: '🚌', size: 11, lines: lines(`
+      Mr Idrissi: Good morning. Please sit down.
+      Khalid: Thank you.
+      Mr Idrissi: So, you want to be a driver. Can you drive a bus?
+      Khalid: Yes, I can. I can drive a bus and a truck.
+      Mr Idrissi: Can you speak English?
+      Khalid: Yes, I can speak a little English.
+      Mr Idrissi: Can you speak French?
+      Khalid: Yes, I can. I speak Arabic and French very well.
+      Mr Idrissi: Can you work at night?
+      Khalid: Yes, I can. But I can't work on Fridays.
+      Mr Idrissi: No problem. Can you start on Monday?
+      Khalid: Yes, I can!
+      Mr Idrissi: Great. Welcome to the team, Khalid.
+      Khalid: Thank you very much!
+      Mr Idrissi: See you on Monday.`) },
   ] },
 
   /* ── 19 ─────────────────────────────────────────────────────────── */
@@ -724,21 +727,21 @@ export const LEVEL1_LESSONS: Lesson[] = [
     ] },
     { t: 'callout', text: 'في هذا الجدول يمكن تغيير الفعل "Like" بأي فعل تريد أن تعبر به أو تسأل به.' },
     { t: 'talk', title: 'What Do You Like to Do?', art: '🧑‍🤝‍🧑', size: 11, lines: lines(`
-      Lina: Hi Youssef! What do you do?
-      Youssef: I'm a driver. I drive a taxi and a bus. What about you?
-      Lina: I'm a student.
-      Youssef: Do you like studying?
-      Lina: Yes, I do. I like studying and helping my mom.
-      Youssef: What do you like to do in your free time?
-      Lina: I like hiking and drawing. Do you like hiking?
-      Youssef: No, I don't. But I like reading and playing football.
-      Lina: Does your brother like football?
-      Youssef: Yes, he does. He plays every weekend.
-      Lina: Can you cook?
-      Youssef: A little. My sister cooks very well.
-      Lina: Nice! I like baking with my mom.
-      Youssef: That's great. Let's practise English together.
-      Lina: Sure! See you later.
-      Youssef: See you!`) },
+      Ayoub: Hi Salma! What do you like to do on the weekend?
+      Salma: I like drawing and reading books. And you?
+      Ayoub: I like playing football and swimming.
+      Salma: Does your sister like sports?
+      Ayoub: No, she doesn't. She likes cooking and baking.
+      Salma: Nice! Do you like video games?
+      Ayoub: Yes, I do. I play on Saturday evening.
+      Salma: I don't like video games. I like hiking.
+      Ayoub: Hiking? Where do you go?
+      Salma: I go to the Atlas mountains with my friends.
+      Ayoub: Wow! Do you like camping too?
+      Salma: Yes, I love camping!
+      Ayoub: Can I come with you next time?
+      Salma: Of course! Do you like travelling?
+      Ayoub: Yes, I love travelling.
+      Salma: Great. See you next weekend!`) },
   ] },
 ]
