@@ -163,25 +163,31 @@ const STOP = new Set(('a an the is are am was be been do does did can could woul
 
 /** One gap per sentence, plus the shuffled word bank. The gap is a word from
  *  the unit's vocabulary when the sentence has one, otherwise a meaningful
- *  word (never "the", "is"…); no answer is used twice, so the bank is exact. */
-export function makeGapFill(sentences: string[], unitWords: string[], seed = 1): { items: GapItem[]; bank: string[] } {
+ *  word (never "the", "is"…); no answer is used twice, so the bank is exact.
+ *  `allowRepeat` (conversations, where lines repeat words): a line whose
+ *  words are all taken may reuse one, so every line still gets a gap. */
+export function makeGapFill(sentences: string[], unitWords: string[], seed = 1, opts: { allowRepeat?: boolean } = {}): { items: GapItem[]; bank: string[] } {
   const next = rng(seed)
   const vocab = new Set(unitWords.map(x => x.toLowerCase()))
   const used = new Set<string>()
   const items = sentences.map(s => {
     const tokens = s.trim().split(/\s+/)
     const parts = tokens.map(t => /^([^A-Za-z']*)([A-Za-z][A-Za-z'-]*)([^A-Za-z']*)$/.exec(t))
-    const cands = parts.map((m, i) => ({ m, i })).filter(({ m }) => {
-      if (!m) return false
-      const k = m[2].toLowerCase()
-      return !STOP.has(k) && !k.includes("'") && k.length >= 3 && !used.has(k)
-    })
-    const fromVocab = cands.filter(({ m }) => vocab.has(m![2].toLowerCase()))
-    // Only little words ("How much is it?"): fall back to the longest one.
-    const fallback = parts.map((m, i) => ({ m, i }))
-      .filter(({ m }) => m && !m[2].includes("'") && m[2].length >= 3 && !used.has(m[2].toLowerCase()))
-      .sort((a, b) => b.m![2].length - a.m![2].length).slice(0, 1)
-    const pool = fromVocab.length ? fromVocab : cands.length ? cands : fallback
+    const choose = (fresh: boolean) => {
+      const cands = parts.map((m, i) => ({ m, i })).filter(({ m }) => {
+        if (!m) return false
+        const k = m[2].toLowerCase()
+        return !STOP.has(k) && !k.includes("'") && k.length >= 3 && (!fresh || !used.has(k))
+      })
+      const fromVocab = cands.filter(({ m }) => vocab.has(m![2].toLowerCase()))
+      // Only little words ("How much is it?"): fall back to the longest one.
+      const fallback = parts.map((m, i) => ({ m, i }))
+        .filter(({ m }) => m && !m[2].includes("'") && m[2].length >= 3 && (!fresh || !used.has(m[2].toLowerCase())))
+        .sort((a, b) => b.m![2].length - a.m![2].length).slice(0, 1)
+      return fromVocab.length ? fromVocab : cands.length ? cands : fallback
+    }
+    let pool = choose(true)
+    if (!pool.length && opts.allowRepeat) pool = choose(false)
     const pick = pool.length ? pool[Math.floor(next() * pool.length)] : null
     if (!pick) return { before: s, answer: '', after: '', original: s }
     const m = pick.m!

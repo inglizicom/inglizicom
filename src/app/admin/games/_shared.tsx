@@ -3,7 +3,7 @@
 import { useId, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import {
-  ChevronRight, Download, Grid3x3, Languages, Link2, ListOrdered, PenLine, Printer, SpellCheck, TextCursorInput,
+  ChevronRight, Download, Grid3x3, Languages, Link2, ListOrdered, MessagesSquare, PenLine, Printer, SpellCheck, TextCursorInput,
   type LucideIcon,
 } from 'lucide-react'
 import {
@@ -28,6 +28,7 @@ export interface SheetTheme { id: string; label: string; dark: string; accent: s
 export const THEMES: SheetTheme[] = [
   { id: 'book',    label: 'ألوان الكتاب (بني وأصفر)',   dark: '#2B1B0F', accent: '#FFD54A', soft: '#FFF7DB', onAccent: '#2B1B0F' },
   { id: 'inglizi', label: 'إنجليزي.كوم (كحلي وذهبي)',  dark: '#0B1B4D', accent: '#C8973F', soft: '#F7F0E3', onAccent: '#FFFFFF' },
+  { id: 'level1',  label: 'كتاب المستوى الأول (أزرق وأصفر)', dark: '#2B3990', accent: '#FFC93C', soft: '#FFF8E1', onAccent: '#1E2A5C' },
   { id: 'mono',    label: 'أبيض وأسود (طباعة اقتصادية)', dark: '#111111', accent: '#D9D9D9', soft: '#F4F4F4', onAccent: '#111111' },
 ]
 
@@ -93,15 +94,18 @@ export interface PageMeta {
   unitAr?: string
   pageNo?: number | null
   filename: string
+  /** UNIT (default) or LESSON — what the book calls its parts. */
+  unitLabel?: string
 }
 
-export type SectionKind = 'match' | 'letters' | 'search' | 'gaps' | 'order' | 'translate' | 'write'
+export type SectionKind = 'match' | 'letters' | 'search' | 'gaps' | 'order' | 'dialogue' | 'translate' | 'write'
 export const SECTION: Record<SectionKind, { en: string; ar: string; Icon: LucideIcon }> = {
   match:     { en: 'MATCHING',          ar: 'صِل الكلمة بمعناها', Icon: Link2 },
   letters:   { en: 'MISSING LETTERS',   ar: 'الحروف الناقصة',     Icon: SpellCheck },
   search:    { en: 'WORD SEARCH',       ar: 'البحث عن الكلمات',   Icon: Grid3x3 },
   gaps:      { en: 'FILL IN THE BLANKS', ar: 'أكمل الفراغ',       Icon: TextCursorInput },
   order:     { en: 'WORDS IN ORDER',    ar: 'رتّب الكلمات',       Icon: ListOrdered },
+  dialogue:  { en: 'COMPLETE THE CONVERSATION', ar: 'أكمل المحادثة', Icon: MessagesSquare },
   translate: { en: 'TRANSLATE',         ar: 'ترجم إلى الإنجليزية', Icon: Languages },
   write:     { en: 'MAKE IT YOURS',     ar: 'اكتب عن نفسك',       Icon: PenLine },
 }
@@ -227,7 +231,7 @@ export function A4Page({ meta, section, sectionNo, answerKey, instructionAr, ins
       <div className="flex items-stretch" style={{ height: 86 }} dir="ltr">
         {meta.unitNo != null && (
           <div className="flex items-center justify-center px-5" style={{ background: t.dark }}>
-            <span className="rounded-md bg-white px-3 py-1 text-[22px] font-black" style={{ color: t.dark }}>UNIT {meta.unitNo}</span>
+            <span className="rounded-md bg-white px-3 py-1 text-[22px] font-black" style={{ color: t.dark }}>{meta.unitLabel ?? 'UNIT'} {meta.unitNo}</span>
           </div>
         )}
         <div className="flex-1 flex items-center justify-between gap-3 px-6" style={{ background: t.accent, color: t.onAccent }}>
@@ -243,7 +247,7 @@ export function A4Page({ meta, section, sectionNo, answerKey, instructionAr, ins
     <Sheet theme={t} header={header}
       label={`${s.ar}${answerKey ? ' — مفتاح الحل' : ''}${meta.pageNo ? ` · صفحة ${meta.pageNo}` : ''}`}
       filename={`${meta.filename}${answerKey ? '-answers' : ''}`}
-      footerMid={`${meta.unitNo != null ? `UNIT ${meta.unitNo}` : ''}${meta.pageNo ? ` | ${pageNoText(meta.pageNo)}` : ''}`}>
+      footerMid={`${meta.unitNo != null ? `${meta.unitLabel ?? 'UNIT'} ${meta.unitNo}` : ''}${meta.pageNo ? ` | ${pageNoText(meta.pageNo)}` : ''}`}>
       <div className="flex items-center gap-2" dir="ltr">
         <span className="flex items-center justify-center w-10 h-10 rounded-lg text-[20px] font-black text-white" style={{ background: t.dark }}>{sectionNo}</span>
         <span className="flex items-center gap-2 rounded-lg px-4 h-10 text-[16px] font-black text-white" style={{ background: t.dark }}>
@@ -439,23 +443,25 @@ export function LettersBody({ items, theme, answerKey }: { items: { m: MissingWo
 
 /** Sentences with one gap each, and the word bank to choose from. */
 export function GapsBody({ items, bank, theme, answerKey }: { items: GapItem[]; bank: string[]; theme: SheetTheme; answerKey?: boolean }) {
+  // Long conversations (up to twelve lines) sit closer together to fit the page.
+  const compact = items.length > 9
   return (
     <div dir="ltr">
       {!answerKey && (
-        <div className="rounded-xl px-5 py-3 mb-6" style={{ background: theme.soft, border: `2px dashed ${theme.dark}` }}>
+        <div className={`rounded-xl px-5 py-3 ${compact ? 'mb-4' : 'mb-6'}`} style={{ background: theme.soft, border: `2px dashed ${theme.dark}` }}>
           <div className="text-[12px] font-black mb-2" style={{ color: theme.dark }}>WORD BANK · بنك الكلمات</div>
           <div className="flex flex-wrap gap-2">
             {bank.map((w, i) => <span key={i} className="rounded-md bg-white px-3 py-1 text-[15px] font-extrabold" style={{ border: `2px solid ${theme.dark}` }}>{w}</span>)}
           </div>
         </div>
       )}
-      <div className="space-y-6">
+      <div className={compact ? 'space-y-3.5' : 'space-y-6'}>
         {items.map((it, i) => (
-          <div key={i} className="flex items-end gap-3 text-[17px] font-bold leading-relaxed">
+          <div key={i} className={`flex items-end gap-3 font-bold leading-relaxed ${compact ? 'text-[16px]' : 'text-[17px]'}`}>
             <Num n={i + 1} theme={theme} />
             <span>
               {it.before}
-              {answerKey
+              {!it.answer ? null : answerKey
                 ? <span className="rounded px-1.5 font-black" style={{ background: theme.accent, color: theme.onAccent }}>{it.answer}</span>
                 : <span className="inline-block align-bottom border-b-2 mx-1" style={{ width: Math.max(110, it.answer.length * 13), borderColor: '#9CA3AF' }} />}
               {it.after}

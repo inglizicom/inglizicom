@@ -5,6 +5,7 @@ import {
   makeGapFill, missingLetters,
 } from '../../src/lib/game-generators.ts'
 import { EVERYDAY_ENGLISH } from '../../src/data/workbook/everyday-english.ts'
+import { LEVEL1_DIALOGUES, LEVEL1_WORKBOOK } from '../../src/data/workbook/level1-workbook.ts'
 
 /*
  * The /admin/games workbook algorithms (lib/game-generators.ts) and the book
@@ -108,6 +109,15 @@ describe('fill in the blanks', () => {
     assert.deepEqual([...bank].sort(), items.map(i => i.answer).sort())
   })
 
+  it('allowRepeat: a line whose words are all taken still gets a gap (conversations)', () => {
+    const lines = ['My phone number is 0612.', 'His phone number is 0700.']
+    const loose = makeGapFill(lines, ['phone', 'number'], 2, { allowRepeat: true })
+    for (const it of loose.items) {
+      assert.ok(it.answer, `no gap in "${it.original}"`)
+      assert.equal(`${it.before}${it.answer}${it.after}`, it.original)
+    }
+  })
+
   it('never blanks a little word, a contraction, or the same word twice', () => {
     for (let seed = 1; seed <= 20; seed++) {
       const { items } = makeGapFill(['Can I pay by card?', 'Can I pay in cash?', "What's the first thing you do?"], [], seed)
@@ -128,6 +138,41 @@ describe('missing letters', () => {
       assert.equal(m.letters[0].hidden, false)
       const n = m.letters.filter(l => l.hidden).length
       assert.ok(n >= 1 && n <= Math.ceil(word.length * 0.4))
+    }
+  })
+})
+
+describe('the Level 1 workbook: 19 lessons and their conversations generate cleanly', () => {
+  it('each lesson has 12 single words, 8 sentences with Arabic, a full grid and a gap in every sentence', () => {
+    assert.equal(LEVEL1_WORKBOOK.length, 19)
+    for (const u of LEVEL1_WORKBOOK) {
+      assert.equal(u.words.length, 12, `lesson ${u.n} words`)
+      assert.equal(u.phrases.length, 8, `lesson ${u.n} phrases`)
+      for (const x of u.words) assert.match(x.en, /^[A-Za-z]+$/, `lesson ${u.n}: "${x.en}" must be one word for the grid`)
+      assert.equal(new Set(u.words.map(x => x.en.toLowerCase())).size, 12, `lesson ${u.n} has a duplicate word`)
+      for (const p of u.phrases) {
+        assert.match(p.ar, /[؀-ۿ]/, `lesson ${u.n}: "${p.en}" needs its Arabic`)
+        assert.ok(scrambleSentence(p.en).words.length >= 3, `lesson ${u.n}: "${p.en}" too short`)
+      }
+      const r = generateWordSearch(u.words.map(x => x.en), { seed: u.n, difficulty: 'medium', size: 12 })
+      assert.deepEqual(r.unplaced, [], `lesson ${u.n}`)
+      assert.ok(r.size <= 14, `lesson ${u.n} grid ${r.size} too big for the page`)
+      const g = makeGapFill(u.phrases.map(x => x.en), u.words.map(x => x.en), u.n)
+      for (const it of g.items) assert.ok(it.answer, `lesson ${u.n}: no gap in "${it.original}"`)
+    }
+  })
+
+  it('every original conversation fits a page, names its speakers, and gets a gap on every line', () => {
+    for (const [n, lines] of Object.entries(LEVEL1_DIALOGUES)) {
+      assert.ok(lines.length >= 6 && lines.length <= 12, `lesson ${n}: ${lines.length} lines`)
+      const texts = lines.map(l => {
+        const m = l.match(/^([^:]{1,20}):\s(.*)$/)
+        assert.ok(m, `lesson ${n}: "${l}" has no speaker`)
+        return m[2]
+      })
+      const words = LEVEL1_WORKBOOK.find(u => u.n === Number(n)).words.map(x => x.en)
+      const g = makeGapFill(texts, words, Number(n), { allowRepeat: true })
+      for (const it of g.items) assert.ok(it.answer, `lesson ${n}: no gap in "${it.original}"`)
     }
   })
 })

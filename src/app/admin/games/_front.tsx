@@ -19,10 +19,10 @@ function Mixed({ text }: { text: string }) {
   return <>{parts.map((p, i) => (/[؀-ۿ]/.test(p) ? <bdi key={i} dir="rtl">{p.trim()}</bdi> : <span key={i}>{p}</span>))}</>
 }
 
-export function WelcomeBody({ theme: t }: { theme: SheetTheme }) {
+export function WelcomeBody({ theme: t, bookAr = 'الإنجليزية للمواقف اليومية', unitAr = 'وحدة' }: { theme: SheetTheme; bookAr?: string; unitAr?: string }) {
   const steps = [
-    { Icon: BookOpen,     ar: 'ادرس الوحدة في الكتاب أولًا: المفردات، العبارات، المحادثة ثم القراءة.' },
-    { Icon: Target,       ar: 'حلّ تمارين الوحدة هنا بالترتيب: من الكلمات، إلى الجمل، ثم الكتابة عن نفسك.' },
+    { Icon: BookOpen,     ar: `ادرس ال${unitAr === 'درس' ? 'درس' : 'وحدة'} في الكتاب أولًا: المفردات، العبارات، ثم المحادثة.` },
+    { Icon: Target,       ar: 'حلّ التمارين هنا بالترتيب: من الكلمات، إلى الجمل، ثم الكتابة عن نفسك.' },
     { Icon: CheckCircle2, ar: 'صحّح بنفسك من مفاتيح الحل في آخر الدفتر، وسجّل نتيجتك في صفحة «تقدّمي».' },
     { Icon: Repeat,       ar: 'أعد التمارين الصعبة بعد أيام قليلة — التكرار هو سرّ التعلّم.' },
   ]
@@ -34,7 +34,7 @@ export function WelcomeBody({ theme: t }: { theme: SheetTheme }) {
       </div>
 
       <div className="mt-6 rounded-xl px-6 py-4 text-[17px] font-extrabold leading-relaxed text-center" style={{ background: t.accent, color: t.onAccent }}>
-        هذا الدفتر رفيق كتاب «الإنجليزية للمواقف اليومية». لكل وحدة في الكتاب صفحات تمارين هنا،
+        هذا الدفتر رفيق كتاب «{bookAr}». لكل {unitAr} في الكتاب صفحات تمارين هنا،
         تساعدك على تثبيت الكلمات والعبارات حتى تستعملها بثقة في حياتك اليومية.
       </div>
 
@@ -80,6 +80,7 @@ const EXAMPLE: Record<SectionKind, { ar: string; ex: string }> = {
   search:    { ar: 'تبحث عن كلمات الوحدة المخفية داخل شبكة من الحروف.',            ex: 'S H O W E R  →' },
   gaps:      { ar: 'تكمل الجملة بالكلمة المناسبة من بنك الكلمات.',                  ex: 'Can I pay by ____?   (card)' },
   order:     { ar: 'ترتّب الكلمات المبعثرة لتكوّن عبارة صحيحة.',                    ex: 'pay · I · can  →  Can I pay?' },
+  dialogue:  { ar: 'تكمل محادثة من الكتاب بالكلمة المناسبة من بنك الكلمات.',        ex: 'Ali: I am 27 ____ old.  (years)' },
   translate: { ar: 'تترجم عبارات الوحدة من العربية إلى الإنجليزية.',               ex: 'كم السعر؟  →  How much is it?' },
   write:     { ar: 'تكتب عن حياتك أنت باستعمال كلمات الوحدة وعباراتها.',            ex: 'I usually wake up at …' },
 }
@@ -128,14 +129,14 @@ const pad = (n: number) => String(n).padStart(2, '0')
 
 /** The whole workbook's contents — always all units, with the page range of
  *  each unit's exercises and where its answers are. */
-export function ContentsBody({ theme: t, rows, keysPage }: { theme: SheetTheme; rows: ContentsRow[]; keysPage: number | null | undefined }) {
+export function ContentsBody({ theme: t, rows, keysPage, unitLabel = 'UNIT' }: { theme: SheetTheme; rows: ContentsRow[]; keysPage: number | null | undefined; unitLabel?: string }) {
   const numbered = rows.some(r => r.page != null)
   const hasKeys = rows.some(r => r.key != null)
   return (
     <div dir="ltr">
       {numbered && (
         <div className="flex items-center gap-3 pb-1.5 mb-2 border-b-2 text-[11px] font-black" style={{ borderColor: t.dark, color: t.dark }}>
-          <span className="flex-1">UNIT · الوحدة</span>
+          <span className="flex-1">{unitLabel} · {unitLabel === 'UNIT' ? 'الوحدة' : 'الدرس'}</span>
           <span className="w-[96px] text-center whitespace-nowrap">PAGES · الصفحات</span>
           {hasKeys && <span className="w-[64px] text-center whitespace-nowrap">KEY · الحل</span>}
         </div>
@@ -143,7 +144,7 @@ export function ContentsBody({ theme: t, rows, keysPage }: { theme: SheetTheme; 
       <div className={rows.length > 12 ? 'space-y-[8px]' : 'space-y-3'}>
         {rows.map(r => (
           <div key={r.n} className="flex items-center gap-3">
-            <span className="w-[74px] shrink-0 rounded-md px-2 py-0.5 text-center text-[12.5px] font-black text-white" style={{ background: t.dark }}>UNIT {pad(r.n)}</span>
+            <span className={`${unitLabel === 'UNIT' ? 'w-[74px]' : 'w-[96px]'} shrink-0 whitespace-nowrap rounded-md px-2 py-0.5 text-center text-[12.5px] font-black text-white`} style={{ background: t.dark }}>{unitLabel} {pad(r.n)}</span>
             <span className="text-[14.5px] font-extrabold whitespace-nowrap">{r.titleEn} <span className="text-zinc-400 mx-1">|</span> <bdi dir="rtl">{r.titleAr}</bdi></span>
             <span className="flex-1 border-b-2 border-dotted border-zinc-300 translate-y-1" />
             {r.page != null && (
@@ -159,7 +160,7 @@ export function ContentsBody({ theme: t, rows, keysPage }: { theme: SheetTheme; 
       </div>
       {keysPage !== undefined && (
         <div className="flex items-center gap-3 pt-3 mt-3 border-t-2" style={{ borderColor: t.dark }}>
-          <span className="w-[74px] shrink-0 rounded-md px-2 py-0.5 text-center text-[12.5px] font-black" style={{ background: t.accent, color: t.onAccent }}>KEYS</span>
+          <span className={`${unitLabel === 'UNIT' ? 'w-[74px]' : 'w-[96px]'} shrink-0 whitespace-nowrap rounded-md px-2 py-0.5 text-center text-[12.5px] font-black`} style={{ background: t.accent, color: t.onAccent }}>KEYS</span>
           <span className="text-[14.5px] font-black">Answer keys <span className="text-zinc-400 mx-1">|</span> <bdi dir="rtl">مفاتيح الحل</bdi></span>
           <span className="flex-1 border-b-2 border-dotted border-zinc-300 translate-y-1" />
           {keysPage != null && <span className="w-[96px] text-center text-[14.5px] font-black tabular-nums" style={{ color: t.dark }}>{pad(keysPage)}</span>}
@@ -170,7 +171,7 @@ export function ContentsBody({ theme: t, rows, keysPage }: { theme: SheetTheme; 
   )
 }
 
-export function ProgressBody({ theme: t, units, kinds }: { theme: SheetTheme; units: { n: number; titleAr: string }[]; kinds: SectionKind[] }) {
+export function ProgressBody({ theme: t, units, kinds, unitLabel = 'UNIT' }: { theme: SheetTheme; units: { n: number; titleAr: string }[]; kinds: SectionKind[]; unitLabel?: string }) {
   const rowH = units.length > 12 ? 36 : 44
   return (
     <div>
@@ -180,7 +181,7 @@ export function ProgressBody({ theme: t, units, kinds }: { theme: SheetTheme; un
       <table className="mt-4 w-full border-collapse text-[13px]" dir="ltr">
         <thead>
           <tr style={{ background: t.dark, color: '#fff' }}>
-            <th className="px-2 py-2 text-left font-black">UNIT</th>
+            <th className="px-2 py-2 text-left font-black">{unitLabel}</th>
             {kinds.map((k, i) => {
               const s = SECTION[k]
               return <th key={k} className="px-1 py-2 font-black w-[52px]" title={s.ar}><span className="inline-flex flex-col items-center gap-0.5"><s.Icon size={15} style={{ color: hi(t) }} />{i + 1}</span></th>

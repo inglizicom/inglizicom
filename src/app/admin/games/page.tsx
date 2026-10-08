@@ -3,28 +3,65 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Shuffle } from 'lucide-react'
 import {
-  generateMatchingSet, generateScrambleSet, generateWordSearch, makeGapFill, missingLetters, type Difficulty,
+  generateMatchingSet, generateScrambleSet, generateWordSearch, makeGapFill, missingLetters, type Difficulty, type GapItem,
 } from '@/lib/game-generators'
 import { EVERYDAY_ENGLISH, type WorkbookUnit } from '@/data/workbook/everyday-english'
+import { LEVEL1_DIALOGUES, LEVEL1_WORKBOOK } from '@/data/workbook/level1-workbook'
 import {
   A4Page, Field, FrontPage, GamesHeader, GapsBody, INP, LettersBody, MatchBody, OrderBody, PrintAllButton, SECTION, THEMES,
   ThemePicker, TranslateBody, WordSearchBody, WriteBody, type PageMeta, type SectionKind, type SheetTheme,
 } from './_shared'
 import { ContentsBody, HowToBody, ProgressBody, WelcomeBody, type ContentsRow } from './_front'
-import { CoverFields, CoverPage, DEFAULT_COVER, workbookStats, type CoverInfo } from './_cover'
-
-const COVER_KEY = 'workbook-cover-v1'
+import { CoverFields, CoverPage, DEFAULT_COVER, workbookStats, type CoverBubble, type CoverInfo } from './_cover'
 
 /**
- * /admin/games — the workbook of «الإنجليزية للمواقف اليومية», generated per
- * unit (or all 19) from data/workbook/everyday-english.ts. Seven exercises in
- * learning order — words first (match, missing letters, word search), then
- * sentences (fill the gap, words in order, translate), then free writing —
- * and every answer key gathered at the end like a real workbook.
- * Same seed → same puzzles; "new mix" changes them all.
+ * /admin/games — the workbooks, generated per unit (or whole) from the
+ * books' word lists:
+ *   · «الإنجليزية للمواقف اليومية» (data/workbook/everyday-english.ts)
+ *   · «الإنجليزية من الصفر — المستوى الأول» (data/workbook/level1-workbook.ts),
+ *     whose units are the book's lessons, plus «أكمل المحادثة» built from the
+ *     Canva book's original conversations.
+ * Exercises in learning order — words first (match, missing letters, word
+ * search), then sentences (fill the gap, words in order, the conversation,
+ * translate), then free writing — and every answer key gathered at the end
+ * like a real workbook. Same seed → same puzzles; "new mix" changes them all.
  */
 
-const KINDS: SectionKind[] = ['match', 'letters', 'search', 'gaps', 'order', 'translate', 'write']
+interface Book {
+  id: 'everyday' | 'level1'
+  titleAr: string
+  units: WorkbookUnit[]
+  /** Original conversations per unit, for «أكمل المحادثة». */
+  dialogues?: Record<number, string[]>
+  kinds: SectionKind[]
+  unitLabel: 'UNIT' | 'LESSON'
+  unitAr: 'وحدة' | 'درس'
+  theme: string
+  cover: CoverInfo
+  /** The four speech bubbles on the cover (the default: the everyday book's). */
+  bubbles?: CoverBubble[]
+}
+
+const BOOKS: Book[] = [
+  {
+    id: 'everyday', titleAr: 'الإنجليزية للمواقف اليومية', units: EVERYDAY_ENGLISH,
+    kinds: ['match', 'letters', 'search', 'gaps', 'order', 'translate', 'write'],
+    unitLabel: 'UNIT', unitAr: 'وحدة', theme: 'book', cover: DEFAULT_COVER,
+  },
+  {
+    id: 'level1', titleAr: 'الإنجليزية من الصفر — المستوى الأول', units: LEVEL1_WORKBOOK, dialogues: LEVEL1_DIALOGUES,
+    kinds: ['match', 'letters', 'search', 'gaps', 'order', 'dialogue', 'translate', 'write'],
+    unitLabel: 'LESSON', unitAr: 'درس', theme: 'level1',
+    cover: {
+      ...DEFAULT_COVER,
+      titleAr1: 'الإنجليزية من الصفر', titleAr2: 'المستوى الأول (الدارجة)',
+      titleEn1: 'English from Zero', titleEn2: 'Level 1 Workbook', level: 'A0 → A1',
+      phone1: '+212 707 902 091',
+    },
+    bubbles: [{ text: 'Nice to meet you!' }, { text: 'كيف حالك؟', ar: true }, { text: 'ما اسمك؟', ar: true }, { text: "What's your name?" }],
+  },
+]
+
 const NO_KEY: SectionKind[] = ['write']
 const DIFFS: { id: Difficulty; label: string; hint: string }[] = [
   { id: 'easy',   label: 'سهل',   hint: 'أفقي وعمودي فقط' },
@@ -32,9 +69,20 @@ const DIFFS: { id: Difficulty; label: string; hint: string }[] = [
   { id: 'hard',   label: 'صعب',   hint: 'كل الاتجاهات ومعكوسة' },
 ]
 
-function build(u: WorkbookUnit, diff: Difficulty, mix: number) {
+/** A conversation with one gap per line; the speaker's name is never the gap. */
+function dialogueGaps(lines: string[], unitWords: string[], seed: number): { items: GapItem[]; bank: string[] } {
+  const split = lines.map(line => {
+    const m = line.match(/^([^:]{1,20}):\s(.*)$/)
+    return m ? { who: m[1], text: m[2] } : { who: '', text: line }
+  })
+  const g = makeGapFill(split.map(s => s.text), unitWords, seed, { allowRepeat: true })
+  return { items: g.items.map((it, i) => ({ ...it, before: `${split[i].who ? `${split[i].who}: ` : ''}${it.before}` })), bank: g.bank }
+}
+
+function build(book: Book, u: WorkbookUnit, diff: Difficulty, mix: number) {
   const seed = u.n * 1009 + mix * 7919
   const en = u.phrases.map(p => p.en)
+  const lines = book.dialogues?.[u.n]
   return {
     unit: u,
     match: generateMatchingSet(u.words.slice(0, 10), seed),
@@ -42,6 +90,7 @@ function build(u: WorkbookUnit, diff: Difficulty, mix: number) {
     search: generateWordSearch(u.words.map(w => w.en), { seed, difficulty: diff, size: 12 }),
     gaps: makeGapFill(en, u.words.map(w => w.en), seed),
     order: generateScrambleSet(en, seed),
+    dialogue: lines ? dialogueGaps(lines, u.words.map(w => w.en), seed + 31) : null,
   }
 }
 type Built = ReturnType<typeof build>
@@ -49,19 +98,25 @@ type Front = 'welcome' | 'howto' | 'contents' | 'progress'
 const FRONT: Front[] = ['welcome', 'howto', 'contents', 'progress']
 type Entry = { front: Front } | { kind: SectionKind; key: boolean; b: Built }
 
+/** Does this unit have this exercise? (Not every lesson has a conversation.) */
+const has = (b: Built, k: SectionKind) => k !== 'dialogue' || b.dialogue !== null
+
 /** What's on screen: the whole workbook, the cover, only the front pages,
  *  or one unit (its exercises + its answer keys). Always a slice of the FULL
  *  layout, so every page keeps the number it has in the printed book and the
- *  contents page always lists all 19 units. The cover sits outside that
+ *  contents page always lists every unit. The cover sits outside that
  *  layout: it carries no page number. */
 type View = 'book' | 'cover' | 'front' | number
 
 export default function WorkbookPage() {
+  const [bookId, setBookId] = useState<Book['id']>('everyday')
+  const book = BOOKS.find(b => b.id === bookId)!
+  const coverKey = `workbook-cover-${book.id === 'everyday' ? 'v1' : book.id}`
   const [view, setView] = useState<View>(1)
-  const [cover, setCover] = useState<CoverInfo>(DEFAULT_COVER)
-  const [coverLoaded, setCoverLoaded] = useState(false)
+  const [cover, setCover] = useState<CoverInfo>(book.cover)
+  const [coverLoaded, setCoverLoaded] = useState<string | null>(null)
   const [kinds, setKinds] = useState<Record<SectionKind, boolean>>(
-    { match: true, letters: true, search: true, gaps: true, order: true, translate: true, write: true })
+    { match: true, letters: true, search: true, gaps: true, order: true, dialogue: true, translate: true, write: true })
   const [keys, setKeys] = useState(true)
   const [diff, setDiff] = useState<Difficulty>('medium')
   const [theme, setTheme] = useState<SheetTheme>(THEMES[0])
@@ -69,27 +124,34 @@ export default function WorkbookPage() {
   const [startNo, setStartNo] = useState(1)
   const [mix, setMix] = useState(0)
 
-  const built: Built[] = useMemo(() => EVERYDAY_ENGLISH.map(u => build(u, diff, mix)), [diff, mix])
+  const built: Built[] = useMemo(() => book.units.map(u => build(book, u, diff, mix)), [book, diff, mix])
 
-  /* The cover's texts (and photo) are remembered in this browser. */
+  function chooseBook(id: Book['id']) {
+    const next = BOOKS.find(b => b.id === id)!
+    setBookId(id)
+    setView(1)
+    setTheme(THEMES.find(t => t.id === next.theme) ?? THEMES[0])
+  }
+
+  /* Each book's cover (texts and photo) is remembered in this browser. */
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(COVER_KEY)
-      if (saved) setCover({ ...DEFAULT_COVER, ...JSON.parse(saved) })
-    } catch { /* no storage: keep the defaults */ }
-    setCoverLoaded(true)
-  }, [])
+      const saved = localStorage.getItem(coverKey)
+      setCover(saved ? { ...book.cover, ...JSON.parse(saved) } : book.cover)
+    } catch { setCover(book.cover) }
+    setCoverLoaded(coverKey)
+  }, [coverKey, book.cover])
   useEffect(() => {
-    if (!coverLoaded) return
-    try { localStorage.setItem(COVER_KEY, JSON.stringify(cover)) } catch { /* quota (large photo) or no storage */ }
-  }, [cover, coverLoaded])
+    if (coverLoaded !== coverKey) return
+    try { localStorage.setItem(coverKey, JSON.stringify(cover)) } catch { /* quota (large photo) or no storage */ }
+  }, [cover, coverLoaded, coverKey])
 
   /* The full layout: front matter → each unit's exercises → every answer key. */
-  const chosen = KINDS.filter(k => kinds[k])
+  const chosen = book.kinds.filter(k => kinds[k])
   const full: Entry[] = []
   for (const f of FRONT) full.push({ front: f })
-  for (const b of built) for (const k of chosen) full.push({ kind: k, key: false, b })
-  if (keys) for (const b of built) for (const k of chosen) if (!NO_KEY.includes(k)) full.push({ kind: k, key: true, b })
+  for (const b of built) for (const k of chosen) if (has(b, k)) full.push({ kind: k, key: false, b })
+  if (keys) for (const b of built) for (const k of chosen) if (!NO_KEY.includes(k) && has(b, k)) full.push({ kind: k, key: true, b })
 
   const pageNoOf = (i: number) => (numbered ? startNo + i : null)
   const lastIndex = (pred: (e: Entry) => boolean) => full.reduce((at, e, i) => (pred(e) ? i : at), -1)
@@ -104,6 +166,7 @@ export default function WorkbookPage() {
   })
   const firstKey = full.findIndex(e => 'key' in e && e.key)
   const keysPage = firstKey < 0 ? undefined : pageNoOf(firstKey)
+  const exercisePages = full.filter(e => 'b' in e && !e.key).length
 
   /* The slice on screen, each page with its index in the full layout. */
   const shown = full.map((e, i) => ({ e, i })).filter(({ e }) =>
@@ -111,19 +174,19 @@ export default function WorkbookPage() {
   const withCover = view === 'book' || view === 'cover'
 
   const meta = (b: Built, i: number): PageMeta => ({
-    theme, unitNo: b.unit.n, unitEn: b.unit.titleEn, unitAr: b.unit.titleAr,
-    pageNo: pageNoOf(i), filename: `unit-${b.unit.n}-${String(i + 1).padStart(3, '0')}`,
+    theme, unitNo: b.unit.n, unitEn: b.unit.titleEn, unitAr: b.unit.titleAr, unitLabel: book.unitLabel,
+    pageNo: pageNoOf(i), filename: `${book.id}-${book.unitLabel.toLowerCase()}-${b.unit.n}-${String(i + 1).padStart(3, '0')}`,
   })
   const no = (k: SectionKind) => chosen.indexOf(k) + 1
 
   function page(p: Entry, i: number) {
     if ('front' in p) {
-      const common = { key: `front-${p.front}`, theme, pageNo: pageNoOf(i), filename: `00-${p.front}` }
+      const common = { key: `front-${p.front}`, theme, pageNo: pageNoOf(i), filename: `${book.id}-00-${p.front}` }
       switch (p.front) {
-        case 'welcome':  return <FrontPage {...common} titleEn="Welcome" titleAr="مرحبًا" label="الترحيب"><WelcomeBody theme={theme} /></FrontPage>
+        case 'welcome':  return <FrontPage {...common} titleEn="Welcome" titleAr="مرحبًا" label="الترحيب"><WelcomeBody theme={theme} bookAr={book.titleAr} unitAr={book.unitAr} /></FrontPage>
         case 'howto':    return <FrontPage {...common} titleEn="How to use" titleAr="طريقة الاستعمال" label="طريقة الاستعمال"><HowToBody theme={theme} kinds={chosen} /></FrontPage>
-        case 'contents': return <FrontPage {...common} titleEn="Contents" titleAr="المحتويات" label="الفهرس"><ContentsBody theme={theme} rows={contents} keysPage={keysPage} /></FrontPage>
-        case 'progress': return <FrontPage {...common} titleEn="My progress" titleAr="تقدّمي" label="تتبّع التقدّم"><ProgressBody theme={theme} units={built.map(b => b.unit)} kinds={chosen} /></FrontPage>
+        case 'contents': return <FrontPage {...common} titleEn="Contents" titleAr="المحتويات" label="الفهرس"><ContentsBody theme={theme} rows={contents} keysPage={keysPage} unitLabel={book.unitLabel} /></FrontPage>
+        case 'progress': return <FrontPage {...common} titleEn="My progress" titleAr="تقدّمي" label="تتبّع التقدّم"><ProgressBody theme={theme} units={built.map(b => b.unit)} kinds={chosen} unitLabel={book.unitLabel} /></FrontPage>
       }
     }
     const { b, key } = p
@@ -155,13 +218,19 @@ export default function WorkbookPage() {
         </A4Page>)
       case 'order': return (
         <A4Page {...common} score={b.order.length}
-          instructionAr="رتّب الكلمات لتكوّن عبارة صحيحة من الوحدة، واكتبها على السطر."
+          instructionAr={`رتّب الكلمات لتكوّن عبارة صحيحة من ال${book.unitAr === 'درس' ? 'درس' : 'وحدة'}، واكتبها على السطر.`}
           instructionEn="Put the words in order and write the sentence.">
           <OrderBody items={b.order} theme={theme} answerKey={key} />
         </A4Page>)
+      case 'dialogue': return b.dialogue && (
+        <A4Page {...common} score={b.dialogue.items.length}
+          instructionAr="اقرأ المحادثة وأكمل كل سطر بكلمة من بنك الكلمات. ثم مثّلها مع زميل."
+          instructionEn="Complete the conversation with words from the box. Then act it out.">
+          <GapsBody items={b.dialogue.items} bank={b.dialogue.bank} theme={theme} answerKey={key} />
+        </A4Page>)
       case 'translate': return (
         <A4Page {...common} score={b.unit.phrases.length}
-          instructionAr="ترجم كل جملة إلى الإنجليزية. كل الجمل من عبارات هذه الوحدة."
+          instructionAr={`ترجم كل جملة إلى الإنجليزية. كل الجمل من عبارات هذا ال${book.unitAr === 'درس' ? 'درس' : 'وحدة'}.`.replace('هذا الوحدة', 'هذه الوحدة')}
           instructionEn="Write each sentence in English.">
           <TranslateBody phrases={b.unit.phrases} theme={theme} answerKey={key} />
         </A4Page>)
@@ -176,26 +245,38 @@ export default function WorkbookPage() {
 
   return (
     <div className="px-6 lg:px-10 py-8 max-w-[1300px] mx-auto">
-      <GamesHeader title="دفتر التمارين — الإنجليزية للمواقف اليومية" back="/admin" />
+      <GamesHeader title={`دفتر التمارين — ${book.titleAr}`} back="/admin" />
       <div className="grid lg:grid-cols-[300px_1fr] gap-6">
         <aside className="space-y-4 print:hidden lg:sticky lg:top-24 self-start">
+          <Field label="الكتاب">
+            <div className="grid grid-cols-1 gap-1.5">
+              {BOOKS.map(b => (
+                <button key={b.id} type="button" onClick={() => chooseBook(b.id)} aria-pressed={b.id === bookId}
+                  className={`rounded-lg border px-3 py-2 text-[12.5px] font-bold text-right ${b.id === bookId ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white border-zinc-200 text-zinc-600'}`}>
+                  {b.titleAr}
+                </button>
+              ))}
+            </div>
+          </Field>
+
           <Field label="عرض" hint={`الدفتر الكامل ${full.length} صفحة + الغلاف — كل صفحة تحمل رقمها في الدفتر الكامل، والفهرس دائمًا كامل. الغلاف بدون رقم.`}>
             <select value={String(view)} onChange={e => setView(['book', 'cover', 'front'].includes(e.target.value) ? e.target.value as View : Number(e.target.value))} className={INP}>
               <option value="book">الدفتر كاملًا ({full.length} صفحة + الغلاف)</option>
               <option value="cover">الغلاف</option>
               <option value="front">صفحات البداية (ترحيب، طريقة الاستعمال، الفهرس، تقدّمي)</option>
-              {EVERYDAY_ENGLISH.map(u => <option key={u.n} value={u.n}>الوحدة {u.n} — {u.titleAr}</option>)}
+              {book.units.map(u => <option key={u.n} value={u.n}>{book.unitAr === 'درس' ? 'الدرس' : 'الوحدة'} {u.n} — {u.titleAr}</option>)}
             </select>
           </Field>
 
-          {withCover && <CoverFields value={cover} onChange={setCover} />}
+          {withCover && <CoverFields value={cover} onChange={setCover} defaults={book.cover} />}
 
           <Field label="التمارين (بترتيب التعلّم)">
             <div className="space-y-1.5">
-              {KINDS.map(k => (
+              {book.kinds.map(k => (
                 <label key={k} className="flex items-center gap-2 text-[13px] font-bold text-zinc-700">
                   <input type="checkbox" checked={kinds[k]} onChange={e => setKinds(s => ({ ...s, [k]: e.target.checked }))} className="w-4 h-4 accent-zinc-900" />
-                  <span className="w-5 text-zinc-400 tabular-nums">{no(k)}.</span> {SECTION[k].ar}
+                  <span className="w-5 text-zinc-400 tabular-nums">{no(k) || '–'}.</span> {SECTION[k].ar}
+                  {k === 'dialogue' && <span className="text-[11px] text-zinc-400">(محادثات الكتاب الأصلية)</span>}
                 </label>
               ))}
               <label className="flex items-center gap-2 text-[13px] font-bold text-zinc-700 pt-1.5 border-t border-zinc-100">
@@ -241,7 +322,8 @@ export default function WorkbookPage() {
         </aside>
 
         <div className="space-y-8 min-w-0">
-          {withCover && <CoverPage info={cover} theme={theme} stats={workbookStats(built.length, chosen.length)} />}
+          {withCover && <CoverPage info={cover} theme={theme} filename={`${book.id}-00-cover`} bubbles={book.bubbles} stats={workbookStats(built.length, chosen.length).map((s, i) =>
+            i === 2 ? { ...s, n: String(exercisePages) } : i === 0 && book.unitAr === 'درس' ? { ...s, ar: 'درسًا', en: 'Lessons' } : s)} />}
           {view !== 'cover' && chosen.length === 0 && <div className="text-center py-16 text-zinc-400 text-[13.5px]">اختر تمرينًا واحدًا على الأقل.</div>}
           {view !== 'cover' && shown.map(({ e, i }) => page(e, i))}
         </div>

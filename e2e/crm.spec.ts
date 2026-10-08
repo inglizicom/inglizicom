@@ -225,6 +225,28 @@ test.describe('flows', () => {
     expect((pdf.match(/\/Type\s*\/Page[^s]/g) ?? []).length).toBe(await sheets.count())
   })
 
+  test('level 1 workbook: every page fits, conversations come from the book, one PDF page per sheet', async ({ page }, info) => {
+    test.skip(info.project.name !== 'desktop', 'one PDF run is enough')
+    test.setTimeout(120_000)
+    await mockSupabase(page, { role: 'founder' })
+    await page.goto('/admin/games')
+    await page.getByRole('button', { name: 'الإنجليزية من الصفر — المستوى الأول' }).click()
+    const sel = page.locator('select').first()
+    await sel.selectOption('book')
+    const tooLong = await page.evaluate(() => [...document.querySelectorAll('.print-sheet')].flatMap((s, i) => {
+      const body = s.querySelector(':scope > div.px-10')
+      return body && body.getBoundingClientRect().bottom > (s.lastElementChild as HTMLElement).getBoundingClientRect().top ? [i] : []
+    }))
+    expect(tooLong).toEqual([])
+    await sel.selectOption('2')
+    await expect(page.locator('.print-sheet').first()).toContainText('LESSON 2')
+    await expect(page.getByText('COMPLETE THE CONVERSATION').first()).toBeVisible()
+    await expect(page.locator('.print-sheet', { hasText: 'COMPLETE THE CONVERSATION' }).first()).toContainText('Hamza: Hello Ali')
+    const sheets = await page.locator('.print-sheet').count()
+    const pdf = (await page.pdf({ preferCSSPageSize: true, printBackground: true })).toString('latin1')
+    expect((pdf.match(/\/Type\s*\/Page[^s]/g) ?? []).length).toBe(sheets)
+  })
+
   test('payroll: recording a payment sends status paid with the method', async ({ page }) => {
     const calls = await mockSupabase(page, { role: 'founder' })
     await page.goto('/admin/team?tab=payroll')
