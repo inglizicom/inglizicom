@@ -14,6 +14,7 @@ import {
   getAttribution,
 } from '@/lib/leads-db'
 import { readLeadSource, clearLeadSource } from '@/lib/lead-source'
+import { planIdFromPath } from '@/lib/lead-offer'
 
 interface Props {
   open:    boolean
@@ -90,7 +91,9 @@ export default function SubscribeModal({
     setDone(false); setErr(null); setName(''); setPhone(''); setWhatsapp(''); setCityCountry('')
     setLevel(defaultLevel ?? '')
     setGoal(defaultGoal  ?? '')
-    setPlanInterest(plan?.id ?? recommendedPlan ?? '')
+    // A general button pressed on an offer's own page (/pricing/<id>) means that offer.
+    const fromPage = planIdFromPath(window.location.pathname)
+    setPlanInterest(plan?.id ?? recommendedPlan ?? (fromPage && PLANS.some(p => p.id === fromPage) ? fromPage : ''))
   }, [open, plan?.id, recommendedPlan, defaultLevel, defaultGoal])
 
   /* Load scarcity data on open */
@@ -182,6 +185,20 @@ export default function SubscribeModal({
     ? `الباقة المقترحة: ${PLANS.find(p => p.id === recommendedPlan)?.title_ar ?? recommendedPlan}`
     : 'سجّل الآن'
 
+  const planSelect = (
+    <Field icon={Crown} label={plan ? 'الباقة اللي تهمّك' : 'شنو العرض اللي كيهمّك؟'}>
+      <select
+        value={planInterest}
+        onChange={e => setPlanInterest(e.target.value)}
+        className={`w-full border rounded-xl px-3 py-3 text-sm font-semibold focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 ${!plan && !planInterest ? 'bg-amber-50 border-amber-300' : 'bg-gray-50 border-gray-200'}`}
+      >
+        {PLAN_INTEREST_OPTIONS.map(o => (
+          <option key={o.value} value={o.value}>{o.label}</option>
+        ))}
+      </select>
+    </Field>
+  )
+
   const seatsLeft = seatsTaken !== null
     ? Math.max(0, MONTHLY_SEAT_LIMIT - seatsTaken)
     : null
@@ -241,6 +258,10 @@ export default function SubscribeModal({
                 <span className="text-amber-700 font-black tabular-nums">{countdown}</span>
               </div>
             )}
+
+            {/* Opened from a general button: ask the offer first, so the
+                lead never reaches the CRM without one (when they know it). */}
+            {!plan && planSelect}
 
             <Field icon={User} label="الاسم الكامل (بالعربية أو الإنجليزية)" required>
               <input
@@ -313,17 +334,7 @@ export default function SubscribeModal({
               </select>
             </Field>
 
-            <Field icon={Crown} label="الباقة اللي تهمّك">
-              <select
-                value={planInterest}
-                onChange={e => setPlanInterest(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 text-sm font-semibold focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
-              >
-                {PLAN_INTEREST_OPTIONS.map(o => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
-                ))}
-              </select>
-            </Field>
+            {plan && planSelect}
 
             {err && (
               <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-3 py-2 text-xs font-bold flex items-center gap-2">

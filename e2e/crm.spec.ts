@@ -110,6 +110,17 @@ test.describe('flows', () => {
     await expect(page.locator('article')).toContainText('أمين الإدريسي')
   })
 
+  test('leads: every card says which offer the lead is about — or that none was chosen', async ({ page }) => {
+    await mockSupabase(page, { role: 'founder' })
+    await page.goto('/sales/workspace')
+    await page.getByRole('button', { name: 'منذ البداية' }).click()
+    const card = (name: string) => page.locator('article').filter({ hasText: name })
+    await expect(card('ياسين العلوي')).toContainText('المستوى الثاني')
+    await expect(card('سلمى بنعلي')).toContainText('لم يختر عرضًا')
+    await card('سلمى بنعلي').getByRole('button', { name: /فتح/ }).click()
+    await expect(page.getByText('اسأله أولًا: أي عرض يهمّه؟')).toBeVisible()
+  })
+
   test('public form: a visitor in Algeria gets a polite message and no lead is saved', async ({ page }) => {
     const calls = await mockSupabase(page)
     await page.route('**/api/geo', r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ country: 'DZ' }) }))

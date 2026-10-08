@@ -21,6 +21,7 @@ import { getPlan } from '@/data/plans'
 import { getSourceMeta } from '@/lib/crm-types'
 import { type StaffRow } from '@/lib/staff-db'
 import Avatar from '@/app/sales/_components/Avatar'
+import { LeadOfferChip } from '@/components/crm/LeadOfferBadge'
 
 /**
  * The leads page as a follow-up queue. Staff open it and work top to bottom:
@@ -388,8 +389,8 @@ function QueueCard({ lead, today, owner, onOpen, onContacted }: {
             </span>
           </div>
           <div className="mt-0.5 text-[12.5px] text-zinc-500 flex flex-wrap items-center gap-x-1.5">
-            <span className="font-bold text-zinc-700">{want}</span>
-            <span className="text-zinc-300">·</span><span>{source.emoji} {source.label}</span>
+            <LeadOfferChip lead={lead} />
+            <span>{source.emoji} {source.label}</span>
             {lead.city && <><span className="text-zinc-300">·</span><span>{lead.city}</span></>}
             {owner && <><span className="text-zinc-300">·</span><span>👤 {owner}</span></>}
           </div>

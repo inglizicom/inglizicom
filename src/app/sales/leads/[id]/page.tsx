@@ -22,6 +22,7 @@ import { useCrmBasePath } from '@/lib/use-crm-path'
 import { GraduationCap } from 'lucide-react'
 import { countryFlag } from '@/lib/geo-currency'
 import Avatar from '../../_components/Avatar'
+import { LeadOfferPanel } from '@/components/crm/LeadOfferBadge'
 
 const CARD = 'bg-white border border-zinc-200 rounded-[22px] shadow-sm'
 const fmtDay = (iso: string) =>
@@ -191,6 +192,7 @@ export default function LeadDetailPage() {
         <div className="lg:col-span-1 space-y-4 min-w-0">
           <div className={`${CARD} p-5 space-y-3.5`}>
             <h2 className="text-[14px] font-extrabold text-zinc-900">معلومات التواصل</h2>
+            <LeadOfferPanel lead={lead} />
             {lead.phone && (
               <InfoLine icon={Phone} label="الهاتف">
                 <a href={`tel:${lead.phone}`} dir="ltr" className="font-semibold text-zinc-900 hover:underline">{lead.phone}</a>
@@ -200,7 +202,6 @@ export default function LeadDetailPage() {
             {lead.amount_mad ? (
               <InfoLine icon={Banknote} label="قيمة الخطة">
                 <span className="font-bold text-zinc-900">{lead.amount_mad.toLocaleString('en-US')} د.م</span>
-                {lead.plan_id && <span className="text-zinc-400 text-[11px] mr-1">· {lead.plan_id}</span>}
               </InfoLine>
             ) : null}
             {srcMeta && (

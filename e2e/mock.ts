@@ -33,7 +33,8 @@ const NAMES = ['ياسين العلوي', 'سلمى بنعلي', 'أمين ال�
 const STATUSES = ['new', 'contacted', 'interested', 'follow_up', 'confirmed', 'paid']
 
 export const LEADS = NAMES.map((n, i) => ({
-  id: `00000000-0000-4000-8000-00000000100${i}`, plan_id: 'monthly', level: 'A1', full_name: n,
+  // Lead 0 picked an offer; lead 1 came from a general button with none.
+  id: `00000000-0000-4000-8000-00000000100${i}`, plan_id: i === 0 ? 'pro' : i === 1 ? 'website' : 'monthly', level: 'A1', full_name: n,
   phone: `+21261000000${i}`, city: 'الرباط', amount_mad: 450, status: STATUSES[i], admin_note: null, notes: null,
   created_at: iso(i), reviewed_by: null, reviewed_at: null, source: 'instagram', goal: null, plan_interest: null,
   course_interested: null, test_score: null, recommended_plan: null, utm_source: null, utm_medium: null,

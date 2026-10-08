@@ -16,6 +16,9 @@ import {
 import { fetchReceiptsForLead, printReceipt, buildReceiptWhatsAppMessage, type CrmReceipt } from '@/lib/crm-receipts'
 import { logLeadEvent } from '@/lib/crm-db'
 import { useStaff } from '@/lib/staff-context'
+import { PLANS, getPlan } from '@/data/plans'
+import { LeadOfferPanel, offerOf } from '@/components/crm/LeadOfferBadge'
+import { GOAL_AR } from '@/lib/lead-offer'
 import { LEAD_STATUSES } from '@/lib/leads-db'
 
 /* ── Arabic labels ─────────────────────────────────────── */
@@ -75,6 +78,7 @@ export default function UnifiedDetailDrawer({ lead, onClose, onUpdated, isFounde
   const [fCourse, setFCourse] = useState('')
   const [fSource, setFSource] = useState('')
   const [fAmount, setFAmount] = useState('')
+  const [fPlan, setFPlan] = useState('')
   const [savingNote,   setSavingNote]   = useState(false)
   const [savingDate,   setSavingDate]   = useState(false)
 
@@ -99,20 +103,25 @@ export default function UnifiedDetailDrawer({ lead, onClose, onUpdated, isFounde
     setFCourse(lead.course ?? '')
     setFSource(lead.lead_source ?? lead.source ?? '')
     setFAmount(lead.amount_mad ? String(lead.amount_mad) : '')
+    setFPlan(offerOf(lead).planId ?? '')
     loadData(lead.id)
   }, [lead?.id])
 
   async function saveInfo() {
     if (!lead) return
     setSavingInfo(true)
+    const plan = fPlan ? getPlan(fPlan) : undefined
+    const planChanged = (offerOf(lead).planId ?? '') !== fPlan
     await patchLead(lead.id, {
       full_name:   fName.trim() || lead.full_name,
       phone:       fPhone.trim() || null,
       city:        fCity.trim() || null,
       course:      fCourse || null,
       lead_source: fSource || null,
-      amount_mad:  fAmount ? Number(fAmount) : null,
-    } as any)
+      amount_mad:  fAmount ? Number(fAmount) : plan?.amount_mad ?? null,
+      // Picking the offer here makes it the lead's own choice from now on.
+      ...(planChanged ? { plan_id: fPlan || 'website', plan_interest: fPlan || null } : {}),
+    })
     await logLeadEvent({ leadId: lead.id, eventType: 'note_added', title: 'تم تعديل بيانات العميل' })
     setSavingInfo(false); setEditInfo(false)
     onUpdated()
@@ -330,6 +339,12 @@ export default function UnifiedDetailDrawer({ lead, onClose, onUpdated, isFounde
                     <EditField label="الاسم"><input value={fName} onChange={e => setFName(e.target.value)} className={EDIT_INP} /></EditField>
                     <EditField label="الهاتف"><input value={fPhone} onChange={e => setFPhone(e.target.value)} dir="ltr" className={`${EDIT_INP} text-right`} /></EditField>
                     <EditField label="المدينة"><input value={fCity} onChange={e => setFCity(e.target.value)} className={EDIT_INP} /></EditField>
+                    <EditField label="العرض الذي يهمّه">
+                      <select value={fPlan} onChange={e => setFPlan(e.target.value)} className={EDIT_INP}>
+                        <option value="">لم يختر بعد</option>
+                        {PLANS.map(p => <option key={p.id} value={p.id}>{p.title_ar} — {p.amount_mad.toLocaleString('en-US')} درهم</option>)}
+                      </select>
+                    </EditField>
                     <EditField label="الدورة">
                       <select value={fCourse} onChange={e => setFCourse(e.target.value)} className={EDIT_INP}>
                         <option value="">—</option>
@@ -350,6 +365,7 @@ export default function UnifiedDetailDrawer({ lead, onClose, onUpdated, isFounde
                   </div>
                 ) : (
                   <div className="space-y-3">
+                    <LeadOfferPanel lead={lead} />
                     <InfoRow label="الاسم" value={fName || '—'} />
                     <InfoRow label="الهاتف" value={fPhone || '—'} dir="ltr" />
                     <InfoRow label="الحالة" value={STATUS_AR[status] ?? status} />
@@ -357,7 +373,9 @@ export default function UnifiedDetailDrawer({ lead, onClose, onUpdated, isFounde
                     <InfoRow label="الدورة" value={fCourse ? fCourse.toUpperCase() : '—'} />
                     <InfoRow label="المبلغ المتوقع" value={fAmount ? `${Number(fAmount).toLocaleString('en-US')} درهم` : '—'} />
                     <InfoRow label="المدينة" value={fCity || '—'} />
-                    {student && <InfoRow label="الطالب رقم" value={student.id.slice(0, 8)} />}
+                    {lead.goal && <InfoRow label="الهدف" value={GOAL_AR[lead.goal] ?? lead.goal} />}
+                    {lead.page_path && <InfoRow label="أُرسل من صفحة" value={lead.page_path} dir="ltr" />}
+                    {student &&<InfoRow label="الطالب رقم" value={student.id.slice(0, 8)} />}
                   </div>
                 )}
               </section>

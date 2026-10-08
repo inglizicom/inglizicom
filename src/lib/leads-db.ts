@@ -354,6 +354,9 @@ export interface LeadPatch {
   amount_mad?:        number | null
   lead_source?:       string | null
   course?:            string | null
+  /** The offer, once staff learn it (lib/lead-offer.ts reads both). */
+  plan_id?:           string
+  plan_interest?:     string | null
   is_archived?:       boolean
   lost_reason?:       string | null
   last_outcome?:      string | null

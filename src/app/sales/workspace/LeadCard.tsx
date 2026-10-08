@@ -3,7 +3,8 @@
 import { MessageCircle, Phone, Crown, Clock, AlertTriangle, CheckCircle2, Circle } from 'lucide-react'
 import { type SubscriptionLead, normalizeStatus, whatsappLink } from '@/lib/leads-db'
 import { LEAD_STATUS_META } from '@/lib/leads-db'
-import { getSourceMeta, getCourseMeta } from '@/lib/crm-types'
+import { getSourceMeta } from '@/lib/crm-types'
+import { LeadOfferChip, offerOf } from '@/components/crm/LeadOfferBadge'
 
 /* Arabic status labels */
 const STATUS_AR: Record<string, string> = {
@@ -47,7 +48,7 @@ export default function LeadCard({ lead, selected, onSelect, onClick, staffName 
   const status  = normalizeStatus(lead.status)
   const meta    = LEAD_STATUS_META[status]
   const source  = getSourceMeta(lead.lead_source ?? lead.source)
-  const course  = getCourseMeta(lead.course)
+  const offer   = offerOf(lead)
   const urgency = urgencyLabel(lead)
   const phone   = lead.phone ?? ''
 
@@ -96,17 +97,13 @@ export default function LeadCard({ lead, selected, onSelect, onClick, staffName 
           </span>
         </div>
 
-        {/* Middle row: source + course + amount */}
+        {/* Middle row: the offer first, then source + amount */}
         <div className="flex flex-wrap gap-1.5 mb-3">
+          <LeadOfferChip lead={lead} />
           <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${source.color}`}>
             {source.emoji} {source.label}
           </span>
-          {lead.course && (
-            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border border-zinc-200">
-              {course.short}
-            </span>
-          )}
-          {(lead.amount_mad ?? 0) > 0 && (
+          {(lead.amount_mad ?? 0) > 0 && !offer.detail && (
             <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
               {lead.amount_mad?.toLocaleString('ar-MA')} درهم
             </span>
