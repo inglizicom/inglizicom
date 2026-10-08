@@ -13,7 +13,19 @@
  */
 
 export type Pair = [en: string, ar: string]
-export type FlagId = 'ma' | 'eg' | 'fr' | 'es' | 'sa' | 'dz' | 'it' | 'us' | 'tn'
+export type FlagId = 'ma' | 'eg' | 'fr' | 'es' | 'sa' | 'dz' | 'it' | 'us' | 'tn' | 'gb' | 'de' | 'tr' | 'cn'
+
+/** Who sits where in the family tree (lesson 5). Each is [face, role, name]. */
+export interface FamilyPeople {
+  grandpa: [string, string, string]; grandma: [string, string, string]
+  aunt1: [string, string, string]; uncle1: [string, string, string]
+  father: [string, string, string]; mother: [string, string, string]
+  uncle2: [string, string, string]; aunt2: [string, string, string]
+  cousins1: [[string, string, string], [string, string, string]]; cousins2: [[string, string, string], [string, string, string]]
+  left: [[string, string, string], [string, string, string]]; me: [[string, string, string], [string, string, string]]; right: [[string, string, string], [string, string, string]]
+  kidsLeft: [[string, string, string], [string, string, string]]; kidsMe: [[string, string, string], [string, string, string]]; kidsRight: [[string, string, string], [string, string, string]]
+  notes: [string, string, string, string, string]
+}
 
 export type Block =
   /** A small bullet line on the right ("Teacher : …"). */
@@ -59,7 +71,7 @@ export type Block =
   /** Space. */
   | { t: 'gap'; h: number }
   /* ── one-off pictures ── */
-  | { t: 'family' }
+  | { t: 'family'; vocab?: Pair[]; people?: FamilyPeople }
   | { t: 'preps'; items: [kind: 'behind' | 'on' | 'between' | 'under' | 'front' | 'next', en: string, ar: string][] }
   | { t: 'clocks'; times: string[] }
   | { t: 'pointing'; items: { far: boolean; many: boolean; caption: string; en: string; ar: string }[] }

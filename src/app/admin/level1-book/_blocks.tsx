@@ -6,7 +6,7 @@ import {
   Palette, Paperclip, Pencil, Phone, Ruler, Scissors, type LucideIcon,
 } from 'lucide-react'
 import { BareSheet, THEMES } from '../games/_shared'
-import type { Block, FlagId, Lesson } from '@/data/level1-book'
+import type { Block, FamilyPeople, FlagId, Lesson } from '@/data/level1-book'
 
 /**
  * The look of «الإنجليزية من الصفر (الدارجة)»: bold handwritten type (Mali
@@ -204,12 +204,12 @@ function Columns({ items, cols, render }: { items: string[]; cols: number; rende
 
 /** Arabic text quoting English ("مرافق + There is / are"): each English run isolated. */
 function RtlMixed({ text }: { text: string }) {
-  const parts = text.split(/([A-Za-z][A-Za-z\s/'’.?-]*[A-Za-z?.]|[A-Za-z])/).filter(Boolean)
+  const parts = text.split(/([A-Za-z][A-Za-z0-9\s/'’.,?!–\-+=()✓✗]*[A-Za-z0-9?.)!✓✗]|[A-Za-z])/).filter(Boolean)
   return <>{parts.map((p, i) => (/[A-Za-z]/.test(p) ? <bdi key={i} dir="ltr">{p}</bdi> : <Fragment key={i}>{p}</Fragment>))}</>
 }
 
 /** All-Arabic text runs right to left; mixed text keeps each run in order. */
-const Txt = ({ s }: { s: string }) => (isAr(s) ? <span dir="rtl" style={{ fontFamily: AR }}>{s}</span> : <Mixed text={s} />)
+const Txt = ({ s }: { s: string }) => (isAr(s) ? <span dir="rtl" style={{ fontFamily: AR }}><RtlMixed text={s} /></span> : <Mixed text={s} />)
 
 const BarTitle = ({ title, icon }: { title: string; icon?: string }) => (
   <div className="bg-[var(--m)] text-white rounded-[3px] px-3 min-h-[30px] py-0.5 flex items-center gap-2 text-[17px] font-bold leading-tight">
@@ -248,7 +248,7 @@ function BlockView({ b, talkNo }: { b: Block } & Ctx) {
         <div style={{ fontSize: b.size ?? 13 }} className="font-bold">
           {b.heading !== undefined && <div className="text-[16px] font-bold underline mb-1 min-h-[1.2em]">{b.heading}</div>}
           <Columns items={b.items} cols={b.cols ?? 1} render={s => isAr(s)
-            ? <div dir="rtl" style={{ fontFamily: AR }}><Bullet tick={b.tick}>{s}</Bullet></div>
+            ? <div dir="rtl" style={{ fontFamily: AR }}><Bullet tick={b.tick}><RtlMixed text={s} /></Bullet></div>
             : <Bullet tick={b.tick}><Mixed text={s} /></Bullet>} />
         </div>
       )
@@ -301,7 +301,7 @@ function BlockView({ b, talkNo }: { b: Block } & Ctx) {
             </div>
           ))}
         </div>
-        {b.note && <div className="text-[11px] font-bold mt-0.5" style={{ fontFamily: AR }} dir="rtl">{b.note}</div>}
+        {b.note && <div className="text-[11px] font-bold mt-0.5" style={{ fontFamily: AR }} dir={isAr(b.note) ? 'rtl' : 'ltr'}><Txt s={b.note} /></div>}
       </div>
     )
     case 'row': return (
@@ -405,7 +405,7 @@ function BlockView({ b, talkNo }: { b: Block } & Ctx) {
         📎 {b.text}
       </div>
     )
-    case 'family': return <FamilyTree />
+    case 'family': return <FamilyTree vocab={b.vocab} people={b.people} />
     case 'preps': return <Prepositions items={b.items} />
     case 'clocks': return (
       <div className="grid grid-cols-8 gap-2">
@@ -542,12 +542,29 @@ const Note = ({ children, w = 96 }: { children: ReactNode; w?: number }) => (
   <div className="bg-[#FFF6B8] border border-[var(--m)] rounded-[3px] px-1.5 py-1 text-[8.5px] font-bold leading-tight text-center shadow-[2px_2px_0_#000]" style={{ width: w }}>{children}</div>
 )
 
-function FamilyTree() {
-  const vocab: [string, string][] = [
-    ['Grandfather', 'الجد'], ['Grandmother', 'الجدة'], ['Father', 'الأب'], ['Mother', 'الأم'], ['Brother', 'الأخ'], ['Sister', 'الأخت'], ['Husband', 'الزوج'],
-    ['Wife', 'الزوجة'], ['Son', 'الابن'], ['Daughter', 'الابنة'], ['Grandson', 'الحفيد'], ['Granddaughter', 'الحفيدة'], ['Aunt', 'العمة / الخالة'], ['Uncle', 'العم / الخال'],
-    ['Cousins', 'أبناء العم(ة) / الخال(ة)'], ['Sister-in-law', 'زوجة الأخ'], ['Brother-in-law', 'زوج الأخت'], ['Nephew', 'ابن الأخ / الأخت'], ['Niece', 'بنت الأخ / الأخت'],
-  ]
+/** The first edition's family (the Canva book's). */
+const FAMILY_V1: FamilyPeople = {
+  grandpa: ['👴', 'Grandfather', 'Abdurrahman'], grandma: ['👵', 'Grandmother', 'Safiya'],
+  aunt1: ['👩', 'Aunt', 'Salma'], uncle1: ['👨', 'Uncle', 'Samir'],
+  father: ['👨‍🦱', 'Father', 'Ahmed'], mother: ['👩‍🦱', 'Mother', 'Khadija'],
+  uncle2: ['🧔', 'Uncle', 'Youssef'], aunt2: ['👩‍🦰', 'Aunt', 'Zaynab'],
+  cousins1: [['👧', 'Cousin', 'Hala'], ['👦', 'Cousin', 'Achraf']], cousins2: [['👧', 'Cousin', 'Abir'], ['👦', 'Cousin', 'Iyad']],
+  left: [['👩', 'Sister-in-law', 'Iness'], ['👨', 'Brother', 'Zaid']],
+  me: [['🧑', 'Husband (me)', 'Adil'], ['👩', 'Wife (me)', 'Maysoun']],
+  right: [['👩‍🦱', 'Sister', 'Ihssane'], ['🧔', 'Brother-in-law', 'Omar']],
+  kidsLeft: [['👦', 'Nephew', 'Yahya'], ['👧', 'Niece', 'Maram']], kidsMe: [['👦', 'Son', 'Fares'], ['👧', 'Daughter', 'Issrae']], kidsRight: [['👦', 'Nephew', 'Salim'], ['👧', 'Niece', 'Hiba']],
+  notes: [
+    'Grandfather + Grandmother = Grandparents', 'Father + Mother = Parents · Husband + Wife = Spouses - أزواج',
+    'Son + Daughter = Children - أبناء', 'Aunt؟ زوجة العم أو الخال تسمى أيضًا Aunt', 'Uncle؟ زوج العمة أو الخالة يسمى أيضًا Uncle',
+  ],
+}
+const FAMILY_VOCAB_V1: [string, string][] = [
+  ['Grandfather', 'الجد'], ['Grandmother', 'الجدة'], ['Father', 'الأب'], ['Mother', 'الأم'], ['Brother', 'الأخ'], ['Sister', 'الأخت'], ['Husband', 'الزوج'],
+  ['Wife', 'الزوجة'], ['Son', 'الابن'], ['Daughter', 'الابنة'], ['Grandson', 'الحفيد'], ['Granddaughter', 'الحفيدة'], ['Aunt', 'العمة / الخالة'], ['Uncle', 'العم / الخال'],
+  ['Cousins', 'أبناء العم(ة) / الخال(ة)'], ['Sister-in-law', 'زوجة الأخ'], ['Brother-in-law', 'زوج الأخت'], ['Nephew', 'ابن الأخ / الأخت'], ['Niece', 'بنت الأخ / الأخت'],
+]
+
+function FamilyTree({ vocab = FAMILY_VOCAB_V1, people: p = FAMILY_V1 }: { vocab?: [string, string][]; people?: FamilyPeople }) {
   return (
     <div className="grid gap-[10px]" style={{ gridTemplateColumns: '190px 1fr' }}>
       <div className="bg-[var(--k)] text-white rounded-[3px] px-2 pb-2">
@@ -561,38 +578,35 @@ function FamilyTree() {
       </div>
       <div className="flex flex-col">
         <div className="bg-[var(--m)] text-white rounded-[3px] text-center text-[16px] font-bold py-[3px]">The Family Tree - <bdi dir="rtl" style={{ fontFamily: AR }}>شجرة العائلة</bdi></div>
-        <div className="flex-1 border-[1.5px] border-[var(--m)] rounded-[3px] mt-1 px-2 py-2 flex flex-col items-center gap-1.5" dir="ltr">
+        <div className="flex-1 border-[1.5px] border-[var(--m)] rounded-[3px] mt-1 px-2 py-2 flex flex-col items-center justify-between gap-1.5" dir="ltr">
           <div className="flex items-center gap-3">
-            <Note>Grandfather + Grandmother = Grandparents</Note>
-            <Couple a={['👴', 'Grandfather', 'Abdurrahman']} b={['👵', 'Grandmother', 'Safiya']} />
+            <Note><Txt s={p.notes[0]} /></Note>
+            <Couple a={p.grandpa} b={p.grandma} />
           </div>
           <div className="w-[78%] h-[10px] border-x-2 border-t-2 border-[var(--m)]" />
           <div className="w-full flex justify-between">
-            <Couple a={['👩', 'Aunt', 'Salma']} b={['👨', 'Uncle', 'Samir']} />
-            <Couple a={['👨‍🦱', 'Father', 'Ahmed']} b={['👩‍🦱', 'Mother', 'Khadija']} />
-            <Couple a={['🧔', 'Uncle', 'Youssef']} b={['👩‍🦰', 'Aunt', 'Zaynab']} />
+            <Couple a={p.aunt1} b={p.uncle1} />
+            <Couple a={p.father} b={p.mother} />
+            <Couple a={p.uncle2} b={p.aunt2} />
           </div>
           <div className="w-full flex justify-between items-start">
-            <Kids a={['👧', 'Cousin', 'Hala']} b={['👦', 'Cousin', 'Achraf']} />
-            <Note w={110}>Father + Mother = Parents<br />Husband + Wife = Spouses - أزواج</Note>
-            <Kids a={['👧', 'Cousin', 'Abir']} b={['👦', 'Cousin', 'Iyad']} />
+            <Kids a={p.cousins1[0]} b={p.cousins1[1]} />
+            <Note w={118}><Txt s={p.notes[1]} /></Note>
+            <Kids a={p.cousins2[0]} b={p.cousins2[1]} />
           </div>
           <div className="w-[78%] h-[10px] border-x-2 border-t-2 border-[var(--m)]" />
           <div className="w-full flex justify-between">
-            <Couple a={['👩', 'Sister-in-law', 'Iness']} b={['👨', 'Brother', 'Zaid']} />
-            <Couple a={['🧑', 'Husband (me)', 'Adil']} b={['👩', 'Wife (me)', 'Maysoun']} />
-            <Couple a={['👩‍🦱', 'Sister', 'Ihssane']} b={['🧔', 'Brother-in-law', 'Omar']} />
+            <Couple a={p.left[0]} b={p.left[1]} />
+            <Couple a={p.me[0]} b={p.me[1]} />
+            <Couple a={p.right[0]} b={p.right[1]} />
           </div>
           <div className="w-full flex justify-between">
-            <Kids a={['👦', 'Nephew', 'Yahya']} b={['👧', 'Niece', 'Maram']} />
-            <Kids a={['👦', 'Son', 'Fares']} b={['👧', 'Daughter', 'Issrae']} />
-            <Kids a={['👦', 'Nephew', 'Salim']} b={['👧', 'Niece', 'Hiba']} />
+            <Kids a={p.kidsLeft[0]} b={p.kidsLeft[1]} />
+            <Kids a={p.kidsMe[0]} b={p.kidsMe[1]} />
+            <Kids a={p.kidsRight[0]} b={p.kidsRight[1]} />
           </div>
           <div className="w-full flex justify-between gap-1.5 mt-auto" dir="rtl" style={{ fontFamily: AR }}>
-            <Note w={118}>Son + Daughter = Children - أبناء</Note>
-            <Note w={118}>Aunt؟ زوجة العم أو الخال تسمى أيضًا Aunt</Note>
-            <Note w={118}>Uncle؟ زوج العمة أو الخالة يسمى أيضًا Uncle</Note>
-            <Note w={118}>Nibling؟ تقال أحيانًا لابن أو بنت الأخ أو الأخت</Note>
+            {p.notes.slice(2).map(n => <Note key={n} w={150}><Txt s={n} /></Note>)}
           </div>
         </div>
       </div>
@@ -623,6 +637,16 @@ function Flag({ id }: { id: FlagId }) {
     case 'sa': body = <><rect width={w} height={h} fill="#006C35" /><rect x="16" y="13" width="28" height="7" rx="2" fill="#fff" opacity=".9" /><rect x="17" y="25" width="26" height="1.8" fill="#fff" /></>; break
     case 'dz': body = <><rect width="30" height={h} fill="#006233" /><rect x="30" width="30" height={h} fill="#fff" /><path d="M33.5 12.81 A8 8 0 1 0 33.5 27.19 A7.2 7.2 0 1 1 33.5 12.81 Z" fill="#D21034" />{star(35.4, 20, 3.2, '#D21034')}</>; break
     case 'tn': body = <><rect width={w} height={h} fill="#E70013" /><circle cx="30" cy="20" r="10" fill="#fff" /><path d="M32.6 13.6 A7 7 0 1 0 32.6 26.4 A5.6 5.6 0 1 1 32.6 13.6 Z" fill="#E70013" />{star(32.6, 20, 3, '#E70013')}</>; break
+    case 'gb': body = <g transform="scale(1 1.3333)">
+      <rect width="60" height="30" fill="#012169" />
+      <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" strokeWidth="6" />
+      <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" strokeWidth="2.4" />
+      <path d="M30,0 v30 M0,15 h60" stroke="#fff" strokeWidth="10" />
+      <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" strokeWidth="6" />
+    </g>; break
+    case 'de': body = <><rect width={w} height="13.4" fill="#000" /><rect y="13.3" width={w} height="13.4" fill="#DD0000" /><rect y="26.6" width={w} height="13.4" fill="#FFCE00" /></>; break
+    case 'tr': body = <><rect width={w} height={h} fill="#E30A17" /><circle cx="24" cy="20" r="10" fill="#fff" /><circle cx="26.5" cy="20" r="8" fill="#E30A17" />{star(37, 20, 4.2, '#fff')}</>; break
+    case 'cn': body = <><rect width={w} height={h} fill="#DE2910" />{star(10, 10, 6, '#FFDE00')}{star(20, 4, 2, '#FFDE00')}{star(24, 8, 2, '#FFDE00')}{star(24, 14, 2, '#FFDE00')}{star(20, 18, 2, '#FFDE00')}</>; break
     case 'us': body = <>
       <rect width={w} height={h} fill="#fff" />
       {Array.from({ length: 7 }, (_, i) => <rect key={i} y={i * (40 / 6.5)} width={w} height={40 / 13} fill="#B22234" />)}

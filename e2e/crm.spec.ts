@@ -211,6 +211,12 @@ test.describe('flows', () => {
       return inner.getBoundingClientRect().bottom > b.getBoundingClientRect().bottom + 1 ? [i + 1] : []
     }))
     expect(tooLong).toEqual([])
+    // the first edition still fits too
+    await page.getByRole('button', { name: 'النسخة الأولى' }).click()
+    await page.waitForTimeout(500)
+    expect(await page.evaluate(() => [...document.querySelectorAll('.lb-body')].filter(b =>
+      (b.firstElementChild as HTMLElement).getBoundingClientRect().bottom > b.getBoundingClientRect().bottom + 1).length)).toBe(0)
+    await page.getByRole('button', { name: 'النسخة الجديدة' }).click()
     await page.getByPlaceholder('مثلًا: أنور').fill('أنور')
     await expect(page.getByText('شكرًا من القلب يا أنور')).toBeVisible()
     await expect(page.locator('.lb-foot').first()).toContainText('أنور')
