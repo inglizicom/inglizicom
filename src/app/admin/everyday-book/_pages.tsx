@@ -2,7 +2,8 @@
 
 import type { CSSProperties } from 'react'
 import { sortKey, type EverydayUnit, type UnitOpener, type WordEntry } from '@/data/everyday-book'
-import { AR, AR_DISPLAY, CodeSlot, Footer, Frame, Gloss, HEAD, LessonHeader, lessonColour, Mixed, SectionHead, type BookInfo } from '../level1-book/_blocks'
+import { AR, CodeSlot, Footer, Frame, Gloss, HEAD, LessonHeader, lessonColour, Mixed, SectionHead, type BookInfo } from '../level1-book/_blocks'
+import { DISPLAY } from './_fonts'
 
 /**
  * The textbook's own numbered pages, drawn outside the block renderer because
@@ -50,7 +51,7 @@ export function UnitOpenerPage({ info, unit: u, opener, parts, pageNo, filename 
               ))}
             </div>
             <p className="relative mt-4 text-[46px] font-extrabold leading-[1.05]" style={{ fontFamily: HEAD }}>{u.titleEn}</p>
-            <p className="relative mt-1 text-[34px] leading-tight text-white/90" dir="rtl" style={{ fontFamily: AR_DISPLAY }}>{u.titleAr}</p>
+            <p className="relative mt-1 text-[32px] leading-tight text-white/90" dir="rtl" style={DISPLAY}>{u.titleAr}</p>
             <p className="relative mx-auto mt-2 max-w-[560px] text-[15.5px] font-bold leading-snug text-white/85" dir="rtl" style={{ fontFamily: AR }}>{u.goal}</p>
           </div>
 

@@ -18,9 +18,10 @@ import { BareSheet, Field, INP, type SheetTheme } from './_shared'
  */
 
 const FONTS_HREF = 'https://fonts.googleapis.com/css2?family=Alexandria:wght@500;700;800;900&family=Readex+Pro:wght@400;500;600;700&family=Montserrat:wght@500;600;700;800;900&display=swap'
-const AR_DISPLAY = "'Alexandria', 'Tajawal', sans-serif"
-const AR_TEXT = "'Readex Pro', 'Tajawal', sans-serif"
-const EN = "'Montserrat', 'Inter', sans-serif"
+/* A book can swap these with --book-display / --book-ar / --book-en on a parent element. */
+const AR_DISPLAY = "var(--book-display, 'Alexandria'), 'Tajawal', sans-serif"
+const AR_TEXT = "var(--book-ar, 'Readex Pro'), 'Tajawal', sans-serif"
+const EN = "var(--book-en, 'Montserrat'), 'Inter', sans-serif"
 
 export interface CoverPalette { id: string; label: string; from: string; to: string; accent: string; ink: string; mist: string }
 export const COVER_PALETTES: CoverPalette[] = [

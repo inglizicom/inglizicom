@@ -10,8 +10,8 @@ import { UNITS_14_19 } from './units-3.ts'
  * /admin/everyday-book.
  *
  * Each unit runs: opener (its goals, key phrase and tip; drawn by the admin
- * page) · vocabulary (picture tiles) · useful expressions (chat bubbles, one
- * page) · conversation (a script; past 38 lines it is split evenly over two
+ * page) · vocabulary (a photograph per word, at most twelve a page) · useful
+ * expressions (a question / answer table) · conversation (a script; past 38 lines it is split evenly over two
  * pages, the second closing with a role-play box) · reading + «Make it
  * yours». The welcome, how-to-use, contents and progress pages come first,
  * the A–Z word list last; the cover, the «why this book» page, the
@@ -38,8 +38,14 @@ export function split<T>(list: T[], max: number): T[][] {
 }
 
 /* Page capacities, measured on the rendered A4 page (one page reads at zoom ≥ 0.9). */
+export const VOCAB_PER_PAGE = 12
 export const EXPRESSIONS_PER_PAGE = 16
 export const LINES_PER_PAGE = 38
+
+/** A word's file name: "Wi-Fi password" → wi-fi-password, "for here / to go" → for-here-to-go. */
+export const photoSlug = (en: string) => en.toLowerCase().replace(/&/g, 'and').replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+/** The word's photograph, from the author's course pictures (public/everyday-book/vocab). */
+export const photoOf = (unit: number, en: string) => `/everyday-book/vocab/u${pad(unit)}/${photoSlug(en)}.webp`
 
 /** The book's «Speak» step, closing a conversation that runs over two pages. */
 const ROLE_PLAY: Block = { t: 'bullets', box: true, heading: 'Role-play - مثّل الدور 🎭', size: 13, items: [
@@ -55,16 +61,19 @@ export function unitPages(u: EverydayUnit): EverydayPage[] {
 
   return [
     page('opener', 'Opener', []),
-    page('vocab', 'Vocabulary', [
-      { t: 'banner', title: `${u.titleEn} - ${u.titleAr}`, icons: u.icons },
-      { t: 'callout', text: u.goal },
-      { t: 'bar', title: 'Vocabulary - المفردات', icon: '📚' },
-      { t: 'tiles', items: u.vocab, cols: u.vocab.length > 18 ? 4 : 3 },
-    ]),
-    ...split(u.expressions, EXPRESSIONS_PER_PAGE).map((rows, i) => page('expressions', 'Useful expressions', [
+    // Photographs need room: twelve words a page at most, split evenly (17 → 9 + 8).
+    ...split(u.vocab, VOCAB_PER_PAGE).map((items, i, all) => {
+      const start = all.slice(0, i).reduce((s, p) => s + p.length, 0)
+      return page('vocab', 'Vocabulary', [
+        ...(i ? [] : [{ t: 'banner' as const, title: `${u.titleEn} - ${u.titleAr}`, icons: u.icons }, { t: 'callout' as const, text: u.goal }]),
+        { t: 'bar', title: `Vocabulary${more(i)} - المفردات`, icon: '📚' },
+        { t: 'tiles', items, cols: 3, start, photos: items.map(([, en]) => photoOf(u.n, en)) },
+      ])
+    }),
+    ...split(u.expressions, EXPRESSIONS_PER_PAGE).map((rows, i, all) => page('expressions', 'Useful expressions', [
       { t: 'bar', title: `Useful expressions${more(i)} - عبارات مفيدة`, icon: '💬' },
-      ...(i ? [] : [{ t: 'callout' as const, text: 'اقرأ السؤال والجواب بصوت مرتفع، ثم غطِّ الجواب وحاول أن تجيب وحدك.' }]),
-      { t: 'chat', rows, cols: 2 },
+      ...(i ? [] : [{ t: 'callout' as const, text: 'اقرأ السؤال وجوابه بصوت مرتفع، ثم غطِّ عمود الأجوبة وحاول أن تجيب وحدك.' }]),
+      { t: 'phrases', rows, start: all.slice(0, i).reduce((s, p) => s + p.length, 0) },
     ])),
     ...split(u.talk, LINES_PER_PAGE).map((lines, i, all) => page('talk', 'Conversation', [
       { t: 'bar', title: `Conversation${more(i)} - المحادثة`, icon: '🗣️' },

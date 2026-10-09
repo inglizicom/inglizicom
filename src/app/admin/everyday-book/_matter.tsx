@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect } from 'react'
 import { Check, Globe, Languages, MessageCircle, PenLine, Phone, Users } from 'lucide-react'
 import type { EverydayUnit } from '@/data/everyday-book'
-import { AR, AR_DISPLAY, CodeSlot, Frame, HEAD, SANS, type BookInfo } from '../level1-book/_blocks'
+import { AR, CodeSlot, Frame, HEAD, type BookInfo } from '../level1-book/_blocks'
+import { DISPLAY, EN_FONT } from './_fonts'
 
 /**
  * The book's selling pages, in its own frame and colours: «لماذا هذا الكتاب؟»
@@ -25,7 +25,7 @@ function Contact({ info }: { info: BookInfo }) {
   return (
     <div className="absolute inset-x-0 bottom-0 bg-[var(--k)] text-white px-10 py-5 flex items-center gap-6" dir="rtl">
       <div className="flex-1">
-        <p className="text-[20px] leading-tight" style={{ fontFamily: AR_DISPLAY }}>للطلب والاستفسار، راسلنا الآن</p>
+        <p className="text-[20px] leading-tight" style={DISPLAY}>للطلب والاستفسار، راسلنا الآن</p>
         <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-[14px] font-bold" dir="ltr">
           <span className="flex items-center gap-1.5"><Phone size={15} className="text-[var(--m)]" /> {intl(info.phone)}</span>
           <span className="flex items-center gap-1.5"><Globe size={15} className="text-[var(--m)]" /> {info.website}</span>
@@ -57,8 +57,8 @@ export function ValuePage({ info, stats, units, filename }: { info: BookInfo; st
           <div className="absolute -left-20 -top-24 w-72 h-72 rounded-full bg-[var(--m)] opacity-20" />
           <div className="absolute left-24 bottom-[-60px] w-40 h-40 rounded-full border-[18px] border-white/5" />
           <p dir="ltr" className="text-right text-[11.5px] font-extrabold tracking-[0.28em] text-[var(--m)]" style={{ fontFamily: HEAD }}>ENGLISH FOR EVERYDAY SITUATIONS · A1 → A2</p>
-          <p className="mt-3 text-[42px] leading-[1.15]" style={{ fontFamily: AR_DISPLAY }}>تكلّم الإنجليزية في حياتك اليومية… <span className="text-[var(--m)]">بثقة</span></p>
-          <p className="mt-3 max-w-[600px] text-[16px] font-bold leading-relaxed text-white/80">{stats.units} موقفًا من الصباح إلى المساء، وفي كل موقف: ماذا تقول، كيف تردّ، وكيف تبدو المحادثة الحقيقية.</p>
+          <p className="mt-3 text-[33px] leading-[1.2]" style={DISPLAY}>تكلّم الإنجليزية في حياتك اليومية… <span className="text-[var(--m)]">بثقة</span></p>
+          <p className="mt-2 max-w-[660px] text-[14.5px] font-semibold leading-relaxed text-white/80">{stats.units} موقفًا من الصباح إلى المساء، وفي كل موقف: ماذا تقول، كيف تردّ، وكيف تبدو المحادثة الحقيقية.</p>
         </div>
 
         <div className="relative -mt-9 px-8 grid grid-cols-5 gap-2.5" dir="rtl">
@@ -72,13 +72,13 @@ export function ValuePage({ info, stats, units, filename }: { info: BookInfo; st
         </div>
 
         <div className="px-10 mt-5" dir="rtl">
-          <p className="text-[19px] text-[var(--k)]" style={{ fontFamily: AR_DISPLAY }}>المواقف التي ستتقنها</p>
+          <p className="text-[19px] text-[var(--k)]" style={DISPLAY}>المواقف التي ستتقنها</p>
           <div className="mt-2 grid grid-cols-3 gap-1.5">
             {units.map(u => (
               <div key={u.n} className="flex items-center gap-2 rounded-xl bg-[var(--s)] px-2.5 py-1.5">
                 <span className="text-[20px] leading-none">{u.icons[0]}</span>
                 <div className="min-w-0 leading-tight">
-                  <p className="text-[12.5px] font-bold">{u.titleAr}</p>
+                  <p className="text-[11.5px] font-semibold">{u.titleAr}</p>
                   <p className="text-[9.5px] font-bold text-[#8a7560]" dir="ltr" style={{ textAlign: 'right' }}>{u.titleEn}</p>
                 </div>
               </div>
@@ -87,14 +87,14 @@ export function ValuePage({ info, stats, units, filename }: { info: BookInfo; st
         </div>
 
         <div className="px-10 mt-5" dir="rtl">
-          <p className="text-[19px] text-[var(--k)]" style={{ fontFamily: AR_DISPLAY }}>لماذا هذا الكتاب مختلف؟</p>
+          <p className="text-[19px] text-[var(--k)]" style={DISPLAY}>لماذا هذا الكتاب مختلف؟</p>
           <div className="mt-2 grid grid-cols-2 gap-2.5">
             {why.map(([Icon, title, text]) => (
               <div key={title} className="flex gap-3 rounded-2xl border-[1.5px] border-[var(--s)] px-3.5 py-2.5">
                 <span className="w-10 h-10 shrink-0 rounded-xl bg-[var(--m)] text-white flex items-center justify-center"><Icon size={20} /></span>
                 <div>
-                  <p className="text-[15px] font-extrabold text-[var(--k)]">{title}</p>
-                  <p className="text-[12.5px] font-bold leading-snug text-[#6b5a48]">{text}</p>
+                  <p className="text-[14px] font-bold text-[var(--k)]">{title}</p>
+                  <p className="text-[11.5px] font-medium leading-snug text-[#6b5a48]">{text}</p>
                 </div>
               </div>
             ))}
@@ -117,28 +117,15 @@ export function Imprint({ info }: { info: BookInfo }) {
       </p>
       <p className="mt-0.5 text-[11.5px] font-bold leading-snug text-[#526079]">لا يجوز نسخ هذا الكتاب أو تصويره أو مشاركته أو بيعه، كليًا أو جزئيًا، دون إذن كتابي من المؤلف.</p>
       {name && <p className="mt-1 text-[12.5px] font-extrabold text-[var(--m)]">نسخة مرخّصة لـ: {name} — للاستعمال الشخصي فقط.</p>}
-      <p dir="ltr" className="mt-0.5 text-[10px] font-semibold text-[#64748B]" style={{ fontFamily: SANS }}>
+      <p dir="ltr" className="mt-0.5 text-[10px] font-semibold text-[#64748B]" style={{ fontFamily: EN_FONT }}>
         All rights reserved. No part of this book may be copied, shared or sold without the author&apos;s written permission.
       </p>
     </div>
   )
 }
 
-/* A signature face for the certificate only (not part of the books' font set). */
-const SCRIPT = "'Great Vibes', cursive"
-function useScriptFont() {
-  useEffect(() => {
-    if (document.getElementById('script-font')) return
-    const link = document.createElement('link')
-    link.id = 'script-font'; link.rel = 'stylesheet'; link.crossOrigin = 'anonymous'
-    link.href = 'https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap'
-    document.head.appendChild(link)
-  }, [])
-}
-
 /** The certificate of completion, for the reader to fill in (a buyer's copy comes with their name). */
 export function CertificatePage({ info, stats, filename }: { info: BookInfo; stats: BookStats; filename: string }) {
-  useScriptFont()
   const name = info.buyer.trim()
   const corner = 'absolute w-[18px] h-[18px] rotate-45 bg-[var(--m)]'
   const level = info.level.replace(/^level\s*/i, '')
@@ -153,24 +140,24 @@ export function CertificatePage({ info, stats, filename }: { info: BookInfo; sta
 
         <div className="absolute inset-x-[70px] top-[76px] bottom-[84px] flex flex-col items-center justify-between text-center">
           <div className="flex flex-col items-center">
-            <p className="text-[26px] font-extrabold text-[var(--k)]" style={{ fontFamily: SANS }}>Inglizi<span className="text-[var(--m)]">.com</span></p>
-            <p className="mt-7 text-[60px] font-extrabold leading-none tracking-[0.14em] text-[var(--k)]" style={{ fontFamily: SANS }}>CERTIFICATE</p>
-            <p className="mt-2 text-[16px] font-bold tracking-[0.5em] text-[var(--m)]" style={{ fontFamily: SANS }}>OF COMPLETION</p>
-            <p className="mt-3 text-[40px] leading-tight text-[var(--k)]" style={{ fontFamily: AR_DISPLAY }} dir="rtl">شهادة إتمام</p>
+            <p className="text-[26px] font-extrabold text-[var(--k)]" style={{ fontFamily: EN_FONT }}>Inglizi<span className="text-[var(--m)]">.com</span></p>
+            <p className="mt-7 text-[60px] font-extrabold leading-none tracking-[0.14em] text-[var(--k)]" style={{ fontFamily: EN_FONT }}>CERTIFICATE</p>
+            <p className="mt-2 text-[16px] font-bold tracking-[0.5em] text-[var(--m)]" style={{ fontFamily: EN_FONT }}>OF COMPLETION</p>
+            <p className="mt-3 text-[40px] leading-tight text-[var(--k)]" style={DISPLAY} dir="rtl">شهادة إتمام</p>
             <div className="mt-3 flex items-center gap-3 w-[360px]">
               <span className="flex-1 h-[2px] bg-[var(--m)]" /><span className="text-[var(--m)] text-[18px]">★</span><span className="flex-1 h-[2px] bg-[var(--m)]" />
             </div>
           </div>
 
           <div className="flex flex-col items-center">
-            <p className="text-[16px] font-bold text-[#6b5a48]" style={{ fontFamily: SANS }}>This is to certify that · <span style={{ fontFamily: AR }}>نشهد بأنّ</span></p>
+            <p className="text-[16px] font-bold text-[#6b5a48]" style={{ fontFamily: EN_FONT }}>This is to certify that · <span style={{ fontFamily: AR }}>نشهد بأنّ</span></p>
             <div className="mt-2 w-[520px] h-[82px] border-b-2 border-dotted border-[var(--k)] flex items-end justify-center pb-1">
-              {name && <span className="text-[60px] leading-none whitespace-nowrap text-[var(--k)]" style={{ fontFamily: SCRIPT }}>{name}</span>}
+              {name && <span className="text-[46px] font-bold leading-none whitespace-nowrap text-[var(--k)]" style={{ fontFamily: /[؀-ۿ]/.test(name) ? AR : EN_FONT }}>{name}</span>}
             </div>
-            <p className="mt-7 text-[16px] font-bold text-[#6b5a48]" style={{ fontFamily: SANS }}>has successfully completed the course book</p>
-            <p className="mt-1 text-[28px] font-extrabold text-[var(--k)]" style={{ fontFamily: SANS }}>English for Everyday Situations</p>
+            <p className="mt-7 text-[16px] font-bold text-[#6b5a48]" style={{ fontFamily: EN_FONT }}>has successfully completed the course book</p>
+            <p className="mt-1 text-[28px] font-extrabold text-[var(--k)]" style={{ fontFamily: EN_FONT }}>English for Everyday Situations</p>
             <p className="text-[18px] font-bold text-[#6b5a48]" dir="rtl">{name ? (info.buyerFemale ? 'قد أتمّت' : 'قد أتمّ') : 'قد أتمّ (ت)'} بنجاح كتاب «{info.title}»</p>
-            <p className="mt-3 rounded-full bg-[var(--s)] px-5 py-1 text-[13.5px] font-extrabold text-[var(--k)]" style={{ fontFamily: SANS }}>
+            <p className="mt-3 rounded-full bg-[var(--s)] px-5 py-1 text-[13.5px] font-extrabold text-[var(--k)]" style={{ fontFamily: EN_FONT }}>
               Level {level} · {stats.units} situations · {Math.floor(stats.words / 10) * 10}+ words · {Math.floor(stats.expressions / 10) * 10}+ expressions
             </p>
           </div>
@@ -179,24 +166,24 @@ export function CertificatePage({ info, stats, filename }: { info: BookInfo; sta
             <div className="grid grid-cols-3 items-end">
               <div className="text-center">
                 <div className="h-[48px] border-b-2 border-[var(--k)] mx-4" />
-                <p className="mt-1.5 text-[13px] font-extrabold" style={{ fontFamily: SANS }}>Date · <span style={{ fontFamily: AR }}>التاريخ</span></p>
+                <p className="mt-1.5 text-[13px] font-extrabold" style={{ fontFamily: EN_FONT }}>Date · <span style={{ fontFamily: AR }}>التاريخ</span></p>
               </div>
               <div className="flex justify-center">
                 <div className="relative w-[136px] h-[136px] rounded-full bg-[var(--m)] text-white flex flex-col items-center justify-center shadow-[0_6px_18px_rgba(160,110,0,0.35)]">
                   <div className="absolute inset-[7px] rounded-full border-2 border-dashed border-white/70" />
                   <span className="text-[13px] tracking-[0.3em]">★★★</span>
-                  <span className="text-[20px] font-extrabold leading-tight" style={{ fontFamily: SANS }}>{level}</span>
+                  <span className="text-[20px] font-extrabold leading-tight" style={{ fontFamily: EN_FONT }}>{level}</span>
                   <span className="text-[14px] font-extrabold" style={{ fontFamily: AR }}>تمّ بنجاح</span>
                 </div>
               </div>
               <div className="text-center">
                 <div className="h-[48px] border-b-2 border-[var(--k)] mx-4 flex items-end justify-center">
-                  <span className="text-[30px] leading-none whitespace-nowrap text-[var(--k)]" style={{ fontFamily: SCRIPT }}>{info.teacher}</span>
+                  <span className="text-[19px] font-semibold leading-none whitespace-nowrap text-[var(--k)]" style={{ fontFamily: EN_FONT }}>{info.teacher}</span>
                 </div>
-                <p className="mt-1.5 text-[13px] font-extrabold" style={{ fontFamily: SANS }}>Teacher · <span style={{ fontFamily: AR }}>الأستاذ {info.teacherAr}</span></p>
+                <p className="mt-1.5 text-[13px] font-extrabold" style={{ fontFamily: EN_FONT }}>Teacher · <span style={{ fontFamily: AR }}>الأستاذ {info.teacherAr}</span></p>
               </div>
             </div>
-            <p className="mt-6 text-[12px] font-bold tracking-[0.2em] uppercase text-[var(--m)]" style={{ fontFamily: SANS }}>
+            <p className="mt-6 text-[12px] font-bold tracking-[0.2em] uppercase text-[var(--m)]" style={{ fontFamily: EN_FONT }}>
               Awarded by Inglizi International Academy ·<span className="tracking-normal" style={{ fontFamily: AR }}>أكاديمية إنجليزي الدولية</span>
             </p>
           </div>
@@ -229,12 +216,12 @@ export function NextStepPage({ info, filename }: { info: BookInfo; filename: str
       <div className="absolute inset-0" style={{ fontFamily: AR }} dir="rtl">
         <div className="px-10 pt-14 text-center">
           <p className="text-[64px] leading-none">🎉</p>
-          <p className="mt-4 text-[44px] leading-tight text-[var(--k)]" style={{ fontFamily: AR_DISPLAY }}>أحسنت! لقد أنهيت الكتاب</p>
+          <p className="mt-4 text-[44px] leading-tight text-[var(--k)]" style={DISPLAY}>أحسنت! لقد أنهيت الكتاب</p>
           <p dir="ltr" className="mt-1 text-[16px] font-bold text-[var(--m)]" style={{ fontFamily: HEAD }}>Well done! You've finished all the situations.</p>
         </div>
 
         <div className="mx-10 mt-8 rounded-3xl bg-[var(--s)] px-7 py-6">
-          <p className="text-[21px] text-[var(--k)]" style={{ fontFamily: AR_DISPLAY }}>الآن أستطيع أن…</p>
+          <p className="text-[21px] text-[var(--k)]" style={DISPLAY}>الآن أستطيع أن…</p>
           <div className="mt-3 grid grid-cols-2 gap-x-6 gap-y-3">
             {CAN_DO.map(t => (
               <p key={t} className="flex items-center gap-2.5 text-[15.5px] font-bold">
@@ -245,7 +232,7 @@ export function NextStepPage({ info, filename }: { info: BookInfo; filename: str
         </div>
 
         <div className="px-10 mt-8">
-          <p className="text-[21px] text-[var(--k)]" style={{ fontFamily: AR_DISPLAY }}>خطوتك التالية</p>
+          <p className="text-[21px] text-[var(--k)]" style={DISPLAY}>خطوتك التالية</p>
           <div className="mt-3 grid grid-cols-3 gap-3">
             {NEXT.map(([icon, ar, en, text]) => (
               <div key={en} className="rounded-2xl border-[1.5px] border-[var(--s)] shadow-[0_4px_14px_rgba(42,29,18,0.08)] px-4 py-5 text-center">

@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { EVERYDAY_UNITS, OPENERS, buildEverydayBook, split, sortKey, wordList, EXPRESSIONS_PER_PAGE, LINES_PER_PAGE } from '../../src/data/everyday-book/index.ts'
+import { existsSync, readdirSync } from 'node:fs'
+import { EVERYDAY_UNITS, OPENERS, buildEverydayBook, photoOf, split, sortKey, wordList, EXPRESSIONS_PER_PAGE, LINES_PER_PAGE, VOCAB_PER_PAGE } from '../../src/data/everyday-book/index.ts'
 
 const AR = /[؀-ۿ]/
 
@@ -51,6 +52,7 @@ test('pages: long parts are split evenly, every page is numbered once', () => {
     const own = pages.filter(p => p.unit === u.n)
     assert.deepEqual(own.slice(0, 2).map(p => p.kind), ['opener', 'vocab'])
     assert.equal(own.at(-1).kind, 'reading')
+    assert.equal(own.filter(p => p.kind === 'vocab').length, Math.ceil(u.vocab.length / VOCAB_PER_PAGE))
     assert.equal(own.filter(p => p.kind === 'expressions').length, Math.ceil(u.expressions.length / EXPRESSIONS_PER_PAGE))
     assert.equal(own.filter(p => p.kind === 'talk').length, Math.ceil(u.talk.length / LINES_PER_PAGE))
   }
@@ -79,6 +81,21 @@ test('every unit opens with three goals and a tip, in both languages', () => {
     // An Arabic line ending on an English word prints its full stop on the wrong side.
     assert.match(o.tip.ar, /[؀-ۿ][^A-Za-z؀-ۿ]*$/, `unit ${u.n}: the tip's Arabic ends in Arabic`)
   }
+})
+
+test('every word has its photograph, and every photograph is a word', () => {
+  const root = new URL('../../public', import.meta.url)
+  const want = new Set()
+  for (const u of EVERYDAY_UNITS) {
+    for (const [, en] of u.vocab) {
+      const path = photoOf(u.n, en)
+      want.add(path)
+      assert.ok(existsSync(new URL(`.${path}`, root + '/')), `unit ${u.n}: no photo for "${en}" (${path})`)
+    }
+  }
+  const dir = new URL('../../public/everyday-book/vocab/', import.meta.url)
+  const files = readdirSync(dir).flatMap(d => readdirSync(new URL(`${d}/`, dir)).map(f => `/everyday-book/vocab/${d}/${f}`))
+  assert.deepEqual(files.filter(f => !want.has(f)), [], 'photos no word uses')
 })
 
 test('the word list holds every word once, A to Z, with the units it is taught in', () => {

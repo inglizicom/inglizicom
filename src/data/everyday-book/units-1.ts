@@ -73,7 +73,7 @@ export const UNITS_1_7: EverydayUnit[] = [
       ['Can I pay in cash?', "Of course. Here's your change.", 'هل يمكنني الدفع نقدًا؟', 'بالطبع. تفضّل الباقي.'],
       ['Can I pay by card?', 'Yes, of course.', 'هل يمكنني الدفع بالبطاقة؟', 'نعم، بالطبع.'],
       ['Could I have the receipt, please?', 'Sure. Here you are.', 'هل يمكنني الحصول على الإيصال، من فضلك؟', 'بالتأكيد. تفضّل.'],
-      ['Do you come here often?', 'Yes, I come here sometimes.', 'هل تأتي إلى هنا كثيرًا؟', 'نعم، آتي إلى هنا أحيانًا.'],
+      ['Is this seat free?', 'Yes, it is. Go ahead.', 'هل هذا المقعد شاغر؟', 'نعم، إنه شاغر. تفضّل.'],
     ],
     talk: script(`
       STAFF: Hi. What would you like?
@@ -104,11 +104,11 @@ export const UNITS_1_7: EverydayUnit[] = [
       AMINE: Thank you.
       STAFF: You're welcome. Your order will be ready soon.
     `),
-    reading: { title: "Adam's Coffee Break", body: [
-      'Adam works near a café, and he takes a break there every afternoon. The café is usually busy, so he waits at the counter and looks at the menu.',
-      'Today the server, Sara, asks him, "What would you like?" Adam orders a medium coffee. He likes it hot, with a little milk and no sugar.',
-      'Then Sara asks, "Would you like anything to eat?" Adam is hungry, so he takes a cheese sandwich. Before he pays, he changes his mind and adds a small orange juice too.',
-      'It is for here today, because he has time. The coffee and the food are sixty-two dirhams. Adam pays by card and asks for the receipt.',
+    reading: { title: "Amine's Coffee Break", body: [
+      'Amine works near a café, and he takes a break there every afternoon. The café is usually busy, so he waits at the counter and looks at the menu.',
+      'Today the server, Sara, asks him, "What would you like?" Amine orders a medium coffee. He likes it hot, with a little milk and no sugar.',
+      'Then Sara asks, "Would you like anything to eat?" Amine is hungry, so he takes a cheese sandwich. Before he pays, he changes his mind and adds a small orange juice too.',
+      'It is for here today, because he has time. The coffee and the food are sixty-two dirhams. Amine pays by card and asks for the receipt.',
       'He sits near the window with his coffee. He has twenty minutes before he goes back to work. When he is in a hurry, he takes his coffee to go instead.',
     ] },
     yours: [
@@ -139,11 +139,11 @@ export const UNITS_1_7: EverydayUnit[] = [
     ],
     talk: script(`
       NOUR: Hi, Sami. What are you making?
-      SAMI: I'm making lunch. I'm thinking about chicken and rice.
-      NOUR: Sounds good. Do we have any chicken?
-      SAMI: Yes, we do. But can you check if we have any rice?
-      NOUR: Yes, we have some. We don't have much bread, though.
-      SAMI: That's OK. We can have rice instead.
+      SAMI: I'm making lunch. Chicken and rice.
+      NOUR: Sounds good. Do we have everything?
+      SAMI: I think so. Can you check if we have any rice?
+      NOUR: Yes, we have some. But we're out of bread.
+      SAMI: That's OK. I'll buy some later.
       NOUR: Do you want some help?
       SAMI: Yes, please. Can you wash the vegetables?
       NOUR: Sure. Do you want me to peel them too?
@@ -176,7 +176,7 @@ export const UNITS_1_7: EverydayUnit[] = [
       SAMI: Thanks for helping.
     `),
     reading: { title: 'Sami Cooks Lunch', body: [
-      'On Friday, Sami cooks lunch for his family. First he checks the fridge. He has chicken and some vegetables, but there is no bread, so he cooks rice instead.',
+      'On Friday, Sami cooks lunch for his family: chicken and rice. First he checks the fridge. He has chicken, rice and some vegetables, but there is no bread, so he will buy some later.',
       'Nour helps him. She washes the vegetables and peels them. Sami starts cooking the chicken. He adds a little oil, then a little salt.',
       'He boils some water for the rice. He needs about two cups. While the food is cooking, he mixes it well and tastes it. It is good, but it needs a little more salt.',
       'The chicken is not ready yet, so they wait five more minutes. Nour sets the table and puts some water on it.',
@@ -268,9 +268,9 @@ export const UNITS_1_7: EverydayUnit[] = [
     goal: 'تعلّم كيف تطلب خدمات الغسيل والتنظيف، وتسأل عن السعر وموعد الاستلام.',
     vocab: words('🧺 laundry = محل الغسيل | 🏬 dry cleaner = محل التنظيف الجاف | 👕 clothes = ملابس | 👔 shirt = قميص | 🧥 jacket = سترة | 👖 trousers = بنطال | 👗 dress = فستان | 🟤 stain = بقعة | 🫧 clean = ينظّف | ♨️ iron = يكوي | ✅ ready = جاهز | 🤲 pick up = يستلم | 💵 cash = نقدًا | 💳 card = بطاقة | 🧾 receipt = إيصال'),
     expressions: [
-      ['How can I help you?', "I'd like to have these cleaned.", 'كيف يمكنني مساعدتك؟', 'أريد تنظيف هذه الملابس.'],
-      ['What would you like us to clean?', 'This jacket and these two shirts, please.', 'ماذا تريد أن ننظّف لك؟', 'هذه السترة وهذين القميصين، من فضلك.'],
-      ["There's a stain here.", 'I see it. Do you know what caused it?', 'هناك بقعة هنا.', 'أراها. هل تعرف سببها؟'],
+      ['How can I help you?', 'Can you clean these clothes, please?', 'كيف يمكنني مساعدتك؟', 'هل يمكنكم تنظيف هذه الملابس، من فضلك؟'],
+      ['What do you have?', 'This jacket and these two shirts.', 'ماذا لديك؟', 'هذه السترة وهذان القميصان.'],
+      ["There's a stain here.", 'I see it. What is it?', 'هناك بقعة هنا.', 'أراها. ما هي؟'],
       ["I think it's coffee. Can you remove it?", "We'll do our best.", 'أظنها بقعة قهوة. هل يمكنكم إزالتها؟', 'سنبذل ما بوسعنا.'],
       ['Does this need dry cleaning?', 'Yes, this one needs dry cleaning.', 'هل يحتاج هذا إلى تنظيف جاف؟', 'نعم، هذه القطعة تحتاج إلى تنظيف جاف.'],
       ['Can you iron this shirt too?', 'Yes, of course.', 'هل يمكنكم كيّ هذا القميص أيضًا؟', 'نعم، بالطبع.'],
@@ -278,24 +278,23 @@ export const UNITS_1_7: EverydayUnit[] = [
       ['When will it be ready?', "It'll be ready on Tuesday afternoon.", 'متى سيكون جاهزًا؟', 'سيكون جاهزًا يوم الثلاثاء بعد الظهر.'],
       ['Can I pick it up after five?', "Yes, we're open until seven.", 'هل يمكنني استلامه بعد الخامسة؟', 'نعم، نحن مفتوحون حتى السابعة.'],
       ["I'm here to pick up my clothes.", 'Do you have your receipt?', 'جئت لاستلام ملابسي.', 'هل لديك الإيصال؟'],
-      ['Yes, here it is.', 'Thank you. Here are your clothes.', 'نعم، تفضّل.', 'شكرًا. تفضّل، هذه ملابسك.'],
+      ['Do I need to pay now?', 'No, you can pay when you pick them up.', 'هل عليّ أن أدفع الآن؟', 'لا، يمكنك الدفع عند الاستلام.'],
       ['Great. The stain is gone.', 'Yes, it came out well.', 'رائع. لقد اختفت البقعة.', 'نعم، خرجت جيدًا.'],
       ['Can I pay by card?', "Yes, that's fine.", 'هل يمكنني الدفع بالبطاقة؟', 'نعم، لا مشكلة.'],
-      ['What do you think of the service?', "Great service! It's always on time.", 'ما رأيك في الخدمة؟', 'خدمة رائعة! دائمًا في الموعد.'],
       ['Thank you. I appreciate it.', "You're welcome. Have a nice day.", 'شكرًا، أقدّر ذلك.', 'على الرحب والسعة. يومًا سعيدًا.'],
     ],
     talk: script(`
       FARID: Good morning. How can I help you?
-      HODA: Good morning. I'd like to have these cleaned, please.
+      HODA: Good morning. Can you clean these clothes, please?
       FARID: Of course. What do you have?
       HODA: One jacket and two shirts.
       FARID: All right. Is there any problem with the jacket?
       HODA: Yes. There's a stain here on the front.
-      FARID: I see it. Do you know what caused it?
-      HODA: I think it's coffee, but I'm not completely sure. Do you think you can remove it?
+      FARID: I see it. What is it?
+      HODA: I think it's coffee. Can you remove it?
       FARID: We'll do our best. It should be fine.
       HODA: Does the jacket need dry cleaning?
-      FARID: Yes, this jacket does. The shirts can be washed normally.
+      FARID: Yes, it does. We can wash the shirts normally.
       HODA: Can you iron the shirts too?
       FARID: Yes, of course. Would you like both shirts ironed?
       HODA: Yes, please.
@@ -324,11 +323,11 @@ export const UNITS_1_7: EverydayUnit[] = [
       FARID: You're welcome. Have a nice day.
     `),
     reading: { title: 'A Visit to the Laundry', body: [
-      'On Monday morning, Hana takes some clothes to the laundry near her house. She has one jacket and two shirts.',
-      'There is a stain on the front of the jacket. She thinks it is coffee, but she is not completely sure. Faisal, the man at the counter, looks at it and says they will do their best.',
-      'The jacket needs dry cleaning, but the shirts can be washed normally. Hana asks him to iron the shirts too. The jacket is fifty dirhams and the two shirts are forty, so it is ninety altogether.',
-      'Faisal tells her the clothes will be ready on Tuesday afternoon. The laundry is open until seven, so she can pick them up after work. She does not pay now; she pays when she picks up her clothes.',
-      'On Tuesday, the stain is gone and the shirts look good. Hana pays by card and takes her clothes home.',
+      'On Monday morning, Hoda takes some clothes to the laundry near her house. She has one jacket and two shirts.',
+      'There is a stain on the front of the jacket. She thinks it is coffee. Farid, the man at the counter, looks at it and says they will do their best.',
+      'The jacket needs dry cleaning, but they can wash the shirts normally. Hoda asks him to iron the shirts too. The jacket is fifty dirhams and the two shirts are forty, so it is ninety altogether.',
+      'Farid tells her the clothes will be ready on Tuesday afternoon. The laundry is open until seven, so she can pick them up after work. She does not pay now; she pays when she picks up her clothes.',
+      'On Tuesday, the stain is gone and the shirts look good. Hoda pays by card and takes her clothes home.',
     ] },
     yours: [
       'Explain a stain on your clothes and ask if they can remove it. - اشرح بقعة على ملابسك واسأل إن كانوا يستطيعون إزالتها.',
@@ -413,9 +412,9 @@ export const UNITS_1_7: EverydayUnit[] = [
       WAITER: Thank you. Have a nice evening.
     `),
     reading: { title: 'Dinner at a Restaurant', body: [
-      'On Saturday evening, Nour and Sami go to a restaurant near the market. They ask for a table for two, and the waiter, Karim, shows them the way.',
-      'There are a lot of choices on the menu, so they ask Karim what he recommends. He says the chicken is very popular and the fish is also very good. Nour asks if the chicken is spicy. It is only a little spicy, and it comes with rice and salad.',
-      'Nour orders the chicken and Sami orders the fish. They share one vegetable soup as a starter, and they ask for a bottle of water.',
+      'On Saturday evening, Nadia and Sami go to a restaurant near the market. They ask for a table for two, and the waiter, Karim, shows them the way.',
+      'There are a lot of choices on the menu, so they ask Karim what he recommends. He says the chicken is very popular and the fish is also very good. Nadia asks if the chicken is spicy. It is only a little spicy, and it comes with rice and salad.',
+      'Nadia orders the chicken and Sami orders the fish. They share one vegetable soup as a starter, and they ask for a bottle of water.',
       'When the food arrives, there is a small problem. Karim brings chicken to Sami, but Sami ordered the fish. Karim says sorry and changes it right away.',
       'After the meal, they do not want dessert. They ask for the bill and pay by card.',
     ] },
@@ -485,12 +484,12 @@ export const UNITS_1_7: EverydayUnit[] = [
       CASHIER: Here you are. Have a good day.
       AMINE: Thank you. You too.
     `),
-    reading: { title: "Adam's Weekly Shopping", body: [
-      'Adam goes to the supermarket once a week, usually on Saturday. He takes a shopping cart and starts with the milk.',
+    reading: { title: "Amine's Weekly Shopping", body: [
+      'Amine goes to the supermarket once a week, usually on Saturday. He takes a shopping cart and starts with the milk.',
       'The milk is in aisle four, on the left. The eggs are in the same aisle, on the shelf next to the milk. He needs rice too, but rice is in aisle six, near the bottled water.',
-      'There is a five-kilo pack of rice on the bottom shelf. That is too much for Adam, so he takes the smaller one.',
+      'There is a five-kilo pack of rice on the bottom shelf. That is too much for Amine, so he takes the smaller one.',
       'The bakery section is at the back of the store, and the fruit and vegetables are straight ahead. Tomatoes are fifteen dirhams a kilo today, and he takes one kilo. The chicken is on sale with a twenty percent discount, so he takes that too.',
-      'At the checkout, Youssef tells him the total is two hundred and forty-seven dirhams. Adam pays by card and asks for the receipt.',
+      'At the checkout, Youssef tells him the total is two hundred and forty-seven dirhams. Amine pays by card and asks for the receipt.',
     ] },
     yours: [
       'Ask where three products are in the supermarket. - اسأل عن مكان ثلاثة منتجات في السوبرماركت.',

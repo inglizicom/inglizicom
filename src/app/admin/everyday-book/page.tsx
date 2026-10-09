@@ -4,15 +4,17 @@ import { useEffect, useMemo, useState } from 'react'
 import { buildEverydayBook, EVERYDAY_UNITS, OPENERS, type EverydayPage } from '@/data/everyday-book'
 import { Field, GamesHeader, INP, PrintAllButton, THEMES } from '../games/_shared'
 import { BackCoverPage, CoverFields, CoverPage, DEFAULT_COVER, type CoverInfo, type CoverStat } from '../games/_cover'
-import { DEFAULT_INFO, LessonPage, lessonColour, SANS, ThanksPage, type BookInfo } from '../level1-book/_blocks'
+import { DEFAULT_INFO, LessonPage, lessonColour, ThanksPage, type BookInfo } from '../level1-book/_blocks'
 import { CertificatePage, Imprint, NextStepPage, ValuePage } from './_matter'
 import { ProgressPage, UnitOpenerPage, WordListPage } from './_pages'
+import { BOOK_FONT_VARS, EN_FONT, useEverydayFonts } from './_fonts'
 
 /**
  * /admin/everyday-book — «الإنجليزية للمواقف اليومية» (A1 → A2), the main
  * textbook, rebuilt in the house style of the Level 1 book and the Bac pack:
  * the same page frame, header and footer, QR slot and buyer copy, in the
- * brand's brown and gold, one colour per unit and a clean sans for English.
+ * brand's brown and gold, one colour per unit, and two faces only:
+ * Montserrat for English, Readex Pro for Arabic (see _fonts.ts).
  *
  * Order: cover · «why this book» · thank-you (with the copyright notice) ·
  * welcome · how to use · contents · progress tracker · 19 units (opener,
@@ -25,7 +27,7 @@ const INFO_KEY = 'everyday-book-info-v1'
 const COVER_KEY = 'everyday-book-cover-v1'
 
 const BOOK_INFO: BookInfo = {
-  ...DEFAULT_INFO, title: 'الإنجليزية للمواقف اليومية', level: 'A1 → A2', ink: '#2A1D12', fontEn: SANS,
+  ...DEFAULT_INFO, title: 'الإنجليزية للمواقف اليومية', level: 'A1 → A2', ink: '#2A1D12', fontEn: EN_FONT,
 }
 const BOOK_COVER: CoverInfo = { ...DEFAULT_COVER, phone1: '+212 707 902 091' }
 
@@ -54,7 +56,10 @@ const pad = (n: number) => String(n).padStart(2, '0')
 
 export default function EverydayBookPage() {
   const [view, setView] = useState<View>('book')
-  const [info, setInfo] = useSaved<BookInfo>(INFO_KEY, BOOK_INFO)
+  const [saved, setInfo] = useSaved<BookInfo>(INFO_KEY, BOOK_INFO)
+  // The faces are the book's, not a saved setting (an older copy saved another English face).
+  const info: BookInfo = { ...saved, fontEn: EN_FONT }
+  useEverydayFonts()
   const [cover, setCover] = useSaved<CoverInfo>(COVER_KEY, BOOK_COVER)
   const book = useMemo(buildEverydayBook, [])
   const { stats } = book
@@ -92,7 +97,7 @@ export default function EverydayBookPage() {
   )
 
   return (
-    <div className="px-6 lg:px-10 py-8 max-w-[1300px] mx-auto">
+    <div className="px-6 lg:px-10 py-8 max-w-[1300px] mx-auto" style={BOOK_FONT_VARS}>
       <GamesHeader title="الكتاب الأساسي — الإنجليزية للمواقف اليومية (A1 → A2)" back="/admin" />
       <div className="grid lg:grid-cols-[300px_1fr] gap-6">
         <aside className="space-y-4 print:hidden lg:sticky lg:top-24 self-start">

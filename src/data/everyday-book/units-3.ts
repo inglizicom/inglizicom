@@ -101,9 +101,9 @@ export const UNITS_14_19: EverydayUnit[] = [
       DRIVER: No problem. It's about twenty minutes from here.
       OMAR: Great. How much is the fare?
       DRIVER: About forty dirhams.
-      OMAR: That's fine. Please drop me off at the main entrance.
-      DRIVER: Of course. Here we are.
-      OMAR: Thank you. Have a good day.
+      OMAR: That's fine. Please stop at the main entrance.
+      DRIVER: Of course. Here we are. That's forty dirhams.
+      OMAR: Here you are. Thank you. Have a good day.
       DRIVER: You too. Have a good trip.
       OMAR: Hello. I'd like a return ticket to Rabat, please.
       CLERK: Of course. The eight-thirty train is full, but there are seats on the nine o'clock train.
@@ -117,20 +117,22 @@ export const UNITS_14_19: EverydayUnit[] = [
       OMAR: Excuse me. Is this seat free?
       PASSENGER: Yes, it is. Go ahead.
       OMAR: Thanks. Are you going to Rabat too?
-      PASSENGER: Yes. I'm getting off there too.
-      OMAR: Great. I haven't taken this train before.
+      PASSENGER: Yes, I am. I go every week.
+      OMAR: Great. It's my first time on this train.
       PASSENGER: Don't worry. It's an easy trip.
       OMAR: Excuse me. Does this bus go to the city centre?
       BUS DRIVER: Yes, it does.
       OMAR: Where should I get off?
       BUS DRIVER: Get off at the third stop, just after the hospital.
       OMAR: Could you tell me when we get there?
-      BUS DRIVER: Of course. I'll let you know. This is your stop.
-      OMAR: Great. Thanks for letting me know.
+      BUS DRIVER: Of course. I'll let you know.
+      OMAR: Thank you.
+      BUS DRIVER: Here we are. This is your stop.
+      OMAR: Great. Thanks for your help.
     `),
     reading: { title: 'Getting to Rabat', body: [
-      'Omar needs to catch a train to Rabat, so he takes a taxi to the main train station. He asks the driver, Karim, to drop him off at the main entrance.',
-      'Karim tells him the station is about twenty minutes away and the fare is about forty dirhams. Omar is hoping to take the eight-thirty train, and Karim says he should have enough time.',
+      'Omar needs to take a train to Rabat, so he takes a taxi to the main train station. He asks the driver, Karim, to stop at the main entrance.',
+      'Karim tells him the station is about twenty minutes away and the fare is about forty dirhams. Omar wants to take the eight-thirty train.',
       "At the station, Omar asks for a return ticket to Rabat. Unfortunately, the eight-thirty train is full. There are seats on the nine o'clock train instead, so he takes that one. The ticket is one hundred and twenty dirhams, and he pays by card.",
       'The train leaves from platform two. Huda tells him to go straight ahead and he will see it on his left.',
       'On the train, Omar finds a free seat next to Sami, who is also going to Rabat.',
@@ -191,8 +193,8 @@ export const UNITS_14_19: EverydayUnit[] = [
     `),
     reading: { title: 'Finding the Bank', body: [
       'Salma is a little lost. She is looking for the bank on Green Street, so she stops a man in the street and asks for help.',
-      'Adam knows the street. He tells her it is not far from here. She should go straight down the street until she reaches the traffic lights, and then turn left.',
-      "After the lights, she keeps going until she reaches a large hotel. The bank is next to the hotel, on her right, and it is opposite a café. Adam says she can't miss it.",
+      'Amine knows the street. He tells her it is not far from here. She should go straight down the street until she reaches the traffic lights, and then turn left.',
+      "After the lights, she keeps going until she reaches a large hotel. The bank is next to the hotel, on her right, and it is opposite a café. Amine says she can't miss it.",
       'Salma asks if it is far on foot. It is only about five minutes, so she decides to walk.',
       'Before she goes, she asks one more thing. She needs a pharmacy too. There is one behind the bank — she just has to walk past the bank and she will see it.',
     ] },
@@ -240,6 +242,7 @@ export const UNITS_14_19: EverydayUnit[] = [
       LAYLA: Great. And what's the Wi-Fi password?
       RECEPTIONIST: It's on a card in your room. The lift is on your left.
       LAYLA: Perfect. Thanks a lot.
+      RECEPTIONIST: You're welcome. Enjoy your stay.
       LAYLA: Hello, this is room 302. The air conditioning isn't working.
       RECEPTIONIST: I'm sorry about that. Have you tried the remote control?
       LAYLA: Yes, I've tried it twice, but nothing happens.
@@ -282,59 +285,57 @@ export const UNITS_14_19: EverydayUnit[] = [
       ["I'd like to deposit one thousand dirhams.", 'Sure. Could you fill in this form, please?', 'أريد إيداع ألف درهم.', 'بالتأكيد. هل يمكنك ملء هذه الاستمارة، من فضلك؟'],
       ['Where do I sign?', 'Please sign at the bottom.', 'أين أوقّع؟', 'وقّع في الأسفل، من فضلك.'],
       ["I'd also like to make a transfer.", 'Of course. How much would you like to transfer?', 'أريد أيضًا إجراء تحويل.', 'بالطبع. كم تريد أن تحوّل؟'],
-      ['Is there a fee for the transfer?', 'Let me check that for you.', 'هل توجد رسوم على التحويل؟', 'دعني أتحقّق من ذلك.'],
-      ['How long will the transfer take?', 'It depends on the type of transfer.', 'كم يستغرق التحويل؟', 'يعتمد ذلك على نوع التحويل.'],
+      ['Is there a fee for the transfer?', "Yes, it's ten dirhams.", 'هل توجد رسوم على التحويل؟', 'نعم، عشرة دراهم.'],
+      ['How long will the transfer take?', 'The money arrives today.', 'كم يستغرق التحويل؟', 'يصل المال اليوم.'],
       ["My card isn't working.", 'What seems to be the problem?', 'بطاقتي لا تعمل.', 'ما المشكلة؟'],
       ['The ATM kept my card.', 'Which ATM did you use?', 'احتفظ الصرّاف الآلي ببطاقتي.', 'أي صرّاف آلي استعملت؟'],
       ['I forgot my PIN. Could you help me?', 'Of course. Please wait a moment while I check your details.', 'نسيت رقمي السري. هل يمكنك مساعدتي؟', 'بالطبع. انتظر لحظة من فضلك حتى أتحقّق من بياناتك.'],
-      ['What do I do next?', 'You can make the withdrawal here.', 'ماذا أفعل بعد ذلك؟', 'يمكنك إجراء السحب هنا.'],
+      ['How can I change my PIN?', 'You can change it at the ATM.', 'كيف يمكنني تغيير رقمي السري؟', 'يمكنك تغييره في الصرّاف الآلي.'],
       ['Would you like a receipt?', 'Yes, please.', 'هل تريد إيصالًا؟', 'نعم، من فضلك.'],
       ['Is there anything else I can help you with?', "No, that's everything. Thanks a lot.", 'هل هناك شيء آخر يمكنني مساعدتك فيه؟', 'لا، هذا كل شيء. شكرًا جزيلًا.'],
     ],
     talk: script(`
       KARIM: Good morning. Could you help me, please?
       CLERK: Good morning. Of course. How can I help you?
-      KARIM: I'd like to withdraw five hundred dirhams, but I have a problem with my card.
-      CLERK: Okay. What seems to be the problem?
-      KARIM: The ATM kept my card this morning.
-      CLERK: I see. Which ATM did you use?
-      KARIM: The one outside this branch.
-      CLERK: All right. Could I see your ID, please?
+      KARIM: I have a problem. The ATM outside kept my card this morning.
+      CLERK: I'm sorry about that. What happened?
+      KARIM: I think I entered the wrong PIN three times.
+      CLERK: I see. Could I see your ID, please?
       KARIM: Sure. Here you are.
       CLERK: Thank you. Let me check your details.
-      KARIM: No problem. Could you also check what happened to my card?
-      CLERK: Yes. First, could you fill in this form, please?
+      KARIM: No problem.
+      CLERK: Yes, we have your card here. Could you fill in this form, please?
       KARIM: Of course. Where do I sign?
-      CLERK: Please sign at the bottom and check that your details are correct.
-      KARIM: Okay. What do I do next?
-      CLERK: Just wait a moment while I check everything.
-      KARIM: Sure.
-      CLERK: All right. Your details are correct. You can make the withdrawal here.
-      KARIM: Great. I'd like to withdraw five hundred dirhams, please.
-      CLERK: Five hundred dirhams. Is that correct?
-      KARIM: Yes, that's correct.
-      CLERK: All right. Here's your cash.
+      CLERK: At the bottom, please. Thank you. Here's your card.
+      KARIM: Great, thank you! I also need some cash. Can I withdraw money here?
+      CLERK: Yes, of course. How much would you like to withdraw?
+      KARIM: Five hundred dirhams, please.
+      CLERK: Five hundred dirhams. Here's your cash.
       KARIM: Thank you. I'd also like to make a transfer.
       CLERK: Of course. How much would you like to transfer?
       KARIM: One thousand dirhams to my sister's account.
-      CLERK: Okay. Could I have the account details, please?
+      CLERK: Could I have the account details, please?
       KARIM: Sure. Here they are. Is there a fee for the transfer?
-      CLERK: Let me check that for you.
-      KARIM: Thanks. And how long will the transfer take?
-      CLERK: I'll check that as well. Everything is ready. Please check the details before I continue.
+      CLERK: Yes, it's ten dirhams.
+      KARIM: That's fine. How long will the transfer take?
+      CLERK: Her account is with our bank, so the money arrives today.
+      KARIM: Great.
+      CLERK: Please check the details before I continue.
       KARIM: Yes, everything looks correct.
-      CLERK: Great. The transfer is complete. Would you like a receipt?
-      KARIM: Yes, please. Could I have a receipt for both transactions?
-      CLERK: Of course. Here you are. Is there anything else I can help you with?
-      KARIM: No, that's everything. Thanks a lot for your help.
+      CLERK: The transfer is complete. Would you like a receipt?
+      KARIM: Yes, please. One for the cash and one for the transfer.
+      CLERK: Here you are. Is there anything else I can help you with?
+      KARIM: Yes. How can I change my PIN?
+      CLERK: You can change it at the ATM with your card.
+      KARIM: Perfect. Thanks a lot for your help.
       CLERK: You're welcome. Have a nice day.
     `),
     reading: { title: 'A Problem at the Bank', body: [
-      'Karim goes to the bank because he needs to withdraw five hundred dirhams. There is a problem, though: the ATM outside the branch kept his card that morning.',
-      'He explains the problem to Salma at the counter. She asks which ATM he used, then asks to see his ID so she can check his details.',
-      'First he has to fill in a form. Salma asks him to sign at the bottom and check that all his details are correct. She takes a moment to check everything.',
-      'His details are correct, so he can complete the withdrawal at the counter. Salma gives him his cash.',
-      "Karim also wants to transfer one thousand dirhams to his sister's account. He gives Salma the account details and asks if there is a fee and how long the transfer will take. When everything is ready, he checks the details once more, and the transfer is complete. He asks for a receipt for both transactions.",
+      'Karim goes to the bank because the ATM outside kept his card this morning. He thinks he entered the wrong PIN three times.',
+      'He explains the problem to Salma at the counter. She asks to see his ID and checks his details. The bank has his card, so he fills in a form, signs at the bottom, and gets his card back.',
+      'Karim also needs some cash, so he withdraws five hundred dirhams at the counter.',
+      "Then he transfers one thousand dirhams to his sister's account. The fee is ten dirhams, and the money arrives today, because her account is with the same bank. Karim checks the details, and the transfer is complete.",
+      'He asks for a receipt for the cash and one for the transfer. Before he leaves, he asks how to change his PIN. He can change it at the ATM.',
     ] },
     yours: [
       'Ask to withdraw, deposit or transfer an amount of money. - اطلب سحب مبلغ أو إيداعه أو تحويله.',
@@ -372,7 +373,7 @@ export const UNITS_14_19: EverydayUnit[] = [
       SARA: Yes. I just wanted to check our plans for tonight.
       OMAR: Sorry, can you say that again? The connection is bad.
       SARA: I said I wanted to check our plans for tonight.
-      OMAR: I can barely hear you. I'll call you back in a minute.
+      OMAR: I can't hear you very well. I'll call you back in a minute.
       SARA: Okay. Talk to you in a minute.
       OMAR: Hi again. Can you hear me now?
       SARA: Yes, much better now.
@@ -388,11 +389,11 @@ export const UNITS_14_19: EverydayUnit[] = [
       SARA: No problem. How late will you be?
       OMAR: About ten minutes. I'm on my way.
       SARA: That's fine. I'll wait inside.
-      OMAR: Thanks. I can't find the café. Where are you exactly?
+      OMAR: Sara, I'm near the station, but I can't find the café.
       SARA: I'm inside the café, near the window.
       OMAR: Can you send me your location again?
       SARA: Sure. I'm sending it now.
-      OMAR: Got it. I'm about five minutes away.
+      OMAR: Got it. I'm two minutes away.
       SARA: Okay. Let me know when you're outside.
       OMAR: I'm outside now. Can you see me?
       SARA: Yes, I can see you. I'm coming out.
@@ -401,7 +402,7 @@ export const UNITS_14_19: EverydayUnit[] = [
     `),
     reading: { title: 'A Change of Plan', body: [
       'Omar sees a missed call from Sara, so he calls her back. He asks if it is a good time to talk. Sara says yes — she wants to check their plans for tonight.',
-      'At first the connection is bad, and Omar can barely hear her. He tells her he will call her back in a minute. The second time, the line is much better.',
+      'At first the connection is bad, and Omar cannot hear her very well. He tells her he will call her back in a minute. The second time, the line is much better.',
       'They were meeting at seven, but Sara asks if they can make it eight instead. Eight works for Omar. They decide to meet at the café near the station, and Sara sends him the location.',
       'In the evening, Omar is running late — about ten minutes. He sends a message to say he is on his way, and Sara says she will wait inside.',
       'When he arrives, he cannot find her. He calls again, and she comes out to meet him.',

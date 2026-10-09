@@ -140,7 +140,7 @@ export const UNITS_8_13: EverydayUnit[] = [
       KARIM: Yes, please. Can I pay by card?
       ASSISTANT: Of course. You can tap your card here.
       KARIM: Done.
-      ASSISTANT: Thank you. Here's your receipt. Keep it in case you need to exchange the jacket.
+      ASSISTANT: Thank you. Here's your receipt. Keep it. You need it to exchange the jacket.
       KARIM: I will. Thank you for your help.
       ASSISTANT: You're welcome. Have a nice day.
     `),
@@ -197,7 +197,7 @@ export const UNITS_8_13: EverydayUnit[] = [
       SALMA: They're fine, thanks. What about your family?
       KARIM: Everyone's doing well. My brother just started a new job.
       SALMA: Nice! Is he enjoying it?
-      KARIM: Yes, so far. He's still getting used to everything.
+      KARIM: Yes, he likes it. He's still learning a lot.
       SALMA: That's good. Anything new with you?
       KARIM: Actually, I'm working on a new project at work.
       SALMA: Oh, nice. How's it going?
@@ -225,7 +225,7 @@ export const UNITS_8_13: EverydayUnit[] = [
     reading: { title: 'An Old Friend in the Street', body: [
       'Karim is walking to the shops when he sees Salma. They have not seen each other for a long time, so they stop to talk.',
       'Both of them are busy. Salma has a lot of work, and she says she has not had much free time. Karim feels the same. He is working on a new project, and it is keeping him busy.',
-      "They talk about their families. Salma's sister started university this year. She loves it, but she says she has a lot of work. Karim's brother started a new job, and he is still getting used to everything.",
+      "They talk about their families. Salma's sister started university this year. She loves it, but she says she has a lot of work. Karim's brother started a new job. He likes it, and he is still learning a lot.",
       "They decide to meet again and catch up properly. Saturday is not good for Karim, because he is visiting his family, but Sunday afternoon works for both of them. They agree on four o'clock.",
       'Then Salma looks at the time. Her class starts in ten minutes, so she says goodbye and goes.',
     ] },
@@ -261,7 +261,9 @@ export const UNITS_8_13: EverydayUnit[] = [
       RANIA: How long is the wait?
       KARIM: About ten minutes.
       RANIA: That's fine. I'll wait.
-      KARIM: Great. You can sit over there. All right, I'm ready for you. What would you like today?
+      KARIM: Great. You can sit over there.
+      RANIA: Thank you.
+      KARIM: All right, I'm ready for you. What would you like today?
       RANIA: I'd like a haircut, please.
       KARIM: Sure. How would you like it?
       RANIA: Just a little shorter. I don't want a big change.
@@ -275,13 +277,17 @@ export const UNITS_8_13: EverydayUnit[] = [
       RANIA: Exactly. And not too short, please.
       KARIM: Of course. Would you like me to wash your hair first?
       RANIA: Yes, please.
-      KARIM: All right. Come this way. How does the length look so far?
+      KARIM: All right. Come this way, please.
+      RANIA: OK.
+      KARIM: Now, how does the length look so far?
       RANIA: The top looks good. Can you make the sides a little shorter?
       KARIM: Sure. Just a little?
       RANIA: Yes, just a little.
       KARIM: Like this?
       RANIA: Yes, that's better.
-      KARIM: Good. I'll finish the back now. All done. Take a look in the mirror.
+      KARIM: Good. I'll finish the back now.
+      RANIA: Take your time.
+      KARIM: All done. Take a look in the mirror.
       RANIA: It looks good. Can you make it a little shorter here?
       KARIM: Here on the side?
       RANIA: Yes, exactly. Just a little more.
@@ -317,55 +323,58 @@ export const UNITS_8_13: EverydayUnit[] = [
       ['How can I help you?', 'I have a sore throat.', 'كيف يمكنني مساعدتك؟', 'عندي التهاب في الحلق.'],
       ['How long have you had it?', "I've had it for three days.", 'منذ متى وأنت تشعر به؟', 'منذ ثلاثة أيام.'],
       ['Do you have any other symptoms?', 'I have a cough too, but no fever.', 'هل لديك أعراض أخرى؟', 'عندي سعال أيضًا، لكن بدون حمّى.'],
-      ['Do you have something for this?', 'Yes. Let me show you some options.', 'هل لديكم شيء لهذا؟', 'نعم. دعني أريك بعض الخيارات.'],
-      ['Do you prefer tablets or syrup?', "I'd prefer syrup, please.", 'هل تفضّل الأقراص أم الشراب؟', 'أفضّل الشراب، من فضلك.'],
-      ['Do you have this in tablets?', 'Yes, we have both.', 'هل لديكم هذا على شكل أقراص؟', 'نعم، لدينا النوعان.'],
-      ['How should I take it?', "Let's look at the instructions.", 'كيف أتناوله؟', 'لنقرأ التعليمات معًا.'],
-      ['Should I take it with food?', "Let's check the label.", 'هل أتناوله مع الطعام؟', 'لنتحقّق من الملصق.'],
-      ['Does it make you sleepy?', 'Please check the warnings on the label.', 'هل يسبّب النعاس؟', 'من فضلك اقرأ التحذيرات على الملصق.'],
-      ["What if I don't feel better?", "If you're not getting better, please see a doctor.", 'ماذا أفعل إذا لم أتحسّن؟', 'إذا لم تتحسّن، من فضلك راجع طبيبًا.'],
+      ['Do you have something for a cough?', 'Yes. We have tablets or syrup.', 'هل لديكم شيء للسعال؟', 'نعم. لدينا أقراص أو شراب.'],
+      ['Do you prefer tablets or syrup?', 'Syrup, please.', 'هل تفضّل الأقراص أم الشراب؟', 'الشراب، من فضلك.'],
+      ['Are you taking any other medicine?', "No, I'm not.", 'هل تتناول أي دواء آخر؟', 'لا.'],
+      ['How often should I take it?', 'Three times a day, after meals.', 'كم مرة يجب أن أتناوله؟', 'ثلاث مرات في اليوم، بعد الأكل.'],
+      ['How much should I take?', "One spoon each time. It's on the label.", 'ما الكمية التي أتناولها؟', 'ملعقة واحدة في كل مرة. مكتوب على العلبة.'],
+      ['Does it make you sleepy?', "A little. Don't drive after you take it.", 'هل يسبّب النعاس؟', 'قليلًا. لا تَقُد السيارة بعد تناوله.'],
+      ["What if I don't feel better?", "If you're not better in three days, see a doctor.", 'ماذا أفعل إذا لم أتحسّن؟', 'إذا لم تتحسّن خلال ثلاثة أيام، راجع طبيبًا.'],
       ['How much is it?', "It's forty-five dirhams.", 'كم ثمنه؟', 'ثمنه خمسة وأربعون درهمًا.'],
-      ['Can I pay by card?', 'Yes, of course.', 'هل يمكنني الدفع بالبطاقة؟', 'نعم، بالتأكيد.'],
-      ['Thank you for your help.', "You're welcome. Take care.", 'شكرًا على مساعدتك.', 'على الرحب والسعة. اعتنِ بنفسك.'],
+      ['Thank you for your help.', "You're welcome. Get well soon.", 'شكرًا على مساعدتك.', 'على الرحب والسعة. شفاك الله.'],
     ],
     talk: script(`
       SALMA: Hello. Can you help me, please?
-      PHARMACIST: Of course. What seems to be the problem?
+      PHARMACIST: Of course. What's the problem?
       SALMA: I have a sore throat and a cough.
       PHARMACIST: I'm sorry to hear that. How long have you had it?
-      SALMA: I've had it for about three days.
-      PHARMACIST: Do you have any other symptoms?
-      SALMA: No fever. Just the sore throat and the cough.
-      PHARMACIST: All right. Is the cough bothering you a lot?
-      SALMA: Mostly at night. Do you have something for this?
-      PHARMACIST: Yes. Let me show you some options. We have tablets and syrup. Do you prefer one or the other?
-      SALMA: I'd prefer syrup, please.
-      PHARMACIST: No problem. Here's one option.
-      SALMA: How should I take it?
-      PHARMACIST: Let's look at the instructions together.
-      SALMA: OK. Where are the instructions?
-      PHARMACIST: They're here on the label. I'll show you.
+      SALMA: For about three days.
+      PHARMACIST: Do you have a fever?
+      SALMA: No, I don't. Just the sore throat and the cough.
+      PHARMACIST: Is the cough bad?
+      SALMA: It's worse at night. I can't sleep well.
+      PHARMACIST: Are you taking any other medicine at the moment?
+      SALMA: No, nothing.
+      PHARMACIST: Do you have any allergies?
+      SALMA: No, I don't.
+      PHARMACIST: OK. We have a cough medicine. Do you prefer tablets or syrup?
+      SALMA: Syrup, please. It's easier for me.
+      PHARMACIST: Here you are. It's good for a cough and a sore throat.
+      SALMA: How often should I take it?
+      PHARMACIST: Three times a day: morning, afternoon and night.
+      SALMA: And how much each time?
+      PHARMACIST: One spoon. It's written here on the label.
       SALMA: Should I take it with food?
-      PHARMACIST: Let's check. The instructions explain when to take it.
-      SALMA: I see. And does it make you sleepy?
-      PHARMACIST: There are some warnings on the label. Let me show you.
-      SALMA: Good, thank you. I always like to check first.
-      PHARMACIST: That's a good idea.
-      SALMA: What should I do if I don't feel better?
-      PHARMACIST: If you're not getting better, or if you're worried, please see a doctor.
-      SALMA: All right. I understand. How much is it?
+      PHARMACIST: Yes. Take it after meals.
+      SALMA: Does it make you sleepy?
+      PHARMACIST: A little. So don't drive after you take it.
+      SALMA: That's fine. I don't drive.
+      PHARMACIST: Also, drink a lot of water and rest.
+      SALMA: What if I don't feel better?
+      PHARMACIST: If you're not better in three days, please see a doctor.
+      SALMA: All right. How much is it?
       PHARMACIST: It's forty-five dirhams.
       SALMA: Can I pay by card?
       PHARMACIST: Yes, of course.
-      SALMA: Done. Thank you for your help.
-      PHARMACIST: You're welcome. Take care.
+      SALMA: Here you are. Thank you for your help.
+      PHARMACIST: You're welcome. Get well soon.
     `),
     reading: { title: 'At the Pharmacy', body: [
-      'Salim has a sore throat and a cough. He has had it for about three days. He does not have a fever, but the cough is bothering him a lot, mostly at night.',
-      'He goes to the pharmacy and explains the problem to Mona, the pharmacist. She asks if he has any other symptoms. He says no — just the sore throat and the cough.',
-      'Mona shows him some options. There are tablets and there is syrup. Salim prefers syrup, so she gives him one.',
-      'Then they look at the instructions together. They are on the label, and they explain when to take the medicine and whether to take it with food. There are also some warnings, because the syrup can make him sleepy.',
-      'Mona tells him to see a doctor if he does not feel better. The syrup is forty-five dirhams, and Salim pays by card.',
+      'Salma has a sore throat and a cough. She has had them for about three days. She does not have a fever, but the cough is worse at night, and she cannot sleep well.',
+      'She goes to the pharmacy near her house and explains the problem. The pharmacist asks if she is taking any other medicine or has any allergies. She is not, and she has no allergies.',
+      'The pharmacist shows her a cough medicine. There are tablets and there is syrup, and Salma prefers syrup. She takes one spoon three times a day, after meals. The instructions are on the label.',
+      'The syrup can make her a little sleepy, so she should not drive after she takes it. The pharmacist also tells her to drink a lot of water and rest. If she is not better in three days, she should see a doctor.',
+      'The syrup is forty-five dirhams. Salma pays by card and goes home to rest.',
     ] },
     yours: [
       'Describe a small health problem and how long you have had it. - صِف مشكلة صحية بسيطة ومنذ متى تعاني منها.',
@@ -383,7 +392,7 @@ export const UNITS_8_13: EverydayUnit[] = [
       ['Do you have anything available today?', 'We have an appointment at four.', 'هل لديكم موعد متاح اليوم؟', 'لدينا موعد في الساعة الرابعة.'],
       ['Hello. I have an appointment at four.', 'Can I have your name, please?', 'مرحبًا. لديّ موعد في الرابعة.', 'ما اسمك، من فضلك؟'],
       ["It's Nadia Hassan.", 'Please take a seat in the waiting room.', 'اسمي نادية حسن.', 'تفضّلي بالجلوس في قاعة الانتظار.'],
-      ['How long is the wait?', 'The doctor will see you shortly.', 'كم مدة الانتظار؟', 'سيستقبلك الطبيب بعد قليل.'],
+      ['How long is the wait?', 'Not long. The doctor will see you soon.', 'كم مدة الانتظار؟', 'ليست طويلة. سيستقبلك الطبيب قريبًا.'],
       ['How can I help you today?', "I'm not feeling well.", 'كيف يمكنني مساعدتك اليوم؟', 'لا أشعر أنني بخير.'],
       ['What symptoms are you having?', 'I have a cough and a headache.', 'ما الأعراض التي تشعر بها؟', 'عندي سعال وصداع.'],
       ['When did it start?', 'It started about three days ago.', 'متى بدأ؟', 'بدأ منذ حوالي ثلاثة أيام.'],
@@ -393,7 +402,8 @@ export const UNITS_8_13: EverydayUnit[] = [
       ['Does it hurt when I press here?', 'Yes, right there.', 'هل يؤلمك عندما أضغط هنا؟', 'نعم، هناك بالضبط.'],
       ['Are you taking any medication?', "No, I'm not taking anything.", 'هل تتناول أي دواء؟', 'لا، لا أتناول أي شيء.'],
       ['Do you have any allergies?', 'No, not that I know of.', 'هل لديك أي حساسية؟', 'لا، ليس على حدّ علمي.'],
-      ['What should I do next?', "I'll explain the next steps.", 'ماذا يجب أن أفعل بعد ذلك؟', 'سأشرح لك الخطوات التالية.'],
+      ['What should I do?', 'Rest at home and drink a lot of water.', 'ماذا يجب أن أفعل؟', 'ارتح في البيت واشرب الكثير من الماء.'],
+      ['Do I need a prescription?', 'Yes. Take this to the pharmacy.', 'هل أحتاج إلى وصفة طبية؟', 'نعم. خذ هذه إلى الصيدلية.'],
     ],
     talk: script(`
       NADIA: Hello. I'd like to make an appointment, please.
@@ -408,8 +418,8 @@ export const UNITS_8_13: EverydayUnit[] = [
       RECEPTIONIST: Of course. What's your name, please?
       NADIA: Nadia Hassan.
       RECEPTIONIST: Thank you. Please take a seat in the waiting room.
-      NADIA: Do you know how long the wait will be?
-      RECEPTIONIST: It shouldn't be long. The doctor will see you shortly.
+      NADIA: How long is the wait?
+      RECEPTIONIST: Not long. The doctor will see you soon.
       NADIA: Thank you.
       DOCTOR: Hello, Nadia. Come in and take a seat.
       NADIA: Thank you, doctor.
@@ -435,22 +445,24 @@ export const UNITS_8_13: EverydayUnit[] = [
       NADIA: No, I'm not taking anything.
       DOCTOR: Do you have any allergies?
       NADIA: No, not that I know of.
-      DOCTOR: All right. Thank you. That gives me a clearer picture.
-      NADIA: What should I do next?
-      DOCTOR: I'll explain the next steps and what you need to do.
+      DOCTOR: All right. Your temperature is thirty-eight. You have a fever.
+      NADIA: Is it serious?
+      DOCTOR: No, don't worry. I think it's the flu.
+      NADIA: What should I do?
+      DOCTOR: Rest at home for a few days and drink a lot of water.
       NADIA: Do I need a prescription?
-      DOCTOR: I'll explain that too before you leave.
-      NADIA: All right. And should I come back?
-      DOCTOR: I'll let you know if you need a follow-up appointment.
+      DOCTOR: Yes. Here you are. Take this to the pharmacy.
+      NADIA: Should I come back?
+      DOCTOR: If you don't feel better in a week, make another appointment.
       NADIA: I understand. Thank you, doctor.
-      DOCTOR: You're welcome.
+      DOCTOR: You're welcome. Get well soon.
     `),
     reading: { title: 'Nadia Sees the Doctor', body: [
       "Nadia has not been feeling well for a few days, so she calls the clinic near her house. She asks for an appointment, and the receptionist gives her one at four o'clock the same day.",
       'When she arrives, she gives her name and takes a seat in the waiting room. The wait is not long, and soon the doctor calls her in.',
       'Nadia explains her symptoms. She has a cough and a headache, and she feels very tired. The cough started about three days ago, and it is about the same now.',
       'The doctor asks if she has a fever. Nadia is not sure, but she felt hot last night, so the doctor checks her temperature. Her stomach also hurts a little on one side.',
-      'The doctor asks if Nadia takes any medication or has any allergies. She does not. Then the doctor explains the next steps before Nadia leaves.',
+      'The doctor asks if Nadia takes any medication or has any allergies. She does not. Her temperature is thirty-eight, so she has a fever. The doctor thinks it is the flu, gives her a prescription, and tells her to rest at home and drink a lot of water.',
     ] },
     yours: [
       'Call the clinic and book an appointment for today. - اتصل بالعيادة واحجز موعدًا لليوم.',

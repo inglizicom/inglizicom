@@ -24,10 +24,13 @@ import type { Block, FamilyPeople, FlagId, Lesson } from '@/data/level1-book'
 
 const FONTS_HREF = 'https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&family=Baloo+Bhaijaan+2:wght@500;600;700;800&family=Lalezar&family=Poppins:wght@400;500;600;700;800&display=swap'
 export const EN = "'Mali', 'Baloo Bhaijaan 2', sans-serif"
-export const AR = "'Baloo Bhaijaan 2', 'Tajawal', sans-serif"
+/* A book can set its own faces with CSS variables on a parent element
+ * (--book-ar, --book-head, --book-display, --book-display-weight); without
+ * them the Level 1 book's faces apply. */
+export const AR = "var(--book-ar, 'Baloo Bhaijaan 2'), 'Tajawal', sans-serif"
 /** Section headings and titles: a second face, so sections stand apart from the body. */
-export const HEAD = "'Baloo Bhaijaan 2', 'Mali', sans-serif"
-export const AR_DISPLAY = "'Lalezar', 'Baloo Bhaijaan 2', sans-serif"
+export const HEAD = "var(--book-head, 'Baloo Bhaijaan 2'), 'Mali', sans-serif"
+export const AR_DISPLAY = "var(--book-display, 'Lalezar'), 'Baloo Bhaijaan 2', sans-serif"
 /** Emoji pictures: full colour, or grey in the black-and-white print (--e). */
 const EMOJI: CSSProperties = { filter: 'var(--e)' }
 const GREY_TEXT = '#526079'
@@ -467,16 +470,17 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
         <div className="text-[14.5px] font-extrabold text-[var(--m)] mb-0.5" style={{ fontFamily: HEAD }}><Mixed text={b.label} /></div>
         {b.body.includes('\n') ? (
           // Several paragraphs: numbered in the margin, so questions can point at "§2".
-          <div className="rounded-r-xl bg-[var(--s)] border-l-[4px] border-[var(--m)] pl-2 pr-3.5 py-2 font-bold leading-[1.55] space-y-1" style={{ fontSize: b.size ?? 13 }}>
+          // Weight and leading on each <p>: the site's global `p` rule would set them back to 400 / 1.75.
+          <div className="rounded-r-xl bg-[var(--s)] border-l-[4px] border-[var(--m)] pl-2 pr-3.5 py-2 font-semibold leading-[1.55] space-y-1" style={{ fontSize: b.size ?? 13 }}>
             {b.body.split('\n').map((para, i) => (
-              <p key={i} className="flex gap-1.5">
+              <p key={i} className="flex gap-1.5 font-semibold leading-[1.55]">
                 <span className="shrink-0 w-4 text-right text-[10.5px] font-extrabold text-[var(--m)] pt-[2px]">{i + 1}</span>
                 <span>{para}</span>
               </p>
             ))}
           </div>
         ) : (
-          <p className="rounded-r-xl bg-[var(--s)] border-l-[4px] border-[var(--m)] px-3.5 py-2 font-bold leading-[1.6]" style={{ fontSize: b.size ?? 13 }}>{b.body}</p>
+          <p className="rounded-r-xl bg-[var(--s)] border-l-[4px] border-[var(--m)] px-3.5 py-2 font-semibold leading-[1.6]" style={{ fontSize: b.size ?? 13 }}>{b.body}</p>
         )}
       </div>
     )
@@ -539,7 +543,19 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
     )
     case 'tiles': return (
       <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${b.cols ?? 3}, minmax(0, 1fr))` }}>
-        {b.items.map(([icon, en, ar], i) => (
+        {b.items.map(([icon, en, ar], i) => b.photos?.[i] ? (
+          // A photograph, cropped to 3:2, the word on a band under it (grey in black-and-white).
+          <div key={i} className="rounded-2xl bg-white border-[1.5px] border-[var(--s)] shadow-[0_3px_0_var(--s)] overflow-hidden flex flex-col">
+            <div className="relative w-full aspect-[3/2] bg-[var(--s)]">
+              <img src={b.photos[i]} alt={en} loading="eager" decoding="sync" className="absolute inset-0 w-full h-full object-cover" style={EMOJI} />
+              <span className="absolute left-1.5 top-1.5 min-w-[22px] h-[22px] px-1 rounded-full bg-white/90 text-[10.5px] font-extrabold text-[var(--m)] flex items-center justify-center">{pad(i + 1 + (b.start ?? 0))}</span>
+            </div>
+            <div className="px-2 py-1.5 text-center border-t-[3px] border-[var(--m)]">
+              <div className="text-[14.5px] font-extrabold leading-tight text-[var(--k)]">{en}</div>
+              <div dir="rtl" className="mt-0.5 text-[13px] font-bold leading-tight text-[var(--m)]" style={{ fontFamily: AR }}>{ar}</div>
+            </div>
+          </div>
+        ) : (
           <div key={i} className="rounded-2xl bg-white border-[1.5px] border-[var(--s)] shadow-[0_3px_0_var(--s)] overflow-hidden flex flex-col items-center text-center pb-2">
             <div className="relative w-full flex items-center justify-center py-2.5 bg-[var(--s)]">
               <span className="absolute left-2 top-1.5 text-[10px] font-extrabold text-[var(--m)] opacity-70">{pad(i + 1)}</span>
@@ -562,6 +578,29 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
             <div className="self-end max-w-[94%] rounded-2xl rounded-br-[4px] bg-[var(--m)] px-3 py-1.5 text-white">
               <div className="text-[12.5px] font-extrabold leading-snug"><Mixed text={a} /></div>
               {aAr && <div dir="rtl" className="text-[11.5px] font-bold leading-snug text-white/85" style={{ fontFamily: AR }}><RtlMixed text={aAr} /></div>}
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+    case 'phrases': return (
+      // A phrasebook table: what you ask, what you answer — not a dialogue.
+      <div className="rounded-xl overflow-hidden border-[1.5px] border-[var(--m)]">
+        <div className="grid bg-[var(--m)] text-white text-[13px] font-extrabold" style={{ gridTemplateColumns: '34px 1fr 1fr', fontFamily: HEAD }}>
+          <span className="py-1.5 text-center">#</span>
+          <span className="py-1.5 px-3 border-l border-white/25"><Mixed text={b.heads?.[0] ?? 'Ask - اسأل'} /></span>
+          <span className="py-1.5 px-3 border-l border-white/25"><Mixed text={b.heads?.[1] ?? 'Answer - أجب'} /></span>
+        </div>
+        {b.rows.map(([q, a, qAr, aAr], i) => (
+          <div key={i} className={`grid items-stretch border-t border-[var(--s)] ${i % 2 ? 'bg-white' : 'bg-[var(--s)]'}`} style={{ gridTemplateColumns: '34px 1fr 1fr' }}>
+            <span className="flex items-center justify-center text-[12px] font-extrabold text-[var(--m)]" style={{ fontFamily: HEAD }}>{pad(i + 1 + (b.start ?? 0))}</span>
+            <div className="px-3 py-[7px] border-l border-[var(--s)]">
+              <div className="text-[13.5px] font-bold leading-snug"><Mixed text={q} /></div>
+              {qAr && <Gloss s={qAr} size={12.5} />}
+            </div>
+            <div className="px-3 py-[7px] border-l border-[var(--s)]">
+              <div className="text-[13.5px] font-extrabold leading-snug text-[var(--m)]"><Mixed text={a} /></div>
+              {aAr && <Gloss s={aAr} size={12.5} />}
             </div>
           </div>
         ))}
@@ -977,7 +1016,7 @@ function HangingSign({ text }: { text: string }) {
       <svg className="absolute inset-0" width="230" height="40" aria-hidden><line x1="40" y1="0" x2="40" y2="40" stroke="#1E2A5C" strokeWidth="1.5" strokeDasharray="2 3" /><line x1="190" y1="0" x2="190" y2="40" stroke="#1E2A5C" strokeWidth="1.5" strokeDasharray="2 3" /></svg>
       <div className="absolute inset-x-0 top-[30px] bottom-0 bg-[var(--m)] text-white rounded-xl flex items-center justify-center -rotate-2">
         <div className="absolute inset-[6px] border-2 border-dashed border-white/50 rounded-lg" />
-        <span className="text-[46px] leading-none pt-2" style={{ fontFamily: AR_DISPLAY }}>{text}</span>
+        <span className="text-[46px] leading-none pt-2" style={{ fontFamily: AR_DISPLAY, fontWeight: 'var(--book-display-weight, 400)' }}>{text}</span>
       </div>
     </div>
   )

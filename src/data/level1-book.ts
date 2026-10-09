@@ -75,7 +75,11 @@ export type Block =
    *  `lines` adds a writing line under each item. */
   | { t: 'exercise'; title: string; instr?: string; items: ExerciseItem[]; cols?: 1 | 2; lines?: boolean; size?: number }
   /** Large picture tiles: a vocabulary page's words, each with its picture and meaning. */
-  | { t: 'tiles'; items: [icon: string, en: string, ar: string][]; cols?: number }
+  | { t: 'tiles'; items: [icon: string, en: string, ar: string][]; cols?: number
+      /** A photograph per word (URL), in place of its picture; `start` numbers a continued list. */
+      photos?: (string | null)[]; start?: number }
+  /** Questions and their answers as a two-column phrasebook table (Arabic under each). */
+  | { t: 'phrases'; rows: [q: string, a: string, qAr?: string, aAr?: string][]; heads?: [string, string]; start?: number }
   /** Question → answer exchanges as chat bubbles (Arabic under each). */
   | { t: 'chat'; rows: [q: string, a: string, qAr?: string, aAr?: string][]; cols?: 1 | 2 }
   /** A conversation as a script: "NAME: line", each speaker in their own colour. */
