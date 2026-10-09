@@ -3,119 +3,12 @@ import type { L2Unit } from './types.ts'
 import { choose, complete, correct } from './helpers.ts'
 import { GRAMMAR_1 } from './grammar-1.ts'
 import { VOCAB_1 } from './vocab-1.ts'
+import { UNIT_1 } from './unit-01.ts'
 
 /** Module 1 — People and everyday life: units 1–4 and Review 1. */
 
 export const MODULE_1: L2Unit[] = [
-  /* ── 1 · Getting to know people ─────────────────────────────────── */
-  {
-    n: 1, module: 1, titleEn: 'Getting to know people', titleAr: 'التعارف', icons: ['🤝', '💬'],
-    goal: 'تعلّم كيف تتعرّف على أشخاص جدد، تتحدّث عن عملك وحياتك، وتُبقي المحادثة مستمرة.',
-    grammarName: 'Present simple & continuous',
-    canDo: [
-      ['introduce myself and talk about my job.', 'أقدّم نفسي وأتحدّث عن عملي.'],
-      ['say what I am doing these days.', 'أقول ماذا أفعل هذه الأيام.'],
-      ['ask questions to keep a conversation going.', 'أطرح أسئلة لأُبقي المحادثة مستمرة.'],
-    ],
-    expressions: [
-      ['What do you do?', "I'm a nurse. I work at a hospital in Rabat.", 'ما عملك؟', 'أنا ممرّضة. أعمل في مستشفى بالرباط.'],
-      ['What are you doing these days?', "I'm studying English and I'm looking for a new job.", 'ماذا تفعل هذه الأيام؟', 'أدرس الإنجليزية وأبحث عن عمل جديد.'],
-      ['Where do you live?', "I live in Fes, but I'm staying with my sister this month.", 'أين تسكن؟', 'أسكن في فاس، لكنني أقيم عند أختي هذا الشهر.'],
-      ['How often do you go back home?', 'I usually go back every weekend.', 'كم مرة تعود إلى بيتك؟', 'أعود عادةً كل نهاية أسبوع.'],
-      ['Do you like your job?', 'Yes, I love it. The people are really nice.', 'هل تحب عملك؟', 'نعم، أحبه كثيرًا. الناس لطفاء جدًا.'],
-      ['What are you working on at the moment?', "I'm preparing a big project for work.", 'على ماذا تعمل حاليًا؟', 'أُحضّر مشروعًا كبيرًا للعمل.'],
-      ['Where are you from originally?', "I'm from Agadir, but I live in Marrakech now.", 'من أين أنت في الأصل؟', 'أنا من أكادير، لكنني أسكن في مراكش الآن.'],
-      ['Do you know many people here?', 'Not really. I know my neighbours and a few colleagues.', 'هل تعرف كثيرًا من الناس هنا؟', 'ليس كثيرًا. أعرف جيراني وبعض الزملاء.'],
-      ['What do you usually do at the weekend?', 'I usually see my friends or go to the beach.', 'ماذا تفعل عادةً في نهاية الأسبوع؟', 'أرى أصدقائي عادةً أو أذهب إلى الشاطئ.'],
-      ['Are you enjoying the course?', "Yes, I'm enjoying it a lot.", 'هل تستمتع بالدورة؟', 'نعم، أستمتع بها كثيرًا.'],
-      ['What do you think of the city?', "I really like it. It's busy, but people are friendly.", 'ما رأيك في المدينة؟', 'تعجبني كثيرًا. إنها مزدحمة، لكن الناس ودودون.'],
-      ['Why are you learning English?', 'I need it for my job, and I want to travel.', 'لماذا تتعلّم الإنجليزية؟', 'أحتاجها لعملي، وأريد أن أسافر.'],
-    ],
-    notice: [
-      'Facts and habits → present simple: I work at a hospital. I usually go back every weekend. - للحقائق والعادات: المضارع البسيط.',
-      "Now and these days → present continuous: I'm studying English. I'm staying with my sister this month. - لما يحدث الآن أو هذه الأيام: المضارع المستمر.",
-      'I need it, I want to travel: need, want, know, like are not used with -ing. - أفعال الحالة لا نضيف إليها ing عادةً.',
-    ],
-    tip: [
-      'Answer, then ask back: I live in Fes. And you? - أجب، ثم اسأل الشخص الآخر.',
-      'Add one detail to every answer: I work at a hospital. It is near the station. - أضف تفصيلًا واحدًا إلى كل جواب.',
-    ],
-    yourTurn: ['What do you do?', 'What are you doing these days?', 'What do you usually do at the weekend?'],
-    talk: [
-      'YASSINE: Hi! Is this seat free?',
-      'IMANE: Yes, of course. Are you new here?',
-      "YASSINE: Yes, it's my first day. I'm Yassine.",
-      "IMANE: Nice to meet you, Yassine. I'm Imane. Where are you from?",
-      "YASSINE: I'm from Meknes, but I live in Rabat now.",
-      'IMANE: Oh, nice. What do you do?',
-      "YASSINE: I'm an accountant. I work for a small company near the station.",
-      'IMANE: Do you like it?',
-      "YASSINE: It's OK. The work is a bit boring, but my colleagues are great. What about you?",
-      "IMANE: I'm a nurse. I work at the hospital in Agdal.",
-      'YASSINE: That sounds busy. Do you work at night?',
-      "IMANE: Sometimes. This month I'm working nights, so I'm a bit tired.",
-      'YASSINE: I understand. So why are you taking this course?',
-      'IMANE: I need English for my job. A lot of our patients speak English, and I want to understand them better.',
-      "YASSINE: That makes sense. I'm taking it because I'm looking for a new job.",
-      'IMANE: Really? What kind of job?',
-      'YASSINE: Something with an international company. They always ask for English.',
-      "IMANE: That's true. How often do you study at home?",
-      "YASSINE: I try to study every evening, but these days I'm working late, so it's difficult.",
-      'IMANE: Same here. I usually listen to podcasts on the bus.',
-      "YASSINE: That's a good idea. Which podcasts do you listen to?",
-      "IMANE: Short ones about everyday English. I'm listening to a great one at the moment. I can send you the link.",
-      "YASSINE: Yes, please! Here's my number.",
-      "IMANE: Thanks. Oh, the teacher is coming. Let's talk after the class.",
-      'YASSINE: Sure. See you later.',
-    ],
-    focus: [
-      'I live in Rabat', 'What do you do', 'I work for a small company', 'Do you like it', 'I work at the hospital', 'Do you work at night',
-      "I'm working nights", 'why are you taking this course', 'I need English', 'speak English', 'I want to understand', "I'm taking it",
-      "I'm looking for", 'They always ask', 'How often do you study', "I'm working late", 'I usually listen', 'do you listen',
-      "I'm listening to", 'the teacher is coming',
-    ],
-    findIt: [
-      'Find three facts or habits in the present simple. - ابحث عن ثلاث حقائق أو عادات في المضارع البسيط.',
-      'Find three things that are happening now or these days. - ابحث عن ثلاثة أشياء تحدث الآن أو هذه الأيام.',
-      'Imane says I need English, not I am needing English. Why? - لماذا؟',
-    ],
-    vocab: VOCAB_1[1],
-    grammar: GRAMMAR_1[1],
-    writing: {
-      name: 'An online profile', nameAr: 'ملف تعريفي على الإنترنت',
-      task: 'اكتب ملفًا تعريفيًا قصيرًا عنك لتطبيق تبادل اللغات (80 إلى 100 كلمة).',
-      include: [
-        'Who you are and where you are from. - من أنت ومن أين.',
-        'What you do: your job or your studies. - عملك أو دراستك.',
-        'What you are doing these days. - ماذا تفعل هذه الأيام.',
-        'What you like doing in your free time. - ماذا تحب أن تفعل في وقت فراغك.',
-        'What you are looking for. - ماذا تبحث عنه.',
-      ],
-      language: [
-        'Present simple for facts and habits: I work… I usually… - للحقائق والعادات.',
-        "Present continuous for now: These days I'm learning… - لما تفعله هذه الأيام.",
-        'A friendly start and end: Hello everyone! … Send me a message! - بداية ونهاية ودّيتان.',
-      ],
-      short: { label: 'Short example - مثال قصير', body: "Hi, I'm Samira. I'm a primary school teacher from Safi. These days I'm learning English because I want to travel. I love cooking and long walks by the sea." },
-      model: { label: 'A longer model - نموذج أطول', body: [
-        "Hello everyone! My name is Anas and I'm 29. I'm from Meknes, but I live and work in Tangier now. I'm a mechanic and I work in a big garage near the port. I usually start at eight and finish at five.",
-        "These days I'm learning English online, because a lot of our customers are tourists. I'm also taking driving lessons for a truck licence, so I'm very busy!",
-        "In my free time, I play football with my friends and I sometimes go fishing. I'm looking for a friendly person to practise English with, once or twice a week. Send me a message!",
-      ].join('\n') },
-      focus: ['I live and work in Tangier', 'I work in a big garage', 'I usually start', "I'm learning English", "I'm also taking", 'I play football', 'I sometimes go fishing', "I'm looking for"],
-      template: [
-        "Hi! My name is ___ and I'm ___ years old. I'm from ___, but I live in ___.",
-        "I'm a ___ and I work ___. I usually ___.",
-        "These days I'm ___ because ___.",
-        "In my free time, I ___ and I sometimes ___. I'm looking for ___.",
-      ].join('\n'),
-      check: [
-        'I used the present simple for facts and habits. - استعملت المضارع البسيط للحقائق والعادات.',
-        'I used the present continuous for these days. - استعملت المضارع المستمر لما يحدث هذه الأيام.',
-        'I added a friendly start and end. - أضفت بداية ونهاية ودّيتين.',
-      ],
-    },
-  },
+  UNIT_1,
 
   /* ── 2 · Then and now ─────────────────────────────────────────── */
   {

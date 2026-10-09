@@ -15,9 +15,12 @@ test('every written unit uses its grammar in context: expressions, conversation,
     const at = `unit ${u.n}`
     const idx = INDEX.find(x => x.n === u.n)
     assert.equal(idx.titleEn, u.titleEn, at)
-    assert.equal(u.expressions.length, 12, at)
-    for (const [q, a, qAr, aAr] of u.expressions) assert.ok(q && a && AR.test(qAr) && AR.test(aAr), `${at}: ${q}`)
-    assert.ok(u.notice.length >= 3 && u.tip.length >= 2 && u.yourTurn.length === 3 && u.findIt.length === 3, at)
+    if (!u.ladder) {
+      assert.equal(u.expressions.length, 12, at)
+      for (const [q, a, qAr, aAr] of u.expressions) assert.ok(q && a && AR.test(qAr) && AR.test(aAr), `${at}: ${q}`)
+      assert.ok(u.notice.length >= 3 && u.tip.length >= 2 && u.yourTurn.length === 3, at)
+    }
+    assert.equal(u.findIt.length, 3, at)
     assert.ok(u.talk.length >= 24 && u.talk.length <= 38, `${at}: ${u.talk.length} lines on one page`)
     for (const l of u.talk) assert.match(l, /^[A-Z][A-Z ]{1,18}: \S/, `${at}: "${l}"`)
     // every grammar phrase is really in the conversation, and many lines show it
@@ -31,9 +34,11 @@ test('every written unit uses its grammar in context: expressions, conversation,
     // vocabulary by theme: three groups, every word with its meaning and an example
     const v = u.vocab
     assert.equal(v.groups.length, 3, at)
-    assert.ok(v.groups.flatMap(g => g.words).length >= 24, `${at}: ${v.groups.flatMap(g => g.words).length} words`)
+    // a ladder unit keeps only the words its task needs
+    const nWords = v.groups.flatMap(g => g.words).length
+    assert.ok(u.ladder ? nWords >= 16 && nWords <= 24 : nWords >= 24, `${at}: ${nWords} words`)
     for (const [en, ar, ex] of v.groups.flatMap(g => g.words)) assert.ok(en && !AR.test(en) && AR.test(ar) && /^[A-Z].*[.!?]$/.test(ex) && !AR.test(ex), `${at}: ${en}`)
-    assert.equal(v.partners.length, 6, at)
+    if (!u.ladder) assert.equal(v.partners.length, 6, at)
     assert.equal(v.practice.length, 6, at)
     for (const [q, a] of v.practice) assert.ok(q.includes('___') && a, `${at}: ${q}`)
     const blocks = u.grammar.flat()
@@ -89,4 +94,33 @@ test('pages: contents point at the openers, the key answers every exercise', () 
   // a module's review comes after its last unit
   const review1 = pages.findIndex(p => p.kind === 'review' && p.module === 1)
   assert.ok(review1 > pages.findIndex(p => p.unit === 4 && p.kind === 'writing'))
+})
+
+test('a ladder unit: one situation and task, steps in the conversation, speaking, a check', () => {
+  for (const u of L2_UNITS.filter(x => x.ladder)) {
+    const L = u.ladder, at = `unit ${u.n}`
+    for (const s of [L.situation, L.task]) assert.match(s, /^[A-Z][^؀-ۿ]+ - [؀-ۿ]/, `${at}: "${s}"`)
+    assert.ok(L.steps.length >= 4 && L.steps.length <= 6, at)
+    for (const s of L.steps) {
+      assert.ok(s.title && AR.test(s.titleAr) && s.icon && s.phrases.length >= 3, `${at}: step ${s.title}`)
+      for (const [en, ar] of s.phrases) assert.ok(en && !AR.test(en) && AR.test(ar), `${at}: ${en}`)
+    }
+    // the conversation takes the steps in order, each one where it is marked
+    const starts = Object.entries(L.talkSteps).map(([line, step]) => [Number(line), step]).sort((a, b) => a[0] - b[0])
+    assert.deepEqual(starts.map(([, s]) => s), L.steps.map((_, i) => i + 1), `${at}: every step, in order`)
+    assert.equal(starts[0][0], 0, at)
+    for (const [line] of starts) assert.ok(line < u.talk.length, at)
+    // most of each step's phrases are said in the conversation (word for word, give or take a name)
+    const talk = u.talk.join(' ').toLowerCase()
+    for (const s of L.steps) {
+      const said = s.phrases.filter(([en]) => talk.includes(en.toLowerCase().replace(/[.!?]$/, '').split(' ').slice(0, 4).join(' '))).length
+      assert.ok(said >= 2, `${at}: step ${s.title}: only ${said} phrases are in the conversation`)
+    }
+    assert.equal(L.order.length, 6, at)
+    assert.equal(L.speaking.cards.length, 2, at)
+    for (const card of L.speaking.cards) assert.ok(card.length >= 4, at)
+    assert.ok(L.speaking.check.length >= 3, at)
+    assert.equal(L.quiz.length, 6, at)
+    for (const [, options, r] of L.quiz) assert.ok(options.length === 3 && r >= 0 && r <= 2, at)
+  }
 })

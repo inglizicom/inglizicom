@@ -51,6 +51,37 @@ export interface L2Unit {
     template: string
     check: string[]
   }
+  /** The ladder (units built on it have it; the others keep the first layout until they are rewritten). */
+  ladder?: L2Ladder
+}
+
+/**
+ * The unit as a ladder: one real situation and one final task; the words
+ * the task needs; the expressions in the order of the conversation (its
+ * steps); a model conversation in the same order; the grammar it needs;
+ * speaking from controlled to free; the same situation in writing; a check.
+ */
+export interface L2Ladder {
+  /** The situation, "English - العربية". */
+  situation: string
+  /** The final task, "English - العربية". */
+  task: string
+  /** The conversation's steps, each with what you can say: [English, Arabic]. */
+  steps: { title: string; titleAr: string; icon: string; phrases: [string, string][] }[]
+  /** Where each step starts in the conversation: line index → step number (1-based). */
+  talkSteps: Record<number, number>
+  /** A short conversation to put in order (lines in the right order; printed mixed). */
+  order: string[]
+  speaking: {
+    /** Role cards: Student A, Student B. */
+    cards: [string[], string[]]
+    /** The real conversation, "English - العربية". */
+    free: string
+    /** What to check after speaking, "English - العربية". */
+    check: string[]
+  }
+  /** The end-of-unit quiz: [question, options, right]. */
+  quiz: [string, [string, string, string], 0 | 1 | 2][]
 }
 
 /** A unit's vocabulary: themed groups of [word, meaning, example], word partners, an exercise. */

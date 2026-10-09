@@ -97,7 +97,9 @@ export type Block =
       /** A face per speaker; words to print bold in the highlight colour; key sentences (line numbers) to star. */
       avatars?: Record<string, string>; mark?: RegExp; keys?: number[]
       /** Instead of faces: a plain circle with the speaker's initial (the first speaker filled in the section colour). */
-      badges?: boolean }
+      badges?: boolean
+      /** Labels shown above some lines (line index → label): the steps of the conversation. */
+      labels?: Record<number, string> }
   /** Ruled lines to write on. */
   | { t: 'lines'; n: number
       /** On a `spread` page, more lines take the room left over (instead of a gap). */

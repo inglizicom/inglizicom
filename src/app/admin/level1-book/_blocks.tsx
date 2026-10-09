@@ -33,6 +33,8 @@ export const HEAD = "var(--book-head, 'Baloo Bhaijaan 2'), 'Mali', sans-serif"
 export const AR_DISPLAY = "var(--book-display, 'Lalezar'), 'Baloo Bhaijaan 2', sans-serif"
 /** Emoji pictures: full colour, or grey in the black-and-white print (--e). */
 const EMOJI: CSSProperties = { filter: 'var(--e)' }
+/** Cards: an edge in the section colour and a shadow, when the book sets --card-bw and --card-shadow (none otherwise). */
+const CARD: CSSProperties = { border: 'var(--card-bw, 0px) solid color-mix(in srgb, var(--m) 32%, white)', boxShadow: 'var(--card-shadow, none)' }
 const GREY_TEXT = '#526079'
 
 /**
@@ -399,7 +401,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
             : <Bullet tick={b.tick}><EnAr s={s} size={b.size ?? 13} /></Bullet>} />
         </div>
       )
-      return b.box ? <div className="rounded-xl bg-[var(--s)] px-3.5 py-2">{body}</div> : body
+      return b.box ? <div className="rounded-xl bg-[var(--s)] px-3.5 py-2" style={CARD}>{body}</div> : body
     }
     case 'talk': {
       const n = ctx.talkNo.get(b)
@@ -465,13 +467,13 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
     case 'cards': return (
       <div className="grid gap-x-3 gap-y-2" style={{ gridTemplateColumns: `repeat(${b.cols ?? 4}, minmax(0, 1fr))` }}>
         {b.items.map(([icon, en, ar], i) => b.stack ? (
-          <div key={i} className="flex flex-col items-center gap-0.5 min-w-0 rounded-xl bg-[var(--s)] px-1.5 py-2 text-center">
+          <div key={i} className="flex flex-col items-center gap-0.5 min-w-0 rounded-xl bg-[var(--s)] px-1.5 py-2 text-center" style={CARD}>
             <span className="text-[30px] leading-none" style={EMOJI}>{icon}</span>
             <div className="mt-0.5 text-[13.5px] font-extrabold leading-tight text-[var(--m)]">{en}</div>
             <div dir="rtl" className="text-[12.5px] font-bold leading-snug" style={{ fontFamily: AR, color: GREY_TEXT }}>{ar}</div>
           </div>
         ) : (
-          <div key={i} className="flex items-center gap-2 min-w-0 rounded-xl bg-[var(--s)] px-2 py-1.5">
+          <div key={i} className="flex items-center gap-2 min-w-0 rounded-xl bg-[var(--s)] px-2 py-1.5" style={CARD}>
             <span className="text-[30px] leading-none shrink-0 w-[36px] text-center" style={EMOJI}>{icon}</span>
             <div className="flex-1 min-w-0">
               <div className="text-[14px] font-extrabold leading-tight text-[var(--m)]">{en}</div>
@@ -528,7 +530,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
     case 'boxes': return (
       <div className="grid gap-x-3 gap-y-2.5" style={{ gridTemplateColumns: `repeat(${b.cols}, minmax(0, 1fr))` }}>
         {b.items.map(x => (
-          <div key={x.title} className="rounded-xl bg-[var(--s)] px-3 py-2 text-[12.5px] font-bold">
+          <div key={x.title} className="rounded-xl bg-[var(--s)] px-3 py-2 text-[12.5px] font-bold" style={CARD}>
             <div className="text-[16px] font-extrabold text-[var(--m)] leading-tight mb-0.5" style={{ fontFamily: HEAD }}>{x.title}</div>
             {/* An Arabic line glosses the title: right to left, no bullet (its full stop would land on the wrong side). */}
             {x.lines.map(l => (isAr(l) ? <Gloss key={l} s={l} size={13} /> : <Bullet key={l}>{l}</Bullet>))}
@@ -659,7 +661,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       // One soft card per exchange, with room around it: what you say ➜ the reply, the Arabic under each.
       <div className="flex flex-col gap-2">
         {b.rows.map(([q, a, qAr, aAr], i) => (
-          <div key={i} className="grid items-center gap-3 rounded-2xl bg-[var(--s)] px-3 py-2.5" style={{ gridTemplateColumns: '26px 1fr 20px 1fr' }}>
+          <div key={i} className="grid items-center gap-3 rounded-2xl bg-[var(--s)] px-3 py-2.5" style={{ gridTemplateColumns: '26px 1fr 20px 1fr', ...CARD }}>
             <span className="w-[26px] h-[26px] rounded-full bg-white text-[var(--m)] flex items-center justify-center text-[12px] font-extrabold" style={{ fontFamily: HEAD }}>{i + 1 + (b.start ?? 0)}</span>
             <div>
               <div className="text-[14px] font-bold leading-snug"><Mixed text={q} /></div>
@@ -702,16 +704,27 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
         const words = <Marked text={m ? m[2] : s} re={b.mark} />
         const ground = key ? 'var(--key-s, var(--s))' : i % 2 ? 'transparent' : 'var(--s)'
         const edge = key ? { boxShadow: 'inset 3px 0 0 var(--key, var(--m))' } : {}
+        // A step of the conversation starts here: a small label across the column.
+        const label = b.labels?.[i] && (
+          <div className="flex items-center gap-2 mt-1.5 mb-0.5 text-[11px] font-extrabold uppercase tracking-[0.12em] text-[var(--m)]" style={{ fontFamily: HEAD }}>
+            <span className="rounded-full bg-[var(--m)] text-white px-2 leading-[18px]">{b.labels[i]}</span>
+            <span className="flex-1 h-[1.5px] rounded-full bg-[var(--m)] opacity-25" />
+          </div>
+        )
         return narrow ? (
           // In a column: the name leads its line, as in the Level 1 book's conversations.
-          <div key={i} className="rounded-md px-2.5 py-[4px] leading-snug" style={{ background: ground, ...edge }}>
-            {name}<span className={`ml-2 ${key ? 'font-bold' : 'font-semibold'}`}>{key && <span style={EMOJI}>⭐ </span>}{words}</span>
-          </div>
+          <Fragment key={i}>{label}
+            <div className="rounded-md px-2.5 py-[4px] leading-snug" style={{ background: ground, ...edge }}>
+              {name}<span className={`ml-2 ${key ? 'font-bold' : 'font-semibold'}`}>{key && <span style={EMOJI}>⭐ </span>}{words}</span>
+            </div>
+          </Fragment>
         ) : (
-          <div key={i} className="grid items-center gap-2.5 rounded-md px-2 py-[1px]" style={{ gridTemplateColumns: '132px 1fr', background: ground, ...edge }}>
-            <span className="text-right">{name}</span>
-            <span className={`leading-snug ${key ? 'font-bold' : 'font-semibold'}`}>{key && <span style={EMOJI}>⭐ </span>}{words}</span>
-          </div>
+          <Fragment key={i}>{label}
+            <div className="grid items-center gap-2.5 rounded-md px-2 py-[1px]" style={{ gridTemplateColumns: '132px 1fr', background: ground, ...edge }}>
+              <span className="text-right">{name}</span>
+              <span className={`leading-snug ${key ? 'font-bold' : 'font-semibold'}`}>{key && <span style={EMOJI}>⭐ </span>}{words}</span>
+            </div>
+          </Fragment>
         )
       }
       if (b.cols === 2) {
@@ -733,7 +746,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
           const phrase = en.replace(/^(a|an|the|be|not)\s+|…/gi, '').trim()
           const re = new RegExp(`\\b${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+')}\\w*`, 'gi')
           return (
-            <div key={i} className="rounded-xl bg-[var(--s)] px-3 py-1.5">
+            <div key={i} className="rounded-xl bg-[var(--s)] px-3 py-1.5" style={CARD}>
               <div className="flex items-baseline justify-between gap-2">
                 <span className="text-[15px] font-extrabold leading-tight text-[var(--m)]">{en}</span>
                 <span dir="rtl" className="text-[13px] font-bold leading-tight text-right" style={{ fontFamily: AR, color: GREY_TEXT }}>{ar}</span>
@@ -760,7 +773,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       </div>
     )
     case 'mistakes': return (
-      <div className="rounded-xl bg-[var(--s)] px-3.5 py-2">
+      <div className="rounded-xl bg-[var(--s)] px-3.5 py-2" style={CARD}>
         <div className="text-[16px] font-extrabold text-[var(--m)] mb-1" style={{ fontFamily: HEAD }}>Common mistakes - <span style={{ fontFamily: AR }}>أخطاء شائعة</span> ⚠️</div>
         <div className="flex flex-col gap-1.5">
           {b.items.map(([wrong, right, why], i) => (

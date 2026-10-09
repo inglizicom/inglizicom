@@ -6,56 +6,8 @@ import type { L2Vocab } from './types.ts'
  * the words that go together («Word partners»); a short exercise.
  */
 
+/* Unit 1 is a ladder unit: its words are in unit-01.ts. */
 export const VOCAB_1: Record<number, L2Vocab> = {
-  1: {
-    groups: [
-      { title: 'Jobs - المهن', icon: '💼', words: [
-        ['accountant', 'محاسب', 'Yassine is an accountant. He works with numbers all day.'],
-        ['nurse', 'ممرّض / ممرّضة', "Imane is a nurse. This month she's working nights."],
-        ['engineer', 'مهندس', 'My cousin is an engineer. He builds roads.'],
-        ['mechanic', 'ميكانيكي', 'Anas is a mechanic in a garage near the port.'],
-        ['receptionist', 'موظف استقبال', 'The receptionist answers the phone and welcomes guests.'],
-        ['salesperson', 'بائع', "She's a salesperson in a phone shop."],
-        ['pharmacist', 'صيدلي', 'The pharmacist gives advice about medicine.'],
-        ['civil servant', 'موظف حكومي', 'My father is a civil servant. He works for the city.'],
-        ['freelancer', 'عامل مستقل', "I'm a freelancer, so I work from home."],
-        ['unemployed', 'عاطل عن العمل', "He's unemployed at the moment, but he's looking for a job."],
-      ] },
-      { title: 'Talking about work - الحديث عن العمل', icon: '🏢', words: [
-        ['work for a company', 'يعمل لدى شركة', 'I work for a small company near the station.'],
-        ['work from home', 'يعمل من البيت', "These days I'm working from home."],
-        ['full-time', 'بدوام كامل', 'She has a full-time job: forty hours a week.'],
-        ['part-time', 'بدوام جزئي', 'I work part-time in a café at the weekend.'],
-        ['colleague', 'زميل في العمل', 'My colleagues are friendly and helpful.'],
-        ['boss', 'المدير', 'My boss is very patient with new people.'],
-        ['customer', 'زبون', 'A lot of our customers speak English.'],
-        ['look for a job', 'يبحث عن عمل', "He's looking for a job with an international company."],
-      ] },
-      { title: 'Free time - وقت الفراغ', icon: '🎧', words: [
-        ['go to the gym', 'يذهب إلى قاعة الرياضة', 'I go to the gym three times a week.'],
-        ['go for a walk', 'يتمشّى', 'We often go for a walk by the sea.'],
-        ['hang out with friends', 'يقضي الوقت مع الأصدقاء', 'At the weekend, I usually hang out with my friends.'],
-        ['watch a series', 'يشاهد مسلسلًا', "I'm watching a great Turkish series at the moment."],
-        ['listen to podcasts', 'يستمع إلى البودكاست', 'I listen to podcasts on the bus.'],
-        ['cook', 'يطبخ', 'My husband cooks on Fridays.'],
-        ['read', 'يقرأ', "I'm reading a book about Moroccan history."],
-        ['play video games', 'يلعب ألعاب الفيديو', 'My son plays video games every evening.'],
-      ] },
-    ],
-    partners: [
-      ['make friends', 'يكوّن صداقات'], ['have a chat', 'يتبادل أطراف الحديث'], ['keep in touch', 'يبقى على تواصل'],
-      ['get to know someone', 'يتعرّف على شخص'], ['introduce yourself', 'يقدّم نفسه'], ['small talk', 'حديث خفيف عابر'],
-    ],
-    practice: [
-      ["My sister works in a hospital. She's a ___.", 'nurse'],
-      ["I don't work in an office. I work ___.", 'from home'],
-      ["He doesn't have a job. He's ___.", 'unemployed'],
-      ["Let's keep in ___! Here's my number.", 'touch'],
-      ["I work twenty hours a week. It's a ___ job.", 'part-time'],
-      ['A ___ buys things in a shop.', 'customer'],
-    ],
-  },
-
   2: {
     groups: [
       { title: 'Childhood - الطفولة', icon: '🧸', words: [

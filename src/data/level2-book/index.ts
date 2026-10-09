@@ -1,5 +1,5 @@
 import type { Block, Lesson } from '../level1-book.ts'
-import type { L2Unit } from './types.ts'
+import type { L2Ladder, L2Unit } from './types.ts'
 import { MODULE_1, REVIEW_1 } from './module-1.ts'
 import { INDEX, MODULES } from './plan.ts'
 
@@ -26,7 +26,7 @@ export const L2_UNITS: L2Unit[] = [...MODULE_1]
 /** Each module's review page, once its units are written. */
 const REVIEWS: Record<number, Block[]> = { 1: REVIEW_1 }
 
-export type L2Kind = 'welcome' | 'contents' | 'opener' | 'vocab' | 'expressions' | 'talk' | 'grammar' | 'writing' | 'review' | 'key'
+export type L2Kind = 'welcome' | 'contents' | 'opener' | 'vocab' | 'expressions' | 'talk' | 'grammar' | 'speaking' | 'writing' | 'check' | 'review' | 'key'
 export type L2Page = Lesson & { kind: L2Kind; unit?: number; module?: number }
 
 /** The colour key: one colour per kind of section through the book. */
@@ -42,7 +42,7 @@ export const L2_TONES = {
 export type L2Tone = keyof typeof L2_TONES
 export const L2_KIND_TONE: Record<L2Kind, L2Tone> = {
   welcome: 'brand', contents: 'brand', opener: 'brand', key: 'brand',
-  vocab: 'vocab', expressions: 'expr', talk: 'talk', grammar: 'grammar', writing: 'writing', review: 'practice',
+  vocab: 'vocab', expressions: 'expr', talk: 'talk', grammar: 'grammar', speaking: 'talk', writing: 'writing', check: 'practice', review: 'practice',
 }
 
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -59,19 +59,40 @@ const GENERIC = /^(yes|no|sure|of course|ok|okay|certainly|great|thank|thanks|pe
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9' ]+/g, ' ').replace(/\s+/g, ' ').trim()
 /** At most this many key sentences a conversation. */
 export const KEY_LINES = 5
-/** Conversation lines that use one of the unit's expressions word for word (the first use of each). */
+/** Conversation lines that use one of the unit's expressions word for word, the first use of each (a ladder unit: one per step). */
 export function keyLines(u: L2Unit): number[] {
+  if (u.ladder) return ladderKeyLines(u)
   const used = new Set<number>(), out: number[] = []
+  const candidates: [string, string][] = u.expressions.map(([q, a]) => [q, a])
   u.talk.forEach((l, i) => {
     if (out.length >= KEY_LINES) return
     const said = ` ${norm(l.replace(/^[^:]+:\s/, ''))} `
-    const k = u.expressions.findIndex(([q, a], j) => !used.has(j) && [q, a].some(e => {
+    const k = candidates.findIndex(([q, a], j) => !used.has(j) && [q, a].filter(Boolean).some(e => {
       const n = norm(e)
       return n.split(' ').length >= 3 && !GENERIC.test(e) && said.includes(` ${n} `)
     }))
     if (k >= 0) { used.add(k); out.push(i) }
   })
   return out
+}
+
+/**
+ * A ladder unit's key sentences: one per step, the first line inside that
+ * step that says one of its phrases word for word (so the stars run down the
+ * whole conversation, step by step).
+ */
+function ladderKeyLines(u: L2Unit): number[] {
+  const L = u.ladder!
+  const starts = Object.entries(L.talkSteps).map(([line, step]) => [Number(line), step] as const).sort((a, b) => a[0] - b[0])
+  return starts.flatMap(([from, step], k) => {
+    const to = k + 1 < starts.length ? starts[k + 1][0] : u.talk.length
+    const phrases = L.steps[step - 1].phrases.map(([en]) => norm(en)).filter(n => n.split(' ').length >= 3)
+    for (let i = from; i < to; i++) {
+      const said = ` ${norm(u.talk[i].replace(/^[^:]+:\s/, ''))} `
+      if (phrases.some(p => said.includes(` ${p} `))) return [i]
+    }
+    return []
+  })
 }
 
 /** A conversation on one page: one column up to this many lines, two columns above it; past PAGE_LINES, two pages. */
@@ -87,6 +108,7 @@ export function split<T>(list: T[], max: number): T[][] {
 export function unitPages(u: L2Unit): L2Page[] {
   const page = (kind: L2Kind, titleEn: string, blocks: Block[]): L2Page =>
     ({ n: u.n, tag: `Unit ${pad(u.n)}`, titleAr: u.titleAr, titleEn: `${u.titleEn} · ${titleEn}`, kind, unit: u.n, module: u.module, blocks })
+  if (u.ladder) return ladderPages(u, page)
   const more = (i: number) => (i ? ' (continued)' : '')
   const w = u.writing
   const v = u.vocab
@@ -147,6 +169,16 @@ export function unitPages(u: L2Unit): L2Page[] {
       ])
     }),
     ...u.grammar.map((blocks, i) => page('grammar', `Grammar${i ? ' (continued)' : ''}`, blocks)),
+    ...writingPages(u, page),
+  ]
+}
+
+type PageOf = (kind: L2Kind, titleEn: string, blocks: Block[]) => L2Page
+
+/** Writing, two pages: the task, what to include, the language, a short example and a model; then the template to complete. */
+function writingPages(u: L2Unit, page: PageOf): L2Page[] {
+  const w = u.writing
+  return [
     page('writing', 'Writing', [
       { t: 'bar', title: 'Writing - الكتابة', icon: '✍️', tone: 'writing' },
       { t: 'sub', text: `${w.name} - ${w.nameAr}` },
@@ -163,6 +195,100 @@ export function unitPages(u: L2Unit): L2Page[] {
       { t: 'callout', text: 'أكمل النص بمعلوماتك أنت. بعد ذلك، أعد كتابته كاملًا على السطور دون النظر إلى النموذج.' },
       { t: 'gapText', label: `${w.name} - ${w.nameAr}`, body: w.template },
       { t: 'bullets', box: true, section: true, tone: 'practice', tick: true, heading: 'Before you finish - قبل أن تنهي ✅', size: 13, items: w.check },
+      { t: 'lines', n: 3, grow: true },
+    ]),
+  ]
+}
+
+/* A fixed mix of a short list (the same on every print): rotate by half, then reverse each half. */
+function mixed<T>(list: T[]): T[] {
+  const h = Math.ceil(list.length / 2)
+  const out = [...list.slice(h).reverse(), ...list.slice(0, h).reverse()]
+  return out.every((x, i) => x === list[i]) ? [...list].reverse() : out
+}
+
+/**
+ * A ladder unit's pages: opener (the situation, the task, the steps, the
+ * plan) · the words the task needs · the expressions, step by step, with a
+ * practice · the model conversation, its steps marked · grammar · speaking
+ * (practise, role cards, the real conversation) · writing · check.
+ */
+function ladderPages(u: L2Unit, page: PageOf): L2Page[] {
+  const L = u.ladder!
+  const v = u.vocab
+  const keys = keyLines(u)
+  const stepCard = (s: L2Ladder['steps'][number], i: number): Block =>
+    ({ t: 'bullets', box: true, section: true, tone: 'expr', heading: `Step ${i + 1} · ${s.title} - ${s.titleAr} ${s.icon}`, size: 13.5, items: s.phrases.map(([en, ar]) => `${en} - ${ar}`) })
+  const firstHalf = Math.ceil(L.steps.length / 2)
+  const order = mixed(L.order)
+  return [
+    page('opener', 'Opener', [
+      { t: 'banner', title: `${u.titleEn} - ${u.titleAr}`, icons: u.icons },
+      { t: 'bullets', box: true, section: true, tone: 'talk', heading: 'The situation - الموقف 🎬', size: 14, items: [L.situation] },
+      { t: 'bullets', box: true, section: true, tone: 'practice', heading: 'Your task - مهمتك 🎯', size: 14, items: [L.task] },
+      { t: 'bar', title: 'The conversation, step by step - المحادثة خطوة بخطوة', icon: '🪜', tone: 'expr' },
+      { t: 'cards', cols: L.steps.length, stack: true, items: L.steps.map((s, i): [string, string, string] => [s.icon, `${i + 1}. ${s.title}`, s.titleAr]) },
+      { t: 'bar', title: 'By the end of the unit - في آخر الوحدة', icon: '✅' },
+      { t: 'bullets', tick: true, size: 14, items: u.canDo.map(([en, ar]) => `I can ${en} - أستطيع أن ${ar}`) },
+      { t: 'bar', title: 'Two sessions - حصتان', icon: '🗓️' },
+      { t: 'grid', rows: [
+        { span: [0.9, 3.4], size: 13.5, cells: ['Session A', 'Words → Expressions → Conversation'] },
+        { span: [0.9, 3.4], size: 13.5, cells: ['Session B', 'Grammar → Practice → Speaking → Writing → Check'] },
+      ] },
+    ]),
+    page('vocab', 'Words', [
+      { t: 'bar', title: 'Words for the task - كلمات المهمة', icon: '🔤', tone: 'vocab' },
+      { t: 'callout', text: 'هذه هي الكلمات التي تحتاجها في المحادثة. اقرأ كل كلمة ومثالها بصوت مرتفع، ثم غطِّ الإنجليزية وتذكّرها.' },
+      ...v.groups.flatMap((g): Block[] => [{ t: 'sub', text: `${g.icon} ${g.title}` }, { t: 'wordList', items: g.words }]),
+    ]),
+    page('expressions', 'Expressions', [
+      { t: 'bar', title: 'Expressions, step by step - العبارات خطوة بخطوة', icon: '💬', tone: 'expr' },
+      { t: 'callout', text: 'المحادثة تمرّ بمراحل. في كل مرحلة، هذه هي الجمل التي تقولها. اقرأها بصوت مرتفع، ثم غطِّ الإنجليزية وقلها من العربية.' },
+      ...L.steps.slice(0, firstHalf).map((s, i) => stepCard(s, i)),
+    ]),
+    page('expressions', 'Expressions', [
+      { t: 'bar', title: 'Expressions, step by step (continued) - العبارات خطوة بخطوة', icon: '💬', tone: 'expr' },
+      ...L.steps.slice(firstHalf).map((s, i) => stepCard(s, firstHalf + i)),
+      { t: 'bar', title: 'Practice - تمارين', icon: '✏️', tone: 'practice' },
+      { t: 'exercise', title: 'Words: complete the sentences', instr: 'Write one word in each gap. - اكتب كلمة واحدة في كل فراغ.', size: 13.5, cols: 2, items: v.practice.map(([q, a]) => ({ q, a })) },
+      { t: 'exercise', title: 'Put the conversation in order', instr: 'Number the lines from 1 to 6. - رقّم الجمل حسب ترتيبها في المحادثة.', size: 13.5,
+        items: order.map(line => ({ q: `___ ${line}`, a: String(L.order.indexOf(line) + 1) })) },
+    ]),
+    page('talk', 'Conversation', [
+      { t: 'bar', title: 'Conversation - المحادثة', icon: '🗣️', tone: 'talk' },
+      { t: 'callout', text: 'لاحظ المراحل الخمس في المحادثة. القواعد الجديدة بالأزرق، و⭐ أمام عبارات الوحدة.' },
+      { t: 'script', lines: u.talk, badges: true, mark: focusRegex(u.focus), keys,
+        labels: Object.fromEntries(Object.entries(L.talkSteps).map(([line, step]) => [line, `${step} · ${L.steps[step - 1].title}`])),
+        ...(u.talk.length > ONE_COLUMN_LINES ? { cols: 2 as const } : {}) },
+      { t: 'bullets', box: true, section: true, tone: 'practice', heading: 'Find it - ابحث 🔍', size: 13, items: u.findIt },
+    ]),
+    ...u.grammar.map((blocks, i) => page('grammar', `Grammar${i ? ' (continued)' : ''}`, blocks)),
+    page('speaking', 'Speaking', [
+      { t: 'bar', title: 'Speaking - تكلّم', icon: '🗣️', tone: 'talk' },
+      { t: 'bullets', box: true, heading: '1 · Practise - تدرّب', size: 13.5, items: [
+        'Read the conversation with a partner. Then swap roles. - اقرأ المحادثة مع زميل، ثم تبادلا الأدوار.',
+        'Cover the conversation. Look only at the steps and say it again. - غطِّ المحادثة وأعدها بالنظر إلى المراحل فقط.',
+      ] },
+      { t: 'cards', cols: L.steps.length, stack: true, items: L.steps.map((s, i): [string, string, string] => [s.icon, `${i + 1}. ${s.title}`, s.titleAr]) },
+      { t: 'bar', title: '2 · Role-play - مثّل الدور', icon: '🎭', tone: 'talk' },
+      { t: 'boxes', cols: 2, items: [{ title: 'Student A 🅰️', lines: L.speaking.cards[0] }, { title: 'Student B 🅱️', lines: L.speaking.cards[1] }] },
+      { t: 'bar', title: '3 · Your real conversation - محادثتك الحقيقية', icon: '💬', tone: 'talk' },
+      { t: 'bullets', size: 14, items: [L.speaking.free] },
+      { t: 'bullets', box: true, section: true, tone: 'practice', tick: true, heading: 'After speaking - بعد الكلام ✅', size: 13, items: L.speaking.check },
+    ]),
+    ...writingPages(u, page),
+    page('check', 'Check', [
+      { t: 'bar', title: 'Check - راجع نفسك', icon: '🏁', tone: 'practice' },
+      { t: 'callout', text: 'ضع علامة في الخانة المناسبة لكل هدف، ثم أجب عن الأسئلة وصحّح أجوبتك في آخر الكتاب.' },
+      { t: 'grid', rows: [
+        { dark: true, span: [4, 0.8, 0.8, 0.8], cells: ['I can…', '😀 Yes', '🙂 Almost', '😐 Not yet'] },
+        ...u.canDo.map(([en]) => ({ span: [4, 0.8, 0.8, 0.8], size: 13.5, cells: [`I can ${en}`, '☐', '☐', '☐'] })),
+      ] },
+      { t: 'exercise', title: 'Quick quiz', instr: 'Circle the right answer. - ضع دائرة حول الجواب الصحيح.', size: 13.5,
+        items: L.quiz.map(([q, options, r]) => ({ q, options, a: `${'abc'[r]}) ${options[r]}` })) },
+      { t: 'callout', text: 'هل وضعت 😐 أمام هدف ما؟ ارجع إلى المرحلة المناسبة في صفحة العبارات، ثم أعد المحادثة مع زميل.' },
+      { t: 'bar', title: 'My notes - ملاحظاتي', icon: '📝', tone: 'practice' },
+      { t: 'bullets', size: 13, items: ['New words and sentences I want to remember from this unit. - كلمات وجمل جديدة أريد أن أتذكّرها من هذه الوحدة.'] },
       { t: 'lines', n: 3, grow: true },
     ]),
   ]

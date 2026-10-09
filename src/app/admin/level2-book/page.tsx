@@ -35,6 +35,8 @@ const PAGE_VARS = {
   '--book-en': "'Nunito'", '--book-head': "'Nunito', 'Baloo Bhaijaan 2'", '--book-ar': "'Baloo Bhaijaan 2'",
   '--book-display': "'Baloo Bhaijaan 2'", '--book-display-weight': '800',
   '--hl': L2_TONES.grammar.m, '--key': L2_TONES.expr.m, '--key-s': L2_TONES.expr.s,
+  // Cards with more contrast: an edge in the section colour and a soft shadow.
+  '--card-bw': '1.5px', '--card-shadow': '0 1px 2px rgba(15, 30, 61, 0.10), 0 6px 16px rgba(15, 30, 61, 0.12)',
 } as CSSProperties
 
 type View = 'book' | 'front' | 'end' | number

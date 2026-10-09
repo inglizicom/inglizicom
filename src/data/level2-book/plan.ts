@@ -16,7 +16,7 @@ export const MODULES: L2Module[] = [
 ]
 
 export const INDEX: L2IndexUnit[] = [
-  { n: 1, module: 1, titleEn: 'Getting to know people', titleAr: 'التعارف', grammar: 'Present simple & continuous', writing: 'An online profile' },
+  { n: 1, module: 1, titleEn: 'Meeting someone new', titleAr: 'التعرّف على شخص جديد', grammar: 'Present simple & continuous', writing: 'A message after meeting someone' },
   { n: 2, module: 1, titleEn: 'Then and now', titleAr: 'الماضي والحاضر', grammar: 'Past simple & used to', writing: 'My life then and now' },
   { n: 3, module: 1, titleEn: 'People around me', titleAr: 'الناس من حولي', grammar: 'Comparatives & superlatives', writing: 'Describing a person' },
   { n: 4, module: 1, titleEn: 'Home and neighbourhood', titleAr: 'البيت والحيّ', grammar: 'Quantifiers & there is / are', writing: 'Describing a place' },

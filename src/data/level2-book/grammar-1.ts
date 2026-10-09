@@ -59,7 +59,7 @@ export const GRAMMAR_1: Record<number, Block[][]> = {
       ], [1.6, 2]),
       { t: 'chips', items: [['now', 'الآن'], ['right now', 'حالًا'], ['at the moment', 'حاليًا'], ['today', 'اليوم'], ['this week', 'هذا الأسبوع'], ['these days', 'هذه الأيام']] },
       inTalk([
-        'I work for a small company near the station. → a fact - حقيقة',
+        'I work for a small company in the city centre. → a fact - حقيقة',
         "This month I'm working nights. → for now, not always - مؤقت",
         'I usually listen to podcasts on the bus. → a habit - عادة',
         'Oh, the teacher is coming. → right now - الآن',
