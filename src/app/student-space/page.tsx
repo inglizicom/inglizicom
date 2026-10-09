@@ -12,7 +12,7 @@ import {
   fetchStudentSpace, completeExercise, logActivity, fileUrl, studentLogin, getDeviceId, deviceValid,
   fetchUnitSteps, fetchCourseCatalog, sendHeartbeat, fetchStudentAvatar, type CatalogCourse,
   type StudentSpace, type StudentAssignment, type PortalLesson, type PortalModule, type UnitSteps,
-  fetchExerciseBoard, type ExerciseBoard, type ExerciseItem, type BoardTask,
+  fetchExerciseBoard, reportBacResult, type ExerciseBoard, type ExerciseItem, type BoardTask,
 } from '@/lib/student-portal'
 import { checkCertificates, type StudentCert } from '@/lib/certificates'
 import {
@@ -536,8 +536,10 @@ function Portal() {
   async function onCompleteManual(a: StudentAssignment) { if (a.status !== 'done' && await completeExercise(token, a.id)) refresh() }
   function openFile(f: { id: string; file_name: string; file_path: string }) { logActivity(token, 'downloaded_file', 'file', f.id, f.file_name); window.open(fileUrl(f.file_path), '_blank') }
 
-  // The Bac pack tab: for students in a Bac course (and in the demo).
+  // The Bac pack tab: for students in a Bac course (and in the demo). Its
+  // results reach the CRM through the activity log (bac_exercise / bac_mock / bac_read).
   const bacOk = demo || courses.some(isBacCourse)
+  const reportBac = (r: { event: string; id: string; title: string }) => reportBacResult(token, r)
   const TABS: { id: Tab; label: string; icon: any; badge?: number }[] = [
     { id: 'home', label: 'الرئيسية', icon: Home },
     { id: 'courses', label: 'دوراتي', icon: BookOpen },
@@ -738,7 +740,7 @@ function Portal() {
         {tab === 'rewards' && <RewardsCenter token={token} courseId={courseId} onPractice={k => setPractice(k)} onVocab={() => setVocabOpen(true)} onPicture={() => setPictureOpen(true)} />}
 
         {/* ═══════════ BAC PACK ═══════════ */}
-        {tab === 'bac' && (bacOk ? <BacTab owner={token} /> : (
+        {tab === 'bac' && (bacOk ? <BacTab owner={token} report={demo ? undefined : reportBac} /> : (
           <div className="max-w-md mx-auto my-12 rounded-3xl bg-white border border-zinc-100 p-6 text-center">
             <Lock className="mx-auto text-zinc-400 mb-2" size={24} />
             <p className="font-bold text-zinc-800">حقيبة الباك غير مفعّلة في حسابك</p>

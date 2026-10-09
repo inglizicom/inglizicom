@@ -1,6 +1,6 @@
 import type { Block } from '../data/level1-book.ts'
 import type { BacSection } from '../data/bac/bac-helpers.ts'
-import { BAC_BODY, exercisesOf, isOpen } from '../data/bac/bac-pack.ts'
+import { BAC_BODY, exercisesOf, isOpen, numberExercises } from '../data/bac/bac-pack.ts'
 import { BAC_MOCKS, mockParts, type MockExam } from '../data/bac/bac-mocks.ts'
 
 /**
@@ -404,6 +404,92 @@ export function unitScore(exercises: PracticeExercise[], st?: UnitState): UnitSc
   const checked = graded.filter(e => st?.ex[e.key]?.checked).length
   const done = graded.length > 0 ? checked === graded.length : !!st?.read
   return { points, max, checked, gradable: graded.length, done, pct: max ? Math.round((points / max) * 100) : done ? 100 : 0 }
+}
+
+/* ── Results for staff ─────────────────────────────────────────────
+   The portal keeps progress on the device, and also reports each result to
+   the CRM through the student activity log (student_log_activity, no new
+   table): one row per checked exercise, finished mock exam or read lesson,
+   re-sent only when its result changes. The CRM keeps the latest row per
+   result. Titles are readable in the activity timeline and end with the
+   score ("… · 6/8"), which is how the CRM reads it back. */
+
+export const BAC_EX_NO = numberExercises(BAC_BODY)
+export const BAC_UNIT_EXERCISES = new Map(BAC_UNITS.map(u => [u.id, unitExercises(u, BAC_EX_NO)]))
+
+export type BacEvent = 'bac_exercise' | 'bac_mock' | 'bac_read'
+export const BAC_EVENTS: BacEvent[] = ['bac_exercise', 'bac_mock', 'bac_read']
+export interface BacReport { event: BacEvent; id: string; title: string }
+
+const pts = (n: number) => String(Math.round(n * 4) / 4)
+
+/** A mock exam's points by part (reading 15, language 15, writing 10) and its mark out of 20. */
+export function mockBreakdown(exercises: PracticeExercise[], st?: UnitState) {
+  const p = exercises.map(e => exercisePoints(e, st?.ex[e.key]))
+  const reading = p.slice(0, 5).reduce((a, b) => a + b, 0)
+  const language = p.slice(5).reduce((a, b) => a + b, 0)
+  const writing = writingPoints(st?.writing)
+  return { reading, language, writing, mark: (reading + language + writing) / 2 }
+}
+
+/** Everything the student has finished, as the rows the CRM should hold. */
+export function bacReports(progress: BacProgress): BacReport[] {
+  return BAC_UNITS.flatMap(u => {
+    const exs = BAC_UNIT_EXERCISES.get(u.id) ?? []
+    const st = progress[u.id]
+    if (!st) return []
+    const out: BacReport[] = exs.filter(e => !e.open && st.ex[e.key]?.checked).map(e => ({
+      event: 'bac_exercise' as const, id: e.key,
+      title: `${u.tag} · Exercise ${e.key.split(':')[1]} · ${pts(exercisePoints(e, st.ex[e.key]))}/${pts(e.items.length * e.weight)}`,
+    }))
+    const score = unitScore(exs, st)
+    if (u.mock && score.done) {
+      const b = mockBreakdown(exs, st)
+      out.push({ event: 'bac_mock', id: u.id, title: `${u.tag} · R ${pts(b.reading)}/15 · L ${pts(b.language)}/15 · W ${b.writing}/10 · ${pts(b.mark)}/20` })
+    }
+    if (score.gradable === 0 && st.read) out.push({ event: 'bac_read', id: u.id, title: `${u.tag} · ${u.titleEn}` })
+    return out
+  })
+}
+
+export interface BacActivityRow { student_id?: string | null; event_type: string; entity_id: string | null; entity_title: string | null; created_at: string }
+
+export interface BacUnitResult { unit: BacUnit; points: number; max: number; checked: number; gradable: number; done: boolean; mark: number | null; at: string | null }
+export interface BacSummary { units: BacUnitResult[]; done: number; pct: number | null; mocks: { unit: BacUnit; mark: number | null }[]; last: string | null }
+
+const SCORE = /(\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)\s*$/
+
+/** One student's reported results (rows in any order): the latest row per result wins. */
+export function summarizeBac(rows: BacActivityRow[]): BacSummary {
+  const latest = new Map<string, BacActivityRow>()
+  for (const r of [...rows].sort((a, b) => b.created_at.localeCompare(a.created_at))) {
+    const k = `${r.event_type}|${r.entity_id}`
+    if (r.entity_id && !latest.has(k)) latest.set(k, r)
+  }
+  const scoreOf = (r?: BacActivityRow) => { const m = r?.entity_title?.match(SCORE); return m ? { x: Number(m[1]), y: Number(m[2]) } : null }
+  const units = BAC_UNITS.map((unit): BacUnitResult => {
+    const exs = (BAC_UNIT_EXERCISES.get(unit.id) ?? []).filter(e => !e.open)
+    let points = 0, max = 0, checked = 0, at: string | null = null
+    for (const e of exs) {
+      const r = latest.get(`bac_exercise|${e.key}`)
+      const s = scoreOf(r)
+      if (r && s) { points += s.x; max += s.y; checked++; if (!at || r.created_at > at) at = r.created_at }
+    }
+    const mockRow = latest.get(`bac_mock|${unit.id}`)
+    const readRow = latest.get(`bac_read|${unit.id}`)
+    for (const r of [mockRow, readRow]) if (r && (!at || r.created_at > at)) at = r.created_at
+    const done = exs.length ? checked === exs.length : !!readRow
+    return { unit, points, max, checked, gradable: exs.length, done, mark: unit.mock ? (scoreOf(mockRow)?.x ?? null) : null, at }
+  })
+  const graded = units.filter(u => u.max > 0)
+  const totalMax = graded.reduce((a, u) => a + u.max, 0)
+  return {
+    units,
+    done: units.filter(u => u.done).length,
+    pct: totalMax ? Math.round((graded.reduce((a, u) => a + u.points, 0) / totalMax) * 100) : null,
+    mocks: units.filter(u => u.unit.mock).map(u => ({ unit: u.unit, mark: u.mark })),
+    last: units.reduce<string | null>((a, u) => (u.at && (!a || u.at > a) ? u.at : a), null),
+  }
 }
 
 /** The writing checklist: five criteria, two points each (a mock exam's 10 writing points). */

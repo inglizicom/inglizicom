@@ -238,6 +238,35 @@ export async function logActivity(token: string, event: string, entityType?: str
     p_entity_type: entityType ?? null, p_entity_id: entityId ?? null, p_title: title ?? null,
   })
 }
+/** A Bac pack result (see lib/bac-practice.ts), logged as activity. Throws when it doesn't land, so it is sent again later. */
+export async function reportBacResult(token: string, r: { event: string; id: string; title: string }): Promise<void> {
+  const { data, error } = await supabase.rpc('student_log_activity', {
+    p_token: token.trim().toUpperCase(), p_event: r.event, p_entity_type: 'bac', p_entity_id: r.id, p_title: r.title,
+  })
+  if (error || data === false) throw new Error(error?.message ?? 'not logged')
+}
+/** Every Bac pack result row (CRM), newest first: one student's, or all students'. Paged past the API's row cap. */
+export async function fetchBacActivity(studentId?: string): Promise<{ student_id: string | null; event_type: string; entity_id: string | null; entity_title: string | null; created_at: string }[]> {
+  const out: any[] = []
+  for (let from = 0; from < 50_000; from += 1000) {
+    let q = supabase.from('student_activity').select('student_id, event_type, entity_id, entity_title, created_at')
+      .in('event_type', ['bac_exercise', 'bac_mock', 'bac_read']).order('created_at', { ascending: false }).range(from, from + 999)
+    if (studentId) q = q.eq('student_id', studentId)
+    const { data } = await q
+    out.push(...(data ?? []))
+    if (!data || data.length < 1000) break
+  }
+  return out
+}
+/** Names and phones of the given students (CRM lists). */
+export async function fetchStudentNames(ids: string[]): Promise<{ id: string; full_name: string; phone_number: string | null; course: string | null }[]> {
+  const out: any[] = []
+  for (let i = 0; i < ids.length; i += 200) {
+    const { data } = await supabase.from('crm_students').select('id, full_name, phone_number, course').in('id', ids.slice(i, i + 200))
+    out.push(...(data ?? []))
+  }
+  return out
+}
 /** Presence heartbeat — powers the owner's "online now" panel. Fire every ~60s. */
 export async function sendHeartbeat(token: string, activity?: string, courseId?: string | null): Promise<void> {
   try {

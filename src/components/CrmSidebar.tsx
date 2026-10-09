@@ -43,6 +43,7 @@ const GROUPS: { title: string; founder?: boolean; items: NavDef[] }[] = [
     { id: 'classes',     labelAr: 'الأقسام المباشرة',    icon: Presentation, path: '/classes' },
     { id: 'teachers',    labelAr: 'الأساتذة',            icon: UserCog,      path: '/teachers' },
     { id: 'submissions', labelAr: 'تصحيح المحادثات',    icon: Inbox,        path: '/submissions', badgeKey: 'submissions' },
+    { id: 'bacresults',  labelAr: 'نتائج حقيبة الباك',  icon: ClipboardCheck, path: '/bac-results' },
     { id: 'verify',      labelAr: 'التحقق من طالب',     icon: ShieldCheck,  path: '/verify' },
   ]},
   { title: 'التواصل والتحفيز', items: [

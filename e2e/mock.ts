@@ -54,6 +54,13 @@ export const STUDENTS = NAMES.slice(0, 4).map((n, i) => ({
   enrollment_type: 'paid', avatar_url: null, country: 'MA',
 }))
 
+/** Bac pack results one student reported from the portal (student_activity, see lib/bac-practice.ts). */
+export const BAC_ACTIVITY = [
+  { student_id: STUDENTS[0].id, event_type: 'bac_exercise', entity_id: 'vocab-01:5', entity_title: 'Vocab 01 · Exercise 5 · 5/6', created_at: iso(3) },
+  { student_id: STUDENTS[0].id, event_type: 'bac_exercise', entity_id: 'grammar-01:16', entity_title: 'Grammar 01 · Exercise 16 · 6/8', created_at: iso(2) },
+  { student_id: STUDENTS[0].id, event_type: 'bac_mock', entity_id: 'mock-exam-1', entity_title: 'Mock exam 1 · R 12/15 · L 11/15 · W 8/10 · 15.5/20', created_at: iso(1) },
+]
+
 export const PAYMENTS = STUDENTS.map((s, i) => ({
   id: `00000000-0000-4000-8000-00000000300${i}`, lead_id: s.lead_id, student_id: s.id, payment_type: 'monthly',
   course_or_service: 'الدورة التأسيسية', amount_mad: 450, payment_status: i === 1 ? 'pending' : 'paid',
@@ -288,14 +295,20 @@ export async function mockSupabase(page: Page, opts: MockOptions = {}): Promise<
       else if (table === 'subscription_leads') rows = LEADS
       else if (table === 'crm_students') rows = STUDENTS
       else if (table === 'crm_payments') rows = PAYMENTS
+      else if (table === 'student_activity' && url.search.includes('bac_')) {
+        const sid = url.searchParams.get('student_id')?.replace(/^eq\./, '')
+        rows = BAC_ACTIVITY.filter(r => !sid || r.student_id === sid)
+      }
       else if (table === 'notifications') rows = url.searchParams.get('read_at') === 'is.null' ? NOTIFS.filter(n => !n.read_at) : NOTIFS
       else if (table === 'notification_messages') rows = MESSAGES
       if (write) {
         const created = { id: '00000000-0000-4000-8000-00000000ffff', created_at: new Date().toISOString(), ...(Array.isArray(body) ? body[0] : (body as object)) }
         return json(single ? created : [created], 201)
       }
-      const eqId = url.searchParams.get('id')?.replace(/^eq\./, '')
-      if (eqId) rows = rows.filter(r => r.id === eqId)
+      const idParam = url.searchParams.get('id')
+      const inIds = idParam?.match(/^in\.\((.*)\)$/)?.[1].split(',').map(s => s.replace(/"/g, ''))
+      if (inIds) rows = rows.filter(r => inIds.includes(r.id))
+      else if (idParam) rows = rows.filter(r => r.id === idParam.replace(/^eq\./, ''))
       return json(single ? (rows[0] ?? null) : rows, 200, { 'content-range': `0-${Math.max(rows.length - 1, 0)}/${rows.length}` })
     }
     return json({})

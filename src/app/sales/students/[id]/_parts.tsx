@@ -35,16 +35,20 @@ export const ACTIVITY_LABEL: Record<string, string> = {
   login: 'سجّل الدخول للفضاء', opened_lesson: 'فتح درسًا', opened_exercise: 'فتح تمرينًا',
   completed_exercise: 'أنجز تمرينًا', downloaded_file: 'حمّل ملفًا',
   completed_exam: 'أكمل امتحانًا', viewed_result: 'اطّلع على نتيجة', opened_today_task: 'بدأ مهمة اليوم',
+  bac_exercise: 'حقيبة الباك: تمرين', bac_mock: 'حقيبة الباك: امتحان تجريبي', bac_read: 'حقيبة الباك: قرأ درسًا',
 }
 export const ACTIVITY_ICON: Record<string, string> = {
   login: '🔑', opened_lesson: '📖', opened_exercise: '✏️', completed_exercise: '✅',
   downloaded_file: '📎', completed_exam: '🎓', viewed_result: '📊', opened_today_task: '▶️',
+  bac_exercise: '✍️', bac_mock: '📝', bac_read: '📘',
 }
 export const PAYMENT_TYPE_AR: Record<string, string> = {
   course_one_time: 'دورة (مرة واحدة)', private_monthly: 'شهري (خاص)',
 }
 
-export type Tab = 'overview' | 'payments' | 'exams' | 'progress' | 'notes' | 'activity' | 'files'
+export type Tab = 'overview' | 'payments' | 'exams' | 'bac' | 'progress' | 'notes' | 'activity' | 'files'
+/** Shown after «الامتحانات» only for a student with Bac pack results. */
+export const BAC_TAB: { id: Tab; label: string } = { id: 'bac', label: 'حقيبة الباك' }
 export const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'نظرة عامة' },
   { id: 'payments', label: 'المدفوعات والفواتير' },

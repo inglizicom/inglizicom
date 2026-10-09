@@ -23,6 +23,7 @@ const FOUNDER_PAGES = [
   '/sales/teachers',
   '/sales/courses',
   '/sales/submissions',
+  '/sales/bac-results',
   '/sales/announcements',
   '/sales/gamification',
   '/sales/verify',
@@ -224,6 +225,21 @@ test.describe('flows', () => {
     await expect(page.locator('.lb-foot').first()).toContainText('أنور')
     const pdf = (await page.pdf({ preferCSSPageSize: true, printBackground: true })).toString('latin1')
     expect((pdf.match(/\/Type\s*\/Page[^s]/g) ?? []).length).toBe(await sheets.count())
+  })
+
+  test('bac results: staff see what students did in the portal\'s Bac tab', async ({ page }) => {
+    await mockSupabase(page, { role: 'assistant' })
+    await page.goto('/sales/bac-results')
+    const row = page.locator('tr', { hasText: STUDENTS[0].full_name })
+    await expect(row).toContainText('15.5')        // mock exam 1 mark
+    await expect(row).toContainText('79%')         // (5 + 6) / (6 + 8) first-try answers
+    await row.click()
+    await expect(page.getByText('الامتحانات التجريبية (من 20)')).toBeVisible()
+    // the student's own page gets a «حقيبة الباك» tab
+    await page.goto(`/sales/students/${STUDENTS[0].id}`)
+    await page.getByRole('button', { name: 'حقيبة الباك' }).click()
+    await expect(page.getByText('دروس مكتملة')).toBeVisible()
+    await expect(page.getByText('15.5/20')).toBeVisible()
   })
 
   test('bac pack: every page fits, exams and keys are in, one PDF page per sheet', async ({ page }, info) => {

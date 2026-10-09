@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import {
   ArrowRight, Phone, MessageCircle, Loader2, GraduationCap, Wallet, Receipt, Plus, Edit3, Save,
   CalendarDays, BadgeCheck, Clock, BookOpen, ShieldCheck, Trash2, Archive,
@@ -22,7 +23,7 @@ import { whatsappLink } from '@/lib/leads-db'
 import {
   fetchAssignments, addAssignment, deleteAssignment, fetchStudentFiles, uploadStudentFile,
   deleteStudentFile, fetchExams, addExam, deleteExam, fetchStudentActivity, fetchTemplates,
-  applyTemplateToStudent, type StudentAssignment, type StudentFile, type StudentExam,
+  applyTemplateToStudent, fetchBacActivity, type StudentAssignment, type StudentFile, type StudentExam,
   type PathTemplate,
 } from '@/lib/student-portal'
 import { createSplitPayment, dueWhatsAppLink, markReminded, type DueRow } from '@/lib/dues'
@@ -30,7 +31,7 @@ import { countryFlag } from '@/lib/geo-currency'
 import { fetchCourses, type LmsCourse } from '@/lib/lms'
 import {
   MAD, fmtDate, TABS, InfoLine, SINP, SField, StatCard, DevicesSection, AvatarUpload,
-  CertificatesSection, CoinsSection, type Tab,
+  CertificatesSection, CoinsSection, BAC_TAB, type Tab,
 } from './_parts'
 import OverviewTab from './tabs/OverviewTab'
 import PaymentsTab from './tabs/PaymentsTab'
@@ -39,6 +40,9 @@ import ExamsTab from './tabs/ExamsTab'
 import ExtraTasksTab from './tabs/ExtraTasksTab'
 import ActivityTab from './tabs/ActivityTab'
 import FilesTab from './tabs/FilesTab'
+
+// Bac pack results: the pack's data loads only when the tab opens.
+const BacResults = dynamic(() => import('@/components/bac/BacResults'), { ssr: false })
 
 export default function StudentProfilePage() {
   const params  = useParams()
@@ -73,6 +77,7 @@ export default function StudentProfilePage() {
   const [files,       setFiles]       = useState<StudentFile[]>([])
   const [exams,       setExams]       = useState<StudentExam[]>([])
   const [activity,    setActivity]    = useState<{ event_type: string; entity_title: string | null; created_at: string }[]>([])
+  const [bacRows,     setBacRows]     = useState<Awaited<ReturnType<typeof fetchBacActivity>>>([])
   const [aTitle, setATitle] = useState('')
   const [aDesc,  setADesc]  = useState('')
   const [aLink,  setALink]  = useState('')
@@ -134,11 +139,11 @@ export default function StudentProfilePage() {
       fetchAssignments(id),
       fetchStudentFiles(id),
     ])
-    const [exm, act, tpl, crs] = await Promise.all([
-      fetchExams(id), fetchStudentActivity(id), fetchTemplates(), fetchCourses(),
+    const [exm, act, tpl, crs, bac] = await Promise.all([
+      fetchExams(id), fetchStudentActivity(id), fetchTemplates(), fetchCourses(), fetchBacActivity(id),
     ])
     setStudent(s); setPayments(p); setReceipts(r); setNoteText(s.notes ?? '')
-    setAssignments(asg); setFiles(fls); setExams(exm); setActivity(act); setTemplates(tpl)
+    setAssignments(asg); setFiles(fls); setExams(exm); setActivity(act); setTemplates(tpl); setBacRows(bac)
     setAllCourses(crs)
     // init editable fields
     setSName(s.full_name); setSPhone(s.phone_number ?? ''); setSCourse(s.course ?? '')
@@ -576,7 +581,7 @@ export default function StudentProfilePage() {
           {/* Tabs */}
           <div className="bg-white rounded-2xl border border-zinc-200/80">
             <div className="flex overflow-x-auto border-b border-zinc-100">
-              {TABS.map(t => (
+              {(bacRows.length ? TABS.flatMap(t => (t.id === 'exams' ? [t, BAC_TAB] : [t])) : TABS).map(t => (
                 <button key={t.id} onClick={() => setTab(t.id)}
                   className={[
                     'px-4 py-3.5 text-[13px] font-semibold whitespace-nowrap border-b-2 transition-colors flex-shrink-0',
@@ -599,6 +604,8 @@ export default function StudentProfilePage() {
 
               {/* EXAMS */}
               {tab === 'exams' && <ExamsTab {...{ exams, exBusy, exLevel, exMax, exNote, exScore, exTitle, removeExam, setExLevel, setExMax, setExNote, setExScore, setExTitle, submitExam }} />}
+
+              {tab === 'bac' && <BacResults rows={bacRows} />}
 
               {tab === 'progress' && <ExtraTasksTab {...{ aBusy, aCat, aDesc, aDue, aLesson, aLink, allCourses, applyId, applyPath, assignments, aTitle, removeAssignment, setACat, setADesc, setADue, setALesson, setALink, setApplyId, setATitle, submitAssignment, templates }} />}
 

@@ -69,6 +69,7 @@ function useRouteTitle(): { title: string; crumb: string[] } {
     ['/templates', 'مسارات التعلّم'],
     ['/support', 'الدعم'],
     ['/submissions', 'تصحيح المحادثات'],
+    ['/bac-results', 'نتائج حقيبة الباك'],
     ['/announcements', 'الإعلانات'],
     ['/gamification', 'المكافآت والتحديات'],
     ['/payments', 'المدفوعات'],

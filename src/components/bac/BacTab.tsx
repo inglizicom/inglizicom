@@ -1,10 +1,13 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CheckCircle2, ChevronLeft, GraduationCap, Smartphone, Play } from 'lucide-react'
-import { BAC_BODY, numberExercises, SECTION_NAMES } from '@/data/bac/bac-pack'
+import { SECTION_NAMES } from '@/data/bac/bac-pack'
 import type { BacSection } from '@/data/bac/bac-helpers'
-import { BAC_UNITS, loadProgress, saveProgress, unitExercises, unitScore, writingPoints, type BacProgress, type UnitState } from '@/lib/bac-practice'
+import {
+  BAC_EX_NO, BAC_UNIT_EXERCISES, BAC_UNITS, bacReports, loadProgress, saveProgress, unitScore, writingPoints,
+  type BacProgress, type BacReport, type UnitState,
+} from '@/lib/bac-practice'
 import { SECTION_COLOUR } from './BacBlocks'
 import BacUnitView from './BacUnitView'
 
@@ -12,20 +15,49 @@ import BacUnitView from './BacUnitView'
  * The student portal's «الباك» tab: the Bac English pack, every exercise done
  * interactively (lib/bac-practice.ts). The open unit lives in the URL hash
  * (#bac/grammar-03), so a refresh keeps it and the phone's Back button returns
- * to the list. Progress is kept on this device, per student code.
+ * to the list. Progress is kept on this device, per student code; results
+ * are also reported to the CRM (see bacReports in lib/bac-practice.ts).
  */
 
 const SECTIONS: BacSection[] = ['start', 'reading', 'vocab', 'grammar', 'functions', 'writing', 'exam']
 const unitFromHash = () => (typeof window !== 'undefined' ? decodeURIComponent(location.hash.replace(/^#bac\/?/, '').split('/')[0] || '') : '') || null
 
-export default function BacTab({ owner }: { owner: string }) {
-  const exNo = useMemo(() => numberExercises(BAC_BODY), [])
-  const exercises = useMemo(() => new Map(BAC_UNITS.map(u => [u.id, unitExercises(u, exNo)])), [exNo])
+const SENT_KEY = (owner: string) => `inglizi.bac-sent.v1:${owner}`
+
+export default function BacTab({ owner, report }: {
+  owner: string
+  /** Sends one result to the CRM (absent in the demo). */
+  report?: (r: BacReport) => Promise<unknown>
+}) {
+  const exNo = BAC_EX_NO
+  const exercises = BAC_UNIT_EXERCISES
   const [progress, setProgress] = useState<BacProgress>({})
+  const [loaded, setLoaded] = useState(false)
   const [unitId, setUnitId] = useState<string | null>(null)
   const pushed = useRef(false)   // did we open the unit (so Back returns to the list)?
 
-  useEffect(() => { setProgress(loadProgress(owner)) }, [owner])
+  useEffect(() => { setProgress(loadProgress(owner)); setLoaded(true) }, [owner])
+
+  // Results go to the CRM (student activity log): whatever is new or changed
+  // since the last send, a moment after the student stops changing things.
+  // Also catches up on results earned before reporting existed.
+  const reportRef = useRef(report)   // the portal hands a new function each render
+  reportRef.current = report
+  useEffect(() => {
+    const report = reportRef.current
+    if (!loaded || !report) return
+    const t = setTimeout(async () => {
+      let sent: Record<string, string> = {}
+      try { sent = JSON.parse(localStorage.getItem(SENT_KEY(owner)) ?? '{}') } catch { /* none yet */ }
+      for (const r of bacReports(progress)) {
+        const k = `${r.event}|${r.id}`
+        if (sent[k] === r.title) continue
+        try { await report(r); sent[k] = r.title } catch { /* offline: retried on the next change */ }
+      }
+      try { localStorage.setItem(SENT_KEY(owner), JSON.stringify(sent)) } catch { /* storage blocked */ }
+    }, 1500)
+    return () => clearTimeout(t)
+  }, [progress, loaded, owner])
   useEffect(() => {
     const sync = () => { const id = unitFromHash(); setUnitId(id); if (!id) pushed.current = false }
     sync()
@@ -132,7 +164,7 @@ export default function BacTab({ owner }: { owner: string }) {
         )
       })}
 
-      <p className="mt-5 flex items-center justify-center gap-1.5 text-[11.5px] font-bold text-zinc-400"><Smartphone size={13} /> تقدّمك محفوظ على هذا الجهاز</p>
+      <p className="mt-5 flex items-center justify-center gap-1.5 text-[11.5px] font-bold text-zinc-400"><Smartphone size={13} /> تقدّمك محفوظ على هذا الجهاز، ونتائجك تصل إلى أستاذك</p>
     </div>
   )
 }

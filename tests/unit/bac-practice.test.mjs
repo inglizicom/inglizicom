@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { numberExercises, BAC_BODY } from '../../src/data/bac/bac-pack.ts'
 import {
   BAC_UNITS, unitExercises, unitText, sentences, checkItem, modelResponse, matches, keywordScore, freePass, unitScore,
-  freshState, checkExercise, exercisePoints,
+  freshState, checkExercise, exercisePoints, bacReports, summarizeBac,
 } from '../../src/lib/bac-practice.ts'
 
 const exNo = numberExercises(BAC_BODY)
@@ -89,6 +89,38 @@ test('the first check grades; a later fix shows as fixed and earns no point', ()
   assert.equal(s.marks[0], 'fixed')
   assert.equal(exercisePoints(ex, s), ex.items.length - 1)
   assert.deepEqual(s.tries.slice(0, 2), [2, 1])
+})
+
+test('results reported to the CRM read back as the same scores, the latest row winning', () => {
+  const g1 = BAC_UNITS.find(u => u.id === 'grammar-01')
+  const [ex] = unitExercises(g1, exNo)
+  let s = freshState(ex)
+  s.responses = ex.items.map((it, i) => (i === 0 ? ['knew'] : modelResponse(it, [])))
+  s = checkExercise(ex, s, [])
+  const mock = BAC_UNITS.find(u => u.id === 'mock-exam-3')
+  const mexs = unitExercises(mock, exNo)
+  const mst = {
+    ex: Object.fromEntries(mexs.map(e => [e.key, { responses: [], marks: e.items.map((_, i) => (i === 0 ? 'wrong' : 'ok')), tries: [], checked: true, revealed: false }])),
+    writing: { topic: 0, text: 'x', checklist: [true, true, true, false, false] },
+  }
+  const progress = { 'grammar-01': { ex: { [ex.key]: s } }, 'mock-exam-3': mst, start: { ex: {}, read: true } }
+  const reports = bacReports(progress)
+  assert.ok(reports.some(r => r.event === 'bac_read' && r.id === 'start'))
+  const g = reports.find(r => r.id === ex.key)
+  assert.match(g.title, new RegExp(`^Grammar 01 · Exercise \\d+ · ${ex.items.length - 1}/${ex.items.length}$`))
+  const m = reports.find(r => r.event === 'bac_mock')
+  // 8 parts, one item wrong in each: 30 - 8 = 22 auto points, + 6 writing = 28 → 14/20
+  assert.equal(m.title, 'Mock exam 3 · R 10/15 · L 12/15 · W 6/10 · 14/20')
+
+  const rows = reports.map((r, i) => ({ event_type: r.event, entity_id: r.id, entity_title: r.title, created_at: `2026-10-0${i % 9 + 1}T10:00:00Z` }))
+  // an older, worse result for the same exercise is ignored
+  rows.push({ event_type: 'bac_exercise', entity_id: ex.key, entity_title: 'Grammar 01 · Exercise 1 · 0/8', created_at: '2026-09-01T10:00:00Z' })
+  const sum = summarizeBac(rows)
+  const gr = sum.units.find(u => u.unit.id === 'grammar-01')
+  assert.deepEqual([gr.points, gr.max, gr.done], [ex.items.length - 1, ex.items.length, true])
+  assert.equal(sum.mocks.find(x => x.unit.id === 'mock-exam-3').mark, 14)
+  assert.ok(sum.units.find(u => u.unit.id === 'start').done)
+  assert.equal(sum.done, 3)
 })
 
 test('a mock exam is scored out of 30 automatic points (writing is apart)', () => {
