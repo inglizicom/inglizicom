@@ -189,7 +189,12 @@ export function Footer({ info, page }: { info: BookInfo; page: string }) {
  * Runs once the fonts are in.
  */
 const MAX_ZOOM = 1.35, MIN_ZOOM = 0.85
-function useFillPage(deps: unknown[]) {
+/**
+ * With `spread`, what zooming cannot fill (photographs keep their size at any
+ * zoom, and zoom stops at MAX_ZOOM) is shared out between the sections, so a
+ * page never ends crowded at the top and empty at the bottom.
+ */
+function useFillPage(deps: unknown[], spread = false) {
   const bodyRef = useRef<HTMLDivElement>(null)
   const innerRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -199,13 +204,27 @@ function useFillPage(deps: unknown[]) {
       if (cancelled || !body || !inner) return
       const apply = (z: number) => { inner.style.zoom = String(z) }
       const height = () => inner.getBoundingClientRect().height
+      inner.style.rowGap = ''
+      const grow = inner.querySelector<HTMLElement>('[data-grow]')
+      const base = grow ? Number(grow.dataset.grow) : 0
+      if (grow) grow.style.height = `${base}px`
       apply(1)
       const avail = body.clientHeight, natural = height()
-      if (natural >= avail * 0.92 && natural <= avail) return
-      // Too short: grow. Too long: shrink a little (never below MIN_ZOOM).
-      let z = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, (avail * 0.98) / natural))
-      apply(z)
-      while (z > MIN_ZOOM && height() > avail) { z = Math.max(MIN_ZOOM, z - 0.02); apply(z) }
+      let z = 1
+      if (natural < avail * 0.92 || natural > avail) {
+        // Too short: grow. Too long: shrink a little (never below MIN_ZOOM).
+        z = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, (avail * 0.98) / natural))
+        apply(z)
+        while (z > MIN_ZOOM && height() > avail) { z = Math.max(MIN_ZOOM, z - 0.02); apply(z) }
+      }
+      if (!spread) return
+      // Writing lines take the room first, a whole line at a time; the gaps between sections take the rest.
+      if (grow) {
+        const extra = Math.floor((avail - height() - 2) / z / 26) * 26
+        if (extra > 0) grow.style.height = `${base + extra}px`
+      }
+      const gaps = inner.children.length - 1, left = avail - height() - 2
+      if (gaps > 0 && left > 0) inner.style.rowGap = `${13 + Math.min(70, left / z / gaps)}px`
     }
     void document.fonts?.ready.then(fit)
     fit()
@@ -219,18 +238,22 @@ function useFillPage(deps: unknown[]) {
 function sectionsOf(blocks: Block[]): Block[][] {
   const out: Block[][] = []
   for (const b of blocks) {
-    if (!out.length || b.t === 'bar' || b.t === 'talk' || b.t === 'banner') out.push([])
+    if (!out.length || b.t === 'bar' || b.t === 'talk' || b.t === 'banner' || ((b.t === 'bullets' || b.t === 'row') && b.section)) out.push([])
     out[out.length - 1].push(b)
   }
   return out
 }
 
-export function LessonPage({ info, lesson, pageNo, talkNo, exNo = new Map(), filename, colour }: {
+export function LessonPage({ info, lesson, pageNo, talkNo, exNo = new Map(), filename, colour, sectionsFrom, spread }: {
   info: BookInfo; lesson: Lesson; pageNo: number; talkNo: Map<Block, number>; exNo?: Map<Block, number>; filename: string
   /** One colour for the whole page (a unit's colour) instead of a new colour per section. */
   colour?: { m: string; s: string }
+  /** With `colour`: the frame keeps it, the sections take PALETTE colours from this index on, one each. */
+  sectionsFrom?: number
+  /** Share the room left on the page between the sections (see useFillPage). */
+  spread?: boolean
 }) {
-  const { bodyRef, innerRef } = useFillPage([lesson, info.title, info.level, info.showCode, info.fontEn])
+  const { bodyRef, innerRef } = useFillPage([lesson, info.title, info.level, info.showCode, info.fontEn], spread)
   const sections = sectionsOf(lesson.blocks)
   // Headings are numbered within the lesson: ① Greetings, ② Goodbye…
   const barNo = new Map<Block, number>()
@@ -242,7 +265,7 @@ export function LessonPage({ info, lesson, pageNo, talkNo, exNo = new Map(), fil
       <div ref={bodyRef} className="lb-body absolute inset-x-[24px] overflow-hidden" style={{ top: 84, bottom: 38 }} dir="ltr">
         <div ref={innerRef} className="flex flex-col gap-[13px]">
           {sections.map((sec, k) => (
-            <section key={k} className="flex flex-col gap-[7px]" style={colourVars(info.mono, colour ?? lessonColour(base + k))}>
+            <section key={k} className="flex flex-col gap-[7px]" style={colourVars(info.mono, sectionsFrom !== undefined ? lessonColour(sectionsFrom + k) : colour ?? lessonColour(base + k))}>
               {sec.map((b, i) => <BlockView key={i} b={b} ctx={{ talkNo, barNo, exNo }} />)}
             </section>
           ))}
@@ -387,8 +410,11 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       </div>
     )
     case 'row': return (
-      <div className="grid gap-[14px] items-start" style={{ gridTemplateColumns: b.widths }}>
-        {b.blocks.map((col, i) => <div key={i} className="min-w-0"><Blocks blocks={col} ctx={ctx} /></div>)}
+      <div className={`grid gap-[14px] ${b.stretch ? 'items-stretch' : 'items-start'}`} style={{ gridTemplateColumns: b.widths }}>
+        {b.blocks.map((col, i) => (
+          // Stretched: the column's blocks fill its height, and its last block (a box) takes what is left.
+          <div key={i} className={b.stretch ? 'min-w-0 flex flex-col [&>div]:flex-1 [&>div>*:last-child]:flex-1' : 'min-w-0'}><Blocks blocks={col} ctx={ctx} /></div>
+        ))}
       </div>
     )
     case 'cards': return (
@@ -642,7 +668,10 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
         ))}
       </div>
     )
-    case 'lines': return (
+    case 'lines': return b.grow ? (
+      // Ruled with a gradient, so the page can lengthen it by whole lines (data-grow, see useFillPage).
+      <div data-grow={b.n * 26} style={{ height: b.n * 26, backgroundImage: 'repeating-linear-gradient(to bottom, transparent 0 25px, #B8C2D3 25px 26px)' }} />
+    ) : (
       <div className="flex flex-col">
         {Array.from({ length: b.n }, (_, i) => <div key={i} className="h-[26px] border-b border-dashed border-[#94A3B8]" />)}
       </div>

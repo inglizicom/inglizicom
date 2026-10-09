@@ -11,9 +11,11 @@ import { UNITS_14_19 } from './units-3.ts'
  *
  * Each unit runs: opener (its goals, key phrase and tip; drawn by the admin
  * page) · vocabulary (a photograph per word, at most twelve a page) · useful
- * expressions (a question / answer table) · conversation (a script; past 38 lines it is split evenly over two
- * pages, the second closing with a role-play box) · reading + «Make it
- * yours». The welcome, how-to-use, contents and progress pages come first,
+ * expressions (two pages of cards, with «Notice», extra words, «Tip» and
+ * «Your turn») · conversation (a script; past 38 lines it is split evenly
+ * over two pages, «Before you read» under the first half, a role-play box
+ * under the second) · reading (the Level 1 layout, with «Notice» and
+ * «Questions») + «Make it yours». The welcome, how-to-use, contents and progress pages come first,
  * the A–Z word list last; the cover, the «why this book» page, the
  * thank-you page, the certificate, the closing call to action and the back
  * cover are drawn by the admin page itself.
@@ -50,19 +52,26 @@ export const photoOf = (unit: number, en: string) => `/everyday-book/vocab/u${pa
 /** An extra word's photograph, once it is added (see EXTRA_PHOTOS). */
 export const extraPhotoOf = (unit: number, en: string) => `/everyday-book/extra/u${pad(unit)}/${photoSlug(en)}.webp`
 
+/** Under the first half of a conversation that runs over two pages: the pre-reading step, where the page has room. */
+const BEFORE_YOU_READ: Block = { t: 'bullets', box: true, section: true, heading: 'Before you read - قبل القراءة 🔍', size: 13, items: [
+  'Where are the speakers? Who are they? - أين المتحدّثون؟ ومن هم؟',
+  'What does each person want? - ماذا يريد كل واحد منهم؟',
+  'Find three expressions from this unit in the conversation. - ابحث في المحادثة عن ثلاث عبارات من هذه الوحدة.',
+] }
+
 /** The book's «Speak» step, closing a conversation that runs over two pages. */
-const ROLE_PLAY: Block = { t: 'bullets', box: true, heading: 'Role-play - مثّل الدور 🎭', size: 13, items: [
+const ROLE_PLAY: Block = { t: 'bullets', box: true, section: true, heading: 'Role-play - مثّل الدور 🎭', size: 13, items: [
   'Read the conversation with a partner. - اقرأ المحادثة مع شريك.',
   'Swap roles and read it again. - تبادلا الأدوار واقرآها مرة أخرى.',
   'Act it out without reading, and change some details: names, prices, times. - مثّلاها دون قراءة، وغيّرا بعض التفاصيل: الأسماء، الأسعار، الأوقات.',
 ] }
 
 /* Under a vocabulary page of three rows there is room left: the photos do not grow to fill it, so a short practice does. */
-const LOOK_SAY: Block = { t: 'bullets', box: true, heading: 'Look, say, cover - انظر، قل، غطِّ 👁️', size: 13, items: [
+const LOOK_SAY: Block = { t: 'bullets', box: true, section: true, heading: 'Look, say, cover - انظر، قل، غطِّ 👁️', size: 13, items: [
   'Look at each photo and say the word out loud. - انظر إلى كل صورة وقل الكلمة بصوت مرتفع.',
   'Cover the words, look at the photos and remember them. - غطِّ الكلمات، انظر إلى الصور وتذكّرها.',
 ] }
-const USE_WORDS: Block = { t: 'bullets', box: true, heading: 'Use the words - استعمل الكلمات ✏️', size: 13, items: [
+const USE_WORDS: Block = { t: 'bullets', box: true, section: true, heading: 'Use the words - استعمل الكلمات ✏️', size: 13, items: [
   'Choose three words and write a sentence about your day with each one. - اختر ثلاث كلمات واكتب بكل واحدة جملة عن يومك.',
 ] }
 
@@ -81,7 +90,7 @@ export function unitPages(u: EverydayUnit): EverydayPage[] {
         ...(i ? [] : [{ t: 'banner' as const, title: `${u.titleEn} - ${u.titleAr}`, icons: u.icons }, { t: 'callout' as const, text: u.goal }]),
         { t: 'bar', title: `Vocabulary${more(i)} - المفردات`, icon: '📚' },
         { t: 'tiles', items, cols: 3, start, photos: items.map(([, en]) => photoOf(u.n, en)) },
-        ...(items.length > 9 ? [] : i === 0 ? [LOOK_SAY] : [USE_WORDS, { t: 'lines' as const, n: 5 }]),
+        ...(items.length > 9 ? [] : i === 0 ? [LOOK_SAY] : [USE_WORDS, { t: 'lines' as const, n: 2, grow: true }]),
       ])
     }),
     // Two calm pages, never one crowded one: the first closes with «Notice», the second with extra words and a tip.
@@ -91,12 +100,12 @@ export function unitPages(u: EverydayUnit): EverydayPage[] {
       { t: 'phrases', rows, start: all.slice(0, i).reduce((s, p) => s + p.length, 0) },
       ...(i === 0
         ? [
-            { t: 'bullets' as const, box: true, heading: 'Notice - لاحظ 👀', size: 13, items: x.notice },
+            { t: 'bullets' as const, box: true, section: true, heading: 'Notice - لاحظ 👀', size: 13, items: x.notice },
             { t: 'bar' as const, title: 'Extra words - كلمات إضافية', icon: '➕' },
             { t: 'tiles' as const, items: x.extra, cols: 6, photos: x.extra.map(([, en]) => (EXTRA_PHOTOS.has(`${u.n}:${en}`) ? extraPhotoOf(u.n, en) : null)) },
           ]
         : [
-            { t: 'bullets' as const, box: true, heading: 'Tip - نصيحة 💡', size: 13, items: x.tip },
+            { t: 'bullets' as const, box: true, section: true, heading: 'Tip - نصيحة 💡', size: 13, items: x.tip },
             { t: 'bar' as const, title: 'Your turn - دورك', icon: '✍️' },
             { t: 'answers' as const, items: x.yourTurn },
           ]),
@@ -105,19 +114,19 @@ export function unitPages(u: EverydayUnit): EverydayPage[] {
       { t: 'bar', title: `Conversation${more(i)} - المحادثة`, icon: '🗣️' },
       ...(i ? [] : [{ t: 'callout' as const, text: 'اقرأ المحادثة مع صديق: كل واحد يأخذ دورًا، ثم تبادلا الأدوار.' }]),
       { t: 'script', lines },
-      ...(all.length > 1 && i === all.length - 1 ? [ROLE_PLAY] : []),
+      ...(all.length > 1 ? [i === all.length - 1 ? ROLE_PLAY : BEFORE_YOU_READ] : []),
     ])),
     // The Level 1 book's reading page: the text in one box, then «Notice» and «Questions» side by side.
     page('reading', 'Reading', [
       { t: 'bar', title: 'Reading - القراءة', icon: '📖' },
       { t: 'text', label: u.reading.title, body: u.reading.body.join('\n'), size: 13.5, plain: true },
-      { t: 'row', widths: '1fr 1fr', blocks: [
+      { t: 'row', widths: '1fr 1fr', stretch: true, section: true, blocks: [
         [{ t: 'bullets', box: true, heading: 'Notice - لاحظ', size: 12.5, items: x.readNotice }],
         [{ t: 'bullets', box: true, heading: 'Questions - أسئلة', size: 12.5, items: x.questions }],
       ] },
       { t: 'bar', title: 'Make it yours - اجعلها خاصة بك', icon: '✍️' },
       { t: 'bullets', items: u.yours, size: 13 },
-      { t: 'lines', n: 3 },
+      { t: 'lines', n: 2, grow: true },
     ]),
   ]
 }
@@ -166,6 +175,11 @@ export const HOW_TO: EverydayPage = front('howto', 'How to use', 'How to use thi
     'Read the conversation with a friend, then swap roles. - اقرأ المحادثة مع صديق ثم تبادلا الأدوار.',
     'Speak without reading, and record yourself if you can. - تكلّم دون قراءة، وسجّل صوتك إن أمكن.',
     'Write your own sentences in the «Make it yours» lines. - اكتب جملك الخاصة في سطور «اجعلها خاصة بك».',
+  ] },
+  { t: 'bar', title: 'Look out for - انتبه إلى هذه الرموز', icon: '🔎' },
+  { t: 'cards', cols: 4, stack: true, items: [
+    ['📚', 'Vocabulary', 'المفردات'], ['💬', 'Expressions', 'عبارات مفيدة'], ['🗣️', 'Conversation', 'المحادثة'], ['📖', 'Reading', 'القراءة'],
+    ['👀', 'Notice', 'لاحظ'], ['💡', 'Tip', 'نصيحة'], ['➕', 'Extra words', 'كلمات إضافية'], ['✍️', 'Your turn', 'دورك'],
   ] },
   // A box, not a callout: "English - عربي" is printed as two lines, a callout would mix them on one.
   { t: 'bullets', box: true, size: 14, items: ["You don't need to memorize everything. Use it, repeat it, and make it yours. - لا تحتاج إلى حفظ كل شيء: استعمل ما تتعلّمه، كرّره، واجعله جزءًا من لغتك."] },

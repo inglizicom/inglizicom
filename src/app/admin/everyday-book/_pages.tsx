@@ -17,6 +17,9 @@ import { DISPLAY } from './_fonts'
 
 const EMOJI: CSSProperties = { filter: 'var(--e)' }
 const pad = (n: number) => String(n).padStart(2, '0')
+/** The k-th section colour of a unit's page: its own colour, then the next ones (none in black and white). */
+const sectionColour = (info: BookInfo, n: number, k: number) =>
+  (info.mono ? undefined : { '--m': lessonColour(n - 1 + k).m, '--s': lessonColour(n - 1 + k).s } as CSSProperties)
 /** A unit's colour on a page drawn in another colour (none in black and white). */
 const unitColour = (info: BookInfo, n: number) => (info.mono ? 'var(--m)' : lessonColour(n - 1).m)
 
@@ -35,7 +38,8 @@ export function UnitOpenerPage({ info, unit: u, opener, parts, pageNo, filename 
   return (
     <Frame info={info} colour={lessonColour(u.n - 1)} label={`Unit ${pad(u.n)} — ${u.titleAr} · صفحة ${pageNo}`} filename={filename}>
       <div dir="ltr" className="lb-body absolute inset-x-0 top-0 overflow-hidden" style={{ bottom: 38 }}>
-        <div className="flex flex-col">
+        {/* At least the page's height, the lower half spread over it: no empty band at the foot. */}
+        <div className="flex flex-col min-h-full">
           {/* ── Title ── */}
           <div className="relative bg-[var(--m)] text-white px-10 pt-6 pb-[72px] overflow-hidden text-center">
             <div className="absolute -left-20 -top-24 w-80 h-80 rounded-full bg-white/10" />
@@ -72,8 +76,9 @@ export function UnitOpenerPage({ info, unit: u, opener, parts, pageNo, filename 
             </div>
           </div>
 
-          <div className="px-[30px] mt-5 flex flex-col gap-3">
+          <div className="px-[30px] pt-5 pb-3 flex-1 flex flex-col justify-between gap-3">
             {/* ── What's inside, with page numbers ── */}
+            <div className="flex flex-col gap-2">
             <SectionHead title="In this unit - في هذه الوحدة" badge={<span style={EMOJI}>🧩</span>} />
             <div className="grid grid-cols-4 gap-2.5">
               {inside.map(([icon, en, ar, detail, page]) => (
@@ -86,8 +91,10 @@ export function UnitOpenerPage({ info, unit: u, opener, parts, pageNo, filename 
                 </div>
               ))}
             </div>
+            </div>
 
-            {/* ── Goals to tick ── */}
+            {/* ── Goals to tick, in the next colour ── */}
+            <div className="flex flex-col gap-2" style={sectionColour(info, u.n, 1)}>
             <SectionHead title="My goals - أهدافي" badge={<span style={EMOJI}>🎯</span>} />
             <div className="flex flex-col gap-1.5">
               {opener.canDo.map(([en, ar], i) => (
@@ -102,9 +109,10 @@ export function UnitOpenerPage({ info, unit: u, opener, parts, pageNo, filename 
               ))}
               <p className="text-[11.5px] font-bold" dir="rtl" style={{ fontFamily: AR, color: '#526079' }}>في آخر الوحدة، ضع علامة ✓ أمام كل هدف أصبحت تستطيعه.</p>
             </div>
+            </div>
 
             {/* ── Tip ── */}
-            <div className="flex items-center gap-3.5 rounded-2xl bg-[var(--tip)] px-4 py-3">
+            <div className="flex items-center gap-3.5 rounded-2xl bg-[var(--tip)] px-4 py-3" style={sectionColour(info, u.n, 2)}>
               <span className="text-[34px] leading-none" style={EMOJI}>💡</span>
               <div className="flex-1 min-w-0">
                 <p className="text-[11px] font-extrabold tracking-[0.18em] uppercase text-[var(--m)]" style={{ fontFamily: HEAD }}>Language tip · <span style={{ fontFamily: AR }}>نصيحة لغوية</span></p>
@@ -197,7 +205,7 @@ export function WordListPage({ info, words, first, pageNo, filename }: { info: B
                 <span className="flex-1 h-[2px] rounded-full bg-[var(--m)] opacity-20" />
               </div>
             ) : (
-              <div key={i} className="flex items-baseline gap-1.5 py-[2px] border-b border-dotted border-[#E2E8F0] break-inside-avoid">
+              <div key={i} className="flex items-baseline gap-1.5 py-[3.5px] border-b border-dotted border-[#E2E8F0] break-inside-avoid">
                 <span className="min-w-0 text-[11.5px] font-bold leading-tight">{listed(r.en)}</span>
                 <span className="flex-1 min-w-[8px]" />
                 <span className="text-[11px] font-bold leading-tight text-right" dir="rtl" style={{ fontFamily: AR, color: '#526079' }}>{r.ar}</span>

@@ -183,8 +183,9 @@ export default function EverydayBookPage() {
             if (p.kind === 'progress') return <ProgressPage key={no} info={info} units={EVERYDAY_UNITS} pageNo={no} filename={filename} />
             if (p.kind === 'wordlist') return <WordListPage key={no} info={info} words={p.words ?? []} first={book.pages.find(q => q.kind === 'wordlist') === p} pageNo={no} filename={filename} />
             return (
-              <LessonPage key={no} info={info} lesson={p} pageNo={no} talkNo={new Map()}
-                colour={p.unit ? lessonColour(p.unit - 1) : undefined} filename={filename} />
+              // A unit's pages: its colour on the frame, the next colours down the page section by section, room shared out.
+              <LessonPage key={no} info={info} lesson={p} pageNo={no} talkNo={new Map()} spread
+                colour={p.unit ? lessonColour(p.unit - 1) : undefined} sectionsFrom={p.unit ? p.unit - 1 : undefined} filename={filename} />
             )
           })}
           {withEnd && <>

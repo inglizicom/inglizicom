@@ -35,7 +35,9 @@ export type Block =
   /** Centered black title box (the lesson's topic). */
   | { t: 'banner'; title: string; icons?: [string, string] }
   /** Bullets in columns, optionally inside a bordered box with a heading. */
-  | { t: 'bullets'; items: string[]; cols?: number; box?: boolean; heading?: string; size?: number; tick?: boolean }
+  | { t: 'bullets'; items: string[]; cols?: number; box?: boolean; heading?: string; size?: number; tick?: boolean
+      /** Starts a new section (and so takes the next colour). */
+      section?: boolean }
   /** A practice conversation: numbered bar + lines (+ a picture). */
   | { t: 'talk'; title?: string; full?: string; lines: string[]; cols?: 1 | 2; art?: string; aside?: Block[]; size?: number }
   /** The alphabet strip. */
@@ -47,7 +49,9 @@ export type Block =
   /** Sentence-building diagram: columns of black boxes (stacked = choices). */
   | { t: 'formula'; cols: string[][]; over?: string[]; note?: string }
   /** Several blocks side by side; `widths` is a CSS grid template. */
-  | { t: 'row'; widths: string; blocks: Block[][] }
+  | { t: 'row'; widths: string; blocks: Block[][]
+      /** Columns as tall as the tallest (boxes side by side end level); `section` starts a new section. */
+      stretch?: boolean; section?: boolean }
   /** Picture word cards: emoji, English (black), Arabic (boxed). */
   | { t: 'cards'; items: [icon: string, en: string, ar: string][]; cols?: number; /** icon above the words, for narrow columns */ stack?: boolean }
   /** Word pairs as black/white labels (English on top unless `arTop`). */
@@ -87,7 +91,9 @@ export type Block =
   /** A conversation as a script: "NAME: line", each speaker in their own colour. */
   | { t: 'script'; lines: string[]; size?: number }
   /** Ruled lines to write on. */
-  | { t: 'lines'; n: number }
+  | { t: 'lines'; n: number
+      /** On a `spread` page, more lines take the room left over (instead of a gap). */
+      grow?: boolean }
   /** Questions for the student to answer about themselves, each with its own line. */
   | { t: 'answers'; items: string[] }
   /** Answer keys: one line per exercise ("Ex. 12 · p. 14"), its answers numbered inline. */
