@@ -78,10 +78,7 @@ export const photoOf = (unit: number, en: string) => `/everyday-book/vocab/u${pa
  * pictures the author is still to drop in (as public/everyday-book/vocab/
  * uNN/<word>.png); until then their card shows the word's picture sign.
  */
-export const AWAITING_PHOTOS = [
-  '1:Lock the door', '5:fold', '5:hanger', '6:plate', '6:fork and knife', '6:order', '6:dish of the day',
-  '8:oven', '8:baker', '10:invite', '19:charge my phone', '19:text someone',
-]
+export const AWAITING_PHOTOS: string[] = []   // all in (the author's pictures arrived on 2026-10-09)
 /** An extra word's photograph (public/everyday-book/extra); until it is added, the card shows the word's picture sign. */
 export const extraPhotoOf = (unit: number, en: string) => `/everyday-book/extra/u${pad(unit)}/${photoSlug(en)}.webp`
 

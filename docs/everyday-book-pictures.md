@@ -6,24 +6,9 @@ The book shows a picture as soon as a file with the right name is in the right f
 - **Name:** exactly as written below (lower case, words joined by `-`).
 - **Where:** in the project folder `C:\Users\DELL\Desktop\Inglizi.com\public\everyday-book\…` (the folder of each list is given), or uploaded to the same path on GitHub.
 
-## 1. Vocabulary pictures (12) — they complete the pages to nine photos
+## 1. Vocabulary pictures — all in ✓
 
-Folder: `public/everyday-book/vocab/uNN/` (NN = the unit number).
-
-| Unit | Word | المعنى | File |
-|---|---|---|---|
-| 01 | Lock the door | أقفل الباب | `vocab/u01/lock-the-door.png` |
-| 05 | fold | يطوي | `vocab/u05/fold.png` |
-| 05 | hanger | علّاقة الملابس | `vocab/u05/hanger.png` |
-| 06 | plate | صحن | `vocab/u06/plate.png` |
-| 06 | fork and knife | الشوكة والسكين | `vocab/u06/fork-and-knife.png` |
-| 06 | order | يطلب | `vocab/u06/order.png` |
-| 06 | dish of the day | طبق اليوم | `vocab/u06/dish-of-the-day.png` |
-| 08 | oven | فرن | `vocab/u08/oven.png` |
-| 08 | baker | خبّاز | `vocab/u08/baker.png` |
-| 10 | invite | يدعو | `vocab/u10/invite.png` |
-| 19 | charge my phone | أشحن هاتفي | `vocab/u19/charge-my-phone.png` |
-| 19 | text someone | أراسل شخصًا | `vocab/u19/text-someone.png` |
+Every vocabulary page has its nine photographs.
 
 ## 2. Extra words (114) — six a unit, on the first «Useful expressions» page
 
