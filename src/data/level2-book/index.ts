@@ -2,6 +2,7 @@ import type { Block, Lesson } from '../level1-book.ts'
 import type { L2Ladder, L2Unit } from './types.ts'
 import { MODULE_1, REVIEW_1 } from './module-1.ts'
 import { INDEX, MODULES } from './plan.ts'
+import { plannerPages, type PlannerConfig } from '../study-planner.ts'
 
 /**
  * Level 2 «تكلّم واكتب بدقّة» (A2 → B1) laid out as pages for the Level 1
@@ -26,7 +27,7 @@ export const L2_UNITS: L2Unit[] = [...MODULE_1]
 /** Each module's review page, once its units are written. */
 const REVIEWS: Record<number, Block[]> = { 1: REVIEW_1 }
 
-export type L2Kind = 'welcome' | 'contents' | 'opener' | 'vocab' | 'expressions' | 'talk' | 'grammar' | 'speaking' | 'writing' | 'check' | 'review' | 'key'
+export type L2Kind = 'welcome' | 'contents' | 'planner' | 'opener' | 'vocab' | 'expressions' | 'talk' | 'grammar' | 'speaking' | 'writing' | 'check' | 'review' | 'key'
 export type L2Page = Lesson & { kind: L2Kind; unit?: number; module?: number }
 
 /** The colour key: one colour per kind of section through the book. */
@@ -41,7 +42,7 @@ export const L2_TONES = {
 } as const
 export type L2Tone = keyof typeof L2_TONES
 export const L2_KIND_TONE: Record<L2Kind, L2Tone> = {
-  welcome: 'brand', contents: 'brand', opener: 'brand', key: 'brand',
+  welcome: 'brand', contents: 'brand', planner: 'brand', opener: 'brand', key: 'brand',
   vocab: 'vocab', expressions: 'expr', talk: 'talk', grammar: 'grammar', speaking: 'talk', writing: 'writing', check: 'practice', review: 'practice',
 }
 
@@ -322,6 +323,23 @@ export const WELCOME: L2Page = front('welcome', 'Welcome', 'Welcome', 'مرحب�
   ] },
 ])
 
+/** The book's week: one unit, six days of study and a day off (the study planner's rhythm). */
+export const L2_PLANNER: PlannerConfig = {
+  units: INDEX.map(u => [u.n, u.titleEn]),
+  reviewsAfter: [4, 8, 12, 16, 20],
+  restAfter: [8, 16],
+  reviewMinutes: 180,
+  week: [
+    { what: 'The unit video and the words - فيديو الوحدة والكلمات', how: 'Watch the video first. Then read each word and its example, and listen to it. - شاهد الفيديو أولًا، ثم اقرأ كل كلمة ومثالها واستمع إليها.', supports: ['video', 'book', 'audio'], minutes: 45 },
+    { what: 'The expressions, step by step - العبارات خطوة بخطوة', how: 'Listen and repeat. Then cover the English and say it from the Arabic. - استمع وردّد، ثم غطِّ الإنجليزية وقلها من العربية.', supports: ['audio', 'book'], minutes: 45 },
+    { what: 'The conversation - المحادثة', how: 'Listen without the book first, then read it. Read it with a partner. - استمع دون الكتاب أولًا، ثم اقرأها مع زميل.', supports: ['audio', 'book'], minutes: 45 },
+    { what: 'Grammar and practice - القواعد والتمارين', how: 'Watch the grammar video, study the lesson, then do the practice page alone. - شاهد فيديو القواعد وادرس الدرس، ثم حلّ التمارين وحدك.', supports: ['video', 'book'], minutes: 60 },
+    { what: 'Speaking with your teacher - المحادثة مع أستاذك', how: 'Live class: the role-play, then your real conversation. - حصة مباشرة: تمثيل الأدوار ثم محادثتك الحقيقية.', supports: ['teacher'], minutes: 60 },
+    { what: 'Writing and check - الكتابة والمراجعة', how: 'Write, send it to your assistant, then do the check page. - اكتب وأرسل كتابتك إلى المساعد، ثم أنجز صفحة المراجعة.', supports: ['book', 'teacher'], minutes: 45 },
+    { what: 'Day off - يوم راحة', how: 'Rest. If you want, listen to the conversation once. - استرح، وإن أردت فاستمع إلى المحادثة مرة واحدة.', supports: [], minutes: 0 },
+  ],
+}
+
 /** Every page in book order, the contents and the answer key built from it. */
 export function buildLevel2Book() {
   const units = L2_UNITS.map(u => ({ u, pages: unitPages(u) }))
@@ -335,7 +353,8 @@ export function buildLevel2Book() {
     const r = reviews.get(u.module)
     return last && r && INDEX.filter(x => x.module === u.module).every(x => L2_UNITS.some(y => y.n === x.n)) ? [...pages, r] : pages
   })
-  const firstBody = 3   // welcome 1, contents 2
+  const planner = plannerPages(L2_PLANNER).map(p => front('planner', 'Study plan', p.titleEn, p.titleAr, p.blocks))
+  const firstBody = 3 + planner.length   // welcome 1, contents 2, the study plan
   const at = (p: L2Page) => firstBody + body.indexOf(p)
   const startOf = new Map(units.map(({ u, pages }) => [u.n, at(pages[0])]))
 
@@ -354,6 +373,7 @@ export function buildLevel2Book() {
     { t: 'banner', title: 'Contents - محتويات الكتاب', icons: ['📚', '🗺️'] },
     { t: 'grid', rows: [
       { dark: true, span, cells: ['Unit', 'Topic', 'Grammar', 'Writing', 'Page'] },
+      { plain: true, span: [10.7], size: 13, cells: [`🗓️ Your study plan · p. 3`] },
       ...MODULES.flatMap(m => {
         const review = reviews.get(m.n)
         const reviewPage = review && body.includes(review) ? at(review) : null
@@ -367,7 +387,7 @@ export function buildLevel2Book() {
     ] },
   ])
 
-  const pages: L2Page[] = [WELCOME, contents, ...body, ...keyPages]
+  const pages: L2Page[] = [WELCOME, contents, ...planner, ...body, ...keyPages]
   return {
     pages,
     exNo,

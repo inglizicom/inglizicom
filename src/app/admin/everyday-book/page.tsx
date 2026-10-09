@@ -34,7 +34,7 @@ const BOOK_COVER: CoverInfo = { ...DEFAULT_COVER, palette: 'brown', phone1: '+21
 type View = 'book' | 'front' | 'reviews' | 'end' | number
 /** The book's faces, and its highlights in the colour key: vocabulary words blue, key sentences on the expressions' green. */
 const PAGE_VARS = { ...BOOK_FONT_VARS, '--hl': TONES.vocab.m, '--key': TONES.expr.m, '--key-s': TONES.expr.s } as CSSProperties
-const FRONT: EverydayPage['kind'][] = ['welcome', 'howto', 'contents', 'progress']
+const FRONT: EverydayPage['kind'][] = ['welcome', 'howto', 'contents', 'planner', 'progress']
 
 function useSaved<T extends object>(key: string, initial: T) {
   const [value, setValue] = useState<T>(initial)
@@ -106,7 +106,7 @@ export default function EverydayBookPage() {
           <Field label="عرض" hint={`${book.pages.length} صفحة مرقّمة + الغلاف وصفحتا التسويق والشكر والشهادة والغلاف الخلفي.`}>
             <select value={String(view)} onChange={e => setView(['book', 'front', 'reviews', 'end'].includes(e.target.value) ? e.target.value as View : Number(e.target.value))} className={INP}>
               <option value="book">الكتاب كاملًا ({book.pages.length + 6} صفحة)</option>
-              <option value="front">البداية (الغلاف، لماذا هذا الكتاب، الشكر، الترحيب، الفهرس، تقدّمي)</option>
+              <option value="front">البداية (الغلاف، لماذا هذا الكتاب، الشكر، الترحيب، الفهرس، خطة الدراسة، تقدّمي)</option>
               {EVERYDAY_UNITS.map(u => <option key={u.n} value={u.n}>الوحدة {u.n} — {u.titleAr}</option>)}
               <option value="reviews">المراجعات (4 صفحات)</option>
               <option value="end">النهاية (الأجوبة، قائمة الكلمات، الشهادة، خطوتك التالية، الغلاف الخلفي)</option>

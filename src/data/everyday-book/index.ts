@@ -3,6 +3,7 @@ import type { EverydayUnit } from './types.ts'
 import { UNITS_1_7 } from './units-1.ts'
 import { UNITS_8_13 } from './units-2.ts'
 import { UNITS_14_19 } from './units-3.ts'
+import { plannerPages, type PlannerConfig } from '../study-planner.ts'
 
 /**
  * The textbook «الإنجليزية للمواقف اليومية» laid out as pages for the Level 1
@@ -27,7 +28,7 @@ export { EXTRAS, type UnitExtras } from './extras.ts'
 import { EXTRAS } from './extras.ts'
 export const EVERYDAY_UNITS: EverydayUnit[] = [...UNITS_1_7, ...UNITS_8_13, ...UNITS_14_19]
 
-export type EverydayKind = 'welcome' | 'howto' | 'contents' | 'progress' | 'opener' | 'vocab' | 'expressions' | 'talk' | 'reading' | 'review' | 'key' | 'wordlist'
+export type EverydayKind = 'welcome' | 'howto' | 'contents' | 'planner' | 'progress' | 'opener' | 'vocab' | 'expressions' | 'talk' | 'reading' | 'review' | 'key' | 'wordlist'
 
 /**
  * The book's colour key: one colour per kind of section, the same in every
@@ -46,7 +47,7 @@ export const TONES = {
 export type Tone = keyof typeof TONES
 /** The colour of a page (its frame, and any section without a tone of its own). */
 export const KIND_TONE: Record<EverydayKind, Tone> = {
-  welcome: 'brand', howto: 'brand', contents: 'brand', progress: 'brand', opener: 'brand', wordlist: 'brand', key: 'brand',
+  welcome: 'brand', howto: 'brand', contents: 'brand', planner: 'brand', progress: 'brand', opener: 'brand', wordlist: 'brand', key: 'brand',
   vocab: 'vocab', expressions: 'expr', talk: 'talk', reading: 'reading', review: 'practice',
 }
 /** One line of the word list: the word, its meaning, and every unit it is taught in. */
@@ -361,6 +362,24 @@ export const AVATARS: Record<string, string> = {
   RECEPTIONIST: '💁', DOCTOR: '🧑‍⚕️', SELLER: '🧑‍🌾', DRIVER: '🧔🏽', 'BUS DRIVER': '🧑🏾', CLERK: '🧑‍💼', PASSENGER: '🧑',
 }
 
+/** The book's week: one unit, six days of study and a day off (the study planner's rhythm). */
+export const EVERYDAY_PLANNER: PlannerConfig = {
+  units: EVERYDAY_UNITS.map(u => [u.n, u.titleEn]),
+  reviewsAfter: REVIEWS.map(([, to]) => to),
+  restAfter: [10],
+  reviewMinutes: 150,
+  certificate: true,
+  week: [
+    { what: 'Vocabulary with photos - المفردات بالصور', how: 'Look, listen and repeat each word. Then cover the words and say them from the photos. - انظر واستمع وردّد، ثم غطِّ الكلمات وقلها من الصور.', supports: ['book', 'audio'], minutes: 40 },
+    { what: 'Useful expressions - العبارات المفيدة', how: 'Listen and repeat. Cover the answers and reply alone. - استمع وردّد، ثم غطِّ الأجوبة وأجب وحدك.', supports: ['audio', 'book'], minutes: 45 },
+    { what: 'The conversation - المحادثة', how: 'Watch the unit video and listen. Then read it with a partner. - شاهد فيديو الوحدة واستمع، ثم اقرأها مع زميل.', supports: ['video', 'audio', 'book'], minutes: 45 },
+    { what: 'Reading and Make it yours - القراءة واجعلها خاصة بك', how: 'Read and answer the questions, then write your own sentences. - اقرأ وأجب عن الأسئلة، ثم اكتب جملك الخاصة.', supports: ['book'], minutes: 40 },
+    { what: 'Speaking with your teacher - المحادثة مع أستاذك', how: 'Live class: use the expressions in real conversations. - حصة مباشرة: تستعمل العبارات في محادثات حقيقية.', supports: ['teacher'], minutes: 60 },
+    { what: 'Review the unit - راجع الوحدة', how: 'Say the words and expressions again. Send your sentences to your assistant. - ردّد الكلمات والعبارات، وأرسل جملك إلى المساعد.', supports: ['book', 'teacher'], minutes: 30 },
+    { what: 'Day off - يوم راحة', how: 'Rest. If you want, listen to the conversation once. - استرح، وإن أردت فاستمع إلى المحادثة مرة واحدة.', supports: [], minutes: 0 },
+  ],
+}
+
 /** Every page in book order with its number (Welcome is page 1). */
 export function buildEverydayBook() {
   const units = EVERYDAY_UNITS.map(u => ({ u, pages: unitPages(u) }))
@@ -371,7 +390,8 @@ export function buildEverydayBook() {
     const r = REVIEWS.findIndex(([, to]) => to === u.n)
     return r < 0 ? pages : [...pages, reviews[r]]
   })
-  const firstUnitPage = 5   // welcome 1, how to use 2, contents 3, progress 4
+  const planner = plannerPages(EVERYDAY_PLANNER).map(p => front('planner', 'Study plan', p.titleEn, 'خطة دراستك', p.blocks))
+  const firstUnitPage = 5 + planner.length   // welcome 1, how to use 2, contents 3, the study plan, progress
   const at = (p: EverydayPage) => firstUnitPage + body.indexOf(p)
   const startOf = new Map(units.map(({ u, pages }) => [u.n, at(pages[0])]))
   // Exercises are numbered across the reviews; the key names each by number and page.
@@ -403,6 +423,7 @@ export function buildEverydayBook() {
     { t: 'banner', title: 'Contents - محتويات الكتاب', icons: ['📚', '🗺️'] },
     { t: 'grid', rows: [
       { dark: true, span, cells: ['Unit', 'Situation', 'الموقف', 'Page'] },
+      { plain: true, span, size: 13.5, cells: ['', '🗓️  Your study plan', 'خطة دراستك', '4'] },
       { plain: true, span, size: 13.5, cells: ['', '✅  My progress', 'تقدّمي', String(firstUnitPage - 1)] },
       ...EVERYDAY_UNITS.map(u => ({ span, size: 13.5, cells: [pad(u.n), `${u.icons[0]}  ${u.titleEn}`, u.titleAr, String(startOf.get(u.n))] })),
       { plain: true, span, size: 13.5, cells: ['', '🔁  Reviews 1–4', 'المراجعات', reviews.map(at).join(' · ')], },
@@ -410,7 +431,7 @@ export function buildEverydayBook() {
       { plain: true, span, size: 13.5, cells: ['', '🔤  Word list A–Z', 'قائمة الكلمات', String(wordsAt)] },
     ] },
   ])
-  const pages: EverydayPage[] = [WELCOME, HOW_TO, contents, PROGRESS, ...body, ...keyPages, ...words]
+  const pages: EverydayPage[] = [WELCOME, HOW_TO, contents, ...planner, PROGRESS, ...body, ...keyPages, ...words]
   return {
     pages,
     exNo,

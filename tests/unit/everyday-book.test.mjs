@@ -69,7 +69,7 @@ test('pages: long parts are split evenly, every page is numbered once', () => {
     assert.equal(pages[Number(row.cells[3]) - 1].kind, 'opener')
   }
   const first = r => Number(r.cells[3].split(' · ')[0])
-  assert.deepEqual(rows.filter(r => !r.cells[0]).map(r => pages[first(r) - 1].kind), ['progress', 'review', 'key', 'wordlist'])
+  assert.deepEqual(rows.filter(r => !r.cells[0]).map(r => pages[first(r) - 1].kind), ['planner', 'progress', 'review', 'key', 'wordlist'])
   const reviewsRow = rows.find(r => r.cells[1].includes('Reviews'))
   assert.deepEqual(reviewsRow.cells[3].split(' · ').map(Number), pages.flatMap((p, i) => (p.kind === 'review' ? [i + 1] : [])))
   // nine photographs on every vocabulary page

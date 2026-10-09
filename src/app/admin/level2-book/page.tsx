@@ -71,7 +71,7 @@ export default function Level2BookPage() {
 
   const withFront = view === 'book' || view === 'front'
   const shown = book.pages.filter((p: L2Page) =>
-    view === 'book' ? true : view === 'front' ? p.kind === 'welcome' || p.kind === 'contents' : view === 'end' ? p.kind === 'key' || p.kind === 'review' : p.unit === view)
+    view === 'book' ? true : view === 'front' ? p.kind === 'welcome' || p.kind === 'contents' || p.kind === 'planner' : view === 'end' ? p.kind === 'key' || p.kind === 'review' : p.unit === view)
   const count = (withFront ? 2 : 0) + shown.length
   const prefix = `level2${info.buyer.trim() ? `-${slug(info.buyer)}` : ''}`
   const set = <K extends keyof BookInfo>(k: K) => (v: BookInfo[K]) => setInfo(s => ({ ...s, [k]: v }))
@@ -91,7 +91,7 @@ export default function Level2BookPage() {
           <Field label="عرض" hint={`مكتوب حتى الآن: ${book.stats.written} من ${book.stats.units} وحدة · ${book.pages.length} صفحة مرقّمة.`}>
             <select value={String(view)} onChange={e => setView(['book', 'front', 'end'].includes(e.target.value) ? e.target.value as View : Number(e.target.value))} className={INP}>
               <option value="book">الكتاب كاملًا</option>
-              <option value="front">البداية (الغلاف، الترحيب، الفهرس)</option>
+              <option value="front">البداية (الغلاف، الترحيب، الفهرس، خطة الدراسة)</option>
               {L2_UNITS.map(u => <option key={u.n} value={u.n}>الوحدة {u.n} — {u.titleAr}</option>)}
               <option value="end">المراجعات والأجوبة</option>
             </select>

@@ -764,9 +764,12 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
         <div className="rounded-r-xl bg-[var(--s)] border-l-[4px] border-[var(--m)] px-3.5 py-2 space-y-2" style={{ fontSize: b.size ?? 14 }}>
           {b.body.split('\n').map((para, i) => (
             <p key={i} className="font-bold leading-[2.3]">
-              {para.split('___').map((part, j) => (
-                <Fragment key={j}>{j > 0 && <span className="inline-block min-w-[120px] mx-1 border-b-[1.5px] border-dashed border-[#64748B] translate-y-[3px]" style={{ height: '1.1em' }} />}{part}</Fragment>
-              ))}
+              {para.split('___').map((part, j, parts) => {
+                // The one blank of a line, ending it, runs to its end: room to write a sentence, not a word.
+                const last = parts.length === 2 && j === 1 && !part.trim()
+                const width = last ? (parts.length === 2 && !parts[0].trim() ? 'w-[96%]' : 'w-[55%]') : 'min-w-[120px]'
+                return <Fragment key={j}>{j > 0 && <span className={`inline-block ${width} mx-1 border-b-[1.5px] border-dashed border-[#64748B] translate-y-[3px]`} style={{ height: '1.1em' }} />}{part}</Fragment>
+              })}
             </p>
           ))}
         </div>
