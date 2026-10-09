@@ -75,7 +75,7 @@ export type Block =
   /** A yellow-paper sticky note. */
   | { t: 'sticky'; text: string }
   /** A tip / rule note (pale yellow, with a 💡). */
-  | { t: 'callout'; text: string }
+  | { t: 'callout'; text: string; tone?: string; section?: boolean }
   /** A small coloured heading inside a section ("Appearance", "التلميذ يقول"). */
   | { t: 'sub'; text: string }
   /** A numbered exercise (numbered across the book; answers go to the keys).
@@ -95,11 +95,17 @@ export type Block =
       /** Two columns, read down the first then the second (a medium-length conversation on one page). */
       cols?: 1 | 2
       /** A face per speaker; words to print bold in the highlight colour; key sentences (line numbers) to star. */
-      avatars?: Record<string, string>; mark?: RegExp; keys?: number[] }
+      avatars?: Record<string, string>; mark?: RegExp; keys?: number[]
+      /** Instead of faces: a plain circle with the speaker's initial (the first speaker filled in the section colour). */
+      badges?: boolean }
   /** Ruled lines to write on. */
   | { t: 'lines'; n: number
       /** On a `spread` page, more lines take the room left over (instead of a gap). */
       grow?: boolean }
+  /** A model text with "___" blanks the student fills with their own life (a writing template). */
+  | { t: 'gapText'; label: string; body: string; size?: number }
+  /** Common mistakes: what learners write ✗, what to write ✓, and why (Arabic, optional). */
+  | { t: 'mistakes'; items: [wrong: string, right: string, why?: string][]; tone?: string; section?: boolean }
   /** Questions for the student to answer about themselves, each with its own line. */
   | { t: 'answers'; items: string[] }
   /** Answer keys: one line per exercise ("Ex. 12 · p. 14"), its answers numbered inline. */

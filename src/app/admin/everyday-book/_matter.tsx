@@ -117,7 +117,7 @@ export function Imprint({ info }: { info: BookInfo }) {
       </p>
       <p className="mt-0.5 text-[11.5px] font-bold leading-snug text-[#526079]">لا يجوز نسخ هذا الكتاب أو تصويره أو مشاركته أو بيعه، كليًا أو جزئيًا، دون إذن كتابي من المؤلف.</p>
       {name && <p className="mt-1 text-[12.5px] font-extrabold text-[var(--m)]">نسخة مرخّصة لـ: {name} — للاستعمال الشخصي فقط.</p>}
-      <p dir="ltr" className="mt-0.5 text-[10px] font-semibold text-[#64748B]" style={{ fontFamily: EN_FONT }}>
+      <p dir="ltr" className="mt-0.5 text-[10px] font-semibold text-[#64748B]" style={{ fontFamily: 'var(--en)' }}>
         All rights reserved. No part of this book may be copied, shared or sold without the author&apos;s written permission.
       </p>
     </div>

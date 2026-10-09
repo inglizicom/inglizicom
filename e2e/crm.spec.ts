@@ -44,6 +44,7 @@ const FOUNDER_PAGES = [
   '/admin/level1-book',
   '/admin/bac-pack',
   '/admin/everyday-book',
+  '/admin/level2-book',
 ]
 
 /** Against the device width — a phone zooming a too-wide page out also widens innerWidth. */

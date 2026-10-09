@@ -22,7 +22,7 @@ import type { Block, FamilyPeople, FlagId, Lesson } from '@/data/level1-book'
  * and PNG behave like the workbook's.
  */
 
-const FONTS_HREF = 'https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&family=Baloo+Bhaijaan+2:wght@500;600;700;800&family=Lalezar&family=Poppins:wght@400;500;600;700;800&display=swap'
+const FONTS_HREF = 'https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&family=Baloo+Bhaijaan+2:wght@500;600;700;800&family=Lalezar&family=Poppins:wght@400;500;600;700;800&family=Nunito:wght@500;600;700;800;900&display=swap'
 export const EN = "'Mali', 'Baloo Bhaijaan 2', sans-serif"
 /* A book can set its own faces with CSS variables on a parent element
  * (--book-ar, --book-head, --book-display, --book-display-weight); without
@@ -123,7 +123,7 @@ function Marked({ text, re }: { text: string; re?: RegExp }) {
 const isAr = (s: string) => /^[^A-Za-z؀-ۿ]*[؀-ۿ]/.test(s)
 const Txt = ({ s }: { s: string }) => (isAr(s) ? <span dir="rtl" style={{ fontFamily: AR }}><RtlMixed text={s} /></span> : <Mixed text={s} />)
 /** "English sentence. - ترجمتها": split, so the Arabic sits on its own line under the English. */
-const EN_AR = /^(.*?[A-Za-z0-9?.!'"”)])\s+-\s+([؀-ۿ].*)$/
+const EN_AR = /^(.*?[A-Za-z0-9?.!'"”)…])\s+-\s+([؀-ۿ].*)$/
 function EnAr({ s, size }: { s: string; size: number }) {
   const m = s.match(EN_AR)
   if (!m) return <Mixed text={s} />
@@ -150,7 +150,7 @@ export function Frame({ info, label, filename, colour = { m: BRAND, s: '#EEF1FB'
   return (
     <BareSheet theme={MONO} label={label} filename={filename}>
       {/* crm-raw: the CRM repaints black as navy (tailwind.config.js); the book sets its own colours. */}
-      <div className="crm-raw absolute inset-0 bg-white text-[var(--k)] overflow-hidden" style={{ fontFamily: info.fontEn ?? EN, ...vars(info.mono, colour, info.ink) }}>{children}</div>
+      <div className="crm-raw absolute inset-0 bg-white text-[var(--k)] overflow-hidden" style={{ fontFamily: info.fontEn ?? EN, ...vars(info.mono, colour, info.ink), ['--en' as string]: info.fontEn ?? EN }}>{children}</div>
     </BareSheet>
   )
 }
@@ -256,7 +256,7 @@ function useFillPage(deps: unknown[], spread = false) {
 function sectionsOf(blocks: Block[]): Block[][] {
   const out: Block[][] = []
   for (const b of blocks) {
-    if (!out.length || b.t === 'bar' || b.t === 'talk' || b.t === 'banner' || ((b.t === 'bullets' || b.t === 'row') && b.section)) out.push([])
+    if (!out.length || b.t === 'bar' || b.t === 'talk' || b.t === 'banner' || ('section' in b && b.section)) out.push([])
     out[out.length - 1].push(b)
   }
   return out
@@ -684,6 +684,11 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
         const face = b.avatars?.[who]
         const name = (
           <span className="inline-flex items-center gap-1 whitespace-nowrap align-middle">
+            {b.badges && who && (
+              // A plain circle with the initial: enough to tell the speakers apart.
+              <span className="w-[22px] h-[22px] rounded-full inline-flex items-center justify-center text-[11px] font-extrabold text-white leading-none shrink-0"
+                style={{ background: who === first ? 'var(--m)' : '#64748B', fontFamily: HEAD }}>{who.charAt(0)}</span>
+            )}
             {face && (
               // Large enough to tell the faces apart; the first speaker (the student's part) ringed in the section colour.
               <span className="w-[26px] h-[26px] rounded-full bg-white inline-flex items-center justify-center text-[18px] leading-none shrink-0"
@@ -721,6 +726,35 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       }
       return <div className="flex flex-col" style={{ fontSize: b.size ?? 13 }}>{b.lines.map((s, i) => line(s, i, false))}</div>
     }
+    case 'gapText': return (
+      // A model the student completes: each "___" a writing line, the text set for handwriting room.
+      <div>
+        <div className="text-[14.5px] font-extrabold text-[var(--m)] mb-0.5" style={{ fontFamily: HEAD }}><Mixed text={b.label} /></div>
+        <div className="rounded-r-xl bg-[var(--s)] border-l-[4px] border-[var(--m)] px-3.5 py-2 space-y-2" style={{ fontSize: b.size ?? 14 }}>
+          {b.body.split('\n').map((para, i) => (
+            <p key={i} className="font-bold leading-[2.3]">
+              {para.split('___').map((part, j) => (
+                <Fragment key={j}>{j > 0 && <span className="inline-block min-w-[120px] mx-1 border-b-[1.5px] border-dashed border-[#64748B] translate-y-[3px]" style={{ height: '1.1em' }} />}{part}</Fragment>
+              ))}
+            </p>
+          ))}
+        </div>
+      </div>
+    )
+    case 'mistakes': return (
+      <div className="rounded-xl bg-[var(--s)] px-3.5 py-2">
+        <div className="text-[16px] font-extrabold text-[var(--m)] mb-1" style={{ fontFamily: HEAD }}>Common mistakes - <span style={{ fontFamily: AR }}>أخطاء شائعة</span> ⚠️</div>
+        <div className="flex flex-col gap-1.5">
+          {b.items.map(([wrong, right, why], i) => (
+            <div key={i} className="grid items-baseline gap-x-3" style={{ gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', fontSize: 13.5 }}>
+              <span className="font-bold text-[#B91C1C]"><span className="mr-1">✗</span><span className="line-through decoration-[1.5px] opacity-80"><Mixed text={wrong} /></span></span>
+              <span className="font-extrabold text-[#15803D]"><span className="mr-1">✓</span><Mixed text={right} /></span>
+              {why && <div className="col-span-2"><Gloss s={why} size={12} /></div>}
+            </div>
+          ))}
+        </div>
+      </div>
+    )
     case 'answers': return (
       <div className="flex flex-col gap-2">
         {b.items.map((q, i) => (

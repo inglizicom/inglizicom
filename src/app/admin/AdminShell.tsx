@@ -9,6 +9,7 @@ const TITLES: [string, string][] = [
   ['/level1-book', 'كتاب المستوى الأول'],
   ['/bac-pack', 'حقيبة الباك'],
   ['/everyday-book', 'الكتاب الأساسي'],
+  ['/level2-book', 'المستوى الثاني'],
   ['/team',      'الفريق والرواتب'],
   ['/analytics', 'الإيرادات والتقارير'],
   ['/teachers',  'الأساتذة'],

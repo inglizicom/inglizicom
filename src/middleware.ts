@@ -43,6 +43,7 @@ const ADMIN_ROUTES: Record<string, string> = {
   '/level1-book': '/admin/level1-book',
   '/bac-pack': '/admin/bac-pack',
   '/everyday-book': '/admin/everyday-book',
+  '/level2-book': '/admin/level2-book',
   '/team':        '/admin/team',
   '/analytics':   '/admin/analytics',
   '/activity':    '/admin/activity',
