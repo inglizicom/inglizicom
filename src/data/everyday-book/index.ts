@@ -21,6 +21,8 @@ import { UNITS_14_19 } from './units-3.ts'
 
 export type { EverydayUnit } from './types.ts'
 export { OPENERS, type UnitOpener } from './openers.ts'
+export { EXTRAS, EXTRA_PHOTOS, type UnitExtras } from './extras.ts'
+import { EXTRAS, EXTRA_PHOTOS } from './extras.ts'
 export const EVERYDAY_UNITS: EverydayUnit[] = [...UNITS_1_7, ...UNITS_8_13, ...UNITS_14_19]
 
 export type EverydayKind = 'welcome' | 'howto' | 'contents' | 'progress' | 'opener' | 'vocab' | 'expressions' | 'talk' | 'reading' | 'wordlist'
@@ -39,13 +41,14 @@ export function split<T>(list: T[], max: number): T[][] {
 
 /* Page capacities, measured on the rendered A4 page (one page reads at zoom ≥ 0.9). */
 export const VOCAB_PER_PAGE = 12
-export const EXPRESSIONS_PER_PAGE = 16
 export const LINES_PER_PAGE = 38
 
 /** A word's file name: "Wi-Fi password" → wi-fi-password, "for here / to go" → for-here-to-go. */
 export const photoSlug = (en: string) => en.toLowerCase().replace(/&/g, 'and').replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 /** The word's photograph, from the author's course pictures (public/everyday-book/vocab). */
 export const photoOf = (unit: number, en: string) => `/everyday-book/vocab/u${pad(unit)}/${photoSlug(en)}.webp`
+/** An extra word's photograph, once it is added (see EXTRA_PHOTOS). */
+export const extraPhotoOf = (unit: number, en: string) => `/everyday-book/extra/u${pad(unit)}/${photoSlug(en)}.webp`
 
 /** The book's «Speak» step, closing a conversation that runs over two pages. */
 const ROLE_PLAY: Block = { t: 'bullets', box: true, heading: 'Role-play - مثّل الدور 🎭', size: 13, items: [
@@ -54,10 +57,20 @@ const ROLE_PLAY: Block = { t: 'bullets', box: true, heading: 'Role-play - مثّ
   'Act it out without reading, and change some details: names, prices, times. - مثّلاها دون قراءة، وغيّرا بعض التفاصيل: الأسماء، الأسعار، الأوقات.',
 ] }
 
+/* Under a vocabulary page of three rows there is room left: the photos do not grow to fill it, so a short practice does. */
+const LOOK_SAY: Block = { t: 'bullets', box: true, heading: 'Look, say, cover - انظر، قل، غطِّ 👁️', size: 13, items: [
+  'Look at each photo and say the word out loud. - انظر إلى كل صورة وقل الكلمة بصوت مرتفع.',
+  'Cover the words, look at the photos and remember them. - غطِّ الكلمات، انظر إلى الصور وتذكّرها.',
+] }
+const USE_WORDS: Block = { t: 'bullets', box: true, heading: 'Use the words - استعمل الكلمات ✏️', size: 13, items: [
+  'Choose three words and write a sentence about your day with each one. - اختر ثلاث كلمات واكتب بكل واحدة جملة عن يومك.',
+] }
+
 export function unitPages(u: EverydayUnit): EverydayPage[] {
   const page = (kind: EverydayKind, titleEn: string, blocks: Block[]): EverydayPage =>
     ({ n: u.n, tag: `Unit ${pad(u.n)}`, titleAr: u.titleAr, titleEn: `${u.titleEn} · ${titleEn}`, kind, unit: u.n, blocks })
   const more = (i: number) => (i ? ' (continued)' : '')
+  const x = EXTRAS[u.n]
 
   return [
     page('opener', 'Opener', []),
@@ -68,12 +81,25 @@ export function unitPages(u: EverydayUnit): EverydayPage[] {
         ...(i ? [] : [{ t: 'banner' as const, title: `${u.titleEn} - ${u.titleAr}`, icons: u.icons }, { t: 'callout' as const, text: u.goal }]),
         { t: 'bar', title: `Vocabulary${more(i)} - المفردات`, icon: '📚' },
         { t: 'tiles', items, cols: 3, start, photos: items.map(([, en]) => photoOf(u.n, en)) },
+        ...(items.length > 9 ? [] : i === 0 ? [LOOK_SAY] : [USE_WORDS, { t: 'lines' as const, n: 5 }]),
       ])
     }),
-    ...split(u.expressions, EXPRESSIONS_PER_PAGE).map((rows, i, all) => page('expressions', 'Useful expressions', [
+    // Two calm pages, never one crowded one: the first closes with «Notice», the second with extra words and a tip.
+    ...split(u.expressions, Math.ceil(u.expressions.length / 2)).map((rows, i, all) => page('expressions', 'Useful expressions', [
       { t: 'bar', title: `Useful expressions${more(i)} - عبارات مفيدة`, icon: '💬' },
-      ...(i ? [] : [{ t: 'callout' as const, text: 'اقرأ السؤال وجوابه بصوت مرتفع، ثم غطِّ عمود الأجوبة وحاول أن تجيب وحدك.' }]),
+      ...(i ? [] : [{ t: 'callout' as const, text: 'اقرأ السؤال وجوابه بصوت مرتفع، ثم غطِّ الجواب وحاول أن تجيب وحدك.' }]),
       { t: 'phrases', rows, start: all.slice(0, i).reduce((s, p) => s + p.length, 0) },
+      ...(i === 0
+        ? [
+            { t: 'bullets' as const, box: true, heading: 'Notice - لاحظ 👀', size: 13, items: x.notice },
+            { t: 'bar' as const, title: 'Extra words - كلمات إضافية', icon: '➕' },
+            { t: 'tiles' as const, items: x.extra, cols: 6, photos: x.extra.map(([, en]) => (EXTRA_PHOTOS.has(`${u.n}:${en}`) ? extraPhotoOf(u.n, en) : null)) },
+          ]
+        : [
+            { t: 'bullets' as const, box: true, heading: 'Tip - نصيحة 💡', size: 13, items: x.tip },
+            { t: 'bar' as const, title: 'Your turn - دورك', icon: '✍️' },
+            { t: 'answers' as const, items: x.yourTurn },
+          ]),
     ])),
     ...split(u.talk, LINES_PER_PAGE).map((lines, i, all) => page('talk', 'Conversation', [
       { t: 'bar', title: `Conversation${more(i)} - المحادثة`, icon: '🗣️' },
@@ -81,12 +107,17 @@ export function unitPages(u: EverydayUnit): EverydayPage[] {
       { t: 'script', lines },
       ...(all.length > 1 && i === all.length - 1 ? [ROLE_PLAY] : []),
     ])),
+    // The Level 1 book's reading page: the text in one box, then «Notice» and «Questions» side by side.
     page('reading', 'Reading', [
       { t: 'bar', title: 'Reading - القراءة', icon: '📖' },
-      { t: 'text', label: u.reading.title, body: u.reading.body.join('\n'), size: 13.5 },
+      { t: 'text', label: u.reading.title, body: u.reading.body.join('\n'), size: 13.5, plain: true },
+      { t: 'row', widths: '1fr 1fr', blocks: [
+        [{ t: 'bullets', box: true, heading: 'Notice - لاحظ', size: 12.5, items: x.readNotice }],
+        [{ t: 'bullets', box: true, heading: 'Questions - أسئلة', size: 12.5, items: x.questions }],
+      ] },
       { t: 'bar', title: 'Make it yours - اجعلها خاصة بك', icon: '✍️' },
       { t: 'bullets', items: u.yours, size: 13 },
-      { t: 'lines', n: 5 },
+      { t: 'lines', n: 3 },
     ]),
   ]
 }

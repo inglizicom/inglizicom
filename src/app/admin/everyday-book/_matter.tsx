@@ -57,8 +57,8 @@ export function ValuePage({ info, stats, units, filename }: { info: BookInfo; st
           <div className="absolute -left-20 -top-24 w-72 h-72 rounded-full bg-[var(--m)] opacity-20" />
           <div className="absolute left-24 bottom-[-60px] w-40 h-40 rounded-full border-[18px] border-white/5" />
           <p dir="ltr" className="text-right text-[11.5px] font-extrabold tracking-[0.28em] text-[var(--m)]" style={{ fontFamily: HEAD }}>ENGLISH FOR EVERYDAY SITUATIONS · A1 → A2</p>
-          <p className="mt-3 text-[33px] leading-[1.2]" style={DISPLAY}>تكلّم الإنجليزية في حياتك اليومية… <span className="text-[var(--m)]">بثقة</span></p>
-          <p className="mt-2 max-w-[660px] text-[14.5px] font-semibold leading-relaxed text-white/80">{stats.units} موقفًا من الصباح إلى المساء، وفي كل موقف: ماذا تقول، كيف تردّ، وكيف تبدو المحادثة الحقيقية.</p>
+          <p className="mt-3 text-[40px] leading-[1.2]" style={DISPLAY}>تكلّم الإنجليزية في حياتك اليومية… <span className="text-[var(--m)]">بثقة</span></p>
+          <p className="mt-2 max-w-[640px] text-[16px] font-bold leading-relaxed text-white/80">{stats.units} موقفًا من الصباح إلى المساء، وفي كل موقف: ماذا تقول، كيف تردّ، وكيف تبدو المحادثة الحقيقية.</p>
         </div>
 
         <div className="relative -mt-9 px-8 grid grid-cols-5 gap-2.5" dir="rtl">
@@ -78,7 +78,7 @@ export function ValuePage({ info, stats, units, filename }: { info: BookInfo; st
               <div key={u.n} className="flex items-center gap-2 rounded-xl bg-[var(--s)] px-2.5 py-1.5">
                 <span className="text-[20px] leading-none">{u.icons[0]}</span>
                 <div className="min-w-0 leading-tight">
-                  <p className="text-[11.5px] font-semibold">{u.titleAr}</p>
+                  <p className="text-[13px] font-bold">{u.titleAr}</p>
                   <p className="text-[9.5px] font-bold text-[#8a7560]" dir="ltr" style={{ textAlign: 'right' }}>{u.titleEn}</p>
                 </div>
               </div>
@@ -93,8 +93,8 @@ export function ValuePage({ info, stats, units, filename }: { info: BookInfo; st
               <div key={title} className="flex gap-3 rounded-2xl border-[1.5px] border-[var(--s)] px-3.5 py-2.5">
                 <span className="w-10 h-10 shrink-0 rounded-xl bg-[var(--m)] text-white flex items-center justify-center"><Icon size={20} /></span>
                 <div>
-                  <p className="text-[14px] font-bold text-[var(--k)]">{title}</p>
-                  <p className="text-[11.5px] font-medium leading-snug text-[#6b5a48]">{text}</p>
+                  <p className="text-[15.5px] font-extrabold text-[var(--k)]">{title}</p>
+                  <p className="text-[13px] font-bold leading-snug text-[#6b5a48]">{text}</p>
                 </div>
               </div>
             ))}

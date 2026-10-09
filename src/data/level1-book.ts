@@ -57,7 +57,9 @@ export type Block =
   /** Small titled boxes of bullets (WHEN / WHERE …). */
   | { t: 'boxes'; items: { title: string; lines: string[] }[]; cols: number }
   /** A labelled paragraph ("Introduce yourself", "Subject He"). */
-  | { t: 'text'; label: string; body: string; size?: number }
+  | { t: 'text'; label: string; body: string; size?: number
+      /** Several paragraphs ("\n") without margin numbers, as the Level 1 book's readings. */
+      plain?: boolean }
   /** A grid of equal cells; dark rows are black with white text. */
   | { t: 'grid'; title?: string; rows: { cells: string[]; dark?: boolean; plain?: boolean; span?: number[]; size?: number }[]; boxed?: boolean }
   /** Chips with a caption above (WH words). */
@@ -86,6 +88,8 @@ export type Block =
   | { t: 'script'; lines: string[]; size?: number }
   /** Ruled lines to write on. */
   | { t: 'lines'; n: number }
+  /** Questions for the student to answer about themselves, each with its own line. */
+  | { t: 'answers'; items: string[] }
   /** Answer keys: one line per exercise ("Ex. 12 · p. 14"), its answers numbered inline. */
   | { t: 'key'; items: { label: string; answers: string[] }[] }
   /** Space. */

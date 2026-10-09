@@ -7,14 +7,14 @@ import { BackCoverPage, CoverFields, CoverPage, DEFAULT_COVER, type CoverInfo, t
 import { DEFAULT_INFO, LessonPage, lessonColour, ThanksPage, type BookInfo } from '../level1-book/_blocks'
 import { CertificatePage, Imprint, NextStepPage, ValuePage } from './_matter'
 import { ProgressPage, UnitOpenerPage, WordListPage } from './_pages'
-import { BOOK_FONT_VARS, EN_FONT, useEverydayFonts } from './_fonts'
+import { BOOK_FONT_VARS, EN_FONT } from './_fonts'
 
 /**
  * /admin/everyday-book — «الإنجليزية للمواقف اليومية» (A1 → A2), the main
  * textbook, rebuilt in the house style of the Level 1 book and the Bac pack:
  * the same page frame, header and footer, QR slot and buyer copy, in the
- * brand's brown and gold, one colour per unit, and two faces only:
- * Montserrat for English, Readex Pro for Arabic (see _fonts.ts).
+ * brand's brown and gold, one colour per unit, and the Level 1 book's two
+ * faces: Mali for English, Baloo Bhaijaan 2 for Arabic (see _fonts.ts).
  *
  * Order: cover · «why this book» · thank-you (with the copyright notice) ·
  * welcome · how to use · contents · progress tracker · 19 units (opener,
@@ -59,7 +59,6 @@ export default function EverydayBookPage() {
   const [saved, setInfo] = useSaved<BookInfo>(INFO_KEY, BOOK_INFO)
   // The faces are the book's, not a saved setting (an older copy saved another English face).
   const info: BookInfo = { ...saved, fontEn: EN_FONT }
-  useEverydayFonts()
   const [cover, setCover] = useSaved<CoverInfo>(COVER_KEY, BOOK_COVER)
   const book = useMemo(buildEverydayBook, [])
   const { stats } = book

@@ -468,19 +468,23 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
     case 'text': return (
       <div>
         <div className="text-[14.5px] font-extrabold text-[var(--m)] mb-0.5" style={{ fontFamily: HEAD }}><Mixed text={b.label} /></div>
-        {b.body.includes('\n') ? (
+        {b.body.includes('\n') && b.plain ? (
+          // Paragraphs in the single-text look; weight and leading on each <p> (the site's global `p` rule sets 400 / 1.75).
+          <div className="rounded-r-xl bg-[var(--s)] border-l-[4px] border-[var(--m)] px-3.5 py-2 space-y-1.5" style={{ fontSize: b.size ?? 13 }}>
+            {b.body.split('\n').map((para, i) => <p key={i} className="font-bold leading-[1.6]">{para}</p>)}
+          </div>
+        ) : b.body.includes('\n') ? (
           // Several paragraphs: numbered in the margin, so questions can point at "§2".
-          // Weight and leading on each <p>: the site's global `p` rule would set them back to 400 / 1.75.
-          <div className="rounded-r-xl bg-[var(--s)] border-l-[4px] border-[var(--m)] pl-2 pr-3.5 py-2 font-semibold leading-[1.55] space-y-1" style={{ fontSize: b.size ?? 13 }}>
+          <div className="rounded-r-xl bg-[var(--s)] border-l-[4px] border-[var(--m)] pl-2 pr-3.5 py-2 font-bold leading-[1.55] space-y-1" style={{ fontSize: b.size ?? 13 }}>
             {b.body.split('\n').map((para, i) => (
-              <p key={i} className="flex gap-1.5 font-semibold leading-[1.55]">
+              <p key={i} className="flex gap-1.5">
                 <span className="shrink-0 w-4 text-right text-[10.5px] font-extrabold text-[var(--m)] pt-[2px]">{i + 1}</span>
                 <span>{para}</span>
               </p>
             ))}
           </div>
         ) : (
-          <p className="rounded-r-xl bg-[var(--s)] border-l-[4px] border-[var(--m)] px-3.5 py-2 font-semibold leading-[1.6]" style={{ fontSize: b.size ?? 13 }}>{b.body}</p>
+          <p className="rounded-r-xl bg-[var(--s)] border-l-[4px] border-[var(--m)] px-3.5 py-2 font-bold leading-[1.6]" style={{ fontSize: b.size ?? 13 }}>{b.body}</p>
         )}
       </div>
     )
@@ -544,16 +548,22 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
     case 'tiles': return (
       <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${b.cols ?? 3}, minmax(0, 1fr))` }}>
         {b.items.map(([icon, en, ar], i) => b.photos?.[i] ? (
-          // A photograph, cropped to 3:2, the word on a band under it (grey in black-and-white).
-          <div key={i} className="rounded-2xl bg-white border-[1.5px] border-[var(--s)] shadow-[0_3px_0_var(--s)] overflow-hidden flex flex-col">
-            <div className="relative w-full aspect-[3/2] bg-[var(--s)]">
+          // A photograph on a soft tinted card, as the Level 1 cards: the word in colour, its meaning in grey (all grey in black-and-white).
+          <div key={i} className="rounded-2xl bg-[var(--s)] p-1.5 pb-2 flex flex-col">
+            <div className="relative w-full aspect-[3/2] rounded-xl overflow-hidden bg-white">
               <img src={b.photos[i]} alt={en} loading="eager" decoding="sync" className="absolute inset-0 w-full h-full object-cover" style={EMOJI} />
-              <span className="absolute left-1.5 top-1.5 min-w-[22px] h-[22px] px-1 rounded-full bg-white/90 text-[10.5px] font-extrabold text-[var(--m)] flex items-center justify-center">{pad(i + 1 + (b.start ?? 0))}</span>
             </div>
-            <div className="px-2 py-1.5 text-center border-t-[3px] border-[var(--m)]">
-              <div className="text-[14.5px] font-extrabold leading-tight text-[var(--k)]">{en}</div>
-              <div dir="rtl" className="mt-0.5 text-[13px] font-bold leading-tight text-[var(--m)]" style={{ fontFamily: AR }}>{ar}</div>
+            <div className="pt-1.5 px-1 text-center">
+              <div className="text-[15px] font-extrabold leading-tight text-[var(--m)]">{en}</div>
+              <div dir="rtl" className="mt-0.5 text-[13px] font-bold leading-tight" style={{ fontFamily: AR, color: GREY_TEXT }}>{ar}</div>
             </div>
+          </div>
+        ) : (b.cols ?? 3) >= 5 ? (
+          // A small word card (the extra words), in the soft style of the Level 1 cards.
+          <div key={i} className="rounded-2xl bg-[var(--s)] px-1.5 py-2 flex flex-col items-center text-center">
+            <span className="text-[30px] leading-none" style={EMOJI}>{icon}</span>
+            <div className="mt-1 text-[12.5px] font-extrabold leading-tight text-[var(--m)]">{en}</div>
+            <div dir="rtl" className="mt-0.5 text-[11.5px] font-bold leading-tight" style={{ fontFamily: AR, color: GREY_TEXT }}>{ar}</div>
           </div>
         ) : (
           <div key={i} className="rounded-2xl bg-white border-[1.5px] border-[var(--s)] shadow-[0_3px_0_var(--s)] overflow-hidden flex flex-col items-center text-center pb-2">
@@ -584,22 +594,18 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       </div>
     )
     case 'phrases': return (
-      // A phrasebook table: what you ask, what you answer — not a dialogue.
-      <div className="rounded-xl overflow-hidden border-[1.5px] border-[var(--m)]">
-        <div className="grid bg-[var(--m)] text-white text-[13px] font-extrabold" style={{ gridTemplateColumns: '34px 1fr 1fr', fontFamily: HEAD }}>
-          <span className="py-1.5 text-center">#</span>
-          <span className="py-1.5 px-3 border-l border-white/25"><Mixed text={b.heads?.[0] ?? 'Ask - اسأل'} /></span>
-          <span className="py-1.5 px-3 border-l border-white/25"><Mixed text={b.heads?.[1] ?? 'Answer - أجب'} /></span>
-        </div>
+      // One soft card per exchange, with room around it: what you say ➜ the reply, the Arabic under each.
+      <div className="flex flex-col gap-2">
         {b.rows.map(([q, a, qAr, aAr], i) => (
-          <div key={i} className={`grid items-stretch border-t border-[var(--s)] ${i % 2 ? 'bg-white' : 'bg-[var(--s)]'}`} style={{ gridTemplateColumns: '34px 1fr 1fr' }}>
-            <span className="flex items-center justify-center text-[12px] font-extrabold text-[var(--m)]" style={{ fontFamily: HEAD }}>{pad(i + 1 + (b.start ?? 0))}</span>
-            <div className="px-3 py-[7px] border-l border-[var(--s)]">
-              <div className="text-[13.5px] font-bold leading-snug"><Mixed text={q} /></div>
+          <div key={i} className="grid items-center gap-3 rounded-2xl bg-[var(--s)] px-3 py-2.5" style={{ gridTemplateColumns: '26px 1fr 20px 1fr' }}>
+            <span className="w-[26px] h-[26px] rounded-full bg-white text-[var(--m)] flex items-center justify-center text-[12px] font-extrabold" style={{ fontFamily: HEAD }}>{i + 1 + (b.start ?? 0)}</span>
+            <div>
+              <div className="text-[14px] font-bold leading-snug"><Mixed text={q} /></div>
               {qAr && <Gloss s={qAr} size={12.5} />}
             </div>
-            <div className="px-3 py-[7px] border-l border-[var(--s)]">
-              <div className="text-[13.5px] font-extrabold leading-snug text-[var(--m)]"><Mixed text={a} /></div>
+            <span className="text-[var(--m)] text-[15px] font-extrabold text-center">➜</span>
+            <div>
+              <div className="text-[14px] font-extrabold leading-snug text-[var(--m)]"><Mixed text={a} /></div>
               {aAr && <Gloss s={aAr} size={12.5} />}
             </div>
           </div>
@@ -626,6 +632,16 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
         </div>
       )
     }
+    case 'answers': return (
+      <div className="flex flex-col gap-2">
+        {b.items.map((q, i) => (
+          <div key={i} className="text-[13.5px] font-bold">
+            <Bullet><span className="text-[var(--k)]"><Mixed text={q} /></span></Bullet>
+            <div className="ml-3 h-[26px] border-b-[1.5px] border-dashed border-[#94A3B8]" />
+          </div>
+        ))}
+      </div>
+    )
     case 'lines': return (
       <div className="flex flex-col">
         {Array.from({ length: b.n }, (_, i) => <div key={i} className="h-[26px] border-b border-dashed border-[#94A3B8]" />)}

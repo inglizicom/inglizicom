@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { existsSync, readdirSync } from 'node:fs'
-import { EVERYDAY_UNITS, OPENERS, buildEverydayBook, photoOf, split, sortKey, wordList, EXPRESSIONS_PER_PAGE, LINES_PER_PAGE, VOCAB_PER_PAGE } from '../../src/data/everyday-book/index.ts'
+import { EVERYDAY_UNITS, EXTRAS, OPENERS, buildEverydayBook, photoOf, split, sortKey, wordList, LINES_PER_PAGE, VOCAB_PER_PAGE } from '../../src/data/everyday-book/index.ts'
 
 const AR = /[؀-ۿ]/
 
@@ -53,7 +53,7 @@ test('pages: long parts are split evenly, every page is numbered once', () => {
     assert.deepEqual(own.slice(0, 2).map(p => p.kind), ['opener', 'vocab'])
     assert.equal(own.at(-1).kind, 'reading')
     assert.equal(own.filter(p => p.kind === 'vocab').length, Math.ceil(u.vocab.length / VOCAB_PER_PAGE))
-    assert.equal(own.filter(p => p.kind === 'expressions').length, Math.ceil(u.expressions.length / EXPRESSIONS_PER_PAGE))
+    assert.equal(own.filter(p => p.kind === 'expressions').length, 2)   // never one crowded page
     assert.equal(own.filter(p => p.kind === 'talk').length, Math.ceil(u.talk.length / LINES_PER_PAGE))
   }
   // the contents page points at each unit's opener, the progress page and the word list
@@ -80,6 +80,30 @@ test('every unit opens with three goals and a tip, in both languages', () => {
     assert.ok(o.tip.en && !AR.test(o.tip.en) && AR.test(o.tip.ar), `unit ${u.n}: tip`)
     // An Arabic line ending on an English word prints its full stop on the wrong side.
     assert.match(o.tip.ar, /[؀-ۿ][^A-Za-z؀-ۿ]*$/, `unit ${u.n}: the tip's Arabic ends in Arabic`)
+  }
+})
+
+test('every unit has its notice, six extra words, a tip, and four reading questions', () => {
+  const endsArabic = s => /[؀-ۿ][^A-Za-z؀-ۿ]*$/.test(s)
+  for (const u of EVERYDAY_UNITS) {
+    const x = EXTRAS[u.n], at = `unit ${u.n}`
+    assert.ok(x, at)
+    assert.ok(x.notice.length >= 3 && x.tip.length >= 2 && x.readNotice.length >= 3, at)
+    assert.equal(x.questions.length, 4, at)
+    assert.equal(x.yourTurn.length, 3, at)
+    for (const q of x.yourTurn) assert.match(q, /^[A-Z][^؀-ۿ]*\byou(r)?\b[^؀-ۿ]*\?$/, `${at}: "${q}" asks about the student`)
+    for (const q of x.questions) assert.match(q, /^[A-Z][^؀-ۿ]*\?$/, `${at}: "${q}"`)
+    assert.equal(x.extra.length, 6, at)
+    const taught = new Set(u.vocab.map(([, en]) => en.toLowerCase()))
+    for (const [icon, en, ar] of x.extra) {
+      assert.ok(icon && !/[A-Za-z]/.test(icon) && !AR.test(en) && AR.test(ar), `${at}: ${en}`)
+      assert.ok(!taught.has(en.toLowerCase()), `${at}: "${en}" is already in the vocabulary`)
+    }
+    // "English - العربية" lines and Arabic lines: the Arabic must end in Arabic, or its full stop flips sides.
+    for (const line of [...x.notice, ...x.tip]) {
+      const ar = AR.test(line.charAt(0)) ? line : line.split(' - ')[1]
+      if (ar) assert.ok(endsArabic(ar), `${at}: "${line}"`)
+    }
   }
 })
 
