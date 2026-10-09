@@ -134,6 +134,8 @@ function EnAr({ s, size }: { s: string; size: number }) {
 
 /** A question whose "___" become writing blanks. */
 function QuestionText({ text }: { text: string }) {
+  // An Arabic sentence to translate: one right-to-left run, so its ! and ؟ stay at its end.
+  if (!text.includes('___') && /^[؀-ۿ]/.test(text)) return <bdi dir="rtl" style={{ fontFamily: AR }}>{text}</bdi>
   const parts = text.split('___')
   return <>{parts.map((p, i) => <Fragment key={i}>{i > 0 && <span className="inline-block w-[74px] mx-1 border-b-[1.5px] border-[#64748B] translate-y-[2px]" />}<Mixed text={p} /></Fragment>)}</>
 }
@@ -600,6 +602,13 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
           <span className="text-[14.5px] font-extrabold text-[var(--m)] leading-tight" style={{ fontFamily: HEAD }}><Mixed text={b.title} /></span>
         </div>
         {b.instr && <div className="text-[12px] font-bold" style={{ color: GREY_TEXT }} dir={isAr(b.instr) ? 'rtl' : 'ltr'}><Txt s={b.instr} /></div>}
+        {b.bank && (
+          <div dir="ltr" className={`rounded-lg bg-[var(--s)] px-3 py-1.5 font-bold leading-snug ${b.lettered ? `grid ${b.bank.some(w => w.length > 36) ? 'grid-cols-1' : 'grid-cols-2'} gap-x-5 gap-y-[3px]` : 'flex flex-wrap gap-x-2 gap-y-1'}`} style={{ fontSize: (b.size ?? 13) - 0.5, ...CARD }}>
+            {b.bank.map((w, k) => b.lettered
+              ? <span key={k}><b className="text-[var(--m)]">{'abcdefghijkl'[k]})</b> <Mixed text={w} /></span>
+              : <span key={k} className="rounded-md bg-white px-2 py-[1px]"><Mixed text={w} /></span>)}
+          </div>
+        )}
         <div className="grid gap-x-6 gap-y-[5px]" style={{ gridTemplateColumns: `repeat(${b.cols ?? 1}, minmax(0, 1fr))` }}>
           {b.items.map((it, i) => (
             <div key={i} className="flex gap-1.5 font-bold leading-snug" style={{ fontSize: b.size ?? 13 }}>

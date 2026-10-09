@@ -201,11 +201,30 @@ function writingPages(u: L2Unit, page: PageOf): L2Page[] {
   ]
 }
 
-/* A fixed mix of a short list (the same on every print): rotate by half, then reverse each half. */
-function mixed<T>(list: T[]): T[] {
-  const h = Math.ceil(list.length / 2)
-  const out = [...list.slice(h).reverse(), ...list.slice(0, h).reverse()]
-  return out.every((x, i) => x === list[i]) ? [...list].reverse() : out
+/**
+ * A fixed mix of a short list, the same on every print: a shuffle seeded by
+ * the list itself, retried until nothing keeps its place and the order is
+ * neither the list nor the list backwards (no 6-5-4-3-2-1 to spot).
+ */
+export function mixed<T>(list: T[]): T[] {
+  const n = list.length
+  if (n < 3) return [...list].reverse()
+  let seed = [...JSON.stringify(list)].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) | 0, 7)
+  const rand = () => {   // mulberry32
+    seed = (seed + 0x6D2B79F5) | 0
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+  for (let tries = 0; tries < 200; tries++) {
+    const idx = list.map((_, i) => i)
+    for (let i = n - 1; i > 0; i--) {
+      const j = Math.floor(rand() * (i + 1));
+      [idx[i], idx[j]] = [idx[j], idx[i]]
+    }
+    if (idx.every((x, i) => x !== i) && !idx.every((x, i) => x === n - 1 - i)) return idx.map(i => list[i])
+  }
+  return [...list.slice(1), list[0]]
 }
 
 /**

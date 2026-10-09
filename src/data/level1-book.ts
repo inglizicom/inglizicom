@@ -81,7 +81,9 @@ export type Block =
   /** A numbered exercise (numbered across the book; answers go to the keys).
    *  "___" in a question draws a blank; `options` are choices (a, b, c);
    *  `lines` adds a writing line under each item. */
-  | { t: 'exercise'; title: string; instr?: string; items: ExerciseItem[]; cols?: 1 | 2; lines?: boolean; size?: number }
+  | { t: 'exercise'; title: string; instr?: string; items: ExerciseItem[]; cols?: 1 | 2; lines?: boolean; size?: number
+      /** Words to choose from, printed above the items; `lettered` lists them a), b), c)… (a matching exercise). */
+      bank?: string[]; lettered?: boolean }
   /** Large picture tiles: a vocabulary page's words, each with its picture and meaning. */
   | { t: 'tiles'; items: [icon: string, en: string, ar: string][]; cols?: number
       /** A photograph per word (URL), in place of its picture; `start` numbers a continued list. */

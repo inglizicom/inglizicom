@@ -10,6 +10,7 @@ const TITLES: [string, string][] = [
   ['/bac-pack', 'حقيبة الباك'],
   ['/everyday-book', 'الكتاب الأساسي'],
   ['/level2-book', 'المستوى الثاني'],
+  ['/level2-workbook', 'دفتر تمارين المستوى الثاني'],
   ['/team',      'الفريق والرواتب'],
   ['/analytics', 'الإيرادات والتقارير'],
   ['/teachers',  'الأساتذة'],
