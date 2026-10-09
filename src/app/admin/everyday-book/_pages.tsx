@@ -17,7 +17,7 @@ import { DISPLAY } from './_fonts'
 
 const EMOJI: CSSProperties = { filter: 'var(--e)' }
 const pad = (n: number) => String(n).padStart(2, '0')
-/** The k-th section colour of a unit's page: its own colour, then the next ones (none in black and white). */
+/** A unit page's second colour (k = 1): the next one in the palette (none in black and white). Two colours a page, no more. */
 const sectionColour = (info: BookInfo, n: number, k: number) =>
   (info.mono ? undefined : { '--m': lessonColour(n - 1 + k).m, '--s': lessonColour(n - 1 + k).s } as CSSProperties)
 /** A unit's colour on a page drawn in another colour (none in black and white). */
@@ -112,7 +112,7 @@ export function UnitOpenerPage({ info, unit: u, opener, parts, pageNo, filename 
             </div>
 
             {/* ── Tip ── */}
-            <div className="flex items-center gap-3.5 rounded-2xl bg-[var(--tip)] px-4 py-3" style={sectionColour(info, u.n, 2)}>
+            <div className="flex items-center gap-3.5 rounded-2xl bg-[var(--tip)] px-4 py-3">
               <span className="text-[34px] leading-none" style={EMOJI}>💡</span>
               <div className="flex-1 min-w-0">
                 <p className="text-[11px] font-extrabold tracking-[0.18em] uppercase text-[var(--m)]" style={{ fontFamily: HEAD }}>Language tip · <span style={{ fontFamily: AR }}>نصيحة لغوية</span></p>

@@ -12,9 +12,9 @@ import { UNITS_14_19 } from './units-3.ts'
  * Each unit runs: opener (its goals, key phrase and tip; drawn by the admin
  * page) · vocabulary (a photograph per word, at most twelve a page) · useful
  * expressions (two pages of cards, with «Notice», extra words, «Tip» and
- * «Your turn») · conversation (a script; past 38 lines it is split evenly
- * over two pages, «Before you read» under the first half, a role-play box
- * under the second) · reading (the Level 1 layout, with «Notice» and
+ * «Your turn») · conversation (a script: one column up to 30 lines, two
+ * columns up to 38, past that split evenly over two pages with «Before you
+ * read» under the first half and a role-play box under the second) · reading (the Level 1 layout, with «Notice» and
  * «Questions») + «Make it yours». The welcome, how-to-use, contents and progress pages come first,
  * the A–Z word list last; the cover, the «why this book» page, the
  * thank-you page, the certificate, the closing call to action and the back
@@ -44,6 +44,8 @@ export function split<T>(list: T[], max: number): T[][] {
 /* Page capacities, measured on the rendered A4 page (one page reads at zoom ≥ 0.9). */
 export const VOCAB_PER_PAGE = 12
 export const LINES_PER_PAGE = 38
+/** A conversation on one page reads in one column up to this many lines, in two columns above it. */
+export const ONE_COLUMN_LINES = 30
 
 /** A word's file name: "Wi-Fi password" → wi-fi-password, "for here / to go" → for-here-to-go. */
 export const photoSlug = (en: string) => en.toLowerCase().replace(/&/g, 'and').replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
@@ -113,7 +115,7 @@ export function unitPages(u: EverydayUnit): EverydayPage[] {
     ...split(u.talk, LINES_PER_PAGE).map((lines, i, all) => page('talk', 'Conversation', [
       { t: 'bar', title: `Conversation${more(i)} - المحادثة`, icon: '🗣️' },
       ...(i ? [] : [{ t: 'callout' as const, text: 'اقرأ المحادثة مع صديق: كل واحد يأخذ دورًا، ثم تبادلا الأدوار.' }]),
-      { t: 'script', lines },
+      { t: 'script', lines, ...(all.length === 1 && lines.length > ONE_COLUMN_LINES ? { cols: 2 as const } : {}) },
       ...(all.length > 1 ? [i === all.length - 1 ? ROLE_PLAY : BEFORE_YOU_READ] : []),
     ])),
     // The Level 1 book's reading page: the text in one box, then «Notice» and «Questions» side by side.

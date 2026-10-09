@@ -89,7 +89,9 @@ export type Block =
   /** Question → answer exchanges as chat bubbles (Arabic under each). */
   | { t: 'chat'; rows: [q: string, a: string, qAr?: string, aAr?: string][]; cols?: 1 | 2 }
   /** A conversation as a script: "NAME: line", each speaker in their own colour. */
-  | { t: 'script'; lines: string[]; size?: number }
+  | { t: 'script'; lines: string[]; size?: number
+      /** Two columns, read down the first then the second (a medium-length conversation on one page). */
+      cols?: 1 | 2 }
   /** Ruled lines to write on. */
   | { t: 'lines'; n: number
       /** On a `spread` page, more lines take the room left over (instead of a gap). */

@@ -248,7 +248,7 @@ export function LessonPage({ info, lesson, pageNo, talkNo, exNo = new Map(), fil
   info: BookInfo; lesson: Lesson; pageNo: number; talkNo: Map<Block, number>; exNo?: Map<Block, number>; filename: string
   /** One colour for the whole page (a unit's colour) instead of a new colour per section. */
   colour?: { m: string; s: string }
-  /** With `colour`: the frame keeps it, the sections take PALETTE colours from this index on, one each. */
+  /** With `colour`: the frame keeps it, the sections alternate between PALETTE[sectionsFrom] and the next colour (two in all). */
   sectionsFrom?: number
   /** Share the room left on the page between the sections (see useFillPage). */
   spread?: boolean
@@ -265,7 +265,7 @@ export function LessonPage({ info, lesson, pageNo, talkNo, exNo = new Map(), fil
       <div ref={bodyRef} className="lb-body absolute inset-x-[24px] overflow-hidden" style={{ top: 84, bottom: 38 }} dir="ltr">
         <div ref={innerRef} className="flex flex-col gap-[13px]">
           {sections.map((sec, k) => (
-            <section key={k} className="flex flex-col gap-[7px]" style={colourVars(info.mono, sectionsFrom !== undefined ? lessonColour(sectionsFrom + k) : colour ?? lessonColour(base + k))}>
+            <section key={k} className="flex flex-col gap-[7px]" style={colourVars(info.mono, sectionsFrom !== undefined ? lessonColour(sectionsFrom + (k % 2)) : colour ?? lessonColour(base + k))}>
               {sec.map((b, i) => <BlockView key={i} b={b} ctx={{ talkNo, barNo, exNo }} />)}
             </section>
           ))}
@@ -639,24 +639,35 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       </div>
     )
     case 'script': {
-      // Speakers in order of appearance: the first in the section colour, the second in ink, then two more.
-      const cast: string[] = []
-      const tone = ['var(--m)', 'var(--k)', '#B45309', '#0F766E']
-      return (
-        <div className="flex flex-col" style={{ fontSize: b.size ?? 13 }}>
-          {b.lines.map((s, i) => {
-            const m = s.match(/^([^:]{1,20}):\s(.*)$/)
-            const who = m?.[1] ?? ''
-            if (who && !cast.includes(who)) cast.push(who)
-            return (
-              <div key={i} className="grid items-baseline gap-2.5 rounded-md px-2 py-[3px]" style={{ gridTemplateColumns: '108px 1fr', background: i % 2 ? 'transparent' : 'var(--s)' }}>
-                <span className="text-right font-extrabold uppercase tracking-wide whitespace-nowrap text-[0.78em]" style={{ color: tone[cast.indexOf(who) % tone.length] }}>{who}</span>
-                <span className="font-semibold leading-snug"><Mixed text={m ? m[2] : s} /></span>
-              </div>
-            )
-          })}
-        </div>
-      )
+      // Two colours only: the first speaker (the student's part) in the section colour, everyone else in ink.
+      const first = b.lines[0]?.match(/^([^:]{1,20}):/)?.[1]
+      const line = (s: string, i: number, narrow: boolean) => {
+        const m = s.match(/^([^:]{1,20}):\s(.*)$/)
+        const who = m?.[1] ?? ''
+        const name = <span className="font-extrabold uppercase tracking-wide whitespace-nowrap text-[0.78em]" style={{ color: who === first ? 'var(--m)' : 'var(--k)' }}>{who}</span>
+        return narrow ? (
+          // In a column: the name leads its line, as in the Level 1 book's conversations.
+          <div key={i} className="rounded-md px-2.5 py-[4px] leading-snug" style={{ background: i % 2 ? 'transparent' : 'var(--s)' }}>
+            {name}<span className="ml-2 font-semibold"><Mixed text={m ? m[2] : s} /></span>
+          </div>
+        ) : (
+          <div key={i} className="grid items-baseline gap-2.5 rounded-md px-2 py-[3px]" style={{ gridTemplateColumns: '108px 1fr', background: i % 2 ? 'transparent' : 'var(--s)' }}>
+            <span className="text-right">{name}</span>
+            <span className="font-semibold leading-snug"><Mixed text={m ? m[2] : s} /></span>
+          </div>
+        )
+      }
+      if (b.cols === 2) {
+        // Read down the first column, then the second; a rule between them.
+        const half = Math.ceil(b.lines.length / 2)
+        return (
+          <div className="grid grid-cols-2 gap-x-4" style={{ fontSize: b.size ?? 13 }}>
+            <div className="flex flex-col pr-4 border-r-2 border-dashed border-[var(--s)]">{b.lines.slice(0, half).map((s, i) => line(s, i, true))}</div>
+            <div className="flex flex-col">{b.lines.slice(half).map((s, i) => line(s, half + i, true))}</div>
+          </div>
+        )
+      }
+      return <div className="flex flex-col" style={{ fontSize: b.size ?? 13 }}>{b.lines.map((s, i) => line(s, i, false))}</div>
     }
     case 'answers': return (
       <div className="flex flex-col gap-2">

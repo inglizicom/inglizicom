@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { existsSync, readdirSync } from 'node:fs'
-import { EVERYDAY_UNITS, EXTRAS, OPENERS, buildEverydayBook, photoOf, split, sortKey, wordList, LINES_PER_PAGE, VOCAB_PER_PAGE } from '../../src/data/everyday-book/index.ts'
+import { EVERYDAY_UNITS, EXTRAS, OPENERS, buildEverydayBook, photoOf, split, sortKey, wordList, LINES_PER_PAGE, ONE_COLUMN_LINES, VOCAB_PER_PAGE } from '../../src/data/everyday-book/index.ts'
 
 const AR = /[؀-ۿ]/
 
@@ -55,6 +55,9 @@ test('pages: long parts are split evenly, every page is numbered once', () => {
     assert.equal(own.filter(p => p.kind === 'vocab').length, Math.ceil(u.vocab.length / VOCAB_PER_PAGE))
     assert.equal(own.filter(p => p.kind === 'expressions').length, 2)   // never one crowded page
     assert.equal(own.filter(p => p.kind === 'talk').length, Math.ceil(u.talk.length / LINES_PER_PAGE))
+    // one page: one column while short, two columns when longer; two pages: one column each
+    const scripts = own.filter(p => p.kind === 'talk').map(p => p.blocks.find(b => b.t === 'script'))
+    for (const s of scripts) assert.equal(s.cols ?? 1, scripts.length === 1 && s.lines.length > ONE_COLUMN_LINES ? 2 : 1, `unit ${u.n}`)
   }
   // the contents page points at each unit's opener, the progress page and the word list
   const contents = pages.find(p => p.kind === 'contents')
