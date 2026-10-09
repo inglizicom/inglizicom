@@ -8,6 +8,7 @@ const TITLES: [string, string][] = [
   ['/vocab-book', 'كتاب المفردات'],
   ['/level1-book', 'كتاب المستوى الأول'],
   ['/bac-pack', 'حقيبة الباك'],
+  ['/everyday-book', 'الكتاب الأساسي'],
   ['/team',      'الفريق والرواتب'],
   ['/analytics', 'الإيرادات والتقارير'],
   ['/teachers',  'الأساتذة'],

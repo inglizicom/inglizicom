@@ -80,7 +80,7 @@ function Bubble({ children, style, tone, tail, p }: {
 const Stat = ({ n, ar, en, p, icon }: { n?: string; ar: string; en: string; p: CoverPalette; icon?: ReactNode }) => (
   <div className="flex-1 flex flex-col items-center justify-center rounded-2xl py-3"
     style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.16)' }}>
-    <span className="flex items-center justify-center h-[34px] text-[30px] font-black leading-none" style={{ fontFamily: EN, color: p.accent }}>{n ?? icon}</span>
+    <span dir="ltr" className="flex items-center justify-center h-[34px] text-[30px] font-black leading-none" style={{ fontFamily: EN, color: p.accent }}>{n ?? icon}</span>
     <span className="mt-1.5 text-[14px] font-semibold text-white" style={{ fontFamily: AR_TEXT }}>{ar}</span>
     <span className="text-[10.5px] font-semibold uppercase tracking-[0.14em]" style={{ fontFamily: EN, color: p.mist }}>{en}</span>
   </div>

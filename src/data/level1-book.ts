@@ -49,7 +49,7 @@ export type Block =
   /** Several blocks side by side; `widths` is a CSS grid template. */
   | { t: 'row'; widths: string; blocks: Block[][] }
   /** Picture word cards: emoji, English (black), Arabic (boxed). */
-  | { t: 'cards'; items: [icon: string, en: string, ar: string][]; cols?: number }
+  | { t: 'cards'; items: [icon: string, en: string, ar: string][]; cols?: number; /** icon above the words, for narrow columns */ stack?: boolean }
   /** Word pairs as black/white labels (English on top unless `arTop`). */
   | { t: 'pairs'; items: Pair[]; cols: number; arTop?: boolean; side?: boolean; size?: number }
   /** Question → answer rows (white / black), with optional Arabic. */
@@ -74,6 +74,14 @@ export type Block =
    *  "___" in a question draws a blank; `options` are choices (a, b, c);
    *  `lines` adds a writing line under each item. */
   | { t: 'exercise'; title: string; instr?: string; items: ExerciseItem[]; cols?: 1 | 2; lines?: boolean; size?: number }
+  /** Large picture tiles: a vocabulary page's words, each with its picture and meaning. */
+  | { t: 'tiles'; items: [icon: string, en: string, ar: string][]; cols?: number }
+  /** Question → answer exchanges as chat bubbles (Arabic under each). */
+  | { t: 'chat'; rows: [q: string, a: string, qAr?: string, aAr?: string][]; cols?: 1 | 2 }
+  /** A conversation as a script: "NAME: line", each speaker in their own colour. */
+  | { t: 'script'; lines: string[]; size?: number }
+  /** Ruled lines to write on. */
+  | { t: 'lines'; n: number }
   /** Answer keys: one line per exercise ("Ex. 12 · p. 14"), its answers numbered inline. */
   | { t: 'key'; items: { label: string; answers: string[] }[] }
   /** Space. */

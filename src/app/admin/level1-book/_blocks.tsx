@@ -22,7 +22,7 @@ import type { Block, FamilyPeople, FlagId, Lesson } from '@/data/level1-book'
  * and PNG behave like the workbook's.
  */
 
-const FONTS_HREF = 'https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&family=Baloo+Bhaijaan+2:wght@500;600;700;800&family=Lalezar&display=swap'
+const FONTS_HREF = 'https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&family=Baloo+Bhaijaan+2:wght@500;600;700;800&family=Lalezar&family=Poppins:wght@400;500;600;700;800&display=swap'
 export const EN = "'Mali', 'Baloo Bhaijaan 2', sans-serif"
 export const AR = "'Baloo Bhaijaan 2', 'Tajawal', sans-serif"
 /** Section headings and titles: a second face, so sections stand apart from the body. */
@@ -47,11 +47,13 @@ export const PALETTE = [
   { m: '#16A34A', s: '#EEFBF2' }, // green
 ]
 const INK = '#1E2A5C', BRAND = '#2B3990'
-function vars(mono: boolean, colour: { m: string; s: string }): CSSProperties {
+function vars(mono: boolean, colour: { m: string; s: string }, ink = INK): CSSProperties {
   return (mono
     ? { '--m': '#000', '--s': '#F3F4F6', '--k': '#000', '--tip': '#F3F4F6', '--e': 'grayscale(1) contrast(1.15)' }
-    : { '--m': colour.m, '--s': colour.s, '--k': INK, '--tip': '#FFF5CF', '--e': 'none' }) as CSSProperties
+    : { '--m': colour.m, '--s': colour.s, '--k': ink, '--tip': '#FFF5CF', '--e': 'none' }) as CSSProperties
 }
+/** A clean sans for books for adults (the Level 1 book keeps the friendlier Mali). */
+export const SANS = "'Poppins', 'Baloo Bhaijaan 2', sans-serif"
 const colourVars = (mono: boolean, c: { m: string; s: string }): CSSProperties => (mono ? {} : { '--m': c.m, '--s': c.s } as CSSProperties)
 export const lessonColour = (i: number) => PALETTE[((i % PALETTE.length) + PALETTE.length) % PALETTE.length]
 const MONO = THEMES.find(t => t.id === 'mono') ?? THEMES[0]
@@ -74,6 +76,8 @@ export interface BookInfo {
   mono: boolean
   /** The QR / barcode printed on every page (a data URL), and whether to show its slot. */
   code: string | null; showCode: boolean
+  /** Optional brand: the dark ink (header bar, footer, names) and the English face. */
+  ink?: string; fontEn?: string
 }
 
 export const DEFAULT_INFO: BookInfo = {
@@ -114,26 +118,26 @@ function QuestionText({ text }: { text: string }) {
 }
 
 /** An Arabic gloss under an English word, aligned with it. */
-const Gloss = ({ s, size = 12.5, className = '' }: { s: string; size?: number; className?: string }) => (
+export const Gloss = ({ s, size = 12.5, className = '' }: { s: string; size?: number; className?: string }) => (
   <div dir="rtl" className={`text-left font-bold leading-snug ${className}`} style={{ fontFamily: AR, fontSize: size, color: GREY_TEXT }}><RtlMixed text={s} /></div>
 )
 
 /* ── Page frame ──────────────────────────────────────────────────────── */
 
-function Frame({ info, label, filename, colour = { m: BRAND, s: '#EEF1FB' }, children }: {
+export function Frame({ info, label, filename, colour = { m: BRAND, s: '#EEF1FB' }, children }: {
   info: BookInfo; label: string; filename: string; colour?: { m: string; s: string }; children: ReactNode
 }) {
   useBookFonts()
   return (
     <BareSheet theme={MONO} label={label} filename={filename}>
       {/* crm-raw: the CRM repaints black as navy (tailwind.config.js); the book sets its own colours. */}
-      <div className="crm-raw absolute inset-0 bg-white text-[var(--k)] overflow-hidden" style={{ fontFamily: EN, ...vars(info.mono, colour) }}>{children}</div>
+      <div className="crm-raw absolute inset-0 bg-white text-[var(--k)] overflow-hidden" style={{ fontFamily: info.fontEn ?? EN, ...vars(info.mono, colour, info.ink) }}>{children}</div>
     </BareSheet>
   )
 }
 
 /** The QR / barcode: the uploaded image, or a dashed slot keeping its place. */
-function CodeSlot({ info, size }: { info: BookInfo; size: number }) {
+export function CodeSlot({ info, size }: { info: BookInfo; size: number }) {
   if (!info.showCode) return null
   if (info.code) return <img src={info.code} alt="code" className="shrink-0 bg-white rounded-md" style={{ width: size, height: size, objectFit: 'contain' }} />
   return (
@@ -144,7 +148,7 @@ function CodeSlot({ info, size }: { info: BookInfo; size: number }) {
   )
 }
 
-function LessonHeader({ info, n, tag }: { info: BookInfo; n: number; tag?: string }) {
+export function LessonHeader({ info, n, tag }: { info: BookInfo; n: number; tag?: string }) {
   return (
     <div className="absolute inset-x-[22px] top-[10px] h-[62px] flex items-center gap-3" dir="ltr">
       <div className="w-[146px] shrink-0 text-center">
@@ -165,7 +169,7 @@ function LessonHeader({ info, n, tag }: { info: BookInfo; n: number; tag?: strin
   )
 }
 
-function Footer({ info, page }: { info: BookInfo; page: string }) {
+export function Footer({ info, page }: { info: BookInfo; page: string }) {
   return (
     <div className="lb-foot absolute inset-x-[22px] bottom-[10px] h-[22px] bg-[var(--k)] text-white rounded-md flex items-center justify-between px-3 text-[11px] font-bold" dir="ltr">
       <span>{info.website}</span>
@@ -218,22 +222,24 @@ function sectionsOf(blocks: Block[]): Block[][] {
   return out
 }
 
-export function LessonPage({ info, lesson, pageNo, talkNo, exNo = new Map(), filename }: {
+export function LessonPage({ info, lesson, pageNo, talkNo, exNo = new Map(), filename, colour }: {
   info: BookInfo; lesson: Lesson; pageNo: number; talkNo: Map<Block, number>; exNo?: Map<Block, number>; filename: string
+  /** One colour for the whole page (a unit's colour) instead of a new colour per section. */
+  colour?: { m: string; s: string }
 }) {
-  const { bodyRef, innerRef } = useFillPage([lesson, info.title, info.level, info.showCode])
+  const { bodyRef, innerRef } = useFillPage([lesson, info.title, info.level, info.showCode, info.fontEn])
   const sections = sectionsOf(lesson.blocks)
   // Headings are numbered within the lesson: ① Greetings, ② Goodbye…
   const barNo = new Map<Block, number>()
   sections.forEach(s => { if (s[0].t === 'bar') barNo.set(s[0], barNo.size + 1) })
   const base = pageNo - 1
   return (
-    <Frame info={info} colour={lessonColour(base)} label={`${lesson.tag ?? `الدرس ${lesson.n}`} — ${lesson.titleAr} · صفحة ${pageNo}`} filename={filename}>
+    <Frame info={info} colour={colour ?? lessonColour(base)} label={`${lesson.tag ?? `الدرس ${lesson.n}`} — ${lesson.titleAr} · صفحة ${pageNo}`} filename={filename}>
       <LessonHeader info={info} n={lesson.n} tag={lesson.tag} />
       <div ref={bodyRef} className="lb-body absolute inset-x-[24px] overflow-hidden" style={{ top: 84, bottom: 38 }} dir="ltr">
         <div ref={innerRef} className="flex flex-col gap-[13px]">
           {sections.map((sec, k) => (
-            <section key={k} className="flex flex-col gap-[7px]" style={colourVars(info.mono, lessonColour(base + k))}>
+            <section key={k} className="flex flex-col gap-[7px]" style={colourVars(info.mono, colour ?? lessonColour(base + k))}>
               {sec.map((b, i) => <BlockView key={i} b={b} ctx={{ talkNo, barNo, exNo }} />)}
             </section>
           ))}
@@ -274,7 +280,7 @@ function Columns({ items, cols, render }: { items: string[]; cols: number; rende
 }
 
 /** A section heading: a coloured badge (number or picture), the title in the heading face, a rule. */
-function SectionHead({ title, badge }: { title: string; badge: ReactNode }) {
+export function SectionHead({ title, badge }: { title: string; badge: ReactNode }) {
   return (
     <div className="flex items-center gap-2.5">
       <span className="shrink-0 h-[30px] min-w-[30px] px-1.5 rounded-full bg-[var(--m)] text-white flex items-center justify-center text-[15px] font-extrabold" style={{ fontFamily: HEAD }}>{badge}</span>
@@ -384,7 +390,13 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
     )
     case 'cards': return (
       <div className="grid gap-x-3 gap-y-2" style={{ gridTemplateColumns: `repeat(${b.cols ?? 4}, minmax(0, 1fr))` }}>
-        {b.items.map(([icon, en, ar], i) => (
+        {b.items.map(([icon, en, ar], i) => b.stack ? (
+          <div key={i} className="flex flex-col items-center gap-0.5 min-w-0 rounded-xl bg-[var(--s)] px-1.5 py-2 text-center">
+            <span className="text-[30px] leading-none" style={EMOJI}>{icon}</span>
+            <div className="mt-0.5 text-[13.5px] font-extrabold leading-tight text-[var(--m)]">{en}</div>
+            <div dir="rtl" className="text-[12.5px] font-bold leading-snug" style={{ fontFamily: AR, color: GREY_TEXT }}>{ar}</div>
+          </div>
+        ) : (
           <div key={i} className="flex items-center gap-2 min-w-0 rounded-xl bg-[var(--s)] px-2 py-1.5">
             <span className="text-[30px] leading-none shrink-0 w-[36px] text-center" style={EMOJI}>{icon}</span>
             <div className="flex-1 min-w-0">
@@ -444,7 +456,8 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
         {b.items.map(x => (
           <div key={x.title} className="rounded-xl bg-[var(--s)] px-3 py-2 text-[12.5px] font-bold">
             <div className="text-[16px] font-extrabold text-[var(--m)] leading-tight mb-0.5" style={{ fontFamily: HEAD }}>{x.title}</div>
-            {x.lines.map(l => <Bullet key={l}>{l}</Bullet>)}
+            {/* An Arabic line glosses the title: right to left, no bullet (its full stop would land on the wrong side). */}
+            {x.lines.map(l => (isAr(l) ? <Gloss key={l} s={l} size={13} /> : <Bullet key={l}>{l}</Bullet>))}
           </div>
         ))}
       </div>
@@ -522,6 +535,61 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
             </div>
           ))}
         </div>
+      </div>
+    )
+    case 'tiles': return (
+      <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${b.cols ?? 3}, minmax(0, 1fr))` }}>
+        {b.items.map(([icon, en, ar], i) => (
+          <div key={i} className="rounded-2xl bg-white border-[1.5px] border-[var(--s)] shadow-[0_3px_0_var(--s)] overflow-hidden flex flex-col items-center text-center pb-2">
+            <div className="relative w-full flex items-center justify-center py-2.5 bg-[var(--s)]">
+              <span className="absolute left-2 top-1.5 text-[10px] font-extrabold text-[var(--m)] opacity-70">{pad(i + 1)}</span>
+              <span className="text-[38px] leading-none" style={EMOJI}>{icon}</span>
+            </div>
+            <div className="px-2 pt-1.5 text-[14px] font-extrabold leading-tight text-[var(--k)]">{en}</div>
+            <div dir="rtl" className="px-2 mt-0.5 text-[12.5px] font-bold leading-tight text-[var(--m)]" style={{ fontFamily: AR }}>{ar}</div>
+          </div>
+        ))}
+      </div>
+    )
+    case 'chat': return (
+      <div className="grid gap-x-4 gap-y-2.5" style={{ gridTemplateColumns: `repeat(${b.cols ?? 2}, minmax(0, 1fr))` }}>
+        {b.rows.map(([q, a, qAr, aAr], i) => (
+          <div key={i} className="flex flex-col gap-1">
+            <div className="self-start max-w-[94%] rounded-2xl rounded-bl-[4px] bg-[#F3F0EA] px-3 py-1.5">
+              <div className="text-[12.5px] font-bold leading-snug"><Mixed text={q} /></div>
+              {qAr && <Gloss s={qAr} size={11.5} />}
+            </div>
+            <div className="self-end max-w-[94%] rounded-2xl rounded-br-[4px] bg-[var(--m)] px-3 py-1.5 text-white">
+              <div className="text-[12.5px] font-extrabold leading-snug"><Mixed text={a} /></div>
+              {aAr && <div dir="rtl" className="text-[11.5px] font-bold leading-snug text-white/85" style={{ fontFamily: AR }}><RtlMixed text={aAr} /></div>}
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+    case 'script': {
+      // Speakers in order of appearance: the first in the section colour, the second in ink, then two more.
+      const cast: string[] = []
+      const tone = ['var(--m)', 'var(--k)', '#B45309', '#0F766E']
+      return (
+        <div className="flex flex-col" style={{ fontSize: b.size ?? 13 }}>
+          {b.lines.map((s, i) => {
+            const m = s.match(/^([^:]{1,20}):\s(.*)$/)
+            const who = m?.[1] ?? ''
+            if (who && !cast.includes(who)) cast.push(who)
+            return (
+              <div key={i} className="grid items-baseline gap-2.5 rounded-md px-2 py-[3px]" style={{ gridTemplateColumns: '108px 1fr', background: i % 2 ? 'transparent' : 'var(--s)' }}>
+                <span className="text-right font-extrabold uppercase tracking-wide whitespace-nowrap text-[0.78em]" style={{ color: tone[cast.indexOf(who) % tone.length] }}>{who}</span>
+                <span className="font-semibold leading-snug"><Mixed text={m ? m[2] : s} /></span>
+              </div>
+            )
+          })}
+        </div>
+      )
+    }
+    case 'lines': return (
+      <div className="flex flex-col">
+        {Array.from({ length: b.n }, (_, i) => <div key={i} className="h-[26px] border-b border-dashed border-[#94A3B8]" />)}
       </div>
     )
     case 'key': return (
@@ -915,7 +983,8 @@ function HangingSign({ text }: { text: string }) {
   )
 }
 
-export function ThanksPage({ info, filename }: { info: BookInfo; filename: string }) {
+/** `note` (a book's copyright notice) takes the bottom of the page, in place of the buyer's line. */
+export function ThanksPage({ info, filename, note }: { info: BookInfo; filename: string; note?: ReactNode }) {
   const f = info.buyerFemale
   const name = info.buyer.trim()
   const lines = [
@@ -935,7 +1004,7 @@ export function ThanksPage({ info, filename }: { info: BookInfo; filename: strin
         {lines.map(l => <p key={l}>{l}</p>)}
         <p className="mt-10 font-extrabold">- {info.teacherAr}</p>
       </div>
-      {name && (
+      {note ? <div className="absolute left-[34px] right-[134px] bottom-[34px]">{note}</div> : name && (
         <div className="absolute inset-x-0 bottom-[60px] flex justify-center" dir="rtl" style={{ fontFamily: AR }}>
           <span className="rounded-xl bg-[var(--s)] px-5 py-1.5 text-[16px] font-bold">هذه النسخة خاصة بـ: {name}</span>
         </div>

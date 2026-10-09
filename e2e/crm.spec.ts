@@ -43,6 +43,7 @@ const FOUNDER_PAGES = [
   '/admin/vocab-book',
   '/admin/level1-book',
   '/admin/bac-pack',
+  '/admin/everyday-book',
 ]
 
 /** Against the device width — a phone zooming a too-wide page out also widens innerWidth. */
@@ -225,6 +226,33 @@ test.describe('flows', () => {
     await expect(page.locator('.lb-foot').first()).toContainText('أنور')
     const pdf = (await page.pdf({ preferCSSPageSize: true, printBackground: true })).toString('latin1')
     expect((pdf.match(/\/Type\s*\/Page[^s]/g) ?? []).length).toBe(await sheets.count())
+  })
+
+  test('everyday textbook: every page fits, units are complete, one PDF page per sheet', async ({ page }, info) => {
+    test.skip(info.project.name !== 'desktop', 'one PDF run is enough')
+    test.setTimeout(240_000)
+    await mockSupabase(page, { role: 'founder' })
+    await page.goto('/admin/everyday-book')
+    const sheets = page.locator('.print-sheet')
+    await expect(sheets.first()).toBeVisible()
+    const count = await sheets.count()
+    // cover, why, thanks, certificate, next, back · welcome, how to, contents, progress · 5+ pages a unit · word list
+    expect(count).toBeGreaterThanOrEqual(6 + 4 + 19 * 5 + 2)
+    await page.evaluate(() => document.fonts.ready)
+    await page.waitForTimeout(1000)
+    const tooLong = await page.evaluate(() => [...document.querySelectorAll('.lb-body')].flatMap((b, i) => {
+      const inner = b.firstElementChild as HTMLElement
+      return inner.getBoundingClientRect().bottom > b.getBoundingClientRect().bottom + 1 ? [i + 1] : []
+    }))
+    expect(tooLong).toEqual([])
+    await expect(page.locator('.print-sheet', { hasText: 'Three Nights at the Hotel' }).last()).toContainText('Make it yours')   // the opener names the reading too
+    await expect(page.locator('.print-sheet', { hasText: 'Unit 17' }).filter({ hasText: 'Conversation - المحادثة' }).first()).toContainText('Layla Hamdan')
+    // each unit opens on its own page, the word list and the certificate close the book
+    await expect(page.locator('.print-sheet', { hasText: 'Key phrase' })).toHaveCount(19)
+    await expect(page.locator('.print-sheet', { hasText: 'Word list' }).filter({ hasText: 'appointment' })).toHaveCount(1)
+    await expect(page.locator('.print-sheet', { hasText: 'This is to certify that' })).toHaveCount(1)
+    const pdf = (await page.pdf({ preferCSSPageSize: true, printBackground: true })).toString('latin1')
+    expect((pdf.match(/\/Type\s*\/Page[^s]/g) ?? []).length).toBe(count)
   })
 
   test('bac results: staff see what students did in the portal\'s Bac tab', async ({ page }) => {

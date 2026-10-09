@@ -54,6 +54,7 @@ const GROUPS: { title: string; founder?: boolean; items: NavDef[] }[] = [
   { title: 'الإدارة', founder: true, items: [
     { id: 'games',    labelAr: 'دفتر التمارين',       icon: Puzzle,    path: '/games',     founder: true },
     { id: 'vocabbook', labelAr: 'كتاب المفردات',      icon: Library,   path: '/vocab-book', founder: true },
+    { id: 'everydaybook', labelAr: 'الكتاب الأساسي (المواقف اليومية)', icon: BookOpen, path: '/everyday-book', founder: true },
     { id: 'level1book', labelAr: 'كتاب المستوى الأول', icon: BookOpen,  path: '/level1-book', founder: true },
     { id: 'bacpack',    labelAr: 'حقيبة الباك',        icon: ClipboardCheck, path: '/bac-pack', founder: true },
     { id: 'team',     labelAr: 'الفريق والرواتب',      icon: Wallet,    path: '/team',      founder: true },
