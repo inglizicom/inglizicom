@@ -60,11 +60,19 @@ function isPwaAsset(pathname: string): boolean {
   )
 }
 
+/** Images, audio and video from /public, also on every domain: on the admin
+ *  domain /everyday-book/vocab/u01/wake-up.webp would otherwise match the
+ *  /everyday-book route prefix and be rewritten to a page. No page route
+ *  ends in one of these extensions. */
+function isMediaFile(pathname: string): boolean {
+  return /\.(png|jpe?g|webp|avif|gif|svg|ico|mp3|m4a|wav|ogg|mp4|webm)$/i.test(pathname)
+}
+
 export function middleware(request: NextRequest) {
   const host     = request.headers.get('host') ?? ''
   const pathname = request.nextUrl.pathname
 
-  if (isPwaAsset(pathname)) return NextResponse.next()
+  if (isPwaAsset(pathname) || isMediaFile(pathname)) return NextResponse.next()
 
   // ── Student portal subdomain ──────────────────────────────
   // student.inglizi.com (also space./my. as aliases) → /student-space
