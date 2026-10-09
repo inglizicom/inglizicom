@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { existsSync, readdirSync } from 'node:fs'
-import { AWAITING_PHOTOS, EVERYDAY_UNITS, EXTRAS, OPENERS, REVIEWS, buildEverydayBook, photoOf, split, sortKey, wordList, LINES_PER_PAGE, ONE_COLUMN_LINES, VOCAB_PER_PAGE } from '../../src/data/everyday-book/index.ts'
+import { AVATARS, AWAITING_PHOTOS, EVERYDAY_UNITS, KEY_LINES, keyLines, markRegex, EXTRAS, OPENERS, REVIEWS, buildEverydayBook, photoOf, split, sortKey, wordList, LINES_PER_PAGE, ONE_COLUMN_LINES, VOCAB_PER_PAGE } from '../../src/data/everyday-book/index.ts'
 
 const AR = /[؀-ۿ]/
 
@@ -133,6 +133,23 @@ test('every word has its photograph (or is awaiting one), and every photograph i
   const dir = new URL('../../public/everyday-book/vocab/', import.meta.url)
   const files = readdirSync(dir).flatMap(d => readdirSync(new URL(`${d}/`, dir)).map(f => `/everyday-book/vocab/${d}/${f}`))
   assert.deepEqual(files.filter(f => !want.has(f.replace(/\.(webp|png|jpg)$/, ''))), [], 'photos no word uses')
+})
+
+test('conversations: every speaker has a face, a few key sentences, the unit words marked', () => {
+  const { pages } = buildEverydayBook()
+  for (const u of EVERYDAY_UNITS) {
+    for (const who of new Set(u.talk.map(l => l.split(':')[0]))) assert.ok(AVATARS[who], `unit ${u.n}: a face for ${who}`)
+    const k = keyLines(u)
+    assert.ok(k.length >= 1 && k.length <= KEY_LINES, `unit ${u.n}: ${k.length} key sentences`)
+    const re = markRegex(u)
+    assert.ok(u.talk.some(l => new RegExp(re.source, 'i').test(l.replace(/^[^:]+:\s/, ''))), `unit ${u.n}: some vocabulary is marked`)
+    // the two-page split keeps every key sentence, on the right line
+    const scripts = pages.filter(p => p.unit === u.n && p.kind === 'talk').map(p => p.blocks.find(b => b.t === 'script'))
+    const shown = scripts.flatMap(s => s.keys.map(i => s.lines[i]))
+    assert.deepEqual(shown, k.map(i => u.talk[i]), `unit ${u.n}`)
+  }
+  // words with an everyday second sense are not marked ("I'll call you back")
+  assert.ok(!markRegex(EVERYDAY_UNITS[10]).test('I will call you back'))
 })
 
 test('each review has three quizzes, and the answer key answers them all', () => {

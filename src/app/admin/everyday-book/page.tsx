@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { buildEverydayBook, EVERYDAY_UNITS, KIND_TONE, OPENERS, TONES, type EverydayPage, type Tone } from '@/data/everyday-book'
 import { Field, GamesHeader, INP, PrintAllButton, THEMES } from '../games/_shared'
 import { BackCoverPage, CoverFields, CoverPage, DEFAULT_COVER, type CoverInfo, type CoverStat } from '../games/_cover'
@@ -32,6 +32,8 @@ const BOOK_INFO: BookInfo = {
 const BOOK_COVER: CoverInfo = { ...DEFAULT_COVER, palette: 'brown', phone1: '+212 707 902 091' }
 
 type View = 'book' | 'front' | 'reviews' | 'end' | number
+/** The book's faces, and its highlights in the colour key: vocabulary words blue, key sentences on the expressions' green. */
+const PAGE_VARS = { ...BOOK_FONT_VARS, '--hl': TONES.vocab.m, '--key': TONES.expr.m, '--key-s': TONES.expr.s } as CSSProperties
 const FRONT: EverydayPage['kind'][] = ['welcome', 'howto', 'contents', 'progress']
 
 function useSaved<T extends object>(key: string, initial: T) {
@@ -97,7 +99,7 @@ export default function EverydayBookPage() {
   )
 
   return (
-    <div className="px-6 lg:px-10 py-8 max-w-[1300px] mx-auto" style={BOOK_FONT_VARS}>
+    <div className="px-6 lg:px-10 py-8 max-w-[1300px] mx-auto" style={PAGE_VARS}>
       <GamesHeader title="الكتاب الأساسي — الإنجليزية للمواقف اليومية (A1 → A2)" back="/admin" />
       <div className="grid lg:grid-cols-[300px_1fr] gap-6">
         <aside className="space-y-4 print:hidden lg:sticky lg:top-24 self-start">

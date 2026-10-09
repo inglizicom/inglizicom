@@ -63,7 +63,9 @@ export type Block =
   /** A labelled paragraph ("Introduce yourself", "Subject He"). */
   | { t: 'text'; label: string; body: string; size?: number
       /** Several paragraphs ("\n") without margin numbers, as the Level 1 book's readings. */
-      plain?: boolean }
+      plain?: boolean
+      /** Words to print bold in the highlight colour (a unit's vocabulary). */
+      mark?: RegExp }
   /** A grid of equal cells; dark rows are black with white text. */
   | { t: 'grid'; title?: string; rows: { cells: string[]; dark?: boolean; plain?: boolean; span?: number[]; size?: number }[]; boxed?: boolean }
   /** Chips with a caption above (WH words). */
@@ -91,7 +93,9 @@ export type Block =
   /** A conversation as a script: "NAME: line", each speaker in their own colour. */
   | { t: 'script'; lines: string[]; size?: number
       /** Two columns, read down the first then the second (a medium-length conversation on one page). */
-      cols?: 1 | 2 }
+      cols?: 1 | 2
+      /** A face per speaker; words to print bold in the highlight colour; key sentences (line numbers) to star. */
+      avatars?: Record<string, string>; mark?: RegExp; keys?: number[] }
   /** Ruled lines to write on. */
   | { t: 'lines'; n: number
       /** On a `spread` page, more lines take the room left over (instead of a gap). */

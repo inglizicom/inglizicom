@@ -142,14 +142,16 @@ export function unitPages(u: EverydayUnit): EverydayPage[] {
     ])),
     ...split(u.talk, LINES_PER_PAGE).map((lines, i, all) => page('talk', 'Conversation', [
       { t: 'bar', title: `Conversation${more(i)} - المحادثة`, icon: '🗣️', tone: 'talk' },
-      ...(i ? [] : [{ t: 'callout' as const, text: 'اقرأ المحادثة مع صديق: كل واحد يأخذ دورًا، ثم تبادلا الأدوار.' }]),
-      { t: 'script', lines, ...(all.length === 1 && lines.length > ONE_COLUMN_LINES ? { cols: 2 as const } : {}) },
+      ...(i ? [] : [{ t: 'callout' as const, text: 'اقرأ المحادثة مع صديق: كل واحد يأخذ دورًا، ثم تبادلا الأدوار. كلمات المفردات بالأزرق، و⭐ أمام الجمل المهمة من العبارات المفيدة.' }]),
+      { t: 'script', lines, avatars: AVATARS, mark: markRegex(u),
+        keys: (() => { const from = all.slice(0, i).reduce((s, p) => s + p.length, 0); return keyLines(u).filter(k => k >= from && k < from + lines.length).map(k => k - from) })(),
+        ...(all.length === 1 && lines.length > ONE_COLUMN_LINES ? { cols: 2 as const } : {}) },
       ...(all.length > 1 ? [i === all.length - 1 ? ROLE_PLAY : BEFORE_YOU_READ] : []),
     ])),
     // The Level 1 book's reading page: the text in one box, then «Notice» and «Questions» side by side.
     page('reading', 'Reading', [
       { t: 'bar', title: 'Reading - القراءة', icon: '📖', tone: 'reading' },
-      { t: 'text', label: u.reading.title, body: u.reading.body.join('\n'), size: 13.5, plain: true },
+      { t: 'text', label: u.reading.title, body: u.reading.body.join('\n'), size: 13.5, plain: true, mark: markRegex(u) },
       { t: 'row', widths: '1fr 1fr', stretch: true, section: true, tone: 'practice', blocks: [
         [{ t: 'bullets', box: true, heading: 'Notice - لاحظ', size: 12.5, items: x.readNotice }],
         [{ t: 'bullets', box: true, heading: 'Questions - أسئلة', size: 12.5, items: x.questions }],
@@ -297,6 +299,66 @@ export function reviewBlocks(from: number, to: number, no: number): Block[] {
     { t: 'exercise', title: 'Put the words in order - رتّب الكلمات', instr: 'Write the sentence. - اكتب الجملة.', size: 13.5, lines: true, items: order },
     { t: 'callout', text: `أقل من ${Math.ceil(total * 0.7)} من ${total}؟ لا بأس: ارجع إلى الوحدات ${from}–${to}، ثم أعد المراجعة بعد يومين.` },
   ]
+}
+
+/* ── Marks in conversations and readings ─────────────────────────────── */
+
+/* Vocabulary words with another everyday sense ("I'll call you back", "check the time") are not marked. */
+const MANY_SENSES = new Set(['back', 'check', 'change', 'order', 'free', 'right', 'cut', 'style', 'top', 'wash', 'clean', 'ready', 'work', 'later', 'tonight', 'tomorrow', 'meet', 'busy', 'family', 'friend', 'piece', 'price', 'fresh', 'warm', 'near', 'far', 'outside'])
+
+/**
+ * The unit's vocabulary as one pattern, longest phrases first, each word
+ * allowed its everyday endings (wake → wakes, waking; shirt → shirts): what a
+ * conversation or a reading prints in the vocabulary colour, in bold.
+ */
+export function markRegex(u: EverydayUnit): RegExp {
+  const forms = u.vocab.flatMap(([, en]) => en.split(' / '))
+    .flatMap(p => [p, p.replace(/^(some|a|an|the)\s+/i, '')])
+    .map(p => p.trim().toLowerCase())
+    .filter(p => p.length > 2 && !MANY_SENSES.has(p))
+  const unique = [...new Set(forms)].sort((a, b) => b.length - a.length)
+  const esc = (w: string) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const body = unique.map(p => p.split(/\s+/).map(w => `${esc(w)}(?:'s|s|es|ed|d|ing)?`).join('\\s+')).join('|')
+  return new RegExp(`\\b(?:${body})\\b`, 'gi')
+}
+
+const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9' ]+/g, ' ').replace(/\s+/g, ' ').trim()
+/**
+ * A key sentence: a conversation line that uses one of the unit's useful
+ * expressions word for word (three words or more, not a stock reply).
+ */
+export function isKeyLine(u: EverydayUnit, line: string): boolean {
+  const said = ` ${norm(line)} `
+  return u.expressions.some(([q, a]) => [q, a].some(e => {
+    const n = norm(e)
+    return n.split(' ').length >= 3 && !GENERIC.test(e) && said.includes(` ${n} `)
+  }))
+}
+
+/** At most this many key sentences a conversation: a few stars stand out, a page of them does not. */
+export const KEY_LINES = 6
+/** The conversation's key sentences (line numbers): the first use of each expression, up to KEY_LINES. */
+export function keyLines(u: EverydayUnit): number[] {
+  const used = new Set<number>(), out: number[] = []
+  u.talk.forEach((l, i) => {
+    if (out.length >= KEY_LINES) return
+    const said = ` ${norm(l.replace(/^[^:]+:\s/, ''))} `
+    const k = u.expressions.findIndex(([q, a], j) => !used.has(j) && [q, a].some(e => {
+      const n = norm(e)
+      return n.split(' ').length >= 3 && !GENERIC.test(e) && said.includes(` ${n} `)
+    }))
+    if (k >= 0) { used.add(k); out.push(i) }
+  })
+  return out
+}
+
+/** Each speaker's face in the conversations. */
+export const AVATARS: Record<string, string> = {
+  // The two people of a conversation must look different at a glance: hijab or not, beard or not, skin tones apart.
+  SAMI: '👨🏻', AMINE: '👨🏽', OMAR: '🧔🏻', KARIM: '👨🏾',
+  NOUR: '🧕', LINA: '🧕🏽', HODA: '🧕🏻', SALMA: '🧕🏾', NADIA: '👩🏽', RANIA: '👩🏻', LAYLA: '👩🏼', SARA: '👩🏾',
+  STAFF: '🧑‍💼', FARID: '🧑‍💼', WAITER: '🤵', CASHIER: '🧑‍💼', BAKER: '🧑‍🍳', ASSISTANT: '💁', PHARMACIST: '🧑‍⚕️',
+  RECEPTIONIST: '💁', DOCTOR: '🧑‍⚕️', SELLER: '🧑‍🌾', DRIVER: '🧔🏽', 'BUS DRIVER': '🧑🏾', CLERK: '🧑‍💼', PASSENGER: '🧑',
 }
 
 /** Every page in book order with its number (Welcome is page 1). */

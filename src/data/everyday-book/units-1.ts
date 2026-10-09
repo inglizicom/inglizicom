@@ -339,7 +339,7 @@ export const UNITS_1_7: EverydayUnit[] = [
   {
     n: 6, titleEn: 'At the Restaurant', titleAr: 'في المطعم', icons: ['🍽️', '🍗'],
     goal: 'تعلّم كيف تطلب طاولة، تختار وجبتك، تتفاعل مع النادل وتطلب الفاتورة.',
-    vocab: words('🪑 table = طاولة | 🤵 waiter = نادل | 💁 server = مقدّم الطعام | 📋 menu = قائمة الطعام | 🥟 starter = مقبّلات | 🍽️ main course = الطبق الرئيسي | 🍮 dessert = حلوى | 🍹 drink = مشروب | 🍗 chicken = دجاج | 🐟 fish = سمك | 🥗 salad = سلطة | 🍚 rice = أرز | 🍲 soup = شوربة | 🥖 bread = خبز | 💧 water = ماء | 🥛 a glass of water = كأس ماء | 🌶️ spicy = حارّ | 🧻 napkin = منديل | 🧾 bill = الفاتورة | 🗒️ check = الحساب | 💳 card = بطاقة | 💵 cash = نقدًا | 🪙 tip = إكرامية | 🍽️ plate = صحن | 🍴 fork and spoon = الشوكة والملعقة | 📝 order = يطلب | ⭐ dish of the day = طبق اليوم'),
+    vocab: words('🪑 table = طاولة | 🤵 waiter = نادل | 💁 server = مقدّم الطعام | 📋 menu = قائمة الطعام | 🥟 starter = مقبّلات | 🍽️ main course = الطبق الرئيسي | 🍮 dessert = حلوى | 🍹 drink = مشروب | 🍗 chicken = دجاج | 🐟 fish = سمك | 🥗 salad = سلطة | 🍚 rice = أرز | 🍲 soup = شوربة | 🥖 bread = خبز | 💧 water = ماء | 🥛 a glass of water = كأس ماء | 🌶️ spicy = حارّ | 🧻 napkin = منديل | 🧾 bill = الفاتورة | 🗒️ check = الحساب | 💳 card = بطاقة | 💵 cash = نقدًا | 🪙 tip = إكرامية | 🍽️ plate = صحن | 🍴 fork and knife = الشوكة والسكين | 📝 order = يطلب | ⭐ dish of the day = طبق اليوم'),
     expressions: [
       ['How many people?', 'A table for two, please.', 'كم عدد الأشخاص؟', 'طاولة لشخصين، من فضلك.'],
       ['Can we see the menu, please?', 'Certainly. Here you are.', 'هل يمكننا رؤية قائمة الطعام، من فضلك؟', 'بكل تأكيد. تفضّلوا.'],

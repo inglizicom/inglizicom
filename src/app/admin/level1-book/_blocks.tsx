@@ -52,8 +52,8 @@ export const PALETTE = [
 const INK = '#1E2A5C', BRAND = '#2B3990'
 function vars(mono: boolean, colour: { m: string; s: string }, ink = INK): CSSProperties {
   return (mono
-    ? { '--m': '#000', '--s': '#F3F4F6', '--k': '#000', '--tip': '#F3F4F6', '--e': 'grayscale(1) contrast(1.15)' }
-    : { '--m': colour.m, '--s': colour.s, '--k': ink, '--tip': '#FFF5CF', '--e': 'none' }) as CSSProperties
+    ? { '--m': '#000', '--s': '#F3F4F6', '--k': '#000', '--tip': '#F3F4F6', '--e': 'grayscale(1) contrast(1.15)', '--hl': '#000', '--key': '#000', '--key-s': '#E5E7EB' }
+    : { '--m': colour.m, '--s': colour.s, '--k': ink, '--tip': '#FFF5CF', '--e': 'none' }) as unknown as CSSProperties
 }
 /** A clean sans for books for adults (the Level 1 book keeps the friendlier Mali). */
 export const SANS = "'Poppins', 'Baloo Bhaijaan 2', sans-serif"
@@ -102,6 +102,22 @@ export function Mixed({ text }: { text: string }) {
 function RtlMixed({ text }: { text: string }) {
   const parts = text.split(/([A-Za-z][A-Za-z0-9\s/'’.,?!–\-+=()✓✗→]*[A-Za-z0-9?.)!✓✗]|[A-Za-z])/).filter(Boolean)
   return <>{parts.map((p, i) => (/[A-Za-z]/.test(p) ? <bdi key={i} dir="ltr">{p}</bdi> : <Fragment key={i}>{p}</Fragment>))}</>
+}
+/**
+ * English with the words `re` matches (a unit's vocabulary) in bold, in the
+ * highlight colour (--hl: the book sets it; black in black-and-white).
+ */
+function Marked({ text, re }: { text: string; re?: RegExp }) {
+  if (!re) return <Mixed text={text} />
+  const out: ReactNode[] = []
+  let at = 0
+  for (const m of text.matchAll(new RegExp(re.source, re.flags.includes('g') ? re.flags : `${re.flags}g`))) {
+    if (m.index! > at) out.push(<Mixed key={`t${at}`} text={text.slice(at, m.index)} />)
+    out.push(<b key={`m${m.index}`} className="font-extrabold" style={{ color: 'var(--hl, var(--m))' }}>{m[0]}</b>)
+    at = m.index! + m[0].length
+  }
+  if (at < text.length) out.push(<Mixed key={`t${at}`} text={text.slice(at)} />)
+  return <>{out}</>
 }
 /** Text whose first letter is Arabic reads right to left, whatever it quotes in English. */
 const isAr = (s: string) => /^[^A-Za-z؀-ۿ]*[؀-ۿ]/.test(s)
@@ -526,7 +542,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
         {b.body.includes('\n') && b.plain ? (
           // Paragraphs in the single-text look; weight and leading on each <p> (the site's global `p` rule sets 400 / 1.75).
           <div className="rounded-r-xl bg-[var(--s)] border-l-[4px] border-[var(--m)] px-3.5 py-2 space-y-1.5" style={{ fontSize: b.size ?? 13 }}>
-            {b.body.split('\n').map((para, i) => <p key={i} className="font-bold leading-[1.6]">{para}</p>)}
+            {b.body.split('\n').map((para, i) => <p key={i} className="font-bold leading-[1.6]"><Marked text={para} re={b.mark} /></p>)}
           </div>
         ) : b.body.includes('\n') ? (
           // Several paragraphs: numbered in the margin, so questions can point at "§2".
@@ -661,19 +677,35 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
     case 'script': {
       // Two colours only: the first speaker (the student's part) in the section colour, everyone else in ink.
       const first = b.lines[0]?.match(/^([^:]{1,20}):/)?.[1]
+      const keys = new Set(b.keys ?? [])
       const line = (s: string, i: number, narrow: boolean) => {
         const m = s.match(/^([^:]{1,20}):\s(.*)$/)
         const who = m?.[1] ?? ''
-        const name = <span className="font-extrabold uppercase tracking-wide whitespace-nowrap text-[0.78em]" style={{ color: who === first ? 'var(--m)' : 'var(--k)' }}>{who}</span>
+        const face = b.avatars?.[who]
+        const name = (
+          <span className="inline-flex items-center gap-1 whitespace-nowrap align-middle">
+            {face && (
+              // Large enough to tell the faces apart; the first speaker (the student's part) ringed in the section colour.
+              <span className="w-[26px] h-[26px] rounded-full bg-white inline-flex items-center justify-center text-[18px] leading-none shrink-0"
+                style={{ ...EMOJI, border: `2px solid ${who === first ? 'var(--m)' : '#CBD5E1'}` }}>{face}</span>
+            )}
+            <span className="font-extrabold uppercase tracking-wide text-[0.78em]" style={{ color: who === first ? 'var(--m)' : 'var(--k)' }}>{who}</span>
+          </span>
+        )
+        // A key sentence (one of the unit's expressions): starred, on the highlight tint, in bold.
+        const key = keys.has(i)
+        const words = <Marked text={m ? m[2] : s} re={b.mark} />
+        const ground = key ? 'var(--key-s, var(--s))' : i % 2 ? 'transparent' : 'var(--s)'
+        const edge = key ? { boxShadow: 'inset 3px 0 0 var(--key, var(--m))' } : {}
         return narrow ? (
           // In a column: the name leads its line, as in the Level 1 book's conversations.
-          <div key={i} className="rounded-md px-2.5 py-[4px] leading-snug" style={{ background: i % 2 ? 'transparent' : 'var(--s)' }}>
-            {name}<span className="ml-2 font-semibold"><Mixed text={m ? m[2] : s} /></span>
+          <div key={i} className="rounded-md px-2.5 py-[4px] leading-snug" style={{ background: ground, ...edge }}>
+            {name}<span className={`ml-2 ${key ? 'font-bold' : 'font-semibold'}`}>{key && <span style={EMOJI}>⭐ </span>}{words}</span>
           </div>
         ) : (
-          <div key={i} className="grid items-baseline gap-2.5 rounded-md px-2 py-[3px]" style={{ gridTemplateColumns: '108px 1fr', background: i % 2 ? 'transparent' : 'var(--s)' }}>
+          <div key={i} className="grid items-center gap-2.5 rounded-md px-2 py-[1px]" style={{ gridTemplateColumns: '132px 1fr', background: ground, ...edge }}>
             <span className="text-right">{name}</span>
-            <span className="font-semibold leading-snug"><Mixed text={m ? m[2] : s} /></span>
+            <span className={`leading-snug ${key ? 'font-bold' : 'font-semibold'}`}>{key && <span style={EMOJI}>⭐ </span>}{words}</span>
           </div>
         )
       }
