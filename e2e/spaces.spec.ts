@@ -63,7 +63,7 @@ test.describe('student space (demo)', () => {
 
   const TAB_MARKER: Record<string, string> = {
     courses: 'مساراتي', profile: 'الحضور', path: 'مسار الدورة', tasks: 'تمارين المنهج',
-    rewards: 'رصيدك من الكوينات', files: 'ملفاتي', progress: 'تقدّمي',
+    rewards: 'رصيدك من الكوينات', files: 'ملفاتي', progress: 'تقدّمي', bac: 'حقيبة الباك',
   }
   for (const [tab, marker] of Object.entries(TAB_MARKER)) {
     test(`#${tab} renders`, async ({ page }) => {
@@ -75,6 +75,50 @@ test.describe('student space (demo)', () => {
       await fits(page)
     })
   }
+
+  test('bac pack: exercises are done in place, checked, and remembered on the device', async ({ page }) => {
+    const errors = collectErrors(page)
+    await mockSupabase(page, { role: null })
+    await page.goto('/student-space?demo=1#bac')
+    await page.getByRole('button', { name: /Vocab 01/ }).click({ timeout: 90_000 })
+    await expect(page).toHaveURL(/#bac\/vocab-01$/)
+
+    // word bank: the first blank is active; each word goes to the next empty blank.
+    // Checking waits until every blank is filled; the last two are swapped (wrong).
+    const ex = page.locator('section', { hasText: 'Complete with a word from the list.' })
+    const words = ['compulsory', 'scholarship', 'overcrowded', 'dropout', 'curriculum']
+    for (const w of words) await ex.getByRole('button', { name: w, exact: true }).click()
+    await expect(ex.getByRole('button', { name: /أجب عن كل الأسئلة \(5\/6\)/ })).toBeDisabled()
+    await ex.getByRole('button', { name: 'skills', exact: true }).click()
+    await ex.getByRole('button', { name: 'تحقّق من أجوبتي' }).click()
+    await expect(ex.getByText('4/6', { exact: true })).toBeVisible()
+    await fits(page)
+
+    // a refresh keeps the unit open and the result
+    await page.reload()
+    await expect(page.locator('section', { hasText: 'Complete with a word from the list.' }).getByText('4/6', { exact: true })).toBeVisible({ timeout: 90_000 })
+
+    // mock exam: answer True/False and tap the sentence that proves it (only the first is right)
+    await page.goto('/student-space?demo=1#bac/mock-exam-1')
+    const tf = page.locator('section', { hasText: 'A. True or false? Justify.' })
+    for (let i = 0; i < 4; i++) {
+      await tf.getByRole('button', { name: 'False', exact: true }).nth(i).click({ timeout: 90_000 })
+      await tf.getByRole('button', { name: /برّر/ }).first().click()
+      await tf.getByRole('button', { name: /fifteen kilometres away/ }).click()
+    }
+    await tf.getByRole('button', { name: 'تحقّق من أجوبتي' }).click()
+    await expect(tf.getByText('1/4', { exact: true })).toBeVisible()
+
+    // tap the word in its paragraph (the third is wrong)
+    const find = page.locator('section', { hasText: 'C. Find words in the text.' })
+    const pickIn = (i: number, w: string) => find.locator('li').nth(i).getByRole('button', { name: w, exact: true }).first().click()
+    await pickIn(0, 'afraid'); await pickIn(1, 'attend'); await pickIn(2, 'Experts'); await pickIn(3, 'challenges')
+    await find.getByRole('button', { name: 'تحقّق من أجوبتي' }).click()
+    await expect(find.getByText('3/4', { exact: true })).toBeVisible()
+    await expect(page.getByText('الوقت المنقضي')).toBeVisible()
+    await fits(page)
+    expect(errors).toEqual([])
+  })
 })
 
 test.describe('public pages', () => {

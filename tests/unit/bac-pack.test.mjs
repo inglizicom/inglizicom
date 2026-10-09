@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { BAC_BODY, buildBacPack, exercisesOf, isOpen } from '../../src/data/bac/bac-pack.ts'
+import { BAC_BODY, buildBacPack, exercisesOf, isOpen, plainAnswer } from '../../src/data/bac/bac-pack.ts'
 import { BAC_MOCKS, mockParts, mockTotal } from '../../src/data/bac/bac-mocks.ts'
 
 test('every exercise item has a question and an answer (open tasks have none at all), and a choice answer names one of its options', () => {
@@ -55,7 +55,7 @@ test('the pack numbers every exercise once and puts every answer in the keys', (
   assert.ok(keyed.length >= all.length - 2, 'only a few open tasks')
   assert.equal(keyLines.length, keyed.length)
   for (const [i, e] of keyed.entries()) {
-    assert.deepEqual(keyLines[i].answers, e.items.map(it => it.a))
+    assert.deepEqual(keyLines[i].answers, e.items.map(it => plainAnswer(it.a)))
     assert.match(keyLines[i].label, new RegExp(`^Ex\\. ${exNo.get(e)} · p\\. \\d+$`))
   }
 

@@ -8,7 +8,12 @@ export type BacPage = Lesson & { section: BacSection }
 export const page = (section: BacSection, tag: string, titleEn: string, titleAr: string, blocks: Block[]): BacPage =>
   ({ n: 0, section, tag, titleEn, titleAr, blocks })
 
-/** [question, answer] or [question, answer, [options]] */
+/**
+ * [question, answer] or [question, answer, [options]].
+ * Answers: "a / b" = either whole answer; "[a / b]" = either word in that
+ * place; "(that)" = may be left out. The online checker (lib/bac-practice.ts)
+ * reads these; printed keys show the brackets' contents plainly.
+ */
 type Row = [string, string] | [string, string, string[]]
 export const ex = (title: string, instr: string, rows: Row[], opts: { cols?: 1 | 2; lines?: boolean; size?: number } = {}): Block =>
   ({ t: 'exercise', title, instr, items: rows.map(([q, a, options]): ExerciseItem => (options ? { q, a, options } : { q, a })), ...opts })

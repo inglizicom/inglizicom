@@ -53,14 +53,17 @@ export function InitAva({ name, className }: { name: string; className?: string 
 }
 export const DAY_AR = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت']
 
-export type Tab = 'home' | 'courses' | 'profile' | 'path' | 'tasks' | 'rewards' | 'files' | 'progress'
-export const TABS: Tab[] = ['home', 'courses', 'profile', 'path', 'tasks', 'rewards', 'files', 'progress']
+export type Tab = 'home' | 'courses' | 'profile' | 'path' | 'tasks' | 'rewards' | 'files' | 'progress' | 'bac'
+export const TABS: Tab[] = ['home', 'courses', 'profile', 'path', 'tasks', 'rewards', 'files', 'progress', 'bac']
 export const tabFromHash = (): Tab | null => { const b = (typeof window !== 'undefined' ? (location.hash || '').replace('#', '').split('/')[0] : '') as Tab; return TABS.includes(b) ? b : null }
 export const TOKEN_KEY = 'inglizi.student_token'
 export const HEARTBEAT_AR: Record<Tab, string> = {
   home: 'الرئيسية', courses: 'دوراتي', profile: 'ملفي', path: 'مسار التعلّم', tasks: 'المهام',
-  rewards: 'المكافآت', files: 'الملفات', progress: 'صفحة التقدّم',
+  rewards: 'المكافآت', files: 'الملفات', progress: 'صفحة التقدّم', bac: 'حقيبة الباك',
 }
+
+/** Students preparing the Bac: enrolled in a course whose title or level names it. */
+export const isBacCourse = (c: { title: string; level: string | null }) => /\bbac\b|باك|بكالوريا|باكالوريا/i.test(`${c.title} ${c.level ?? ''}`)
 export const COURSE_KEY = 'inglizi.student_course.'   // + token → last chosen course id
 export const LTYPE_ICON: Record<string, any> = { video: Video, reading: FileText, exercise: PenLine, quiz: HelpCircle, speaking: Mic }
 export const LTYPE_AR: Record<string, string> = { video: 'فيديو', reading: 'قراءة', exercise: 'تمرين', quiz: 'اختبار', speaking: 'محادثة' }

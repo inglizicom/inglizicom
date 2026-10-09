@@ -56,6 +56,9 @@ const KEY_BUDGET = 900, KEY_LINE = 17, KEY_GAP = 4, KEY_CHARS = 100, KEY_HEAD = 
 /** Section heading of a page in the keys: the mock exams get one each. */
 const keyGroup = (p: BacPage) => (p.section === 'exam' ? (p.tag ?? '') : SECTION_NAMES[p.section][0])
 
+/** An answer as printed: "[were / was]" (either word, for the online checker) reads "were / was". */
+export const plainAnswer = (a: string) => a.replace(/\[([^\]]+)\]/g, '$1')
+
 /** An open task (an essay plan): no item has a set answer, so it has no key. */
 export const isOpen = (e: Exercise) => e.items.every(it => !it.a.trim())
 
@@ -66,7 +69,7 @@ export const isOpen = (e: Exercise) => e.items.every(it => !it.a.trim())
 export function keyPages(body: BacPage[], exNo: Map<Block, number>, pageNoOf: (p: BacPage) => number): BacPage[] {
   type Line = { group: string; label: string; answers: string[] }
   const lines: Line[] = body.flatMap(p => exercisesOf(p.blocks).filter(e => !isOpen(e)).map(e => ({
-    group: keyGroup(p), label: `Ex. ${exNo.get(e)} · p. ${pageNoOf(p)}`, answers: e.items.map(it => it.a),
+    group: keyGroup(p), label: `Ex. ${exNo.get(e)} · p. ${pageNoOf(p)}`, answers: e.items.map(it => plainAnswer(it.a)),
   })))
   const height = (l: Line) => Math.ceil(l.answers.reduce((s, a) => s + a.length + 5, 0) / KEY_CHARS) * KEY_LINE + KEY_GAP
 

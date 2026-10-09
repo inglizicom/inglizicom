@@ -2,10 +2,11 @@
 
 import { Suspense, useEffect, useState, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import {
   Loader2, KeyRound, BookOpen, CheckCircle2, Sparkles, LogOut, Home, Route, PlayCircle, ArrowLeft,
   Lock, AlertCircle, MessageSquareText, ChevronDown, ListChecks, Bell, MessageSquare, Star, Medal,
-  Clock, Coins, UserRound,
+  Clock, Coins, UserRound, GraduationCap,
 } from 'lucide-react'
 import {
   fetchStudentSpace, completeExercise, logActivity, fileUrl, studentLogin, getDeviceId, deviceValid,
@@ -46,13 +47,19 @@ import MyProfile from '@/components/student-dashboard/MyProfile'
 
 import {
   isVideoUrl, NOTIF_SEEN_KEY, localDay, fmtShort, InitAva, DAY_AR, tabFromHash, TOKEN_KEY,
-  HEARTBEAT_AR, COURSE_KEY, pct, CoursePicker, PortalErrorBoundary, type Tab,
+  HEARTBEAT_AR, COURSE_KEY, pct, CoursePicker, PortalErrorBoundary, isBacCourse, type Tab,
 } from './_shared'
 import HomeTab from './tabs/HomeTab'
 import PathTab from './tabs/PathTab'
 import TasksTab from './tabs/TasksTab'
 import FilesTab from './tabs/FilesTab'
 import ProgressTab from './tabs/ProgressTab'
+
+// The Bac pack (its data and exercises) loads only when a student opens the tab.
+const BacTab = dynamic(() => import('@/components/bac/BacTab'), {
+  ssr: false,
+  loading: () => <div className="py-24 flex justify-center"><Loader2 className="animate-spin text-[var(--ic-gold)]" size={26} /></div>,
+})
 
 export default function StudentSpacePage() {
   return (
@@ -529,10 +536,13 @@ function Portal() {
   async function onCompleteManual(a: StudentAssignment) { if (a.status !== 'done' && await completeExercise(token, a.id)) refresh() }
   function openFile(f: { id: string; file_name: string; file_path: string }) { logActivity(token, 'downloaded_file', 'file', f.id, f.file_name); window.open(fileUrl(f.file_path), '_blank') }
 
+  // The Bac pack tab: for students in a Bac course (and in the demo).
+  const bacOk = demo || courses.some(isBacCourse)
   const TABS: { id: Tab; label: string; icon: any; badge?: number }[] = [
     { id: 'home', label: 'الرئيسية', icon: Home },
     { id: 'courses', label: 'دوراتي', icon: BookOpen },
     { id: 'path', label: 'مساري', icon: Route },
+    ...(bacOk ? [{ id: 'bac' as Tab, label: 'الباك', icon: GraduationCap }] : []),
     { id: 'tasks', label: 'تماريني', icon: ListChecks, badge: boardTasks.filter(t => t.status !== 'done').length },
     { id: 'rewards', label: 'المكافآت', icon: Coins },
     { id: 'profile', label: 'ملفي', icon: UserRound },
@@ -727,6 +737,15 @@ function Portal() {
         {/* ═══════════ REWARDS ═══════════ */}
         {tab === 'rewards' && <RewardsCenter token={token} courseId={courseId} onPractice={k => setPractice(k)} onVocab={() => setVocabOpen(true)} onPicture={() => setPictureOpen(true)} />}
 
+        {/* ═══════════ BAC PACK ═══════════ */}
+        {tab === 'bac' && (bacOk ? <BacTab owner={token} /> : (
+          <div className="max-w-md mx-auto my-12 rounded-3xl bg-white border border-zinc-100 p-6 text-center">
+            <Lock className="mx-auto text-zinc-400 mb-2" size={24} />
+            <p className="font-bold text-zinc-800">حقيبة الباك غير مفعّلة في حسابك</p>
+            <p className="text-[12.5px] text-zinc-500 mt-1">تواصل مع الإدارة لتفعيلها.</p>
+          </div>
+        ))}
+
         {/* ═══════════ FILES ═══════════ */}
         {tab === 'files' && <FilesTab {...{ files, openFile, resources, token }} />}
 
@@ -825,10 +844,10 @@ function Portal() {
       <nav className="fixed bottom-0 inset-x-0 z-30 bg-[var(--ic-dark)] border-t border-[var(--ic-dark-2)]">
         <div className="max-w-2xl mx-auto flex">
           {TABS.map(t => { const active = tab === t.id; return (
-            <button key={t.id} onClick={() => goTab(t.id)} className="relative flex-1 flex flex-col items-center gap-0.5 py-2.5">
+            <button key={t.id} onClick={() => goTab(t.id)} className="relative flex-1 min-w-0 flex flex-col items-center gap-0.5 py-2.5">
               {active && <span className="absolute top-0 inset-x-5 h-0.5 bg-[var(--ic-gold)] rounded-full" />}
               <div className="relative"><t.icon size={20} className={active ? 'text-[var(--ic-gold)]' : 'text-amber-100/45'} strokeWidth={active ? 2.4 : 2} />{(t.badge ?? 0) > 0 && <span className="absolute -top-1.5 -left-2 bg-rose-500 text-white text-[9px] font-bold min-w-[15px] h-[15px] px-0.5 rounded-full flex items-center justify-center">{t.badge}</span>}</div>
-              <span className={`text-[10px] font-bold ${active ? 'text-[var(--ic-gold)]' : 'text-amber-100/45'}`}>{t.label}</span>
+              <span className={`${TABS.length > 6 ? 'text-[9.5px]' : 'text-[10px]'} max-w-full truncate px-0.5 font-bold ${active ? 'text-[var(--ic-gold)]' : 'text-amber-100/45'}`}>{t.label}</span>
             </button>
           )})}
         </div>

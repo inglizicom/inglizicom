@@ -127,7 +127,7 @@ export const BAC_GRAMMAR: BacPage[] = [
       ['"I am tired," she said.', 'She said (that) she was tired.'],
       ['"We will travel tomorrow," they said.', 'They said they would travel the next day.'],
       ['"Where do you live?" he asked me.', 'He asked me where I lived.'],
-      ['"Do you like English?" the teacher asked me.', 'The teacher asked me if / whether I liked English.'],
+      ['"Do you like English?" the teacher asked me.', 'The teacher asked me [if / whether] I liked English.'],
       ['"Close the door," Mum told me.', 'Mum told me to close the door.'],
       ['"I have finished my homework," Omar said.', 'Omar said (that) he had finished his homework.'],
       ['"Don\'t be late," the coach told us.', 'The coach told us not to be late.'],
@@ -185,7 +185,7 @@ export const BAC_GRAMMAR: BacPage[] = [
     ex('Rewrite the sentences using the word(s) given.', '', [
       ['I don\'t speak German. (I wish)', 'I wish I spoke German.'],
       ['I didn\'t revise for the test. (I wish)', 'I wish I had revised for the test.'],
-      ['He isn\'t tall enough to play basketball. (He wishes)', 'He wishes he were / was taller.'],
+      ['He isn\'t tall enough to play basketball. (He wishes)', 'He wishes he [were / was] taller.'],
       ['It\'s a pity I missed the bus. (If only)', 'If only I hadn\'t missed the bus.'],
       ['You didn\'t call the doctor. (should)', 'You should have called the doctor.'],
       ['My neighbours make noise every night. (I wish … would)', 'I wish my neighbours would stop making noise at night.'],
