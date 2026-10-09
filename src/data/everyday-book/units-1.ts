@@ -6,7 +6,7 @@ export const UNITS_1_7: EverydayUnit[] = [
   {
     n: 1, titleEn: 'Morning Routine', titleAr: 'الروتين الصباحي', icons: ['⏰', '☕'],
     goal: 'تحدّث عن روتينك الصباحي وعاداتك اليومية.',
-    vocab: words('⏰ Wake up = أستيقظ من النوم | 🔕 Turn off the alarm = أُطفئ المنبّه | 🚶 Get out of bed = أنهض من السرير | 🛏️ Make my bed = أرتّب سريري | 🚪 Go to the bathroom = أذهب إلى الحمّام | 💦 Wash my face = أغسل وجهي | 🪥 Brush my teeth = أنظّف أسناني | 🚿 Take a shower = أستحمّ | 👔 Get dressed = ألبس ملابسي | 💇 Comb my hair = أسرّح شعري | 🍳 Have breakfast = أتناول الفطور | 🫖 Make coffee = أُعدّ القهوة | ☕ Drink coffee = أشرب القهوة | 📱 Check my phone = أتفقّد هاتفي | 👜 Grab my bag = آخذ حقيبتي | 👟 Put on my shoes = ألبس حذائي | 🏠 Leave home = أخرج من البيت'),
+    vocab: words('⏰ Wake up = أستيقظ من النوم | 🔕 Turn off the alarm = أُطفئ المنبّه | 🚶 Get out of bed = أنهض من السرير | 🛏️ Make my bed = أرتّب سريري | 🚪 Go to the bathroom = أذهب إلى الحمّام | 💦 Wash my face = أغسل وجهي | 🪥 Brush my teeth = أنظّف أسناني | 🚿 Take a shower = أستحمّ | 👔 Get dressed = ألبس ملابسي | 💇 Comb my hair = أسرّح شعري | 🍳 Have breakfast = أتناول الفطور | 🫖 Make coffee = أُعدّ القهوة | ☕ Drink coffee = أشرب القهوة | 📱 Check my phone = أتفقّد هاتفي | 👜 Grab my bag = آخذ حقيبتي | 👟 Put on my shoes = ألبس حذائي | 🏠 Leave home = أخرج من البيت | 🔐 Lock the door = أقفل الباب'),
     expressions: [
       ['What time do you usually wake up?', 'I usually wake up at seven.', 'في أي ساعة تستيقظ عادةً؟', 'أستيقظ عادةً في السابعة.'],
       ['What time does your alarm go off?', 'It goes off at seven. I turn it off and get out of bed.', 'في أي ساعة يرنّ منبّهك؟', 'يرنّ في السابعة. أُطفئه وأنهض من السرير.'],
@@ -266,7 +266,7 @@ export const UNITS_1_7: EverydayUnit[] = [
   {
     n: 5, titleEn: 'Laundry & Everyday Services', titleAr: 'الغسيل والخدمات اليومية', icons: ['🧺', '👔'],
     goal: 'تعلّم كيف تطلب خدمات الغسيل والتنظيف، وتسأل عن السعر وموعد الاستلام.',
-    vocab: words('🧺 laundry = محل الغسيل | 🏬 dry cleaner = محل التنظيف الجاف | 👕 clothes = ملابس | 👔 shirt = قميص | 🧥 jacket = سترة | 👖 trousers = بنطال | 👗 dress = فستان | 🟤 stain = بقعة | 🫧 clean = ينظّف | ♨️ iron = يكوي | ✅ ready = جاهز | 🤲 pick up = يستلم | 💵 cash = نقدًا | 💳 card = بطاقة | 🧾 receipt = إيصال'),
+    vocab: words('🧺 laundry = محل الغسيل | 🏬 dry cleaner = محل التنظيف الجاف | 👕 clothes = ملابس | 👔 shirt = قميص | 🧥 jacket = سترة | 👖 trousers = بنطال | 👗 dress = فستان | 🟤 stain = بقعة | 🫧 clean = ينظّف | ♨️ iron = يكوي | ✅ ready = جاهز | 🤲 pick up = يستلم | 💵 cash = نقدًا | 💳 card = بطاقة | 🧾 receipt = إيصال | 🫧 wash = يغسل | 👕 fold = يطوي | 🪝 hanger = علّاقة الملابس'),
     expressions: [
       ['How can I help you?', 'Can you clean these clothes, please?', 'كيف يمكنني مساعدتك؟', 'هل يمكنكم تنظيف هذه الملابس، من فضلك؟'],
       ['What do you have?', 'This jacket and these two shirts.', 'ماذا لديك؟', 'هذه السترة وهذان القميصان.'],
@@ -339,7 +339,7 @@ export const UNITS_1_7: EverydayUnit[] = [
   {
     n: 6, titleEn: 'At the Restaurant', titleAr: 'في المطعم', icons: ['🍽️', '🍗'],
     goal: 'تعلّم كيف تطلب طاولة، تختار وجبتك، تتفاعل مع النادل وتطلب الفاتورة.',
-    vocab: words('🪑 table = طاولة | 🤵 waiter = نادل | 💁 server = مقدّم الطعام | 📋 menu = قائمة الطعام | 🥟 starter = مقبّلات | 🍽️ main course = الطبق الرئيسي | 🍮 dessert = حلوى | 🍹 drink = مشروب | 🍗 chicken = دجاج | 🐟 fish = سمك | 🥗 salad = سلطة | 🍚 rice = أرز | 🍲 soup = شوربة | 🥖 bread = خبز | 💧 water = ماء | 🥛 a glass of water = كأس ماء | 🌶️ spicy = حارّ | 🧻 napkin = منديل | 🧾 bill = الفاتورة | 🗒️ check = الحساب | 💳 card = بطاقة | 💵 cash = نقدًا | 🪙 tip = إكرامية'),
+    vocab: words('🪑 table = طاولة | 🤵 waiter = نادل | 💁 server = مقدّم الطعام | 📋 menu = قائمة الطعام | 🥟 starter = مقبّلات | 🍽️ main course = الطبق الرئيسي | 🍮 dessert = حلوى | 🍹 drink = مشروب | 🍗 chicken = دجاج | 🐟 fish = سمك | 🥗 salad = سلطة | 🍚 rice = أرز | 🍲 soup = شوربة | 🥖 bread = خبز | 💧 water = ماء | 🥛 a glass of water = كأس ماء | 🌶️ spicy = حارّ | 🧻 napkin = منديل | 🧾 bill = الفاتورة | 🗒️ check = الحساب | 💳 card = بطاقة | 💵 cash = نقدًا | 🪙 tip = إكرامية | 🍽️ plate = صحن | 🍴 fork and knife = الشوكة والسكين | 📝 order = يطلب | ⭐ dish of the day = طبق اليوم'),
     expressions: [
       ['How many people?', 'A table for two, please.', 'كم عدد الأشخاص؟', 'طاولة لشخصين، من فضلك.'],
       ['Can we see the menu, please?', 'Certainly. Here you are.', 'هل يمكننا رؤية قائمة الطعام، من فضلك؟', 'بكل تأكيد. تفضّلوا.'],
@@ -428,7 +428,7 @@ export const UNITS_1_7: EverydayUnit[] = [
   {
     n: 7, titleEn: 'At the Supermarket', titleAr: 'في السوبرماركت', icons: ['🛒', '🍎'],
     goal: 'تعلّم كيف تبحث عن المنتجات، تسأل عن الكمية والسعر، وتدفع عند الصندوق.',
-    vocab: words('🛒 shopping cart = عربة التسوّق | 🧺 shopping basket = سلّة التسوّق | 🛍️ bag = كيس | 🚶 aisle = ممرّ | 🗄️ shelf = رفّ | 🥛 milk = الحليب | 🥚 eggs = البيض | 🍞 bread = الخبز | 🍚 rice = الأرز | 💧 water = الماء | 🍗 chicken = الدجاج | 🍎 fruit = الفواكه | 🥦 vegetables = الخضروات | 🏧 checkout = صندوق الأداء | 🧑‍💼 cashier = أمين الصندوق | 🧾 receipt = إيصال'),
+    vocab: words('🛒 shopping cart = عربة التسوّق | 🧺 shopping basket = سلّة التسوّق | 🛍️ bag = كيس | 🚶 aisle = ممرّ | 🗄️ shelf = رفّ | 🥛 milk = الحليب | 🥚 eggs = البيض | 🍞 bread = الخبز | 🍚 rice = الأرز | 💧 water = الماء | 🍗 chicken = الدجاج | 🍎 fruit = الفواكه | 🥦 vegetables = الخضروات | 🏧 checkout = صندوق الأداء | 🧑‍💼 cashier = أمين الصندوق | 🧾 receipt = إيصال | 🍾 bottle = قنينة | 📦 pack = علبة'),
     expressions: [
       ['Excuse me, where are the baskets?', "They're by the entrance, next to the carts.", 'عذرًا، أين السلال؟', 'إنها عند المدخل، بجانب العربات.'],
       ['Excuse me, where can I find the milk?', "It's in aisle four.", 'عذرًا، أين أجد الحليب؟', 'إنه في الممرّ رقم أربعة.'],

@@ -1,7 +1,7 @@
 'use client'
 
 import type { CSSProperties } from 'react'
-import { sortKey, type EverydayUnit, type UnitOpener, type WordEntry } from '@/data/everyday-book'
+import { sortKey, TONES, type EverydayUnit, type Tone, type UnitOpener, type WordEntry } from '@/data/everyday-book'
 import { AR, CodeSlot, Footer, Frame, Gloss, HEAD, LessonHeader, lessonColour, Mixed, SectionHead, type BookInfo } from '../level1-book/_blocks'
 import { DISPLAY } from './_fonts'
 
@@ -17,11 +17,11 @@ import { DISPLAY } from './_fonts'
 
 const EMOJI: CSSProperties = { filter: 'var(--e)' }
 const pad = (n: number) => String(n).padStart(2, '0')
-/** A unit page's second colour (k = 1): the next one in the palette (none in black and white). Two colours a page, no more. */
-const sectionColour = (info: BookInfo, n: number, k: number) =>
-  (info.mono ? undefined : { '--m': lessonColour(n - 1 + k).m, '--s': lessonColour(n - 1 + k).s } as CSSProperties)
-/** A unit's colour on a page drawn in another colour (none in black and white). */
-const unitColour = (info: BookInfo, n: number) => (info.mono ? 'var(--m)' : lessonColour(n - 1).m)
+/** A kind of section's colour (the book's colour key), for a part of a page drawn in another colour; none in black and white. */
+const toneVars = (info: BookInfo, tone: Tone) =>
+  (info.mono ? undefined : { '--m': TONES[tone].m, '--s': TONES[tone].s } as CSSProperties)
+/** Unit numbers in the page's own colour: one colour, not one per unit. */
+const unitColour = (_info: BookInfo, _n: number) => 'var(--m)'
 
 export interface UnitParts { vocab: number; expressions: number; talk: number; reading: number }
 
@@ -29,14 +29,15 @@ export function UnitOpenerPage({ info, unit: u, opener, parts, pageNo, filename 
   info: BookInfo; unit: EverydayUnit; opener: UnitOpener; parts: UnitParts; pageNo: number; filename: string
 }) {
   const [q, a, qAr, aAr] = u.expressions[0]
-  const inside: [string, string, string, string, number][] = [
-    ['📚', 'Vocabulary', 'المفردات', `${u.vocab.length} words`, parts.vocab],
-    ['💬', 'Expressions', 'عبارات مفيدة', `${u.expressions.length} questions & answers`, parts.expressions],
-    ['🗣️', 'Conversation', 'المحادثة', `${u.talk.length} lines`, parts.talk],
-    ['📖', 'Reading', 'القراءة + اجعلها خاصة بك', u.reading.title, parts.reading],
+  // Each part in its colour of the book's key, so the student learns it from the first page.
+  const inside: [string, string, string, string, number, Tone][] = [
+    ['📚', 'Vocabulary', 'المفردات', `${u.vocab.length} words`, parts.vocab, 'vocab'],
+    ['💬', 'Expressions', 'عبارات مفيدة', `${u.expressions.length} questions & answers`, parts.expressions, 'expr'],
+    ['🗣️', 'Conversation', 'المحادثة', `${u.talk.length} lines`, parts.talk, 'talk'],
+    ['📖', 'Reading', 'القراءة + اجعلها خاصة بك', u.reading.title, parts.reading, 'reading'],
   ]
   return (
-    <Frame info={info} colour={lessonColour(u.n - 1)} label={`Unit ${pad(u.n)} — ${u.titleAr} · صفحة ${pageNo}`} filename={filename}>
+    <Frame info={info} colour={TONES.brand} label={`Unit ${pad(u.n)} — ${u.titleAr} · صفحة ${pageNo}`} filename={filename}>
       <div dir="ltr" className="lb-body absolute inset-x-0 top-0 overflow-hidden" style={{ bottom: 38 }}>
         {/* At least the page's height, the lower half spread over it: no empty band at the foot. */}
         <div className="flex flex-col min-h-full">
@@ -81,8 +82,8 @@ export function UnitOpenerPage({ info, unit: u, opener, parts, pageNo, filename 
             <div className="flex flex-col gap-2">
             <SectionHead title="In this unit - في هذه الوحدة" badge={<span style={EMOJI}>🧩</span>} />
             <div className="grid grid-cols-4 gap-2.5">
-              {inside.map(([icon, en, ar, detail, page]) => (
-                <div key={en} className="relative rounded-2xl bg-[var(--s)] px-2 pt-2.5 pb-2 text-center">
+              {inside.map(([icon, en, ar, detail, page, tone]) => (
+                <div key={en} className="relative rounded-2xl bg-[var(--s)] px-2 pt-2.5 pb-2 text-center" style={toneVars(info, tone)}>
                   <span className="absolute right-2 top-2 rounded-full bg-[var(--k)] text-white px-2 text-[10.5px] font-extrabold leading-[18px]" style={{ fontFamily: HEAD }}>p. {page}</span>
                   <p className="text-[30px] leading-none" style={EMOJI}>{icon}</p>
                   <p className="mt-1.5 text-[14.5px] font-extrabold leading-tight text-[var(--m)]">{en}</p>
@@ -94,7 +95,7 @@ export function UnitOpenerPage({ info, unit: u, opener, parts, pageNo, filename 
             </div>
 
             {/* ── Goals to tick, in the next colour ── */}
-            <div className="flex flex-col gap-2" style={sectionColour(info, u.n, 1)}>
+            <div className="flex flex-col gap-2" style={toneVars(info, 'practice')}>
             <SectionHead title="My goals - أهدافي" badge={<span style={EMOJI}>🎯</span>} />
             <div className="flex flex-col gap-1.5">
               {opener.canDo.map(([en, ar], i) => (
@@ -112,7 +113,7 @@ export function UnitOpenerPage({ info, unit: u, opener, parts, pageNo, filename 
             </div>
 
             {/* ── Tip ── */}
-            <div className="flex items-center gap-3.5 rounded-2xl bg-[var(--tip)] px-4 py-3">
+            <div className="flex items-center gap-3.5 rounded-2xl bg-[var(--tip)] px-4 py-3" style={toneVars(info, 'practice')}>
               <span className="text-[34px] leading-none" style={EMOJI}>💡</span>
               <div className="flex-1 min-w-0">
                 <p className="text-[11px] font-extrabold tracking-[0.18em] uppercase text-[var(--m)]" style={{ fontFamily: HEAD }}>Language tip · <span style={{ fontFamily: AR }}>نصيحة لغوية</span></p>
@@ -135,7 +136,7 @@ const listed = (en: string) => (/^(I\b|[A-Z]\S*[A-Z])/.test(en) ? en : en.charAt
 export function ProgressPage({ info, units, pageNo, filename }: { info: BookInfo; units: EverydayUnit[]; pageNo: number; filename: string }) {
   const cols = '44px minmax(0, 1fr) repeat(5, 62px) 84px'
   return (
-    <Frame info={info} colour={lessonColour(5)} label={`تقدّمي · صفحة ${pageNo}`} filename={filename}>
+    <Frame info={info} colour={TONES.brand} label={`تقدّمي · صفحة ${pageNo}`} filename={filename}>
       <LessonHeader info={info} n={0} tag="Progress" />
       <div dir="ltr" className="lb-body absolute inset-x-[24px] overflow-hidden" style={{ top: 84, bottom: 38 }}>
         <div className="flex flex-col gap-2.5">
@@ -188,7 +189,7 @@ export function WordListPage({ info, words, first, pageNo, filename }: { info: B
     rows.push(w)
   }
   return (
-    <Frame info={info} colour={lessonColour(3)} label={`قائمة الكلمات · صفحة ${pageNo}`} filename={filename}>
+    <Frame info={info} colour={TONES.brand} label={`قائمة الكلمات · صفحة ${pageNo}`} filename={filename}>
       <LessonHeader info={info} n={0} tag="Word list" />
       <div dir="ltr" className="lb-body absolute inset-x-[24px] overflow-hidden" style={{ top: 84, bottom: 38 }}>
         <div className="flex flex-col gap-2.5">
@@ -205,7 +206,7 @@ export function WordListPage({ info, words, first, pageNo, filename }: { info: B
                 <span className="flex-1 h-[2px] rounded-full bg-[var(--m)] opacity-20" />
               </div>
             ) : (
-              <div key={i} className="flex items-baseline gap-1.5 py-[3.5px] border-b border-dotted border-[#E2E8F0] break-inside-avoid">
+              <div key={i} className="flex items-baseline gap-1.5 py-[3px] border-b border-dotted border-[#E2E8F0] break-inside-avoid">
                 <span className="min-w-0 text-[11.5px] font-bold leading-tight">{listed(r.en)}</span>
                 <span className="flex-1 min-w-[8px]" />
                 <span className="text-[11px] font-bold leading-tight text-right" dir="rtl" style={{ fontFamily: AR, color: '#526079' }}>{r.ar}</span>

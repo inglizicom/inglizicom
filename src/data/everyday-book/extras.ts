@@ -2,7 +2,7 @@
  * What fills each unit's expression and reading pages around the core
  * content, in the Level 1 book's manner: a «Notice - لاحظ» box (how the
  * unit's expressions work), six extra words for the curious (their photos
- * come later, into public/everyday-book/extra), a «Tip - نصيحة» box of
+ * go in public/everyday-book/extra/uNN/<word>.png), a «Tip - نصيحة» box of
  * real-life advice, and, under the reading, its own «Notice» and four
  * comprehension questions.
  *
@@ -20,10 +20,9 @@ export interface UnitExtras {
   tip: string[]
   readNotice: string[]
   questions: string[]
+  /** The answers to `questions`, for the answer key. */
+  answers: string[]
 }
-
-/** Extra words whose photo is in public/everyday-book/extra (key "unit:word"); until then they show their picture. */
-export const EXTRA_PHOTOS = new Set<string>([])
 
 export const EXTRAS: Record<number, UnitExtras> = {
   1: {
@@ -40,6 +39,7 @@ export const EXTRAS: Record<number, UnitExtras> = {
     ],
     readNotice: ["I don't always get out of bed right away.", 'First… Then… After that… Before I leave…', "I usually leave at about eight o'clock."],
     questions: ['What time does the alarm go off?', 'What does the writer do first?', 'What does the writer usually have for breakfast?', 'What does the writer do before leaving home?'],
+    answers: ['At seven.', 'The writer goes to the bathroom, washes their face and brushes their teeth.', 'Coffee and bread.', 'The writer grabs a bag and puts on their shoes.'],
   },
   2: {
     yourTurn: ['What is your favourite drink at a café?', 'Do you prefer hot or iced drinks?', 'Do you usually pay in cash or by card?'],
@@ -55,6 +55,7 @@ export const EXTRAS: Record<number, UnitExtras> = {
     ],
     readNotice: ['He takes a break there every afternoon.', 'He changes his mind and adds a small orange juice.', 'When he is in a hurry, he takes his coffee to go.'],
     questions: ['Where does Amine take a break every afternoon?', 'How does he like his coffee?', 'What does he eat?', 'How much is everything?'],
+    answers: ['At a café near his work.', 'Hot, with a little milk and no sugar.', 'A cheese sandwich.', 'Sixty-two dirhams.'],
   },
   3: {
     yourTurn: ['What can you cook?', 'Who cooks in your family?', 'What is your favourite dish?'],
@@ -70,6 +71,7 @@ export const EXTRAS: Record<number, UnitExtras> = {
     ],
     readNotice: ['First he checks the fridge.', 'While the food is cooking, he tastes it.', 'It needs a little more salt.'],
     questions: ['What does Sami cook on Friday?', 'What does Nour do to help?', 'How much water does Sami need for the rice?', 'What does Sami make after lunch?'],
+    answers: ['Chicken and rice.', 'She washes and peels the vegetables, and sets the table.', 'About two cups.', 'Some tea.'],
   },
   4: {
     yourTurn: ['Do you take a shower in the morning or at night?', 'How long do you spend in the bathroom in the morning?', 'What do you need to buy for the bathroom?'],
@@ -85,6 +87,7 @@ export const EXTRAS: Record<number, UnitExtras> = {
     ],
     readNotice: ['He brushes his teeth. / She washes her hair.', 'There is only a little toothpaste left.', 'She cannot find her comb.'],
     questions: ['Who goes into the bathroom first?', 'Where is the new tube of toothpaste?', 'Why is Lina in a hurry?', 'Where is the hairdryer?'],
+    answers: ['Omar.', 'Under the sink.', 'She needs the bathroom before they leave.', 'In the drawer.'],
   },
   5: {
     yourTurn: ['Do you wash your clothes at home or at the laundry?', 'Who irons the clothes in your house?', 'Which of your clothes need dry cleaning?'],
@@ -100,6 +103,7 @@ export const EXTRAS: Record<number, UnitExtras> = {
     ],
     readNotice: ['The jacket needs dry cleaning.', 'They can wash the shirts normally.', 'She pays when she picks up her clothes.'],
     questions: ['What clothes does Hoda take to the laundry?', 'What is on the jacket?', 'How much is it altogether?', 'When are the clothes ready?'],
+    answers: ['One jacket and two shirts.', 'A stain — she thinks it is coffee.', 'Ninety dirhams.', 'On Tuesday afternoon.'],
   },
   6: {
     yourTurn: ['What is your favourite restaurant?', 'What do you usually order there?', 'Do you like spicy food?'],
@@ -115,6 +119,7 @@ export const EXTRAS: Record<number, UnitExtras> = {
     ],
     readNotice: ['Sami ordered the fish.', 'Karim says sorry and changes it right away.', 'They do not want dessert.'],
     questions: ['Where do Nadia and Sami go on Saturday evening?', 'What does the waiter recommend?', 'What is the problem with the food?', 'How do they pay?'],
+    answers: ['To a restaurant near the market.', 'The chicken (and the fish is also very good).', 'Karim brings chicken to Sami, but he ordered the fish.', 'By card.'],
   },
   7: {
     yourTurn: ['How often do you go to the supermarket?', 'What do you always buy?', 'Do you take a basket or a cart?'],
@@ -130,6 +135,7 @@ export const EXTRAS: Record<number, UnitExtras> = {
     ],
     readNotice: ['The milk is in aisle four, on the left.', 'That is too much for Amine.', 'The chicken is on sale with a twenty percent discount.'],
     questions: ['How often does Amine go to the supermarket?', 'Where are the eggs?', 'How much are the tomatoes today?', 'How much is the total?'],
+    answers: ['Once a week, usually on Saturday.', 'In aisle four, next to the milk.', 'Fifteen dirhams a kilo.', 'Two hundred and forty-seven dirhams.'],
   },
   8: {
     yourTurn: ['What bread do you usually buy?', 'How many loaves does your family eat every day?', 'What is your favourite pastry?'],
@@ -145,6 +151,7 @@ export const EXTRAS: Record<number, UnitExtras> = {
     ],
     readNotice: ['Hakim is out of it today.', 'She changes her mind and asks for two more.', 'Everything comes to seventy-five dirhams.'],
     questions: ['What does Rania ask first?', 'Why does she not buy whole-wheat bread?', 'How many croissants does she buy in the end?', 'Which cake is very popular?'],
+    answers: ["What's fresh today?", 'Hakim is out of it today.', 'Six.', 'The chocolate cake.'],
   },
   9: {
     yourTurn: ['What size do you usually wear?', 'What colour do you like for your clothes?', 'Where do you buy your clothes?'],
@@ -160,6 +167,7 @@ export const EXTRAS: Record<number, UnitExtras> = {
     ],
     readNotice: ['The medium is a little too small.', 'They only have it in white and grey.', 'This time it fits him well.'],
     questions: ['What does Karim need?', 'Why does he try a large?', 'What colour does he buy?', 'How much does he pay?'],
+    answers: ['A jacket for everyday use.', 'The medium is a little too small.', 'Grey.', 'Two hundred and eighty dirhams.'],
   },
   10: {
     yourTurn: ['Where do you meet your friends?', 'What do you do together at the weekend?', 'When did you last see an old friend?'],
@@ -175,6 +183,7 @@ export const EXTRAS: Record<number, UnitExtras> = {
     ],
     readNotice: ['They have not seen each other for a long time.', 'Saturday is not good for Karim.', "They agree on four o'clock."],
     questions: ['Where is Karim going when he sees Salma?', "What is new with Salma's sister?", 'Why can Karim not meet on Saturday?', 'Why does Salma have to go?'],
+    answers: ['To the shops.', 'She started university this year.', 'He is visiting his family.', 'Her class starts in ten minutes.'],
   },
   11: {
     yourTurn: ['How often do you get a haircut?', 'How do you like your hair?', 'How much is a haircut in your town?'],
@@ -190,6 +199,7 @@ export const EXTRAS: Record<number, UnitExtras> = {
     ],
     readNotice: ['She does not have an appointment.', 'She wants the sides a little shorter.', 'It is exactly what she wanted.'],
     questions: ['How long is the wait?', 'Does Rania want a big change?', 'What does Karim do first?', 'How much is the haircut?'],
+    answers: ['About ten minutes.', 'No, just a little shorter.', 'He washes her hair.', 'One hundred and twenty dirhams.'],
   },
   12: {
     yourTurn: ['What do you do when you have a cold?', 'Is there a pharmacy near your house?', 'Do you prefer tablets or syrup?'],
@@ -205,6 +215,7 @@ export const EXTRAS: Record<number, UnitExtras> = {
     ],
     readNotice: ['She has had them for about three days.', 'She should not drive after she takes it.', 'If she is not better in three days, she should see a doctor.'],
     questions: ['What is wrong with Salma?', 'When is the cough worse?', 'How often does she take the syrup?', 'What else does the pharmacist tell her to do?'],
+    answers: ['A sore throat and a cough.', 'At night.', 'Three times a day, after meals.', 'Drink a lot of water and rest.'],
   },
   13: {
     yourTurn: ['When did you last see a doctor?', 'Do you have any allergies?', 'What do you do when you have a fever?'],
@@ -220,6 +231,7 @@ export const EXTRAS: Record<number, UnitExtras> = {
     ],
     readNotice: ['She has not been feeling well for a few days.', 'She felt hot last night.', 'The doctor thinks it is the flu.'],
     questions: ["What time is Nadia's appointment?", 'What are her symptoms?', 'What is her temperature?', 'What does the doctor tell her to do?'],
+    answers: ["At four o'clock.", 'A cough and a headache, and she feels very tired.', 'Thirty-eight.', 'Rest at home and drink a lot of water.'],
   },
   14: {
     yourTurn: ['Do you prefer the market or the supermarket?', 'What do you usually buy at the market?', 'Do you ask for a better price?'],
@@ -235,6 +247,7 @@ export const EXTRAS: Record<number, UnitExtras> = {
     ],
     readNotice: ['They came in this morning.', 'Karim adds it up: sixty dirhams.', 'In the end, they agree on fifty-five.'],
     questions: ['What does Nadia need?', 'How much are the tomatoes?', 'What price do they agree on?', 'Why does she not buy potatoes?'],
+    answers: ['Tomatoes and onions.', 'Twenty-five dirhams a kilo.', 'Fifty-five dirhams.', 'She already has some at home.'],
   },
   15: {
     yourTurn: ['How do you go to work or school?', 'Do you prefer the bus, the train or a taxi?', 'Where would you like to go by train?'],
@@ -250,6 +263,7 @@ export const EXTRAS: Record<number, UnitExtras> = {
     ],
     readNotice: ['He takes a taxi to the main train station.', 'The eight-thirty train is full.', 'The train leaves from platform two.'],
     questions: ['Where does Omar want to go?', 'How much is the taxi fare?', "Why does he take the nine o'clock train?", 'Which platform does the train leave from?'],
+    answers: ['To Rabat.', 'About forty dirhams.', 'The eight-thirty train is full.', 'Platform two.'],
   },
   16: {
     yourTurn: ['What is the nearest shop to your house?', 'How do you get there from your home?', 'How long does it take you on foot?'],
@@ -265,6 +279,7 @@ export const EXTRAS: Record<number, UnitExtras> = {
     ],
     readNotice: ['She should go straight down the street.', 'The bank is opposite a café.', 'She just has to walk past the bank.'],
     questions: ['What is Salma looking for?', 'Where does she turn left?', 'What is next to the bank?', 'Where is the pharmacy?'],
+    answers: ['The bank on Green Street.', 'At the traffic lights.', 'A large hotel.', 'Behind the bank.'],
   },
   17: {
     yourTurn: ['When did you last stay at a hotel?', 'What do you need in a hotel room?', 'Do you like a hotel with breakfast included?'],
@@ -280,6 +295,7 @@ export const EXTRAS: Record<number, UnitExtras> = {
     ],
     readNotice: ['She has a reservation for three nights.', 'Breakfast is served from seven to ten.', 'She has tried it twice, but nothing happens.'],
     questions: ['How many nights does Layla stay?', 'What floor is her room on?', 'What is the problem in her room?', 'Where does she leave her luggage?'],
+    answers: ['Three.', 'The third floor (room 302).', 'The air conditioning is not working.', 'At reception, until five.'],
   },
   18: {
     yourTurn: ['Do you prefer to pay in cash or by card?', 'How often do you use an ATM?', 'What do you do to keep your card safe?'],
@@ -295,6 +311,7 @@ export const EXTRAS: Record<number, UnitExtras> = {
     ],
     readNotice: ['He entered the wrong PIN three times.', 'He gets his card back.', 'The money arrives today.'],
     questions: ['Why does Karim go to the bank?', 'What does he show Salma?', 'How much is the transfer fee?', 'Where can he change his PIN?'],
+    answers: ['The ATM kept his card.', 'His ID.', 'Ten dirhams.', 'At the ATM.'],
   },
   19: {
     yourTurn: ['Do you prefer calls or messages?', 'Who do you call every day?', 'What do you say when you are running late?'],
@@ -310,5 +327,6 @@ export const EXTRAS: Record<number, UnitExtras> = {
     ],
     readNotice: ['He calls her back.', 'They were meeting at seven.', 'When he arrives, he cannot find her.'],
     questions: ['Why does Sara call Omar?', 'What time do they meet in the end?', 'Where do they meet?', 'How late is Omar?'],
+    answers: ['To check their plans for tonight.', 'At eight.', 'At the café near the station.', 'About ten minutes.'],
   },
 }

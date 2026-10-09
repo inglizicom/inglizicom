@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, useEffect, useId, useRef, type CSSProperties, type ReactNode } from 'react'
+import { Fragment, useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import {
   Atom, BookOpen, Calculator, Compass, FlaskConical, Globe, GraduationCap, Lightbulb, Microscope, Music, NotebookPen,
   Palette, Paperclip, Pencil, Phone, QrCode, Ruler, Scissors, type LucideIcon,
@@ -228,7 +228,9 @@ function useFillPage(deps: unknown[], spread = false) {
     }
     void document.fonts?.ready.then(fit)
     fit()
-    return () => { cancelled = true }
+    // Once more when the photos have settled (a missing one swaps to its picture sign).
+    const later = setTimeout(fit, 1500)
+    return () => { cancelled = true; clearTimeout(later) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps)
   return { bodyRef, innerRef }
@@ -244,12 +246,12 @@ function sectionsOf(blocks: Block[]): Block[][] {
   return out
 }
 
-export function LessonPage({ info, lesson, pageNo, talkNo, exNo = new Map(), filename, colour, sectionsFrom, spread }: {
+export function LessonPage({ info, lesson, pageNo, talkNo, exNo = new Map(), filename, colour, toneOf, spread }: {
   info: BookInfo; lesson: Lesson; pageNo: number; talkNo: Map<Block, number>; exNo?: Map<Block, number>; filename: string
   /** One colour for the whole page (a unit's colour) instead of a new colour per section. */
   colour?: { m: string; s: string }
-  /** With `colour`: the frame keeps it, the sections alternate between PALETTE[sectionsFrom] and the next colour (two in all). */
-  sectionsFrom?: number
+  /** A section's colour from its first block (its `tone`), so a kind of section keeps one colour through a book; the frame keeps `colour`. */
+  toneOf?: (first: Block) => { m: string; s: string } | undefined
   /** Share the room left on the page between the sections (see useFillPage). */
   spread?: boolean
 }) {
@@ -265,7 +267,7 @@ export function LessonPage({ info, lesson, pageNo, talkNo, exNo = new Map(), fil
       <div ref={bodyRef} className="lb-body absolute inset-x-[24px] overflow-hidden" style={{ top: 84, bottom: 38 }} dir="ltr">
         <div ref={innerRef} className="flex flex-col gap-[13px]">
           {sections.map((sec, k) => (
-            <section key={k} className="flex flex-col gap-[7px]" style={colourVars(info.mono, sectionsFrom !== undefined ? lessonColour(sectionsFrom + (k % 2)) : colour ?? lessonColour(base + k))}>
+            <section key={k} className="flex flex-col gap-[7px]" style={colourVars(info.mono, toneOf?.(sec[0]) ?? colour ?? lessonColour(base + k))}>
               {sec.map((b, i) => <BlockView key={i} b={b} ctx={{ talkNo, barNo, exNo }} />)}
             </section>
           ))}
@@ -273,6 +275,33 @@ export function LessonPage({ info, lesson, pageNo, talkNo, exNo = new Map(), fil
       </div>
       <Footer info={info} page={`Page ${pad(pageNo)}`} />
     </Frame>
+  )
+}
+
+/**
+ * A word's photograph on a soft tinted card, as the Level 1 cards: the word in
+ * colour, its meaning in grey (the photo grey in black-and-white). The file
+ * may be .webp, .png or .jpg — each is tried in turn, so a picture dropped in
+ * under the word's name shows up as it is. Until one exists, the card keeps
+ * its size and shows the word's picture sign instead.
+ */
+const PHOTO_EXTS = ['webp', 'png', 'jpg']
+function PhotoCard({ src, icon, en, ar, small }: { src: string; icon: string; en: string; ar: string; small?: boolean }) {
+  const [tryNo, setTryNo] = useState(0)
+  const missing = tryNo >= PHOTO_EXTS.length
+  return (
+    <div className={`rounded-2xl bg-[var(--s)] flex flex-col ${small ? 'p-1 pb-1.5' : 'p-1.5 pb-2'}`}>
+      <div className={`relative w-full aspect-[3/2] overflow-hidden flex items-center justify-center ${small ? 'rounded-lg' : 'rounded-xl'} ${missing ? '' : 'bg-white'}`}>
+        {missing
+          ? <span className={small ? 'text-[34px] leading-none' : 'text-[58px] leading-none'} style={EMOJI}>{icon}</span>
+          : <img src={src.replace(/\.webp$/, `.${PHOTO_EXTS[tryNo]}`)} alt={en} loading="eager" decoding="sync" onError={() => setTryNo(n => n + 1)}
+              className="absolute inset-0 w-full h-full object-cover" style={EMOJI} />}
+      </div>
+      <div className={`px-1 text-center ${small ? 'pt-1' : 'pt-1.5'}`}>
+        <div className={`font-extrabold leading-tight text-[var(--m)] ${small ? 'text-[12px]' : 'text-[15px]'}`}>{en}</div>
+        <div dir="rtl" className={`mt-0.5 font-bold leading-tight ${small ? 'text-[11px]' : 'text-[13px]'}`} style={{ fontFamily: AR, color: GREY_TEXT }}>{ar}</div>
+      </div>
+    </div>
   )
 }
 
@@ -574,16 +603,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
     case 'tiles': return (
       <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${b.cols ?? 3}, minmax(0, 1fr))` }}>
         {b.items.map(([icon, en, ar], i) => b.photos?.[i] ? (
-          // A photograph on a soft tinted card, as the Level 1 cards: the word in colour, its meaning in grey (all grey in black-and-white).
-          <div key={i} className="rounded-2xl bg-[var(--s)] p-1.5 pb-2 flex flex-col">
-            <div className="relative w-full aspect-[3/2] rounded-xl overflow-hidden bg-white">
-              <img src={b.photos[i]} alt={en} loading="eager" decoding="sync" className="absolute inset-0 w-full h-full object-cover" style={EMOJI} />
-            </div>
-            <div className="pt-1.5 px-1 text-center">
-              <div className="text-[15px] font-extrabold leading-tight text-[var(--m)]">{en}</div>
-              <div dir="rtl" className="mt-0.5 text-[13px] font-bold leading-tight" style={{ fontFamily: AR, color: GREY_TEXT }}>{ar}</div>
-            </div>
-          </div>
+          <PhotoCard key={`${i}:${b.photos[i]}`} src={b.photos[i]!} icon={icon} en={en} ar={ar} small={(b.cols ?? 3) >= 5} />
         ) : (b.cols ?? 3) >= 5 ? (
           // A small word card (the extra words), in the soft style of the Level 1 cards.
           <div key={i} className="rounded-2xl bg-[var(--s)] px-1.5 py-2 flex flex-col items-center text-center">

@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { existsSync, readdirSync } from 'node:fs'
-import { EVERYDAY_UNITS, EXTRAS, OPENERS, buildEverydayBook, photoOf, split, sortKey, wordList, LINES_PER_PAGE, ONE_COLUMN_LINES, VOCAB_PER_PAGE } from '../../src/data/everyday-book/index.ts'
+import { AWAITING_PHOTOS, EVERYDAY_UNITS, EXTRAS, OPENERS, REVIEWS, buildEverydayBook, photoOf, split, sortKey, wordList, LINES_PER_PAGE, ONE_COLUMN_LINES, VOCAB_PER_PAGE } from '../../src/data/everyday-book/index.ts'
 
 const AR = /[؀-ۿ]/
 
@@ -68,7 +68,12 @@ test('pages: long parts are split evenly, every page is numbered once', () => {
     assert.equal(pages[Number(row.cells[3]) - 1].unit, n)
     assert.equal(pages[Number(row.cells[3]) - 1].kind, 'opener')
   }
-  assert.deepEqual(rows.filter(r => !r.cells[0]).map(r => pages[Number(r.cells[3]) - 1].kind), ['progress', 'wordlist'])
+  const first = r => Number(r.cells[3].split(' · ')[0])
+  assert.deepEqual(rows.filter(r => !r.cells[0]).map(r => pages[first(r) - 1].kind), ['progress', 'review', 'key', 'wordlist'])
+  const reviewsRow = rows.find(r => r.cells[1].includes('Reviews'))
+  assert.deepEqual(reviewsRow.cells[3].split(' · ').map(Number), pages.flatMap((p, i) => (p.kind === 'review' ? [i + 1] : [])))
+  // nine photographs on every vocabulary page
+  for (const p of pages.filter(p => p.kind === 'vocab')) assert.equal(p.blocks.find(b => b.t === 'tiles').items.length, 9, p.titleEn)
   assert.equal(pages.at(-1).kind, 'wordlist')
   assert.ok(stats.words > 250 && stats.expressions > 250, JSON.stringify(stats))
   assert.equal(stats.words, wordList().length)   // the cover's «N+ words» is what the word list shows
@@ -110,19 +115,61 @@ test('every unit has its notice, six extra words, a tip, and four reading questi
   }
 })
 
-test('every word has its photograph, and every photograph is a word', () => {
+test('every word has its photograph (or is awaiting one), and every photograph is a word', () => {
   const root = new URL('../../public', import.meta.url)
   const want = new Set()
+  const has = path => ['webp', 'png', 'jpg'].some(ext => existsSync(new URL(`.${path.replace(/\.webp$/, `.${ext}`)}`, root + '/')))
   for (const u of EVERYDAY_UNITS) {
     for (const [, en] of u.vocab) {
       const path = photoOf(u.n, en)
-      want.add(path)
-      assert.ok(existsSync(new URL(`.${path}`, root + '/')), `unit ${u.n}: no photo for "${en}" (${path})`)
+      want.add(path.replace(/\.webp$/, ''))
+      assert.ok(has(path) || AWAITING_PHOTOS.includes(`${u.n}:${en}`), `unit ${u.n}: no photo for "${en}" (${path})`)
     }
+  }
+  for (const key of AWAITING_PHOTOS) {
+    const [n, en] = key.split(':')
+    assert.ok(EVERYDAY_UNITS[n - 1].vocab.some(([, w]) => w === en), `awaiting "${key}" is a word of its unit`)
   }
   const dir = new URL('../../public/everyday-book/vocab/', import.meta.url)
   const files = readdirSync(dir).flatMap(d => readdirSync(new URL(`${d}/`, dir)).map(f => `/everyday-book/vocab/${d}/${f}`))
-  assert.deepEqual(files.filter(f => !want.has(f)), [], 'photos no word uses')
+  assert.deepEqual(files.filter(f => !want.has(f.replace(/\.(webp|png|jpg)$/, ''))), [], 'photos no word uses')
+})
+
+test('each review has three quizzes, and the answer key answers them all', () => {
+  const { pages, exNo } = buildEverydayBook()
+  const reviews = pages.filter(p => p.kind === 'review')
+  assert.equal(reviews.length, REVIEWS.length)
+  const letters = []
+  for (const r of reviews) {
+    const ex = r.blocks.filter(b => b.t === 'exercise')
+    assert.equal(ex.length, 3, r.titleEn)
+    const [words, replies, order] = ex
+    assert.ok(words.items.length >= 8 && replies.items.length >= 4 && order.items.length >= 4, r.titleEn)
+    for (const it of words.items) assert.ok(AR.test(it.q) && it.q.endsWith('= ___') && it.a && !AR.test(it.a), it.q)
+    for (const it of replies.items) {
+      assert.equal(it.options.length, 3, it.q)
+      const [letter, text] = [it.a[0], it.a.slice(3)]
+      assert.equal(it.options['abc'.indexOf(letter)], text, it.q)
+      letters.push(letter)
+    }
+    for (const it of order.items) {
+      const said = it.a.replace(/[.!?]$/, '').toLowerCase().split(' ').sort().join(' ')
+      assert.equal(it.q.toLowerCase().split(' / ').sort().join(' '), said, it.q)
+      assert.notEqual(it.q.replaceAll(' / ', ' ').toLowerCase(), it.a.replace(/[.!?]$/, '').toLowerCase(), `${it.q} is not mixed`)
+    }
+  }
+  assert.ok(new Set(letters).size === 3, `right replies are spread over a, b and c (${letters.join('')})`)
+  // the key: every reading has its four answers, every review exercise its line, numbered as in the reviews
+  const key = pages.filter(p => p.kind === 'key').flatMap(p => p.blocks.filter(b => b.t === 'key').flatMap(b => b.items))
+  for (const u of EVERYDAY_UNITS) {
+    const row = key.find(k => k.label.startsWith(`Unit ${String(u.n).padStart(2, '0')} `))
+    assert.ok(row && row.answers.length === 4 && row.answers.every(Boolean), `unit ${u.n} reading answers`)
+    assert.equal(pages[Number(row.label.split('p. ')[1]) - 1].kind, 'reading')
+  }
+  for (const [b, n] of exNo) {
+    const row = key.find(k => k.label.startsWith(`Ex. ${n} `))
+    assert.deepEqual(row.answers, b.items.map(it => it.a))
+  }
 })
 
 test('the word list holds every word once, A to Z, with the units it is taught in', () => {

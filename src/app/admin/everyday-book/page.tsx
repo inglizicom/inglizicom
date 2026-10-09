@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { buildEverydayBook, EVERYDAY_UNITS, OPENERS, type EverydayPage } from '@/data/everyday-book'
+import { buildEverydayBook, EVERYDAY_UNITS, KIND_TONE, OPENERS, TONES, type EverydayPage, type Tone } from '@/data/everyday-book'
 import { Field, GamesHeader, INP, PrintAllButton, THEMES } from '../games/_shared'
 import { BackCoverPage, CoverFields, CoverPage, DEFAULT_COVER, type CoverInfo, type CoverStat } from '../games/_cover'
-import { DEFAULT_INFO, LessonPage, lessonColour, ThanksPage, type BookInfo } from '../level1-book/_blocks'
+import { DEFAULT_INFO, LessonPage, ThanksPage, type BookInfo } from '../level1-book/_blocks'
 import { CertificatePage, Imprint, NextStepPage, ValuePage } from './_matter'
 import { ProgressPage, UnitOpenerPage, WordListPage } from './_pages'
 import { BOOK_FONT_VARS, EN_FONT } from './_fonts'
@@ -24,14 +24,15 @@ import { BOOK_FONT_VARS, EN_FONT } from './_fonts'
  */
 
 const INFO_KEY = 'everyday-book-info-v1'
-const COVER_KEY = 'everyday-book-cover-v1'
+const COVER_KEY = 'everyday-book-cover-v2'   // v2: the cover in the book's brown and gold
 
 const BOOK_INFO: BookInfo = {
   ...DEFAULT_INFO, title: 'الإنجليزية للمواقف اليومية', level: 'A1 → A2', ink: '#2A1D12', fontEn: EN_FONT,
 }
-const BOOK_COVER: CoverInfo = { ...DEFAULT_COVER, phone1: '+212 707 902 091' }
+const BOOK_COVER: CoverInfo = { ...DEFAULT_COVER, palette: 'brown', phone1: '+212 707 902 091' }
 
-type View = 'book' | 'front' | 'end' | number
+type View = 'book' | 'front' | 'reviews' | 'end' | number
+const FRONT: EverydayPage['kind'][] = ['welcome', 'howto', 'contents', 'progress']
 
 function useSaved<T extends object>(key: string, initial: T) {
   const [value, setValue] = useState<T>(initial)
@@ -66,7 +67,7 @@ export default function EverydayBookPage() {
   const withFront = view === 'book' || view === 'front'
   const withEnd = view === 'book' || view === 'end'
   const shown = book.pages.filter((p: EverydayPage) =>
-    view === 'book' ? true : view === 'front' ? !p.unit && p.kind !== 'wordlist' : view === 'end' ? p.kind === 'wordlist' : p.unit === view)
+    view === 'book' ? true : view === 'front' ? FRONT.includes(p.kind) : view === 'end' ? p.kind === 'key' || p.kind === 'wordlist' : view === 'reviews' ? p.kind === 'review' : p.unit === view)
   const count = (withFront ? 3 : 0) + shown.length + (withEnd ? 3 : 0)
   const prefix = `everyday${info.buyer.trim() ? `-${slug(info.buyer)}` : ''}`
 
@@ -101,11 +102,12 @@ export default function EverydayBookPage() {
       <div className="grid lg:grid-cols-[300px_1fr] gap-6">
         <aside className="space-y-4 print:hidden lg:sticky lg:top-24 self-start">
           <Field label="عرض" hint={`${book.pages.length} صفحة مرقّمة + الغلاف وصفحتا التسويق والشكر والشهادة والغلاف الخلفي.`}>
-            <select value={String(view)} onChange={e => setView(['book', 'front', 'end'].includes(e.target.value) ? e.target.value as View : Number(e.target.value))} className={INP}>
+            <select value={String(view)} onChange={e => setView(['book', 'front', 'reviews', 'end'].includes(e.target.value) ? e.target.value as View : Number(e.target.value))} className={INP}>
               <option value="book">الكتاب كاملًا ({book.pages.length + 6} صفحة)</option>
               <option value="front">البداية (الغلاف، لماذا هذا الكتاب، الشكر، الترحيب، الفهرس، تقدّمي)</option>
               {EVERYDAY_UNITS.map(u => <option key={u.n} value={u.n}>الوحدة {u.n} — {u.titleAr}</option>)}
-              <option value="end">النهاية (قائمة الكلمات، الشهادة، خطوتك التالية، الغلاف الخلفي)</option>
+              <option value="reviews">المراجعات (4 صفحات)</option>
+              <option value="end">النهاية (الأجوبة، قائمة الكلمات، الشهادة، خطوتك التالية، الغلاف الخلفي)</option>
             </select>
           </Field>
 
@@ -134,7 +136,7 @@ export default function EverydayBookPage() {
             </div>
           </Field>
 
-          <Field label="الطباعة" hint="الألوان: لون لكل وحدة. أبيض وأسود: للطباعة الاقتصادية.">
+          <Field label="الطباعة" hint="الألوان: لون ثابت لكل نوع من الأقسام في الكتاب كله. أبيض وأسود: للطباعة الاقتصادية.">
             {toggle(info.mono, [[false, 'بالألوان 🎨'], [true, 'أبيض وأسود']], set('mono'))}
           </Field>
 
@@ -183,9 +185,9 @@ export default function EverydayBookPage() {
             if (p.kind === 'progress') return <ProgressPage key={no} info={info} units={EVERYDAY_UNITS} pageNo={no} filename={filename} />
             if (p.kind === 'wordlist') return <WordListPage key={no} info={info} words={p.words ?? []} first={book.pages.find(q => q.kind === 'wordlist') === p} pageNo={no} filename={filename} />
             return (
-              // A unit's pages: its colour on the frame, the next colours down the page section by section, room shared out.
-              <LessonPage key={no} info={info} lesson={p} pageNo={no} talkNo={new Map()} spread
-                colour={p.unit ? lessonColour(p.unit - 1) : undefined} sectionsFrom={p.unit ? p.unit - 1 : undefined} filename={filename} />
+              // The colour key: the page's kind on its frame, each section in the colour of its own kind; room shared out.
+              <LessonPage key={no} info={info} lesson={p} pageNo={no} talkNo={new Map()} exNo={book.exNo} spread
+                colour={TONES[KIND_TONE[p.kind]]} toneOf={b => ('tone' in b && b.tone ? TONES[b.tone as Tone] : undefined)} filename={filename} />
             )
           })}
           {withEnd && <>

@@ -6,7 +6,7 @@ export const UNITS_8_13: EverydayUnit[] = [
   {
     n: 8, titleEn: 'At the Bakery', titleAr: 'في المخبزة', icons: ['🥖', '🥐'],
     goal: 'تعلّم كيف تسأل عن أنواع الخبز والمعجّنات والكميات والأسعار، وما هو طازج اليوم.',
-    vocab: words('🧑‍🍳 bakery = مخبزة | ✨ fresh = طازج | ♨️ warm = دافئ | 🍞 bread = خبز | 🥖 baguette = خبز الباغيت | 🌾 whole-wheat bread = خبز القمح الكامل | 🫓 loaf = رغيف | 🥐 croissant = كرواسون | 🥧 pastry = معجّنات | 🎂 cake = كعكة | 🍰 piece = قطعة | 🥯 sesame bread = خبز بالسمسم | 2️⃣ two loaves = رغيفان | 4️⃣ four croissants = أربع قطع كرواسون | 🔢 dozen = دزينة | 🧾 receipt = إيصال'),
+    vocab: words('🧑‍🍳 bakery = مخبزة | ✨ fresh = طازج | ♨️ warm = دافئ | 🍞 bread = خبز | 🥖 baguette = خبز الباغيت | 🌾 whole-wheat bread = خبز القمح الكامل | 🫓 loaf = رغيف | 🥐 croissant = كرواسون | 🥧 pastry = معجّنات | 🎂 cake = كعكة | 🍰 piece = قطعة | 🥯 sesame bread = خبز بالسمسم | 2️⃣ two loaves = رغيفان | 4️⃣ four croissants = أربع قطع كرواسون | 🔢 dozen = دزينة | 🧾 receipt = إيصال | 🔥 oven = فرن | 🧑‍🍳 baker = خبّاز'),
     expressions: [
       ['Good morning. What can I get you?', "Good morning. What's fresh today?", 'صباح الخير. ماذا تريد؟', 'صباح الخير. ما الطازج اليوم؟'],
       ['The baguettes are fresh and still warm.', "I'd like two baguettes, please.", 'الباغيت طازج وما زال دافئًا.', 'أريد قطعتين من الباغيت، من فضلك.'],
@@ -161,7 +161,7 @@ export const UNITS_8_13: EverydayUnit[] = [
   {
     n: 10, titleEn: 'Meeting a Friend', titleAr: 'لقاء صديق', icons: ['🤝', '☕'],
     goal: 'تعلّم كيف تبدأ محادثة ودّية، تسأل عن الأخبار والحياة اليومية، وتقترح لقاءً بطريقة طبيعية.',
-    vocab: words('🤝 meet = أقابل | 🧑‍🤝‍🧑 friend = صديق | ⏳ a while = مدة | 🏫 class = الحصة الدراسية | 💼 work = العمل | 🏃 busy = مشغول | 👨‍👩‍👧 family = العائلة | 🗓️ weekend = عطلة نهاية الأسبوع | 📝 plans = خطط | 😌 free = متفرّغ | ☕ coffee = قهوة | 🥙 lunch = غداء | 🌙 tonight = الليلة | ⏰ later = لاحقًا | 📅 tomorrow = غدًا | 💛 take care = اعتنِ بنفسك'),
+    vocab: words('🤝 meet = أقابل | 🧑‍🤝‍🧑 friend = صديق | ⏳ a while = مدة | 🏫 class = الحصة الدراسية | 💼 work = العمل | 🏃 busy = مشغول | 👨‍👩‍👧 family = العائلة | 🗓️ weekend = عطلة نهاية الأسبوع | 📝 plans = خطط | 😌 free = متفرّغ | ☕ coffee = قهوة | 🥙 lunch = غداء | 🌙 tonight = الليلة | ⏰ later = لاحقًا | 📅 tomorrow = غدًا | 💛 take care = اعتنِ بنفسك | 👥 spend time with friends = نقضي الوقت مع الأصدقاء | 💌 invite = يدعو'),
     expressions: [
       ["Hey! It's good to see you.", "You too! It's been a while.", 'أهلًا! سعيد برؤيتك.', 'وأنا أيضًا! مضت مدة.'],
       ['How have you been?', "I've been good, thanks. What about you?", 'كيف حالك هذه الأيام؟', 'بخير، شكرًا. وأنت؟'],
@@ -318,7 +318,7 @@ export const UNITS_8_13: EverydayUnit[] = [
   {
     n: 12, titleEn: 'At the Pharmacy', titleAr: 'في الصيدلية', icons: ['💊', '🩺'],
     goal: 'تعلّم كيف تصف مشكلة صحية بسيطة، تسأل عن دواء، وتفهم التعليمات الأساسية بطريقة آمنة.',
-    vocab: words('🤕 headache = صداع | 😷 sore throat = التهاب الحلق | 😮‍💨 cough = سعال | 🤧 cold = زكام | 🤒 fever = حمّى | 😣 pain = ألم | 👩‍⚕️ pharmacist = الصيدلي | 💊 medicine = دواء | ⚪ tablets = أقراص | 🍯 syrup = شراب | 🥄 dose = جرعة | 🌅 morning = صباحًا | 🌙 night = ليلًا | 💵 cash = نقدًا | 💳 card = بطاقة | 🧾 receipt = إيصال'),
+    vocab: words('🤕 headache = صداع | 😷 sore throat = التهاب الحلق | 😮‍💨 cough = سعال | 🤧 cold = زكام | 🤒 fever = حمّى | 😣 pain = ألم | 👩‍⚕️ pharmacist = الصيدلي | 💊 medicine = دواء | ⚪ tablets = أقراص | 🍯 syrup = شراب | 🥄 dose = جرعة | 🌅 morning = صباحًا | 🌙 night = ليلًا | 💵 cash = نقدًا | 💳 card = بطاقة | 🧾 receipt = إيصال | 😖 stomach ache = ألم في المعدة | 🦴 back pain = ألم في الظهر'),
     expressions: [
       ['How can I help you?', 'I have a sore throat.', 'كيف يمكنني مساعدتك؟', 'عندي التهاب في الحلق.'],
       ['How long have you had it?', "I've had it for three days.", 'منذ متى وأنت تشعر به؟', 'منذ ثلاثة أيام.'],

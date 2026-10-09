@@ -6,7 +6,7 @@ export const UNITS_14_19: EverydayUnit[] = [
   {
     n: 14, titleEn: 'At the Traditional Market', titleAr: 'في السوق التقليدي', icons: ['🍅', '⚖️'],
     goal: 'تعلّم كيف تسأل عن الأسعار والكميات، وتتفاوض على السعر بطريقة بسيطة ومهذّبة.',
-    vocab: words('🍅 tomatoes = الطماطم | 🥔 potatoes = البطاطس | 🧅 onions = البصل | 🌿 fresh = طازج | 🥦 vegetables = الخضروات | 🍊 fruit = الفواكه | 🏷️ price = السعر | 💸 expensive = غالٍ | 👍 cheap = رخيص | ⚖️ kilo = كيلوغرام | ½ half a kilo = نصف كيلوغرام | 🍋 piece = قطعة | 📉 discount = تخفيض | 🤝 a better price = سعر أفضل | 💵 cash = نقدًا | 🪙 change = الباقي | 🧮 the total = المجموع'),
+    vocab: words('🍅 tomatoes = الطماطم | 🥔 potatoes = البطاطس | 🧅 onions = البصل | 🌿 fresh = طازج | 🥦 vegetables = الخضروات | 🍊 fruit = الفواكه | 🏷️ price = السعر | 💸 expensive = غالٍ | 👍 cheap = رخيص | ⚖️ kilo = كيلوغرام | ½ half a kilo = نصف كيلوغرام | 🍋 piece = قطعة | 📉 discount = تخفيض | 🤝 a better price = سعر أفضل | 💵 cash = نقدًا | 🪙 change = الباقي | 🧮 the total = المجموع | 🏷️ price tag = بطاقة الثمن'),
     expressions: [
       ['Do you have any fresh tomatoes?', 'Yes. How much would you like?', 'هل لديك طماطم طازجة؟', 'نعم. كم تريد؟'],
       ['Are these fresh?', "Yes, they're very fresh.", 'هل هذه طازجة؟', 'نعم، إنها طازجة جدًا.'],
@@ -147,7 +147,7 @@ export const UNITS_14_19: EverydayUnit[] = [
   {
     n: 16, titleEn: 'Asking for Directions', titleAr: 'السؤال عن الاتجاهات', icons: ['🧭', '🚦'],
     goal: 'تعلّم كيف تسأل عن الطريق، تفهم تعليمات بسيطة، تستعمل المعالم القريبة، وتتأكّد أنك في الاتجاه الصحيح.',
-    vocab: words('🙋 excuse me = عفوًا | 📍 the nearest = الأقرب | ⬆️ straight = إلى الأمام مباشرة | ⬅️ left = يسار | ➡️ right = يمين | 📐 corner = زاوية الشارع | 🚦 traffic lights = إشارة المرور | 👫 next to = بجانب | ↔️ opposite = مقابل | 🔙 behind = خلف | ⏩ in front of = أمام | 🏠 near = قريب | 🗺️ far = بعيد | 🚶 on foot = سيرًا على الأقدام | 🙏 thanks a lot = شكرًا جزيلًا | 😊 you\'re welcome = على الرحب والسعة'),
+    vocab: words('🙋 excuse me = عفوًا | 📍 the nearest = الأقرب | ⬆️ straight = إلى الأمام مباشرة | ⬅️ left = يسار | ➡️ right = يمين | 📐 corner = زاوية الشارع | 🚦 traffic lights = إشارة المرور | 👫 next to = بجانب | ↔️ opposite = مقابل | 🔙 behind = خلف | ⏩ in front of = أمام | 🏠 near = قريب | 🗺️ far = بعيد | 🚶 on foot = سيرًا على الأقدام | 🙏 thanks a lot = شكرًا جزيلًا | 😊 you\'re welcome = على الرحب والسعة | 🗺️ map = خريطة | 🧭 directions = الاتجاهات'),
     expressions: [
       ["Sorry, I'm lost. Can you help me?", 'Of course. Where are you trying to go?', 'عذرًا، لقد تهت. هل يمكنك مساعدتي؟', 'بالطبع. إلى أين تريد أن تذهب؟'],
       ['Excuse me, how can I get to the bank?', 'Go straight and turn left at the traffic lights.', 'عفوًا، كيف أصل إلى البنك؟', 'امشِ إلى الأمام وانعطف يسارًا عند إشارة المرور.'],
@@ -347,7 +347,7 @@ export const UNITS_14_19: EverydayUnit[] = [
   {
     n: 19, titleEn: 'Phone & WhatsApp English', titleAr: 'الإنجليزية في الهاتف وواتساب', icons: ['📱', '💬'],
     goal: 'تعلّم كيف تبدأ مكالمة، تتعامل مع سوء الاتصال، تغيّر موعدًا، وتستعمل عبارات يومية في المكالمات وواتساب.',
-    vocab: words('📞 call someone = يتّصل بشخص | 📲 answer the phone = يردّ على الهاتف | 📵 a bad connection = اتصال سيئ | ☎️ a missed call = مكالمة فائتة | 🔁 call you back = يعاود الاتصال بك | 💬 send a message = يرسل رسالة | ↩️ reply to a message = يردّ على رسالة | ⏰ running late = متأخّر | 🚗 on my way = في الطريق | ⛔ busy right now = مشغول الآن | 🌙 free tonight = متفرّغ الليلة | ✋ wait for me = انتظرني | 🕖 meet at seven = نلتقي في السابعة | 📍 send your location = أرسل موقعك | 🏁 almost there = أوشكت على الوصول | 🚪 outside = في الخارج'),
+    vocab: words('📞 call someone = يتّصل بشخص | 📲 answer the phone = يردّ على الهاتف | 📵 a bad connection = اتصال سيئ | ☎️ a missed call = مكالمة فائتة | 🔁 call you back = يعاود الاتصال بك | 💬 send a message = يرسل رسالة | ↩️ reply to a message = يردّ على رسالة | ⏰ running late = متأخّر | 🚗 on my way = في الطريق | ⛔ busy right now = مشغول الآن | 🌙 free tonight = متفرّغ الليلة | ✋ wait for me = انتظرني | 🕖 meet at seven = نلتقي في السابعة | 📍 send your location = أرسل موقعك | 🏁 almost there = أوشكت على الوصول | 🚪 outside = في الخارج | 🔋 charge my phone = أشحن هاتفي | 💬 text someone = أراسل شخصًا'),
     expressions: [
       ['Hi, is this Sara?', 'Yes, speaking.', 'مرحبًا، هل هذه سارة؟', 'نعم، أنا سارة.'],
       ['Is now a good time to talk?', "I'm a little busy right now.", 'هل الوقت مناسب للحديث الآن؟', 'أنا مشغولة قليلًا الآن.'],

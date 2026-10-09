@@ -31,13 +31,13 @@ export type Block =
   /** A small bullet line on the right ("Teacher : …"). */
   | { t: 'note'; text: string }
   /** Black bar across the page: "• Greetings". */
-  | { t: 'bar'; title: string; icon?: string }
+  | { t: 'bar'; title: string; icon?: string; /** the kind of section it opens (a book's colour key) */ tone?: string }
   /** Centered black title box (the lesson's topic). */
-  | { t: 'banner'; title: string; icons?: [string, string] }
+  | { t: 'banner'; title: string; icons?: [string, string]; tone?: string }
   /** Bullets in columns, optionally inside a bordered box with a heading. */
   | { t: 'bullets'; items: string[]; cols?: number; box?: boolean; heading?: string; size?: number; tick?: boolean
-      /** Starts a new section (and so takes the next colour). */
-      section?: boolean }
+      /** Starts a new section (and so takes the next colour); `tone` names its kind. */
+      section?: boolean; tone?: string }
   /** A practice conversation: numbered bar + lines (+ a picture). */
   | { t: 'talk'; title?: string; full?: string; lines: string[]; cols?: 1 | 2; art?: string; aside?: Block[]; size?: number }
   /** The alphabet strip. */
@@ -51,7 +51,7 @@ export type Block =
   /** Several blocks side by side; `widths` is a CSS grid template. */
   | { t: 'row'; widths: string; blocks: Block[][]
       /** Columns as tall as the tallest (boxes side by side end level); `section` starts a new section. */
-      stretch?: boolean; section?: boolean }
+      stretch?: boolean; section?: boolean; tone?: string }
   /** Picture word cards: emoji, English (black), Arabic (boxed). */
   | { t: 'cards'; items: [icon: string, en: string, ar: string][]; cols?: number; /** icon above the words, for narrow columns */ stack?: boolean }
   /** Word pairs as black/white labels (English on top unless `arTop`). */
