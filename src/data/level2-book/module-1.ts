@@ -1,19 +1,10 @@
-import type { Block, ExerciseItem } from '../level1-book.ts'
+import type { Block } from '../level1-book.ts'
 import type { L2Unit } from './types.ts'
+import { choose, complete, correct } from './helpers.ts'
+import { GRAMMAR_1 } from './grammar-1.ts'
+import { VOCAB_1 } from './vocab-1.ts'
 
 /** Module 1 — People and everyday life: units 1–4 and Review 1. */
-
-/* Exercise helpers: a choice of three (the key gives the letter and the answer) and a gap to complete. */
-const choose = (title: string, rows: [q: string, options: [string, string, string], right: 0 | 1 | 2][]): Block => ({
-  t: 'exercise', title, instr: 'Circle the right answer. - ضع دائرة حول الجواب الصحيح.', size: 13.5,
-  items: rows.map(([q, options, r]): ExerciseItem => ({ q, options, a: `${'abc'[r]}) ${options[r]}` })),
-})
-const complete = (title: string, instr: string, rows: [q: string, a: string][], cols: 1 | 2 = 1): Block => ({
-  t: 'exercise', title, instr, size: 13.5, cols, items: rows.map(([q, a]) => ({ q, a })),
-})
-const grammarBar = (title: string, icon = '📘'): Block => ({ t: 'bar', title, icon, tone: 'grammar' })
-const practiceBar: Block = { t: 'bar', title: 'Practice - تمارين', icon: '✏️', tone: 'practice' }
-const inTalk = (items: string[]): Block => ({ t: 'bullets', box: true, section: true, tone: 'talk', heading: 'In the conversation - في المحادثة 🗣️', size: 13, items })
 
 export const MODULE_1: L2Unit[] = [
   /* ── 1 · Getting to know people ─────────────────────────────────── */
@@ -88,68 +79,8 @@ export const MODULE_1: L2Unit[] = [
       'Find three things that are happening now or these days. - ابحث عن ثلاثة أشياء تحدث الآن أو هذه الأيام.',
       'Imane says I need English, not I am needing English. Why? - لماذا؟',
     ],
-    grammar: [
-      [
-        grammarBar('Simple or continuous? - البسيط أم المستمر؟'),
-        { t: 'row', widths: '1fr 1fr', stretch: true, blocks: [
-          [{ t: 'bullets', box: true, heading: 'Present simple ⏱️', size: 13, items: [
-            'Habits: I usually go home at the weekend. - للعادات والروتين.',
-            'Facts: I live in Rabat. She works at a hospital. - للحقائق الثابتة.',
-            'Timetables: The class starts at six. - للمواعيد الثابتة.',
-          ] }],
-          [{ t: 'bullets', box: true, heading: 'Present continuous ▶️', size: 13, items: [
-            'Now: Look, the teacher is coming. - لما يحدث الآن.',
-            "These days: I'm working nights this month. - لما يحدث هذه الأيام، بشكل مؤقت.",
-            'Changes: My English is getting better. - لما يتغيّر ويتطوّر.',
-          ] }],
-        ] },
-        { t: 'grid', title: 'Form - التركيب', rows: [
-          { dark: true, span: [0.5, 2, 2], cells: ['', 'Present simple', 'Present continuous'] },
-          { span: [0.5, 2, 2], size: 13.5, cells: ['+', 'I work. · She works.', "I'm working. · She's working."] },
-          { span: [0.5, 2, 2], size: 13.5, cells: ['−', "I don't work. · She doesn't work.", "I'm not working. · She isn't working."] },
-          { span: [0.5, 2, 2], size: 13.5, cells: ['?', 'Do you work? · Does she work?', 'Are you working? · Is she working?'] },
-        ] },
-        { t: 'sub', text: 'Time words - كلمات الزمن' },
-        { t: 'chips', items: [['usually', 'عادةً'], ['every day', 'كل يوم'], ['often', 'غالبًا'], ['on Mondays', 'أيام الاثنين'], ['now', 'الآن'], ['at the moment', 'حاليًا'], ['these days', 'هذه الأيام']] },
-        inTalk([
-          'I work for a small company near the station. → a fact - حقيقة',
-          "This month I'm working nights. → for now, not always - مؤقت",
-          'I usually listen to podcasts on the bus. → a habit - عادة',
-          'Oh, the teacher is coming. → right now - الآن',
-        ]),
-      ],
-      [
-        grammarBar('State verbs - أفعال الحالة', '🧠'),
-        { t: 'bullets', size: 13.5, items: [
-          'Some verbs describe a state, not an action: know, like, love, hate, want, need, understand, believe. - هذه الأفعال تصف حالة لا حدثًا.',
-          "We don't use them with -ing: I need English. I know him well. - لا نضيف إليها ing عادةً.",
-        ] },
-        { t: 'mistakes', section: true, tone: 'grammar', items: [
-          ['I am work in a bank.', 'I work in a bank.', 'لا نضع am قبل الفعل في المضارع البسيط.'],
-          ['She go to work by bus.', 'She goes to work by bus.', 'مع he و she و it نضيف s إلى الفعل.'],
-          ["I'm knowing him well.", 'I know him well.', 'الفعل know فعل حالة، فلا نضيف إليه ing أبدًا.'],
-          ['What you are doing?', 'What are you doing?', 'في السؤال يأتي are قبل you وليس بعده.'],
-          ['Do you are a teacher?', 'Are you a teacher?', 'مع فعل be لا نستعمل do في السؤال.'],
-        ] },
-        practiceBar,
-        choose('Choose the correct form', [
-          ['Yassine ___ for a small company.', ['works', 'is working', 'work'], 0],
-          ['Look! It ___.', ['rains', 'is raining', 'rain'], 1],
-          ['___ you usually study in the evening?', ['Are', 'Do', 'Does'], 1],
-          ['This month Imane ___ nights.', ['work', 'is working', 'are working'], 1],
-          ['I ___ what you mean.', ['understand', 'am understanding', 'understands'], 0],
-          ['My English ___ better these days.', ['get', 'is getting', 'are getting'], 1],
-        ]),
-        complete('Complete with the right form', 'Use the verb in brackets. - استعمل الفعل بين القوسين.', [
-          ['She ___ (not / eat) meat.', "doesn't eat"],
-          ['What ___ you ___ (do) at the moment?', 'are / doing'],
-          ['My brother ___ (live) in Spain.', 'lives'],
-          ['I ___ (look for) a new flat this month.', "'m looking for"],
-          ['___ your father ___ (speak) English?', 'Does / speak'],
-          ["They ___ (not / listen) to me right now!", "aren't listening"],
-        ], 2),
-      ],
-    ],
+    vocab: VOCAB_1[1],
+    grammar: GRAMMAR_1[1],
     writing: {
       name: 'An online profile', nameAr: 'ملف تعريفي على الإنترنت',
       task: 'اكتب ملفًا تعريفيًا قصيرًا عنك لتطبيق تبادل اللغات (80 إلى 100 كلمة).',
@@ -262,74 +193,8 @@ export const MODULE_1: L2Unit[] = [
       'Find three things that happened only once (past simple). - ابحث عن ثلاثة أحداث وقعت مرة واحدة.',
       'Tell a partner about your school days. - حدّث زميلك عن أيام دراستك.',
     ],
-    grammar: [
-      [
-        grammarBar('Past simple - الماضي البسيط'),
-        { t: 'row', widths: '1fr 1fr', stretch: true, blocks: [
-          [{ t: 'bullets', box: true, heading: 'Regular verbs', size: 13, items: [
-            'Add -ed: work → worked, live → lived, study → studied. - نضيف ed إلى الفعل.',
-            'Say -ed in three ways: walked /t/, played /d/, wanted /ɪd/. - تُنطق ed بثلاث طرق.',
-          ] }],
-          [{ t: 'bullets', box: true, heading: 'Common irregular verbs', size: 13, items: [
-            'go → went · have → had · do → did',
-            'see → saw · take → took · find → found',
-            'grow up → grew up · know → knew · say → said',
-            'The full list is at the back of the book. - القائمة الكاملة في آخر الكتاب.',
-          ] }],
-        ] },
-        { t: 'grid', title: 'Form - التركيب', rows: [
-          { span: [0.5, 4], size: 13.5, cells: ['+', 'I worked. · She went to school.'] },
-          { span: [0.5, 4], size: 13.5, cells: ['−', "I didn't work. · She didn't go to school."] },
-          { span: [0.5, 4], size: 13.5, cells: ['?', 'Did you work? · Did she go to school?'] },
-        ] },
-        grammarBar('used to - كنتُ أفعل', '🔁'),
-        { t: 'bullets', size: 13.5, items: [
-          'used to + verb = a habit or a state in the past that is not true now. - عادة أو حالة في الماضي لم تعد صحيحة الآن.',
-          'I used to walk to school. Now I take the bus. - كنت أمشي إلى المدرسة، أما الآن فأركب الحافلة.',
-        ] },
-        { t: 'grid', rows: [
-          { span: [0.5, 4], size: 13.5, cells: ['+', 'I used to play football.'] },
-          { span: [0.5, 4], size: 13.5, cells: ['−', "I didn't use to like maths."] },
-          { span: [0.5, 4], size: 13.5, cells: ['?', 'Did you use to have a TV?'] },
-        ] },
-        grammarBar('used to or past simple? - أيّهما أستعمل؟', '⚖️'),
-        { t: 'bullets', size: 13.5, items: [
-          'Many times (a habit): used to or past simple. We used to sing / We sang all the way. - للعادة يصلح الاثنان.',
-          'One time, or with a date: only past simple. I moved to the city in 2012. - لحدث واحد أو مع تاريخ: الماضي البسيط فقط.',
-        ] },
-        inTalk([
-          'We used to walk. It took almost an hour. → a habit - عادة',
-          'My mother found them in a box last week. → one time - مرة واحدة',
-          'When did you move to the city? → one time, a date - حدث بتاريخ',
-        ]),
-      ],
-      [
-        { t: 'mistakes', section: true, tone: 'grammar', items: [
-          ['I use to play football when I was a child.', 'I used to play football when I was a child.', 'في الإثبات نكتب used مع حرف الدال.'],
-          ['Did you used to like school?', 'Did you use to like school?', 'بعد did يأتي الفعل use دون حرف الدال.'],
-          ['I used to go to Paris last year.', 'I went to Paris last year.', 'لحدث وقع مرة واحدة نستعمل الماضي البسيط.'],
-          ['Yesterday I go to the market.', 'Yesterday I went to the market.', 'بعد yesterday يأتي الفعل في الماضي.'],
-          ["I didn't went to school.", "I didn't go to school.", "بعد didn't يأتي الفعل في صيغته الأصلية."],
-        ] },
-        practiceBar,
-        choose('Choose the correct form', [
-          ['When I was a child, I ___ in a village.', ['use to live', 'used to live', 'was used to live'], 1],
-          ['We ___ to Agadir last summer.', ['used to go', 'went', 'go'], 1],
-          ['___ you use to walk to school?', ['Did', 'Do', 'Were'], 0],
-          ['My grandfather ___ a shop in the old medina.', ['used to have', 'use to have', 'used have'], 0],
-          ['I ___ like vegetables, but now I love them.', ["didn't used to", "didn't use to", "don't used to"], 1],
-          ['She ___ her keys yesterday.', ['used to lose', 'lost', 'loses'], 1],
-        ]),
-        complete('Complete in the past simple', 'Use the verb in brackets. - استعمل الفعل بين القوسين.', [
-          ['I ___ (grow up) in Oujda.', 'grew up'],
-          ['We ___ (not / have) a car.', "didn't have"],
-          ['Where ___ you ___ (go) last weekend?', 'did / go'],
-          ['My father ___ (take) us to the beach on Sundays.', 'took (or: used to take)'],
-          ['She ___ (study) in Rabat for three years.', 'studied'],
-          ['They ___ (move) to Spain in 2019.', 'moved'],
-        ], 2),
-      ],
-    ],
+    vocab: VOCAB_1[2],
+    grammar: GRAMMAR_1[2],
     writing: {
       name: 'My life then and now', nameAr: 'حياتي بين الماضي والحاضر',
       task: 'اكتب فقرة (80 إلى 100 كلمة) تقارن فيها حياتك عندما كنت طفلًا بحياتك اليوم.',
@@ -439,67 +304,8 @@ export const MODULE_1: L2Unit[] = [
       'What does Rim look like? What is she like? - كيف تبدو ريم؟ وكيف هي شخصيتها؟',
       'Describe a person in your family to a partner. - صف شخصًا من عائلتك لزميلك.',
     ],
-    grammar: [
-      [
-        grammarBar('Comparing people - المقارنة والتفضيل'),
-        { t: 'grid', rows: [
-          { dark: true, span: [1, 1.4, 1.4], cells: ['Adjective', 'Comparative', 'Superlative'] },
-          { span: [1, 1.4, 1.4], size: 13.5, cells: ['tall', 'taller than', 'the tallest'] },
-          { span: [1, 1.4, 1.4], size: 13.5, cells: ['nice', 'nicer than', 'the nicest'] },
-          { span: [1, 1.4, 1.4], size: 13.5, cells: ['big', 'bigger than', 'the biggest'] },
-          { span: [1, 1.4, 1.4], size: 13.5, cells: ['friendly', 'friendlier than', 'the friendliest'] },
-          { span: [1, 1.4, 1.4], size: 13.5, cells: ['confident', 'more confident than', 'the most confident'] },
-          { span: [1, 1.4, 1.4], size: 13.5, cells: ['good', 'better than', 'the best'] },
-          { span: [1, 1.4, 1.4], size: 13.5, cells: ['bad', 'worse than', 'the worst'] },
-        ] },
-        { t: 'bullets', size: 13.5, items: [
-          'Short adjectives: add -er and -est: tall, taller, the tallest. - الصفات القصيرة: نضيف er و est في آخرها.',
-          'Ending in -y: -ier and -iest: funny, funnier, the funniest. - تتغيّر y في آخر الصفة إلى ier و iest عند المقارنة.',
-          'Long adjectives: more and the most: more patient, the most patient. - الصفات الطويلة نضع قبلها more أو the most دون تغيير.',
-          "Not as … as: He isn't as tall as me. - ليس… مثل.",
-          'How much? much taller, a bit older. - نستعمل much للفرق الكبير، و a bit للفرق الصغير.',
-        ] },
-        inTalk([
-          "She's quite tall, taller than me. → comparative - مقارنة",
-          "She's the most talkative person in our family! → superlative - تفضيل",
-          "She's twenty-four, but she looks younger. → look + adjective - يبدو",
-        ]),
-      ],
-      [
-        grammarBar('look, look like, be like - يبدو، يشبه، كيف هو', '🔍'),
-        { t: 'grid', rows: [
-          { dark: true, span: [1.2, 2.2, 1.6], cells: ['', 'Example', 'Meaning'] },
-          { span: [1.2, 2.2, 1.6], size: 13.5, cells: ['look + adjective', 'You look tired.', 'يبدو'] },
-          { span: [1.2, 2.2, 1.6], size: 13.5, cells: ['look like + person', 'He looks like his father.', 'يشبه'] },
-          { span: [1.2, 2.2, 1.6], size: 13.5, cells: ['be like', "What's she like? She's kind.", 'الشخصية'] },
-          { span: [1.2, 2.2, 1.6], size: 13.5, cells: ['look like (appearance)', 'What does she look like?', 'المظهر'] },
-        ] },
-        { t: 'mistakes', section: true, tone: 'grammar', items: [
-          ['He is more tall than me.', 'He is taller than me.', 'لا نجمع بين more و er في كلمة واحدة.'],
-          ['She is taller from her sister.', 'She is taller than her sister.', 'بعد المقارنة نستعمل than وليس from كما في العربية.'],
-          ['He is the most good player.', 'He is the best player.', 'الصفة good تصبح the best في التفضيل.'],
-          ['You look like tired.', 'You look tired.', 'بعد look تأتي الصفة مباشرة.'],
-          ['How is your brother? (personality)', 'What is your brother like?', 'نسأل عن الشخصية بـ What is … like، أما How فنسأل بها عن الحال.'],
-        ] },
-        practiceBar,
-        choose('Choose the correct form', [
-          ['My sister is ___ than me.', ['more young', 'younger', 'youngest'], 1],
-          ['This is the ___ day of my life!', ['better', 'best', 'most good'], 1],
-          ['He ___ his grandfather: the same nose and the same eyes.', ['looks', 'looks like', 'is like'], 1],
-          ['___ your new teacher like? She\'s very patient.', ['How is', 'What is', 'Who is'], 1],
-          ["Tangier isn't ___ Casablanca.", ['as big as', 'as bigger as', 'bigger as'], 0],
-          ['You ___ happy today!', ['look like', 'look', 'like'], 1],
-        ]),
-        complete('Complete with the comparative or the superlative', 'Use the adjective in brackets. - استعمل الصفة بين القوسين.', [
-          ['Rabat is ___ (quiet) than Casablanca.', 'quieter'],
-          ['My father is ___ (patient) person in our family.', 'the most patient'],
-          ['Today is ___ (hot) than yesterday.', 'hotter'],
-          ['Who is ___ (funny) student in your class?', 'the funniest'],
-          ['Her English is ___ (good) than mine.', 'better'],
-          ['That was ___ (bad) film of the year.', 'the worst'],
-        ], 2),
-      ],
-    ],
+    vocab: VOCAB_1[3],
+    grammar: GRAMMAR_1[3],
     writing: {
       name: 'Describing a person', nameAr: 'وصف شخص',
       task: 'اكتب رسالة إلكترونية قصيرة (80 إلى 100 كلمة) إلى صديق، تصف فيها شخصًا جديدًا في حياتك: زميلًا أو جارًا أو صديقًا.',
@@ -616,70 +422,8 @@ export const MODULE_1: L2Unit[] = [
       'What is good about the flat? What is not so good? - ما إيجابيات الشقة وما سلبياتها؟',
       'Role-play: you are visiting a flat. Ask five questions. - مثّل الدور: أنت تزور شقة، اطرح خمسة أسئلة.',
     ],
-    grammar: [
-      [
-        grammarBar('Countable or uncountable? - معدود أم غير معدود؟'),
-        { t: 'row', widths: '1fr 1fr', stretch: true, blocks: [
-          [{ t: 'bullets', box: true, heading: 'Countable', size: 13, items: [
-            'We can count them: a room, two rooms, three shops. - يمكن عدّها.',
-            'They have a plural: a family, two families. - لها جمع.',
-          ] }],
-          [{ t: 'bullets', box: true, heading: 'Uncountable', size: 13, items: [
-            "We can't count them: water, light, traffic, noise, money. - لا يمكن عدّها.",
-            'No a or an, no plural: some furniture, not furnitures. - لا نضع a ولا نجمعها.',
-          ] }],
-        ] },
-        { t: 'callout', text: 'انتبه: الكلمات furniture, information, advice, news, money, homework غير معدودة في الإنجليزية، رغم أنها معدودة في العربية.' },
-        { t: 'grid', title: 'How much? How many? - الكميات', rows: [
-          { dark: true, span: [1.2, 2, 2], cells: ['', 'Countable', 'Uncountable'] },
-          { span: [1.2, 2, 2], size: 13.5, cells: ['Question', 'How many rooms?', 'How much money?'] },
-          { span: [1.2, 2, 2], size: 13.5, cells: ['A big quantity', 'many / a lot of', 'much / a lot of'] },
-          { span: [1.2, 2, 2], size: 13.5, cells: ['A small quantity', 'a few', 'a little'] },
-          { span: [1.2, 2, 2], size: 13.5, cells: ['Positive', 'some shops', 'some water'] },
-          { span: [1.2, 2, 2], size: 13.5, cells: ['Negative / question', 'any shops', 'any water'] },
-        ] },
-        { t: 'bullets', size: 13.5, items: [
-          "In positive sentences, say a lot of, not much: There's a lot of traffic. - في الإثبات نقول a lot of بدل much عادةً.",
-        ] },
-        grammarBar('there is, there are - يوجد', '📍'),
-        { t: 'grid', rows: [
-          { span: [0.5, 4], size: 13.5, cells: ['+', "There's a sofa. · There are two bedrooms."] },
-          { span: [0.5, 4], size: 13.5, cells: ['−', "There isn't a lift. · There aren't many places."] },
-          { span: [0.5, 4], size: 13.5, cells: ['?', 'Is there any parking? · Are there any shops?'] },
-        ] },
-        inTalk([
-          "There's a lot of light. → uncountable - غير معدود",
-          'There are a few cafés and a pharmacy. → countable - معدود',
-          "There's some parking, but there aren't many places. → both - الاثنان",
-        ]),
-      ],
-      [
-        { t: 'mistakes', section: true, tone: 'grammar', items: [
-          ['There are many furnitures.', 'There is a lot of furniture.', 'الكلمة furniture غير معدودة، فلا جمع لها.'],
-          ['Can you give me an information?', 'Can you give me some information?', 'الكلمة information غير معدودة.'],
-          ['How many money do you need?', 'How much money do you need?', 'نستعمل How much مع الأسماء غير المعدودة.'],
-          ['There is many cars in my street.', 'There are many cars in my street.', 'نستعمل There are مع الجمع.'],
-          ['I have a little friends here.', 'I have a few friends here.', 'نستعمل a few مع الأسماء المعدودة.'],
-        ] },
-        practiceBar,
-        choose('Choose the correct word', [
-          ['How ___ bedrooms are there?', ['much', 'many', 'any'], 1],
-          ["There isn't ___ milk in the fridge.", ['many', 'much', 'a few'], 1],
-          ['Is there ___ parking near the flat?', ['any', 'many', 'a few'], 0],
-          ['I need ___ advice about my new flat.', ['an', 'some', 'many'], 1],
-          ['There are ___ good restaurants in my street.', ['a little', 'a few', 'much'], 1],
-          ['There ___ a lot of noise at night.', ['is', 'are', 'be'], 0],
-        ]),
-        complete('Complete with there is, there are, is there or are there', 'Write the missing words. - اكتب الكلمات الناقصة.', [
-          ['___ a big park near my house.', "There's (There is)"],
-          ['___ any shops in your street?', 'Are there'],
-          ['___ two bathrooms in the flat.', 'There are'],
-          ['___ any hot water?', 'Is there'],
-          ['___ many cafés in the old town.', 'There are'],
-          ['___ much traffic in the morning?', 'Is there'],
-        ], 2),
-      ],
-    ],
+    vocab: VOCAB_1[4],
+    grammar: GRAMMAR_1[4],
     writing: {
       name: 'Describing a place', nameAr: 'وصف مكان',
       task: 'صديقك سينتقل إلى مدينتك. اكتب له رسالة (80 إلى 100 كلمة) تصف فيها حيّك: ما يوجد فيه، وما يعجبك وما لا يعجبك.',
@@ -735,7 +479,7 @@ export const REVIEW_1: Block[] = [
     ['___ you use to wear a uniform at school?', ['Did', 'Do', 'Were'], 0],
     ["He's the ___ person in our family.", ['funnier', 'most funny', 'funniest'], 2],
   ]),
-  complete('Correct the mistakes', 'Write the correct sentence. - اكتب الجملة الصحيحة.', [
+  correct([
     ['I am work in a hotel.', 'I work in a hotel.'],
     ['We need some advices.', 'We need some advice.'],
     ['She is more older than her husband.', 'She is older than her husband.'],

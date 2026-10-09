@@ -26,11 +26,12 @@ export const L2_UNITS: L2Unit[] = [...MODULE_1]
 /** Each module's review page, once its units are written. */
 const REVIEWS: Record<number, Block[]> = { 1: REVIEW_1 }
 
-export type L2Kind = 'welcome' | 'contents' | 'opener' | 'expressions' | 'talk' | 'grammar' | 'writing' | 'review' | 'key'
+export type L2Kind = 'welcome' | 'contents' | 'opener' | 'vocab' | 'expressions' | 'talk' | 'grammar' | 'writing' | 'review' | 'key'
 export type L2Page = Lesson & { kind: L2Kind; unit?: number; module?: number }
 
 /** The colour key: one colour per kind of section through the book. */
 export const L2_TONES = {
+  vocab: { m: '#E11D48', s: '#FFF1F3' },
   grammar: { m: '#2563EB', s: '#EFF5FF' },
   expr: { m: '#16A34A', s: '#EEFBF2' },
   talk: { m: '#7C3AED', s: '#F4F0FF' },
@@ -41,7 +42,7 @@ export const L2_TONES = {
 export type L2Tone = keyof typeof L2_TONES
 export const L2_KIND_TONE: Record<L2Kind, L2Tone> = {
   welcome: 'brand', contents: 'brand', opener: 'brand', key: 'brand',
-  expressions: 'expr', talk: 'talk', grammar: 'grammar', writing: 'writing', review: 'practice',
+  vocab: 'vocab', expressions: 'expr', talk: 'talk', grammar: 'grammar', writing: 'writing', review: 'practice',
 }
 
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -88,6 +89,7 @@ export function unitPages(u: L2Unit): L2Page[] {
     ({ n: u.n, tag: `Unit ${pad(u.n)}`, titleAr: u.titleAr, titleEn: `${u.titleEn} · ${titleEn}`, kind, unit: u.n, module: u.module, blocks })
   const more = (i: number) => (i ? ' (continued)' : '')
   const w = u.writing
+  const v = u.vocab
   const keys = keyLines(u)
   const talkMark = focusRegex(u.focus)
   const half = Math.ceil(u.expressions.length / 2)
@@ -97,14 +99,28 @@ export function unitPages(u: L2Unit): L2Page[] {
       { t: 'banner', title: `${u.titleEn} - ${u.titleAr}`, icons: u.icons },
       { t: 'callout', text: u.goal },
       { t: 'bar', title: 'In this unit - في هذه الوحدة', icon: '🧩' },
-      { t: 'cards', cols: 4, stack: true, items: [
-        ['💬', 'Expressions', 'عبارات مفيدة'], ['🗣️', 'Conversation', 'المحادثة'],
+      { t: 'cards', cols: 5, stack: true, items: [
+        ['🔤', 'Vocabulary', 'المفردات'], ['💬', 'Expressions', 'عبارات مفيدة'], ['🗣️', 'Conversation', 'المحادثة'],
         ['📘', u.grammarName, 'القواعد'], ['✍️', w.name, 'الكتابة'],
       ] },
       { t: 'bar', title: 'My goals - أهدافي', icon: '🎯' },
       { t: 'bullets', tick: true, size: 14.5, items: u.canDo.map(([en, ar]) => `I can ${en} - أستطيع أن ${ar}`) },
       { t: 'bar', title: 'Key sentence - جملة الوحدة', icon: '🔑' },
       { t: 'qa', rows: [u.expressions[0]] },
+    ]),
+    // Vocabulary by theme: two groups, then the third with the word partners and an exercise.
+    page('vocab', 'Vocabulary', [
+      { t: 'bar', title: 'Vocabulary - المفردات', icon: '🔤', tone: 'vocab' },
+      { t: 'callout', text: 'اقرأ كل كلمة ومثالها بصوت مرتفع، ثم غطِّ الكلمات الإنجليزية وحاول أن تتذكّرها من معناها.' },
+      ...v.groups.slice(0, 2).flatMap((g): Block[] => [{ t: 'sub', text: `${g.icon} ${g.title}` }, { t: 'wordList', items: g.words }]),
+    ]),
+    page('vocab', 'Vocabulary', [
+      { t: 'bar', title: 'Vocabulary (continued) - المفردات', icon: '🔤', tone: 'vocab' },
+      ...v.groups.slice(2).flatMap((g): Block[] => [{ t: 'sub', text: `${g.icon} ${g.title}` }, { t: 'wordList', items: g.words }]),
+      { t: 'bar', title: 'Word partners - كلمات تأتي معًا', icon: '🔗', tone: 'vocab' },
+      { t: 'pairs', cols: 3, size: 14, items: v.partners },
+      { t: 'bar', title: 'Practice - تمارين', icon: '✏️', tone: 'practice' },
+      { t: 'exercise', title: 'Complete with words from this unit', instr: 'Write one word or phrase in each gap. - اكتب كلمة أو عبارة في كل فراغ.', size: 13.5, cols: 2, items: v.practice.map(([q, a]) => ({ q, a })) },
     ]),
     page('expressions', 'Useful expressions', [
       { t: 'bar', title: 'Useful expressions - عبارات مفيدة', icon: '💬', tone: 'expr' },
@@ -160,9 +176,10 @@ export const WELCOME: L2Page = front('welcome', 'Welcome', 'Welcome', 'مرحب�
   { t: 'callout', text: 'في هذا الكتاب تنتقل من مستوى A2 إلى B1: تتكلّم بثقة في مواقف الحياة والعمل، وتكتب رسائل وفقرات واضحة، وتتعلّم القواعد داخل الكلام وليس بعيدًا عنه.' },
   { t: 'bar', title: 'Inside every unit - داخل كل وحدة', icon: '🧩' },
   { t: 'boxes', cols: 2, items: [
+    { title: '🔤 Vocabulary', lines: ['كلمات الموقف في مجموعات، مع معناها ومثال يستعملها.'] },
     { title: '💬 Useful expressions', lines: ['جمل حقيقية للموقف، مبنية على قاعدة الوحدة.'] },
     { title: '🗣️ Conversation', lines: ['محادثة طبيعية تظهر فيها القاعدة بالأزرق.'] },
-    { title: '📘 Grammar', lines: ['القاعدة في صفحتين: الشرح، التركيب، الأخطاء الشائعة، والتمارين.'] },
+    { title: '📘 Grammar', lines: ['القاعدة في ثلاث صفحات: الاستعمالات، التركيب، الأخطاء الشائعة، والتمارين.'] },
     { title: '✍️ Writing', lines: ['شرح، مثال قصير، نموذج أطول، ثم نص تكمله بمعلوماتك أنت.'] },
   ] },
   { t: 'bar', title: 'How to study a unit - كيف تدرس الوحدة', icon: '🧠' },
@@ -175,7 +192,7 @@ export const WELCOME: L2Page = front('welcome', 'Welcome', 'Welcome', 'مرحب�
   ] },
   { t: 'bar', title: 'The colours of the book - ألوان الكتاب', icon: '🎨' },
   { t: 'cards', cols: 5, stack: true, items: [
-    ['💬', 'Expressions', 'أخضر'], ['🗣️', 'Conversation', 'بنفسجي'], ['📘', 'Grammar', 'أزرق'], ['✍️', 'Writing', 'برتقالي'], ['✏️', 'Practice', 'فيروزي'],
+    ['🔤', 'Vocabulary', 'وردي'], ['💬', 'Expressions', 'أخضر'], ['🗣️', 'Conversation', 'بنفسجي'], ['📘', 'Grammar', 'أزرق'], ['✍️', 'Writing', 'برتقالي'], ['✏️', 'Practice', 'فيروزي'],
   ] },
 ])
 

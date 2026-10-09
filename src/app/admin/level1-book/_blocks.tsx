@@ -107,13 +107,13 @@ function RtlMixed({ text }: { text: string }) {
  * English with the words `re` matches (a unit's vocabulary) in bold, in the
  * highlight colour (--hl: the book sets it; black in black-and-white).
  */
-function Marked({ text, re }: { text: string; re?: RegExp }) {
+function Marked({ text, re, color = 'var(--hl, var(--m))' }: { text: string; re?: RegExp; color?: string }) {
   if (!re) return <Mixed text={text} />
   const out: ReactNode[] = []
   let at = 0
   for (const m of text.matchAll(new RegExp(re.source, re.flags.includes('g') ? re.flags : `${re.flags}g`))) {
     if (m.index! > at) out.push(<Mixed key={`t${at}`} text={text.slice(at, m.index)} />)
-    out.push(<b key={`m${m.index}`} className="font-extrabold" style={{ color: 'var(--hl, var(--m))' }}>{m[0]}</b>)
+    out.push(<b key={`m${m.index}`} className="font-extrabold" style={{ color }}>{m[0]}</b>)
     at = m.index! + m[0].length
   }
   if (at < text.length) out.push(<Mixed key={`t${at}`} text={text.slice(at)} />)
@@ -726,6 +726,24 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
       }
       return <div className="flex flex-col" style={{ fontSize: b.size ?? 13 }}>{b.lines.map((s, i) => line(s, i, false))}</div>
     }
+    case 'wordList': return (
+      <div className="grid gap-x-3 gap-y-2" style={{ gridTemplateColumns: `repeat(${b.cols ?? 2}, minmax(0, 1fr))` }}>
+        {b.items.map(([en, ar, example], i) => {
+          // The word in its example, bold: its phrase as written ("… any more" → "any more").
+          const phrase = en.replace(/^(a|an|the|be|not)\s+|…/gi, '').trim()
+          const re = new RegExp(`\\b${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+')}\\w*`, 'gi')
+          return (
+            <div key={i} className="rounded-xl bg-[var(--s)] px-3 py-1.5">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="text-[15px] font-extrabold leading-tight text-[var(--m)]">{en}</span>
+                <span dir="rtl" className="text-[13px] font-bold leading-tight text-right" style={{ fontFamily: AR, color: GREY_TEXT }}>{ar}</span>
+              </div>
+              <div className="mt-0.5 text-[12.5px] font-semibold leading-snug text-[var(--k)] opacity-90"><Marked text={example} re={re} color="var(--m)" /></div>
+            </div>
+          )
+        })}
+      </div>
+    )
     case 'gapText': return (
       // A model the student completes: each "___" a writing line, the text set for handwriting room.
       <div>

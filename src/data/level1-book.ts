@@ -102,6 +102,8 @@ export type Block =
   | { t: 'lines'; n: number
       /** On a `spread` page, more lines take the room left over (instead of a gap). */
       grow?: boolean }
+  /** Vocabulary as cards: the word, its meaning, and an example sentence using it. */
+  | { t: 'wordList'; items: [en: string, ar: string, example: string][]; cols?: number }
   /** A model text with "___" blanks the student fills with their own life (a writing template). */
   | { t: 'gapText'; label: string; body: string; size?: number }
   /** Common mistakes: what learners write ✗, what to write ✓, and why (Arabic, optional). */

@@ -32,7 +32,9 @@ export interface L2Unit {
   focus: string[]
   /** Discovery tasks under the conversation ("English - العربية"). */
   findIt: string[]
-  /** The grammar lesson: two or three pages of blocks (rules, tables, mistakes, practice). */
+  /** Vocabulary by theme: the unit's first section. */
+  vocab: L2Vocab
+  /** The grammar lesson: three pages of blocks (uses, form, spelling, mistakes, practice). */
   grammar: Block[][]
   writing: {
     name: string
@@ -49,6 +51,15 @@ export interface L2Unit {
     template: string
     check: string[]
   }
+}
+
+/** A unit's vocabulary: themed groups of [word, meaning, example], word partners, an exercise. */
+export interface L2Vocab {
+  groups: { title: string; icon: string; words: [en: string, ar: string, example: string][] }[]
+  /** Words that go together: [English, Arabic]. */
+  partners: [string, string][]
+  /** Sentences to complete with the unit's words: [sentence with ___, answer]. */
+  practice: [string, string][]
 }
 
 /** One line of the book's index: every unit, built or still to come. */

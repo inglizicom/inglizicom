@@ -27,7 +27,15 @@ test('every written unit uses its grammar in context: expressions, conversation,
     assert.ok(marked >= u.talk.length / 3, `${at}: only ${marked} lines show the grammar`)
     assert.ok(keyLines(u).length >= 1, `${at}: a key sentence`)
     // the grammar lesson: two or three pages, with common mistakes and practice
-    assert.ok(u.grammar.length >= 2 && u.grammar.length <= 3, at)
+    assert.equal(u.grammar.length, 4, `${at}: three lesson pages and a practice page`)
+    // vocabulary by theme: three groups, every word with its meaning and an example
+    const v = u.vocab
+    assert.equal(v.groups.length, 3, at)
+    assert.ok(v.groups.flatMap(g => g.words).length >= 24, `${at}: ${v.groups.flatMap(g => g.words).length} words`)
+    for (const [en, ar, ex] of v.groups.flatMap(g => g.words)) assert.ok(en && !AR.test(en) && AR.test(ar) && /^[A-Z].*[.!?]$/.test(ex) && !AR.test(ex), `${at}: ${en}`)
+    assert.equal(v.partners.length, 6, at)
+    assert.equal(v.practice.length, 6, at)
+    for (const [q, a] of v.practice) assert.ok(q.includes('___') && a, `${at}: ${q}`)
     const blocks = u.grammar.flat()
     assert.ok(blocks.some(b => b.t === 'mistakes'), `${at}: common mistakes`)
     assert.ok(blocks.filter(b => b.t === 'exercise').length >= 2, `${at}: practice`)
