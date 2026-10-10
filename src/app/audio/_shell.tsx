@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { BookA, BookOpen, ChevronDown, Folder, FolderOpen, Layers, Library, Music2, PenLine, type LucideIcon } from 'lucide-react'
 import { CARD_LESSONS } from '@/data/level1-cards'
 import { clipBase, type AudioSection, type Clip } from '@/data/level1-audio'
-import { Player, PlayerCard, PlayAll, Track, type PlayClip } from './_player'
+import { Player, PlayerCard, PlayerDock, PlayAll, Track, type PlayClip } from './_player'
 
 /**
  * The frame of every /audio page, organised as a library of folders:
@@ -85,7 +85,7 @@ export function AudioShell({ crumbs, title, here, sections, clips, children }: {
   crumbs: string[]; title: string; here?: { shelf: Shelf; lesson: number }; sections?: string[]; clips?: PlayClip[]; children: ReactNode
 }) {
   const body = (
-    <div className="mx-auto max-w-[1180px] px-3 sm:px-5 pb-16 pt-4 grid gap-5 lg:grid-cols-[300px_1fr]">
+    <div className={`mx-auto max-w-[1180px] px-3 sm:px-5 pt-4 grid gap-5 lg:grid-cols-[300px_1fr] ${clips ? 'pb-[250px] lg:pb-16' : 'pb-16'}`}>
       {/* the folders: a column on a computer, a drop-down on a phone */}
       <aside className="lg:sticky lg:top-[76px] lg:self-start lg:max-h-[calc(100vh-96px)] lg:overflow-auto">
         <details className="group lg:hidden rounded-2xl bg-white ring-1 ring-[#D6DCE8]" open={!here}>
@@ -98,7 +98,7 @@ export function AudioShell({ crumbs, title, here, sections, clips, children }: {
         <div className="hidden lg:block rounded-2xl bg-white p-2 ring-1 ring-[#D6DCE8]"><LibraryTree here={here} sections={sections} /></div>
       </aside>
       <div className="min-w-0 flex flex-col gap-4">
-        {clips && <div className="lg:sticky lg:top-[76px] z-[5]"><PlayerCard /></div>}
+        {clips && <div className="hidden lg:block lg:sticky lg:top-[76px] z-[5]"><PlayerCard /></div>}
         <h1 className="text-[21px] sm:text-[24px] font-bold leading-tight text-[#14306B]" dir="ltr">{title}</h1>
         {children}
       </div>
@@ -112,7 +112,13 @@ export function AudioShell({ crumbs, title, here, sections, clips, children }: {
           <span className="min-w-0 truncate text-[12.5px] text-white/75">{crumbs.join(' › ')}</span>
         </div>
       </header>
-      {clips ? <Player clips={clips}>{body}</Player> : body}
+      {clips ? (
+        <Player clips={clips}>
+          {body}
+          {/* on a phone or a tablet, the player docked at the foot of the screen */}
+          <div className="lg:hidden fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[720px]"><PlayerDock /></div>
+        </Player>
+      ) : body}
     </div>
   )
 }
@@ -132,7 +138,7 @@ export function SectionList({ sections, starts, openAll }: { sections: AudioSect
           </summary>
           <div className="px-2 pb-2">
             <div className="px-1 pb-1.5"><PlayAll from={starts[i]} to={starts[i] + s.clips.length - 1} /></div>
-            <div className={s.kind === 'words' ? 'grid grid-cols-1 sm:grid-cols-2 gap-0.5' : 'flex flex-col gap-0.5'}>
+            <div className={s.kind === 'words' ? 'grid grid-cols-1 sm:grid-cols-2 gap-0.5' : 'flex flex-col gap-0.5'} dir="ltr">
               {s.clips.map((_, j) => <Track key={j} i={starts[i] + j} compact={s.kind === 'words'} />)}
             </div>
           </div>

@@ -563,7 +563,7 @@ function BlockView({ b, ctx }: { b: Block; ctx: Ctx }) {
             ))}
           </div>
         ) : (
-          <p className="rounded-r-xl bg-[var(--s)] border-l-[4px] border-[var(--m)] px-3.5 py-2 font-bold leading-[1.6]" style={{ fontSize: b.size ?? 13 }}>{b.body}</p>
+          <p className="rounded-r-xl bg-[var(--s)] border-l-[4px] border-[var(--m)] px-3.5 py-2 font-bold leading-[1.6]" style={{ fontSize: b.size ?? 13 }}>{b.mark ? <Marked text={b.body} re={b.mark} /> : b.body}</p>
         )}
       </div>
     )

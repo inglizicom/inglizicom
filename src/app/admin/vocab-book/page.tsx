@@ -2,8 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { VOCAB_BOOK, type VocabBookUnit } from '@/data/workbook/vocab-book-all'
-import { LEVEL1_VOCAB } from '@/data/level1-vocab'
-import { PLAY } from '@/components/QrLink'
 import { Field, GamesHeader, INP, PrintAllButton, THEMES, ThemePicker, type SheetTheme } from '../games/_shared'
 import { BackCoverPage, CoverFields, CoverPage, DEFAULT_COVER, type CoverInfo, type CoverStat } from '../games/_cover'
 import {
@@ -14,8 +12,8 @@ import {
 /**
  * /admin/vocab-book — the companion vocabulary books, as print-ready A4
  * pages: «مفردات وعبارات للمواقف اليومية» (Everyday English, 19 units) and
- * the Level 1 extended vocabulary book (19 lessons, each lesson's pages with
- * the QR code of its audio).
+ * any other book of the same format (the page takes a list of books; the Level 1
+ * vocabulary book has its own page, /admin/level1-vocab, in the course book's design).
  *
  * Order: cover · contents · why this book · 19 units × 4 pages · A–Z word
  * index · reading answers · final thought · back cover. Like the workbook,
@@ -40,15 +38,6 @@ const BOOKS: Book[] = [
     id: 'everyday', titleAr: 'مفردات وعبارات للمواقف اليومية', units: VOCAB_BOOK, label: 'UNIT', coverKey: 'vocab-cover-v1',
     cover: { ...DEFAULT_COVER, titleAr1: 'مفردات وعبارات', titleAr2: 'للمواقف اليومية', titleEn1: 'Everyday', titleEn2: 'Vocabulary & Expressions' },
     textbookAr: 'الإنجليزية للمواقف اليومية',
-  },
-  {
-    id: 'level1', titleAr: 'كتاب المفردات — المستوى الأول', units: LEVEL1_VOCAB, label: 'LESSON', coverKey: 'vocab-cover-level1',
-    cover: {
-      ...DEFAULT_COVER, titleAr1: 'كلمات أكثر', titleAr2: 'المستوى الأول', titleEn1: 'More Words', titleEn2: 'Level 1 Vocabulary',
-      level: 'A0 → A1', phone1: '+212 707 902 091',
-    },
-    textbookAr: 'الإنجليزية من الصفر — المستوى الأول',
-    qr: PLAY.vocab,
   },
 ]
 

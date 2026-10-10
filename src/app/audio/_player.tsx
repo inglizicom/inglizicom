@@ -183,14 +183,69 @@ export function PlayerCard() {
   )
 }
 
-/** A line of the list: tap to hear it in the player. */
+/**
+ * The player on a phone or a tablet: docked at the foot of the screen, so it
+ * stays in reach while the list scrolls. The line (two lines at most), its
+ * translation, the bar, the buttons, the speed — the big card, folded small.
+ */
+export function PlayerDock() {
+  const p = useContext(CardContext)!
+  const c = p.clip
+  const btn = 'w-10 h-10 rounded-full flex items-center justify-center text-[#14306B] active:bg-[#EEF2F9] disabled:opacity-30'
+  return (
+    <section className="rounded-t-3xl bg-white px-4 pt-3 shadow-[0_-10px_30px_rgba(20,48,107,0.18)] ring-1 ring-[#D6DCE8]"
+      style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 10px)' }} dir="ltr">
+      <div className="flex items-start gap-3">
+        <div className="min-w-0 flex-1">
+          {(c?.speaker || c?.label) && <div className="text-[10.5px] font-bold uppercase tracking-[0.1em] text-[#B8862F]">{c.speaker ?? c.label}</div>}
+          <div className="text-[16px] font-bold leading-snug text-[#14306B] line-clamp-2">{c?.en ?? 'Choose a line'}</div>
+          {c?.ar && <div className="font-arabic truncate text-[13px] text-[#5B6474]" dir="rtl">{c.ar}</div>}
+        </div>
+        <span className="shrink-0 rounded-full bg-[#EEF2F9] px-2 py-0.5 text-[11px] font-semibold text-[#14306B]">{p.count ? p.index + 1 : 0}/{p.count}</span>
+      </div>
+      <div className="mt-2 flex items-center gap-2">
+        <span className="w-8 text-right text-[11px] tabular-nums text-[#5B6474]">{mmss(p.t)}</span>
+        <input type="range" min={0} max={p.dur || 0} step={0.01} value={Math.min(p.t, p.dur || 0)} onChange={e => p.seek(Number(e.target.value))}
+          aria-label="Progress" className="flex-1 h-2 accent-[#B8862F]" />
+        <span className="w-8 text-[11px] tabular-nums text-[#5B6474]">{mmss(p.dur)}</span>
+      </div>
+      <div className="mt-1 flex items-center justify-between">
+        <div className="inline-flex rounded-full bg-[#EEF2F9] p-0.5">
+          {([['slow', Turtle, 'Slow'], ['normal', Volume2, 'Normal'], ['fast', Rabbit, 'Fast']] as const).map(([s, Icon, en]) => (
+            <button key={s} type="button" onClick={() => p.setSpeed(s)} aria-pressed={p.speed === s} aria-label={en}
+              className={`flex items-center gap-1 rounded-full px-2 py-1 text-[11.5px] font-semibold ${p.speed === s ? 'bg-[#14306B] text-white' : 'text-[#14306B]'}`}>
+              <Icon size={13} /><span className="hidden min-[380px]:inline">{en}</span>
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center">
+          <button type="button" onClick={p.back} className={btn} aria-label="Back 2 seconds"><RotateCcw size={17} /></button>
+          <button type="button" onClick={p.prev} disabled={p.index === 0} className={btn} aria-label="Previous line"><SkipBack size={17} /></button>
+          <button type="button" onClick={p.toggle} aria-label={p.playing ? 'Pause' : 'Play'}
+            className="mx-0.5 w-12 h-12 rounded-full bg-[#B8862F] text-white flex items-center justify-center shadow-[0_4px_12px_rgba(184,134,47,0.45)]">
+            {p.playing ? <Pause size={22} /> : <Play size={22} className="ml-0.5" />}
+          </button>
+          <button type="button" onClick={p.next} disabled={p.index >= p.count - 1} className={btn} aria-label="Next line"><SkipForward size={17} /></button>
+          <button type="button" onClick={() => p.setLoop(!p.loop)} aria-pressed={p.loop} aria-label="Repeat this line"
+            className={`${btn} ${p.loop ? 'bg-[#FBF5E9] text-[#B8862F]' : ''}`}><Repeat1 size={17} /></button>
+          <button type="button" onClick={() => p.setAuto(!p.auto)} aria-pressed={p.auto} aria-label="Auto next"
+            className={`${btn} ${p.auto ? 'bg-[#FBF5E9] text-[#B8862F]' : ''}`}><ListEnd size={17} /></button>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/** A line of the list: tap to hear it in the player. The line playing scrolls into view (above the docked player on a phone). */
 export function Track({ i, compact }: { i: number; compact?: boolean }) {
   const { clips, index, playing, select } = usePlayer()
   const c = clips[i]
   const on = index === i
+  const ref = useRef<HTMLButtonElement>(null)
+  useEffect(() => { if (on && playing) ref.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }) }, [on, playing])
   return (
-    <button type="button" onClick={() => select(i)}
-      className={`w-full flex items-start gap-3 rounded-xl px-3 ${compact ? 'py-1.5' : 'py-2.5'} text-left transition ${on ? 'bg-[#FBF5E9] ring-1 ring-[#B8862F]' : 'hover:bg-[#EEF2F9]'}`} dir="ltr">
+    <button ref={ref} type="button" onClick={() => select(i)}
+      className={`w-full flex items-start gap-3 rounded-xl px-3 ${compact ? 'py-1.5' : 'py-2.5'} scroll-mt-20 scroll-mb-[230px] lg:scroll-mb-4 text-left transition ${on ? 'bg-[#FBF5E9] ring-1 ring-[#B8862F]' : 'hover:bg-[#EEF2F9]'}`} dir="ltr">
       <span className={`mt-0.5 shrink-0 w-7 h-7 rounded-full flex items-center justify-center ${on && playing ? 'bg-[#B8862F]' : 'bg-[#14306B]'}`}>
         {on && playing ? <AudioLines size={13} color="#fff" /> : <Play size={12} color="#fff" className="ml-[2px]" />}
       </span>

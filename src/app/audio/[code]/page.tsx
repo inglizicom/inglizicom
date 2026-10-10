@@ -95,7 +95,7 @@ export default function CardsPage({ params }: { params: { code: string } }) {
         <CardPanel p={panels[0]} highlight />
         <h2 className="-mb-2 mt-2 text-[13px] font-bold uppercase tracking-wide text-[#B8862F]" dir="ltr">All the cards of this lesson <span className="font-arabic normal-case tracking-normal">· كل بطاقات الدرس</span></h2>
       </>}
-      <div className="grid gap-3 xl:grid-cols-2">
+      <div className="grid gap-3 xl:grid-cols-2" dir="ltr">
         {panels.slice(top).map(p => <CardPanel key={p.code} p={p} />)}
       </div>
     </AudioShell>
