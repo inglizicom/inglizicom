@@ -267,7 +267,7 @@ const Label = ({ en, ar }: { en: string; ar: string }) => (
 
 /** The audio's QR code: the card's page on inglizi.com (its answer read slowly and at normal speed). */
 export function QR({ code, size = 44 }: { code: string; size?: number }) {
-  const { size: n, data } = QRCode.create(`https://inglizi.com/play/${code}`, { errorCorrectionLevel: 'M' }).modules
+  const { size: n, data } = QRCode.create(`https://www.inglizi.com/play/${code}`, { errorCorrectionLevel: 'M' }).modules
   let d = ''
   for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (data[y * n + x]) d += `M${x} ${y}h1v1h-1z`
   return (
