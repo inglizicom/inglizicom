@@ -58,6 +58,7 @@ const GROUPS: { title: string; founder?: boolean; items: NavDef[] }[] = [
     { id: 'level2book', labelAr: 'المستوى الثاني (تكلّم واكتب بدقّة)', icon: BookOpen, path: '/level2-book', founder: true },
     { id: 'level2workbook', labelAr: 'دفتر تمارين المستوى الثاني', icon: Puzzle, path: '/level2-workbook', founder: true },
     { id: 'level1book', labelAr: 'كتاب المستوى الأول', icon: BookOpen,  path: '/level1-book', founder: true },
+    { id: 'level1cards', labelAr: 'بطاقات اللعب (المستوى الأول)', icon: Puzzle, path: '/level1-cards', founder: true },
     { id: 'bacpack',    labelAr: 'حقيبة الباك',        icon: ClipboardCheck, path: '/bac-pack', founder: true },
     { id: 'team',     labelAr: 'الفريق والرواتب',      icon: Wallet,    path: '/team',      founder: true },
     { id: 'revenue',  labelAr: 'الإيرادات والتقارير', icon: BarChart3, path: '/analytics', founder: true },

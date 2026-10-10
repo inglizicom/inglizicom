@@ -11,6 +11,7 @@ const TITLES: [string, string][] = [
   ['/everyday-book', 'الكتاب الأساسي'],
   ['/level2-book', 'المستوى الثاني'],
   ['/level2-workbook', 'دفتر تمارين المستوى الثاني'],
+  ['/level1-cards', 'بطاقات اللعب'],
   ['/team',      'الفريق والرواتب'],
   ['/analytics', 'الإيرادات والتقارير'],
   ['/teachers',  'الأساتذة'],
