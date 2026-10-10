@@ -5,7 +5,9 @@ import {
   Award, BookOpen, Cake, Clock, Dices, Gift, GraduationCap, Handshake, Headphones, Hourglass, Languages, Layers, ListChecks, Megaphone,
   MessagesSquare, PenLine, RotateCcw, Search, Shuffle, SkipForward, Sparkles, SpellCheck, Star, Timer, Trophy, Users, Utensils, type LucideIcon,
 } from 'lucide-react'
+import QRCode from 'qrcode'
 import { GAMES, GAME_ORDER, KEMELNI, photoOf, type BouchtaCard, type Game, type PlayCard } from '@/data/level1-cards'
+import { cardCode } from '@/data/level1-audio'
 
 /**
  * The Level 1 play cards, drawn at print size: a poker card (63 × 88 mm =
@@ -79,16 +81,17 @@ const pad = (n: number) => String(n).padStart(2, '0')
 
 /* ── The card's shell: white, the texture, a navy frame, a header, a foot ── */
 
-/** A card: white with the zellige merged in, framed in navy; `head` on top, `children` the body, `foot` at the bottom. */
-function Shell({ head, children, foot }: { head: ReactNode; children: ReactNode; foot?: ReactNode }) {
+/** A card: white with the zellige merged in, framed in navy; `head` on top, `children` the body, `foot` at the bottom, `qr` (a card's code) in the bottom corner. */
+function Shell({ head, children, foot, qr }: { head: ReactNode; children: ReactNode; foot?: ReactNode; qr?: string }) {
   return (
     <div className="relative overflow-hidden shrink-0 bg-white" dir="ltr" style={{ width: CARD_W, height: CARD_H }}>
       <Zellige color={NAVY} opacity={0.09} size={24} />
       <div className="absolute inset-[7px] rounded-[12px]" style={{ border: `1.5px solid ${NAVY}` }} />
       <div className="absolute left-[7px] right-[7px] top-[7px] h-[46px] px-2.5 flex items-center justify-between">{head}</div>
       <div className="absolute left-[18px] right-[18px] top-[52px] h-[2px] rounded-full" style={{ background: GOLD }} />
-      <div className="absolute left-[15px] right-[15px] top-[60px] bottom-[34px] flex flex-col items-center text-center">{children}</div>
+      <div className={`absolute left-[15px] right-[15px] top-[60px] ${qr ? 'bottom-[66px]' : 'bottom-[34px]'} flex flex-col items-center text-center`}>{children}</div>
       {foot && <div className="absolute left-[15px] right-[15px] bottom-[12px] h-[18px] flex items-center justify-between">{foot}</div>}
+      {qr && <div className="absolute right-[13px] bottom-[11px]"><QR code={qr} /></div>}
     </div>
   )
 }
@@ -262,12 +265,20 @@ const Label = ({ en, ar }: { en: string; ar: string }) => (
   </div>
 )
 
-/** Where the audio's QR code goes. */
-const QR = () => (
-  <span className="w-[28px] h-[28px] rounded-[5px] border-[1.2px] border-dashed flex flex-col items-center justify-center text-[7px] leading-none" style={{ ...BS, borderColor: GREY, color: GREY }}>
-    <Headphones size={10} />QR
-  </span>
-)
+/** The audio's QR code: the card's page on inglizi.com (its answer read slowly and at normal speed). */
+export function QR({ code, size = 44 }: { code: string; size?: number }) {
+  const { size: n, data } = QRCode.create(`https://inglizi.com/play/${code}`, { errorCorrectionLevel: 'M' }).modules
+  let d = ''
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (data[y * n + x]) d += `M${x} ${y}h1v1h-1z`
+  return (
+    <span className="flex flex-col items-center leading-none">
+      <svg width={size} height={size} viewBox={`-1 -1 ${n + 2} ${n + 2}`} shapeRendering="crispEdges" style={{ background: '#fff' }} aria-label={`QR inglizi.com/play/${code}`}>
+        <path d={d} fill={NAVY} />
+      </svg>
+      <span className="mt-[2px] flex items-center gap-[2px] text-[7px]" style={{ ...BS, color: GREY }}><Headphones size={8} />Listen</span>
+    </span>
+  )
+}
 
 function askOf(card: PlayCard): [string | undefined, string | undefined] {
   switch (card.game) {
@@ -285,7 +296,7 @@ export function CardBack({ card }: { card: PlayCard }) {
   const [en, ar] = askOf(card)
   return (
     <Shell head={<Head back Icon={GAME_ICON[card.game]} name={g.name} ar={`اسأل · ${g.ar}`} badge={`L${pad(card.lesson)}`} />}
-      foot={<><Points items={g.points} /><QR /></>}>
+      foot={<Points items={g.points} />} qr={cardCode(card.id)}>
       <Ask en={en} ar={ar} />
       {card.game === 'timer' ? <>
         <Label en="ACCEPT" ar="نقبل" />
@@ -364,7 +375,7 @@ export function BouchtaBack({ card }: { card: BouchtaCard }) {
   const silly = card.kind === 'silly'
   return (
     <Shell head={<Head back Icon={Sparkles} name="Bouchta" ar={silly ? 'اسأل · سؤال مضحك' : 'ماذا يحدث؟'} badge={silly ? `L${pad(card.lesson!)}` : 'ACTION'} />}
-      foot={<><span className="text-[10.5px]" style={{ ...H, color: GOLD }}>{silly ? `${card.points} Right answer` : "Bouchta's card"}</span><Brand /></>}>
+      foot={<span className="text-[10.5px]" style={{ ...H, color: GOLD }}>{silly ? `${card.points} Right answer` : "Bouchta's card"}</span>} qr={silly ? cardCode(card.id) : undefined}>
       <Ask en={card.en} ar={card.ar} />
       <Label en={silly ? 'ANSWER' : 'WHAT HAPPENS'} ar={silly ? 'الجواب' : 'ماذا يحدث'} />
       <div className="flex-1 flex flex-col justify-center gap-0.5">

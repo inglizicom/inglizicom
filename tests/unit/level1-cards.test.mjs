@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { BOUCHTA, CARDS, CARD_LESSONS, GAMES, cardSheets, mirrorRows, photoOf } from '../../src/data/level1-cards/index.ts'
-import { LEVEL1_LESSONS } from '../../src/data/level1-book.ts'
+import { LEVEL1_V2_LESSONS as LEVEL1_LESSONS } from '../../src/data/level1-book-v2.ts'
 
 const AR = /[؀-ۿ]/
 /** Every lesson's pack, in this order: WhatDoWeCall ×2, TimerPlay, Tarjemni, Ratebni, Sahehni, Kemelni ×3 (answer, question, next). */
