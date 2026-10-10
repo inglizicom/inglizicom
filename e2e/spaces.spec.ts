@@ -124,7 +124,7 @@ test.describe('student space (demo)', () => {
 test.describe('public pages', () => {
   for (const path of ['/', '/pricing', '/courses', '/classes', '/business', '/level-test', '/faq',
                       '/pricing/pack-intensif', '/pricing/class-8', '/courses/a0-a1', '/courses/a2-b1', '/teacher-showcase/demo',
-                      '/play', '/play/L13', '/play/L13-8', '/play/B-06']) {
+                      '/audio', '/audio/L13', '/audio/L13-8', '/audio/B-06', '/audio/book/13', '/audio/workbook/13']) {
     test(path, async ({ page }) => {
       const errors = collectErrors(page)
       await mockSupabase(page, { role: null })

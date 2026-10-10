@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { allClips, bookSections, bouchtaClips, cardClips, cardCode, clipPath, numberWords } from '../../src/data/level1-audio/index.ts'
+import { allClips, workbookSections, bookSections, bouchtaClips, cardClips, cardCode, clipPath, numberWords } from '../../src/data/level1-audio/index.ts'
 import { BOUCHTA, CARDS } from '../../src/data/level1-cards/index.ts'
 import { LEVEL1_V2_LESSONS } from '../../src/data/level1-book-v2.ts'
 
@@ -44,4 +44,13 @@ test('file names: the same line in the same voice is one file; slow and normal d
   assert.notEqual(clipPath(c, 'normal'), clipPath({ ...c, voice: 'ash' }, 'normal'))
   assert.equal(numberWords(42), 'forty-two')
   assert.equal(numberWords(900), 'nine hundred')
+})
+
+test('every workbook lesson: its twelve words, its eight sentences, its conversation when it has one', () => {
+  for (const l of LEVEL1_V2_LESSONS) {
+    const s = workbookSections(l.n)
+    assert.equal(s[0].clips.length, 12, `lesson ${l.n} words`)
+    assert.equal(s[1].clips.length, 8, `lesson ${l.n} sentences`)
+    for (const c of s.flatMap(x => x.clips)) assert.ok(c.en && !AR.test(c.en), `lesson ${l.n}: «${c.en}»`)
+  }
 })

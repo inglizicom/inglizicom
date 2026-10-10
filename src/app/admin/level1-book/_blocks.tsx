@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { BareSheet, THEMES } from '../games/_shared'
 import type { Block, FamilyPeople, FlagId, Lesson } from '@/data/level1-book'
+import { QrLink } from '@/components/QrLink'
 
 /**
  * The look of «الإنجليزية من الصفر (الدارجة)», a book meant to be sold.
@@ -159,8 +160,9 @@ export function Frame({ info, label, filename, colour = { m: BRAND, s: '#EEF1FB'
   )
 }
 
-/** The QR / barcode: the uploaded image, or a dashed slot keeping its place. */
-export function CodeSlot({ info, size }: { info: BookInfo; size: number }) {
+/** The QR / barcode: the lesson's audio (`url`, a real QR code), the uploaded image, or a dashed slot keeping its place. */
+export function CodeSlot({ info, size, url }: { info: BookInfo; size: number; url?: string }) {
+  if (url) return <span className="shrink-0 rounded-md bg-white p-[2px]"><QrLink url={url} size={size - 12} color="#111111" /></span>
   if (!info.showCode) return null
   if (info.code) return <img src={info.code} alt="code" className="shrink-0 bg-white rounded-md" style={{ width: size, height: size, objectFit: 'contain' }} />
   return (
@@ -171,7 +173,7 @@ export function CodeSlot({ info, size }: { info: BookInfo; size: number }) {
   )
 }
 
-export function LessonHeader({ info, n, tag }: { info: BookInfo; n: number; tag?: string }) {
+export function LessonHeader({ info, n, tag, qr }: { info: BookInfo; n: number; tag?: string; qr?: string }) {
   return (
     <div className="absolute inset-x-[22px] top-[10px] h-[62px] flex items-center gap-3" dir="ltr">
       <div className="w-[146px] shrink-0 text-center">
@@ -187,7 +189,7 @@ export function LessonHeader({ info, n, tag }: { info: BookInfo; n: number; tag?
           <span>{info.phone}</span><span dir="rtl" style={{ fontFamily: AR }}>لطلب الكتاب</span>
         </div>
       </div>
-      <CodeSlot info={info} size={62} />
+      <CodeSlot info={info} size={62} url={qr} />
     </div>
   )
 }
@@ -266,8 +268,10 @@ function sectionsOf(blocks: Block[]): Block[][] {
   return out
 }
 
-export function LessonPage({ info, lesson, pageNo, talkNo, exNo = new Map(), filename, colour, toneOf, spread }: {
+export function LessonPage({ info, lesson, pageNo, talkNo, exNo = new Map(), filename, colour, toneOf, spread, qr }: {
   info: BookInfo; lesson: Lesson; pageNo: number; talkNo: Map<Block, number>; exNo?: Map<Block, number>; filename: string
+  /** The lesson's audio page: a real QR code in the header. */
+  qr?: string
   /** One colour for the whole page (a unit's colour) instead of a new colour per section. */
   colour?: { m: string; s: string }
   /** A section's colour from its first block (its `tone`), so a kind of section keeps one colour through a book; the frame keeps `colour`. */
@@ -283,7 +287,7 @@ export function LessonPage({ info, lesson, pageNo, talkNo, exNo = new Map(), fil
   const base = pageNo - 1
   return (
     <Frame info={info} colour={colour ?? lessonColour(base)} label={`${lesson.tag ?? `الدرس ${lesson.n}`} — ${lesson.titleAr} · صفحة ${pageNo}`} filename={filename}>
-      <LessonHeader info={info} n={lesson.n} tag={lesson.tag} />
+      <LessonHeader info={info} n={lesson.n} tag={lesson.tag} qr={qr} />
       <div ref={bodyRef} className="lb-body absolute inset-x-[24px] overflow-hidden" style={{ top: 84, bottom: 38 }} dir="ltr">
         <div ref={innerRef} className="flex flex-col gap-[13px]">
           {sections.map((sec, k) => (

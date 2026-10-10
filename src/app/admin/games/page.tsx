@@ -12,6 +12,7 @@ import {
   ThemePicker, TranslateBody, WordSearchBody, WriteBody, type PageMeta, type SectionKind, type SheetTheme,
 } from './_shared'
 import { ContentsBody, HowToBody, ProgressBody, WelcomeBody, type ContentsRow } from './_front'
+import { PLAY } from '@/components/QrLink'
 import { CoverFields, CoverPage, DEFAULT_COVER, workbookStats, type CoverBubble, type CoverInfo } from './_cover'
 
 /**
@@ -176,6 +177,7 @@ export default function WorkbookPage() {
   const meta = (b: Built, i: number): PageMeta => ({
     theme, unitNo: b.unit.n, unitEn: b.unit.titleEn, unitAr: b.unit.titleAr, unitLabel: book.unitLabel,
     pageNo: pageNoOf(i), filename: `${book.id}-${book.unitLabel.toLowerCase()}-${b.unit.n}-${String(i + 1).padStart(3, '0')}`,
+    ...(book.id === 'level1' ? { qr: PLAY.workbook(b.unit.n) } : {}),
   })
   const no = (k: SectionKind) => chosen.indexOf(k) + 1
 

@@ -9,7 +9,9 @@ import { Pause, Play, Rabbit, Turtle } from 'lucide-react'
  * all" for a conversation. Only one line sounds at a time.
  */
 
-export interface PlayClip { en: string; ar?: string; speaker?: string; label?: string; slow: string; normal: string }
+/** A line to play: src is its file without the speed (`level1/abc`); the player adds `-slow.mp3` or `-normal.mp3`. */
+export interface PlayClip { en: string; ar?: string; speaker?: string; label?: string; src: string }
+const BASE = `${process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''}/storage/v1/object/public/audio/`
 type Speed = 'slow' | 'normal'
 
 interface Ctx { speed: Speed; setSpeed: (s: Speed) => void; playing: string | null; play: (key: string, clips: PlayClip[], from?: number) => void; stop: () => void }
@@ -36,7 +38,7 @@ export function Player({ children }: { children: ReactNode }) {
       if (id !== run.current) return
       if (i >= clips.length) { setPlaying(null); return }
       setPlaying(clips.length > 1 ? `${key}#${i}` : key)
-      const a = new Audio(clips[i][speed])
+      const a = new Audio(`${BASE}${clips[i].src}-${speed}.mp3`)
       audio.current = a
       a.onended = () => setTimeout(() => next(i + 1), 350)
       a.onerror = () => next(i + 1)

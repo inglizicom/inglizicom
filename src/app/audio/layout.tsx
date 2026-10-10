@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { IBM_Plex_Sans_Arabic, Poppins } from 'next/font/google'
 
 /**
- * /play — the audio of the Level 1 box, opened from the QR codes on the
+ * /audio — the audio of the Level 1 box, opened from the QR codes on the
  * cards (and shared with buyers): Poppins and IBM Plex Sans Arabic, the
  * cards' two faces, on the cards' two colours. For buyers only, so not
  * indexed.

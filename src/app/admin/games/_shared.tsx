@@ -9,6 +9,7 @@ import {
 import {
   solutionCells, type GapItem, type MatchingSet, type MissingWord, type ScrambleItem, type WordSearchResult,
 } from '@/lib/game-generators'
+import { QrLink } from '@/components/QrLink'
 
 /**
  * The printed workbook page, shared by the /admin/games tools.
@@ -96,6 +97,8 @@ export interface PageMeta {
   filename: string
   /** UNIT (default) or LESSON — what the book calls its parts. */
   unitLabel?: string
+  /** The unit's audio page: a QR code at the end of the title band. */
+  qr?: string
 }
 
 export type SectionKind = 'match' | 'letters' | 'search' | 'gaps' | 'order' | 'dialogue' | 'translate' | 'write'
@@ -238,6 +241,7 @@ export function A4Page({ meta, section, sectionNo, answerKey, instructionAr, ins
           <span className="text-[21px] font-black uppercase leading-tight">{meta.unitEn ?? ''}</span>
           <span className="text-[24px] font-black leading-tight" dir="rtl">{meta.unitAr ?? ''}</span>
         </div>
+        {meta.qr && <div className="flex items-center px-3" style={{ background: t.accent }}><span className="rounded-md bg-white p-[3px]"><QrLink url={meta.qr} size={58} color="#111111" /></span></div>}
       </div>
       <WorkbookStrip t={t} />
     </>

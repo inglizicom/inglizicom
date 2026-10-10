@@ -5,7 +5,7 @@ import {
   Award, BookOpen, Cake, Clock, Dices, Gift, GraduationCap, Handshake, Headphones, Hourglass, Languages, Layers, ListChecks, Megaphone,
   MessagesSquare, PenLine, RotateCcw, Search, Shuffle, SkipForward, Sparkles, SpellCheck, Star, Timer, Trophy, Users, Utensils, type LucideIcon,
 } from 'lucide-react'
-import QRCode from 'qrcode'
+import { PLAY, QrLink } from '@/components/QrLink'
 import { GAMES, GAME_ORDER, KEMELNI, photoOf, type BouchtaCard, type Game, type PlayCard } from '@/data/level1-cards'
 import { cardCode } from '@/data/level1-audio'
 
@@ -266,19 +266,8 @@ const Label = ({ en, ar }: { en: string; ar: string }) => (
 )
 
 /** The audio's QR code: the card's page on inglizi.com (its answer read slowly and at normal speed). */
-export function QR({ code, size = 44 }: { code: string; size?: number }) {
-  const { size: n, data } = QRCode.create(`https://www.inglizi.com/play/${code}`, { errorCorrectionLevel: 'M' }).modules
-  let d = ''
-  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (data[y * n + x]) d += `M${x} ${y}h1v1h-1z`
-  return (
-    <span className="flex flex-col items-center leading-none">
-      <svg width={size} height={size} viewBox={`-1 -1 ${n + 2} ${n + 2}`} shapeRendering="crispEdges" style={{ background: '#fff' }} aria-label={`QR inglizi.com/play/${code}`}>
-        <path d={d} fill={NAVY} />
-      </svg>
-      <span className="mt-[2px] flex items-center gap-[2px] text-[7px]" style={{ ...BS, color: GREY }}><Headphones size={8} />Listen</span>
-    </span>
-  )
-}
+export const QR = ({ code, size = 44 }: { code: string; size?: number }) => <QrLink url={PLAY.card(code)} size={size} color={NAVY} labelColor={GREY} />
+
 
 function askOf(card: PlayCard): [string | undefined, string | undefined] {
   switch (card.game) {

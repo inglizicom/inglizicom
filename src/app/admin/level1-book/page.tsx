@@ -5,6 +5,7 @@ import { LEVEL1_LESSONS, type Block, type Lesson } from '@/data/level1-book'
 import { LEVEL1_V2_LESSONS } from '@/data/level1-book-v2'
 import { Field, GamesHeader, INP, PrintAllButton } from '../games/_shared'
 import { ContentsPage, CoverPage, DEFAULT_INFO, LessonPage, ThanksPage, type BookInfo } from './_blocks'
+import { PLAY } from '@/components/QrLink'
 
 /**
  * /admin/level1-book — «الإنجليزية من الصفر (الدارجة)», Level 1 (A0 → A1):
@@ -170,7 +171,8 @@ export default function Level1BookPage() {
             <ContentsPage info={info} lessons={BOOK} filename={`${prefix}-00-contents`} />
           </>}
           {lessons.map(({ l, page }) => (
-            <LessonPage key={l.n} info={info} lesson={l} pageNo={page} talkNo={talkNo} filename={`${prefix}-lesson-${String(l.n).padStart(2, '0')}`} />
+            <LessonPage key={l.n} info={info} lesson={l} pageNo={page} talkNo={talkNo} filename={`${prefix}-lesson-${String(l.n).padStart(2, '0')}`}
+              qr={edition === 2 ? PLAY.book(l.n) : undefined} />
           ))}
         </div>
       </div>

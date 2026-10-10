@@ -1,15 +1,17 @@
 import type { Block } from '../level1-book.ts'
 import { LEVEL1_V2_LESSONS } from '../level1-book-v2.ts'
 import { BOUCHTA, CARDS, type BouchtaCard, type PlayCard } from '../level1-cards/index.ts'
+import { LEVEL1_DIALOGUES, LEVEL1_WORKBOOK } from '../workbook/level1-workbook.ts'
 
 /**
  * The audio of Level 1 (A0 → A1), second edition: the book's words,
- * phrases, conversations and readings, and the answers of the play cards.
+ * phrases, conversations and readings, the workbook's words, sentences and
+ * conversations, and the answers of the play cards.
  *
  * One plan serves both ends. scripts/gen-level1-audio.mjs walks it and
  * records every clip twice (slow, for learning, and normal) with OpenAI's
  * voices into the public Supabase bucket "audio"; the play pages
- * (/play/L13, /play/L13-8, the cards' QR codes) walk it again and link the
+ * (/audio/L13, /audio/L13-8, the cards' QR codes) walk it again and link the
  * same files. A clip's file name is a hash of its voice and text, so a line
  * said twice is recorded once, and changing a line records only that line.
  *
@@ -33,7 +35,9 @@ function hash(s: string): string {
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) }
   return (h >>> 0).toString(36)
 }
-export const clipPath = (c: Clip, speed: Speed) => `level1/${hash(`${c.voice}|${c.en}`)}-${speed}.mp3`
+/** A clip's file without its speed: the play pages add `-slow.mp3` or `-normal.mp3`. */
+export const clipBase = (c: Clip) => `level1/${hash(`${c.voice}|${c.en}`)}`
+export const clipPath = (c: Clip, speed: Speed) => `${clipBase(c)}-${speed}.mp3`
 export const BUCKET = 'audio'
 export const clipUrl = (supabaseUrl: string, c: Clip, speed: Speed) => `${supabaseUrl}/storage/v1/object/public/${BUCKET}/${clipPath(c, speed)}`
 
@@ -76,7 +80,7 @@ function timeWords(t: string): string {
 
 /* ── voices in a conversation ── */
 
-const WOMEN = new Set(['Hind', 'Receptionist', 'Imane', 'Karima', 'Sofia', 'Teacher', 'Nour', 'Yasmine', 'Mum', 'Khadija', 'Asmae', 'Rim', 'Lamia', 'Emily', 'Leila', 'Nawal', 'Ines', 'Malak', 'Salma', 'Nadia', 'Julie', 'Sara'])
+const WOMEN = new Set(['Hind', 'Receptionist', 'Imane', 'Karima', 'Sofia', 'Teacher', 'Nour', 'Yasmine', 'Mum', 'Khadija', 'Asmae', 'Rim', 'Lamia', 'Emily', 'Leila', 'Nawal', 'Ines', 'Malak', 'Salma', 'Nadia', 'Julie', 'Sara', 'Fatima', 'Hana', 'Lina', 'Rania', 'Mona'])
 /** Each speaker of a conversation keeps one voice, and two speakers never share one. */
 function castVoices(lines: string[]): Map<string, Voice> {
   const cast = new Map<string, Voice>()
@@ -154,6 +158,24 @@ export function bookSections(n: number): AudioSection[] {
   ]
 }
 
+/* ── the workbook ── */
+
+/** A lesson of the workbook: its twelve words, its eight sentences (the answers of «fill the gap», «words in order», «translate»), its conversation. */
+export function workbookSections(n: number): AudioSection[] {
+  const u = LEVEL1_WORKBOOK.find(x => x.n === n)
+  if (!u) return []
+  const lines = LEVEL1_DIALOGUES[n]
+  const cast = lines ? castVoices(lines) : null
+  return [
+    { kind: 'words', title: 'Words', titleAr: 'الكلمات', clips: u.words.map(w => ({ en: w.en, ar: w.ar, voice: 'coral' as Voice })) },
+    { kind: 'phrases', title: 'Sentences', titleAr: 'الجمل', clips: u.phrases.map(p => ({ en: p.en, ar: p.ar, voice: 'coral' as Voice })) },
+    ...(lines && cast ? [{ kind: 'talk' as const, title: 'Complete the conversation', titleAr: 'أكمل المحادثة', clips: lines.map(l => {
+      const [who, ...said] = l.split(':')
+      return { en: speakable(said.join(':')), voice: cast.get(who.trim())!, speaker: who.trim() }
+    }) }] : []),
+  ]
+}
+
 /* ── the cards ── */
 
 export interface CardClip extends Clip { label: string; labelAr: string }
@@ -182,6 +204,7 @@ export function bouchtaClips(b: BouchtaCard): CardClip[] {
 export function allClips(): Clip[] {
   const all = [
     ...LEVEL1_V2_LESSONS.flatMap(l => bookSections(l.n).flatMap(s => s.clips)),
+    ...LEVEL1_WORKBOOK.flatMap(u => workbookSections(u.n).flatMap(s => s.clips)),
     ...CARDS.flatMap(cardClips),
     ...BOUCHTA.flatMap(bouchtaClips),
   ]
