@@ -2,6 +2,7 @@ import type { Block, Lesson } from '../level1-book.ts'
 import type { L2Ladder, L2Unit } from './types.ts'
 import { MODULE_1, REVIEW_1 } from './module-1.ts'
 import { MODULE_2, REVIEW_2 } from './module-2.ts'
+import { MODULE_3, REVIEW_3 } from './module-3.ts'
 import { INDEX, MODULES } from './plan.ts'
 import { plannerPages, type PlannerConfig } from '../study-planner.ts'
 
@@ -24,9 +25,9 @@ export { INDEX, MODULES } from './plan.ts'
 export type { L2Unit } from './types.ts'
 
 /** The units written so far, in order. */
-export const L2_UNITS: L2Unit[] = [...MODULE_1, ...MODULE_2]
+export const L2_UNITS: L2Unit[] = [...MODULE_1, ...MODULE_2, ...MODULE_3]
 /** Each module's review page, once its units are written. */
-const REVIEWS: Record<number, Block[]> = { 1: REVIEW_1, 2: REVIEW_2 }
+const REVIEWS: Record<number, Block[]> = { 1: REVIEW_1, 2: REVIEW_2, 3: REVIEW_3 }
 
 export type L2Kind = 'welcome' | 'contents' | 'planner' | 'opener' | 'vocab' | 'expressions' | 'talk' | 'grammar' | 'speaking' | 'writing' | 'check' | 'review' | 'key'
 export type L2Page = Lesson & { kind: L2Kind; unit?: number; module?: number }
@@ -360,6 +361,23 @@ export const L2_PLANNER: PlannerConfig = {
   ],
 }
 
+/**
+ * The answer key's pages, filled by the room each exercise takes (its answers
+ * run on, about 90 characters a printed line), not by a count: a key of
+ * sentences needs more room than a key of letters.
+ */
+export function packKey<T extends { answers: string[] }>(items: T[], first = 46, rest = 52): T[][] {
+  const pages: T[][] = [[]]
+  let room = first
+  for (const it of items) {
+    const lines = 1 + Math.ceil(it.answers.join(' · ').length / 90)
+    if (lines > room && pages.at(-1)!.length) { pages.push([]); room = rest }
+    pages.at(-1)!.push(it)
+    room -= lines
+  }
+  return pages
+}
+
 /** Every page in book order, the contents and the answer key built from it. */
 export function buildLevel2Book() {
   const units = L2_UNITS.map(u => ({ u, pages: unitPages(u) }))
@@ -383,7 +401,7 @@ export function buildLevel2Book() {
   const keyItems = body.flatMap(p => p.blocks.flatMap(b => (b.t === 'exercise'
     ? [{ label: `Ex. ${exNo.get(b)} · p. ${at(p)}`, answers: b.items.map(it => it.a) }] : [])))
   const keyAt = firstBody + body.length
-  const keyPages: L2Page[] = split(keyItems, 14).map((items, i) => front('key', 'Answer key', `Answer key${i ? ' (continued)' : ''}`, 'الأجوبة', [
+  const keyPages: L2Page[] = packKey(keyItems).map((items, i) => front('key', 'Answer key', `Answer key${i ? ' (continued)' : ''}`, 'الأجوبة', [
     ...(i ? [] : [{ t: 'banner' as const, title: 'Answer key - الأجوبة', icons: ['🔑', '✅'] as [string, string] }]),
     { t: 'key', items },
   ]))

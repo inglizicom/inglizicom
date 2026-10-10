@@ -1,10 +1,11 @@
 import type { Block } from '../level1-book.ts'
-import { INDEX, L2_UNITS, MODULES, mixed, type L2Page, type L2Kind, type L2Unit } from '../level2-book/index.ts'
+import { INDEX, L2_UNITS, MODULES, mixed, packKey, type L2Page, type L2Kind, type L2Unit } from '../level2-book/index.ts'
 import { complete } from '../level2-book/helpers.ts'
 import type { L2WorkUnit } from './types.ts'
 import { fromBank, match } from './helpers.ts'
 import { TEST_1, WORK_1 } from './module-1.ts'
 import { TEST_2, WORK_2 } from './module-2.ts'
+import { TEST_3, WORK_3 } from './module-3.ts'
 
 /**
  * The Level 2 workbook «تكلّم واكتب بدقّة — دفتر التمارين», printed from
@@ -21,8 +22,8 @@ import { TEST_2, WORK_2 } from './module-2.ts'
  * their workbook unit are both written.
  */
 
-export const WORK_UNITS: L2WorkUnit[] = [...WORK_1, ...WORK_2]
-const TESTS: Record<number, [Block[], Block[]]> = { 1: TEST_1, 2: TEST_2 }
+export const WORK_UNITS: L2WorkUnit[] = [...WORK_1, ...WORK_2, ...WORK_3]
+const TESTS: Record<number, [Block[], Block[]]> = { 1: TEST_1, 2: TEST_2, 3: TEST_3 }
 
 const pad = (n: number) => String(n).padStart(2, '0')
 const esc = (w: string) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -163,23 +164,6 @@ const WELCOME: L2Page = front('welcome', 'Workbook', 'How to use this workbook',
     ['🔤', 'Words', 'وردي'], ['💬', 'Expressions', 'أخضر'], ['📘', 'Grammar', 'أزرق'], ['✍️', 'Writing', 'برتقالي'], ['✏️', 'Practice', 'فيروزي'],
   ] },
 ])
-
-/**
- * The answer key's pages, filled by the room each exercise takes (its answers
- * run on, about 90 characters a printed line), not by a count: a key of
- * sentences needs more room than a key of letters.
- */
-function packKey<T extends { answers: string[] }>(items: T[], first = 46, rest = 52): T[][] {
-  const pages: T[][] = [[]]
-  let room = first
-  for (const it of items) {
-    const lines = 1 + Math.ceil(it.answers.join(' · ').length / 90)
-    if (lines > room && pages.at(-1)!.length) { pages.push([]); room = rest }
-    pages.at(-1)!.push(it)
-    room -= lines
-  }
-  return pages
-}
 
 /** Every page in order, with the contents and the answer key built from it. */
 export function buildLevel2Workbook() {
