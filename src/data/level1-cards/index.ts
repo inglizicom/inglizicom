@@ -1,149 +1,113 @@
+import { withIds, type Game, type KemelniMode, type PlayCard } from './build.ts'
+import { LESSONS_1 } from './lessons-1.ts'
+import { LESSONS_2 } from './lessons-2.ts'
+import { LESSONS_3 } from './lessons-3.ts'
+
 /**
- * Level 1 (A0 → A1) play cards «العب وتكلّم الإنجليزية», the card game of the
- * Level 1 box (textbook, workbook, extended vocabulary book, cards).
+ * Level 1 (A0 → A1) play cards «العب وتكلّم الإنجليزية», the review game of
+ * the Level 1 box (textbook, workbook, extended vocabulary book, cards).
  *
- * A card has two sides. The player's side (front) shows what to answer: a
- * picture, an Arabic sentence, a silly question, a sentence with a mistake.
- * The asker's side (back) repeats the question and gives the answer in
- * English and Arabic, so a parent who has no English can hold the card up,
- * ask, and check. Every card belongs to a lesson of the textbook (its number
- * on both sides, so a family plays only the lessons studied) and takes its
- * scene from Moroccan life. The words of the picture cards are the lesson's
- * extended vocabulary: the book's words and the Moroccan ones the extended
- * vocabulary book adds, one list for both.
+ * Every lesson of the textbook has the same pack of nine cards, one sheet,
+ * and every card is a game reviewing what the lesson teaches (its
+ * vocabulary, expressions and conversation), from words to sentences to
+ * conversation: WhatDoWeCall ×2 (name it, then say the book's sentence) ·
+ * TimerPlay (name as many as you can before the time runs out) · Tarjemni
+ * (translate) · Ratebni (put the words in order, against the clock) ·
+ * Sahehni (spot the mistake, then correct it) · Kemelni ×3 (answer the
+ * question · guess the question of an answer · say what could come next).
+ * The points belong to the game, the same on every card.
  *
- * This is the prototype: lessons 1 and 13 and two wild cards (18 cards, two
- * sheets of nine).
+ * The player's side shows the task; the asker's side repeats it and gives
+ * the answer in English and Arabic, so someone with no English can ask and
+ * check. TimerPlay accepts the book's words and those the extended
+ * vocabulary book adds (marked), one word list for both.
  */
 
-export type CardKind = 'picture' | 'situation' | 'translate' | 'silly' | 'fix' | 'wild'
+export type { Game, KemelniMode, PlayCard } from './build.ts'
 
-export interface CardLesson {
-  n: number
-  titleEn: string
-  titleAr: string
-  /** The lesson's Moroccan scene, printed on its cards. */
-  sceneEn: string
-  sceneAr: string
+export interface GameInfo {
+  name: string
+  ar: string
   icon: string
-  /** The lesson's colour, and its light tint. */
+  /** The game's colour, and its light tint. */
   m: string
   s: string
+  doEn: string
+  doAr: string
+  /** How to play it, for the box (Arabic). */
+  rule: string
+  /** The points: [English, Arabic, stars]. */
+  points: [en: string, ar: string, stars: string][]
 }
 
-/** A word of the lesson's extended vocabulary: the book's words and the Moroccan ones. */
-export interface CardWord { en: string; ar: string; icon: string; /** Photo file name (public/level1-cards/photos/<slug>.webp). */ slug: string; moroccan?: boolean }
+export const GAMES: Record<Game, GameInfo> = {
+  call: { name: 'WhatDoWeCall', ar: 'كيف نسمّيه؟', icon: '🔍', m: '#0E9384', s: '#E6F7F4',
+    doEn: 'What do we call it in English?', doAr: 'ما اسمه بالإنجليزية؟',
+    rule: 'أره الصورة والكلمة: يقول اسمها بالإنجليزية، ثم جملة من الكتاب فيها الكلمة.',
+    points: [['Word', 'الكلمة', '★1'], ['Sentence', 'الجملة', '★+2']] },
+  timer: { name: 'TimerPlay', ar: 'ضد الساعة', icon: '⏱️', m: '#E11D48', s: '#FFEEF1',
+    doEn: 'Before the time runs out!', doAr: 'قبل أن ينتهي الوقت!',
+    rule: 'اقلب الساعة الرملية: كل جواب صحيح قبل نهاية الوقت بنقطة.',
+    points: [['Each one', 'لكل جواب', '★1']] },
+  tarjemni: { name: 'Tarjemni', ar: 'ترجمني', icon: '🔁', m: '#2563EB', s: '#EAF1FF',
+    doEn: 'Say it in English!', doAr: 'قلها بالإنجليزية!',
+    rule: 'اقرأ له الجملة بالعربية: يقولها بالإنجليزية.',
+    points: [['Right', 'صحيحة', '★2']] },
+  ratebni: { name: 'Ratebni', ar: 'رتّبني', icon: '🧩', m: '#EA580C', s: '#FFF1E8',
+    doEn: 'Put the words in order!', doAr: 'رتّب الكلمات!',
+    rule: 'الكلمات مبعثرة: يرتّبها قبل نهاية الوقت، من ذاكرته أو بالقلم والورقة.',
+    points: [['Memory', 'من الذاكرة', '★3'], ['Pen', 'بالقلم', '★2']] },
+  sahehni: { name: 'Sahehni', ar: 'صحّحني', icon: '🔧', m: '#16A34A', s: '#EAF8EF',
+    doEn: 'Find the mistake, then correct it!', doAr: 'جد الخطأ، ثم صحّحه!',
+    rule: 'في الجملة خطأ واحد: يجده بنقطة، ويصحّحه بثلاث نقاط إضافية.',
+    points: [['Spot', 'يجده', '★1'], ['Fix', 'يصحّحه', '★+3']] },
+  kemelni: { name: 'Kemelni', ar: 'كمّلني', icon: '💬', m: '#7C3AED', s: '#F3EEFF',
+    doEn: 'Complete the conversation!', doAr: 'كمّل المحادثة!',
+    rule: 'سؤال؟ يجيب عنه. جواب؟ يجد سؤاله. جملة؟ يقول ما يأتي بعدها.',
+    points: [['Right line', 'جملة صحيحة', '★2']] },
+}
+export const GAME_ORDER: Game[] = ['call', 'timer', 'tarjemni', 'ratebni', 'sahehni', 'kemelni']
 
-export interface PlayCard {
-  id: string
-  kind: CardKind
-  /** The lesson (0 for a wild card). */
-  lesson: number
-  /** Player's side: the picture (an emoji until the photo is there). */
-  icon?: string
-  /** A photo for the picture (file name in public/level1-cards/photos, without the extension). */
-  photo?: string
-  /** Player's side: the question or the sentence, in English and / or Arabic. */
-  en?: string
-  ar?: string
-  /** Asker's side: the answer, English and Arabic. */
-  answerEn: string
-  answerAr: string
-  /** Asker's side: what to accept, or a bonus (Arabic, for the parent). */
-  note?: string
-  points: 1 | 2 | 3
+/** Kemelni's three ways: what the player hears, and what they say. */
+export const KEMELNI: Record<KemelniMode, { en: string; ar: string; tagEn: string; tagAr: string }> = {
+  answer: { en: 'Answer the question!', ar: 'أجب عن السؤال!', tagEn: 'Question → answer', tagAr: 'سؤال ← جواب' },
+  question: { en: "What's the question?", ar: 'ما هو السؤال؟', tagEn: 'Answer → question', tagAr: 'جواب ← سؤال' },
+  next: { en: 'What comes next?', ar: 'ماذا يأتي بعد ذلك؟', tagEn: 'What comes next?', tagAr: 'الجملة التالية' },
 }
 
-export const KINDS: Record<CardKind, { en: string; ar: string; icon: string; doEn: string; doAr: string }> = {
-  picture: { en: 'Picture', ar: 'صورة', icon: '🖼️', doEn: "What's this?", doAr: 'ما هذا؟' },
-  situation: { en: 'What do you say?', ar: 'ماذا تقول؟', icon: '💬', doEn: 'What do you say?', doAr: 'ماذا تقول؟' },
-  translate: { en: 'Say it in English', ar: 'قلها بالإنجليزية', icon: '🔁', doEn: 'Say it in English!', doAr: 'قلها بالإنجليزية!' },
-  silly: { en: 'Silly question', ar: 'سؤال مضحك', icon: '🤪', doEn: 'Answer in English!', doAr: 'أجب بالإنجليزية!' },
-  fix: { en: 'Fix it', ar: 'صحّح الخطأ', icon: '🔧', doEn: 'Find the mistake!', doAr: 'جد الخطأ وصحّحه!' },
-  wild: { en: 'Wild card', ar: 'بطاقة مفاجأة', icon: '🃏', doEn: 'Surprise!', doAr: 'مفاجأة!' },
-}
-
+export interface CardLesson { n: number; titleEn: string; titleAr: string; icon: string }
 export const CARD_LESSONS: CardLesson[] = [
-  { n: 1, titleEn: 'Greetings', titleAr: 'التحيات', sceneEn: 'At the café', sceneAr: 'في المقهى', icon: '☕', m: '#2448D8', s: '#E8EEFF' },
-  { n: 13, titleEn: 'The food I like', titleAr: 'الطعام الذي أحبه', sceneEn: 'The Moroccan kitchen', sceneAr: 'المطبخ المغربي', icon: '🍲', m: '#D9541E', s: '#FFEFE6' },
-]
-/** Wild cards: the deck's own colours. */
-export const WILD = { m: '#5B21B6', s: '#F1EBFF', gold: '#F5B82E' }
-
-/** Lesson 13's extended vocabulary (the book's words, then the Moroccan ones). */
-export const WORDS: Record<number, CardWord[]> = {
-  13: [
-    { en: 'bread', ar: 'خبز', icon: '🍞', slug: 'bread' },
-    { en: 'cheese', ar: 'جبن', icon: '🧀', slug: 'cheese' },
-    { en: 'fish', ar: 'سمك', icon: '🐟', slug: 'fish' },
-    { en: 'salad', ar: 'سلطة', icon: '🥗', slug: 'salad' },
-    { en: 'cake', ar: 'كعكة', icon: '🎂', slug: 'cake' },
-    { en: 'olives', ar: 'زيتون', icon: '🫒', slug: 'olives', moroccan: true },
-    { en: 'honey', ar: 'عسل', icon: '🍯', slug: 'honey', moroccan: true },
-    { en: 'eggs', ar: 'بيض', icon: '🥚', slug: 'eggs', moroccan: true },
-    { en: 'msemen', ar: 'مسمن', icon: '🥞', slug: 'msemen', moroccan: true },
-    { en: 'harira', ar: 'حريرة', icon: '🥣', slug: 'harira', moroccan: true },
-    { en: 'tagine', ar: 'طاجين', icon: '🍲', slug: 'tagine', moroccan: true },
-    { en: 'couscous', ar: 'كسكس', icon: '🍛', slug: 'couscous', moroccan: true },
-  ],
-}
-
-export const CARDS: PlayCard[] = [
-  /* ── Lesson 1 · Greetings, at the café ─────────────────────────── */
-  { id: '01-1', kind: 'situation', lesson: 1, icon: '🌅',
-    en: '8 a.m. You meet your neighbour at the café.', ar: 'الثامنة صباحًا. تلتقي بجارك في المقهى.',
-    answerEn: 'Good morning! How are you?', answerAr: 'صباح الخير! كيف حالك؟', note: 'نقبل أيضًا: Hello! / Hi!', points: 1 },
-  { id: '01-2', kind: 'situation', lesson: 1, icon: '🌙',
-    en: '11 p.m. You leave your friend\'s house.', ar: 'الحادية عشرة ليلًا. تغادر بيت صديقك.',
-    answerEn: 'Good night! See you tomorrow.', answerAr: 'تصبح على خير! أراك غدًا.', note: 'نقبل أيضًا: Bye! / Goodbye!', points: 1 },
-  { id: '01-3', kind: 'translate', lesson: 1, ar: 'ما اسمك؟',
-    answerEn: "What's your name?", answerAr: 'ما اسمك؟', note: 'نقبل أيضًا: What is your name?', points: 1 },
-  { id: '01-4', kind: 'translate', lesson: 1, ar: 'تشرّفت بمعرفتك.',
-    answerEn: 'Nice to meet you.', answerAr: 'تشرّفت بمعرفتك.', points: 1 },
-  { id: '01-5', kind: 'silly', lesson: 1, icon: '🐪',
-    en: 'Hello, Mr Camel! How are you today?', ar: 'أنت الجمل! أجب عن سؤال النادل.',
-    answerEn: "I'm fine, thank you. And you?", answerAr: 'أنا بخير، شكرًا. وأنت؟', note: 'نقطة إضافية إذا قالها بصوت الجمل!', points: 2 },
-  { id: '01-6', kind: 'silly', lesson: 1, icon: '🔤',
-    en: 'How do you spell "couscous"?', ar: 'كيف تتهجّى كلمة كسكس بالإنجليزية؟',
-    answerEn: "It's spelled C-O-U-S-C-O-U-S.", answerAr: 'تُكتب هكذا، حرفًا حرفًا.', note: 'حرف واحد خاطئ يعني لا نقطة!', points: 2 },
-  { id: '01-7', kind: 'fix', lesson: 1, en: 'My name are Yassine.',
-    answerEn: 'My name is Yassine.', answerAr: 'اسمي ياسين.', points: 2 },
-  { id: '01-8', kind: 'fix', lesson: 1, en: "I'm fine, thank you. And your?",
-    answerEn: "I'm fine, thank you. And you?", answerAr: 'أنا بخير، شكرًا. وأنت؟', points: 2 },
-
-  /* ── Lesson 13 · The food I like, the Moroccan kitchen ─────────── */
-  { id: '13-1', kind: 'picture', lesson: 13, icon: '🫒', photo: 'olives',
-    answerEn: "They're olives.", answerAr: 'إنه زيتون.', note: 'نقبل أيضًا: Olives!', points: 1 },
-  { id: '13-2', kind: 'picture', lesson: 13, icon: '🍯', photo: 'honey',
-    answerEn: "It's honey.", answerAr: 'إنه عسل.', note: 'نقطة إضافية: msemen with honey!', points: 1 },
-  { id: '13-3', kind: 'picture', lesson: 13, icon: '🍞', photo: 'bread',
-    answerEn: "It's bread.", answerAr: 'إنه خبز.', points: 1 },
-  { id: '13-4', kind: 'translate', lesson: 13, ar: 'أحب الطاجين بالدجاج.',
-    answerEn: 'I like chicken tagine.', answerAr: 'أحب الطاجين بالدجاج.', points: 1 },
-  { id: '13-5', kind: 'translate', lesson: 13, ar: 'هل تحب السمك؟ لا.',
-    answerEn: "Do you like fish? No, I don't.", answerAr: 'هل تحب السمك؟ لا.', points: 2 },
-  { id: '13-6', kind: 'silly', lesson: 13, icon: '🍦',
-    en: 'Do you like couscous with ice cream?', ar: 'هل تحب الكسكس مع المثلجات؟',
-    answerEn: "Yes, I do! / No, I don't!", answerAr: 'نعم! / لا!', note: 'نقطة إضافية: I like couscous with…', points: 2 },
-  { id: '13-7', kind: 'silly', lesson: 13, icon: '⏱️',
-    en: 'What food do you like? Three foods in ten seconds!', ar: 'ما الطعام الذي تحبه؟ ثلاثة أطعمة في عشر ثوانٍ!',
-    answerEn: 'I like bread, cheese and olives.', answerAr: 'أحب الخبز والجبن والزيتون.', note: 'أي ثلاثة أطعمة، والجملة تبدأ بـ: I like…', points: 2 },
-  { id: '13-8', kind: 'fix', lesson: 13, en: 'Do you like fish? Yes, I like.',
-    answerEn: 'Do you like fish? Yes, I do.', answerAr: 'هل تحب السمك؟ نعم.', points: 2 },
-
-  /* ── Wild cards ──────────────────────────────────────────────── */
-  { id: 'w-1', kind: 'wild', lesson: 0, icon: '🛍️',
-    en: 'Souk seller!', ar: 'بائع السوق!',
-    answerEn: 'Answer your next card like a souk seller: very loud!', answerAr: 'أجب عن بطاقتك التالية بصوت مرتفع، كبائع في السوق!', note: 'إذا نجحت: نقطتان بدل نقطة.', points: 2 },
-  { id: 'w-2', kind: 'wild', lesson: 0, icon: '🐐',
-    en: 'The goat is hungry!', ar: 'الماعز جائع!',
-    answerEn: 'Steal one card from the player on your right.', answerAr: 'اسرق بطاقة من اللاعب الذي على يمينك.', points: 1 },
+  { n: 1, titleEn: 'Greetings', titleAr: 'التحيات', icon: '👋' },
+  { n: 2, titleEn: 'Numbers, age & phone', titleAr: 'الأرقام والعمر والهاتف', icon: '☎️' },
+  { n: 3, titleEn: 'Countries & jobs', titleAr: 'الدول والجنسيات والمهن', icon: '🌍' },
+  { n: 4, titleEn: 'Full conversation', titleAr: 'محادثة شاملة', icon: '🗣️' },
+  { n: 5, titleEn: 'Family & people', titleAr: 'العائلة ووصف الأشخاص', icon: '👨‍👩‍👧' },
+  { n: 6, titleEn: 'Wh-questions', titleAr: 'أسئلة الاستفهام', icon: '❓' },
+  { n: 7, titleEn: "Zaid's day", titleAr: 'يوم زيد', icon: '📖' },
+  { n: 8, titleEn: 'The classroom', titleAr: 'القسم', icon: '🎒' },
+  { n: 9, titleEn: 'Verbs & pronouns', titleAr: 'الأفعال والضمائر', icon: '🗣️' },
+  { n: 10, titleEn: 'The house', titleAr: 'أثاث المنزل', icon: '🛋️' },
+  { n: 11, titleEn: 'My day & the time', titleAr: 'يومي والساعة', icon: '⏰' },
+  { n: 12, titleEn: 'The week', titleAr: 'أيام الأسبوع', icon: '🗓️' },
+  { n: 13, titleEn: 'Food', titleAr: 'الطعام', icon: '🍲' },
+  { n: 14, titleEn: 'Drinks', titleAr: 'المشروبات', icon: '🍵' },
+  { n: 15, titleEn: 'Transport', titleAr: 'وسائل النقل', icon: '🚕' },
+  { n: 16, titleEn: 'Places & directions', titleAr: 'الأماكن والاتجاهات', icon: '🧭' },
+  { n: 17, titleEn: 'There is / are', titleAr: 'يوجد / توجد', icon: '🏘️' },
+  { n: 18, titleEn: "Jobs & can", titleAr: 'المهن والقدرة', icon: '🧑‍🔧' },
+  { n: 19, titleEn: 'Hobbies', titleAr: 'الهوايات', icon: '🎨' },
 ]
 
-/** Nine cards a sheet (3 × 3, 63 × 88 mm each). */
+export const CARDS: PlayCard[] = withIds([...LESSONS_1, ...LESSONS_2, ...LESSONS_3])
+
+/** A WhatDoWeCall card's photo: its English, as a file name ("A teacher" → teacher.webp). */
+export const photoOf = (c: PlayCard) =>
+  c.game === 'call' ? c.answer.toLowerCase().replace(/^(a|an|the|to) /, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : null
+
+/** Nine cards a sheet (3 × 3, 63 × 88 mm each): one sheet, one lesson. */
 export const PER_SHEET = 9
-export function cardSheets<T>(cards: T[]): T[][] {
-  return Array.from({ length: Math.ceil(cards.length / PER_SHEET) }, (_, i) => cards.slice(i * PER_SHEET, (i + 1) * PER_SHEET))
+export function cardSheets(cards: PlayCard[]): PlayCard[][] {
+  return CARD_LESSONS.map(l => cards.filter(c => c.lesson === l.n)).filter(s => s.length)
 }
 /**
  * The backs of a sheet in print order: each row reversed, so that printed on

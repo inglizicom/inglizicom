@@ -1,42 +1,65 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { CARDS, CARD_LESSONS, KINDS, WORDS, cardSheets, mirrorRows } from '../../src/data/level1-cards/index.ts'
+import { CARDS, CARD_LESSONS, GAMES, cardSheets, mirrorRows, photoOf } from '../../src/data/level1-cards/index.ts'
+import { LEVEL1_LESSONS } from '../../src/data/level1-book.ts'
 
 const AR = /[؀-ۿ]/
+/** Every lesson's pack, in this order: WhatDoWeCall ×2, TimerPlay, Tarjemni, Ratebni, Sahehni, Kemelni ×3 (answer, question, next). */
+const PACK = ['call', 'call', 'timer', 'tarjemni', 'ratebni', 'sahehni', 'kemelni', 'kemelni', 'kemelni']
 
-test('every card: its lesson, its kind, the answer in English and Arabic', () => {
+test('every lesson of the book has its pack of nine, the same games in the same order', () => {
+  assert.deepEqual(CARD_LESSONS.map(l => l.n), LEVEL1_LESSONS.map(l => l.n))
+  for (const l of CARD_LESSONS) {
+    const pack = CARDS.filter(c => c.lesson === l.n)
+    assert.deepEqual(pack.map(c => c.game), PACK, `lesson ${l.n}`)
+    assert.deepEqual(pack.filter(c => c.game === 'kemelni').map(c => c.mode), ['answer', 'question', 'next'], `lesson ${l.n}: Kemelni`)
+  }
   assert.equal(new Set(CARDS.map(c => c.id)).size, CARDS.length, 'ids are unique')
+  assert.equal(new Set(CARDS.filter(c => c.game === 'call').map(photoOf)).size, CARDS.filter(c => c.game === 'call').length, 'one photo name per picture')
+})
+
+test('every card: the task its game needs, the answer in English and Arabic', () => {
   for (const c of CARDS) {
-    assert.ok(KINDS[c.kind], c.id)
-    assert.ok(c.kind === 'wild' ? c.lesson === 0 : CARD_LESSONS.some(l => l.n === c.lesson), `${c.id}: lesson ${c.lesson}`)
-    assert.ok(c.answerEn && !AR.test(c.answerEn), `${c.id}: English answer`)
-    assert.ok(AR.test(c.answerAr), `${c.id}: Arabic answer`)
-    if (c.en) assert.ok(!AR.test(c.en), `${c.id}: the English side has no Arabic`)
-    if (c.ar) assert.ok(AR.test(c.ar), `${c.id}: the Arabic side is Arabic`)
-    // the player's side has something to answer
-    if (c.kind === 'picture') assert.ok(c.icon, c.id)
-    if (c.kind === 'translate') assert.ok(c.ar, c.id)
-    if (c.kind === 'silly' || c.kind === 'situation') assert.ok(c.en && c.ar, `${c.id}: asked in both languages`)
-    if (c.kind === 'fix') assert.ok(c.en && c.en !== c.answerEn, `${c.id}: the mistake is not the answer`)
+    const at = `${c.id} (${c.game})`
+    assert.ok(GAMES[c.game], at)
+    assert.ok(c.answer && !AR.test(c.answer), `${at}: English answer`)
+    assert.ok(AR.test(c.answerAr), `${at}: Arabic answer`)
+    if (c.en) assert.ok(!AR.test(c.en), `${at}: "${c.en}" has no Arabic`)
+    if (c.enAr) assert.ok(AR.test(c.enAr), `${at}: the Arabic line is Arabic`)
+    if (c.game === 'call') assert.ok(c.icon && c.ar && c.sentence && c.sentence.toLowerCase().includes(c.answer.toLowerCase().replace(/^(a|an|the|to) /, '').split(' ')[0]), `${at}: the sentence uses the word`)
+    if (c.game === 'timer') assert.ok(c.seconds && c.en && c.enAr && c.accept.length >= 4, at)
+    if (c.game === 'tarjemni') assert.ok(AR.test(c.ar), at)
+    if (c.game === 'ratebni') {
+      // the words are the sentence's, mixed
+      const norm = s => s.replace(/[.,?!]/g, '').split(/\s+/).sort().join(' ')
+      assert.equal(norm(c.words.join(' ')), norm(c.answer), at)
+      assert.notEqual(c.words.join(' '), c.answer.replace(/[.?!]$/, ''), `${at}: not already in order`)
+      assert.ok(c.seconds, at)
+    }
+    if (c.game === 'sahehni') {
+      assert.ok(c.en !== c.answer && c.fix, at)
+      assert.ok(c.en.includes(c.fix[0]) && c.answer.includes(c.fix[1]), `${at}: the fix is in both sentences`)
+    }
+    if (c.game === 'kemelni') assert.ok(c.mode && c.en && c.enAr, at)
   }
 })
 
-test('a picture card shows a word of its lesson\'s extended vocabulary', () => {
-  for (const c of CARDS.filter(x => x.photo)) {
-    const w = WORDS[c.lesson]?.find(x => x.slug === c.photo)
-    assert.ok(w, `${c.id}: ${c.photo}`)
-    assert.ok(c.answerEn.toLowerCase().includes(w.en), `${c.id}: the answer says "${w.en}"`)
+test('notes for the asker: Arabic first, any English after a colon (or the lines wrap into each other)', () => {
+  for (const c of CARDS.filter(x => x.note)) {
+    const at = c.note.search(/[A-Za-z]/)
+    if (at < 0) continue
+    assert.match(c.note.slice(0, at).trim(), /[؀-ۿ][^A-Za-z]*:$/, `${c.id}: "${c.note}"`)
+    assert.ok(!AR.test(c.note.slice(at)), `${c.id}: the English part has no Arabic`)
   }
 })
 
-test('double-sided print: each back lands behind its front (rows mirrored)', () => {
-  for (const sheet of cardSheets(CARDS)) {
-    assert.ok(sheet.length <= 9)
+test('double-sided print: one sheet per lesson, each back behind its front', () => {
+  const sheets = cardSheets(CARDS)
+  assert.equal(sheets.length, CARD_LESSONS.length)
+  for (const sheet of sheets) {
+    assert.equal(sheet.length, 9)
+    assert.equal(new Set(sheet.map(c => c.lesson)).size, 1)
     const backs = mirrorRows(sheet)
-    assert.equal(backs.length, 9)
-    sheet.forEach((card, i) => {
-      const r = Math.floor(i / 3), col = i % 3
-      assert.equal(backs[r * 3 + (2 - col)], card)
-    })
+    sheet.forEach((card, i) => assert.equal(backs[Math.floor(i / 3) * 3 + (2 - (i % 3))], card))
   }
 })
