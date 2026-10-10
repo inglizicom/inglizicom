@@ -1,6 +1,7 @@
 import type { Block, Lesson } from '../level1-book.ts'
 import type { L2Ladder, L2Unit } from './types.ts'
 import { MODULE_1, REVIEW_1 } from './module-1.ts'
+import { MODULE_2, REVIEW_2 } from './module-2.ts'
 import { INDEX, MODULES } from './plan.ts'
 import { plannerPages, type PlannerConfig } from '../study-planner.ts'
 
@@ -23,9 +24,9 @@ export { INDEX, MODULES } from './plan.ts'
 export type { L2Unit } from './types.ts'
 
 /** The units written so far, in order. */
-export const L2_UNITS: L2Unit[] = [...MODULE_1]
+export const L2_UNITS: L2Unit[] = [...MODULE_1, ...MODULE_2]
 /** Each module's review page, once its units are written. */
-const REVIEWS: Record<number, Block[]> = { 1: REVIEW_1 }
+const REVIEWS: Record<number, Block[]> = { 1: REVIEW_1, 2: REVIEW_2 }
 
 export type L2Kind = 'welcome' | 'contents' | 'planner' | 'opener' | 'vocab' | 'expressions' | 'talk' | 'grammar' | 'speaking' | 'writing' | 'check' | 'review' | 'key'
 export type L2Page = Lesson & { kind: L2Kind; unit?: number; module?: number }

@@ -4,6 +4,7 @@ import { complete } from '../level2-book/helpers.ts'
 import type { L2WorkUnit } from './types.ts'
 import { fromBank, match } from './helpers.ts'
 import { TEST_1, WORK_1 } from './module-1.ts'
+import { TEST_2, WORK_2 } from './module-2.ts'
 
 /**
  * The Level 2 workbook «تكلّم واكتب بدقّة — دفتر التمارين», printed from
@@ -20,8 +21,8 @@ import { TEST_1, WORK_1 } from './module-1.ts'
  * their workbook unit are both written.
  */
 
-export const WORK_UNITS: L2WorkUnit[] = [...WORK_1]
-const TESTS: Record<number, [Block[], Block[]]> = { 1: TEST_1 }
+export const WORK_UNITS: L2WorkUnit[] = [...WORK_1, ...WORK_2]
+const TESTS: Record<number, [Block[], Block[]]> = { 1: TEST_1, 2: TEST_2 }
 
 const pad = (n: number) => String(n).padStart(2, '0')
 const esc = (w: string) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
