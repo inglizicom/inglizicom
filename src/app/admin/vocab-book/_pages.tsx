@@ -7,6 +7,7 @@ import {
 import { Sheet, hi, pageNoText, type SheetTheme } from '../games/_shared'
 import type { Pair, VocabEntry, WordGroup, Dialogue, Reading } from '@/data/workbook/vocab-book'
 import type { VocabBookUnit } from '@/data/workbook/vocab-book-all'
+import { QrLink } from '@/components/QrLink'
 
 /**
  * The pages of «مفردات وعبارات للمواقف اليومية». Same A4 sheet, print and
@@ -63,15 +64,21 @@ const Strip = ({ t, active }: { t: SheetTheme; active?: number }) => (
 
 /* ── Unit page frame ─────────────────────────────────────────────────── */
 
-export function UnitPage({ theme: t, unit, part, pageNo, children }: {
+export function UnitPage({ theme: t, unit, part, pageNo, children, label = 'UNIT', qr, prefix = 'vocab' }: {
   theme: SheetTheme; unit: VocabBookUnit; part: Part; pageNo: number | null; children: ReactNode
+  /** UNIT (the Everyday book) or LESSON (Level 1). */
+  label?: string
+  /** The lesson's audio page: a QR code at the end of the title band. */
+  qr?: string
+  /** The file names' start (one per book). */
+  prefix?: string
 }) {
   const s = PART[part]
   const header = (
     <>
       <div className="flex items-stretch" style={{ height: 86 }} dir="ltr">
         <div className="flex items-center justify-center px-5" style={{ background: t.dark }}>
-          <span className="rounded-md bg-white px-3 py-1 text-[22px] font-black" style={{ color: t.dark }}>UNIT {unit.n}</span>
+          <span className="rounded-md bg-white px-3 py-1 text-[22px] font-black" style={{ color: t.dark }}>{label} {unit.n}</span>
         </div>
         <div className="flex-1 flex items-center justify-between gap-3 px-6" style={{ background: t.accent, color: t.onAccent }}>
           <span className="flex items-center gap-3 text-[21px] font-black uppercase leading-tight">
@@ -79,15 +86,16 @@ export function UnitPage({ theme: t, unit, part, pageNo, children }: {
           </span>
           <span className="text-[24px] font-black leading-tight" dir="rtl">{unit.titleAr}</span>
         </div>
+        {qr && <div className="flex items-center px-3" style={{ background: t.accent }}><span className="rounded-md bg-white p-[3px]"><QrLink url={qr} size={58} color="#111111" /></span></div>}
       </div>
       <Strip t={t} active={s.no} />
     </>
   )
   return (
     <Sheet theme={t} header={header}
-      label={`الوحدة ${unit.n} — ${s.ar}${pageNo ? ` · صفحة ${pageNo}` : ''}`}
-      filename={`vocab-unit-${pad(unit.n)}-${s.no}-${part}`}
-      footerMid={`UNIT ${unit.n}${pageNo ? ` | ${pageNoText(pageNo)}` : ''}`}>
+      label={`${label === 'UNIT' ? 'الوحدة' : 'الدرس'} ${unit.n} — ${s.ar}${pageNo ? ` · صفحة ${pageNo}` : ''}`}
+      filename={`${prefix}-${label.toLowerCase()}-${pad(unit.n)}-${s.no}-${part}`}
+      footerMid={`${label} ${unit.n}${pageNo ? ` | ${pageNoText(pageNo)}` : ''}`}>
       <div className="flex items-center gap-2" dir="ltr">
         <span className="flex items-center justify-center w-10 h-10 rounded-lg text-[20px] font-black text-white" style={{ background: t.dark }}>{s.no}</span>
         <span className="flex items-center gap-2 rounded-lg px-4 h-10 text-[16px] font-black text-white" style={{ background: t.dark }}>
@@ -329,12 +337,12 @@ export function MatterPage({ theme: t, titleEn, titleAr, pageNo, filename, label
 export interface ContentsUnitRow { n: number; icon: string; titleEn: string; titleAr: string; first: number | null; last: number | null }
 export interface ContentsEndRow { en: string; ar: string; page: number | null }
 
-export function ContentsBody({ theme: t, units, end }: { theme: SheetTheme; units: ContentsUnitRow[]; end: ContentsEndRow[] }) {
+export function ContentsBody({ theme: t, units, end, label = 'UNIT' }: { theme: SheetTheme; units: ContentsUnitRow[]; end: ContentsEndRow[]; label?: string }) {
   const numbered = units.some(u => u.first != null)
   return (
     <div dir="ltr">
       <div className="flex items-center gap-2 mb-3 text-[11.5px] font-bold text-zinc-600">
-        <span className="font-black" style={{ color: t.dark }}>EACH UNIT ·</span>
+        <span className="font-black" style={{ color: t.dark }}>EACH {label} ·</span>
         {PARTS.map(p => {
           const s = PART[p]
           return (
@@ -346,14 +354,14 @@ export function ContentsBody({ theme: t, units, end }: { theme: SheetTheme; unit
       </div>
       {numbered && (
         <div className="flex items-center gap-3 pb-1 mb-1.5 border-b-2 text-[11px] font-black" style={{ borderColor: t.dark, color: t.dark }}>
-          <span className="flex-1">UNIT · الوحدة</span>
+          <span className="flex-1">{label} · {label === 'UNIT' ? 'الوحدة' : 'الدرس'}</span>
           <span className="w-[86px] text-center whitespace-nowrap">PAGES · الصفحات</span>
         </div>
       )}
       <div className="space-y-[7px]">
         {units.map(r => (
           <div key={r.n} className="flex items-center gap-3">
-            <span className="w-[74px] shrink-0 rounded-md px-2 py-0.5 text-center text-[12.5px] font-black text-white" style={{ background: t.dark }}>UNIT {pad(r.n)}</span>
+            <span className="w-[74px] shrink-0 rounded-md px-2 py-0.5 text-center text-[12.5px] font-black text-white" style={{ background: t.dark }}>{label} {pad(r.n)}</span>
             <span className="text-[17px] leading-none w-6 text-center">{r.icon}</span>
             <span className="text-[14px] font-extrabold whitespace-nowrap">{r.titleEn} <span className="text-zinc-400 mx-1">|</span> <bdi dir="rtl">{r.titleAr}</bdi></span>
             <span className="flex-1 border-b-2 border-dotted border-zinc-300 translate-y-1" />
@@ -482,7 +490,7 @@ export function IndexBody({ theme: t, columns, first }: { theme: SheetTheme; col
   )
 }
 
-export function AnswersBody({ theme: t, units }: { theme: SheetTheme; units: VocabBookUnit[] }) {
+export function AnswersBody({ theme: t, units, label = 'UNIT' }: { theme: SheetTheme; units: VocabBookUnit[]; label?: string }) {
   return (
     <div dir="ltr">
       <p className="text-[13.5px] font-bold text-zinc-600 text-right mb-2" dir="rtl">أجوبة أسئلة القراءة في كل وحدة. حاول دائمًا أن تجيب قبل أن تنظر هنا!</p>
@@ -490,7 +498,7 @@ export function AnswersBody({ theme: t, units }: { theme: SheetTheme; units: Voc
         {units.map(u => (
           <div key={u.n} className="rounded-lg px-3 py-1" style={{ background: t.soft }}>
             <div className="flex items-center gap-2 text-[12px] font-black">
-              <span className="rounded px-1.5 py-0.5 text-white" style={{ background: t.dark }}>UNIT {pad(u.n)}</span>
+              <span className="rounded px-1.5 py-0.5 text-white" style={{ background: t.dark }}>{label} {pad(u.n)}</span>
               <span className="truncate">{u.reading.title}</span>
             </div>
             <div className="mt-1 text-[11.5px] font-semibold leading-snug">

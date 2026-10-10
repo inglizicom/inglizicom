@@ -30,5 +30,6 @@ export function QrLink({ url, size, color = '#111111', label = 'Listen', labelCo
 export const PLAY = {
   book: (n: number) => `https://www.inglizi.com/audio/book/${n}`,
   workbook: (n: number) => `https://www.inglizi.com/audio/workbook/${n}`,
+  vocab: (n: number) => `https://www.inglizi.com/audio/vocab/${n}`,
   card: (code: string) => `https://www.inglizi.com/audio/${code}`,
 }

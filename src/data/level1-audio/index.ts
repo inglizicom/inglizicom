@@ -2,6 +2,7 @@ import type { Block } from '../level1-book.ts'
 import { LEVEL1_V2_LESSONS } from '../level1-book-v2.ts'
 import { BOUCHTA, CARDS, type BouchtaCard, type PlayCard } from '../level1-cards/index.ts'
 import { LEVEL1_DIALOGUES, LEVEL1_WORKBOOK } from '../workbook/level1-workbook.ts'
+import { LEVEL1_VOCAB } from '../level1-vocab/index.ts'
 
 /**
  * The audio of Level 1 (A0 → A1), second edition: the book's words,
@@ -35,8 +36,13 @@ function hash(s: string): string {
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) }
   return (h >>> 0).toString(36)
 }
+/**
+ * What the voice is given to say. A word spelled with dashes (`W-A-L-I-D`) is
+ * read as the word itself, so the letters are given one by one (`W, A, L, I, D`).
+ */
+export const sayOf = (en: string) => en.replace(/\b(?:[A-Z]-)+[A-Z]\b/g, m => m.split('-').join(', '))
 /** A clip's file without its speed: the play pages add `-slow.mp3` or `-normal.mp3`. */
-export const clipBase = (c: Clip) => `level1/${hash(`${c.voice}|${c.en}`)}`
+export const clipBase = (c: Clip) => `level1/${hash(`${c.voice}|${sayOf(c.en)}`)}`
 export const clipPath = (c: Clip, speed: Speed) => `${clipBase(c)}-${speed}.mp3`
 export const BUCKET = 'audio'
 export const clipUrl = (supabaseUrl: string, c: Clip, speed: Speed) => `${supabaseUrl}/storage/v1/object/public/${BUCKET}/${clipPath(c, speed)}`
@@ -80,7 +86,8 @@ function timeWords(t: string): string {
 
 /* ── voices in a conversation ── */
 
-const WOMEN = new Set(['Hind', 'Receptionist', 'Imane', 'Karima', 'Sofia', 'Teacher', 'Nour', 'Yasmine', 'Mum', 'Khadija', 'Asmae', 'Rim', 'Lamia', 'Emily', 'Leila', 'Nawal', 'Ines', 'Malak', 'Salma', 'Nadia', 'Julie', 'Sara', 'Fatima', 'Hana', 'Lina', 'Rania', 'Mona'])
+const WOMEN = new Set(['Hind', 'Receptionist', 'Imane', 'Karima', 'Sofia', 'Teacher', 'Nour', 'Yasmine', 'Mum', 'Khadija', 'Asmae', 'Rim', 'Lamia', 'Emily', 'Leila', 'Nawal', 'Ines', 'Malak', 'Salma', 'Nadia', 'Julie', 'Sara', 'Fatima', 'Hana', 'Lina', 'Rania', 'Mona',
+  'Mrs Fassi', 'Amal', 'Kawtar', 'Ghita', 'Aya', 'Zineb', 'Secretary', 'Librarian', 'Journalist', 'Grandma', 'Emma'])
 /** Each speaker of a conversation keeps one voice, and two speakers never share one. */
 function castVoices(lines: string[]): Map<string, Voice> {
   const cast = new Map<string, Voice>()
@@ -176,6 +183,28 @@ export function workbookSections(n: number): AudioSection[] {
   ]
 }
 
+/* ── the vocabulary book ── */
+
+/** A lesson of the extended vocabulary book: its words, their examples, each themed group, both conversations, other ways to ask and answer, the reading. */
+export function vocabSections(n: number): AudioSection[] {
+  const u = LEVEL1_VOCAB.find(x => x.n === n)
+  if (!u) return []
+  const coral = (en: string, ar?: string): Clip => ({ en: speakable(en), ...(ar ? { ar } : {}), voice: 'coral' })
+  const talk = (t: (typeof u.talks)[number]): AudioSection => {
+    const lines = t.lines.map((l, i) => `${t.who[i % 2]}: ${l.en}`)
+    const cast = castVoices(lines)
+    return { kind: 'talk', title: t.titleEn, titleAr: t.titleAr, clips: t.lines.map((l, i) => ({ en: speakable(l.en), ar: l.ar, voice: cast.get(t.who[i % 2])!, speaker: t.who[i % 2] })) }
+  }
+  return [
+    { kind: 'words', title: 'Words', titleAr: 'الكلمات', clips: u.vocab.map(e => coral(e.en, e.ar)) },
+    { kind: 'phrases', title: 'Examples', titleAr: 'الأمثلة', clips: u.vocab.map(e => coral(e.ex, e.exAr)) },
+    ...u.groups.map((gp): AudioSection => ({ kind: 'words', title: gp.en, titleAr: gp.ar, clips: gp.words.map(w => coral(w.en, w.ar)) })),
+    ...u.talks.map(talk),
+    { kind: 'phrases', title: 'Ask and answer', titleAr: 'اسأل وأجب', clips: u.ask.flatMap((q, i) => [coral(q.en, q.ar), ...(u.answer[i] ? [coral(u.answer[i].en, u.answer[i].ar)] : [])]) },
+    { kind: 'reading', title: u.reading.title, titleAr: u.reading.titleAr, clips: [coral(u.reading.text)] },
+  ]
+}
+
 /* ── the cards ── */
 
 export interface CardClip extends Clip { label: string; labelAr: string }
@@ -205,6 +234,7 @@ export function allClips(): Clip[] {
   const all = [
     ...LEVEL1_V2_LESSONS.flatMap(l => bookSections(l.n).flatMap(s => s.clips)),
     ...LEVEL1_WORKBOOK.flatMap(u => workbookSections(u.n).flatMap(s => s.clips)),
+    ...LEVEL1_VOCAB.flatMap(u => vocabSections(u.n).flatMap(s => s.clips)),
     ...CARDS.flatMap(cardClips),
     ...BOUCHTA.flatMap(bouchtaClips),
   ]

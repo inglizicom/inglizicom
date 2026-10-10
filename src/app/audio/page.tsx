@@ -1,11 +1,11 @@
-import { PlayShell, ShelfMenu } from './_shell'
+import { AudioShell, ShelfGrid } from './_shell'
 
-/** /audio — the playlist of Level 1: the three shelves (course book, workbook, play cards), each a drop-down of the nineteen lessons. */
-export default function PlayIndex() {
+/** /audio — the library of Level 1: four shelves (course book, workbook, vocabulary book, play cards), each a folder of nineteen lessons. */
+export default function AudioHome() {
   return (
-    <PlayShell title="Play & Speak English · Level 1" sub="A0 → A1 · Audio · الصوت">
-      <p className="font-arabic -mt-2 text-[15px] text-[#5B6474]" dir="rtl">اختر الكتاب، ثم الدرس، ثم استمع: ببطء للتعلّم، أو بالسرعة العادية.</p>
-      <ShelfMenu />
-    </PlayShell>
+    <AudioShell crumbs={['Level 1 · A0 → A1', 'Library']} title="Play & Speak English · Level 1">
+      <p className="font-arabic -mt-2 text-[15px] text-[#5B6474]" dir="rtl">اختر الكتاب، ثم الدرس، ثم استمع: ببطء للتعلّم، بالسرعة العادية، أو بسرعة.</p>
+      <ShelfGrid />
+    </AudioShell>
   )
 }

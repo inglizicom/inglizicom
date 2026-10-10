@@ -9,7 +9,7 @@
  * bucket is skipped, so a second run only records what is new or changed.
  * Voices: OpenAI gpt-4o-mini-tts, the delivery set by instructions.
  */
-import { allClips, clipPath, BUCKET, SPEEDS } from '../src/data/level1-audio/index.ts'
+import { allClips, clipPath, sayOf, BUCKET, SPEEDS } from '../src/data/level1-audio/index.ts'
 
 const args = Object.fromEntries(process.argv.slice(2).map(a => a.replace(/^--/, '').split('=')).map(([k, v]) => [k, v ?? true]))
 const OPENAI = process.env.OPENAI_API_KEY
@@ -22,14 +22,14 @@ const supa = (path, init = {}) => fetch(`${SUPA}/storage/v1${path}`, { ...init, 
 /** How each voice speaks, at each speed. */
 function instructions(clip, speed) {
   const pace = speed === 'slow'
-    ? 'Pace: slow and very clear, for a beginner who repeats after you. Leave a short, natural pause between words, but keep the sentence flowing; never robotic, never spell a word unless it is written with dashes.'
+    ? 'Pace: slow and very clear, for a beginner who repeats after you. Leave a short, natural pause between words, but keep the sentence flowing; never robotic, never spell a word unless its letters are given one by one.'
     : 'Pace: natural and relaxed, a normal conversational speed.'
   const who = clip.voice === 'fable'
     ? 'You are Bouchta, a funny, playful goat in a family card game: cheerful and a little silly, but every word perfectly clear.'
     : clip.speaker
       ? `You are ${clip.speaker}, speaking in a friendly everyday conversation in Morocco. Sound natural and warm, like a real person, not a narrator.`
       : 'You are a warm, friendly English teacher reading to a beginner.'
-  return `${who} Accent: clear General American English. ${pace} Read exactly the text, adding nothing. Words like dirhams, tagine, couscous, msemen, harira and hammam are Moroccan: say them the Moroccan way.`
+  return `${who} Accent: clear General American English. ${pace} Read exactly the text, adding nothing. Letters given one by one (W, A, L, I, D) are spelled out letter by letter, clearly. Words like dirhams, tagine, couscous, msemen, harira and hammam are Moroccan: say them the Moroccan way.`
 }
 
 async function withRetry(what, fn) {
@@ -46,7 +46,7 @@ async function tts(clip, speed) {
     method: 'POST',
     headers: { Authorization: `Bearer ${OPENAI}`, 'Content-Type': 'application/json' },
     // The instructions alone barely slow the voice (+4% on a sentence); `speed` does (0.8 ≈ +45%).
-    body: JSON.stringify({ model: 'gpt-4o-mini-tts', voice: clip.voice, input: clip.en, instructions: instructions(clip, speed), response_format: 'mp3', ...(speed === 'slow' ? { speed: 0.8 } : {}) }),
+    body: JSON.stringify({ model: 'gpt-4o-mini-tts', voice: clip.voice, input: sayOf(clip.en), instructions: instructions(clip, speed), response_format: 'mp3', ...(speed === 'slow' ? { speed: 0.8 } : {}) }),
   })
   if (!res.ok) throw new Error(`OpenAI ${res.status} ${(await res.text()).slice(0, 200)}`)
   return Buffer.from(await res.arrayBuffer())

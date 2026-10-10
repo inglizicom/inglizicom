@@ -1,15 +1,13 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { BookOpen, PenLine } from 'lucide-react'
 import { BOUCHTA, CARDS, CARD_LESSONS, GAMES, KEMELNI, type BouchtaCard, type PlayCard } from '@/data/level1-cards'
-import { bouchtaClips, cardClips, cardCode } from '@/data/level1-audio'
-import { PlayLine } from '../_player'
-import { PlayShell, toPlay } from '../_shell'
+import { bouchtaClips, cardClips, cardCode, type CardClip } from '@/data/level1-audio'
+import { Track, type PlayClip } from '../_player'
+import { AudioShell, toPlay } from '../_shell'
 
 /**
  * /audio/L13 — the play cards of a lesson: its nine cards and Bouchta's question.
- * /audio/L13-8 — the card whose QR code was scanned, on top of its lesson's cards.
- * /audio/B-06 — one of Bouchta's silly questions, on top of its lesson's cards.
+ * /audio/L13-8 — the card whose QR code was scanned, first, then the lesson's other cards.
+ * /audio/B-06 — one of Bouchta's silly questions, first.
  */
 
 const pad = (n: number) => String(n).padStart(2, '0')
@@ -35,38 +33,25 @@ function taskOf(c: PlayCard): [string, string] {
   }
 }
 
-function CardPanel({ card, highlight }: { card: PlayCard; highlight?: boolean }) {
-  const g = GAMES[card.game]
-  const [task, taskAr] = taskOf(card)
-  const k = cardCode(card.id)
-  const arOnly = /[؀-ۿ]/.test(task) && !/[A-Za-z]/.test(task)
-  return (
-    <section id={k} className={`rounded-2xl border bg-white p-3 ${highlight ? 'border-[#B8862F] ring-2 ring-[#B8862F]/40' : 'border-[#D6DCE8]'}`}>
-      <div className="flex items-center justify-between gap-2 px-1" dir="ltr">
-        <span className="text-[14px] font-bold text-[#14306B]">{g.name} <span className="font-arabic text-[12px] font-semibold text-[#5B6474]">{g.ar}</span></span>
-        <span className="rounded-md bg-[#14306B] px-1.5 py-0.5 text-[11px] font-bold text-white">{k}</span>
-      </div>
-      <div className="mt-1.5 rounded-xl bg-[#EEF2F9] px-3 py-2">
-        <div className={`text-[14px] font-semibold text-[#1F2937] ${arOnly ? 'font-arabic text-right' : ''}`} dir={arOnly ? 'rtl' : 'ltr'}>{task}</div>
-        <div className="font-arabic text-[12.5px] text-[#5B6474]" dir="rtl">{taskAr}</div>
-      </div>
-      <div className="mt-1.5 flex flex-col gap-0.5">
-        {cardClips(card).map((c, i) => <PlayLine key={i} k={`${k}-${i}`} clip={toPlay(c)} />)}
-      </div>
-    </section>
-  )
-}
+/** A card on the page: its name, what it asks, and its lines (indexes into the player's list). */
+interface Panel { code: string; name: string; nameAr: string; task?: [string, string]; first: number; count: number; gold?: boolean }
 
-function BouchtaPanel({ b, highlight }: { b: BouchtaCard; highlight?: boolean }) {
-  const k = cardCode(b.id)
+function CardPanel({ p, highlight }: { p: Panel; highlight?: boolean }) {
+  const arOnly = p.task && /[؀-ۿ]/.test(p.task[0]) && !/[A-Za-z]/.test(p.task[0])
   return (
-    <section id={k} className={`rounded-2xl border bg-white p-3 ${highlight ? 'border-[#B8862F] ring-2 ring-[#B8862F]/40' : 'border-[#D6DCE8]'}`}>
-      <div className="flex items-center justify-between px-1" dir="ltr">
-        <span className="text-[14px] font-bold text-[#14306B]">Bouchta <span className="font-arabic text-[12px] font-semibold text-[#5B6474]">بوشتى يسأل</span></span>
-        <span className="rounded-md bg-[#B8862F] px-1.5 py-0.5 text-[11px] font-bold text-white">{k}</span>
+    <section className={`rounded-2xl bg-white p-3 ring-1 ${highlight ? 'ring-2 ring-[#B8862F]' : 'ring-[#D6DCE8]'}`}>
+      <div className="flex items-center justify-between gap-2 px-1" dir="ltr">
+        <span className="text-[14px] font-bold text-[#14306B]">{p.name} <span className="font-arabic text-[12px] font-semibold text-[#5B6474]">{p.nameAr}</span></span>
+        <span className={`rounded-md px-1.5 py-0.5 text-[11px] font-bold text-white ${p.gold ? 'bg-[#B8862F]' : 'bg-[#14306B]'}`}>{p.code}</span>
       </div>
+      {p.task && (
+        <div className="mt-1.5 rounded-xl bg-[#EEF2F9] px-3 py-2">
+          <div className={`text-[14px] font-semibold text-[#1F2937] ${arOnly ? 'font-arabic text-right' : ''}`} dir={arOnly ? 'rtl' : 'ltr'}>{p.task[0]}</div>
+          <div className="font-arabic text-[12.5px] text-[#5B6474]" dir="rtl">{p.task[1]}</div>
+        </div>
+      )}
       <div className="mt-1.5 flex flex-col gap-0.5">
-        {bouchtaClips(b).map((c, i) => <PlayLine key={i} k={`${k}-${i}`} clip={toPlay(c)} />)}
+        {Array.from({ length: p.count }, (_, j) => <Track key={j} i={p.first + j} />)}
       </div>
     </section>
   )
@@ -84,25 +69,35 @@ export default function CardsPage({ params }: { params: { code: string } }) {
   if (m[2] && !scanned) notFound()
   const goats = BOUCHTA.filter(b => b.kind === 'silly' && b.lesson === n)
 
+  // The scanned card first, then the others: one list for the player.
+  const order: (PlayCard | BouchtaCard)[] = [
+    ...(scanned ? [scanned] : []), ...(bouchta ? [bouchta] : []),
+    ...cards.filter(c => c !== scanned), ...goats.filter(b => b !== bouchta),
+  ]
+  const clips: PlayClip[] = []
+  const panels: Panel[] = order.map(x => {
+    const isCard = 'game' in x
+    const code = cardCode(x.id)
+    const lines: CardClip[] = isCard ? cardClips(x) : bouchtaClips(x)
+    const first = clips.length
+    const name = isCard ? GAMES[x.game].name : 'Bouchta'
+    clips.push(...lines.map(c => toPlay(c, `Play cards › ${code} · ${name}`)))
+    return isCard
+      ? { code, name, nameAr: GAMES[x.game].ar, task: taskOf(x), first, count: lines.length }
+      : { code, name, nameAr: 'بوشتى يسأل', first, count: lines.length, gold: true }
+  })
+  const top = scanned || bouchta ? 1 : 0
+
   return (
-    <PlayShell title={`Lesson ${n}: ${lesson.titleEn}`} sub={`Play cards · بطاقات اللعب · ${lesson.titleAr}`} here={{ shelf: 'cards', lesson: n }}>
-      {(scanned || bouchta) && <>
+    <AudioShell crumbs={['Level 1', 'Play cards', `Lesson ${n}`]} title={`Lesson ${n}: ${lesson.titleEn}`} here={{ shelf: 'cards', lesson: n }} clips={clips}>
+      {top > 0 && <>
         <h2 className="-mb-2 text-[13px] font-bold uppercase tracking-wide text-[#B8862F]" dir="ltr">Your card <span className="font-arabic normal-case tracking-normal">· بطاقتك</span></h2>
-        {scanned && <CardPanel card={scanned} highlight />}
-        {bouchta && <BouchtaPanel b={bouchta} highlight />}
+        <CardPanel p={panels[0]} highlight />
         <h2 className="-mb-2 mt-2 text-[13px] font-bold uppercase tracking-wide text-[#B8862F]" dir="ltr">All the cards of this lesson <span className="font-arabic normal-case tracking-normal">· كل بطاقات الدرس</span></h2>
       </>}
-      <div className="grid gap-3 sm:grid-cols-2">
-        {cards.filter(c => c !== scanned).map(c => <CardPanel key={c.id} card={c} />)}
-        {goats.filter(b => b !== bouchta).map(b => <BouchtaPanel key={b.id} b={b} />)}
+      <div className="grid gap-3 xl:grid-cols-2">
+        {panels.slice(top).map(p => <CardPanel key={p.code} p={p} />)}
       </div>
-      <div className="grid grid-cols-2 gap-2" dir="ltr">
-        {([[`/audio/book/${n}`, BookOpen, 'Course book', 'كتاب الدروس'], [`/audio/workbook/${n}`, PenLine, 'Workbook', 'دفتر التمارين']] as const).map(([href, Icon, en, ar]) => (
-          <Link key={href} href={href} className="flex items-center gap-2 rounded-2xl border border-[#14306B] px-3 py-2.5 text-[#14306B]">
-            <Icon size={18} /><span className="leading-tight"><span className="block text-[14px] font-bold">{en}</span><span className="font-arabic block text-[12px] text-[#5B6474]">{ar} · L{pad(n)}</span></span>
-          </Link>
-        ))}
-      </div>
-    </PlayShell>
+    </AudioShell>
   )
 }
