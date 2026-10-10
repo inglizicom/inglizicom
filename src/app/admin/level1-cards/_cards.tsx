@@ -1,34 +1,55 @@
 'use client'
 
 import { useEffect, useId, useState, type CSSProperties, type ReactNode } from 'react'
-import { GAMES, GAME_ORDER, KEMELNI, lessonOf, photoOf, type BouchtaCard, type PlayCard } from '@/data/level1-cards'
+import {
+  Award, BookOpen, Cake, Clock, Dices, Gift, GraduationCap, Handshake, Headphones, Hourglass, Languages, Layers, ListChecks, Megaphone,
+  MessagesSquare, PenLine, RotateCcw, Search, Shuffle, SkipForward, Sparkles, SpellCheck, Star, Timer, Trophy, Users, Utensils, type LucideIcon,
+} from 'lucide-react'
+import { GAMES, GAME_ORDER, KEMELNI, photoOf, type BouchtaCard, type Game, type PlayCard } from '@/data/level1-cards'
 
 /**
  * The Level 1 play cards, drawn at print size: a poker card (63 × 88 mm =
- * 238 × 333 px at 96 dpi). A card wears its game: the game's colour, name
- * and points on top and at the foot, the lesson's number in its corner. The
- * player's side holds the task; the asker's side (cream, in a zellige frame)
- * repeats it and gives the answer in English and Arabic, so someone with no
- * English can ask and check. Faces: Lilita One (game names, the cover's
- * tiles), Mali (English, as in the Level 1 book), Baloo Bhaijaan 2 and
- * Lalezar (Arabic).
+ * 238 × 333 px at 96 dpi). Two colours and no more: deep navy and Moroccan
+ * gold on white, with a zellige texture merged into the white at low
+ * opacity. The games are told apart by their name and a line icon, not by
+ * colour; pictures stay grey until the photos arrive. Poppins sets the
+ * English and IBM Plex Sans Arabic the Arabic: plain, adult faces.
+ *
+ * The player's side holds the task; the asker's side repeats it and gives
+ * the answer in English and Arabic, so someone with no English can ask and
+ * check.
  */
 
 export const CARD_W = 238, CARD_H = 333
 
-const FONTS_HREF = 'https://fonts.googleapis.com/css2?family=Lilita+One&family=Mali:wght@500;600;700&family=Baloo+Bhaijaan+2:wght@500;600;700;800&family=Lalezar&display=swap'
-export const DISPLAY = "'Lilita One', 'Baloo Bhaijaan 2', sans-serif"
-export const EN = "'Mali', 'Baloo Bhaijaan 2', sans-serif"
-export const AR = "'Baloo Bhaijaan 2', 'Tajawal', sans-serif"
-export const AR_DISPLAY = "'Lalezar', 'Baloo Bhaijaan 2', sans-serif"
-const NAVY = '#0D1F78'
-const INK = '#1E293B', GREY = '#475569'
+const FONTS_HREF = 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap'
+export const EN = "'Poppins', 'IBM Plex Sans Arabic', sans-serif"
+export const AR = "'IBM Plex Sans Arabic', 'Tajawal', sans-serif"
+
+/** The two colours, their tints, and the neutral greys. */
+const NAVY = '#14306B', GOLD = '#B8862F'
+const NAVY_S = '#EEF2F9', GOLD_S = '#FBF5E9', GOLD_INK = '#7A5A1C'
+const INK = '#1F2937', GREY = '#5B6474', LINE = '#D6DCE8'
+
+const H: CSSProperties = { fontFamily: EN, fontWeight: 700 }
+const B: CSSProperties = { fontFamily: EN, fontWeight: 500 }
+const BS: CSSProperties = { fontFamily: EN, fontWeight: 600 }
+const A: CSSProperties = { fontFamily: AR, fontWeight: 500 }
+const AS: CSSProperties = { fontFamily: AR, fontWeight: 600 }
+const AH: CSSProperties = { fontFamily: AR, fontWeight: 700 }
+/** Emoji pictures stay grey (one more colour would be too many) until the photos arrive. */
+const GREYED: CSSProperties = { filter: 'grayscale(1) contrast(1.05)', opacity: 0.85 }
+
+export const GAME_ICON: Record<Game, LucideIcon> = {
+  call: Search, timer: Timer, tarjemni: Languages, ratebni: Shuffle, sahehni: SpellCheck, kemelni: MessagesSquare,
+}
+const ACTION_ICON: Record<string, LucideIcon> = { '⭐': Star, '🐐': Utensils, '⏭️': SkipForward, '🤝': Handshake, '📣': Megaphone, '🔁': RotateCcw, '🎁': Gift }
 
 export function useCardFonts() {
   useEffect(() => {
-    if (document.getElementById('level1-cards-fonts')) return
+    if (document.getElementById('level1-cards-fonts-v2')) return
     const link = document.createElement('link')
-    link.id = 'level1-cards-fonts'; link.rel = 'stylesheet'; link.crossOrigin = 'anonymous'; link.href = FONTS_HREF
+    link.id = 'level1-cards-fonts-v2'; link.rel = 'stylesheet'; link.crossOrigin = 'anonymous'; link.href = FONTS_HREF
     document.head.appendChild(link)
   }, [])
 }
@@ -56,92 +77,93 @@ export function Zellige({ color, opacity = 0.2, size = 28, stroke = 1.2 }: { col
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
-/** The picture of a WhatDoWeCall card: the photo once uploaded, the emoji until then. */
+/* ── The card's shell: white, the texture, a navy frame, a header, a foot ── */
+
+/** A card: white with the zellige merged in, framed in navy; `head` on top, `children` the body, `foot` at the bottom. */
+function Shell({ head, children, foot }: { head: ReactNode; children: ReactNode; foot?: ReactNode }) {
+  return (
+    <div className="relative overflow-hidden shrink-0 bg-white" dir="ltr" style={{ width: CARD_W, height: CARD_H }}>
+      <Zellige color={NAVY} opacity={0.09} size={24} />
+      <div className="absolute inset-[7px] rounded-[12px]" style={{ border: `1.5px solid ${NAVY}` }} />
+      <div className="absolute left-[7px] right-[7px] top-[7px] h-[46px] px-2.5 flex items-center justify-between">{head}</div>
+      <div className="absolute left-[18px] right-[18px] top-[52px] h-[2px] rounded-full" style={{ background: GOLD }} />
+      <div className="absolute left-[15px] right-[15px] top-[60px] bottom-[34px] flex flex-col items-center text-center">{children}</div>
+      {foot && <div className="absolute left-[15px] right-[15px] bottom-[12px] h-[18px] flex items-center justify-between">{foot}</div>}
+    </div>
+  )
+}
+
+/** The header: the game's icon, its name in English and Arabic, and the lesson (or a label) on the right. */
+function Head({ Icon, name, ar, badge, back }: { Icon: LucideIcon; name: string; ar: string; badge: string; back?: boolean }) {
+  return <>
+    <div className="flex items-center gap-2 min-w-0">
+      <span className="w-[26px] h-[26px] rounded-[7px] flex items-center justify-center shrink-0" style={{ background: back ? GOLD : NAVY }}>
+        <Icon size={15} color="#fff" strokeWidth={2.2} />
+      </span>
+      <div className="leading-none min-w-0">
+        <div className="text-[14px] whitespace-nowrap" style={{ ...H, color: NAVY }}>{name}</div>
+        <div className="text-[11px] mt-[3px]" dir="rtl" style={{ ...AS, color: GREY, textAlign: 'left' }}>{ar}</div>
+      </div>
+    </div>
+    <span className="rounded-[6px] px-1.5 py-[2px] text-[11.5px] leading-none shrink-0" style={{ ...H, background: back ? GOLD : NAVY, color: '#fff' }}>{badge}</span>
+  </>
+}
+
+const Points = ({ items }: { items: [string, string, string][] }) => (
+  <span className="flex items-center gap-2 text-[10.5px]" style={{ ...H, color: GOLD }}>
+    {items.map(([en, , stars]) => <span key={en}>{stars} <span style={{ ...BS, color: GREY }}>{en}</span></span>)}
+  </span>
+)
+const Brand = () => <span className="text-[9.5px]" style={{ ...BS, color: GREY }}>inglizi.com</span>
+
+const Prompt = ({ en, ar }: { en: string; ar: string }) => (
+  <div className="mt-auto w-full rounded-[8px] py-1 leading-tight" style={{ background: NAVY_S }}>
+    <div className="text-[11.5px]" style={{ ...H, color: NAVY }}>{en}</div>
+    <div className="text-[11.5px]" dir="rtl" style={{ ...AS, color: GREY }}>{ar}</div>
+  </div>
+)
+
+/** The picture of a WhatDoWeCall card: the photo once uploaded, the emoji (in grey) until then. */
 function Picture({ card }: { card: PlayCard }) {
   const [failed, setFailed] = useState(false)
   const slug = photoOf(card)
   if (slug && !failed) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={`/level1-cards/photos/${slug}.webp`} alt="" onError={() => setFailed(true)} className="w-full h-full object-cover rounded-[10px]" />
+      <img src={`/level1-cards/photos/${slug}.webp`} alt="" onError={() => setFailed(true)} className="w-full h-full object-cover rounded-[9px]" />
     )
   }
-  return <span className="text-[58px] leading-none">{card.icon}</span>
-}
-
-/** The game's band on top of both sides: its name in English and Arabic, the lesson in the corner. */
-function Band({ card, side }: { card: PlayCard; side: 'front' | 'back' }) {
-  const g = GAMES[card.game]
-  const l = lessonOf(card.lesson)!
-  return (
-    <div className="absolute inset-x-0 top-0 h-[48px] flex items-center justify-between px-2.5 text-white" dir="ltr">
-      <div className="leading-none">
-        <div className="text-[17px]" style={{ fontFamily: DISPLAY, textShadow: '0 2px 0 rgba(0,0,0,0.18)' }}>{g.icon} {g.name}</div>
-        <div className="text-[12px] font-bold mt-[3px]" dir="rtl" style={{ fontFamily: AR, textAlign: 'left' }}>{side === 'back' ? `📣 اسأل · ${g.ar}` : g.ar}</div>
-      </div>
-      <div className="flex flex-col items-center rounded-[10px] bg-white px-1.5 py-[2px] leading-none" style={{ color: g.m }}>
-        <span className="text-[14px]" style={{ fontFamily: DISPLAY }}>L{pad(l.n)}</span>
-        <span className="text-[12px]">{l.icon}</span>
-      </div>
-    </div>
-  )
-}
-
-/** The game's points (and the time), at the foot of the player's side. */
-function Foot({ card }: { card: PlayCard }) {
-  const g = GAMES[card.game]
-  return (
-    <div className="absolute inset-x-0 bottom-0 h-[30px] flex items-center justify-between px-2.5 text-white" dir="ltr">
-      <span className="flex items-center gap-2 text-[11.5px]" style={{ fontFamily: DISPLAY }}>
-        {g.points.map(([en, , stars]) => <span key={en}><span style={{ color: '#FFE07A' }}>{stars}</span> {en}</span>)}
-      </span>
-      {card.seconds
-        ? <span className="rounded-full bg-white px-2 text-[12px]" style={{ fontFamily: DISPLAY, color: g.m }}>⏳ {card.seconds}s</span>
-        : <span className="text-[10.5px]" style={{ fontFamily: DISPLAY }}>inglizi.com</span>}
-    </div>
-  )
-}
-
-const Prompt = ({ en, ar, m }: { en: string; ar: string; m: string }) => (
-  <div className="mt-auto w-full rounded-lg py-1 leading-tight text-center" style={{ background: `color-mix(in srgb, ${m} 10%, white)` }}>
-    <div className="text-[13px]" style={{ fontFamily: DISPLAY, color: m }}>{en}</div>
-    <div className="text-[12.5px] font-bold" dir="rtl" style={{ fontFamily: AR, color: GREY }}>{ar}</div>
-  </div>
-)
-
-/** A word tile (Ratebni, and the lid's title). */
-const WordTile = ({ w }: { w: string }) => (
-  <span className="rounded-[7px] px-2 py-[2px] text-[15px] leading-tight" style={{ fontFamily: DISPLAY, background: '#FFF4D6', color: NAVY, boxShadow: '0 3px 0 #D9B45A' }}>{w}</span>
-)
-
-/** A speech bubble of Kemelni: the line said, or the "?" the player fills. */
-function Bubble2({ text, ar, m, gap, right }: { text?: string; ar?: string; m: string; gap?: boolean; right?: boolean }) {
-  return (
-    <div className={`relative max-w-[88%] rounded-[14px] px-2.5 py-1.5 ${right ? 'self-end' : 'self-start'}`}
-      style={gap ? { border: `2px dashed ${m}`, background: '#fff' } : { background: `color-mix(in srgb, ${m} 12%, white)` }}>
-      {gap
-        ? <span className="block text-center text-[28px] leading-none px-4" style={{ fontFamily: DISPLAY, color: m }}>?</span>
-        : <>
-          <div className="text-[14.5px] font-bold leading-snug" style={{ fontFamily: EN, color: INK }}>{text}</div>
-          {ar && <div className="text-[12px] font-bold leading-snug" dir="rtl" style={{ fontFamily: AR, color: GREY }}>{ar}</div>}
-        </>}
-    </div>
-  )
+  return <span className="text-[54px] leading-none" style={GREYED}>{card.icon}</span>
 }
 
 /* ── The player's side ─────────────────────────────────────────────── */
 
-export function CardFront({ card, style }: { card: PlayCard; style?: CSSProperties }) {
+export function CardFront({ card }: { card: PlayCard }) {
   const g = GAMES[card.game]
   return (
-    <div className="relative overflow-hidden shrink-0" dir="ltr" style={{ width: CARD_W, height: CARD_H, background: g.m, ...style }}>
-      <Zellige color="#FFFFFF" opacity={0.22} size={26} />
-      <Band card={card} side="front" />
-      <div className="absolute left-[9px] right-[9px] top-[48px] bottom-[30px] rounded-[14px] bg-white flex flex-col items-center px-2.5 pt-2.5 pb-2 text-center"
-        style={{ boxShadow: '0 2px 0 rgba(0,0,0,0.18)' }}>
-        <FrontBody card={card} />
-      </div>
-      <Foot card={card} />
+    <Shell head={<Head Icon={GAME_ICON[card.game]} name={g.name} ar={g.ar} badge={`L${pad(card.lesson)}`} />}
+      foot={<>
+        <Points items={g.points} />
+        {card.seconds
+          ? <span className="flex items-center gap-1 rounded-full px-1.5 text-[10.5px]" style={{ ...H, color: GOLD, border: `1.5px solid ${GOLD}` }}><Hourglass size={10} strokeWidth={2.6} />{card.seconds}s</span>
+          : <Brand />}
+      </>}>
+      <FrontBody card={card} />
+    </Shell>
+  )
+}
+
+/** Kemelni's speech bubble: the line said, or the "?" the player fills. */
+function Bubble({ text, ar, gap, right }: { text?: string; ar?: string; gap?: boolean; right?: boolean }) {
+  return (
+    <div className={`max-w-[90%] rounded-[12px] px-2.5 py-1.5 ${right ? 'self-end' : 'self-start'}`}
+      style={gap ? { border: `1.8px dashed ${GOLD}`, background: '#fff' } : { background: NAVY_S }}>
+      {gap
+        ? <span className="block px-4 text-[24px] leading-none" style={{ ...H, color: GOLD }}>?</span>
+        : <>
+          <div className="text-[13px] leading-snug" style={{ ...BS, color: INK }}>{text}</div>
+          {ar && <div className="text-[11px] leading-snug" dir="rtl" style={{ ...A, color: GREY }}>{ar}</div>}
+        </>}
     </div>
   )
 }
@@ -150,56 +172,58 @@ function FrontBody({ card }: { card: PlayCard }) {
   const g = GAMES[card.game]
   switch (card.game) {
     case 'call': return <>
-      <div className="w-full h-[104px] shrink-0 flex items-center justify-center rounded-[10px]" style={{ background: g.s }}><Picture card={card} /></div>
-      <div className="mt-2 text-[13px]" style={{ fontFamily: DISPLAY, color: g.m }}>What do we call</div>
-      <div className="text-[25px] leading-tight" dir="rtl" style={{ fontFamily: AR_DISPLAY, color: INK }}>{card.ar}</div>
-      <div className="text-[13px]" style={{ fontFamily: DISPLAY, color: g.m }}>in English?</div>
-      <Prompt en="+ a sentence from the book" ar="ثم جملة من الكتاب" m={g.m} />
+      <div className="w-full h-[98px] shrink-0 flex items-center justify-center rounded-[10px]" style={{ background: NAVY_S, border: `1px solid ${LINE}` }}><Picture card={card} /></div>
+      <div className="mt-2 text-[11px]" style={{ ...BS, color: GREY }}>What do we call</div>
+      <div className="text-[22px] leading-tight" dir="rtl" style={{ ...AH, color: NAVY }}>{card.ar}</div>
+      <div className="text-[11px]" style={{ ...BS, color: GREY }}>in English?</div>
+      <Prompt en="+ a sentence from the book" ar="ثم جملة من الكتاب" />
     </>
     case 'timer': return <>
       <div className="flex items-center gap-3 mt-1">
-        <span className="text-[40px] leading-none">{card.icon}</span>
-        <span className="w-[62px] h-[62px] rounded-full flex flex-col items-center justify-center text-white leading-none" style={{ background: g.m, boxShadow: `0 0 0 4px ${g.s}` }}>
-          <span className="text-[24px]" style={{ fontFamily: DISPLAY }}>{card.seconds}</span>
-          <span className="text-[10px]" style={{ fontFamily: DISPLAY }}>seconds</span>
+        <span className="text-[34px] leading-none" style={GREYED}>{card.icon}</span>
+        <span className="w-[56px] h-[56px] rounded-full flex flex-col items-center justify-center leading-none" style={{ background: NAVY, color: '#fff', boxShadow: `0 0 0 3px #fff, 0 0 0 4.5px ${GOLD}` }}>
+          <span className="text-[20px]" style={H}>{card.seconds}</span>
+          <span className="text-[8.5px]" style={BS}>seconds</span>
         </span>
       </div>
       <div className="flex-1 flex flex-col justify-center">
-        <div className="text-[19px] leading-tight" style={{ fontFamily: DISPLAY, color: INK }}>{card.en}</div>
-        <div className="mt-1 text-[14px] font-bold leading-snug" dir="rtl" style={{ fontFamily: AR, color: GREY }}>{card.enAr}</div>
+        <div className="text-[16.5px] leading-tight" style={{ ...H, color: NAVY }}>{card.en}</div>
+        <div className="mt-1 text-[13px] leading-snug" dir="rtl" style={{ ...AS, color: GREY }}>{card.enAr}</div>
       </div>
-      <Prompt en={g.doEn} ar={g.doAr} m={g.m} />
+      <Prompt en={g.doEn} ar={g.doAr} />
     </>
     case 'tarjemni': return <>
       <div className="flex-1 flex items-center justify-center">
-        <div className="text-[25px] leading-snug" dir="rtl" style={{ fontFamily: AR_DISPLAY, color: INK }}>{card.ar}</div>
+        <div className="text-[22px] leading-snug" dir="rtl" style={{ ...AH, color: NAVY }}>{card.ar}</div>
       </div>
-      <Prompt en={g.doEn} ar={g.doAr} m={g.m} />
+      <Prompt en={g.doEn} ar={g.doAr} />
     </>
     case 'ratebni': return <>
-      <div className="flex-1 flex flex-wrap content-center justify-center gap-x-1.5 gap-y-2.5">
-        {card.words!.map((w, i) => <WordTile key={i} w={w} />)}
+      <div className="flex-1 flex flex-wrap content-center justify-center gap-x-1.5 gap-y-2">
+        {card.words!.map((w, i) => (
+          <span key={i} className="rounded-[6px] bg-white px-2 py-[2px] text-[13px] leading-tight" style={{ ...H, color: NAVY, border: `1.5px solid ${NAVY}`, boxShadow: `0 2px 0 ${GOLD}` }}>{w}</span>
+        ))}
       </div>
-      <div className="w-full mb-2 border-b-2 border-dashed" style={{ borderColor: `${g.m}66` }} />
-      <Prompt en={g.doEn} ar={g.doAr} m={g.m} />
+      <div className="w-full mb-2 border-b-[1.5px] border-dashed" style={{ borderColor: GOLD }} />
+      <Prompt en={g.doEn} ar={g.doAr} />
     </>
     case 'sahehni': return <>
       <div className="flex-1 flex flex-col items-center justify-center gap-2">
-        <span className="rounded-full w-9 h-9 flex items-center justify-center text-[20px] text-white" style={{ background: '#DC2626' }}>✗</span>
-        <div className="text-[18px] font-bold leading-snug" style={{ fontFamily: EN, color: INK }}>{card.en}</div>
+        <span className="w-[30px] h-[30px] rounded-full flex items-center justify-center text-[16px]" style={{ ...H, color: GOLD, border: `2px solid ${GOLD}` }}>✕</span>
+        <div className="text-[16px] leading-snug" style={{ ...BS, color: INK }}>{card.en}</div>
       </div>
-      <Prompt en={g.doEn} ar={g.doAr} m={g.m} />
+      <Prompt en={g.doEn} ar={g.doAr} />
     </>
     case 'kemelni': {
       const k = KEMELNI[card.mode!]
-      const said = <Bubble2 key="said" text={card.en} ar={card.enAr} m={g.m} />
-      const gap = <Bubble2 key="gap" gap right m={g.m} />
       return <>
-        <span className="rounded-full px-2 py-[1px] text-[11px] text-white" style={{ background: g.m, fontFamily: DISPLAY }}>{k.tagEn}</span>
+        <span className="rounded-full px-2 py-[1px] text-[9.5px]" style={{ ...H, color: NAVY, border: `1.2px solid ${NAVY}` }}>{k.tagEn}</span>
         <div className="flex-1 w-full flex flex-col justify-center gap-2">
-          {card.mode === 'question' ? [<Bubble2 key="gap" gap m={g.m} />, <Bubble2 key="said" text={card.en} ar={card.enAr} m={g.m} right />] : [said, gap]}
+          {card.mode === 'question'
+            ? <><Bubble gap /><Bubble text={card.en} ar={card.enAr} right /></>
+            : <><Bubble text={card.en} ar={card.enAr} /><Bubble gap right /></>}
         </div>
-        <Prompt en={k.en} ar={k.ar} m={g.m} />
+        <Prompt en={k.en} ar={k.ar} />
       </>
     }
   }
@@ -212,303 +236,219 @@ function Note({ text }: { text: string }) {
   const at = text.search(/[A-Za-z]/)
   const ar = at < 0 ? text : text.slice(0, at).trim(), en = at < 0 ? '' : text.slice(at).trim()
   return (
-    <div className="rounded-lg px-2 py-[3px] text-[11.5px] font-bold leading-snug text-center" style={{ background: '#FEF3C7', color: '#92400E' }}>
-      <div dir="rtl" style={{ fontFamily: AR }}>{ar}</div>
-      {en && <div dir="ltr" style={{ fontFamily: EN }}>{en}</div>}
+    <div className="w-full rounded-[8px] px-2 py-[3px] text-[11px] leading-snug" style={{ background: GOLD_S, color: GOLD_INK }}>
+      <div dir="rtl" style={AS}>{ar}</div>
+      {en && <div dir="ltr" style={BS}>{en}</div>}
     </div>
   )
 }
 
 /** What the asker reads out (the player's side, again). */
-function Ask({ card }: { card: PlayCard }) {
-  const g = GAMES[card.game]
-  const line = (en?: string, ar?: string) => <>
-    {en && <div className="text-[12.5px] font-bold leading-snug" style={{ fontFamily: EN, color: INK }}>{en}</div>}
-    {ar && <div className="text-[12px] font-bold leading-snug" dir="rtl" style={{ fontFamily: AR, color: GREY }}>{ar}</div>}
-  </>
+function Ask({ en, ar }: { en?: string; ar?: string }) {
   return (
-    <div className="rounded-lg px-2 py-1 text-center" style={{ background: g.s }}>
-      {card.game === 'call' && line('What do we call this in English?', `${card.ar} ${card.icon}`)}
-      {card.game === 'timer' && line(`${card.en} (${card.seconds}s)`, card.enAr)}
-      {card.game === 'tarjemni' && line('Say it in English:', card.ar)}
-      {card.game === 'ratebni' && line(card.words!.join(' / '), `رتّب الكلمات في ${card.seconds} ثانية`)}
-      {card.game === 'sahehni' && line(card.en, 'جد الخطأ وصحّحه')}
-      {card.game === 'kemelni' && line(card.en, `${KEMELNI[card.mode!].ar}`)}
+    <div className="w-full rounded-[8px] px-2 py-1" style={{ background: NAVY_S }}>
+      {en && <div className="text-[11.5px] leading-snug" style={{ ...BS, color: INK }}>{en}</div>}
+      {ar && <div className="text-[11.5px] leading-snug" dir="rtl" style={{ ...A, color: GREY }}>{ar}</div>}
     </div>
   )
 }
 
-const Divider = ({ en, ar, color }: { en: string; ar: string; color: string }) => (
-  <div className="mt-1.5 flex items-center gap-1.5" dir="ltr">
-    <span className="rounded-full px-2 py-[1px] text-[10.5px] text-white" style={{ background: color, fontFamily: DISPLAY }}>{en}</span>
-    <span className="flex-1 h-px" style={{ background: '#E2E8F0' }} />
-    <span className="text-[11px] font-bold" dir="rtl" style={{ fontFamily: AR, color }}>{ar}</span>
+/** The label above the answer: a gold word and a hairline. */
+const Label = ({ en, ar }: { en: string; ar: string }) => (
+  <div className="mt-1.5 w-full flex items-center gap-1.5">
+    <span className="text-[9.5px] tracking-[0.08em]" style={{ ...H, color: GOLD }}>{en}</span>
+    <span className="flex-1 h-px" style={{ background: LINE }} />
+    <span className="text-[10.5px]" dir="rtl" style={{ ...AS, color: GOLD }}>{ar}</span>
   </div>
 )
 
+/** Where the audio's QR code goes. */
+const QR = () => (
+  <span className="w-[28px] h-[28px] rounded-[5px] border-[1.2px] border-dashed flex flex-col items-center justify-center text-[7px] leading-none" style={{ ...BS, borderColor: GREY, color: GREY }}>
+    <Headphones size={10} />QR
+  </span>
+)
+
+function askOf(card: PlayCard): [string | undefined, string | undefined] {
+  switch (card.game) {
+    case 'call': return ['What do we call this in English?', card.ar]
+    case 'timer': return [`${card.en} (${card.seconds}s)`, card.enAr]
+    case 'tarjemni': return ['Say it in English:', card.ar]
+    case 'ratebni': return [card.words!.join(' / '), `رتّب الكلمات في ${card.seconds} ثانية`]
+    case 'sahehni': return [card.en, 'جد الخطأ وصحّحه']
+    case 'kemelni': return [card.en, KEMELNI[card.mode!].ar]
+  }
+}
+
 export function CardBack({ card }: { card: PlayCard }) {
   const g = GAMES[card.game]
+  const [en, ar] = askOf(card)
   return (
-    <div className="relative overflow-hidden shrink-0" dir="ltr" style={{ width: CARD_W, height: CARD_H, background: g.m }}>
-      <Zellige color="#FFFFFF" opacity={0.3} size={22} />
-      <Band card={card} side="back" />
-      <div className="absolute left-[8px] right-[8px] top-[48px] bottom-[8px] rounded-[13px] flex flex-col px-2.5 pt-2 pb-1.5" style={{ background: '#FFFBF2' }}>
-        <Ask card={card} />
-        {card.game === 'timer' ? <>
-          <Divider en="✓ ACCEPT" ar="نقبل" color="#16A34A" />
-          {/* Flowing text, not chips: a list of sixteen must fit with the extras. */}
-          <div className="mt-1 text-center text-[11px] font-bold leading-[1.45]" style={{ fontFamily: EN, color: INK }}>{card.accept!.join(' · ')}</div>
-          {card.extra && (
-            <div className="mt-1 rounded-md px-1.5 py-[2px] text-center text-[11px] font-bold leading-[1.4]" style={{ background: '#FEF3C7', color: '#92400E' }}>
-              <span dir="rtl" style={{ fontFamily: AR }}>📗 من كتاب المفردات: </span>
-              <span style={{ fontFamily: EN }}>{card.extra.join(' · ')}</span>
-            </div>
-          )}
-          <div className="flex-1" />
-        </> : <>
-          <Divider en="✓ ANSWER" ar="الجواب" color="#16A34A" />
-          <div className="flex-1 flex flex-col justify-center text-center gap-0.5">
-            <div className="text-[17px] leading-snug" style={{ fontFamily: DISPLAY, color: '#0F172A' }}>{card.answer}</div>
-            <div className="text-[14px] font-bold leading-snug" dir="rtl" style={{ fontFamily: AR, color: GREY }}>{card.answerAr}</div>
+    <Shell head={<Head back Icon={GAME_ICON[card.game]} name={g.name} ar={`اسأل · ${g.ar}`} badge={`L${pad(card.lesson)}`} />}
+      foot={<><Points items={g.points} /><QR /></>}>
+      <Ask en={en} ar={ar} />
+      {card.game === 'timer' ? <>
+        <Label en="ACCEPT" ar="نقبل" />
+        <div className="mt-1 text-[10.5px] leading-[1.45]" style={{ ...B, color: INK }}>{card.accept!.join(' · ')}</div>
+        {card.extra && (
+          <div className="mt-1 w-full rounded-[8px] px-1.5 py-[2px] text-[10.5px] leading-[1.4]" style={{ background: GOLD_S, color: GOLD_INK }}>
+            <span dir="rtl" style={AS}>من كتاب المفردات: </span><span style={BS}>{card.extra.join(' · ')}</span>
           </div>
-          {card.fix && (
-            <div className="mb-1 flex items-center justify-center gap-1.5 text-[13px] font-bold" style={{ fontFamily: EN }}>
-              <span className="line-through" style={{ color: '#DC2626' }}>{card.fix[0]}</span><span style={{ color: GREY }}>→</span><span style={{ color: '#16A34A' }}>{card.fix[1]}</span>
-            </div>
-          )}
-          {card.sentence && (
-            <div className="mb-1 rounded-lg px-2 py-[3px] text-center leading-snug" style={{ background: g.s }}>
-              <div className="text-[10.5px]" style={{ fontFamily: DISPLAY, color: g.m }}>★+2 A sentence from the book</div>
-              <div className="text-[12.5px] font-bold" style={{ fontFamily: EN, color: INK }}>{card.sentence}</div>
-            </div>
-          )}
-        </>}
-        {card.note && <Note text={card.note} />}
-        <div className="mt-1 flex items-end justify-between" dir="ltr">
-          <div className="leading-tight text-[11px]" style={{ fontFamily: DISPLAY, color: '#B45309' }}>
-            {g.points.map(([en, ar, stars]) => <div key={en}>{stars} <span className="font-bold" style={{ fontFamily: AR }}>{ar}</span></div>)}
-          </div>
-          <span className="w-[34px] h-[34px] rounded-md border-[1.5px] border-dashed flex flex-col items-center justify-center text-[8px] font-bold leading-none text-[#64748B]" style={{ borderColor: '#94A3B8' }}>
-            <span className="text-[12px]">🔊</span>QR
-          </span>
+        )}
+        <div className="flex-1" />
+      </> : <>
+        <Label en="ANSWER" ar="الجواب" />
+        <div className="flex-1 flex flex-col justify-center gap-0.5">
+          <div className="text-[15.5px] leading-snug" style={{ ...H, color: NAVY }}>{card.answer}</div>
+          <div className="text-[13px] leading-snug" dir="rtl" style={{ ...AS, color: GREY }}>{card.answerAr}</div>
         </div>
-      </div>
-    </div>
+        {card.fix && (
+          <div className="mb-1 flex items-center justify-center gap-1.5 text-[12.5px]" style={BS}>
+            <span className="line-through" style={{ color: GREY }}>{card.fix[0]}</span><span style={{ color: GOLD }}>→</span>
+            <span style={{ ...H, color: NAVY, borderBottom: `2px solid ${GOLD}` }}>{card.fix[1]}</span>
+          </div>
+        )}
+        {card.sentence && (
+          <div className="mb-1 w-full rounded-[8px] px-2 py-[3px] leading-snug" style={{ background: GOLD_S }}>
+            <div className="text-[9px] tracking-[0.06em]" style={{ ...H, color: GOLD }}>★+2 · A SENTENCE FROM THE BOOK</div>
+            <div className="text-[11.5px]" style={{ ...BS, color: INK }}>{card.sentence}</div>
+          </div>
+        )}
+      </>}
+      {card.note && <Note text={card.note} />}
+    </Shell>
   )
 }
 
 /* ── Bouchta's cards: the goat's silly questions and actions ───────── */
 
-const PURPLE = '#4C1D95', GOLD = '#F5B82E'
-
-function BouchtaBand({ card, back }: { card: BouchtaCard; back?: boolean }) {
-  return (
-    <div className="absolute inset-x-0 top-0 h-[44px] flex items-center justify-between px-2.5" dir="ltr">
-      <div className="leading-none">
-        <div className="text-[17px]" style={{ fontFamily: DISPLAY, color: GOLD, textShadow: '0 2px 0 rgba(0,0,0,0.25)' }}>🐐 Bouchta</div>
-        <div className="text-[12px] font-bold text-white mt-[3px]" dir="rtl" style={{ fontFamily: AR, textAlign: 'left' }}>{back ? `📣 اسأل · ${card.kind === 'silly' ? 'سؤال مضحك' : 'ماذا يحدث؟'}` : card.kind === 'silly' ? 'بوشتى يسأل' : 'مفاجأة بوشتى'}</div>
-      </div>
-      <span className="rounded-[10px] px-1.5 py-[2px] text-[13px] leading-none" style={{ fontFamily: DISPLAY, background: GOLD, color: PURPLE }}>
-        {card.lesson ? `L${pad(card.lesson)}` : 'ACTION'}
-      </span>
-    </div>
-  )
-}
+/** Bouchta himself: a goat in a gold ring (grey, like every picture). */
+const Goat = ({ size = 70 }: { size?: number }) => (
+  <span className="rounded-full bg-white flex items-center justify-center" style={{ width: size, height: size, border: `2px solid ${GOLD}`, boxShadow: `0 0 0 4px ${GOLD_S}` }}>
+    <span style={{ fontSize: size * 0.6, lineHeight: 1, ...GREYED }}>🐐</span>
+  </span>
+)
 
 export function BouchtaFront({ card }: { card: BouchtaCard }) {
+  const silly = card.kind === 'silly'
+  const Icon = ACTION_ICON[card.icon] ?? Sparkles
   return (
-    <div className="relative overflow-hidden shrink-0" dir="ltr" style={{ width: CARD_W, height: CARD_H, background: `radial-gradient(circle at 50% 45%, #7C3AED, ${PURPLE} 62%, #2E1065)` }}>
-      <Zellige color={GOLD} opacity={0.28} size={28} />
-      <BouchtaBand card={card} />
-      {card.kind === 'silly' ? (
-        <div className="absolute inset-x-[10px] top-[48px] bottom-[30px] flex flex-col items-center">
-          {/* the question in a speech bubble, the goat below */}
-          <div className="relative w-full rounded-[16px] bg-white px-3 py-2.5 text-center" style={{ boxShadow: '0 4px 0 rgba(0,0,0,0.25)' }}>
-            <span className="absolute -top-2 -right-1 text-[24px] leading-none">{card.icon}</span>
-            <div className="text-[16px] leading-snug" style={{ fontFamily: DISPLAY, color: NAVY }}>{card.en}</div>
-            <div className="mt-1 text-[12.5px] font-bold leading-snug" dir="rtl" style={{ fontFamily: AR, color: GREY }}>{card.ar}</div>
-            <span className="absolute -bottom-[11px] left-[42%] w-0 h-0" style={{ borderLeft: '11px solid transparent', borderRight: '11px solid transparent', borderTop: '13px solid #fff' }} />
-          </div>
-          <span className="mt-4 w-[86px] h-[86px] rounded-full flex items-center justify-center text-[58px] leading-none" style={{ background: GOLD, boxShadow: '0 0 0 4px rgba(255,255,255,0.35), 0 6px 0 rgba(0,0,0,0.25)' }}>🐐</span>
-          <div className="mt-auto text-center leading-tight">
-            <div className="text-[13px]" style={{ fontFamily: DISPLAY, color: GOLD }}>Answer in English!</div>
-            <div className="text-[12px] font-bold text-white" dir="rtl" style={{ fontFamily: AR }}>أجب بالإنجليزية!</div>
-          </div>
+    <Shell head={<Head Icon={Sparkles} name="Bouchta" ar={silly ? 'بوشتى يسأل' : 'مفاجأة بوشتى'} badge={silly ? `L${pad(card.lesson!)}` : 'ACTION'} />}
+      foot={<><span className="text-[10.5px]" style={{ ...H, color: GOLD }}>{silly ? `${card.points} Silly question` : 'Action card'}</span><Brand /></>}>
+      {silly ? <>
+        <div className="relative w-full rounded-[14px] px-2.5 py-2" style={{ background: NAVY_S }}>
+          <div className="text-[14.5px] leading-snug" style={{ ...H, color: NAVY }}>{card.en}</div>
+          <div className="mt-1 text-[11.5px] leading-snug" dir="rtl" style={{ ...AS, color: GREY }}>{card.ar}</div>
+          <span className="absolute -bottom-[10px] left-[44%] w-0 h-0" style={{ borderLeft: '10px solid transparent', borderRight: '10px solid transparent', borderTop: `11px solid ${NAVY_S}` }} />
         </div>
-      ) : (
-        <div className="absolute inset-x-[12px] top-[50px] bottom-[30px] flex flex-col items-center justify-center text-center">
-          <span className="w-[92px] h-[92px] rounded-full flex items-center justify-center text-[56px] leading-none" style={{ background: GOLD, boxShadow: '0 0 0 4px rgba(255,255,255,0.35), 0 6px 0 rgba(0,0,0,0.25)' }}>{card.icon}</span>
-          <div className="mt-3 text-[25px] leading-tight" style={{ fontFamily: DISPLAY, color: GOLD, textShadow: '0 3px 0 #2E1065' }}>{card.en}</div>
-          <div className="text-[21px] text-white leading-tight" dir="rtl" style={{ fontFamily: AR_DISPLAY }}>{card.ar}</div>
-          <div className="mt-2.5 rounded-[12px] px-2.5 py-1.5 leading-snug" style={{ background: 'rgba(255,255,255,0.14)' }}>
-            <div className="text-[13px] font-bold text-white" style={{ fontFamily: EN }}>{card.answer}</div>
-            <div className="text-[12.5px] font-bold text-white/85" dir="rtl" style={{ fontFamily: AR }}>{card.answerAr}</div>
-          </div>
+        <div className="flex-1 flex items-center"><Goat /></div>
+        <Prompt en="Answer in English!" ar="أجب بالإنجليزية!" />
+      </> : <>
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <span className="w-[66px] h-[66px] rounded-full flex items-center justify-center" style={{ border: `2px solid ${GOLD}`, boxShadow: `0 0 0 4px ${GOLD_S}` }}>
+            <Icon size={30} color={NAVY} strokeWidth={2} />
+          </span>
+          <div className="mt-2.5 text-[20px] leading-tight" style={{ ...H, color: NAVY }}>{card.en}</div>
+          <div className="text-[16px] leading-tight" dir="rtl" style={{ ...AH, color: GOLD }}>{card.ar}</div>
         </div>
-      )}
-      <div className="absolute inset-x-0 bottom-0 h-[28px] flex items-center justify-between px-2.5 text-[11.5px]" dir="ltr" style={{ fontFamily: DISPLAY }}>
-        <span style={{ color: GOLD }}>{card.kind === 'silly' ? `${card.points} Silly question` : '🃏 Action card'}</span>
-        <span className="text-white/80 text-[10.5px]">inglizi.com</span>
-      </div>
-    </div>
+        <div className="w-full rounded-[8px] px-2 py-1 leading-snug" style={{ background: NAVY_S }}>
+          <div className="text-[11.5px]" style={{ ...BS, color: INK }}>{card.answer}</div>
+          <div className="text-[11.5px]" dir="rtl" style={{ ...A, color: GREY }}>{card.answerAr}</div>
+        </div>
+      </>}
+    </Shell>
   )
 }
 
 export function BouchtaBack({ card }: { card: BouchtaCard }) {
+  const silly = card.kind === 'silly'
   return (
-    <div className="relative overflow-hidden shrink-0" dir="ltr" style={{ width: CARD_W, height: CARD_H, background: PURPLE }}>
-      <Zellige color={GOLD} opacity={0.32} size={22} />
-      <BouchtaBand card={card} back />
-      <div className="absolute left-[8px] right-[8px] top-[44px] bottom-[8px] rounded-[13px] flex flex-col px-2.5 pt-2 pb-1.5" style={{ background: '#FFFBF2' }}>
-        <div className="rounded-lg px-2 py-1 text-center" style={{ background: '#F3EEFF' }}>
-          <div className="text-[12.5px] font-bold leading-snug" style={{ fontFamily: EN, color: INK }}>{card.en}</div>
-          <div className="text-[12px] font-bold leading-snug" dir="rtl" style={{ fontFamily: AR, color: GREY }}>{card.ar}</div>
-        </div>
-        <Divider en={card.kind === 'silly' ? '✓ ANSWER' : '⚡ WHAT HAPPENS'} ar={card.kind === 'silly' ? 'الجواب' : 'ماذا يحدث'} color={card.kind === 'silly' ? '#16A34A' : PURPLE} />
-        <div className="flex-1 flex flex-col justify-center text-center gap-0.5">
-          <div className="text-[17px] leading-snug" style={{ fontFamily: DISPLAY, color: '#0F172A' }}>{card.answer}</div>
-          <div className="text-[14px] font-bold leading-snug" dir="rtl" style={{ fontFamily: AR, color: GREY }}>{card.answerAr}</div>
-        </div>
-        {card.note && <Note text={card.note} />}
-        <div className="mt-1 flex items-end justify-between" dir="ltr">
-          <span className="text-[11px] leading-tight" style={{ fontFamily: DISPLAY, color: '#B45309' }}>
-            {card.kind === 'silly' ? <>{card.points} <span className="font-bold" style={{ fontFamily: AR }}>جواب صحيح</span></> : <span className="font-bold" style={{ fontFamily: AR }}>بطاقة بوشتى</span>}
-          </span>
-          <span className="text-[30px] leading-none">🐐</span>
-        </div>
+    <Shell head={<Head back Icon={Sparkles} name="Bouchta" ar={silly ? 'اسأل · سؤال مضحك' : 'ماذا يحدث؟'} badge={silly ? `L${pad(card.lesson!)}` : 'ACTION'} />}
+      foot={<><span className="text-[10.5px]" style={{ ...H, color: GOLD }}>{silly ? `${card.points} Right answer` : "Bouchta's card"}</span><Brand /></>}>
+      <Ask en={card.en} ar={card.ar} />
+      <Label en={silly ? 'ANSWER' : 'WHAT HAPPENS'} ar={silly ? 'الجواب' : 'ماذا يحدث'} />
+      <div className="flex-1 flex flex-col justify-center gap-0.5">
+        <div className="text-[15.5px] leading-snug" style={{ ...H, color: NAVY }}>{card.answer}</div>
+        <div className="text-[13px] leading-snug" dir="rtl" style={{ ...AS, color: GREY }}>{card.answerAr}</div>
       </div>
-    </div>
+      {card.note && <Note text={card.note} />}
+    </Shell>
   )
 }
 
 /* ── Quick-rules cards, and the deck's plain back ──────────────────── */
 
-/** The plain back of the cards that need no answer (the rules): the deck's pattern and name. */
+/** The plain back of the cards that need no answer (the rules): navy, gold zellige, the game's name. */
 export function DeckBack() {
   return (
-    <div className="relative overflow-hidden shrink-0 flex flex-col items-center justify-center" dir="ltr" style={{ width: CARD_W, height: CARD_H, background: `radial-gradient(circle at 50% 50%, #2B50E0, ${NAVY})` }}>
-      <Zellige color={GOLD} opacity={0.3} size={30} />
-      <div className="absolute inset-[10px] rounded-[14px] border-2" style={{ borderColor: `${GOLD}AA` }} />
-      <div className="relative flex gap-1">{'PLAY'.split('').map((c, i) => <span key={i} className="w-[30px] h-[32px] rounded-[6px] flex items-center justify-center text-[20px]" style={{ fontFamily: DISPLAY, background: '#FFF4D6', color: NAVY, boxShadow: '0 3px 0 #C99A2E' }}>{c}</span>)}</div>
-      <div className="relative mt-2 text-[30px] leading-none" style={{ fontFamily: DISPLAY, color: '#FFD23F', textShadow: '0 3px 0 #0A1550' }}>ENGLISH</div>
-      <div className="relative mt-1 text-[18px] text-white" dir="rtl" style={{ fontFamily: AR_DISPLAY }}>العب وتكلّم الإنجليزية</div>
-      <div className="relative mt-3 rounded-full bg-white px-3 py-[2px] text-[13px]" style={{ fontFamily: DISPLAY, color: NAVY }}>Inglizi<span style={{ color: '#E0A526' }}>.com</span> · Level 1</div>
+    <div className="relative overflow-hidden shrink-0 flex flex-col items-center justify-center" dir="ltr" style={{ width: CARD_W, height: CARD_H, background: NAVY }}>
+      <Zellige color={GOLD} opacity={0.35} size={28} />
+      <div className="absolute inset-[9px] rounded-[12px]" style={{ border: `1.5px solid ${GOLD}` }} />
+      <div className="relative flex gap-1">{'PLAY'.split('').map((c, i) => <span key={i} className="w-[28px] h-[30px] rounded-[5px] bg-white flex items-center justify-center text-[17px]" style={{ ...H, color: NAVY, boxShadow: `0 2px 0 ${GOLD}` }}>{c}</span>)}</div>
+      <div className="relative mt-2.5 text-[27px] leading-none tracking-wide" style={{ ...H, fontWeight: 800, color: GOLD }}>ENGLISH</div>
+      <div className="relative mt-1.5 text-[15px] text-white" dir="rtl" style={AH}>العب وتكلّم الإنجليزية</div>
+      <div className="relative mt-3 text-[11px] text-white/80" style={BS}>inglizi.com · Level 1</div>
     </div>
   )
 }
 
-/** A rules card: a title band, numbered lines (Arabic), and an example or the points. */
-export function RuleCard({ color, icon, en, ar, lines, foot }: { color: string; icon: string; en: string; ar: string; lines: string[]; foot?: ReactNode }) {
+/** A rules card: numbered lines (Arabic) and an example or a picture at the foot. */
+export function RuleCard({ Icon, en, ar, lines, foot }: { Icon: LucideIcon; en: string; ar: string; lines: string[]; foot?: ReactNode }) {
   return (
-    <div className="relative overflow-hidden shrink-0" dir="ltr" style={{ width: CARD_W, height: CARD_H, background: color }}>
-      <Zellige color="#FFFFFF" opacity={0.22} size={26} />
-      <div className="absolute inset-x-0 top-0 h-[48px] flex items-center justify-between px-2.5 text-white">
-        <div className="leading-none">
-          <div className="text-[17px]" style={{ fontFamily: DISPLAY, textShadow: '0 2px 0 rgba(0,0,0,0.18)' }}>{icon} {en}</div>
-          <div className="text-[12px] font-bold mt-[3px]" dir="rtl" style={{ fontFamily: AR, textAlign: 'left' }}>{ar}</div>
-        </div>
-        <span className="rounded-[8px] bg-white px-1.5 py-[2px] text-[11px]" style={{ fontFamily: DISPLAY, color }}>RULES</span>
-      </div>
-      <div className="absolute left-[9px] right-[9px] top-[48px] bottom-[9px] rounded-[14px] bg-white flex flex-col px-2.5 pt-2.5 pb-2">
-        <ol className="space-y-1.5" dir="rtl">
-          {lines.map((l, i) => (
-            <li key={i} className="flex gap-1.5 text-[12.5px] font-bold leading-snug" style={{ fontFamily: AR, color: INK }}>
-              <span className="shrink-0 w-[18px] h-[18px] rounded-full text-white text-[11px] flex items-center justify-center" style={{ background: color, fontFamily: DISPLAY }}>{i + 1}</span>
-              <span>{l}</span>
-            </li>
-          ))}
-        </ol>
-        {foot && <div className="mt-auto">{foot}</div>}
-      </div>
-    </div>
+    <Shell head={<Head Icon={Icon} name={en} ar={ar} badge="RULES" />} foot={<><span /><Brand /></>}>
+      <ol className="w-full space-y-1.5" dir="rtl">
+        {lines.map((l, i) => (
+          <li key={i} className="flex gap-1.5 text-[11.5px] leading-snug text-right" style={{ ...AS, color: INK }}>
+            <span className="shrink-0 w-[17px] h-[17px] rounded-full text-white text-[10px] flex items-center justify-center" style={{ ...H, background: NAVY }}>{i + 1}</span>
+            <span>{l}</span>
+          </li>
+        ))}
+      </ol>
+      {foot && <div className="mt-auto w-full">{foot}</div>}
+    </Shell>
   )
 }
 
 /** A game's example on its rules card: what the player sees → what they say. */
 export function RuleExample({ card }: { card: PlayCard }) {
   const g = GAMES[card.game]
-  const shown = card.game === 'ratebni' ? card.words!.join(' / ') : card.game === 'call' ? `${card.icon} ${card.ar}` : card.ar ?? card.en ?? ''
+  const shown = card.game === 'ratebni' ? card.words!.join(' / ') : card.ar ?? card.en ?? ''
+  const ar = /[؀-ۿ]/.test(shown)
   return (
-    <div className="rounded-[10px] px-2 py-1.5 text-center" style={{ background: g.s }}>
-      <div className="text-[10.5px]" style={{ fontFamily: DISPLAY, color: g.m }}>EXAMPLE · مثال</div>
-      <div className="text-[13px] font-bold leading-snug" dir={/[؀-ۿ]/.test(shown) ? 'rtl' : 'ltr'} style={{ fontFamily: /[؀-ۿ]/.test(shown) ? AR : EN, color: INK }}>{shown}</div>
-      <div className="text-[13px] leading-snug" style={{ fontFamily: DISPLAY, color: '#16A34A' }}>→ {card.answer}</div>
-      <div className="mt-0.5 flex justify-center gap-2 text-[11px]" style={{ fontFamily: DISPLAY, color: '#B45309' }}>
-        {g.points.map(([en, ar, stars]) => <span key={en}>{stars} <span className="font-bold" style={{ fontFamily: AR }}>{ar}</span></span>)}
-      </div>
+    <div className="rounded-[8px] px-2 py-1.5" style={{ background: NAVY_S }}>
+      <div className="text-[9px] tracking-[0.08em]" style={{ ...H, color: GOLD }}>EXAMPLE · مثال</div>
+      <div className="text-[12px] leading-snug" dir={ar ? 'rtl' : 'ltr'} style={{ ...(ar ? AS : BS), color: INK }}>{shown}</div>
+      <div className="text-[12px] leading-snug" style={{ ...H, color: NAVY }}>→ {card.answer}</div>
+      <div className="mt-0.5 flex justify-center"><Points items={g.points} /></div>
     </div>
   )
 }
 
-/* ── The certificate ───────────────────────────────────────────────── */
-
-export function Certificate() {
-  return (
-    <div className="absolute inset-0 overflow-hidden" style={{ background: NAVY }}>
-      <Zellige color={GOLD} opacity={0.3} size={44} stroke={1.4} />
-      <div className="absolute inset-[26px] rounded-[26px] flex flex-col items-center px-12 pt-10 pb-8 text-center" dir="ltr" style={{ background: '#FFFBF2', boxShadow: `inset 0 0 0 6px ${GOLD}, inset 0 0 0 10px #FFFBF2, inset 0 0 0 12px ${GOLD}` }}>
-        <div className="flex gap-1.5" dir="ltr">{'PLAY'.split('').map((c, i) => <span key={i} className="w-[44px] h-[48px] rounded-[8px] flex items-center justify-center text-[30px]" style={{ fontFamily: DISPLAY, background: '#FFF4D6', color: NAVY, boxShadow: '0 4px 0 #C99A2E', transform: `rotate(${[-4, 3, -2, 4][i]}deg)` }}>{c}</span>)}</div>
-        <div className="mt-2 text-[22px]" style={{ fontFamily: DISPLAY, color: '#B45309' }}>& SPEAK ENGLISH · LEVEL 1</div>
-        <div className="mt-6 text-[64px] leading-none" style={{ fontFamily: DISPLAY, color: NAVY }}>Certificate</div>
-        <div className="text-[30px] leading-tight" style={{ fontFamily: DISPLAY, color: NAVY }}>of achievement</div>
-        <div className="mt-1 text-[38px]" dir="rtl" style={{ fontFamily: AR_DISPLAY, color: '#B45309' }}>شهادة إنجاز</div>
-
-        <div className="mt-8 text-[17px] font-bold" style={{ fontFamily: EN, color: GREY }}>This certificate is proudly given to</div>
-        <div className="text-[15px] font-bold" dir="rtl" style={{ fontFamily: AR, color: GREY }}>تُمنح هذه الشهادة بكل فخر إلى</div>
-        <div className="mt-6 w-[78%] border-b-[2.5px] border-dashed" style={{ borderColor: NAVY }} />
-
-        <div className="mt-6 text-[17px] font-bold leading-relaxed" style={{ fontFamily: EN, color: INK }}>
-          for completing the 19 lessons of Level 1 (A0 → A1),<br />collecting all 19 stamps and <span className="inline-block w-[60px] border-b-[2px] border-dashed translate-y-[2px]" style={{ borderColor: NAVY }} /> stars.
-        </div>
-        <div className="mt-1 text-[16px] font-bold leading-relaxed" dir="rtl" style={{ fontFamily: AR, color: GREY }}>لإتمامه الدروس التسعة عشر من المستوى الأول، وجمع كل الأختام.</div>
-
-        <div className="mt-8 flex items-center justify-center gap-4">
-          <span className="text-[44px]">🐐</span>
-          <div className="w-[118px] h-[118px] flex flex-col items-center justify-center rotate-[-6deg]"
-            style={{ background: '#FFD23F', clipPath: 'polygon(50% 0%, 61% 11%, 75% 6%, 79% 21%, 94% 25%, 89% 39%, 100% 50%, 89% 61%, 94% 75%, 79% 79%, 75% 94%, 61% 89%, 50% 100%, 39% 89%, 25% 94%, 21% 79%, 6% 75%, 11% 61%, 0% 50%, 11% 39%, 6% 25%, 21% 21%, 25% 6%, 39% 11%)' }}>
-            <span className="text-[34px] leading-none">🏆</span>
-            <span className="text-[14px]" style={{ fontFamily: DISPLAY, color: NAVY }}>A0 → A1</span>
-          </div>
-          <span className="text-[44px]">⭐</span>
-        </div>
-
-        {/* the nineteen stamps of the passport, one per lesson */}
-        <div className="mt-7 text-[14px]" style={{ fontFamily: DISPLAY, color: '#B45309' }}>19 lessons · 19 stamps <span className="font-bold" style={{ fontFamily: AR }}>· تسعة عشر ختمًا</span></div>
-        <div className="mt-2 grid grid-cols-10 gap-2">
-          {Array.from({ length: 19 }, (_, i) => (
-            <span key={i} className="w-[44px] h-[44px] rounded-full border-2 border-dashed flex items-center justify-center text-[12px]" style={{ borderColor: GOLD, color: NAVY, fontFamily: DISPLAY }}>L{pad(i + 1)}</span>
-          ))}
-          <span className="w-[44px] h-[44px] rounded-full flex items-center justify-center text-[22px]" style={{ background: '#FFD23F' }}>🏆</span>
-        </div>
-
-        <div className="mt-auto w-full grid grid-cols-2 gap-12 text-[14px] font-bold" dir="ltr" style={{ fontFamily: EN, color: GREY }}>
-          <div><div className="border-b-[1.5px] border-dashed h-[30px]" style={{ borderColor: NAVY }} />Date · <span style={{ fontFamily: AR }}>التاريخ</span></div>
-          <div><div className="border-b-[1.5px] border-dashed h-[30px]" style={{ borderColor: NAVY }} />Teacher · <span style={{ fontFamily: AR }}>توقيع الأستاذ</span></div>
-        </div>
-        <div className="mt-5 rounded-full px-4 py-1 text-[15px]" style={{ fontFamily: DISPLAY, background: NAVY, color: '#FFD23F' }}>Inglizi<span className="text-white">.com</span></div>
-      </div>
-    </div>
-  )
-}
+/** The round picture at the foot of a rules card: Bouchta, or an icon. */
+export const RuleArt = ({ Icon }: { Icon?: LucideIcon }) => (
+  <div className="flex justify-center">{Icon
+    ? <span className="w-[64px] h-[64px] rounded-full flex items-center justify-center" style={{ border: `2px solid ${GOLD}`, boxShadow: `0 0 0 4px ${GOLD_S}` }}><Icon size={28} color={NAVY} /></span>
+    : <Goat size={64} />}</div>
+)
 
 /* ── A print sheet of nine ─────────────────────────────────────────── */
 
 /** Nine cards (3 × 3) on an A4 page, edge to edge, with crop marks outside the block. */
 export function CardGrid({ children, note }: { children: ReactNode; note: string }) {
-  const W = CARD_W * 3, H = CARD_H * 3, X = (794 - W) / 2, Y = (1123 - H) / 2
+  const W = CARD_W * 3, HH = CARD_H * 3, X = (794 - W) / 2, Y = (1123 - HH) / 2
   const marks: ReactNode[] = []
   for (let i = 0; i <= 3; i++) {
     const x = X + i * CARD_W, y = Y + i * CARD_H
     marks.push(<span key={`t${i}`} className="absolute w-px h-[22px] bg-[#94A3B8]" style={{ left: x, top: Y - 28 }} />)
-    marks.push(<span key={`b${i}`} className="absolute w-px h-[22px] bg-[#94A3B8]" style={{ left: x, top: Y + H + 6 }} />)
+    marks.push(<span key={`b${i}`} className="absolute w-px h-[22px] bg-[#94A3B8]" style={{ left: x, top: Y + HH + 6 }} />)
     marks.push(<span key={`l${i}`} className="absolute h-px w-[22px] bg-[#94A3B8]" style={{ top: y, left: X - 28 }} />)
     marks.push(<span key={`r${i}`} className="absolute h-px w-[22px] bg-[#94A3B8]" style={{ top: y, left: X + W + 6 }} />)
   }
   return (
     <div className="absolute inset-0 bg-white">
       {marks}
-      <div className="absolute grid grid-cols-3" dir="ltr" style={{ left: X, top: Y, width: W, height: H }}>{children}</div>
-      <div className="absolute inset-x-0 text-center text-[10.5px] font-bold text-[#94A3B8]" style={{ top: Y + H + 32, fontFamily: AR }} dir="rtl">{note}</div>
+      <div className="absolute grid grid-cols-3" dir="ltr" style={{ left: X, top: Y, width: W, height: HH }}>{children}</div>
+      <div className="absolute inset-x-0 text-center text-[10.5px] text-[#94A3B8]" style={{ top: Y + HH + 32, ...AS }} dir="rtl">{note}</div>
     </div>
   )
 }
@@ -518,122 +458,216 @@ export const EmptyCard = () => <div style={{ width: CARD_W, height: CARD_H }} />
 /* ── The box lid ───────────────────────────────────────────────────── */
 
 const Tile = ({ ch, pts, rot }: { ch: string; pts: number; rot: number }) => (
-  <span className="relative inline-flex items-center justify-center w-[60px] h-[64px] rounded-[10px] text-[42px]"
-    style={{ fontFamily: DISPLAY, background: '#FFF4D6', color: NAVY, transform: `rotate(${rot}deg)`, boxShadow: '0 6px 0 #C99A2E, 0 10px 18px rgba(0,0,0,0.35)' }}>
-    {ch}<span className="absolute bottom-[5px] right-[7px] text-[12px]">{pts}</span>
+  <span className="relative inline-flex items-center justify-center w-[58px] h-[62px] rounded-[9px] bg-white text-[36px]"
+    style={{ ...H, color: NAVY, transform: `rotate(${rot}deg)`, boxShadow: `0 5px 0 ${GOLD}, 0 10px 18px rgba(0,0,0,0.3)` }}>
+    {ch}<span className="absolute bottom-[4px] right-[6px] text-[11px]" style={{ color: GOLD }}>{pts}</span>
   </span>
 )
 
-const Bubble = ({ text, ar, style, tail = 'left' }: { text: string; ar?: boolean; style: CSSProperties; tail?: 'left' | 'right' }) => (
-  <div className="absolute rounded-[18px] bg-white px-4 py-1.5 text-[22px] leading-tight whitespace-nowrap"
-    style={{ fontFamily: ar ? AR_DISPLAY : DISPLAY, color: NAVY, boxShadow: '0 6px 0 rgba(0,0,0,0.18)', ...style }} dir={ar ? 'rtl' : 'ltr'}>
+const Speech = ({ text, ar, style, tail = 'left' }: { text: string; ar?: boolean; style: CSSProperties; tail?: 'left' | 'right' }) => (
+  <div className="absolute rounded-[16px] bg-white px-4 py-1.5 text-[19px] leading-tight whitespace-nowrap"
+    style={{ ...(ar ? AH : H), color: NAVY, boxShadow: '0 5px 0 rgba(0,0,0,0.18)', ...style }} dir={ar ? 'rtl' : 'ltr'}>
     {text}
     <span className="absolute -bottom-[10px] w-0 h-0" style={{ [tail]: 22, borderLeft: '10px solid transparent', borderRight: '10px solid transparent', borderTop: '12px solid #fff' }} />
   </div>
 )
 
-/** The lid: a Moorish arch holding a fan of real cards, the title in letter tiles, speech bubbles, a game box's facts. */
+const STAR = 'polygon(50% 0%, 61% 11%, 75% 6%, 79% 21%, 94% 25%, 89% 39%, 100% 50%, 89% 61%, 94% 75%, 79% 79%, 75% 94%, 61% 89%, 50% 100%, 39% 89%, 25% 94%, 21% 79%, 6% 75%, 11% 61%, 0% 50%, 11% 39%, 6% 25%, 21% 21%, 25% 6%, 39% 11%)'
+
+/** The lid: navy with the gold zellige, the title in letter tiles, a Moorish arch holding a fan of real cards, a game box's facts. */
 export function BoxLid({ fan, cards }: { fan: PlayCard[]; cards: number }) {
   const rot = [-22, -11, 0, 11, 22]
-  const stats: [string, string, string][] = [
-    ['👨‍👩‍👧‍👦', '2–6 players', 'لاعبين'], ['⏱️', '15 min', 'دقيقة'], ['🎂', 'Age 8+', 'من 8 سنوات'], ['🃏', `${cards} cards`, 'بطاقة'], ['🎲', '6 games', 'ألعاب'], ['🔊', 'Audio QR', 'نطق صوتي'],
+  const stats: [LucideIcon, string, string][] = [
+    [Users, '2–6 players', 'لاعبين'], [Clock, '15 min', 'دقيقة'], [Cake, 'Age 8+', 'من 8 سنوات'], [Layers, `${cards} cards`, 'بطاقة'], [Dices, '6 games', 'ألعاب'], [Headphones, 'Audio', 'نطق صوتي'],
   ]
   return (
-    <div className="absolute inset-0 overflow-hidden" style={{ background: 'radial-gradient(circle at 50% 55%, #3B63F5 0%, #1D3CC7 42%, #0B1A66 100%)' }}>
-      <Zellige color="#F5C04A" opacity={0.17} size={48} stroke={1.4} />
-      <div className="absolute left-8 top-8 rounded-full bg-white px-4 py-1.5 text-[22px]" style={{ fontFamily: DISPLAY, color: NAVY, boxShadow: '0 5px 0 rgba(0,0,0,0.2)' }}>
-        Inglizi<span style={{ color: '#E0A526' }}>.com</span>
-      </div>
-      <div className="absolute right-6 top-3 w-[118px] h-[118px] flex flex-col items-center justify-center text-center rotate-[8deg]"
-        style={{ background: '#FFD23F', clipPath: 'polygon(50% 0%, 61% 11%, 75% 6%, 79% 21%, 94% 25%, 89% 39%, 100% 50%, 89% 61%, 94% 75%, 79% 79%, 75% 94%, 61% 89%, 50% 100%, 39% 89%, 25% 94%, 21% 79%, 6% 75%, 11% 61%, 0% 50%, 11% 39%, 6% 25%, 21% 21%, 25% 6%, 39% 11%)' }}>
-        <span className="text-[25px] leading-none" style={{ fontFamily: DISPLAY, color: NAVY }}>LEVEL 1</span>
-        <span className="text-[17px] leading-tight" style={{ fontFamily: DISPLAY, color: '#B4231F' }}>A0 → A1</span>
-        <span className="text-[13px] font-bold leading-none" style={{ fontFamily: AR, color: NAVY }}>المستوى الأول</span>
+    <div className="absolute inset-0 overflow-hidden" dir="ltr" style={{ background: `radial-gradient(circle at 50% 55%, #1F448F 0%, ${NAVY} 50%, #0A1A40 100%)` }}>
+      <Zellige color={GOLD} opacity={0.22} size={48} stroke={1.4} />
+      <div className="absolute left-8 top-8 rounded-full bg-white px-4 py-1.5 text-[19px]" style={{ ...H, color: NAVY }}>Inglizi<span style={{ color: GOLD }}>.com</span></div>
+      <div className="absolute right-6 top-3 w-[116px] h-[116px] flex flex-col items-center justify-center text-center rotate-[8deg]" style={{ background: GOLD, clipPath: STAR }}>
+        <span className="text-[20px] leading-none text-white" style={H}>LEVEL 1</span>
+        <span className="text-[15px] leading-tight" style={{ ...H, color: NAVY }}>A0 → A1</span>
+        <span className="text-[11.5px] leading-none text-white" style={AS}>المستوى الأول</span>
       </div>
 
       <div className="absolute inset-x-0 top-[140px] flex flex-col items-center">
-        <div className="flex items-center gap-2.5" dir="ltr">
+        <div className="flex items-center gap-2.5">
           {[['P', 3], ['L', 1], ['A', 1], ['Y', 4]].map(([c, p], i) => <Tile key={i} ch={c as string} pts={p as number} rot={[-5, 3, -2, 5][i]} />)}
-          <span className="text-[44px] mx-1" style={{ fontFamily: DISPLAY, color: '#FFD23F' }}>&</span>
+          <span className="text-[40px] mx-1" style={{ ...H, color: GOLD }}>&</span>
           {[['S', 1], ['P', 3], ['E', 1], ['A', 1], ['K', 5]].map(([c, p], i) => <Tile key={i} ch={c as string} pts={p as number} rot={[4, -3, 2, -4, 3][i]} />)}
         </div>
-        <div className="mt-4 text-[112px] leading-[0.95] tracking-wide" style={{ fontFamily: DISPLAY, color: '#FFD23F', textShadow: `0 7px 0 #0A1550, 0 14px 26px rgba(0,0,0,0.45)` }}>ENGLISH</div>
-        <div className="mt-2 text-[46px] leading-tight text-white" dir="rtl" style={{ fontFamily: AR_DISPLAY, textShadow: '0 4px 0 rgba(10,21,80,0.6)' }}>العب وتكلّم الإنجليزية</div>
+        <div className="mt-5 text-[100px] leading-[0.95] tracking-[0.02em]" style={{ ...H, fontWeight: 800, color: GOLD, textShadow: '0 6px 0 #081430, 0 14px 26px rgba(0,0,0,0.45)' }}>ENGLISH</div>
+        <div className="mt-3 text-[40px] leading-tight text-white" dir="rtl" style={AH}>العب وتكلّم الإنجليزية</div>
       </div>
 
       <svg className="absolute left-1/2 -translate-x-1/2" style={{ top: 425, width: 540, height: 462 }} viewBox="0 0 540 462" aria-hidden>
-        <path d="M30 462 L30 250 C30 120 120 30 270 30 C420 30 510 120 510 250 L510 462" fill="rgba(255,255,255,0.08)" stroke="#F5C04A" strokeWidth="7" />
-        <path d="M52 462 L52 252 C52 136 136 52 270 52 C404 52 488 136 488 252 L488 462" fill="none" stroke="#F5C04A" strokeWidth="2" strokeDasharray="2 9" strokeLinecap="round" />
+        <path d="M30 462 L30 250 C30 120 120 30 270 30 C420 30 510 120 510 250 L510 462" fill="rgba(255,255,255,0.06)" stroke={GOLD} strokeWidth="6" />
+        <path d="M52 462 L52 252 C52 136 136 52 270 52 C404 52 488 136 488 252 L488 462" fill="none" stroke={GOLD} strokeWidth="2" strokeDasharray="2 9" strokeLinecap="round" />
       </svg>
       <div className="absolute left-1/2" style={{ top: 500, width: 0, height: 0 }}>
         {fan.slice(0, 5).map((c, i) => (
           <div key={c.id} className="absolute" style={{
             left: -CARD_W / 2, top: 0, transform: `rotate(${rot[i]}deg) scale(0.8)`, transformOrigin: '50% 135%',
-            boxShadow: '0 12px 28px rgba(0,0,0,0.4)', borderRadius: 14, overflow: 'hidden', zIndex: 5 - Math.abs(i - 2),
+            boxShadow: '0 12px 28px rgba(0,0,0,0.45)', borderRadius: 12, overflow: 'hidden', zIndex: 5 - Math.abs(i - 2),
           }}>
             <CardFront card={c} />
           </div>
         ))}
       </div>
 
-      <Bubble text="Hello! 👋" style={{ left: 30, top: 500, transform: 'rotate(-8deg)' }} />
-      <Bubble text="مرحبًا!" ar tail="right" style={{ left: 22, top: 760, transform: 'rotate(6deg)' }} />
-      <Bubble text="Yummy! 😋" tail="right" style={{ right: 22, top: 500, transform: 'rotate(7deg)' }} />
-      <Bubble text="How are you?" style={{ right: 12, top: 770, transform: 'rotate(-5deg)' }} />
+      <Speech text="Hello!" style={{ left: 34, top: 505, transform: 'rotate(-8deg)' }} />
+      <Speech text="مرحبًا!" ar tail="right" style={{ left: 28, top: 760, transform: 'rotate(6deg)' }} />
+      <Speech text="Let's play!" tail="right" style={{ right: 26, top: 505, transform: 'rotate(7deg)' }} />
+      <Speech text="How are you?" style={{ right: 14, top: 770, transform: 'rotate(-5deg)' }} />
 
-      <div className="absolute left-1/2 -translate-x-1/2 top-[905px] flex items-center gap-3 rounded-[12px] px-6 py-2 whitespace-nowrap" style={{ background: '#E0A526', boxShadow: '0 6px 0 #9A6B10' }}>
-        <span className="text-[24px]" style={{ fontFamily: DISPLAY, color: NAVY }}>FAMILY CARD GAME</span>
-        <span className="text-[24px]" dir="rtl" style={{ fontFamily: AR_DISPLAY, color: NAVY }}>لعبة بطاقات عائلية</span>
+      <div className="absolute left-1/2 -translate-x-1/2 top-[905px] flex items-center gap-3 rounded-[10px] px-6 py-2 whitespace-nowrap" style={{ background: GOLD, boxShadow: '0 5px 0 #7A5A1C' }}>
+        <span className="text-[20px] text-white" style={H}>FAMILY CARD GAME</span>
+        <span className="text-[20px]" dir="rtl" style={{ ...AH, color: NAVY }}>لعبة بطاقات عائلية</span>
       </div>
 
-      <div className="absolute left-6 right-6 bottom-[46px] grid grid-cols-6 rounded-[18px] py-2.5" style={{ background: '#FFF4D6', boxShadow: '0 6px 0 rgba(0,0,0,0.25)' }} dir="ltr">
-        {stats.map(([icon, en, ar], i) => (
-          <div key={en} className="flex flex-col items-center leading-tight" style={{ borderLeft: i ? '1.5px dashed #D9C08A' : undefined }}>
-            <span className="text-[24px]">{icon}</span>
-            <span className="text-[15px]" style={{ fontFamily: DISPLAY, color: NAVY }}>{en}</span>
-            <span className="text-[12.5px] font-bold" dir="rtl" style={{ fontFamily: AR, color: '#6B5A2E' }}>{ar}</span>
+      <div className="absolute left-6 right-6 bottom-[46px] grid grid-cols-6 rounded-[16px] bg-white py-2.5" style={{ boxShadow: '0 6px 0 rgba(0,0,0,0.25)' }}>
+        {stats.map(([Icon, en, ar], i) => (
+          <div key={en} className="flex flex-col items-center leading-tight" style={{ borderLeft: i ? `1.2px dashed ${LINE}` : undefined }}>
+            <Icon size={22} color={GOLD} strokeWidth={2} />
+            <span className="mt-1 text-[13.5px]" style={{ ...H, color: NAVY }}>{en}</span>
+            <span className="text-[11.5px]" dir="rtl" style={{ ...AS, color: GREY }}>{ar}</span>
           </div>
         ))}
       </div>
-      <div className="absolute inset-x-0 bottom-[14px] text-center text-[13px] font-bold text-white/80" dir="rtl" style={{ fontFamily: AR }}>
-        يرافق كتاب المستوى الأول ودفتر التمارين وكتاب المفردات · <bdi dir="ltr" style={{ fontFamily: EN }}>Goes with the Level 1 course book</bdi>
+      <div className="absolute inset-x-0 bottom-[14px] text-center text-[12px] text-white/80" style={BS}>
+        Goes with the Level 1 course book · <span dir="rtl" style={AS}>يرافق كتاب المستوى الأول ودفتر التمارين وكتاب المفردات</span>
       </div>
     </div>
   )
 }
 
-/* ── The sheets in the box: scores, and the lesson passport ────────── */
+/* ── The box's back: how to play ───────────────────────────────────── */
 
-/** The navy band on top of a sheet, its title in English and Arabic. */
+const BOX: [LucideIcon, string, string][] = [
+  [BookOpen, 'Course book', 'كتاب الدروس'], [PenLine, 'Workbook', 'دفتر التمارين'], [Languages, 'Vocabulary book', 'كتاب المفردات'],
+  [Layers, 'Play cards', 'بطاقات اللعب'], [Sparkles, "Bouchta's cards", 'بطاقات بوشتى'], [Hourglass, 'Sand timer', 'ساعة رملية'],
+  [ListChecks, 'Score sheets', 'أوراق النقاط'], [Award, 'Passport', 'جواز الدروس'], [GraduationCap, 'Certificate', 'الشهادة'], [Headphones, 'Audio', 'دروس صوتية'],
+]
+
+/** A card at a smaller size, for the box's back. */
+const Small = ({ children, scale = 0.9 }: { children: ReactNode; scale?: number }) => (
+  <div className="rounded-[12px] overflow-hidden" style={{ width: CARD_W * scale, height: CARD_H * scale, boxShadow: '0 8px 20px rgba(20,48,107,0.22)' }}>
+    <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>{children}</div>
+  </div>
+)
+
+export function BoxBack({ sample }: { sample: PlayCard }) {
+  return (
+    <div className="absolute inset-0 overflow-hidden bg-white" dir="ltr">
+      <Zellige color={NAVY} opacity={0.07} size={40} />
+      <div className="absolute inset-[22px] rounded-[20px] px-7 pt-5 pb-5 flex flex-col" style={{ border: `2px solid ${NAVY}` }}>
+        <div className="flex items-baseline justify-between">
+          <span className="text-[34px] leading-none" style={{ ...H, color: NAVY }}>How to play</span>
+          <span className="text-[30px] leading-none" dir="rtl" style={{ ...AH, color: GOLD }}>طريقة اللعب</span>
+        </div>
+        <div className="mt-2 h-[2px] w-[80px] rounded-full" style={{ background: GOLD }} />
+
+        {/* one card, two sides */}
+        <div className="mt-3 rounded-[16px] px-5 py-3 flex items-center justify-center gap-5" style={{ background: NAVY_S }}>
+          <div className="flex flex-col items-center gap-1">
+            <Small><CardFront card={sample} /></Small>
+            <span className="text-[13px]" style={{ ...H, color: NAVY }}>The player sees</span>
+            <span className="text-[12px] -mt-1" dir="rtl" style={{ ...AS, color: GREY }}>اللاعب يرى هذا الوجه</span>
+          </div>
+          <div className="flex flex-col items-center text-center w-[150px]" dir="rtl">
+            <span className="text-[34px] leading-none" style={{ ...H, color: GOLD }}>⇄</span>
+            <span className="mt-1.5 text-[13px] leading-snug" style={{ ...AS, color: NAVY }}>ارفع البطاقة أمام اللاعب واقرأ أنت الخلف. لا تعرف الإنجليزية؟ الجواب مكتوب بالعربية أيضًا.</span>
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <Small><CardBack card={sample} /></Small>
+            <span className="text-[13px]" style={{ ...H, color: NAVY }}>The asker reads</span>
+            <span className="text-[12px] -mt-1" dir="rtl" style={{ ...AS, color: GREY }}>السائل يقرأ هذا الوجه</span>
+          </div>
+        </div>
+
+        {/* the six games */}
+        <div className="mt-3 flex items-baseline justify-between">
+          <span className="text-[17px]" style={{ ...H, color: NAVY }}>6 games, 9 cards for every lesson</span>
+          <span className="text-[16px]" dir="rtl" style={{ ...AH, color: GOLD }}>ست ألعاب، تسع بطاقات لكل درس</span>
+        </div>
+        <div className="mt-1.5 grid grid-cols-3 gap-2">
+          {GAME_ORDER.map(k => {
+            const g = GAMES[k]
+            const Icon = GAME_ICON[k]
+            return (
+              <div key={k} className="rounded-[12px] bg-white overflow-hidden" style={{ border: `1.5px solid ${NAVY}` }}>
+                <div className="flex items-center justify-between px-2.5 py-1 text-white" style={{ background: NAVY }}>
+                  <span className="flex items-center gap-1.5 text-[13px]" style={H}><Icon size={13} color={GOLD} strokeWidth={2.4} />{g.name}</span>
+                  <span className="text-[12px]" style={AS}>{g.ar}</span>
+                </div>
+                <div className="px-2.5 py-1.5" dir="rtl">
+                  <div className="text-[11.5px] leading-snug" style={{ ...AS, color: INK }}>{g.rule}</div>
+                  <div className="mt-1 flex flex-wrap gap-x-2 text-[11px]" style={{ ...AS, color: GOLD_INK }}>
+                    {g.points.map(([en, ar, stars]) => <span key={en}><bdi dir="ltr" style={{ ...H, color: GOLD }}>{stars}</bdi> {ar}</span>)}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="mt-3 rounded-[12px] px-4 py-2 text-[12.5px] leading-snug" dir="rtl" style={{ ...AS, background: GOLD_S, color: GOLD_INK }}>
+          <b style={AH}>بوشتى الماعز</b> مختبئ بين البطاقات: أسئلة مضحكة بثلاث نجوم، ومفاجآت تغيّر اللعبة (نجوم مضاعفة، سرقة، تجاوز…). <b style={AH}>سباق العائلة:</b> أول من يجمع 20 نجمة يفوز. <b style={AH}>مع طفلك:</b> درس واحد في اليوم، ولوّنا جواز الدروس معًا.
+        </div>
+
+        {/* the box */}
+        <div className="mt-3 grid grid-cols-5 gap-2">
+          {BOX.map(([Icon, en, ar]) => (
+            <div key={en} className="flex flex-col items-center text-center rounded-[10px] bg-white px-1 py-1.5" style={{ border: `1px solid ${LINE}` }}>
+              <Icon size={20} color={NAVY} strokeWidth={1.9} />
+              <span className="mt-1 text-[11px] leading-tight" style={{ ...H, color: NAVY }}>{en}</span>
+              <span className="text-[10.5px] leading-tight" dir="rtl" style={{ ...AS, color: GREY }}>{ar}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-auto flex items-center justify-between rounded-[12px] px-4 py-2" style={{ background: NAVY }}>
+          <span className="text-[13px] text-white" dir="rtl" style={AS}>رقم الدرس على كل بطاقة: العب فقط بالدروس التي درستها.</span>
+          <span className="text-[14px]" style={{ ...H, color: GOLD }}>inglizi.com</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── The sheets in the box: scores, the lesson passport, the certificate ── */
+
+/** The band on top of a sheet: navy with the gold zellige, the title in English and Arabic. */
 function SheetBand({ en, ar, sub }: { en: string; ar: string; sub: string }) {
   return (
-    <div className="relative overflow-hidden px-7 pt-5 pb-4" style={{ background: NAVY }}>
-      <Zellige color="#F5C04A" opacity={0.22} size={34} />
-      <div className="relative flex items-center justify-between" dir="ltr">
+    <div className="relative overflow-hidden px-7 pt-5 pb-4" dir="ltr" style={{ background: NAVY }}>
+      <Zellige color={GOLD} opacity={0.28} size={34} />
+      <div className="relative flex items-center justify-between">
         <div className="leading-none">
-          <div className="text-[36px] text-white" style={{ fontFamily: DISPLAY }}>{en}</div>
-          <div className="mt-1.5 text-[13px] font-bold text-white/75" dir="rtl" style={{ fontFamily: AR, textAlign: 'left' }}>{sub}</div>
+          <div className="text-[30px] text-white" style={H}>{en}</div>
+          <div className="mt-2 text-[12.5px] text-white/75" dir="rtl" style={{ ...AS, textAlign: 'left' }}>{sub}</div>
         </div>
         <div className="flex flex-col items-end gap-1.5">
-          <span className="text-[32px] leading-none" dir="rtl" style={{ fontFamily: AR_DISPLAY, color: '#FFD23F' }}>{ar}</span>
-          <span className="rounded-full bg-white px-3 py-[2px] text-[14px]" style={{ fontFamily: DISPLAY, color: NAVY }}>Inglizi<span style={{ color: '#E0A526' }}>.com</span> · Level 1</span>
+          <span className="text-[28px] leading-none" dir="rtl" style={{ ...AH, color: GOLD }}>{ar}</span>
+          <span className="rounded-full bg-white px-3 py-[2px] text-[12px]" style={{ ...H, color: NAVY }}>Inglizi<span style={{ color: GOLD }}>.com</span> · Level 1</span>
         </div>
       </div>
     </div>
   )
 }
 
-/** The six games' points, in a strip (score sheet, passport). */
+/** The six games' points, in a strip (score sheet). */
 function PointsStrip() {
   return (
     <div className="grid grid-cols-6 gap-1.5" dir="ltr">
       {GAME_ORDER.map(k => {
         const g = GAMES[k]
+        const Icon = GAME_ICON[k]
         return (
-          <div key={k} className="rounded-[10px] overflow-hidden text-center" style={{ border: `1.5px solid ${g.m}` }}>
-            <div className="py-[2px] text-[12px] text-white" style={{ background: g.m, fontFamily: DISPLAY }}>{g.icon} {g.name}</div>
-            <div className="py-[3px] text-[11.5px] font-bold leading-tight" dir="rtl" style={{ fontFamily: AR, color: INK }}>
-              {g.points.map(([en, ar, stars]) => <div key={en}><bdi dir="ltr" style={{ fontFamily: DISPLAY, color: '#B45309' }}>{stars}</bdi> {ar}</div>)}
+          <div key={k} className="rounded-[9px] overflow-hidden text-center" style={{ border: `1.2px solid ${NAVY}` }}>
+            <div className="flex items-center justify-center gap-1 py-[2px] text-[10.5px] text-white" style={{ ...H, background: NAVY }}><Icon size={10} color={GOLD} strokeWidth={2.6} />{g.name}</div>
+            <div className="py-[3px] text-[10.5px] leading-tight" dir="rtl" style={{ ...AS, color: INK }}>
+              {g.points.map(([en, ar, stars]) => <div key={en}><bdi dir="ltr" style={{ ...H, color: GOLD }}>{stars}</bdi> {ar}</div>)}
             </div>
           </div>
         )
@@ -642,7 +676,8 @@ function PointsStrip() {
   )
 }
 
-const Blank = ({ w }: { w: number }) => <span className="inline-block border-b-[1.5px] border-dashed border-[#94A3B8] translate-y-[2px]" style={{ width: w }} />
+const Blank = ({ w }: { w: number }) => <span className="inline-block border-b-[1.2px] border-dashed translate-y-[2px]" style={{ width: w, borderColor: GREY }} />
+const Tick = () => <span className="w-[12px] h-[12px] rounded-[3px]" style={{ border: `1.6px solid ${NAVY}` }} />
 
 /** The score sheet: six players, fifteen rounds, the totals and the winner (print a pad of them). */
 export function ScoreSheet() {
@@ -650,23 +685,21 @@ export function ScoreSheet() {
   return (
     <div className="absolute inset-0 flex flex-col bg-white">
       <SheetBand en="Score sheet" ar="ورقة النقاط" sub="سباق العائلة: أول من يجمع 20 نجمة يفوز، أو الأكثر نجومًا بعد 15 جولة." />
-      <div className="px-7 pt-3 pb-4 flex-1 flex flex-col">
-        <div className="flex items-end justify-between text-[13.5px] font-bold" dir="ltr" style={{ fontFamily: EN, color: INK }}>
+      <div className="px-7 pt-3 pb-4 flex-1 flex flex-col" dir="ltr">
+        <div className="flex items-end justify-between text-[12.5px]" style={{ ...BS, color: INK }}>
           <span>Date <Blank w={110} /></span>
-          <span>Lessons <span style={{ fontFamily: DISPLAY, color: NAVY }}>L</span><Blank w={34} /> → <span style={{ fontFamily: DISPLAY, color: NAVY }}>L</span><Blank w={34} /></span>
-          <span className="flex items-center gap-3">
-            {['🏁 Family race', '👨‍👧 Parent & child', '👥 Teams'].map(t => <span key={t} className="flex items-center gap-1"><span className="w-[13px] h-[13px] rounded-[3px] border-2" style={{ borderColor: NAVY }} />{t}</span>)}
-          </span>
+          <span>Lessons L<Blank w={34} /> → L<Blank w={34} /></span>
+          <span className="flex items-center gap-3">{['Family race', 'Parent & child', 'Teams'].map(t => <span key={t} className="flex items-center gap-1"><Tick />{t}</span>)}</span>
         </div>
 
-        <table className="mt-3 w-full border-separate border-spacing-0 rounded-[14px] overflow-hidden" style={{ border: `2px solid ${NAVY}` }} dir="ltr">
+        <table className="mt-3 w-full border-separate border-spacing-0 rounded-[12px] overflow-hidden" style={{ border: `1.6px solid ${NAVY}` }}>
           <thead>
             <tr>
-              <th className="w-[70px] py-1.5 text-white text-[13px] leading-tight" style={{ background: NAVY, fontFamily: DISPLAY }}>Round<div className="text-[11px] font-bold" style={{ fontFamily: AR }}>الجولة</div></th>
+              <th className="w-[70px] py-1.5 text-white text-[12px] leading-tight" style={{ ...H, background: NAVY }}>Round<div className="text-[10.5px]" style={AS}>الجولة</div></th>
               {Array.from({ length: players }, (_, p) => (
-                <th key={p} className="px-1.5 pt-1 pb-1.5 align-bottom" style={{ background: '#EEF2FF', borderLeft: `1.5px solid ${NAVY}` }}>
-                  <div className="text-[11px] text-left" style={{ fontFamily: DISPLAY, color: NAVY }}>Player {p + 1} <span className="font-bold" style={{ fontFamily: AR }}>· اللاعب</span></div>
-                  <div className="mt-2.5 border-b-[1.5px] border-dashed" style={{ borderColor: '#94A3B8' }} />
+                <th key={p} className="px-1.5 pt-1 pb-1.5 align-bottom" style={{ background: NAVY_S, borderLeft: `1.2px solid ${NAVY}` }}>
+                  <div className="text-[10.5px] text-left" style={{ ...H, color: NAVY }}>Player {p + 1} <span style={{ ...AS, color: GREY }}>· اللاعب</span></div>
+                  <div className="mt-2.5 border-b-[1.2px] border-dashed" style={{ borderColor: GREY }} />
                 </th>
               ))}
             </tr>
@@ -674,20 +707,20 @@ export function ScoreSheet() {
           <tbody>
             {Array.from({ length: rounds }, (_, r) => (
               <tr key={r} style={{ background: r % 2 ? '#F8FAFC' : '#fff' }}>
-                <td className="h-[45px] text-center text-[16px]" style={{ fontFamily: DISPLAY, color: NAVY, borderTop: '1px solid #CBD5E1' }}>{r + 1}</td>
-                {Array.from({ length: players }, (_, p) => <td key={p} style={{ borderTop: '1px solid #CBD5E1', borderLeft: `1.5px solid ${NAVY}` }} />)}
+                <td className="h-[45px] text-center text-[15px]" style={{ ...H, color: NAVY, borderTop: `1px solid ${LINE}` }}>{r + 1}</td>
+                {Array.from({ length: players }, (_, p) => <td key={p} style={{ borderTop: `1px solid ${LINE}`, borderLeft: `1.2px solid ${NAVY}` }} />)}
               </tr>
             ))}
-            <tr style={{ background: '#FFF4D6' }}>
-              <td className="h-[42px] text-center text-[14px] leading-tight" style={{ fontFamily: DISPLAY, color: NAVY, borderTop: `2px solid ${NAVY}` }}>Total ★<div className="text-[11px] font-bold" style={{ fontFamily: AR }}>المجموع</div></td>
-              {Array.from({ length: players }, (_, p) => <td key={p} style={{ borderTop: `2px solid ${NAVY}`, borderLeft: `1.5px solid ${NAVY}` }} />)}
+            <tr style={{ background: GOLD_S }}>
+              <td className="h-[42px] text-center text-[12.5px] leading-tight" style={{ ...H, color: NAVY, borderTop: `1.6px solid ${NAVY}` }}>Total ★<div className="text-[10.5px]" style={AS}>المجموع</div></td>
+              {Array.from({ length: players }, (_, p) => <td key={p} style={{ borderTop: `1.6px solid ${NAVY}`, borderLeft: `1.2px solid ${NAVY}` }} />)}
             </tr>
           </tbody>
         </table>
 
-        <div className="mt-3 flex items-center justify-between rounded-[14px] px-4 py-2" dir="ltr" style={{ background: '#FFD23F' }}>
-          <span className="text-[22px]" style={{ fontFamily: DISPLAY, color: NAVY }}>👑 Winner <Blank w={240} /></span>
-          <span className="text-[20px]" dir="rtl" style={{ fontFamily: AR_DISPLAY, color: NAVY }}>الفائز 🏆</span>
+        <div className="mt-3 flex items-center justify-between rounded-[12px] px-4 py-2" style={{ background: NAVY }}>
+          <span className="flex items-center gap-2 text-[19px] text-white" style={H}><Trophy size={20} color={GOLD} /> Winner <Blank w={240} /></span>
+          <span className="text-[18px]" dir="rtl" style={{ ...AH, color: GOLD }}>الفائز</span>
         </div>
         <div className="mt-auto pt-3"><PointsStrip /></div>
       </div>
@@ -697,139 +730,89 @@ export function ScoreSheet() {
 
 /**
  * The lesson passport: every lesson's nine cards as nine circles to colour
- * when answered right, the stars, and a stamp for the teacher or assistant.
- * A lesson is passed with 7 of 9; nineteen stamps earn the certificate.
+ * when answered right (the two WhatDoWeCall ones in gold), the stars, and a
+ * stamp for the teacher or assistant. A lesson is passed with 7 of 9;
+ * nineteen stamps earn the certificate.
  */
-export function Passport({ lessons }: { lessons: { n: number; titleEn: string; titleAr: string; icon: string; games: string[] }[] }) {
+export function Passport({ lessons }: { lessons: { n: number; titleEn: string; titleAr: string; games: string[] }[] }) {
   return (
     <div className="absolute inset-0 flex flex-col bg-white">
       <SheetBand en="My lesson passport" ar="جواز الدروس" sub="لوّن دائرة لكل بطاقة أجبت عنها صحيحًا. سبع دوائر من تسع؟ يختم أستاذك الدرس." />
-      <div className="px-6 pt-3 pb-4 flex-1 flex flex-col">
-        <div className="flex items-end justify-between text-[13.5px] font-bold" dir="ltr" style={{ fontFamily: EN, color: INK }}>
+      <div className="px-6 pt-3 pb-4 flex-1 flex flex-col" dir="ltr">
+        <div className="flex items-end justify-between text-[12.5px]" style={{ ...BS, color: INK }}>
           <span>Name <Blank w={230} /></span>
           <span>Teacher <Blank w={190} /></span>
         </div>
-        <div className="mt-3 grid grid-cols-4 gap-2 flex-1" dir="ltr">
+        <div className="mt-3 grid grid-cols-4 gap-2 flex-1">
           {lessons.map(l => (
-            <div key={l.n} className="rounded-[14px] px-2 pt-1.5 pb-1.5 flex flex-col" style={{ border: '1.5px solid #CBD5E1', background: '#FCFCFD' }}>
-              <div className="flex items-center gap-1.5">
-                <span className="rounded-[8px] px-1.5 text-[14px] text-white" style={{ background: NAVY, fontFamily: DISPLAY }}>L{pad(l.n)}</span>
-                <span className="text-[16px] leading-none">{l.icon}</span>
-                <span className="ml-auto w-[30px] h-[30px] rounded-full border-2 border-dashed flex items-center justify-center text-[8px] font-bold leading-none text-center" style={{ borderColor: '#E0A526', color: '#B45309', fontFamily: DISPLAY }}>STAMP</span>
+            <div key={l.n} className="relative overflow-hidden rounded-[12px] px-2 pt-1.5 pb-1.5 flex flex-col" style={{ border: `1.2px solid ${LINE}` }}>
+              <Zellige color={NAVY} opacity={0.05} size={22} />
+              <div className="relative flex items-center gap-1.5">
+                <span className="rounded-[6px] px-1.5 text-[12.5px] text-white" style={{ ...H, background: NAVY }}>L{pad(l.n)}</span>
+                <span className="ml-auto w-[30px] h-[30px] rounded-full border-[1.6px] border-dashed flex items-center justify-center text-[7.5px] leading-none" style={{ ...H, borderColor: GOLD, color: GOLD }}>STAMP</span>
               </div>
-              <div className="mt-0.5 text-[12.5px] leading-tight" style={{ fontFamily: DISPLAY, color: NAVY }}>{l.titleEn}</div>
-              <div className="text-[11.5px] font-bold leading-tight" dir="rtl" style={{ fontFamily: AR, color: GREY, textAlign: 'left' }}>{l.titleAr}</div>
-              <div className="mt-auto pt-1 flex justify-between">
-                {l.games.map((g, i) => <span key={i} className="w-[14px] h-[14px] rounded-full border-[2px]" style={{ borderColor: GAMES[g as keyof typeof GAMES].m }} />)}
+              <div className="relative mt-0.5 text-[11.5px] leading-tight" style={{ ...H, color: NAVY }}>{l.titleEn}</div>
+              <div className="relative text-[11px] leading-tight" dir="rtl" style={{ ...AS, color: GREY, textAlign: 'left' }}>{l.titleAr}</div>
+              <div className="relative mt-auto pt-1 flex justify-between">
+                {l.games.map((_, i) => <span key={i} className="w-[14px] h-[14px] rounded-full" style={{ border: `1.6px solid ${i < 2 ? GOLD : NAVY}` }} />)}
               </div>
-              <div className="mt-1 flex items-center justify-between text-[11px] font-bold" style={{ fontFamily: EN, color: GREY }}>
+              <div className="relative mt-1 flex items-center justify-between text-[10.5px]" style={{ ...BS, color: GREY }}>
                 <span>★ <Blank w={24} /> / 9</span>
                 <span>Date <Blank w={42} /></span>
               </div>
             </div>
           ))}
-          {/* the twentieth place: the reward */}
-          <div className="rounded-[14px] px-2 py-1.5 flex flex-col items-center justify-center text-center" style={{ background: '#FFD23F' }}>
-            <span className="text-[30px] leading-none">🏆</span>
-            <span className="mt-1 text-[14px] leading-tight" style={{ fontFamily: DISPLAY, color: NAVY }}>19 stamps = your certificate!</span>
-            <span className="text-[12px] font-bold leading-tight" dir="rtl" style={{ fontFamily: AR, color: NAVY }}>19 ختمًا = شهادتك!</span>
+          <div className="rounded-[12px] px-2 py-1.5 flex flex-col items-center justify-center text-center" style={{ background: NAVY }}>
+            <Trophy size={30} color={GOLD} />
+            <span className="mt-1 text-[12.5px] leading-tight text-white" style={H}>19 stamps = your certificate!</span>
+            <span className="text-[11.5px] leading-tight" dir="rtl" style={{ ...AS, color: GOLD }}>19 ختمًا = شهادتك!</span>
           </div>
-        </div>
-        <div className="mt-2.5 flex items-center justify-center gap-2 flex-wrap text-[11.5px] font-bold" dir="ltr" style={{ fontFamily: DISPLAY, color: INK }}>
-          {GAME_ORDER.map(k => <span key={k} className="flex items-center gap-1"><span className="w-[11px] h-[11px] rounded-full border-[2px]" style={{ borderColor: GAMES[k].m }} />{GAMES[k].name}</span>)}
         </div>
       </div>
     </div>
   )
 }
 
-/* ── The box's back: how to play ───────────────────────────────────── */
-
-const BOX: [string, string, string][] = [
-  ['📘', 'Course book', 'كتاب الدروس'], ['✏️', 'Workbook', 'دفتر التمارين'], ['🔤', 'Vocabulary book', 'كتاب المفردات'],
-  ['🃏', 'Play cards', 'بطاقات اللعب'], ['🐐', "Bouchta's cards", 'بطاقات بوشتى'], ['⏳', 'Sand timer', 'ساعة رملية'],
-  ['📋', 'Score sheets', 'أوراق النقاط'], ['🏅', 'Passport', 'جواز الدروس'], ['🎓', 'Certificate', 'الشهادة'], ['🔊', 'Audio lessons', 'دروس صوتية'],
-]
-
-/** A card at a smaller size, for the box's back. */
-const Small = ({ children, scale = 0.9 }: { children: ReactNode; scale?: number }) => (
-  <div className="rounded-[12px] overflow-hidden" style={{ width: CARD_W * scale, height: CARD_H * scale, boxShadow: '0 8px 20px rgba(13,31,120,0.25)' }}>
-    <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>{children}</div>
-  </div>
-)
-
-export function BoxBack({ sample }: { sample: PlayCard }) {
+export function Certificate() {
   return (
     <div className="absolute inset-0 overflow-hidden" style={{ background: NAVY }}>
-      <Zellige color="#F5C04A" opacity={0.2} size={40} />
-      <div className="absolute inset-[22px] rounded-[22px] px-7 pt-5 pb-5 flex flex-col" style={{ background: '#FFFBF2' }}>
-        <div className="flex items-baseline justify-between" dir="ltr">
-          <span className="text-[38px] leading-none" style={{ fontFamily: DISPLAY, color: NAVY }}>How to play</span>
-          <span className="text-[36px] leading-none" dir="rtl" style={{ fontFamily: AR_DISPLAY, color: NAVY }}>طريقة اللعب</span>
+      <Zellige color={GOLD} opacity={0.3} size={44} stroke={1.4} />
+      <div className="absolute inset-[26px] rounded-[22px] overflow-hidden flex flex-col items-center px-12 pt-10 pb-8 text-center bg-white" dir="ltr"
+        style={{ boxShadow: `inset 0 0 0 5px ${GOLD}, inset 0 0 0 9px #fff, inset 0 0 0 10.5px ${GOLD}` }}>
+        <Zellige color={NAVY} opacity={0.05} size={34} />
+        <div className="relative flex gap-1.5">{'PLAY'.split('').map((c, i) => <span key={i} className="w-[40px] h-[44px] rounded-[7px] bg-white flex items-center justify-center text-[24px]" style={{ ...H, color: NAVY, border: `1.5px solid ${NAVY}`, boxShadow: `0 3px 0 ${GOLD}`, transform: `rotate(${[-4, 3, -2, 4][i]}deg)` }}>{c}</span>)}</div>
+        <div className="relative mt-2 text-[16px] tracking-[0.12em]" style={{ ...H, color: GOLD }}>& SPEAK ENGLISH · LEVEL 1</div>
+        <div className="relative mt-7 text-[58px] leading-none" style={{ ...H, fontWeight: 800, color: NAVY }}>Certificate</div>
+        <div className="relative text-[24px] leading-tight tracking-[0.06em]" style={{ ...BS, color: NAVY }}>of achievement</div>
+        <div className="relative mt-1 text-[32px]" dir="rtl" style={{ ...AH, color: GOLD }}>شهادة إنجاز</div>
+
+        <div className="relative mt-8 text-[15px]" style={{ ...B, color: GREY }}>This certificate is proudly given to</div>
+        <div className="relative text-[14px]" dir="rtl" style={{ ...A, color: GREY }}>تُمنح هذه الشهادة بكل فخر إلى</div>
+        <div className="relative mt-7 w-[78%] border-b-[2px] border-dashed" style={{ borderColor: NAVY }} />
+
+        <div className="relative mt-6 text-[15px] leading-relaxed" style={{ ...B, color: INK }}>
+          for completing the 19 lessons of Level 1 (A0 → A1),<br />collecting all 19 stamps and <span className="inline-block w-[60px] border-b-[1.6px] border-dashed translate-y-[2px]" style={{ borderColor: NAVY }} /> stars.
+        </div>
+        <div className="relative mt-1 text-[14px] leading-relaxed" dir="rtl" style={{ ...A, color: GREY }}>لإتمامه الدروس التسعة عشر من المستوى الأول، وجمع كل الأختام.</div>
+
+        <div className="relative mt-7 w-[110px] h-[110px] flex flex-col items-center justify-center rotate-[-6deg]" style={{ background: GOLD, clipPath: STAR }}>
+          <Trophy size={32} color="#fff" />
+          <span className="text-[13px] text-white" style={H}>A0 → A1</span>
         </div>
 
-        {/* one card, two sides */}
-        <div className="mt-3 rounded-[18px] px-5 py-3 flex items-center justify-center gap-5" style={{ background: '#EEF2FF' }} dir="ltr">
-          <div className="flex flex-col items-center gap-1">
-            <Small><CardFront card={sample} /></Small>
-            <span className="text-[14px]" style={{ fontFamily: DISPLAY, color: NAVY }}>👀 The player sees</span>
-            <span className="text-[13px] font-bold -mt-1" dir="rtl" style={{ fontFamily: AR, color: GREY }}>اللاعب يرى هذا الوجه</span>
-          </div>
-          <div className="flex flex-col items-center text-center w-[150px]" dir="rtl">
-            <span className="text-[40px] leading-none" style={{ color: '#E0A526' }}>⇄</span>
-            <span className="mt-1.5 text-[13.5px] font-bold leading-snug" style={{ fontFamily: AR, color: NAVY }}>ارفع البطاقة أمام اللاعب واقرأ أنت الخلف. لا تعرف الإنجليزية؟ الجواب مكتوب بالعربية أيضًا.</span>
-          </div>
-          <div className="flex flex-col items-center gap-1">
-            <Small><CardBack card={sample} /></Small>
-            <span className="text-[14px]" style={{ fontFamily: DISPLAY, color: NAVY }}>📣 The asker reads</span>
-            <span className="text-[13px] font-bold -mt-1" dir="rtl" style={{ fontFamily: AR, color: GREY }}>السائل يقرأ هذا الوجه</span>
-          </div>
-        </div>
-
-        {/* the six games */}
-        <div className="mt-3 flex items-baseline justify-between" dir="ltr">
-          <span className="text-[19px]" style={{ fontFamily: DISPLAY, color: NAVY }}>6 games, 9 cards for every lesson</span>
-          <span className="text-[19px]" dir="rtl" style={{ fontFamily: AR_DISPLAY, color: NAVY }}>ست ألعاب، تسع بطاقات لكل درس</span>
-        </div>
-        <div className="mt-1.5 grid grid-cols-3 gap-2" dir="ltr">
-          {GAME_ORDER.map(k => {
-            const g = GAMES[k]
-            return (
-              <div key={k} className="rounded-[14px] bg-white overflow-hidden" style={{ border: `2px solid ${g.m}` }}>
-                <div className="flex items-center justify-between px-2.5 py-1 text-white" style={{ background: g.m }}>
-                  <span className="text-[15px]" style={{ fontFamily: DISPLAY }}>{g.icon} {g.name}</span>
-                  <span className="text-[13px] font-bold" style={{ fontFamily: AR }}>{g.ar}</span>
-                </div>
-                <div className="px-2.5 py-1.5" dir="rtl">
-                  <div className="text-[12.5px] font-bold leading-snug" style={{ fontFamily: AR, color: INK }}>{g.rule}</div>
-                  <div className="mt-1 flex flex-wrap gap-x-2 text-[12px] font-bold" style={{ fontFamily: AR, color: '#B45309' }}>
-                    {g.points.map(([en, ar, stars]) => <span key={en}><bdi dir="ltr" style={{ fontFamily: DISPLAY }}>{stars}</bdi> {ar}</span>)}
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-
-        <div className="mt-3 rounded-[14px] px-4 py-2 text-[13px] font-bold leading-snug" dir="rtl" style={{ fontFamily: AR, background: '#FFF4D6', color: '#6B4E12', border: '1.5px solid #EAD9A8' }}>
-          🐐 <b>بوشتى الماعز</b> مختبئ بين البطاقات: أسئلة مضحكة بثلاث نجوم، ومفاجآت تغيّر اللعبة (نجوم مضاعفة، سرقة، تجاوز…). 🏁 <b>سباق العائلة:</b> أول من يجمع 20 نجمة يفوز. 👨‍👧 <b>مع طفلك:</b> درس واحد في اليوم، ولوّنا جواز الدروس معًا.
-        </div>
-
-        {/* the box */}
-        <div className="mt-3 grid grid-cols-5 gap-2" dir="ltr">
-          {BOX.map(([icon, en, ar]) => (
-            <div key={en} className="flex flex-col items-center text-center rounded-[12px] px-1 py-1.5" style={{ background: '#EEF2FF' }}>
-              <span className="text-[24px] leading-none">{icon}</span>
-              <span className="mt-0.5 text-[12px] leading-tight" style={{ fontFamily: DISPLAY, color: NAVY }}>{en}</span>
-              <span className="text-[11.5px] font-bold leading-tight" dir="rtl" style={{ fontFamily: AR, color: GREY }}>{ar}</span>
-            </div>
+        <div className="relative mt-6 text-[12.5px] tracking-[0.06em]" style={{ ...H, color: GOLD }}>19 LESSONS · 19 STAMPS <span style={{ ...AS, letterSpacing: 0 }}>· تسعة عشر ختمًا</span></div>
+        <div className="relative mt-2 grid grid-cols-10 gap-2">
+          {Array.from({ length: 19 }, (_, i) => (
+            <span key={i} className="w-[42px] h-[42px] rounded-full border-[1.6px] border-dashed flex items-center justify-center text-[11px]" style={{ ...H, borderColor: GOLD, color: NAVY }}>L{pad(i + 1)}</span>
           ))}
+          <span className="w-[42px] h-[42px] rounded-full flex items-center justify-center" style={{ background: NAVY }}><Trophy size={18} color={GOLD} /></span>
         </div>
 
-        <div className="mt-auto flex items-center justify-between rounded-[14px] px-4 py-2" style={{ background: NAVY }} dir="rtl">
-          <span className="text-[14.5px] font-bold text-white" style={{ fontFamily: AR }}>🎯 رقم الدرس على كل بطاقة: العب فقط بالدروس التي درستها.</span>
-          <span className="text-[16px]" dir="ltr" style={{ fontFamily: DISPLAY, color: '#FFD23F' }}>inglizi.com</span>
+        <div className="relative mt-auto w-full grid grid-cols-2 gap-12 text-[13px]" style={{ ...BS, color: GREY }}>
+          <div><div className="border-b-[1.2px] border-dashed h-[30px]" style={{ borderColor: NAVY }} />Date · <span style={AS}>التاريخ</span></div>
+          <div><div className="border-b-[1.2px] border-dashed h-[30px]" style={{ borderColor: NAVY }} />Teacher · <span style={AS}>توقيع الأستاذ</span></div>
         </div>
+        <div className="relative mt-5 rounded-full px-4 py-1 text-[13px] text-white" style={{ ...H, background: NAVY }}>Inglizi<span style={{ color: GOLD }}>.com</span></div>
       </div>
     </div>
   )

@@ -29,10 +29,6 @@ export { BOUCHTA, type BouchtaCard } from './bouchta.ts'
 export interface GameInfo {
   name: string
   ar: string
-  icon: string
-  /** The game's colour, and its light tint. */
-  m: string
-  s: string
   doEn: string
   doAr: string
   /** How to play it, for the box (Arabic). */
@@ -42,27 +38,27 @@ export interface GameInfo {
 }
 
 export const GAMES: Record<Game, GameInfo> = {
-  call: { name: 'WhatDoWeCall', ar: 'كيف نسمّيه؟', icon: '🔍', m: '#0E9384', s: '#E6F7F4',
+  call: { name: 'WhatDoWeCall', ar: 'كيف نسمّيه؟',
     doEn: 'What do we call it in English?', doAr: 'ما اسمه بالإنجليزية؟',
     rule: 'أره الصورة والكلمة: يقول اسمها بالإنجليزية، ثم جملة من الكتاب فيها الكلمة.',
     points: [['Word', 'الكلمة', '★1'], ['Sentence', 'الجملة', '★+2']] },
-  timer: { name: 'TimerPlay', ar: 'ضد الساعة', icon: '⏱️', m: '#E11D48', s: '#FFEEF1',
+  timer: { name: 'TimerPlay', ar: 'ضد الساعة',
     doEn: 'Before the time runs out!', doAr: 'قبل أن ينتهي الوقت!',
     rule: 'اقلب الساعة الرملية: كل جواب صحيح قبل نهاية الوقت بنقطة.',
     points: [['Each one', 'لكل جواب', '★1']] },
-  tarjemni: { name: 'Tarjemni', ar: 'ترجمني', icon: '🔁', m: '#2563EB', s: '#EAF1FF',
+  tarjemni: { name: 'Tarjemni', ar: 'ترجمني',
     doEn: 'Say it in English!', doAr: 'قلها بالإنجليزية!',
     rule: 'اقرأ له الجملة بالعربية: يقولها بالإنجليزية.',
     points: [['Right', 'صحيحة', '★2']] },
-  ratebni: { name: 'Ratebni', ar: 'رتّبني', icon: '🧩', m: '#EA580C', s: '#FFF1E8',
+  ratebni: { name: 'Ratebni', ar: 'رتّبني',
     doEn: 'Put the words in order!', doAr: 'رتّب الكلمات!',
     rule: 'الكلمات مبعثرة: يرتّبها قبل نهاية الوقت، من ذاكرته أو بالقلم والورقة.',
     points: [['Memory', 'من الذاكرة', '★3'], ['Pen', 'بالقلم', '★2']] },
-  sahehni: { name: 'Sahehni', ar: 'صحّحني', icon: '🔧', m: '#16A34A', s: '#EAF8EF',
+  sahehni: { name: 'Sahehni', ar: 'صحّحني',
     doEn: 'Find the mistake, then correct it!', doAr: 'جد الخطأ، ثم صحّحه!',
     rule: 'في الجملة خطأ واحد: يجده بنقطة، ويصحّحه بثلاث نقاط إضافية.',
     points: [['Spot', 'يجده', '★1'], ['Fix', 'يصحّحه', '★+3']] },
-  kemelni: { name: 'Kemelni', ar: 'كمّلني', icon: '💬', m: '#7C3AED', s: '#F3EEFF',
+  kemelni: { name: 'Kemelni', ar: 'كمّلني',
     doEn: 'Complete the conversation!', doAr: 'كمّل المحادثة!',
     rule: 'سؤال؟ يجيب عنه. جواب؟ يجد سؤاله. جملة؟ يقول ما يأتي بعدها.',
     points: [['Right line', 'جملة صحيحة', '★2']] },
@@ -76,27 +72,27 @@ export const KEMELNI: Record<KemelniMode, { en: string; ar: string; tagEn: strin
   next: { en: 'What comes next?', ar: 'ماذا يأتي بعد ذلك؟', tagEn: 'What comes next?', tagAr: 'الجملة التالية' },
 }
 
-export interface CardLesson { n: number; titleEn: string; titleAr: string; icon: string }
+export interface CardLesson { n: number; titleEn: string; titleAr: string }
 export const CARD_LESSONS: CardLesson[] = [
-  { n: 1, titleEn: 'Greetings', titleAr: 'التحيات', icon: '👋' },
-  { n: 2, titleEn: 'Numbers, age & phone', titleAr: 'الأرقام والعمر والهاتف', icon: '☎️' },
-  { n: 3, titleEn: 'Countries & jobs', titleAr: 'الدول والجنسيات والمهن', icon: '🌍' },
-  { n: 4, titleEn: 'Full conversation', titleAr: 'محادثة شاملة', icon: '🗣️' },
-  { n: 5, titleEn: 'Family & people', titleAr: 'العائلة ووصف الأشخاص', icon: '👨‍👩‍👧' },
-  { n: 6, titleEn: 'Wh-questions', titleAr: 'أسئلة الاستفهام', icon: '❓' },
-  { n: 7, titleEn: "Zaid's day", titleAr: 'يوم زيد', icon: '📖' },
-  { n: 8, titleEn: 'The classroom', titleAr: 'القسم', icon: '🎒' },
-  { n: 9, titleEn: 'Verbs & pronouns', titleAr: 'الأفعال والضمائر', icon: '🗣️' },
-  { n: 10, titleEn: 'The house', titleAr: 'أثاث المنزل', icon: '🛋️' },
-  { n: 11, titleEn: 'My day & the time', titleAr: 'يومي والساعة', icon: '⏰' },
-  { n: 12, titleEn: 'The week', titleAr: 'أيام الأسبوع', icon: '🗓️' },
-  { n: 13, titleEn: 'Food', titleAr: 'الطعام', icon: '🍲' },
-  { n: 14, titleEn: 'Drinks', titleAr: 'المشروبات', icon: '🍵' },
-  { n: 15, titleEn: 'Transport', titleAr: 'وسائل النقل', icon: '🚕' },
-  { n: 16, titleEn: 'Places & directions', titleAr: 'الأماكن والاتجاهات', icon: '🧭' },
-  { n: 17, titleEn: 'There is / are', titleAr: 'يوجد / توجد', icon: '🏘️' },
-  { n: 18, titleEn: "Jobs & can", titleAr: 'المهن والقدرة', icon: '🧑‍🔧' },
-  { n: 19, titleEn: 'Hobbies', titleAr: 'الهوايات', icon: '🎨' },
+  { n: 1, titleEn: 'Greetings', titleAr: 'التحيات' },
+  { n: 2, titleEn: 'Numbers, age & phone', titleAr: 'الأرقام والعمر والهاتف' },
+  { n: 3, titleEn: 'Countries & jobs', titleAr: 'الدول والجنسيات والمهن' },
+  { n: 4, titleEn: 'Full conversation', titleAr: 'محادثة شاملة' },
+  { n: 5, titleEn: 'Family & people', titleAr: 'العائلة ووصف الأشخاص' },
+  { n: 6, titleEn: 'Wh-questions', titleAr: 'أسئلة الاستفهام' },
+  { n: 7, titleEn: "Zaid's day", titleAr: 'يوم زيد' },
+  { n: 8, titleEn: 'The classroom', titleAr: 'القسم' },
+  { n: 9, titleEn: 'Verbs & pronouns', titleAr: 'الأفعال والضمائر' },
+  { n: 10, titleEn: 'The house', titleAr: 'أثاث المنزل' },
+  { n: 11, titleEn: 'My day & the time', titleAr: 'يومي والساعة' },
+  { n: 12, titleEn: 'The week', titleAr: 'أيام الأسبوع' },
+  { n: 13, titleEn: 'Food', titleAr: 'الطعام' },
+  { n: 14, titleEn: 'Drinks', titleAr: 'المشروبات' },
+  { n: 15, titleEn: 'Transport', titleAr: 'وسائل النقل' },
+  { n: 16, titleEn: 'Places & directions', titleAr: 'الأماكن والاتجاهات' },
+  { n: 17, titleEn: 'There is / are', titleAr: 'يوجد / توجد' },
+  { n: 18, titleEn: "Jobs & can", titleAr: 'المهن والقدرة' },
+  { n: 19, titleEn: 'Hobbies', titleAr: 'الهوايات' },
 ]
 
 export const CARDS: PlayCard[] = withIds([...LESSONS_1, ...LESSONS_2, ...LESSONS_3])

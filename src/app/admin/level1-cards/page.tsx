@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, type ReactNode } from 'react'
+import { Award, Dices, Sparkles } from 'lucide-react'
 import { BOUCHTA, CARDS, CARD_LESSONS, GAMES, GAME_ORDER, cardSheets, lessonOf, mirrorRows, photoOf, type Game } from '@/data/level1-cards'
 import { BareSheet, Field, GamesHeader, INP, PrintAllButton, THEMES } from '../games/_shared'
 import {
-  BouchtaBack, BouchtaFront, BoxBack, BoxLid, CardBack, CardFront, CardGrid, Certificate, DeckBack, EmptyCard, Passport, RuleCard, RuleExample, ScoreSheet, useCardFonts,
+  BouchtaBack, BouchtaFront, BoxBack, BoxLid, CardBack, CardFront, CardGrid, Certificate, DeckBack, EmptyCard, GAME_ICON, Passport, RuleArt, RuleCard, RuleExample, ScoreSheet, useCardFonts,
 } from './_cards'
 
 /**
@@ -64,7 +65,7 @@ export default function Level1CardsPage() {
   const photos = CARDS.filter(c => c.game === 'call').map(c => ({ slug: photoOf(c)!, icon: c.icon, ar: c.ar, lesson: c.lesson }))
 
   const rules: ReactNode[] = [
-    <RuleCard key="turn" color="#0D1F78" icon="🎲" en="How to play" ar="كيف نلعب" lines={[
+    <RuleCard key="turn" Icon={Dices} en="How to play" ar="كيف نلعب" lines={[
       'اختر بطاقات الدروس التي درستها، وأضف بطاقات بوشتى، واخلطها.',
       'السائل يرفع البطاقة: اللاعب يرى الوجه الملوّن، والسائل يقرأ الخلف.',
       'جواب صحيح؟ يأخذ اللاعب البطاقة ونجومها.',
@@ -73,21 +74,21 @@ export default function Level1CardsPage() {
     ]} />,
     ...GAME_ORDER.map(k => {
       const g = GAMES[k]
-      return <RuleCard key={k} color={g.m} icon={g.icon} en={g.name} ar={g.ar} lines={[g.rule, RULE_EXTRA[k][0]]}
+      return <RuleCard key={k} Icon={GAME_ICON[k]} en={g.name} ar={g.ar} lines={[g.rule, RULE_EXTRA[k][0]]}
         foot={<RuleExample card={pick(RULE_EXTRA[k][1])[0]} />} />
     }),
-    <RuleCard key="bouchta" color="#4C1D95" icon="🐐" en="Bouchta's cards" ar="بطاقات بوشتى" lines={[
+    <RuleCard key="bouchta" Icon={Sparkles} en="Bouchta's cards" ar="بطاقات بوشتى" lines={[
       'بطاقات بوشتى مخلوطة مع البطاقات الأخرى.',
       'سؤال مضحك: أجب بالإنجليزية لتربح ثلاث نجوم.',
       'بطاقة مفاجأة: نفّذها فورًا، أو احتفظ بها إن طلبت ذلك.',
       'رقم الدرس على أسئلة بوشتى: اترك أسئلة الدروس التي لم تدرسها.',
-    ]} foot={<div className="text-center text-[54px] leading-none">🐐</div>} />,
-    <RuleCard key="passport" color="#B45309" icon="🏆" en="Passport" ar="جواز الدروس والشهادة" lines={[
+    ]} foot={<RuleArt />} />,
+    <RuleCard key="passport" Icon={Award} en="Passport" ar="جواز الدروس والشهادة" lines={[
       'بعد كل درس، العب بطاقاته التسع.',
       'لوّن دائرة في جواز الدروس لكل جواب صحيح.',
       'سبع دوائر من تسع؟ يختم الأستاذ أو المساعد الدرس.',
       'تسعة عشر ختمًا؟ شهادة المستوى الأول لك!',
-    ]} foot={<div className="text-center text-[48px] leading-none">🏅</div>} />,
+    ]} foot={<RuleArt Icon={Award} />} />,
   ]
 
   return (
