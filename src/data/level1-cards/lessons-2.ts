@@ -15,8 +15,8 @@ export const LESSONS_2 = [
   kemelni(8, 'next', 'Your homework is page 13.', 'واجبكم هو الصفحة 13.', 'Can you repeat, please?', 'هل يمكنك أن تعيد، من فضلك؟', 'نقبل أيضًا: Thank you, teacher!'),
 
   /* ── 9 · Verbs and pronouns ────────────────────────────────────── */
-  call(9, '💡', 'لأنّ', 'Because', 'Because the tram is fast and cheap.'),
-  call(9, '🚫', 'بدون', 'Without', 'I go without food.'),
+  call(9, '🧑‍⚕️', 'ممرّض', 'A nurse', 'He is a nurse. He goes to the hospital every day.'),
+  call(9, '🏋️', 'النادي الرياضي', 'The gym', 'I go to the gym with my friend.'),
   timer(9, '🗣️', 20, 'Say "to be" with every pronoun!', 'صرّف الفعل to be مع كل الضمائر!',
     ['I am', 'you are', 'he is', 'she is', 'it is', 'we are', 'they are']),
   tarjemni(9, 'عندنا جوج ديال لولاد.', 'We have two kids.', 'نقبل أيضًا: We have two children.'),
@@ -53,7 +53,7 @@ export const LESSONS_2 = [
 
   /* ── 12 · The week & how often ─────────────────────────────────── */
   call(12, '📅', 'الجمعة', 'Friday', 'I often watch films on Friday evening.'),
-  call(12, '🔁', 'أحيانًا', 'Sometimes', 'I sometimes visit my aunt on Sunday.'),
+  call(12, '🛒', 'السوق', 'The market', 'I usually go to the market with my mother.'),
   timer(12, '🗓️', 15, 'Say the 7 days of the week!', 'قل أيام الأسبوع السبعة!',
     ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']),
   tarjemni(12, 'لا أعمل أبدًا في نهاية الأسبوع.', 'I never work on the weekend.'),

@@ -40,7 +40,7 @@ export const LESSONS_1 = [
 
   /* ── 4 · The full conversation (lessons 1–3) ───────────────────── */
   call(4, '💍', 'متزوّج', 'Married', 'Are you married? Yes, I am.'),
-  call(4, '🔤', 'يتهجّى', 'To spell', 'How do you spell your name?'),
+  call(4, '👦', 'ابن', 'A son', 'I have a son and a daughter.'),
   timer(4, '💍', 20, 'Name 4 marital statuses!', 'اذكر أربع حالات عائلية!',
     ['single', 'engaged', 'married', 'divorced', 'widowed', 'separated']),
   tarjemni(4, 'أنا من فرنسا. أنا فرنسية.', "I'm from France. I'm French."),
@@ -63,8 +63,8 @@ export const LESSONS_1 = [
   kemelni(5, 'next', 'I have two brothers.', 'عندي أخوان.', 'How old are they?', 'كم عمرهما؟', 'نقبل أيضًا: What are their names?'),
 
   /* ── 6 · Introductions & Wh-questions ──────────────────────────── */
-  call(6, '📍', 'أين؟', 'Where', 'Where do you live?'),
-  call(6, '📅', 'متى؟', 'When', 'When is your birthday?'),
+  call(6, '🎂', 'عيد ميلاد', 'A birthday', 'When is your birthday?'),
+  call(6, '🚉', 'محطة القطار', 'The train station', 'I live in Rabat, near the train station.'),
   timer(6, '❓', 20, 'Say 6 question words!', 'قل ست كلمات للسؤال!',
     ['What', 'Where', 'When', 'Why', 'How', 'Who', 'How old']),
   tarjemni(6, 'أين تسكن؟', 'Where do you live?'),

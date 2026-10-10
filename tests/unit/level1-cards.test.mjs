@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { CARDS, CARD_LESSONS, GAMES, cardSheets, mirrorRows, photoOf } from '../../src/data/level1-cards/index.ts'
+import { BOUCHTA, CARDS, CARD_LESSONS, GAMES, cardSheets, mirrorRows, photoOf } from '../../src/data/level1-cards/index.ts'
 import { LEVEL1_LESSONS } from '../../src/data/level1-book.ts'
 
 const AR = /[؀-ۿ]/
@@ -45,7 +45,7 @@ test('every card: the task its game needs, the answer in English and Arabic', ()
 })
 
 test('notes for the asker: Arabic first, any English after a colon (or the lines wrap into each other)', () => {
-  for (const c of CARDS.filter(x => x.note)) {
+  for (const c of [...CARDS, ...BOUCHTA].filter(x => x.note)) {
     const at = c.note.search(/[A-Za-z]/)
     if (at < 0) continue
     assert.match(c.note.slice(0, at).trim(), /[؀-ۿ][^A-Za-z]*:$/, `${c.id}: "${c.note}"`)
@@ -61,5 +61,17 @@ test('double-sided print: one sheet per lesson, each back behind its front', () 
     assert.equal(new Set(sheet.map(c => c.lesson)).size, 1)
     const backs = mirrorRows(sheet)
     sheet.forEach((card, i) => assert.equal(backs[Math.floor(i / 3) * 3 + (2 - (i % 3))], card))
+  }
+})
+
+test("Bouchta's cards: nine silly questions on studied lessons, nine actions, two sheets", () => {
+  assert.equal(BOUCHTA.length, 18)
+  assert.equal(new Set(BOUCHTA.map(b => b.id)).size, 18)
+  const silly = BOUCHTA.filter(b => b.kind === 'silly')
+  assert.equal(silly.length, 9)
+  for (const b of silly) assert.ok(CARD_LESSONS.some(l => l.n === b.lesson) && b.points, b.id)
+  for (const b of BOUCHTA) {
+    assert.ok(b.en && !AR.test(b.en) && AR.test(b.ar), `${b.id}: the title or question in both languages`)
+    assert.ok(b.answer && !AR.test(b.answer) && AR.test(b.answerAr), `${b.id}: the answer in both languages`)
   }
 })

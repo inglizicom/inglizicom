@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useId, useState, type CSSProperties, type ReactNode } from 'react'
-import { GAMES, GAME_ORDER, KEMELNI, lessonOf, photoOf, type PlayCard } from '@/data/level1-cards'
+import { GAMES, GAME_ORDER, KEMELNI, lessonOf, photoOf, type BouchtaCard, type PlayCard } from '@/data/level1-cards'
 
 /**
  * The Level 1 play cards, drawn at print size: a poker card (63 × 88 mm =
@@ -297,6 +297,200 @@ export function CardBack({ card }: { card: PlayCard }) {
   )
 }
 
+/* ── Bouchta's cards: the goat's silly questions and actions ───────── */
+
+const PURPLE = '#4C1D95', GOLD = '#F5B82E'
+
+function BouchtaBand({ card, back }: { card: BouchtaCard; back?: boolean }) {
+  return (
+    <div className="absolute inset-x-0 top-0 h-[44px] flex items-center justify-between px-2.5" dir="ltr">
+      <div className="leading-none">
+        <div className="text-[17px]" style={{ fontFamily: DISPLAY, color: GOLD, textShadow: '0 2px 0 rgba(0,0,0,0.25)' }}>🐐 Bouchta</div>
+        <div className="text-[12px] font-bold text-white mt-[3px]" dir="rtl" style={{ fontFamily: AR, textAlign: 'left' }}>{back ? `📣 اسأل · ${card.kind === 'silly' ? 'سؤال مضحك' : 'ماذا يحدث؟'}` : card.kind === 'silly' ? 'بوشتى يسأل' : 'مفاجأة بوشتى'}</div>
+      </div>
+      <span className="rounded-[10px] px-1.5 py-[2px] text-[13px] leading-none" style={{ fontFamily: DISPLAY, background: GOLD, color: PURPLE }}>
+        {card.lesson ? `L${pad(card.lesson)}` : 'ACTION'}
+      </span>
+    </div>
+  )
+}
+
+export function BouchtaFront({ card }: { card: BouchtaCard }) {
+  return (
+    <div className="relative overflow-hidden shrink-0" dir="ltr" style={{ width: CARD_W, height: CARD_H, background: `radial-gradient(circle at 50% 45%, #7C3AED, ${PURPLE} 62%, #2E1065)` }}>
+      <Zellige color={GOLD} opacity={0.28} size={28} />
+      <BouchtaBand card={card} />
+      {card.kind === 'silly' ? (
+        <div className="absolute inset-x-[10px] top-[48px] bottom-[30px] flex flex-col items-center">
+          {/* the question in a speech bubble, the goat below */}
+          <div className="relative w-full rounded-[16px] bg-white px-3 py-2.5 text-center" style={{ boxShadow: '0 4px 0 rgba(0,0,0,0.25)' }}>
+            <span className="absolute -top-2 -right-1 text-[24px] leading-none">{card.icon}</span>
+            <div className="text-[16px] leading-snug" style={{ fontFamily: DISPLAY, color: NAVY }}>{card.en}</div>
+            <div className="mt-1 text-[12.5px] font-bold leading-snug" dir="rtl" style={{ fontFamily: AR, color: GREY }}>{card.ar}</div>
+            <span className="absolute -bottom-[11px] left-[42%] w-0 h-0" style={{ borderLeft: '11px solid transparent', borderRight: '11px solid transparent', borderTop: '13px solid #fff' }} />
+          </div>
+          <span className="mt-4 w-[86px] h-[86px] rounded-full flex items-center justify-center text-[58px] leading-none" style={{ background: GOLD, boxShadow: '0 0 0 4px rgba(255,255,255,0.35), 0 6px 0 rgba(0,0,0,0.25)' }}>🐐</span>
+          <div className="mt-auto text-center leading-tight">
+            <div className="text-[13px]" style={{ fontFamily: DISPLAY, color: GOLD }}>Answer in English!</div>
+            <div className="text-[12px] font-bold text-white" dir="rtl" style={{ fontFamily: AR }}>أجب بالإنجليزية!</div>
+          </div>
+        </div>
+      ) : (
+        <div className="absolute inset-x-[12px] top-[50px] bottom-[30px] flex flex-col items-center justify-center text-center">
+          <span className="w-[92px] h-[92px] rounded-full flex items-center justify-center text-[56px] leading-none" style={{ background: GOLD, boxShadow: '0 0 0 4px rgba(255,255,255,0.35), 0 6px 0 rgba(0,0,0,0.25)' }}>{card.icon}</span>
+          <div className="mt-3 text-[25px] leading-tight" style={{ fontFamily: DISPLAY, color: GOLD, textShadow: '0 3px 0 #2E1065' }}>{card.en}</div>
+          <div className="text-[21px] text-white leading-tight" dir="rtl" style={{ fontFamily: AR_DISPLAY }}>{card.ar}</div>
+          <div className="mt-2.5 rounded-[12px] px-2.5 py-1.5 leading-snug" style={{ background: 'rgba(255,255,255,0.14)' }}>
+            <div className="text-[13px] font-bold text-white" style={{ fontFamily: EN }}>{card.answer}</div>
+            <div className="text-[12.5px] font-bold text-white/85" dir="rtl" style={{ fontFamily: AR }}>{card.answerAr}</div>
+          </div>
+        </div>
+      )}
+      <div className="absolute inset-x-0 bottom-0 h-[28px] flex items-center justify-between px-2.5 text-[11.5px]" dir="ltr" style={{ fontFamily: DISPLAY }}>
+        <span style={{ color: GOLD }}>{card.kind === 'silly' ? `${card.points} Silly question` : '🃏 Action card'}</span>
+        <span className="text-white/80 text-[10.5px]">inglizi.com</span>
+      </div>
+    </div>
+  )
+}
+
+export function BouchtaBack({ card }: { card: BouchtaCard }) {
+  return (
+    <div className="relative overflow-hidden shrink-0" dir="ltr" style={{ width: CARD_W, height: CARD_H, background: PURPLE }}>
+      <Zellige color={GOLD} opacity={0.32} size={22} />
+      <BouchtaBand card={card} back />
+      <div className="absolute left-[8px] right-[8px] top-[44px] bottom-[8px] rounded-[13px] flex flex-col px-2.5 pt-2 pb-1.5" style={{ background: '#FFFBF2' }}>
+        <div className="rounded-lg px-2 py-1 text-center" style={{ background: '#F3EEFF' }}>
+          <div className="text-[12.5px] font-bold leading-snug" style={{ fontFamily: EN, color: INK }}>{card.en}</div>
+          <div className="text-[12px] font-bold leading-snug" dir="rtl" style={{ fontFamily: AR, color: GREY }}>{card.ar}</div>
+        </div>
+        <Divider en={card.kind === 'silly' ? '✓ ANSWER' : '⚡ WHAT HAPPENS'} ar={card.kind === 'silly' ? 'الجواب' : 'ماذا يحدث'} color={card.kind === 'silly' ? '#16A34A' : PURPLE} />
+        <div className="flex-1 flex flex-col justify-center text-center gap-0.5">
+          <div className="text-[17px] leading-snug" style={{ fontFamily: DISPLAY, color: '#0F172A' }}>{card.answer}</div>
+          <div className="text-[14px] font-bold leading-snug" dir="rtl" style={{ fontFamily: AR, color: GREY }}>{card.answerAr}</div>
+        </div>
+        {card.note && <Note text={card.note} />}
+        <div className="mt-1 flex items-end justify-between" dir="ltr">
+          <span className="text-[11px] leading-tight" style={{ fontFamily: DISPLAY, color: '#B45309' }}>
+            {card.kind === 'silly' ? <>{card.points} <span className="font-bold" style={{ fontFamily: AR }}>جواب صحيح</span></> : <span className="font-bold" style={{ fontFamily: AR }}>بطاقة بوشتى</span>}
+          </span>
+          <span className="text-[30px] leading-none">🐐</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── Quick-rules cards, and the deck's plain back ──────────────────── */
+
+/** The plain back of the cards that need no answer (the rules): the deck's pattern and name. */
+export function DeckBack() {
+  return (
+    <div className="relative overflow-hidden shrink-0 flex flex-col items-center justify-center" dir="ltr" style={{ width: CARD_W, height: CARD_H, background: `radial-gradient(circle at 50% 50%, #2B50E0, ${NAVY})` }}>
+      <Zellige color={GOLD} opacity={0.3} size={30} />
+      <div className="absolute inset-[10px] rounded-[14px] border-2" style={{ borderColor: `${GOLD}AA` }} />
+      <div className="relative flex gap-1">{'PLAY'.split('').map((c, i) => <span key={i} className="w-[30px] h-[32px] rounded-[6px] flex items-center justify-center text-[20px]" style={{ fontFamily: DISPLAY, background: '#FFF4D6', color: NAVY, boxShadow: '0 3px 0 #C99A2E' }}>{c}</span>)}</div>
+      <div className="relative mt-2 text-[30px] leading-none" style={{ fontFamily: DISPLAY, color: '#FFD23F', textShadow: '0 3px 0 #0A1550' }}>ENGLISH</div>
+      <div className="relative mt-1 text-[18px] text-white" dir="rtl" style={{ fontFamily: AR_DISPLAY }}>العب وتكلّم الإنجليزية</div>
+      <div className="relative mt-3 rounded-full bg-white px-3 py-[2px] text-[13px]" style={{ fontFamily: DISPLAY, color: NAVY }}>Inglizi<span style={{ color: '#E0A526' }}>.com</span> · Level 1</div>
+    </div>
+  )
+}
+
+/** A rules card: a title band, numbered lines (Arabic), and an example or the points. */
+export function RuleCard({ color, icon, en, ar, lines, foot }: { color: string; icon: string; en: string; ar: string; lines: string[]; foot?: ReactNode }) {
+  return (
+    <div className="relative overflow-hidden shrink-0" dir="ltr" style={{ width: CARD_W, height: CARD_H, background: color }}>
+      <Zellige color="#FFFFFF" opacity={0.22} size={26} />
+      <div className="absolute inset-x-0 top-0 h-[48px] flex items-center justify-between px-2.5 text-white">
+        <div className="leading-none">
+          <div className="text-[17px]" style={{ fontFamily: DISPLAY, textShadow: '0 2px 0 rgba(0,0,0,0.18)' }}>{icon} {en}</div>
+          <div className="text-[12px] font-bold mt-[3px]" dir="rtl" style={{ fontFamily: AR, textAlign: 'left' }}>{ar}</div>
+        </div>
+        <span className="rounded-[8px] bg-white px-1.5 py-[2px] text-[11px]" style={{ fontFamily: DISPLAY, color }}>RULES</span>
+      </div>
+      <div className="absolute left-[9px] right-[9px] top-[48px] bottom-[9px] rounded-[14px] bg-white flex flex-col px-2.5 pt-2.5 pb-2">
+        <ol className="space-y-1.5" dir="rtl">
+          {lines.map((l, i) => (
+            <li key={i} className="flex gap-1.5 text-[12.5px] font-bold leading-snug" style={{ fontFamily: AR, color: INK }}>
+              <span className="shrink-0 w-[18px] h-[18px] rounded-full text-white text-[11px] flex items-center justify-center" style={{ background: color, fontFamily: DISPLAY }}>{i + 1}</span>
+              <span>{l}</span>
+            </li>
+          ))}
+        </ol>
+        {foot && <div className="mt-auto">{foot}</div>}
+      </div>
+    </div>
+  )
+}
+
+/** A game's example on its rules card: what the player sees → what they say. */
+export function RuleExample({ card }: { card: PlayCard }) {
+  const g = GAMES[card.game]
+  const shown = card.game === 'ratebni' ? card.words!.join(' / ') : card.game === 'call' ? `${card.icon} ${card.ar}` : card.ar ?? card.en ?? ''
+  return (
+    <div className="rounded-[10px] px-2 py-1.5 text-center" style={{ background: g.s }}>
+      <div className="text-[10.5px]" style={{ fontFamily: DISPLAY, color: g.m }}>EXAMPLE · مثال</div>
+      <div className="text-[13px] font-bold leading-snug" dir={/[؀-ۿ]/.test(shown) ? 'rtl' : 'ltr'} style={{ fontFamily: /[؀-ۿ]/.test(shown) ? AR : EN, color: INK }}>{shown}</div>
+      <div className="text-[13px] leading-snug" style={{ fontFamily: DISPLAY, color: '#16A34A' }}>→ {card.answer}</div>
+      <div className="mt-0.5 flex justify-center gap-2 text-[11px]" style={{ fontFamily: DISPLAY, color: '#B45309' }}>
+        {g.points.map(([en, ar, stars]) => <span key={en}>{stars} <span className="font-bold" style={{ fontFamily: AR }}>{ar}</span></span>)}
+      </div>
+    </div>
+  )
+}
+
+/* ── The certificate ───────────────────────────────────────────────── */
+
+export function Certificate() {
+  return (
+    <div className="absolute inset-0 overflow-hidden" style={{ background: NAVY }}>
+      <Zellige color={GOLD} opacity={0.3} size={44} stroke={1.4} />
+      <div className="absolute inset-[26px] rounded-[26px] flex flex-col items-center px-12 pt-10 pb-8 text-center" dir="ltr" style={{ background: '#FFFBF2', boxShadow: `inset 0 0 0 6px ${GOLD}, inset 0 0 0 10px #FFFBF2, inset 0 0 0 12px ${GOLD}` }}>
+        <div className="flex gap-1.5" dir="ltr">{'PLAY'.split('').map((c, i) => <span key={i} className="w-[44px] h-[48px] rounded-[8px] flex items-center justify-center text-[30px]" style={{ fontFamily: DISPLAY, background: '#FFF4D6', color: NAVY, boxShadow: '0 4px 0 #C99A2E', transform: `rotate(${[-4, 3, -2, 4][i]}deg)` }}>{c}</span>)}</div>
+        <div className="mt-2 text-[22px]" style={{ fontFamily: DISPLAY, color: '#B45309' }}>& SPEAK ENGLISH · LEVEL 1</div>
+        <div className="mt-6 text-[64px] leading-none" style={{ fontFamily: DISPLAY, color: NAVY }}>Certificate</div>
+        <div className="text-[30px] leading-tight" style={{ fontFamily: DISPLAY, color: NAVY }}>of achievement</div>
+        <div className="mt-1 text-[38px]" dir="rtl" style={{ fontFamily: AR_DISPLAY, color: '#B45309' }}>شهادة إنجاز</div>
+
+        <div className="mt-8 text-[17px] font-bold" style={{ fontFamily: EN, color: GREY }}>This certificate is proudly given to</div>
+        <div className="text-[15px] font-bold" dir="rtl" style={{ fontFamily: AR, color: GREY }}>تُمنح هذه الشهادة بكل فخر إلى</div>
+        <div className="mt-6 w-[78%] border-b-[2.5px] border-dashed" style={{ borderColor: NAVY }} />
+
+        <div className="mt-6 text-[17px] font-bold leading-relaxed" style={{ fontFamily: EN, color: INK }}>
+          for completing the 19 lessons of Level 1 (A0 → A1),<br />collecting all 19 stamps and <span className="inline-block w-[60px] border-b-[2px] border-dashed translate-y-[2px]" style={{ borderColor: NAVY }} /> stars.
+        </div>
+        <div className="mt-1 text-[16px] font-bold leading-relaxed" dir="rtl" style={{ fontFamily: AR, color: GREY }}>لإتمامه الدروس التسعة عشر من المستوى الأول، وجمع كل الأختام.</div>
+
+        <div className="mt-8 flex items-center justify-center gap-4">
+          <span className="text-[44px]">🐐</span>
+          <div className="w-[118px] h-[118px] flex flex-col items-center justify-center rotate-[-6deg]"
+            style={{ background: '#FFD23F', clipPath: 'polygon(50% 0%, 61% 11%, 75% 6%, 79% 21%, 94% 25%, 89% 39%, 100% 50%, 89% 61%, 94% 75%, 79% 79%, 75% 94%, 61% 89%, 50% 100%, 39% 89%, 25% 94%, 21% 79%, 6% 75%, 11% 61%, 0% 50%, 11% 39%, 6% 25%, 21% 21%, 25% 6%, 39% 11%)' }}>
+            <span className="text-[34px] leading-none">🏆</span>
+            <span className="text-[14px]" style={{ fontFamily: DISPLAY, color: NAVY }}>A0 → A1</span>
+          </div>
+          <span className="text-[44px]">⭐</span>
+        </div>
+
+        {/* the nineteen stamps of the passport, one per lesson */}
+        <div className="mt-7 text-[14px]" style={{ fontFamily: DISPLAY, color: '#B45309' }}>19 lessons · 19 stamps <span className="font-bold" style={{ fontFamily: AR }}>· تسعة عشر ختمًا</span></div>
+        <div className="mt-2 grid grid-cols-10 gap-2">
+          {Array.from({ length: 19 }, (_, i) => (
+            <span key={i} className="w-[44px] h-[44px] rounded-full border-2 border-dashed flex items-center justify-center text-[12px]" style={{ borderColor: GOLD, color: NAVY, fontFamily: DISPLAY }}>L{pad(i + 1)}</span>
+          ))}
+          <span className="w-[44px] h-[44px] rounded-full flex items-center justify-center text-[22px]" style={{ background: '#FFD23F' }}>🏆</span>
+        </div>
+
+        <div className="mt-auto w-full grid grid-cols-2 gap-12 text-[14px] font-bold" dir="ltr" style={{ fontFamily: EN, color: GREY }}>
+          <div><div className="border-b-[1.5px] border-dashed h-[30px]" style={{ borderColor: NAVY }} />Date · <span style={{ fontFamily: AR }}>التاريخ</span></div>
+          <div><div className="border-b-[1.5px] border-dashed h-[30px]" style={{ borderColor: NAVY }} />Teacher · <span style={{ fontFamily: AR }}>توقيع الأستاذ</span></div>
+        </div>
+        <div className="mt-5 rounded-full px-4 py-1 text-[15px]" style={{ fontFamily: DISPLAY, background: NAVY, color: '#FFD23F' }}>Inglizi<span className="text-white">.com</span></div>
+      </div>
+    </div>
+  )
+}
+
 /* ── A print sheet of nine ─────────────────────────────────────────── */
 
 /** Nine cards (3 × 3) on an A4 page, edge to edge, with crop marks outside the block. */
@@ -553,7 +747,8 @@ export function Passport({ lessons }: { lessons: { n: number; titleEn: string; t
 
 const BOX: [string, string, string][] = [
   ['📘', 'Course book', 'كتاب الدروس'], ['✏️', 'Workbook', 'دفتر التمارين'], ['🔤', 'Vocabulary book', 'كتاب المفردات'],
-  ['🃏', 'Play cards', 'بطاقات اللعب'], ['⏳', 'Sand timer', 'ساعة رملية'], ['🔊', 'Audio lessons', 'دروس صوتية'],
+  ['🃏', 'Play cards', 'بطاقات اللعب'], ['🐐', "Bouchta's cards", 'بطاقات بوشتى'], ['⏳', 'Sand timer', 'ساعة رملية'],
+  ['📋', 'Score sheets', 'أوراق النقاط'], ['🏅', 'Passport', 'جواز الدروس'], ['🎓', 'Certificate', 'الشهادة'], ['🔊', 'Audio lessons', 'دروس صوتية'],
 ]
 
 /** A card at a smaller size, for the box's back. */
@@ -617,11 +812,11 @@ export function BoxBack({ sample }: { sample: PlayCard }) {
         </div>
 
         <div className="mt-3 rounded-[14px] px-4 py-2 text-[13px] font-bold leading-snug" dir="rtl" style={{ fontFamily: AR, background: '#FFF4D6', color: '#6B4E12', border: '1.5px solid #EAD9A8' }}>
-          🏁 <b>سباق العائلة:</b> كل لاعب بدوره يسحب بطاقة من الدروس التي درسها، وأول من يجمع 20 نجمة يفوز. 👨‍👧 <b>مع طفلك:</b> بطاقات درس واحد في اليوم. 🧠 <b>وحدك:</b> أجب ثم اقلب البطاقة.
+          🐐 <b>بوشتى الماعز</b> مختبئ بين البطاقات: أسئلة مضحكة بثلاث نجوم، ومفاجآت تغيّر اللعبة (نجوم مضاعفة، سرقة، تجاوز…). 🏁 <b>سباق العائلة:</b> أول من يجمع 20 نجمة يفوز. 👨‍👧 <b>مع طفلك:</b> درس واحد في اليوم، ولوّنا جواز الدروس معًا.
         </div>
 
         {/* the box */}
-        <div className="mt-3 grid grid-cols-6 gap-2" dir="ltr">
+        <div className="mt-3 grid grid-cols-5 gap-2" dir="ltr">
           {BOX.map(([icon, en, ar]) => (
             <div key={en} className="flex flex-col items-center text-center rounded-[12px] px-1 py-1.5" style={{ background: '#EEF2FF' }}>
               <span className="text-[24px] leading-none">{icon}</span>

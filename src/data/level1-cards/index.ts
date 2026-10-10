@@ -24,6 +24,7 @@ import { LESSONS_3 } from './lessons-3.ts'
  */
 
 export type { Game, KemelniMode, PlayCard } from './build.ts'
+export { BOUCHTA, type BouchtaCard } from './bouchta.ts'
 
 export interface GameInfo {
   name: string
