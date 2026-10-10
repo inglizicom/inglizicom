@@ -28,6 +28,7 @@ export function QrLink({ url, size, color = '#111111', label = 'Listen', labelCo
 
 /** The play pages' addresses (www, so a phone goes straight there). */
 export const PLAY = {
+  library: 'https://www.inglizi.com/audio',
   book: (n: number) => `https://www.inglizi.com/audio/book/${n}`,
   workbook: (n: number) => `https://www.inglizi.com/audio/workbook/${n}`,
   vocab: (n: number) => `https://www.inglizi.com/audio/vocab/${n}`,
