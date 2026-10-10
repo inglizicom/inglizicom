@@ -408,6 +408,147 @@ export function BoxLid({ fan, cards }: { fan: PlayCard[]; cards: number }) {
   )
 }
 
+/* ── The sheets in the box: scores, and the lesson passport ────────── */
+
+/** The navy band on top of a sheet, its title in English and Arabic. */
+function SheetBand({ en, ar, sub }: { en: string; ar: string; sub: string }) {
+  return (
+    <div className="relative overflow-hidden px-7 pt-5 pb-4" style={{ background: NAVY }}>
+      <Zellige color="#F5C04A" opacity={0.22} size={34} />
+      <div className="relative flex items-center justify-between" dir="ltr">
+        <div className="leading-none">
+          <div className="text-[36px] text-white" style={{ fontFamily: DISPLAY }}>{en}</div>
+          <div className="mt-1.5 text-[13px] font-bold text-white/75" dir="rtl" style={{ fontFamily: AR, textAlign: 'left' }}>{sub}</div>
+        </div>
+        <div className="flex flex-col items-end gap-1.5">
+          <span className="text-[32px] leading-none" dir="rtl" style={{ fontFamily: AR_DISPLAY, color: '#FFD23F' }}>{ar}</span>
+          <span className="rounded-full bg-white px-3 py-[2px] text-[14px]" style={{ fontFamily: DISPLAY, color: NAVY }}>Inglizi<span style={{ color: '#E0A526' }}>.com</span> · Level 1</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/** The six games' points, in a strip (score sheet, passport). */
+function PointsStrip() {
+  return (
+    <div className="grid grid-cols-6 gap-1.5" dir="ltr">
+      {GAME_ORDER.map(k => {
+        const g = GAMES[k]
+        return (
+          <div key={k} className="rounded-[10px] overflow-hidden text-center" style={{ border: `1.5px solid ${g.m}` }}>
+            <div className="py-[2px] text-[12px] text-white" style={{ background: g.m, fontFamily: DISPLAY }}>{g.icon} {g.name}</div>
+            <div className="py-[3px] text-[11.5px] font-bold leading-tight" dir="rtl" style={{ fontFamily: AR, color: INK }}>
+              {g.points.map(([en, ar, stars]) => <div key={en}><bdi dir="ltr" style={{ fontFamily: DISPLAY, color: '#B45309' }}>{stars}</bdi> {ar}</div>)}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+const Blank = ({ w }: { w: number }) => <span className="inline-block border-b-[1.5px] border-dashed border-[#94A3B8] translate-y-[2px]" style={{ width: w }} />
+
+/** The score sheet: six players, fifteen rounds, the totals and the winner (print a pad of them). */
+export function ScoreSheet() {
+  const players = 6, rounds = 15
+  return (
+    <div className="absolute inset-0 flex flex-col bg-white">
+      <SheetBand en="Score sheet" ar="ورقة النقاط" sub="سباق العائلة: أول من يجمع 20 نجمة يفوز، أو الأكثر نجومًا بعد 15 جولة." />
+      <div className="px-7 pt-3 pb-4 flex-1 flex flex-col">
+        <div className="flex items-end justify-between text-[13.5px] font-bold" dir="ltr" style={{ fontFamily: EN, color: INK }}>
+          <span>Date <Blank w={110} /></span>
+          <span>Lessons <span style={{ fontFamily: DISPLAY, color: NAVY }}>L</span><Blank w={34} /> → <span style={{ fontFamily: DISPLAY, color: NAVY }}>L</span><Blank w={34} /></span>
+          <span className="flex items-center gap-3">
+            {['🏁 Family race', '👨‍👧 Parent & child', '👥 Teams'].map(t => <span key={t} className="flex items-center gap-1"><span className="w-[13px] h-[13px] rounded-[3px] border-2" style={{ borderColor: NAVY }} />{t}</span>)}
+          </span>
+        </div>
+
+        <table className="mt-3 w-full border-separate border-spacing-0 rounded-[14px] overflow-hidden" style={{ border: `2px solid ${NAVY}` }} dir="ltr">
+          <thead>
+            <tr>
+              <th className="w-[70px] py-1.5 text-white text-[13px] leading-tight" style={{ background: NAVY, fontFamily: DISPLAY }}>Round<div className="text-[11px] font-bold" style={{ fontFamily: AR }}>الجولة</div></th>
+              {Array.from({ length: players }, (_, p) => (
+                <th key={p} className="px-1.5 pt-1 pb-1.5 align-bottom" style={{ background: '#EEF2FF', borderLeft: `1.5px solid ${NAVY}` }}>
+                  <div className="text-[11px] text-left" style={{ fontFamily: DISPLAY, color: NAVY }}>Player {p + 1} <span className="font-bold" style={{ fontFamily: AR }}>· اللاعب</span></div>
+                  <div className="mt-2.5 border-b-[1.5px] border-dashed" style={{ borderColor: '#94A3B8' }} />
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: rounds }, (_, r) => (
+              <tr key={r} style={{ background: r % 2 ? '#F8FAFC' : '#fff' }}>
+                <td className="h-[45px] text-center text-[16px]" style={{ fontFamily: DISPLAY, color: NAVY, borderTop: '1px solid #CBD5E1' }}>{r + 1}</td>
+                {Array.from({ length: players }, (_, p) => <td key={p} style={{ borderTop: '1px solid #CBD5E1', borderLeft: `1.5px solid ${NAVY}` }} />)}
+              </tr>
+            ))}
+            <tr style={{ background: '#FFF4D6' }}>
+              <td className="h-[42px] text-center text-[14px] leading-tight" style={{ fontFamily: DISPLAY, color: NAVY, borderTop: `2px solid ${NAVY}` }}>Total ★<div className="text-[11px] font-bold" style={{ fontFamily: AR }}>المجموع</div></td>
+              {Array.from({ length: players }, (_, p) => <td key={p} style={{ borderTop: `2px solid ${NAVY}`, borderLeft: `1.5px solid ${NAVY}` }} />)}
+            </tr>
+          </tbody>
+        </table>
+
+        <div className="mt-3 flex items-center justify-between rounded-[14px] px-4 py-2" dir="ltr" style={{ background: '#FFD23F' }}>
+          <span className="text-[22px]" style={{ fontFamily: DISPLAY, color: NAVY }}>👑 Winner <Blank w={240} /></span>
+          <span className="text-[20px]" dir="rtl" style={{ fontFamily: AR_DISPLAY, color: NAVY }}>الفائز 🏆</span>
+        </div>
+        <div className="mt-auto pt-3"><PointsStrip /></div>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * The lesson passport: every lesson's nine cards as nine circles to colour
+ * when answered right, the stars, and a stamp for the teacher or assistant.
+ * A lesson is passed with 7 of 9; nineteen stamps earn the certificate.
+ */
+export function Passport({ lessons }: { lessons: { n: number; titleEn: string; titleAr: string; icon: string; games: string[] }[] }) {
+  return (
+    <div className="absolute inset-0 flex flex-col bg-white">
+      <SheetBand en="My lesson passport" ar="جواز الدروس" sub="لوّن دائرة لكل بطاقة أجبت عنها صحيحًا. سبع دوائر من تسع؟ يختم أستاذك الدرس." />
+      <div className="px-6 pt-3 pb-4 flex-1 flex flex-col">
+        <div className="flex items-end justify-between text-[13.5px] font-bold" dir="ltr" style={{ fontFamily: EN, color: INK }}>
+          <span>Name <Blank w={230} /></span>
+          <span>Teacher <Blank w={190} /></span>
+        </div>
+        <div className="mt-3 grid grid-cols-4 gap-2 flex-1" dir="ltr">
+          {lessons.map(l => (
+            <div key={l.n} className="rounded-[14px] px-2 pt-1.5 pb-1.5 flex flex-col" style={{ border: '1.5px solid #CBD5E1', background: '#FCFCFD' }}>
+              <div className="flex items-center gap-1.5">
+                <span className="rounded-[8px] px-1.5 text-[14px] text-white" style={{ background: NAVY, fontFamily: DISPLAY }}>L{pad(l.n)}</span>
+                <span className="text-[16px] leading-none">{l.icon}</span>
+                <span className="ml-auto w-[30px] h-[30px] rounded-full border-2 border-dashed flex items-center justify-center text-[8px] font-bold leading-none text-center" style={{ borderColor: '#E0A526', color: '#B45309', fontFamily: DISPLAY }}>STAMP</span>
+              </div>
+              <div className="mt-0.5 text-[12.5px] leading-tight" style={{ fontFamily: DISPLAY, color: NAVY }}>{l.titleEn}</div>
+              <div className="text-[11.5px] font-bold leading-tight" dir="rtl" style={{ fontFamily: AR, color: GREY, textAlign: 'left' }}>{l.titleAr}</div>
+              <div className="mt-auto pt-1 flex justify-between">
+                {l.games.map((g, i) => <span key={i} className="w-[14px] h-[14px] rounded-full border-[2px]" style={{ borderColor: GAMES[g as keyof typeof GAMES].m }} />)}
+              </div>
+              <div className="mt-1 flex items-center justify-between text-[11px] font-bold" style={{ fontFamily: EN, color: GREY }}>
+                <span>★ <Blank w={24} /> / 9</span>
+                <span>Date <Blank w={42} /></span>
+              </div>
+            </div>
+          ))}
+          {/* the twentieth place: the reward */}
+          <div className="rounded-[14px] px-2 py-1.5 flex flex-col items-center justify-center text-center" style={{ background: '#FFD23F' }}>
+            <span className="text-[30px] leading-none">🏆</span>
+            <span className="mt-1 text-[14px] leading-tight" style={{ fontFamily: DISPLAY, color: NAVY }}>19 stamps = your certificate!</span>
+            <span className="text-[12px] font-bold leading-tight" dir="rtl" style={{ fontFamily: AR, color: NAVY }}>19 ختمًا = شهادتك!</span>
+          </div>
+        </div>
+        <div className="mt-2.5 flex items-center justify-center gap-2 flex-wrap text-[11.5px] font-bold" dir="ltr" style={{ fontFamily: DISPLAY, color: INK }}>
+          {GAME_ORDER.map(k => <span key={k} className="flex items-center gap-1"><span className="w-[11px] h-[11px] rounded-full border-[2px]" style={{ borderColor: GAMES[k].m }} />{GAMES[k].name}</span>)}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /* ── The box's back: how to play ───────────────────────────────────── */
 
 const BOX: [string, string, string][] = [
