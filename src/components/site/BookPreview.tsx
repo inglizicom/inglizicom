@@ -68,7 +68,7 @@ export default function BookPreview() {
               className={`rounded-2xl p-4 text-right ring-2 transition ${l.id === lv ? 'text-white shadow-lg' : 'bg-white text-[#0B1B4D] ring-slate-200 hover:ring-slate-300'}`}
               style={l.id === lv ? { background: l.colour, ['--tw-ring-color' as string]: l.colour } : undefined}>
               <span className="block text-[12px] font-bold opacity-80" dir="ltr">{l.level}</span>
-              <span className="block text-[22px] font-extrabold tracking-tight" dir="ltr">{l.name}</span>
+              <span className="block text-[20px] sm:text-[22px] font-extrabold tracking-tight" dir="ltr">{l.name}</span>
               <span className="font-arabic block text-[14px] font-bold opacity-90">{l.ar} · {l.levelAr}</span>
             </button>
           ))}
@@ -78,16 +78,16 @@ export default function BookPreview() {
         <div className="mt-5 flex justify-center gap-2" role="tablist" aria-label="الكتاب">
           {KINDS.map(x => (
             <button key={x.id} type="button" role="tab" aria-selected={x.id === kind} onClick={() => setKind(x.id)}
-              className={`inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[14px] font-bold ring-1 transition ${x.id === kind ? 'bg-[#0B1B4D] text-white ring-[#0B1B4D]' : 'bg-white text-[#0B1B4D] ring-slate-200'}`}>
-              <x.Icon size={16} /><span className="font-arabic">{x.ar}</span><span className="opacity-70" dir="ltr">{x.en}</span>
+              className={`inline-flex items-center gap-2 whitespace-nowrap rounded-full px-4 sm:px-5 py-2.5 text-[14px] font-bold ring-1 transition ${x.id === kind ? 'bg-[#0B1B4D] text-white ring-[#0B1B4D]' : 'bg-white text-[#0B1B4D] ring-slate-200'}`}>
+              <x.Icon size={16} /><span className="font-arabic">{x.ar}</span><span className="hidden opacity-70 sm:inline" dir="ltr">{x.en}</span>
             </button>
           ))}
         </div>
 
-        <div className="mt-8 grid items-start gap-8 lg:grid-cols-[1fr_300px]">
-          <FlipBook key={`${lv}-${kind}`} pages={pages} end={end} label={`${level.name} ${k.en}`} />
+        <div className="mt-8 grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="min-w-0"><FlipBook key={`${lv}-${kind}`} pages={pages} end={end} label={`${level.name} ${k.en}`} /></div>
 
-          <aside className="rounded-3xl bg-white p-6 ring-1 ring-slate-200 shadow-[0_14px_34px_-16px_rgba(15,23,42,0.28)]">
+          <aside className="min-w-0 rounded-3xl bg-white p-5 sm:p-6 ring-1 ring-slate-200 shadow-[0_14px_34px_-16px_rgba(15,23,42,0.28)]">
             <span className="inline-block rounded-full px-3 py-1 text-[12px] font-bold text-white" style={{ background: level.colour }} dir="ltr">{level.level}</span>
             <h2 className="mt-3 text-[24px] font-extrabold text-[#0B1B4D]" dir="ltr">{level.name}</h2>
             <p className="font-arabic text-[15px] font-bold" style={{ color: level.colour }}>{level.tag}</p>

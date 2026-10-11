@@ -78,7 +78,7 @@ export default function FlipBook({ pages, end, label }: { pages: string[]; end: 
   const total = leaves.length
 
   return (
-    <div className="flex flex-col items-center gap-4" dir="ltr">
+    <div className="flex w-full min-w-0 flex-col items-center gap-4" dir="ltr">
       <div className="relative w-full" onPointerDown={onDown} onPointerUp={onUp} style={{ touchAction: 'pan-y' }}>
         {wide ? (
           <Spread spreads={spreads} at={at} turning={turning} face={face} go={go} />
@@ -100,7 +100,7 @@ export default function FlipBook({ pages, end, label }: { pages: string[]; end: 
           className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0B1B4D] text-white shadow disabled:opacity-40"><ChevronRight size={20} /></button>
       </div>
 
-      <div className="flex max-w-full gap-2 overflow-x-auto pb-2">
+      <div className="flex w-full max-w-full gap-2 overflow-x-auto pb-2 lg:justify-center">
         {leaves.map((l, i) => (
           <button key={i} type="button" aria-label={`Page ${i + 1}`}
             onClick={() => { if (!turning) setAt(wide ? (i === 0 ? 0 : Math.floor((i + 1) / 2)) : i) }}
