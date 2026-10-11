@@ -23,11 +23,11 @@ import { BOOK_FONT_VARS, EN_FONT } from './_fonts'
  * in src/data/everyday-book.
  */
 
-const INFO_KEY = 'everyday-book-info-v1'
+const INFO_KEY = 'everyday-book-info-v2'
 const COVER_KEY = 'everyday-book-cover-v2'   // v2: the cover in the book's brown and gold
 
 const BOOK_INFO: BookInfo = {
-  ...DEFAULT_INFO, title: 'الإنجليزية للمواقف اليومية', level: 'A1 → A2', ink: '#2A1D12', fontEn: EN_FONT,
+  ...DEFAULT_INFO, title: 'الإنجليزية للمواقف اليومية', level: 'PIIRMI · A1 → A2', ink: '#0E1240', fontEn: EN_FONT,
 }
 const BOOK_COVER: CoverInfo = { ...DEFAULT_COVER, palette: 'brown', phone1: '+212 707 902 091' }
 

@@ -37,12 +37,13 @@ export type EverydayKind = 'welcome' | 'howto' | 'contents' | 'planner' | 'progr
  * teal — and the book's own gold for openers, front and back matter.
  */
 export const TONES = {
-  vocab: { m: '#2563EB', s: '#EFF5FF' },
-  expr: { m: '#16A34A', s: '#EEFBF2' },
-  talk: { m: '#7C3AED', s: '#F4F0FF' },
-  reading: { m: '#EA580C', s: '#FFF4EC' },
-  practice: { m: '#0D9488', s: '#ECFBF8' },
-  brand: { m: '#A16207', s: '#FDF6E3' },
+  // the series palette, from the PIIRMI ENGLISH covers: Piirmi green, deep saffron, navy, and the series' blue and orange
+  vocab: { m: '#2B36C9', s: '#EEF0FD' },
+  expr: { m: '#0E6B4E', s: '#EAF6F1' },
+  talk: { m: '#0E1240', s: '#EEF0F8' },
+  reading: { m: '#B7791F', s: '#FFF6DE' },
+  practice: { m: '#C2541F', s: '#FFF1E8' },
+  brand: { m: '#0E6B4E', s: '#FFF4E0' },
 } as const
 export type Tone = keyof typeof TONES
 /** The colour of a page (its frame, and any section without a tone of its own). */

@@ -7,7 +7,7 @@ import { BAC_MOCKS } from '@/data/bac/bac-mocks'
 import type { BacSection } from '@/data/bac/bac-helpers'
 import { Field, GamesHeader, INP, PrintAllButton, THEMES } from '../games/_shared'
 import { CoverFields, CoverPage, DEFAULT_COVER, type CoverInfo, type CoverStat } from '../games/_cover'
-import { DEFAULT_INFO, LessonPage, ThanksPage, type BookInfo } from '../level1-book/_blocks'
+import { CLASSIC_EN, CLASSIC_PALETTE, DEFAULT_INFO, LessonPage, ThanksPage, type BookInfo } from '../level1-book/_blocks'
 
 /**
  * /admin/bac-pack — «الإنجليزية للباكالوريا»: the Bac English exam pack for
@@ -169,7 +169,7 @@ export default function BacPackPage() {
           </>}
           {shown.map(p => {
             const no = pack.pageNo(p)
-            return <LessonPage key={no} info={info} lesson={p} pageNo={no} talkNo={new Map()} exNo={pack.exNo} filename={`${prefix}-${String(no).padStart(2, '0')}-${slug(p.tag ?? p.section)}`} />
+            return <LessonPage key={no} info={{ ...info, palette: CLASSIC_PALETTE, fontEn: info.fontEn ?? CLASSIC_EN }} lesson={p} pageNo={no} talkNo={new Map()} exNo={pack.exNo} filename={`${prefix}-${String(no).padStart(2, '0')}-${slug(p.tag ?? p.section)}`} />
           })}
         </div>
       </div>

@@ -36,12 +36,13 @@ export type L2Page = Lesson & { kind: L2Kind; unit?: number; module?: number }
 
 /** The colour key: one colour per kind of section through the book. */
 export const L2_TONES = {
-  vocab: { m: '#E11D48', s: '#FFF1F3' },
-  grammar: { m: '#2563EB', s: '#EFF5FF' },
-  expr: { m: '#16A34A', s: '#EEFBF2' },
-  talk: { m: '#7C3AED', s: '#F4F0FF' },
-  writing: { m: '#EA580C', s: '#FFF4EC' },
-  practice: { m: '#0D9488', s: '#ECFBF8' },
+  // the series palette, from the VIIZA ENGLISH covers: Viiza red, deep saffron, navy, and the series' blue and green
+  vocab: { m: '#A3262A', s: '#FCEFEE' },
+  grammar: { m: '#2B36C9', s: '#EEF0FD' },
+  expr: { m: '#0E6B4E', s: '#EAF6F1' },
+  talk: { m: '#0E1240', s: '#EEF0F8' },
+  writing: { m: '#B7791F', s: '#FFF6DE' },
+  practice: { m: '#C2541F', s: '#FFF1E8' },
   /** VIIZA ENGLISH red on its cream, as on the covers (admin/level2-book/_cover.tsx). */
   brand: { m: '#A3262A', s: '#FFF4E0' },
 } as const
@@ -343,7 +344,7 @@ export const WELCOME: L2Page = front('welcome', 'Welcome', 'Welcome', 'مرحب�
   ] },
   { t: 'bar', title: 'The colours of the book - ألوان الكتاب', icon: '🎨' },
   { t: 'cards', cols: 5, stack: true, items: [
-    ['🔤', 'Vocabulary', 'وردي'], ['💬', 'Expressions', 'أخضر'], ['🗣️', 'Conversation', 'بنفسجي'], ['📘', 'Grammar', 'أزرق'], ['✍️', 'Writing', 'برتقالي'], ['✏️', 'Practice', 'فيروزي'],
+    ['🔤', 'Vocabulary', 'أحمر'], ['💬', 'Expressions', 'أخضر'], ['🗣️', 'Conversation', 'كحلي'], ['📘', 'Grammar', 'أزرق'], ['✍️', 'Writing', 'زعفراني'], ['✏️', 'Practice', 'برتقالي'],
   ] },
 ])
 

@@ -163,7 +163,7 @@ const WELCOME: L2Page = front('welcome', 'Workbook', 'How to use this workbook',
   ] },
   { t: 'bar', title: 'The same colours as the book - ألوان الكتاب نفسها', icon: '🎨' },
   { t: 'cards', cols: 5, stack: true, items: [
-    ['🔤', 'Words', 'وردي'], ['💬', 'Expressions', 'أخضر'], ['📘', 'Grammar', 'أزرق'], ['✍️', 'Writing', 'برتقالي'], ['✏️', 'Practice', 'فيروزي'],
+    ['🔤', 'Words', 'أحمر'], ['💬', 'Expressions', 'أخضر'], ['📘', 'Grammar', 'أزرق'], ['✍️', 'Writing', 'زعفراني'], ['✏️', 'Practice', 'برتقالي'],
   ] },
 ])
 

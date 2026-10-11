@@ -23,8 +23,9 @@ import { QrLink } from '@/components/QrLink'
  * and PNG behave like the workbook's.
  */
 
-const FONTS_HREF = 'https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&family=Baloo+Bhaijaan+2:wght@500;600;700;800&family=Lalezar&family=Poppins:wght@400;500;600;700;800&family=Nunito:wght@500;600;700;800;900&display=swap'
-export const EN = "'Mali', 'Baloo Bhaijaan 2', sans-serif"
+const FONTS_HREF = 'https://fonts.googleapis.com/css2?family=Mali:wght@500;600;700&family=Baloo+Bhaijaan+2:wght@500;600;700;800&family=Lalezar&family=Poppins:wght@400;500;600;700;800&family=Nunito:wght@500;600;700;800;900&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&display=swap'
+/** English: Bricolage Grotesque, the type of the series' covers (LA KAART, PIIRMI, VIIZA ENGLISH). */
+export const EN = "'Bricolage Grotesque', 'Baloo Bhaijaan 2', sans-serif"
 /* A book can set its own faces with CSS variables on a parent element
  * (--book-ar, --book-head, --book-display, --book-display-weight); without
  * them the Level 1 book's faces apply. */
@@ -45,23 +46,31 @@ const GREY_TEXT = '#526079'
  * and --s to the next colour of PALETTE. `mono` prints everything black.
  */
 export const PALETTE = [
-  { m: '#2563EB', s: '#EFF5FF' }, // blue
-  { m: '#E11D48', s: '#FFF1F3' }, // rose
-  { m: '#0D9488', s: '#ECFBF8' }, // teal
-  { m: '#7C3AED', s: '#F4F0FF' }, // violet
-  { m: '#EA580C', s: '#FFF4EC' }, // orange
-  { m: '#16A34A', s: '#EEFBF2' }, // green
+  // the series palette of the covers: La Kaart blue, Viiza red, Piirmi green, deep saffron, orange, navy
+  { m: '#2B36C9', s: '#EEF0FD' }, // blue
+  { m: '#A3262A', s: '#FCEFEE' }, // red
+  { m: '#0E6B4E', s: '#EAF6F1' }, // green
+  { m: '#B7791F', s: '#FFF6DE' }, // saffron
+  { m: '#C2541F', s: '#FFF1E8' }, // orange
+  { m: '#0E1240', s: '#EEF0F8' }, // navy
 ]
-const INK = '#1E2A5C', BRAND = '#2B3990'
+const INK = '#0E1240', BRAND = '#2B36C9'
 function vars(mono: boolean, colour: { m: string; s: string }, ink = INK): CSSProperties {
   return (mono
     ? { '--m': '#000', '--s': '#F3F4F6', '--k': '#000', '--tip': '#F3F4F6', '--e': 'grayscale(1) contrast(1.15)', '--hl': '#000', '--key': '#000', '--key-s': '#E5E7EB' }
     : { '--m': colour.m, '--s': colour.s, '--k': ink, '--tip': '#FFF5CF', '--e': 'none' }) as unknown as CSSProperties
 }
-/** A clean sans for books for adults (the Level 1 book keeps the friendlier Mali). */
+/** A clean sans for books for adults. */
 export const SANS = "'Poppins', 'Baloo Bhaijaan 2', sans-serif"
 const colourVars = (mono: boolean, c: { m: string; s: string }): CSSProperties => (mono ? {} : { '--m': c.m, '--s': c.s } as CSSProperties)
-export const lessonColour = (i: number) => PALETTE[((i % PALETTE.length) + PALETTE.length) % PALETTE.length]
+/** The first palette (blue, rose, teal, violet, orange, green) and the Mali face, for books outside the series (the Bac pack). */
+export const CLASSIC_PALETTE = [
+  { m: '#2563EB', s: '#EFF5FF' }, { m: '#E11D48', s: '#FFF1F3' }, { m: '#0D9488', s: '#ECFBF8' },
+  { m: '#7C3AED', s: '#F4F0FF' }, { m: '#EA580C', s: '#FFF4EC' }, { m: '#16A34A', s: '#EEFBF2' },
+]
+export const CLASSIC_EN = "'Mali', 'Baloo Bhaijaan 2', sans-serif"
+const pick = (pal: { m: string; s: string }[], i: number) => pal[((i % pal.length) + pal.length) % pal.length]
+export const lessonColour = (i: number) => pick(PALETTE, i)
 const MONO = THEMES.find(t => t.id === 'mono') ?? THEMES[0]
 const pad = (n: number) => String(n).padStart(2, '0')
 
@@ -84,6 +93,8 @@ export interface BookInfo {
   code: string | null; showCode: boolean
   /** Optional brand: the dark ink (header bar, footer, names) and the English face. */
   ink?: string; fontEn?: string
+  /** Section colours in turn (the series palette when absent). */
+  palette?: { m: string; s: string }[]
 }
 
 export const DEFAULT_INFO: BookInfo = {
@@ -286,12 +297,12 @@ export function LessonPage({ info, lesson, pageNo, talkNo, exNo = new Map(), fil
   sections.forEach(s => { if (s[0].t === 'bar') barNo.set(s[0], barNo.size + 1) })
   const base = pageNo - 1
   return (
-    <Frame info={info} colour={colour ?? lessonColour(base)} label={`${lesson.tag ?? `الدرس ${lesson.n}`} — ${lesson.titleAr} · صفحة ${pageNo}`} filename={filename}>
+    <Frame info={info} colour={colour ?? pick(info.palette ?? PALETTE, base)} label={`${lesson.tag ?? `الدرس ${lesson.n}`} — ${lesson.titleAr} · صفحة ${pageNo}`} filename={filename}>
       <LessonHeader info={info} n={lesson.n} tag={lesson.tag} qr={qr} />
       <div ref={bodyRef} className="lb-body absolute inset-x-[24px] overflow-hidden" style={{ top: 84, bottom: 38 }} dir="ltr">
         <div ref={innerRef} className="flex flex-col gap-[13px]">
           {sections.map((sec, k) => (
-            <section key={k} className="flex flex-col gap-[7px]" style={colourVars(info.mono, toneOf?.(sec[0]) ?? colour ?? lessonColour(base + k))}>
+            <section key={k} className="flex flex-col gap-[7px]" style={colourVars(info.mono, toneOf?.(sec[0]) ?? colour ?? pick(info.palette ?? PALETTE, base + k))}>
               {sec.map((b, i) => <BlockView key={i} b={b} ctx={{ talkNo, barNo, exNo }} />)}
             </section>
           ))}

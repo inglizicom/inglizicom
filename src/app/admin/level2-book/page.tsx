@@ -12,7 +12,7 @@ import { Imprint } from '../everyday-book/_matter'
 /**
  * /admin/level2-book — Level 2 «تكلّم واكتب بدقّة» (A2 → B1): conversational
  * English with accuracy and writing, in the house style of the textbook but
- * with an adult English face (Nunito; Arabic keeps Baloo Bhaijaan 2), a navy
+ * with an adult English face (Bricolage Grotesque, the VIIZA covers' type; Arabic keeps Baloo Bhaijaan 2), a navy
  * cover, and a colour key of its own: expressions green, conversation
  * violet, grammar blue, writing orange, practice teal. The grammar of each
  * unit is printed in blue wherever it is used. The content lives in
@@ -23,7 +23,7 @@ import { Imprint } from '../everyday-book/_matter'
 const INFO_KEY = 'level2-book-info-v2'
 const COVER_KEY = 'level2-book-cover-v1'
 
-const EN_FONT = "'Nunito', 'Baloo Bhaijaan 2', sans-serif"
+const EN_FONT = "'Bricolage Grotesque', 'Baloo Bhaijaan 2', sans-serif"
 const BOOK_INFO: BookInfo = {
   ...DEFAULT_INFO, title: 'تكلّم واكتب بدقّة', level: 'VIIZA · A2 → B1', ink: '#0E1240', fontEn: EN_FONT,
 }
@@ -32,9 +32,9 @@ const BOOK_COVER: CoverInfo = {
   titleAr1: 'تكلّم واكتب', titleAr2: 'بدقّة وثقة', titleEn1: 'Speak & Write', titleEn2: 'with Confidence',
 }
 
-/** Nunito for English (headings too), Baloo Bhaijaan 2 for Arabic; highlights in the colour key. */
+/** Bricolage Grotesque (the covers' type) for English (headings too), Baloo Bhaijaan 2 for Arabic; highlights in the colour key. */
 const PAGE_VARS = {
-  '--book-en': "'Nunito'", '--book-head': "'Nunito', 'Baloo Bhaijaan 2'", '--book-ar': "'Baloo Bhaijaan 2'",
+  '--book-en': "'Bricolage Grotesque'", '--book-head': "'Bricolage Grotesque', 'Baloo Bhaijaan 2'", '--book-ar': "'Baloo Bhaijaan 2'",
   '--book-display': "'Baloo Bhaijaan 2'", '--book-display-weight': '800',
   '--hl': L2_TONES.grammar.m, '--key': L2_TONES.expr.m, '--key-s': L2_TONES.expr.s,
   // Cards with more contrast: an edge in the section colour and a soft shadow.

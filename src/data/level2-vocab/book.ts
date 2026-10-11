@@ -9,12 +9,12 @@ import { LEVEL2_VOCAB, type L2VocabBookUnit } from './index.ts'
  * colour key as the Level 1 vocabulary book, one step up:
  *
  * Six pages a unit, always in this order, each with its colour:
- *   1 Picture words (rose)  — ten picture tiles, then each word in a sentence
- *   2 Word groups (teal)    — three themed groups of ten
- *   3 Word power (green)    — words that go together, word families, practice
+ *   1 Picture words (red)   — ten picture tiles, then each word in a sentence
+ *   2 Word groups (green)   — three themed groups of ten
+ *   3 Word power (saffron)  — words that go together, word families, practice
  *   4 Practice (orange)     — match the meanings, complete the sentences,
  *                             sort words into their groups
- *   5 Let's talk (violet)   — two conversations with their Arabic, then
+ *   5 Let's talk (navy)     — two conversations with their Arabic, then
  *                             other ways to ask and answer
  *   6 Read (blue)           — a short text, its key words, true / false,
  *                             questions, your turn
@@ -26,12 +26,13 @@ export type L2VKind = VKind | 'power'
 export type L2VPage = Lesson & { kind: L2VKind; unit?: number }
 
 export const L2_V_TONES = {
-  words: { m: '#E11D48', s: '#FFF1F3' },
-  groups: { m: '#0D9488', s: '#ECFBF8' },
-  power: { m: '#15803D', s: '#EEFBF2' },
-  practice: { m: '#EA580C', s: '#FFF4EC' },
-  talk: { m: '#7C3AED', s: '#F4F0FF' },
-  read: { m: '#2563EB', s: '#EFF5FF' },
+  // the series palette of the VIIZA ENGLISH covers
+  words: { m: '#A3262A', s: '#FCEFEE' },
+  groups: { m: '#0E6B4E', s: '#EAF6F1' },
+  power: { m: '#B7791F', s: '#FFF6DE' },
+  practice: { m: '#C2541F', s: '#FFF1E8' },
+  talk: { m: '#0E1240', s: '#EEF0F8' },
+  read: { m: '#2B36C9', s: '#EEF0FD' },
   brand: { m: '#A3262A', s: '#FFF4E0' },
 } as const
 export type L2VTone = keyof typeof L2_V_TONES
@@ -131,8 +132,8 @@ export function buildLevel2VocabBook() {
     ] },
     { t: 'bar', title: 'Every unit, six pages - كل وحدة في ست صفحات', icon: '🎨' },
     { t: 'cards', cols: 6, stack: true, items: [
-      ['🖼️', 'Picture words', 'وردي'], ['🗂️', 'Word groups', 'فيروزي'], ['⚡', 'Word power', 'أخضر'],
-      ['✏️', 'Practice', 'برتقالي'], ['🗣️', "Let's talk", 'بنفسجي'], ['📖', 'Read', 'أزرق'],
+      ['🖼️', 'Picture words', 'أحمر'], ['🗂️', 'Word groups', 'أخضر'], ['⚡', 'Word power', 'زعفراني'],
+      ['✏️', 'Practice', 'برتقالي'], ['🗣️', "Let's talk", 'كحلي'], ['📖', 'Read', 'أزرق'],
     ] },
   ])
 

@@ -22,7 +22,7 @@ import { Imprint } from '../everyday-book/_matter'
 const INFO_KEY = 'level2-workbook-info-v2'
 const COVER_KEY = 'level2-workbook-cover-v1'
 
-const EN_FONT = "'Nunito', 'Baloo Bhaijaan 2', sans-serif"
+const EN_FONT = "'Bricolage Grotesque', 'Baloo Bhaijaan 2', sans-serif"
 const BOOK_INFO: BookInfo = {
   ...DEFAULT_INFO, title: 'تكلّم واكتب بدقّة · دفتر التمارين', level: 'VIIZA · Workbook', ink: '#0E1240', fontEn: EN_FONT,
 }
@@ -31,9 +31,9 @@ const BOOK_COVER: CoverInfo = {
   titleAr1: 'تكلّم واكتب بدقّة', titleAr2: 'دفتر التمارين', titleEn1: 'Speak & Write', titleEn2: 'Workbook',
 }
 
-/** The textbook's page variables: Nunito for English, Baloo Bhaijaan 2 for Arabic, cards with an edge and a shadow. */
+/** The textbook's page variables: Bricolage Grotesque (the covers' type) for English, Baloo Bhaijaan 2 for Arabic, cards with an edge and a shadow. */
 const PAGE_VARS = {
-  '--book-en': "'Nunito'", '--book-head': "'Nunito', 'Baloo Bhaijaan 2'", '--book-ar': "'Baloo Bhaijaan 2'",
+  '--book-en': "'Bricolage Grotesque'", '--book-head': "'Bricolage Grotesque', 'Baloo Bhaijaan 2'", '--book-ar': "'Baloo Bhaijaan 2'",
   '--book-display': "'Baloo Bhaijaan 2'", '--book-display-weight': '800',
   '--hl': L2_TONES.grammar.m, '--key': L2_TONES.expr.m, '--key-s': L2_TONES.expr.s,
   '--card-bw': '1.5px', '--card-shadow': '0 1px 2px rgba(15, 30, 61, 0.10), 0 6px 16px rgba(15, 30, 61, 0.12)',
