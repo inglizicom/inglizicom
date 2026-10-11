@@ -4,6 +4,7 @@ import { MODULE_1, REVIEW_1 } from './module-1.ts'
 import { MODULE_2, REVIEW_2 } from './module-2.ts'
 import { MODULE_3, REVIEW_3 } from './module-3.ts'
 import { MODULE_4, REVIEW_4 } from './module-4.ts'
+import { MODULE_5, REVIEW_5 } from './module-5.ts'
 import { INDEX, MODULES } from './plan.ts'
 import { plannerPages, type PlannerConfig } from '../study-planner.ts'
 
@@ -26,9 +27,9 @@ export { INDEX, MODULES } from './plan.ts'
 export type { L2Unit } from './types.ts'
 
 /** The units written so far, in order. */
-export const L2_UNITS: L2Unit[] = [...MODULE_1, ...MODULE_2, ...MODULE_3, ...MODULE_4]
+export const L2_UNITS: L2Unit[] = [...MODULE_1, ...MODULE_2, ...MODULE_3, ...MODULE_4, ...MODULE_5]
 /** Each module's review page, once its units are written. */
-const REVIEWS: Record<number, Block[]> = { 1: REVIEW_1, 2: REVIEW_2, 3: REVIEW_3, 4: REVIEW_4 }
+const REVIEWS: Record<number, Block[]> = { 1: REVIEW_1, 2: REVIEW_2, 3: REVIEW_3, 4: REVIEW_4, 5: REVIEW_5 }
 
 export type L2Kind = 'welcome' | 'contents' | 'planner' | 'opener' | 'vocab' | 'expressions' | 'talk' | 'grammar' | 'speaking' | 'writing' | 'check' | 'review' | 'key'
 export type L2Page = Lesson & { kind: L2Kind; unit?: number; module?: number }
@@ -365,18 +366,28 @@ export const L2_PLANNER: PlannerConfig = {
 /**
  * The answer key's pages, filled by the room each exercise takes (its answers
  * run on, about 90 characters a printed line), not by a count: a key of
- * sentences needs more room than a key of letters.
+ * sentences needs more room than a key of letters. The same number of pages
+ * is then filled evenly, so the last one is not left almost blank.
  */
 export function packKey<T extends { answers: string[] }>(items: T[], first = 46, rest = 52): T[][] {
-  const pages: T[][] = [[]]
-  let room = first
-  for (const it of items) {
-    const lines = 1 + Math.ceil(it.answers.join(' · ').length / 90)
-    if (lines > room && pages.at(-1)!.length) { pages.push([]); room = rest }
-    pages.at(-1)!.push(it)
-    room -= lines
+  const size = (it: T) => 1 + Math.ceil(it.answers.join(' · ').length / 90)
+  const fill = (firstRoom: number, restRoom: number) => {
+    const pages: T[][] = [[]]
+    let room = firstRoom
+    for (const it of items) {
+      if (size(it) > room && pages.at(-1)!.length) { pages.push([]); room = restRoom }
+      pages.at(-1)!.push(it)
+      room -= size(it)
+    }
+    return pages
   }
-  return pages
+  const full = fill(first, rest)
+  const even = Math.ceil(items.reduce((n, it) => n + size(it), 0) / full.length)
+  for (let slack = 0; even + slack < rest; slack++) {
+    const pages = fill(Math.min(first, even + slack), even + slack)
+    if (pages.length <= full.length) return pages
+  }
+  return full
 }
 
 /** Every page in book order, the contents and the answer key built from it. */
