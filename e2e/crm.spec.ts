@@ -48,6 +48,7 @@ const FOUNDER_PAGES = [
   '/admin/level2-workbook',
   '/admin/level1-cards',
   '/admin/level1-vocab',
+  '/admin/level2-vocab',
   '/admin/covers',
 ]
 

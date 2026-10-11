@@ -1,0 +1,380 @@
+import { d, g, pairs, tr, v } from '../workbook/vocab-book.ts'
+import { power, type L2VocabUnit } from './types.ts'
+
+/** Level 2 vocabulary book, units 1–5 (see index.ts). */
+export const UNITS_1_5: L2VocabUnit[] = [
+  /* ── 1 · Meeting someone new ─────────────────────────────────────── */
+  { n: 1, icon: '🤝',
+    vocab: v(
+      '🙋 | introduce | يقدّم | Let me introduce my friend Yasmine. | دعني أقدّم لك صديقتي ياسمين.',
+      '🤝 | get to know | يتعرّف على | I want to get to know my new colleagues. | أريد أن أتعرّف على زملائي الجدد.',
+      '🔗 | have in common | يشترك في | We have a lot in common. We both love football. | نشترك في أشياء كثيرة، فكلانا يحبّ كرة القدم.',
+      '🎨 | hobby | هواية | My favourite hobby is painting. | هوايتي المفضّلة هي الرسم.',
+      '😄 | outgoing | اجتماعي | Salma is very outgoing. She talks to everyone. | سلمى اجتماعية جدًّا، تتحدّث مع الجميع.',
+      '🏡 | hometown | مسقط الرأس | My hometown is Taroudant. | مسقط رأسي هو تارودانت.',
+      '⏳ | spare time | وقت الفراغ | What do you do in your spare time? | ماذا تفعل في وقت فراغك؟',
+      "📲 | keep in touch | يبقى على تواصل | Let's keep in touch on WhatsApp. | لنبقَ على تواصل عبر واتساب.",
+      "🎸 | be into | يهتمّ كثيرًا بـ | I'm really into music. | أنا مهتمّ جدًّا بالموسيقى.",
+      '🎓 | graduate | يتخرّج | She graduated from university last year. | تخرّجت من الجامعة السنة الماضية.',
+    ),
+    groups: [
+      g('💼', 'Jobs', 'الوظائف', 'lawyer=محامٍ|architect=مهندس معماري|dentist=طبيب أسنان|journalist=صحفي|electrician=كهربائي|plumber=سبّاك|tailor=خيّاط|farmer=فلّاح|police officer=شرطي|pilot=طيّار'),
+      g('🎯', 'Free-time activities', 'أنشطة وقت الفراغ', 'go hiking=يمارس المشي في الجبال|go jogging=يركض|play chess=يلعب الشطرنج|do yoga=يمارس اليوغا|go fishing=يصطاد السمك|surf=يركب الأمواج|bake=يخبز الحلويات|knit=يحيك الصوف|play the oud=يعزف على العود|volunteer=يتطوّع'),
+      g('💬', 'Small talk', 'أحاديث خفيفة', 'Where are you from?=من أين أنت؟|What do you do?=ماذا تعمل؟|How long have you been here?=منذ متى أنت هنا؟|Small world!=ما أصغر العالم!|What a coincidence!=يا لها من صدفة!|Nice to meet you.=تشرّفت بمعرفتك.|Likewise.=وأنا كذلك.|By the way…=بالمناسبة…|Anyway…=على كل حال…|Take care.=اعتنِ بنفسك.'),
+    ],
+    talks: [
+      d('Friendly | ودّي', 'At a wedding | في حفل زفاف', 'Hamza | Leila', [
+        ["Hi, I don't think we've met. I'm Hamza, the groom's cousin.", 'مرحبًا، لا أظنّ أننا التقينا. أنا حمزة، ابن عمّ العريس.'],
+        ["Nice to meet you. I'm Leila. I work with the bride.", 'تشرّفت بمعرفتك. أنا ليلى، أعمل مع العروس.'],
+        ['Really? What do you do?', 'حقًّا؟ ماذا تعملين؟'],
+        ["I'm an architect. And you?", 'أنا مهندسة معمارية. وأنت؟'],
+        ["I'm a journalist. And where are you from?", 'أنا صحفي. ومن أين أنتِ؟'],
+        ['From Taroudant. My family still lives there.', 'من تارودانت، وما زالت عائلتي تعيش هناك.'],
+      ]),
+      d('Formal | رسمي', 'A new colleague | زميلة جديدة', 'Mr Idrissi | Nora', [
+        ['Good morning. You must be Nora, our new accountant.', 'صباح الخير. لا بدّ أنك نورة، محاسبتنا الجديدة.'],
+        ["Yes, that's right. Pleased to meet you, Mr Idrissi.", 'نعم، هذا صحيح. سعيدة بلقائك يا سيد الإدريسي.'],
+        ['Welcome to the team. Is this your first job?', 'مرحبًا بك في الفريق. هل هذه وظيفتك الأولى؟'],
+        ['No, I worked for a bank in Rabat for three years.', 'لا، عملت في بنك بالرباط لمدة ثلاث سنوات.'],
+        ['Excellent. Let me introduce you to the others.', 'ممتاز. دعيني أقدّمك إلى الآخرين.'],
+        ["Thank you. I'm looking forward to getting to know everyone.", 'شكرًا. أتطلّع إلى التعرّف على الجميع.'],
+      ]),
+    ],
+    ask: tr([
+      ['What do you do in your spare time?', 'ماذا تفعل في وقت فراغك؟'],
+      ['Where is your hometown?', 'أين مسقط رأسك؟'],
+      ['How did you two meet?', 'كيف تعارفتما؟'],
+      ['What are you into these days?', 'بماذا تهتمّ هذه الأيام؟'],
+    ]),
+    answer: tr([
+      ['I usually go hiking with friends.', 'عادةً أمارس المشي في الجبال مع أصدقائي.'],
+      ["It's a small town near Agadir.", 'إنها بلدة صغيرة قرب أكادير.'],
+      ['We met at university.', 'تعارفنا في الجامعة.'],
+      ["I'm really into cooking.", 'أنا مهتمّ جدًّا بالطبخ.'],
+    ]),
+    reading: {
+      icon: '📱', title: 'Friends from a language app', titleAr: 'أصدقاء من تطبيق لغات',
+      text: "Anas is a 24-year-old engineer from Meknes. Last year, he wanted to improve his English, so he joined a language app. On the app, he got to know Emma, a teacher from Manchester who is learning Arabic. At first, they only sent messages. Then they started video calls every Sunday. They soon found that they had a lot in common: they both love old films, hiking and cooking. Anas teaches Emma Moroccan recipes, and Emma corrects his English. This summer, Emma is visiting Morocco for the first time. Anas is going to show her his hometown and introduce her to his family. 'We were strangers,' says Anas, 'and now we're good friends.'",
+      gloss: pairs('improve=يحسّن|join=ينضمّ إلى|at first=في البداية|recipe=وصفة|stranger=غريب'),
+      tf: [
+        { s: 'Emma is a teacher from Manchester.', ok: true },
+        { s: 'Anas and Emma met at a wedding.', ok: false },
+        { s: 'Emma has visited Morocco many times.', ok: false },
+      ],
+      qs: [
+        { q: 'What do Anas and Emma have in common?', a: 'Old films, hiking and cooking.' },
+        { q: 'What does Anas teach Emma?', a: 'Moroccan recipes.' },
+      ],
+    },
+    power: power(
+      'make friends=يكوّن صداقات|make a good impression=يترك انطباعًا جيدًا|have a chat=يدردش|share an interest=يشترك في اهتمام|break the ice=يكسر الجليد|keep in contact=يبقى على اتصال|meet by chance=يلتقي صدفةً|get on well=يتفاهم جيدًا|lose touch=ينقطع التواصل|exchange numbers=يتبادل الأرقام',
+      [['know', 'knowledge', 'knowledgeable'], ['communicate', 'communication', 'communicative'], ['create', 'creation', 'creative'], ['relax', 'relaxation', 'relaxed']],
+      [
+        ['Leila is very ___. She paints and writes poems. (create)', 'creative'],
+        ['Good ___ is important in a team. (communicate)', 'communication'],
+        ['My grandfather has a lot of ___ about plants. (know)', 'knowledge'],
+        ['I always feel ___ after the hammam. (relax)', 'relaxed'],
+        ["Let me ___ myself. I'm Hamza. (introduction)", 'introduce'],
+      ],
+    ) },
+
+  /* ── 2 · Then and now ────────────────────────────────────────────── */
+  { n: 2, icon: '🕰️',
+    vocab: v(
+      '📼 | cassette | شريط كاسيت | My father still has his old cassettes. | ما زال أبي يحتفظ بأشرطة الكاسيت القديمة.',
+      '☎️ | landline | الهاتف الثابت | We only had a landline at home. | كان لدينا هاتف ثابت فقط في البيت.',
+      '📺 | black-and-white TV | تلفاز بالأبيض والأسود | My grandparents had a black-and-white TV. | كان لدى أجدادي تلفاز بالأبيض والأسود.',
+      '✉️ | letter | رسالة | People used to write a letter to their families. | كان الناس يكتبون الرسائل إلى عائلاتهم.',
+      '🧺 | by hand | باليد | My grandmother washed clothes by hand. | كانت جدّتي تغسل الملابس باليد.',
+      '🏘️ | village | قرية | My father grew up in a small village. | نشأ أبي في قرية صغيرة.',
+      '🐴 | donkey | حمار | They carried water on a donkey. | كانوا يحملون الماء على حمار.',
+      '🕯️ | candle | شمعة | There was no light, so we used a candle. | لم يكن هناك ضوء، فكنّا نستعمل شمعة.',
+      '💡 | electricity | الكهرباء | Electricity arrived in our village in 1995. | وصلت الكهرباء إلى قريتنا سنة 1995.',
+      '📸 | memory | ذكرى | I have a happy memory of that summer. | لديّ ذكرى سعيدة عن ذلك الصيف.',
+    ),
+    groups: [
+      g('🧸', 'Childhood games', 'ألعاب الطفولة', 'tag=لعبة المطاردة|hopscotch=لعبة الحجلة|spinning top=الخذروف|kite=طائرة ورقية|cards=أوراق اللعب|dolls=الدمى|football in the street=كرة القدم في الشارع|climb trees=يتسلّق الأشجار|tell stories=يحكي القصص|board games=ألعاب الطاولة'),
+      g('📱', 'Technology then and now', 'التكنولوجيا بين الأمس واليوم', 'typewriter=آلة كاتبة|radio=المذياع|record player=جهاز الأسطوانات|camera film=فيلم الكاميرا|phone box=كشك الهاتف|smartphone=هاتف ذكي|laptop=حاسوب محمول|tablet=لوح إلكتروني|download=يحمّل|stream=يبثّ مباشرة'),
+      g('⏰', 'Time expressions', 'تعابير الزمن', 'when I was young=عندما كنت صغيرًا|years ago=منذ سنوات|in the past=في الماضي|these days=هذه الأيام|back then=آنذاك|as a child=في طفولتي|for a long time=لمدة طويلة|over the years=على مرّ السنين|once upon a time=كان يا ما كان|the old days=الأيام الخوالي'),
+    ],
+    talks: [
+      d('Family | عائلي', 'Grandpa remembers | الجدّ يتذكّر', 'Rim | Grandpa', [
+        ['Grandpa, did you have a TV when you were young?', 'يا جدّي، هل كان لديك تلفاز عندما كنت صغيرًا؟'],
+        ['No! We used to listen to the radio every evening.', 'لا! كنّا نستمع إلى المذياع كل مساء.'],
+        ['And how did you call your friends?', 'وكيف كنت تتصل بأصدقائك؟'],
+        ["We didn't call them. We just went to their houses.", 'لم نكن نتصل بهم، كنّا نذهب إلى بيوتهم فقط.'],
+        ['Were people happier back then?', 'هل كان الناس أسعد آنذاك؟'],
+        ['Life was harder, but people had more time for each other.', 'كانت الحياة أصعب، لكن الناس كان لديهم وقت أكثر لبعضهم.'],
+      ]),
+      d('Friendly | ودّي', 'Old photos | صور قديمة', 'Ilyas | Siham', [
+        ['Look at this photo! Is that you?', 'انظري إلى هذه الصورة! هل هذه أنتِ؟'],
+        ['Yes, I was eight. We used to live in Kenitra.', 'نعم، كان عمري ثماني سنوات. كنّا نسكن في القنيطرة.'],
+        ['Your hair was so long!', 'كان شعرك طويلًا جدًّا!'],
+        ['I know. My mother used to plait it every morning.', 'أعرف. كانت أمي تضفره كل صباح.'],
+        ['Do you still have that red bike?', 'هل ما زالت لديك تلك الدرّاجة الحمراء؟'],
+        ['No, I gave it to my little cousin years ago.', 'لا، أعطيتها لابن عمّي الصغير منذ سنوات.'],
+      ]),
+    ],
+    ask: tr([
+      ['What did you use to do after school?', 'ماذا كنت تفعل بعد المدرسة؟'],
+      ['What was your favourite game?', 'ما كانت لعبتك المفضّلة؟'],
+      ['How has your town changed?', 'كيف تغيّرت مدينتك؟'],
+      ['Do you miss the old days?', 'هل تشتاق إلى الأيام الخوالي؟'],
+    ]),
+    answer: tr([
+      ['I used to play football in the street.', 'كنت ألعب كرة القدم في الشارع.'],
+      ['I loved flying kites on the beach.', 'كنت أحبّ تطيير الطائرات الورقية على الشاطئ.'],
+      ['There are more buildings and cars now.', 'هناك مبانٍ وسيارات أكثر الآن.'],
+      ['Sometimes. Life was simpler then.', 'أحيانًا. كانت الحياة أبسط آنذاك.'],
+    ]),
+    reading: {
+      icon: '🏔️', title: "My grandmother's village", titleAr: 'قرية جدّتي',
+      text: "My grandmother, Lalla Aicha, grew up in a small village in the Atlas Mountains. When she was a child, there was no electricity and no running water. Every morning, she used to walk to the spring with her sisters and carry water home on a donkey. In the evenings, the family sat around a candle, and her father told stories. There was no school in the village, so she never learned to read. Today, the village has electricity, a school and even a small café with wifi. Most young people have moved to Marrakech. 'Life is easier now,' my grandmother says, 'but the village was full of life back then.'",
+      gloss: pairs('running water=الماء الجاري|spring=عين ماء|carry=يحمل|never=أبدًا|full of life=مفعم بالحياة'),
+      tf: [
+        { s: 'Lalla Aicha grew up in the Atlas Mountains.', ok: true },
+        { s: 'She went to school in her village.', ok: false },
+        { s: 'The village has a café today.', ok: true },
+      ],
+      qs: [
+        { q: 'How did the family carry water?', a: 'On a donkey.' },
+        { q: 'Where have most young people moved to?', a: 'To Marrakech.' },
+      ],
+    },
+    power: power(
+      'bring back memories=يعيد الذكريات|keep a tradition=يحافظ على تقليد|the good old days=الزمن الجميل|change completely=يتغيّر تمامًا|lose a habit=يفقد عادة|look back on=يتذكّر الماضي|a big difference=فرق كبير|a simple life=حياة بسيطة|grow older=يكبر في السن|stay the same=يبقى كما هو',
+      [['remember', 'memory', 'memorable'], ['develop', 'development', 'developed'], ['differ', 'difference', 'different'], ['simplify', 'simplicity', 'simple']],
+      [
+        ['Our wedding day was very ___. (memory)', 'memorable'],
+        ['There is a big ___ between life then and now. (differ)', 'difference'],
+        ['Tangier has seen a lot of ___. (develop)', 'development'],
+        ['Life in the village was very ___. (simplicity)', 'simple'],
+        ["I can't ___ my first teacher's name. (memory)", 'remember'],
+      ],
+    ) },
+
+  /* ── 3 · People around me ────────────────────────────────────────── */
+  { n: 3, icon: '👨‍👩‍👧',
+    vocab: v(
+      '👀 | look like | يشبه | You look like your father. | أنت تشبه أباك.',
+      '👨‍👦 | take after | يشبه في الطبع | I take after my mother. We are both calm. | أشبه أمي في طبعها، فكلانا هادئ.',
+      '🤝 | get on with | يتفاهم مع | I get on with my sister very well. | أتفاهم مع أختي جيدًا.',
+      '🎁 | generous | كريم | My uncle is generous. He always brings presents. | عمّي كريم، يحضر الهدايا دائمًا.',
+      '🐐 | stubborn | عنيد | My brother is stubborn. He never changes his mind. | أخي عنيد، لا يغيّر رأيه أبدًا.',
+      '🥺 | sensitive | حسّاس | She is sensitive. She cries at sad films. | إنها حسّاسة، تبكي عند مشاهدة الأفلام الحزينة.',
+      '😁 | cheerful | مرِح | Our neighbour is always cheerful. | جارنا مرِح دائمًا.',
+      '🔸 | freckles | نمش | The little girl has red hair and freckles. | للبنت الصغيرة شعر أحمر ونمش.',
+      '😊 | dimples | غمّازات | He has dimples when he smiles. | تظهر غمّازاته عندما يبتسم.',
+      '🧔 | moustache | شارب | My grandfather has a white moustache. | لجدّي شارب أبيض.',
+    ),
+    groups: [
+      g('🧑', 'Appearance', 'المظهر', 'wavy hair=شعر مموّج|dark skin=بشرة سمراء|fair skin=بشرة فاتحة|blue eyes=عيون زرقاء|pale=شاحب|good-looking=وسيم|smart=أنيق المظهر|scar=ندبة|ponytail=ذيل حصان|overweight=بدين'),
+      g('💭', 'Character', 'الشخصية', 'polite=مؤدّب|rude=وقح|selfish=أناني|brave=شجاع|clever=ذكي|calm=هادئ|moody=متقلّب المزاج|jealous=غيور|easy-going=سهل المعشر|serious=جادّ'),
+      g('👪', 'Relationships', 'العلاقات', 'stepmother=زوجة الأب|stepfather=زوج الأم|twin=توأم|half-brother=أخ غير شقيق|relative=قريب|brother-in-law=صهر|sister-in-law=زوجة الأخ|fiancé=خطيب|flatmate=شريك السكن|grandchild=حفيد'),
+    ],
+    talks: [
+      d('Friendly | ودّي', 'Who is that? | من ذاك؟', 'Kawtar | Yassir', [
+        ['Who is the tall man with the moustache?', 'من الرجل الطويل ذو الشارب؟'],
+        ["That's my uncle Driss. He's very generous.", 'ذاك عمّي إدريس، إنه كريم جدًّا.'],
+        ['He looks like your father.', 'إنه يشبه أباك.'],
+        ['Yes, they are twins! But they are very different.', 'نعم، إنهما توأمان! لكنهما مختلفان جدًّا.'],
+        ['Really? How?', 'حقًّا؟ كيف؟'],
+        ['My father is calm, but my uncle is cheerful and loud.', 'أبي هادئ، لكن عمّي مرِح وصوته عالٍ.'],
+      ]),
+      d('Family | عائلي', 'A new baby | مولودة جديدة', 'Aunt Fatima | Hiba', [
+        ['Let me see the baby! Oh, she has dimples!', 'دعيني أرى المولودة! آه، لها غمّازات!'],
+        ['Yes, she takes after her father.', 'نعم، إنها تشبه أباها.'],
+        ['And she has your eyes.', 'ولها عيناك.'],
+        ['Everyone says that! Was I like her as a baby?', 'الجميع يقولون ذلك! هل كنت مثلها عندما كنت رضيعة؟'],
+        ['Exactly like her. You were a very cheerful baby.', 'تمامًا مثلها. كنت رضيعة مرحة جدًّا.'],
+        ['I hope she is easy-going too!', 'أتمنّى أن تكون سهلة الطبع أيضًا!'],
+      ]),
+    ],
+    ask: tr([
+      ['Who do you take after?', 'من تشبه في طبعك؟'],
+      ['What does your best friend look like?', 'كيف يبدو صديقك المقرّب؟'],
+      ['Do you get on with your neighbours?', 'هل تتفاهم مع جيرانك؟'],
+      ['What is your brother like?', 'كيف هو أخوك في طبعه؟'],
+    ]),
+    answer: tr([
+      ['I take after my father. We are both stubborn!', 'أشبه أبي، فكلانا عنيد!'],
+      ["She's tall, with wavy hair and freckles.", 'إنها طويلة، بشعر مموّج ونمش.'],
+      ['Yes, they are very kind and polite.', 'نعم، إنهم لطفاء ومؤدّبون جدًّا.'],
+      ["He's clever, but a bit moody.", 'إنه ذكي، لكنه متقلّب المزاج قليلًا.'],
+    ]),
+    reading: {
+      icon: '👭', title: 'Two sisters, two characters', titleAr: 'أختان وطبعان',
+      text: "Nisrine and Hajar are sisters from Oujda, but they are very different. Nisrine, the older one, is tall and slim, with straight black hair. She takes after her father: she is calm, serious and a little stubborn. She works as a lawyer and always plans everything. Hajar is short, with curly hair, freckles and a big smile. She is cheerful, generous and very sensitive. She cries at every film! She is a nurse and loves working with children. The two sisters argue sometimes, but they get on very well. 'We are like salt and sugar,' says Hajar. 'Different, but we need each other.'",
+      gloss: pairs('older=الأكبر سنًّا|plan=يخطّط|smile=ابتسامة|argue=يتشاجر|need=يحتاج'),
+      tf: [
+        { s: 'Nisrine is the older sister.', ok: true },
+        { s: 'Hajar takes after her father.', ok: false },
+        { s: 'The sisters never argue.', ok: false },
+      ],
+      qs: [
+        { q: "What is Nisrine's job?", a: 'She is a lawyer.' },
+        { q: 'Why does Hajar cry at films?', a: 'Because she is very sensitive.' },
+      ],
+    },
+    power: power(
+      'have a sense of humour=يتمتّع بروح الدعابة|lose your temper=يفقد أعصابه|keep a secret=يحفظ السرّ|tell the truth=يقول الحقيقة|tell a lie=يكذب|make someone laugh=يُضحك شخصًا|a close friend=صديق مقرّب|a big family=عائلة كبيرة|take care of=يعتني بـ|look after=يرعى',
+      [['care', 'care', 'careful'], ['help', 'help', 'helpful'], ['please', 'pleasure', 'pleasant'], ['bore', 'boredom', 'boring']],
+      [
+        ['Be ___ with that glass! (care)', 'careful'],
+        ['The receptionist was very ___. (help)', 'helpful'],
+        ['It was a ___ evening with friends. (please)', 'pleasant'],
+        ["This film is so ___. I'm falling asleep! (bore)", 'boring'],
+        ["It's a ___ to meet you. (please)", 'pleasure'],
+      ],
+    ) },
+
+  /* ── 4 · Home and neighbourhood ──────────────────────────────────── */
+  { n: 4, icon: '🏠',
+    vocab: v(
+      '🔑 | landlord | صاحب البيت | Our landlord lives on the top floor. | صاحب البيت يسكن في الطابق الأخير.',
+      '🧳 | tenant | المكتري | The new tenant arrived last week. | وصل المكتري الجديد الأسبوع الماضي.',
+      '📦 | move in | ينتقل للسكن | We are going to move in on Saturday. | سننتقل إلى البيت يوم السبت.',
+      '🛋️ | furnished | مفروش | I want a furnished flat near the university. | أريد شقة مفروشة قرب الجامعة.',
+      '📐 | spacious | واسع | The living room is bright and spacious. | غرفة الجلوس مشرقة وواسعة.',
+      '🏪 | corner shop | الحانوت | I buy bread at the corner shop. | أشتري الخبز من الحانوت.',
+      '🚪 | concierge | حارس العمارة | The concierge keeps our parcels. | حارس العمارة يحتفظ بطرودنا.',
+      '💧 | leak | تسرّب | There is a leak in the bathroom. | هناك تسرّب في الحمّام.',
+      "🧾 | bills | الفواتير | The rent doesn't include the bills. | الإيجار لا يشمل الفواتير.",
+      '🌳 | neighbourhood | الحيّ | We live in a friendly neighbourhood. | نسكن في حيّ ودود.',
+    ),
+    groups: [
+      g('🛠️', 'Around the house', 'في البيت', 'curtains=الستائر|carpet=الزربية|cushion=وسادة|mirror=مرآة|lamp=مصباح|tap=صنبور|sink=حوض الغسيل|oven=فرن|dishwasher=غسّالة الصحون|satellite dish=الصحن الهوائي'),
+      g('🏙️', 'In the neighbourhood', 'في الحيّ', 'bakery=مخبزة|mosque=مسجد|pharmacy=صيدلية|hammam=حمّام|post office=مكتب البريد|bus stop=محطة الحافلة|park=حديقة|car park=موقف السيارات|souk=سوق|clinic=مستوصف'),
+      g('🧹', 'Housework', 'أشغال البيت', 'do the washing-up=يغسل الأواني|do the laundry=يغسل الملابس|hang out the washing=ينشر الغسيل|iron=يكوي|sweep=يكنس|mop the floor=يمسح الأرض|tidy up=يرتّب|dust=يزيل الغبار|make the bed=يرتّب السرير|take out the rubbish=يُخرج القمامة'),
+    ],
+    talks: [
+      d('Formal | رسمي', 'Visiting a flat | زيارة شقة', 'Agent | Samira', [
+        ['This is the living room. As you can see, it is very spacious.', 'هذه غرفة الجلوس. كما ترين، إنها واسعة جدًّا.'],
+        ['It is lovely. Is the flat furnished?', 'إنها جميلة. هل الشقة مفروشة؟'],
+        ['Yes, there is a sofa, a dining table and a dishwasher.', 'نعم، فيها أريكة ومائدة طعام وغسّالة صحون.'],
+        ['Does the rent include the bills?', 'هل يشمل الإيجار الفواتير؟'],
+        ['No, but water is cheap here. When would you like to move in?', 'لا، لكن الماء رخيص هنا. متى تريدين الانتقال؟'],
+        ['At the beginning of next month, if possible.', 'في بداية الشهر القادم، إن أمكن.'],
+      ]),
+      d('Polite | مهذّب', 'A problem in the flat | مشكلة في الشقة', 'Tarik | Mr Lahlou', [
+        ['Good evening, Mr Lahlou. Sorry to call so late.', 'مساء الخير يا سيد لحلو. آسف على الاتصال في وقت متأخّر.'],
+        ["No problem, Tarik. What's wrong?", 'لا مشكلة يا طارق. ما الخطب؟'],
+        ["There is a leak in the kitchen. The tap won't stop.", 'هناك تسرّب في المطبخ، والصنبور لا يتوقّف.'],
+        ["I'll send a plumber tomorrow morning.", 'سأرسل سبّاكًا صباح الغد.'],
+        ['Thank you. Can he come before nine?', 'شكرًا. هل يمكنه أن يأتي قبل التاسعة؟'],
+        ["Sure. I'll ask him to call you first.", 'طبعًا. سأطلب منه أن يتصل بك أولًا.'],
+      ]),
+    ],
+    ask: tr([
+      ['What is your neighbourhood like?', 'كيف هو حيّك؟'],
+      ['Who does the housework in your home?', 'من يقوم بأشغال البيت عندكم؟'],
+      ['Is there a corner shop near you?', 'هل هناك حانوت قريب منك؟'],
+      ['What would you change in your home?', 'ماذا كنت ستغيّر في بيتك؟'],
+    ]),
+    answer: tr([
+      ["It's quiet, and there's a big park.", 'إنه هادئ وفيه حديقة كبيرة.'],
+      ['We all help. I usually do the washing-up.', 'نساعد جميعًا، وعادةً أغسل الأواني.'],
+      ['Yes, right next to my building.', 'نعم، بجانب عمارتي مباشرة.'],
+      ["I'd like a bigger kitchen.", 'أودّ مطبخًا أكبر.'],
+    ]),
+    reading: {
+      icon: '🏢', title: 'Life in our building', titleAr: 'الحياة في عمارتنا',
+      text: "I live in a five-storey building in Hay Riad, in Rabat. There are ten flats, and we all know each other. Our concierge, Si Mohammed, has worked here for twenty years. He keeps our parcels, waters the plants and always knows the news of the neighbourhood. On the ground floor, there is a corner shop where we buy bread, milk and phone credit. Every Ramadan, the neighbours share food before the evening meal, and the children play together on the roof. The building is old, and sometimes there is a leak or the water heater breaks. But I wouldn't move. My neighbours are like my family.",
+      gloss: pairs('storey=طابق|parcel=طرد|water=يسقي|share=يتقاسم|break=يتعطّل'),
+      tf: [
+        { s: 'There are ten flats in the building.', ok: true },
+        { s: 'Si Mohammed is the landlord.', ok: false },
+        { s: 'The writer wants to move.', ok: false },
+      ],
+      qs: [
+        { q: 'What can you buy at the corner shop?', a: 'Bread, milk and phone credit.' },
+        { q: 'What do the neighbours do every Ramadan?', a: 'They share food.' },
+      ],
+    },
+    power: power(
+      'pay the rent=يدفع الإيجار|do the housework=يقوم بأشغال البيت|share a flat=يتقاسم شقة|paint the walls=يصبغ الجدران|fix a tap=يصلح صنبورًا|feel at home=يشعر كأنه في بيته|a friendly neighbour=جار ودود|find a flat=يجد شقة|turn on the heating=يشغّل التدفئة|lock the door=يقفل الباب',
+      [['decorate', 'decoration', 'decorative'], ['comfort', 'comfort', 'comfortable'], ['furnish', 'furniture', 'furnished'], ['clean', 'cleanliness', 'clean']],
+      [
+        ['This sofa is very ___. (comfort)', 'comfortable'],
+        ['We bought new ___ for the living room. (furnish)', 'furniture'],
+        ["We need to ___ the children's room. (decoration)", 'decorate'],
+        ['The ___ for the wedding were beautiful. (decorate)', 'decorations'],
+        ['In a hammam, ___ is very important. (clean)', 'cleanliness'],
+      ],
+    ) },
+
+  /* ── 5 · What happened? ──────────────────────────────────────────── */
+  { n: 5, icon: '🚨',
+    vocab: v(
+      '💥 | crash | يصطدم | Be careful, or you will crash the car. | انتبه وإلا ستصدم السيارة.',
+      '🚑 | ambulance | سيارة إسعاف | Call an ambulance, quickly! | اطلب سيارة إسعاف بسرعة!',
+      '🤕 | injured | مصاب | Two people were injured in the accident. | أُصيب شخصان في الحادث.',
+      '👁️ | witness | شاهد | The police spoke to a witness. | تحدّثت الشرطة إلى شاهد.',
+      '🧊 | slip | ينزلق | Be careful! You might slip on the wet floor. | انتبه! قد تنزلق على الأرض المبلّلة.',
+      '🚲 | fall off | يسقط من | Hold on, or you will fall off the bike. | تمسّك جيدًا وإلا ستسقط من الدراجة.',
+      '🙋 | bump into | يصادف | I often bump into my old teacher at the market. | كثيرًا ما أصادف أستاذي القديم في السوق.',
+      '🛞 | flat tyre | عجلة مثقوبة | We had a flat tyre on the motorway. | ثُقبت عجلتنا على الطريق السيار.',
+      '🆘 | emergency | حالة طارئة | In an emergency, call 15. | في حالة طارئة، اتصل بالرقم 15.',
+      '🚓 | police station | مركز الشرطة | We reported it at the police station. | أبلغنا عن ذلك في مركز الشرطة.',
+    ),
+    groups: [
+      g('🌩️', 'Weather events', 'ظواهر الطقس', 'storm=عاصفة|flood=فيضان|thunder=رعد|lightning=برق|fog=ضباب|heatwave=موجة حرّ|snowstorm=عاصفة ثلجية|earthquake=زلزال|hail=برَد|strong wind=ريح قوية'),
+      g('🚗', 'On the road', 'على الطريق', 'motorway=الطريق السيار|roundabout=مدار|traffic lights=إشارات المرور|speed bump=مخفّض السرعة|speed limit=حدّ السرعة|seat belt=حزام الأمان|driving licence=رخصة السياقة|fine=غرامة|lorry=شاحنة كبيرة|petrol station=محطة الوقود'),
+      g('🩹', 'Injuries', 'الإصابات', 'cut=جرح|bruise=كدمة|burn=حرق|broken arm=ذراع مكسورة|sprain=التواء|bleed=ينزف|bandage=ضمادة|plaster=لصقة جروح|X-ray=صورة بالأشعة|stitches=غُرز'),
+    ],
+    talks: [
+      d('Informal | غير رسمي', 'What happened to you? | ماذا حدث لك؟', 'Soufiane | Rania', [
+        ['Rania! What happened to your arm?', 'رانيا! ماذا حدث لذراعك؟'],
+        ['I fell off my bike on Sunday.', 'سقطت من على دراجتي يوم الأحد.'],
+        ['Oh no! Is it broken?', 'يا إلهي! هل هي مكسورة؟'],
+        ["No, it's just a sprain. The X-ray was fine.", 'لا، إنه مجرّد التواء، وصورة الأشعة كانت سليمة.'],
+        ['How did it happen?', 'كيف حدث ذلك؟'],
+        ['I was riding in the rain, and I slipped at a roundabout.', 'كنت أقود في المطر، فانزلقت عند مدار.'],
+      ]),
+      d('Formal | رسمي', 'At the police station | في مركز الشرطة', 'Officer | Mr Saidi', [
+        ['Good morning, sir. How can I help you?', 'صباح الخير يا سيدي. كيف يمكنني مساعدتك؟'],
+        ["I'd like to report an accident. A van hit my car in the car park.", 'أودّ أن أبلّغ عن حادث. صدمت شاحنة صغيرة سيارتي في الموقف.'],
+        ['When did it happen?', 'متى حدث ذلك؟'],
+        ['Yesterday at about six. I was buying bread.', 'أمس حوالي السادسة. كنت أشتري الخبز.'],
+        ['Was there a witness?', 'هل كان هناك شاهد؟'],
+        ['Yes, the man at the petrol station saw everything.', 'نعم، الرجل في محطة الوقود رأى كل شيء.'],
+      ]),
+    ],
+    ask: tr([
+      ['Have you ever had an accident?', 'هل سبق أن تعرّضت لحادث؟'],
+      ['What were you doing when it happened?', 'ماذا كنت تفعل عندما حدث ذلك؟'],
+      ['Was anyone injured?', 'هل أُصيب أحد؟'],
+      ['What number do you call in an emergency?', 'بأيّ رقم تتصل في حالة طارئة؟'],
+    ]),
+    answer: tr([
+      ['Yes, a small one on the motorway.', 'نعم، حادث صغير على الطريق السيار.'],
+      ['I was waiting at the traffic lights.', 'كنت أنتظر عند إشارات المرور.'],
+      ['No, luckily everyone was fine.', 'لا، لحسن الحظ كان الجميع بخير.'],
+      ['I call 15 for an ambulance.', 'أتصل بالرقم 15 لطلب الإسعاف.'],
+    ]),
+    reading: {
+      icon: '🌨️', title: 'A night in the storm', titleAr: 'ليلة في العاصفة',
+      text: "Last winter, Khalid was driving home from Ifrane to Fes when a snowstorm started. It was dark, and he couldn't see the road because of the fog. Suddenly, the car in front of him slipped and crashed into a wall. Khalid stopped and ran to help. The driver, an old man, had a cut on his head, but he wasn't seriously injured. Khalid called an ambulance, but the road was closed. So he put a bandage on the man's head and waited with him in his warm car. Two hours later, the ambulance arrived. A week later, the old man called Khalid to thank him. 'You were my angel that night,' he said.",
+      gloss: pairs('drive home=يعود بالسيارة|wall=جدار|seriously=بشكل خطير|closed=مغلق|angel=ملاك'),
+      tf: [
+        { s: 'Khalid was driving from Fes to Ifrane.', ok: false },
+        { s: 'The old man had a cut on his head.', ok: true },
+        { s: 'The ambulance arrived in ten minutes.', ok: false },
+      ],
+      qs: [
+        { q: "Why couldn't Khalid see the road?", a: 'Because of the fog.' },
+        { q: 'What did the old man do a week later?', a: 'He called Khalid to thank him.' },
+      ],
+    },
+    power: power(
+      'have an accident=يتعرّض لحادث|call for help=يطلب النجدة|lose control=يفقد السيطرة|run a red light=يتجاوز الضوء الأحمر|give first aid=يقدّم الإسعافات الأولية|get hurt=يتأذّى|a narrow escape=نجاة بأعجوبة|the scene of the accident=مكان الحادث|report a crime=يبلّغ عن جريمة|a car alarm=إنذار السيارة',
+      [['injure', 'injury', 'injured'], ['endanger', 'danger', 'dangerous'], ['protect', 'protection', 'protective'], ['harm', 'harm', 'harmful']],
+      [
+        ['He had a serious leg ___. (injure)', 'injury'],
+        ['Driving in fog is very ___. (danger)', 'dangerous'],
+        ['Wear a helmet to ___ your head. (protection)', 'protect'],
+        ['Smoking is ___ to your health. (harm)', 'harmful'],
+        ['Three people were ___ in the crash. (injury)', 'injured'],
+      ],
+    ) },
+]

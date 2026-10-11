@@ -1,0 +1,380 @@
+import { d, g, pairs, tr, v } from '../workbook/vocab-book.ts'
+import { power, type L2VocabUnit } from './types.ts'
+
+/** Level 2 vocabulary book, units 11–15 (see index.ts). */
+export const UNITS_11_15: L2VocabUnit[] = [
+  /* ── 11 · If it rains… ───────────────────────────────────────────── */
+  { n: 11, icon: '🌦️',
+    vocab: v(
+      '📡 | forecast | النشرة الجوية | The forecast says it will rain tomorrow. | تقول النشرة الجوية إنها ستمطر غدًا.',
+      '☂️ | umbrella | مظلّة | Take an umbrella if it rains. | خذ مظلّة إذا أمطرت.',
+      '💦 | humid | رطب | Casablanca is very humid in August. | الدار البيضاء رطبة جدًّا في غشت.',
+      '🥶 | freezing | شديد البرودة | It is freezing in Ifrane in January. | الجو شديد البرودة في إفران في يناير.',
+      '👛 | pickpocket | نشّال | A pickpocket took my wallet in the crowd. | أخذ نشّال محفظتي في الزحام.',
+      '🤝 | bargain | يساوم | You can bargain in the souk. | يمكنك المساومة في السوق.',
+      '🗼 | landmark | معلمة | The Hassan Tower is a famous landmark. | صومعة حسان معلمة مشهورة.',
+      'ℹ️ | tourist office | مكتب السياحة | Ask for a free map at the tourist office. | اطلب خريطة مجانية في مكتب السياحة.',
+      '🏺 | crafts | الصناعة التقليدية | Fes is famous for its crafts. | فاس مشهورة بصناعتها التقليدية.',
+      '🧥 | jacket | سترة | Take a jacket. It might get cold. | خذ سترة، فقد يبرد الجو.',
+    ),
+    groups: [
+      g('☀️', 'Weather', 'الطقس', 'sunny=مشمس|cloudy=غائم|rainy=ممطر|foggy=ضبابي|stormy=عاصف|mild=معتدل|chilly=بارد قليلًا|boiling=حارّ جدًّا|degrees=درجات|temperature=درجة الحرارة'),
+      g('🏛️', 'Sightseeing', 'زيارة المعالم', 'palace=قصر|gardens=حدائق|fountain=نافورة|square=ساحة|gate=باب|minaret=صومعة|ramparts=الأسوار|old town=المدينة القديمة|guided tour=جولة مع مرشد|entrance fee=ثمن الدخول'),
+      g('🛍️', 'In the souk', 'في السوق', 'leather=جلد|pottery=الفخّار|rug=زربية صغيرة|spices=التوابل|lantern=فانوس|silver=فضّة|slippers=بلغة|copper=نحاس|price=ثمن|discount=تخفيض'),
+    ],
+    talks: [
+      d('Friendly | ودّي', 'What shall we do? | ماذا سنفعل؟', 'Lina | Badr', [
+        ["What's the forecast for tomorrow?", 'ما النشرة الجوية لغد؟'],
+        ['Rain in the morning, then sunny.', 'مطر في الصباح، ثم مشمس.'],
+        ["If it rains, let's visit the palace and the museum.", 'إذا أمطرت، لنزر القصر والمتحف.'],
+        ['Good idea. And if it stops, we can go to the gardens.', 'فكرة جيدة. وإذا توقّف المطر، يمكننا الذهاب إلى الحدائق.'],
+        ["Don't forget your umbrella!", 'لا تنسَ مظلّتك!'],
+        ["And you, take a jacket. It'll be chilly.", 'وأنتِ، خذي سترة، فسيكون الجو باردًا قليلًا.'],
+      ]),
+      d('In the souk | في السوق', 'Bargaining | المساومة', 'Tourist | Shopkeeper', [
+        ['How much is this lantern?', 'بكم هذا الفانوس؟'],
+        ["It's copper, madam. Six hundred dirhams.", 'إنه من النحاس يا سيدتي. ستمئة درهم.'],
+        ["That's too expensive. I'll give you three hundred.", 'هذا غالٍ جدًّا. سأعطيك ثلاثمئة.'],
+        ['Five hundred. It is handmade!', 'خمسمئة. إنه مصنوع يدويًّا!'],
+        ['If I buy two, will you give me a discount?', 'إذا اشتريت اثنين، هل ستمنحني تخفيضًا؟'],
+        ['OK. Two for eight hundred. Final price!', 'حسنًا. الاثنان بثمانمئة. آخر ثمن!'],
+      ]),
+    ],
+    ask: tr([
+      ['What is the weather like in your town in winter?', 'كيف يكون الطقس في مدينتك في الشتاء؟'],
+      ['What would you show a tourist in your town?', 'ماذا كنت ستُري سائحًا في مدينتك؟'],
+      ['Do you like bargaining?', 'هل تحبّ المساومة؟'],
+      ['What do you do if it rains at the weekend?', 'ماذا تفعل إذا أمطرت في عطلة نهاية الأسبوع؟'],
+    ]),
+    answer: tr([
+      ["It's mild, but it rains a lot.", 'إنه معتدل، لكنه يمطر كثيرًا.'],
+      ['The old town and the ramparts.', 'المدينة القديمة والأسوار.'],
+      ['Yes! It is part of the fun.', 'نعم! إنها جزء من المتعة.'],
+      ['If it rains, I stay at home and watch films.', 'إذا أمطرت، أبقى في البيت وأشاهد الأفلام.'],
+    ]),
+    reading: {
+      icon: '🔵', title: 'Tips for visiting Chefchaouen', titleAr: 'نصائح لزيارة شفشاون',
+      text: "Chefchaouen, the blue city in the Rif Mountains, is one of Morocco's most beautiful towns. Here are some tips for your visit. First, check the forecast. In winter, it can be freezing at night, so bring warm clothes. If it rains, the streets get slippery, so wear good shoes. Second, go early in the morning. The old town is quiet, and the light is perfect for photos. Third, if you want to buy crafts, bargain politely and smile. Shopkeepers usually give a discount if you buy more than one thing. Finally, walk to the Spanish Mosque at sunset. The view of the blue houses is unforgettable.",
+      gloss: pairs('tip=نصيحة|warm clothes=ملابس دافئة|slippery=زلق|politely=بأدب|view=منظر'),
+      tf: [
+        { s: 'Chefchaouen is in the Atlas Mountains.', ok: false },
+        { s: 'The streets can be slippery when it rains.', ok: true },
+        { s: 'The old town is very busy early in the morning.', ok: false },
+      ],
+      qs: [
+        { q: 'When is the best time to take photos?', a: 'Early in the morning.' },
+        { q: 'Where should you go at sunset?', a: 'To the Spanish Mosque.' },
+      ],
+    },
+    power: power(
+      'heavy rain=مطر غزير|a light wind=ريح خفيفة|clear skies=سماء صافية|get wet=يتبلّل|get sunburnt=تحرقه الشمس|take a tour=يقوم بجولة|ask for directions=يسأل عن الطريق|go window-shopping=يتفرّج على الواجهات|a good deal=صفقة جيدة|pay by card=يدفع بالبطاقة',
+      [['visit', 'visitor', '—'], ['beautify', 'beauty', 'beautiful'], ['—', 'history', 'historic'], ['rain', 'rain', 'rainy']],
+      [
+        ['Chefchaouen is famous for its ___. (beautiful)', 'beauty'],
+        ['The medina is very ___. It is a thousand years old. (history)', 'historic'],
+        ['Thousands of ___ come here every year. (visit)', 'visitors'],
+        ['November is the most ___ month. (rain)', 'rainy'],
+        ['What a ___ view! (beauty)', 'beautiful'],
+      ],
+    ) },
+
+  /* ── 12 · If I were you… ─────────────────────────────────────────── */
+  { n: 12, icon: '🤔',
+    vocab: v(
+      '🤔 | dilemma | معضلة | I have a dilemma: Paris or Casablanca? | لديّ معضلة: باريس أم الدار البيضاء؟',
+      '🚪 | opportunity | فرصة | This job is a great opportunity. | هذا العمل فرصة رائعة.',
+      '🔍 | consider | يفكّر مليًّا في | You should consider all your options. | عليك أن تفكّر مليًّا في كل خياراتك.',
+      '🔀 | option | خيار | We have only one option. | لدينا خيار واحد فقط.',
+      '📈 | career | مسار مهني | She wants a career in medicine. | تريد مسارًا مهنيًّا في الطب.',
+      '🧗 | challenge | تحدٍّ | Living abroad is a big challenge. | العيش في الخارج تحدٍّ كبير.',
+      '🏡 | settle down | يستقرّ | He wants to settle down and have a family. | يريد أن يستقرّ ويكوّن أسرة.',
+      "🧠 | make up your mind | يحسم أمره | Make up your mind! We're late. | احسم أمرك! لقد تأخّرنا.",
+      '💗 | gut feeling | إحساس داخلي | My gut feeling says yes. | إحساسي الداخلي يقول نعم.',
+      '🫂 | support | يدعم | My family will support me. | ستدعمني عائلتي.',
+    ),
+    groups: [
+      g('💭', 'Feelings about change', 'مشاعر تجاه التغيير', 'excited=متحمّس|anxious=قلق|confused=محتار|hopeful=متفائل|unsure=غير متأكّد|proud=فخور|frightened=خائف|grateful=ممتنّ|stressed=متوتّر|ready=مستعدّ'),
+      g('🌍', 'Living abroad', 'العيش في الخارج', 'visa=تأشيرة|residence permit=بطاقة الإقامة|culture shock=صدمة ثقافية|language barrier=حاجز اللغة|foreign=أجنبي|immigrant=مهاجر|community=جالية|embassy=سفارة|integrate=يندمج|miss home=يشتاق إلى الوطن'),
+      g('💡', 'Giving advice', 'تقديم النصيحة', "Why don't you…?=لماذا لا…؟|You'd better…=من الأفضل أن…|Have you thought about…?=هل فكّرت في…؟|It might be a good idea to…=قد تكون فكرة جيدة أن…|In your place, I'd…=لو كنت مكانك لـ…|Follow your heart.=اتبع قلبك.|Think it over.=فكّر في الأمر جيدًا.|Sleep on it.=أجّل القرار إلى الغد.|Go for it!=افعلها!|Don't give up.=لا تستسلم."),
+    ],
+    talks: [
+      d('Friendly | ودّي', 'A big decision | قرار كبير', 'Hassan | Mariam', [
+        ["I've got a dilemma. I've got a job offer in Germany.", 'لديّ معضلة. حصلت على عرض عمل في ألمانيا.'],
+        ["That's a great opportunity! What's the problem?", 'هذه فرصة رائعة! ما المشكلة؟'],
+        ["I don't speak German, and I'd miss home.", 'لا أتكلّم الألمانية، وسأشتاق إلى الوطن.'],
+        ["If I were you, I'd go. You can learn the language.", 'لو كنت مكانك لذهبت. يمكنك أن تتعلّم اللغة.'],
+        ["Maybe you're right. But it's a big challenge.", 'ربما أنتِ محقّة. لكنه تحدٍّ كبير.'],
+        ['Sleep on it, and follow your heart.', 'أجّل القرار إلى الغد، واتبع قلبك.'],
+      ]),
+      d('Family | عائلي', 'Advice from Dad | نصيحة من الأب', 'Ilham | Dad', [
+        ["Dad, I can't decide: medicine or engineering?", 'يا أبي، لا أستطيع أن أقرّر: الطب أم الهندسة؟'],
+        ['Which subject do you enjoy more?', 'أيّ مادة تستمتعين بها أكثر؟'],
+        ['Biology, but medicine takes seven years.', 'علوم الحياة، لكن الطب يستغرق سبع سنوات.'],
+        ['Have you thought about the career you want?', 'هل فكّرت في المسار المهني الذي تريدينه؟'],
+        ['I want to help people.', 'أريد أن أساعد الناس.'],
+        ["Then your gut feeling is right. We'll support you.", 'إذن إحساسك الداخلي صائب، وسندعمك.'],
+      ]),
+    ],
+    ask: tr([
+      ['What is the best advice you have ever had?', 'ما أفضل نصيحة تلقّيتها؟'],
+      ['Would you like to live abroad?', 'هل تودّ أن تعيش في الخارج؟'],
+      ['Who do you ask for advice?', 'ممّن تطلب النصيحة؟'],
+      ['How do you make a big decision?', 'كيف تتّخذ قرارًا كبيرًا؟'],
+    ]),
+    answer: tr([
+      ['My mother told me: never give up.', 'قالت لي أمي: لا تستسلم أبدًا.'],
+      ['Maybe for a few years, to study.', 'ربما لبضع سنوات، من أجل الدراسة.'],
+      ['My older sister. She always listens.', 'أختي الكبرى، فهي تصغي دائمًا.'],
+      ['I write the pros and cons, then I sleep on it.', 'أكتب الإيجابيات والسلبيات، ثم أؤجّل القرار إلى الغد.'],
+    ]),
+    reading: {
+      icon: '✉️', title: 'Should I stay or should I go?', titleAr: 'هل أبقى أم أرحل؟',
+      text: "Dear Aunt Malika, I need your advice. I'm 27, and I work as a nurse in Agadir. Last week, a hospital in Belgium offered me a job with a much better salary. It's a great opportunity, but I have a dilemma. My parents are getting older, and I'm their only daughter. I'm also afraid of the cold weather and the language barrier. My friends say, 'Go for it!' but my mother cries every time we talk about it. I can't make up my mind. What would you do if you were me? Yasmina. Dear Yasmina, If I were you, I'd accept, but only for two or three years. Your parents will be proud of you. Malika",
+      gloss: pairs('offer=يعرض|only daughter=البنت الوحيدة|afraid of=خائف من|every time=في كل مرة|proud of=فخور بـ'),
+      tf: [
+        { s: 'Yasmina works as a nurse.', ok: true },
+        { s: 'Yasmina has two sisters.', ok: false },
+        { s: 'Malika thinks Yasmina should stay in Belgium forever.', ok: false },
+      ],
+      qs: [
+        { q: 'Which country offered Yasmina a job?', a: 'Belgium.' },
+        { q: "What is her friends' advice?", a: 'Go for it!' },
+      ],
+    },
+    power: power(
+      'make a decision=يتّخذ قرارًا|take advice=يأخذ بالنصيحة|change your mind=يغيّر رأيه|weigh up=يوازن بين|face a problem=يواجه مشكلة|a difficult choice=اختيار صعب|follow a dream=يلاحق حلمًا|get a second opinion=يأخذ رأيًا ثانيًا|take a chance=يغتنم الفرصة|start a new life=يبدأ حياة جديدة',
+      [['advise', 'advice', 'advisable'], ['choose', 'choice', '—'], ['emigrate', 'emigration', '—'], ['confuse', 'confusion', 'confusing']],
+      [
+        ['Can you give me some ___? (advise)', 'advice'],
+        ['It was a difficult ___. (choose)', 'choice'],
+        ['Many young people want to ___ to Canada. (emigration)', 'emigrate'],
+        ['The instructions were very ___. (confuse)', 'confusing'],
+        ['Doctors ___ us to walk every day. (advice)', 'advise'],
+      ],
+    ) },
+
+  /* ── 13 · Rules and advice ───────────────────────────────────────── */
+  { n: 13, icon: '📋',
+    vocab: v(
+      '👔 | uniform | زيّ موحّد | Nurses have to wear a uniform. | يجب على الممرّضات ارتداء زيّ موحّد.',
+      '⏰ | punctual | منضبط في المواعيد | Be punctual. The meeting starts at nine. | كن منضبطًا، فالاجتماع يبدأ في التاسعة.',
+      '🕗 | overtime | ساعات إضافية | I worked overtime on Saturday. | عملت ساعات إضافية يوم السبت.',
+      '👥 | meeting | اجتماع | We have a team meeting every Monday. | لدينا اجتماع للفريق كل اثنين.',
+      '⚠️ | warning | إنذار | He got a warning for being late. | تلقّى إنذارًا بسبب تأخّره.',
+      '🚪 | fire exit | مخرج الطوارئ | Never block the fire exit. | لا تغلق مخرج الطوارئ أبدًا.',
+      '✋ | permission | إذن | You need permission to leave early. | تحتاج إلى إذن للمغادرة باكرًا.',
+      '⛑️ | helmet | خوذة | Workers must wear a helmet. | يجب على العمّال وضع خوذة.',
+      '🚭 | no smoking | ممنوع التدخين | There is a no smoking sign in the office. | هناك علامة ممنوع التدخين في المكتب.',
+      '📝 | form | استمارة | Please fill in this form. | المرجو ملء هذه الاستمارة.',
+    ),
+    groups: [
+      g('🏢', 'In the office', 'في المكتب', 'desk=مكتب|printer=طابعة|photocopier=آلة النسخ|stapler=دبّاسة|file=ملفّ|email=بريد إلكتروني|keyboard=لوحة المفاتيح|screen=شاشة|headset=سمّاعة الرأس|noticeboard=لوحة الإعلانات'),
+      g('👷', 'Safety', 'السلامة', 'safety rules=قواعد السلامة|gloves=قفّازات|goggles=نظارات واقية|fire extinguisher=مطفأة الحريق|first aid=إسعافات أولية|slippery floor=أرضية زلقة|danger=خطر|high voltage=ضغط كهربائي عالٍ|keep out=ممنوع الدخول|wash your hands=اغسل يديك'),
+      g('🏫', 'School rules', 'قواعد المدرسة', 'homework=واجب منزلي|attendance=الحضور|absent=غائب|cheat=يغشّ|be on time=يحضر في الوقت|raise your hand=يرفع يده|switch off your phone=يطفئ هاتفه|bring your book=يحضر كتابه|respect=يحترم|punishment=عقاب'),
+    ],
+    talks: [
+      d('At work | في العمل', 'First day on the building site | اليوم الأول في الورش', 'Foreman | Hamid', [
+        ['Welcome, Hamid. First, the safety rules.', 'مرحبًا يا حميد. أولًا، قواعد السلامة.'],
+        ['Of course. What do I have to wear?', 'طبعًا. ماذا يجب أن أرتدي؟'],
+        ['You must wear a helmet and gloves all the time.', 'يجب أن تضع خوذة وقفّازات طوال الوقت.'],
+        ['Can I smoke during the break?', 'هل يمكنني التدخين أثناء الاستراحة؟'],
+        ["Only outside the gate. You mustn't smoke on the site.", 'خارج البوابة فقط، فالتدخين ممنوع في الورش.'],
+        ['Understood. Do I have to work overtime?', 'فهمت. هل يجب أن أعمل ساعات إضافية؟'],
+      ]),
+      d('At school | في المدرسة', 'A new student | تلميذ جديد', 'Teacher | Rayan', [
+        ['Rayan, here are the class rules.', 'يا ريان، هذه قواعد القسم.'],
+        ['Do we have to wear a uniform?', 'هل يجب علينا ارتداء زيّ موحّد؟'],
+        ['Yes, a white coat. And you must switch off your phone.', 'نعم، وزرة بيضاء. ويجب أن تطفئ هاتفك.'],
+        ['What happens if I forget my homework?', 'ماذا يحدث إذا نسيت واجبي المنزلي؟'],
+        ['The first time, nothing. After that, a warning.', 'في المرة الأولى لا شيء، وبعدها إنذار.'],
+        ["OK. I'll be punctual and do my homework!", 'حسنًا. سأكون منضبطًا وأنجز واجبي!'],
+      ]),
+    ],
+    ask: tr([
+      ['What are the rules at your work or school?', 'ما القواعد في عملك أو مدرستك؟'],
+      ['Do you have to wear a uniform?', 'هل يجب أن ترتدي زيًّا موحّدًا؟'],
+      ['Have you ever worked overtime?', 'هل سبق أن عملت ساعات إضافية؟'],
+      ['Which rule do you think is silly?', 'أيّ قاعدة تظنّها سخيفة؟'],
+    ]),
+    answer: tr([
+      ['We must be punctual and polite.', 'يجب أن نكون منضبطين ومؤدّبين.'],
+      ['No, but we have to dress smartly.', 'لا، لكن يجب أن نلبس بأناقة.'],
+      ['Yes, often at the end of the month.', 'نعم، غالبًا في آخر الشهر.'],
+      ["We can't drink coffee at our desks!", 'لا يمكننا شرب القهوة في مكاتبنا!'],
+    ]),
+    reading: {
+      icon: '🏭', title: 'Rules at the factory', titleAr: 'القواعد في المصنع',
+      text: "Abdellah works at a car factory near Tangier. The factory is huge, and safety is very important. Every worker must wear a uniform, a helmet, gloves and goggles. Smoking is forbidden everywhere, and there are fire extinguishers on every wall. Workers have to be punctual: the morning shift starts at six sharp, and if you are late three times, you get a warning. Phones are not allowed on the production line. 'At first, I thought the rules were too strict,' says Abdellah. 'But last year, a colleague slipped on an oily floor. Luckily, his helmet saved him. Now I understand why the rules are there.'",
+      gloss: pairs('factory=مصنع|huge=ضخم|everywhere=في كل مكان|production line=خط الإنتاج|oily=مُزيّت'),
+      tf: [
+        { s: 'The factory is near Tangier.', ok: true },
+        { s: 'Workers can smoke during the break.', ok: false },
+        { s: "A helmet saved Abdellah's colleague.", ok: true },
+      ],
+      qs: [
+        { q: 'When does the morning shift start?', a: 'At six.' },
+        { q: 'What happens if you are late three times?', a: 'You get a warning.' },
+      ],
+    },
+    power: power(
+      'follow the rules=يتّبع القواعد|break the rules=يخرق القواعد|ask for permission=يطلب الإذن|fill in a form=يملأ استمارة|attend a meeting=يحضر اجتماعًا|take a day off=يأخذ يوم عطلة|work from home=يعمل من البيت|get a warning=يتلقّى إنذارًا|wear protective clothing=يرتدي ملابس واقية|meet the boss=يلتقي المدير',
+      [['permit', 'permission', 'permissible'], ['oblige', 'obligation', 'obligatory'], ['respect', 'respect', 'respectful'], ['punish', 'punishment', '—']],
+      [
+        ['Wearing a helmet is ___ here. (oblige)', 'obligatory'],
+        ['You need ___ to leave early. (permit)', 'permission'],
+        ['Be ___ to your teachers. (respect)', 'respectful'],
+        ['Cheating gets a serious ___. (punish)', 'punishment'],
+        ['The rules do not ___ phones in class. (permission)', 'permit'],
+      ],
+    ) },
+
+  /* ── 14 · Could you tell me…? ────────────────────────────────────── */
+  { n: 14, icon: '🛎️',
+    vocab: v(
+      '🍽️ | room service | خدمة الغرف | We ordered breakfast from room service. | طلبنا الفطور من خدمة الغرف.',
+      '🧖 | towel | منشفة | Could I have an extra towel, please? | هل يمكنني الحصول على منشفة إضافية من فضلك؟',
+      "🛏️ | blanket | غطاء | It's cold. Could you bring a blanket? | الجو بارد. هل يمكنك إحضار غطاء؟",
+      '🔐 | safe | خزنة | Put your passport in the safe. | ضع جواز سفرك في الخزنة.',
+      '🧳 | porter | حمّال الأمتعة | The porter took our bags to the room. | حمل الحمّال حقائبنا إلى الغرفة.',
+      '✅ | available | متاح | Is there a room available for tonight? | هل هناك غرفة متاحة لهذه الليلة؟',
+      '🈵 | fully booked | محجوز بالكامل | Sorry, the hotel is fully booked. | آسف، الفندق محجوز بالكامل.',
+      '💳 | deposit | عربون | You need to pay a deposit of 500 dirhams. | يجب أن تدفع عربونًا قدره 500 درهم.',
+      '❎ | cancellation | الإلغاء | Cancellation is free until Friday. | الإلغاء مجاني حتى يوم الجمعة.',
+      '🎁 | complimentary | مجاني | There is complimentary mint tea on arrival. | يُقدَّم شاي بالنعناع مجانًا عند الوصول.',
+    ),
+    groups: [
+      g('🛁', 'In the room', 'في الغرفة', 'pillow=وسادة|sheets=أغطية السرير|hairdryer=مجفّف الشعر|kettle=غلّاية|minibar=الثلاجة الصغيرة|remote control=جهاز التحكّم|hanger=علّاقة ملابس|shower=دوش|soap=صابون|socket=مقبس كهربائي'),
+      g('📞', 'On the phone', 'على الهاتف', 'hold on=انتظر لحظة|put you through=يحوّلك|call back=يعاود الاتصال|hang up=يُنهي المكالمة|leave a message=يترك رسالة|speak up=يرفع صوته|extension=الرقم الداخلي|bad line=خطّ رديء|voicemail=البريد الصوتي|the line is busy=الخطّ مشغول'),
+      g('🧾', 'Hotel services', 'خدمات الفندق', 'laundry service=خدمة الغسيل|airport shuttle=حافلة المطار|spa=منتجع صحّي|gym=قاعة الرياضة|swimming pool=مسبح|late checkout=مغادرة متأخّرة|free parking=موقف مجاني|half board=نصف إقامة|full board=إقامة كاملة|breakfast buffet=فطور مفتوح'),
+    ],
+    talks: [
+      d('On the phone | على الهاتف', 'Booking a room | حجز غرفة', 'Receptionist | Mr Kabbaj', [
+        ['Riad Atlas, good morning. How can I help you?', 'رياض الأطلس، صباح الخير. كيف يمكنني مساعدتك؟'],
+        ['Could you tell me if you have a room available on Friday?', 'هل يمكنك أن تخبرني إن كانت لديكم غرفة متاحة يوم الجمعة؟'],
+        ["I'm afraid we're fully booked on Friday. Saturday is possible.", 'أخشى أننا محجوزون بالكامل يوم الجمعة. السبت ممكن.'],
+        ['Saturday is fine. Do I need to pay a deposit?', 'السبت مناسب. هل يجب أن أدفع عربونًا؟'],
+        ['Yes, thirty per cent. Cancellation is free until Thursday.', 'نعم، ثلاثون في المئة. والإلغاء مجاني حتى الخميس.'],
+        ['Perfect. Could you put me through to the restaurant too?', 'ممتاز. هل يمكنك أن تحوّلني إلى المطعم أيضًا؟'],
+      ]),
+      d('Polite | مهذّب', 'A request | طلب', 'Guest | Housekeeper', [
+        ['Excuse me, could I have two more towels, please?', 'عذرًا، هل يمكنني الحصول على منشفتين إضافيتين من فضلك؟'],
+        ['Certainly. Anything else?', 'بالتأكيد. هل من شيء آخر؟'],
+        ["Would you mind bringing an extra blanket? It's cold at night.", 'هل تمانعين إحضار غطاء إضافي؟ الجو بارد في الليل.'],
+        ["Not at all. There's also a heater in the wardrobe.", 'لا مانع. هناك أيضًا مدفأة في الخزانة.'],
+        ["Oh, I didn't see it. And do you know where the hairdryer is?", 'آه، لم أرها. وهل تعرفين أين مجفّف الشعر؟'],
+        ["It's in the bathroom drawer.", 'إنه في درج الحمّام.'],
+      ]),
+    ],
+    ask: tr([
+      ['Could you tell me what time the pool opens?', 'هل يمكنك أن تخبرني متى يفتح المسبح؟'],
+      ['Do you know if we can have breakfast in the room?', 'هل تعرف إن كان بإمكاننا تناول الفطور في الغرفة؟'],
+      ['Would you mind calling me back later?', 'هل تمانع معاودة الاتصال بي لاحقًا؟'],
+      ['Is there a safe in the room?', 'هل هناك خزنة في الغرفة؟'],
+    ]),
+    answer: tr([
+      ['It opens at eight in the morning.', 'يفتح في الثامنة صباحًا.'],
+      ['Yes, room service is free until ten.', 'نعم، خدمة الغرف مجانية حتى العاشرة.'],
+      ['Not at all. In about an hour?', 'لا مانع. بعد ساعة تقريبًا؟'],
+      ["Yes, it's in the wardrobe.", 'نعم، إنها في الخزانة.'],
+    ]),
+    reading: {
+      icon: '🏨', title: 'Behind the reception desk', titleAr: 'خلف مكتب الاستقبال',
+      text: "Mouna has worked at the reception of a big hotel in Marrakech for six years. Her day starts at seven. First, she checks which rooms are available and which guests are leaving. Guests ask her hundreds of questions: 'Could you tell me where the spa is?' 'Do you know if the airport shuttle is free?' 'Would you mind keeping my luggage?' She answers in Arabic, French, English and a little Spanish. The hardest part is when the hotel is fully booked and a guest arrives without a reservation. 'I always say no politely and find them a room in another hotel,' she says. 'A smile solves most problems.'",
+      gloss: pairs('which=أيّ|leave=يغادر|hardest part=أصعب جزء|without=بدون|solve=يحلّ'),
+      tf: [
+        { s: 'Mouna has worked at the hotel for six years.', ok: true },
+        { s: 'She only speaks Arabic and French.', ok: false },
+        { s: 'She never helps guests without a reservation.', ok: false },
+      ],
+      qs: [
+        { q: 'What time does her day start?', a: 'At seven.' },
+        { q: 'What solves most problems, according to Mouna?', a: 'A smile.' },
+      ],
+    },
+    power: power(
+      'make a booking=يقوم بحجز|ask for information=يطلب معلومات|answer the phone=يردّ على الهاتف|take a message=يأخذ رسالة|make a request=يقدّم طلبًا|pay in advance=يدفع مسبقًا|a quiet room=غرفة هادئة|a warm welcome=استقبال حارّ|a room with a view=غرفة بإطلالة|stay the night=يقضي الليلة',
+      [['inform', 'information', 'informative'], ['reserve', 'reservation', 'reserved'], ['assist', 'assistance', '—'], ['satisfy', 'satisfaction', 'satisfied']],
+      [
+        ['Could you give me some ___ about the tours? (inform)', 'information'],
+        ['Sorry, this table is ___. (reserve)', 'reserved'],
+        ['Do you need any ___ with your bags? (assist)', 'assistance'],
+        ['Were you ___ with your room? (satisfy)', 'satisfied'],
+        ['Please ___ us of any changes. (information)', 'inform'],
+      ],
+    ) },
+
+  /* ── 15 · Problems and complaints ────────────────────────────────── */
+  { n: 15, icon: '🔧',
+    vocab: v(
+      "⚠️ | faulty | معيب | The charger is faulty. It doesn't charge. | الشاحن معيب، لا يشحن.",
+      '🔄 | exchange | يستبدل | Can I exchange this shirt for a bigger size? | هل يمكنني استبدال هذا القميص بمقاس أكبر؟',
+      '☎️ | customer service | خدمة الزبائن | I called customer service three times. | اتصلت بخدمة الزبائن ثلاث مرات.',
+      '🛠️ | repair | يصلح | Can you repair my phone today? | هل يمكنك إصلاح هاتفي اليوم؟',
+      '🟤 | stain | بقعة | There is a coffee stain on my new jacket. | هناك بقعة قهوة على سترتي الجديدة.',
+      '🔢 | tracking number | رقم التتبّع | Here is your tracking number. | هذا رقم التتبّع الخاص بك.',
+      '📦 | parcel | طرد | My parcel never arrived. | لم يصل طردي أبدًا.',
+      '🚫 | out of stock | نفد من المخزون | Sorry, that model is out of stock. | آسف، ذلك الطراز نفد من المخزون.',
+      '👕 | shrink | ينكمش | Wool can shrink in hot water. | قد ينكمش الصوف في الماء الساخن.',
+      '🧾 | invoice | فاتورة | Please send me the invoice by email. | أرجو أن ترسل لي الفاتورة عبر البريد الإلكتروني.',
+    ),
+    groups: [
+      g('🔌', 'Things that break', 'أشياء تتعطّل', 'screen=شاشة|battery=بطارية|zip=سحّاب|heel=كعب الحذاء|button=زرّ|handle=مقبض|cable=كابل|plug=قابس|lid=غطاء|wheel=عجلة'),
+      g('😤', 'Complaining politely', 'الشكوى بأدب', "I'm afraid there's a problem.=أخشى أن هناك مشكلة.|I'd like to speak to the manager.=أودّ التحدّث إلى المدير.|This isn't what I ordered.=هذا ليس ما طلبته.|It stopped working.=توقّف عن العمل.|I'd like my money back.=أريد استرجاع مالي.|Could you look into it?=هل يمكنك النظر في الأمر؟|I've been waiting for two weeks.=أنتظر منذ أسبوعين.|What can you do about it?=ماذا يمكنك أن تفعل بشأن ذلك؟|That's not good enough.=هذا غير كافٍ.|Thank you for your help.=شكرًا على مساعدتك."),
+      g('🔧', 'Repairs', 'الإصلاحات', 'repair shop=محلّ الإصلاح|spare part=قطعة غيار|quote=عرض سعر|fix it=يصلحه|check=يفحص|test=يجرّب|tools=أدوات|screwdriver=مفكّ براغي|glue=غراء|tape=شريط لاصق'),
+    ],
+    talks: [
+      d('In a shop | في المتجر', 'A faulty phone | هاتف معيب', 'Customer | Assistant', [
+        ['Excuse me. I bought this phone last week, and it stopped working.', 'عذرًا. اشتريت هذا الهاتف الأسبوع الماضي، وتوقّف عن العمل.'],
+        ["I'm sorry to hear that. Have you got the receipt?", 'يؤسفني سماع ذلك. هل لديك الوصل؟'],
+        ['Yes, here it is. I think the battery is faulty.', 'نعم، تفضّل. أظنّ أن البطارية معيبة.'],
+        ['We can send it for repair. It takes ten days.', 'يمكننا إرساله للإصلاح، ويستغرق ذلك عشرة أيام.'],
+        ["Ten days? Can't I exchange it for a new one?", 'عشرة أيام؟ ألا يمكنني استبداله بهاتف جديد؟'],
+        ["I'm afraid that model is out of stock. I'll ask the manager.", 'أخشى أن ذلك الطراز نفد من المخزون. سأسأل المدير.'],
+      ]),
+      d('On the phone | على الهاتف', 'A lost parcel | طرد ضائع', 'Agent | Mrs Benjelloun', [
+        ['Customer service, how can I help?', 'خدمة الزبائن، كيف يمكنني المساعدة؟'],
+        ["I've been waiting for my parcel for two weeks.", 'أنتظر طردي منذ أسبوعين.'],
+        ['Could you give me the tracking number?', 'هل يمكنك أن تعطيني رقم التتبّع؟'],
+        ["Yes, it's 4729 1180.", 'نعم، إنه 4729 1180.'],
+        ['It was sent to the wrong city. It will be delivered tomorrow.', 'أُرسل إلى مدينة خاطئة، وسيُسلَّم غدًا.'],
+        ["Thank you for your help. Please don't lose it again!", 'شكرًا على مساعدتك. أرجو ألّا يضيع مرة أخرى!'],
+      ]),
+    ],
+    ask: tr([
+      ['Have you ever complained in a shop?', 'هل سبق أن اشتكيت في متجر؟'],
+      ['What do you do if something is faulty?', 'ماذا تفعل إذا كان شيء ما معيبًا؟'],
+      ['Do you keep your receipts?', 'هل تحتفظ بوصولاتك؟'],
+      ['Have you ever lost a parcel?', 'هل سبق أن ضاع منك طرد؟'],
+    ]),
+    answer: tr([
+      ['Yes, my new shoes fell apart after a week.', 'نعم، تمزّق حذائي الجديد بعد أسبوع.'],
+      ['I take it back and ask for a refund.', 'أعيده وأطلب استرجاع المال.'],
+      ['Only for expensive things.', 'فقط للأشياء الغالية.'],
+      ['Yes, but it arrived in the end.', 'نعم، لكنه وصل في النهاية.'],
+    ]),
+    reading: {
+      icon: '🛒', title: 'Online shopping problems', titleAr: 'مشاكل التسوّق عبر الإنترنت',
+      text: "More and more Moroccans shop online, but things don't always go well. Last month, Zineb ordered a pair of trainers from a website. When the parcel arrived, the shoes were the wrong size, and one of them had a stain. She called customer service, but nobody answered. Then she sent an email with photos. Two days later, the manager replied and apologised. They offered her two options: exchange the shoes or get her money back. She chose to exchange them, and the new pair arrived in three days. 'My advice?' says Zineb. 'Always keep the invoice and take photos. And be polite but firm.'",
+      gloss: pairs('more and more=أكثر فأكثر|trainers=حذاء رياضي|size=مقاس|reply=يردّ|firm=حازم'),
+      tf: [
+        { s: 'Zineb ordered a dress.', ok: false },
+        { s: 'The manager replied after two days.', ok: true },
+        { s: 'Zineb chose to get her money back.', ok: false },
+      ],
+      qs: [
+        { q: 'What was wrong with the shoes?', a: 'They were the wrong size, and one had a stain.' },
+        { q: "What is Zineb's advice?", a: 'Keep the invoice, take photos, and be polite but firm.' },
+      ],
+    },
+    power: power(
+      'make a complaint=يقدّم شكوى|ask for a refund=يطلب استرجاع المال|get your money back=يسترجع ماله|take it back=يعيده إلى المتجر|send it back=يرسله مرة أخرى|solve a problem=يحلّ مشكلة|track a parcel=يتتبّع طردًا|cancel an order=يلغي طلبية|a full refund=استرجاع كامل للمال|poor quality=جودة رديئة',
+      [['repair', 'repair', 'repairable'], ['apologise', 'apology', 'apologetic'], ['disappoint', 'disappointment', 'disappointing'], ['deliver', 'delivery', '—']],
+      [
+        ['The film was really ___. (disappoint)', 'disappointing'],
+        ['The manager made an ___. (apologise)', 'apology'],
+        ['Is this old radio ___? (repair)', 'repairable'],
+        ['___ is free for orders over 300 dirhams. (deliver)', 'Delivery'],
+        ['He felt very ___ and said sorry many times. (apology)', 'apologetic'],
+      ],
+    ) },
+]

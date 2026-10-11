@@ -1,0 +1,380 @@
+import { d, g, pairs, tr, v } from '../workbook/vocab-book.ts'
+import { power, type L2VocabUnit } from './types.ts'
+
+/** Level 2 vocabulary book, units 6–10 (see index.ts). */
+export const UNITS_6_10: L2VocabUnit[] = [
+  /* ── 6 · Have you ever…? ─────────────────────────────────────────── */
+  { n: 6, icon: '🧭',
+    vocab: v(
+      '📝 | bucket list | قائمة الأمنيات | Seeing snow is on my bucket list. | رؤية الثلج من قائمة أمنياتي.',
+      '🎒 | backpack | حقيبة ظهر | I travelled around Morocco with a backpack. | تجوّلت في المغرب بحقيبة ظهر.',
+      '🪂 | paragliding | الطيران الشراعي | Have you ever tried paragliding in Agadir? | هل جرّبت الطيران الشراعي في أكادير؟',
+      '🤿 | snorkelling | الغطس السطحي | We went snorkelling in Dakhla. | ذهبنا للغطس السطحي في الداخلة.',
+      '🏞️ | scenery | المناظر الطبيعية | The scenery in the Todra Gorge is amazing. | المناظر الطبيعية في مضيق تودغى مذهلة.',
+      '😮 | breathtaking | يخطف الأنفاس | The view from the mountain was breathtaking. | كان المنظر من الجبل يخطف الأنفاس.',
+      '🧿 | souvenir | تذكار | I bought a small souvenir for my mother. | اشتريت تذكارًا صغيرًا لأمي.',
+      "🛂 | passport | جواز السفر | Don't forget your passport! | لا تنسَ جواز سفرك!",
+      '✈️ | flight | رحلة جوية | Our flight to Istanbul was two hours late. | تأخّرت رحلتنا الجوية إلى إسطنبول ساعتين.',
+      '😴 | jet lag | تعب فارق التوقيت | After the flight to Canada, I had terrible jet lag. | بعد الرحلة إلى كندا عانيت من تعب فارق التوقيت.',
+    ),
+    groups: [
+      g('🧳', 'Travel things', 'لوازم السفر', 'suitcase=حقيبة سفر|boarding pass=بطاقة الصعود|sunglasses=نظارات شمسية|sun cream=واقي الشمس|charger=شاحن|guidebook=دليل سياحي|currency=عملة|sleeping bag=كيس النوم|water bottle=قارورة ماء|first-aid kit=علبة الإسعافات'),
+      g('🗺️', 'Places to visit', 'أماكن للزيارة', 'waterfall=شلال|gorge=مضيق|oasis=واحة|valley=وادٍ|cave=مغارة|island=جزيرة|lake=بحيرة|kasbah=قصبة|ruins=أطلال|harbour=ميناء'),
+      g('🏄', 'Adventure activities', 'أنشطة المغامرة', 'go rafting=يمارس التجديف في الأنهار|go skiing=يتزلّج|go camping=يخيّم|go diving=يغوص|quad biking=ركوب الدراجات الرباعية|zip-lining=الانزلاق على الحبل|sandboarding=التزلّج على الرمال|climb a mountain=يتسلّق جبلًا|go horse riding=يركب الخيل|kayaking=التجديف بالقوارب الصغيرة'),
+    ],
+    talks: [
+      d('Friendly | ودّي', 'An adventure weekend | عطلة مغامرة', 'Amine | Sofia', [
+        ['Have you ever been to Imlil?', 'هل سبق أن زرت إمليل؟'],
+        ["No, never. What's it like?", 'لا، أبدًا. كيف هي؟'],
+        ['The scenery is breathtaking. We climbed a mountain there last spring.', 'المناظر تخطف الأنفاس. تسلّقنا جبلًا هناك الربيع الماضي.'],
+        ["Wow! I've never climbed a mountain.", 'رائع! لم يسبق لي أن تسلّقت جبلًا.'],
+        ['Climbing Toubkal is on my bucket list.', 'تسلّق توبقال من قائمة أمنياتي.'],
+        ['Count me in! I just need a good backpack.', 'احسبني معك! أحتاج فقط إلى حقيبة ظهر جيدة.'],
+      ]),
+      d('At the airport | في المطار', 'Checking in | تسجيل الوصول', 'Agent | Mr Benali', [
+        ['Good morning. Your passport and boarding pass, please.', 'صباح الخير. جواز سفرك وبطاقة الصعود من فضلك.'],
+        ['Here you are. Is the flight on time?', 'تفضّلي. هل الرحلة في موعدها؟'],
+        ['Yes, it is. Have you got any liquids in your bag?', 'نعم. هل لديك سوائل في حقيبتك؟'],
+        ['Only a small bottle of sun cream.', 'فقط قارورة صغيرة من واقي الشمس.'],
+        ["That's fine. Have you ever flown with us before?", 'لا بأس. هل سبق أن سافرت معنا؟'],
+        ['Yes, twice. Your service is excellent.', 'نعم، مرّتين. خدمتكم ممتازة.'],
+      ]),
+    ],
+    ask: tr([
+      ['Have you ever been abroad?', 'هل سبق أن سافرت إلى الخارج؟'],
+      ['What is on your bucket list?', 'ما الذي في قائمة أمنياتك؟'],
+      ['What is the most beautiful place you have seen?', 'ما أجمل مكان رأيته؟'],
+      ['Do you prefer the mountains or the sea?', 'هل تفضّل الجبال أم البحر؟'],
+    ]),
+    answer: tr([
+      ['Yes, I have been to Spain twice.', 'نعم، زرت إسبانيا مرّتين.'],
+      ['I want to go paragliding one day.', 'أريد أن أجرّب الطيران الشراعي يومًا ما.'],
+      ['The Ouzoud waterfalls. They are breathtaking.', 'شلالات أوزود، إنها تخطف الأنفاس.'],
+      ['The mountains. I love walking there.', 'الجبال، فأنا أحبّ المشي فيها.'],
+    ]),
+    reading: {
+      icon: '🏝️', title: 'From Dakhla with love', titleAr: 'من الداخلة مع التحية',
+      text: "Hi Nadia! I'm writing from Dakhla, in the far south of Morocco. Have you ever been here? It's an amazing place between the desert and the ocean. Yesterday, I went kitesurfing for the first time. I fell in the water about twenty times, but I loved it! This morning, we went snorkelling and saw hundreds of colourful fish. The scenery is breathtaking, especially at sunset. The food is great too: I've eaten the best oysters of my life. I've bought you a small souvenir, a bag made by local women. I've never felt so relaxed. See you next week! Love, Imane",
+      gloss: pairs('far south=أقصى الجنوب|ocean=المحيط|hundreds=المئات|colourful=ملوّن|oysters=المحار'),
+      tf: [
+        { s: 'Dakhla is in the north of Morocco.', ok: false },
+        { s: 'Imane fell in the water many times.', ok: true },
+        { s: 'Imane bought Nadia a bag.', ok: true },
+      ],
+      qs: [
+        { q: 'What did Imane see when she went snorkelling?', a: 'Hundreds of colourful fish.' },
+        { q: 'What is the best food she has eaten there?', a: 'Oysters.' },
+      ],
+    },
+    power: power(
+      'catch a flight=يلحق برحلة جوية|miss a flight=تفوته رحلة جوية|pack a suitcase=يحزم حقيبة|go on holiday=يذهب في عطلة|take photos=يلتقط صورًا|stay in a hostel=ينزل في نُزل|travel light=يسافر بأمتعة خفيفة|explore a city=يستكشف مدينة|get a tan=يكتسب سُمرة|a round trip=رحلة ذهاب وإياب',
+      [['enjoy', 'enjoyment', 'enjoyable'], ['excite', 'excitement', 'exciting'], ['amaze', 'amazement', 'amazing'], ['attract', 'attraction', 'attractive']],
+      [
+        ['The trip to the desert was very ___. (enjoy)', 'enjoyable'],
+        ['The Koutoubia is a famous tourist ___. (attract)', 'attraction'],
+        ['Paragliding was so ___! (excite)', 'exciting'],
+        ['We looked at the waterfall in ___. (amaze)', 'amazement'],
+        ['The children were full of ___ before the trip. (excite)', 'excitement'],
+      ],
+    ) },
+
+  /* ── 7 · Good news, bad news ─────────────────────────────────────── */
+  { n: 7, icon: '📰',
+    vocab: v(
+      '🎓 | graduation | حفل التخرّج | Her graduation is in July. | حفل تخرّجها في يوليوز.',
+      '👰 | bride | العروس | The bride wore a green caftan. | ارتدت العروس قفطانًا أخضر.',
+      '🤵 | groom | العريس | The groom arrived on a white horse. | وصل العريس على حصان أبيض.',
+      '🤰 | pregnant | حامل | My sister is pregnant with her first baby. | أختي حامل بطفلها الأول.',
+      '🏆 | win a prize | يفوز بجائزة | I hope our school will win a prize this year. | أتمنّى أن تفوز مدرستنا بجائزة هذه السنة.',
+      '📉 | lose a job | يفقد عمله | It is hard to lose a job at fifty. | من الصعب أن يفقد المرء عمله في الخمسين.',
+      '🕊️ | pass away | يتوفّى | Our old neighbour passed away last night. | توفّي جارنا العجوز ليلة أمس.',
+      '📢 | announce | يعلن | They will announce the results on Monday. | سيعلنون النتائج يوم الاثنين.',
+      '💔 | divorce | طلاق | After the divorce, she moved to Rabat. | بعد الطلاق، انتقلت إلى الرباط.',
+      '🎊 | celebration | احتفال | There was a big celebration in the street. | كان هناك احتفال كبير في الشارع.',
+    ),
+    groups: [
+      g('🎉', 'Good news', 'أخبار سارّة', 'a pay rise=زيادة في الراتب|a scholarship=منحة دراسية|a new job=عمل جديد|good results=نتائج جيدة|a baby boy=مولود ذكر|a baby girl=مولودة أنثى|win the lottery=يربح اليانصيب|get a visa=يحصل على التأشيرة|buy a flat=يشتري شقة|recover=يتعافى'),
+      g('😢', 'Bad news', 'أخبار سيئة', 'fail an exam=يرسب في امتحان|get ill=يمرض|break up=ينفصل|be robbed=يتعرّض للسرقة|lose your wallet=يضيّع محفظته|a funeral=جنازة|be in debt=يكون مدينًا|a car accident=حادث سير|be fired=يُطرد من العمل|bad luck=سوء الحظ'),
+      g('💬', 'Reacting to news', 'التفاعل مع الأخبار', "Well done!=أحسنت!|That's wonderful!=هذا رائع!|You deserve it.=أنت تستحقّ ذلك.|I'm so happy for you.=أنا سعيد جدًّا من أجلك.|Mabrouk!=مبروك!|Oh no!=يا للأسف!|That's terrible.=هذا فظيع.|Poor you!=مسكين!|Don't worry.=لا تقلق.|May he rest in peace.=رحمه الله."),
+    ],
+    talks: [
+      d('Friendly | ودّي', 'Great news! | خبر رائع!', 'Nadia | Omar', [
+        ['Omar, guess what! I got the scholarship!', 'يا عمر، خمّن ماذا! حصلت على المنحة!'],
+        ["That's wonderful! You really deserve it.", 'هذا رائع! أنت تستحقّينها حقًّا.'],
+        ["Thanks! I'm going to study in Montreal for two years.", 'شكرًا! سأدرس في مونتريال لمدة سنتين.'],
+        ['When are they going to announce it officially?', 'متى سيعلنون ذلك رسميًّا؟'],
+        ['Next week. Please keep it quiet until then.', 'الأسبوع القادم. أرجو ألّا تخبر أحدًا حتى ذلك الحين.'],
+        ["Of course. I'm so happy for you!", 'طبعًا. أنا سعيد جدًّا من أجلك!'],
+      ]),
+      d('Sympathy | مواساة', 'Bad news | خبر سيئ', 'Younes | Salma', [
+        ['You look sad, Salma. Is everything OK?', 'تبدين حزينة يا سلمى. هل كل شيء على ما يرام؟'],
+        ['Not really. My grandfather passed away on Friday.', 'ليس تمامًا. توفّي جدّي يوم الجمعة.'],
+        ["Oh no. I'm so sorry. May he rest in peace.", 'يا للأسف. أنا آسف جدًّا. رحمه الله.'],
+        ['Thank you. He was ninety-two.', 'شكرًا لك. كان عمره اثنتين وتسعين سنة.'],
+        ['Is there anything I can do?', 'هل هناك شيء يمكنني فعله؟'],
+        ['Just being here helps. Thank you, Younes.', 'وجودك هنا يكفيني. شكرًا يا يونس.'],
+      ]),
+    ],
+    ask: tr([
+      ['What is the best news you have had this year?', 'ما أفضل خبر تلقّيته هذه السنة؟'],
+      ['What do you say to a friend who passes an exam?', 'ماذا تقول لصديق نجح في امتحان؟'],
+      ['Have you been to a wedding recently?', 'هل حضرت حفل زفاف مؤخرًا؟'],
+      ['What do you say when someone passes away?', 'ماذا تقول عندما يتوفّى شخص ما؟'],
+    ]),
+    answer: tr([
+      ['My brother got a new job!', 'حصل أخي على عمل جديد!'],
+      ['I say: Mabrouk! You deserve it.', 'أقول: مبروك! أنت تستحقّ ذلك.'],
+      ['Yes, my cousin got married in June.', 'نعم، تزوّج ابن عمّي في يونيو.'],
+      ['We say: May he rest in peace.', 'نقول: رحمه الله.'],
+    ]),
+    reading: {
+      icon: '💍', title: 'A year of news', titleAr: 'سنة من الأخبار',
+      text: "What a year for the Alami family! In January, Karim, the eldest son, lost his job when his company closed. It was a hard time, but in April he found a new job with a pay rise. In June, his sister Houda had her graduation from medical school, and the whole family went to the ceremony in Rabat. Then, in August, her cousin Mehdi married Sara. The bride wore seven different caftans, and the celebration lasted until morning! Sadly, in October, Grandma Zohra passed away at the age of ninety. The family was very sad. But last month, Karim's wife announced that she was pregnant. 'Life goes on,' says Karim's father.",
+      gloss: pairs('eldest=الأكبر|hard time=فترة صعبة|ceremony=حفل|last=يدوم|life goes on=الحياة تستمرّ'),
+      tf: [
+        { s: 'Karim found a new job in April.', ok: true },
+        { s: 'Houda studied law.', ok: false },
+        { s: 'The wedding celebration ended at midnight.', ok: false },
+      ],
+      qs: [
+        { q: "Where was Houda's graduation?", a: 'In Rabat.' },
+        { q: "What did Karim's wife announce?", a: 'That she was pregnant.' },
+      ],
+    },
+    power: power(
+      'break the news=يُبلغ الخبر|hear the news=يسمع الخبر|share good news=يشارك خبرًا سارًّا|throw a party=يقيم حفلة|send flowers=يرسل الورود|give birth=تلد|make a speech=يلقي كلمة|offer condolences=يقدّم التعازي|be over the moon=يطير من الفرح|have mixed feelings=لديه مشاعر مختلطة',
+      [['marry', 'marriage', 'married'], ['succeed', 'success', 'successful'], ['announce', 'announcement', '—'], ['sadden', 'sadness', 'sad']],
+      [
+        ['They have been ___ for ten years. (marry)', 'married'],
+        ['Her new shop is a big ___. (succeed)', 'success'],
+        ['The ___ was on the radio this morning. (announce)', 'announcement'],
+        ['There was great ___ in the village. (sad)', 'sadness'],
+        ['I hope you will be very ___ in your new job. (success)', 'successful'],
+      ],
+    ) },
+
+  /* ── 8 · It had already left! ────────────────────────────────────── */
+  { n: 8, icon: '⏱️',
+    vocab: v(
+      '🔋 | run out of | ينفد | Our car ran out of petrol on the motorway. | نفد وقود سيارتنا على الطريق السيار.',
+      '❌ | cancel | يلغي | They had to cancel the meeting. | اضطرّوا إلى إلغاء الاجتماع.',
+      '📆 | postpone | يؤجّل | Can we postpone dinner until Friday? | هل يمكننا تأجيل العشاء إلى يوم الجمعة؟',
+      "🏃 | rush | يستعجل | Don't rush. We have time. | لا تستعجل، لدينا وقت.",
+      '⏱️ | just in time | في آخر لحظة | We arrived just in time for the film. | وصلنا في آخر لحظة لمشاهدة الفيلم.',
+      '📌 | deadline | آخر أجل | The deadline for the project is Monday. | آخر أجل للمشروع هو يوم الاثنين.',
+      '🙊 | excuse | عذر | That is not a good excuse! | هذا ليس عذرًا مقبولًا!',
+      '🤷 | misunderstanding | سوء فهم | It was just a misunderstanding. | كان مجرّد سوء فهم.',
+      '🚌 | bus station | محطة الحافلات | The bus station was full of people. | كانت محطة الحافلات مكتظّة بالناس.',
+      '🕰️ | lose track of time | ينسى الوقت | I was reading and I lost track of time. | كنت أقرأ فنسيت الوقت.',
+    ),
+    groups: [
+      g('🕐', 'Time words', 'كلمات الوقت', 'already=بالفعل|just=للتوّ|by then=بحلول ذلك الوقت|before=قبل|after=بعد|as soon as=بمجرّد أن|in a hurry=على عجل|at the last minute=في آخر دقيقة|on the way=في الطريق|ages=وقت طويل جدًّا'),
+      g('🚉', 'Stations and journeys', 'المحطات والرحلات', 'departure=المغادرة|arrival=الوصول|timetable=جدول المواعيد|single ticket=تذكرة ذهاب|return ticket=تذكرة ذهاب وإياب|first class=الدرجة الأولى|seat=مقعد|connection=رحلة الربط|waiting room=قاعة الانتظار|announcement=إعلان'),
+      g('😓', 'Excuses and apologies', 'الأعذار والاعتذار', "I'm really sorry.=أنا آسف حقًّا.|It's my fault.=إنه خطئي.|I didn't mean to.=لم أقصد ذلك.|It won't happen again.=لن يتكرّر ذلك.|My phone died.=انطفأ هاتفي.|I got stuck in traffic.=علقت في زحمة السير.|Never mind.=لا عليك.|No harm done.=لم يحدث ضرر.|Apology accepted.=قبلت اعتذارك.|Don't mention it.=لا داعي لذكر ذلك."),
+    ],
+    talks: [
+      d('Informal | غير رسمي', 'Where were you? | أين كنت؟', 'Hiba | Mourad', [
+        ['Mourad! The film started twenty minutes ago!', 'يا مراد! بدأ الفيلم منذ عشرين دقيقة!'],
+        ["I'm really sorry. When I got to the bus stop, the bus had already left.", 'أنا آسف حقًّا. عندما وصلت إلى المحطة، كانت الحافلة قد غادرت.'],
+        ["Why didn't you call me?", 'لماذا لم تتصل بي؟'],
+        ['My phone had run out of battery.', 'كانت بطارية هاتفي قد نفدت.'],
+        ["Always an excuse! Come on, let's go in.", 'دائمًا لديك عذر! هيّا، لندخل.'],
+        ["It won't happen again. The popcorn is on me!", 'لن يتكرّر ذلك. الفشار على حسابي!'],
+      ]),
+      d('Formal | رسمي', 'A missed deadline | أجل فائت', 'Mrs Chraibi | Adil', [
+        ['Adil, the deadline for the report was yesterday.', 'يا عادل، آخر أجل للتقرير كان أمس.'],
+        ["I know, I'm very sorry. There was a misunderstanding.", 'أعرف، أنا آسف جدًّا. حدث سوء فهم.'],
+        ['What do you mean?', 'ماذا تقصد؟'],
+        ['I thought the meeting had been postponed to next week.', 'ظننت أن الاجتماع قد تأجّل إلى الأسبوع القادم.'],
+        ['I see. Can you finish it by this evening?', 'فهمت. هل يمكنك إنهاؤه بحلول هذا المساء؟'],
+        ["Yes, of course. You'll have it before six.", 'نعم، طبعًا. سيكون عندك قبل السادسة.'],
+      ]),
+    ],
+    ask: tr([
+      ['Have you ever missed a flight or a train?', 'هل سبق أن فاتتك رحلة جوية أو قطار؟'],
+      ['What do you do when you are late?', 'ماذا تفعل عندما تتأخّر؟'],
+      ['What is your usual excuse?', 'ما عذرك المعتاد؟'],
+      ['How do you apologise to a friend?', 'كيف تعتذر لصديق؟'],
+    ]),
+    answer: tr([
+      ['Yes, once. When I arrived, the train had already left.', 'نعم، مرّة. عندما وصلت، كان القطار قد غادر.'],
+      ["I call and say I'm on the way.", 'أتصل وأقول إنني في الطريق.'],
+      ['I usually say I got stuck in traffic.', 'عادةً أقول إنني علقت في زحمة السير.'],
+      ['I say sorry and invite them for a coffee.', 'أعتذر وأدعوه إلى فنجان قهوة.'],
+    ]),
+    reading: {
+      icon: '🚆', title: 'The day everything went wrong', titleAr: 'اليوم الذي ساء فيه كل شيء',
+      text: "Last Monday, Yasmine had an important job interview in Casablanca at ten o'clock. She had set her alarm for six, but the electricity had gone off in the night, so her phone hadn't charged. She woke up at half past seven! She rushed to the station in Rabat, but when she got there, the eight o'clock train had already left. She took a grand taxi instead, but it got stuck in traffic on the motorway. She arrived at the company at twenty past ten, very stressed. To her surprise, the manager smiled: 'Don't worry. The interview has been postponed. Didn't you get our email?' She laughed. She had been too busy to read it!",
+      gloss: pairs('important=مهمّ|set an alarm=يضبط المنبّه|go off=ينقطع|instead=بدلًا من ذلك|to her surprise=لدهشتها'),
+      tf: [
+        { s: 'The interview was in Rabat.', ok: false },
+        { s: "Yasmine missed the eight o'clock train.", ok: true },
+        { s: 'The manager was angry.', ok: false },
+      ],
+      qs: [
+        { q: "Why didn't her alarm ring?", a: "The electricity had gone off, so her phone hadn't charged." },
+        { q: 'How did she go to Casablanca after missing the train?', a: 'By grand taxi.' },
+      ],
+    },
+    power: power(
+      'make an excuse=يختلق عذرًا|keep someone waiting=يجعل شخصًا ينتظر|waste time=يضيّع الوقت|save time=يوفّر الوقت|take your time=يأخذ وقته|run late=يتأخّر عن موعده|meet a deadline=يلتزم بالأجل|catch the last bus=يلحق بآخر حافلة|accept an apology=يقبل الاعتذار|lose your way=يضلّ طريقه',
+      [['arrive', 'arrival', '—'], ['depart', 'departure', '—'], ['organise', 'organisation', 'organised'], ['stress', 'stress', 'stressful']],
+      [
+        ['The ___ of the train is at 8:15. (depart)', 'departure'],
+        ['Moving house is very ___. (stress)', 'stressful'],
+        ['Our flight will ___ at midnight. (arrival)', 'arrive'],
+        ['She is very ___. She never forgets anything. (organise)', 'organised'],
+        ['Check the ___ time on the board. (arrive)', 'arrival'],
+      ],
+    ) },
+
+  /* ── 9 · Making plans ────────────────────────────────────────────── */
+  { n: 9, icon: '🎉',
+    vocab: v(
+      '👨‍👩‍👧 | get-together | لقاء عائلي | We have a family get-together every Friday. | لدينا لقاء عائلي كل جمعة.',
+      '🏠 | host | يستضيف | My aunt will host the dinner this year. | ستستضيف خالتي العشاء هذه السنة.',
+      '🎈 | decorations | الزينة | The children made the decorations. | صنع الأطفال الزينة.',
+      '🍽️ | caterer | ممون الحفلات | We booked a caterer for the wedding. | حجزنا ممونًا للحفلات من أجل العرس.',
+      '🌿 | henna party | حفل الحنّاء | The henna party is the night before the wedding. | حفل الحنّاء يكون في الليلة التي تسبق العرس.',
+      "💑 | anniversary | ذكرى سنوية | It's their tenth wedding anniversary. | إنها الذكرى العاشرة لزواجهما.",
+      '📍 | venue | مكان الحفل | The venue is a big hall near the sea. | مكان الحفل قاعة كبيرة قرب البحر.',
+      '👗 | dress code | قواعد اللباس | The dress code is traditional clothes. | قواعد اللباس هي الملابس التقليدية.',
+      "🧺 | picnic | نزهة | Let's have a picnic in the forest. | لنقم بنزهة في الغابة.",
+      '📩 | reply | يردّ | Please reply before Thursday. | أرجو الردّ قبل يوم الخميس.',
+    ),
+    groups: [
+      g('🌙', 'Moroccan celebrations', 'المناسبات المغربية', 'Eid al-Fitr=عيد الفطر|Eid al-Adha=عيد الأضحى|Mawlid=المولد النبوي|Ashura=عاشوراء|the New Year=رأس السنة|a naming ceremony=العقيقة|an engagement party=حفل الخطوبة|Throne Day=عيد العرش|a moussem=موسم|Ramadan nights=ليالي رمضان'),
+      g('🎁', 'Party things', 'لوازم الحفلات', 'balloons=بالونات|fireworks=ألعاب نارية|live band=فرقة موسيقية|DJ=منسّق أغانٍ|buffet=بوفيه|drinks=مشروبات|gift bag=كيس الهدايا|invitation card=بطاقة الدعوة|photographer=مصوّر|party dress=فستان الحفلة'),
+      g('🗓️', 'Making arrangements', 'ترتيب المواعيد', "How about…?=ما رأيك في…؟|Shall we meet?=هل نلتقي؟|Let's meet at…=لنلتقِ في…|Is Saturday OK?=هل يناسبك السبت؟|That suits me.=هذا يناسبني.|Let's make it Sunday.=لنجعله الأحد.|See you there!=أراك هناك!|Don't be late!=لا تتأخّر!|I'll let you know.=سأخبرك.|Sounds good!=فكرة جيدة!"),
+    ],
+    talks: [
+      d('Family | عائلي', 'Planning the henna party | التحضير لحفل الحنّاء', 'Khadija | Mum', [
+        ['Mum, who is going to host the henna party?', 'يا أمي، من سيستضيف حفل الحنّاء؟'],
+        ['Your aunt Rachida. Her house is bigger than ours.', 'خالتك رشيدة، فبيتها أكبر من بيتنا.'],
+        ['And who is doing the decorations?', 'ومن سيتكفّل بالزينة؟'],
+        ["Your cousins. I've already booked the caterer.", 'بنات خالتك. وقد حجزت ممون الحفلات مسبقًا.'],
+        ["What's the dress code?", 'ما قواعد اللباس؟'],
+        ['Traditional, of course! Green and gold.', 'تقليدية طبعًا! الأخضر والذهبي.'],
+      ]),
+      d('Friendly | ودّي', 'A picnic on Sunday | نزهة يوم الأحد', 'Zakaria | Lamia', [
+        ['How about a picnic on Sunday? The weather is going to be nice.', 'ما رأيك في نزهة يوم الأحد؟ سيكون الطقس جميلًا.'],
+        ['Sounds good! Where shall we go?', 'فكرة جيدة! إلى أين سنذهب؟'],
+        ["Let's go to the Maamora forest.", 'لنذهب إلى غابة المعمورة.'],
+        ['Is ten OK? I can bring the drinks.', 'هل تناسبك العاشرة؟ يمكنني إحضار المشروبات.'],
+        ["That suits me. I'll bring the sandwiches.", 'هذا يناسبني. سأحضر الشطائر.'],
+        ['Great. See you there!', 'رائع. أراك هناك!'],
+      ]),
+    ],
+    ask: tr([
+      ['How do you celebrate Eid in your family?', 'كيف تحتفلون بالعيد في عائلتك؟'],
+      ['Who usually hosts family get-togethers?', 'من يستضيف عادةً اللقاءات العائلية؟'],
+      ['What are you doing this weekend?', 'ماذا ستفعل في عطلة نهاية الأسبوع؟'],
+      ['Shall we meet for coffee one day?', 'هل نلتقي لشرب قهوة يومًا ما؟'],
+    ]),
+    answer: tr([
+      ['We visit all our relatives and eat a lot of sweets.', 'نزور جميع أقاربنا ونأكل الكثير من الحلويات.'],
+      ['My grandmother. Everyone goes to her house.', 'جدّتي، فالجميع يذهب إلى بيتها.'],
+      ["I'm going to a wedding on Saturday.", 'سأحضر حفل زفاف يوم السبت.'],
+      ['Sure! How about Thursday?', 'طبعًا! ما رأيك في الخميس؟'],
+    ]),
+    reading: {
+      icon: '💃', title: 'A Moroccan wedding', titleAr: 'عرس مغربي',
+      text: "A traditional Moroccan wedding usually lasts several days. A few days before, the bride goes to the hammam with her friends. Then comes the henna party, where a woman draws beautiful designs on the bride's hands and feet. On the big night, hundreds of guests arrive at the venue. The bride changes her dress many times: a green caftan from Fes, a white one, a dress from the north and more. At one moment, she is carried on the amaria, a decorated chair, while everyone sings and claps. The caterer serves pastilla, chicken with olives and lots of sweets. The party often finishes at sunrise!",
+      gloss: pairs('several=عدّة|draw=يرسم|design=نقش|clap=يصفّق|sunrise=شروق الشمس'),
+      tf: [
+        { s: 'The henna party is after the wedding.', ok: false },
+        { s: 'The bride wears only one dress.', ok: false },
+        { s: 'The party can finish in the morning.', ok: true },
+      ],
+      qs: [
+        { q: 'Where does the bride go with her friends before the wedding?', a: 'To the hammam.' },
+        { q: 'What is the amaria?', a: 'A decorated chair that carries the bride.' },
+      ],
+    },
+    power: power(
+      'make plans=يضع خططًا|have a party=يقيم حفلة|send an invitation=يرسل دعوة|accept an invitation=يقبل دعوة|turn down an invitation=يرفض دعوة|set a date=يحدّد موعدًا|make a reservation=يقوم بحجز|have a good time=يقضي وقتًا ممتعًا|change your plans=يغيّر خططه|a last-minute plan=خطة في آخر لحظة',
+      [['prepare', 'preparation', 'prepared'], ['entertain', 'entertainment', 'entertaining'], ['invite', 'invitation', 'inviting'], ['arrange', 'arrangement', '—']],
+      [
+        ['The ___ for the wedding took months. (prepare)', 'preparations'],
+        ['There was music and dancing for ___. (entertain)', 'entertainment'],
+        ['Thanks for the ___! (invite)', 'invitation'],
+        ['Are you ___ for the exam? (preparation)', 'prepared'],
+        ['The flowers were a beautiful ___. (arrange)', 'arrangement'],
+      ],
+    ) },
+
+  /* ── 10 · Promises and predictions ───────────────────────────────── */
+  { n: 10, icon: '🔮',
+    vocab: v(
+      '📋 | business plan | خطة عمل | You need a good business plan. | تحتاج إلى خطة عمل جيدة.',
+      '🏦 | loan | قرض | We got a loan from the bank. | حصلنا على قرض من البنك.',
+      '💰 | profit | ربح | The café made a profit in its first year. | حقّق المقهى ربحًا في سنته الأولى.',
+      '📊 | budget | ميزانية | Our budget for the decoration is small. | ميزانيتنا للديكور صغيرة.',
+      '📈 | invest | يستثمر | He wants to invest in a small farm. | يريد أن يستثمر في ضيعة صغيرة.',
+      '🔑 | owner | صاحب | The owner of the shop is very kind. | صاحب المتجر لطيف جدًّا.',
+      '🥊 | competition | المنافسة | There is a lot of competition in this street. | هناك منافسة كبيرة في هذا الشارع.',
+      '📣 | advertise | يُشهر | We advertise on Instagram. | نُشهر منتجاتنا عبر إنستغرام.',
+      '🎯 | goal | هدف | My goal is to open a second shop. | هدفي هو فتح متجر ثانٍ.',
+      '🎲 | risk | مخاطرة | Starting a business is a big risk. | بدء مشروع تجاري مخاطرة كبيرة.',
+    ),
+    groups: [
+      g('💵', 'Money', 'المال', 'cash=نقدًا|credit card=بطاقة ائتمان|bank account=حساب بنكي|savings=مدّخرات|debt=دين|earn money=يكسب المال|spend money=ينفق المال|borrow=يقترض|lend=يُقرض|afford=يقدر على الدفع'),
+      g('🔮', 'The future', 'المستقبل', 'soon=قريبًا|one day=يومًا ما|in the future=في المستقبل|in ten years=بعد عشر سنوات|next year=السنة القادمة|by 2030=بحلول سنة 2030|I hope so.=أتمنّى ذلك.|I doubt it.=أشكّ في ذلك.|for sure=بالتأكيد|who knows?=من يدري؟'),
+      g('🏪', 'Starting a business', 'بدء مشروع تجاري', 'rent a shop=يكتري محلًّا|hire staff=يوظّف عمّالًا|suppliers=المورّدون|equipment=المعدّات|logo=شعار|website=موقع إلكتروني|opening hours=أوقات العمل|regular customers=زبائن دائمون|partner=شريك|grow=ينمو'),
+    ],
+    talks: [
+      d('Friendly | ودّي', 'A new business | مشروع جديد', 'Ayman | Ghita', [
+        ["I'm going to open a bakery. I've got a loan from the bank!", 'سأفتح مخبزة. حصلت على قرض من البنك!'],
+        ["That's great news! Have you got a business plan?", 'هذا خبر رائع! هل لديك خطة عمل؟'],
+        ['Yes. I think we will make a profit in two years.', 'نعم. أظنّ أننا سنحقّق ربحًا خلال سنتين.'],
+        ['Is there much competition in your street?', 'هل هناك منافسة كبيرة في شارعك؟'],
+        ["There's one other bakery, but our bread will be better!", 'هناك مخبزة أخرى، لكن خبزنا سيكون أفضل!'],
+        ["I'm sure it will. I'll be your first customer!", 'أنا متأكّدة من ذلك. سأكون أول زبونة عندك!'],
+      ]),
+      d('Formal | رسمي', 'At the bank | في البنك', 'Banker | Mrs Ouazzani', [
+        ['So, how much would you like to borrow?', 'إذن، كم تودّين أن تقترضي؟'],
+        ['About one hundred thousand dirhams.', 'حوالي مئة ألف درهم.'],
+        ['What will you invest the money in?', 'في ماذا ستستثمرين المال؟'],
+        ['In equipment for a small sewing workshop.', 'في معدّات لورشة خياطة صغيرة.'],
+        ['And can you afford to pay back three thousand a month?', 'وهل تقدرين على سداد ثلاثة آلاف شهريًّا؟'],
+        ['Yes. I already have regular customers.', 'نعم. لديّ زبائن دائمون من الآن.'],
+      ]),
+    ],
+    ask: tr([
+      ['What is your goal for next year?', 'ما هدفك للسنة القادمة؟'],
+      ['Would you like to have your own business?', 'هل تودّ أن يكون لك مشروعك الخاص؟'],
+      ['Do you save money every month?', 'هل تدّخر المال كل شهر؟'],
+      ['What will your town be like in 2040?', 'كيف ستكون مدينتك سنة 2040؟'],
+    ]),
+    answer: tr([
+      ['I want to pass my driving test.', 'أريد أن أنجح في امتحان السياقة.'],
+      ['Yes, I dream of opening a small restaurant.', 'نعم، أحلم بفتح مطعم صغير.'],
+      ['I try, but it is not easy.', 'أحاول، لكن ذلك ليس سهلًا.'],
+      ['I think there will be a metro, but who knows?', 'أظنّ أنه سيكون هناك ميترو، لكن من يدري؟'],
+    ]),
+    reading: {
+      icon: '🧵', title: 'From a small room to a big brand', titleAr: 'من غرفة صغيرة إلى علامة كبيرة',
+      text: "Five years ago, Sanae started a small business in a room in her parents' house in Salé. She made modern caftans and sold them on Instagram. At first, she had no budget for advertising, so she asked her friends to post photos. Slowly, she got regular customers from all over Morocco and even from France. Two years later, she borrowed money from the bank and rented a shop. Today, she has six workers and her own website. 'It was a big risk,' she says, 'but I don't regret it.' Her next goal? To open a shop in Paris. 'I'm sure it will happen,' she smiles. 'Maybe not this year, but one day.'",
+      gloss: pairs('modern=عصري|sell=يبيع|slowly=ببطء|worker=عامل|regret=يندم'),
+      tf: [
+        { s: 'Sanae started her business in a shop.', ok: false },
+        { s: 'She had customers in France.', ok: true },
+        { s: 'She already has a shop in Paris.', ok: false },
+      ],
+      qs: [
+        { q: 'How did Sanae advertise at first?', a: 'Her friends posted photos.' },
+        { q: 'How many workers does she have today?', a: 'Six.' },
+      ],
+    },
+    power: power(
+      'start a business=يبدأ مشروعًا تجاريًّا|run a business=يدير مشروعًا|make a profit=يحقّق ربحًا|take a risk=يخاطر|reach a goal=يحقّق هدفًا|pay back a loan=يسدّد قرضًا|save up for=يدّخر من أجل|go bankrupt=يُفلس|a good investment=استثمار جيد|have a dream=لديه حلم',
+      [['invest', 'investment', '—'], ['compete', 'competition', 'competitive'], ['advertise', 'advertisement', '—'], ['finance', 'finance', 'financial']],
+      [
+        ['Buying a flat is a good ___. (invest)', 'investment'],
+        ['The prices here are very ___. (compete)', 'competitive'],
+        ['I saw an ___ for the job on Facebook. (advertise)', 'advertisement'],
+        ['They have ___ problems. (finance)', 'financial'],
+        ['Ten shops ___ for the same customers. (competition)', 'compete'],
+      ],
+    ) },
+]

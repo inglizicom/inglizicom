@@ -1,0 +1,380 @@
+import { d, g, pairs, tr, v } from '../workbook/vocab-book.ts'
+import { power, type L2VocabUnit } from './types.ts'
+
+/** Level 2 vocabulary book, units 16–20 (see index.ts). */
+export const UNITS_16_20: L2VocabUnit[] = [
+  /* ── 16 · The job interview ──────────────────────────────────────── */
+  { n: 16, icon: '💼',
+    vocab: v(
+      '📜 | qualification | مؤهّل | A nursing qualification takes three years. | يستغرق الحصول على مؤهّل في التمريض ثلاث سنوات.',
+      '🎓 | degree | شهادة جامعية | She has a degree in economics. | لديها شهادة جامعية في الاقتصاد.',
+      '🧑‍💻 | internship | تدريب مهني | I did a six-month internship at a bank. | قمت بتدريب مهني لستة أشهر في بنك.',
+      '🏢 | employer | المشغّل | My employer pays for my English classes. | يدفع مشغّلي ثمن دروسي في الإنجليزية.',
+      '👷 | employee | الموظّف | Every employee gets a day off on Friday. | كل موظّف يحصل على يوم عطلة يوم الجمعة.',
+      '✉️ | cover letter | رسالة التحفيز | Send your CV and a cover letter. | أرسل سيرتك الذاتية ورسالة التحفيز.',
+      '💪 | strength | نقطة قوّة | My biggest strength is languages. | أكبر نقطة قوّة لديّ هي اللغات.',
+      '🪫 | weakness | نقطة ضعف | My weakness is that I talk too fast. | نقطة ضعفي أنني أتكلّم بسرعة كبيرة.',
+      '🤝 | teamwork | العمل الجماعي | Teamwork is very important here. | العمل الجماعي مهمّ جدًّا هنا.',
+      '🕐 | part-time | بدوام جزئي | I have a part-time job in a café. | لديّ عمل بدوام جزئي في مقهى.',
+    ),
+    groups: [
+      g('🎯', 'Skills', 'المهارات', 'computer skills=مهارات الحاسوب|languages=اللغات|communication skills=مهارات التواصل|leadership=القيادة|problem-solving=حلّ المشكلات|time management=تدبير الوقت|creativity=الإبداع|driving=السياقة|negotiation=التفاوض|customer care=العناية بالزبائن'),
+      g('🏭', 'Workplaces', 'أماكن العمل', 'factory=مصنع|call centre=مركز اتصال|office=مكتب|hospital=مستشفى|hotel=فندق|bank=بنك|school=مدرسة|shop=متجر|restaurant=مطعم|start-up=شركة ناشئة'),
+      g('💼', 'At work', 'في العمل', 'boss=رئيس|team=فريق|department=قسم|promotion=ترقية|pay slip=ورقة الأداء|bonus=مكافأة|holiday pay=أجر العطلة|sick leave=رخصة مرضية|retire=يتقاعد|resign=يستقيل'),
+    ],
+    talks: [
+      d('Formal | رسمي', 'Strengths and weaknesses | نقاط القوّة والضعف', 'Interviewer | Sami', [
+        ['What is your biggest strength?', 'ما أكبر نقطة قوّة لديك؟'],
+        ["I'm good at teamwork. I enjoy working with others.", 'أجيد العمل الجماعي، وأستمتع بالعمل مع الآخرين.'],
+        ['And your weakness?', 'ونقطة ضعفك؟'],
+        ["Sometimes I say yes to too many things. I'm learning to say no.", 'أحيانًا أقبل أشياء كثيرة جدًّا. أتعلّم أن أقول لا.'],
+        ['Have you done an internship?', 'هل قمت بتدريب مهني؟'],
+        ['Yes, six months at a start-up in Casablanca.', 'نعم، ستة أشهر في شركة ناشئة بالدار البيضاء.'],
+      ]),
+      d('Friendly | ودّي', 'After the interview | بعد المقابلة', 'Mehdi | Asmae', [
+        ['So, how was the interview?', 'إذن، كيف كانت المقابلة؟'],
+        ['I think it went well. They asked about my degree and my internship.', 'أظنّ أنها مرّت جيدًا. سألوني عن شهادتي وتدريبي المهني.'],
+        ['Is it a full-time job?', 'هل هو عمل بدوام كامل؟'],
+        ['Part-time at first, then full-time after six months.', 'بدوام جزئي في البداية، ثم بدوام كامل بعد ستة أشهر.'],
+        ['When will they let you know?', 'متى سيخبرونك؟'],
+        ['By Friday. Fingers crossed!', 'قبل يوم الجمعة. أتمنّى ذلك!'],
+      ]),
+    ],
+    ask: tr([
+      ['What job would you like to have?', 'أيّ عمل تودّ أن تزاوله؟'],
+      ['What is your biggest strength?', 'ما أكبر نقطة قوّة لديك؟'],
+      ['Have you ever had a part-time job?', 'هل سبق أن اشتغلت بدوام جزئي؟'],
+      ['What do you enjoy doing at work?', 'ماذا تحبّ أن تفعل في العمل؟'],
+    ]),
+    answer: tr([
+      ["I'd like to work in a bank.", 'أودّ أن أعمل في بنك.'],
+      ["I'm good at solving problems.", 'أجيد حلّ المشكلات.'],
+      ['Yes, I worked in a shop in the summer.', 'نعم، عملت في متجر في الصيف.'],
+      ['I enjoy helping customers.', 'أحبّ مساعدة الزبائن.'],
+    ]),
+    reading: {
+      icon: '📄', title: 'How to prepare for an interview', titleAr: 'كيف تستعدّ لمقابلة عمل',
+      text: "A job interview can be stressful, but good preparation makes a big difference. First, learn about the employer: visit their website and read about their products. Second, look at the advertisement again and think about your qualifications and experience. Prepare examples of your strengths, for example teamwork or problem-solving. Be honest about your weakness, and say how you are improving. Third, prepare two or three questions to ask at the end, for example about training. On the day, dress smartly, arrive ten minutes early and switch off your phone. Finally, after the interview, send a short email to thank them. It shows you really want the job.",
+      gloss: pairs('preparation=الاستعداد|product=منتوج|honest=صادق|early=باكرًا|show=يُظهر'),
+      tf: [
+        { s: 'You should learn about the employer before the interview.', ok: true },
+        { s: 'You should hide your weakness.', ok: false },
+        { s: 'It is a good idea to arrive late.', ok: false },
+      ],
+      qs: [
+        { q: 'How many questions should you prepare to ask?', a: 'Two or three.' },
+        { q: 'What should you do after the interview?', a: 'Send a short email to thank them.' },
+      ],
+    },
+    power: power(
+      'apply for a job=يتقدّم لوظيفة|get the job=يحصل على الوظيفة|hire someone=يوظّف شخصًا|lose your job=يفقد عمله|earn a living=يكسب رزقه|work long hours=يعمل ساعات طويلة|gain experience=يكتسب خبرة|meet a client=يلتقي زبونًا|a good team player=شخص يجيد العمل الجماعي|quit your job=يترك عمله',
+      [['employ', 'employment', 'unemployed'], ['qualify', 'qualification', 'qualified'], ['lead', 'leader', 'leading'], ['manage', 'management', 'managerial']],
+      [
+        ['She is a ___ nurse with ten years of experience. (qualify)', 'qualified'],
+        ['He has been ___ for six months. He is looking for work. (employ)', 'unemployed'],
+        ['The ___ of the team is very kind. (lead)', 'leader'],
+        ['I studied hotel ___ in Agadir. (manage)', 'management'],
+        ['There is not enough ___ for young people. (employ)', 'employment'],
+      ],
+    ) },
+
+  /* ── 17 · What do you think? ─────────────────────────────────────── */
+  { n: 17, icon: '🌍',
+    vocab: v(
+      '🌱 | environment | البيئة | We must protect the environment. | يجب أن نحمي البيئة.',
+      '🏭 | pollution | التلوّث | Pollution is a big problem in big cities. | التلوّث مشكلة كبيرة في المدن الكبرى.',
+      '🗑️ | rubbish | النفايات | There is too much rubbish on the beach. | هناك نفايات كثيرة جدًّا على الشاطئ.',
+      '♻️ | recycle | يعيد التدوير | We recycle plastic bottles at home. | نعيد تدوير القارورات البلاستيكية في البيت.',
+      '🌳 | green spaces | المساحات الخضراء | Rabat has a lot of green spaces. | في الرباط مساحات خضراء كثيرة.',
+      '🚌 | public transport | النقل العمومي | Public transport is cheap in Morocco. | النقل العمومي رخيص في المغرب.',
+      '💸 | cost of living | تكاليف المعيشة | The cost of living is high in Casablanca. | تكاليف المعيشة مرتفعة في الدار البيضاء.',
+      '📉 | unemployment | البطالة | Unemployment is a problem for young people. | البطالة مشكلة بالنسبة للشباب.',
+      '🏘️ | housing | السكن | Housing is expensive near the sea. | السكن غالٍ قرب البحر.',
+      '🌾 | countryside | البادية | I prefer the peace of the countryside. | أفضّل هدوء البادية.',
+    ),
+    groups: [
+      g('🏙️', 'City problems', 'مشاكل المدينة', 'noise=الضجيج|crime=الجريمة|homeless people=المشرّدون|overcrowding=الاكتظاظ|stray dogs=الكلاب الضالّة|potholes=الحفر|air quality=جودة الهواء|litter=القمامة المرمية|power cuts=انقطاع الكهرباء|water shortage=نقص الماء'),
+      g('🌿', 'The environment', 'البيئة', 'plastic bags=الأكياس البلاستيكية|solar energy=الطاقة الشمسية|climate change=تغيّر المناخ|drought=الجفاف|save water=يقتصد الماء|plant trees=يغرس الأشجار|reuse=يعيد الاستعمال|waste=يهدر|wildlife=الحياة البرية|clean up=ينظّف'),
+      g('💬', 'Discussing', 'النقاش', "In my view…=من وجهة نظري…|As far as I know…=على حدّ علمي…|I strongly believe…=أؤمن بشدّة…|You have a point.=معك حقّ.|I couldn't agree more.=أتّفق معك تمامًا.|I'm not so sure.=لست متأكّدًا من ذلك.|That's true, but…=هذا صحيح، لكن…|Let me finish.=دعني أكمل.|What makes you say that?=ما الذي يجعلك تقول ذلك؟|Fair enough.=معقول."),
+    ],
+    talks: [
+      d('Friendly | ودّي', 'City or countryside? | المدينة أم البادية؟', 'Adnane | Wiam', [
+        ['I want to leave Casablanca. The pollution is terrible.', 'أريد أن أغادر الدار البيضاء. التلوّث فظيع.'],
+        ['But where would you go?', 'لكن إلى أين ستذهب؟'],
+        ['To the countryside, near Ifrane. The air is clean there.', 'إلى البادية، قرب إفران. الهواء نقيّ هناك.'],
+        ["You have a point, but there's no work there.", 'معك حقّ، لكن لا يوجد عمل هناك.'],
+        ['I can work online. The cost of living is lower, too.', 'يمكنني العمل عبر الإنترنت، وتكاليف المعيشة أقلّ أيضًا.'],
+        ["Fair enough. I couldn't do it, but good luck!", 'معقول. لم أكن لأستطيع ذلك، لكن بالتوفيق!'],
+      ]),
+      d('Discussion | نقاش', 'Plastic | البلاستيك', 'Rachid | Hanane', [
+        ['In my view, we should stop using plastic completely.', 'من وجهة نظري، يجب أن نتوقّف عن استعمال البلاستيك تمامًا.'],
+        ["I'm not so sure. It's useful for many things.", 'لست متأكّدة من ذلك. إنه مفيد لأشياء كثيرة.'],
+        ['But think of the rubbish on our beaches!', 'لكن فكّري في النفايات على شواطئنا!'],
+        ["That's true, but people need to recycle more.", 'هذا صحيح، لكن على الناس أن يعيدوا التدوير أكثر.'],
+        ['Morocco banned plastic bags in 2016.', 'منع المغرب الأكياس البلاستيكية سنة 2016.'],
+        ['Yes, and I think it was a great idea.', 'نعم، وأظنّ أنها كانت فكرة رائعة.'],
+      ]),
+    ],
+    ask: tr([
+      ['What is the biggest problem in your town?', 'ما أكبر مشكلة في مدينتك؟'],
+      ['Do you recycle at home?', 'هل تعيد التدوير في البيت؟'],
+      ['Is public transport good where you live?', 'هل النقل العمومي جيد حيث تسكن؟'],
+      ['Would you prefer to live in the countryside?', 'هل تفضّل أن تعيش في البادية؟'],
+    ]),
+    answer: tr([
+      ['The traffic and the noise.', 'حركة المرور والضجيج.'],
+      ['Yes, we separate plastic and paper.', 'نعم، نفصل البلاستيك عن الورق.'],
+      ['Not really. The buses are always late.', 'ليس تمامًا. الحافلات تتأخّر دائمًا.'],
+      ['Maybe when I retire.', 'ربما عندما أتقاعد.'],
+    ]),
+    reading: {
+      icon: '☀️', title: 'A greener Morocco', titleAr: 'مغرب أكثر خضرة',
+      text: "Morocco has become one of Africa's leaders in solar energy. Near Ouarzazate, there is one of the biggest solar power stations in the world, which gives electricity to more than a million people. In 2016, the country also banned plastic bags, and today most people use cloth bags at the market. But there are still challenges. Drought is a serious problem, and many villages have a water shortage in summer. In the big cities, the air quality is often poor because of traffic. Many young Moroccans believe that everyone can help: by saving water, using public transport and planting trees. 'Small actions make a big difference,' they say.",
+      gloss: pairs('leader=رائد|power station=محطة توليد الكهرباء|ban=يمنع|cloth bag=كيس من القماش|action=عمل'),
+      tf: [
+        { s: 'There is a big solar power station near Ouarzazate.', ok: true },
+        { s: 'Plastic bags were banned in 2006.', ok: false },
+        { s: 'Drought is not a problem in Morocco.', ok: false },
+      ],
+      qs: [
+        { q: 'What do most people use at the market today?', a: 'Cloth bags.' },
+        { q: 'Why is the air quality poor in big cities?', a: 'Because of traffic.' },
+      ],
+    },
+    power: power(
+      'protect the environment=يحمي البيئة|reduce pollution=يقلّل التلوّث|make a difference=يُحدث فرقًا|take action=يتّخذ إجراءً|raise awareness=ينشر الوعي|express an opinion=يعبّر عن رأي|have a debate=يجري نقاشًا|a big issue=قضية كبيرة|on the one hand=من جهة|in the long term=على المدى البعيد',
+      [['pollute', 'pollution', 'polluted'], ['believe', 'belief', 'believable'], ['argue', 'argument', 'arguable'], ['improve', 'improvement', 'improved']],
+      [
+        ['Factories ___ the river. (pollution)', 'pollute'],
+        ['We had a long ___ about plastic. (argue)', 'argument'],
+        ['There has been a big ___ in the air quality. (improve)', 'improvement'],
+        ['His story is hard to ___. (belief)', 'believe'],
+        ["The river is very ___. You can't swim in it. (pollute)", 'polluted'],
+      ],
+    ) },
+
+  /* ── 18 · She said that… ─────────────────────────────────────────── */
+  { n: 18, icon: '🩺',
+    vocab: v(
+      '📝 | prescription | وصفة طبية | The doctor gave me a prescription. | أعطاني الطبيب وصفة طبية.',
+      '🤒 | fever | حمّى | The baby has a high fever. | الرضيع مصاب بحمّى مرتفعة.',
+      "😷 | cough | سعال | I've had a bad cough for a week. | أعاني من سعال شديد منذ أسبوع.",
+      "🗣️ | sore throat | التهاب الحلق | I have a sore throat. I can't speak. | لديّ التهاب في الحلق، لا أستطيع الكلام.",
+      '🌼 | allergy | حساسية | I have an allergy to cats. | لديّ حساسية من القطط.',
+      '📅 | appointment | موعد | I have an appointment with the dentist. | لديّ موعد مع طبيب الأسنان.',
+      '🥗 | diet | نظام غذائي | You need a healthier diet. | تحتاج إلى نظام غذائي صحّي أكثر.',
+      '💉 | injection | حقنة | The nurse gave me an injection. | أعطتني الممرّضة حقنة.',
+      '🩻 | symptoms | الأعراض | What are your symptoms? | ما الأعراض التي تعاني منها؟',
+      '🤧 | flu | الأنفلونزا | Half my class has the flu. | نصف قسمي مصاب بالأنفلونزا.',
+    ),
+    groups: [
+      g('🫀', 'The body', 'الجسم', 'chest=الصدر|stomach=المعدة|back=الظهر|knee=الركبة|ankle=الكاحل|shoulder=الكتف|neck=العنق|lungs=الرئتان|heart=القلب|skin=الجلد'),
+      g('💊', 'At the pharmacy', 'في الصيدلية', 'tablets=أقراص|syrup=دواء شراب|cream=مرهم|drops=قطرات|painkiller=مسكّن|antibiotics=مضادّات حيوية|vitamins=فيتامينات|thermometer=ميزان الحرارة|twice a day=مرّتين في اليوم|after meals=بعد الأكل'),
+      g('🗨️', 'Reporting verbs', 'أفعال النقل', 'promise=يعد|warn=يحذّر|remind=يذكّر|suggest=يقترح|insist=يصرّ|admit=يعترف|deny=ينكر|reply=يجيب|complain=يشتكي|whisper=يهمس'),
+    ],
+    talks: [
+      d("At the doctor's | عند الطبيب", 'What are your symptoms? | ما الأعراض؟', 'Doctor | Saad', [
+        ['Good morning. What are your symptoms?', 'صباح الخير. ما الأعراض التي تعاني منها؟'],
+        ["I've got a fever, a cough and a sore throat.", 'لديّ حمّى وسعال والتهاب في الحلق.'],
+        ['How long have you had them?', 'منذ متى وأنت تعاني منها؟'],
+        ['Since Tuesday. My wife said it was the flu.', 'منذ يوم الثلاثاء. قالت زوجتي إنها الأنفلونزا.'],
+        ['She was right. Have you got any allergies?', 'كانت محقّة. هل لديك أي حساسية؟'],
+        ['No, none. Do I need antibiotics?', 'لا، لا شيء. هل أحتاج إلى مضادّات حيوية؟'],
+      ]),
+      d('Family | عائلي', 'What did the doctor say? | ماذا قال الطبيب؟', 'Mum | Nour', [
+        ['So, what did the doctor say?', 'إذن، ماذا قال الطبيب؟'],
+        ['He said it was just a bad flu.', 'قال إنها مجرّد أنفلونزا قوية.'],
+        ['Did he give you a prescription?', 'هل أعطاك وصفة طبية؟'],
+        ['Yes. He told me to take this syrup twice a day.', 'نعم. طلب مني أن آخذ هذا الشراب مرّتين في اليوم.'],
+        ['And did he say anything about school?', 'وهل قال شيئًا عن المدرسة؟'],
+        ['He told me to stay at home until Monday!', 'طلب مني أن أبقى في البيت حتى يوم الاثنين!'],
+      ]),
+    ],
+    ask: tr([
+      ['When did you last see a doctor?', 'متى زرت الطبيب آخر مرة؟'],
+      ['What do you do when you have a cold?', 'ماذا تفعل عندما تُصاب بالزكام؟'],
+      ['Have you got any allergies?', 'هل لديك أي حساسية؟'],
+      ['What did your doctor tell you last time?', 'ماذا قال لك طبيبك آخر مرة؟'],
+    ]),
+    answer: tr([
+      ['Last month, for a check-up.', 'الشهر الماضي، لإجراء فحص.'],
+      ['I drink hot lemon and honey.', 'أشرب الليمون الساخن مع العسل.'],
+      ['Yes, I have an allergy to dust.', 'نعم، لديّ حساسية من الغبار.'],
+      ['She told me to drink more water.', 'قالت لي أن أشرب المزيد من الماء.'],
+    ]),
+    reading: {
+      icon: '🍯', title: "Grandma's remedies", titleAr: 'وصفات الجدّة',
+      text: "When I was a child and had a cough, my grandmother never took me to the doctor first. She always said that the kitchen was the best pharmacy. For a sore throat, she gave me warm water with honey and lemon. For a stomach ache, she made tea with cumin. When I had a fever, she put a cold cloth on my forehead and told me to sleep. Last year, I asked my doctor about these remedies. She laughed and said that some of them really work. But she also warned me that a high fever or a bad cough can be serious, and that I should always see a doctor if I don't get better.",
+      gloss: pairs('remedy=علاج تقليدي|honey=عسل|cumin=كمّون|forehead=الجبهة|get better=يتحسّن'),
+      tf: [
+        { s: 'The grandmother always went to the doctor first.', ok: false },
+        { s: 'She used cumin for a stomach ache.', ok: true },
+        { s: 'The doctor said that none of the remedies work.', ok: false },
+      ],
+      qs: [
+        { q: 'What did the grandmother give for a sore throat?', a: 'Warm water with honey and lemon.' },
+        { q: 'What did the doctor warn about?', a: 'A high fever or a bad cough can be serious.' },
+      ],
+    },
+    power: power(
+      'catch a cold=يصاب بالزكام|take medicine=يتناول الدواء|make an appointment=يأخذ موعدًا|see a doctor=يزور الطبيب|feel better=يشعر بتحسّن|get worse=يزداد سوءًا|lose weight=يفقد الوزن|put on weight=يزداد وزنه|keep fit=يحافظ على لياقته|a healthy diet=نظام غذائي صحّي',
+      [['treat', 'treatment', '—'], ['—', 'health', 'healthy'], ['infect', 'infection', 'infectious'], ['prescribe', 'prescription', '—']],
+      [
+        ['The ___ for the flu is rest and water. (treat)', 'treatment'],
+        ['Smoking is bad for your ___. (healthy)', 'health'],
+        ['The flu is very ___. Stay at home! (infect)', 'infectious'],
+        ['The doctor will ___ some tablets. (prescription)', 'prescribe'],
+        ['I have an ear ___. (infect)', 'infection'],
+      ],
+    ) },
+
+  /* ── 19 · Pros and cons ──────────────────────────────────────────── */
+  { n: 19, icon: '⚖️',
+    vocab: v(
+      '📱 | screen time | وقت الشاشات | Children need less screen time. | يحتاج الأطفال إلى وقت أقلّ أمام الشاشات.',
+      '📲 | addicted | مدمن | He is addicted to his phone. | إنه مدمن على هاتفه.',
+      '🚆 | commute | التنقّل اليومي إلى العمل | My commute takes an hour every day. | يستغرق تنقّلي اليومي إلى العمل ساعة.',
+      '🛵 | motorbike | دراجة نارية | A motorbike is cheaper than a car. | الدراجة النارية أرخص من السيارة.',
+      '🚲 | bicycle | دراجة هوائية | I go to work by bicycle. | أذهب إلى العمل بالدراجة الهوائية.',
+      '💻 | online shopping | التسوّق عبر الإنترنت | Online shopping saves time. | التسوّق عبر الإنترنت يوفّر الوقت.',
+      '⚡ | electric car | سيارة كهربائية | An electric car is better for the air. | السيارة الكهربائية أفضل للهواء.',
+      '🔒 | privacy | الخصوصية | Social media can be bad for your privacy. | قد تضرّ مواقع التواصل بخصوصيتك.',
+      '⏳ | waste of time | مضيعة للوقت | Some meetings are a waste of time. | بعض الاجتماعات مضيعة للوقت.',
+      '👍 | benefit | فائدة | The main benefit is the price. | الفائدة الرئيسية هي الثمن.',
+    ),
+    groups: [
+      g('💻', 'Technology', 'التكنولوجيا', 'app=تطبيق|Wi-Fi=الويفي|battery life=عمر البطارية|update=تحديث|notification=إشعار|charge=يشحن|scroll=يتصفّح|go online=يدخل إلى الإنترنت|video call=مكالمة فيديو|online course=دورة عبر الإنترنت'),
+      g('🔗', 'Linkers', 'أدوات الربط', 'also=أيضًا|besides=علاوة على ذلك|moreover=إضافة إلى ذلك|whereas=في حين|despite=رغم|therefore=لذلك|as a result=نتيجة لذلك|for example=على سبيل المثال|in addition=بالإضافة إلى ذلك|finally=أخيرًا'),
+      g('💰', 'Spending and saving', 'الإنفاق والادّخار', 'cheap=رخيص|expensive=غالٍ|value for money=يستحق ثمنه|waste money=يبذّر المال|monthly payment=الدفعة الشهرية|running costs=تكاليف التشغيل|free of charge=بالمجّان|pay in cash=يدفع نقدًا|price list=لائحة الأسعار|sale=تخفيضات'),
+    ],
+    talks: [
+      d('Friendly | ودّي', 'Bike or tram? | الدراجة أم الترامواي؟', 'Hamza | Sara', [
+        ["I'm thinking of going to work by bicycle.", 'أفكّر في الذهاب إلى العمل بالدراجة الهوائية.'],
+        ["Really? Isn't it dangerous in the traffic?", 'حقًّا؟ أليس ذلك خطيرًا وسط حركة المرور؟'],
+        ['There are bike lanes now. And my commute would be faster.', 'هناك مسالك للدراجات الآن، وسيكون تنقّلي أسرع.'],
+        ["That's true. Besides, it's good exercise.", 'هذا صحيح. علاوة على ذلك، إنها رياضة جيدة.'],
+        ['Exactly. And it costs nothing!', 'بالضبط. ولا تكلّف شيئًا!'],
+        ['But what about the summer? It gets so hot!', 'لكن ماذا عن الصيف؟ يصبح الجو حارًّا جدًّا!'],
+      ]),
+      d('Family | عائلي', 'Screen time | وقت الشاشات', 'Dad | Malak', [
+        ["Malak, you've been on your phone for three hours!", 'يا ملاك، أنتِ على هاتفك منذ ثلاث ساعات!'],
+        ["I'm doing an online course, Dad. It isn't a waste of time.", 'أتابع دورة عبر الإنترنت يا أبي، وليست مضيعة للوقت.'],
+        ['Fine, but too much screen time is bad for your eyes.', 'حسنًا، لكن الوقت الطويل أمام الشاشة مضرّ لعينيك.'],
+        ['I know. Whereas a book is good for my eyes, right?', 'أعرف. في حين أن الكتاب جيد لعينيّ، صحيح؟'],
+        ["Exactly! Switch off your phone and let's go for a walk.", 'بالضبط! أطفئي هاتفك ولنتمشّ قليلًا.'],
+        ['OK, just let me finish this video.', 'حسنًا، دعني فقط أنهي هذا الفيديو.'],
+      ]),
+    ],
+    ask: tr([
+      ['How long is your commute?', 'كم يستغرق تنقّلك اليومي؟'],
+      ['How much screen time do you have a day?', 'كم من الوقت تقضي أمام الشاشات يوميًّا؟'],
+      ['What are the pros and cons of online shopping?', 'ما إيجابيات التسوّق عبر الإنترنت وسلبياته؟'],
+      ['Would you buy an electric car?', 'هل كنت ستشتري سيارة كهربائية؟'],
+    ]),
+    answer: tr([
+      ['About forty minutes by tram.', 'حوالي أربعين دقيقة بالترامواي.'],
+      ['Too much! About five hours.', 'أكثر من اللازم! حوالي خمس ساعات.'],
+      ["It's easy, but you can't touch the products.", 'إنه سهل، لكن لا يمكنك لمس المنتجات.'],
+      ['Maybe, if they become cheaper.', 'ربما، إذا أصبحت أرخص.'],
+    ]),
+    reading: {
+      icon: '🏡', title: 'Working from home: for and against', titleAr: 'العمل من البيت: مع وضد',
+      text: "Since 2020, more and more Moroccans work from home, at least a few days a week. There are many advantages. First, there is no commute, so people save time and money. Second, they can organise their day and spend more time with their families. However, there are also disadvantages. Some people feel lonely, and others find it difficult to stop working in the evening. Besides, a small flat with noisy children is not always the best office! Despite these problems, most workers say they prefer a mix: two or three days at home and the rest at the office. As a result, many companies now offer this choice.",
+      gloss: pairs('at least=على الأقلّ|spend time=يقضي وقتًا|lonely=وحيد|mix=مزيج|the rest=الباقي'),
+      tf: [
+        { s: 'People who work from home save time.', ok: true },
+        { s: 'Nobody feels lonely when they work from home.', ok: false },
+        { s: 'Most workers prefer to work only at home.', ok: false },
+      ],
+      qs: [
+        { q: 'What is the first advantage?', a: 'There is no commute.' },
+        { q: 'What do many companies offer now?', a: 'A mix of days at home and at the office.' },
+      ],
+    },
+    power: power(
+      'weigh the pros and cons=يوازن بين الإيجابيات والسلبيات|have a big impact=له تأثير كبير|save energy=يوفّر الطاقة|spend time online=يقضي وقتًا على الإنترنت|take public transport=يستقلّ النقل العمومي|a good point=فكرة جيدة|a major problem=مشكلة كبرى|it depends=ذلك حسب الظروف|cut costs=يخفّض التكاليف|go green=يتّجه نحو البيئة',
+      [['benefit', 'benefit', 'beneficial'], ['use', 'use', 'useful'], ['addict', 'addiction', 'addictive'], ['depend', 'dependence', 'dependent']],
+      [
+        ['Sport is ___ for your health. (benefit)', 'beneficial'],
+        ['Social media can be very ___. (addict)', 'addictive'],
+        ['This app is really ___. (use)', 'useful'],
+        ['Phone ___ is a problem for teenagers. (addict)', 'addiction'],
+        ['Many young people are still ___ on their parents. (depend)', 'dependent'],
+      ],
+    ) },
+
+  /* ── 20 · I'd recommend it ───────────────────────────────────────── */
+  { n: 20, icon: '🍽️',
+    vocab: v(
+      '🥗 | starter | المقبّلات | We had salad as a starter. | تناولنا سلطة كمقبّلات.',
+      "🍲 | main course | الطبق الرئيسي | For the main course, I'll have the tagine. | كطبق رئيسي، سآخذ الطاجين.",
+      '💵 | tip | بقشيش | We left a tip for the waiter. | تركنا بقشيشًا للنادل.',
+      '🧾 | bill | الحساب | Could we have the bill, please? | هل يمكننا الحصول على الحساب من فضلك؟',
+      '🥦 | vegetarian | نباتي | Is there a vegetarian dish? | هل هناك طبق نباتي؟',
+      '🌶️ | spicy | حارّ | This harira is very spicy! | هذه الحريرة حارّة جدًّا!',
+      '🍛 | portion | حصّة | This portion is enough for two. | هذه الحصّة تكفي لشخصين.',
+      '✨ | atmosphere | الأجواء | The atmosphere in the café is relaxing. | الأجواء في المقهى مريحة.',
+      "🥡 | takeaway | طعام محمول | Let's get a takeaway tonight. | لنطلب طعامًا محمولًا هذه الليلة.",
+      '⭐ | rating | تقييم بالنجوم | The restaurant has a five-star rating. | للمطعم تقييم بخمس نجوم.',
+    ),
+    groups: [
+      g('🥘', 'Moroccan dishes', 'أطباق مغربية', 'couscous=الكسكس|tagine=الطاجين|pastilla=البسطيلة|harira=الحريرة|rfissa=الرفيسة|tanjia=الطنجية|zaalouk=الزعلوك|msemen=المسمّن|baghrir=البغرير|chebakia=الشبّاكية'),
+      g('👅', 'Taste and texture', 'المذاق والقوام', 'sweet=حلو|salty=مالح|sour=حامض|bitter=مرّ|crispy=مقرمش|juicy=كثير العصارة|creamy=كريمي القوام|fresh=طازج|greasy=كثير الدهون|tender=طريّ'),
+      g('🍴', 'At the restaurant', 'في المطعم', 'a table for two=طاولة لشخصين|order=يطلب|the specials=أطباق اليوم|a glass of water=كأس ماء|still or sparkling=عادي أم غازي|well done=مطهوّ جيدًا|cutlery=أدوات المائدة|napkin=منديل|leftovers=بقايا الطعام|Bon appétit!=بالصحة والراحة!'),
+    ],
+    talks: [
+      d('At the restaurant | في المطعم', 'Ordering | الطلب', 'Waiter | Imane', [
+        ['Are you ready to order?', 'هل أنتِ مستعدّة للطلب؟'],
+        ['Yes. What would you recommend as a starter?', 'نعم. بماذا توصي كمقبّلات؟'],
+        ["The zaalouk is excellent. It's our chef's favourite.", 'الزعلوك ممتاز، إنه الطبق المفضّل لدى طبّاخنا.'],
+        ['Great. And for the main course, is the tanjia spicy?', 'رائع. وكطبق رئيسي، هل الطنجية حارّة؟'],
+        ['A little. The portion is big enough for two.', 'قليلًا. والحصّة تكفي لشخصين.'],
+        ["Perfect. We'll share it, then.", 'ممتاز. سنتقاسمها إذن.'],
+      ]),
+      d('Friendly | ودّي', 'A takeaway | طعام محمول', 'Anouar | Kenza', [
+        ["I'm too tired to cook. Shall we get a takeaway?", 'أنا متعب جدًّا للطبخ. هل نطلب طعامًا محمولًا؟'],
+        ['Good idea. What about that new place near the station?', 'فكرة جيدة. ما رأيك في ذلك المكان الجديد قرب المحطة؟'],
+        ['It has a four-star rating. It must be good.', 'له تقييم بأربع نجوم، لا بدّ أنه جيد.'],
+        ['Do they have vegetarian dishes?', 'هل لديهم أطباق نباتية؟'],
+        ['Yes, and the msemen with honey looks amazing.', 'نعم، والمسمّن بالعسل يبدو مذهلًا.'],
+        ["Let's order now. I'm starving!", 'لنطلب الآن، أنا أتضوّر جوعًا!'],
+      ]),
+    ],
+    ask: tr([
+      ['What is your favourite Moroccan dish?', 'ما طبقك المغربي المفضّل؟'],
+      ['Do you leave a tip in restaurants?', 'هل تترك بقشيشًا في المطاعم؟'],
+      ['Which restaurant would you recommend in your town?', 'بأيّ مطعم توصي في مدينتك؟'],
+      ['Do you like spicy food?', 'هل تحبّ الطعام الحارّ؟'],
+    ]),
+    answer: tr([
+      ['Rfissa. My mother makes the best one.', 'الرفيسة، فأمي تحضّر أفضل رفيسة.'],
+      ['Yes, usually ten per cent.', 'نعم، عادةً عشرة في المئة.'],
+      ['A small fish restaurant near the port.', 'مطعم سمك صغير قرب الميناء.'],
+      ['Yes, but not too spicy!', 'نعم، لكن ليس حارًّا أكثر من اللازم!'],
+    ]),
+    reading: {
+      icon: '🏮', title: 'A food tour of Marrakech', titleAr: 'جولة طعام في مراكش',
+      text: "If you visit Marrakech, I'd strongly recommend a food tour of the medina. Our guide, Youssef, met us at Jemaa el-Fna at six. First, we tried harira and chebakia from a small stall. Then he took us to a tiny restaurant where the chef cooks tanjia in the ashes of the hammam fire. The meat was so tender! After that, we had fresh orange juice and msemen with honey. The portions were small, so we could taste everything. The atmosphere in the square at night was amazing: music, smoke and storytellers. The tour cost 400 dirhams, including all the food. It was worth every dirham. Five stars!",
+      gloss: pairs('stall=كشك|tiny=صغير جدًّا|ashes=الرماد|smoke=الدخان|storyteller=الحكواتي'),
+      tf: [
+        { s: 'The tour started at Jemaa el-Fna.', ok: true },
+        { s: 'The tanjia was cooked in an oven at home.', ok: false },
+        { s: 'The food was not included in the price.', ok: false },
+      ],
+      qs: [
+        { q: 'What did they drink?', a: 'Fresh orange juice.' },
+        { q: 'How much did the tour cost?', a: '400 dirhams.' },
+      ],
+    },
+    power: power(
+      'order a meal=يطلب وجبة|pay the bill=يدفع الحساب|leave a tip=يترك بقشيشًا|set the table=يُعِدّ المائدة|a balanced meal=وجبة متوازنة|eat out=يأكل خارج البيت|a sweet tooth=حبّ الحلويات|highly recommended=موصى به بشدّة|a home-cooked meal=وجبة منزلية|a light lunch=غداء خفيف',
+      [['taste', 'taste', 'tasty'], ['bake', 'bakery', 'baked'], ['freshen', 'freshness', 'fresh'], ['flavour', 'flavour', 'flavourful']],
+      [
+        ['This soup is really ___. (taste)', 'tasty'],
+        ['I buy bread from the ___ every morning. (bake)', 'bakery'],
+        ['I love ___ fish with lemon. (bake)', 'baked'],
+        ['You can taste the ___ of the vegetables. (fresh)', 'freshness'],
+        ['Saffron gives the dish a special ___. (flavourful)', 'flavour'],
+      ],
+    ) },
+]
