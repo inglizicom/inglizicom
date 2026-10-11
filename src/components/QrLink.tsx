@@ -32,5 +32,7 @@ export const PLAY = {
   book: (n: number) => `https://www.inglizi.com/audio/book/${n}`,
   workbook: (n: number) => `https://www.inglizi.com/audio/workbook/${n}`,
   vocab: (n: number) => `https://www.inglizi.com/audio/vocab/${n}`,
+  l2book: (n: number) => `https://www.inglizi.com/audio/level2/book/${n}`,
+  l2vocab: (n: number) => `https://www.inglizi.com/audio/level2/vocab/${n}`,
   card: (code: string) => `https://www.inglizi.com/audio/${code}`,
 }

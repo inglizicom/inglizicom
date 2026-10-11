@@ -85,3 +85,13 @@ test('pages: six a unit, the key answers every exercise, every Arabic line ends 
   pages.filter(p => p.kind !== 'contents').forEach(p => visit(p.blocks))
   assert.deepEqual(bad, [])
 })
+
+test('every Level 2 unit has its audio: course book and vocabulary book, all in English', async () => {
+  const { l2BookSections, l2VocabSections } = await import('../../src/data/level2-audio/index.ts')
+  for (const u of LEVEL2_VOCAB) {
+    for (const s of [...l2BookSections(u.n), ...l2VocabSections(u.n)]) {
+      assert.ok(s.clips.length, `unit ${u.n}: ${s.title}`)
+      for (const c of s.clips) assert.ok(c.en && !AR.test(c.en) && c.voice, `unit ${u.n}: «${c.en}»`)
+    }
+  }
+})

@@ -42,7 +42,8 @@ export const L2_TONES = {
   talk: { m: '#7C3AED', s: '#F4F0FF' },
   writing: { m: '#EA580C', s: '#FFF4EC' },
   practice: { m: '#0D9488', s: '#ECFBF8' },
-  brand: { m: '#A16207', s: '#FDF6E3' },
+  /** VIIZA ENGLISH red on its cream, as on the covers (admin/level2-book/_cover.tsx). */
+  brand: { m: '#A3262A', s: '#FFF4E0' },
 } as const
 export type L2Tone = keyof typeof L2_TONES
 export const L2_KIND_TONE: Record<L2Kind, L2Tone> = {

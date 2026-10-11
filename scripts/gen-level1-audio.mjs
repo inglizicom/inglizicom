@@ -1,7 +1,8 @@
 /**
  * Records the Level 1 audio (the book, second edition, and the play cards)
- * into the public Supabase bucket "audio", from the plan in
- * src/data/level1-audio: every clip twice, slow (for learning) and normal.
+ * and the Level 2 audio (course book and vocabulary book) into the public
+ * Supabase bucket "audio", from the plans in src/data/level1-audio and
+ * src/data/level2-audio: every clip twice, slow (for learning) and normal.
  *
  *   node --env-file=.env.local scripts/gen-level1-audio.mjs [--dry] [--limit=20]
  *
@@ -10,6 +11,7 @@
  * Voices: OpenAI gpt-4o-mini-tts, the delivery set by instructions.
  */
 import { allClips, clipPath, sayOf, BUCKET, SPEEDS } from '../src/data/level1-audio/index.ts'
+import { level2Clips } from '../src/data/level2-audio/index.ts'
 
 const args = Object.fromEntries(process.argv.slice(2).map(a => a.replace(/^--/, '').split('=')).map(([k, v]) => [k, v ?? true]))
 const OPENAI = process.env.OPENAI_API_KEY
@@ -28,7 +30,7 @@ function instructions(clip, speed) {
     ? 'You are Bouchta, a funny, playful goat in a family card game: cheerful and a little silly, but every word perfectly clear.'
     : clip.speaker
       ? `You are ${clip.speaker}, speaking in a friendly everyday conversation in Morocco. Sound natural and warm, like a real person, not a narrator.`
-      : 'You are a warm, friendly English teacher reading to a beginner.'
+      : 'You are a warm, friendly English teacher reading to a learner.'
   return `${who} Accent: clear General American English. ${pace} Read exactly the text, adding nothing. Letters given one by one (W, A, L, I, D) are spelled out letter by letter, clearly. Words like dirhams, tagine, couscous, msemen, harira and hammam are Moroccan: say them the Moroccan way.`
 }
 
@@ -81,7 +83,7 @@ async function existing() {
   }
 }
 
-const clips = allClips()
+const clips = [...new Map([...allClips(), ...level2Clips()].map(c => [clipPath(c, 'normal'), c])).values()]
 const jobs = clips.flatMap(c => SPEEDS.map(speed => ({ clip: c, speed, path: clipPath(c, speed) })))
 const chars = jobs.reduce((s, j) => s + j.clip.en.length, 0)
 console.log(`${clips.length} clips × ${SPEEDS.length} speeds = ${jobs.length} files, ${chars} characters`)

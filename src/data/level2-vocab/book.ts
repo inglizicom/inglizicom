@@ -32,7 +32,7 @@ export const L2_V_TONES = {
   practice: { m: '#EA580C', s: '#FFF4EC' },
   talk: { m: '#7C3AED', s: '#F4F0FF' },
   read: { m: '#2563EB', s: '#EFF5FF' },
-  brand: { m: '#1E3A8A', s: '#EEF2FF' },
+  brand: { m: '#A3262A', s: '#FFF4E0' },
 } as const
 export type L2VTone = keyof typeof L2_V_TONES
 export const L2_V_KIND_TONE: Record<L2VKind, L2VTone> = {
@@ -64,10 +64,10 @@ function powerPage(u: L2VocabBookUnit): L2VPage {
   }
 }
 
-/** The Level 1 pages' advice, without its audio code (this book has none yet). */
+/** The Level 1 pages' advice, its audio at /audio/level2/vocab/{n}. */
 const CALLOUTS: Partial<Record<L2VKind, string>> = {
-  words: 'انظر إلى الصورة واقرأ الكلمة بصوت مرتفع، ثم غطِّ الإنجليزية وحاول أن تتذكّرها.',
-  groups: 'اقرأ كل مجموعة بصوت مرتفع، وتعلّم خمس كلمات جديدة كل يوم، ثم راجعها في اليوم التالي.',
+  words: 'انظر إلى الصورة واقرأ الكلمة بصوت مرتفع، ثم غطِّ الإنجليزية وتذكّرها. امسح الرمز في أعلى الصفحة لتستمع إليها ببطء أو بالسرعة العادية.',
+  groups: 'اقرأ كل مجموعة بصوت مرتفع، وتعلّم خمس كلمات جديدة كل يوم. استمع إليها بالرمز في أعلى الصفحة.',
 }
 
 /** The six pages of a unit. */

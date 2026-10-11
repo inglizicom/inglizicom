@@ -2,19 +2,21 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { BookA, BookOpen, ChevronDown, Folder, FolderOpen, Layers, Library, Music2, PenLine, type LucideIcon } from 'lucide-react'
 import { CARD_LESSONS } from '@/data/level1-cards'
+import { INDEX as L2_INDEX } from '@/data/level2-book/plan'
 import { clipBase, type AudioSection, type Clip } from '@/data/level1-audio'
 import { Player, PlayerCard, PlayerDock, PlayAll, Track, type PlayClip } from './_player'
 
 /**
  * The frame of every /audio page, organised as a library of folders:
- * Level 1 › a shelf (course book, workbook, vocabulary book, play cards) ›
- * a lesson › its sections. On a computer the folders stand on the left and
+ * a level › a shelf (course book, workbook, vocabulary book, play cards) ›
+ * a lesson › its sections. Level 2 has two shelves: its course book (the
+ * workbook's codes open it too) and its vocabulary book. On a computer the folders stand on the left and
  * the big white player on the right; on a phone the folders fold into one
  * drop-down above the player. A lesson's lines are listed under the player,
  * section by section.
  */
 
-export type Shelf = 'book' | 'workbook' | 'vocab' | 'cards'
+export type Shelf = 'book' | 'workbook' | 'vocab' | 'cards' | 'l2book' | 'l2vocab'
 const pad = (n: number) => String(n).padStart(2, '0')
 
 export const SHELVES: { id: Shelf; en: string; ar: string; Icon: LucideIcon; href: (n: number) => string }[] = [
@@ -23,7 +25,17 @@ export const SHELVES: { id: Shelf; en: string; ar: string; Icon: LucideIcon; hre
   { id: 'vocab', en: 'Vocabulary book', ar: 'كتاب المفردات', Icon: BookA, href: n => `/audio/vocab/${n}` },
   { id: 'cards', en: 'Play cards', ar: 'بطاقات اللعب', Icon: Layers, href: n => `/audio/L${pad(n)}` },
 ]
-export const shelfOf = (id: Shelf) => SHELVES.find(s => s.id === id)!
+export const L2_SHELVES: typeof SHELVES = [
+  { id: 'l2book', en: 'Course book', ar: 'كتاب الدروس', Icon: BookOpen, href: n => `/audio/level2/book/${n}` },
+  { id: 'l2vocab', en: 'Vocabulary book', ar: 'كتاب المفردات', Icon: BookA, href: n => `/audio/level2/vocab/${n}` },
+]
+export const shelfOf = (id: Shelf) => [...SHELVES, ...L2_SHELVES].find(s => s.id === id)!
+
+/** Each level: its name, its shelves, its lessons and how a lesson is labelled. */
+export const LEVELS = [
+  { name: 'Level 1 · A0 → A1', shelves: SHELVES, lessons: CARD_LESSONS, code: (n: number) => `L${pad(n)}` },
+  { name: 'Level 2 · A2 → B1', shelves: L2_SHELVES, lessons: L2_INDEX, code: (n: number) => `U${pad(n)}` },
+]
 
 export const toPlay = (c: Clip & { label?: string }, where: string): PlayClip => ({
   en: c.en, src: clipBase(c), where, ...(c.ar ? { ar: c.ar } : {}), ...(c.speaker ? { speaker: c.speaker } : {}), ...(c.label ? { label: c.label } : {}),
@@ -42,8 +54,9 @@ const SUMMARY = 'list-none cursor-pointer select-none [&::-webkit-details-marker
 export function LibraryTree({ here, sections }: { here?: { shelf: Shelf; lesson: number }; sections?: string[] }) {
   return (
     <nav className="flex flex-col gap-1" dir="ltr">
-      <div className="flex items-center gap-2 px-2 pb-1 text-[13px] font-bold text-[#14306B]"><Library size={16} className="text-[#B8862F]" />Level 1 · A0 → A1</div>
-      {SHELVES.map(s => (
+      {LEVELS.map(level => <div key={level.name} className="flex flex-col gap-1">
+      <div className="flex items-center gap-2 px-2 pb-1 pt-1 text-[13px] font-bold text-[#14306B]"><Library size={16} className="text-[#B8862F]" />{level.name}</div>
+      {level.shelves.map(s => (
         <details key={s.id} open={here?.shelf === s.id} className="group/shelf">
           <summary className={`${SUMMARY} flex items-center gap-2 rounded-xl px-2 py-2 hover:bg-[#EEF2F9]`}>
             <span className="text-[#B8862F]"><Folder size={18} className="group-open/shelf:hidden" /><FolderOpen size={18} className="hidden group-open/shelf:block" /></span>
@@ -52,13 +65,13 @@ export function LibraryTree({ here, sections }: { here?: { shelf: Shelf; lesson:
             <ChevronDown size={16} className="text-[#5B6474] transition group-open/shelf:rotate-180" />
           </summary>
           <div className="ml-4 border-l border-[#D6DCE8] pl-2 py-1 flex flex-col gap-0.5">
-            {CARD_LESSONS.map(l => {
+            {level.lessons.map(l => {
               const on = here?.shelf === s.id && here.lesson === l.n
               return (
                 <div key={l.n}>
                   <Link href={s.href(l.n)} className={`flex items-center gap-2 rounded-lg px-2 py-1.5 ${on ? 'bg-[#FBF5E9] ring-1 ring-[#B8862F]' : 'hover:bg-[#EEF2F9]'}`}>
                     {on ? <FolderOpen size={15} className="shrink-0 text-[#B8862F]" /> : <Folder size={15} className="shrink-0 text-[#5B6474]" />}
-                    <span className="shrink-0 text-[12px] font-bold text-[#14306B]">L{pad(l.n)}</span>
+                    <span className="shrink-0 text-[12px] font-bold text-[#14306B]">{level.code(l.n)}</span>
                     <span className="truncate text-[13px] text-[#1F2937]">{l.titleEn}</span>
                   </Link>
                   {on && sections && (
@@ -76,6 +89,7 @@ export function LibraryTree({ here, sections }: { here?: { shelf: Shelf; lesson:
           </div>
         </details>
       ))}
+      </div>)}
     </nav>
   )
 }
@@ -149,24 +163,24 @@ export function SectionList({ sections, starts, openAll }: { sections: AudioSect
 }
 
 /** The shelves as big folders (the library's home page). */
-export function ShelfGrid() {
+export function ShelfGrid({ level = LEVELS[0] }: { level?: (typeof LEVELS)[number] }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
-      {SHELVES.map(s => (
+      {level.shelves.map(s => (
         <details key={s.id} className="group rounded-2xl bg-white ring-1 ring-[#D6DCE8]">
           <summary className={`${SUMMARY} flex items-center gap-3 px-4 py-4`} dir="ltr">
             <span className="w-11 h-11 rounded-xl bg-[#14306B] flex items-center justify-center"><s.Icon size={20} color="#fff" /></span>
             <span className="flex-1 leading-tight">
               <span className="block text-[16px] font-bold text-[#14306B]">{s.en}</span>
-              <span className="font-arabic block text-[13px] text-[#5B6474]">{s.ar} · 19 lessons</span>
+              <span className="font-arabic block text-[13px] text-[#5B6474]">{s.ar} · {level.lessons.length} {level === LEVELS[0] ? 'lessons' : 'units'}</span>
             </span>
             <ChevronDown size={18} className="text-[#B8862F] transition group-open:rotate-180" />
           </summary>
           <div className="grid gap-1 px-2 pb-3" dir="ltr">
-            {CARD_LESSONS.map(l => (
+            {level.lessons.map(l => (
               <Link key={l.n} href={s.href(l.n)} className="flex items-center gap-2 rounded-xl px-2 py-1.5 hover:bg-[#EEF2F9]">
                 <Folder size={15} className="shrink-0 text-[#B8862F]" />
-                <span className="shrink-0 text-[12px] font-bold text-[#14306B]">L{pad(l.n)}</span>
+                <span className="shrink-0 text-[12px] font-bold text-[#14306B]">{level.code(l.n)}</span>
                 <span className="truncate text-[13.5px] text-[#1F2937]">{l.titleEn}</span>
                 <span className="font-arabic ml-auto truncate text-[12px] text-[#5B6474]">{l.titleAr}</span>
               </Link>

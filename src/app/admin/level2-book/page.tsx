@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { buildLevel2Book, INDEX, L2_KIND_TONE, L2_TONES, L2_UNITS, type L2Page, type L2Tone } from '@/data/level2-book'
 import { Field, GamesHeader, INP, PrintAllButton, THEMES } from '../games/_shared'
-import { CoverFields, CoverPage, DEFAULT_COVER, type CoverInfo, type CoverStat } from '../games/_cover'
+import { DEFAULT_COVER, type CoverInfo, type CoverStat } from '../games/_cover'
+import { ViizaCover } from './_cover'
+import { PLAY } from '@/components/QrLink'
 import { DEFAULT_INFO, LessonPage, ThanksPage, type BookInfo } from '../level1-book/_blocks'
 import { Imprint } from '../everyday-book/_matter'
 
@@ -18,12 +20,12 @@ import { Imprint } from '../everyday-book/_matter'
  * contents page lists all twenty from the start.
  */
 
-const INFO_KEY = 'level2-book-info-v1'
+const INFO_KEY = 'level2-book-info-v2'
 const COVER_KEY = 'level2-book-cover-v1'
 
 const EN_FONT = "'Nunito', 'Baloo Bhaijaan 2', sans-serif"
 const BOOK_INFO: BookInfo = {
-  ...DEFAULT_INFO, title: 'تكلّم واكتب بدقّة', level: 'Level 2 · A2 → B1', ink: '#0F1E3D', fontEn: EN_FONT,
+  ...DEFAULT_INFO, title: 'تكلّم واكتب بدقّة', level: 'VIIZA · A2 → B1', ink: '#0E1240', fontEn: EN_FONT,
 }
 const BOOK_COVER: CoverInfo = {
   ...DEFAULT_COVER, palette: 'navy', phone1: '+212 707 902 091', level: 'A2 → B1',
@@ -72,7 +74,7 @@ export default function Level2BookPage() {
   const withFront = view === 'book' || view === 'front'
   const shown = book.pages.filter((p: L2Page) =>
     view === 'book' ? true : view === 'front' ? p.kind === 'welcome' || p.kind === 'contents' || p.kind === 'planner' : view === 'end' ? p.kind === 'key' || p.kind === 'review' : p.unit === view)
-  const count = (withFront ? 2 : 0) + shown.length
+  const count = (withFront ? 2 : 0) + shown.length + (view === 'book' ? 1 : 0)
   const prefix = `level2${info.buyer.trim() ? `-${slug(info.buyer)}` : ''}`
   const set = <K extends keyof BookInfo>(k: K) => (v: BookInfo[K]) => setInfo(s => ({ ...s, [k]: v }))
 
@@ -96,7 +98,6 @@ export default function Level2BookPage() {
               <option value="end">المراجعات والأجوبة</option>
             </select>
           </Field>
-          {withFront && <CoverFields value={cover} onChange={setCover} defaults={BOOK_COVER} showBio={false} />}
           <Field label="الطباعة" hint="الألوان: لون ثابت لكل نوع من الأقسام. أبيض وأسود: للطباعة الاقتصادية.">
             <div className="grid grid-cols-2 gap-1.5">
               {([[false, 'بالألوان 🎨'], [true, 'أبيض وأسود']] as const).map(([v, label]) => (
@@ -113,9 +114,7 @@ export default function Level2BookPage() {
 
         <div className="space-y-8 min-w-0">
           {withFront && <>
-            <CoverPage info={cover} theme={THEMES[0]} stats={coverStats} filename={`${prefix}-000-cover`}
-              badge={{ ar: 'المستوى الثاني', en: 'LEVEL 2' }}
-              bubbles={[{ text: 'Have you ever been there?' }, { text: 'ما رأيك؟', ar: true }, { text: 'لو كنت مكانك…', ar: true }, { text: "I'd recommend it!" }]} />
+            <ViizaCover book="book" side="front" filename={`${prefix}-000-cover`} />
             <ThanksPage info={info} filename={`${prefix}-000-thanks`} note={<Imprint info={info} />} />
           </>}
           {shown.map(p => {
@@ -123,9 +122,11 @@ export default function Level2BookPage() {
             return (
               <LessonPage key={no} info={info} lesson={p} pageNo={no} talkNo={new Map()} exNo={book.exNo} spread
                 colour={L2_TONES[L2_KIND_TONE[p.kind]]} toneOf={b => ('tone' in b && b.tone ? L2_TONES[b.tone as L2Tone] : undefined)}
+                qr={p.unit ? PLAY.l2book(p.unit) : undefined}
                 filename={`${prefix}-${String(no).padStart(3, '0')}-${p.unit ? `unit-${pad(p.unit)}-${p.kind}` : p.kind}`} />
             )
           })}
+          {view === 'book' && <ViizaCover book="book" side="back" filename={`${prefix}-999-back-cover`} />}
           {INDEX.length > L2_UNITS.length && (
             <p className="text-center text-[13px] font-bold text-zinc-400 print:hidden">الوحدات {L2_UNITS.length + 1}–{INDEX.length} قيد الكتابة.</p>
           )}
