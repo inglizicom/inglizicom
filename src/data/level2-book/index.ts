@@ -323,7 +323,7 @@ const front = (kind: L2Kind, tag: string, titleEn: string, titleAr: string, bloc
   ({ n: 0, tag, titleEn, titleAr, kind, blocks })
 
 export const WELCOME: L2Page = front('welcome', 'Welcome', 'Welcome', 'مرحبًا بك', [
-  { t: 'banner', title: 'Welcome to Level 2 - مرحبًا بك في المستوى الثاني', icons: ['👋', '📗'] },
+  { t: 'banner', title: 'Welcome to VIIZA English - مرحبًا بك في فيزا إنگليش', icons: ['👋', '📗'] },
   { t: 'callout', text: 'في هذا الكتاب تنتقل من مستوى A2 إلى B1: تتكلّم بثقة في مواقف الحياة والعمل، وتكتب رسائل وفقرات واضحة، وتتعلّم القواعد داخل الكلام وليس بعيدًا عنه.' },
   { t: 'bar', title: 'Inside every unit - داخل كل وحدة', icon: '🧩' },
   { t: 'boxes', cols: 2, items: [

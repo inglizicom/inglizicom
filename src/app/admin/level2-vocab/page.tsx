@@ -116,7 +116,7 @@ export default function Level2VocabPage() {
             return (
               <LessonPage key={no} info={info} lesson={p} pageNo={no} talkNo={new Map()} exNo={book.exNo} spread
                 colour={L2_V_TONES[L2_V_KIND_TONE[p.kind]]} toneOf={b => ('tone' in b && b.tone ? L2_V_TONES[b.tone as L2VTone] : undefined)}
-                qr={p.unit ? PLAY.l2vocab(p.unit) : undefined}
+                qr={p.unit ? PLAY.l2vocab(p.unit) : PLAY.library}
                 filename={`${prefix}-${String(no).padStart(3, '0')}-${p.unit ? `unit-${pad(p.unit)}-${p.kind}` : p.kind}`} />
             )
           })}
