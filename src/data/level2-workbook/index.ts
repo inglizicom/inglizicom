@@ -6,6 +6,7 @@ import { fromBank, match } from './helpers.ts'
 import { TEST_1, WORK_1 } from './module-1.ts'
 import { TEST_2, WORK_2 } from './module-2.ts'
 import { TEST_3, WORK_3 } from './module-3.ts'
+import { TEST_4, WORK_4 } from './module-4.ts'
 
 /**
  * The Level 2 workbook «تكلّم واكتب بدقّة — دفتر التمارين», printed from
@@ -22,8 +23,8 @@ import { TEST_3, WORK_3 } from './module-3.ts'
  * their workbook unit are both written.
  */
 
-export const WORK_UNITS: L2WorkUnit[] = [...WORK_1, ...WORK_2, ...WORK_3]
-const TESTS: Record<number, [Block[], Block[]]> = { 1: TEST_1, 2: TEST_2, 3: TEST_3 }
+export const WORK_UNITS: L2WorkUnit[] = [...WORK_1, ...WORK_2, ...WORK_3, ...WORK_4]
+const TESTS: Record<number, [Block[], Block[]]> = { 1: TEST_1, 2: TEST_2, 3: TEST_3, 4: TEST_4 }
 
 const pad = (n: number) => String(n).padStart(2, '0')
 const esc = (w: string) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
