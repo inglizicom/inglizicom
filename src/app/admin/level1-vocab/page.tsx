@@ -4,8 +4,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { buildLevel1VocabBook, V_KIND_TONE, V_TONES, type VPage, type VTone } from '@/data/level1-vocab/book'
 import { LEVEL1_VOCAB } from '@/data/level1-vocab'
 import { PLAY } from '@/components/QrLink'
-import { Field, GamesHeader, INP, PrintAllButton, THEMES } from '../games/_shared'
-import { CoverFields, CoverPage, DEFAULT_COVER, type CoverInfo, type CoverStat } from '../games/_cover'
+import { Field, GamesHeader, INP, PrintAllButton } from '../games/_shared'
+import { SeriesCover } from '../level2-book/_cover'
 import { DEFAULT_INFO, LessonPage, ThanksPage, type BookInfo } from '../level1-book/_blocks'
 
 /**
@@ -18,12 +18,7 @@ import { DEFAULT_INFO, LessonPage, ThanksPage, type BookInfo } from '../level1-b
  */
 
 const INFO_KEY = 'level1-vocab-info-v1'
-const COVER_KEY = 'level1-vocab-cover-v1'
 const BOOK_INFO: BookInfo = { ...DEFAULT_INFO, title: 'كتاب المفردات — المستوى الأول', level: 'Level 1 · A0 → A1' }
-const BOOK_COVER: CoverInfo = {
-  ...DEFAULT_COVER, phone1: '+212 707 902 091', level: 'A0 → A1',
-  titleAr1: 'كلمات أكثر', titleAr2: 'المستوى الأول', titleEn1: 'More Words', titleEn2: 'Level 1 Vocabulary',
-}
 
 type View = 'book' | 'front' | 'end' | number
 
@@ -51,22 +46,14 @@ const pad = (n: number) => String(n).padStart(2, '0')
 export default function Level1VocabPage() {
   const [view, setView] = useState<View>('book')
   const [info, setInfo] = useSaved<BookInfo>(INFO_KEY, BOOK_INFO)
-  const [cover, setCover] = useSaved<CoverInfo>(COVER_KEY, BOOK_COVER)
   const book = useMemo(buildLevel1VocabBook, [])
 
   const withFront = view === 'book' || view === 'front'
   const shown = book.pages.filter((p: VPage) =>
     view === 'book' ? true : view === 'front' ? p.kind === 'welcome' || p.kind === 'contents' : view === 'end' ? p.kind === 'key' : p.unit === view)
-  const count = (withFront ? 2 : 0) + shown.length
+  const count = (withFront ? 2 : 0) + shown.length + (view === 'book' ? 1 : 0)
   const prefix = `level1-vocab${info.buyer.trim() ? `-${slug(info.buyer)}` : ''}`
   const set = <K extends keyof BookInfo>(k: K) => (v: BookInfo[K]) => setInfo(s => ({ ...s, [k]: v }))
-
-  const coverStats: CoverStat[] = [
-    { n: String(book.stats.lessons), ar: 'درسًا', en: 'Lessons' },
-    { n: `${Math.floor(book.stats.words / 10) * 10}+`, ar: 'كلمة جديدة', en: 'New words' },
-    { n: String(LEVEL1_VOCAB.length * 2), ar: 'محادثة', en: 'Conversations' },
-    { n: String(book.stats.exercises), ar: 'تمرينًا', en: 'Exercises' },
-  ]
 
   return (
     <div className="px-6 lg:px-10 py-8 max-w-[1300px] mx-auto">
@@ -81,7 +68,6 @@ export default function Level1VocabPage() {
               <option value="end">الأجوبة</option>
             </select>
           </Field>
-          {withFront && <CoverFields value={cover} onChange={setCover} defaults={BOOK_COVER} showBio={false} />}
           <Field label="الطباعة" hint="الألوان: لون ثابت لكل نوع من الصفحات. أبيض وأسود: للطباعة الاقتصادية.">
             <div className="grid grid-cols-2 gap-1.5">
               {([[false, 'بالألوان 🎨'], [true, 'أبيض وأسود']] as const).map(([v, label]) => (
@@ -98,9 +84,7 @@ export default function Level1VocabPage() {
 
         <div className="space-y-8 min-w-0">
           {withFront && <>
-            <CoverPage info={cover} theme={THEMES[2]} stats={coverStats} filename={`${prefix}-000-cover`}
-              badge={{ ar: 'كتاب المفردات', en: 'VOCABULARY BOOK' }}
-              bubbles={[{ text: 'What is this?' }, { text: 'ماذا تعني؟', ar: true }, { text: 'كيف أقولها؟', ar: true }, { text: 'I know this word!' }]} />
+            <SeriesCover series="lakaart" book="vocab" side="front" filename={`${prefix}-000-cover`} />
             <ThanksPage info={info} filename={`${prefix}-000-thanks`} />
           </>}
           {shown.map(p => {
@@ -112,6 +96,7 @@ export default function Level1VocabPage() {
                 filename={`${prefix}-${String(no).padStart(3, '0')}-${p.unit ? `lesson-${pad(p.unit)}-${p.kind}` : p.kind}`} />
             )
           })}
+          {view === 'book' && <SeriesCover series="lakaart" book="vocab" side="back" filename={`${prefix}-999-back-cover`} />}
         </div>
       </div>
     </div>

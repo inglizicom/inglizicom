@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { LEVEL1_LESSONS, type Block, type Lesson } from '@/data/level1-book'
 import { LEVEL1_V2_LESSONS } from '@/data/level1-book-v2'
 import { Field, GamesHeader, INP, PrintAllButton } from '../games/_shared'
-import { ContentsPage, CoverPage, DEFAULT_INFO, LessonPage, ThanksPage, type BookInfo } from './_blocks'
+import { ContentsPage, DEFAULT_INFO, LessonPage, ThanksPage, type BookInfo } from './_blocks'
+import { SeriesCover } from '../level2-book/_cover'
 import { PLAY } from '@/components/QrLink'
 
 /**
@@ -62,7 +63,7 @@ export default function Level1BookPage() {
   const showFront = view === 'book' || view === 'front'
   const lessons = BOOK.map((l, i) => ({ l, page: i + 1 }))
     .filter(({ l }) => view === 'book' || view === l.n)
-  const count = (showFront ? 3 : 0) + lessons.length
+  const count = (showFront ? 3 : 0) + lessons.length + (view === 'book' ? 1 : 0)
 
   const set = <K extends keyof BookInfo>(k: K) => (v: BookInfo[K]) => setInfo(s => ({ ...s, [k]: v }))
   const text = (label: string, k: 'title' | 'level' | 'teacher' | 'teacherAr' | 'phone' | 'website' | 'buyer', ltr?: boolean, placeholder?: string) => (
@@ -166,7 +167,7 @@ export default function Level1BookPage() {
 
         <div className="space-y-8 min-w-0">
           {showFront && <>
-            <CoverPage info={info} filename={`${prefix}-00-cover`} />
+            <SeriesCover series="lakaart" book="book" side="front" filename={`${prefix}-00-cover`} />
             <ThanksPage info={info} filename={`${prefix}-00-thanks`} />
             <ContentsPage info={info} lessons={BOOK} filename={`${prefix}-00-contents`} />
           </>}
@@ -174,6 +175,7 @@ export default function Level1BookPage() {
             <LessonPage key={l.n} info={info} lesson={l} pageNo={page} talkNo={talkNo} filename={`${prefix}-lesson-${String(l.n).padStart(2, '0')}`}
               qr={edition === 2 ? PLAY.book(l.n) : undefined} />
           ))}
+          {view === 'book' && <SeriesCover series="lakaart" book="book" side="back" filename={`${prefix}-99-back-cover`} />}
         </div>
       </div>
     </div>
