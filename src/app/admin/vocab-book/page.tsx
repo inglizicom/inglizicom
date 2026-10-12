@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { VOCAB_BOOK, type VocabBookUnit } from '@/data/workbook/vocab-book-all'
 import { Field, GamesHeader, INP, PrintAllButton, THEMES, ThemePicker, type SheetTheme } from '../games/_shared'
-import { BackCoverPage, CoverFields, CoverPage, DEFAULT_COVER, type CoverInfo, type CoverStat } from '../games/_cover'
+import { DEFAULT_COVER, type CoverInfo, type CoverStat } from '../games/_cover'
+import { SeriesCover } from '../level2-book/_cover'
 import {
   AnswersBody, CommonBody, ContentsBody, FinalBody, IndexBody, MatterPage, PARTS, ReadingBody, TalkBody, UnitPage,
   VocabBody, WhyBody, type IndexLine, type Part,
@@ -248,7 +249,6 @@ export default function VocabBookPage() {
             </select>
           </Field>
 
-          {(withCover || withBack) && <CoverFields value={cover} onChange={setCover} defaults={book.cover} showBio={withBack} />}
 
           <ThemePicker value={theme} onChange={setTheme} />
 
@@ -268,29 +268,9 @@ export default function VocabBookPage() {
         </aside>
 
         <div className="space-y-8 min-w-0">
-          {withCover && (
-            <CoverPage info={cover} theme={theme} stats={coverStats} filename={`${prefix}-00-cover`}
-              badge={{ ar: 'كتاب المفردات', en: 'VOCABULARY BOOK' }}
-              bubbles={[{ text: 'What does it mean?' }, { text: 'ماذا تعني؟', ar: true }, { text: 'كيف أقولها؟', ar: true }, { text: 'How do you say…?' }]} />
-          )}
+          {withCover && <SeriesCover series="piirmi" book="vocab" side="front" filename={`${prefix}-00-cover`} />}
           {shown.map(({ e, i }) => page(e, i))}
-          {withBack && (
-            <BackCoverPage info={cover} theme={theme} filename={`${prefix}-99-back-cover`}
-              headline={{ ar: 'كلمات أكثر… ثقة أكبر.', en: 'More words. More confidence.' }}
-              blurbAr={`هذا الكتاب رفيق كتاب «${book.textbookAr}». في كل ${book.label === 'UNIT' ? 'وحدة من وحداته' : 'درس من دروسه'} تجد كلمات جديدة مع أمثلة مترجمة، وكلمات شائعة مرتّبة حسب المواضيع، ومحادثات بطرق مختلفة للسؤال والإجابة، ونصّ قراءة قصيرًا مع أسئلة — لتتكلّم الإنجليزية في حياتك اليومية بثقة.`}
-              bullets={[
-                { ar: `أكثر من ${stats.words.replace('+', '')} كلمة وعبارة مع ترجمتها`, en: `${stats.words} words and expressions, translated` },
-                { ar: 'أمثلة من الحياة اليومية مع ترجمتها', en: 'Real-life examples with translations' },
-                { ar: `${stats.talks} محادثة وطرق مختلفة للسؤال والإجابة`, en: `${stats.talks} conversations, with other ways to ask and answer` },
-                { ar: `${stats.readings} نص قراءة مع أسئلة وأجوبتها`, en: `${stats.readings} readings with questions and answers` },
-                { ar: 'فهرس أبجدي لكل الكلمات', en: 'An A–Z index of every word' },
-              ]}
-              series={[
-                { ar: 'الكتاب الأساسي', en: 'Textbook' },
-                { ar: 'دفتر التمارين', en: 'Workbook' },
-                { ar: 'كتاب المفردات', en: 'Vocabulary book', current: true },
-              ]} />
-          )}
+          {withBack && <SeriesCover series="piirmi" book="vocab" side="back" filename={`${prefix}-99-back-cover`} />}
         </div>
       </div>
     </div>

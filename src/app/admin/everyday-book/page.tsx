@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { buildEverydayBook, EVERYDAY_UNITS, KIND_TONE, OPENERS, TONES, type EverydayPage, type Tone } from '@/data/everyday-book'
 import { Field, GamesHeader, INP, PrintAllButton, THEMES } from '../games/_shared'
-import { BackCoverPage, CoverFields, CoverPage, DEFAULT_COVER, type CoverInfo, type CoverStat } from '../games/_cover'
+import { DEFAULT_COVER, type CoverInfo, type CoverStat } from '../games/_cover'
+import { SeriesCover } from '../level2-book/_cover'
 import { DEFAULT_INFO, LessonPage, ThanksPage, type BookInfo } from '../level1-book/_blocks'
 import { CertificatePage, Imprint, NextStepPage, ValuePage } from './_matter'
 import { ProgressPage, UnitOpenerPage, WordListPage } from './_pages'
@@ -113,7 +114,6 @@ export default function EverydayBookPage() {
             </select>
           </Field>
 
-          {(withFront || withEnd) && <CoverFields value={cover} onChange={setCover} defaults={BOOK_COVER} showBio={withEnd} />}
 
           <Field label="الكود (QR / Barcode)" hint="صورة واحدة تظهر في كل الصفحات. إلى أن تضيفها يبقى مكانها محجوزًا.">
             <div className="space-y-2 rounded-xl border border-zinc-200 bg-white p-3">
@@ -171,9 +171,7 @@ export default function EverydayBookPage() {
 
         <div className="space-y-8 min-w-0">
           {withFront && <>
-            <CoverPage info={cover} theme={THEMES[0]} stats={coverStats} filename={`${prefix}-000-cover`}
-              badge={{ ar: 'الكتاب الأساسي', en: 'TEXTBOOK' }}
-              bubbles={[{ text: 'Can I pay by card?' }, { text: 'بكم هذا؟', ar: true }, { text: 'أين المحطة؟', ar: true }, { text: "I'd like a coffee, please." }]} />
+            <SeriesCover series="piirmi" book="book" side="front" filename={`${prefix}-000-cover`} />
             <ValuePage info={info} stats={stats} units={EVERYDAY_UNITS} filename={`${prefix}-000-why`} />
             <ThanksPage info={info} filename={`${prefix}-000-thanks`} note={<Imprint info={info} />} />
           </>}
@@ -195,21 +193,7 @@ export default function EverydayBookPage() {
           {withEnd && <>
             <CertificatePage info={info} stats={stats} filename={`${prefix}-997-certificate`} />
             <NextStepPage info={info} filename={`${prefix}-998-next`} />
-            <BackCoverPage info={cover} theme={THEMES[0]} filename={`${prefix}-999-back-cover`}
-              headline={{ ar: 'تكلّم الإنجليزية في حياتك اليومية.', en: 'Speak English in real life.' }}
-              blurbAr={`كتاب عملي يعلّمك ماذا تقول وكيف تردّ في ${stats.units} موقفًا من الحياة اليومية: المقهى، المطبخ، السوق، الطبيب، الفندق، البنك، الهاتف وغيرها. في كل وحدة: مفردات مصوّرة، عبارات مفيدة مع ترجمتها، محادثة كاملة، نصّ قراءة، ومهام لتتكلّم عن حياتك أنت.`}
-              bullets={[
-                { ar: `${stats.units} موقفًا حقيقيًا من الحياة اليومية`, en: `${stats.units} real everyday situations` },
-                { ar: `أكثر من ${Math.floor(stats.words / 10) * 10} كلمة مع صورها وترجمتها`, en: `${Math.floor(stats.words / 10) * 10}+ words with pictures and translations` },
-                { ar: `أكثر من ${Math.floor(stats.expressions / 10) * 10} عبارة مفيدة مع ترجمتها`, en: `${Math.floor(stats.expressions / 10) * 10}+ useful expressions, translated` },
-                { ar: `${stats.units} محادثة كاملة و${stats.units} نصّ قراءة`, en: `${stats.units} conversations and ${stats.units} readings` },
-                { ar: 'أهداف ونصيحة لغوية في كل وحدة، وقائمة كلمات، وشهادة إتمام', en: 'Unit goals and tips, an A–Z word list, a certificate' },
-              ]}
-              series={[
-                { ar: 'الكتاب الأساسي', en: 'Textbook', current: true },
-                { ar: 'دفتر التمارين', en: 'Workbook' },
-                { ar: 'كتاب المفردات', en: 'Vocabulary book' },
-              ]} />
+            <SeriesCover series="piirmi" book="book" side="back" filename={`${prefix}-999-back-cover`} />
           </>}
         </div>
       </div>
