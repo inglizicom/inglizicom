@@ -5,7 +5,7 @@ import { buildLevel2VocabBook, L2_V_KIND_TONE, L2_V_TONES, type L2VPage, type L2
 import { LEVEL2_VOCAB } from '@/data/level2-vocab'
 import { Field, GamesHeader, INP, PrintAllButton, THEMES } from '../games/_shared'
 import { DEFAULT_COVER, type CoverInfo, type CoverStat } from '../games/_cover'
-import { ViizaCover } from '../level2-book/_cover'
+import { SeriesCover } from '../level2-book/_cover'
 import { PLAY } from '@/components/QrLink'
 import { DEFAULT_INFO, LessonPage, ThanksPage, type BookInfo } from '../level1-book/_blocks'
 import { Imprint } from '../everyday-book/_matter'
@@ -108,7 +108,7 @@ export default function Level2VocabPage() {
 
         <div className="space-y-8 min-w-0">
           {withFront && <>
-            <ViizaCover book="vocab" side="front" filename={`${prefix}-000-cover`} />
+            <SeriesCover series="viiza" book="vocab" side="front" filename={`${prefix}-000-cover`} />
             <ThanksPage info={info} filename={`${prefix}-000-thanks`} note={<Imprint info={info} />} />
           </>}
           {shown.map(p => {
@@ -120,7 +120,7 @@ export default function Level2VocabPage() {
                 filename={`${prefix}-${String(no).padStart(3, '0')}-${p.unit ? `unit-${pad(p.unit)}-${p.kind}` : p.kind}`} />
             )
           })}
-          {view === 'book' && <ViizaCover book="vocab" side="back" filename={`${prefix}-999-back-cover`} />}
+          {view === 'book' && <SeriesCover series="viiza" book="vocab" side="back" filename={`${prefix}-999-back-cover`} />}
         </div>
       </div>
     </div>

@@ -5,7 +5,7 @@ import { INDEX, L2_KIND_TONE, L2_TONES, L2_UNITS, type L2Page, type L2Tone } fro
 import { buildLevel2Workbook, WORK_UNITS } from '@/data/level2-workbook'
 import { Field, GamesHeader, INP, PrintAllButton, THEMES } from '../games/_shared'
 import { DEFAULT_COVER, type CoverInfo, type CoverStat } from '../games/_cover'
-import { ViizaCover } from '../level2-book/_cover'
+import { SeriesCover } from '../level2-book/_cover'
 import { PLAY } from '@/components/QrLink'
 import { DEFAULT_INFO, LessonPage, ThanksPage, type BookInfo } from '../level1-book/_blocks'
 import { Imprint } from '../everyday-book/_matter'
@@ -113,7 +113,7 @@ export default function Level2WorkbookPage() {
 
         <div className="space-y-8 min-w-0">
           {withFront && <>
-            <ViizaCover book="workbook" side="front" filename={`${prefix}-000-cover`} />
+            <SeriesCover series="viiza" book="workbook" side="front" filename={`${prefix}-000-cover`} />
             <ThanksPage info={info} filename={`${prefix}-000-thanks`} note={<Imprint info={info} />} />
           </>}
           {shown.map(p => {
@@ -125,7 +125,7 @@ export default function Level2WorkbookPage() {
                 filename={`${prefix}-${String(no).padStart(3, '0')}-${p.unit ? `unit-${pad(p.unit)}-${p.kind}` : p.kind}`} />
             )
           })}
-          {view === 'book' && <ViizaCover book="workbook" side="back" filename={`${prefix}-999-back-cover`} />}
+          {view === 'book' && <SeriesCover series="viiza" book="workbook" side="back" filename={`${prefix}-999-back-cover`} />}
           {INDEX.length > units.length && (
             <p className="text-center text-[13px] font-bold text-zinc-400 print:hidden">الوحدات {units.length + 1}–{INDEX.length} قيد الكتابة.</p>
           )}

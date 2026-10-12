@@ -27,6 +27,7 @@ export default function CoversPage() {
           </Field>
         </aside>
         <div className="space-y-8 min-w-0">
+          <PrintFiles />
           <BareSheet theme={THEMES[2]} label="العصري · الوجه" filename="la-kaart-students-book-modern-front"><ModernFront /></BareSheet>
           <BareSheet theme={THEMES[2]} label="العصري · الظهر" filename="la-kaart-students-book-modern-back"><ModernBack /></BareSheet>
           <BareSheet theme={THEMES[2]} label="الكلاسيكي · الوجه" filename="la-kaart-students-book-front"><LaKaartFront /></BareSheet>
@@ -34,5 +35,49 @@ export default function CoversPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+// The print files: A4 at 300 dpi, rendered from the design canvas. The same
+// JPGs are the covers of the level books (level2-book/_cover.tsx).
+const SERIES = [
+  { id: 'lakaart', name: 'LA KAART ENGLISH', ar: 'لاكارط إنگليش' },
+  { id: 'piirmi', name: 'PIIRMI ENGLISH', ar: 'بيرمي إنگليش' },
+  { id: 'viiza', name: 'VIIZA ENGLISH', ar: 'فيزا إنگليش' },
+]
+const BOOKS = [
+  { id: 'book', ar: 'كتاب الطالب' },
+  { id: 'workbook', ar: 'كتاب التمارين' },
+  { id: 'vocab', ar: 'كتاب المفردات' },
+]
+const SIDES = [
+  { id: 'front', ar: 'الوجه' },
+  { id: 'back', ar: 'الظهر' },
+]
+
+function PrintFiles() {
+  return (
+    <section className="rounded-2xl bg-white p-5 shadow-sm print:hidden">
+      <h2 className="text-[16px] font-bold text-zinc-800">ملفات الطباعة</h2>
+      <p className="mt-1 text-[12px] text-zinc-500">A4 بدقة 300 نقطة — جاهزة للمطبعة. اضغط على الغلاف لتحميله.</p>
+      <div className="mt-4 space-y-5">
+        {SERIES.map((s) => (
+          <div key={s.id}>
+            <div className="mb-2 text-[13px] font-bold text-zinc-700">{s.ar} · <span dir="ltr">{s.name}</span></div>
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+              {BOOKS.flatMap((b) => SIDES.map((side) => {
+                const src = `/covers/${s.id}/${b.id}-${side.id}.jpg`
+                return (
+                  <a key={src} href={src} download={`${s.id}-${b.id}-${side.id}.jpg`} className="group block">
+                    <img src={src} alt={`${s.name} ${b.id} ${side.id}`} loading="lazy" className="aspect-[794/1123] w-full rounded-md border border-zinc-200 object-cover transition group-hover:shadow-md" />
+                    <div className="mt-1 text-center text-[11px] text-zinc-600">{b.ar} · {side.ar}</div>
+                  </a>
+                )
+              }))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   )
 }
