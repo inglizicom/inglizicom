@@ -279,8 +279,10 @@ function sectionsOf(blocks: Block[]): Block[][] {
   return out
 }
 
-export function LessonPage({ info, lesson, pageNo, talkNo, exNo = new Map(), filename, colour, toneOf, spread, qr }: {
+export function LessonPage({ info, lesson, pageNo, pageLabel, talkNo, exNo = new Map(), filename, colour, toneOf, spread, qr }: {
   info: BookInfo; lesson: Lesson; pageNo: number; talkNo: Map<Block, number>; exNo?: Map<Block, number>; filename: string
+  /** The printed page number when it isn't just `pageNo` ("S03" in the Starter). */
+  pageLabel?: string
   /** The lesson's audio page: a real QR code in the header. */
   qr?: string
   /** One colour for the whole page (a unit's colour) instead of a new colour per section. */
@@ -297,7 +299,7 @@ export function LessonPage({ info, lesson, pageNo, talkNo, exNo = new Map(), fil
   sections.forEach(s => { if (s[0].t === 'bar') barNo.set(s[0], barNo.size + 1) })
   const base = pageNo - 1
   return (
-    <Frame info={info} colour={colour ?? pick(info.palette ?? PALETTE, base)} label={`${lesson.tag ?? `الدرس ${lesson.n}`} — ${lesson.titleAr} · صفحة ${pageNo}`} filename={filename}>
+    <Frame info={info} colour={colour ?? pick(info.palette ?? PALETTE, base)} label={`${lesson.tag ?? `الدرس ${lesson.n}`} — ${lesson.titleAr} · صفحة ${pageLabel ?? pageNo}`} filename={filename}>
       <LessonHeader info={info} n={lesson.n} tag={lesson.tag} qr={qr} />
       <div ref={bodyRef} className="lb-body absolute inset-x-[24px] overflow-hidden" style={{ top: 84, bottom: 38 }} dir="ltr">
         <div ref={innerRef} className="flex flex-col gap-[13px]">
@@ -308,7 +310,7 @@ export function LessonPage({ info, lesson, pageNo, talkNo, exNo = new Map(), fil
           ))}
         </div>
       </div>
-      <Footer info={info} page={`Page ${pad(pageNo)}`} />
+      <Footer info={info} page={`Page ${pageLabel ?? pad(pageNo)}`} />
     </Frame>
   )
 }
@@ -1253,21 +1255,27 @@ export function ThanksPage({ info, filename, note }: { info: BookInfo; filename:
   )
 }
 
-export function ContentsPage({ info, lessons, filename }: { info: BookInfo; lessons: Lesson[]; filename: string }) {
+/** One line of the contents: its sign ("الدرس 7", "Starter 1"), its title, its first page. */
+export interface ContentsEntry { sign: string; title: string; page: string }
+
+export function ContentsPage({ info, lessons, entries, filename }: { info: BookInfo; lessons?: Lesson[]; entries?: ContentsEntry[]; filename: string }) {
+  const list: ContentsEntry[] = entries ?? (lessons ?? []).map((l, i) => ({ sign: `الدرس ${l.n}`, title: l.titleAr, page: pad(i + 1) }))
+  // A long book (Starter + lessons + reviews) gets five smaller signs a row, so it still fits one page.
+  const compact = list.length > 20
   return (
     <Frame info={info} label="الفهرس" filename={filename}>
       <Doodles />
       <div className="absolute inset-x-0 top-0"><HangingSign text="الفهرس" /></div>
-      <div className="absolute inset-x-[34px] top-[150px] grid grid-cols-4 gap-x-4 gap-y-5" dir="rtl">
-        {lessons.map((l, i) => (
-          <div key={l.n} className="flex flex-col items-center" style={info.mono ? undefined : { '--m': lessonColour(i).m } as CSSProperties}>
-            <svg width="44" height="20" aria-hidden><circle cx="22" cy="4" r="3.5" fill="#1E2A5C" /><line x1="22" y1="4" x2="6" y2="20" stroke="#1E2A5C" strokeWidth="2" /><line x1="22" y1="4" x2="38" y2="20" stroke="#1E2A5C" strokeWidth="2" /></svg>
-            <span className="relative z-10 -mt-1 bg-white border-2 border-[var(--m)] rounded-full px-3 text-[15px] leading-[24px]" style={{ fontFamily: AR_DISPLAY }}>الدرس {l.n}</span>
-            <div className="-mt-2 w-full min-h-[64px] bg-[var(--m)] text-white rounded-xl px-2 pt-3.5 pb-2 flex items-center justify-center text-center leading-[1.25]"
-              style={{ fontFamily: AR_DISPLAY, fontSize: l.titleAr.length > 24 ? 15 : 18, transform: `rotate(${i % 2 ? 2 : -2}deg)` }}>
-              <span><RtlMixed text={l.titleAr} /></span>
+      <div className={`absolute inset-x-[34px] top-[150px] grid ${compact ? 'grid-cols-5 gap-x-3 gap-y-3' : 'grid-cols-4 gap-x-4 gap-y-5'}`} dir="rtl">
+        {list.map((e, i) => (
+          <div key={`${e.sign}-${i}`} className="flex flex-col items-center" style={info.mono ? undefined : { '--m': lessonColour(i).m } as CSSProperties}>
+            <svg width="44" height={compact ? 14 : 20} aria-hidden><circle cx="22" cy="4" r="3.5" fill="#1E2A5C" /><line x1="22" y1="4" x2="6" y2={compact ? 14 : 20} stroke="#1E2A5C" strokeWidth="2" /><line x1="22" y1="4" x2="38" y2={compact ? 14 : 20} stroke="#1E2A5C" strokeWidth="2" /></svg>
+            <span className={`relative z-10 -mt-1 bg-white border-2 border-[var(--m)] rounded-full px-3 whitespace-nowrap ${compact ? 'text-[12.5px] leading-[20px]' : 'text-[15px] leading-[24px]'}`} style={{ fontFamily: AR_DISPLAY }}>{e.sign}</span>
+            <div className={`-mt-2 w-full bg-[var(--m)] text-white rounded-xl px-2 pb-2 flex items-center justify-center text-center leading-[1.25] ${compact ? 'min-h-[54px] pt-3' : 'min-h-[64px] pt-3.5'}`}
+              style={{ fontFamily: AR_DISPLAY, fontSize: compact ? (e.title.length > 22 ? 12.5 : 14) : (e.title.length > 24 ? 15 : 18), transform: `rotate(${i % 2 ? 2 : -2}deg)` }}>
+              <span><RtlMixed text={e.title} /></span>
             </div>
-            <span className="mt-1 text-[11px] font-bold" style={{ color: GREY_TEXT }} dir="ltr">Page {pad(i + 1)}</span>
+            <span className="mt-1 text-[11px] font-bold" style={{ color: GREY_TEXT }} dir="ltr">Page {e.page}</span>
           </div>
         ))}
       </div>

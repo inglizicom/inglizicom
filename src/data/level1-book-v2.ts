@@ -16,6 +16,12 @@ import type { Block, FamilyPeople, Lesson, Pair } from './level1-book.ts'
  *   · Arabic in correct standard spelling, with the darija word in brackets
  *     where it helps (the book is «… الدارجة»)
  * Rendered by app/admin/level1-book/_blocks.tsx, like the first edition.
+ *
+ * Lessons 1–6 are recorded on video: their conversations must not change,
+ * and their questions ask about "I / you / your" only. From Lesson 7 a
+ * lesson may run over several pages (`pageBreak`) to make room for more
+ * examples; its subjects and conversations stay as they are. The Starter
+ * and the reviews live in data/level1-book-extra.ts.
  */
 
 const lines = (s: string) => s.trim().split('\n').map(l => l.trim()).filter(Boolean)
@@ -94,14 +100,14 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
     { t: 'bar', title: 'Age - العمر' },
     { t: 'qa', rows: [
       ['How old are you?', "I'm 25 (years old).", 'كم عمرك؟', 'عمري 25 سنة.'],
-      ['How old is your sister?', "She's 12.", 'كم عمر أختك؟', 'عمرها 12 سنة.'],
-      ['How old is he?', "He's 40.", 'كم عمره؟', 'عمره 40 سنة.'],
-      ['How old are they?', "They're 8 and 10.", 'كم عمرهم؟', 'عمرهما 8 و10 سنوات.'],
+      ['Are you 18?', "No, I'm not. I'm 19.", 'هل عمرك 18 سنة؟', 'لا، عمري 19 سنة.'],
+      ["I'm 30. And you?", "I'm 27.", 'عمري 30 سنة. وأنت؟', 'عمري 27 سنة.'],
+      ['Are you 40?', 'Yes, I am.', 'هل عمرك 40 سنة؟', 'نعم.'],
     ] },
     { t: 'callout', text: 'انتبه: نقول I am 25 years old أو I am 25 فقط. لا نقول I have 25 years ✗' },
     { t: 'bar', title: 'Phone numbers - أرقام الهاتف' },
     { t: 'row', widths: '1fr 1fr', blocks: [
-      [{ t: 'bullets', items: ["What's your phone number?", "It's 0661 47 22 90.", "What's his number?", "It's 0700 36 88 14."] }],
+      [{ t: 'bullets', items: ["What's your phone number?", "It's 0661 47 22 90.", 'Is your number 0700 36 88 14?', 'Yes, it is.'] }],
       [{ t: 'bullets', box: true, heading: 'Tips', items: ['0 = "zero" or "oh"', '22 = "two two" or "double two"', 'Say the number in small groups: 0661 - 47 - 22 - 90'] }],
     ] },
     { t: 'talk', title: 'At the gym', art: '☎️', lines: lines(`
@@ -136,8 +142,8 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
     ] },
     { t: 'callout', text: 'أسماء الدول والجنسيات تبدأ دائمًا بحرف كبير: Morocco – Moroccan' },
     { t: 'row', widths: '1fr 1fr', blocks: [
-      [{ t: 'formula', over: ['من أين؟', '', '', ''], cols: [['Where'], ['are', 'is'], ['you', 'he / she'], ['from?']], note: 'Where are you from? — I\'m from Morocco.' }],
-      [{ t: 'formula', over: ['ما', '', 'الجنسية'], cols: [['What is'], ['your', 'his / her'], ['nationality?']], note: 'What\'s her nationality? — She\'s Turkish.' }],
+      [{ t: 'formula', over: ['من أين؟', '', '', ''], cols: [['Where'], ['are'], ['you'], ['from?']], note: 'Where are you from? — I\'m from Morocco.' }],
+      [{ t: 'formula', over: ['ما', '', 'الجنسية'], cols: [['What is'], ['your'], ['nationality?']], note: 'What\'s your nationality? — I\'m Moroccan.' }],
     ] },
     { t: 'bar', title: 'Jobs - المهن' },
     { t: 'cards', items: [
@@ -145,7 +151,7 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
       ['🧑‍🔧', 'a mechanic', 'ميكانيكي'], ['💇', 'a hairdresser', 'حلّاق / مصفّفة شعر'], ['🧑‍💻', 'a programmer', 'مبرمج(ة)'], ['🧑‍🌾', 'a farmer', 'فلّاح(ة)'],
     ] },
     { t: 'row', widths: '1fr 1fr', blocks: [
-      [{ t: 'qa', rows: [["What do you do?", "I'm a chef."], ["What's her job?", "She's an engineer."]] }],
+      [{ t: 'qa', rows: [["What do you do?", "I'm a chef."], ["What's your job?", "I'm an engineer."]] }],
       [{ t: 'callout', text: 'نستعمل a قبل الحرف الساكن و an قبل الحرف المتحرك: a nurse – an engineer' }],
     ] },
     { t: 'bar', title: 'Marital status - الحالة الاجتماعية' },
@@ -235,9 +241,9 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
       { title: 'WHAT', lines: ["What's your favourite colour?", 'What do you do?', 'What time is it?'] },
       { title: 'WHERE', lines: ['Where do you work?', 'Where is the station?', 'Where are my keys?'] },
       { title: 'WHEN', lines: ['When is your birthday?', 'When do you go to the gym?', 'When does the film start?'] },
-      { title: 'WHO', lines: ['Who is that man?', 'Who is your teacher?', 'Who do you live with?'] },
-      { title: 'WHY', lines: ['Why are you tired?', 'Why do you study English?', 'Why is he late?'] },
-      { title: 'HOW', lines: ['How are you?', 'How do you go to work?', 'How old is your son?'] },
+      { title: 'WHO', lines: ['Who is your best friend?', 'Who is your teacher?', 'Who do you live with?'] },
+      { title: 'WHY', lines: ['Why are you tired?', 'Why do you study English?', 'Why are you late?'] },
+      { title: 'HOW', lines: ['How are you?', 'How do you go to work?', 'How old are you?'] },
     ] },
     { t: 'callout', text: 'ترتيب السؤال: كلمة الاستفهام + do / does + الفاعل + الفعل ← Where do you live?' },
     { t: 'talk', title: 'A new neighbour', cols: 2, size: 11.5, lines: lines(`
@@ -265,6 +271,26 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
   { n: 7, titleAr: 'تعلّم القراءة: I – He – She', blocks: [
     { t: 'bar', title: 'Reading - القراءة' },
     { t: 'text', label: 'Subject I - أنا', size: 13.5, body: "My name is Anas. I am 35 years old and I live in Kenitra. I am a bus driver. I get up at 5:30 every morning. I wash my face, have a quick breakfast and drink a glass of milk. I start work at 6:30. I drive the number 12 bus from the city centre to the university. I have lunch at 1:00 with my colleagues. I finish work at 3:00 and I go home. In the afternoon, I play with my children and help them with their homework. In the evening, I watch the news with my wife. I go to bed at 10:00." },
+    { t: 'bar', title: 'I → He / She - من "أنا" إلى "هو / هي"' },
+    { t: 'grid', rows: [
+      { dark: true, cells: ['I', 'He / She', 'المعنى'], size: 12 },
+      { cells: ['I get up.', 'He gets up.', 'ينهض'], size: 12 },
+      { cells: ['I work.', 'She works.', 'يعمل'], size: 12 },
+      { cells: ['I live in Kenitra.', 'He lives in Kenitra.', 'يسكن'], size: 12 },
+      { cells: ['I drink milk.', 'She drinks milk.', 'يشرب'], size: 12 },
+      { cells: ['I watch TV.', 'He watches TV.', 'يشاهد'], size: 12 },
+      { cells: ['I wash my face.', 'She washes her face.', 'يغسل'], size: 12 },
+      { cells: ['I go home.', 'He goes home.', 'يذهب'], size: 12 },
+      { cells: ['I study English.', 'She studies English.', 'يدرس'], size: 12 },
+      { cells: ['I have lunch.', 'He has lunch.', 'يتناول'], size: 12 },
+    ] },
+    { t: 'bullets', box: true, heading: 'Spelling - طريقة الكتابة', size: 12, items: [
+      'Most verbs + s: work → works, live → lives',
+      '-sh, -ch, -s, -x, -o + es: wash → washes, watch → watches, go → goes',
+      'Consonant + y → ies: study → studies, fly → flies',
+      'have → has (شاذ)',
+    ] },
+    { t: 'pageBreak' },
     { t: 'text', label: 'Subject He - هو', size: 13.5, body: "His name is Anas. He is 35 years old and he lives in Kenitra. He is a bus driver. He gets up at 5:30 every morning. He washes his face, has a quick breakfast and drinks a glass of milk. He starts work at 6:30. He drives the number 12 bus from the city centre to the university. He has lunch at 1:00 with his colleagues. He finishes work at 3:00 and he goes home. In the afternoon, he plays with his children and helps them with their homework. In the evening, he watches the news with his wife. He goes to bed at 10:00." },
     { t: 'text', label: 'Subject She - هي', size: 13.5, body: "Her name is Salma. She is 24 years old and she lives in Agadir. She is a receptionist at a big hotel. She gets up at 7:00. She takes a shower, gets dressed and has breakfast with her mother. She goes to work by tram. She starts work at 9:00. She answers the phone, speaks to the guests and gives them their keys. She has lunch at the hotel. She finishes work at 5:30. After work, she goes to the beach with her friends or reads a book at home. She goes to bed at 11:00." },
     { t: 'row', widths: '1fr 1fr', blocks: [
@@ -282,6 +308,23 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
       ['📏', 'ruler', 'مسطرة'], ['🖍️', 'pencil case', 'مقلمة (تروس)'], ['🧮', 'calculator', 'آلة حاسبة'], ['🟩', 'board', 'سبورة'],
       ['🪑', 'chair', 'كرسي'], ['📝', 'homework', 'واجب منزلي'], ['📖', 'dictionary', 'قاموس'], ['💯', 'exam', 'امتحان'],
     ] },
+    { t: 'bar', title: 'a / an + classroom words' },
+    { t: 'row', widths: '1fr 1fr', blocks: [
+      [{ t: 'bullets', box: true, heading: "It's a… / It's an…", size: 12.5, items: [
+        "It's a pen. - إنه قلم.", "It's a notebook. - إنه دفتر.", "It's a ruler. - إنها مسطرة.",
+        "It's an eraser. - إنها ممحاة.", "It's an exam. - إنه امتحان.", "It's an English book. - إنه كتاب إنجليزي.",
+      ] }],
+      [{ t: 'bullets', box: true, heading: 'One → two - المفرد والجمع', size: 12.5, items: [
+        'a book → two books', 'a chair → three chairs', 'a pencil case → two pencil cases', 'a dictionary → two dictionaries', 'a student → many students',
+      ] }],
+    ] },
+    { t: 'qa', rows: [
+      ["What's this?", "It's a ruler.", 'ما هذا؟', 'إنها مسطرة.'],
+      ['Is this your pen?', "Yes, it is. / No, it isn't.", 'هل هذا قلمك؟', 'نعم. / لا.'],
+      ['Do you have a calculator?', "Yes, I do. / No, I don't.", 'هل عندك آلة حاسبة؟', 'نعم. / لا.'],
+      ["What's in your school bag?", 'My books, my notebook and my pencil case.', 'ماذا في محفظتك؟', 'كتبي ودفتري ومقلمتي.'],
+    ] },
+    { t: 'pageBreak' },
     { t: 'bar', title: 'Useful phrases - عبارات مفيدة' },
     { t: 'row', widths: '1fr 1fr', blocks: [
       [
@@ -344,6 +387,17 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
         { t: 'callout', text: 'مع he / she / it نضيف s للفعل: I live → she lives' },
       ],
       [
+        { t: 'boxes', cols: 1, items: [
+          { title: 'to be', lines: ['I am a student.', 'You are my friend.', 'She is a doctor.', 'We are Moroccan.'] },
+          { title: 'to have', lines: ['I have a car.', 'You have a nice house.', 'He has two brothers.', 'They have a dog.'] },
+          { title: 'to go', lines: ['I go to work by bus.', 'You go to school.', 'She goes to the gym.', 'We go to the beach.'] },
+          { title: 'to do', lines: ['I do my homework.', 'You do sport.', 'He does the shopping.', 'They do yoga.'] },
+        ] },
+      ],
+    ] },
+    { t: 'pageBreak' },
+    { t: 'row', widths: '1fr', blocks: [
+      [
         { t: 'grid', boxed: true, title: 'Small words - كلمات صغيرة ومهمة', rows: [
           { dark: true, cells: ['and', 'but', 'or', 'because'] }, { cells: ['و', 'لكن', 'أو', 'لأن'], size: 11 },
           { dark: true, cells: ['in', 'to', 'with', 'without'] }, { cells: ['في', 'إلى', 'مع', 'بدون'], size: 11 },
@@ -393,6 +447,21 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
       ['🗄️', 'wardrobe', 'خزانة ملابس'], ['🧊', 'fridge', 'ثلاجة'], ['🔥', 'cooker', 'موقد (كوزينيير)'], ['📺', 'TV', 'تلفاز'],
       ['🧺', 'washing machine', 'آلة الغسيل'], ['🛁', 'bath', 'حوض الاستحمام'], ['🖼️', 'picture', 'لوحة / صورة'], ['🪴', 'plant', 'نبتة'],
     ] },
+    { t: 'bar', title: 'My house - بيتي' },
+    { t: 'row', widths: '1fr 1fr', blocks: [
+      [{ t: 'bullets', box: true, size: 12.5, items: [
+        'My bedroom is small but nice. - غرفة نومي صغيرة لكنها جميلة.', 'The sofa is in the living room. - الأريكة في الصالون.',
+        'The fridge is in the kitchen. - الثلاجة في المطبخ.', 'My bed is big. - سريري كبير.',
+        'I have a plant in my bedroom. - عندي نبتة في غرفة نومي.', 'I watch TV in the living room. - أشاهد التلفاز في الصالون.',
+      ] }],
+      [{ t: 'qa', rows: [
+        ['Where is your bed?', "It's in my bedroom."],
+        ['What colour is your sofa?', "It's blue."],
+        ['Is your kitchen big?', "No, it isn't. It's small."],
+        ['Do you have a balcony?', 'Yes, I do.'],
+      ] }],
+    ] },
+    { t: 'pageBreak' },
     { t: 'bar', title: 'Prepositions - حروف الجر' },
     { t: 'preps', items: [['on', 'on', 'على'], ['under', 'under', 'تحت'], ['next', 'next to', 'بجانب'], ['front', 'in front of', 'أمام'], ['behind', 'behind', 'خلف (وراء)'], ['between', 'between', 'بين']] },
     { t: 'qa', rows: [
@@ -401,6 +470,11 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
       ['Where is the lamp?', "It's next to the bed."],
       ['Where is the TV?', "It's in front of the sofa."],
       ['Where is the plant?', "It's between the window and the door."],
+    ] },
+    { t: 'bullets', box: true, heading: 'More examples - أمثلة أخرى', cols: 2, size: 12.5, items: [
+      'My phone is on the table. - هاتفي فوق الطاولة.', 'My shoes are under the bed. - حذائي تحت السرير.',
+      'My lamp is next to my bed. - مصباحي بجانب سريري.', 'My car is in front of the house. - سيارتي أمام البيت.',
+      'The garden is behind my house. - الحديقة خلف بيتي.', 'My bag is between the chair and the door. - حقيبتي بين الكرسي والباب.',
     ] },
     { t: 'talk', title: 'Where are my keys?', art: '🔑', size: 12, lines: lines(`
       Rayan: Mum, where are my keys?
@@ -421,12 +495,34 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
       ['🥗', 'have lunch', 'أتناول الغداء'], ['✅', 'finish work', 'أُنهي العمل'], ['🏠', 'go home', 'أعود إلى البيت'], ['🍲', 'cook dinner', 'أطبخ العشاء'],
       ['📝', 'do homework', 'أُنجز الواجبات'], ['📺', 'watch TV', 'أشاهد التلفاز'], ['📖', 'read a book', 'أقرأ كتابًا'], ['😴', 'go to bed', 'أذهب إلى السرير'],
     ] },
+    { t: 'bar', title: 'My day - يومي' },
+    { t: 'row', widths: '1fr 1fr', blocks: [
+      [{ t: 'bullets', box: true, size: 12.5, items: [
+        'I wake up at 6:30. - أستيقظ على الساعة 6:30.', 'I take a shower and brush my teeth. - أستحم وأنظّف أسناني.',
+        'I have breakfast at 7:00. - أتناول الفطور على الساعة 7.', 'I go to work at 7:45. - أذهب إلى العمل على 7:45.',
+        'I have lunch at 1:00. - أتناول الغداء على الساعة 1.', 'I go to bed at 11:00. - أنام على الساعة 11.',
+      ] }],
+      [{ t: 'qa', rows: [
+        ['What time do you get up?', 'I get up at seven.'],
+        ['When do you have lunch?', "At one o'clock."],
+        ['What do you do in the evening?', 'I watch TV and read a book.'],
+        ['What time do you go to bed?', 'At eleven.'],
+      ] }],
+    ] },
+    { t: 'callout', text: 'نقول at + الساعة: at seven, at 6:30 — على الساعة السابعة.' },
+    { t: 'pageBreak' },
     { t: 'bar', title: "What time is it? - كم الساعة؟" },
     { t: 'clocks', times: ['7:00', '7:15', '7:30', '7:45', '12:00', '3:20', '6:40', '10:05'] },
     { t: 'grid', rows: [
       { dark: true, cells: ["It's seven o'clock.", "It's quarter past seven.", "It's half past seven.", "It's quarter to eight."], size: 11 },
       { cells: ['السابعة تمامًا', 'السابعة والربع', 'السابعة والنصف', 'الثامنة إلا ربعًا'], size: 11 },
     ] },
+    { t: 'grid', rows: [
+      { dark: true, cells: ["It's ten past nine.", "It's twenty past four.", "It's twenty to six.", "It's five to twelve."], size: 11 },
+      { cells: ['9:10', '4:20', '5:40', '11:55'], size: 11 },
+      { cells: ['التاسعة وعشر دقائق', 'الرابعة والثلث', 'السادسة إلا ثلثًا', 'الثانية عشرة إلا خمس دقائق'], size: 11 },
+    ] },
+    { t: 'callout', text: 'past = بعد (و…) — to = إلا. من 1 إلى 30 دقيقة نقول past، ومن 31 إلى 59 نقول to.' },
     { t: 'talk', title: 'A nurse’s day', cols: 2, size: 11.5, lines: lines(`
       Host: Hello, Khadija. What time do you get up?
       Khadija: I get up at five o'clock.
@@ -462,6 +558,12 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
       { cells: ['100%', '90%', '70%', '50%', '10%', '0%'] },
       { cells: ['دائمًا', 'عادةً', 'غالبًا', 'أحيانًا', 'نادرًا', 'أبدًا'] },
     ] },
+    { t: 'bullets', box: true, heading: 'Examples - أمثلة', cols: 2, size: 12.5, items: [
+      'I always drink mint tea in the morning. - أشرب دائمًا الشاي في الصباح.', 'I usually go to bed at 11:00. - عادةً أنام على الساعة 11.',
+      'I often visit my family on Sunday. - غالبًا أزور عائلتي يوم الأحد.', 'I sometimes eat fish. - أحيانًا آكل السمك.',
+      'I rarely watch TV. - نادرًا ما أشاهد التلفاز.', 'I never drink coffee at night. - لا أشرب القهوة ليلًا أبدًا.',
+    ] },
+    { t: 'pageBreak' },
     { t: 'row', widths: '1fr 1fr', blocks: [
       [
         { t: 'sub', text: 'الظرف يأتي قبل الفعل… ولكن بعد to be' },
@@ -471,6 +573,12 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
         { t: 'sub', text: 'How often…? - كم مرة؟' },
         { t: 'bullets', box: true, size: 11.5, items: ['once a week - مرة في الأسبوع', 'twice a week - مرتين في الأسبوع', 'every day - كل يوم', 'on Mondays - أيام الإثنين', 'أيام الأسبوع تبدأ دائمًا بحرف كبير: Monday'] },
       ],
+    ] },
+    { t: 'qa', rows: [
+      ['How often do you go to the gym?', 'Twice a week.', 'كم مرة تذهب إلى قاعة الرياضة؟', 'مرتين في الأسبوع.'],
+      ['How often do you study English?', 'Every day.', 'كم مرة تدرس الإنجليزية؟', 'كل يوم.'],
+      ['Do you work on Sunday?', "No, I never work on Sunday.", 'هل تعمل يوم الأحد؟', 'لا، لا أعمل يوم الأحد أبدًا.'],
+      ['Are you often late?', "No, I'm never late!", 'هل تتأخر غالبًا؟', 'لا، لا أتأخر أبدًا!'],
     ] },
     { t: 'talk', title: 'Making plans', size: 12, aside: [{ t: 'art', icon: '📅', size: 90 }, { t: 'sticky', text: 'نتائج سريعة = ممارسة يومية' }], lines: lines(`
       Salim: What do you do on Friday afternoon?
@@ -496,6 +604,17 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
       ['🥗', 'salad', 'سلطة'], ['🍲', 'soup', 'حساء (حريرة)'], ['🍕', 'pizza', 'بيتزا'], ['🍔', 'burger', 'برغر'],
       ['🍎', 'apple', 'تفاحة'], ['🍌', 'banana', 'موزة (بنان)'], ['🍰', 'cake', 'كعكة (حلوى)'], ['🍫', 'chocolate', 'شوكولاتة'],
     ] },
+    { t: 'bar', title: 'Meals - الوجبات' },
+    { t: 'grid', rows: [
+      { dark: true, cells: ['breakfast', 'lunch', 'dinner', 'a snack'] },
+      { cells: ['الفطور', 'الغداء', 'العشاء', 'وجبة خفيفة (كاسكروط)'] },
+    ] },
+    { t: 'bullets', box: true, cols: 2, size: 12.5, items: [
+      'For breakfast, I eat bread and cheese. - في الفطور آكل الخبز والجبن.', 'For lunch, I have chicken and rice. - في الغداء آكل الدجاج والأرز.',
+      'For dinner, I eat soup. - في العشاء آكل الحساء.', 'I eat an apple as a snack. - آكل تفاحة كوجبة خفيفة.',
+      'I love couscous on Friday. - أحب الكسكس يوم الجمعة.', 'I eat eggs every morning. - آكل البيض كل صباح.',
+    ] },
+    { t: 'pageBreak' },
     { t: 'bar', title: "What do you like? - ماذا تحب؟" },
     { t: 'qa', rows: [
       ['What food do you like?', 'I like fish and rice.'],
@@ -505,6 +624,10 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
       ['Does he like cake?', 'Yes, he does.'],
     ] },
     { t: 'callout', text: 'Do you like…? ← Yes, I do. / No, I don\'t.  —  Does he like…? ← Yes, he does. / No, he doesn\'t.' },
+    { t: 'row', widths: '1fr 1fr', blocks: [
+      [{ t: 'bullets', box: true, heading: 'I like… 🙂', size: 12.5, items: ['I like apples.', 'I love chocolate.', 'I like fish and salad.', 'My favourite food is tagine.'] }],
+      [{ t: 'bullets', box: true, heading: "I don't like… 🙁", size: 12.5, items: ["I don't like burgers.", "I don't like spicy food.", "I don't like eggs.", "I don't eat meat."] }],
+    ] },
     { t: 'talk', title: 'What’s for dinner?', art: '🍕', size: 12, lines: lines(`
       Dad: What do you want for dinner, kids?
       Sami: Pizza! I love pizza.
@@ -534,13 +657,22 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
       { dark: true, cells: ['a cup of coffee', 'a glass of water', 'a bottle of juice', 'a can of soda'], size: 11.5 },
       { cells: ['فنجان قهوة', 'كأس ماء', 'قنينة عصير', 'علبة مشروب غازي'], size: 11.5 },
     ] },
+    { t: 'bullets', box: true, heading: 'Examples - أمثلة', cols: 2, size: 12.5, items: [
+      'I drink a glass of water every morning. - أشرب كأس ماء كل صباح.', 'I have a cup of coffee after lunch. - أشرب فنجان قهوة بعد الغداء.',
+      'I take a bottle of water to the gym. - آخذ قنينة ماء إلى قاعة الرياضة.', 'I drink mint tea with my family. - أشرب الشاي مع عائلتي.',
+      "I don't drink fizzy drinks. - لا أشرب المشروبات الغازية.", 'My favourite drink is orange juice. - مشروبي المفضل عصير البرتقال.',
+    ] },
+    { t: 'pageBreak' },
     { t: 'bar', title: 'Asking and answering' },
     { t: 'qa', rows: [
       ['Would you like a drink?', 'Yes, please. A glass of water.', 'هل تريد مشروبًا؟', 'نعم من فضلك، كأس ماء.'],
       ["What's your favourite drink?", "It's mint tea.", 'ما مشروبك المفضل؟', 'الشاي بالنعناع.'],
       ['How do you like your coffee?', 'With milk and no sugar.', 'كيف تحب قهوتك؟', 'بالحليب وبدون سكر.'],
       ['Hot or cold?', 'Cold, please. It\'s hot today!', 'ساخن أم بارد؟', 'بارد، الجو حار اليوم!'],
+      ['Would you like tea or coffee?', 'Tea, please.', 'هل تريد شايًا أم قهوة؟', 'شاي من فضلك.'],
+      ['Would you like some milk?', 'No, thank you.', 'هل تريد بعض الحليب؟', 'لا، شكرًا.'],
     ] },
+    { t: 'callout', text: 'Would you like…? = هل تريد…؟ (بأدب). الجواب: Yes, please. أو No, thank you.' },
     { t: 'talk', title: 'At the juice bar', cols: 2, art: '🍹', size: 11.5, lines: lines(`
       Waiter: Hello! What would you like to drink?
       Lamia: A fresh orange juice, please.
@@ -568,6 +700,19 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
       ['🚢', 'ship', 'سفينة (باطو)'], ['🛴', 'scooter', 'سكوتر'], ['🚇', 'metro', 'مترو'], ['🚶', 'on foot', 'مشيًا (على رجلي)'],
     ] },
     { t: 'callout', text: 'نقول by bus / by car / by train … ولكن on foot (مشيًا) — How do you go to work? I go by tram.' },
+    { t: 'row', widths: '1fr 1fr', blocks: [
+      [{ t: 'bullets', box: true, heading: 'How I travel - كيف أتنقّل', size: 12.5, items: [
+        'I go to work by car. - أذهب إلى العمل بالسيارة.', 'I go to school on foot. - أذهب إلى المدرسة مشيًا.',
+        'I go to Marrakech by train. - أذهب إلى مراكش بالقطار.', 'I go to the market by taxi. - أذهب إلى السوق بالطاكسي.',
+        'I never go by plane. - لا أسافر بالطائرة أبدًا.',
+      ] }],
+      [{ t: 'qa', rows: [
+        ['How do you go to work?', 'I go by bus.'],
+        ['Do you have a car?', "No, I don't. I have a bike."],
+        ['How do you go to the beach?', 'By motorbike.'],
+      ] }],
+    ] },
+    { t: 'pageBreak' },
     { t: 'bar', title: 'This - That - These - Those' },
     { t: 'pointing', items: [
       { far: false, many: false, caption: '"This" لشيء واحد قريب', en: 'This is a car', ar: 'هذه سيارة' },
@@ -576,6 +721,10 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
       { far: true, many: true, caption: '"Those" لعدة أشياء بعيدة', en: 'Those are cars', ar: 'تلك سيارات' },
     ] },
     { t: 'qa', rows: [["What's this?", "It's my phone.", 'ما هذا؟', 'إنه هاتفي.'], ["What's that?", "That's a lorry.", 'ما ذلك؟', 'تلك شاحنة.'], ['What are these?', 'These are my keys.', 'ما هذه؟', 'هذه مفاتيحي.'], ['What are those?', 'Those are boats.', 'ما تلك؟', 'تلك قوارب.']] },
+    { t: 'bullets', box: true, heading: 'More examples - أمثلة أخرى', cols: 2, size: 12.5, items: [
+      'This is my bag. - هذه حقيبتي.', 'That is my car. - تلك سيارتي.', 'These are my books. - هذه كتبي.', 'Those are my friends. - أولئك أصدقائي.',
+      'Is this your pen? - هل هذا قلمك؟', 'Are those your shoes? - هل تلك أحذيتك؟',
+    ] },
     { t: 'talk', title: 'In the old medina', cols: 2, art: '🏺', size: 11, lines: lines(`
       Emily: Excuse me, what's this?
       Seller: This is a tagine. It's for cooking.
@@ -602,6 +751,20 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
       ['⛽', 'petrol station', 'محطة وقود'], ['🏤', 'post office', 'مكتب البريد (البوسطة)'], ['🚓', 'police station', 'مركز الشرطة'], ['🚏', 'bus station', 'محطة الحافلات'],
       ['📚', 'library', 'مكتبة'], ['🏨', 'hotel', 'فندق (أوطيل)'], ['🎬', 'cinema', 'سينما'], ['☕', 'café', 'مقهى (قهوة)'],
     ] },
+    { t: 'bar', title: 'My town - مدينتي' },
+    { t: 'row', widths: '1fr 1fr', blocks: [
+      [{ t: 'bullets', box: true, size: 12.5, items: [
+        'The bank is next to the café. - البنك بجانب المقهى.', 'The pharmacy is opposite the mosque. - الصيدلية مقابل المسجد.',
+        'The bakery is between the school and the park. - المخبزة بين المدرسة والحديقة.', 'I buy bread at the bakery. - أشتري الخبز من المخبزة.',
+        'I go to the library on Saturday. - أذهب إلى المكتبة يوم السبت.',
+      ] }],
+      [{ t: 'qa', rows: [
+        ['Where is the hospital?', "It's next to the park."],
+        ['Where do you buy medicine?', 'At the pharmacy.'],
+        ['Is your house near the mosque?', 'Yes, it is.'],
+      ] }],
+    ] },
+    { t: 'pageBreak' },
     { t: 'bar', title: 'Giving directions - إعطاء الاتجاهات' },
     { t: 'row', widths: '1.1fr 1fr', blocks: [
       [{ t: 'cards', cols: 2, items: [['⬆️', 'Go straight on', 'امشِ إلى الأمام (نيشان)'], ['⬅️', 'Turn left', 'انعطف يسارًا (ليسر)'], ['➡️', 'Turn right', 'انعطف يمينًا (ليمن)'], ['1️⃣', 'Take the first left', 'خذ أول شارع على اليسار'], ['🔄', 'At the roundabout', 'عند الدوّار (رومبوان)'], ['🚦', 'At the traffic lights', 'عند إشارات المرور (الضو)'], ['↔️', 'Opposite', 'مقابل (قبالة)'], ['📐', 'On the corner', 'في الزاوية (القنت)']] }],
@@ -616,6 +779,11 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
           { cells: ["It's on the corner, opposite the bank."], size: 11 },
         ] },
       ],
+    ] },
+    { t: 'bullets', box: true, heading: 'More examples - أمثلة أخرى', cols: 2, size: 12.5, items: [
+      'Go straight on, then turn left. - امشِ إلى الأمام، ثم انعطف يسارًا.', 'Turn right at the traffic lights. - انعطف يمينًا عند الإشارة.',
+      'Take the second left. - خذ ثاني شارع على اليسار.', 'The bank is on your right. - البنك على يمينك.',
+      'The café is on the corner. - المقهى في الزاوية.', 'Go straight on to the roundabout. - امشِ إلى الأمام حتى الدوّار.',
     ] },
     { t: 'talk', title: 'Is there a post office near here?', art: '🗺️', size: 12, lines: lines(`
       Leila: Excuse me, is there a post office near here?
@@ -654,6 +822,14 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
         ['How many parks are there?', 'There are three.'],
       ] }],
     ] },
+    { t: 'pageBreak' },
+    { t: 'bar', title: 'In my neighbourhood - في حيّي' },
+    { t: 'bullets', box: true, cols: 2, size: 12.5, items: [
+      'There is a market near my house. - يوجد سوق قرب بيتي.', 'There are two parks in my town. - توجد حديقتان في مدينتي.',
+      "There isn't a cinema in my village. - لا توجد سينما في قريتي.", "There aren't any shops on my street. - لا توجد محلات في شارعي.",
+      'There is a bus stop in front of my building. - يوجد موقف حافلات أمام عمارتي.', 'There are many trees in my street. - توجد أشجار كثيرة في شارعي.',
+    ] },
+    { t: 'gapText', label: 'Your neighbourhood - حيّك: أكمل عن حيّك', body: 'In my neighbourhood, there is ___.\nThere are ___.\nThere isn\'t ___.' },
     { t: 'talk', title: 'The new flat', art: '🏘️', size: 12, lines: lines(`
       Kamal: Do you like your new neighbourhood?
       Nawal: Yes, I love it! There is a big park near my flat.
@@ -682,10 +858,20 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
       ['🧑‍⚕️', 'a nurse', 'ممرّض(ة)'], ['🧑‍✈️', 'a pilot', 'طيّار'], ['🧑‍🚒', 'a firefighter', 'رجل إطفاء (بومبيي)'], ['🧑‍🔬', 'a scientist', 'عالِم'],
       ['🧑‍🎨', 'an artist', 'فنّان(ة)'], ['🧑‍🏭', 'a factory worker', 'عامل في مصنع'], ['🧑‍💼', 'a businessman', 'رجل أعمال'], ['🧑‍⚖️', 'a judge', 'قاضٍ'],
     ] },
+    { t: 'pageBreak' },
     { t: 'bar', title: "Can / Can't - أستطيع / لا أستطيع" },
     { t: 'row', widths: '1fr 1fr', blocks: [
       [{ t: 'qa', rows: [['Can you swim?', 'Yes, I can.'], ['Can she drive?', "No, she can't."], ['Can they speak English?', 'Yes, they can.']] }],
       [{ t: 'bullets', box: true, tick: true, size: 11.5, items: ['بعد can نضع الفعل مباشرة: I can swim ✓ — I can to swim ✗', 'لا نضيف s مع he / she: He can drive ✓ — He cans ✗', "can't = cannot = لا يستطيع"] }],
+    ] },
+    { t: 'row', widths: '1fr 1fr', blocks: [
+      [{ t: 'bullets', box: true, heading: 'I can… ✓', size: 12.5, items: ['I can swim.', 'I can speak Arabic and French.', 'I can cook tagine.', 'I can ride a bike.'] }],
+      [{ t: 'bullets', box: true, heading: "I can't… ✗", size: 12.5, items: ["I can't drive.", "I can't play the guitar.", "I can't sing.", "I can't fly a plane!"] }],
+    ] },
+    { t: 'qa', rows: [
+      ['Can you ride a bike?', 'Yes, I can.', 'هل تستطيع ركوب الدراجة؟', 'نعم، أستطيع.'],
+      ['Can you speak English?', 'Yes, I can. A little!', 'هل تستطيع التكلم بالإنجليزية؟', 'نعم، قليلًا!'],
+      ['Can you draw?', "No, I can't.", 'هل تستطيع الرسم؟', 'لا، لا أستطيع.'],
     ] },
     { t: 'talk', title: 'What can you do?', cols: 2, art: '🎸', size: 11.5, lines: lines(`
       Rayan: Can you play the guitar?
@@ -713,6 +899,19 @@ export const LEVEL1_V2_LESSONS: Lesson[] = [
       ['🥾', 'hiking', 'المشي في الجبال'], ['⛺', 'camping', 'التخييم'], ['🎣', 'fishing', 'الصيد (الحوت)'], ['🌱', 'gardening', 'البستنة'],
       ['📷', 'taking photos', 'التصوير'], ['♟️', 'playing chess', 'لعب الشطرنج'], ['🎮', 'playing video games', 'ألعاب الفيديو'], ['🌍', 'travelling', 'السفر'],
     ] },
+    { t: 'bar', title: 'My free time - وقت فراغي' },
+    { t: 'row', widths: '1fr 1fr', blocks: [
+      [{ t: 'bullets', box: true, size: 12.5, items: [
+        'I like reading. - أحب القراءة.', 'I love travelling. - أعشق السفر.', "I don't like fishing. - لا أحب الصيد.",
+        'My favourite hobby is drawing. - هوايتي المفضلة هي الرسم.', 'I go cycling on Sunday. - أركب الدراجة يوم الأحد.',
+      ] }],
+      [{ t: 'qa', rows: [
+        ['What do you like doing?', 'I like cooking.'],
+        ['Do you like swimming?', 'Yes, I do. I love it!'],
+        ["What's your favourite hobby?", 'Taking photos.'],
+      ] }],
+    ] },
+    { t: 'pageBreak' },
     { t: 'bar', title: 'like - أحب' },
     { t: 'row', widths: '1fr 1fr 1fr', blocks: [
       [{ t: 'sub', text: '+ Positive - الإثبات' }, { t: 'pairs', cols: 1, side: true, size: 11, items: [['I like', 'أنا أحب'], ['You like', 'أنت تحب'], ['He likes', 'هو يحب'], ['She likes', 'هي تحب'], ['We like', 'نحن نحب'], ['They like', 'هم يحبون']] }],

@@ -118,6 +118,8 @@ export type Block =
   | { t: 'key'; items: { label: string; answers: string[] }[] }
   /** Space. */
   | { t: 'gap'; h: number }
+  /** The lesson continues on a new printed page (same lesson number, same QR code). */
+  | { t: 'pageBreak' }
   /* ── one-off pictures ── */
   | { t: 'family'; vocab?: Pair[]; people?: FamilyPeople }
   | { t: 'preps'; items: [kind: 'behind' | 'on' | 'between' | 'under' | 'front' | 'next', en: string, ar: string][] }
