@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, Eye, EyeOff, Gauge, Mic, Pause, Play, RotateCcw, Shuffle, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, Check, ChevronLeft, ChevronRight, Eye, EyeOff, Gauge, Mic, Pause, Play, RotateCcw, Shuffle, X } from 'lucide-react'
 import type { Part, Stop } from '@/data/viiza-book/types'
 import { ScreenView } from '@/app/admin/level2-book/_screens'
 import { REGION } from '@/app/admin/level2-book/_kit'
 import { Practice } from './Practice'
 import { Games } from './Games'
+import { BOOK_KINDS, BookView } from './Book'
 import { Ar, AudioProvider, Btn, Card, closeness, EN, Head, Ico, Mark, pad2, Pill, Say, useAudio, useFonts, useListen, useProgress, V } from './kit'
 
 /**
@@ -33,13 +34,15 @@ export const SECTIONS: [Section, string, string, string][] = [
 
 interface Near { n: number; titleEn: string }
 
-export function StopApp(props: { stop: Stop; part: Part; prev: Near | null; next: Near | null; clips: Record<string, string>; sample: boolean }) {
+export function StopApp(props: { stop: Stop; part: Part; prev: Near | null; next: Near | null; clips: Record<string, string>; sample: boolean; firstPage: number }) {
   useFonts()
   return <AudioProvider clips={props.clips}><Player {...props} /></AudioProvider>
 }
 
-function Player({ stop: s, part, prev, next, sample }: { stop: Stop; part: Part; prev: Near | null; next: Near | null; sample: boolean }) {
+function Player({ stop: s, part, prev, next, sample, clips, firstPage }: { stop: Stop; part: Part; prev: Near | null; next: Near | null; sample: boolean; clips: Record<string, string>; firstPage: number }) {
   const [sec, setSec] = useState<Section>('opener')
+  // Book view: the printed pages, one per screen. Remembered, so a reader who prefers the book stays in it.
+  const [book, setBook] = useState(false)
   const { progress, markSeen, markDone, setBest } = useProgress()
   const { slow, setSlow, stop } = useAudio()
   const at = SECTIONS.findIndex(x => x[0] === sec)
@@ -48,10 +51,12 @@ function Player({ stop: s, part, prev, next, sample }: { stop: Stop; part: Part;
 
   useEffect(() => {
     const fromHash = () => {
-      const h = window.location.hash.slice(1) as Section
-      if (SECTIONS.some(x => x[0] === h)) setSec(h)
+      const h = window.location.hash.slice(1)
+      if (h === 'book') setBook(true)
+      else if (SECTIONS.some(x => x[0] === h)) setSec(h as Section)
     }
     fromHash()
+    if (!window.location.hash) { try { if (localStorage.getItem('viiza.mode') === 'book') setBook(true) } catch {} }
     window.addEventListener('hashchange', fromHash)
     return () => window.removeEventListener('hashchange', fromHash)
   }, [])
@@ -69,8 +74,23 @@ function Player({ stop: s, part, prev, next, sample }: { stop: Stop; part: Part;
   }, [])
   const [icon, en, ar] = SECTIONS[at].slice(1) as [string, string, string]
 
+  const openBook = () => {
+    stop(); setBook(true)
+    window.history.replaceState(window.history.state, '', '#book')
+    try { localStorage.setItem('viiza.mode', 'book') } catch {}
+  }
+  const closeBook = (page: number) => {
+    stop(); setBook(false)
+    const k = BOOK_KINDS[page][0] as Section
+    setSec(k)
+    window.history.replaceState(window.history.state, '', `#${k}`)
+    try { localStorage.setItem('viiza.mode', 'app') } catch {}
+  }
+  const bookStart = Math.max(0, BOOK_KINDS.findIndex(b => b[0] === sec))
+
   return (
     <div className="min-h-screen" style={{ background: V.paper, color: V.ink, fontFamily: EN }}>
+      {book && <BookView s={s} clips={clips} start={bookStart} firstPage={firstPage} prev={prev} next={next} onExit={closeBook} />}
       <header className="sticky top-0 z-30 shadow-[0_2px_16px_rgba(0,0,0,0.18)]" style={{ background: V.navy }}>
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-3 py-2.5 sm:px-5" dir="ltr">
           <Link href="/viiza" className="flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1.5 text-[12px] font-bold text-white/85 hover:bg-white/10"><ChevronLeft size={16} /> Journey</Link>
@@ -78,7 +98,10 @@ function Player({ stop: s, part, prev, next, sample }: { stop: Stop; part: Part;
           <span className="min-w-0 flex-1 truncate text-[14px] font-extrabold text-white sm:text-[16px]">{s.titleEn}</span>
           <button onClick={() => setSlow(!slow)} title="Slow audio" className="flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[12px] font-extrabold"
             style={slow ? { background: V.saff, color: V.navy } : { color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}>
-            <Gauge size={14} /> {slow ? 'Slow' : 'Normal'}
+            <Gauge size={14} /> <span className="hidden sm:inline">{slow ? 'Slow' : 'Normal'}</span>
+          </button>
+          <button onClick={openBook} title="Book view: the printed pages, full screen" className="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-extrabold" style={{ background: V.saff, color: V.navy }}>
+            <BookOpen size={14} /> Book
           </button>
         </div>
         <div ref={tabs} className="no-scrollbar mx-auto flex max-w-5xl gap-1.5 overflow-x-auto px-3 pb-2.5 sm:px-5" dir="ltr">

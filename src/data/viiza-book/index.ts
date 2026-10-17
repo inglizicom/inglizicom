@@ -8,7 +8,8 @@ import { PART_5A } from './part-5a.ts'
 import { PART_5B } from './part-5b.ts'
 import { PART_6 } from './part-6.ts'
 import { MORE } from './more.ts'
-import { mixed, seedOf } from './shuffle.ts'
+import { seedOf } from './shuffle.ts'
+import { answersOf } from './answers.ts'
 
 /**
  * VIIZA ENGLISH, Student's Book (the travel guide) as a list of A4 pages for
@@ -24,6 +25,7 @@ export * from './types.ts'
 export { PARTS, CHECKED } from './plan.ts'
 export * from './extras.ts'
 export { mixed, seedOf } from './shuffle.ts'
+export { answersOf, checkAnswers } from './answers.ts'
 
 export const STOPS: Stop[] = [...PART_1, ...PART_2, ...PART_3, ...PART_4, ...PART_5A, ...PART_5B, ...PART_6]
   .map(s => (MORE[s.n] ? { ...s, more: MORE[s.n] } : s))
@@ -39,28 +41,6 @@ export type ViizaPage =
   | { kind: 'key'; stops: number[] }
 
 export const STOP_KINDS: StopKind[] = ['opener', 'words', 'exchanges', 'real', 'talk', 'practice']
-
-const LETTERS = 'abcdefghij'
-
-/** The answers of one exercise, as short strings for the key. */
-export function answersOf(ex: Exercise, seed: number): string[] {
-  switch (ex.t) {
-    case 'match': {
-      const right = mixed(ex.items.map(i => i[1]), seed)
-      return ex.items.map((item, k) => `${k + 1}${LETTERS[right.indexOf(item[1])]}`)
-    }
-    case 'gaps': return ex.items.map(([, a], k) => `${k + 1} ${a}`)
-    case 'choose': return ex.items.map(([, opts, r], k) => `${k + 1}${LETTERS[r]} ${opts[r]}`)
-    case 'say': return ex.items.map(([, a], k) => `${k + 1} ${a}`)
-    case 'order': {
-      const shown = mixed(ex.lines, seed)
-      return [ex.lines.map(l => LETTERS[shown.indexOf(l)]).join(' – ')]
-    }
-  }
-}
-
-/** The conversation check's answers for the key: "1 T · 2 F …". */
-export const checkAnswers = (s: Stop) => (s.more?.check ?? []).map(([, t], k) => `${k + 1} ${t ? 'T' : 'F'}`)
 
 /** How tall a stop's answers print in the key, in lines (to share stops between key pages). */
 function keyLines(s: Stop) {

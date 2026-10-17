@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
-import { PARTS, STOPS } from '@/data/viiza-book'
+import { PARTS, STOPS, buildViizaBook } from '@/data/viiza-book'
 import { viizaStopAudio } from '@/data/viiza-audio'
 import { COOKIE, FREE_STOPS, currentAccess } from '@/lib/viiza-access'
 import { StopApp } from '../_app/Stop'
@@ -29,6 +29,7 @@ export default async function ViizaStop({ params }: { params: { n: string } }) {
       next={near(STOPS[i + 1])}
       clips={viizaStopAudio(n)}
       sample={!access}
+      firstPage={buildViizaBook().stopPage(n)}
     />
   )
 }

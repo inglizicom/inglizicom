@@ -1,7 +1,11 @@
 'use client'
 
 import { Fragment, useLayoutEffect, useRef, useState } from 'react'
-import { PARTS, answersOf, checkAnswers, mixed, seedOf, type Exercise, type Pair, type Stop, type StopKind } from '@/data/viiza-book'
+import type { Exercise, Pair, Stop, StopKind } from '@/data/viiza-book'
+// The small modules, not the book's index: VIIZA interactive draws these pages in the browser and must not bundle every stop.
+import { PARTS } from '@/data/viiza-book/plan'
+import { mixed, seedOf } from '@/data/viiza-book/shuffle'
+import { answersOf, checkAnswers } from '@/data/viiza-book/answers'
 import { PLAY } from '@/components/QrLink'
 import { Ar, Body, C, En, EN, Footer, Ico, PAD, Qr, RegionBadge, Route, Sec, Sheet, StopHead } from './_kit'
 import { ScreenView } from './_screens'

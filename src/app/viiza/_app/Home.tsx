@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Check, ChevronLeft, KeyRound, Loader2, Lock, LogOut, MessageCircle, Plane, Stamp } from 'lucide-react'
+import { BookOpen, Check, ChevronLeft, KeyRound, Loader2, Lock, LogOut, MessageCircle, Plane, Stamp } from 'lucide-react'
 import { Ar, EN, Ico, V, pad2, useFonts, useProgress } from './kit'
 
 /**
@@ -86,7 +86,7 @@ export function Home({ parts, stops, access, free, locked }: { parts: PartCard[]
               <Link href={open(next.n) ? `/viiza/${next.n}` : '#signin'} className="inline-flex items-center gap-2 rounded-2xl px-5 py-3 text-[15px] font-extrabold shadow-lg transition active:scale-[0.97]" style={{ background: V.saff, color: V.navy }}>
                 <Plane size={18} /> {done.length ? 'Continue' : 'Start'} · Stop {pad2(next.n)}
               </Link>
-              <span className="text-[13px] font-semibold text-white/70">{next.titleEn}</span>
+              {open(next.n) && <Link href={`/viiza/${next.n}#book`} className="inline-flex items-center gap-2 rounded-2xl border-2 border-white/30 px-4 py-2.5 text-[14px] font-extrabold text-white transition hover:bg-white/10 active:scale-[0.97]"><BookOpen size={17} /> Read it as a book</Link>}
             </div>
           </div>
           {/* Boarding pass */}

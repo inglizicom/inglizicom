@@ -262,3 +262,28 @@ test.describe('VIIZA interactive', () => {
     expect(errors).toEqual([])
   })
 })
+
+test.describe('VIIZA interactive · book view', () => {
+  test('the printed pages, one per screen, turned with the keyboard, a sentence heard on tap', async ({ page }) => {
+    const errors = collectErrors(page)
+    await mockSupabase(page, { role: 'student' })
+    await page.goto('/viiza/1')
+    await page.getByRole('button', { name: /Book/ }).first().click()
+    await expect(page.getByText('Page 1 of 6')).toBeVisible({ timeout: 60_000 })
+    const sheet = page.locator('.vz-bookpage .print-sheet')
+    await expect(sheet).toBeVisible()
+    // the whole page is on the screen
+    const box = (await page.locator('.vz-bookpage').boundingBox())!
+    const vp = page.viewportSize()!
+    expect(box.x).toBeGreaterThanOrEqual(0)
+    expect(box.x + box.width).toBeLessThanOrEqual(vp.width + 1)
+    expect(box.y + box.height).toBeLessThanOrEqual(vp.height + 1)
+    await page.keyboard.press('ArrowRight')
+    await page.keyboard.press('ArrowRight')
+    await expect(page.getByText('Page 3 of 6')).toBeVisible()
+    await page.locator('.vz-bookpage').getByText('Sure. Is a black pen OK?').click()
+    await page.getByRole('button', { name: /App view/ }).or(page.getByTitle('Back to the app view')).first().click()
+    await expect(page.getByText('SECTION 3 OF 6')).toBeVisible()
+    expect(errors).toEqual([])
+  })
+})
