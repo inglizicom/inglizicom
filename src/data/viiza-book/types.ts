@@ -2,16 +2,20 @@
  * VIIZA ENGLISH, Student's Book: a travel guide in English for Arabic
  * speakers going to the Gulf, the USA and Europe. It follows one journey in
  * the order a traveller lives it, from the visa form to the front door at
- * home, as "stops" grouped in six parts. Every stop prints on four A4 pages,
+ * home, as "stops" grouped in six parts. Every stop prints on six A4 pages,
  * always in the same order, so a traveller finds what they need in seconds:
  *
  *   1. Opener: the situation, what you will be able to do, what to know
- *      before you go (by region), and the stop's key words.
- *   2. Say it, hear it: what you say and what people say to you, then a
- *      real-life screen, document or sign explained with numbered notes.
- *   3. The conversation, line by line with its Arabic, the mistakes Arabic
- *      speakers make, and an insider tip.
- *   4. Practice, a role-play in pairs, then the survival card: the
+ *      before you go (by region), the apps, and an insider tip.
+ *   2. Vocabulary: the twelve key words with an example each, action words,
+ *      and words that go together.
+ *   3. Exchanges: what you hear and how to reply, what you say and what
+ *      you may hear back.
+ *   4. In real life: a screen, document or sign explained with numbered
+ *      notes, and the mistakes Arabic speakers make.
+ *   5. The conversation, line by line with its Arabic, and a true / false
+ *      check.
+ *   6. Practice, a role-play in pairs, then the survival card: the
  *      sentences to show or read out when the words won't come.
  *
  * Texts are short on purpose: the page sizes are fixed, and a test checks
@@ -120,6 +124,30 @@ export interface Stop {
   roleplay: { role: Pair; a: Pair[]; b: Pair[] }
   /** The survival card: the sentences to show or read out. */
   card: Pair[]
+  /** The vocabulary page, the exchanges and the check (merged in from more-*.ts). */
+  more?: StopMore
+}
+
+/**
+ * What every stop adds to its Student's Book pages: the vocabulary page
+ * (an example for each key word, action words, word partners), the
+ * exchanges page (a reply to the first six things you hear, and what you
+ * may hear back after the first six things you say), and a true / false
+ * check under the conversation. Kept beside the stops, by stop number.
+ */
+export interface StopMore {
+  /** One short example sentence for each of the twelve key words, in their order. */
+  examples: string[]
+  /** Eight action words and phrasal verbs: [English, Arabic, example]. */
+  actions: [en: string, ar: string, example: string][]
+  /** Eight words that go together: [English, Arabic]. */
+  partners: Pair[]
+  /** How you reply to the first six things you hear: [English, Arabic]. */
+  replies: Pair[]
+  /** What you may hear back after the first six things you say: [English, Arabic]. */
+  answers: Pair[]
+  /** Four statements about the conversation: [statement, true?]. */
+  check: [statement: string, isTrue: boolean][]
 }
 
 export interface Part {

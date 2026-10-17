@@ -242,9 +242,9 @@ const STEPS: [string, string, string, string][] = [
 function HowTo({ book }: { book: Book }) {
   const at = (n: number) => book.pageOf(p => p.kind === 'words' && p.stop === n)
   return (
-    <div className="flex h-full flex-col gap-3.5">
+    <div className="flex h-full flex-col gap-3">
       <div className="flex items-start gap-4 rounded-xl px-4 py-3" style={{ background: C.cream }} dir="rtl">
-        <Ar className="flex-1 text-[13.5px] font-semibold leading-[1.8]">لكل محطة في كتاب الطالب صفحتان هنا. اعمل على المحطة بعد أن تدرسها في كتاب الطالب، واستمع إلى صوتها بمسح الرمز، ثم صحّح بنفسك من مفتاح الأجوبة في آخر الكتاب. وفي نهاية كل جزء صفحة مراجعة.</Ar>
+        <Ar className="flex-1 text-[13.5px] font-semibold leading-[1.65]">لكل محطة في كتاب الطالب صفحتان هنا. اعمل على المحطة بعد أن تدرسها في كتاب الطالب، واستمع إلى صوتها بمسح الرمز، ثم صحّح بنفسك من مفتاح الأجوبة في آخر الكتاب. وفي نهاية كل جزء صفحة مراجعة.</Ar>
         <Qr url={PLAY.viiza(1)} size={58} />
       </div>
       <div>
@@ -265,7 +265,7 @@ function HowTo({ book }: { book: Book }) {
         <Sec icon="Route" en="Contents" ar="الفهرس" color={C.navy} />
         <div className="mt-2 grid flex-1 grid-cols-2 gap-x-6" dir="ltr">
           {[[1, 2, 3], [4, 5, 6]].map((col, ci) => (
-            <div key={ci} className="flex flex-col gap-2">
+            <div key={ci} className="flex flex-col gap-1.5">
               {col.map(n => (
                 <div key={n}>
                   <div className="flex items-center gap-2 rounded-md px-2 py-[2px] text-white" style={{ background: C.red }}>
@@ -273,13 +273,13 @@ function HowTo({ book }: { book: Book }) {
                     <Ar className="ml-auto text-[11.5px] font-bold" style={{ color: C.saff }}>{PARTS[n - 1].titleAr}</Ar>
                   </div>
                   {STOPS.filter(s => s.part === n).map(s => (
-                    <div key={s.n} className="flex items-center gap-2 border-b px-1 py-[1px] text-[11.5px] font-bold" style={{ borderColor: C.line }}>
+                    <div key={s.n} className="flex items-center gap-2 border-b px-1 py-0 text-[11.5px] font-bold" style={{ borderColor: C.line }}>
                       <span className="w-[18px] font-extrabold" style={{ color: C.red }}>{PAD(s.n)}</span>
                       <span className="flex-1 truncate">{s.titleEn}</span>
                       <span>{at(s.n)}</span>
                     </div>
                   ))}
-                  <div className="flex items-center gap-2 px-1 py-[1px] text-[11.5px] font-extrabold" style={{ color: C.navy }}>
+                  <div className="flex items-center gap-2 px-1 py-0 text-[11.5px] font-extrabold" style={{ color: C.navy }}>
                     <Ico name="RotateCcw" size={11} color={C.navy} /><span className="flex-1">Review</span>
                     <span>{book.pageOf(p => p.kind === 'review' && p.part === n)}</span>
                   </div>

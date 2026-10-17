@@ -228,7 +228,7 @@ export const PART_2: Stop[] = [
         ['bag drop', 'تسليم الحقائب'], ['boarding pass', 'بطاقة الصعود'], ['scale', 'الميزان'],
         ['gate', 'البوابة'], ['aisle seat', 'مقعد بجانب الممر'], ['bag tag', 'ملصق الحقيبة'],
       ] },
-      { t: 'choose', title: ['Read the boarding pass on page 2', 'اقرأ بطاقة الصعود في الصفحة الثانية'], items: [
+      { t: 'choose', title: ['Read the boarding pass on page 4', 'اقرأ بطاقة الصعود في الصفحة الرابعة'], items: [
         ['What is the gate?', ['B12', '23A', '087'], 0],
         ['When must you be at the gate?', ['before 10:40', 'at 11:30', 'after 10:40'], 0],
         ['Seat 23A is probably…', ['next to the window', 'next to the aisle'], 0],
@@ -482,7 +482,7 @@ export const PART_2: Stop[] = [
         ['delayed', 'متأخرة'], ['cancelled', 'ملغاة'], ['final call', 'النداء الأخير'],
         ['gate change', 'تغيير البوابة'], ['on time', 'في الوقت'], ['boarding', 'الصعود جارٍ'],
       ] },
-      { t: 'choose', title: ['Read the board on page 2', 'اقرأ الشاشة في الصفحة الثانية'], items: [
+      { t: 'choose', title: ['Read the board on page 4', 'اقرأ الشاشة في الصفحة الرابعة'], items: [
         ['You are flying to Paris. What must you do?', ['Go to gate B07 now.', 'Wait for the gate.'], 0],
         ['The flight to Dubai leaves from…', ['gate A3', 'gate A7'], 1],
         ['When does the flight to New York leave now?', ['11:40', '12:30'], 1],

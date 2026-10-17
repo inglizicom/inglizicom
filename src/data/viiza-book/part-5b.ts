@@ -608,7 +608,7 @@ export const PART_5B: Stop[] = [
         ['fever', 'حمّى'], ['cough', 'سعال'], ['sore throat', 'التهاب الحلق'],
         ['prescription', 'وصفة طبية'], ['tablets', 'أقراص'], ['allergic to', 'عنده حساسية من'],
       ] },
-      { t: 'choose', title: ['Read the medicine box on page 2', 'اقرأ علبة الدواء في الصفحة الثانية'], items: [
+      { t: 'choose', title: ['Read the medicine box on page 4', 'اقرأ علبة الدواء في الصفحة الرابعة'], items: [
         ['How many tablets can an adult take at one time?', ['1 or 2', '8'], 0],
         ['How long must you wait between doses?', ['1 hour', '4 to 6 hours'], 1],
         ['Can a 10-year-old child take it?', ['yes', 'no'], 1],

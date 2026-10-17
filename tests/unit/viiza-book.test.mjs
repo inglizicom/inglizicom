@@ -1,11 +1,12 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { createRequire } from 'node:module'
-import { DICTIONARY, MY_TRIP, PARTS, STOPS, SURVIVAL, answersOf, buildViizaBook, mixed, seedOf } from '../../src/data/viiza-book/index.ts'
+import { DICTIONARY, MY_TRIP, PARTS, STOPS, SURVIVAL, answersOf, buildViizaBook, checkAnswers, mixed, seedOf } from '../../src/data/viiza-book/index.ts'
+import { TALK_STOPS } from '../../src/data/viiza-talk/index.ts'
 
 /**
  * VIIZA ENGLISH, the travel guide (src/data/viiza-book). Every stop prints on
- * four fixed A4 pages, so the counts and lengths below are what keeps a page
+ * six fixed A4 pages, so the counts and lengths below are what keeps a page
  * from spilling; the e2e test measures the pages themselves.
  */
 
@@ -47,6 +48,47 @@ test('every stop is complete, translated, and short enough for its pages', () =>
     assert.ok(s.roleplay.a.length === 3 && s.roleplay.b.length === 3, `${at}: role-play cues`)
     assert.equal(s.card.length, 5, `${at}: five survival lines`)
     for (const [en] of s.card) assert.ok(en.length <= 52, `${at}: card line too long: ${en}`)
+  }
+})
+
+test('every stop has its vocabulary page, its exchanges and its check, short enough for the pages', () => {
+  for (const s of STOPS) {
+    const at = `stop ${s.n}`
+    const m = s.more
+    assert.ok(m, `${at}: no vocabulary page (more-*.ts)`)
+    assert.equal(m.examples.length, s.words.length, `${at}: one example per key word`)
+    for (const e of m.examples) assert.ok(e.length <= 64 && !AR.test(e), `${at}: example too long (${e.length}): ${e}`)
+    assert.equal(m.actions.length, 8, `${at}: eight action words`)
+    for (const [en, ar, ex] of m.actions) {
+      assert.ok(en.length <= 20 && AR.test(ar) && ar.length <= 24, `${at}: action "${en}"`)
+      assert.ok(ex.length <= 58 && !AR.test(ex), `${at}: action example too long (${ex.length}): ${ex}`)
+    }
+    assert.equal(m.partners.length, 8, `${at}: eight word partners`)
+    for (const [en, ar] of m.partners) assert.ok(en.length <= 24 && AR.test(ar) && ar.length <= 26, `${at}: partner "${en}"`)
+    assert.equal(m.replies.length, 6, `${at}: six replies to what you hear`)
+    assert.equal(m.answers.length, 6, `${at}: six answers to what you say`)
+    for (const [en, ar] of [...m.replies, ...m.answers]) {
+      assert.ok(en.length <= 56 && !AR.test(en), `${at}: exchange too long (${en.length}): ${en}`)
+      assert.ok(AR.test(ar) && ar.length <= 56, `${at}: Arabic for "${en}" (${ar.length})`)
+    }
+    assert.equal(m.check.length, 4, `${at}: four true / false statements`)
+    assert.equal(m.check.filter(c => c[1]).length, 2, `${at}: two true, two false`)
+    for (const [t] of m.check) assert.ok(t.length <= 56, `${at}: statement too long (${t.length}): ${t}`)
+    assert.deepEqual(checkAnswers(s).length, 4)
+  }
+})
+
+test("the action words are new: not a key word of the stop, not a word of the conversations book", () => {
+  const norm = w => w.toLowerCase().trim()
+  for (const s of STOPS) {
+    const actions = s.more.actions.map(a => norm(a[0]))
+    assert.equal(new Set(actions).size, actions.length, `stop ${s.n}: an action word twice`)
+    const taken = new Set([
+      ...s.words.flatMap(w => w[0].split('/').map(norm)),
+      ...(TALK_STOPS.find(t => t.n === s.n)?.words ?? []).map(w => norm(w[0])),
+    ])
+    const clash = actions.filter(a => taken.has(a))
+    assert.deepEqual(clash, [], `stop ${s.n}: action words already taught`)
   }
 })
 
@@ -94,10 +136,10 @@ test('exercises have answers, and the shuffles never leave an item in place', ()
   })
 })
 
-test('the book: front matter, a divider and four pages per stop, reference pages, the key', () => {
+test('the book: front matter, a divider and six pages per stop, reference pages, the key', () => {
   const { pages, stopPage } = buildViizaBook()
   assert.equal(pages.filter(p => p.kind === 'part').length, 6)
-  for (const s of STOPS) assert.equal(pages.filter(p => 'stop' in p && p.stop === s.n).length, 4, `stop ${s.n}`)
+  for (const s of STOPS) assert.equal(pages.filter(p => 'stop' in p && p.stop === s.n).length, 6, `stop ${s.n}`)
   const keyed = pages.filter(p => p.kind === 'key').flatMap(p => p.stops)
   assert.deepEqual(keyed, STOPS.map(s => s.n))
   // every stop opens on its own page number, after the one before

@@ -275,14 +275,17 @@ test.describe('flows', () => {
     const sheets = page.locator('.print-sheet')
     await expect(sheets.first()).toBeVisible({ timeout: 90_000 })
     const count = await sheets.count()
-    // covers and title · 7 front pages · 6 dividers · 34 stops × 4 · 6 reference pages · the key
-    expect(count).toBeGreaterThanOrEqual(3 + 7 + 6 + 34 * 4 + 6 + 1)
+    // covers and title · 7 front pages · 6 dividers · 34 stops × 6 · 6 reference pages · the key
+    expect(count).toBeGreaterThanOrEqual(3 + 7 + 6 + 34 * 6 + 6 + 1)
     await page.evaluate(() => document.fonts.ready)
     await page.waitForTimeout(1000)
     const tooLong = await page.evaluate(() => [...document.querySelectorAll('.vz-body')].flatMap((b, i) => (b.scrollHeight > b.clientHeight + 1 ? [i + 1] : [])))
     expect(tooLong).toEqual([])
     await expect(page.locator('.print-sheet', { hasText: 'SURVIVAL CARD' })).toHaveCount(34)
-    await expect(page.locator('.print-sheet', { hasText: 'Immigration' }).filter({ hasText: 'Conversation' }).first()).toContainText("What's the purpose of your visit?")
+    await expect(page.locator('.print-sheet', { hasText: 'Immigration' }).filter({ hasText: 'Did you understand' }).first()).toContainText("What's the purpose of your visit?")
+    // the exchanges: what you hear, and how you reply
+    await expect(page.locator('.print-sheet', { hasText: 'STOP16Immigration' }).filter({ hasText: 'You hear → you reply' }).first()).toContainText('Tourism.')
+    await expect(page.locator('.print-sheet', { hasText: 'ACTION WORDS' })).toHaveCount(34)
     const pdf = (await page.pdf({ preferCSSPageSize: true, printBackground: true })).toString('latin1')
     expect((pdf.match(/\/Type\s*\/Page[^s]/g) ?? []).length).toBe(count)
   })

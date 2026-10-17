@@ -1,18 +1,32 @@
 'use client'
 
 import { Fragment, useLayoutEffect, useRef, useState } from 'react'
-import { PARTS, answersOf, mixed, seedOf, type Exercise, type Stop, type StopKind } from '@/data/viiza-book'
+import { PARTS, answersOf, checkAnswers, mixed, seedOf, type Exercise, type Pair, type Stop, type StopKind } from '@/data/viiza-book'
 import { PLAY } from '@/components/QrLink'
 import { Ar, Body, C, En, EN, Footer, Ico, PAD, Qr, RegionBadge, Route, Sec, Sheet, StopHead } from './_kit'
 import { ScreenView } from './_screens'
 
 /**
- * A stop's four pages, always in the same order, so a traveller who knows
- * one stop can find their way in all of them: opener · say & hear ·
- * conversation · practice and survival card.
+ * A stop's six pages, always in the same order, so a traveller who knows
+ * one stop can find their way in all of them: opener · vocabulary ·
+ * exchanges (what you hear and how to reply, what you say and what comes
+ * back) · in real life · conversation · practice and survival card. The
+ * vocabulary and the exchanges each get a page of their own, so a learner
+ * can study the words, then the replies, before meeting them in the
+ * conversation.
  */
 
-const SECTION: Record<StopKind, string> = { opener: 'Opener', sayhear: 'Say it · Hear it', talk: 'Conversation', practice: 'Practice' }
+const SECTION: Record<StopKind, string> = { opener: 'Opener', words: 'Vocabulary', exchanges: 'You hear · You say', real: 'In real life', talk: 'Conversation', practice: 'Practice' }
+
+/** The six pages of a stop, for the opener's map: [kind, icon, English, Arabic]. */
+const PAGES: [StopKind, string, string, string][] = [
+  ['opener', 'Flag', 'Opener', 'البداية'],
+  ['words', 'BookA', 'Vocabulary', 'المفردات'],
+  ['exchanges', 'ArrowLeftRight', 'You hear · You say', 'تسمع وتردّ'],
+  ['real', 'Eye', 'In real life', 'في الواقع'],
+  ['talk', 'MessagesSquare', 'Conversation', 'المحادثة'],
+  ['practice', 'PenLine', 'Practice', 'التمارين'],
+]
 
 export function StopPage({ stop, kind, pageNo, filename }: { stop: Stop; kind: StopKind; pageNo: number; filename: string }) {
   const label = `Stop ${PAD(stop.n)} · ${SECTION[kind]} · p. ${pageNo}`
@@ -21,7 +35,9 @@ export function StopPage({ stop, kind, pageNo, filename }: { stop: Stop; kind: S
     <Sheet label={label} filename={filename}>
       <StopHead n={stop.n} titleEn={stop.titleEn} titleAr={stop.titleAr} part={stop.part} section={SECTION[kind]} />
       <Body>
-        {kind === 'sayhear' && <SayHear s={stop} />}
+        {kind === 'words' && <Vocabulary s={stop} />}
+        {kind === 'exchanges' && <Exchanges s={stop} />}
+        {kind === 'real' && <RealLife s={stop} />}
         {kind === 'talk' && <Talk s={stop} />}
         {kind === 'practice' && <Practice s={stop} />}
       </Body>
@@ -96,22 +112,6 @@ function Opener({ s }: { s: Stop }) {
             </div>
           </div>
 
-          {/* Key words */}
-          <div>
-            <Sec icon="BookA" en="Key words" ar="الكلمات الأساسية" />
-            <div className="mt-2 grid grid-cols-4 gap-2" dir="ltr">
-              {s.words.map(([en, ar, icon]) => (
-                <div key={en} className="flex items-center gap-2 rounded-lg px-2 py-1.5" style={{ border: `1px solid ${C.line}` }}>
-                  <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-md" style={{ background: C.redS }}><Ico name={icon} size={17} color={C.red} /></span>
-                  <div className="min-w-0 leading-tight">
-                    <div className="text-[12.5px] font-extrabold">{en}</div>
-                    <Ar className="text-[11.5px] font-bold" style={{ color: C.grey }}>{ar}</Ar>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* Apps and sites for this stop */}
           {s.apps && s.apps.length > 0 && (
             <div>
@@ -127,40 +127,190 @@ function Opener({ s }: { s: Stop }) {
               </div>
             </div>
           )}
+
+          <ProTip text={s.pro} />
+
+          {/* The stop's six pages */}
+          <div>
+            <Sec icon="Map" en="This stop, page by page" ar="هذه المحطة صفحة بصفحة" color={C.navy} />
+            <div className="mt-2 grid grid-cols-6 gap-1.5" dir="ltr">
+              {PAGES.map(([kind, icon, en, ar], i) => (
+                <div key={kind} className="flex flex-col items-center gap-1 rounded-lg px-1 py-2 text-center" style={{ background: i ? C.navyS : C.redS }}>
+                  <span className="flex h-[26px] w-[26px] items-center justify-center rounded-full" style={{ background: i ? C.navy : C.red }}><Ico name={icon} size={14} color="#fff" /></span>
+                  <span className="text-[10.5px] font-extrabold leading-tight">{i + 1} · {en}</span>
+                  <Ar className="text-[10.5px] font-bold leading-tight" style={{ color: C.grey }}>{ar}</Ar>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </Body>
     </>
   )
 }
 
-/* ── 2. Say it · Hear it ────────────────────────────────────────────── */
-
-function PhraseColumn({ title, titleAr, icon, color, tint, rows }: { title: string; titleAr: string; icon: string; color: string; tint: string; rows: [string, string][] }) {
+/** One insider tip, on saffron. */
+function ProTip({ text }: { text: string }) {
   return (
-    <div className="overflow-hidden rounded-xl" style={{ border: `1.5px solid ${color}` }}>
-      <div className="flex items-center justify-between px-3 py-1.5 text-white" style={{ background: color }} dir="ltr">
-        <span className="flex items-center gap-2 text-[12.5px] font-extrabold uppercase tracking-[0.1em]"><Ico name={icon} size={15} color="#fff" /> {title}</span>
-        <Ar className="text-[14px] font-bold">{titleAr}</Ar>
-      </div>
-      <div>
-        {rows.map(([en, ar], i) => (
-          <div key={i} className="px-3 py-[5px] leading-snug" style={{ background: i % 2 ? tint : '#fff' }}>
-            <div className="text-[13px] font-bold"><En>{en}</En></div>
-            <Ar className="text-left text-[11.5px] font-semibold" style={{ color: C.grey }}>{ar}</Ar>
-          </div>
-        ))}
+    <div className="flex items-start gap-3 rounded-xl px-4 py-2.5" style={{ background: C.saffS }} dir="rtl">
+      <span className="flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-full" style={{ background: C.saff }}><Ico name="Lightbulb" size={16} color={C.navy} /></span>
+      <div className="min-w-0">
+        <div className="flex items-center gap-2"><Ar as="span" className="text-[13px] font-extrabold" style={{ color: C.saffD }}>نصيحة مسافر</Ar><span className="text-[10.5px] font-extrabold tracking-[0.12em]" style={{ color: C.saffD }}>PRO TIP</span></div>
+        <Ar className="text-[13px] font-semibold leading-[1.7]">{text}</Ar>
       </div>
     </div>
   )
 }
 
-function SayHear({ s }: { s: Stop }) {
+/* ── 2. Vocabulary ──────────────────────────────────────────────────── */
+
+/** An example sentence with its key word picked out (any of the word's forms, "surname / last name"). */
+function Example({ text, word }: { text: string; word: string }) {
+  const forms = word.replace(/\([^)]*\)/g, '').split(/\s*[/·]\s*/).map(w => w.trim()).filter(Boolean).sort((a, b) => b.length - a.length)
+  const low = text.toLowerCase()
+  const form = forms.find(w => low.includes(w.toLowerCase()))
+  if (!form) return <En>{text}</En>
+  const at = low.indexOf(form.toLowerCase())
+  return <span dir="ltr">{text.slice(0, at)}<b style={{ color: C.red }}>{text.slice(at, at + form.length)}</b>{text.slice(at + form.length)}</span>
+}
+
+function Vocabulary({ s }: { s: Stop }) {
+  const m = s.more
+  return (
+    <div className="flex h-full flex-col gap-3.5">
+      <div>
+        <Sec icon="BookA" en="Key words" ar="الكلمات الأساسية" />
+        <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5" dir="ltr">
+          {s.words.map(([en, ar, icon], i) => (
+            <div key={en} className="flex items-start gap-2.5 rounded-lg px-2.5 py-1.5" style={{ border: `1px solid ${C.line}` }}>
+              <span className="mt-[2px] flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-md" style={{ background: C.redS }}><Ico name={icon} size={18} color={C.red} /></span>
+              <div className="min-w-0 flex-1 leading-snug">
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-[13.5px] font-extrabold">{en}</span>
+                  <Ar as="span" className="shrink-0 text-[12px] font-bold" style={{ color: C.red }}>{ar}</Ar>
+                </div>
+                {m?.examples[i] && <div className="text-[12px] font-medium" style={{ color: '#2A3150' }}><Example text={m.examples[i]} word={en} /></div>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {m && (
+        <div>
+          <Sec icon="Zap" en="Action words" ar="أفعال تحتاجها" color={C.navy} />
+          <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5" dir="ltr">
+            {m.actions.map(([en, ar, ex]) => (
+              <div key={en} className="rounded-lg px-3 py-1.5 leading-snug" style={{ background: C.navyS }}>
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-[13.5px] font-extrabold" style={{ color: C.navy }}>{en}</span>
+                  <Ar as="span" className="shrink-0 text-[12px] font-bold" style={{ color: C.grey }}>{ar}</Ar>
+                </div>
+                <div className="text-[12px] font-medium" style={{ color: '#2A3150' }}><Example text={ex} word={en} /></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {m && (
+        <div>
+          <Sec icon="Link" en="Words that go together" ar="كلمات تأتي معًا" color={C.saffD} />
+          <div className="mt-2 grid grid-cols-4 gap-1.5" dir="ltr">
+            {m.partners.map(([en, ar]) => (
+              <div key={en} className="rounded-lg px-2 py-1.5 text-center leading-snug" style={{ background: C.saffS, border: `1px solid ${C.saff}` }}>
+                <div className="text-[12.5px] font-extrabold">{en}</div>
+                <Ar className="text-[11px] font-semibold" style={{ color: C.grey }}>{ar}</Ar>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <NotesFill en="My new words" ar="كلماتي الجديدة" />
+    </div>
+  )
+}
+
+/* ── 3. You hear · You say ──────────────────────────────────────────── */
+
+/** One bubble of an exchange. */
+function Bubble({ en, ar, color, tint, icon, side }: { en: string; ar: string; color: string; tint: string; icon: string; side: 'l' | 'r' }) {
+  return (
+    <div className={`flex h-full min-w-0 items-start gap-2 rounded-xl px-2.5 py-[7px] ${side === 'l' ? 'rounded-tl-sm' : 'rounded-tr-sm'}`} style={{ background: tint, borderLeft: side === 'l' ? `3px solid ${color}` : undefined, borderRight: side === 'r' ? `3px solid ${color}` : undefined }}>
+      <span className="mt-[3px] shrink-0"><Ico name={icon} size={14} color={color} stroke={2.4} /></span>
+      <div className="min-w-0 leading-snug">
+        <div className="text-[13.5px] font-bold"><En>{en}</En></div>
+        <Ar className="text-left text-[11.5px] font-semibold" style={{ color: C.grey }}>{ar}</Ar>
+      </div>
+    </div>
+  )
+}
+
+/** Six exchanges: the first speaker on the left, the reply on the right. */
+function Exchange({ first, reply, them }: { first: Pair[]; reply: Pair[]; them: boolean }) {
+  const a = them ? { color: C.navy, tint: C.navyS, icon: 'Ear' } : { color: C.red, tint: C.redS, icon: 'MessageSquare' }
+  const b = them ? { color: C.red, tint: C.redS, icon: 'MessageSquare' } : { color: C.navy, tint: C.navyS, icon: 'Ear' }
+  return (
+    <div className="mt-2 space-y-1.5" dir="ltr">
+      <div className="grid grid-cols-[1fr_22px_1fr] text-[10px] font-extrabold uppercase tracking-[0.1em]">
+        <span style={{ color: a.color }}>{them ? 'They say' : 'You say'} · <Ar as="span">{them ? 'يقولون' : 'تقول'}</Ar></span><span />
+        <span style={{ color: b.color }}>{them ? 'You reply' : 'They reply'} · <Ar as="span">{them ? 'تردّ أنت' : 'يردّون'}</Ar></span>
+      </div>
+      {reply.map(([en, ar], i) => (
+        <div key={i} className="grid grid-cols-[1fr_22px_1fr] items-stretch">
+          <Bubble en={first[i][0]} ar={first[i][1]} side="l" {...a} />
+          <span className="flex items-center justify-center"><Ico name="ArrowRight" size={15} color={C.grey} stroke={2.4} /></span>
+          <Bubble en={en} ar={ar} side="r" {...b} />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function Exchanges({ s }: { s: Stop }) {
+  const m = s.more
+  if (!m) return null
+  const restSay = s.say.slice(m.answers.length), restHear = s.hear.slice(m.replies.length)
+  return (
+    <div className="flex h-full flex-col justify-between gap-3">
+      <div>
+        <Sec icon="Ear" en="You hear → you reply" ar="تسمع، فتردّ" color={C.navy} />
+        <Exchange first={s.hear} reply={m.replies} them />
+      </div>
+      <div>
+        <Sec icon="MessageSquare" en="You say → they reply" ar="تقول، فيردّون" />
+        <Exchange first={s.say} reply={m.answers} them={false} />
+      </div>
+      {(restSay.length > 0 || restHear.length > 0) && (
+        <div>
+          <Sec icon="Plus" en="More to say, more to hear" ar="جمل أخرى تقولها وتسمعها" color={C.saffD} />
+          <div className="mt-2 grid grid-cols-2 gap-3" dir="ltr">
+            {[{ rows: restSay, color: C.red, icon: 'MessageSquare' }, { rows: restHear, color: C.navy, icon: 'Ear' }].map((col, k) => (
+              <div key={k} className="space-y-1">
+                {col.rows.map(([en, ar]) => (
+                  <div key={en} className="flex items-start gap-2 border-b pb-1 leading-snug last:border-0" style={{ borderColor: C.line }}>
+                    <span className="mt-[3px] shrink-0"><Ico name={col.icon} size={13} color={col.color} stroke={2.4} /></span>
+                    <div className="min-w-0">
+                      <div className="text-[12.5px] font-bold"><En>{en}</En></div>
+                      <Ar className="text-left text-[11px] font-semibold" style={{ color: C.grey }}>{ar}</Ar>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ── 4. In real life ───────────────────────────────────────────────── */
+
+function RealLife({ s }: { s: Stop }) {
   return (
     <div className="flex h-full flex-col gap-4">
-      <div className="grid grid-cols-2 gap-4" dir="ltr">
-        <PhraseColumn title="You say" titleAr="تقول أنت" icon="MessageSquare" color={C.red} tint={C.redS} rows={s.say} />
-        <PhraseColumn title="You hear" titleAr="تسمع" icon="Ear" color={C.navy} tint={C.navyS} rows={s.hear} />
-      </div>
       <div>
         <Sec icon="Eye" en="In real life" ar="في الواقع" color={C.navy} />
         <div className="mb-2.5 mt-1 flex items-baseline justify-between gap-3" dir="ltr">
@@ -169,13 +319,32 @@ function SayHear({ s }: { s: Stop }) {
         </div>
         <ScreenView s={s.screen} />
       </div>
+      <WatchOut s={s} />
       <NotesFill />
     </div>
   )
 }
 
+/** Three mistakes Arabic speakers make: what people say, what to say, why. */
+function WatchOut({ s }: { s: Stop }) {
+  return (
+    <div>
+      <Sec icon="TriangleAlert" en="Watch out" ar="انتبه" color={C.navy} />
+      <div className="mt-2 space-y-1.5">
+        {s.watch.map(([wrong, right, why]) => (
+          <div key={wrong} className="grid grid-cols-[1fr_1fr_1.15fr] items-center gap-3 rounded-lg px-3 py-1.5" dir="ltr" style={{ background: C.navyS }}>
+            <span className="flex items-start gap-1.5 text-[12.5px] font-semibold" style={{ color: '#8B93A7' }}><Ico name="X" size={14} color={C.red} stroke={3} /><span className="line-through decoration-[1.5px]"><En>{wrong}</En></span></span>
+            <span className="flex items-start gap-1.5 text-[12.5px] font-extrabold"><Ico name="Check" size={14} color="#1E8E5A" stroke={3} /><En>{right}</En></span>
+            <Ar className="text-[11.5px] font-semibold leading-snug" style={{ color: C.grey }}>{why}</Ar>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 /** Lined space for the reader's own notes in whatever room a page has left (none when it is too small to write in). */
-function NotesFill() {
+function NotesFill({ en = 'My notes', ar = 'ملاحظاتي وجملي الخاصة' }: { en?: string; ar?: string }) {
   const ref = useRef<HTMLDivElement>(null)
   const [h, setH] = useState(0)
   useLayoutEffect(() => {
@@ -190,8 +359,8 @@ function NotesFill() {
       {h >= 90 && (
         <div className="flex h-full flex-col rounded-xl px-4 pb-2 pt-2" style={{ border: `1.5px dashed ${C.line}` }}>
           <div className="flex items-center justify-between" dir="ltr">
-            <span className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.1em]" style={{ color: C.grey }}><Ico name="NotebookPen" size={13} color={C.grey} /> My notes</span>
-            <Ar as="span" className="text-[12px] font-bold" style={{ color: C.grey }}>ملاحظاتي وجملي الخاصة</Ar>
+            <span className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.1em]" style={{ color: C.grey }}><Ico name="NotebookPen" size={13} color={C.grey} /> {en}</span>
+            <Ar as="span" className="text-[12px] font-bold" style={{ color: C.grey }}>{ar}</Ar>
           </div>
           <div className="mt-1 flex-1" style={{ backgroundImage: `repeating-linear-gradient(to bottom, transparent 0 29px, ${C.line} 29px 30px)` }} />
         </div>
@@ -200,14 +369,14 @@ function NotesFill() {
   )
 }
 
-/* ── 3. The conversation ────────────────────────────────────────────── */
+/* ── 5. The conversation ────────────────────────────────────────────── */
 
 const VOICES = [C.red, C.navy, C.saffD]
 
 function Talk({ s }: { s: Stop }) {
   const cast = Object.keys(s.talk.cast)
   return (
-    <div className="flex h-full flex-col justify-between gap-3">
+    <div className="flex h-full flex-col gap-4">
       <div>
         <Sec icon="MessagesSquare" en="Conversation" ar="المحادثة" />
         <div className="mt-2 flex items-center justify-between gap-3" dir="ltr">
@@ -236,31 +405,31 @@ function Talk({ s }: { s: Stop }) {
         </div>
       </div>
 
-      <div>
-        <Sec icon="TriangleAlert" en="Watch out" ar="انتبه" color={C.navy} />
-        <div className="mt-2 space-y-1.5">
-          {s.watch.map(([wrong, right, why]) => (
-            <div key={wrong} className="grid grid-cols-[1fr_1fr_1.15fr] items-center gap-3 rounded-lg px-3 py-1.5" dir="ltr" style={{ background: C.navyS }}>
-              <span className="flex items-start gap-1.5 text-[12.5px] font-semibold" style={{ color: '#8B93A7' }}><Ico name="X" size={14} color={C.red} stroke={3} /><span className="line-through decoration-[1.5px]"><En>{wrong}</En></span></span>
-              <span className="flex items-start gap-1.5 text-[12.5px] font-extrabold"><Ico name="Check" size={14} color="#1E8E5A" stroke={3} /><En>{right}</En></span>
-              <Ar className="text-[11.5px] font-semibold leading-snug" style={{ color: C.grey }}>{why}</Ar>
-            </div>
-          ))}
-        </div>
-      </div>
+      {s.more && <Check items={s.more.check} />}
+      <NotesFill />
+    </div>
+  )
+}
 
-      <div className="flex items-start gap-3 rounded-xl px-4 py-2.5" style={{ background: C.saffS }} dir="rtl">
-        <span className="flex h-[28px] w-[28px] shrink-0 items-center justify-center rounded-full" style={{ background: C.saff }}><Ico name="Lightbulb" size={16} color={C.navy} /></span>
-        <div className="min-w-0">
-          <div className="flex items-center gap-2"><Ar as="span" className="text-[13px] font-extrabold" style={{ color: C.saffD }}>نصيحة مسافر</Ar><span className="text-[10.5px] font-extrabold tracking-[0.12em]" style={{ color: C.saffD }}>PRO TIP</span></div>
-          <Ar className="text-[13px] font-semibold leading-[1.6]">{s.pro}</Ar>
-        </div>
+/** Did you understand? Four statements about the conversation, true or false. */
+function Check({ items }: { items: [string, boolean][] }) {
+  return (
+    <div>
+      <Sec icon="CircleCheck" en="Did you understand? True or false" ar="هل فهمت؟ صحيح أم خطأ" color={C.navy} />
+      <div className="mt-2 grid grid-cols-2 gap-x-5 gap-y-1.5" dir="ltr">
+        {items.map(([t], k) => (
+          <div key={k} className="flex items-center gap-2 text-[13px] font-semibold">
+            <span className="w-[16px] shrink-0 text-[12px] font-extrabold" style={{ color: C.red }}>{k + 1}</span>
+            <span className="flex-1 leading-snug"><En>{t}</En></span>
+            {['T', 'F'].map(x => <span key={x} className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded border text-[10.5px] font-extrabold" style={{ borderColor: '#9AA1B4', color: '#9AA1B4' }}>{x}</span>)}
+          </div>
+        ))}
       </div>
     </div>
   )
 }
 
-/* ── 4. Practice and the survival card ──────────────────────────────── */
+/* ── 6. Practice and the survival card ──────────────────────────────── */
 
 const L = 'abcdefghij'
 
@@ -356,10 +525,10 @@ function Practice({ s }: { s: Stop }) {
   return (
     <div className="flex h-full flex-col">
       <Sec icon="PenLine" en="Practice" ar="تمارين" />
-      <div className="mt-2 flex flex-1 flex-col justify-evenly gap-3">
+      <div className="mt-2 flex flex-1 flex-col justify-evenly gap-2">
         {s.practice.map((ex, i) => <ExerciseView key={i} ex={ex} letter={'ABCD'[i]} seed={seedOf(s.n, i)} />)}
       </div>
-      <div className="space-y-2.5 pt-2.5">
+      <div className="space-y-2 pt-2">
         <RolePlay s={s} />
         <SurvivalCard s={s} />
       </div>
@@ -430,5 +599,6 @@ export function SurvivalCard({ s }: { s: Stop }) {
 
 /** The key's lines for one stop. */
 export function stopAnswers(s: Stop) {
-  return s.practice.map((ex, i) => ({ letter: 'ABCD'[i], answers: answersOf(ex, seedOf(s.n, i)) }))
+  const key = s.practice.map((ex, i) => ({ letter: 'ABCD'[i], answers: answersOf(ex, seedOf(s.n, i)) }))
+  return s.more ? [{ letter: 'T/F', answers: checkAnswers(s) }, ...key] : key
 }

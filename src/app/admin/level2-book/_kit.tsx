@@ -8,7 +8,7 @@ import { PARTS, type Region } from '@/data/viiza-book'
 
 /**
  * The look of VIIZA ENGLISH, the travel guide: the cover's red, saffron and
- * navy on white paper, Bricolage Grotesque for English and Baloo Bhaijaan 2
+ * navy on white paper, Bricolage Grotesque for English and Noto Kufi Arabic
  * for Arabic (the cover's faces). One accent per job, never more: red for
  * the traveller's own voice and the book's frame, navy for what others say
  * and for ink, saffron for tips. Pictures are lucide line icons, so the
@@ -22,12 +22,12 @@ export const C = {
   ink: '#0E1240', grey: '#5B6474', line: '#E6E1D7', cream: '#FBF6EC',
 } as const
 
-export const EN = "'Bricolage Grotesque', 'Baloo Bhaijaan 2', sans-serif"
-export const AR = "'Baloo Bhaijaan 2', 'Tajawal', sans-serif"
+export const EN = "'Bricolage Grotesque', 'Noto Kufi Arabic', sans-serif"
+export const AR = "'Noto Kufi Arabic', 'Tajawal', sans-serif"
 export const HAND = "'Caveat', 'Bricolage Grotesque', cursive"
 export const MONO_FACE = "'JetBrains Mono', ui-monospace, Consolas, monospace"
 
-const FONTS_HREF = 'https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@500;600;700;800&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Caveat:wght@600;700&family=JetBrains+Mono:wght@600;700&display=swap'
+const FONTS_HREF = 'https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700;800&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Caveat:wght@600;700&family=JetBrains+Mono:wght@600;700&display=swap'
 
 export function useViizaFonts() {
   useEffect(() => {

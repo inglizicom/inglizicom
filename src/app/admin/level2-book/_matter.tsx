@@ -186,34 +186,37 @@ const WELCOME = [
 ]
 
 const HOW: { icon: string; en: string; ar: string; items: string }[] = [
-  { icon: 'Flag', en: '1 · Opener', ar: 'البداية', items: 'الموقف، وما ستتعلمه، و«اعرف قبل أن تسافر» حسب الوجهة، والكلمات الأساسية، والتطبيقات المفيدة.' },
-  { icon: 'MessageSquare', en: '2 · Say it · Hear it', ar: 'تقول وتسمع', items: 'ما تقوله أنت، وما سيقوله لك الناس، ثم شاشة أو وثيقة أو لوحة حقيقية مشروحة بالأرقام.' },
-  { icon: 'MessagesSquare', en: '3 · Conversation', ar: 'المحادثة', items: 'حوار حقيقي بترجمته سطرًا سطرًا، والأخطاء التي يقع فيها المتكلمون بالعربية، ونصيحة مسافر.' },
-  { icon: 'PenLine', en: '4 · Practice', ar: 'التمارين', items: 'ثلاثة تمارين، وتمثيل الموقف مع زميل، ثم بطاقة النجاة: جمل تُظهرها أو تقرؤها عند الحاجة.' },
+  { icon: 'Flag', en: '1 · Opener', ar: 'البداية', items: 'الموقف، وما ستتعلمه، و«اعرف قبل أن تسافر» حسب الوجهة، والتطبيقات، ونصيحة مسافر.' },
+  { icon: 'BookA', en: '2 · Vocabulary', ar: 'المفردات', items: 'الكلمات الأساسية بمثال لكل كلمة، والأفعال التي تحتاجها، وكلمات تأتي معًا.' },
+  { icon: 'ArrowLeftRight', en: '3 · You hear · You say', ar: 'تسمع وتردّ', items: 'ما تسمعه وكيف تردّ عليه، وما تقوله وما قد يُردّ عليك.' },
+  { icon: 'Eye', en: '4 · In real life', ar: 'في الواقع', items: 'شاشة أو وثيقة أو لوحة حقيقية مشروحة بالأرقام، والأخطاء التي يقع فيها المتكلمون بالعربية.' },
+  { icon: 'MessagesSquare', en: '5 · Conversation', ar: 'المحادثة', items: 'حوار حقيقي بترجمته سطرًا سطرًا، ثم «صحيح أم خطأ» لتتأكد أنك فهمت.' },
+  { icon: 'PenLine', en: '6 · Practice', ar: 'التمارين', items: 'ثلاثة تمارين، وتمثيل الموقف مع زميل، ثم بطاقة النجاة: جمل تُظهرها أو تقرؤها عند الحاجة.' },
 ]
 
 const THREE_WAYS = [
-  { icon: 'GraduationCap', en: 'In class', ar: 'في القسم', tint: C.navyS, text: 'استمع إلى المحطة (الرمز)، ردّد جمل «تقول» و«تسمع»، مثّل المحادثة، ثم التمارين والتمثيل مع زميل.' },
+  { icon: 'GraduationCap', en: 'In class', ar: 'في القسم', tint: C.navyS, text: 'استمع إلى المحطة (الرمز)، احفظ المفردات، تدرّب على «تسمع وتردّ»، مثّل المحادثة، ثم التمارين والتمثيل مع زميل.' },
   { icon: 'House', en: 'Before the trip', ar: 'قبل السفر', tint: C.redS, text: 'املأ «معلومات رحلتي»، وراجع محطات وجهتك، وحمّل التطبيقات، وتدرّب على بطاقات النجاة.' },
   { icon: 'Plane', en: 'On the trip', ar: 'أثناء السفر', tint: C.saffS, text: 'افتح المحطة التي تعيشها الآن، وأظهر بطاقة النجاة أو القاموس المصوّر، واكتب جملك الجديدة.' },
 ]
 
 function Welcome() {
   return (
-    <div className="space-y-4">
+    <div className="space-y-3.5">
       <Box>
         {WELCOME.map((p, i) => <Ar key={i} className={`text-[14px] leading-[1.8] ${i === 0 || i === WELCOME.length - 1 ? 'font-extrabold' : 'font-semibold'} ${i ? 'mt-2' : ''}`} style={i === WELCOME.length - 1 ? { color: C.red } : undefined}>{p}</Ar>)}
       </Box>
       <div>
-        <Sec icon="Map" en="How every stop works" ar="كيف تعمل كل محطة: أربع صفحات" />
-        <div className="mt-2.5 grid grid-cols-2 gap-3" dir="ltr">
+        <Sec icon="Map" en="How every stop works" ar="كيف تعمل كل محطة: ست صفحات" />
+        <div className="mt-2.5 grid grid-cols-3 gap-2.5" dir="ltr">
           {HOW.map(h => (
-            <div key={h.en} className="flex items-start gap-3 rounded-xl px-3 py-2.5" style={{ border: `1px solid ${C.line}` }}>
-              <span className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-lg" style={{ background: C.redS }}><Ico name={h.icon} size={18} color={C.red} /></span>
-              <div className="min-w-0">
-                <div className="flex items-center justify-between"><span className="text-[13.5px] font-extrabold">{h.en}</span><Ar className="text-[13px] font-bold" style={{ color: C.red }}>{h.ar}</Ar></div>
-                <Ar className="mt-0.5 text-[12px] font-semibold leading-[1.6]" style={{ color: C.grey }}>{h.items}</Ar>
+            <div key={h.en} className="rounded-xl px-3 py-2" style={{ border: `1px solid ${C.line}` }}>
+              <div className="flex items-center gap-2">
+                <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-md" style={{ background: C.redS }}><Ico name={h.icon} size={15} color={C.red} /></span>
+                <span className="min-w-0 flex-1 truncate text-[12.5px] font-extrabold">{h.en}</span>
+                <Ar as="span" className="shrink-0 text-[12px] font-bold" style={{ color: C.red }}>{h.ar}</Ar>
               </div>
+              <Ar className="mt-1 text-[11.5px] font-semibold leading-[1.6]" style={{ color: C.grey }}>{h.items}</Ar>
             </div>
           ))}
         </div>
@@ -221,7 +224,7 @@ function Welcome() {
       <div>
         <Sec icon="Info" en="Signs in this book" ar="رموز الكتاب" color={C.navy} />
         <div className="mt-2.5 grid grid-cols-[1.3fr_1fr] gap-4" dir="ltr">
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             {(['all', 'gulf', 'usa', 'uk', 'europe'] as Region[]).map(r => (
               <div key={r} className="flex items-center gap-3" dir="rtl">
                 <RegionBadge region={r} />
@@ -568,17 +571,17 @@ function Conversions() {
 
 function Apps() {
   return (
-    <div className="flex h-full flex-col gap-2.5">
-      <Ar className="text-[12.5px] font-semibold leading-relaxed" style={{ color: C.grey }}>حمّل التطبيقات من المتجر الرسمي (App Store أو Google Play) قبل السفر، وجرّبها في البيت. الأسماء للتوضيح فقط، وكل تطبيق قد يغيّر خدماته. الأرقام = المحطات التي تحتاجه فيها.</Ar>
+    <div className="flex h-full flex-col gap-2">
+      <Ar className="text-[12.5px] font-semibold leading-[1.6]" style={{ color: C.grey }}>حمّل التطبيقات من المتجر الرسمي (App Store أو Google Play) قبل السفر، وجرّبها في البيت. الأسماء للتوضيح فقط، وكل تطبيق قد يغيّر خدماته. الأرقام = المحطات التي تحتاجه فيها.</Ar>
       <div className="grid flex-1 grid-cols-2 gap-x-5" dir="ltr">
         {[APPS_INDEX.slice(0, 4), APPS_INDEX.slice(4)].map((col, ci) => (
-          <div key={ci} className="flex flex-col justify-between">
+          <div key={ci} className="flex flex-col justify-between pb-1">
             {col.map((g, gi) => (
               <div key={g.en}>
                 <Sec icon={g.icon} en={g.en} ar={g.ar} color={(ci + gi) % 2 ? C.navy : C.red} />
-                <div className="mt-1 space-y-[2px]">
+                <div className="mt-[3px] space-y-[2px]">
                   {g.items.map(([name, ar, stops]) => (
-                    <div key={name} className="flex items-center gap-2 rounded-md px-2 py-[1px]" style={{ background: C.cream }}>
+                    <div key={name} className="flex items-center gap-2 rounded-md px-2 py-[0.5px]" style={{ background: C.cream }}>
                       <div className="min-w-0 flex-1 leading-tight">
                         <div className="text-[11.5px] font-extrabold leading-[1.15]">{name}</div>
                         <Ar className="text-left text-[10.5px] font-semibold" style={{ color: C.grey }}>{ar}</Ar>

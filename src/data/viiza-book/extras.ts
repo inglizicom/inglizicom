@@ -291,7 +291,7 @@ export const APPS_INDEX: { en: string; ar: string; icon: string; items: [name: s
     ['Too Good To Go', 'أكل رخيص في أوروبا', [24]],
     ['Google Lens', 'ترجمة الملصقات والأسعار', [24, 25]],
   ] },
-  { en: 'Prayer, people & places', ar: 'الصلاة والناس والمعالم', icon: 'Moon', items: [
+  { en: 'Prayer & places', ar: 'الصلاة والمعالم', icon: 'Moon', items: [
     ['Muslim Pro', 'أوقات الصلاة والقبلة والمساجد', [13, 30]],
     ['GetYourGuide · Tripadvisor', 'جولات وتقييمات', [30, 34]],
     ['Meetup · Instagram · LinkedIn', 'التعارف والأنشطة', [29]],

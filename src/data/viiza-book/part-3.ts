@@ -352,7 +352,7 @@ export const PART_3: Stop[] = [
         ['transfer', 'عبور'], ['layover', 'مدة التوقف'], ['final destination', 'الوجهة النهائية'],
         ['checked through', 'مسجلة حتى الوجهة'], ['transit visa', 'تأشيرة عبور'], ['tight connection', 'وقت عبور ضيق'],
       ] },
-      { t: 'choose', title: ['Read the app on page 2', 'اقرأ التطبيق في الصفحة الثانية'], items: [
+      { t: 'choose', title: ['Read the app on page 4', 'اقرأ التطبيق في الصفحة الرابعة'], items: [
         ['Where is the stop?', ['Doha', 'New York'], 0],
         ['How long is the connection?', ['2 hours 10 minutes', '1 hour'], 0],
         ['Do you collect your bag in Doha?', ['yes', 'no'], 1],

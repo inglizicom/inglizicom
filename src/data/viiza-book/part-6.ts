@@ -107,7 +107,7 @@ export const PART_6: Stop[] = [
         ['check out', 'يغادر الفندق'], ['bill', 'الفاتورة'], ['charge', 'مبلغ مُحتسب'],
         ['luggage ticket', 'وصل الحقائب'], ['tax refund', 'استرجاع الضريبة'], ['review', 'تقييم'],
       ] },
-      { t: 'choose', title: ['Read the bill on page 2', 'اقرأ الفاتورة في الصفحة الثانية'], items: [
+      { t: 'choose', title: ['Read the bill on page 4', 'اقرأ الفاتورة في الصفحة الرابعة'], items: [
         ['How many nights did Hiba stay?', ['3', '4'], 0],
         ['How much is the city tax for one night?', ['€4', '€12'], 0],
         ['How much does Hiba pay at check-out?', ['€441.50', '€36.50'], 1],

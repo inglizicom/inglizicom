@@ -3,9 +3,10 @@ import { STOPS } from '../viiza-book/index.ts'
 import { TALK_STOPS } from '../viiza-talk/index.ts'
 
 /**
- * The audio of VIIZA ENGLISH, the travel guide: each stop's key words, what
- * you say, what you hear, the conversation and the survival card (the QR on
- * every opener opens /audio/viiza/{n}); and each stop of Words &
+ * The audio of VIIZA ENGLISH, the travel guide: each stop's key words and
+ * vocabulary page, the exchanges (what you hear and how you reply, what you
+ * say and what comes back), the conversation and the survival card (the QR
+ * on every opener opens /audio/viiza/{n}); and each stop of Words &
  * Conversations, its new words and four conversations (/audio/viiza-talk/{n}).
  *
  * Same files, voices and player as Level 1 (data/level1-audio): a clip's
@@ -41,10 +42,24 @@ export function viizaSections(n: number): AudioSection[] {
   const s = STOPS.find(x => x.n === n)
   if (!s) return []
   const voices = cast(s.talk.cast)
+  const m = s.more
+  // The exchanges: the other person in a man's voice, the traveller in the book's voice (so "You say" lines reuse their files).
+  const them = (en: string, ar: string): Clip => ({ en: sayable(en), ar, voice: 'ash', speaker: 'They' })
+  const you = (en: string, ar: string): Clip => ({ ...coral(en, ar), speaker: 'You' })
   return [
     { kind: 'words', title: 'Key words', titleAr: 'الكلمات الأساسية', clips: s.words.map(([en, ar]) => coral(en.replace(/\s*\/\s*/g, ', '), ar)) },
-    { kind: 'phrases', title: 'You say', titleAr: 'تقول أنت', clips: s.say.map(([en, ar]) => coral(en, ar)) },
-    { kind: 'phrases', title: 'You hear', titleAr: 'تسمع', clips: s.hear.map(([en, ar]) => coral(en, ar)) },
+    ...(m ? [
+      { kind: 'phrases' as const, title: 'Key words in sentences', titleAr: 'الكلمات في جمل', clips: m.examples.map(e => coral(e)) },
+      { kind: 'words' as const, title: 'Action words', titleAr: 'أفعال تحتاجها', clips: m.actions.map(([en, ar]) => coral(en, ar)) },
+      { kind: 'phrases' as const, title: 'Action words in sentences', titleAr: 'الأفعال في جمل', clips: m.actions.map(([, , ex]) => coral(ex)) },
+      { kind: 'words' as const, title: 'Words that go together', titleAr: 'كلمات تأتي معًا', clips: m.partners.map(([en, ar]) => coral(en, ar)) },
+      { kind: 'talk' as const, title: 'You hear → you reply', titleAr: 'تسمع، فتردّ', clips: m.replies.flatMap(([en, ar], i) => [them(...s.hear[i]), you(en, ar)]) },
+      { kind: 'talk' as const, title: 'You say → they reply', titleAr: 'تقول، فيردّون', clips: m.answers.flatMap(([en, ar], i) => [you(...s.say[i]), them(en, ar)]) },
+      { kind: 'phrases' as const, title: 'More to say, more to hear', titleAr: 'جمل أخرى تقولها وتسمعها', clips: [...s.say.slice(m.answers.length), ...s.hear.slice(m.replies.length)].map(([en, ar]) => coral(en, ar)) },
+    ] : [
+      { kind: 'phrases' as const, title: 'You say', titleAr: 'تقول أنت', clips: s.say.map(([en, ar]) => coral(en, ar)) },
+      { kind: 'phrases' as const, title: 'You hear', titleAr: 'تسمع', clips: s.hear.map(([en, ar]) => coral(en, ar)) },
+    ]),
     { kind: 'talk', title: 'Conversation', titleAr: 'المحادثة', clips: s.talk.lines.map(([who, en, ar]) => ({ en: sayable(en), ar, voice: voices.get(who)!, speaker: nameOf(who) })) },
     { kind: 'phrases', title: 'Survival card', titleAr: 'بطاقة النجاة', clips: s.card.map(([en, ar]) => coral(en, ar)) },
   ]

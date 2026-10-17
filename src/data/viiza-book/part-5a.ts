@@ -361,7 +361,7 @@ export const PART_5A: Stop[] = [
         ['starter', 'المقبّلات'], ['main course', 'الطبق الرئيسي'], ['dessert', 'التحلية'],
         ['the bill / the check', 'الحساب'], ['tip', 'البقشيش'], ['tap water', 'ماء الصنبور'],
       ] },
-      { t: 'choose', title: ['Read the bill on page 2', 'اقرأ الفاتورة في الصفحة الثانية'], items: [
+      { t: 'choose', title: ['Read the bill on page 4', 'اقرأ الفاتورة في الصفحة الرابعة'], items: [
         ['How much is the food before tax?', ['$66.00', '$71.86'], 0],
         ['What is $5.86?', ['the tip', 'the tax'], 1],
         ['A 20% tip is…', ['$13.20', '$5.86'], 0],
@@ -740,7 +740,7 @@ export const PART_5A: Stop[] = [
         ['get on', 'اصعد'], ['get off', 'انزل'], ['change', 'غيّر الخط'],
         ['platform', 'الرصيف'], ['day pass', 'تذكرة يوم كامل'], ['rush hour', 'ساعة الذروة'],
       ] },
-      { t: 'choose', title: ['Read the app on page 2', 'اقرأ التطبيق في الصفحة الثانية'], items: [
+      { t: 'choose', title: ['Read the app on page 4', 'اقرأ التطبيق في الصفحة الرابعة'], items: [
         ['Which line do you take?', ['Central line', 'Victoria line'], 0],
         ['Where do you get off?', ['Marble Arch', 'Tottenham Court Road'], 1],
         ['How many stops is it?', ['3', '25'], 0],

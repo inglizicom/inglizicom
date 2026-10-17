@@ -18,8 +18,8 @@ type BackBook = 'book' | 'workbook' | 'vocab'
 const COPY: Record<BackBook, { strap: string; ar: string; en: string; listEn: string; listAr: string; list: [string, string][] }> = {
   book: {
     strap: "STUDENT'S BOOK · THE TRAVEL GUIDE · A2 → B1",
-    ar: 'دليلك الكامل للسفر بالإنجليزية: من استمارة التأشيرة وحجز الطيران، إلى المطار والطائرة والفندق والمطعم والشارع، حتى العودة إلى بيتك. 34 محطة فيها ما تقوله وما ستسمعه، وشاشات حقيقية مشروحة، وبطاقات نجاة، وصوت لكل محطة بمسح الرمز.',
-    en: 'Your complete travel companion in English: from the visa form and the flight booking to the airport, the plane, the hotel, the restaurant and the street, and all the way home. 34 stops, with audio for every stop.',
+    ar: 'دليلك الكامل للسفر بالإنجليزية: من استمارة التأشيرة وحجز الطيران، إلى المطار والطائرة والفندق والمطعم والشارع، حتى العودة إلى بيتك. 34 محطة فيها مفرداتها، وما تسمعه وكيف تردّ، وشاشات حقيقية مشروحة، وبطاقات نجاة، وصوت لكل محطة بمسح الرمز.',
+    en: 'Your complete travel companion in English: from the visa form and the flight booking to the airport, the plane, the hotel, the restaurant and the street, and all the way home. 34 stops, each with its words, what you hear and how to reply, and audio.',
     listEn: 'With this visa, you can…', listAr: 'بهاد الفيزا، تقدر…', list: [],
   },
   workbook: {

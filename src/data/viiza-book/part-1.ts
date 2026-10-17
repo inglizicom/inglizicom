@@ -361,7 +361,7 @@ export const PART_1: Stop[] = [
         ['one-way', 'ذهاب فقط'], ['round trip', 'ذهاب وإياب'], ['layover', 'توقف بين رحلتين'],
         ['fare', 'سعر التذكرة'], ['aisle seat', 'مقعد بجانب الممر'], ['booking reference', 'رقم الحجز'],
       ] },
-      { t: 'choose', title: ['Read the app on page 2 and choose', 'اقرأ التطبيق في الصفحة الثانية واختر'], items: [
+      { t: 'choose', title: ['Read the app on page 4 and choose', 'اقرأ التطبيق في الصفحة الرابعة واختر'], items: [
         ['Which flight is cheaper?', ['the direct flight', 'the flight with one stop'], 1],
         ['When does the direct flight arrive?', ['the same day', 'the next day'], 1],
         ['Where is the stop?', ['Doha', 'Dubai', 'Casablanca'], 0],

@@ -11,7 +11,7 @@ import { ViizaBackCover } from './_back'
 /**
  * /admin/level2-book — VIIZA ENGLISH, Student's Book: the travel guide
  * (src/data/viiza-book). One journey from the visa form to the front door at
- * home, in six parts and their stops, four pages each, between the series
+ * home, in six parts and their stops, six pages each, between the series
  * covers. The grammar course that this route printed before still feeds the
  * VIIZA workbook and vocabulary pages (src/data/level2-book).
  */
