@@ -1,134 +1,60 @@
 'use client'
 
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
-import { INDEX, L2_KIND_TONE, L2_TONES, L2_UNITS, type L2Page, type L2Tone } from '@/data/level2-book'
-import { buildLevel2Workbook, WORK_UNITS } from '@/data/level2-workbook'
-import { Field, GamesHeader, INP, PrintAllButton, THEMES } from '../games/_shared'
-import { DEFAULT_COVER, type CoverInfo, type CoverStat } from '../games/_cover'
+import { useMemo, useState } from 'react'
+import { PARTS, STOPS } from '@/data/viiza-book'
+import { buildViizaWorkbook, type WorkPage } from '@/data/viiza-workbook'
+import { Field, GamesHeader, INP, PrintAllButton } from '../games/_shared'
 import { SeriesCover } from '../level2-book/_cover'
-import { PLAY } from '@/components/QrLink'
-import { DEFAULT_INFO, LessonPage, ThanksPage, type BookInfo } from '../level1-book/_blocks'
-import { Imprint } from '../everyday-book/_matter'
+import { ViizaBackCover } from '../level2-book/_back'
+import { WorkbookPage } from './_work'
 
 /**
- * /admin/level2-workbook — the workbook of Level 2 «تكلّم واكتب بدقّة»
- * (A2 → B1), printed with the textbook's renderer, fonts and colour key so
- * the two feel like one set: six pages a unit (words, expressions, grammar
- * ×2, writing skills, write with the teacher's feedback), a test closing each
- * module and the answer key. The content lives in src/data/level2-workbook;
- * a unit appears once its textbook unit and its workbook unit are written.
+ * /admin/level2-workbook — VIIZA ENGLISH, Workbook: the practice of the
+ * travel guide (src/data/viiza-workbook), two pages a stop and a review
+ * closing each part, between the series' workbook front cover and its own
+ * back cover. The grammar workbook this route printed before is still in
+ * src/data/level2-workbook.
  */
 
-const INFO_KEY = 'level2-workbook-info-v2'
-const COVER_KEY = 'level2-workbook-cover-v1'
+type View = 'book' | 'end' | number
 
-const EN_FONT = "'Bricolage Grotesque', 'Baloo Bhaijaan 2', sans-serif"
-const BOOK_INFO: BookInfo = {
-  ...DEFAULT_INFO, title: 'تكلّم واكتب بدقّة · دفتر التمارين', level: 'VIIZA · Workbook', ink: '#0E1240', fontEn: EN_FONT,
-}
-const BOOK_COVER: CoverInfo = {
-  ...DEFAULT_COVER, palette: 'navy', phone1: '+212 707 902 091', level: 'A2 → B1',
-  titleAr1: 'تكلّم واكتب بدقّة', titleAr2: 'دفتر التمارين', titleEn1: 'Speak & Write', titleEn2: 'Workbook',
-}
+const pad = (n: number) => String(n).padStart(3, '0')
 
-/** The textbook's page variables: Bricolage Grotesque (the covers' type) for English, Baloo Bhaijaan 2 for Arabic, cards with an edge and a shadow. */
-const PAGE_VARS = {
-  '--book-en': "'Bricolage Grotesque'", '--book-head': "'Bricolage Grotesque', 'Baloo Bhaijaan 2'", '--book-ar': "'Baloo Bhaijaan 2'",
-  '--book-display': "'Baloo Bhaijaan 2'", '--book-display-weight': '800',
-  '--hl': L2_TONES.grammar.m, '--key': L2_TONES.expr.m, '--key-s': L2_TONES.expr.s,
-  '--card-bw': '1.5px', '--card-shadow': '0 1px 2px rgba(15, 30, 61, 0.10), 0 6px 16px rgba(15, 30, 61, 0.12)',
-} as CSSProperties
-
-type View = 'book' | 'front' | 'end' | number
-
-function useSaved<T extends object>(key: string, initial: T) {
-  const [value, setValue] = useState<T>(initial)
-  const [loaded, setLoaded] = useState(false)
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(key)
-      if (saved) setValue({ ...initial, ...JSON.parse(saved) })
-    } catch { /* no storage: defaults */ }
-    setLoaded(true)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key])
-  useEffect(() => {
-    if (!loaded) return
-    try { localStorage.setItem(key, JSON.stringify(value)) } catch { /* quota or no storage */ }
-  }, [key, value, loaded])
-  return [value, setValue] as const
-}
-
-const slug = (s: string) => s.trim().toLowerCase().replace(/[^a-z0-9؀-ۿ]+/gi, '-').replace(/^-|-$/g, '')
-const pad = (n: number) => String(n).padStart(2, '0')
-
-export default function Level2WorkbookPage() {
+export default function ViizaWorkbookPage() {
   const [view, setView] = useState<View>('book')
-  const [saved, setInfo] = useSaved<BookInfo>(INFO_KEY, BOOK_INFO)
-  const info: BookInfo = { ...saved, fontEn: EN_FONT }
-  const [cover, setCover] = useSaved<CoverInfo>(COVER_KEY, BOOK_COVER)
-  const book = useMemo(buildLevel2Workbook, [])
-  const units = L2_UNITS.filter(u => WORK_UNITS.some(w => w.n === u.n))
+  const book = useMemo(buildViizaWorkbook, [])
 
-  const withFront = view === 'book' || view === 'front'
-  const shown = book.pages.filter((p: L2Page) =>
-    view === 'book' ? true : view === 'front' ? p.kind === 'welcome' || p.kind === 'contents' : view === 'end' ? p.kind === 'key' || p.kind === 'review' : p.unit === view)
-  const count = (withFront ? 2 : 0) + shown.length + (view === 'book' ? 1 : 0)
-  const prefix = `level2-workbook${info.buyer.trim() ? `-${slug(info.buyer)}` : ''}`
-  const set = <K extends keyof BookInfo>(k: K) => (v: BookInfo[K]) => setInfo(s => ({ ...s, [k]: v }))
-
-  const coverStats: CoverStat[] = [
-    { n: String(book.stats.units), ar: 'وحدة', en: 'Units' },
-    { n: '6', ar: 'صفحات لكل وحدة', en: 'Pages a unit' },
-    { n: '20', ar: 'نصًّا تكتبه', en: 'Texts to write' },
-    { n: '5', ar: 'اختبارات', en: 'Tests' },
-  ]
+  const inView = (p: WorkPage) => {
+    if (view === 'book') return true
+    if (view === 'end') return p.kind === 'key'
+    if ('stop' in p) return STOPS[p.stop - 1].part === view
+    return p.kind === 'review' && p.part === view
+  }
+  const shown = book.pages.map((p, i) => ({ p, no: i + 1 })).filter(x => inView(x.p))
+  const withCovers = view === 'book'
 
   return (
-    <div className="px-6 lg:px-10 py-8 max-w-[1300px] mx-auto" style={PAGE_VARS}>
-      <GamesHeader title="دفتر تمارين المستوى الثاني — تكلّم واكتب بدقّة (A2 → B1)" back="/admin" />
+    <div className="px-6 lg:px-10 py-8 max-w-[1300px] mx-auto">
+      <GamesHeader title="VIIZA ENGLISH — كتاب التمارين: دليل السفر" back="/admin" />
       <div className="grid lg:grid-cols-[300px_1fr] gap-6">
         <aside className="space-y-4 print:hidden lg:sticky lg:top-24 self-start">
-          <Field label="عرض" hint={`مكتوب حتى الآن: ${book.stats.written} من ${book.stats.units} وحدة · ${book.stats.exercises} تمرينًا · ${book.pages.length} صفحة مرقّمة.`}>
-            <select value={String(view)} onChange={e => setView(['book', 'front', 'end'].includes(e.target.value) ? e.target.value as View : Number(e.target.value))} className={INP}>
-              <option value="book">الدفتر كاملًا</option>
-              <option value="front">البداية (الغلاف، طريقة الاستعمال، الفهرس)</option>
-              {units.map(u => <option key={u.n} value={u.n}>الوحدة {u.n} — {u.titleAr}</option>)}
-              <option value="end">الاختبارات والأجوبة</option>
+          <Field label="عرض" hint={`${STOPS.length} محطة · ${book.pages.length + 2} صفحة مع الغلافين.`}>
+            <select value={String(view)} onChange={e => setView(['book', 'end'].includes(e.target.value) ? e.target.value as View : Number(e.target.value))} className={INP}>
+              <option value="book">الكتاب كاملًا</option>
+              {PARTS.map(p => <option key={p.n} value={p.n}>الجزء {p.n} — {p.titleAr}</option>)}
+              <option value="end">الأجوبة</option>
             </select>
           </Field>
-          <Field label="الطباعة" hint="الألوان: نفس ألوان الكتاب. أبيض وأسود: للطباعة الاقتصادية.">
-            <div className="grid grid-cols-2 gap-1.5">
-              {([[false, 'بالألوان 🎨'], [true, 'أبيض وأسود']] as const).map(([v, label]) => (
-                <button key={label} type="button" onClick={() => set('mono')(v)} aria-pressed={info.mono === v}
-                  className={`rounded-lg border py-1.5 text-[12.5px] font-bold ${info.mono === v ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white border-zinc-200 text-zinc-600'}`}>{label}</button>
-              ))}
-            </div>
-          </Field>
-          <Field label="نسخة لمشترٍ" hint="اسمه يظهر في صفحة الشكر وفي تذييل كل صفحة.">
-            <input value={info.buyer} onChange={e => set('buyer')(e.target.value)} placeholder="مثلًا: سلمى" className={INP} />
-          </Field>
-          <PrintAllButton count={count} />
+          <PrintAllButton count={shown.length + (withCovers ? 2 : 0)} />
         </aside>
 
         <div className="space-y-8 min-w-0">
-          {withFront && <>
-            <SeriesCover series="viiza" book="workbook" side="front" filename={`${prefix}-000-cover`} />
-            <ThanksPage info={info} filename={`${prefix}-000-thanks`} note={<Imprint info={info} />} />
-          </>}
-          {shown.map(p => {
-            const no = book.pageNo(p)
-            return (
-              <LessonPage key={no} info={info} lesson={p} pageNo={no} talkNo={new Map()} exNo={book.exNo} spread
-                colour={L2_TONES[L2_KIND_TONE[p.kind]]} toneOf={b => ('tone' in b && b.tone ? L2_TONES[b.tone as L2Tone] : undefined)}
-                qr={p.unit ? PLAY.l2book(p.unit) : PLAY.library}
-                filename={`${prefix}-${String(no).padStart(3, '0')}-${p.unit ? `unit-${pad(p.unit)}-${p.kind}` : p.kind}`} />
-            )
-          })}
-          {view === 'book' && <SeriesCover series="viiza" book="workbook" side="back" filename={`${prefix}-999-back-cover`} />}
-          {INDEX.length > units.length && (
-            <p className="text-center text-[13px] font-bold text-zinc-400 print:hidden">الوحدات {units.length + 1}–{INDEX.length} قيد الكتابة.</p>
-          )}
+          {withCovers && <SeriesCover series="viiza" book="workbook" side="front" filename="viiza-wb-000-cover" />}
+          {shown.map(({ p, no }) => (
+            <WorkbookPage key={no} page={p} pageNo={no} book={book}
+              filename={`viiza-wb-${pad(no)}-${'stop' in p ? `stop-${String(p.stop).padStart(2, '0')}-${p.kind}` : p.kind === 'review' ? `review-${p.part}` : p.kind}`} />
+          ))}
+          {withCovers && <ViizaBackCover book="workbook" filename="viiza-wb-999-back-cover" />}
         </div>
       </div>
     </div>

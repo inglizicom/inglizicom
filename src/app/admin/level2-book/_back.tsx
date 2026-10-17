@@ -5,11 +5,34 @@ import { PLAY } from '@/components/QrLink'
 import { Ar, C, Qr, Sheet } from './_kit'
 
 /**
- * The back cover of VIIZA ENGLISH, the travel guide: the series' back-cover
- * layout (red band, cream page, the three papers, the pack), with the
- * travel guide's own promise. The print JPG in public/covers/viiza is
- * rendered from this sheet, so the covers page and the book agree.
+ * The back covers of VIIZA ENGLISH, the travel guide, and of its workbook:
+ * the series' back-cover layout (red band, cream page, the three papers,
+ * the pack), each with its own promise. The print JPGs in
+ * public/covers/viiza are rendered from these sheets, so the covers page
+ * and the books agree.
  */
+
+type BackBook = 'book' | 'workbook'
+
+/** What each book says on its back: the strap, the two texts, the six-item list. */
+const COPY: Record<BackBook, { strap: string; ar: string; en: string; listEn: string; listAr: string; list: [string, string][] }> = {
+  book: {
+    strap: "STUDENT'S BOOK · THE TRAVEL GUIDE · A2 → B1",
+    ar: 'دليلك الكامل للسفر بالإنجليزية: من استمارة التأشيرة وحجز الطيران، إلى المطار والطائرة والفندق والمطعم والشارع، حتى العودة إلى بيتك. 34 محطة فيها ما تقوله وما ستسمعه، وشاشات حقيقية مشروحة، وبطاقات نجاة، وصوت لكل محطة بمسح الرمز.',
+    en: 'Your complete travel companion in English: from the visa form and the flight booking to the airport, the plane, the hotel, the restaurant and the street, and all the way home. 34 stops, with audio for every stop.',
+    listEn: 'With this visa, you can…', listAr: 'بهاد الفيزا، تقدر…', list: [],
+  },
+  workbook: {
+    strap: 'WORKBOOK · THE TRAVEL GUIDE · A2 → B1',
+    ar: 'تمارين لكل محطة من دليل السفر فيزا إنگليش: حروف ناقصة، «أقول أم أسمع؟»، محادثات بفراغات، ترتيب جمل النجاة، ترجمة، ومهمة حقيقية تكتبها لرحلتك أنت. مراجعة بعد كل جزء، ومفتاح للأجوبة.',
+    en: 'Practice for every stop of the Viiza English travel guide: missing letters, say or hear, conversations with gaps, survival sentences in order, translation and a real mission for your own trip. A review after every part and an answer key.',
+    listEn: 'Inside this workbook', listAr: 'شنو كاين فهاد الكتاب',
+    list: [
+      ['Missing letters', 'الحروف الناقصة'], ['I say or I hear?', 'أقول أم أسمع؟'], ['Conversations with gaps', 'محادثات بفراغات'],
+      ['Words in order', 'رتّب الكلمات'], ['Translate', 'ترجم إلى الإنجليزية'], ['Your mission', 'مهمتك لرحلتك'],
+    ],
+  },
+}
 
 const CAN: [string, string][] = [
   ['I can get my visa and book my trip.', 'أحصل على التأشيرة وأحجز رحلتي'],
@@ -26,14 +49,16 @@ const SERIES: { level: number; cefr: string; name: string; ar: string; tagEn: st
   { level: 3, cefr: 'A2 → B1', name: 'VIIZA', ar: 'فيزا إنگليش', tagEn: 'Travel the world', tagAr: 'سافر بثقة', on: true },
 ]
 
-const PACK: [LucideIcon, string, string, boolean][] = [
-  [BookOpen, "Student's Book", 'كتاب الطالب', true], [PenLine, 'Workbook', 'كتاب التمارين', false],
-  [BookA, 'Vocabulary', 'كتاب المفردات', false], [Layers, 'Play Cards', 'بطاقات اللعب', false],
+const PACK: [LucideIcon, string, string, BackBook | null][] = [
+  [BookOpen, "Student's Book", 'كتاب الطالب', 'book'], [PenLine, 'Workbook', 'كتاب التمارين', 'workbook'],
+  [BookA, 'Vocabulary', 'كتاب المفردات', null], [Layers, 'Play Cards', 'بطاقات اللعب', null],
 ]
 
 const CREAM = '#FDF3E1'
 
-export function ViizaBackCover({ filename }: { filename: string }) {
+export function ViizaBackCover({ filename, book = 'book' }: { filename: string; book?: BackBook }) {
+  const copy = COPY[book]
+  const list = copy.list.length ? copy.list : CAN
   return (
     <Sheet label="الغلاف الخلفي" filename={filename} bg={CREAM}>
       <div className="absolute inset-0 flex flex-col" dir="ltr">
@@ -46,23 +71,23 @@ export function ViizaBackCover({ filename }: { filename: string }) {
             </div>
             <div className="text-right">
               <Ar className="text-[46px] font-extrabold leading-none">فيزا إنگليش</Ar>
-              <div className="mt-3 text-[12px] font-extrabold tracking-[0.14em]" style={{ color: C.saff }}>STUDENT'S BOOK · THE TRAVEL GUIDE · A2 → B1</div>
+              <div className="mt-3 text-[12px] font-extrabold tracking-[0.14em]" style={{ color: C.saff }}>{copy.strap}</div>
             </div>
           </div>
           <div className="mt-6 h-[3px]" style={{ background: C.saff }} />
-          <Ar className="mt-5 text-[17px] font-bold leading-[1.75]">دليلك الكامل للسفر بالإنجليزية: من استمارة التأشيرة وحجز الطيران، إلى المطار والطائرة والفندق والمطعم والشارع، حتى العودة إلى بيتك. 34 محطة فيها ما تقوله وما ستسمعه، وشاشات حقيقية مشروحة، وبطاقات نجاة، وصوت لكل محطة بمسح الرمز.</Ar>
-          <div className="mt-3 text-[13.5px] font-semibold leading-[1.6] opacity-95">Your complete travel companion in English: from the visa form and the flight booking to the airport, the plane, the hotel, the restaurant and the street, and all the way home. 34 stops, with audio for every stop.</div>
+          <Ar className="mt-5 text-[17px] font-bold leading-[1.75]">{copy.ar}</Ar>
+          <div className="mt-3 text-[13.5px] font-semibold leading-[1.6] opacity-95">{copy.en}</div>
         </div>
 
         {/* The cream page */}
         <div className="flex flex-1 flex-col px-12 pb-9 pt-7" style={{ color: C.navy }}>
           <div className="flex items-baseline justify-between">
-            <span className="text-[25px] font-extrabold">With this visa, you can…</span>
-            <Ar className="text-[25px] font-extrabold" style={{ color: C.red }}>بهاد الفيزا، تقدر…</Ar>
+            <span className="text-[25px] font-extrabold">{copy.listEn}</span>
+            <Ar className="text-[25px] font-extrabold" style={{ color: C.red }}>{copy.listAr}</Ar>
           </div>
           <div className="mt-2 h-[2px]" style={{ background: C.navy }} />
           <div className="grid grid-cols-2 gap-x-8">
-            {CAN.map(([en, ar], i) => (
+            {list.map(([en, ar], i) => (
               <div key={en} className="flex items-center gap-3 border-b py-[9px]" style={{ borderColor: '#E3D6BD' }}>
                 <span className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full text-[12px] font-extrabold" style={{ background: C.saff }}>{String(i + 1).padStart(2, '0')}</span>
                 <div className="leading-snug">
@@ -93,12 +118,15 @@ export function ViizaBackCover({ filename }: { filename: string }) {
 
           <div className="mt-6 flex items-center gap-3 border-y py-2.5" style={{ borderColor: C.navy }}>
             <span className="w-[70px] text-[11px] font-extrabold tracking-[0.16em]">THE PACK</span>
-            {PACK.map(([Icon, en, ar, on]) => (
+            {PACK.map(([Icon, en, ar, which]) => {
+              const on = which === book
+              return (
               <div key={en} className="flex flex-1 items-center gap-2 rounded-xl px-3 py-1.5" style={on ? { background: C.red, color: '#fff' } : undefined}>
                 <Icon size={20} />
                 <div className="whitespace-nowrap leading-tight"><div className="text-[12px] font-extrabold">{en}</div><Ar className="text-left text-[11.5px] font-bold">{ar}</Ar></div>
               </div>
-            ))}
+              )
+            })}
           </div>
 
           <div className="mt-auto flex items-end justify-between">

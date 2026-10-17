@@ -120,11 +120,11 @@ export function Sheet({ label, filename, children, bg = '#fff' }: { label: strin
 const pad = (n: number) => String(n).padStart(2, '0')
 
 /** The page footer: series, site, page number. */
-export function Footer({ pageNo, dark }: { pageNo: number; dark?: boolean }) {
+export function Footer({ pageNo, dark, book = 'TRAVEL GUIDE' }: { pageNo: number; dark?: boolean; book?: string }) {
   const fg = dark ? '#fff' : C.ink
   return (
     <div className="absolute inset-x-0 bottom-0 flex h-[34px] items-center justify-between pl-10" dir="ltr" style={{ color: fg }}>
-      <span className="text-[10.5px] font-extrabold tracking-[0.14em]"><span style={{ color: dark ? C.saff : C.red }}>VIIZA</span> ENGLISH · TRAVEL GUIDE</span>
+      <span className="text-[10.5px] font-extrabold tracking-[0.14em]"><span style={{ color: dark ? C.saff : C.red }}>VIIZA</span> ENGLISH · {book}</span>
       <span className="text-[11px] font-extrabold">Inglizi<span style={{ color: dark ? C.saff : C.red }}>.com</span></span>
       <span className="flex h-full w-[64px] items-center justify-center text-[14px] font-extrabold text-white" style={{ background: dark ? C.redD : C.red }}>{pad(pageNo)}</span>
     </div>

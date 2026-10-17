@@ -59,7 +59,7 @@ const HEADS: Record<string, { en: string; ar: string; icon: string; tag: string 
   key: { en: 'Answer key', ar: 'الأجوبة', icon: 'CircleCheck', tag: 'Practice answers' },
 }
 
-function PageHead({ en, ar, icon, tag }: { en: string; ar: string; icon: string; tag: string }) {
+export function PageHead({ en, ar, icon, tag }: { en: string; ar: string; icon: string; tag: string }) {
   return (
     <div className="flex h-[54px] items-stretch" dir="ltr" style={{ borderBottom: `2px solid ${C.red}` }}>
       <div className="flex w-[64px] items-center justify-center" style={{ background: C.navy }}><Ico name={icon} size={24} color={C.saff} /></div>
