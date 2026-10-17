@@ -13,7 +13,9 @@ import { ScreenView } from './_screens'
  * back) · in real life · conversation · practice and survival card. The
  * vocabulary and the exchanges each get a page of their own, so a learner
  * can study the words, then the replies, before meeting them in the
- * conversation.
+ * conversation. Under the head of every page after the opener, a navy band
+ * names the section in big letters and lights its step of the six, so the
+ * reader always knows where they are.
  */
 
 const SECTION: Record<StopKind, string> = { opener: 'Opener', words: 'Vocabulary', exchanges: 'You hear · You say', real: 'In real life', talk: 'Conversation', practice: 'Practice' }
@@ -28,13 +30,49 @@ const PAGES: [StopKind, string, string, string][] = [
   ['practice', 'PenLine', 'Practice', 'التمارين'],
 ]
 
+const BAND = 46
+
+/** Where am I? A navy band under the head: the section, big, and the stop's six steps with this one lit. */
+function SectionBand({ kind }: { kind: StopKind }) {
+  const at = PAGES.findIndex(p => p[0] === kind)
+  const [, icon, en, ar] = PAGES[at]
+  return (
+    <div className="absolute inset-x-0 flex items-center gap-4 px-10" style={{ top: 54, height: BAND, background: C.navy }} dir="ltr">
+      <div className="flex w-[250px] items-center gap-2.5">
+        <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg" style={{ background: C.saff }}><Ico name={icon} size={17} color={C.navy} stroke={2.3} /></span>
+        <div className="min-w-0 leading-none">
+          <div className="text-[9px] font-extrabold tracking-[0.18em]" style={{ color: C.saff }}>SECTION {at + 1} OF 6</div>
+          <div className="mt-[3px] truncate text-[18px] font-extrabold uppercase tracking-[0.04em] text-white">{en}</div>
+        </div>
+      </div>
+      <div className="flex flex-1 items-center justify-center">
+        {PAGES.map(([k], i) => (
+          <Fragment key={k}>
+            {i > 0 && <span className="h-[2px] w-[14px]" style={{ background: i <= at ? C.saff : 'rgba(255,255,255,0.3)' }} />}
+            <span className="flex items-center justify-center rounded-full text-[11px] font-extrabold"
+              style={i === at
+                ? { width: 28, height: 28, background: C.saff, color: C.navy, fontSize: 13 }
+                : i < at
+                  ? { width: 20, height: 20, background: 'rgba(255,255,255,0.9)', color: C.navy }
+                  : { width: 20, height: 20, border: '1.5px solid rgba(255,255,255,0.45)', color: 'rgba(255,255,255,0.7)' }}>{i + 1}</span>
+          </Fragment>
+        ))}
+      </div>
+      <div className="w-[250px] text-right leading-none" dir="rtl">
+        <Ar as="span" className="text-[20px] font-extrabold" style={{ color: C.saff }}>{ar}</Ar>
+      </div>
+    </div>
+  )
+}
+
 export function StopPage({ stop, kind, pageNo, filename }: { stop: Stop; kind: StopKind; pageNo: number; filename: string }) {
   const label = `Stop ${PAD(stop.n)} · ${SECTION[kind]} · p. ${pageNo}`
   if (kind === 'opener') return <Sheet label={label} filename={filename}><Opener s={stop} /><Footer pageNo={pageNo} /></Sheet>
   return (
     <Sheet label={label} filename={filename}>
       <StopHead n={stop.n} titleEn={stop.titleEn} titleAr={stop.titleAr} part={stop.part} section={SECTION[kind]} />
-      <Body>
+      <SectionBand kind={kind} />
+      <Body top={54 + BAND}>
         {kind === 'words' && <Vocabulary s={stop} />}
         {kind === 'exchanges' && <Exchanges s={stop} />}
         {kind === 'real' && <RealLife s={stop} />}
@@ -166,7 +204,8 @@ function ProTip({ text }: { text: string }) {
 
 /** An example sentence with its key word picked out (any of the word's forms, "surname / last name"). */
 function Example({ text, word }: { text: string; word: string }) {
-  const forms = word.replace(/\([^)]*\)/g, '').split(/\s*[/·]\s*/).map(w => w.trim()).filter(Boolean).sort((a, b) => b.length - a.length)
+  const forms = word.replace(/\([^)]*\)/g, '').split(/\s*[/·]\s*/).map(w => w.trim()).filter(Boolean)
+    .flatMap(w => [w, w.replace(/^(a|an|the) /i, '')]).sort((a, b) => b.length - a.length)
   const low = text.toLowerCase()
   const form = forms.find(w => low.includes(w.toLowerCase()))
   if (!form) return <En>{text}</En>
@@ -216,11 +255,14 @@ function Vocabulary({ s }: { s: Stop }) {
       {m && (
         <div>
           <Sec icon="Link" en="Words that go together" ar="كلمات تأتي معًا" color={C.saffD} />
-          <div className="mt-2 grid grid-cols-4 gap-1.5" dir="ltr">
-            {m.partners.map(([en, ar]) => (
-              <div key={en} className="rounded-lg px-2 py-1.5 text-center leading-snug" style={{ background: C.saffS, border: `1px solid ${C.saff}` }}>
-                <div className="text-[12.5px] font-extrabold">{en}</div>
-                <Ar className="text-[11px] font-semibold" style={{ color: C.grey }}>{ar}</Ar>
+          <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5" dir="ltr">
+            {m.partners.map(([en, ar, ex]) => (
+              <div key={en} className="rounded-lg px-3 py-1.5 leading-snug" style={{ background: C.saffS, border: `1px solid ${C.saff}` }}>
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-[13.5px] font-extrabold">{en}</span>
+                  <Ar as="span" className="shrink-0 text-[12px] font-bold" style={{ color: C.grey }}>{ar}</Ar>
+                </div>
+                <div className="text-[12px] font-medium" style={{ color: '#2A3150' }}><Example text={ex} word={en} /></div>
               </div>
             ))}
           </div>
@@ -237,7 +279,7 @@ function Vocabulary({ s }: { s: Stop }) {
 /** One bubble of an exchange. */
 function Bubble({ en, ar, color, tint, icon, side }: { en: string; ar: string; color: string; tint: string; icon: string; side: 'l' | 'r' }) {
   return (
-    <div className={`flex h-full min-w-0 items-start gap-2 rounded-xl px-2.5 py-[7px] ${side === 'l' ? 'rounded-tl-sm' : 'rounded-tr-sm'}`} style={{ background: tint, borderLeft: side === 'l' ? `3px solid ${color}` : undefined, borderRight: side === 'r' ? `3px solid ${color}` : undefined }}>
+    <div className={`flex h-full min-w-0 items-start gap-2 rounded-xl px-2.5 py-[5px] ${side === 'l' ? 'rounded-tl-sm' : 'rounded-tr-sm'}`} style={{ background: tint, borderLeft: side === 'l' ? `3px solid ${color}` : undefined, borderRight: side === 'r' ? `3px solid ${color}` : undefined }}>
       <span className="mt-[3px] shrink-0"><Ico name={icon} size={14} color={color} stroke={2.4} /></span>
       <div className="min-w-0 leading-snug">
         <div className="text-[13.5px] font-bold"><En>{en}</En></div>
@@ -312,8 +354,7 @@ function RealLife({ s }: { s: Stop }) {
   return (
     <div className="flex h-full flex-col gap-4">
       <div>
-        <Sec icon="Eye" en="In real life" ar="في الواقع" color={C.navy} />
-        <div className="mb-2.5 mt-1 flex items-baseline justify-between gap-3" dir="ltr">
+        <div className="mb-2.5 flex items-baseline justify-between gap-3" dir="ltr">
           <span className="text-[13px] font-bold" style={{ color: C.grey }}>{s.screen.caption[0]}</span>
           <Ar className="text-[12.5px] font-semibold" style={{ color: C.grey }}>{s.screen.caption[1]}</Ar>
         </div>
@@ -378,8 +419,7 @@ function Talk({ s }: { s: Stop }) {
   return (
     <div className="flex h-full flex-col gap-4">
       <div>
-        <Sec icon="MessagesSquare" en="Conversation" ar="المحادثة" />
-        <div className="mt-2 flex items-center justify-between gap-3" dir="ltr">
+        <div className="flex items-center justify-between gap-3" dir="ltr">
           <span className="flex items-center gap-1.5 text-[12.5px] font-bold" style={{ color: C.grey }}><Ico name="MapPin" size={14} color={C.red} /> {s.talk.place}</span>
           <div className="flex gap-1.5">
             {cast.map((who, i) => (
@@ -435,7 +475,7 @@ const L = 'abcdefghij'
 
 function ExerciseView({ ex, letter, seed }: { ex: Exercise; letter: string; seed: number }) {
   const head = (
-    <div className="mb-1.5 flex items-center gap-2" dir="ltr">
+    <div className="mb-1 flex items-center gap-2" dir="ltr">
       <span className="flex h-[22px] w-[22px] items-center justify-center rounded-md text-[12px] font-extrabold text-white" style={{ background: C.navy }}>{letter}</span>
       <span className="text-[13.5px] font-extrabold">{ex.title[0]}</span>
       <span className="h-[1px] flex-1" style={{ background: C.line }} />
@@ -524,11 +564,10 @@ function ExerciseView({ ex, letter, seed }: { ex: Exercise; letter: string; seed
 function Practice({ s }: { s: Stop }) {
   return (
     <div className="flex h-full flex-col">
-      <Sec icon="PenLine" en="Practice" ar="تمارين" />
-      <div className="mt-2 flex flex-1 flex-col justify-evenly gap-2">
+      <div className="flex flex-1 flex-col justify-evenly gap-1.5">
         {s.practice.map((ex, i) => <ExerciseView key={i} ex={ex} letter={'ABCD'[i]} seed={seedOf(s.n, i)} />)}
       </div>
-      <div className="space-y-2 pt-2">
+      <div className="space-y-1.5 pt-1.5">
         <RolePlay s={s} />
         <SurvivalCard s={s} />
       </div>

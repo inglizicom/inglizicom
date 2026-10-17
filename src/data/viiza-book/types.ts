@@ -7,8 +7,8 @@
  *
  *   1. Opener: the situation, what you will be able to do, what to know
  *      before you go (by region), the apps, and an insider tip.
- *   2. Vocabulary: the twelve key words with an example each, action words,
- *      and words that go together.
+ *   2. Vocabulary: the twelve key words, action words and words that go
+ *      together, every one with an example.
  *   3. Exchanges: what you hear and how to reply, what you say and what
  *      you may hear back.
  *   4. In real life: a screen, document or sign explained with numbered
@@ -140,8 +140,8 @@ export interface StopMore {
   examples: string[]
   /** Eight action words and phrasal verbs: [English, Arabic, example]. */
   actions: [en: string, ar: string, example: string][]
-  /** Eight words that go together: [English, Arabic]. */
-  partners: Pair[]
+  /** Eight words that go together: [English, Arabic, example]. */
+  partners: [en: string, ar: string, example: string][]
   /** How you reply to the first six things you hear: [English, Arabic]. */
   replies: Pair[]
   /** What you may hear back after the first six things you say: [English, Arabic]. */

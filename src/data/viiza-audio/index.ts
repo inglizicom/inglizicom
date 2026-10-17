@@ -53,6 +53,7 @@ export function viizaSections(n: number): AudioSection[] {
       { kind: 'words' as const, title: 'Action words', titleAr: 'أفعال تحتاجها', clips: m.actions.map(([en, ar]) => coral(en, ar)) },
       { kind: 'phrases' as const, title: 'Action words in sentences', titleAr: 'الأفعال في جمل', clips: m.actions.map(([, , ex]) => coral(ex)) },
       { kind: 'words' as const, title: 'Words that go together', titleAr: 'كلمات تأتي معًا', clips: m.partners.map(([en, ar]) => coral(en, ar)) },
+      { kind: 'phrases' as const, title: 'Words that go together in sentences', titleAr: 'كلمات تأتي معًا في جمل', clips: m.partners.map(([, , ex]) => coral(ex)) },
       { kind: 'talk' as const, title: 'You hear → you reply', titleAr: 'تسمع، فتردّ', clips: m.replies.flatMap(([en, ar], i) => [them(...s.hear[i]), you(en, ar)]) },
       { kind: 'talk' as const, title: 'You say → they reply', titleAr: 'تقول، فيردّون', clips: m.answers.flatMap(([en, ar], i) => [you(...s.say[i]), them(en, ar)]) },
       { kind: 'phrases' as const, title: 'More to say, more to hear', titleAr: 'جمل أخرى تقولها وتسمعها', clips: [...s.say.slice(m.answers.length), ...s.hear.slice(m.replies.length)].map(([en, ar]) => coral(en, ar)) },

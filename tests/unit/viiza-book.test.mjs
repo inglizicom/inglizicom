@@ -64,7 +64,10 @@ test('every stop has its vocabulary page, its exchanges and its check, short eno
       assert.ok(ex.length <= 58 && !AR.test(ex), `${at}: action example too long (${ex.length}): ${ex}`)
     }
     assert.equal(m.partners.length, 8, `${at}: eight word partners`)
-    for (const [en, ar] of m.partners) assert.ok(en.length <= 24 && AR.test(ar) && ar.length <= 26, `${at}: partner "${en}"`)
+    for (const [en, ar, ex] of m.partners) {
+      assert.ok(en.length <= 24 && AR.test(ar) && ar.length <= 26, `${at}: partner "${en}"`)
+      assert.ok(ex && ex.length <= 58 && !AR.test(ex), `${at}: partner example (${ex?.length}): ${ex}`)
+    }
     assert.equal(m.replies.length, 6, `${at}: six replies to what you hear`)
     assert.equal(m.answers.length, 6, `${at}: six answers to what you say`)
     for (const [en, ar] of [...m.replies, ...m.answers]) {
