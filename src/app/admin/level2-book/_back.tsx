@@ -12,7 +12,7 @@ import { Ar, C, Qr, Sheet } from './_kit'
  * and the books agree.
  */
 
-type BackBook = 'book' | 'workbook'
+type BackBook = 'book' | 'workbook' | 'vocab'
 
 /** What each book says on its back: the strap, the two texts, the six-item list. */
 const COPY: Record<BackBook, { strap: string; ar: string; en: string; listEn: string; listAr: string; list: [string, string][] }> = {
@@ -30,6 +30,16 @@ const COPY: Record<BackBook, { strap: string; ar: string; en: string; listEn: st
     list: [
       ['Missing letters', 'الحروف الناقصة'], ['I say or I hear?', 'أقول أم أسمع؟'], ['Conversations with gaps', 'محادثات بفراغات'],
       ['Words in order', 'رتّب الكلمات'], ['Translate', 'ترجم إلى الإنجليزية'], ['Your mission', 'مهمتك لرحلتك'],
+    ],
+  },
+  vocab: {
+    strap: 'WORDS & CONVERSATIONS · THE TRAVEL GUIDE · A2 → B1',
+    ar: 'لكل محطة من دليل السفر فيزا إنگليش: اثنتا عشرة كلمة جديدة وأربع محادثات أخرى للموقف نفسه، في الخليج وأمريكا وبريطانيا وأوروبا. 136 محادثة بترجمتها سطرًا سطرًا، وصوت لكل محطة بمسح الرمز.',
+    en: 'For every stop of the Viiza English travel guide: twelve new words and four more conversations of the same situation, in the Gulf, the USA, the UK and Europe. 136 conversations with their Arabic, and audio for every stop.',
+    listEn: 'Inside this book', listAr: 'شنو كاين فهاد الكتاب',
+    list: [
+      ['408 new words', '408 كلمة جديدة'], ['136 conversations', '136 محادثة'], ['The Gulf, the USA, the UK, Europe', 'الخليج وأمريكا وبريطانيا وأوروبا'],
+      ['Problems, phone calls, surprises', 'مشاكل ومكالمات ومفاجآت'], ['Arabic beside every line', 'العربية بجانب كل سطر'], ['Your turn: act it out', 'دورك: مثّل الموقف'],
     ],
   },
 }
@@ -51,7 +61,7 @@ const SERIES: { level: number; cefr: string; name: string; ar: string; tagEn: st
 
 const PACK: [LucideIcon, string, string, BackBook | null][] = [
   [BookOpen, "Student's Book", 'كتاب الطالب', 'book'], [PenLine, 'Workbook', 'كتاب التمارين', 'workbook'],
-  [BookA, 'Vocabulary', 'كتاب المفردات', null], [Layers, 'Play Cards', 'بطاقات اللعب', null],
+  [BookA, 'Conversations', 'الكلمات والمحادثات', 'vocab'], [Layers, 'Play Cards', 'بطاقات اللعب', null],
 ]
 
 const CREAM = '#FDF3E1'

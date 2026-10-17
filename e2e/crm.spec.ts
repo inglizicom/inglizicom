@@ -306,6 +306,25 @@ test.describe('flows', () => {
     expect((pdf.match(/\/Type\s*\/Page[^s]/g) ?? []).length).toBe(count)
   })
 
+  test('VIIZA words & conversations: every page fits, 136 conversations, one PDF page per sheet', async ({ page }, info) => {
+    test.skip(info.project.name !== 'desktop', 'one PDF run is enough')
+    test.setTimeout(240_000)
+    await mockSupabase(page, { role: 'founder' })
+    await page.goto('/admin/level2-vocab')
+    const sheets = page.locator('.print-sheet')
+    await expect(sheets.first()).toBeVisible({ timeout: 90_000 })
+    const count = await sheets.count()
+    // covers · how-to · 34 stops × 2
+    expect(count).toBe(2 + 1 + 34 * 2)
+    await page.evaluate(() => document.fonts.ready)
+    await page.waitForTimeout(1000)
+    const tooLong = await page.evaluate(() => [...document.querySelectorAll('.vz-body')].flatMap((b, i) => (b.scrollHeight > b.clientHeight + 1 ? [i + 1] : [])))
+    expect(tooLong).toEqual([])
+    await expect(page.locator('.print-sheet', { hasText: 'Your turn · Conversation 5' })).toHaveCount(34)
+    const pdf = (await page.pdf({ preferCSSPageSize: true, printBackground: true })).toString('latin1')
+    expect((pdf.match(/\/Type\s*\/Page[^s]/g) ?? []).length).toBe(count)
+  })
+
   test('bac results: staff see what students did in the portal\'s Bac tab', async ({ page }) => {
     await mockSupabase(page, { role: 'assistant' })
     await page.goto('/sales/bac-results')

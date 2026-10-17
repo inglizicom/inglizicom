@@ -13,7 +13,7 @@
  */
 import { allClips, clipPath, sayOf, BUCKET, SPEEDS } from '../src/data/level1-audio/index.ts'
 import { level2Clips } from '../src/data/level2-audio/index.ts'
-import { viizaClips } from '../src/data/viiza-audio/index.ts'
+import { viizaClips, viizaTalkClips } from '../src/data/viiza-audio/index.ts'
 
 const args = Object.fromEntries(process.argv.slice(2).map(a => a.replace(/^--/, '').split('=')).map(([k, v]) => [k, v ?? true]))
 const OPENAI = process.env.OPENAI_API_KEY
@@ -85,7 +85,7 @@ async function existing() {
   }
 }
 
-const clips = [...new Map([...allClips(), ...level2Clips(), ...viizaClips()].map(c => [clipPath(c, 'normal'), c])).values()]
+const clips = [...new Map([...allClips(), ...level2Clips(), ...viizaClips(), ...viizaTalkClips()].map(c => [clipPath(c, 'normal'), c])).values()]
 const jobs = clips.flatMap(c => SPEEDS.map(speed => ({ clip: c, speed, path: clipPath(c, speed) })))
 const chars = jobs.reduce((s, j) => s + j.clip.en.length, 0)
 console.log(`${clips.length} clips × ${SPEEDS.length} speeds = ${jobs.length} files, ${chars} characters`)

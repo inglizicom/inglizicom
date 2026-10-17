@@ -61,7 +61,7 @@ const GROUPS: { title: string; founder?: boolean; items: NavDef[] }[] = [
     { id: 'vocabbook', labelAr: 'PIIRMI · المفردات',      icon: Library,   path: '/vocab-book', founder: true },
     { id: 'level2book', labelAr: 'VIIZA · كتاب الطالب', icon: BookOpen, path: '/level2-book', founder: true },
     { id: 'level2workbook', labelAr: 'VIIZA · التمارين', icon: Puzzle, path: '/level2-workbook', founder: true },
-    { id: 'level2vocab', labelAr: 'VIIZA · المفردات', icon: Library, path: '/level2-vocab', founder: true },
+    { id: 'level2vocab', labelAr: 'VIIZA · الكلمات والمحادثات', icon: Library, path: '/level2-vocab', founder: true },
     { id: 'covers',     labelAr: 'الأغلفة', icon: BookOpen, path: '/covers', founder: true },
     { id: 'bacpack',    labelAr: 'حقيبة الباك',        icon: ClipboardCheck, path: '/bac-pack', founder: true },
     { id: 'team',     labelAr: 'الفريق والرواتب',      icon: Wallet,    path: '/team',      founder: true },

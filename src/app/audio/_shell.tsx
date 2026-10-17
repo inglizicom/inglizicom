@@ -17,7 +17,7 @@ import { Player, PlayerCard, PlayerDock, PlayAll, Track, type PlayClip } from '.
  * section by section.
  */
 
-export type Shelf = 'book' | 'workbook' | 'vocab' | 'cards' | 'l2book' | 'l2vocab' | 'viiza'
+export type Shelf = 'book' | 'workbook' | 'vocab' | 'cards' | 'l2book' | 'l2vocab' | 'viiza' | 'viizaTalk'
 const pad = (n: number) => String(n).padStart(2, '0')
 
 export const SHELVES: { id: Shelf; en: string; ar: string; Icon: LucideIcon; href: (n: number) => string }[] = [
@@ -33,6 +33,7 @@ export const L2_SHELVES: typeof SHELVES = [
 /** VIIZA ENGLISH, the travel guide: one shelf, a folder per stop. */
 export const VIIZA_SHELVES: typeof SHELVES = [
   { id: 'viiza', en: 'Travel guide', ar: 'دليل السفر', Icon: BookOpen, href: n => `/audio/viiza/${n}` },
+  { id: 'viizaTalk', en: 'Words & conversations', ar: 'الكلمات والمحادثات', Icon: BookA, href: n => `/audio/viiza-talk/${n}` },
 ]
 export const shelfOf = (id: Shelf) => [...SHELVES, ...L2_SHELVES, ...VIIZA_SHELVES].find(s => s.id === id)!
 

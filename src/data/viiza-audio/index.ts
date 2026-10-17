@@ -1,10 +1,12 @@
 import { clipPath, speakable, type AudioSection, type Clip, type Voice } from '../level1-audio/index.ts'
 import { STOPS } from '../viiza-book/index.ts'
+import { TALK_STOPS } from '../viiza-talk/index.ts'
 
 /**
  * The audio of VIIZA ENGLISH, the travel guide: each stop's key words, what
- * you say, what you hear, the conversation and the survival card. The QR
- * code on every stop's opener opens /audio/viiza/{n}.
+ * you say, what you hear, the conversation and the survival card (the QR on
+ * every opener opens /audio/viiza/{n}); and each stop of Words &
+ * Conversations, its new words and four conversations (/audio/viiza-talk/{n}).
  *
  * Same files, voices and player as Level 1 (data/level1-audio): a clip's
  * file is a hash of its voice and text, so scripts/gen-level1-audio.mjs
@@ -12,7 +14,7 @@ import { STOPS } from '../viiza-book/index.ts'
  */
 
 /** Speakers who are women: the travellers by name, the others by their Arabic role (a feminine first word). */
-const WOMEN = new Set(['SALMA', 'HIBA', 'EMMA'])
+const WOMEN = new Set(['SALMA', 'HIBA', 'EMMA', 'NADIA', 'IMANE', 'SARA', 'KHADIJA', 'FATIMA', 'LUCY', 'EMILY', 'MRS', 'WOMAN'])
 const isWoman = (who: string, roleAr: string) => WOMEN.has(who) || /^[^\s(]*ة(\s|$)/.test(roleAr) || /سائحة|مسافرة/.test(roleAr)
 
 /** "PASSENGER" → "Passenger": the speakers as the player shows them. */
@@ -52,5 +54,27 @@ export function viizaSections(n: number): AudioSection[] {
 export function viizaClips(): Clip[] {
   const byFile = new Map<string, Clip>()
   for (const s of STOPS) for (const sec of viizaSections(s.n)) for (const c of sec.clips) if (c.en) byFile.set(clipPath(c, 'normal'), c)
+  return [...byFile.values()]
+}
+
+/* ── Words & Conversations ──────────────────────────────────────────── */
+
+/** A stop of Words & Conversations: its new words, then its four conversations, each speaker with a voice. */
+export function viizaTalkSections(n: number): AudioSection[] {
+  const t = TALK_STOPS.find(x => x.n === n)
+  if (!t) return []
+  return [
+    { kind: 'words', title: 'New words', titleAr: 'كلمات جديدة', clips: t.words.map(([en, ar]) => coral(en, ar)) },
+    ...t.talks.map((c, i): AudioSection => {
+      const voices = cast(c.cast)
+      return { kind: 'talk', title: `${i + 1}. ${c.title[0]}`, titleAr: c.title[1], clips: c.lines.map(([who, en, ar]) => ({ en: sayable(en), ar, voice: voices.get(who)!, speaker: nameOf(who) })) }
+    }),
+  ]
+}
+
+/** Every Words & Conversations clip, each once (by file). */
+export function viizaTalkClips(): Clip[] {
+  const byFile = new Map<string, Clip>()
+  for (const t of TALK_STOPS) for (const sec of viizaTalkSections(t.n)) for (const c of sec.clips) if (c.en) byFile.set(clipPath(c, 'normal'), c)
   return [...byFile.values()]
 }

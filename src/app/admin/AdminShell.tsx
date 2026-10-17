@@ -13,7 +13,7 @@ const TITLES: [string, string][] = [
   ['/level2-workbook', 'VIIZA · التمارين'],
   ['/level1-cards', 'LA KAART · بطاقات اللعب'],
   ['/level1-vocab', 'LA KAART · المفردات'],
-  ['/level2-vocab', 'VIIZA · المفردات'],
+  ['/level2-vocab', 'VIIZA · الكلمات والمحادثات'],
   ['/covers', 'الأغلفة'],
   ['/team',      'الفريق والرواتب'],
   ['/analytics', 'الإيرادات والتقارير'],
