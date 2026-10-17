@@ -2,14 +2,14 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, BookOpen, Check, ChevronLeft, ChevronRight, Eye, EyeOff, Gauge, Mic, Pause, Play, RotateCcw, Shuffle, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, Check, Maximize, Minimize, ChevronLeft, ChevronRight, Eye, EyeOff, Gauge, Mic, Pause, Play, RotateCcw, Shuffle, X } from 'lucide-react'
 import type { Part, Stop } from '@/data/viiza-book/types'
 import { ScreenView } from '@/app/admin/level2-book/_screens'
 import { REGION } from '@/app/admin/level2-book/_kit'
 import { Practice } from './Practice'
 import { Games } from './Games'
 import { BOOK_KINDS, BookView } from './Book'
-import { Ar, AudioProvider, Btn, Card, closeness, EN, Head, Ico, Mark, pad2, Pill, Say, useAudio, useFonts, useListen, useProgress, V } from './kit'
+import { Ar, AudioProvider, Btn, Card, closeness, EN, Head, Ico, Mark, pad2, Pill, Say, useAudio, useFonts, useFullscreen, useListen, useProgress, useStageZoom, V } from './kit'
 
 /**
  * One stop of VIIZA interactive: the printed book's six sections, in the
@@ -43,6 +43,8 @@ function Player({ stop: s, part, prev, next, sample, clips, firstPage }: { stop:
   const [sec, setSec] = useState<Section>('opener')
   // Book view: the printed pages, one per screen. Remembered, so a reader who prefers the book stays in it.
   const [book, setBook] = useState(false)
+  const fs = useFullscreen()
+  const zoom = useStageZoom(fs.on)
   const { progress, markSeen, markDone, setBest } = useProgress()
   const { slow, setSlow, stop } = useAudio()
   const at = SECTIONS.findIndex(x => x[0] === sec)
@@ -89,8 +91,9 @@ function Player({ stop: s, part, prev, next, sample, clips, firstPage }: { stop:
   const bookStart = Math.max(0, BOOK_KINDS.findIndex(b => b[0] === sec))
 
   return (
-    <div className="min-h-screen" style={{ background: V.paper, color: V.ink, fontFamily: EN }}>
-      {book && <BookView s={s} clips={clips} start={bookStart} firstPage={firstPage} prev={prev} next={next} onExit={closeBook} />}
+    <>
+    {book && <BookView s={s} clips={clips} start={bookStart} firstPage={firstPage} prev={prev} next={next} onExit={closeBook} />}
+    <div className="min-h-screen" style={{ background: V.paper, color: V.ink, fontFamily: EN, zoom }}>
       <header className="sticky top-0 z-30 shadow-[0_2px_16px_rgba(0,0,0,0.18)]" style={{ background: V.navy }}>
         <div className="mx-auto flex max-w-5xl items-center gap-3 px-3 py-2.5 sm:px-5" dir="ltr">
           <Link href="/viiza" className="flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1.5 text-[12px] font-bold text-white/85 hover:bg-white/10"><ChevronLeft size={16} /> Journey</Link>
@@ -103,6 +106,11 @@ function Player({ stop: s, part, prev, next, sample, clips, firstPage }: { stop:
           <button onClick={openBook} title="Book view: the printed pages, full screen" className="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-extrabold" style={{ background: V.saff, color: V.navy }}>
             <BookOpen size={14} /> Book
           </button>
+          {fs.can && (
+            <button onClick={fs.toggle} title={fs.on ? 'Exit full screen' : 'Full screen'} className="flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[12px] font-extrabold text-white" style={{ border: '1px solid rgba(255,255,255,0.3)' }}>
+              {fs.on ? <Minimize size={15} /> : <Maximize size={15} />}<span className="hidden md:inline">{fs.on ? 'Exit' : 'Full screen'}</span>
+            </button>
+          )}
         </div>
         <div ref={tabs} className="no-scrollbar mx-auto flex max-w-5xl gap-1.5 overflow-x-auto px-3 pb-2.5 sm:px-5" dir="ltr">
           {SECTIONS.map(([k, ic, label], i) => {
@@ -132,7 +140,7 @@ function Player({ stop: s, part, prev, next, sample, clips, firstPage }: { stop:
       </div>
 
       <main className="mx-auto max-w-5xl px-3 pb-28 pt-5 sm:px-6">
-        {sample && <Ar className="mb-4 rounded-xl px-4 py-2.5 text-[13.5px] font-bold" style={{ background: V.saffS, color: V.saffD }}>هذه المحطة عيّنة مجانية. ادخل رمزك في الصفحة الرئيسية لتفتح المحطات الـ34 كلها.</Ar>}
+        {sample && !fs.on && <Ar className="mb-4 rounded-xl px-4 py-2.5 text-[13.5px] font-bold" style={{ background: V.saffS, color: V.saffD }}>هذه المحطة عيّنة مجانية. ادخل رمزك في الصفحة الرئيسية لتفتح المحطات الـ34 كلها.</Ar>}
         {sec === 'opener' && <Opener s={s} part={part} />}
         {sec === 'words' && <Vocabulary s={s} />}
         {sec === 'exchanges' && <Exchanges s={s} />}
@@ -155,6 +163,7 @@ function Player({ stop: s, part, prev, next, sample, clips, firstPage }: { stop:
         </div>
       </nav>
     </div>
+    </>
   )
 }
 

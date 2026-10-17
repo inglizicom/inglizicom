@@ -64,7 +64,6 @@ export function BookView({ s, clips, start, firstPage, prev, next, onExit }: {
     return () => document.removeEventListener('fullscreenchange', on)
   }, [])
   useEffect(() => { const t = setTimeout(() => setHint(false), 4500); return () => clearTimeout(t) }, [])
-  useEffect(() => () => { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}) }, [])
 
   useLayoutEffect(() => {
     const el = stage.current

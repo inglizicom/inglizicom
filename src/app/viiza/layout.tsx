@@ -16,6 +16,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { themeColor: '#0E1240', width: 'device-width', initialScale: 1 }
 
 const CSS = `
+body { background: #F5EFE3 }
 .no-scrollbar::-webkit-scrollbar { display: none }
 .no-scrollbar { scrollbar-width: none }
 @keyframes vz-stamp { 0% { transform: scale(2.2) rotate(-12deg); opacity: 0 } 70% { transform: scale(0.92) rotate(-12deg); opacity: 1 } 100% { transform: scale(1) rotate(-12deg) } }

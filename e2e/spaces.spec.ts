@@ -287,3 +287,18 @@ test.describe('VIIZA interactive · book view', () => {
     expect(errors).toEqual([])
   })
 })
+
+test.describe('VIIZA interactive · full screen', () => {
+  test('the app goes full screen and stays there across sections and games', async ({ page }) => {
+    await mockSupabase(page, { role: 'student' })
+    await page.goto('/viiza/1')
+    await page.getByTitle('Full screen', { exact: true }).click()
+    await expect.poll(() => page.evaluate(() => !!document.fullscreenElement), { timeout: 10_000 }).toBe(true)
+    await page.locator('[data-sec="games"]').click()
+    await page.getByRole('button', { name: 'Start boarding' }).click()
+    await expect(page.getByText('YOU REPLY')).toBeVisible()
+    expect(await page.evaluate(() => !!document.fullscreenElement)).toBe(true)
+    await page.getByTitle('Exit full screen').click()
+    await expect.poll(() => page.evaluate(() => !!document.fullscreenElement)).toBe(false)
+  })
+})

@@ -3,8 +3,8 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { BookOpen, Check, ChevronLeft, KeyRound, Loader2, Lock, LogOut, MessageCircle, Plane, Stamp } from 'lucide-react'
-import { Ar, EN, Ico, V, pad2, useFonts, useProgress } from './kit'
+import { BookOpen, Check, ChevronLeft, Maximize, Minimize, KeyRound, Loader2, Lock, LogOut, MessageCircle, Plane, Stamp } from 'lucide-react'
+import { Ar, EN, Ico, V, pad2, useFonts, useFullscreen, useProgress, useStageZoom } from './kit'
 
 /**
  * VIIZA interactive, the journey: sign in with the student's token, then the
@@ -42,6 +42,8 @@ function deviceLabel(): string {
 export function Home({ parts, stops, access, free, locked }: { parts: PartCard[]; stops: StopCard[]; access: { name: string; until: string } | null; free: number[]; locked?: number }) {
   useFonts()
   const router = useRouter()
+  const fs = useFullscreen()
+  const zoom = useStageZoom(fs.on)
   const { progress } = useProgress()
   const open = (n: number) => !!access || free.includes(n)
   const done = progress.done
@@ -54,7 +56,7 @@ export function Home({ parts, stops, access, free, locked }: { parts: PartCard[]
   }
 
   return (
-    <div className="min-h-screen" style={{ background: V.paper, fontFamily: EN, color: V.ink }}>
+    <div className="min-h-screen" style={{ background: V.paper, fontFamily: EN, color: V.ink, zoom }}>
       {/* Top bar */}
       <header className="sticky top-0 z-30" style={{ background: V.navy }}>
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6" dir="ltr">
@@ -63,6 +65,12 @@ export function Home({ parts, stops, access, free, locked }: { parts: PartCard[]
             <span className="text-[11px] font-extrabold tracking-[0.3em] text-white">ENGLISH</span>
             <Ar as="span" className="hidden text-[12px] font-bold text-white/70 sm:inline">· دليل السفر التفاعلي</Ar>
           </div>
+          <div className="flex items-center gap-2">
+          {fs.can && (
+            <button onClick={fs.toggle} title={fs.on ? 'Exit full screen' : 'Full screen'} className="flex items-center gap-1.5 rounded-full border border-white/25 px-2.5 py-1.5 text-[12px] font-bold text-white/85 hover:bg-white/10">
+              {fs.on ? <Minimize size={14} /> : <Maximize size={14} />}<span className="hidden md:inline">{fs.on ? 'Exit' : 'Full screen'}</span>
+            </button>
+          )}
           {access ? (
             <div className="flex items-center gap-3">
               <Ar as="span" className="hidden max-w-[180px] truncate text-[13px] font-bold text-white sm:inline">{`أهلًا ${access.name.split(' ')[0]}`}</Ar>
@@ -71,6 +79,7 @@ export function Home({ parts, stops, access, free, locked }: { parts: PartCard[]
           ) : (
             <a href="#signin" className="flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-extrabold" style={{ background: V.saff, color: V.navy }}><KeyRound size={14} /> Enter your code</a>
           )}
+          </div>
         </div>
       </header>
 

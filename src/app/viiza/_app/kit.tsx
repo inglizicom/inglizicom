@@ -252,3 +252,39 @@ export function Mark({ text, word }: { text: string; word: string }) {
 }
 
 export const pad2 = (n: number) => String(n).padStart(2, '0')
+
+/* ── Full screen (to use the app, or record it, without the browser around it) ── */
+
+/** The browser's full screen for the whole app; it stays on while the reader moves between sections, games and stops. */
+export function useFullscreen() {
+  const [on, setOn] = useState(false)
+  const [can, setCan] = useState(false)
+  useEffect(() => {
+    setCan(!!document.documentElement.requestFullscreen)
+    const f = () => setOn(!!document.fullscreenElement)
+    f()
+    document.addEventListener('fullscreenchange', f)
+    return () => document.removeEventListener('fullscreenchange', f)
+  }, [])
+  const toggle = useCallback(() => {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
+    else document.documentElement.requestFullscreen?.().catch(() => {})
+  }, [])
+  return { on, can, toggle }
+}
+
+/**
+ * In full screen on a large screen the app grows with it (CSS zoom), so it
+ * fills a 1080p or larger display like a native app and records crisply,
+ * instead of a narrow column in the middle.
+ */
+export function useStageZoom(on: boolean): number {
+  const [z, setZ] = useState(1)
+  useEffect(() => {
+    const f = () => setZ(on ? Math.min(1.6, Math.max(1, window.innerWidth / 1200)) : 1)
+    f()
+    window.addEventListener('resize', f)
+    return () => window.removeEventListener('resize', f)
+  }, [on])
+  return z
+}
