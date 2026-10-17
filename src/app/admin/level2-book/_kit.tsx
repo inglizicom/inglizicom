@@ -4,7 +4,9 @@ import { Fragment, useEffect, type CSSProperties, type ReactNode } from 'react'
 import { icons, type LucideIcon } from 'lucide-react'
 import { BareSheet, THEMES } from '../games/_shared'
 import { QrLink } from '@/components/QrLink'
-import { PARTS, type Region } from '@/data/viiza-book'
+import type { Region } from '@/data/viiza-book'
+// plan.ts alone, not the book's index: the interactive app (/viiza) uses these pieces, and must not bundle every stop.
+import { PARTS } from '@/data/viiza-book/plan'
 
 /**
  * The look of VIIZA ENGLISH, the travel guide: the cover's red, saffron and

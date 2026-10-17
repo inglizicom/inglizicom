@@ -2210,3 +2210,23 @@ describe('lead channels (063)', () => {
     await rejects(as(ctx.db, 'anon', () => rpc(ctx.db, 'staff_channel_report', [null, null])), /permission denied/)
   })
 })
+describe('VIIZA interactive access (066)', () => {
+  let ctx
+  before(async () => { ctx = await setup() })
+
+  it('staff unlock the app for a student until a date, and can take it back', async () => {
+    const s = await makeStudent(ctx.db, 'Traveller')
+    assert.equal((await one(ctx.db, `select viiza_access_until from crm_students where id = $1`, [s.id])).viiza_access_until, null)
+    await as(ctx.db, ctx.assistant, () => q(ctx.db, `update crm_students set viiza_access_until = '2027-10-17' where id = $1`, [s.id]))
+    const row = await one(ctx.db, `select viiza_access_until::text as d from crm_students where id = $1`, [s.id])
+    assert.equal(row.d, '2027-10-17')
+    await as(ctx.db, ctx.founder, () => q(ctx.db, `update crm_students set viiza_access_until = null where id = $1`, [s.id]))
+    assert.equal((await one(ctx.db, `select viiza_access_until from crm_students where id = $1`, [s.id])).viiza_access_until, null)
+  })
+
+  it('a teacher cannot unlock it', async () => {
+    const s = await makeStudent(ctx.db, 'Other')
+    await as(ctx.db, ctx.teacherA, () => q(ctx.db, `update crm_students set viiza_access_until = '2030-01-01' where id = $1`, [s.id])).catch(() => null)
+    assert.equal((await one(ctx.db, `select viiza_access_until from crm_students where id = $1`, [s.id])).viiza_access_until, null)
+  })
+})

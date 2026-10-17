@@ -427,3 +427,11 @@ export function daysInactive(e?: Engagement): number | null {
   if (!e || !e.last_activity_at) return null
   return Math.floor((Date.now() - new Date(e.last_activity_at).getTime()) / 86400000)
 }
+
+/* ── VIIZA interactive (/viiza, migration 066) ─────────── */
+/** Staff: unlock VIIZA interactive for a student until a day (YYYY-MM-DD, Morocco), or take it away (null). */
+export async function setViizaAccess(studentId: string, until: string | null): Promise<boolean> {
+  const { error } = await supabase.from('crm_students').update({ viiza_access_until: until }).eq('id', studentId)
+  if (error) console.error('setViizaAccess', error.message)
+  return !error
+}

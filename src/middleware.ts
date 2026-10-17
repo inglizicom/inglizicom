@@ -95,6 +95,7 @@ export function middleware(request: NextRequest) {
       pathname.startsWith('/api') ||
       pathname.startsWith('/auth') ||
       pathname.startsWith('/certificate') ||   // public certificate/print page
+      pathname.startsWith('/viiza') ||         // VIIZA interactive, the travel guide app
       pathname.startsWith('/student-space')
     ) {
       return NextResponse.next()

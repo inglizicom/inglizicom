@@ -30,7 +30,7 @@ import { createSplitPayment, dueWhatsAppLink, markReminded, type DueRow } from '
 import { countryFlag } from '@/lib/geo-currency'
 import { fetchCourses, type LmsCourse } from '@/lib/lms'
 import {
-  MAD, fmtDate, TABS, InfoLine, SINP, SField, StatCard, DevicesSection, AvatarUpload,
+  MAD, fmtDate, TABS, InfoLine, SINP, SField, StatCard, DevicesSection, ViizaAccessSection, AvatarUpload,
   CertificatesSection, CoinsSection, BAC_TAB, type Tab,
 } from './_parts'
 import OverviewTab from './tabs/OverviewTab'
@@ -462,6 +462,9 @@ export default function StudentProfilePage() {
 
           {/* Device security */}
           <DevicesSection studentId={student.id} limit={(student as any).device_limit ?? 1} />
+
+          {/* VIIZA interactive: the travel guide app */}
+          <ViizaAccessSection studentId={student.id} until={(student as any).viiza_access_until ?? null} token={student.verification_token ?? null} phone={student.phone_number ?? null} />
 
           {/* Coins & rewards */}
           <CoinsSection studentId={student.id} by={staff.id} />

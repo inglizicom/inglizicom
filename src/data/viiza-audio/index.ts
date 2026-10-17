@@ -1,4 +1,4 @@
-import { clipPath, speakable, type AudioSection, type Clip, type Voice } from '../level1-audio/index.ts'
+import { clipBase, clipPath, speakable, type AudioSection, type Clip, type Voice } from '../level1-audio/index.ts'
 import { STOPS } from '../viiza-book/index.ts'
 import { TALK_STOPS } from '../viiza-talk/index.ts'
 
@@ -93,4 +93,32 @@ export function viizaTalkClips(): Clip[] {
   const byFile = new Map<string, Clip>()
   for (const t of TALK_STOPS) for (const sec of viizaTalkSections(t.n)) for (const c of sec.clips) if (c.en) byFile.set(clipPath(c, 'normal'), c)
   return [...byFile.values()]
+}
+
+/* ── VIIZA interactive ──────────────────────────────────────────────── */
+
+/**
+ * A stop's sentences as the app (/viiza) shows them, each with the file of
+ * its clip (without the speed): the same voices as viizaSections, so the
+ * app plays exactly the files scripts/gen-level1-audio.mjs records.
+ */
+export function viizaStopAudio(n: number): Record<string, string> {
+  const s = STOPS.find(x => x.n === n)
+  if (!s) return {}
+  const out: Record<string, string> = {}
+  const put = (shown: string, c: Clip) => { if (shown && !(shown in out)) out[shown] = clipBase(c) }
+  const m = s.more
+  const voices = cast(s.talk.cast)
+  for (const [en] of s.words) put(en, coral(en.replace(/\s*\/\s*/g, ', ')))
+  if (m) {
+    m.examples.forEach(e => put(e, coral(e)))
+    for (const [en, , ex] of m.actions) { put(en, coral(en)); put(ex, coral(ex)) }
+    for (const [en, , ex] of m.partners) { put(en, coral(en)); put(ex, coral(ex)) }
+    m.replies.forEach(([en], i) => { put(s.hear[i][0], { en: sayable(s.hear[i][0]), voice: 'ash' }); put(en, coral(en)) })
+    m.answers.forEach(([en], i) => { put(s.say[i][0], coral(s.say[i][0])); put(en, { en: sayable(en), voice: 'ash' }) })
+  }
+  for (const [en] of [...s.say, ...s.hear]) put(en, coral(en))
+  for (const [who, en] of s.talk.lines) put(en, { en: sayable(en), voice: voices.get(who)! })
+  for (const [en] of s.card) put(en, coral(en))
+  return out
 }

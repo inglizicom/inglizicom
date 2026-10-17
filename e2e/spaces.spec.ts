@@ -197,3 +197,68 @@ export async function reportFits(page: Page) {
   const { sw, cw } = await frame.evaluate(el => ({ sw: el.scrollWidth, cw: el.clientWidth }))
   expect(sw, 'report wider than its frame').toBeLessThanOrEqual(cw + 1)
 }
+/* VIIZA interactive (/viiza): the travel guide as an app. Without a sign-in
+ * only the free sample (stop 1) opens; its sections, exercises, stamp and
+ * games work on the device. */
+test.describe('VIIZA interactive', () => {
+  test('the journey: 34 stops on the board, the sample open, the rest locked', async ({ page }) => {
+    const errors = collectErrors(page)
+    await mockSupabase(page, { role: 'student' })
+    await page.goto('/viiza')
+    await expect(page.getByText('Departures')).toBeVisible({ timeout: 60_000 })
+    await expect(page.locator('a[href^="/viiza/"]').filter({ hasText: 'Passport, visa & forms' }).first()).toBeVisible()
+    await expect(page.getByText('LOCKED')).toHaveCount(33)
+    await fits(page)
+    expect(errors).toEqual([])
+  })
+
+  test('a locked stop sends you back to sign in', async ({ page }) => {
+    await mockSupabase(page, { role: 'student' })
+    await page.goto('/viiza/2')
+    await expect(page).toHaveURL(/\/viiza\?locked=2/)
+    await expect(page.getByText('المحطة 2 مقفلة')).toBeVisible({ timeout: 60_000 })
+  })
+
+  test('a wrong code is refused with a message', async ({ page }) => {
+    await mockSupabase(page, { role: 'student' })
+    await page.goto('/viiza')
+    await page.getByPlaceholder('ING-XXXXXXXX').fill('ING-NOPE0000')
+    await page.getByRole('button', { name: /Open/ }).click()
+    await expect(page.locator('#signin').getByText(/الرمز غير صحيح|حدث خطأ/)).toBeVisible({ timeout: 30_000 })
+  })
+
+  test('the sample stop: sections, a self-checking exercise, the stamp and a game', async ({ page }) => {
+    const errors = collectErrors(page)
+    await mockSupabase(page, { role: 'student' })
+    await page.goto('/viiza/1')
+    await expect(page.getByText('SECTION 1 OF 6')).toBeVisible({ timeout: 60_000 })
+    await fits(page)
+
+    await page.locator('[data-sec="words"]').click()
+    await expect(page.getByText('ACTION WORDS', { exact: false }).first()).toBeVisible()
+    await page.locator('[data-sec="exchanges"]').click()
+    await expect(page.getByText('Sure. Is a black pen OK?')).toBeVisible()
+    await page.getByRole('button', { name: /Practice mode/ }).click()
+    await expect(page.getByText('Sure. Is a black pen OK?')).toHaveCount(0)
+
+    await page.locator('[data-sec="talk"]').click()
+    await page.getByRole('button', { name: 'True' }).first().click()
+    await expect(page.getByText('✓ Correct')).toBeVisible()
+
+    await page.locator('[data-sec="practice"]').click()
+    const gaps = page.locator('input[type="text"], input:not([type])').filter({ hasNot: page.locator('[placeholder]') })
+    for (const [k, a] of ['valid', 'appointment', 'upload', 'fee', 'approved'].entries()) await gaps.nth(k).fill(a)
+    await page.getByRole('button', { name: 'Check' }).nth(1).click()
+    await expect(page.getByText(/Perfect! 5 \/ 5/)).toBeVisible()
+    await page.getByRole('button', { name: 'Stamp my passport' }).click()
+    await expect(page.getByText('Stamped! Stop 1 is in your passport.')).toBeVisible()
+
+    await page.locator('[data-sec="games"]').click()
+    await page.getByRole('button', { name: 'Start boarding' }).click()
+    await expect(page.getByText('YOU REPLY')).toBeVisible()
+
+    await page.goto('/viiza')
+    await expect(page.getByText('DONE').first()).toBeVisible({ timeout: 60_000 })
+    expect(errors).toEqual([])
+  })
+})

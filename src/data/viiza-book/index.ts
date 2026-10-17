@@ -8,6 +8,7 @@ import { PART_5A } from './part-5a.ts'
 import { PART_5B } from './part-5b.ts'
 import { PART_6 } from './part-6.ts'
 import { MORE } from './more.ts'
+import { mixed, seedOf } from './shuffle.ts'
 
 /**
  * VIIZA ENGLISH, Student's Book (the travel guide) as a list of A4 pages for
@@ -22,6 +23,7 @@ import { MORE } from './more.ts'
 export * from './types.ts'
 export { PARTS, CHECKED } from './plan.ts'
 export * from './extras.ts'
+export { mixed, seedOf } from './shuffle.ts'
 
 export const STOPS: Stop[] = [...PART_1, ...PART_2, ...PART_3, ...PART_4, ...PART_5A, ...PART_5B, ...PART_6]
   .map(s => (MORE[s.n] ? { ...s, more: MORE[s.n] } : s))
@@ -37,18 +39,6 @@ export type ViizaPage =
   | { kind: 'key'; stops: number[] }
 
 export const STOP_KINDS: StopKind[] = ['opener', 'words', 'exchanges', 'real', 'talk', 'practice']
-
-/** A small deterministic shuffle (the same print every time), never leaving an item in its place when it can. */
-export function mixed<T>(items: T[], seed: number): T[] {
-  const out = items.map((v, i) => ({ v, i }))
-  let s = seed * 9301 + 49297
-  const rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280 }
-  for (let tries = 0; tries < 20; tries++) {
-    for (let i = out.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [out[i], out[j]] = [out[j], out[i]] }
-    if (out.length < 2 || out.every((x, k) => x.i !== k)) break
-  }
-  return out.map(x => x.v)
-}
 
 const LETTERS = 'abcdefghij'
 
@@ -68,9 +58,6 @@ export function answersOf(ex: Exercise, seed: number): string[] {
     }
   }
 }
-
-/** The seed of an exercise's shuffle: its stop and its place in the stop. */
-export const seedOf = (stop: number, ex: number) => stop * 10 + ex + 1
 
 /** The conversation check's answers for the key: "1 T · 2 F …". */
 export const checkAnswers = (s: Stop) => (s.more?.check ?? []).map(([, t], k) => `${k + 1} ${t ? 'T' : 'F'}`)

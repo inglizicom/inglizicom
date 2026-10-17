@@ -35,3 +35,6 @@ __pycache__/
 .next-e2e/
 test-results/
 playwright-report/
+
+# brainstorming mockups (superpowers visual companion)
+.superpowers/
