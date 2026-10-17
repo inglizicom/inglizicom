@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { BookA, BookOpen, ChevronDown, Folder, FolderOpen, Layers, Library, Music2, PenLine, type LucideIcon } from 'lucide-react'
 import { CARD_LESSONS } from '@/data/level1-cards'
 import { INDEX as L2_INDEX } from '@/data/level2-book/plan'
+import { STOPS as VIIZA_STOPS } from '@/data/viiza-book'
 import { clipBase, type AudioSection, type Clip } from '@/data/level1-audio'
 import { Player, PlayerCard, PlayerDock, PlayAll, Track, type PlayClip } from './_player'
 
@@ -16,7 +17,7 @@ import { Player, PlayerCard, PlayerDock, PlayAll, Track, type PlayClip } from '.
  * section by section.
  */
 
-export type Shelf = 'book' | 'workbook' | 'vocab' | 'cards' | 'l2book' | 'l2vocab'
+export type Shelf = 'book' | 'workbook' | 'vocab' | 'cards' | 'l2book' | 'l2vocab' | 'viiza'
 const pad = (n: number) => String(n).padStart(2, '0')
 
 export const SHELVES: { id: Shelf; en: string; ar: string; Icon: LucideIcon; href: (n: number) => string }[] = [
@@ -29,12 +30,17 @@ export const L2_SHELVES: typeof SHELVES = [
   { id: 'l2book', en: 'Course book', ar: 'كتاب الدروس', Icon: BookOpen, href: n => `/audio/level2/book/${n}` },
   { id: 'l2vocab', en: 'Vocabulary book', ar: 'كتاب المفردات', Icon: BookA, href: n => `/audio/level2/vocab/${n}` },
 ]
-export const shelfOf = (id: Shelf) => [...SHELVES, ...L2_SHELVES].find(s => s.id === id)!
+/** VIIZA ENGLISH, the travel guide: one shelf, a folder per stop. */
+export const VIIZA_SHELVES: typeof SHELVES = [
+  { id: 'viiza', en: 'Travel guide', ar: 'دليل السفر', Icon: BookOpen, href: n => `/audio/viiza/${n}` },
+]
+export const shelfOf = (id: Shelf) => [...SHELVES, ...L2_SHELVES, ...VIIZA_SHELVES].find(s => s.id === id)!
 
 /** Each level: its name, its shelves, its lessons and how a lesson is labelled. */
 export const LEVELS = [
   { name: 'Level 1 · A0 → A1', shelves: SHELVES, lessons: CARD_LESSONS, code: (n: number) => `L${pad(n)}` },
   { name: 'Level 2 · A2 → B1', shelves: L2_SHELVES, lessons: L2_INDEX, code: (n: number) => `U${pad(n)}` },
+  { name: 'VIIZA ENGLISH · Travel guide', shelves: VIIZA_SHELVES, lessons: VIIZA_STOPS, code: (n: number) => `S${pad(n)}` },
 ]
 
 export const toPlay = (c: Clip & { label?: string }, where: string): PlayClip => ({

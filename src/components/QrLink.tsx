@@ -34,5 +34,7 @@ export const PLAY = {
   vocab: (n: number) => `https://www.inglizi.com/audio/vocab/${n}`,
   l2book: (n: number) => `https://www.inglizi.com/audio/level2/book/${n}`,
   l2vocab: (n: number) => `https://www.inglizi.com/audio/level2/vocab/${n}`,
+  /** VIIZA ENGLISH, the travel guide: a stop's audio. */
+  viiza: (n: number) => `https://www.inglizi.com/audio/viiza/${n}`,
   card: (code: string) => `https://www.inglizi.com/audio/${code}`,
 }

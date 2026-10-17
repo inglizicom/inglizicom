@@ -1,135 +1,75 @@
 'use client'
 
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
-import { buildLevel2Book, INDEX, L2_KIND_TONE, L2_TONES, L2_UNITS, type L2Page, type L2Tone } from '@/data/level2-book'
-import { Field, GamesHeader, INP, PrintAllButton, THEMES } from '../games/_shared'
-import { DEFAULT_COVER, type CoverInfo, type CoverStat } from '../games/_cover'
+import { useMemo, useState } from 'react'
+import { buildViizaBook, PARTS, STOPS, stopOf, type ViizaPage } from '@/data/viiza-book'
+import { Field, GamesHeader, INP, PrintAllButton } from '../games/_shared'
 import { SeriesCover } from './_cover'
-import { PLAY } from '@/components/QrLink'
-import { DEFAULT_INFO, LessonPage, ThanksPage, type BookInfo } from '../level1-book/_blocks'
-import { Imprint } from '../everyday-book/_matter'
+import { StopPage } from './_stop'
+import { MatterPage } from './_matter'
+import { ViizaBackCover } from './_back'
 
 /**
- * /admin/level2-book — Level 2 «تكلّم واكتب بدقّة» (A2 → B1): conversational
- * English with accuracy and writing, in the house style of the textbook but
- * with an adult English face (Bricolage Grotesque, the VIIZA covers' type; Arabic keeps Baloo Bhaijaan 2), a navy
- * cover, and a colour key of its own: expressions green, conversation
- * violet, grammar blue, writing orange, practice teal. The grammar of each
- * unit is printed in blue wherever it is used. The content lives in
- * src/data/level2-book; units are written module by module, and the
- * contents page lists all twenty from the start.
+ * /admin/level2-book — VIIZA ENGLISH, Student's Book: the travel guide
+ * (src/data/viiza-book). One journey from the visa form to the front door at
+ * home, in six parts and their stops, four pages each, between the series
+ * covers. The grammar course that this route printed before still feeds the
+ * VIIZA workbook and vocabulary pages (src/data/level2-book).
  */
 
-const INFO_KEY = 'level2-book-info-v2'
-const COVER_KEY = 'level2-book-cover-v1'
+type View = 'book' | 'front' | 'end' | `part-${number}` | number
 
-const EN_FONT = "'Bricolage Grotesque', 'Baloo Bhaijaan 2', sans-serif"
-const BOOK_INFO: BookInfo = {
-  ...DEFAULT_INFO, title: 'تكلّم واكتب بدقّة', level: 'VIIZA · A2 → B1', ink: '#0E1240', fontEn: EN_FONT,
-}
-const BOOK_COVER: CoverInfo = {
-  ...DEFAULT_COVER, palette: 'navy', phone1: '+212 707 902 091', level: 'A2 → B1',
-  titleAr1: 'تكلّم واكتب', titleAr2: 'بدقّة وثقة', titleEn1: 'Speak & Write', titleEn2: 'with Confidence',
-}
+const pad = (n: number) => String(n).padStart(3, '0')
 
-/** Bricolage Grotesque (the covers' type) for English (headings too), Baloo Bhaijaan 2 for Arabic; highlights in the colour key. */
-const PAGE_VARS = {
-  '--book-en': "'Bricolage Grotesque'", '--book-head': "'Bricolage Grotesque', 'Baloo Bhaijaan 2'", '--book-ar': "'Baloo Bhaijaan 2'",
-  '--book-display': "'Baloo Bhaijaan 2'", '--book-display-weight': '800',
-  '--hl': L2_TONES.grammar.m, '--key': L2_TONES.expr.m, '--key-s': L2_TONES.expr.s,
-  // Cards with more contrast: an edge in the section colour and a soft shadow.
-  '--card-bw': '1.5px', '--card-shadow': '0 1px 2px rgba(15, 30, 61, 0.10), 0 6px 16px rgba(15, 30, 61, 0.12)',
-} as CSSProperties
-
-type View = 'book' | 'front' | 'end' | number
-
-function useSaved<T extends object>(key: string, initial: T) {
-  const [value, setValue] = useState<T>(initial)
-  const [loaded, setLoaded] = useState(false)
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(key)
-      if (saved) setValue({ ...initial, ...JSON.parse(saved) })
-    } catch { /* no storage: defaults */ }
-    setLoaded(true)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key])
-  useEffect(() => {
-    if (!loaded) return
-    try { localStorage.setItem(key, JSON.stringify(value)) } catch { /* quota or no storage */ }
-  }, [key, value, loaded])
-  return [value, setValue] as const
-}
-
-const slug = (s: string) => s.trim().toLowerCase().replace(/[^a-z0-9؀-ۿ]+/gi, '-').replace(/^-|-$/g, '')
-const pad = (n: number) => String(n).padStart(2, '0')
-
-export default function Level2BookPage() {
+export default function ViizaBookPage() {
   const [view, setView] = useState<View>('book')
-  const [saved, setInfo] = useSaved<BookInfo>(INFO_KEY, BOOK_INFO)
-  const info: BookInfo = { ...saved, fontEn: EN_FONT }
-  const [cover, setCover] = useSaved<CoverInfo>(COVER_KEY, BOOK_COVER)
-  const book = useMemo(buildLevel2Book, [])
+  const book = useMemo(buildViizaBook, [])
 
-  const withFront = view === 'book' || view === 'front'
-  const shown = book.pages.filter((p: L2Page) =>
-    view === 'book' ? true : view === 'front' ? p.kind === 'welcome' || p.kind === 'contents' || p.kind === 'planner' : view === 'end' ? p.kind === 'key' || p.kind === 'review' : p.unit === view)
-  const count = (withFront ? 2 : 0) + shown.length + (view === 'book' ? 1 : 0)
-  const prefix = `level2${info.buyer.trim() ? `-${slug(info.buyer)}` : ''}`
-  const set = <K extends keyof BookInfo>(k: K) => (v: BookInfo[K]) => setInfo(s => ({ ...s, [k]: v }))
-
-  const coverStats: CoverStat[] = [
-    { n: String(book.stats.units), ar: 'وحدة', en: 'Units' },
-    { n: '20', ar: 'درسًا في القواعد', en: 'Grammar lessons' },
-    { n: '20', ar: 'نموذجًا للكتابة', en: 'Writing models' },
-    { n: '5', ar: 'مراجعات', en: 'Reviews' },
-  ]
+  const inView = (p: ViizaPage) => {
+    if (view === 'book') return true
+    if (view === 'front') return ['welcome', 'contents', 'mytrip', 'toolkit-1', 'toolkit-2', 'phrases-1', 'phrases-2'].includes(p.kind)
+    if (view === 'end') return ['dictionary-1', 'dictionary-2', 'emergency', 'conversions', 'apps', 'stamps', 'key'].includes(p.kind)
+    if (typeof view === 'string') {
+      const part = Number(view.slice(5))
+      return (p.kind === 'part' && p.part === part) || ('stop' in p && stopOf(p.stop)?.part === part)
+    }
+    return 'stop' in p && p.stop === view
+  }
+  const shown = book.pages.map((p, i) => ({ p, no: i + 1 })).filter(x => inView(x.p))
+  const withCovers = view === 'book'
 
   return (
-    <div className="px-6 lg:px-10 py-8 max-w-[1300px] mx-auto" style={PAGE_VARS}>
-      <GamesHeader title="المستوى الثاني — تكلّم واكتب بدقّة (A2 → B1)" back="/admin" />
+    <div className="px-6 lg:px-10 py-8 max-w-[1300px] mx-auto">
+      <GamesHeader title="VIIZA ENGLISH — كتاب الطالب: دليل السفر" back="/admin" />
       <div className="grid lg:grid-cols-[300px_1fr] gap-6">
         <aside className="space-y-4 print:hidden lg:sticky lg:top-24 self-start">
-          <Field label="عرض" hint={`مكتوب حتى الآن: ${book.stats.written} من ${book.stats.units} وحدة · ${book.pages.length} صفحة مرقّمة.`}>
-            <select value={String(view)} onChange={e => setView(['book', 'front', 'end'].includes(e.target.value) ? e.target.value as View : Number(e.target.value))} className={INP}>
+          <Field label="عرض" hint={`${STOPS.length} محطة · ${book.pages.length + 3} صفحة مع الغلافين وصفحة الشكر.`}>
+            <select value={String(view)} onChange={e => {
+              const v = e.target.value
+              setView(['book', 'front', 'end'].includes(v) || v.startsWith('part-') ? v as View : Number(v))
+            }} className={INP}>
               <option value="book">الكتاب كاملًا</option>
-              <option value="front">البداية (الغلاف، الترحيب، الفهرس، خطة الدراسة)</option>
-              {L2_UNITS.map(u => <option key={u.n} value={u.n}>الوحدة {u.n} — {u.titleAr}</option>)}
-              <option value="end">المراجعات والأجوبة</option>
+              <option value="front">البداية (الترحيب، الفهرس، أدوات المسافر)</option>
+              {PARTS.map(p => (
+                <optgroup key={p.n} label={`الجزء ${p.n} — ${p.titleAr}`}>
+                  <option value={`part-${p.n}`}>الجزء {p.n} كاملًا</option>
+                  {STOPS.filter(s => s.part === p.n).map(s => <option key={s.n} value={s.n}>المحطة {s.n} — {s.titleAr}</option>)}
+                </optgroup>
+              ))}
+              <option value="end">النهاية (القاموس المصوّر، الطوارئ، الأجوبة)</option>
             </select>
           </Field>
-          <Field label="الطباعة" hint="الألوان: لون ثابت لكل نوع من الأقسام. أبيض وأسود: للطباعة الاقتصادية.">
-            <div className="grid grid-cols-2 gap-1.5">
-              {([[false, 'بالألوان 🎨'], [true, 'أبيض وأسود']] as const).map(([v, label]) => (
-                <button key={label} type="button" onClick={() => set('mono')(v)} aria-pressed={info.mono === v}
-                  className={`rounded-lg border py-1.5 text-[12.5px] font-bold ${info.mono === v ? 'bg-zinc-900 text-white border-zinc-900' : 'bg-white border-zinc-200 text-zinc-600'}`}>{label}</button>
-              ))}
-            </div>
-          </Field>
-          <Field label="نسخة لمشترٍ" hint="اسمه يظهر في صفحة الشكر وفي تذييل كل صفحة.">
-            <input value={info.buyer} onChange={e => set('buyer')(e.target.value)} placeholder="مثلًا: سلمى" className={INP} />
-          </Field>
-          <PrintAllButton count={count} />
+          <PrintAllButton count={shown.length + (withCovers ? 3 : 0)} />
         </aside>
 
         <div className="space-y-8 min-w-0">
-          {withFront && <>
-            <SeriesCover series="viiza" book="book" side="front" filename={`${prefix}-000-cover`} />
-            <ThanksPage info={info} filename={`${prefix}-000-thanks`} note={<Imprint info={info} />} />
-          </>}
-          {shown.map(p => {
-            const no = book.pageNo(p)
-            return (
-              <LessonPage key={no} info={info} lesson={p} pageNo={no} talkNo={new Map()} exNo={book.exNo} spread
-                colour={L2_TONES[L2_KIND_TONE[p.kind]]} toneOf={b => ('tone' in b && b.tone ? L2_TONES[b.tone as L2Tone] : undefined)}
-                qr={p.unit ? PLAY.l2book(p.unit) : PLAY.library}
-                filename={`${prefix}-${String(no).padStart(3, '0')}-${p.unit ? `unit-${pad(p.unit)}-${p.kind}` : p.kind}`} />
-            )
+          {withCovers && <SeriesCover series="viiza" book="book" side="front" filename="viiza-000-cover" />}
+          {withCovers && <MatterPage page={{ kind: 'title' }} pageNo={0} book={book} filename="viiza-000-title" />}
+          {shown.map(({ p, no }) => {
+            const file = `viiza-${pad(no)}-${'stop' in p ? `stop-${String(p.stop).padStart(2, '0')}-${p.kind}` : p.kind === 'part' ? `part-${p.part}` : p.kind}`
+            if ('stop' in p) return <StopPage key={no} stop={stopOf(p.stop)!} kind={p.kind} pageNo={no} filename={file} />
+            return <MatterPage key={no} page={p} pageNo={no} book={book} filename={file} />
           })}
-          {view === 'book' && <SeriesCover series="viiza" book="book" side="back" filename={`${prefix}-999-back-cover`} />}
-          {INDEX.length > L2_UNITS.length && (
-            <p className="text-center text-[13px] font-bold text-zinc-400 print:hidden">الوحدات {L2_UNITS.length + 1}–{INDEX.length} قيد الكتابة.</p>
-          )}
+          {withCovers && <ViizaBackCover filename="viiza-999-back-cover" />}
         </div>
       </div>
     </div>

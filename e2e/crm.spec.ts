@@ -267,6 +267,26 @@ test.describe('flows', () => {
     expect((pdf.match(/\/Type\s*\/Page[^s]/g) ?? []).length).toBe(count)
   })
 
+  test('VIIZA travel guide: every page fits, 34 stops, one PDF page per sheet', async ({ page }, info) => {
+    test.skip(info.project.name !== 'desktop', 'one PDF run is enough')
+    test.setTimeout(300_000)
+    await mockSupabase(page, { role: 'founder' })
+    await page.goto('/admin/level2-book')
+    const sheets = page.locator('.print-sheet')
+    await expect(sheets.first()).toBeVisible({ timeout: 90_000 })
+    const count = await sheets.count()
+    // covers and title · 7 front pages · 6 dividers · 34 stops × 4 · 6 reference pages · the key
+    expect(count).toBeGreaterThanOrEqual(3 + 7 + 6 + 34 * 4 + 6 + 1)
+    await page.evaluate(() => document.fonts.ready)
+    await page.waitForTimeout(1000)
+    const tooLong = await page.evaluate(() => [...document.querySelectorAll('.vz-body')].flatMap((b, i) => (b.scrollHeight > b.clientHeight + 1 ? [i + 1] : [])))
+    expect(tooLong).toEqual([])
+    await expect(page.locator('.print-sheet', { hasText: 'SURVIVAL CARD' })).toHaveCount(34)
+    await expect(page.locator('.print-sheet', { hasText: 'Immigration' }).filter({ hasText: 'Conversation' }).first()).toContainText("What's the purpose of your visit?")
+    const pdf = (await page.pdf({ preferCSSPageSize: true, printBackground: true })).toString('latin1')
+    expect((pdf.match(/\/Type\s*\/Page[^s]/g) ?? []).length).toBe(count)
+  })
+
   test('bac results: staff see what students did in the portal\'s Bac tab', async ({ page }) => {
     await mockSupabase(page, { role: 'assistant' })
     await page.goto('/sales/bac-results')

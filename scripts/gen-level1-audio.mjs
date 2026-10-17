@@ -1,8 +1,9 @@
 /**
- * Records the Level 1 audio (the book, second edition, and the play cards)
- * and the Level 2 audio (course book and vocabulary book) into the public
- * Supabase bucket "audio", from the plans in src/data/level1-audio and
- * src/data/level2-audio: every clip twice, slow (for learning) and normal.
+ * Records the Level 1 audio (the book, second edition, and the play cards),
+ * the Level 2 audio (course book and vocabulary book) and the VIIZA travel
+ * guide's audio into the public Supabase bucket "audio", from the plans in
+ * src/data/level1-audio, src/data/level2-audio and src/data/viiza-audio:
+ * every clip twice, slow (for learning) and normal.
  *
  *   node --env-file=.env.local scripts/gen-level1-audio.mjs [--dry] [--limit=20]
  *
@@ -12,6 +13,7 @@
  */
 import { allClips, clipPath, sayOf, BUCKET, SPEEDS } from '../src/data/level1-audio/index.ts'
 import { level2Clips } from '../src/data/level2-audio/index.ts'
+import { viizaClips } from '../src/data/viiza-audio/index.ts'
 
 const args = Object.fromEntries(process.argv.slice(2).map(a => a.replace(/^--/, '').split('=')).map(([k, v]) => [k, v ?? true]))
 const OPENAI = process.env.OPENAI_API_KEY
@@ -83,7 +85,7 @@ async function existing() {
   }
 }
 
-const clips = [...new Map([...allClips(), ...level2Clips()].map(c => [clipPath(c, 'normal'), c])).values()]
+const clips = [...new Map([...allClips(), ...level2Clips(), ...viizaClips()].map(c => [clipPath(c, 'normal'), c])).values()]
 const jobs = clips.flatMap(c => SPEEDS.map(speed => ({ clip: c, speed, path: clipPath(c, speed) })))
 const chars = jobs.reduce((s, j) => s + j.clip.en.length, 0)
 console.log(`${clips.length} clips × ${SPEEDS.length} speeds = ${jobs.length} files, ${chars} characters`)
