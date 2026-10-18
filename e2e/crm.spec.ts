@@ -212,8 +212,10 @@ test.describe('flows', () => {
     await mockSupabase(page, { role: 'founder' })
     await page.goto('/admin/level1-book')
     const sheets = page.locator('.print-sheet')
-    await expect(sheets).toHaveCount(3 + 19)
-    await expect(page.getByText('QR / CODE')).toHaveCount(3 + 19)   // a code slot on every page
+    // cover, thank-you, contents · the Starter (i–xi) · 37 numbered pages (19 lessons, 4 reviews, the answer key) · back cover
+    await expect(sheets).toHaveCount(3 + 11 + 37 + 1)
+    // a code slot on every page without a lesson's own audio QR: thank-you, contents, the Starter, the reviews, the key
+    await expect(page.getByText('QR / CODE')).toHaveCount(2 + 11 + 4 + 1)
     await page.evaluate(() => document.fonts.ready)
     await page.waitForTimeout(500)
     const tooLong = await page.evaluate(() => [...document.querySelectorAll('.lb-body')].flatMap((b, i) => {
