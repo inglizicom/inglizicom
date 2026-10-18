@@ -185,21 +185,22 @@ export const same = (a: string, b: string) => words(a).join(' ') === words(b).jo
 /* ── Progress ───────────────────────────────────────────────────────── */
 
 export type { Progress }
-const KEY = 'viiza.progress.v1'
+const keyOf = (product: string) => (product === 'viiza' ? 'viiza.progress.v1' : `${product}.progress.v1`)
 const EMPTY = EMPTY_PROGRESS
 
-export function readProgress(): Progress {
-  try { return mergeProgress(EMPTY, JSON.parse(localStorage.getItem(KEY) ?? '')) } catch { return EMPTY }
+export function readProgress(product = 'viiza'): Progress {
+  try { return mergeProgress(EMPTY, JSON.parse(localStorage.getItem(keyOf(product)) ?? '')) } catch { return EMPTY }
 }
-const writeLocal = (p: Progress) => { try { localStorage.setItem(KEY, JSON.stringify(p)) } catch {} }
 
 /**
  * The reader's progress: on this device at once, and in their account when
  * they are signed in (/api/viiza/progress), merged both ways so a second
  * phone or a laptop picks up where the first left off.
  */
-export function useProgress() {
+export function useProgress(product: 'viiza' | 'piirmi' = 'viiza') {
   const [p, setP] = useState<Progress>(EMPTY)
+  const writeLocal = useCallback((x: Progress) => { try { localStorage.setItem(keyOf(product), JSON.stringify(x)) } catch {} }, [product])
+  const api = `/api/viiza/progress?product=${product}`
   const synced = useRef(false)
   const timer = useRef<ReturnType<typeof setTimeout>>()
 
@@ -207,15 +208,15 @@ export function useProgress() {
     if (!synced.current) return
     clearTimeout(timer.current)
     timer.current = setTimeout(() => {
-      fetch('/api/viiza/progress', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(next) }).catch(() => {})
+      fetch(api, { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(next) }).catch(() => {})
     }, 1200)
-  }, [])
+  }, [api])
 
   useEffect(() => {
-    const local = readProgress()
+    const local = readProgress(product)
     setP(local)
     let alive = true
-    fetch('/api/viiza/progress').then(r => (r.ok ? r.json() : null)).then(j => {
+    fetch(api).then(r => (r.ok ? r.json() : null)).then(j => {
       if (!alive || !j?.ok) return
       synced.current = true
       setP(prev => {
@@ -226,11 +227,11 @@ export function useProgress() {
       })
     }).catch(() => {})
     return () => { alive = false }
-  }, [push])
+  }, [push, api, product, writeLocal])
 
   const save = useCallback((f: (p: Progress) => Progress) => {
     setP(prev => { const next = f(prev); if (next !== prev) { writeLocal(next); push(next) } ; return next })
-  }, [push])
+  }, [push, writeLocal])
   const markSeen = useCallback((n: number, section: string) => save(p => {
     const list = p.seen[n] ?? []
     return list.includes(section) ? p : { ...p, seen: { ...p.seen, [n]: [...list, section] } }

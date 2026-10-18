@@ -9,8 +9,13 @@ import { Ar, AudioProvider, Btn, EN, Ico, Say, useAudio, useFonts, useProgress, 
  * The part check: ten questions at the end of a part, made fresh from its
  * stops each time: four "what do you reply?", three "what does it mean?"
  * and three "listen and choose". Seven or more earns the part's seal in
- * the passport; the best score is kept.
+ * the passport; the best score is kept. The same check serves PIIRMI
+ * interactive's reviews (its book, base path and labels passed in).
  */
+
+/** Which book the check belongs to, and how it names its parts and units. */
+export interface CheckBook { product: 'viiza' | 'piirmi'; base: string; part: string; unit: string; reviewHash: string }
+const VIIZA_BOOK: CheckBook = { product: 'viiza', base: '/viiza', part: 'Part', unit: 'Stop', reviewHash: 'exchanges' }
 
 export interface CheckPool {
   replies: { cue: string; cueAr: string; reply: string; replyAr: string; stop: number }[]
@@ -38,14 +43,14 @@ function makeQuestions(p: CheckPool): Q[] {
   ])
 }
 
-export function PartCheck(props: { part: { n: number; titleEn: string; titleAr: string; icon: string }; stops: { n: number; titleEn: string }[]; pool: CheckPool; clips: Record<string, string> }) {
+export function PartCheck({ book = VIIZA_BOOK, ...props }: { part: { n: number; titleEn: string; titleAr: string; icon: string }; stops: { n: number; titleEn: string }[]; pool: CheckPool; clips: Record<string, string>; book?: CheckBook }) {
   useFonts()
-  return <AudioProvider clips={props.clips}><Quiz {...props} /></AudioProvider>
+  return <AudioProvider clips={props.clips}><Quiz {...props} book={book} /></AudioProvider>
 }
 
-function Quiz({ part, stops, pool }: { part: { n: number; titleEn: string; titleAr: string; icon: string }; stops: { n: number; titleEn: string }[]; pool: CheckPool }) {
+function Quiz({ part, stops, pool, book }: { part: { n: number; titleEn: string; titleAr: string; icon: string }; stops: { n: number; titleEn: string }[]; pool: CheckPool; book: CheckBook }) {
   const { play } = useAudio()
-  const { progress, setBest } = useProgress()
+  const { progress, setBest } = useProgress(book.product)
   const [round, setRound] = useState(0)
   // Made in the browser only (random), so the server's render and the browser's agree.
   const [qs, setQs] = useState<Q[]>([])
@@ -68,8 +73,8 @@ function Quiz({ part, stops, pool }: { part: { n: number; titleEn: string; title
     <div className="min-h-screen" style={{ background: V.paper, color: V.ink, fontFamily: EN }}>
       <header style={{ background: V.navy }}>
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3" dir="ltr">
-          <Link href="/viiza" className="flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[12px] font-bold text-white/85 hover:bg-white/10"><ChevronLeft size={16} /> Journey</Link>
-          <span className="min-w-0 flex-1 truncate text-[15px] font-extrabold text-white">Part {part.n} check · {part.titleEn}</span>
+          <Link href={book.base} className="flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[12px] font-bold text-white/85 hover:bg-white/10"><ChevronLeft size={16} /> Journey</Link>
+          <span className="min-w-0 flex-1 truncate text-[15px] font-extrabold text-white">{book.part} {part.n} check · {part.titleEn}</span>
           {best !== undefined && <span className="rounded-full px-2.5 py-1 text-[11.5px] font-extrabold" style={{ background: V.saff, color: V.navy }}>Best {best}/10</span>}
         </div>
         {!end && <div className="h-1.5" style={{ background: V.navy3 }}><div className="h-full transition-all" style={{ width: `${(i / qs.length) * 100}%`, background: V.saff }} /></div>}
@@ -81,21 +86,21 @@ function Quiz({ part, stops, pool }: { part: { n: number; titleEn: string; title
             {score >= PASS ? (
               <div className="mx-auto flex h-[130px] w-[130px] -rotate-6 flex-col items-center justify-center rounded-full" style={{ border: `5px double ${V.saffD}`, background: V.saffS, color: V.saffD, animation: 'vz-stamp .5s ease-out' }}>
                 <Award size={36} />
-                <span className="mt-1 text-[12px] font-extrabold tracking-[0.1em]">PART {part.n}</span>
+                <span className="mt-1 text-[12px] font-extrabold tracking-[0.1em]">{book.part.toUpperCase()} {part.n}</span>
                 <span className="text-[10px] font-extrabold tracking-[0.1em]">PASSED</span>
               </div>
             ) : <Ico name={part.icon} size={52} color={V.navy} />}
             <div className="mt-5 text-[30px] font-extrabold">{score} / {qs.length}</div>
-            <div className="mt-1 text-[17px] font-bold" style={{ color: score >= PASS ? V.green : V.saffD }}>{score >= PASS ? 'Part passed! The seal is in your passport.' : `${PASS} or more to pass. Review the stops and try again.`}</div>
+            <div className="mt-1 text-[17px] font-bold" style={{ color: score >= PASS ? V.green : V.saffD }}>{score >= PASS ? `${book.part} passed! The seal is in your passport.` : `${PASS} or more to pass. Review the stops and try again.`}</div>
             <Ar className="mt-2 text-[14px] font-semibold" style={{ color: V.grey }}>{score >= PASS ? 'أحسنت! ختم الجزء في جوازك الآن.' : 'راجع المحطات ثم حاول مرة أخرى: الأسئلة تتغيّر في كل محاولة.'}</Ar>
             {score < PASS && (
               <div className="mx-auto mt-4 flex max-w-md flex-wrap justify-center gap-2">
-                {stops.map(s => <Link key={s.n} href={`/viiza/${s.n}#exchanges`} className="rounded-full px-3 py-1.5 text-[12.5px] font-bold" style={{ background: V.navyS, color: V.navy }}>Stop {s.n} · {s.titleEn}</Link>)}
+                {stops.map(s => <Link key={s.n} href={`${book.base}/${s.n}#${book.reviewHash}`} className="rounded-full px-3 py-1.5 text-[12.5px] font-bold" style={{ background: V.navyS, color: V.navy }}>{book.unit} {s.n} · {s.titleEn}</Link>)}
               </div>
             )}
             <div className="mt-6 flex justify-center gap-2">
               <Btn tone="ghost" onClick={again}><RotateCcw size={16} /> Try again</Btn>
-              <Link href="/viiza" className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-[14px] font-extrabold text-white" style={{ background: V.navy }}>Journey</Link>
+              <Link href={book.base} className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-[14px] font-extrabold text-white" style={{ background: V.navy }}>Journey</Link>
             </div>
           </div>
         ) : (

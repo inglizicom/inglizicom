@@ -20,8 +20,8 @@ const WHATSAPP = 'https://wa.me/212707902091?text=' + encodeURIComponent('الس
 
 const REASON: Record<string, string> = {
   invalid: 'الرمز غير صحيح. تأكّد منه كما وصلك (مثال: ING-1A2B3C4D).',
-  no_access: 'رمزك صحيح، لكن VIIZA التفاعلي غير مفعّل لك بعد. تواصل معنا لتفعيله.',
-  expired: 'انتهت مدة وصولك إلى VIIZA التفاعلي. تواصل معنا لتجديدها.',
+  no_access: 'رمزك صحيح، لكن هذا الكتاب التفاعلي غير مفعّل لك بعد. تواصل معنا لتفعيله.',
+  expired: 'انتهت مدة وصولك إلى هذا الكتاب التفاعلي. تواصل معنا لتجديدها.',
   device_limit: 'هذا الرمز مستعمل على أجهزة أخرى. تواصل معنا لإضافة هذا الجهاز.',
   error: 'حدث خطأ في الاتصال. حاول مرة أخرى بعد لحظات.',
 }
@@ -221,7 +221,9 @@ export function Home({ parts, stops, access, free, locked }: { parts: PartCard[]
   )
 }
 
-function SignIn({ locked, onDone }: { locked?: number; onDone: () => void }) {
+export function SignIn({ locked, onDone, product = 'viiza', unitWord = 'المحطة', title = 'افتح دليل السفر كاملًا', blurb = 'اكتب رمز الطالب الذي وصلك مع الكتاب (يبدأ بـ ING-). 34 محطة، كل جملة بصوتها، تمارين تصحّح نفسها، وألعاب.', whatsapp = WHATSAPP }: {
+  locked?: number; onDone: () => void; product?: 'viiza' | 'piirmi'; unitWord?: string; title?: string; blurb?: string; whatsapp?: string
+}) {
   const [token, setToken] = useState('')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
@@ -230,7 +232,7 @@ function SignIn({ locked, onDone }: { locked?: number; onDone: () => void }) {
     if (!token.trim()) return
     setBusy(true); setErr('')
     try {
-      const r = await fetch('/api/viiza/session', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token, deviceId: deviceId(), label: deviceLabel() }) })
+      const r = await fetch('/api/viiza/session', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token, deviceId: deviceId(), label: deviceLabel(), product }) })
       const j = await r.json().catch(() => ({}))
       if (j.ok) onDone()
       else setErr(REASON[j.reason] ?? REASON.error)
@@ -240,11 +242,11 @@ function SignIn({ locked, onDone }: { locked?: number; onDone: () => void }) {
 
   return (
     <section id="signin" className="relative -mt-6 rounded-3xl p-5 shadow-[0_10px_40px_rgba(14,18,64,0.18)] sm:p-7" style={{ background: '#fff', border: `2px solid ${V.saff}` }}>
-      {locked && <Ar className="mb-3 rounded-xl px-3 py-2 text-[13.5px] font-bold" style={{ background: V.saffS, color: V.saffD }}>{`المحطة ${locked} مقفلة. ادخل رمزك لتفتح الدليل كاملًا.`}</Ar>}
+      {locked && <Ar className="mb-3 rounded-xl px-3 py-2 text-[13.5px] font-bold" style={{ background: V.saffS, color: V.saffD }}>{`${unitWord} ${locked} مقفلة. ادخل رمزك لتفتح الكتاب كاملًا.`}</Ar>}
       <div className="grid items-center gap-5 lg:grid-cols-[1fr_1.1fr]">
         <div>
-          <Ar className="text-[22px] font-extrabold leading-snug">افتح دليل السفر كاملًا</Ar>
-          <Ar className="mt-1.5 text-[14px] font-semibold leading-[1.8]" style={{ color: V.grey }}>اكتب رمز الطالب الذي وصلك مع الكتاب (يبدأ بـ ING-). 34 محطة، كل جملة بصوتها، تمارين تصحّح نفسها، وألعاب.</Ar>
+          <Ar className="text-[22px] font-extrabold leading-snug">{title}</Ar>
+          <Ar className="mt-1.5 text-[14px] font-semibold leading-[1.8]" style={{ color: V.grey }}>{blurb}</Ar>
         </div>
         <div>
           <div className="flex gap-2" dir="ltr">
@@ -256,7 +258,7 @@ function SignIn({ locked, onDone }: { locked?: number; onDone: () => void }) {
             </button>
           </div>
           {err && <Ar className="mt-2 text-[13px] font-bold" style={{ color: V.red }}>{err}</Ar>}
-          <a href={WHATSAPP} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 text-[13px] font-bold" style={{ color: V.green }}>
+          <a href={whatsapp} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 text-[13px] font-bold" style={{ color: V.green }}>
             <MessageCircle size={16} /> <Ar as="span">ليس لديك رمز؟ اطلب الوصول عبر واتساب</Ar>
           </a>
         </div>

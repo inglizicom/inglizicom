@@ -260,7 +260,7 @@ function Opener({ s, part }: { s: Stop; part: Part }) {
 
 /* ── 2. Vocabulary ──────────────────────────────────────────────────── */
 
-interface FlashCard { en: string; ar: string; ex?: string; icon?: string; kind: string }
+export interface FlashCard { en: string; ar: string; ex?: string; icon?: string; img?: string; kind: string }
 
 function Vocabulary({ s }: { s: Stop }) {
   const [mode, setMode] = useState<'list' | 'cards'>('list')
@@ -335,7 +335,7 @@ function Vocabulary({ s }: { s: Stop }) {
   )
 }
 
-function Flashcards({ deck: start }: { deck: FlashCard[] }) {
+export function Flashcards({ deck: start }: { deck: FlashCard[] }) {
   const { play } = useAudio()
   const [deck, setDeck] = useState(start)
   const [i, setI] = useState(0)
@@ -357,7 +357,7 @@ function Flashcards({ deck: start }: { deck: FlashCard[] }) {
       <button type="button" onClick={() => setFlip(f => !f)} className="relative block h-[300px] w-full [perspective:1200px]">
         <div className="relative h-full w-full transition-transform duration-500 [transform-style:preserve-3d]" style={{ transform: flip ? 'rotateY(180deg)' : 'none' }}>
           <div className="absolute inset-0 flex flex-col items-center justify-center rounded-3xl p-6 text-white shadow-xl [backface-visibility:hidden]" style={{ background: `linear-gradient(150deg, ${V.navy}, ${V.navy3})` }}>
-            {c.icon && <Ico name={c.icon} size={46} color={V.saff} stroke={1.6} />}
+            {c.img ? <img src={c.img} alt="" className="h-[130px] w-[130px] rounded-2xl bg-white object-cover" /> : c.icon && <Ico name={c.icon} size={46} color={V.saff} stroke={1.6} />}
             <div className="mt-4 text-center text-[32px] font-extrabold leading-tight">{c.en}</div>
             <div className="mt-6 text-[12px] font-bold text-white/50">Tap to see the meaning</div>
           </div>
@@ -380,7 +380,7 @@ function Flashcards({ deck: start }: { deck: FlashCard[] }) {
 
 /* ── 3. You hear · You say ──────────────────────────────────────────── */
 
-function MicCheck({ model }: { model: string }) {
+export function MicCheck({ model }: { model: string }) {
   const { ok, busy, listen } = useListen()
   const [said, setSaid] = useState<string | null>(null)
   if (!ok) return null

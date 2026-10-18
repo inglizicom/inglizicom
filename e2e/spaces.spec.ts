@@ -330,3 +330,75 @@ test.describe('VIIZA interactive · signed in', () => {
     expect(errors).toEqual([])
   })
 })
+
+/* PIIRMI interactive (/piirmi): the everyday book as an app, same sign-in,
+ * its own access date. */
+test.describe('PIIRMI interactive', () => {
+  test('home: 19 units, the sample open, the rest locked, fits a phone', async ({ page }) => {
+    const errors = collectErrors(page)
+    await mockSupabase(page, { role: 'student' })
+    await page.goto('/piirmi')
+    await expect(page.getByText('Morning Routine').first()).toBeVisible({ timeout: 60_000 })
+    await expect(page.getByText('LOCKED', { exact: true })).toHaveCount(18)
+    await fits(page)
+    expect(errors).toEqual([])
+  })
+
+  test('a locked unit sends you back to sign in', async ({ page }) => {
+    await mockSupabase(page, { role: 'student' })
+    await page.goto('/piirmi/5')
+    await expect(page).toHaveURL(/\/piirmi\?locked=5/)
+  })
+
+  test('the sample unit: expressions practice, reading check, sticker, game and book view', async ({ page }) => {
+    const errors = collectErrors(page)
+    await mockSupabase(page, { role: 'student' })
+    await page.goto('/piirmi/1')
+    await expect(page.getByText('SECTION 1 OF 6')).toBeVisible({ timeout: 60_000 })
+    await fits(page)
+    await page.locator('[data-sec="expressions"]').click()
+    await expect(page.getByText('I usually wake up at seven.').first()).toBeVisible()
+    await page.getByRole('button', { name: /Practice mode/ }).click()
+    await expect(page.getByText('I usually wake up at seven.')).toHaveCount(0)
+    await page.locator('[data-sec="reading"]').click()
+    await page.getByPlaceholder('Your answer…').first().fill('At seven.')
+    await page.getByRole('button', { name: 'Check my answers' }).click()
+    await expect(page.getByText('✓ Good!').first()).toBeVisible()
+    await page.locator('[data-sec="practice"]').click()
+    await page.getByRole('button', { name: 'Add my sticker' }).click()
+    await expect(page.getByText('Sticker added! Unit 1 is in your album.')).toBeVisible()
+    await page.locator('[data-sec="games"]').click()
+    await page.getByRole('button', { name: 'Start boarding' }).click()
+    await expect(page.getByText('YOU ANSWER')).toBeVisible()
+    await page.getByRole('button', { name: /Book/ }).first().click()
+    await expect(page.getByText(/Page 1 of \d+/)).toBeVisible()
+    await expect(page.locator('.vz-bookpage .print-sheet')).toBeVisible()
+    await page.goto('/piirmi')
+    await expect(page.getByText('DONE').first()).toBeVisible({ timeout: 60_000 })
+    expect(errors).toEqual([])
+  })
+})
+
+test.describe('PIIRMI interactive · signed in', () => {
+  test.beforeEach(async ({ page, baseURL }) => {
+    await page.context().addCookies([{ name: 'viiza_session', value: 'e2e', url: baseURL! }])
+  })
+
+  test('every unit opens, and a review check is taken to the end', async ({ page }) => {
+    const errors = collectErrors(page)
+    await mockSupabase(page, { role: 'student' })
+    await page.goto('/piirmi')
+    await expect(page.getByText('Review 1 check')).toBeVisible({ timeout: 60_000 })
+    await expect(page.getByText('LOCKED', { exact: true })).toHaveCount(0)
+    await page.goto('/piirmi/19')
+    await expect(page.getByText('SECTION 1 OF 6')).toBeVisible({ timeout: 60_000 })
+    await page.goto('/piirmi/check/1')
+    await expect(page.getByText('QUESTION 1 OF 10')).toBeVisible({ timeout: 60_000 })
+    for (let q = 0; q < 10; q++) {
+      await page.locator('main button.rounded-2xl').first().click()
+      await page.getByRole('button', { name: /Next question|See my score/ }).click()
+    }
+    await expect(page.getByText(/\d+ \/ 10/).first()).toBeVisible()
+    expect(errors).toEqual([])
+  })
+})

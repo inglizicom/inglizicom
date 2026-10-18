@@ -2253,3 +2253,27 @@ describe('VIIZA interactive progress (067)', () => {
     assert.equal((await q(ctx.db, `select 1 from viiza_progress where student_id = $1`, [s.id])).length, 0)
   })
 })
+
+describe('PIIRMI interactive (068)', () => {
+  let ctx
+  before(async () => { ctx = await setup() })
+
+  it('staff unlock PIIRMI on its own date, apart from VIIZA', async () => {
+    const s = await makeStudent(ctx.db, 'Learner')
+    await as(ctx.db, ctx.assistant, () => q(ctx.db, `update crm_students set piirmi_access_until = '2027-06-30' where id = $1`, [s.id]))
+    const row = await one(ctx.db, `select piirmi_access_until::text as p, viiza_access_until as v from crm_students where id = $1`, [s.id])
+    assert.equal(row.p, '2027-06-30')
+    assert.equal(row.v, null)
+  })
+
+  it('its progress is read by staff only, written by nobody from the browser, and goes with the student', async () => {
+    const s = await makeStudent(ctx.db, 'Learner 2')
+    await q(ctx.db, `insert into piirmi_progress (student_id, data) values ($1, $2)`, [s.id, JSON.stringify({ done: [1], seen: {}, best: {} })])
+    assert.equal((await as(ctx.db, ctx.founder, () => q(ctx.db, `select 1 from piirmi_progress where student_id = $1`, [s.id]))).length, 1)
+    assert.equal((await as(ctx.db, ctx.teacherA, () => q(ctx.db, `select 1 from piirmi_progress where student_id = $1`, [s.id]))).length, 0)
+    await rejects(as(ctx.db, ctx.assistant, () => q(ctx.db, `delete from piirmi_progress where student_id = $1`, [s.id])), /permission denied/)
+    await rejects(as(ctx.db, 'anon', () => q(ctx.db, `select * from piirmi_progress`)), /permission denied/)
+    await q(ctx.db, `delete from crm_students where id = $1`, [s.id])
+    assert.equal((await q(ctx.db, `select 1 from piirmi_progress where student_id = $1`, [s.id])).length, 0)
+  })
+})

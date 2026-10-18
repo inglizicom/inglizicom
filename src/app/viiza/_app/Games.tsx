@@ -13,19 +13,32 @@ import { Ar, Btn, Card, EN, same, useAudio, V } from './kit'
  * - Listen & Type: hear a key word, spell it. A hint shows the Arabic and
  *   the first letter.
  *
- * The best scores are kept in the reader's progress.
+ * The best scores are kept in the reader's progress. GamesPanel takes any
+ * book's pairs and words (PIIRMI interactive uses it with its expressions).
  */
+
+export interface GamePair { id: number; cue: string; reply: string }
+export interface GameWord { shown: string; answer: string; ar: string }
 
 const shuffle = <T,>(a: T[]) => [...a].sort(() => Math.random() - 0.5)
 
 export function Games({ s, best, onScore }: { s: Stop; best: Record<string, number>; onScore: (key: string, v: number) => void }) {
+  const pairs = useMemo(() => (s.more ? s.more.replies.map((r, i) => ({ id: i, cue: s.hear[i][0], reply: r[0] })) : []), [s])
+  const words = useMemo(() => s.words.map(([en, ar]) => ({ shown: en, answer: en.split('/')[0].trim(), ar })), [s])
+  return <GamesPanel id={s.n} pairs={pairs} words={words} best={best} onScore={onScore} />
+}
+
+export function GamesPanel({ id, pairs, words, best, onScore, cueLabel = 'YOU HEAR', replyLabel = 'YOU REPLY' }: {
+  id: number; pairs: GamePair[]; words: GameWord[]; best: Record<string, number>; onScore: (key: string, v: number) => void
+  cueLabel?: string; replyLabel?: string
+}) {
   const [game, setGame] = useState<'gate' | 'type'>('gate')
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2" dir="ltr">
         {[
-          { k: 'gate' as const, icon: <Plane size={22} />, en: 'Gate Rush', ar: 'سباق البوابة', d: 'Match each sentence to its reply before boarding closes.', b: best[`${s.n}:gate`] },
-          { k: 'type' as const, icon: <Headphones size={22} />, en: 'Listen & Type', ar: 'استمع واكتب', d: 'Hear a key word. Spell it.', b: best[`${s.n}:type`] },
+          { k: 'gate' as const, icon: <Plane size={22} />, en: 'Gate Rush', ar: 'سباق البوابة', d: 'Match each sentence to its reply before boarding closes.', b: best[`${id}:gate`] },
+          { k: 'type' as const, icon: <Headphones size={22} />, en: 'Listen & Type', ar: 'استمع واكتب', d: 'Hear a key word. Spell it.', b: best[`${id}:type`] },
         ].map(g => (
           <button key={g.k} onClick={() => setGame(g.k)} className="flex items-start gap-3 rounded-2xl p-4 text-left transition"
             style={game === g.k ? { background: V.navy, color: '#fff', boxShadow: '0 8px 24px rgba(14,18,64,0.25)' } : { background: '#fff', color: V.navy, border: `1.5px solid ${V.line}` }}>
@@ -38,16 +51,16 @@ export function Games({ s, best, onScore }: { s: Stop; best: Record<string, numb
           </button>
         ))}
       </div>
-      {game === 'gate' ? <GateRush key={`g${s.n}`} s={s} onScore={v => onScore('gate', v)} /> : <ListenType key={`t${s.n}`} s={s} onScore={v => onScore('type', v)} />}
+      {game === 'gate' ? <GateRush key={`g${id}`} pairs={pairs} cueLabel={cueLabel} replyLabel={replyLabel} onScore={v => onScore('gate', v)} /> : <ListenType key={`t${id}`} words={words} onScore={v => onScore('type', v)} />}
     </div>
   )
 }
 
 /* ── Gate Rush ──────────────────────────────────────────────────────── */
 
-function GateRush({ s, onScore }: { s: Stop; onScore: (v: number) => void }) {
+function GateRush({ pairs: all, onScore, cueLabel, replyLabel }: { pairs: GamePair[]; onScore: (v: number) => void; cueLabel: string; replyLabel: string }) {
   const { play } = useAudio()
-  const pairs = useMemo(() => (s.more ? s.more.replies.map((r, i) => ({ id: i, cue: s.hear[i][0], reply: r[0] })) : []), [s])
+  const pairs = useMemo(() => all.slice(0, 6), [all])
   const [state, setState] = useState<'ready' | 'run' | 'end'>('ready')
   const [left, setLeft] = useState(60)
   const [cues, setCues] = useState(pairs)
@@ -101,7 +114,7 @@ function GateRush({ s, onScore }: { s: Stop; onScore: (v: number) => void }) {
       {state === 'run' && (
         <div className="grid grid-cols-2 gap-3" dir="ltr">
           <div className="space-y-2">
-            <div className="text-[11px] font-extrabold tracking-[0.14em]" style={{ color: V.navy }}>YOU HEAR</div>
+            <div className="text-[11px] font-extrabold tracking-[0.14em]" style={{ color: V.navy }}>{cueLabel}</div>
             {cues.map(c => (
               <button key={c.id} disabled={done.includes(c.id)} onClick={() => { setPick(c.id); play(c.cue) }}
                 className="w-full rounded-xl border-2 px-3 py-2.5 text-left text-[13.5px] font-bold transition disabled:opacity-25"
@@ -111,7 +124,7 @@ function GateRush({ s, onScore }: { s: Stop; onScore: (v: number) => void }) {
             ))}
           </div>
           <div className="space-y-2">
-            <div className="text-[11px] font-extrabold tracking-[0.14em]" style={{ color: V.red }}>YOU REPLY</div>
+            <div className="text-[11px] font-extrabold tracking-[0.14em]" style={{ color: V.red }}>{replyLabel}</div>
             {replies.map(r => (
               <button key={r.id} disabled={done.includes(r.id)} onClick={() => choose(r.id)}
                 className={`w-full rounded-xl border-2 px-3 py-2.5 text-left text-[13.5px] font-bold transition disabled:opacity-25 ${wrong === r.id ? 'vz-shake' : ''}`}
@@ -137,9 +150,8 @@ function GateRush({ s, onScore }: { s: Stop; onScore: (v: number) => void }) {
 
 /* ── Listen & Type ──────────────────────────────────────────────────── */
 
-function ListenType({ s, onScore }: { s: Stop; onScore: (v: number) => void }) {
+function ListenType({ words, onScore }: { words: GameWord[]; onScore: (v: number) => void }) {
   const { play } = useAudio()
-  const words = useMemo(() => s.words.map(([en, ar]) => ({ shown: en, answer: en.split('/')[0].trim(), ar })), [s])
   const [order, setOrder] = useState(() => shuffle(words))
   const [i, setI] = useState(0)
   const [val, setVal] = useState('')

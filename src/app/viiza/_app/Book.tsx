@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Expand, Gauge, LayoutGrid, Maximize, Minimize, MoveHorizontal } from 'lucide-react'
@@ -16,6 +16,9 @@ import { Ar, EN, pad2, useAudio, V } from './kit'
  * browser allows it. Every English sentence on the page can be tapped to
  * hear it: the tap is matched to the stop's sentences (and their recorded
  * clips); any other English text is read by the browser's voice.
+ *
+ * PagedBook is the viewer itself, for any book's printed pages (PIIRMI
+ * interactive uses it too); BookView gives it a VIIZA stop's six pages.
  */
 
 export const BOOK_KINDS: [StopKind, string][] = [
@@ -27,7 +30,13 @@ const PAGE_W = 794, PAGE_H = 1123
 const norm = (t: string) => t.toLowerCase().replace(/[^a-z0-9]+/g, '')
 const ARABIC = /[؀-ۿ]/
 
-/** Every sentence of the stop that a tap on its page may mean, by its letters only (blanks drawn as lines lose their underscores). */
+/** Every sentence a tap on a page may mean, by its letters only (blanks drawn as lines lose their underscores). */
+export function sentenceMap(list: string[]): Map<string, string> {
+  const all = new Map<string, string>()
+  for (const t of list) { const k = norm(t); if (k && !all.has(k)) all.set(k, t) }
+  return all
+}
+
 function sentencesOf(s: Stop, clips: Record<string, string>): Map<string, string> {
   const all = new Map<string, string>()
   const add = (t?: string) => { if (t) { const k = norm(t); if (k && !all.has(k)) all.set(k, t) } }
@@ -45,6 +54,24 @@ export function BookView({ s, clips, start, firstPage, prev, next, onExit }: {
   prev: { n: number } | null; next: { n: number } | null
   onExit: (page: number) => void
 }) {
+  const known = useMemo(() => sentencesOf(s, clips), [s, clips])
+  const pages = useMemo(() => BOOK_KINDS.map(([kind, label], i) => ({
+    label, node: <StopPage stop={s} kind={kind} pageNo={firstPage + i} filename={`viiza-stop-${s.n}-${kind}`} />,
+  })), [s, firstPage])
+  return (
+    <PagedBook badge={`STOP ${pad2(s.n)}`} pages={pages} known={known} start={start} onExit={onExit}
+      prev={prev && { href: `/viiza/${prev.n}#book`, label: `Stop ${pad2(prev.n)}` }}
+      next={next && { href: `/viiza/${next.n}#book`, label: `Stop ${pad2(next.n)}` }} />
+  )
+}
+
+export interface BookPage { label: string; node: ReactNode }
+
+export function PagedBook({ badge, pages, known, start, prev, next, onExit }: {
+  badge: string; pages: BookPage[]; known: Map<string, string>; start: number
+  prev: { href: string; label: string } | null; next: { href: string; label: string } | null
+  onExit: (page: number) => void
+}) {
   const { play, stop, slow, setSlow } = useAudio()
   const [page, setPage] = useState(start)
   const [dir, setDir] = useState(1)
@@ -54,7 +81,6 @@ export function BookView({ s, clips, start, firstPage, prev, next, onExit }: {
   const [hint, setHint] = useState(true)
   const stage = useRef<HTMLDivElement>(null)
   const [box, setBox] = useState({ w: 0, h: 0 })
-  const known = useMemo(() => sentencesOf(s, clips), [s, clips])
   const lit = useRef<HTMLElement | null>(null)
 
   useEffect(() => { setCanFull(!!document.documentElement.requestFullscreen) }, [])
@@ -79,10 +105,10 @@ export function BookView({ s, clips, start, firstPage, prev, next, onExit }: {
 
   const turn = useCallback((d: number) => {
     const p = page + d
-    if (p < 0 || p >= BOOK_KINDS.length) return
+    if (p < 0 || p >= pages.length) return
     stop(); setDir(d); setPage(p)
     stage.current?.scrollTo({ top: 0 })
-  }, [page, stop])
+  }, [page, stop, pages.length])
 
   useEffect(() => {
     const key = (e: KeyboardEvent) => { if (e.key === 'ArrowRight') turn(1); if (e.key === 'ArrowLeft') turn(-1); if (e.key === 'Escape' && !document.fullscreenElement) onExit(page) }
@@ -126,7 +152,6 @@ export function BookView({ s, clips, start, firstPage, prev, next, onExit }: {
     else document.documentElement.requestFullscreen?.().catch(() => {})
   }
 
-  const kind = BOOK_KINDS[page][0]
   const btn = 'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-extrabold transition'
 
   return (
@@ -134,8 +159,8 @@ export function BookView({ s, clips, start, firstPage, prev, next, onExit }: {
       {/* Bar */}
       <div className="flex shrink-0 items-center gap-2 px-2 py-2 sm:px-4" dir="ltr" style={{ background: V.navy }}>
         <button onClick={() => onExit(page)} className={`${btn} text-white hover:bg-white/10`} title="Back to the app view"><LayoutGrid size={15} /> <span className="hidden sm:inline">App view</span></button>
-        <span className="rounded-lg px-2 py-1 text-[12px] font-extrabold text-white" style={{ background: V.red }}>STOP {pad2(s.n)}</span>
-        <span className="min-w-0 flex-1 truncate text-[13px] font-bold text-white/85">Page {page + 1} of 6 · <span className="text-white">{BOOK_KINDS[page][1]}</span></span>
+        <span className="rounded-lg px-2 py-1 text-[12px] font-extrabold text-white" style={{ background: V.red }}>{badge}</span>
+        <span className="min-w-0 flex-1 truncate text-[13px] font-bold text-white/85">Page {page + 1} of {pages.length} · <span className="text-white">{pages[page].label}</span></span>
         <button onClick={() => setSlow(!slow)} className={btn} style={slow ? { background: V.saff, color: V.navy } : { color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }} title="Slow audio"><Gauge size={14} /><span className="hidden sm:inline">{slow ? 'Slow' : 'Normal'}</span></button>
         <button onClick={() => setFitWidth(f => !f)} className={btn} style={fitWidth ? { background: V.saff, color: V.navy } : { color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }} title={fitWidth ? 'Fit the whole page' : 'Fit the width (bigger text)'}>
           {fitWidth ? <Expand size={14} /> : <MoveHorizontal size={14} />}<span className="hidden sm:inline">{fitWidth ? 'Whole page' : 'Zoom'}</span>
@@ -154,7 +179,7 @@ export function BookView({ s, clips, start, firstPage, prev, next, onExit }: {
               className="vz-bookpage m-auto shrink-0 overflow-hidden shadow-[0_18px_50px_rgba(0,0,0,0.45)]" style={{ width: PAGE_W * scale, height: PAGE_H * scale, perspective: 1200 }}
               onClick={onPageClick}>
               <div style={{ width: PAGE_W, transform: `scale(${scale})`, transformOrigin: 'top left' }}>
-                <StopPage stop={s} kind={kind} pageNo={firstPage + page} filename={`viiza-stop-${s.n}-${kind}`} />
+                {pages[page].node}
               </div>
             </motion.div>
           </AnimatePresence>
@@ -163,10 +188,10 @@ export function BookView({ s, clips, start, firstPage, prev, next, onExit }: {
         {/* Turn */}
         {page > 0
           ? <button onClick={() => turn(-1)} aria-label="Previous page" className="absolute left-2 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow-lg sm:flex" style={{ color: V.navy }}><ChevronLeft size={26} /></button>
-          : prev && <Link href={`/viiza/${prev.n}#book`} aria-label="Previous stop" className="absolute left-2 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/60 shadow-lg sm:flex" style={{ color: V.navy }}><ChevronLeft size={26} /></Link>}
-        {page < BOOK_KINDS.length - 1
+          : prev && <Link href={prev.href} aria-label={prev.label} className="absolute left-2 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/60 shadow-lg sm:flex" style={{ color: V.navy }}><ChevronLeft size={26} /></Link>}
+        {page < pages.length - 1
           ? <button onClick={() => turn(1)} aria-label="Next page" className="absolute right-2 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow-lg sm:flex" style={{ color: V.navy }}><ChevronRight size={26} /></button>
-          : next && <Link href={`/viiza/${next.n}#book`} aria-label="Next stop" className="absolute right-2 top-1/2 hidden h-12 items-center justify-center gap-1 rounded-full px-4 text-[13px] font-extrabold shadow-lg sm:flex" style={{ background: V.saff, color: V.navy }}>Stop {pad2(next.n)} <ChevronRight size={20} /></Link>}
+          : next && <Link href={next.href} aria-label={next.label} className="absolute right-2 top-1/2 hidden h-12 items-center justify-center gap-1 rounded-full px-4 text-[13px] font-extrabold shadow-lg sm:flex" style={{ background: V.saff, color: V.navy }}>{next.label} <ChevronRight size={20} /></Link>}
 
         <AnimatePresence>
           {hint && (
@@ -183,11 +208,11 @@ export function BookView({ s, clips, start, firstPage, prev, next, onExit }: {
       {/* Pages */}
       <div className="flex shrink-0 items-center justify-center gap-2 px-3 py-2.5" dir="ltr" style={{ background: V.navy }}>
         <button onClick={() => turn(-1)} disabled={page === 0} className="rounded-full p-1.5 text-white disabled:opacity-30 sm:hidden"><ChevronLeft size={22} /></button>
-        {BOOK_KINDS.map(([k, label], i) => (
-          <button key={k} onClick={() => { stop(); setDir(i > page ? 1 : -1); setPage(i) }} title={label}
+        {pages.map((p, i) => (
+          <button key={i} onClick={() => { stop(); setDir(i > page ? 1 : -1); setPage(i) }} title={p.label}
             className="h-[10px] rounded-full transition-all" style={{ width: i === page ? 30 : 10, background: i === page ? V.saff : 'rgba(255,255,255,0.35)' }} />
         ))}
-        <button onClick={() => turn(1)} disabled={page === BOOK_KINDS.length - 1} className="rounded-full p-1.5 text-white disabled:opacity-30 sm:hidden"><ChevronRight size={22} /></button>
+        <button onClick={() => turn(1)} disabled={page === pages.length - 1} className="rounded-full p-1.5 text-white disabled:opacity-30 sm:hidden"><ChevronRight size={22} /></button>
       </div>
     </div>
   )

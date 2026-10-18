@@ -428,16 +428,17 @@ export function daysInactive(e?: Engagement): number | null {
   return Math.floor((Date.now() - new Date(e.last_activity_at).getTime()) / 86400000)
 }
 
-/* ── VIIZA interactive (/viiza, migration 066) ─────────── */
-/** Staff: unlock VIIZA interactive for a student until a day (YYYY-MM-DD, Morocco), or take it away (null). */
-export async function setViizaAccess(studentId: string, until: string | null): Promise<boolean> {
-  const { error } = await supabase.from('crm_students').update({ viiza_access_until: until }).eq('id', studentId)
-  if (error) console.error('setViizaAccess', error.message)
+/* ── The interactive books: VIIZA (/viiza, 066, 067) and PIIRMI (/piirmi, 068) ── */
+export type InteractiveBook = 'viiza' | 'piirmi'
+/** Staff: unlock an interactive book for a student until a day (YYYY-MM-DD, Morocco), or take it away (null). */
+export async function setBookAccess(studentId: string, book: InteractiveBook, until: string | null): Promise<boolean> {
+  const { error } = await supabase.from('crm_students').update({ [`${book}_access_until`]: until }).eq('id', studentId)
+  if (error) console.error('setBookAccess', error.message)
   return !error
 }
-/** Staff: a student's VIIZA interactive progress (migration 067), or null when there is none yet. */
-export async function fetchViizaProgress(studentId: string): Promise<{ done: number[]; best: Record<string, number>; updated_at: string } | null> {
-  const { data, error } = await supabase.from('viiza_progress').select('data, updated_at').eq('student_id', studentId).maybeSingle()
+/** Staff: a student's progress in an interactive book, or null when there is none yet. */
+export async function fetchBookProgress(studentId: string, book: InteractiveBook): Promise<{ done: number[]; best: Record<string, number>; updated_at: string } | null> {
+  const { data, error } = await supabase.from(`${book}_progress`).select('data, updated_at').eq('student_id', studentId).maybeSingle()
   if (error || !data) return null
   const d = (data.data ?? {}) as { done?: number[]; best?: Record<string, number> }
   return { done: Array.isArray(d.done) ? d.done : [], best: d.best ?? {}, updated_at: data.updated_at as string }

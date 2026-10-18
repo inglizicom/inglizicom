@@ -1,7 +1,8 @@
 'use client'
 
 import type { CSSProperties } from 'react'
-import { sortKey, TONES, type EverydayUnit, type Tone, type UnitOpener, type WordEntry } from '@/data/everyday-book'
+import type { EverydayUnit, UnitOpener, WordEntry } from '@/data/everyday-book'
+import { sortKey, TONES, type Tone } from '@/data/everyday-book/tones'
 import { AR, CodeSlot, Footer, Frame, Gloss, HEAD, LessonHeader, lessonColour, Mixed, SectionHead, type BookInfo } from '../level1-book/_blocks'
 import { DISPLAY } from './_fonts'
 

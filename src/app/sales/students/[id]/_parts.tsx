@@ -10,7 +10,7 @@ import { type CrmStudent } from '@/lib/crm-types'
 import Avatar from '@/app/sales/_components/Avatar'
 import {
   fetchStudentDevices, deleteStudentDevice, resetStudentDevices, setDeviceLimit, uploadStudentAvatar,
-  removeStudentAvatar, setViizaAccess, fetchViizaProgress, type StudentDevice,
+  removeStudentAvatar, setBookAccess, fetchBookProgress, type InteractiveBook, type StudentDevice,
 } from '@/lib/student-portal'
 import {
   fetchStudentCertificates, issueCustomCertificate, deleteCertificate, certUrl, CERT_KIND_AR,
@@ -349,7 +349,7 @@ export function CoinsSection({ studentId, by }: { studentId: string; by: string 
   )
 }
 
-/* VIIZA interactive (/viiza): staff unlock the travel guide app for this student until a day. */
+/* The interactive books (/viiza, /piirmi): staff unlock each one for this student until a day. */
 const moroccoDay = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Africa/Casablanca' }).format(d)
 function addMonths(day: string, months: number): string {
   const [y, m, d] = day.split('-').map(Number)
@@ -357,28 +357,34 @@ function addMonths(day: string, months: number): string {
   return t.toISOString().slice(0, 10)
 }
 
-export function ViizaAccessSection({ studentId, until, token, phone }: { studentId: string; until: string | null; token: string | null; phone: string | null }) {
+const BOOKS: Record<InteractiveBook, { title: string; name: string; units: number; unitWord: string; parts: number; partWord: string; accent: string }> = {
+  viiza: { title: 'VIIZA التفاعلي · دليل السفر', name: 'VIIZA ENGLISH التفاعلي (دليل السفر)', units: 34, unitWord: 'محطات مختومة', parts: 6, partWord: 'أجزاء ناجحة', accent: 'text-amber-600' },
+  piirmi: { title: 'PIIRMI التفاعلي · المواقف اليومية', name: 'PIIRMI ENGLISH التفاعلي (الإنجليزية للمواقف اليومية)', units: 19, unitWord: 'وحدات منتهية', parts: 4, partWord: 'مراجعات ناجحة', accent: 'text-emerald-700' },
+}
+
+export function BookAccessSection({ book, studentId, until, token, phone }: { book: InteractiveBook; studentId: string; until: string | null; token: string | null; phone: string | null }) {
+  const b = BOOKS[book]
   const [day, setDay] = useState<string | null>(until)
   const [busy, setBusy] = useState(false)
-  const [prog, setProg] = useState<Awaited<ReturnType<typeof fetchViizaProgress>>>(null)
-  useEffect(() => { fetchViizaProgress(studentId).then(setProg) }, [studentId])
+  const [prog, setProg] = useState<Awaited<ReturnType<typeof fetchBookProgress>>>(null)
+  useEffect(() => { fetchBookProgress(studentId, book).then(setProg) }, [studentId, book])
   const partsPassed = prog ? Object.entries(prog.best).filter(([k, v]) => k.startsWith('part:') && v >= 7).length : 0
   const today = moroccoDay()
   const active = !!day && day >= today
 
   async function save(v: string | null) {
     setBusy(true)
-    if (await setViizaAccess(studentId, v)) setDay(v)
+    if (await setBookAccess(studentId, book, v)) setDay(v)
     setBusy(false)
   }
   const extend = (months: number) => save(addMonths(active && day ? day : today, months))
-  const msg = `مرحبًا! تم تفعيل VIIZA ENGLISH التفاعلي (دليل السفر) لك.\nافتح: https://inglizi.com/viiza\nرمزك: ${token ?? ''}`
+  const msg = `مرحبًا! تم تفعيل ${b.name} لك.\nافتح: https://inglizi.com/${book}\nرمزك: ${token ?? ''}`
   const wa = phone ? `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}` : null
 
   return (
     <div className="bg-white rounded-2xl border border-zinc-200 p-4">
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-1.5 text-[12px] font-bold text-zinc-700"><Plane size={14} className="text-amber-600" /> VIIZA التفاعلي · دليل السفر</div>
+        <div className="flex items-center gap-1.5 text-[12px] font-bold text-zinc-700"><Plane size={14} className={b.accent} /> {b.title}</div>
         <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${active ? 'bg-emerald-100 text-emerald-700' : day ? 'bg-red-100 text-red-600' : 'bg-zinc-100 text-zinc-500'}`}>
           {active ? `مفعّل حتى ${day}` : day ? `انتهى في ${day}` : 'غير مفعّل'}
         </span>
@@ -390,19 +396,19 @@ export function ViizaAccessSection({ studentId, until, token, phone }: { student
       <div className="flex items-center gap-2 mt-2">
         <input type="date" value={day ?? ''} onChange={e => e.target.value && save(e.target.value)} disabled={busy}
           className="flex-1 border border-zinc-200 rounded-lg px-2 py-1.5 text-[12px]" />
-        {day && <button onClick={() => confirm('إيقاف وصول الطالب إلى VIIZA التفاعلي؟') && save(null)} disabled={busy} className="text-[11px] font-bold text-red-500 hover:text-red-700">إيقاف</button>}
+        {day && <button onClick={() => confirm(`إيقاف وصول الطالب إلى ${b.title}؟`) && save(null)} disabled={busy} className="text-[11px] font-bold text-red-500 hover:text-red-700">إيقاف</button>}
       </div>
       {active && wa && (
         <a href={wa} target="_blank" rel="noopener noreferrer" className="mt-2 block text-center text-[12px] font-bold py-2 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100">أرسل الرابط والرمز عبر واتساب</a>
       )}
       {prog && (
         <div className="mt-2 grid grid-cols-3 gap-1.5 text-center">
-          <div className="rounded-lg bg-zinc-50 py-1.5"><div className="text-[14px] font-black text-zinc-800">{prog.done.length}/34</div><div className="text-[10px] text-zinc-400">محطات مختومة</div></div>
-          <div className="rounded-lg bg-zinc-50 py-1.5"><div className="text-[14px] font-black text-zinc-800">{partsPassed}/6</div><div className="text-[10px] text-zinc-400">أجزاء ناجحة</div></div>
+          <div className="rounded-lg bg-zinc-50 py-1.5"><div className="text-[14px] font-black text-zinc-800">{prog.done.length}/{b.units}</div><div className="text-[10px] text-zinc-400">{b.unitWord}</div></div>
+          <div className="rounded-lg bg-zinc-50 py-1.5"><div className="text-[14px] font-black text-zinc-800">{partsPassed}/{b.parts}</div><div className="text-[10px] text-zinc-400">{b.partWord}</div></div>
           <div className="rounded-lg bg-zinc-50 py-1.5"><div className="text-[12px] font-black text-zinc-800">{fmtDate(prog.updated_at)}</div><div className="text-[10px] text-zinc-400">آخر نشاط</div></div>
         </div>
       )}
-      <p className="text-[10px] text-zinc-400 mt-2 leading-relaxed">يدخل الطالب إلى inglizi.com/viiza برمزه نفسه. الأجهزة المسموح بها هي نفسها في «أجهزة الدخول والأمان».</p>
+      <p className="text-[10px] text-zinc-400 mt-2 leading-relaxed">يدخل الطالب إلى inglizi.com/{book} برمزه نفسه. الأجهزة المسموح بها هي نفسها في «أجهزة الدخول والأمان».</p>
     </div>
   )
 }

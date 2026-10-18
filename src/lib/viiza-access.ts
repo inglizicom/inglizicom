@@ -2,7 +2,8 @@ import { createHmac, timingSafeEqual } from 'node:crypto'
 import { createClient } from '@supabase/supabase-js'
 
 /**
- * Who may open VIIZA interactive (/viiza). Server only: it holds the
+ * Who may open the interactive books: VIIZA (/viiza) and PIIRMI (/piirmi).
+ * Server only: it holds the
  * service-role key, so import it from server components and API routes,
  * never from a client component.
  *
@@ -13,11 +14,22 @@ import { createClient } from '@supabase/supabase-js'
  * the device. Every page checks that cookie again against the database, so
  * staff taking access away, or freeing the student's devices, takes effect
  * on the next page the student opens.
+ *
+ * One sign-in serves both books (the cookie names the student); each book is
+ * bought on its own, with its own date: crm_students.viiza_access_until (066)
+ * and piirmi_access_until (068).
  */
 
+export type Product = 'viiza' | 'piirmi'
+export const PRODUCTS: Product[] = ['viiza', 'piirmi']
+const UNTIL: Record<Product, string> = { viiza: 'viiza_access_until', piirmi: 'piirmi_access_until' }
+/** Each book's progress table (067, 068). */
+export const PROGRESS_TABLE: Record<Product, string> = { viiza: 'viiza_progress', piirmi: 'piirmi_progress' }
+/** Units anyone may open, to taste each app before buying. Empty a list to close its sample. */
+export const FREE: Record<Product, number[]> = { viiza: [1], piirmi: [1] }
+
 export const COOKIE = 'viiza_session'
-/** Stops anyone may open, to taste the app before buying. Empty it to close the sample. */
-export const FREE_STOPS: number[] = [1]
+export const FREE_STOPS = FREE.viiza
 const DAYS = 180
 
 const secret = () => process.env.VIIZA_SESSION_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || ''
@@ -55,36 +67,42 @@ export const moroccoToday = () => new Intl.DateTimeFormat('en-CA', { timeZone: '
 export interface Access { ok: true; name: string; until: string }
 
 /** The signed-in student, if the session is valid, the student active, VIIZA still theirs and this device still registered. */
-export async function currentAccess(cookie: string | undefined): Promise<Access | null> {
+export async function currentAccess(cookie: string | undefined, product: Product = 'viiza'): Promise<Access | null> {
   // End-to-end tests only (playwright.config.ts sets the variable; production never does).
   if (process.env.VIIZA_E2E_ACCESS === '1' && process.env.NODE_ENV !== 'production' && cookie === 'e2e') return { ok: true, name: 'Test Student', until: '2099-12-31' }
   const s = readSession(cookie)
   if (!s) return null
   try {
     const db = admin()
-    const { data: st } = await db.from('crm_students')
-      .select('full_name, is_active, deleted_at, viiza_access_until').eq('id', s.sid).maybeSingle()
-    if (!st || !st.is_active || st.deleted_at || !st.viiza_access_until || st.viiza_access_until < moroccoToday()) return null
+    const col = UNTIL[product]
+    const { data } = await db.from('crm_students')
+      .select(`full_name, is_active, deleted_at, ${col}`).eq('id', s.sid).maybeSingle()
+    const st = data as Record<string, string | boolean | null> | null
+    const until = st?.[col] as string | null | undefined
+    if (!st || !st.is_active || st.deleted_at || !until || until < moroccoToday()) return null
     const { data: dev } = await db.from('student_devices').select('id').eq('student_id', s.sid).eq('device_id', s.dev).maybeSingle()
     if (!dev) return null
-    return { ok: true, name: st.full_name, until: st.viiza_access_until }
+    return { ok: true, name: String(st.full_name), until }
   } catch { return null }
 }
 
 export type LoginResult = { ok: true; sid: string; name: string } | { ok: false; reason: 'invalid' | 'no_access' | 'expired' | 'device_limit' | 'error' }
 
-/** Check a token for VIIZA and register the device (within the student's device limit). */
-export async function login(token: string, deviceId: string, label: string | null, ua: string | null): Promise<LoginResult> {
+/** Check a token for one book and register the device (within the student's device limit). */
+export async function login(token: string, deviceId: string, label: string | null, ua: string | null, product: Product = 'viiza'): Promise<LoginResult> {
   const t = token.trim().toUpperCase()
   if (!t || !deviceId || deviceId.length < 8) return { ok: false, reason: 'invalid' }
   try {
     const db = admin()
-    const { data: st, error } = await db.from('crm_students')
-      .select('id, full_name, is_active, deleted_at, viiza_access_until, device_limit').eq('verification_token', t).maybeSingle()
+    const col = UNTIL[product]
+    const { data, error } = await db.from('crm_students')
+      .select(`id, full_name, is_active, deleted_at, device_limit, ${col}`).eq('verification_token', t).maybeSingle()
     if (error) return { ok: false, reason: 'error' }
+    const st = data as { id: string; full_name: string; is_active: boolean; deleted_at: string | null; device_limit: number | null } & Record<string, unknown> | null
     if (!st || !st.is_active || st.deleted_at) return { ok: false, reason: 'invalid' }
-    if (!st.viiza_access_until) return { ok: false, reason: 'no_access' }
-    if (st.viiza_access_until < moroccoToday()) return { ok: false, reason: 'expired' }
+    const until = st[col] as string | null
+    if (!until) return { ok: false, reason: 'no_access' }
+    if (until < moroccoToday()) return { ok: false, reason: 'expired' }
     const { data: devices } = await db.from('student_devices').select('device_id').eq('student_id', st.id)
     const known = (devices ?? []).some(d => d.device_id === deviceId)
     if (known) {

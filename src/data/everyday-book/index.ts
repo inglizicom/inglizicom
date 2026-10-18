@@ -28,29 +28,9 @@ export { EXTRAS, type UnitExtras } from './extras.ts'
 import { EXTRAS } from './extras.ts'
 export const EVERYDAY_UNITS: EverydayUnit[] = [...UNITS_1_7, ...UNITS_8_13, ...UNITS_14_19]
 
-export type EverydayKind = 'welcome' | 'howto' | 'contents' | 'planner' | 'progress' | 'opener' | 'vocab' | 'expressions' | 'talk' | 'reading' | 'review' | 'key' | 'wordlist'
+export { TONES, KIND_TONE, sortKey, photoSlug, photoOf, extraPhotoOf, AVATARS, type Tone, type EverydayKind } from './tones.ts'
+import { sortKey, photoOf, extraPhotoOf, AVATARS, type EverydayKind } from './tones.ts'
 
-/**
- * The book's colour key: one colour per kind of section, the same in every
- * unit, so a student always knows where they are — vocabulary blue,
- * expressions green, conversation violet, reading orange, every practice box
- * teal — and the book's own gold for openers, front and back matter.
- */
-export const TONES = {
-  // the series palette, from the PIIRMI ENGLISH covers: Piirmi green, deep saffron, navy, and the series' blue and orange
-  vocab: { m: '#2B36C9', s: '#EEF0FD' },
-  expr: { m: '#0E6B4E', s: '#EAF6F1' },
-  talk: { m: '#0E1240', s: '#EEF0F8' },
-  reading: { m: '#B7791F', s: '#FFF6DE' },
-  practice: { m: '#C2541F', s: '#FFF1E8' },
-  brand: { m: '#0E6B4E', s: '#FFF4E0' },
-} as const
-export type Tone = keyof typeof TONES
-/** The colour of a page (its frame, and any section without a tone of its own). */
-export const KIND_TONE: Record<EverydayKind, Tone> = {
-  welcome: 'brand', howto: 'brand', contents: 'brand', planner: 'brand', progress: 'brand', opener: 'brand', wordlist: 'brand', key: 'brand',
-  vocab: 'vocab', expressions: 'expr', talk: 'talk', reading: 'reading', review: 'practice',
-}
 /** One line of the word list: the word, its meaning, and every unit it is taught in. */
 export type WordEntry = { en: string; ar: string; units: number[] }
 export type EverydayPage = Lesson & { kind: EverydayKind; unit?: number; words?: WordEntry[] }
@@ -71,18 +51,13 @@ export const LINES_PER_PAGE = 38
 /** A conversation on one page reads in one column up to this many lines, in two columns above it. */
 export const ONE_COLUMN_LINES = 30
 
-/** A word's file name: "Wi-Fi password" → wi-fi-password, "for here / to go" → for-here-to-go. */
-export const photoSlug = (en: string) => en.toLowerCase().replace(/&/g, 'and').replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-/** The word's photograph, from the author's course pictures (public/everyday-book/vocab). */
-export const photoOf = (unit: number, en: string) => `/everyday-book/vocab/u${pad(unit)}/${photoSlug(en)}.webp`
 /**
  * Words added so every vocabulary page holds nine photographs, whose
  * pictures the author is still to drop in (as public/everyday-book/vocab/
  * uNN/<word>.png); until then their card shows the word's picture sign.
  */
 export const AWAITING_PHOTOS: string[] = []   // all in (the author's pictures arrived on 2026-10-09)
-/** An extra word's photograph (public/everyday-book/extra); until it is added, the card shows the word's picture sign. */
-export const extraPhotoOf = (unit: number, en: string) => `/everyday-book/extra/u${pad(unit)}/${photoSlug(en)}.webp`
+
 
 /** Under the first half of a conversation that runs over two pages: the pre-reading step, where the page has room. */
 const BEFORE_YOU_READ: Block = { t: 'bullets', box: true, section: true, tone: 'practice', heading: 'Before you read - قبل القراءة 🔍', size: 13, items: [
@@ -219,8 +194,6 @@ export const HOW_TO: EverydayPage = front('howto', 'How to use', 'How to use thi
   { t: 'bullets', box: true, size: 14, items: ["You don't need to memorize everything. Use it, repeat it, and make it yours. - لا تحتاج إلى حفظ كل شيء: استعمل ما تتعلّمه، كرّره، واجعله جزءًا من لغتك."] },
 ])
 
-/* The word list's alphabetical key: "a missed call" files under M, "to go" under G. */
-export const sortKey = (en: string) => en.toLowerCase().replace(/^(a|an|the|to)\s+/, '').replace(/[^a-z0-9 ]/g, '')
 
 /** Every vocabulary word of the book, A to Z, a word taught twice listed once with both units. */
 export function wordList(units: EverydayUnit[] = EVERYDAY_UNITS): WordEntry[] {
@@ -352,15 +325,6 @@ export function keyLines(u: EverydayUnit): number[] {
     if (k >= 0) { used.add(k); out.push(i) }
   })
   return out
-}
-
-/** Each speaker's face in the conversations. */
-export const AVATARS: Record<string, string> = {
-  // The two people of a conversation must look different at a glance: hijab or not, beard or not, skin tones apart.
-  SAMI: '👨🏻', AMINE: '👨🏽', OMAR: '🧔🏻', KARIM: '👨🏾',
-  NOUR: '🧕', LINA: '🧕🏽', HODA: '🧕🏻', SALMA: '🧕🏾', NADIA: '👩🏽', RANIA: '👩🏻', LAYLA: '👩🏼', SARA: '👩🏾',
-  STAFF: '🧑‍💼', FARID: '🧑‍💼', WAITER: '🤵', CASHIER: '🧑‍💼', BAKER: '🧑‍🍳', ASSISTANT: '💁', PHARMACIST: '🧑‍⚕️',
-  RECEPTIONIST: '💁', DOCTOR: '🧑‍⚕️', SELLER: '🧑‍🌾', DRIVER: '🧔🏽', 'BUS DRIVER': '🧑🏾', CLERK: '🧑‍💼', PASSENGER: '🧑',
 }
 
 /** The book's week: one unit, six days of study and a day off (the study planner's rhythm). */
