@@ -2230,3 +2230,26 @@ describe('VIIZA interactive access (066)', () => {
     assert.equal((await one(ctx.db, `select viiza_access_until from crm_students where id = $1`, [s.id])).viiza_access_until, null)
   })
 })
+
+describe('VIIZA interactive progress (067)', () => {
+  let ctx
+  before(async () => { ctx = await setup() })
+
+  it('staff read a student\'s progress; nobody writes it from the browser', async () => {
+    const s = await makeStudent(ctx.db, 'Traveller')
+    await q(ctx.db, `insert into viiza_progress (student_id, data) values ($1, $2)`, [s.id, JSON.stringify({ done: [1, 2], seen: {}, best: { 'part:1': 8 } })])
+    const rows = await as(ctx.db, ctx.assistant, () => q(ctx.db, `select data from viiza_progress where student_id = $1`, [s.id]))
+    assert.deepEqual(rows[0].data.done, [1, 2])
+    const teacherRows = await as(ctx.db, ctx.teacherA, () => q(ctx.db, `select data from viiza_progress where student_id = $1`, [s.id]))
+    assert.equal(teacherRows.length, 0)
+    await rejects(as(ctx.db, ctx.assistant, () => q(ctx.db, `update viiza_progress set data = '{}' where student_id = $1`, [s.id])), /permission denied/)
+    await rejects(as(ctx.db, 'anon', () => q(ctx.db, `select * from viiza_progress`)), /permission denied/)
+  })
+
+  it('goes with the student', async () => {
+    const s = await makeStudent(ctx.db, 'Gone')
+    await q(ctx.db, `insert into viiza_progress (student_id) values ($1)`, [s.id])
+    await q(ctx.db, `delete from crm_students where id = $1`, [s.id])
+    assert.equal((await q(ctx.db, `select 1 from viiza_progress where student_id = $1`, [s.id])).length, 0)
+  })
+})

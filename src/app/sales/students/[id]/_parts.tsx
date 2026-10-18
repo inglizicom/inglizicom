@@ -10,7 +10,7 @@ import { type CrmStudent } from '@/lib/crm-types'
 import Avatar from '@/app/sales/_components/Avatar'
 import {
   fetchStudentDevices, deleteStudentDevice, resetStudentDevices, setDeviceLimit, uploadStudentAvatar,
-  removeStudentAvatar, setViizaAccess, type StudentDevice,
+  removeStudentAvatar, setViizaAccess, fetchViizaProgress, type StudentDevice,
 } from '@/lib/student-portal'
 import {
   fetchStudentCertificates, issueCustomCertificate, deleteCertificate, certUrl, CERT_KIND_AR,
@@ -360,6 +360,9 @@ function addMonths(day: string, months: number): string {
 export function ViizaAccessSection({ studentId, until, token, phone }: { studentId: string; until: string | null; token: string | null; phone: string | null }) {
   const [day, setDay] = useState<string | null>(until)
   const [busy, setBusy] = useState(false)
+  const [prog, setProg] = useState<Awaited<ReturnType<typeof fetchViizaProgress>>>(null)
+  useEffect(() => { fetchViizaProgress(studentId).then(setProg) }, [studentId])
+  const partsPassed = prog ? Object.entries(prog.best).filter(([k, v]) => k.startsWith('part:') && v >= 7).length : 0
   const today = moroccoDay()
   const active = !!day && day >= today
 
@@ -391,6 +394,13 @@ export function ViizaAccessSection({ studentId, until, token, phone }: { student
       </div>
       {active && wa && (
         <a href={wa} target="_blank" rel="noopener noreferrer" className="mt-2 block text-center text-[12px] font-bold py-2 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100">أرسل الرابط والرمز عبر واتساب</a>
+      )}
+      {prog && (
+        <div className="mt-2 grid grid-cols-3 gap-1.5 text-center">
+          <div className="rounded-lg bg-zinc-50 py-1.5"><div className="text-[14px] font-black text-zinc-800">{prog.done.length}/34</div><div className="text-[10px] text-zinc-400">محطات مختومة</div></div>
+          <div className="rounded-lg bg-zinc-50 py-1.5"><div className="text-[14px] font-black text-zinc-800">{partsPassed}/6</div><div className="text-[10px] text-zinc-400">أجزاء ناجحة</div></div>
+          <div className="rounded-lg bg-zinc-50 py-1.5"><div className="text-[12px] font-black text-zinc-800">{fmtDate(prog.updated_at)}</div><div className="text-[10px] text-zinc-400">آخر نشاط</div></div>
+        </div>
       )}
       <p className="text-[10px] text-zinc-400 mt-2 leading-relaxed">يدخل الطالب إلى inglizi.com/viiza برمزه نفسه. الأجهزة المسموح بها هي نفسها في «أجهزة الدخول والأمان».</p>
     </div>

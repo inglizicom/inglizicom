@@ -1,7 +1,7 @@
 'use client'
 
 import { Fragment, useLayoutEffect, useRef, useState } from 'react'
-import type { Exercise, Pair, Stop, StopKind } from '@/data/viiza-book'
+import type { Exercise, Pair, SoundTip, Stop, StopKind } from '@/data/viiza-book'
 // The small modules, not the book's index: VIIZA interactive draws these pages in the browser and must not bundle every stop.
 import { PARTS } from '@/data/viiza-book/plan'
 import { mixed, seedOf } from '@/data/viiza-book/shuffle'
@@ -450,7 +450,27 @@ function Talk({ s }: { s: Stop }) {
       </div>
 
       {s.more && <Check items={s.more.check} />}
+      {s.sound && <SayItRight t={s.sound} />}
       <NotesFill />
+    </div>
+  )
+}
+
+/** Say it right: the stop's pronunciation point for Arabic speakers. */
+function SayItRight({ t }: { t: SoundTip }) {
+  return (
+    <div className="rounded-xl px-4 py-2.5" style={{ background: C.saffS, border: `1.5px solid ${C.saff}` }}>
+      <div className="flex items-center gap-2" dir="ltr">
+        <span className="flex h-[24px] w-[24px] items-center justify-center rounded-md" style={{ background: C.saff }}><Ico name="Mic" size={14} color={C.navy} stroke={2.3} /></span>
+        <span className="text-[12px] font-extrabold uppercase tracking-[0.08em]" style={{ color: C.saffD }}>Say it right · {t.title[0]}</span>
+        <span className="h-px flex-1" style={{ background: C.saff }} />
+        <Ar as="span" className="text-[13px] font-bold" style={{ color: C.saffD }}>{t.title[1]}</Ar>
+      </div>
+      <Ar className="mt-1 text-[12px] font-semibold leading-[1.65]">{t.how}</Ar>
+      <div className="mt-1.5 flex flex-wrap items-center gap-1.5" dir="ltr">
+        {t.words.map(w => <span key={w} className="rounded-md bg-white px-2 py-[1px] text-[12.5px] font-extrabold" style={{ border: `1px solid ${C.saff}` }}>{w}</span>)}
+      </div>
+      <div className="mt-1.5 text-[13px] font-bold" dir="ltr" style={{ color: C.navy }}>Say it: “{t.say}”</div>
     </div>
   )
 }

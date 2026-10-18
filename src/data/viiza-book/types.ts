@@ -126,6 +126,25 @@ export interface Stop {
   card: Pair[]
   /** The vocabulary page, the exchanges and the check (merged in from more-*.ts). */
   more?: StopMore
+  /** "Say it right": one pronunciation point for Arabic speakers (merged in from sounds.ts). */
+  sound?: SoundTip
+}
+
+/**
+ * One pronunciation point a stop practises, chosen for what Arabic speakers
+ * find hard (P/B, V/F, TH, stress, -ed, silent letters…), with the stop's
+ * own words. Capitals mark a stressed syllable (reFUNDable); ↗ ↘ mark the
+ * voice going up or down.
+ */
+export interface SoundTip {
+  /** What to work on: [English, Arabic]. */
+  title: Pair
+  /** How to make it, for an Arabic speaker (Arabic, may quote English). */
+  how: string
+  /** Words or short phrases to practise (4–6). */
+  words: string[]
+  /** One sentence to say, with the sound in it. */
+  say: string
 }
 
 /**

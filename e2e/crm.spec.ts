@@ -282,7 +282,7 @@ test.describe('flows', () => {
     const tooLong = await page.evaluate(() => [...document.querySelectorAll('.vz-body')].flatMap((b, i) => (b.scrollHeight > b.clientHeight + 1 ? [i + 1] : [])))
     expect(tooLong).toEqual([])
     await expect(page.locator('.print-sheet', { hasText: 'SURVIVAL CARD' })).toHaveCount(34)
-    await expect(page.locator('.print-sheet', { hasText: 'Immigration' }).filter({ hasText: 'Did you understand' }).first()).toContainText("What's the purpose of your visit?")
+    await expect(page.locator('.print-sheet', { hasText: 'STOP16Immigration' }).filter({ hasText: 'Did you understand' }).first()).toContainText("What's the purpose of your visit?")
     // the exchanges: what you hear, and how you reply
     await expect(page.locator('.print-sheet', { hasText: 'STOP16Immigration' }).filter({ hasText: 'You hear → you reply' }).first()).toContainText('Tourism.')
     await expect(page.locator('.print-sheet', { hasText: 'ACTION WORDS' })).toHaveCount(34)

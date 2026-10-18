@@ -620,6 +620,21 @@ function Talk({ s, onScore }: { s: Stop; onScore: (v: number) => void }) {
         })}
       </div>
 
+      {s.sound && (
+        <Card style={{ background: V.saffS, border: `1.5px solid ${V.saff}` }}>
+          <Head icon="Mic" en={`Say it right · ${s.sound.title[0]}`} ar={s.sound.title[1]} color={V.saffD} />
+          <Ar className="text-[14px] font-semibold leading-[1.85]">{s.sound.how}</Ar>
+          <div className="mt-3 flex flex-wrap gap-2" dir="ltr">
+            {s.sound.words.map(w => <Say key={w} text={w} className="rounded-xl bg-white px-3 py-1.5 text-[15px] font-extrabold" style={{ border: `1.5px solid ${V.saff}` }} />)}
+          </div>
+          <div className="mt-3 rounded-xl bg-white p-3" dir="ltr">
+            <div className="mb-1 text-[10.5px] font-extrabold tracking-[0.14em]" style={{ color: V.saffD }}>NOW SAY IT</div>
+            <Say text={s.sound.say} className="text-[16px] font-extrabold" />
+            <MicCheck model={s.sound.say} />
+          </div>
+        </Card>
+      )}
+
       {check.length > 0 && (
         <Card>
           <Head icon="CircleCheck" en="Did you understand?" ar="هل فهمت؟ صحيح أم خطأ" color={V.navy} />

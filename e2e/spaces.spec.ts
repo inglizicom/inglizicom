@@ -207,7 +207,7 @@ test.describe('VIIZA interactive', () => {
     await page.goto('/viiza')
     await expect(page.getByText('Departures')).toBeVisible({ timeout: 60_000 })
     await expect(page.locator('a[href^="/viiza/"]').filter({ hasText: 'Passport, visa & forms' }).first()).toBeVisible()
-    await expect(page.getByText('LOCKED')).toHaveCount(33)
+    await expect(page.getByText('LOCKED')).toHaveCount(33 + 6)   // 33 stops and the 6 part checks
     await fits(page)
     expect(errors).toEqual([])
   })
@@ -300,5 +300,33 @@ test.describe('VIIZA interactive · full screen', () => {
     expect(await page.evaluate(() => !!document.fullscreenElement)).toBe(true)
     await page.getByTitle('Exit full screen').click()
     await expect.poll(() => page.evaluate(() => !!document.fullscreenElement)).toBe(false)
+  })
+})
+
+test.describe('VIIZA interactive · signed in', () => {
+  // viiza_session=e2e counts as a signed-in student on the test server (VIIZA_E2E_ACCESS).
+  test.beforeEach(async ({ page, baseURL }) => {
+    await page.context().addCookies([{ name: 'viiza_session', value: 'e2e', url: baseURL! }])
+  })
+
+  test('every stop opens, and a part check is taken to the end and remembered', async ({ page }) => {
+    const errors = collectErrors(page)
+    await mockSupabase(page, { role: 'student' })
+    await page.goto('/viiza')
+    await expect(page.getByText('Part 1 check · 10 questions')).toBeVisible({ timeout: 60_000 })
+    await expect(page.getByText('LOCKED')).toHaveCount(0)
+    await page.goto('/viiza/20')
+    await expect(page.getByText('SECTION 1 OF 6')).toBeVisible({ timeout: 60_000 })
+
+    await page.goto('/viiza/check/1')
+    await expect(page.getByText('QUESTION 1 OF 10')).toBeVisible({ timeout: 60_000 })
+    for (let q = 0; q < 10; q++) {
+      await page.locator('main button.rounded-2xl').first().click()
+      await page.getByRole('button', { name: /Next question|See my score/ }).click()
+    }
+    await expect(page.getByText(/\d+ \/ 10/).first()).toBeVisible()
+    await page.goto('/viiza')
+    await expect(page.getByText(/BEST \d+\/10/).first()).toBeVisible({ timeout: 60_000 })
+    expect(errors).toEqual([])
   })
 })

@@ -1,5 +1,5 @@
 import { clipBase, clipPath, speakable, type AudioSection, type Clip, type Voice } from '../level1-audio/index.ts'
-import { STOPS } from '../viiza-book/index.ts'
+import { STOPS, soundText } from '../viiza-book/index.ts'
 import { TALK_STOPS } from '../viiza-talk/index.ts'
 
 /**
@@ -62,6 +62,7 @@ export function viizaSections(n: number): AudioSection[] {
       { kind: 'phrases' as const, title: 'You hear', titleAr: 'تسمع', clips: s.hear.map(([en, ar]) => coral(en, ar)) },
     ]),
     { kind: 'talk', title: 'Conversation', titleAr: 'المحادثة', clips: s.talk.lines.map(([who, en, ar]) => ({ en: sayable(en), ar, voice: voices.get(who)!, speaker: nameOf(who) })) },
+    ...(s.sound ? [{ kind: 'words' as const, title: `Say it right · ${s.sound.title[0]}`, titleAr: s.sound.title[1], clips: [...s.sound.words.map(w => coral(soundText(w))), coral(s.sound.say)] }] : []),
     { kind: 'phrases', title: 'Survival card', titleAr: 'بطاقة النجاة', clips: s.card.map(([en, ar]) => coral(en, ar)) },
   ]
 }
@@ -120,5 +121,6 @@ export function viizaStopAudio(n: number): Record<string, string> {
   for (const [en] of [...s.say, ...s.hear]) put(en, coral(en))
   for (const [who, en] of s.talk.lines) put(en, { en: sayable(en), voice: voices.get(who)! })
   for (const [en] of s.card) put(en, coral(en))
+  if (s.sound) { for (const w of s.sound.words) put(w, coral(soundText(w))); put(s.sound.say, coral(s.sound.say)) }
   return out
 }

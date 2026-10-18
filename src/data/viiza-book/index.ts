@@ -8,6 +8,7 @@ import { PART_5A } from './part-5a.ts'
 import { PART_5B } from './part-5b.ts'
 import { PART_6 } from './part-6.ts'
 import { MORE } from './more.ts'
+import { SOUNDS } from './sounds.ts'
 import { seedOf } from './shuffle.ts'
 import { answersOf } from './answers.ts'
 
@@ -26,9 +27,10 @@ export { PARTS, CHECKED } from './plan.ts'
 export * from './extras.ts'
 export { mixed, seedOf } from './shuffle.ts'
 export { answersOf, checkAnswers } from './answers.ts'
+export { soundText } from './sounds.ts'
 
 export const STOPS: Stop[] = [...PART_1, ...PART_2, ...PART_3, ...PART_4, ...PART_5A, ...PART_5B, ...PART_6]
-  .map(s => (MORE[s.n] ? { ...s, more: MORE[s.n] } : s))
+  .map(s => ({ ...s, ...(MORE[s.n] ? { more: MORE[s.n] } : {}), ...(SOUNDS[s.n] ? { sound: SOUNDS[s.n] } : {}) }))
 
 export type FrontKind = 'welcome' | 'contents' | 'mytrip' | 'toolkit-1' | 'toolkit-2' | 'phrases-1' | 'phrases-2'
 export type BackKind = 'dictionary-1' | 'dictionary-2' | 'emergency' | 'conversions' | 'apps' | 'stamps' | 'key'

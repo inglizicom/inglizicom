@@ -56,6 +56,8 @@ export interface Access { ok: true; name: string; until: string }
 
 /** The signed-in student, if the session is valid, the student active, VIIZA still theirs and this device still registered. */
 export async function currentAccess(cookie: string | undefined): Promise<Access | null> {
+  // End-to-end tests only (playwright.config.ts sets the variable; production never does).
+  if (process.env.VIIZA_E2E_ACCESS === '1' && process.env.NODE_ENV !== 'production' && cookie === 'e2e') return { ok: true, name: 'Test Student', until: '2099-12-31' }
   const s = readSession(cookie)
   if (!s) return null
   try {

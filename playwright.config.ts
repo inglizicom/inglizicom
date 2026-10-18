@@ -46,6 +46,8 @@ export default defineConfig({
       NEXT_PUBLIC_SUPABASE_ANON_KEY: 'e2e-anon-key',
       SUPABASE_SERVICE_ROLE_KEY: 'e2e-service-key',
       NEXT_TELEMETRY_DISABLED: '1',
+      // VIIZA interactive: the cookie viiza_session=e2e counts as a signed-in student (lib/viiza-access.ts).
+      VIIZA_E2E_ACCESS: '1',
     },
   },
 })

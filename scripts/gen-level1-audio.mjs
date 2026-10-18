@@ -31,7 +31,7 @@ function instructions(clip, speed) {
   const who = clip.voice === 'fable'
     ? 'You are Bouchta, a funny, playful goat in a family card game: cheerful and a little silly, but every word perfectly clear.'
     : clip.speaker
-      ? `You are ${clip.speaker}, speaking in a friendly everyday conversation in Morocco. Sound natural and warm, like a real person, not a narrator.`
+      ? `You are ${clip.speaker}, speaking in a friendly everyday conversation. Sound natural and warm, like a real person, not a narrator.`
       : 'You are a warm, friendly English teacher reading to a learner.'
   return `${who} Accent: clear General American English. ${pace} Read exactly the text, adding nothing. Letters given one by one (W, A, L, I, D) are spelled out letter by letter, clearly. Words like dirhams, tagine, couscous, msemen, harira and hammam are Moroccan: say them the Moroccan way.`
 }

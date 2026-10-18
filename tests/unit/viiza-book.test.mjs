@@ -148,3 +148,17 @@ test('the book: front matter, a divider and six pages per stop, reference pages,
   // every stop opens on its own page number, after the one before
   for (let i = 1; i < STOPS.length; i++) assert.ok(stopPage(STOPS[i].n) > stopPage(STOPS[i - 1].n))
 })
+
+test('every stop has its "Say it right" point, short enough for the conversation page', () => {
+  const AR = /[؀-ۿ]/
+  for (const s of STOPS) {
+    const t = s.sound
+    assert.ok(t, `stop ${s.n}: no pronunciation point (sounds.ts)`)
+    assert.ok(t.title[0] && !AR.test(t.title[0]) && AR.test(t.title[1]), `stop ${s.n}: title`)
+    assert.ok(AR.test(t.how) && t.how.length <= 230, `stop ${s.n}: how (${t.how.length})`)
+    assert.ok(t.words.length >= 4 && t.words.length <= 6, `stop ${s.n}: ${t.words.length} words`)
+    assert.ok(t.say.length <= 56 && !AR.test(t.say), `stop ${s.n}: say (${t.say.length})`)
+  }
+  // the titles are all different
+  assert.equal(new Set(STOPS.map(s => s.sound.title[0])).size, STOPS.length)
+})

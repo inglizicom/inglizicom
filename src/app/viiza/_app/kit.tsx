@@ -2,6 +2,7 @@
 
 import { createContext, Fragment, useCallback, useContext, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { icons, type LucideIcon, Volume2 } from 'lucide-react'
+import { EMPTY_PROGRESS, mergeProgress, sameProgress, type Progress } from './progress-merge'
 
 /**
  * The pieces every screen of VIIZA interactive shares: the printed book's
@@ -62,6 +63,9 @@ const SUPA = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
 
 /** What a voice reads: blanks become a pause, a spelled word its letters. */
 export const spoken = (t: string) => t.replace(/_{3,}/g, '…').replace(/\b(?:[A-Z]-)+[A-Z]\b/g, m => m.split('-').join(', '))
+  .replace(/[↗↘]/g, '').replace(/\s*→\s*/g, ', ')
+  // "reFUNDable", "TICKet": the capitals only mark the stress
+  .replace(/\b\w*[a-z]\w*\b/g, m => (/[a-z][A-Z]|[A-Z]{2,}[a-z]/.test(m) ? m.toLowerCase() : m))
 
 interface AudioApi {
   playing: string | null
@@ -180,20 +184,53 @@ export const same = (a: string, b: string) => words(a).join(' ') === words(b).jo
 
 /* ── Progress ───────────────────────────────────────────────────────── */
 
-export interface Progress { seen: Record<string, string[]>; done: number[]; best: Record<string, number> }
+export type { Progress }
 const KEY = 'viiza.progress.v1'
-const EMPTY: Progress = { seen: {}, done: [], best: {} }
+const EMPTY = EMPTY_PROGRESS
 
 export function readProgress(): Progress {
-  try { const p = JSON.parse(localStorage.getItem(KEY) ?? '') as Progress; return { ...EMPTY, ...p } } catch { return EMPTY }
+  try { return mergeProgress(EMPTY, JSON.parse(localStorage.getItem(KEY) ?? '')) } catch { return EMPTY }
 }
+const writeLocal = (p: Progress) => { try { localStorage.setItem(KEY, JSON.stringify(p)) } catch {} }
 
+/**
+ * The reader's progress: on this device at once, and in their account when
+ * they are signed in (/api/viiza/progress), merged both ways so a second
+ * phone or a laptop picks up where the first left off.
+ */
 export function useProgress() {
   const [p, setP] = useState<Progress>(EMPTY)
-  useEffect(() => { setP(readProgress()) }, [])
-  const save = useCallback((f: (p: Progress) => Progress) => {
-    setP(prev => { const next = f(prev); try { localStorage.setItem(KEY, JSON.stringify(next)) } catch {} ; return next })
+  const synced = useRef(false)
+  const timer = useRef<ReturnType<typeof setTimeout>>()
+
+  const push = useCallback((next: Progress) => {
+    if (!synced.current) return
+    clearTimeout(timer.current)
+    timer.current = setTimeout(() => {
+      fetch('/api/viiza/progress', { method: 'PUT', headers: { 'content-type': 'application/json' }, body: JSON.stringify(next) }).catch(() => {})
+    }, 1200)
   }, [])
+
+  useEffect(() => {
+    const local = readProgress()
+    setP(local)
+    let alive = true
+    fetch('/api/viiza/progress').then(r => (r.ok ? r.json() : null)).then(j => {
+      if (!alive || !j?.ok) return
+      synced.current = true
+      setP(prev => {
+        const merged = mergeProgress(prev, j.data)
+        writeLocal(merged)
+        if (!sameProgress(merged, mergeProgress(EMPTY, j.data))) push(merged)
+        return merged
+      })
+    }).catch(() => {})
+    return () => { alive = false }
+  }, [push])
+
+  const save = useCallback((f: (p: Progress) => Progress) => {
+    setP(prev => { const next = f(prev); if (next !== prev) { writeLocal(next); push(next) } ; return next })
+  }, [push])
   const markSeen = useCallback((n: number, section: string) => save(p => {
     const list = p.seen[n] ?? []
     return list.includes(section) ? p : { ...p, seen: { ...p.seen, [n]: [...list, section] } }

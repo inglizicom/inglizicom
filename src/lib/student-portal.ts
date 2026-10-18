@@ -435,3 +435,10 @@ export async function setViizaAccess(studentId: string, until: string | null): P
   if (error) console.error('setViizaAccess', error.message)
   return !error
 }
+/** Staff: a student's VIIZA interactive progress (migration 067), or null when there is none yet. */
+export async function fetchViizaProgress(studentId: string): Promise<{ done: number[]; best: Record<string, number>; updated_at: string } | null> {
+  const { data, error } = await supabase.from('viiza_progress').select('data, updated_at').eq('student_id', studentId).maybeSingle()
+  if (error || !data) return null
+  const d = (data.data ?? {}) as { done?: number[]; best?: Record<string, number> }
+  return { done: Array.isArray(d.done) ? d.done : [], best: d.best ?? {}, updated_at: data.updated_at as string }
+}

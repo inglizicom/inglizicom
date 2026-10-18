@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { BookOpen, Check, ChevronLeft, Maximize, Minimize, KeyRound, Loader2, Lock, LogOut, MessageCircle, Plane, Stamp } from 'lucide-react'
+import { Award, BookOpen, Check, ChevronLeft, Maximize, Minimize, KeyRound, Loader2, Lock, LogOut, MessageCircle, Plane, Stamp } from 'lucide-react'
 import { Ar, EN, Ico, V, pad2, useFonts, useFullscreen, useProgress, useStageZoom } from './kit'
 
 /**
@@ -157,6 +157,23 @@ export function Home({ parts, stops, access, free, locked }: { parts: PartCard[]
                     return can ? <Link key={s.n} href={`/viiza/${s.n}`}>{row}</Link> : <a key={s.n} href="#signin">{row}</a>
                   })}
                 </div>
+                {/* The part check: ten questions, a seal at 7 */}
+                {(() => {
+                  const best = progress.best[`part:${p.n}`], passed = (best ?? 0) >= 7
+                  const inner = (
+                    <div className="flex items-center gap-3 px-4 py-3" dir="ltr" style={{ background: passed ? 'rgba(242,179,0,0.16)' : 'rgba(255,255,255,0.05)', borderTop: '1px solid rgba(255,255,255,0.12)' }}>
+                      <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full" style={{ background: passed ? V.saff : 'rgba(255,255,255,0.12)' }}><Award size={16} color={passed ? V.navy : '#fff'} /></span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[13.5px] font-extrabold text-white">Part {p.n} check · 10 questions</span>
+                        <Ar as="span" className="block text-left text-[11.5px] font-semibold text-white/60">اختبر نفسك في هذا الجزء</Ar>
+                      </span>
+                      <span className="shrink-0 rounded-md px-2 py-[3px] text-[10.5px] font-extrabold tracking-[0.08em]" style={passed ? { background: V.saff, color: V.navy } : { background: 'rgba(255,255,255,0.12)', color: '#fff' }}>
+                        {!access ? <span className="flex items-center gap-1"><Lock size={11} /> LOCKED</span> : best === undefined ? 'START' : `BEST ${best}/10`}
+                      </span>
+                    </div>
+                  )
+                  return access ? <Link href={`/viiza/check/${p.n}`}>{inner}</Link> : <a href="#signin">{inner}</a>
+                })()}
               </div>
             ))}
           </div>
@@ -170,6 +187,18 @@ export function Home({ parts, stops, access, free, locked }: { parts: PartCard[]
           </div>
           <div className="rounded-3xl p-4 sm:p-6" style={{ background: '#fff', border: `2px solid ${V.line}` }}>
             <Ar className="mb-4 text-[13.5px] font-semibold" style={{ color: V.grey }}>أنهِ محطة (افتح أقسامها الستة واضغط «اختم جوازي» في آخر التمارين) لتحصل على ختمها.</Ar>
+            <div className="mb-5 grid grid-cols-3 gap-3 sm:grid-cols-6" dir="ltr">
+              {parts.map(p => {
+                const on = (progress.best[`part:${p.n}`] ?? 0) >= 7
+                return (
+                  <div key={p.n} className="flex flex-col items-center gap-1 rounded-2xl p-2 text-center" style={on ? { background: V.saffS, border: `2px solid ${V.saff}` } : { border: `2px dashed ${V.line}` }}>
+                    <Award size={24} color={on ? V.saffD : '#C9C2B5'} />
+                    <span className="text-[10.5px] font-extrabold tracking-[0.06em]" style={{ color: on ? V.saffD : '#B8B0A2' }}>PART {p.n}</span>
+                    <span className="text-[10px] font-bold leading-tight" style={{ color: on ? V.navy : '#B8B0A2' }}>{p.titleEn}</span>
+                  </div>
+                )
+              })}
+            </div>
             <div className="grid grid-cols-4 gap-3 sm:grid-cols-6 lg:grid-cols-9">
               {stops.map((s, i) => {
                 const on = done.includes(s.n)
