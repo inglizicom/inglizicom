@@ -5,13 +5,16 @@
  * src/data/level1-audio, src/data/level2-audio and src/data/viiza-audio:
  * every clip twice, slow (for learning) and normal.
  *
- *   node --env-file=.env.local scripts/gen-level1-audio.mjs [--dry] [--limit=20]
+ *   node --env-file=.env.local scripts/gen-level1-audio.mjs [--dry] [--limit=20] [--only=level1-vocab]
+ *
+ * --only=level1-vocab records the LA KAART vocabulary book alone, so a fix
+ * there does not also record the books whose audio is not wanted yet.
  *
  * Writes to the production storage. Safe to run again: a file already in the
  * bucket is skipped, so a second run only records what is new or changed.
  * Voices: OpenAI gpt-4o-mini-tts, the delivery set by instructions.
  */
-import { allClips, clipPath, sayOf, BUCKET, SPEEDS } from '../src/data/level1-audio/index.ts'
+import { allClips, clipPath, sayOf, vocabSections, BUCKET, SPEEDS } from '../src/data/level1-audio/index.ts'
 import { level2Clips } from '../src/data/level2-audio/index.ts'
 import { viizaClips, viizaTalkClips } from '../src/data/viiza-audio/index.ts'
 
@@ -85,7 +88,11 @@ async function existing() {
   }
 }
 
-const clips = [...new Map([...allClips(), ...level2Clips(), ...viizaClips(), ...viizaTalkClips()].map(c => [clipPath(c, 'normal'), c])).values()]
+const wanted = args.only === 'level1-vocab'
+  ? Array.from({ length: 19 }, (_, i) => vocabSections(i + 1)).flat().flatMap(s => s.clips)
+  : [...allClips(), ...level2Clips(), ...viizaClips(), ...viizaTalkClips()]
+if (args.only && args.only !== 'level1-vocab') { console.error(`Unknown --only=${args.only} (known: level1-vocab)`); process.exit(1) }
+const clips = [...new Map(wanted.map(c => [clipPath(c, 'normal'), c])).values()]
 const jobs = clips.flatMap(c => SPEEDS.map(speed => ({ clip: c, speed, path: clipPath(c, speed) })))
 const chars = jobs.reduce((s, j) => s + j.clip.en.length, 0)
 console.log(`${clips.length} clips × ${SPEEDS.length} speeds = ${jobs.length} files, ${chars} characters`)

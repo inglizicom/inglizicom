@@ -40,7 +40,15 @@ export const V_KIND_TONE: Record<VKind, VTone> = {
 
 const pad = (n: number) => String(n).padStart(2, '0')
 const esc = (w: string) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+/** A key word as it stands in the text: any case ("Enjoy your visit!"), and "from … to" around one word ("from Monday to"). */
+const glossPattern = (en: string) => en.split('…').map(s => esc(s.trim())).join(' [A-Za-z]+ ')
 const LETTERS = 'abcdefghijkl'
+
+/**
+ * Banner titles that would wrap onto a second line at the banner's size, with
+ * a shorter Arabic. The full title stays on the contents page.
+ */
+const SHORT_AR: Record<number, string> = { 2: 'الأرقام', 3: 'الدول والمهن', 5: 'العائلة والناس' }
 
 /** Match each item to a lettered answer (printed mixed); the key gives the letter. */
 function match(title: string, instr: string, rows: [string, string][], cols: 1 | 2 = 2): Block {
@@ -59,15 +67,21 @@ export function lessonPages(u: VocabBookUnit): VPage[] {
   const sortWords = u.groups.flatMap((g, gi) => [1, 4, 7].map(k => [g.words[k].en, LETTERS[gi]] as [string, string]))
   const sortOrder = mixed(sortWords)
   const r = u.reading
+  // "Write a sentence with "Welcome!"." would print two stops: the word goes in bare.
+  const bare = (w: string) => w.replace(/[.!?]+$/, '')
 
   return [
     page('words', 'Picture words', [
-      { t: 'banner', title: `${u.titleEn} - ${u.titleAr}`, icons: [u.icon, '🔤'] },
+      { t: 'banner', title: `${u.titleEn} - ${SHORT_AR[u.n] ?? u.titleAr}`, icons: [u.icon, '🔤'] },
       { t: 'bar', title: 'Picture words - كلمات بالصور', icon: '🖼️', tone: 'words' },
-      { t: 'callout', text: 'انظر إلى الصورة واقرأ الكلمة بصوت مرتفع، ثم غطِّ الإنجليزية وتذكّرها. امسح الرمز في أعلى الصفحة لتستمع إليها.' },
+      { t: 'callout', text: 'انظر إلى الصورة وقل الكلمة بصوت مرتفع، ثم غطِّ الإنجليزية وتذكّرها. استمع إليها بالرمز أعلاه.' },
       { t: 'tiles', cols: 5, items: u.vocab.map(e => [e.icon, e.en, e.ar] as [string, string, string]) },
       { t: 'bar', title: 'In a sentence - في جملة', icon: '💬', tone: 'words' },
-      { t: 'bullets', size: 13, items: u.vocab.map(e => `${e.ex} - ${e.exAr}`) },
+      // Two columns: in one, the short sentences left the right half of the page empty.
+      { t: 'bullets', size: 15, cols: 2, items: u.vocab.map(e => `${e.ex} - ${e.exAr}`) },
+      // Writing lines take the room the page has left (useFillPage), instead of wide gaps between the sections.
+      { t: 'bar', title: 'Copy the words - انسخ الكلمات', icon: '🖊️', tone: 'words' },
+      { t: 'lines', n: 2, grow: true },
     ]),
     page('groups', 'Word groups', [
       { t: 'bar', title: 'Word groups - مجموعات الكلمات', icon: '🗂️', tone: 'groups' },
@@ -99,7 +113,7 @@ export function lessonPages(u: VocabBookUnit): VPage[] {
     page('read', 'Read', [
       { t: 'bar', title: 'Read - اقرأ', icon: '📖', tone: 'read' },
       { t: 'text', label: `${r.title} - ${r.titleAr}`, body: r.text, size: 14, plain: true,
-        mark: new RegExp(`(?<![A-Za-z])(?:${r.gloss.map(g => esc(g.en)).sort((a, b) => b.length - a.length).join('|')})(?![A-Za-z])`, 'g') },
+        mark: new RegExp(`(?<![A-Za-z])(?:${r.gloss.map(g => glossPattern(g.en)).sort((a, b) => b.length - a.length).join('|')})(?![A-Za-z])`, 'gi') },
       { t: 'sub', text: '🔑 Key words - كلمات مفتاحية' },
       { t: 'pairs', cols: 3, size: 12.5, items: r.gloss.map(g => [g.en, g.ar] as [string, string]) },
       { t: 'exercise', title: 'True or false?', instr: 'Circle the right answer. - ضع دائرة حول الجواب الصحيح.', size: 13.5,
@@ -107,7 +121,7 @@ export function lessonPages(u: VocabBookUnit): VPage[] {
       { t: 'exercise', title: 'Answer the questions', instr: 'Write a short answer. - اكتب جوابًا قصيرًا.', size: 13.5, lines: true,
         items: r.qs.map(x => ({ q: x.q, a: x.a })) },
       { t: 'bar', title: 'Your turn - دورك', icon: '✍️', tone: 'read' },
-      { t: 'answers', items: [`Write a sentence about you with "${u.vocab[0].en}".`, `Write a sentence about you with "${u.vocab[5].en}".`] },
+      { t: 'answers', items: [`Write a sentence about you with "${bare(u.vocab[0].en)}".`, `Write a sentence about you with "${bare(u.vocab[5].en)}".`] },
     ]),
   ]
 }
@@ -115,7 +129,7 @@ export function lessonPages(u: VocabBookUnit): VPage[] {
 const front = (kind: VKind, tag: string, titleEn: string, titleAr: string, blocks: Block[]): VPage => ({ n: 0, tag, titleEn, titleAr, kind, blocks })
 
 export const WELCOME: VPage = front('welcome', 'Welcome', 'Welcome', 'مرحبًا بك', [
-  { t: 'banner', title: 'More words, every lesson - كلمات أكثر في كل درس', icons: ['🔤', '📗'] },
+  { t: 'banner', title: 'More words - كلمات أكثر', icons: ['🔤', '📗'] },
   { t: 'callout', text: 'هذا الكتاب يرافق كتاب المستوى الأول درسًا بدرس. في كل درس كلمات جديدة لم ترها في الكتاب الأساسي، من حياتنا اليومية في المغرب: من السوق والحمّام والمطبخ إلى القطار والمدينة القديمة.' },
   { t: 'bar', title: 'Five pages for each lesson - خمس صفحات لكل درس', icon: '🧩' },
   { t: 'cards', cols: 5, stack: true, items: [
@@ -154,18 +168,15 @@ export function buildLevel1VocabBook() {
     { t: 'key', items: keyItems.slice(i * PER_KEY, (i + 1) * PER_KEY) },
   ]))
 
-  const span = [0.7, 3.2, 2.8, 0.9]
+  const span = [0.7, 3, 3, 0.9]
   const contents = front('contents', 'Contents', 'Contents', 'محتويات الكتاب', [
     { t: 'banner', title: 'Contents - محتويات الكتاب', icons: ['📚', '🔤'] },
     { t: 'grid', rows: [
       { dark: true, span, cells: ['Lesson', 'Topic', 'الموضوع', 'Page'] },
-      ...units.map(({ u, pages }) => ({ span, size: 13, cells: [pad(u.n), `${u.icon} ${u.titleEn}`, u.titleAr, String(at(pages[0]))] })),
+      ...units.map(({ u, pages }) => ({ span, size: 15.5, cells: [pad(u.n), `${u.icon} ${u.titleEn}`, u.titleAr, String(at(pages[0]))] })),
       { plain: true, span: [7.6], size: 13, cells: [`🔑 Answer key · p. ${keyAt}`] },
     ] },
-    { t: 'bar', title: 'Every lesson, five pages - كل درس في خمس صفحات', icon: '🎨' },
-    { t: 'cards', cols: 5, stack: true, items: [
-      ['🖼️', 'Picture words', 'أحمر'], ['🗂️', 'Word groups', 'أخضر'], ['✏️', 'Practice', 'برتقالي'], ['🗣️', "Let's talk", 'كحلي'], ['📖', 'Read', 'أزرق'],
-    ] },
+    // (The five kinds of page are on the welcome page, just before: not repeated here.)
   ])
 
   const pages: VPage[] = [WELCOME, contents, ...body, ...keyPages]

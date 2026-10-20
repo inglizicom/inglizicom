@@ -18,8 +18,8 @@ export const UNITS_6_10: VocabUnit[] = [
     ),
     groups: [
       g('🏠', 'Where I live', 'أين أسكن', 'house=منزل|flat=شقة|building=عمارة|street=شارع|village=قرية|town=بلدة|city centre=وسط المدينة|near=قريب من|far from=بعيد عن|next to=بجانب'),
-      g('🎯', 'Free time', 'وقت الفراغ', 'read=يقرأ|walk=يتمشّى|watch films=يشاهد أفلامًا|listen to music=يستمع إلى الموسيقى|play football=يلعب كرة القدم|go out=يخرج|visit friends=يزور الأصدقاء|sleep late=ينام متأخرًا|travel=يسافر|chat=يدردش'),
-      g('📆', 'Days and dates', 'الأيام والتواريخ', 'today=اليوم|tomorrow=غدًا|yesterday=أمس|this week=هذا الأسبوع|next week=الأسبوع القادم|month=شهر|year=سنة|holiday=عطلة|date=تاريخ|now=الآن'),
+      g('🎯', 'Free time', 'وقت الفراغ', 'read=يقرأ|go to the beach=يذهب إلى الشاطئ|watch films=يشاهد أفلامًا|listen to music=يستمع إلى الموسيقى|play football=يلعب كرة القدم|go out=يخرج|visit friends=يزور الأصدقاء|sleep late=ينام متأخرًا|travel=يسافر|chat=يدردش'),
+      g('📆', 'Days and dates', 'الأيام والتواريخ', 'today=اليوم|tomorrow=غدًا|yesterday=أمس|this week=هذا الأسبوع|last week=الأسبوع الماضي|month=شهر|year=سنة|holiday=عطلة|date=تاريخ|now=الآن'),
     ],
     talks: [
       d('Friendly | ودّي', 'A new colleague | زميلة جديدة', 'Hassan | Leila', [
@@ -42,13 +42,13 @@ export const UNITS_6_10: VocabUnit[] = [
     ask: tr([
       ['Where do you live?', 'أين تسكن؟'],
       ['Who is your best friend?', 'من أعزّ أصدقائك؟'],
-      ['When is your birthday?', 'متى عيد ميلادك؟'],
+      ['When is your English class?', 'متى حصة الإنجليزية؟'],
       ['Why do you study English?', 'لماذا تدرس الإنجليزية؟'],
     ]),
     answer: tr([
       ['In Tangier, near the port.', 'في طنجة، قرب الميناء.'],
       ["Hajar. She's my neighbour.", 'هاجر. إنها جارتي.'],
-      ["It's on the third of April.", 'إنه في الثالث من أبريل.'],
+      ['On Monday and Wednesday.', 'يوم الإثنين ويوم الأربعاء.'],
       ['For my job.', 'من أجل عملي.'],
     ]),
     reading: {
@@ -82,8 +82,8 @@ export const UNITS_6_10: VocabUnit[] = [
     ),
     groups: [
       g('🔁', 'He / she verbs', 'أفعال مع هو / هي', 'gets up=ينهض|washes=يغسل|drinks=يشرب|eats=يأكل|drives=يسوق|works=يعمل|finishes=يُنهي|watches=يشاهد|reads=يقرأ|sleeps=ينام'),
-      g('🏨', 'At a hotel', 'في الفندق', 'reception=الاستقبال|room=غرفة|key=مفتاح|towel=منشفة|lift=مصعد|floor=طابق|pool=مسبح|breakfast room=قاعة الفطور|suitcase=حقيبة سفر|check in=يسجّل الدخول'),
-      g('⏰', 'Time of day', 'أوقات اليوم', 'morning=الصباح|noon=الظهر|afternoon=بعد الظهر|evening=المساء|night=الليل|midnight=منتصف الليل|every day=كل يوم|after=بعد|before=قبل|then=ثم'),
+      g('🏨', 'At a hotel', 'في الفندق', 'reception=الاستقبال|room=غرفة|key=مفتاح|single room=غرفة لشخص واحد|lift=مصعد|floor=طابق|pool=مسبح|breakfast room=قاعة الفطور|check in=يسجّل الدخول|check out=يسجّل الخروج'),
+      g('⏰', 'Time of day', 'أوقات اليوم', 'morning=الصباح|noon=الظهر|afternoon=بعد الظهر|evening=المساء|night=الليل|midnight=منتصف الليل|sunrise=شروق الشمس|after=بعد|before=قبل|then=ثم'),
     ],
     talks: [
       d('Friendly | ودّي', 'On the bus | في الحافلة', 'Driver | Student', [
@@ -145,9 +145,9 @@ export const UNITS_6_10: VocabUnit[] = [
       '🙋 | raise your hand | ارفع يدك | Raise your hand, please. | ارفع يدك من فضلك.',
     ),
     groups: [
-      g('📚', 'School subjects', 'المواد الدراسية', 'maths=الرياضيات|science=العلوم|history=التاريخ|geography=الجغرافيا|Arabic=العربية|French=الفرنسية|art=الفنون|music=الموسيقى|sport=التربية البدنية|computer studies=المعلوميات'),
-      g('🏫', 'Places at school', 'أماكن في المدرسة', "classroom=القسم|library=المكتبة|playground=الساحة|office=الإدارة|toilets=المراحيض|canteen=المطعم المدرسي|gate=الباب الرئيسي|stairs=الدرج|corridor=الممر|teachers' room=قاعة الأساتذة"),
-      g('🔁', 'Class verbs', 'أفعال القسم', 'open=افتح|close=أغلق|read=اقرأ|write=اكتب|listen=استمع|look=انظر|match=صِل|circle=ضع دائرة|underline=ضع خطًا تحت|check=صحّح'),
+      g('📚', 'School subjects', 'المواد الدراسية', 'maths=الرياضيات|science=العلوم|history=التاريخ|geography=الجغرافيا|Islamic education=التربية الإسلامية|physics=الفيزياء|art=الفنون|music=الموسيقى|sport=التربية البدنية|computer studies=المعلوميات'),
+      g('🏫', 'Places at school', 'أماكن في المدرسة', "classroom=القسم|library=المكتبة|playground=الساحة|office=الإدارة|toilets=المراحيض|canteen=المطعم المدرسي|lab=المختبر|stairs=الدرج|corridor=الممر|teachers' room=قاعة الأساتذة"),
+      g('🔁', 'Class verbs', 'أفعال القسم', 'ask=اسأل|close=أغلق|copy=انسخ|tick=ضع علامة|listen=استمع|look=انظر|colour=لوّن|circle=ضع دائرة|underline=ضع خطًا تحت|check=صحّح'),
     ],
     talks: [
       d('Polite | مهذّب', 'In the library | في المكتبة', 'Librarian | Ziad', [

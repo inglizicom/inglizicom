@@ -17,9 +17,9 @@ export const UNITS_1_5: VocabUnit[] = [
       '👪 | family name | الاسم العائلي | My family name is Alaoui. | اسمي العائلي هو العلوي.',
     ),
     groups: [
-      g('🙂', 'Feelings', 'المشاعر', 'happy=سعيد|sad=حزين|tired=متعب|great=رائع|OK=لا بأس|not bad=لا بأس به|hungry=جائع|busy=مشغول|sick=مريض|bored=ضجِر'),
-      g('👥', 'People', 'الناس', 'man=رجل|woman=امرأة|boy=ولد|girl=بنت|friend=صديق|neighbour=جار|classmate=زميل في القسم|guest=ضيف|baby=رضيع|people=ناس'),
-      g('🔤', 'Spelling words', 'كلمات التهجئة', 'letter=حرف|capital letter=حرف كبير|small letter=حرف صغير|double=مزدوج|vowel=حرف متحرك|alphabet=الأبجدية|write=يكتب|say=يقول|repeat=يكرّر|again=مرة أخرى'),
+      g('🙂', 'Feelings', 'المشاعر', 'happy=سعيد|sad=حزين|angry=غاضب|worried=قلق|OK=لا بأس|not bad=لا بأس به|scared=خائف|excited=متحمّس|sick=مريض|bored=ضجِر'),
+      g('👥', 'People', 'الناس', 'man=رجل|woman=امرأة|boy=ولد|girl=بنت|friend=صديق|teacher=أستاذ|student=طالب|person=شخص|lady=سيدة|people=ناس'),
+      g('🔤', 'Spelling words', 'كلمات التهجئة', 'letter=حرف|capital letter=حرف كبير|small letter=حرف صغير|double=مزدوج|vowel=حرف متحرك|alphabet=الأبجدية|spell=يتهجّى|say=يقول|repeat=يكرّر|again=مرة أخرى'),
     ],
     talks: [
       d('Friendly | ودّي', 'Meeting a neighbour | لقاء جار', 'Nabil | Hana', [
@@ -83,7 +83,7 @@ export const UNITS_1_5: VocabUnit[] = [
     groups: [
       g('💯', 'Big numbers', 'الأعداد الكبيرة', 'one hundred=مئة|two hundred=مئتان|five hundred=خمسمئة|one thousand=ألف|first=الأول|second=الثاني|third=الثالث|half=نصف|a dozen=دزينة (اثنا عشر)|million=مليون'),
       g('📅', 'Months', 'الشهور', 'January=يناير|February=فبراير|March=مارس|April=أبريل|May=ماي|June=يونيو|July=يوليوز|August=غشت|September=شتنبر|October=أكتوبر|November=نونبر|December=دجنبر'),
-      g('🎉', 'Age and birthdays', 'العمر وأعياد الميلاد', 'child=طفل|teenager=مراهق|adult=بالغ|birthday cake=كعكة عيد الميلاد|candles=شموع|party=حفلة|present=هدية|Happy birthday!=عيد ميلاد سعيد!|years old=سنة من العمر|born=مولود'),
+      g('🎉', 'Age and birthdays', 'العمر وأعياد الميلاد', 'child=طفل|teenager=مراهق|adult=بالغ|birthday cake=كعكة عيد الميلاد|candles=شموع|balloons=بالونات|present=هدية|Happy birthday!=عيد ميلاد سعيد!|years old=سنة من العمر|born=مولود'),
     ],
     talks: [
       d('Friendly | ودّي', 'A birthday | عيد ميلاد', 'Sara | Adam', [
@@ -146,7 +146,7 @@ export const UNITS_1_5: VocabUnit[] = [
     ),
     groups: [
       g('🗺️', 'More countries', 'دول أخرى', 'Algeria=الجزائر|Mauritania=موريتانيا|Senegal=السنغال|Portugal=البرتغال|Belgium=بلجيكا|the Netherlands=هولندا|Canada=كندا|Japan=اليابان|Brazil=البرازيل|Qatar=قطر'),
-      g('🧑‍🔧', 'More jobs', 'مهن أخرى', 'driver=سائق|nurse=ممرّض|waiter=نادل|shopkeeper=صاحب محل|builder=بنّاء|lawyer=محامٍ|dentist=طبيب أسنان|accountant=محاسب|baker=خبّاز|pharmacist=صيدلي'),
+      g('🧑‍🔧', 'More jobs', 'مهن أخرى', 'carpenter=نجّار|nurse=ممرّض|waiter=نادل|shopkeeper=صاحب محل|builder=بنّاء|lawyer=محامٍ|dentist=طبيب أسنان|accountant=محاسب|baker=خبّاز|pharmacist=صيدلي'),
       g('🗣️', 'Languages', 'اللغات', 'Arabic=العربية|Amazigh=الأمازيغية|Darija=الدارجة|French=الفرنسية|English=الإنجليزية|Spanish=الإسبانية|German=الألمانية|Italian=الإيطالية|Chinese=الصينية|Portuguese=البرتغالية'),
     ],
     talks: [
@@ -168,13 +168,13 @@ export const UNITS_1_5: VocabUnit[] = [
       ]),
     ],
     ask: tr([
-      ['Where do you live?', 'أين تسكن؟'],
+      ['Do you live in a big city?', 'هل تسكن في مدينة كبيرة؟'],
       ['What languages do you speak?', 'ما اللغات التي تتكلمها؟'],
       ['Where do you work?', 'أين تعمل؟'],
       ['Is your sister married?', 'هل أختك متزوجة؟'],
     ]),
     answer: tr([
-      ['I live in Salé.', 'أسكن في سلا.'],
+      ['Yes, I live in Salé.', 'نعم، أسكن في سلا.'],
       ['Arabic, French and a little English.', 'العربية والفرنسية وقليلًا من الإنجليزية.'],
       ['I work in a hotel.', 'أعمل في فندق.'],
       ["No, she's single.", 'لا، إنها عزباء.'],
@@ -209,7 +209,7 @@ export const UNITS_1_5: VocabUnit[] = [
       '📍 | here / there | هنا / هناك | Sit here, please. | اجلس هنا من فضلك.',
     ),
     groups: [
-      g('📝', 'Personal information', 'المعلومات الشخصية', 'name=الاسم|address=العنوان|age=العمر|date of birth=تاريخ الازدياد|place of birth=مكان الازدياد|nationality=الجنسية|job=المهنة|phone number=رقم الهاتف|email=البريد الإلكتروني|signature=التوقيع'),
+      g('📝', 'Personal information', 'المعلومات الشخصية', 'name=الاسم|ID card=بطاقة التعريف|age=العمر|date of birth=تاريخ الازدياد|place of birth=مكان الازدياد|nationality=الجنسية|postcode=الرمز البريدي|phone number=رقم الهاتف|email=البريد الإلكتروني|signature=التوقيع'),
       g('🏫', 'At the course', 'في الدورة', 'level=مستوى|test=اختبار|lesson=درس|break=استراحة|fee=رسوم|certificate=شهادة|morning class=حصة صباحية|evening class=حصة مسائية|beginner=مبتدئ|group=مجموعة'),
       g('💬', 'Small talk', 'كلام التعارف', 'Really?=حقًا؟|Me too.=أنا أيضًا.|Great!=رائع!|Cool!=جميل!|Of course.=طبعًا.|No problem.=لا مشكلة.|Good luck!=بالتوفيق!|See you!=أراك!|Congratulations!=مبروك!|Same here.=وأنا كذلك.'),
     ],
@@ -239,7 +239,7 @@ export const UNITS_1_5: VocabUnit[] = [
     ]),
     answer: tr([
       ['Yes, it is. Come in!', 'نعم. تفضّل بالدخول!'],
-      ['At half past seven.', 'في السابعة والنصف.'],
+      ["At ten o'clock.", 'في الساعة العاشرة.'],
       ['Of course. Sit down.', 'طبعًا. اجلس.'],
       ["Yes, I do. / No, sorry.", 'نعم. / لا، آسف.'],
     ]),

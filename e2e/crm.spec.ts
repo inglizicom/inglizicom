@@ -236,6 +236,30 @@ test.describe('flows', () => {
     expect((pdf.match(/\/Type\s*\/Page[^s]/g) ?? []).length).toBe(await sheets.count())
   })
 
+  test('LA KAART vocabulary: every page fits, every key word is marked, no empty code slot, one PDF page per sheet', async ({ page }, info) => {
+    test.skip(info.project.name !== 'desktop', 'one PDF run is enough')
+    test.setTimeout(180_000)
+    await mockSupabase(page, { role: 'founder' })
+    await page.goto('/admin/level1-vocab')
+    const sheets = page.locator('.print-sheet')
+    // cover, thank-you · welcome, contents · 19 lessons × 5 · the answer key (3) · back cover
+    await expect(sheets).toHaveCount(2 + 2 + 19 * 5 + 3 + 1)
+    await page.evaluate(() => document.fonts.ready)
+    await page.waitForTimeout(1000)
+    const tooLong = await page.evaluate(() => [...document.querySelectorAll('.lb-body')].flatMap((b, i) => {
+      const inner = b.firstElementChild as HTMLElement
+      return inner.getBoundingClientRect().bottom > b.getBoundingClientRect().bottom + 1 ? [i + 1] : []
+    }))
+    expect(tooLong).toEqual([])
+    await expect(page.getByText('QR / CODE')).toHaveCount(0)
+    // each reading marks its five key words, "Enjoy your visit!" and "from Monday to Saturday" included
+    const marked = await page.locator('.print-sheet', { hasText: 'Key words - كلمات مفتاحية' }).evaluateAll(ss => ss.map(s => s.querySelectorAll('b').length))
+    expect(marked).toHaveLength(19)
+    expect(marked.filter(n => n < 5)).toEqual([])
+    const pdf = (await page.pdf({ preferCSSPageSize: true, printBackground: true })).toString('latin1')
+    expect((pdf.match(/\/Type\s*\/Page[^s]/g) ?? []).length).toBe(await sheets.count())
+  })
+
   test('everyday textbook: every page fits, units are complete, one PDF page per sheet', async ({ page }, info) => {
     test.skip(info.project.name !== 'desktop', 'one PDF run is enough')
     test.setTimeout(240_000)

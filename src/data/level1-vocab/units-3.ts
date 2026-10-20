@@ -17,8 +17,8 @@ export const UNITS_11_15: VocabUnit[] = [
       '🌙 | at night | في الليل | I read at night. | أقرأ في الليل.',
     ),
     groups: [
-      g('🕐', 'Telling the time', 'قول الساعة', "o'clock=تمامًا|half past=والنصف|quarter past=والربع|quarter to=إلا ربعًا|five past=وخمس دقائق|ten to=إلا عشر دقائق|noon=الظهر|midnight=منتصف الليل|minute=دقيقة|hour=ساعة"),
-      g('🍽️', 'Meals', 'الوجبات', 'breakfast=الفطور|lunch=الغداء|dinner=العشاء|snack=وجبة خفيفة|tea time=وقت الشاي|meal=وجبة|early=باكرًا|late=متأخرًا|hungry=جائع|full=شبعان'),
+      g('🕐', 'Telling the time', 'قول الساعة', "o'clock=تمامًا|half past=والنصف|quarter past=والربع|quarter to=إلا ربعًا|five past=وخمس دقائق|ten to=إلا عشر دقائق|twenty past=وعشرون دقيقة|half an hour=نصف ساعة|minute=دقيقة|hour=ساعة"),
+      g('🍽️', 'Meals', 'الوجبات', 'breakfast=الفطور|lunch=الغداء|dinner=العشاء|snack=وجبة خفيفة|tea time=وقت الشاي|meal=وجبة|dessert=التحلية|late=متأخرًا|fast food=الوجبات السريعة|full=شبعان'),
       g('👕', 'Clothes', 'الملابس', 'shirt=قميص|T-shirt=تيشيرت|trousers=سروال|jeans=جينز|dress=فستان|skirt=تنّورة|jacket=سترة|shoes=حذاء|socks=جوارب|djellaba=جلابة'),
     ],
     talks: [
@@ -76,13 +76,13 @@ export const UNITS_11_15: VocabUnit[] = [
       '😌 | day off | يوم عطلة | Sunday is my day off. | الأحد يوم عطلتي.',
       '🎉 | party | حفلة | There is a party on Saturday evening. | توجد حفلة مساء السبت.',
       "💼 | busy | مشغول | I'm busy on Tuesday. | أنا مشغول يوم الثلاثاء.",
-      '🆓 | free | متفرّغ | Are you free on Saturday? | هل أنت متفرّغ يوم السبت؟',
+      "🆓 | free | متفرّغ | I'm free on Sunday afternoon. | أنا متفرّغ يوم الأحد بعد الظهر.",
       '📝 | plans | خطط | What are your plans for the weekend? | ما خططك لنهاية الأسبوع؟',
       "⏰ | appointment | موعد | I have a doctor's appointment on Friday. | لديّ موعد عند الطبيب يوم الجمعة.",
     ),
     groups: [
-      g('🌦️', 'Seasons and weather', 'الفصول والطقس', 'spring=الربيع|summer=الصيف|autumn=الخريف|winter=الشتاء|sunny=مشمس|rainy=ممطر|windy=عاصف|cold=بارد|hot=حار|cloudy=غائم'),
-      g('🎯', 'Weekly activities', 'أنشطة أسبوعية', 'go to the souk=يذهب إلى السوق|go to the hammam=يذهب إلى الحمّام|visit family=يزور العائلة|play football=يلعب كرة القدم|go swimming=يذهب للسباحة|do the shopping=يتسوّق|clean the house=ينظّف البيت|have a picnic=يقوم بنزهة|go to the mosque=يذهب إلى المسجد|watch a match=يشاهد مباراة'),
+      g('🌦️', 'Seasons and weather', 'الفصول والطقس', 'spring=الربيع|summer=الصيف|autumn=الخريف|winter=الشتاء|sunny=مشمس|rainy=ممطر|windy=عاصف|snowy=مثلج|warm=دافئ|cloudy=غائم'),
+      g('🎯', 'Weekly activities', 'أنشطة أسبوعية', 'go to the souk=يذهب إلى السوق|go to the hammam=يذهب إلى الحمّام|visit family=يزور العائلة|go to the cinema=يذهب إلى السينما|go swimming=يذهب للسباحة|do the shopping=يتسوّق|clean the house=ينظّف البيت|have a picnic=يقوم بنزهة|go to the mosque=يذهب إلى المسجد|watch a match=يشاهد مباراة'),
       g('🔁', 'How often?', 'كم مرة؟', 'once=مرة|twice=مرتين|three times=ثلاث مرات|every day=كل يوم|every week=كل أسبوع|every month=كل شهر|on Mondays=أيام الإثنين|at weekends=في نهايات الأسبوع|hardly ever=نادرًا جدًا|from time to time=من حين لآخر'),
     ],
     talks: [
@@ -176,7 +176,7 @@ export const UNITS_11_15: VocabUnit[] = [
     answer: tr([
       ['Chicken tagine.', 'طاجين الدجاج.'],
       ['Yes, I love it!', 'نعم، أحبه كثيرًا!'],
-      ['Sure. Here you are.', 'طبعًا. تفضّل.'],
+      ['Yes, of course.', 'نعم، طبعًا.'],
       ['Pastilla!', 'البسطيلة!'],
     ]),
     reading: {
@@ -209,9 +209,9 @@ export const UNITS_11_15: VocabUnit[] = [
       '💵 | the bill | الحساب | Can I have the bill, please? | الحساب من فضلك.',
     ),
     groups: [
-      g('☕', 'At the café', 'في المقهى', 'waiter=نادل|menu=قائمة|table=طاولة|chair=كرسي|cup=فنجان|glass=كأس|tray=صينية|napkin=منديل|tip=بقشيش|terrace=الشرفة'),
+      g('☕', 'At the café', 'في المقهى', 'bill=الحساب|menu=قائمة|table=طاولة|chair=كرسي|price=الثمن|bottle=قنينة|tray=صينية|napkin=منديل|tip=بقشيش|terrace=الشرفة'),
       g('🥤', 'More drinks', 'مشروبات أخرى', 'nous-nous=نص نص|almond milk=حليب اللوز|raib=رائب|banana milk=حليب بالموز|ginger tea=شاي بالزنجبيل|verbena tea=شاي اللويزة|soda=مشروب غازي|cola=كولا|still water=ماء غير غازي|tap water=ماء الصنبور'),
-      g('📏', 'Sizes and amounts', 'الأحجام والكميات', 'small=صغير|medium=متوسط|large=كبير|a little=قليل|a lot=كثير|half=نصف|full=ممتلئ|empty=فارغ|one more=واحد آخر|enough=كافٍ'),
+      g('📏', 'Sizes and amounts', 'الأحجام والكميات', 'small=صغير|medium=متوسط|large=كبير|a little=قليل|a lot=كثير|a piece=قطعة|extra=إضافي|empty=فارغ|one more=واحد آخر|enough=كافٍ'),
     ],
     talks: [
       d('Friendly | ودّي', 'Tea time | وقت الشاي', 'Grandpa | Yasmine', [
@@ -269,13 +269,13 @@ export const UNITS_11_15: VocabUnit[] = [
       '⛽ | petrol | بنزين | The car needs petrol. | السيارة تحتاج إلى بنزين.',
       '🅿️ | park | يركن | You can park here. | يمكنك أن تركن هنا.',
       '🚦 | traffic | زحمة السير | There is a lot of traffic in the morning. | توجد زحمة سير كثيرة في الصباح.',
-      '🧭 | journey | رحلة | The journey takes two hours. | تستغرق الرحلة ساعتين.',
+      '🧭 | journey | رحلة | The journey to Fes is long. | الرحلة إلى فاس طويلة.',
       "🚌 | driver | سائق | The bus driver is very nice. | سائق الحافلة لطيف جدًا.",
     ),
     groups: [
-      g('🚉', 'At the station', 'في المحطة', 'platform=رصيف|timetable=جدول المواعيد|departure=المغادرة|arrival=الوصول|single ticket=تذكرة ذهاب|return ticket=تذكرة ذهاب وإياب|first class=الدرجة الأولى|second class=الدرجة الثانية|seat=مقعد|delay=تأخير'),
+      g('🚉', 'At the station', 'في المحطة', 'platform=رصيف|waiting room=قاعة الانتظار|departure=المغادرة|arrival=الوصول|single ticket=تذكرة ذهاب|return ticket=تذكرة ذهاب وإياب|first class=الدرجة الأولى|second class=الدرجة الثانية|seat=مقعد|delay=تأخير'),
       g('🚗', 'The car', 'السيارة', 'wheel=عجلة|seat belt=حزام الأمان|driving licence=رخصة السياقة|brakes=الفرامل|engine=المحرك|horn=المنبّه|garage=مرأب|car park=موقف السيارات|speed=السرعة|tyre=إطار العجلة'),
-      g('🧭', 'Going places', 'التنقّل', 'get on=يصعد|get off=ينزل|take=يأخذ|catch=يلحق بـ|miss=يفوته|walk=يمشي|arrive=يصل|leave=يغادر|wait=ينتظر|change=يغيّر'),
+      g('🧭', 'Going places', 'التنقّل', 'get on=يصعد|get off=ينزل|take=يأخذ|catch=يلحق بـ|run=يجري|hurry=يستعجل|arrive=يصل|leave=يغادر|wait=ينتظر|change=يغيّر'),
     ],
     talks: [
       d('Polite | مهذّب', 'At the train station | في محطة القطار', 'Clerk | Traveller', [
@@ -298,13 +298,13 @@ export const UNITS_11_15: VocabUnit[] = [
     ask: tr([
       ['How do you go to school?', 'كيف تذهب إلى المدرسة؟'],
       ['Where is the bus station?', 'أين محطة الحافلات؟'],
-      ['How long is the journey?', 'كم تستغرق الرحلة؟'],
+      ['Is the train fast?', 'هل القطار سريع؟'],
       ['Is this seat free?', 'هل هذا المقعد فارغ؟'],
     ]),
     answer: tr([
       ["On foot. It's near.", 'مشيًا. إنها قريبة.'],
       ["It's next to the market.", 'إنها بجانب السوق.'],
-      ['About two hours.', 'حوالي ساعتين.'],
+      ["Yes, it's very fast.", 'نعم، إنه سريع جدًا.'],
       ['Yes, it is. Sit down.', 'نعم. اجلس.'],
     ]),
     reading: {

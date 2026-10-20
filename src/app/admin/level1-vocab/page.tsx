@@ -10,11 +10,12 @@ import { DEFAULT_INFO, LessonPage, ThanksPage, type BookInfo } from '../level1-b
 
 /**
  * /admin/level1-vocab — the extended vocabulary book of Level 1, printed with
- * the course book's own renderer and faces (Mali, Baloo Bhaijaan 2), so the
- * Level 1 box looks like one set: five pages a lesson (picture words, word
- * groups, practice, let's talk, read), each kind of page with its colour,
- * every lesson page with the QR code of its audio (/audio/vocab/13). The
- * content lives in src/data/level1-vocab.
+ * the course book's own renderer and faces (Bricolage Grotesque, Baloo
+ * Bhaijaan 2), so the Level 1 box looks like one set: five pages a lesson
+ * (picture words, word groups, practice, let's talk, read), each kind of page
+ * with its colour, every lesson page with the QR code of its audio
+ * (/audio/vocab/13), the other pages with the audio library's. The content
+ * lives in src/data/level1-vocab.
  */
 
 const INFO_KEY = 'level1-vocab-info-v1'
@@ -85,14 +86,15 @@ export default function Level1VocabPage() {
         <div className="space-y-8 min-w-0">
           {withFront && <>
             <SeriesCover series="lakaart" book="vocab" side="front" filename={`${prefix}-000-cover`} />
-            <ThanksPage info={info} filename={`${prefix}-000-thanks`} />
+            {/* No code slot: this page has no setting for one, so it would print as an empty dashed box. */}
+            <ThanksPage info={{ ...info, showCode: false }} filename={`${prefix}-000-thanks`} />
           </>}
           {shown.map(p => {
             const no = book.pageNo(p)
             return (
               <LessonPage key={no} info={info} lesson={p} pageNo={no} talkNo={new Map()} exNo={book.exNo} spread
                 colour={V_TONES[V_KIND_TONE[p.kind]]} toneOf={b => ('tone' in b && b.tone ? V_TONES[b.tone as VTone] : undefined)}
-                qr={p.unit ? PLAY.vocab(p.unit) : undefined}
+                qr={p.unit ? PLAY.vocab(p.unit) : PLAY.library}
                 filename={`${prefix}-${String(no).padStart(3, '0')}-${p.unit ? `lesson-${pad(p.unit)}-${p.kind}` : p.kind}`} />
             )
           })}
