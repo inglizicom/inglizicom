@@ -6,6 +6,7 @@ import {
 import { TESTIMONIALS, STATS } from '@/data/testimonials'
 import { BUSINESS_PLANS, CLASS_PLANS, INDIVIDUAL_PLANS } from '@/data/plans'
 import { BTN_NAVY, CARD, CTA_GOLD as CTA, FaqList, FinalCall, ICON_TILE, NavyGround, SectionTitle } from '@/components/site/kit'
+import BooksShowcase from '@/components/site/BooksShowcase'
 
 /**
  * The home page — one story, one action.
@@ -13,8 +14,9 @@ import { BTN_NAVY, CARD, CTA_GOLD as CTA, FaqList, FinalCall, ICON_TILE, NavyGro
  * Most visitors arrive from Instagram / TikTok / Facebook on a phone and decide
  * on the first screen. So: what you get and the free level test above the
  * fold, on a deep navy ground where the gold button cannot be missed; then how
- * it works, the three ways to learn (one recommended), what students say,
- * four honest answers, and the same single action again.
+ * it works, the three ways to learn (one recommended), the printed books
+ * (BooksShowcase), what students say, four honest answers, and the same
+ * single action again.
  *
  * The visual is the product itself (a lesson, a voice note being corrected),
  * gently alive: the cards float, the waveform plays, the progress bar fills.
@@ -31,6 +33,7 @@ export default function HomePage() {
       <Hero />
       <HowItWorks />
       <Offers />
+      <BooksShowcase />
       <Voices />
       <Answers />
       <div className="pt-4"><FinalCall source="home_final_whatsapp" /></div>

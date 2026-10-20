@@ -122,7 +122,7 @@ test.describe('student space (demo)', () => {
 })
 
 test.describe('public pages', () => {
-  for (const path of ['/', '/pricing', '/books', '/courses', '/classes', '/business', '/level-test', '/faq',
+  for (const path of ['/', '/pricing', '/courses', '/classes', '/business', '/level-test', '/faq',
                       '/pricing/pack-intensif', '/pricing/class-8', '/courses/a0-a1', '/courses/a2-b1', '/teacher-showcase/demo',
                       '/audio', '/audio/L13', '/audio/L13-8', '/audio/B-06', '/audio/book/13', '/audio/workbook/13', '/audio/vocab/13', '/audio/level2/book/13', '/audio/level2/vocab/13']) {
     test(path, async ({ page }) => {
@@ -136,6 +136,33 @@ test.describe('public pages', () => {
       await fits(page)
     })
   }
+
+  test('home: the books section shows each level, its three books and the inside pages', async ({ page }) => {
+    await mockSupabase(page, { role: null })
+    await page.goto('/')
+    const books = page.locator('#books')
+    await books.scrollIntoViewIfNeeded()
+    for (const [tab, name] of [['PIIRMI', 'PIIRMI ENGLISH'], ['VIIZA', 'VIIZA ENGLISH'], ['LA KAART', 'LA KAART ENGLISH']]) {
+      await books.getByRole('tab', { name: new RegExp(tab) }).click()
+      await expect(books.locator('h3')).toHaveText(name)
+      await expect(books.locator('button[aria-label*="—"] img')).toHaveCount(3)
+    }
+    // the inside pages are the captures in public/books, and open full screen right here
+    await expect(books.getByRole('button', { name: 'افتح الصفحة 1' }).locator('img')).toHaveAttribute('src', /books%2Flakaart%2F01\.jpg/)
+    await fits(page)
+    await books.getByRole('button', { name: 'افتح الصفحة 2' }).click()
+    const viewer = page.getByRole('dialog')
+    await expect(viewer).toContainText('2 / 6')
+    await expect(viewer.getByRole('img', { name: 'الصفحة 2' })).toHaveAttribute('src', /books%2Flakaart%2F02\.jpg/)
+    await viewer.getByRole('button', { name: 'الصفحة التالية' }).click()
+    await expect(viewer).toContainText('3 / 6')
+    await expect(viewer.getByRole('link', { name: /اطلب الكتب عبر واتساب/ })).toHaveAttribute('href', /wa\.me\/212707902091/)
+    await page.keyboard.press('Escape')
+    await expect(viewer).toHaveCount(0)
+    // the old preview page is gone: its links land on this section
+    await page.goto('/books')
+    await expect(page).toHaveURL(/\/#books$/)
+  })
 })
 
 test.describe('notifications (062)', () => {

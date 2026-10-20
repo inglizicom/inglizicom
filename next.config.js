@@ -32,7 +32,9 @@ const nextConfig = {
       { source: `/${k}`, destination: `/?${tag(src)}`, permanent: false },
       { source: `/${k}/:path*`, destination: `/:path*?${tag(src)}`, permanent: false },
     ])
-    return [...toMofradati, ...toLevelTest, ...shortLinks, { source: '/live', destination: '/courses', permanent: true }]
+    // The books are presented and previewed on the home page (BooksShowcase); old /books links land there.
+    const toBooks = { source: '/books', destination: '/#books', permanent: false }
+    return [...toMofradati, ...toLevelTest, ...shortLinks, toBooks, { source: '/live', destination: '/courses', permanent: true }]
   },
   async headers() {
     return [
